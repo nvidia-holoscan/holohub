@@ -1,0 +1,18 @@
+BasedOnStyle: Google
+ColumnLimit: 100
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Always
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+
+# Google style doesn't specify a pointer and reference whitespace alignment: it allows both but
+# recommends consistency. We chose to enforce the style for pointers and references to be on the
+# left, that is to the type, with a whitespace after.
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+IncludeBlocks: Preserve
+
+# One parameter per line
+BinPackArguments: false
