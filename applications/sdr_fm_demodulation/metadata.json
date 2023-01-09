@@ -1,0 +1,40 @@
+{
+	"application": {
+		"name": "Software Defined Radio FM Demodulation",
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.4.0",
+		"platforms": ["amd64"],
+		"tags": ["Communications, Aerospace, Defence, Lifesciences"],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [{
+				"name": "numpy",
+				"version": "1.23.2"
+			},
+            {
+				"name": "cupy",
+				"version": "11.4"
+			},
+            {
+				"name": "cusignal",
+				"version": "22.12"
+			},
+            {
+				"name": "SoapySDR",
+				"version": "0.8.1"
+			},
+            {
+				"name": "soapysdr-module-rtlsdr",
+				"version": "0.3"
+			},
+            {
+				"name": "pyaudio",
+				"version": "0.2.13"
+			}]
+		}
+	}
+}
