@@ -93,7 +93,6 @@ class SignalGeneratorOp(Operator):
 
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
-        self.index = 0
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -103,7 +102,6 @@ class SignalGeneratorOp(Operator):
         #sig = cp.random.randn(5120) + 1j*cp.random.randn(5120)
         sdr.readStream(rx, [buffer], buffer_size, timeoutUs=int(8e12))
         op_output.emit(cp.asarray(buffer.astype(cp.complex64)), "rx_sig")
-        self.index += 1
 
 
 class DemodulateOp(Operator):
