@@ -76,7 +76,6 @@ class SignalGeneratorOp(Operator):
 
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
-        self.index = 0
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -91,8 +90,6 @@ class SignalGeneratorOp(Operator):
 
         op_output.emit(x, "x")
         op_output.emit(waveform, "waveform")
-
-        self.index += 1
 
 
 class PulseCompressionOp(Operator):
