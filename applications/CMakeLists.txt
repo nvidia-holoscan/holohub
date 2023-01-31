@@ -53,3 +53,5 @@ add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(v4l2_plus DEPENDS 
                         OPERATORS v4l2_plus_source)
+
+add_holohub_application(videomaster)

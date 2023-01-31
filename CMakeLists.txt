@@ -35,11 +35,11 @@ option(BUILD_SAMPLE_APPS "Build Holoscan SDK sample applications" OFF)
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
 
+# Build the extensions
+add_subdirectory(gxf_extensions)
+
 # Build the applications
 add_subdirectory(applications)
 
 # Build the operators
 add_subdirectory(operators)
-
-# Build the GXF extensions
-add_subdirectory(gxf_extensions)
