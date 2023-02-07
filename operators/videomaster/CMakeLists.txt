@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+cmake_minimum_required(VERSION 3.20)
+project(videomaster)
 
-add_holohub_operator(video_decoder)
-add_holohub_operator(video_encoder)
-add_holohub_operator(video_read_bitstream)
-add_holohub_operator(video_write_bitstream)
-add_holohub_operator(tensor_to_video_buffer)
-add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
-add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
-add_holohub_operator(tool_tracking_postprocessor)
-add_holohub_operator(visualizer_icardio)
-add_holohub_operator(v4l2_plus_source DEPENDS EXTENSIONS v4l2_plus_source)
-add_holohub_operator(basic_network)
-add_holohub_operator(videomaster)
+find_package(holoscan REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+add_library(include(CMakeDetermineVSServicePack) SHARED
+  videomaster_source.cpp
+  videomaster_transmitter.cpp
+  )
+add_library(holoscan::videomaster ALIAS videomaster)
+
+target_link_libraries(videomaster holoscan::holoscan)

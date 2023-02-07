@@ -38,6 +38,9 @@ set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download direct
 # Build the extensions
 add_subdirectory(gxf_extensions)
 
+# Build the operators
+add_subdirectory(operators)
+
 # Build the applications
 add_subdirectory(applications)
 

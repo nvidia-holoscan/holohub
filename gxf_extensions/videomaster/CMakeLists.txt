@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(videomaster)
+project(gxf_videomaster)
 
 find_package(Holoscan REQUIRED CONFIG 
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
