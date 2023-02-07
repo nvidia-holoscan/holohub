@@ -228,7 +228,7 @@ bool VideoMasterBase::signal_present() {
       {9, VHD_CORE_BP_RX9_STATUS}, {10, VHD_CORE_BP_RX10_STATUS}, {11, VHD_CORE_BP_RX11_STATUS},
   };
   ULONG status;
-  if (api_call_success(VHD_GetBoardProperty(_board_handle, id_to_rx_status_prop.at(_channel_index), &status), "Failed to check incoming RX status")) {
+  if (!api_call_success(VHD_GetBoardProperty(_board_handle, id_to_rx_status_prop.at(_channel_index), &status), "Failed to check incoming RX status")) {
     return false;
   }
 
