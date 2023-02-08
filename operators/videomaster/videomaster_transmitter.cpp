@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "holoscan/operators/videomaster/videomaster_transmitter.hpp"
+#include "videomaster_transmitter.hpp"
 
 #include "holoscan/core/gxf/entity.hpp"
 #include "holoscan/core/operator_spec.hpp"

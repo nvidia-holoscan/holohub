@@ -19,14 +19,12 @@ extensions:
   - libgxf_cuda.so
   - libgxf_multimedia.so
   - libgxf_serialization.so
-  - libvideomaster_ext.so
+  - libgxf_videomaster.so
   - libcustom_lstm_inference.so
   - libformat_converter.so
   - libholoviz.so
   - libstream_playback.so
   - libtool_tracking_postprocessor.so
-
-source: "videomaster"
 
 videomaster:
   width: 1920
@@ -34,7 +32,7 @@ videomaster:
   board: 0
   input: 0
   use_rdma: false
-  
+
 format_converter_videomaster:
   in_dtype: "rgba8888"
   out_tensor_name: source_video
@@ -44,6 +42,16 @@ format_converter_videomaster:
   scale_max: 255.0
   resize_width: 854
   resize_height: 480
+
+drop_alpha_channel_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+output_format_converter:
+  in_dtype: "rgb888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
 
 lstm_inference:
   model_file_path: ../data/endoscopy/model/tool_loc_convlstm.onnx
@@ -79,11 +87,6 @@ lstm_inference:
   max_workspace_size: 2147483648
   enable_fp16_: true
 
-visualizer_format_converter_replayer:
-  in_dtype: "rgb888"
-  out_dtype: "rgba8888"
-  # out_tensor_name: video
-
 tool_tracking_postprocessor:
 
 holoviz:
@@ -92,33 +95,6 @@ holoviz:
       type: color
       opacity: 1.0
       priority: 0
-    - name: mask
-      type: color
-      opacity: 1.0
-      priority: 1
-    - name: scaled_coords
-      type: crosses
-      opacity: 1.0
-      line_width: 4
-      color: [1.0, 0.0, 0.0, 1.0]
-      priority: 2
-    - name: scaled_coords
-      type: text
-      opacity: 1.0
-      priority: 3
-      color: [1.0, 1.0, 1.0, 0.9]
-      text:
-        - Grasper
-        - Bipolar
-        - Hook
-        - Scissors
-        - Clipper
-        - Irrigator
-        - Spec.Bag
-
-holoviz_overlay:
-  headless: true
-  tensors:
     - name: mask
       type: color
       opacity: 1.0

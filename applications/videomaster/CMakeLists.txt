@@ -14,7 +14,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(videomaster)
 
-find_package(Holoscan 0.4 REQUIRED CONFIG
+find_package(holoscan 0.4 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 
@@ -26,13 +26,14 @@ add_executable(videomaster_tool_tracking
 target_link_libraries(videomaster_tool_tracking
   PRIVATE
   holoscan::holoscan
+  holoscan::videomaster
 )
 
 # Copy config file
 add_custom_target(videomaster_tool_tracking_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/videomaster_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "videomaster_tool_tracking.yaml"
-  BYPTODUCTS "videomaster_tool_tracking.yaml"
+  BYPRODUCTS "videomaster_tool_tracking.yaml"
 )
 add_dependencies(videomaster_tool_tracking videomaster_tool_tracking_yaml)
 

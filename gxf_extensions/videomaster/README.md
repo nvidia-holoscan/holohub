@@ -4,7 +4,7 @@ This GXF extension provides support for VideoMaster SDK.
 
 ## Requirements
 
-This extensions requires 
+This extension requires the VideoMaster SDK
 
 ## Building the extension
 

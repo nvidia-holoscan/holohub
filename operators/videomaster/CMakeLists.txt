@@ -18,10 +18,14 @@ project(videomaster)
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(include(CMakeDetermineVSServicePack) SHARED
+add_library(videomaster SHARED
+  videomaster_source.hpp
   videomaster_source.cpp
+  videomaster_transmitter.hpp
   videomaster_transmitter.cpp
   )
 add_library(holoscan::videomaster ALIAS videomaster)
+
+target_include_directories(videomaster INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(videomaster holoscan::holoscan)
