@@ -116,7 +116,7 @@ class PulseCompressionOp(Operator):
 
         for pulse in range(num_pulses):
             y = cp.fft.ifft(cp.multiply(X[pulse, :], W), Nfft, 0)
-        x_compressed = x[:, 0:num_compressed_range_bins]
+        x_compressed = y[:, 0:num_compressed_range_bins]
 
         x_compressed_stack = cp.stack([x_compressed] * num_channels)
 
