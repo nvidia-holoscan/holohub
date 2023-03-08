@@ -1,0 +1,21 @@
+{
+	"application": {
+		"name": "Simple Radar Pipeline in C++",
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.4.0",
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Signal Processing", "RADAR"],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [{
+			  "name": "MatX",
+			  "version": "0.2.5",
+			  "url": "https://github.com/NVIDIA/MatX.git"
+			}]
+		}
+	}
+}
