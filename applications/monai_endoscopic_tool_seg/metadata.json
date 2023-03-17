@@ -1,0 +1,18 @@
+{
+	"application": {
+		"name": "Endoscopy Tool Segmentation from MONAI Model Zoo Application",
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.4.0",
+		"platforms": ["amd64, arm64"],
+		"tags": ["MONAI", "Endoscopy", "Segmentation"],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [
+            ]
+		}
+	}
+}
