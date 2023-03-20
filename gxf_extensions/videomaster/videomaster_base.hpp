@@ -1,12 +1,11 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2022, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,14 +61,18 @@ class VideoMasterBase : public gxf::Codelet {
   gxf::Expected<void> start_stream();
 
   bool signal_present();
-  void set_loopback_state(bool state);
+  bool set_loopback_state(bool state);
+  std::unordered_map<ULONG, ULONG> get_detected_input_information(uint32_t channel_index) ;
   std::unordered_map<ULONG, ULONG> get_input_information();
 
   bool api_call_success(ULONG api_error_code, std::string error_message);
+
+ private:
+  void free_buffers();
 };
 
 }  // namespace videomaster
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP_

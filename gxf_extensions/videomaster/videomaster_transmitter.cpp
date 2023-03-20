@@ -1,12 +1,11 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2022, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,20 +62,21 @@ gxf_result_t VideoMasterTransmitter::registerInterface(gxf::Registrar *registrar
 }
 
 gxf_result_t VideoMasterTransmitter::start() {
+
   gxf::Expected<void> result;
   result &= configure_board();
-  if (_overlay)
-    result &= configure_board_for_overlay();
   result &= open_stream();
 
-  _video_information->update_stream_properties_values(VideoFormat{_width, _height, _progressive, _framerate});
-
   if (!_overlay) {
+    _video_information->update_stream_properties_values(VideoFormat{_width, _height, _progressive, _framerate});
+
+    VHD_SetBoardProperty(_board_handle, VHD_SDI_BP_GENLOCK_SOURCE, VHD_GENLOCK_LOCAL);
+
     result &= configure_stream();
     result &= init_buffers();
     result &= start_stream();
   }
-
+  
   return gxf::ToResultCode(result);
 }
 
@@ -110,7 +110,7 @@ gxf_result_t VideoMasterTransmitter::tick() {
       _has_lost_signal = false;
     }
 
-    auto input_information = get_input_information();
+    auto input_information = get_detected_input_information(_channel_index);
     if (input_information != _video_information->stream_properties_values) {
       GXF_LOG_INFO("Input signal has changed, restarting stream");
 
@@ -120,6 +120,7 @@ gxf_result_t VideoMasterTransmitter::tick() {
         return GXF_FAILURE;
 
       gxf::Expected<void> result;
+      result &= configure_board_for_overlay();
       result &= configure_stream();
       result &= configure_stream_for_overlay();
       result &= init_buffers();
@@ -155,23 +156,23 @@ gxf_result_t VideoMasterTransmitter::tick() {
 
 gxf::Expected<void> VideoMasterTransmitter::configure_board_for_overlay() {
   bool success = api_call_success(VHD_SetBoardProperty(_board_handle, VHD_SDI_BP_GENLOCK_SOURCE, id_to_genlock_source.at(_channel_index)), "Could not configure genlock source");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_A, id_to_rx_keyer_input.at(_channel_index)), "Could not configure keyer input A");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_B, id_to_tx_keyer_input.at(_channel_index)), "Could not configure keyer input B");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_K, id_to_tx_keyer_input.at(_channel_index)), "Could not configure keyer input K");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_VIDEOOUTPUT_TX0, VHD_KOUTPUT_KEYER), "Could not configure keyer video output");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ANCOUTPUT_TX0, id_to_rx_keyer_output.at(_channel_index)), "Could not configure keyer ANC output");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHACLIP_MIN, 0),  "Could not configure alphaclip min");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHACLIP_MAX, 1020), "Could not configure alphaclip max");
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHABLEND_FACTOR, 1023), "Could not configure alphablend factor");
-
-  success &= api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ENABLE, TRUE), "Could not enable keyer");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_SDI_BP_GENLOCK_VIDEO_STANDARD, _video_information->stream_properties_values[VHD_SDI_SP_VIDEO_STANDARD]), "Could not configure genlock video standard");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_A, id_to_rx_keyer_input.at(_channel_index)), "Could not configure keyer input A");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_B, id_to_tx_keyer_input.at(_channel_index)), "Could not configure keyer input B");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_INPUT_K, id_to_tx_keyer_input.at(_channel_index)), "Could not configure keyer input K");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_VIDEOOUTPUT_TX0, VHD_KOUTPUT_KEYER), "Could not configure keyer video output");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ANCOUTPUT_TX0, id_to_rx_keyer_output.at(_channel_index)), "Could not configure keyer ANC output");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHACLIP_MIN, 0),  "Could not configure alphaclip min");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHACLIP_MAX, 1020), "Could not configure alphaclip max");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ALPHABLEND_FACTOR, 1023), "Could not configure alphablend factor");
+  success = success && api_call_success(VHD_SetBoardProperty(_board_handle, VHD_KEYER_BP_ENABLE, TRUE), "Could not enable keyer");
 
   return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }
 
 gxf::Expected<void> VideoMasterTransmitter::configure_stream_for_overlay() {
   bool success = api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_CORE_SP_BUFFER_PACKING, VHD_BUFPACK_VIDEO_RGBA_32), "Could not set buffer packing");
-  success &= api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_SDI_SP_TX_GENLOCK, TRUE), "Could not set genlock for TX stream");
+  success = success && api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_SDI_SP_TX_GENLOCK, TRUE), "Could not set genlock for TX stream");
 
   return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }

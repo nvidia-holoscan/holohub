@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText:  Copyright (c) 2022, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@
 namespace holoscan::ops {
 
 void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
-  auto& signal = spec.output<gxf::Entity>("signal");
+  auto& source = spec.input<gxf::Entity>("source");
 
   spec.param(_use_rdma, "use_rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
@@ -39,7 +39,7 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
              "Progressiveness of the video frames to send.",
              true);
   spec.param(_framerate, "framerate", "Framerate", "Framerate of the signal to generate.", 60u);
-  spec.param(_source, "source", "Source", "Source data.", &signal);
+  spec.param(_source, "source", "Source", "Source data.", &source);
   spec.param(_pool, "pool", "Pool", "Pool to allocate the buffers.");
   spec.param(_overlay,
              "overlay",

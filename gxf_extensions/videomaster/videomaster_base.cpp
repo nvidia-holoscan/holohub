@@ -1,12 +1,11 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2022, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -91,16 +90,7 @@ gxf_result_t VideoMasterBase::stop() {
 
   VHD_CloseBoardHandle(_board_handle);
 
-  if (_use_rdma || _is_input) {
-    for (auto &slot : _rdma_buffers)
-      for (auto &buffer : slot)
-        buffer.freeBuffer();
-  }
-  if (!_use_rdma || _is_input) {
-    for (auto &slot : _non_rdma_buffers)
-      for (auto &buffer : slot)
-        free(buffer);
-  }
+  free_buffers();
 
   return GXF_SUCCESS;
 }
@@ -146,15 +136,15 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
 gxf::Expected<void> VideoMasterBase::configure_stream() {
   bool success = api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_CORE_SP_BUFFER_PACKING, VHD_BUFPACK_VIDEO_RGB_32), "Failed to set buffer packing");
   if (!_video_information->get_video_format()->progressive)
-    success &= api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_CORE_SP_FIELD_MERGE, TRUE), "Failed to set field merging");
-
-  for (auto &stream_prop : _video_information->stream_properties_values)
-    success &= api_call_success(VHD_SetStreamProperty(_stream_handle, stream_prop.first, stream_prop.second), "Failed to set stream property");
+    success = success && api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_CORE_SP_FIELD_MERGE, TRUE), "Failed to set field merging");
+  success = success && _video_information->configure_stream(_stream_handle);
 
   return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }
 
 gxf::Expected<void> VideoMasterBase::init_buffers() {
+  free_buffers();
+
   if (_use_rdma || _is_input) {
     for (auto &slot : _rdma_buffers)
       slot.resize(_video_information->get_nb_buffer_types());
@@ -181,8 +171,7 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
       if (!_use_rdma || _is_input) {
         void *allocated_buffer = nullptr;
         posix_memalign(&allocated_buffer, 4096, buffer_size);
-
-        _non_rdma_buffers[slot_index][buffer_type_index] = (BYTE *)allocated_buffer;
+        _non_rdma_buffers[slot_index][buffer_type_index] = (BYTE*)allocated_buffer;
       }
     }
   }
@@ -214,6 +203,17 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
   return gxf::Success;
 }
 
+void VideoMasterBase::free_buffers() {
+  if (_use_rdma || _is_input) {
+    for (auto& slot : _rdma_buffers)
+      for (auto& buffer : slot) buffer.freeBuffer();
+  }
+  if (!_use_rdma || _is_input) {
+    for (auto& slot : _non_rdma_buffers)
+      for (auto& buffer : slot) free(buffer);
+  }
+}
+
 gxf::Expected<void> VideoMasterBase::start_stream() {
   _slot_count = 0;
 
@@ -235,28 +235,31 @@ bool VideoMasterBase::signal_present() {
   return !(status & VHD_CORE_RXSTS_UNLOCKED);
 }
 
+std::unordered_map<ULONG, ULONG> VideoMasterBase::get_detected_input_information(uint32_t channel_index) {
+  std::unordered_map<ULONG, ULONG> input_information;
+  auto board_properties = _video_information->get_board_properties(channel_index);
+  auto stream_properties = _video_information->get_stream_properties();
+  for (uint32_t i = 0; i < board_properties.size(); i++) {
+    ULONG data;
+    VHD_GetBoardProperty(_board_handle, board_properties[i], (ULONG*)&data);
+    input_information[stream_properties[i]] = data;
+  }
+
+  return input_information;
+}
+
 std::unordered_map<ULONG, ULONG> VideoMasterBase::get_input_information() {
   std::unordered_map<ULONG, ULONG> input_information;
   for (auto prop : _video_information->get_stream_properties()) {
     ULONG data;
-    VHD_GetStreamProperty(_stream_handle, prop, (ULONG *)&data);
+    VHD_GetStreamProperty(_stream_handle, prop, (ULONG*)&data);
     input_information[prop] = data;
   }
 
   return input_information;
 }
 
-bool VideoMasterBase::api_call_success(ULONG api_error_code, std::string error_message) {
-  if (api_error_code != VHDERR_NOERROR) {
-    GXF_LOG_ERROR("%s", error_message.c_str());
-    return false;
-  }
-
-  return true;
-}
-
-
-void VideoMasterBase::set_loopback_state(bool state) {
+bool VideoMasterBase::set_loopback_state(bool state) {
   ULONG has_passive_loopback = FALSE;
   ULONG has_active_loopback = FALSE;
   ULONG has_firmware_loopback = FALSE;
@@ -266,11 +269,21 @@ void VideoMasterBase::set_loopback_state(bool state) {
   api_call_success(VHD_GetBoardCapability(_board_handle, VHD_CORE_BOARD_CAP_FIRMWARE_LOOPBACK, &has_firmware_loopback), "failed to retrieve firmware loopback capability");
 
   if (has_firmware_loopback && id_to_firmware_loopback_prop.find(_channel_index) != id_to_firmware_loopback_prop.end())
-    api_call_success(VHD_SetBoardProperty(_board_handle, id_to_firmware_loopback_prop.at(_channel_index), state), "failed to set firmware loopback state");
+    return api_call_success(VHD_SetBoardProperty(_board_handle, id_to_firmware_loopback_prop.at(_channel_index), state), "failed to set firmware loopback state");
   else if (has_active_loopback && id_to_active_loopback_prop.find(_channel_index) != id_to_active_loopback_prop.end())
-    api_call_success(VHD_SetBoardProperty(_board_handle, id_to_active_loopback_prop.at(_channel_index), state), "failed to set active loopback state");
+    return api_call_success(VHD_SetBoardProperty(_board_handle, id_to_active_loopback_prop.at(_channel_index), state), "failed to set active loopback state");
   else if (has_passive_loopback && id_to_passive_loopback_prop.find(_channel_index) != id_to_passive_loopback_prop.end())
-    api_call_success(VHD_SetBoardProperty(_board_handle, id_to_passive_loopback_prop.at(_channel_index), state), "failed to set passive loopback state");
+    return api_call_success(VHD_SetBoardProperty(_board_handle, id_to_passive_loopback_prop.at(_channel_index), state), "failed to set passive loopback state");
+  return true;
+}
+
+bool VideoMasterBase::api_call_success(ULONG api_error_code, std::string error_message) {
+  if (api_error_code != VHDERR_NOERROR) {
+    GXF_LOG_ERROR("%s", error_message.c_str());
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace videomaster

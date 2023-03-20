@@ -1,12 +1,11 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2022, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sdi_video_information.hpp"
 
 #include "VideoMasterHD_Core.h"
@@ -22,6 +22,36 @@
 namespace nvidia {
 namespace holoscan {
 namespace videomaster {
+
+const std::vector<VHD_SDI_BOARDPROPERTY> rx_channel_standard_board_properties = {
+  VHD_SDI_BP_RX0_STANDARD,
+  VHD_SDI_BP_RX1_STANDARD,
+  VHD_SDI_BP_RX2_STANDARD,
+  VHD_SDI_BP_RX3_STANDARD,
+  VHD_SDI_BP_RX4_STANDARD,
+  VHD_SDI_BP_RX5_STANDARD,
+  VHD_SDI_BP_RX6_STANDARD,
+  VHD_SDI_BP_RX7_STANDARD,
+  VHD_SDI_BP_RX8_STANDARD,
+  VHD_SDI_BP_RX9_STANDARD,
+  VHD_SDI_BP_RX10_STANDARD,
+  VHD_SDI_BP_RX11_STANDARD,
+};
+
+const std::vector<VHD_SDI_BOARDPROPERTY> rx_channel_interface_board_properties = {
+  VHD_SDI_BP_RX0_INTERFACE,
+  VHD_SDI_BP_RX1_INTERFACE,
+  VHD_SDI_BP_RX2_INTERFACE,
+  VHD_SDI_BP_RX3_INTERFACE,
+  VHD_SDI_BP_RX4_INTERFACE,
+  VHD_SDI_BP_RX5_INTERFACE,
+  VHD_SDI_BP_RX6_INTERFACE,
+  VHD_SDI_BP_RX7_INTERFACE,
+  VHD_SDI_BP_RX8_INTERFACE,
+  VHD_SDI_BP_RX9_INTERFACE,
+  VHD_SDI_BP_RX10_INTERFACE,
+  VHD_SDI_BP_RX11_INTERFACE,
+};
 
 const std::unordered_map<VHD_VIDEOSTANDARD, VHD_INTERFACE> default_interfaces = {
     {VHD_VIDEOSTD_S259M_PAL, VHD_INTERFACE_SD_259},
@@ -87,15 +117,19 @@ const std::unordered_map<VHD_VIDEOSTANDARD, VHD_INTERFACE> default_interfaces = 
     {VHD_VIDEOSTD_8192x4320p_60Hz, VHD_INTERFACE_4X12G_2082_12},
 };
 
-uint32_t VideoMasterSdiVideoInformation::get_buffer_type() { return VHD_SDI_BT_VIDEO; };
+uint32_t VideoMasterSdiVideoInformation::get_buffer_type() { return VHD_SDI_BT_VIDEO; }
 
-uint32_t VideoMasterSdiVideoInformation::get_nb_buffer_types() { return NB_VHD_SDI_BUFFERTYPE; };
+uint32_t VideoMasterSdiVideoInformation::get_nb_buffer_types() { return NB_VHD_SDI_BUFFERTYPE; }
 
-uint32_t VideoMasterSdiVideoInformation::get_stream_processing_mode() { return VHD_SDI_STPROC_DISJOINED_VIDEO; };
+uint32_t VideoMasterSdiVideoInformation::get_stream_processing_mode() { return VHD_SDI_STPROC_DISJOINED_VIDEO; }
+
+std::vector<uint32_t> VideoMasterSdiVideoInformation::get_board_properties(uint32_t channel_index) {
+  return {(uint32_t)rx_channel_standard_board_properties[channel_index], (uint32_t)rx_channel_interface_board_properties[channel_index]};
+}
 
 std::vector<uint32_t> VideoMasterSdiVideoInformation::get_stream_properties() {
   return {VHD_SDI_SP_VIDEO_STANDARD, VHD_SDI_SP_INTERFACE};
-};
+}
 
 gxf::Expected<VideoFormat> VideoMasterSdiVideoInformation::get_video_format() {
   ULONG width, height, framerate;
@@ -111,7 +145,7 @@ gxf::Expected<VideoFormat> VideoMasterSdiVideoInformation::get_video_format() {
   }
 
   return gxf::Expected<VideoFormat>{VideoFormat{width, height, !interlaced, framerate}};
-};
+}
 
 gxf::Expected<void> VideoMasterSdiVideoInformation::update_stream_properties_values(VideoFormat video_format) {
   for (uint32_t video_standard = 0; video_standard < NB_VHD_VIDEOSTANDARDS; video_standard++) {
@@ -138,7 +172,16 @@ gxf::Expected<void> VideoMasterSdiVideoInformation::update_stream_properties_val
   }
 
   return gxf::Unexpected{GXF_FAILURE};
-};
+}
+
+gxf::Expected<void> VideoMasterSdiVideoInformation::configure_stream(void* stream_handle) {
+  for (auto& stream_prop : stream_properties_values) {
+    auto return_code = VHD_SetStreamProperty(stream_handle, stream_prop.first, stream_prop.second);
+    if (return_code != VHDERR_NOERROR) return gxf::Unexpected{GXF_FAILURE};
+  }
+
+  return gxf::Success;
+}
 
 }  // namespace videomaster
 }  // namespace holoscan

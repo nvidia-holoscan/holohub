@@ -19,7 +19,7 @@ extensions:
   - libgxf_cuda.so
   - libgxf_multimedia.so
   - libgxf_serialization.so
-  - libgxf_videomaster.so
+  - libvideomaster_ext.so
   - libcustom_lstm_inference.so
   - libformat_converter.so
   - libholoviz.so
@@ -29,11 +29,15 @@ extensions:
 videomaster:
   width: 1920
   height: 1080
+  progressive: true
+  framerate: 25
   board: 0
   input: 0
+  output: 0
   use_rdma: false
+  overlay: false
 
-format_converter_videomaster:
+format_converter:
   in_dtype: "rgba8888"
   out_tensor_name: source_video
   out_dtype: "float32"
@@ -43,11 +47,19 @@ format_converter_videomaster:
   resize_width: 854
   resize_height: 480
 
+overlay_format_converter:
+  in_dtype: "rgba8888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+  resize_width: 1920
+  resize_height: 1080
+
 drop_alpha_channel_converter:
   in_dtype: "rgba8888"
   out_dtype: "rgb888"
 
-output_format_converter:
+visualizer_format_converter:
   in_dtype: "rgb888"
   alpha_value: 255
   out_dtype: "rgba8888"
@@ -87,14 +99,39 @@ lstm_inference:
   max_workspace_size: 2147483648
   enable_fp16_: true
 
-tool_tracking_postprocessor:
-
 holoviz:
   tensors:
     - name: ""
       type: color
       opacity: 1.0
       priority: 0
+    - name: mask
+      type: color
+      opacity: 1.0
+      priority: 1
+    - name: scaled_coords
+      type: crosses
+      opacity: 1.0
+      line_width: 4
+      color: [1.0, 0.0, 0.0, 1.0]
+      priority: 2
+    - name: scaled_coords
+      type: text
+      opacity: 1.0
+      priority: 3
+      color: [1.0, 1.0, 1.0, 0.9]
+      text:
+        - Grasper
+        - Bipolar
+        - Hook
+        - Scissors
+        - Clipper
+        - Irrigator
+        - Spec.Bag
+
+holoviz_overlay:
+  headless: true
+  tensors:
     - name: mask
       type: color
       opacity: 1.0

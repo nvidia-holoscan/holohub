@@ -1,4 +1,4 @@
-# Copyright (c) 2022, NVIDIA CORPORATION.
+#  Copyright (c) 2022, DELTACAST.TV.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,11 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.20)
-project(gxf_videomaster)
-
-find_package(Holoscan REQUIRED CONFIG 
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Finds the VideoMaster SDK
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
@@ -38,21 +33,16 @@ add_library(gxf_videomaster_lib SHARED
 
 target_link_libraries(gxf_videomaster_lib
   PUBLIC
-    VideoMaster::videomasterhd_core
+  VideoMaster::videomasterhd_core
     CUDA::cudart
     CUDA::cuda_driver
     GXF::multimedia
     GXF::std
     yaml-cpp
-    holoscan::holoscan
 )
 
 # Create extension
-add_library(gxf_videomaster SHARED
-  videomaster_ext.cpp
-)
 add_library(holoscan::exts::gxf_videomaster ALIAS gxf_videomaster)
-
 target_link_libraries(gxf_videomaster
   PUBLIC gxf_videomaster_lib
 )

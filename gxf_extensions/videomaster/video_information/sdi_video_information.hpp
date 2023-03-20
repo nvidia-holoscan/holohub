@@ -1,12 +1,11 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2022, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,13 +26,15 @@ struct VideoMasterSdiVideoInformation : public VideoMasterVideoInformation {
   virtual uint32_t get_buffer_type() override;
   virtual uint32_t get_nb_buffer_types() override;
   virtual uint32_t get_stream_processing_mode() override;
+  virtual std::vector<uint32_t> get_board_properties(uint32_t channel_index) override;
   virtual std::vector<uint32_t> get_stream_properties() override;
   virtual gxf::Expected<VideoFormat> get_video_format() override;
   virtual gxf::Expected<void> update_stream_properties_values(VideoFormat video_format) override;
+  virtual gxf::Expected<void> configure_stream(void* stream_handle) override;
 };
 
 }  // namespace videomaster
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SDI_VIDEO_INFORMATION_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SDI_VIDEO_INFORMATION_HPP_

@@ -1,0 +1,160 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+extensions:
+  - libgxf_std.so
+  - libgxf_cuda.so
+  - libgxf_multimedia.so
+  - libgxf_serialization.so
+  - libaja_source.so
+  - libvideomaster_ext.so
+  - libformat_converter.so
+  - libholoviz.so
+  - libstream_playback.so
+  - libmultiai_postprocessor.so
+  - libmultiai_inference.so
+  - libvisualizer_icardio.so
+
+videomaster:
+  board: 0
+  input: 0
+  use_rdma: false
+
+format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+
+plax_cham_resized:
+  out_tensor_name: plax_cham_resize
+  out_dtype: "rgb888"
+  resize_width: 320
+  resize_height: 320
+
+plax_cham_pre:
+  out_tensor_name: plax_cham_pre_proc
+  out_dtype: "float32"
+  resize_width: 320
+  resize_height: 320
+
+aortic_ste_pre:
+  out_tensor_name: aortic_pre_proc
+  out_dtype: "float32"
+  resize_width: 300
+  resize_height: 300
+
+b_mode_pers_pre:
+  out_tensor_name: bmode_pre_proc
+  out_dtype: "float32"
+  resize_width: 320
+  resize_height: 240
+
+multiai_inference:
+  backend: "trt"
+  model_path_map: 
+    "plax_chamber": "../data/multiai_ultrasound/models/plax_chamber.onnx"
+    "aortic_stenosis": "../data/multiai_ultrasound/models/aortic_stenosis.onnx"
+    "bmode_perspective": "../data/multiai_ultrasound/models/bmode_perspective.onnx"
+  pre_processor_map: 
+    "plax_chamber": ["plax_cham_pre_proc"]
+    "aortic_stenosis": ["aortic_pre_proc"]
+    "bmode_perspective": ["bmode_pre_proc"]        
+  inference_map: 
+    "plax_chamber": "plax_cham_infer"
+    "aortic_stenosis": "aortic_infer"
+    "bmode_perspective": "bmode_infer"    
+  in_tensor_names: ["plax_cham_pre_proc", "aortic_pre_proc", "bmode_pre_proc"]
+  out_tensor_names: ["plax_cham_infer", "aortic_infer", "bmode_infer"]
+  parallel_inference: true
+  infer_on_cpu: false
+  enable_fp16: false
+  input_on_cuda: true
+  output_on_cuda: true
+  transmit_on_cuda: true
+  is_engine_path: false
+
+multiai_postprocessor:
+  process_operations:
+    "plax_cham_infer": ["max_per_channel_scaled"]
+  processed_map:
+    "plax_cham_infer": "plax_chamber_processed"
+  in_tensor_names: ["plax_cham_infer", 
+                        "aortic_infer",
+                        "bmode_infer"]
+  out_tensor_names : ["plax_chamber_processed"]    
+  input_on_cuda: false
+  output_on_cuda: false
+  transmit_on_cuda: false
+
+visualizer_icardio:
+  in_tensor_names: ["plax_chamber_processed"]
+  out_tensor_names: ["keypoints", "keyarea_1", "keyarea_2", 
+                 "keyarea_3", "keyarea_4", "keyarea_5", "lines","logo"]
+  input_on_cuda: false
+  
+holoviz:
+  tensors:
+    - name: plax_cham_resize
+      type: color
+      priority: 0
+    - name: logo
+      type: color
+      priority: 0
+      opacity: 0.5
+    - name: keyarea_1
+      type: ovals
+      color: [1.0, 0.0, 0.0, 1.0]
+      line_width: 4
+      opacity: 0.7
+      priority: 2
+    - name: keyarea_2
+      type: ovals
+      color: [0.0, 1.0, 0.0, 1.0]
+      line_width: 4
+      opacity: 0.7
+      priority: 2
+    - name: keyarea_3
+      type: ovals
+      color: [0.0, 1.0, 1.0, 1.0]
+      line_width: 4
+      opacity: 0.7
+      priority: 2
+    - name: keyarea_4
+      type: ovals
+      color: [1.0, 0.5, 0.5, 1.0]
+      line_width: 4
+      opacity: 0.7
+      priority: 2
+    - name: keyarea_5
+      type: ovals
+      color: [1.0, 0.0, 1.0, 1.0]
+      line_width: 4
+      opacity: 0.7
+      priority: 2
+    - name: keypoints
+      type: crosses
+      line_width: 4
+      color: [1.0, 1.0, 1.0, 1.0]
+      priority: 3
+    - name: lines
+      type: line_strip
+      line_width: 1
+      color: [1.0, 1.0, 0.0, 1.0]
+      priority: 1
+  window_title: "Multi AI Inference"
+  width: 320
+  height: 320
+  use_exclusive_display: false
