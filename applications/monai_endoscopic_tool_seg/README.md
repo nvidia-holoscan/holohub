@@ -1,4 +1,7 @@
 # Endoscopic Tool Segmentation from MONAI Model Zoo
+
+This HoloHub application has been verified on the GI Genius sandbox and is currently deployable to GI Genius Intelligent Endoscopy Modules. GI Genius is Cosmo Pharmaceuticals's AI-powered endoscopy system. This implementation by Cosmo Pharmaceuticals showcases the fast and seamless deployment of Holohub applications on products/platforms running on NVIDIA Holoscan. 
+
 ## Model
 We will be deploying the endoscopic tool segmentation model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation). <br>
 Note that you could also use the MONAI model zoo repo for training your own semantic segmentation model with your own data, but here we are directly deploying the downloaded MONAI model checkpoint into Holoscan. 
