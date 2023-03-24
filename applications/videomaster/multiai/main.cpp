@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,15 +17,16 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/std_ops.hpp>
+#include <videomaster_source.hpp>
 
 class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
 
+    std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
     std::shared_ptr<Operator> source = make_operator<ops::VideoMasterSourceOp>(
         "videomaster", from_config("videomaster"), Arg("pool") = pool_resource);
-    std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
 
     auto in_dtype = std::string("rgba8888");
     auto plax_cham_resized = make_operator<ops::FormatConverterOp>("plax_cham_resized",

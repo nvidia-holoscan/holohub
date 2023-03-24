@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,7 @@ extensions:
   - libgxf_cuda.so
   - libgxf_multimedia.so
   - libgxf_serialization.so
-  - libaja_source.so
-  - libvideomaster_ext.so
+  - libvideomaster.so
   - libformat_converter.so
   - libholoviz.so
   - libsegmentation_postprocessor.so
