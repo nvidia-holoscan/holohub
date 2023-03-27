@@ -4,7 +4,7 @@ These applications demonstrate the use of custom components for replaying a vide
 
 ### Requirements
 
-The provided applications are configured to use the DELTACAST.TV capture card for output stream, or a pre-recorded endoscopy video (replayer). Contact [DELTACAST.TV](https://www.deltacast.tv/) for more details on their products.
+The provided applications are configured to use the DELTACAST.TV card for output stream. Contact [DELTACAST.TV](https://www.deltacast.tv/) for more details on their products and how to setup your environment.
 
 ### Data
 
@@ -16,14 +16,8 @@ Built with the SDK, see instructions from the top level README.
 
 ### Run Instructions
 
-First, go in your `build` or `install` directory (automatically done by `./run launch`).
+Go to the build directoy and run the command:
 
-Then, run the commands of your choice:
-
-* Using an DELTACAST.TV card
-    ```bash
-    # C++
-    ./apps/replayer/cpp/replayer
-
-
-> ℹ️ The python app can run outside those folders if `HOLOSCAN_SAMPLE_DATA_PATH` is set in your environment (automatically done by `./run launch`).
+  ```bash
+  ./applications/videomaster/replayer/videomaster_replayer
+  ```
