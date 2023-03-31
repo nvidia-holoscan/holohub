@@ -53,9 +53,9 @@ print("Changing the ONNX model input to have shape: ", 1, height, width, 3)
 graph.nodes.extend([nhwc_to_nchw_in])
 
 if nms:
-    # Add NMS post-processing
-    # https://gitlab-master.nvidia.com/TensorRT/Public/oss/-/blob/main/samples/python/efficientdet/create_onnx.py
-    # https://github.com/zhiqwang/yolov5-rt-stack/blob/0c87bda491eb9bef2d9ee7a5f38112196ac80be1/yolort/relay/trt_graphsurgeon.py#L177
+    # Add NMS post-processing. Append the EfficientNMS_TRT plug-in to the network. 
+    # This plug-in performs non-max suppression (NMS) of the network output, which is a common post-processing step for detection models. 
+    # Further info about the plug-in and its parameters are available at: https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin
     max_output_boxes = 20
     attrs = OrderedDict(
         plugin_version="1",
