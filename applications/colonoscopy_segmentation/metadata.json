@@ -1,0 +1,31 @@
+{
+	"application": {
+		"name": "Colonoscopy segmentation",
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Colonoscopy",
+			"Classification"
+		],
+		"dependencies": {
+			"data": "https://ngc.nvidia.com/resources/colonoscopy_sample_app_data"
+		},
+		"run": {
+			"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

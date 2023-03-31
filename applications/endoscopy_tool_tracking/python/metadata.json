@@ -1,0 +1,31 @@
+{
+	"application": {
+		"name": "Endoscopy Tool Tracking",
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Endoscopy",
+			"Tracking",
+			"AJA"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}

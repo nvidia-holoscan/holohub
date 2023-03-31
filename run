@@ -1,0 +1,456 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Compare versions
+compare_version () {
+
+    if [[ $1 == $2 ]]
+    then
+        echo "0"
+        return 0
+    fi
+
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            echo "1"
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            echo "2"
+            return 2
+        fi
+    done
+    echo "0"
+    return 0
+}
+
+# Helper function to install packages
+install_cuda_dependencies_package() {
+   package_name=$1
+   preferred_version=$2
+
+   # Checking if compatible packages are already installed
+   installed_version=$(apt list --installed ${package_name} 2>/dev/null | grep $package_name)
+   if [[ $installed_version != "" ]]; then
+      echo "Package $package_name found with version $installed_version"
+      return 0
+   fi
+
+   available_version=$(apt list -a ${package_name} 2>/dev/null | grep $preferred_version)
+   package_version=$(echo $available_version | cut -d' ' -f2)
+   package_installed=$(echo $available_version | grep "installed")
+
+   if [[ $package_version == "" ]]; then
+    echo "$package_name $preferred_version is not installable."
+    echo "You might want to try to install a newer version manually and rerun the setup:"
+    echo "  sudo apt install $package_name"
+    exit 1
+   elif [[ $package_installed == "" ]]; then
+    echo "Installing $package_name=$package_version"
+    apt install --no-install-recommends -y $package_name=$package_version
+   fi
+}
+
+# Setup the environment
+# Build HoloHub sample apps
+setup_desc() {
+  echo ""
+  echo "Install the required dependencies for HoloHub (sample applications)"
+  echo "Usage: ./run setup"
+  echo ""
+}
+
+setup() {
+
+  # Run apt-get update
+  apt-get update
+
+  # Install wget  
+  wget_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
+  if [[ $wget_version == "" ]]; then
+    apt-get install wget
+  fi
+
+  # Check version of CMake otherwise upgrade
+  cmake_version=$(dpkg --status cmake | grep -Po '^Version: \K[^-]*')
+  ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
+
+  cmake_need_upload=$(compare_version ${cmake_version} "3.20.1")
+
+  # If we should update cmake
+  # Install from https://apt.kitware.com/
+  if [[ $cmake_version == "" ]] || [[ $cmake_need_upload == 2 ]]; then
+    apt install --no-install-recommends -y gpg
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${ubuntu_codename} main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+    apt-get update
+    apt install --no-install-recommends -y cmake cmake-curses-gui
+  fi
+
+  # Install python dev
+  python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
+  python3_min_version=$(compare_version ${python3_dev_version} "3.8.0")
+  
+  # Python 3.8 to 3.11 are supported
+  if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
+    echo "Installing python"
+    apt install --no-install-recommends -y python3 python3-dev
+    python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
+    python3_min_version=$(compare_version ${python3_dev_version} "3.8.0")
+  fi
+
+  # If python version is too high
+  python3_max_version=$(compare_version ${python3_dev_version} "3.12.0")
+  if [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
+    echo "ERROR: Python version ${python3_dev_version} is not supported"
+    exit
+  fi
+
+  # Install ffmpeg  
+  ffmpeg_version=$(dpkg --status ffmpeg 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  if [[ $ffmpeg_version == "" ]]; then
+    echo "Installing ffmpeg"
+    apt install --no-install-recommends -y ffmpeg
+  fi
+
+  # Install ngc-cli  
+  ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
+  if [[ $ngc_version == "" ]]; then
+    echo "Installing ngc cli"
+    
+    if [ $(uname -m) == "aarch64" ]; then
+      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
+    fi
+    if [ $(uname -m) == "x86_64" ]; then
+      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
+    fi
+    ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/
+  fi
+
+  # Install the tensorrt development libs
+  # Find the newest cudart version installed
+  for version in 12-1 12-0 11-8 11-7 11-6 11-4
+   do
+      cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
+      # Find the version based on cudart
+      if [[ $cuda_version != "" ]]; then
+        break
+      fi
+   done
+  
+  short_cuda_version=${cuda_version%.*}
+  echo "Cuda version found: $short_cuda_version"
+
+  # Make sure we do not install any cuda12 packages
+  install_cuda_dependencies_package libcudnn8 cuda$short_cuda_version
+  install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
+  install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
+  install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
+  install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
+
+  echo "Setup for HoloHub is ready. Happy Holocoding!"
+}
+
+# Build HoloHub sample apps
+build_desc() {
+  echo ""
+  echo "Build the application(s) in HoloHub"
+  echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
+  echo "Options:"
+  echo "   --sdk <path_to_holoscan_SDK> : Provide path to the SDK"
+  echo ""
+  echo "Prior to the first build use './run setup' to install the required dependencies"
+  echo ""
+}
+
+build() {
+  # Holoscan SDK location
+  holoscan_sdk=""
+
+  # Parse the arguments
+  ARGS=("$@")
+  local app
+  local i
+  local arg
+  local skipnext=0
+  for i in "${!ARGS[@]}"; do
+      arg="${ARGS[i]}"
+      if [[ $skipnext == "1" ]]; then
+         skipnext=0
+      elif [ "$arg" = "--sdk" ]; then
+         holoscan_sdk="-Dholoscan_ROOT=${ARGS[i+1]}"
+         echo "Using Holscan SDK in ${ARGS[i+1]}"
+         skipnext=1
+      elif [[ $arg = -* ]]; then
+        echo "Unknown option $arg"
+        exit 1  
+      else
+        app=$arg    
+      fi
+  done
+
+  echo "Building Holohub"
+
+  # Application(s) to build
+  application="-DBUILD_SAMPLE_APPS=1"
+
+  if [[ $app == "SAMPLE_APPS" ]] ||  [[ $app == "" ]]; then
+     echo "Building sample applications."  
+  else
+    echo "building $1 application"
+    application="-DAPP_$1=1"
+  fi
+
+  # We define the python path to make sure we grab the right one
+  cmake_extra_args="-DPython3_EXECUTABLE=/usr/bin/python3"
+
+  # We set the data directory to be outside the build directory
+  cmake_extra_args="$cmake_extra_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
+
+  # Sets the default path for cuda
+  export PATH=$PATH:/usr/local/cuda/bin
+  cmake -S . -B build ${cmake_extra_args} ${holoscan_sdk} ${application}
+  cmake --build build -j
+
+  echo "Holohub build done."
+}
+
+# Build HoloHub sample apps
+_list_desc() {
+  echo ""
+  echo "Display the list of applications to run."
+  echo "Usage: ./run list"
+  echo ""
+}
+
+list() {
+  echo ""
+  echo "***** HoloHub applications ******"
+
+  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
+  for d in ${apps}; do
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+   
+    local language="${appname##*/}"
+    if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
+      language=""
+    else
+      language="(${language})"
+    fi
+    filename="${appname%/*}"
+
+    # Check in the CMakelists if the application is a sample application
+    appcmakelist="applications/CMakeLists.txt"
+    grepargs="\(${filename} \K[^)]+"
+    result_grep=$(grep -ozP "${grepargs}" $appcmakelist | tr -d '\0')
+    result=$(echo $result_grep | grep "HOLOSCAN_SAMPLE_APP")
+    sample_app=""
+    if [[ ${result} != "" ]]; then
+      sample_app="[Sample Application]"
+    fi  
+
+    echo "- ${filename} ${language} ${sample_app}"
+  done
+  echo ""
+  echo "Run ./run build <app_name> to build a specific app."
+  echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually." 
+}
+
+# Launch a sample app
+launch_desc() {
+  echo ""
+  echo "Launch command allowing to run application directly."
+  echo "Usage: ./run launch <name_of_the_application> [language: cpp|python]"
+  echo ""
+  echo "Use './run list' first to list the available applications"
+  echo "Note that applications might be listed but not built."
+  echo "Make sure you ./run build the application first"
+  echo ""
+}
+
+launch() {
+   local appname=$1
+
+   # Export the python path (by default use the one used to build)
+   local holohub_buildir="${SCRIPT_DIR}/build"
+   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holohub_app_bin="${holohub_buildir}/applications/${appname}"
+   local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+   local metadata_file="${holohub_app_source}/metadata.json"
+
+   if [[ $2 ]]; then
+     metadata_file="${holohub_app_source}/$2/metadata.json"
+     holohub_app_bin="${holohub_buildir}/applications/${appname}/$2"
+     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
+   fi
+
+   # Check if the metadata file exists
+   if [ ! -f "$metadata_file" ]; then
+     echo "The metadata file for this application does not exist."
+     echo "Did you forget to specify the language?"
+     exit 1
+   fi
+
+   # Check if the build directory exists
+   if [ ! -d "$holohub_app_bin" ]; then
+     echo "The build directory for this application does not exist."
+     echo "Did you forget to './run build $appname' ?"
+     exit 1
+   fi
+
+   # Use Python to parse json file
+   json=$(python -c 'import json,sys
+f=open("'${metadata_file}'")
+obj=json.load(f)
+for k, v in obj["application"]["run"].items():
+  print(str(k)+"=\""+str(v)+"\"")
+')
+
+   local json_command=$(echo $json | grep -Po 'command="\K[^"]*')
+   local run_command=$json_command
+
+   # replace <holohub_data_dir> by the data dir
+   local run_command=$(echo "${json_command//<holohub_data_dir>/$holohub_data_dir}")
+
+   # replace <holohub_app_bin> by the binary app directory
+   run_command=$(echo "${run_command//<holohub_app_bin>/$holohub_app_bin}")
+
+   # replace <holohub_app_source> by the source app directory
+   run_command=$(echo "${run_command//<holohub_app_source>/$holohub_app_source}")
+
+   # default workdir is bin
+   local workdir="cd ${holohub_app_bin}"
+   local json_workdir=$(echo $json | grep -Po 'workdir="\K[^"]*')
+   if [[ $json_workdir == "holohub_app_source" ]]; then
+      workdir="cd ${holohub_app_source}"
+   elif [[ $json_workdir == "holohub_bin" ]]; then
+      workdir="cd ${holohub_buildir}"
+   fi
+
+   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_buildir}/python/lib"
+
+   echo "workdir=${workdir}"
+   echo "command=${run_command}"
+
+   # Run the command
+   $environment && $workdir && $run_command
+}
+
+
+parse_args() {
+    local OPTIND
+    while getopts 'yh' option;
+    do
+        case "${option}" in
+            y)
+                ALWAYS_YES="true"
+                ;;
+            h)
+                print_usage
+                exit 1
+                ;;
+            *)
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
+    CMD="$1"
+    shift
+
+    ARGS=("$@")
+    # Check if the command has `--help`, `-h`, and override the CMD
+    local i
+    local arg
+    for i in "${!ARGS[@]}"; do
+        arg="${ARGS[i]}"
+        if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
+            ARGS=("$CMD")
+            CMD="help"
+            break
+        fi
+    done
+}
+
+print_usage() {
+    set +x
+    echo
+    echo "USAGE: $0 [command] [arguments]..."
+    echo ""
+    echo "  --help, -h                               : Print help messages for [command]"
+    echo "  setup                                    : Install HoloHub main required packages"
+    echo "  list                                     : List all the applications"
+    echo "  build [application] [--sdk holoscan_sdk] : Build a specific application. Default is sample apps"
+    echo "  launch <application> <language>          : Run the application"
+}
+
+print_cmd_help_messages() {
+    local cmd="$1"
+    if [ -n "${cmd}" ]; then
+        if type ${cmd}_desc > /dev/null 2>&1; then
+            ${cmd}_desc
+            exit 0
+        else
+            echo "Command '${cmd}' doesn't exist!"
+            exit 1
+        fi
+    fi
+    print_usage
+    return 0
+}
+
+
+main() {
+    local ret=0
+    parse_args "$@"
+
+    case "$CMD" in
+        help|"")
+            print_cmd_help_messages "${ARGS[@]}"
+            exit 0
+            ;;
+        *)
+            if type ${CMD} > /dev/null 2>&1; then
+                "$CMD" "${ARGS[@]}"
+            else
+                print_usage
+                exit 1
+            fi
+            ;;
+    esac
+    ret=$?
+}
+
+main "$@"

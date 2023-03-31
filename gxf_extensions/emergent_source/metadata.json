@@ -1,0 +1,22 @@
+{
+	"gxf_extension": {
+		"name": "emergent_source",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"gxf_version": "2.5",
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Camera", "Emergent"],
+		"ranking": 1,
+		"dependencies": {
+			"packages": [{
+				"name": "Emergent SDK",
+        "author": "Emergent Vision Technologies",
+        "license": "3-Clause BSD",
+				"version": "2.36.02",
+        "url": "https://emergentvisiontec.com/resources/?tab=ss"
+			}]
+		}
+	}
+}
