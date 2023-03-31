@@ -1,0 +1,37 @@
+{
+	"application": {
+		"name": "High Speed Endoscopy",
+		"language": "CPP",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Camera",
+			"Emergent"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"gxf_extensions": [
+				{
+					"name": "emergent_source",
+					"version": "1.0"
+				}
+			]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/high_speed_endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}

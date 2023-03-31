@@ -1,0 +1,405 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+POSITIONAL_ARGS=()
+
+# Default values
+GXF_ENTITIES_WIDTH=256
+GXF_ENTITIES_HEIGHT=256
+GXF_ENTITIES_CHANNELS=3
+GXF_ENTITIES_FRAMERATE=30
+GXF_ENTITIES_MAXSIZEMB=900
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --url)
+      URL="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --download_dir)
+      DOWNLOAD_DIR="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --download_name)
+      DOWNLOAD_NAME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --md5)
+      URL_MD5="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --generate_gxf_entities)
+      GENERATE_GXF_ENTITIES=YES
+      shift # past argument
+      ;;
+    --gxf_entities_width)
+      GXF_ENTITIES_WIDTH="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_height)
+      GXF_ENTITIES_HEIGHT="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_channels)
+      GXF_ENTITIES_CHANNELS="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_framerate)
+      GXF_ENTITIES_FRAMERATE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -h|--help)
+      HELP=YES
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+display_usage() {
+	echo "Usage"
+	echo ""
+	echo "  download_ngc_data [options] --url <url> --download_dir <download_dir> --download_name <download_name>"
+	echo ""
+	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
+  echo ""
+	echo "Options"
+	echo "  -h,--help                 =  Show this usage help."
+	echo "  --url                     =  URL of the NGC resource to download."
+	echo "                               If the URL start with https:// then wget is used other NGC CLI is used"
+    echo "  --download_dir            =  Path to download directory where the data will be stored"
+    echo "  --download_name           =  Name of the directory where the data will be stored"
+    echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
+    echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
+    echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
+    echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
+    echo "  --gxf_entities_channels   =  Number of channels of the GXF entities (default = 3)"
+    echo "  --gxf_entities_framerate  =  Framerate of the GXF entities (default = 30)"
+	echo ""
+}
+
+if [ "${HELP}" == "YES" ]; then
+  display_usage
+  exit 1
+fi
+
+if [ ! $URL ]
+then
+	echo "URL not set."
+	echo "Please set the --url argument when running this script."
+	exit 1
+fi
+
+if [ ! $DOWNLOAD_DIR ]
+then
+	echo "DOWNLOAD_DIR not set."
+	echo "Please set the --download_dir argument when running this script."
+	exit 1
+fi
+
+if [ ! $DOWNLOAD_NAME ]
+then
+	echo "DOWNLOAD_NAME not set."
+	echo "Please set the --download_name argument when running this script."
+	exit 1
+fi
+
+# Sets the variables from command line
+url=${URL}
+download_dir=${DOWNLOAD_DIR}
+download_name=${DOWNLOAD_NAME}
+
+c_str() {
+    local old_color=39
+    local old_attr=0
+    local color=39
+    local attr=0
+    local text=""
+    local mode="color"
+    if [ "${1:-}" = "color" ]; then
+        mode="color"
+        shift
+    elif [ "${1:-}" = "nocolor" ]; then
+        mode="nocolor"
+        shift
+    fi
+
+    for i in "$@"; do
+        case "$i" in
+            r|R)
+                color=31
+                ;;
+            g|G)
+                color=32
+                ;;
+            y|Y)
+                color=33
+                ;;
+            b|B)
+                color=34
+                ;;
+            p|P)
+                color=35
+                ;;
+            c|C)
+                color=36
+                ;;
+            w|W)
+                color=37
+                ;;
+
+            z|Z)
+                color=0
+                ;;
+        esac
+        case "$i" in
+            l|L|R|G|Y|B|P|C|W)
+                attr=1
+                ;;
+            n|N|r|g|y|b|p|c|w)
+                attr=0
+                ;;
+            z|Z)
+                attr=0
+                ;;
+            *)
+                text="${text}$i"
+        esac
+        if [ "${mode}" = "color" ]; then
+            if [ ${old_color} -ne ${color} ] || [ ${old_attr} -ne ${attr} ]; then
+                text="${text}\033[${attr};${color}m"
+                old_color=$color
+                old_attr=$attr
+            fi
+        fi
+    done
+    /bin/echo -en "$text"
+}
+
+c_echo() {
+    # Select color/nocolor based on the first argument
+    local mode="color"
+    if [ "${1:-}" = "color" ]; then
+        mode="color"
+        shift
+    elif [ "${1:-}" = "nocolor" ]; then
+        mode="nocolor"
+        shift
+    else
+        if [ ! -t 1 ]; then
+            mode="nocolor"
+        fi
+    fi
+
+    local old_opt="$(shopt -op xtrace)" # save old xtrace option
+    set +x # unset xtrace
+
+    if [ "${mode}" = "color" ]; then
+        local text="$(c_str color "$@")"
+        /bin/echo -e "$text\033[0m"
+    else
+        local text="$(c_str nocolor "$@")"
+        /bin/echo -e "$text"
+    fi
+    eval "${old_opt}" # restore old xtrace option
+}
+
+c_echo_err() {
+    >&2 c_echo "$@"
+}
+
+
+run_command() {
+    local status=0
+    local cmd="$*"
+
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        c_echo_err B "$(date -u '+%Y-%m-%d %H:%M:%S') " W "\$ " G "${cmd}"
+    else
+        c_echo_err B "$(date -u '+%Y-%m-%d %H:%M:%S') " C "[dryrun] " W "\$ " G "${cmd}"
+    fi
+
+    [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
+
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        "$@"
+        status=$?
+    fi
+    return $status
+}
+
+fatal() {
+    if [ -n "$*" ]; then
+        c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [FATAL] " Z "$@"
+    fi
+    if [ -n "${SCRIPT_DIR}" ]; then
+        exit 1
+    else
+        kill -INT $$  # kill the current process instead of exit in shell environment.
+    fi
+}
+
+
+if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
+  # Check that we have ffmpeg 
+  if ! command -v ffmpeg > /dev/null; then
+    fatal R "ffmpeg is required to generate GXF entities. Please install the ffmpeg package (e.g. sudo apt install ffmpeg)".
+  fi
+
+  # Check that we have python3
+  if ! command -v python3 > /dev/null; then
+    fatal R "python3 is required to generate GXF entities. Please install the python3 package (e.g. sudo apt install python3)".
+  fi
+
+fi
+
+download_dir_fullname="${download_dir}/${download_name}"
+download_command=ngc
+
+
+# Generate the GXF entities
+if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
+  # Convert the video file(s)
+  for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi}; do
+     [ -f "$video" ] || continue
+     run_command ffmpeg -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
+         python3 convert_video_to_gxf_entities.py --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
+             --channels ${GXF_ENTITIES_CHANNELS} --framerate ${GXF_ENTITIES_FRAMERATE}
+  done
+fi
+
+# Make the download directory
+mkdir -p ${download_dir}
+
+if [ "${url:0:8}" == "https://" ]; then
+    download_command=wget
+    if ! command -v wget > /dev/null; then
+      fatal R "Please install " W "wget" R " command to download datasets."
+    fi
+else
+    download_command=ngc
+    if ! command -v ngc > /dev/null; then
+      fatal R "Please install " W "ngc" R " command to download datasets. Follow the instructions in https://ngc.nvidia.com/setup/installers/cli to install NGC CLI."
+    fi  
+fi
+
+# Check if wget or ngc is installed
+if ! command -v ngc > /dev/null; then
+   download_command=wget
+   if ! command -v wget > /dev/null; then
+      fatal R "Please install " W "wget" R " or the " W "ngc" R " command to download datasets. Follow the instructions in https://ngc.nvidia.com/setup/installers/cli to install NGC CLI."
+   fi
+fi
+
+# Check if the file already exists
+download_stamp_file="${download_dir_fullname}/${download_name}.stamp"
+if [ -f ${download_stamp_file} ]; then
+  c_echo G "${download_dir_fullname} is already downloaded."
+  exit 0
+fi
+
+# HTTP download
+if [ "${download_command}" == "wget" ]; then
+
+    zipfile="${download_dir_fullname}.zip"
+    run_command wget -q --show-progress --content-disposition ${url} -O ${zipfile}
+    if [ $? -ne 0 ]; then
+        fatal R "Unable to download ${url} via wget."
+    else
+
+      # check the md5
+      if [ $URL_MD5 ]; then
+        md5=$(md5sum ${zipfile} | cut -f 1 -d ' ')
+        if [ "${md5}" = "$URL_MD5" ]; then
+          c_echo G "MD5 matches!"
+        else
+          fatal R "MD5 mismatch: got ${md5} instead of $URL_MD5"
+        fi
+      fi  
+
+      # unzip
+      run_command unzip ${zipfile} -d ${download_dir_fullname}
+
+      # set the stamp file
+      run_command touch ${download_stamp_file}
+
+      # delete the archive
+      run_command rm ${zipfile}
+
+    fi
+fi
+
+# NGC CLI
+if [ "${download_command}" == "ngc" ]; then
+
+    # Save the current dir
+    current_working_dir=`pwd`
+
+    # Run inside the download_dir
+    cd ${download_dir}
+    ngcoutput=$(run_command ngc registry resource download-version ${url})
+    if [ $? -ne 0 ]; then
+        fatal R "Unable to download " W "${url}" R ".
+            If you are using a private registry, please try to configure NGC CLI ('ngc config set') or change NGC_CLI_API_KEY, NGC_CLI_ORG, and NGC_CLI_TEAM environment variables to the correct API key and organization name/team of NGC CLI." B '
+          # configure NGC CLI
+               ngc config set
+
+         # Or, export NGC_CLI_API_KEY, NGC_CLI_ORG, and NGC_CLI_TEAM environment variables to the private registry.
+        export NGC_CLI_API_KEY=<your-api-key> # see https://ngc.nvidia.com/setup/api-key'
+    fi
+
+    # Find the local path from the ngcoutput
+    outputdir=$(echo $ngcoutput | grep -Po 'Downloaded local path: \K[^ ]*')
+
+    # Rename the directory
+    run_command mkdir -p ${download_name}
+    run_command mv ${outputdir}/* ${download_name}
+    run_command rm -rf ${outputdir}
+
+    # Go back to the main directory
+    cd ${current_working_dir}
+
+    # set the stamp file
+    run_command touch ${download_stamp_file}
+fi
+
+# Generate the GXF entities
+if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
+  # Convert the video file(s)
+  for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi,264}; do
+     [ -f "$video" ] || continue
+     video_basename=$(basename ${video})
+     ffmpeg -loglevel quiet -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
+     python3 convert_video_to_gxf_entities.py --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
+             --channels ${GXF_ENTITIES_CHANNELS} --framerate ${GXF_ENTITIES_FRAMERATE} --basename ${video_basename%.*}
+  done
+fi
