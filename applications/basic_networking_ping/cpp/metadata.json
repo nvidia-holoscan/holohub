@@ -1,0 +1,24 @@
+{
+	"application": {
+		"name": "Basic Networking Ping",
+		"language": "CPP",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.5.0",
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Networking", "Network", "UDP", "IP"],
+		"ranking": 1,
+		"dependencies": {
+			"gxf_extensions": [{
+				"name": "basic_network",
+				"version": "1.0"
+			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/basic_networking_ping",
+			"workdir": "holohub_bin"
+		}
+	}
+}
