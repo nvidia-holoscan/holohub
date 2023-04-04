@@ -16,7 +16,7 @@ The output of this demonstration is a measure of the number of pulses per channe
 - Emphasize that operators created for this application can be re-used in other ones doing similar tasks
 
 ## Building the application
-Make sure CMake (www.cmake.org) is installed on your system (minimum version 3.20)
+Make sure CMake (https://www.cmake.org) is installed on your system (minimum version 3.20)
 
 - [Holoscan Debian Package](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_dev_deb) - Follow the instructions in the link to install the latest version of Holoscan Debian package from NGC.
 

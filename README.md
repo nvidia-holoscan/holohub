@@ -26,7 +26,7 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
 ```
 
 If you prefer you can also install the dependencies manually:
-- [CMake](www.cmake.org): 3.20.1+
+- [CMake](https://www.cmake.org): 3.20.1+
 - Python interpreter: 3.8 to 3.11
 - Python dev: 3.8 to 3.11 (matching version of the interpreter)
 - ffmpeg runtime
