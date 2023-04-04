@@ -16,7 +16,7 @@ Tested on the Holoscan DevKits (ConnectX included) with:
 
 
 
-![](../../images/workflow_hi_speed_endoscopy_app.png)<br>
+![](docs/workflow_high_speed_endoscopy_app.png)<br>
 Fig. 1 Hi-Speed Endoscopy App
 
 

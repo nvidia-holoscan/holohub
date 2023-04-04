@@ -3,7 +3,7 @@
 Digital endoscopy is a key technology for medical screenings and minimally invasive surgeries. Using real-time AI workflows to process and analyze the video signal produced by the endoscopic camera, this technology helps medical professionals with anomaly detection and measurements, image enhancements, alerts, and analytics.
 
 
-![](../../images/app_endoscopy.png)<br>
+![](docs/app_endoscopy.png)<br>
 Fig. 1 Endoscopy (laparoscopy) image from a cholecystectomy (gallbladder removal surgery) showing AI-powered frame-by-frame tool identification and tracking. Image courtesy of Research Group Camma, IHU Strasbourg and the University of Strasbourg ([NGC Resource](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data))
 
 
@@ -11,7 +11,7 @@ Fig. 1 Endoscopy (laparoscopy) image from a cholecystectomy (gallbladder removal
 The Endoscopy tool tracking application provides an example of how an endoscopy data stream can be captured and processed using the C++ or Python APIs on multiple hardware platforms.
 
 ### Video Stream Replayer Input
-![](../../images/workflow_tool_tracking_replayer.png)<br>
+![](docs/workflow_tool_tracking_replayer.png)<br>
 Fig. 2 Tool tracking application workflow with replay from file
 
 
@@ -24,7 +24,7 @@ The pipeline graph also defines an optional [Video Stream Recorder](https://docs
 
 ### AJA Card input
 
-![](../../images/workflow_tool_tracking_aja.png)<br>
+![](docs/workflow_tool_tracking_aja.png)<br>
 Fig. 3 Tool tracking application workflow with input from AJA video source
 
 The pipeline is similar to the one using the recorded video, with the exceptions below:
