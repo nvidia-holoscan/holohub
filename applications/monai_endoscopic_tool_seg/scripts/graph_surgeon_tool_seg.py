@@ -23,13 +23,25 @@ import numpy as np
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--orig_model", type=str, default=r"model_endoscopic_tool_seg_sanitized.onnx", required=True, help="ONNX model file exported from PyTorch checkpoint, to change")
-parser.add_argument("--new_model", type=str, default=r"model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",  required=True, help="ONNX model filename to save to after changing the input channel shape to be [1, h, w, 3] and output shape to nchw")
+parser.add_argument(
+    "--orig_model",
+    type=str,
+    default=r"model_endoscopic_tool_seg_sanitized.onnx",
+    required=True,
+    help="ONNX model file exported from PyTorch checkpoint, to change",
+)
+parser.add_argument(
+    "--new_model",
+    type=str,
+    default=r"model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
+    required=True,
+    help="ONNX model filename to save to after changing the input channel shape to be [1, h, w, 3] and output shape to nchw",
+)
 parser.add_argument("--width", type=int, default=736, help="Width for exporting onnx model.")
 parser.add_argument("--height", type=int, default=480, help="Height for exporting onnx model.")
 
 args = parser.parse_args()
-orig_model =args.orig_model
+orig_model = args.orig_model
 new_model = args.new_model
 height = args.height
 width = args.width
@@ -52,7 +64,9 @@ print("Changing the ONNX model input to have shape: ", 1, height, width, 3)
 # Insert a transpose at the network output tensor (1, 2, 736, 480) and rebind it to  (1, 2, 480, 736)
 ncwh_to_nchw_out = gs.Node("Transpose", name="transpose_output", attrs={"perm": [0, 1, 3, 2]})
 ncwh_to_nchw_out.inputs = graph.outputs
-graph.outputs = [gs.Variable("OUTPUT__0", dtype=graph.outputs[0].dtype, shape=[1, out_channels, height, width])]
+graph.outputs = [
+    gs.Variable("OUTPUT__0", dtype=graph.outputs[0].dtype, shape=[1, out_channels, height, width])
+]
 ncwh_to_nchw_out.outputs = graph.outputs
 print("Changing the ONNX model output to have shape: ", 1, out_channels, height, width)
 
@@ -62,4 +76,3 @@ graph.nodes.extend([ncwh_to_nhwc_in, ncwh_to_nchw_out])
 graph.toposort().cleanup()
 
 onnx.save(gs.export_onnx(graph), new_model)
-

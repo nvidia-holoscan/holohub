@@ -39,6 +39,7 @@ import numpy as np
 from math import sqrt
 from holoscan.gxf import Entity
 import holoscan as hs
+
 try:
     import cupy as cp
 except ImportError:
@@ -49,7 +50,7 @@ except ImportError:
 import nvtx
 import torchvision
 
-torch.cuda.set_device(torch.device('cuda:0'))
+torch.cuda.set_device(torch.device("cuda:0"))
 
 debug_postprocess = False
 debug_tensor_values_preproc = False
@@ -58,10 +59,12 @@ num_classes = 81
 num_anchors = 8732
 scores_threshold = 0.05
 confidence_threshold = 0.5
-class DefaultBoxes(object):
-    def __init__(self, fig_size, feat_size, steps, scales, aspect_ratios, \
-                       scale_xy=0.1, scale_wh=0.2):
 
+
+class DefaultBoxes(object):
+    def __init__(
+        self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2
+    ):
         self.feat_size = feat_size
         self.fig_size = fig_size
 
@@ -73,25 +76,24 @@ class DefaultBoxes(object):
         self.steps = steps
         self.scales = scales
 
-        fk = fig_size/np.array(steps)
+        fk = fig_size / np.array(steps)
         self.aspect_ratios = aspect_ratios
 
         self.default_boxes = []
         # size of feature and number of feature
         for idx, sfeat in enumerate(self.feat_size):
-
-            sk1 = scales[idx]/fig_size
-            sk2 = scales[idx+1]/fig_size
-            sk3 = sqrt(sk1*sk2)
+            sk1 = scales[idx] / fig_size
+            sk2 = scales[idx + 1] / fig_size
+            sk3 = sqrt(sk1 * sk2)
             all_sizes = [(sk1, sk1), (sk3, sk3)]
 
             for alpha in aspect_ratios[idx]:
-                w, h = sk1*sqrt(alpha), sk1/sqrt(alpha)
+                w, h = sk1 * sqrt(alpha), sk1 / sqrt(alpha)
                 all_sizes.append((w, h))
                 all_sizes.append((h, w))
             for w, h in all_sizes:
                 for i, j in itertools.product(range(sfeat), repeat=2):
-                    cx, cy = (j+0.5)/fk[idx], (i+0.5)/fk[idx]
+                    cx, cy = (j + 0.5) / fk[idx], (i + 0.5) / fk[idx]
                     self.default_boxes.append((cx, cy, w, h))
 
         self.dboxes = torch.tensor(self.default_boxes, dtype=torch.float)
@@ -112,8 +114,10 @@ class DefaultBoxes(object):
         return self.scale_wh_
 
     def __call__(self, order="ltrb"):
-        if order == "ltrb": return self.dboxes_ltrb
-        if order == "xywh": return self.dboxes
+        if order == "ltrb":
+            return self.dboxes_ltrb
+        if order == "xywh":
+            return self.dboxes
 
 
 def dboxes300_coco():
@@ -126,23 +130,24 @@ def dboxes300_coco():
     dboxes = DefaultBoxes(figsize, feat_size, steps, scales, aspect_ratios)
     return dboxes
 
+
 # This function is from https://github.com/kuangliu/pytorch-ssd.
 class Encoder(object):
     """
-        Inspired by https://github.com/kuangliu/pytorch-src
-        Transform between (bboxes, labels) <-> SSD output
-        dboxes: default boxes in size 8732 x 4,
-            encoder: input ltrb format, output xywh format
-            decoder: input xywh format, output ltrb format
-        encode:
-            input  : bboxes_in (Tensor nboxes x 4), labels_in (Tensor nboxes)
-            output : bboxes_out (Tensor 8732 x 4), labels_out (Tensor 8732)
-            criteria : IoU threshold of bboexes
-        decode:
-            input  : bboxes_in (Tensor 8732 x 4), scores_in (Tensor 8732 x nitems)
-            output : bboxes_out (Tensor nboxes x 4), labels_out (Tensor nboxes)
-            criteria : IoU threshold of bboexes
-            max_output : maximum number of output bboxes
+    Inspired by https://github.com/kuangliu/pytorch-src
+    Transform between (bboxes, labels) <-> SSD output
+    dboxes: default boxes in size 8732 x 4,
+        encoder: input ltrb format, output xywh format
+        decoder: input xywh format, output ltrb format
+    encode:
+        input  : bboxes_in (Tensor nboxes x 4), labels_in (Tensor nboxes)
+        output : bboxes_out (Tensor 8732 x 4), labels_out (Tensor 8732)
+        criteria : IoU threshold of bboexes
+    decode:
+        input  : bboxes_in (Tensor 8732 x 4), scores_in (Tensor 8732 x nitems)
+        output : bboxes_out (Tensor nboxes x 4), labels_out (Tensor nboxes)
+        criteria : IoU threshold of bboexes
+        max_output : maximum number of output bboxes
     """
 
     def __init__(self, dboxes):
@@ -154,8 +159,8 @@ class Encoder(object):
 
     def scale_back_batch(self, bboxes_in, scores_in):
         """
-            Do scale and transform from xywh to ltrb
-            suppose input Nx4xnum_bbox Nxlabel_numxnum_bbox
+        Do scale and transform from xywh to ltrb
+        suppose input Nx4xnum_bbox Nxlabel_numxnum_bbox
         """
         if bboxes_in.device == torch.device("cpu"):
             if debug_postprocess:
@@ -167,20 +172,24 @@ class Encoder(object):
                 print("bboxes_in is on the gpu")
             self.dboxes = self.dboxes.cuda()
             self.dboxes_xywh = self.dboxes_xywh.cuda()
-        
+
         bboxes_in = bboxes_in.permute(0, 2, 1)
         scores_in = scores_in.permute(0, 2, 1)
-        
-        bboxes_in[:, :, :2] = self.scale_xy*bboxes_in[:, :, :2]
-        bboxes_in[:, :, 2:] = self.scale_wh*bboxes_in[:, :, 2:]
-        bboxes_in[:, :, :2] = bboxes_in[:, :, :2]*self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
-        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp()*self.dboxes_xywh[:, :, 2:]
+
+        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]
+        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]
+        bboxes_in[:, :, :2] = (
+            bboxes_in[:, :, :2] * self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
+        )
+        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * self.dboxes_xywh[:, :, 2:]
 
         # Transform format to ltrb
-        l, t, r, b = bboxes_in[:, :, 0] - 0.5*bboxes_in[:, :, 2],\
-                     bboxes_in[:, :, 1] - 0.5*bboxes_in[:, :, 3],\
-                     bboxes_in[:, :, 0] + 0.5*bboxes_in[:, :, 2],\
-                     bboxes_in[:, :, 1] + 0.5*bboxes_in[:, :, 3]
+        l, t, r, b = (
+            bboxes_in[:, :, 0] - 0.5 * bboxes_in[:, :, 2],
+            bboxes_in[:, :, 1] - 0.5 * bboxes_in[:, :, 3],
+            bboxes_in[:, :, 0] + 0.5 * bboxes_in[:, :, 2],
+            bboxes_in[:, :, 1] + 0.5 * bboxes_in[:, :, 3],
+        )
 
         bboxes_in[:, :, 0] = l
         bboxes_in[:, :, 1] = t
@@ -188,9 +197,8 @@ class Encoder(object):
         bboxes_in[:, :, 3] = b
 
         return bboxes_in, F.softmax(scores_in, dim=-1)
-    
-    
-    def decode_batch(self, bboxes_in, scores_in,  criteria = 0.45, max_output=200):
+
+    def decode_batch(self, bboxes_in, scores_in, criteria=0.45, max_output=200):
         with nvtx.annotate("scale_back_batch", color="green"):
             bboxes, probs = self.scale_back_batch(bboxes_in, scores_in)
 
@@ -208,29 +216,30 @@ class Encoder(object):
         with nvtx.annotate("torch_nms_method", color="brown"):
             # bboxes_nms has shape [8732,4], scores_nms has shape [8732,81]
             # we will let go of the first class out of 81 because it is the background class
-            bboxes_nms = bboxes_in.expand((num_classes-1), num_anchors, 4).transpose(0,1)
+            bboxes_nms = bboxes_in.expand((num_classes - 1), num_anchors, 4).transpose(0, 1)
             # now bboxes_nms should be of shape [8732, 80, 4]
             bboxes_nms = bboxes_nms.flatten(end_dim=-2)
             # now bboxes_nms should be of shape [698560, 4]
-            #bboxes_nms = torch.max(bboxes_nms,torch.tensor([0.]).cuda())
-            scores_nms = scores_in[:,1:].flatten() # let go of background class
+            # bboxes_nms = torch.max(bboxes_nms,torch.tensor([0.]).cuda())
+            scores_nms = scores_in[:, 1:].flatten()  # let go of background class
             # now scores_nms should be of shape [698560]
             # only pass in promising candidates to torchvision.ops.nm to save computation time
-            # filter out any candidates with score lower than scores_threshold 
+            # filter out any candidates with score lower than scores_threshold
             mask = scores_nms >= scores_threshold
             bboxes_nms = bboxes_nms[mask]
             scores_nms = scores_nms[mask]
             # this is where we are saving time by using torchvision's implementation of Non-Maximum Suppression
             # reference https://pytorch.org/vision/0.14/generated/torchvision.ops.nms.html
-            indices = torchvision.ops.nms(boxes = bboxes_nms, scores = scores_nms, iou_threshold = criteria)[:max_output]
-            
+            indices = torchvision.ops.nms(
+                boxes=bboxes_nms, scores=scores_nms, iou_threshold=criteria
+            )[:max_output]
+
             if indices is None:
                 return [torch.tensor([]) for _ in range(3)]
-            labels_out_new = indices % (num_classes-1) + 1
+            labels_out_new = indices % (num_classes - 1) + 1
             return bboxes_nms[indices], labels_out_new, scores_nms[indices]
 
-    
-        
+
 class ProbeOp(Operator):
     def setup(self, spec):
         spec.input("in")
@@ -242,13 +251,13 @@ class ProbeOp(Operator):
 
         source_video = in_message.get(self.tensor_name)
         if source_video is not None:
-            
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy): " )
+            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
             print(cp.asarray(source_video, dtype=cp.float32))
-            cp.save("./"+self.name, cp.asarray(source_video, dtype=cp.float32))
+            cp.save("./" + self.name, cp.asarray(source_video, dtype=cp.float32))
             print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
             print(cp.shape(source_video))
         op_output.emit(in_message, "out")
+
 
 class DetectionPostprocessorOp(Operator):
     """Example of an operator post processing the tensor from inference component.
@@ -262,7 +271,7 @@ class DetectionPostprocessorOp(Operator):
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         super().__init__(*args, **kwargs)
-        
+
         dboxes = dboxes300_coco()
         self.encoder = Encoder(dboxes)
 
@@ -270,30 +279,33 @@ class DetectionPostprocessorOp(Operator):
         spec.input("in")
         spec.output("out")
 
-    
     def compute(self, op_input, op_output, context):
-        #with nvtx.annotate("in_tensor_interop", color = "green"):
+        # with nvtx.annotate("in_tensor_interop", color = "green"):
         in_message = op_input.receive("in")
 
         locs_tensor = in_message.get("inference_output_tensor_loc")
         labels_tensor = in_message.get("inference_output_tensor_label")
 
-        
-
         if locs_tensor is not None:
-            locs_pyt   = torch.tensor(locs_tensor, ).cuda()
+            locs_pyt = torch.tensor(
+                locs_tensor,
+            ).cuda()
             if debug_postprocess:
                 print(f"Received locs_pyt(pytorch): {locs_pyt} with shape {locs_pyt.shape}")
         if labels_tensor is not None:
-            labels_pyt = torch.tensor(labels_tensor,).cuda()
+            labels_pyt = torch.tensor(
+                labels_tensor,
+            ).cuda()
             if debug_postprocess:
                 print(f"Received labels_pyt(pytorch): {labels_pyt} with shape {labels_pyt.shape}")
-        
-        #with nvtx.annotate("decode_batch", color = "orange"):
-        encoded = self.encoder.decode_batch(locs_pyt, labels_pyt, criteria=0.15, max_output=20) 
-        
-        #with nvtx.annotate("get_bboxes_from_decoded", color = "red"):
-        bboxes, classes, confidences = [x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]]
+
+        # with nvtx.annotate("decode_batch", color = "orange"):
+        encoded = self.encoder.decode_batch(locs_pyt, labels_pyt, criteria=0.15, max_output=20)
+
+        # with nvtx.annotate("get_bboxes_from_decoded", color = "red"):
+        bboxes, classes, confidences = [
+            x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]
+        ]
         if debug_postprocess:
             print("bboxes:")
             print(bboxes)
@@ -301,33 +313,31 @@ class DetectionPostprocessorOp(Operator):
             print(classes)
             print("confidences:")
             print(confidences)
-        
+
         best = np.argwhere(confidences > confidence_threshold).squeeze()
         if debug_postprocess:
             print("best:")
             print(best)
-            
+
         has_rect = best.size > 0
         if best.size == 1:
             best = [best]
         if has_rect:
             bboxes_output = bboxes[best, :].reshape(1, -1, 2)
-            if debug_postprocess: 
+            if debug_postprocess:
                 print("bboxes[best]:")
                 print(bboxes[best])
 
-        
         # output
-        #with nvtx.annotate("out_tensor_interop", color = "purple"):
+        # with nvtx.annotate("out_tensor_interop", color = "purple"):
         out_message = Entity(context)
         if has_rect:
             output_tensor = hs.as_tensor(bboxes_output)
         else:
-            output_tensor = hs.as_tensor(np.zeros([1,2,2], dtype = np.float32))
+            output_tensor = hs.as_tensor(np.zeros([1, 2, 2], dtype=np.float32))
         out_message.add(output_tensor, "rectangles")
         op_output.emit(out_message, "out")
-        
-        
+
 
 class SSDDetectionApp(Application):
     def __init__(self, source="replayer"):
@@ -356,7 +366,7 @@ class SSDDetectionApp(Application):
         is_aja = self.source.lower() == "aja"
         drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
         drop_alpha_num_blocks = 2
-        
+
         if is_aja:
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
@@ -373,9 +383,7 @@ class SSDDetectionApp(Application):
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-            source = VideoStreamReplayerOp(
-                self, name="replayer",  **self.kwargs("replayer")
-            )
+            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
 
         width_preprocessor = 1920
         height_preprocessor = 1080
@@ -392,8 +400,6 @@ class SSDDetectionApp(Application):
             ),
             **self.kwargs("detection_preprocessor"),
         )
-        
-        
 
         tensorrt_cuda_stream_pool = CudaStreamPool(
             self,
@@ -405,8 +411,12 @@ class SSDDetectionApp(Application):
             max_size=5,
         )
         if debug_tensor_values_preproc == True:
-            probe_tensor_before_inf = ProbeOp(self, name="probe_tensor_before_inf", tensor_name = "source_video")
-            probe_tensor_before_preproc = ProbeOp(self, name="probe_tensor_before_preproc", tensor_name = "")
+            probe_tensor_before_inf = ProbeOp(
+                self, name="probe_tensor_before_inf", tensor_name="source_video"
+            )
+            probe_tensor_before_preproc = ProbeOp(
+                self, name="probe_tensor_before_preproc", tensor_name=""
+            )
         detection_inference = TensorRTInferenceOp(
             self,
             name="detection_inference",
@@ -415,7 +425,7 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_inference"),
         )
 
-        detection_postprocessor = DetectionPostprocessorOp( 
+        detection_postprocessor = DetectionPostprocessorOp(
             # this is where we write our own post processor in the BYOM process
             self,
             name="detection_postprocessor",
@@ -423,14 +433,21 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_postprocessor"),
         )
 
-        
         detection_visualizer = HolovizOp(
             self,
             name="detection_visualizer",
-            tensors = [dict(name="", type="color"), dict(name="rectangles", type="rectangles", opacity = 0.5, line_width=4, color=[1.0, 0.0, 0.0, 1.0])],
+            tensors=[
+                dict(name="", type="color"),
+                dict(
+                    name="rectangles",
+                    type="rectangles",
+                    opacity=0.5,
+                    line_width=4,
+                    color=[1.0, 0.0, 0.0, 1.0],
+                ),
+            ],
             **self.kwargs("detection_visualizer"),
         )
-        
 
         if is_aja:
             self.add_flow(source, detection_visualizer, {("video_buffer_output", "receivers")})
@@ -438,13 +455,13 @@ class SSDDetectionApp(Application):
             self.add_flow(drop_alpha_channel, detection_preprocessor)
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
-        
+
             if debug_tensor_values_preproc == True:
                 self.add_flow(source, probe_tensor_before_preproc)
                 self.add_flow(probe_tensor_before_preproc, detection_preprocessor)
             else:
                 self.add_flow(source, detection_preprocessor)
-        
+
         if debug_tensor_values_preproc == True:
             self.add_flow(detection_preprocessor, probe_tensor_before_inf)
             self.add_flow(probe_tensor_before_inf, detection_inference)
@@ -452,11 +469,9 @@ class SSDDetectionApp(Application):
             self.add_flow(detection_preprocessor, detection_inference)
         self.add_flow(detection_inference, detection_postprocessor)
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
-        
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(

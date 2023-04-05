@@ -31,24 +31,18 @@ except ImportError:
 try:
     import cusignal
 except ImportError:
-    raise ImportError(
-        "This demo requires cusignal, but it could not be imported."
-    )
+    raise ImportError("This demo requires cusignal, but it could not be imported.")
 
 try:
     from SoapySDR import *
     import SoapySDR
 except ImportError:
-    raise ImportError(
-        "This demo requires SoapySDR, but it could not be imported."
-    )
+    raise ImportError("This demo requires SoapySDR, but it could not be imported.")
 
 try:
     import pyaudio
 except ImportError:
-    raise ImportError(
-        "This demo requires PyAudio, but it could not be imported."
-    )
+    raise ImportError("This demo requires PyAudio, but it could not be imported.")
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
@@ -61,11 +55,9 @@ audio_fs = int(48e3)
 buffer_size = 1024 * (sdr_fs // audio_fs)
 
 try:
-    args = dict(driver='rtlsdr')
+    args = dict(driver="rtlsdr")
 except ImportError:
-    raise ImportError(
-        "Ensure SDR is connected and appropriate drivers are installed."
-    )
+    raise ImportError("Ensure SDR is connected and appropriate drivers are installed.")
 
 # SoapySDR Config
 sdr = SoapySDR.Device(args)
@@ -79,18 +71,21 @@ p = pyaudio.PyAudio()
 sdr.activateStream(rx)
 que = queue.Queue()
 
+
 # PyAudio Config
 def pyaudio_callback(in_data, frame_count, time_info, status):
     print("in pyaudio callback")
     return (que.get(), pyaudio.paContinue)
 
-stream = p.open(format=pyaudio.paFloat32, channels=1, rate=48000,
-            output=True, stream_callback=pyaudio_callback)
+
+stream = p.open(
+    format=pyaudio.paFloat32, channels=1, rate=48000, output=True, stream_callback=pyaudio_callback
+)
 
 stream.start_stream()
 
-class SignalGeneratorOp(Operator):
 
+class SignalGeneratorOp(Operator):
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         super().__init__(*args, **kwargs)
@@ -99,7 +94,7 @@ class SignalGeneratorOp(Operator):
         spec.output("rx_sig")
 
     def compute(self, op_input, op_output, context):
-        #sig = cp.random.randn(5120) + 1j*cp.random.randn(5120)
+        # sig = cp.random.randn(5120) + 1j*cp.random.randn(5120)
         sdr.readStream(rx, [buffer], buffer_size, timeoutUs=int(8e12))
         op_output.emit(cp.asarray(buffer.astype(cp.complex64)), "rx_sig")
 
@@ -131,9 +126,10 @@ class ResampleOp(Operator):
     def compute(self, op_input, op_output, context):
         sig = op_input.receive("rx_sig")
         print("In Resample - Got: ", sig[0:10])
-        op_output.emit(cusignal.resample_poly(sig, 1, sdr_fs // audio_fs,
-                                              window='hamm').astype(cp.float32), 
-                        "sig_out")
+        op_output.emit(
+            cusignal.resample_poly(sig, 1, sdr_fs // audio_fs, window="hamm").astype(cp.float32),
+            "sig_out",
+        )
 
 
 class SDRSinkOp(Operator):
@@ -163,6 +159,7 @@ class FMDemod(Application):
         self.add_flow(src, demodulate)
         self.add_flow(demodulate, resample)
         self.add_flow(resample, sink)
+
 
 if __name__ == "__main__":
     load_env_log_level()

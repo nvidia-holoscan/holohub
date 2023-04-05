@@ -21,10 +21,11 @@ import onnx
 import onnxruntime
 import torch
 import sys
-sys.path.append('/workspace/SSD')
-sys.path.append('/workspace/SSD/dle')
-sys.path.append('/workspace/SSD/examples')
-sys.path.append('/workspace/SSD/ssd')
+
+sys.path.append("/workspace/SSD")
+sys.path.append("/workspace/SSD/dle")
+sys.path.append("/workspace/SSD/examples")
+sys.path.append("/workspace/SSD/ssd")
 
 
 from examples.SSD300_inference import load_checkpoint, build_predictor
@@ -32,9 +33,7 @@ from examples.SSD300_inference import load_checkpoint, build_predictor
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def load_model_and_export(
-    modelname, outname, height, width 
-):
+def load_model_and_export(modelname, outname, height, width):
     """
     Loading a model by name.
     Args:
@@ -50,7 +49,6 @@ def load_model_and_export(
     model = build_predictor(modelname)
     model = model.cuda()
 
-    
     model = model.eval()
 
     np.random.seed(0)
@@ -60,7 +58,7 @@ def load_model_and_export(
     torch_out = model(x)
     input_names = ["INPUT__0"]
     output_names = ["OUTPUT__LOC", "OUTPUT__LABEL"]
-    
+
     torch.onnx.export(
         model,  # model to save
         x,  # model input
@@ -71,9 +69,13 @@ def load_model_and_export(
         input_names=input_names,
         output_names=output_names,
         opset_version=12,
-        dynamic_axes={"INPUT__0": {0: "batch_size"}, "OUTPUT__LOC": {0: "batch_size"},  "OUTPUT__LABEL": {0: "batch_size"}},
+        dynamic_axes={
+            "INPUT__0": {0: "batch_size"},
+            "OUTPUT__LOC": {0: "batch_size"},
+            "OUTPUT__LABEL": {0: "batch_size"},
+        },
     )
-    
+
     onnx_model = onnx.load(outname)
     onnx.checker.check_model(onnx_model, full_check=True)
     ort_session = onnxruntime.InferenceSession(outname)
@@ -90,18 +92,24 @@ def load_model_and_export(
     np.testing.assert_allclose(numpy_torch_out_0, ort_outs[0], rtol=1e-03, atol=1e-05)
     np.testing.assert_allclose(numpy_torch_out_1, ort_outs[1], rtol=1e-03, atol=1e-05)
     print("Exported model has been tested with ONNXRuntime, and the result looks good!")
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # the original model for converting.
     parser.add_argument(
-        "--model", type=str, default=r"/workspace/SSD/checkpoints/epoch_64.pt", help="Input an existing model weight"
+        "--model",
+        type=str,
+        default=r"/workspace/SSD/checkpoints/epoch_64.pt",
+        help="Input an existing model weight",
     )
 
     # path to save the onnx model.
     parser.add_argument(
-        "--outpath", type=str, default=r"/workspace/SSD/epoch_64.onnx", help="A path to save the onnx model."
+        "--outpath",
+        type=str,
+        default=r"/workspace/SSD/epoch_64.onnx",
+        help="A path to save the onnx model.",
     )
 
     parser.add_argument("--width", type=int, default=300, help="Width for exporting onnx model.")

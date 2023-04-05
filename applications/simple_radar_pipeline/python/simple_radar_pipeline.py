@@ -31,9 +31,7 @@ except ImportError:
 try:
     import cusignal
 except ImportError:
-    raise ImportError(
-        "This demo requires cusignal, but it could not be imported."
-    )
+    raise ImportError("This demo requires cusignal, but it could not be imported.")
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
@@ -52,28 +50,36 @@ iterations = 100
 # Window Settings
 window = cusignal.hamming(waveform_length)
 # The -2 is a hack here to account for a 3 tap MTI filter
-range_doppler_window = cp.transpose(cp.repeat(cp.expand_dims(
-    cusignal.hamming(num_pulses - 2), 0), num_compressed_range_bins, axis=0))
-Nfft = 2**math.ceil(
-            math.log2(np.max([num_uncompressed_range_bins, waveform_length])))
+range_doppler_window = cp.transpose(
+    cp.repeat(
+        cp.expand_dims(cusignal.hamming(num_pulses - 2), 0), num_compressed_range_bins, axis=0
+    )
+)
+Nfft = 2 ** math.ceil(math.log2(np.max([num_uncompressed_range_bins, waveform_length])))
 
 # CFAR Settings
-mask = cp.transpose(cp.asarray([[1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 0, 0, 0, 1],
-                                        [1, 0, 0, 0, 1],
-                                        [1, 0, 0, 0, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1],
-                                        [1, 1, 1, 1, 1]]))
+mask = cp.transpose(
+    cp.asarray(
+        [
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+        ]
+    )
+)
+
 
 class SignalGeneratorOp(Operator):
-
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         super().__init__(*args, **kwargs)
@@ -83,17 +89,18 @@ class SignalGeneratorOp(Operator):
         spec.output("waveform")
 
     def compute(self, op_input, op_output, context):
-        x = cp.random.randn(num_pulses, num_uncompressed_range_bins, dtype=cp.float32) + \
-            1j*cp.random.randn(num_pulses, num_uncompressed_range_bins, dtype=cp.float32)
-        waveform = cp.random.randn(waveform_length, dtype=cp.float32) + \
-            1j*cp.random.randn(waveform_length, dtype=cp.float32)
+        x = cp.random.randn(
+            num_pulses, num_uncompressed_range_bins, dtype=cp.float32
+        ) + 1j * cp.random.randn(num_pulses, num_uncompressed_range_bins, dtype=cp.float32)
+        waveform = cp.random.randn(waveform_length, dtype=cp.float32) + 1j * cp.random.randn(
+            waveform_length, dtype=cp.float32
+        )
 
         op_output.emit(x, "x")
         op_output.emit(waveform, "waveform")
 
 
 class PulseCompressionOp(Operator):
-
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         self.index = 0
@@ -124,7 +131,6 @@ class PulseCompressionOp(Operator):
 
 
 class MTIFilterOp(Operator):
-
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         self.index = 0
@@ -135,16 +141,15 @@ class MTIFilterOp(Operator):
         spec.output("X")
 
     def compute(self, op_input, op_output, context):
-        x = op_input.receive('x')
+        x = op_input.receive("x")
         for channel in range(num_channels):
-            x_conv2 = cusignal.convolve2d(x[channel, :, :], cp.array([[1], [-2], [-1]]), 'valid')
+            x_conv2 = cusignal.convolve2d(x[channel, :, :], cp.array([[1], [-2], [-1]]), "valid")
             x_conv2_stack = cp.stack([x_conv2] * num_channels)
-        
+
         op_output.emit(x_conv2_stack, "X")
 
 
 class RangeDopplerOp(Operator):
-
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         self.index = 0
@@ -155,15 +160,15 @@ class RangeDopplerOp(Operator):
         spec.output("X")
 
     def compute(self, op_input, op_output, context):
-        x = op_input.receive('x')
+        x = op_input.receive("x")
         for channel in range(num_channels):
             x_window = cp.fft.fft(cp.multiply(x[channel, :, :], range_doppler_window), NDfft, 0)
             x_window_stack = cp.stack([x_window] * num_channels)
 
         op_output.emit(x_window_stack, "X")
 
-class CFAROp(Operator):
 
+class CFAROp(Operator):
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
         self.index = 0
@@ -174,17 +179,17 @@ class CFAROp(Operator):
         spec.output("X")
 
     def compute(self, op_input, op_output, context):
-        x = op_input.receive('x')
+        x = op_input.receive("x")
 
-        norm = cusignal.convolve2d(cp.ones(x.shape[1::]), mask, 'same')
-    
+        norm = cusignal.convolve2d(cp.ones(x.shape[1::]), mask, "same")
+
         for channel in range(num_channels):
             background_averages = cp.divide(
-                cusignal.convolve2d(cp.abs(x[channel,:,:])**2, mask, 'same'), norm
+                cusignal.convolve2d(cp.abs(x[channel, :, :]) ** 2, mask, "same"), norm
             )
             alpha = cp.multiply(norm, cp.power(Pfa, cp.divide(-1.0, norm)) - 1)
-            dets = cp.zeros(x[channel,:,:].shape)
-            dets[cp.where(cp.abs(x[channel,:,:])**2 > cp.multiply(alpha, background_averages))]
+            dets = cp.zeros(x[channel, :, :].shape)
+            dets[cp.where(cp.abs(x[channel, :, :]) ** 2 > cp.multiply(alpha, background_averages))]
 
             dets_stacked = cp.stack([dets] * num_channels)
 
@@ -202,6 +207,7 @@ class SinkOp(Operator):
     def compute(self, op_input, op_output, context):
         X = op_input.receive("X")
 
+
 class BasicRadarFlow(Application):
     def __init__(self):
         super().__init__()
@@ -209,16 +215,17 @@ class BasicRadarFlow(Application):
     def compose(self):
         src = SignalGeneratorOp(self, CountCondition(self, iterations), name="src")
         pulseCompression = PulseCompressionOp(self, name="pulse-compression")
-        mtiFilter = MTIFilterOp(self, name='mti-filter')
-        rangeDoppler = RangeDopplerOp(self, name='range-doppler')
-        cfar = CFAROp(self, name='cfar')
+        mtiFilter = MTIFilterOp(self, name="mti-filter")
+        rangeDoppler = RangeDopplerOp(self, name="range-doppler")
+        cfar = CFAROp(self, name="cfar")
         sink = SinkOp(self, name="sink")
 
-        self.add_flow(src, pulseCompression, {('x', 'x'), ('waveform', 'waveform')})
+        self.add_flow(src, pulseCompression, {("x", "x"), ("waveform", "waveform")})
         self.add_flow(pulseCompression, mtiFilter)
         self.add_flow(mtiFilter, rangeDoppler)
         self.add_flow(rangeDoppler, cfar)
         self.add_flow(cfar, sink)
+
 
 if __name__ == "__main__":
     load_env_log_level()

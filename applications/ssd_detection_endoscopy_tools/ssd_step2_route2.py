@@ -34,6 +34,7 @@ from holoscan.resources import (
 import numpy as np
 from holoscan.gxf import Entity
 import holoscan as hs
+
 try:
     import cupy as cp
 except ImportError:
@@ -63,12 +64,16 @@ class DetectionPostprocessorOp(Operator):
         # Get input message
         in_message = op_input.receive("in")
         # Convert input to numpy array (using CuPy) via .get()
-        bboxes = cp.asarray(in_message.get("inference_output_detection_boxes")).get() # (nbatch, nboxes, ncoord)
-        scores = cp.asarray(in_message.get("inference_output_detection_scores")).get() # (nbatch, nboxes)
+        bboxes = cp.asarray(
+            in_message.get("inference_output_detection_boxes")
+        ).get()  # (nbatch, nboxes, ncoord)
+        scores = cp.asarray(
+            in_message.get("inference_output_detection_scores")
+        ).get()  # (nbatch, nboxes)
         # Threshold scores and prune boxes
         ix = scores.flatten() >= scores_threshold
         if np.all(ix == False):
-            bboxes = np.zeros([1, 2, 2], dtype = np.float32) 
+            bboxes = np.zeros([1, 2, 2], dtype=np.float32)
         else:
             bboxes = bboxes[:, ix, :]
             # Make box shape compatible with Holoviz
@@ -77,7 +82,7 @@ class DetectionPostprocessorOp(Operator):
         out_message = Entity(context)
         out_message.add(hs.as_tensor(bboxes), "rectangles")
         op_output.emit(out_message, "out")
-       
+
 
 class SSDDetectionApp(Application):
     def __init__(self, source="replayer"):
@@ -102,10 +107,8 @@ class SSDDetectionApp(Application):
     def compose(self):
         n_channels = 4  # RGBA
         bpp = 4  # bytes per pixel
-        
-        
 
-        is_aja = self.source.lower() == "aja"        
+        is_aja = self.source.lower() == "aja"
         if is_aja:
             width = 1920
             height = 1080
@@ -124,9 +127,7 @@ class SSDDetectionApp(Application):
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-            source = VideoStreamReplayerOp(
-                self, name="replayer",  **self.kwargs("replayer")
-            )
+            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
 
         width_preprocessor = 300
         height_preprocessor = 300
@@ -143,7 +144,7 @@ class SSDDetectionApp(Application):
             ),
             **self.kwargs("detection_preprocessor"),
         )
-        
+
         tensorrt_cuda_stream_pool = CudaStreamPool(
             self,
             name="cuda_stream",
@@ -161,24 +162,28 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_inference"),
         )
 
-        detection_postprocessor = DetectionPostprocessorOp( 
+        detection_postprocessor = DetectionPostprocessorOp(
             self,
             name="detection_postprocessor",
             allocator=UnboundedAllocator(self, name="allocator"),
             **self.kwargs("detection_postprocessor"),
         )
-        
+
         detection_visualizer = HolovizOp(
             self,
             name="detection_visualizer",
-            tensors = [dict(name="", type="color"), 
-                        dict(name="rectangles", 
-                            type="rectangles", 
-                            opacity = 0.5, 
-                            line_width=4, 
-                            color=[1.0, 0.0, 0.0, 1.0])],
+            tensors=[
+                dict(name="", type="color"),
+                dict(
+                    name="rectangles",
+                    type="rectangles",
+                    opacity=0.5,
+                    line_width=4,
+                    color=[1.0, 0.0, 0.0, 1.0],
+                ),
+            ],
             **self.kwargs("detection_visualizer"),
-        )       
+        )
 
         if is_aja:
             self.add_flow(source, detection_visualizer, {("video_buffer_output", "receivers")})
@@ -187,14 +192,13 @@ class SSDDetectionApp(Application):
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
         self.add_flow(source, detection_preprocessor)
-        
+
         self.add_flow(detection_preprocessor, detection_inference)
         self.add_flow(detection_inference, detection_postprocessor)
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
-        
+
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(
