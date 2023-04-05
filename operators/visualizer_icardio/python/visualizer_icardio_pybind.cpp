@@ -113,6 +113,5 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
            doc::VisualizerICardioOp::doc_VisualizerICardioOp_python)
       .def("initialize", &VisualizerICardioOp::initialize, doc::VisualizerICardioOp::doc_initialize)
       .def("setup", &VisualizerICardioOp::setup, "spec"_a, doc::VisualizerICardioOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

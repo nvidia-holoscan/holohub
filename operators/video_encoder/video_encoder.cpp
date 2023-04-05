@@ -50,7 +50,7 @@ spec.param(inbuf_storage_type_,
 spec.param(outbuf_storage_type_,
            "outbuf_storage_type",
            "Output Buffer storage(memory) type",
-           "Output uffer storage type, 0:host mem, 1:device mem");
+           "Output Buffer storage type, 0:host mem, 1:device mem");
 
 // Encoder related parameters
 spec.param(device_,

@@ -16,6 +16,7 @@
  */
 
 #include <string.h>
+#include <utility>
 
 #include "gxf/core/handle.hpp"
 #include "gxf/multimedia/video.hpp"

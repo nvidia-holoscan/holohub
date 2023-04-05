@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <unistd.h>
+#include <algorithm>
+#include <string>
 #include "basic_network_operator_tx.h"
 
 namespace holoscan::ops {
@@ -36,9 +39,8 @@ void BasicNetworkOpTx::setup(OperatorSpec& spec) {
                        "retry_connect",
                        "Re-connect() interval",
                        "Interval to retry connecting to server in seconds",
-                       1);                       
+                       1);
 }
-#include <unistd.h>
 void BasicNetworkOpTx::initialize() {
   HOLOSCAN_LOG_INFO("BasicNetworkOpTx::initialize()");
   holoscan::Operator::initialize();
@@ -51,7 +53,7 @@ void BasicNetworkOpTx::initialize() {
   }
 
   server_addr_.sin_family = AF_INET;
-  server_addr_.sin_port = htons(port_.get());  
+  server_addr_.sin_port = htons(port_.get());
 
   if (l4_proto_p_.get() == "udp") {
     l4_proto_ = L4Proto::UDP;
@@ -85,11 +87,13 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
     auto ret = connect(sockfd_, (struct sockaddr*)&server_addr_, sizeof(server_addr_));
     if (ret < 0) {
       if (retry_connect_.get() == -1) {
-        HOLOSCAN_LOG_INFO("Failed to connect to TCP server at {}:{}. Retries disabled.", ip_addr_.get(), port_.get());
+        HOLOSCAN_LOG_INFO("Failed to connect to TCP server at {}:{}. Retries disabled.",
+                          ip_addr_.get(), port_.get());
       }
 
       if (retry_connect_.get() > 0) {
-        HOLOSCAN_LOG_INFO("Failed to connect to TCP server at {}:{}. Trying again in {}s...", ip_addr_.get(), port_.get(), retry_connect_.get());
+        HOLOSCAN_LOG_INFO("Failed to connect to TCP server at {}:{}. Trying again in {}s...",
+                          ip_addr_.get(), port_.get(), retry_connect_.get());
         sleep(retry_connect_.get());
       }
 
@@ -97,7 +101,7 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
     }
 
     connected_ = true;
-    HOLOSCAN_LOG_INFO("Successfully connected to server at {}:{}", ip_addr_.get(), port_.get());    
+    HOLOSCAN_LOG_INFO("Successfully connected to server at {}:{}", ip_addr_.get(), port_.get());
   }
 
 
@@ -115,8 +119,7 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
         HOLOSCAN_LOG_ERROR("Error while sending UDP packet: {}", errno);
         continue;
       }
-    }
-    else if (l4_proto_ == L4Proto::TCP) { 
+    } else if (l4_proto_ == L4Proto::TCP) {
       sent = send(sockfd_,
                         msg->data + byte_cnt_,
                         static_cast<size_t>(pkt_size),
@@ -125,7 +128,7 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
       if (sent == -1) {
         HOLOSCAN_LOG_ERROR("Error while sending TCP packet: {}", errno);
         continue;
-      }   
+      }
     }
 
     msg->len -= sent;

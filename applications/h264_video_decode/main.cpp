@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <getopt.h>
+
 #include <gxf/core/gxf.h>
 #include <gxf/core/gxf_ext.h>
 #include <holoscan/holoscan.hpp>
@@ -23,12 +25,9 @@
 #include "video_read_bitstream.hpp"
 #include "video_decoder.hpp"
 
-#include <getopt.h>
-
 class App : public holoscan::Application {
  public:
-
-  void set_datapath(const std::string& path){
+  void set_datapath(const std::string& path) {
       datapath = path;
   }
 
@@ -42,20 +41,24 @@ class App : public holoscan::Application {
 
     auto bitstream_reader =
     make_operator<ops::VideoReadBitstreamOp>("bitstream_reader", from_config("bitstream_reader"),
-                                              Arg("input_file_path",datapath+"/surgical_video.264"),
-                                              make_condition<CountCondition>(2000),
-                                              Arg("pool") = make_resource<BlockMemoryPool>("pool",
-                                              0, source_block_size, source_num_blocks));
+        Arg("input_file_path", datapath+"/surgical_video.264"),
+        make_condition<CountCondition>(2000),
+        Arg("pool") = make_resource<BlockMemoryPool>("pool", 0, source_block_size,
+                                                     source_num_blocks));
 
 
-    auto video_decoder =
-      make_operator<ops::VideoDecoderOp>("video_decoder", from_config("video_decoder"),
-      Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+    auto video_decoder = make_operator<ops::VideoDecoderOp>(
+        "video_decoder",
+        from_config("video_decoder"),
+        Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size,
+                                                     source_num_blocks));
 
 
     auto decoder_output_format_converter =
-      make_operator<ops::FormatConverterOp>("decoder_output_format_converter", from_config("decoder_output_format_converter"),
-      Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+      make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
+          from_config("decoder_output_format_converter"),
+          Arg("pool") = make_resource<BlockMemoryPool>("pool",
+              1, source_block_size, source_num_blocks));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator =
       make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
@@ -68,7 +71,8 @@ class App : public holoscan::Application {
       Arg("allocator") = visualizer_allocator);
 
     add_flow(bitstream_reader, video_decoder, {{"output_transmitter", "image_receiver"}});
-    add_flow(video_decoder, decoder_output_format_converter, {{"output_transmitter", "source_video"}});
+    add_flow(video_decoder, decoder_output_format_converter,
+             {{"output_transmitter", "source_video"}});
     add_flow(decoder_output_format_converter, visualizer, {{"tensor", "receivers"}});
   }
 
@@ -77,8 +81,7 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -87,14 +90,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -112,7 +116,7 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -124,7 +128,7 @@ int main(int argc, char** argv) {
     app->config(config_path);
   }
 
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
   app->run();
 
   return 0;

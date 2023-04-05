@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <getopt.h>
+
 #include "holoscan/holoscan.hpp"
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -24,14 +26,13 @@
 #include <visualizer_icardio.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include <getopt.h>
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
     if (source == "aja") { is_aja_source_ = true; }
   }
 
-  void set_datapath(const std::string& path){
+  void set_datapath(const std::string& path) {
      datapath = path;
   }
 
@@ -44,7 +45,7 @@ class App : public holoscan::Application {
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
-                                                                     Arg("directory",datapath));
+                                                                     Arg("directory", datapath));
     }
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");
@@ -74,8 +75,8 @@ class App : public holoscan::Application {
     model_path_map.insert("bmode_perspective", datapath+"/bmode_perspective.onnx");
 
     auto multiai_inference = make_operator<ops::MultiAIInferenceOp>(
-        "multiai_inference", from_config("multiai_inference"), 
-                             Arg("model_path_map",model_path_map),
+        "multiai_inference", from_config("multiai_inference"),
+                             Arg("model_path_map", model_path_map),
                              Arg("allocator") = pool_resource);
 
     auto multiai_postprocessor =
@@ -129,8 +130,7 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -139,14 +139,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -163,7 +164,7 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -177,7 +178,7 @@ int main(int argc, char** argv) {
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
   app->run();
 
   return 0;

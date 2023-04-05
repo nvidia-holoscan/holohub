@@ -134,6 +134,5 @@ PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
            &ToolTrackingPostprocessorOp::setup,
            "spec"_a,
            doc::ToolTrackingPostprocessorOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

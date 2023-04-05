@@ -166,12 +166,11 @@ void TensorRTInferenceLogger::log(ILogger::Severity severity, const char* msg) t
       break;
     }
     case Severity::kERROR: {
-
       std::cout << NV_TENSORRT_MAJOR << std::endl;
       std::cout << NV_TENSORRT_MINOR << std::endl;
       std::cout << NV_TENSORRT_PATCH << std::endl;
       std::cout << NV_TENSORRT_BUILD << std::endl;
-      if(NV_TENSORRT_BUILD != 3)
+      if (NV_TENSORRT_BUILD != 3)
       GXF_LOG_ERROR("TRT ERROR: %s", msg);
       break;
     }
@@ -967,17 +966,16 @@ gxf::Expected<std::string> TensorRtInference::findEngineFilePath(
     const std::string& host_engine_capability) const {
   std::string engine_file_path;
   if (!IsValidDirectory(engine_cache_dir_.get())) {
-
     // Create the directory
-    if (!std::filesystem::is_directory(engine_cache_dir_.get()) 
-        || !std::filesystem::exists(engine_cache_dir_.get())) { // Check if src folder exists
-        if(!std::filesystem::create_directory(engine_cache_dir_.get())) {
+    if (!std::filesystem::is_directory(engine_cache_dir_.get())
+        || !std::filesystem::exists(engine_cache_dir_.get())) {  // Check if src folder exists
+        if (!std::filesystem::create_directory(engine_cache_dir_.get())) {
           GXF_LOG_ERROR(
           "Cannot create engine cache directory '%s'! Please create a valid cache directory.",
           engine_cache_dir_.get().c_str());
           return gxf::Unexpected{};
         }
-    }    
+    }
   }
   engine_file_path = engine_cache_dir_.get() + "/" + host_engine_capability + ".engine";
   GXF_LOG_INFO("Loading engine cache dir file: %s", engine_file_path.c_str());
