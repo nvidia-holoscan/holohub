@@ -4,11 +4,11 @@ This library contains two operators:
 - videomaster_source: get signal from capture card
 - videomaster_transmitter: generate signal
 
-Thes operators wrap the GXF extension to provide support for VideoMaster SDK.
+These operators wrap the GXF extension to provide support for VideoMaster SDK.
 
 ## Requirements
 
-This operator requires the VideoMaster SDK.
+This operator requires the VideoMaster SDK from Deltacast.
 
 ## Building the operator
 

@@ -6,15 +6,22 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk_version": "0.5",
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Camera", "Deltacast"],
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Camera",
+			"Deltacast"
+		],
 		"ranking": 2,
 		"dependencies": {
-				"gxf_extensions": [{
+			"gxf_extensions": [
+				{
 					"name": "videomaster",
 					"version": "1.0"
 				}
-			   ]
-			}
+			]
 		}
+	}
 }
