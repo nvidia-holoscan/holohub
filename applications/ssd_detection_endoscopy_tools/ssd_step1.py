@@ -94,7 +94,7 @@ def calc_iou_tensor(box1, box2):
 class Encoder(object):
     """
         Inspired by https://github.com/kuangliu/pytorch-src
-        Transform between (bboxes, lables) <-> SSD output
+        Transform between (bboxes, labels) <-> SSD output
         dboxes: default boxes in size 8732 x 4,
             encoder: input ltrb format, output xywh format
             decoder: input xywh format, output ltrb format
