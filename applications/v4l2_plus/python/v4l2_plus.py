@@ -22,6 +22,7 @@ from holoscan.resources import UnboundedAllocator
 
 from holohub.v4l2_plus_source import V4L2PlusSourceOp
 
+
 # Now define a simple application using the operators defined above
 class V4L2PlusApp(Application):
     """Example of an application that uses the operators defined above.
@@ -36,7 +37,6 @@ class V4L2PlusApp(Application):
     """
 
     def compose(self):
-        
         source = V4L2PlusSourceOp(
             self,
             name="source",

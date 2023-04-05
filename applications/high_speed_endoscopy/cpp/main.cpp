@@ -20,8 +20,6 @@
 #include <holoscan/operators/bayer_demosaic/bayer_demosaic.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "emergent_source.hpp"
-
 class App : public holoscan::Application {
  public:
   void compose() override {

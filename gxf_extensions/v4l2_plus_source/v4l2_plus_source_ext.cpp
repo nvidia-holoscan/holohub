@@ -19,8 +19,8 @@
 #include "v4l2_plus_source.hpp"
 
 GXF_EXT_FACTORY_BEGIN()
-GXF_EXT_FACTORY_SET_INFO(0xa874c830207a47e7, 0x9270c6997e5ff8dc, "V4L2 Plus Source", "V4L2 Plus Source Extension",
-                        "NVIDIA", "1.0.0", "LICENSE");
+GXF_EXT_FACTORY_SET_INFO(0xa874c830207a47e7, 0x9270c6997e5ff8dc, "V4L2 Plus Source",
+                        "V4L2 Plus Source Extension", "NVIDIA", "1.0.0", "LICENSE");
 GXF_EXT_FACTORY_ADD(0xcaf7eb335da24a28, 0xbdcd3f3319a356db, nvidia::holoscan::V4L2PlusSource,
                     nvidia::gxf::Codelet, "V4L2 Plus Source Codelet");
 GXF_EXT_FACTORY_END()

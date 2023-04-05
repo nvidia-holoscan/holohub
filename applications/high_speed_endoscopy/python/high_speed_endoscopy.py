@@ -71,7 +71,6 @@ class HighSpeedEndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-
     load_env_log_level()
 
     parser = ArgumentParser(description="High-speed endoscopy demo application.")

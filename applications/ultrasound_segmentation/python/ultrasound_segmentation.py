@@ -183,7 +183,6 @@ class UltrasoundApp(Application):
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="Ultrasound segmentation demo application.")
     parser.add_argument(
