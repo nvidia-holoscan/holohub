@@ -8,7 +8,7 @@ Thes operators wrap the GXF extension to provide support for VideoMaster SDK.
 
 ## Requirements
 
-This operator requires the VideoMaster SDK
+This operator requires the VideoMaster SDK.
 
 ## Building the operator
 

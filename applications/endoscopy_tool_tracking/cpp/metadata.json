@@ -16,6 +16,8 @@
 		"tags": ["Endoscopy", "Tracking", "AJA"],
 		"ranking": 1,
 		"dependencies": {
+			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
 		},
 		"run": {
 			"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",

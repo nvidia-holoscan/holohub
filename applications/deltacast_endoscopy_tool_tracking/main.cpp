@@ -15,13 +15,27 @@
  * limitations under the License.
  */
 
-#include <holoscan/holoscan.hpp>
-#include <holoscan/std_ops.hpp>
+#include "holoscan/holoscan.hpp"
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
+#include <lstm_tensor_rt_inference.hpp>
+#include <tool_tracking_postprocessor.hpp>
+#include <holoscan/operators/holoviz/holoviz.hpp>
 #include <videomaster_source.hpp>
 #include <videomaster_transmitter.hpp>
 
+#include <getopt.h>
+
 class App : public holoscan::Application {
  public:
+
+  /** Sets the path to the data directory */
+  void set_datapath(const std::string& path){
+     datapath = path;
+  }
+
+  /** Compose function */
   void compose() override {
     using namespace holoscan;
 
@@ -36,22 +50,39 @@ class App : public holoscan::Application {
     uint64_t source_block_size = width * height * 4 * 4;
     uint64_t source_num_blocks = from_config("videomaster.use_rdma").as<bool>() ? 3 : 4;
 
-    auto format_converter =
-        make_operator<ops::FormatConverterOp>("format_converter",
-                                              from_config("format_converter"),
-                                              Arg("pool") = make_resource<BlockMemoryPool>(
-                                                  "pool", 1, source_block_size, source_num_blocks));
+    const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
+        make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
+    auto format_converter = make_operator<ops::FormatConverterOp>(
+        "format_converter",
+        from_config("format_converter"),
+        Arg("pool") =
+            make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
+
+    const std::string model_file_path = datapath+"/tool_loc_convlstm.onnx";
+    const std::string engine_cache_dir = datapath+"/engines";
+
+    const uint64_t lstm_inferer_block_size = 107 * 60 * 7 * 4;
+    const uint64_t lstm_inferer_num_blocks = 2 + 5 * 2;
     auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
         "lstm_inferer",
         from_config("lstm_inference"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"),
-        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
+        Arg("model_file_path",model_file_path),
+        Arg("engine_cache_dir",engine_cache_dir),
+        Arg("pool") = make_resource<BlockMemoryPool>(
+            "pool", 1, lstm_inferer_block_size, lstm_inferer_num_blocks),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
+    const uint64_t tool_tracking_postprocessor_block_size = 107 * 60 * 7 * 4;
+    const uint64_t tool_tracking_postprocessor_num_blocks = 2;
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
-        from_config("tool_tracking_postprocessor"),
-        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"),
+         Arg("device_allocator") =
+            make_resource<BlockMemoryPool>("device_allocator",
+                                           1,
+                                           tool_tracking_postprocessor_block_size,
+                                           tool_tracking_postprocessor_num_blocks),
         Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator;
@@ -98,20 +129,60 @@ class App : public holoscan::Application {
       add_flow(visualizer_format_converter_videomaster, visualizer, {{"", "receivers"}});
     }
   }
+
+ private:
+  std::string datapath = "data/endoscopy";
 };
+
+/** Helper function to parse the command line arguments */
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
+{
+  static struct option long_options[] = {
+      {"data",    required_argument, 0,  'd' },
+      {0,         0,                 0,  0 }
+  };
+
+  while (int c = getopt_long(argc, argv, "d",
+                   long_options, NULL))  {
+    if (c == -1 || c == '?') break;
+      switch (c) {
+      case 'd':
+        data_path = optarg;
+        break;
+      default:
+        std::cout << "Unknown arguments returned: " << c << std::endl;
+        return false;
+      }
+  }
+
+  if (optind < argc) {
+    config_name = argv[optind++];
+  }
+  return true;
+}
+
 
 int main(int argc, char** argv) {
   holoscan::load_env_log_level();
 
   auto app = holoscan::make_application<App>();
+     
+  // Parse the arguments
+  std::string data_path = "";
+  std::string config_name = "";
+  if(!parse_arguments(argc, argv, config_name, data_path)){
+    return 1;
+  }
 
-  if (argc == 2) {
-    app->config(argv[1]);
+  if (config_name != "") {
+    app->config(config_name);
   } else {
     auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/app_config.yaml";
+    config_path += "/deltacast_endoscopy_tool_tracking.yaml";
     app->config(config_path);
   }
+
+  if(data_path != "") app->set_datapath(data_path);
 
   app->run();
 

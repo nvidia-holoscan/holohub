@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "videomaster_source",
+		"name": "videomaster",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"

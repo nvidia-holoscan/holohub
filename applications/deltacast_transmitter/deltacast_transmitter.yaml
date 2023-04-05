@@ -15,16 +15,9 @@
 # limitations under the License.
 ---
 extensions:
-  - libgxf_std.so
-  - libgxf_cuda.so
-  - libgxf_multimedia.so
-  - libgxf_serialization.so
-  - libvideomaster.so
-  - libformat_converter.so
-  - libstream_playback.so
+ - gxf_extensions/videomaster/libgxf_videomaster.so
 
 replayer:
-  directory: "../data/endoscopy/video"
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
   repeat: true    # default: false

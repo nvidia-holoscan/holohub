@@ -16,11 +16,21 @@
  */
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/std_ops.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
 #include <videomaster_transmitter.hpp>
+
+#include <getopt.h>
 
 class App : public holoscan::Application {
  public:
+
+  /** Sets the path to the data directory */
+  void set_datapath(const std::string& path){
+     datapath = path;
+  }
+
+  /** Compose function */
   void compose() override {
     using namespace holoscan;
 
@@ -29,7 +39,7 @@ class App : public holoscan::Application {
     uint64_t source_block_size = width * height * 4 * 4;
     uint64_t source_num_blocks = from_config("videomaster.use_rdma").as<bool>() ? 3 : 4;
 
-    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"));
+    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), Arg("directory",datapath));
 
     auto format_converter =
         make_operator<ops::FormatConverterOp>("format_converter",
@@ -45,20 +55,60 @@ class App : public holoscan::Application {
     add_flow(source, format_converter);
     add_flow(format_converter, visualizer);
   }
+
+ private:
+  std::string datapath = "data/endoscopy"; 
 };
+
+/** Helper function to parse the command line arguments */
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
+{
+  static struct option long_options[] = {
+      {"data",    required_argument, 0,  'd' },
+      {0,         0,                 0,  0 }
+  };
+
+  while (int c = getopt_long(argc, argv, "d",
+                   long_options, NULL))  {
+    if (c == -1 || c == '?') break;
+      switch (c) {
+      case 'd':
+        data_path = optarg;
+        break;
+      default:
+        std::cout << "Unknown arguments returned: " << c << std::endl;
+        return false;
+      }
+  }
+
+  if (optind < argc) {
+    config_name = argv[optind++];
+  }
+  return true;
+}
 
 int main(int argc, char** argv) {
   holoscan::load_env_log_level();
 
   auto app = holoscan::make_application<App>();
+     
+  // Parse the arguments
+  std::string data_path = "";
+  std::string config_name = "";
+  if(!parse_arguments(argc, argv, config_name, data_path)){
+    return 1;
+  }
 
-  if (argc == 2) {
-    app->config(argv[1]);
+  if (config_name != "") {
+    app->config(config_name);
   } else {
     auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/app_config.yaml";
+    config_path += "/deltacast_transmitter.yaml";
     app->config(config_path);
   }
+
+  if(data_path != "") app->set_datapath(data_path);
+
   app->run();
 
   return 0;

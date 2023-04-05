@@ -13,47 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(videomaster)
+project(deltacast_transmitter)
 
 find_package(holoscan 0.4 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+
 # CPP Applications
-add_executable(videomaster_ultrasound_segmentation
+add_executable(deltacast_transmitter
   main.cpp
 )
 
-target_link_libraries(videomaster_ultrasound_segmentation
+target_link_libraries(deltacast_transmitter
   PRIVATE
-  holoscan::holoscan
+  holoscan::core
+  holoscan::ops::video_stream_replayer
+  holoscan::ops::format_converter
   holoscan::videomaster
 )
 
 # Copy config file
-add_custom_target(videomaster_ultrasound_segmentation_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "app_config.yaml"
-  BYPRODUCTS "app_config.yaml"
+add_custom_target(deltacast_transmitter_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "deltacast_transmitter.yaml"
+  BYPRODUCTS "deltacast_transmitter.yaml"
 )
-add_dependencies(videomaster_ultrasound_segmentation videomaster_ultrasound_segmentation_yaml)
-
-
-# GXF Applications
-list(APPEND videomaster_COMMON_EXTENSIONS
-  GXF::std
-  GXF::cuda
-  GXF::multimedia
-  GXF::serialization
-  format_converter
-  stream_playback
-)
-
-create_gxe_application(
-  NAME videomaster_ultrasound_segmentation
-  YAML app_config.yaml
-  EXTENSIONS
-    ${videomaster_COMMON_EXTENSIONS}
-    holoscan::exts::gxf_videomaster
-    custom_lstm_inference
-    visualizer_tool_tracking
-)
+add_dependencies(deltacast_transmitter deltacast_transmitter_yaml)

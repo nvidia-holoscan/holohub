@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(videomaster)
 
-find_package(holoscan REQUIRED CONFIG
+find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(videomaster SHARED
@@ -28,4 +28,4 @@ add_library(holoscan::videomaster ALIAS videomaster)
 
 target_include_directories(videomaster INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(videomaster holoscan::holoscan)
+target_link_libraries(videomaster holoscan::core)
