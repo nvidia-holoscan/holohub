@@ -140,17 +140,17 @@ class Encoder(object):
         bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * self.dboxes_xywh[:, :, 2:]
 
         # Transform format to ltrb
-        l, t, r, b = (
+        left, top, right, bottom = (
             bboxes_in[:, :, 0] - 0.5 * bboxes_in[:, :, 2],
             bboxes_in[:, :, 1] - 0.5 * bboxes_in[:, :, 3],
             bboxes_in[:, :, 0] + 0.5 * bboxes_in[:, :, 2],
             bboxes_in[:, :, 1] + 0.5 * bboxes_in[:, :, 3],
         )
 
-        bboxes_in[:, :, 0] = l
-        bboxes_in[:, :, 1] = t
-        bboxes_in[:, :, 2] = r
-        bboxes_in[:, :, 3] = b
+        bboxes_in[:, :, 0] = left
+        bboxes_in[:, :, 1] = top
+        bboxes_in[:, :, 2] = right
+        bboxes_in[:, :, 3] = bottom
 
         return bboxes_in, F.softmax(scores_in, dim=-1)
 
@@ -442,7 +442,7 @@ class SSDDetectionApp(Application):
             reserved_size=1,
             max_size=5,
         )
-        if debug_tensor_values_preproc == True:
+        if debug_tensor_values_preproc is True:
             probe_tensor_before_inf = ProbeOp(
                 self, name="probe_tensor_before_inf", tensor_name="source_video"
             )
@@ -488,13 +488,13 @@ class SSDDetectionApp(Application):
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
 
-            if debug_tensor_values_preproc == True:
+            if debug_tensor_values_preproc is True:
                 self.add_flow(source, probe_tensor_before_preproc)
                 self.add_flow(probe_tensor_before_preproc, detection_preprocessor)
             else:
                 self.add_flow(source, detection_preprocessor)
 
-        if debug_tensor_values_preproc == True:
+        if debug_tensor_values_preproc is True:
             self.add_flow(detection_preprocessor, probe_tensor_before_inf)
             self.add_flow(probe_tensor_before_inf, detection_inference)
         else:

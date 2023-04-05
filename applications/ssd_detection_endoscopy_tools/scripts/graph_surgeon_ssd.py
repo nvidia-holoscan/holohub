@@ -56,8 +56,8 @@ graph = gs.import_onnx(onnx.load(orig_model))
 graph.inputs[0].name += "_old"
 # graph.outputs[0].name += "_old"
 
-# Insert a transpose at the network input tensor [1, 3, width, height] and rebind it to the new node [1, height, width, 3]
-# be careful which one is h and which one is w
+# Insert a transpose at the network input tensor [1, 3, width, height] and rebind it to the
+# new node [1, height, width, 3] be careful which one is h and which one is w
 nhwc_to_nchw_in = gs.Node("Transpose", name="transpose_input", attrs={"perm": [0, 3, 1, 2]})
 nhwc_to_nchw_in.outputs = graph.inputs
 graph.inputs = [gs.Variable("INPUT__0", dtype=graph.inputs[0].dtype, shape=[1, height, width, 3])]
@@ -68,8 +68,9 @@ graph.nodes.extend([nhwc_to_nchw_in])
 
 if nms:
     # Add NMS post-processing. Append the EfficientNMS_TRT plug-in to the network.
-    # This plug-in performs non-max suppression (NMS) of the network output, which is a common post-processing step for detection models.
-    # Further info about the plug-in and its parameters are available at: https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin
+    # This plug-in performs non-max suppression (NMS) of the network output, which is a common
+    # post-processing step for detection models.  Further info about the plug-in and its parameters
+    # are available at: https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin
     max_output_boxes = 20
     attrs = OrderedDict(
         plugin_version="1",

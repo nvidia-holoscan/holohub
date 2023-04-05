@@ -31,7 +31,8 @@ parser.add_argument(
     type=str,
     default=r"model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
     required=True,
-    help="ONNX model filename to save to after changing the input channel shape to be [1, h, w, 3] and output shape to nchw",
+    help="ONNX model filename to save to after changing the input channel "
+    "shape to be [1, h, w, 3] and output shape to nchw",
 )
 parser.add_argument("--width", type=int, default=736, help="Width for exporting onnx model.")
 parser.add_argument("--height", type=int, default=480, help="Height for exporting onnx model.")
@@ -50,7 +51,8 @@ graph.inputs[0].name += "_old"
 graph.outputs[0].name += "_old"
 
 
-# Insert a transpose before the network input tensor [1,3,736,480] and rebind old input node to the new input node [1, 480, 736, 3]
+# Insert a transpose before the network input tensor [1,3,736,480] and rebind old
+# input node to the new input node [1, 480, 736, 3]
 ncwh_to_nhwc_in = gs.Node("Transpose", name="transpose_input", attrs={"perm": [0, 3, 2, 1]})
 ncwh_to_nhwc_in.outputs = graph.inputs
 graph.inputs = [gs.Variable("INPUT__0", dtype=graph.inputs[0].dtype, shape=[1, height, width, 3])]

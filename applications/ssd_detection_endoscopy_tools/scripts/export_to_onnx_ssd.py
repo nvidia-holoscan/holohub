@@ -22,13 +22,13 @@ import onnx
 import onnxruntime
 import torch
 
+from examples.SSD300_inference import build_predictor
+
 sys.path.append("/workspace/SSD")
 sys.path.append("/workspace/SSD/dle")
 sys.path.append("/workspace/SSD/examples")
 sys.path.append("/workspace/SSD/ssd")
 
-
-from examples.SSD300_inference import build_predictor
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -124,6 +124,7 @@ if __name__ == "__main__":
 
     if os.path.exists(outname):
         raise Exception(
-            "The specified outpath already exists! Change the outpath to avoid overwriting your saved model. "
+            "The specified outpath already exists! Change the outpath to avoid "
+            "overwriting your saved model."
         )
     model = load_model_and_export(modelname, outname, height, width)

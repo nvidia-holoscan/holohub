@@ -183,17 +183,17 @@ class Encoder(object):
         bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * self.dboxes_xywh[:, :, 2:]
 
         # Transform format to ltrb
-        l, t, r, b = (
+        left, top, right, bottom = (
             bboxes_in[:, :, 0] - 0.5 * bboxes_in[:, :, 2],
             bboxes_in[:, :, 1] - 0.5 * bboxes_in[:, :, 3],
             bboxes_in[:, :, 0] + 0.5 * bboxes_in[:, :, 2],
             bboxes_in[:, :, 1] + 0.5 * bboxes_in[:, :, 3],
         )
 
-        bboxes_in[:, :, 0] = l
-        bboxes_in[:, :, 1] = t
-        bboxes_in[:, :, 2] = r
-        bboxes_in[:, :, 3] = b
+        bboxes_in[:, :, 0] = left
+        bboxes_in[:, :, 1] = top
+        bboxes_in[:, :, 2] = right
+        bboxes_in[:, :, 3] = bottom
 
         return bboxes_in, F.softmax(scores_in, dim=-1)
 
@@ -227,8 +227,9 @@ class Encoder(object):
             mask = scores_nms >= scores_threshold
             bboxes_nms = bboxes_nms[mask]
             scores_nms = scores_nms[mask]
-            # this is where we are saving time by using torchvision's implementation of Non-Maximum Suppression
-            # reference https://pytorch.org/vision/0.14/generated/torchvision.ops.nms.html
+            # this is where we are saving time by using torchvision's implementation of
+            # Non-Maximum Suppression reference 
+            # https://pytorch.org/vision/0.14/generated/torchvision.ops.nms.html
             indices = torchvision.ops.nms(
                 boxes=bboxes_nms, scores=scores_nms, iou_threshold=criteria
             )[:max_output]
@@ -250,10 +251,10 @@ class ProbeOp(Operator):
 
         source_video = in_message.get(self.tensor_name)
         if source_video is not None:
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
             print(cp.asarray(source_video, dtype=cp.float32))
             cp.save("./" + self.name, cp.asarray(source_video, dtype=cp.float32))
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
             print(cp.shape(source_video))
         op_output.emit(in_message, "out")
 
@@ -409,7 +410,7 @@ class SSDDetectionApp(Application):
             reserved_size=1,
             max_size=5,
         )
-        if debug_tensor_values_preproc == True:
+        if debug_tensor_values_preproc is True:
             probe_tensor_before_inf = ProbeOp(
                 self, name="probe_tensor_before_inf", tensor_name="source_video"
             )
@@ -455,13 +456,13 @@ class SSDDetectionApp(Application):
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
 
-            if debug_tensor_values_preproc == True:
+            if debug_tensor_values_preproc is True:
                 self.add_flow(source, probe_tensor_before_preproc)
                 self.add_flow(probe_tensor_before_preproc, detection_preprocessor)
             else:
                 self.add_flow(source, detection_preprocessor)
 
-        if debug_tensor_values_preproc == True:
+        if debug_tensor_values_preproc is True:
             self.add_flow(detection_preprocessor, probe_tensor_before_inf)
             self.add_flow(probe_tensor_before_inf, detection_inference)
         else:

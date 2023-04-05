@@ -72,7 +72,7 @@ class DetectionPostprocessorOp(Operator):
         ).get()  # (nbatch, nboxes)
         # Threshold scores and prune boxes
         ix = scores.flatten() >= scores_threshold
-        if np.all(ix == False):
+        if np.all(ix is False):
             bboxes = np.zeros([1, 2, 2], dtype=np.float32)
         else:
             bboxes = bboxes[:, ix, :]

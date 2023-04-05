@@ -78,7 +78,7 @@ class DetectionPostprocessorOp(Operator):
         # Get input message
         in_message = op_input.receive("in")
         # Convert input to numpy array (using CuPy) via .get()
-        output_num_det = cp.asarray(in_message.get("inference_output_num_detections")).get()
+        # output_num_det = cp.asarray(in_message.get("inference_output_num_detections")).get()
         output_bboxes = cp.asarray(in_message.get("inference_output_detection_boxes")).get()
         output_scores = cp.asarray(in_message.get("inference_output_detection_scores")).get()
         output_labels = cp.asarray(in_message.get("inference_output_detection_classes")).get()
@@ -98,20 +98,21 @@ class DetectionPostprocessorOp(Operator):
             # the label file isn't empty, we want to colorize the bbox and text colors
             bbox_coords = {}
             text_coords = {}
-            for l in self.label_dict:
-                bbox_coords[l] = np.zeros([1, 2, 2], dtype=np.float32)
+            for label in self.label_dict:
+                bbox_coords[label] = np.zeros([1, 2, 2], dtype=np.float32)
                 # coords tensor for text to display in Holoviz can be of shape [1, n, 2] or [1, n, 3]
-                # with each location having [x,y] coords or [x,y,s] coords where s = size of text to display
-                text_coords[l] = np.zeros([1, 1, 2], dtype=np.float32) - 1.0
+                # with each location having [x,y] coords or [x,y,s] coords where s = size of text to
+                # display
+                text_coords[label] = np.zeros([1, 1, 2], dtype=np.float32) - 1.0
 
             if has_rect:
                 # there are bboxes and we want to colorize them as well as label text
-                for l in self.label_dict:
-                    curr_l_ix = output_labels == l
+                for label in self.label_dict:
+                    curr_l_ix = output_labels == label
 
                     if curr_l_ix.any():
-                        bbox_coords[l] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
-                        text_coords[l] = self.append_size_to_text_coord(
+                        bbox_coords[label] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
+                        text_coords[label] = self.append_size_to_text_coord(
                             np.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
                             self.label_text_size,
                         )
@@ -125,9 +126,9 @@ class DetectionPostprocessorOp(Operator):
         out_message = Entity(context)
         if len(self.label_dict) > 0:
             # we have split bboxs and text labels into categories
-            for l in self.label_dict:
-                out_message.add(hs.as_tensor(bbox_coords[l]), "rectangles" + str(l))
-                out_message.add(hs.as_tensor(text_coords[l]), "label" + str(l))
+            for label in self.label_dict:
+                out_message.add(hs.as_tensor(bbox_coords[label]), "rectangles" + str(label))
+                out_message.add(hs.as_tensor(text_coords[label]), "label" + str(label))
         else:
             # only transmit the bbox_coords
             out_message.add(hs.as_tensor(bbox_coords), "rectangles")
@@ -236,13 +237,13 @@ class SSDDetectionApp(Application):
 
         holoviz_tensors = [dict(name="", type="color")]
         if len(label_dict) > 0:
-            for l in label_dict:
-                color = label_dict[l]["color"]
+            for label in label_dict:
+                color = label_dict[label]["color"]
                 color.append(1.0)
-                text = [label_dict[l]["text"]]
+                text = [label_dict[label]["text"]]
                 holoviz_tensors.append(
                     dict(
-                        name="rectangles" + str(l),
+                        name="rectangles" + str(label),
                         type="rectangles",
                         opacity=0.5,
                         line_width=4,
@@ -250,7 +251,7 @@ class SSDDetectionApp(Application):
                     )
                 )
                 holoviz_tensors.append(
-                    dict(name="label" + str(l), type="text", opacity=0.5, color=color, text=text)
+                    dict(name="label" + str(label), type="text", opacity=0.5, color=color, text=text)
                 )
         else:
             holoviz_tensors.append(

@@ -203,7 +203,7 @@ class SinkOp(Operator):
         spec.input("X")
 
     def compute(self, op_input, op_output, context):
-        X = op_input.receive("X")
+        op_input.receive("X")
 
 
 class BasicRadarFlow(Application):
