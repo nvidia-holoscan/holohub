@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import argparse
 import itertools
 import os
+import sys
 from math import sqrt
 
 import numpy as np

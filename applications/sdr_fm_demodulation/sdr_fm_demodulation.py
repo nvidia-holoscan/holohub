@@ -28,7 +28,7 @@ except ImportError:
 
 try:
     import SoapySDR
-    from SoapySDR import *
+    from SoapySDR import SOAPY_SDR_CF32, SOAPY_SDR_RX
 except ImportError:
     raise ImportError("This demo requires SoapySDR, but it could not be imported.")
 

@@ -21,7 +21,6 @@ import numpy as np
 import onnx
 import onnxruntime
 import torch
-
 from examples.SSD300_inference import build_predictor
 
 sys.path.append("/workspace/SSD")

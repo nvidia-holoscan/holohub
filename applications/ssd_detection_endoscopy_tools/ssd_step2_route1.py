@@ -228,7 +228,7 @@ class Encoder(object):
             bboxes_nms = bboxes_nms[mask]
             scores_nms = scores_nms[mask]
             # this is where we are saving time by using torchvision's implementation of
-            # Non-Maximum Suppression reference 
+            # Non-Maximum Suppression reference
             # https://pytorch.org/vision/0.14/generated/torchvision.ops.nms.html
             indices = torchvision.ops.nms(
                 boxes=bboxes_nms, scores=scores_nms, iou_threshold=criteria

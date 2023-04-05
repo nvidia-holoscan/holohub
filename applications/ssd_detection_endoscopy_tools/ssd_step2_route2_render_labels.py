@@ -251,7 +251,9 @@ class SSDDetectionApp(Application):
                     )
                 )
                 holoviz_tensors.append(
-                    dict(name="label" + str(label), type="text", opacity=0.5, color=color, text=text)
+                    dict(
+                        name="label" + str(label), type="text", opacity=0.5, color=color, text=text
+                    )
                 )
         else:
             holoviz_tensors.append(
