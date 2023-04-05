@@ -15,12 +15,12 @@
 
 import argparse
 import os
+import sys
 
 import numpy as np
 import onnx
 import onnxruntime
 import torch
-import sys
 
 sys.path.append("/workspace/SSD")
 sys.path.append("/workspace/SSD/dle")
@@ -28,7 +28,7 @@ sys.path.append("/workspace/SSD/examples")
 sys.path.append("/workspace/SSD/ssd")
 
 
-from examples.SSD300_inference import load_checkpoint, build_predictor
+from examples.SSD300_inference import build_predictor, load_checkpoint
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

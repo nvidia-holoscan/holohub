@@ -15,8 +15,8 @@
 
 import math
 import os
-import time
 import queue
+import time
 
 try:
     import numpy as np

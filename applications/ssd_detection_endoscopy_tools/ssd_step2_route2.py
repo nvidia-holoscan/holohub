@@ -16,7 +16,10 @@
 import os
 from argparse import ArgumentParser
 
+import holoscan as hs
+import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.gxf import Entity
 from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
@@ -31,9 +34,6 @@ from holoscan.resources import (
     MemoryStorageType,
     UnboundedAllocator,
 )
-import numpy as np
-from holoscan.gxf import Entity
-import holoscan as hs
 
 try:
     import cupy as cp

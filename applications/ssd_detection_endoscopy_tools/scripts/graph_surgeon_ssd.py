@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import argparse
-import onnx
-import onnx_graphsurgeon as gs
+import sys
 from collections import OrderedDict
 
 import numpy as np
-
+import onnx
+import onnx_graphsurgeon as gs
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

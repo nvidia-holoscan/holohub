@@ -13,11 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import os
 from argparse import ArgumentParser
+from math import sqrt
 
+import cupy as cp
+import holoscan as hs
+import numpy as np
+import torch
+import torch.nn.functional as F
 from holoscan.core import Application, Operator, OperatorSpec
-
+from holoscan.gxf import Entity
 from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
@@ -32,14 +39,6 @@ from holoscan.resources import (
     MemoryStorageType,
     UnboundedAllocator,
 )
-import torch
-import torch.nn.functional as F
-import itertools
-import numpy as np
-from math import sqrt
-from holoscan.gxf import Entity
-import holoscan as hs
-import cupy as cp
 
 torch.cuda.set_device(torch.device("cuda:0"))
 

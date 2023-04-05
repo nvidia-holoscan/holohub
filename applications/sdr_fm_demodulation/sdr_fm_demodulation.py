@@ -15,8 +15,8 @@
 
 import math
 import os
-import time
 import queue
+import time
 
 try:
     import numpy as np
@@ -34,8 +34,8 @@ except ImportError:
     raise ImportError("This demo requires cusignal, but it could not be imported.")
 
 try:
-    from SoapySDR import *
     import SoapySDR
+    from SoapySDR import *
 except ImportError:
     raise ImportError("This demo requires SoapySDR, but it could not be imported.")
 
