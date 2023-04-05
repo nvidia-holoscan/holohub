@@ -154,7 +154,6 @@ class MultiAIICardio(Application):
 
 
 if __name__ == "__main__":
-
     load_env_log_level()
     parser = ArgumentParser(description="Multi-AI demo application.")
     parser.add_argument(

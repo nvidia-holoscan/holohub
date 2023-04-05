@@ -183,7 +183,6 @@ class ColonoscopyApp(Application):
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="Colonoscopy segmentation demo application.")
     parser.add_argument(

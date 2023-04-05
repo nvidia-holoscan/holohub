@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <getopt.h>
+
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <lstm_tensor_rt_inference.hpp>
@@ -27,12 +29,9 @@
 #include "video_read_bitstream.hpp"
 #include "video_write_bitstream.hpp"
 
-#include <getopt.h>
-
 class App : public holoscan::Application {
  public:
-
-  void set_datapath(const std::string& path){
+  void set_datapath(const std::string& path) {
      datapath = path;
   }
 
@@ -46,10 +45,10 @@ class App : public holoscan::Application {
 
     auto bitstream_reader =
       make_operator<ops::VideoReadBitstreamOp>("bitstream_reader", from_config("bitstream_reader"),
-                                               Arg("input_file_path",datapath+"/surgical_video.264"),
-                                               make_condition<CountCondition>(2000),
-                                               Arg("pool") = make_resource<BlockMemoryPool>("pool",
-                                               0, source_block_size, source_num_blocks));
+          Arg("input_file_path", datapath+"/surgical_video.264"),
+          make_condition<CountCondition>(2000),
+          Arg("pool") = make_resource<BlockMemoryPool>("pool",
+          0, source_block_size, source_num_blocks));
 
     auto video_decoder =
       make_operator<ops::VideoDecoderOp>("video_decoder",
@@ -74,8 +73,8 @@ class App : public holoscan::Application {
 
     auto lstm_inferer =
       make_operator<ops::LSTMTensorRTInferenceOp>("lstm_inferer", from_config("lstm_inference"),
-                                                  Arg("model_file_path",model_file_path),
-                                                  Arg("engine_cache_dir",engine_cache_dir),
+                                                  Arg("model_file_path", model_file_path),
+                                                  Arg("engine_cache_dir", engine_cache_dir),
                                                   Arg("pool") =
                                                   make_resource<UnboundedAllocator>("pool"),
                                                   Arg("cuda_stream_pool") =
@@ -126,12 +125,12 @@ class App : public holoscan::Application {
 
     auto bitstream_writer =
       make_operator<ops::VideoWriteBitstreamOp>("bitstream_writer",
-                                                from_config("bitstream_writer"),
-                                                Arg("output_video_path",datapath+"/surgical_video_output.264"),
-                                                Arg("input_crc_file_path",datapath+"/surgical_video_output.txt"),
-                                                Arg("pool") =
-                                                make_resource<BlockMemoryPool>("pool", 0,
-                                                source_block_size, source_num_blocks));
+          from_config("bitstream_writer"),
+          Arg("output_video_path", datapath+"/surgical_video_output.264"),
+          Arg("input_crc_file_path", datapath+"/surgical_video_output.txt"),
+          Arg("pool") =
+          make_resource<BlockMemoryPool>("pool", 0,
+          source_block_size, source_num_blocks));
 
     add_flow(bitstream_reader, video_decoder, {{"output_transmitter", "image_receiver"}});
     add_flow(video_decoder, decoder_output_format_converter,
@@ -157,8 +156,7 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -167,14 +165,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -192,7 +191,7 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -204,7 +203,7 @@ int main(int argc, char** argv) {
     app->config(config_path);
   }
 
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
   app->run();
 
   return 0;

@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <string>
 #include "basic_network_operator_common.h"
 #include "holoscan/holoscan.hpp"
 
