@@ -49,6 +49,11 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
         cmake=3.22.2-0kitware1ubuntu20.04.1 \
     && rm -rf /var/lib/apt/lists/*
 
+# Install symlink missing from the container for H264 encode examples
+RUN if [ $(uname -m) == "x86_64" ]; then \
+        ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so; \
+    fi
+
 # - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
 # - We use ARG to only set it at docker build time, so it does not affect cmake builds
 #   performed at docker run time in case users want to use a different BUILD_TYPE
@@ -147,17 +152,11 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pip run dependencies
-
-# With switch to PyTorch base image disable installation of cupy on x86. Still install on arch64
-#
 RUN if [ $(uname -m) == "aarch64" ]; then \
         python3 -m pip install cupy-cuda11x==11.3.0 -f https://pip.cupy.dev/aarch64; \
+    else \
+        python3 -m pip install cupy-cuda11x==11.3.0; \
     fi
-#    else \
-#        python3 -m pip install cupy-cuda11x==11.3.0; \
-#    fi
-
-
 #install NVTX for profiling
 RUN python3 -m pip install nvtx
 
