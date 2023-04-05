@@ -14,8 +14,6 @@
 # limitations under the License.
 
 import math
-import os
-import queue
 import time
 
 try:

@@ -13,15 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-import os
 import queue
 import time
-
-try:
-    import numpy as np
-except ImportError:
-    raise ImportError("This demo requires numpy, but it could not be imported.")
 
 try:
     import cupy as cp

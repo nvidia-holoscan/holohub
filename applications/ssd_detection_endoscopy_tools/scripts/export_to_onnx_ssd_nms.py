@@ -30,7 +30,7 @@ import onnx
 import onnxruntime
 import torch
 import torch.nn.functional as F
-from examples.SSD300_inference import build_predictor, load_checkpoint
+from examples.SSD300_inference import build_predictor
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

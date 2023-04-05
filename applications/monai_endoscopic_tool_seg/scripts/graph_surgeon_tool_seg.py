@@ -14,10 +14,7 @@
 # limitations under the License.
 
 import argparse
-import sys
-from collections import OrderedDict
 
-import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 

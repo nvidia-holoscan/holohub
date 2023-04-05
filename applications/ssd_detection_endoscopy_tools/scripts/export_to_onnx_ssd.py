@@ -28,7 +28,7 @@ sys.path.append("/workspace/SSD/examples")
 sys.path.append("/workspace/SSD/ssd")
 
 
-from examples.SSD300_inference import build_predictor, load_checkpoint
+from examples.SSD300_inference import build_predictor
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -301,10 +301,10 @@ class ProbeOp(Operator):
 
         source_video = in_message.get(self.tensor_name)
         if source_video is not None:
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
             print(cp.asarray(source_video, dtype=cp.float32))
             cp.save("./" + self.name, cp.asarray(source_video, dtype=cp.float32))
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
             print(cp.shape(source_video))
         op_output.emit(in_message, "out")
 

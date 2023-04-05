@@ -43,7 +43,6 @@ except ImportError:
         "https://docs.cupy.dev/en/stable/install.html"
     )
 import csv
-import json
 
 
 class DetectionPostprocessorOp(Operator):
