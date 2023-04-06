@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <utility>
+
 #include "gxf/multimedia/video.hpp"
 
 #include "holoscan/core/execution_context.hpp"
@@ -111,7 +113,7 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
     throw std::runtime_error("Only supports 3 channel input tensor");
   }
 
-  // Create and pass the GXF video bufer downstream.
+  // Create and pass the GXF video buffer downstream.
   auto out_message = nvidia::gxf::Entity::New(context.context());
   if (!out_message) { throw std::runtime_error("Failed to allocate message; terminating."); }
 

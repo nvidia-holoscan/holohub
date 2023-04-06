@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <getopt.h>
+
 #include "holoscan/holoscan.hpp"
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -24,17 +26,14 @@
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include <getopt.h>
-
 class App : public holoscan::Application {
  public:
-  
   void set_source(const std::string& source) {
     if (source == "aja") { is_aja_source_ = true; }
   }
-  
+
   enum class Record { NONE, INPUT, VISUALIZER };
-  
+
   void set_record(const std::string& record) {
     if (record == "input") {
       record_type_ = Record::INPUT;
@@ -43,7 +42,7 @@ class App : public holoscan::Application {
     }
   }
 
-  void set_datapath(const std::string& path){
+  void set_datapath(const std::string& path) {
      datapath = path;
   }
 
@@ -71,7 +70,8 @@ class App : public holoscan::Application {
     } else {
       width = 854;
       height = 480;
-      source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), Arg("directory",datapath));
+      source = make_operator<ops::VideoStreamReplayerOp>(
+          "replayer", from_config("replayer"), Arg("directory", datapath));
       source_block_size = width * height * 3 * 4;
       source_num_blocks = 2;
     }
@@ -97,17 +97,17 @@ class App : public holoscan::Application {
         Arg("pool") =
             make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
-       
+
     const std::string model_file_path = datapath+"/tool_loc_convlstm.onnx";
     const std::string engine_cache_dir = datapath+"/engines";
-    
+
     const uint64_t lstm_inferer_block_size = 107 * 60 * 7 * 4;
     const uint64_t lstm_inferer_num_blocks = 2 + 5 * 2;
     auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
         "lstm_inferer",
         from_config("lstm_inference"),
-        Arg("model_file_path",model_file_path),
-        Arg("engine_cache_dir",engine_cache_dir),
+        Arg("model_file_path", model_file_path),
+        Arg("engine_cache_dir", engine_cache_dir),
         Arg("pool") = make_resource<BlockMemoryPool>(
             "pool", 1, lstm_inferer_block_size, lstm_inferer_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
@@ -177,8 +177,7 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -187,14 +186,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -208,11 +208,11 @@ int main(int argc, char** argv) {
   holoscan::load_env_log_level();
 
   auto app = holoscan::make_application<App>();
-     
+
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
   auto record_type = app->from_config("record_type").as<std::string>();
   app->set_record(record_type);
 
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
 
   app->run();
 

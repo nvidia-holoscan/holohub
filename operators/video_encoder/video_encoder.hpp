@@ -50,7 +50,7 @@ class VideoEncoderOp: public holoscan::ops::GXFOperator {
   Parameter<uint32_t> outbuf_storage_type_;
   Parameter<uint32_t> inbuf_storage_type_;
 
-  // Encoder Paramaters
+  // Encoder Parameters
   Parameter<std::string> device_;
   Parameter<int32_t> codec_;
   Parameter<uint32_t> input_height_;

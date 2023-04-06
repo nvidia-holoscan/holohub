@@ -176,6 +176,5 @@ PYBIND11_MODULE(_lstm_tensor_rt_inference, m) {
            &LSTMTensorRTInferenceOp::setup,
            "spec"_a,
            doc::LSTMTensorRTInferenceOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

@@ -12,7 +12,7 @@ This implementation is based on `nvidia::gxf::VideoDecoder`.
 
 - **`image_receiver`**: Receiver to get the input image
   - type: `holoscan::IOSpec*`
-- **`output_transmitter`**: Transmitter to send the deocded data
+- **`output_transmitter`**: Transmitter to send the decoded data
   - type: `holoscan::IOSpec*`
 - **`pool`**: Memory pool for allocating output data
   - type: `std::shared_ptr<Allocator>`

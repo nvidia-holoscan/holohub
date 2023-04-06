@@ -73,7 +73,6 @@ class PyV4L2PlusSourceOp : public V4L2PlusSourceOp {
     setup(*spec_.get());
     initialize();
   }
-
 };
 
 PYBIND11_MODULE(_v4l2_plus_source, m) {
@@ -113,9 +112,8 @@ PYBIND11_MODULE(_v4l2_plus_source, m) {
            "name"_a = "v4l2_plus_source"s,
            doc::V4L2PlusSourceOp::doc_V4L2PlusSourceOp_python)
       .def_property_readonly(
-          "gxf_typename", &V4L2PlusSourceOp::gxf_typename, doc::V4L2PlusSourceOp::doc_gxf_typename)           
+          "gxf_typename", &V4L2PlusSourceOp::gxf_typename, doc::V4L2PlusSourceOp::doc_gxf_typename)
       .def("initialize", &V4L2PlusSourceOp::initialize, doc::V4L2PlusSourceOp::doc_initialize)
       .def("setup", &V4L2PlusSourceOp::setup, "spec"_a, doc::V4L2PlusSourceOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

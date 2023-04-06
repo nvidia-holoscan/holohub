@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+#include <functional>
+#include <utility>
+
 #include "visualizer_icardio.hpp"
 
 #include "holoscan/utils/holoinfer_utils.hpp"

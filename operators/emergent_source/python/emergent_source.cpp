@@ -103,6 +103,5 @@ PYBIND11_MODULE(_emergent_source, m) {
           "gxf_typename", &EmergentSourceOp::gxf_typename, doc::EmergentSourceOp::doc_gxf_typename)
       .def("initialize", &EmergentSourceOp::initialize, doc::EmergentSourceOp::doc_initialize)
       .def("setup", &EmergentSourceOp::setup, "spec"_a, doc::EmergentSourceOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

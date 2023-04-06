@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "tool_tracking_postprocessor.cuh"
 
 namespace holoscan::ops {

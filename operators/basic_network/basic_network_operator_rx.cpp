@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include <string>
+
 #include "basic_network_operator_rx.h"
 
 namespace holoscan::ops {
@@ -46,7 +49,7 @@ void BasicNetworkOpRx::initialize() {
   }
 
   server_addr_.sin_family = AF_INET;
-  server_addr_.sin_port = htons(port_.get());  
+  server_addr_.sin_port = htons(port_.get());
 
   if (l4_proto_p_.get() == "udp") {
     l4_proto_ = L4Proto::UDP;
@@ -67,11 +70,12 @@ void BasicNetworkOpRx::initialize() {
     if (setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
       HOLOSCAN_LOG_CRITICAL("Failed to set socket options");
       throw;
-    }    
+    }
   }
 
 
-  if (bind(sockfd_, reinterpret_cast<const struct sockaddr*>(&server_addr_), sizeof(server_addr_)) < 0) {
+  if (bind(sockfd_, reinterpret_cast<const struct sockaddr*>(&server_addr_),
+      sizeof(server_addr_)) < 0) {
     HOLOSCAN_LOG_CRITICAL("Failed to bind to {}:{}!", ip_addr_.get(), port_.get());
   }
 
@@ -80,8 +84,7 @@ void BasicNetworkOpRx::initialize() {
         HOLOSCAN_LOG_CRITICAL("Error when listening on TCP port");
         throw;
     }
-  }
-  else {
+  } else {
     HOLOSCAN_LOG_INFO("Network RX operator bound to {}:{}", ip_addr_.get(), port_.get());
   }
 }
@@ -95,13 +98,14 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
 
   if (l4_proto_ == L4Proto::TCP && !connected_) {
     HOLOSCAN_LOG_INFO("Waiting for incoming TCP connection on {}:{}", ip_addr_.get(), port_.get());
-    if ((tcp_sock_ = accept(sockfd_, (struct sockaddr*)&server_addr_, (socklen_t*)&server_addr_)) < 0) {
+    if ((tcp_sock_ = accept(sockfd_, (struct sockaddr*)&server_addr_,
+                            (socklen_t*)&server_addr_)) < 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to accept incoming TCP connection");
         throw;
-    }    
+    }
 
     HOLOSCAN_LOG_INFO("Successfully attached to incoming connection");
-    connected_ = true;    
+    connected_ = true;
   }
 
   if (byte_cnt_ == 0) { pkt_buf = new uint8_t[max_payload_size_.get() * batch_size_.get()]; }
@@ -116,19 +120,17 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
                   MSG_DONTWAIT,
                   (sockaddr*)&addr,
                   &from_len);
-    }
-    else if (l4_proto_ == L4Proto::TCP) {
+    } else if (l4_proto_ == L4Proto::TCP) {
       n = recv(tcp_sock_,
                   &pkt_buf[byte_cnt_],
                   max_payload_size_.get(),
-                  0);      
+                  0);
     }
 
     if (n > 0) {
       byte_cnt_ += n;
       pkts_in_batch_++;
-    }
-    else {
+    } else {
       return;
     }
   }

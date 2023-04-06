@@ -228,7 +228,6 @@ class EndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-
     load_env_log_level()
 
     # Parse args

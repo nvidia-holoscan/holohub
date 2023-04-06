@@ -19,8 +19,6 @@
 #include <v4l2_plus_source.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "v4l2_plus_source.hpp"
-
 class App : public holoscan::Application {
  public:
   void compose() override {
@@ -29,13 +27,11 @@ class App : public holoscan::Application {
     auto source = make_operator<ops::V4L2PlusSourceOp>(
         "source",
         from_config("source"),
-        Arg("allocator") = make_resource<UnboundedAllocator>("allocator")
-      );
+        Arg("allocator") = make_resource<UnboundedAllocator>("allocator"));
 
     auto sink = make_operator<ops::HolovizOp>(
-        "sink", 
-        from_config("sink")
-      );
+        "sink",
+        from_config("sink"));
 
     // Flow definition
     add_flow(source, sink, {{"signal", "receivers"}});
