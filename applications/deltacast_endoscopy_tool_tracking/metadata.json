@@ -1,27 +1,30 @@
 {
 	"application": {
-		"name": "Endoscopy Tool Tracking",
-		"language": "CPP",
+		"name": "Videomaster endoscopy example application",
+		"language": "C++",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
-			"tested_versions": [
-				"0.5.0"
-			]
-		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Endoscopy", "Tracking", "AJA"],
-		"ranking": 1,
+		"holoscan_sdk_version": "0.5.0",
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"DeltaCast",
+			"VideoMaster",
+			"Endoscopy",
+			"Classification"
+		],
+		"ranking": 3,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
 			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
 		},
 		"run": {
-			"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
+			"command": "<holohub_app_bin>/deltacast_endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
 		}
 	}
-} 
+}

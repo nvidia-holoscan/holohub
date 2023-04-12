@@ -306,7 +306,8 @@ build_desc() {
   echo "Build the application(s) in HoloHub"
   echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
   echo "Options:"
-  echo "   --sdk <path_to_holoscan_SDK> : Provide path to the SDK"
+  echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
+  echo "   --configure-args <extra_args> : Additional configuration arguments"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
   echo ""
@@ -315,6 +316,9 @@ build_desc() {
 build() {
   # Holoscan SDK location
   holoscan_sdk=""
+
+  # CMake configuration args
+  configure_args=""
 
   # Parse the arguments
   ARGS=("$@")
@@ -329,6 +333,10 @@ build() {
       elif [ "$arg" = "--sdk" ]; then
          holoscan_sdk="-Dholoscan_ROOT=${ARGS[i+1]}"
          echo "Using Holscan SDK in ${ARGS[i+1]}"
+         skipnext=1
+      elif [ "$arg" = "--configure-args" ]; then
+         configure_args="${ARGS[i+1]}"
+         echo "Adding configuration arguments: ${ARGS[i+1]}"
          skipnext=1
       elif [[ $arg = -* ]]; then
         echo "Unknown option $arg"
@@ -354,7 +362,7 @@ build() {
   cmake_extra_args="-DPython3_EXECUTABLE=/usr/bin/python3"
 
   # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
+  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
