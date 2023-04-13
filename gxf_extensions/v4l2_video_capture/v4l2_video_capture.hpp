@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_SOURCE_HPP_
-#define NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_SOURCE_HPP_
+#ifndef NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_VIDEO_CAPTURE_HPP_
+#define NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_VIDEO_CAPTURE_HPP_
 
 #include <linux/videodev2.h>
 #include <string>
@@ -30,10 +30,9 @@ namespace holoscan {
 
 /// @brief Input codelet for common V4L2 camera sources.
 ///
-/// Provides a codelet for a realtime V4L2 source supporting USB cameras and other media inputs
-/// on Linux.
+/// Provides a codelet for a realtime V4L2 source supporting various media inputs on Linux.
 /// The output is a VideoBuffer object.
-class V4L2PlusSource : public gxf::Codelet {
+class V4L2VideoCapture : public gxf::Codelet {
  public:
   gxf_result_t registerInterface(gxf::Registrar* registrar) override;
 
@@ -68,4 +67,4 @@ class V4L2PlusSource : public gxf::Codelet {
 
 }  // namespace holoscan
 }  // namespace nvidia
-#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_SOURCE_HPP_
+#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_V4L2_VIDEO_CAPTURE_HPP_

@@ -1,12 +1,11 @@
-# V4L2 Plus Extension
+# V4L2 Video Capture Extension
 
-This GXF extension provides support for USB and HDMI input on the Holoscan dev kits.
+This GXF extension provides support for USB and HDMI video capture using V4L2.
 
 ## Requirements
 
-Install the following two dependencies:
+Install the following dependency:
 ```sh
-sudo apt-get install ffmpeg=7:4.2.7-0ubuntu0.1
 sudo apt-get install libv4l-dev=1.18.0-2build1
 ```
 

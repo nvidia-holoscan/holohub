@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(v4l2_plus_source)
+project(v4l2_video_capture)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 # Create library
-add_library(gxf_v4l2_plus_source_lib SHARED
-v4l2_plus_source.cpp
-v4l2_plus_source.hpp
+add_library(gxf_v4l2_video_capture_lib SHARED
+v4l2_video_capture.cpp
+v4l2_video_capture.hpp
 )
 
-target_link_libraries(gxf_v4l2_plus_source_lib
+target_link_libraries(gxf_v4l2_video_capture_lib
   PUBLIC
   GXF::multimedia
   GXF::std
@@ -32,9 +32,9 @@ target_link_libraries(gxf_v4l2_plus_source_lib
 )
 
 # Create extension
-add_library(gxf_v4l2_plus_source SHARED
-  v4l2_plus_source_ext.cpp
+add_library(gxf_v4l2_video_capture SHARED
+  v4l2_video_capture_ext.cpp
 )
-target_link_libraries(gxf_v4l2_plus_source
-  PUBLIC gxf_v4l2_plus_source_lib
+target_link_libraries(gxf_v4l2_video_capture
+  PUBLIC gxf_v4l2_video_capture_lib
 )

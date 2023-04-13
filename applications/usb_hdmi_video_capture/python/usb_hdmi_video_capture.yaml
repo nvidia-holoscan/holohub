@@ -1,3 +1,4 @@
+%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,8 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+extensions:
+  - gxf_extensions/v4l2_video_capture/libgxf_v4l2_video_capture.so
+  
+source:  # V4L2VideoCaptureOp
+  # HDMI
+  width: 1920
+  height: 1080
+  device: "/dev/video0"
+  pixel_format: "RGBA32"
+  # USB
+  # width: 640
+  # height: 480
+  # device: "/dev/video1"
+  # pixel_format: "YUYV"
 
-cmake_minimum_required(VERSION 3.20)
-project(v4l2_plus_apps LANGUAGES NONE)
-
-add_subdirectory(cpp)
+visualizer:  # Holoviz

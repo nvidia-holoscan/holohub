@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef PYHOLOHUB_OPERATORS_V4L2_PLUS_SOURCE_PYDOC_HPP
-#define PYHOLOHUB_OPERATORS_V4L2_PLUS_SOURCE_PYDOC_HPP
+#ifndef PYHOLOHUB_OPERATORS_V4L2_VIDEO_CAPTURE_PYDOC_HPP
+#define PYHOLOHUB_OPERATORS_V4L2_VIDEO_CAPTURE_PYDOC_HPP
 
 #include <string>
 
@@ -24,15 +24,15 @@
 
 namespace holoscan::doc {
 
-namespace V4L2PlusSourceOp {
+namespace V4L2VideoCaptureOp {
 
 // Constructor
-PYDOC(V4L2PlusSourceOp, R"doc(
+PYDOC(V4L2VideoCaptureOp, R"doc(
 Operator to get a video stream from a V4L2 source.
 )doc")
 
-// V4L2PlusSourceOp Constructor
-PYDOC(V4L2PlusSourceOp_python, R"doc(
+// V4L2VideoCaptureOp Constructor
+PYDOC(V4L2VideoCaptureOp_python, R"doc(
 Operator to get a video stream from a V4L2 source. Built-in HDMI capture card or USB cam.
 
 Parameters
@@ -80,8 +80,8 @@ This method is called only once when the operator is created for the first time,
 and uses a light-weight initialization.
 )doc")
 
-}  // namespace V4L2PlusSourceOp
+}  // namespace V4L2VideoCaptureOp
 
 }  // namespace holoscan::doc
 
-#endif  // PYHOLOHUB_OPERATORS_V4L2_PLUS_SOURCE_PYDOC_HPP
+#endif  // PYHOLOHUB_OPERATORS_V4L2_VIDEO_CAPTURE_PYDOC_HPP

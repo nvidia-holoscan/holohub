@@ -18,18 +18,18 @@ import os
 from holoscan.core import Application
 from holoscan.logger import load_env_log_level
 from holoscan.operators import HolovizOp
-from holoscan.resources import UnboundedAllocator
+from holoscan.resources import BlockMemoryPool
 
-from holohub.v4l2_plus_source import V4L2PlusSourceOp
+from holohub.v4l2_video_capture import V4L2VideoCaptureOp
 
 
 # Now define a simple application using the operators defined above
-class V4L2PlusApp(Application):
+class App(Application):
     """Example of an application that uses the operators defined above.
 
     This application has the following operators:
 
-    - V4L2SourceOp
+    - V4L2VideoCaptureOp
     - HolovizOp
 
     The VideoStreamReplayerOp reads a video file and sends the frames to the ImageProcessingOp.
@@ -37,24 +37,41 @@ class V4L2PlusApp(Application):
     """
 
     def compose(self):
-        source = V4L2PlusSourceOp(
+
+        source_args = self.kwargs("source")
+        width = source_args["width"]
+        height = source_args["height"]
+        n_channels = 4
+        block_size = width * height * n_channels
+
+        source = V4L2VideoCaptureOp(
             self,
             name="source",
-            allocator=UnboundedAllocator(self, name="allocator"),
-            **self.kwargs("source"),
+            allocator=BlockMemoryPool(
+                self, 
+                name="pool",
+                storage_type=0,
+                block_size=block_size,
+                num_blocks=1
+            ),
+            **source_args,
         )
 
-        sink = HolovizOp(
+        # Set Holoviz width and height from source resolution
+        visualizer_args = self.kwargs("visualizer")
+        visualizer_args["width"] = width
+        visualizer_args["height"] = height
+        visualizer = HolovizOp(
             self,
-            name="sink",
-            **self.kwargs("sink"),
+            name="visualizer",
+            **visualizer_args,
         )
 
-        self.add_flow(source, sink, {("signal", "receivers")})
+        self.add_flow(source, visualizer, {("signal", "receivers")})
 
 
 if __name__ == "__main__":
     load_env_log_level()
-    app = V4L2PlusApp()
-    app.config(os.path.join(os.path.dirname(__file__), "v4l2_plus.yaml"))
+    app = App()
+    app.config(os.path.join(os.path.dirname(__file__), "usb_hdmi_video_capture.yaml"))
     app.run()

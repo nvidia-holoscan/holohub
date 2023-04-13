@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include "./v4l2_plus_source_pydoc.hpp"
-#include "../v4l2_plus_source.hpp"
+#include "./v4l2_video_capture_pydoc.hpp"
+#include "../v4l2_video_capture.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>  // for unordered_map -> dict, etc.
@@ -50,18 +50,18 @@ namespace holoscan::ops {
  * The sequence of events in this constructor is based on Fragment::make_operator<OperatorT>
  */
 
-class PyV4L2PlusSourceOp : public V4L2PlusSourceOp {
+class PyV4L2VideoCaptureOp : public V4L2VideoCaptureOp {
  public:
   /* Inherit the constructors */
-  using V4L2PlusSourceOp::V4L2PlusSourceOp;
+  using V4L2VideoCaptureOp::V4L2VideoCaptureOp;
 
   // Define a constructor that fully initializes the object.
-  PyV4L2PlusSourceOp(Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
+  PyV4L2VideoCaptureOp(Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
                  const std::string& device = "/dev/video0"s, uint32_t width = 1920,
-                 uint32_t height = 1080, uint32_t num_buffers = 2,
+                 uint32_t height = 1080, uint32_t num_buffers = 4,
                  const std::string& pixel_format = "RGBA32",
-                 const std::string& name = "v4l2_plus_source")
-      : V4L2PlusSourceOp(ArgList{Arg{"allocator", allocator},
+                 const std::string& name = "v4l2_video_capture")
+      : V4L2VideoCaptureOp(ArgList{Arg{"allocator", allocator},
                                Arg{"device", device},
                                Arg{"width", width},
                                Arg{"height", height},
@@ -75,11 +75,11 @@ class PyV4L2PlusSourceOp : public V4L2PlusSourceOp {
   }
 };
 
-PYBIND11_MODULE(_v4l2_plus_source, m) {
+PYBIND11_MODULE(_v4l2_video_capture, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
-        .. currentmodule:: _v4l2_plus_source
+        .. currentmodule:: _v4l2_video_capture
         .. autosummary::
            :toctree: _generate
            add
@@ -92,8 +92,8 @@ PYBIND11_MODULE(_v4l2_plus_source, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<V4L2PlusSourceOp, PyV4L2PlusSourceOp, Operator, std::shared_ptr<V4L2PlusSourceOp>>(
-      m, "V4L2PlusSourceOp", doc::V4L2PlusSourceOp::doc_V4L2PlusSourceOp)
+  py::class_<V4L2VideoCaptureOp, PyV4L2VideoCaptureOp, Operator, std::shared_ptr<V4L2VideoCaptureOp>>(
+      m, "V4L2VideoCaptureOp", doc::V4L2VideoCaptureOp::doc_V4L2VideoCaptureOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<::holoscan::Allocator>,
                     const std::string&,
@@ -107,13 +107,13 @@ PYBIND11_MODULE(_v4l2_plus_source, m) {
            "device"_a = "0"s,
            "width"_a = 1920,
            "height"_a = 1080,
-           "num_buffers"_a = 2,
+           "num_buffers"_a = 4,
            "pixel_format"_a = "RGBA32"s,
-           "name"_a = "v4l2_plus_source"s,
-           doc::V4L2PlusSourceOp::doc_V4L2PlusSourceOp_python)
+           "name"_a = "v4l2_video_capture"s,
+           doc::V4L2VideoCaptureOp::doc_V4L2VideoCaptureOp_python)
       .def_property_readonly(
-          "gxf_typename", &V4L2PlusSourceOp::gxf_typename, doc::V4L2PlusSourceOp::doc_gxf_typename)
-      .def("initialize", &V4L2PlusSourceOp::initialize, doc::V4L2PlusSourceOp::doc_initialize)
-      .def("setup", &V4L2PlusSourceOp::setup, "spec"_a, doc::V4L2PlusSourceOp::doc_setup);
+          "gxf_typename", &V4L2VideoCaptureOp::gxf_typename, doc::V4L2VideoCaptureOp::doc_gxf_typename)
+      .def("initialize", &V4L2VideoCaptureOp::initialize, doc::V4L2VideoCaptureOp::doc_initialize)
+      .def("setup", &V4L2VideoCaptureOp::setup, "spec"_a, doc::V4L2VideoCaptureOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

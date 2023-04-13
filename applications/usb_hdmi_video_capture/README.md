@@ -1,12 +1,11 @@
-# Capture Video Stream with V4L2
+# Capture USB and HDMI Video Stream
 
-This app uses V4L2 to capture USB or HDMI input on the Holoscan dev kits and visualizes it using Holoviz.
+This app captures either a USB or an HDMI video stream and visualizes it using Holoviz.
 
 ## Requirements
 
-Install the following two dependencies:
+Install the following dependency:
 ```sh
-sudo apt-get install ffmpeg=7:4.2.7-0ubuntu0.1
 sudo apt-get install libv4l-dev=1.18.0-2build1
 ```
 
@@ -39,21 +38,21 @@ The HDMI IN on the dev kit will have to be activated in order for capturing to w
 
 ## Run Instructions
 
-First, build HoloHub with the root folder `run.sh` script:
+First, build the app with the root folder `run.sh` script:
 ```sh
-./run build v4l2_plus
+./run build usb_hdmi_video_capture
 ```
 
 ### C++
 
 ```sh
-cd build/applications/v4l2_plus/cpp
-./v4l2_plus
+cd build/applications/usb_hdmi_video_capture/cpp
+./usb_hdmi_video_capture
 ```
 
 ### Python
 
 ```sh
-cd applications/v4l2_plus/python/
-python3 v4l2_plus python.py
+cd applications/usb_hdmi_video_capture/python/
+python3 usb_hdmi_video_capture.py
 ```

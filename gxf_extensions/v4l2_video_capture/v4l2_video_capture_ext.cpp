@@ -16,11 +16,11 @@
  */
 #include "gxf/std/extension_factory_helper.hpp"
 
-#include "v4l2_plus_source.hpp"
+#include "v4l2_video_capture.hpp"
 
 GXF_EXT_FACTORY_BEGIN()
-GXF_EXT_FACTORY_SET_INFO(0xa874c830207a47e7, 0x9270c6997e5ff8dc, "V4L2 Plus Source",
-                        "V4L2 Plus Source Extension", "NVIDIA", "1.0.0", "LICENSE");
-GXF_EXT_FACTORY_ADD(0xcaf7eb335da24a28, 0xbdcd3f3319a356db, nvidia::holoscan::V4L2PlusSource,
-                    nvidia::gxf::Codelet, "V4L2 Plus Source Codelet");
+GXF_EXT_FACTORY_SET_INFO(0xa874c830207a47e7, 0x9270c6997e5ff8dc, "V4L2 Video Capture",
+                        "V4L2 Video Capture Extension", "NVIDIA", "1.0.0", "LICENSE");
+GXF_EXT_FACTORY_ADD(0xcaf7eb335da24a28, 0xbdcd3f3319a356db, nvidia::holoscan::V4L2VideoCapture,
+                    nvidia::gxf::Codelet, "V4L2 Video Capture");
 GXF_EXT_FACTORY_END()

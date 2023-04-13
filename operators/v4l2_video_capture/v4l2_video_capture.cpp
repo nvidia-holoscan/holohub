@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "v4l2_plus_source.hpp"
+#include "v4l2_video_capture.hpp"
 
 #include "holoscan/core/gxf/entity.hpp"
 #include "holoscan/core/operator_spec.hpp"
@@ -24,7 +24,7 @@
 
 namespace holoscan::ops {
 
-void V4L2PlusSourceOp::setup(OperatorSpec& spec) {
+void V4L2VideoCaptureOp::setup(OperatorSpec& spec) {
   auto& signal = spec.output<gxf::Entity>("signal");
 
   spec.param(signal_, "signal", "Output", "Output channel", &signal);
@@ -33,7 +33,7 @@ void V4L2PlusSourceOp::setup(OperatorSpec& spec) {
   static constexpr char kDefaultPixelFormat[] = "RGBA32";
   static constexpr uint32_t kDefaultWidth = 1920;
   static constexpr uint32_t kDefaultHeight = 1080;
-  static constexpr uint32_t kDefaultNumBuffers = 2;
+  static constexpr uint32_t kDefaultNumBuffers = 4;
 
   spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
 
@@ -53,7 +53,7 @@ void V4L2PlusSourceOp::setup(OperatorSpec& spec) {
              std::string(kDefaultPixelFormat));
 }
 
-void V4L2PlusSourceOp::initialize() {
+void V4L2VideoCaptureOp::initialize() {
   holoscan::ops::GXFOperator::initialize();
 }
 

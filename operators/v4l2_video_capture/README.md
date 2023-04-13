@@ -1,10 +1,10 @@
-### V4L2 Plus Video Source
+### V4L2 Video Capture
 
-The `v4l2_plus_source` provides support for USB and HDMI input on the Clara dev kits.
+The `v4l2_video_capture` operator provides support for USB and HDMI.
 
-#### `holoscan::ops::V4L2PlusSource`
+#### `holoscan::ops::V4L2VideoCapture`
 
-This implementation is based on `nvidia::gxf::V4L2PlusSource`.
+This implementation is based on `nvidia::gxf::V4L2VideoCapture`.
 
 ##### Parameters
 

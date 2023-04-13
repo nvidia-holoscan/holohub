@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+extensions:
+  - gxf_extensions/v4l2_video_capture/libgxf_v4l2_video_capture.so
 
-add_holohub_extension(emergent_source)
-add_holohub_extension(lstm_tensor_rt_inference)
-add_holohub_extension(v4l2_video_capture)
-add_holohub_extension(videomaster)
+source:  # V4L2VideoCaptureOp  
+  # HDMI
+  width: 1920
+  height: 1080
+  device: "/dev/video0"
+  pixel_format: "RGBA32"  
+  # USB
+  # width: 640
+  # height: 480
+  # device: "/dev/video1"
+  # pixel_format: "YUYV"
+
+visualizer:  # Holoviz

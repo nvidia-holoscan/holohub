@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "v4l2_plus_source.hpp"
+#include "v4l2_video_capture.hpp"
 #include <fcntl.h>
 #include <libv4l2.h>
 #include <sys/ioctl.h>
@@ -36,9 +36,9 @@ static constexpr char kDefaultDevice[] = "/dev/video0";
 static constexpr char kDefaultPixelFormat[] = "RGBA32";
 static constexpr uint32_t kDefaultWidth = 1920;
 static constexpr uint32_t kDefaultHeight = 1080;
-static constexpr uint32_t kDefaultNumBuffers = 2;
+static constexpr uint32_t kDefaultNumBuffers = 4;
 
-gxf_result_t V4L2PlusSource::registerInterface(gxf::Registrar* registrar) {
+gxf_result_t V4L2VideoCapture::registerInterface(gxf::Registrar* registrar) {
   gxf::Expected<void> result;
   result &= registrar->parameter(signal_, "signal", "Output", "Output channel");
   result &= registrar->parameter(allocator_, "allocator", "Allocator", "Output Allocator");
@@ -61,7 +61,7 @@ gxf_result_t V4L2PlusSource::registerInterface(gxf::Registrar* registrar) {
   return gxf::ToResultCode(result);
 }
 
-gxf_result_t V4L2PlusSource::start() {
+gxf_result_t V4L2VideoCapture::start() {
   gxf_result_t result = v4l2_initialize();
   if (result == GXF_SUCCESS) { result = v4l2_set_mode(); }
   if (result == GXF_SUCCESS) { result = v4l2_requestbuffers(); }
@@ -70,7 +70,7 @@ gxf_result_t V4L2PlusSource::start() {
   return result;
 }
 
-gxf_result_t V4L2PlusSource::stop() {
+gxf_result_t V4L2VideoCapture::stop() {
   // stream off
   enum v4l2_buf_type buf_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (-1 == ioctl(fd_, VIDIOC_STREAMOFF, &buf_type)) {
@@ -97,7 +97,7 @@ gxf_result_t V4L2PlusSource::stop() {
   return GXF_SUCCESS;
 }
 
-gxf_result_t V4L2PlusSource::tick() {
+gxf_result_t V4L2VideoCapture::tick() {
   auto message = gxf::Entity::New(context());
   if (!message) {
     GXF_LOG_ERROR("Failed to allocate message");
@@ -154,7 +154,7 @@ gxf_result_t V4L2PlusSource::tick() {
   return gxf::ToResultCode(message);
 }
 
-gxf_result_t V4L2PlusSource::v4l2_initialize() {
+gxf_result_t V4L2VideoCapture::v4l2_initialize() {
   // Initialise V4L2 device
   fd_ = v4l2_open(device_.get().c_str(), O_RDWR);
   if (fd_ < 0) {
@@ -176,7 +176,7 @@ gxf_result_t V4L2PlusSource::v4l2_initialize() {
   return GXF_SUCCESS;
 }
 
-gxf_result_t V4L2PlusSource::v4l2_requestbuffers() {
+gxf_result_t V4L2VideoCapture::v4l2_requestbuffers() {
   // Request V4L2 buffers
   struct v4l2_requestbuffers req;
   CLEAR(req);
@@ -224,7 +224,7 @@ gxf_result_t V4L2PlusSource::v4l2_requestbuffers() {
   return GXF_SUCCESS;
 }
 
-gxf_result_t V4L2PlusSource::v4l2_set_mode() {
+gxf_result_t V4L2VideoCapture::v4l2_set_mode() {
   // Set V4L2 device mode
   struct v4l2_format vfmt;
   memset(&vfmt, 0, sizeof(vfmt));
@@ -265,7 +265,7 @@ gxf_result_t V4L2PlusSource::v4l2_set_mode() {
   return GXF_SUCCESS;
 }
 
-gxf_result_t V4L2PlusSource::v4l2_start() {
+gxf_result_t V4L2VideoCapture::v4l2_start() {
   // Start streaming on V4L2 device
   // queue capture plane into device
   for (uint32_t i = 0; i < num_buffers_.get(); i++) {
@@ -292,7 +292,7 @@ gxf_result_t V4L2PlusSource::v4l2_start() {
   return GXF_SUCCESS;
 }
 
-gxf_result_t V4L2PlusSource::v4l2_read_buffer(v4l2_buffer& buf) {
+gxf_result_t V4L2VideoCapture::v4l2_read_buffer(v4l2_buffer& buf) {
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(fd_, &fds);
@@ -328,7 +328,7 @@ gxf_result_t V4L2PlusSource::v4l2_read_buffer(v4l2_buffer& buf) {
   return GXF_SUCCESS;
 }
 
-void V4L2PlusSource::YUYVToRGBA(const void* yuyv, void* rgba, size_t width, size_t height) {
+void V4L2VideoCapture::YUYVToRGBA(const void* yuyv, void* rgba, size_t width, size_t height) {
   auto r_convert = [](int y, int cr) {
     double r = y + (1.4065 * (cr - 128));
     return static_cast<unsigned int>(std::max(0, std::min(255, static_cast<int>(r))));
