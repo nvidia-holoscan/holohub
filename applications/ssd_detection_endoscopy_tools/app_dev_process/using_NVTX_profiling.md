@@ -57,9 +57,9 @@ def compute(self, op_input, op_output, context):
 Run the same `nsys profile` profiling command again. We can see the most time goes into the highlighted part in orange: 
 `encoded = encoder.decode_batch(locs_pyt, labels_pyt, criteria=0.5, max_output=20).`
 ![Nsys 1](./images/nsys1.PNG)
-The yellow part can be avoided by declaring in `__init__()` instead of everytime in `compute()`. Then we will see: 
+The yellow part can be avoided by declaring in `__init__()` instead of every time in `compute()`. Then we will see: 
 ![Nsys 2](./images/nsys2.PNG)
-Let’s take a look at part highlighted in orange: `decode_batch()` and highights its components further in green, pink, blue:
+Let’s take a look at part highlighted in orange: `decode_batch()` and highlights its components further in green, pink, blue:
 
 ```
 def decode_batch(self, bboxes_in, scores_in,  criteria = 0.45, max_output=200):

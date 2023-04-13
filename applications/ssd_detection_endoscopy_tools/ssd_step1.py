@@ -13,11 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import os
 from argparse import ArgumentParser
+from math import sqrt
 
+import cupy as cp
+import holoscan as hs
+import numpy as np
+import torch
+import torch.nn.functional as F
 from holoscan.core import Application, Operator, OperatorSpec
-
+from holoscan.gxf import Entity
 from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
@@ -32,16 +39,8 @@ from holoscan.resources import (
     MemoryStorageType,
     UnboundedAllocator,
 )
-import torch
-import torch.nn.functional as F
-import itertools
-import numpy as np
-from math import sqrt
-from holoscan.gxf import Entity
-import holoscan as hs
-import cupy as cp
 
-torch.cuda.set_device(torch.device('cuda:0'))
+torch.cuda.set_device(torch.device("cuda:0"))
 
 debug_tensor_values_preproc = False
 
@@ -52,15 +51,16 @@ are all from the SSD model training repo:
 https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/ssd/utils.py
 """
 
+
 # This function is from https://github.com/kuangliu/pytorch-ssd.
 def calc_iou_tensor(box1, box2):
-    """ Calculation of IoU based on two boxes tensor,
-        Reference to https://github.com/kuangliu/pytorch-src
-        input:
-            box1 (N, 4)
-            box2 (M, 4)
-        output:
-            IoU (N, M)
+    """Calculation of IoU based on two boxes tensor,
+    Reference to https://github.com/kuangliu/pytorch-src
+    input:
+        box1 (N, 4)
+        box2 (M, 4)
+    output:
+        IoU (N, M)
     """
     N = box1.size(0)
     M = box2.size(0)
@@ -69,44 +69,44 @@ def calc_iou_tensor(box1, box2):
     be2 = box2.unsqueeze(0).expand(N, -1, -1)
 
     # Left Top & Right Bottom
-    lt = torch.max(be1[:,:,:2], be2[:,:,:2])
-    #mask1 = (be1[:,:, 0] < be2[:,:, 0]) ^ (be1[:,:, 1] < be2[:,:, 1])
-    #mask1 = ~mask1
-    rb = torch.min(be1[:,:,2:], be2[:,:,2:])
-    #mask2 = (be1[:,:, 2] < be2[:,:, 2]) ^ (be1[:,:, 3] < be2[:,:, 3])
-    #mask2 = ~mask2
+    lt = torch.max(be1[:, :, :2], be2[:, :, :2])
+    # mask1 = (be1[:,:, 0] < be2[:,:, 0]) ^ (be1[:,:, 1] < be2[:,:, 1])
+    # mask1 = ~mask1
+    rb = torch.min(be1[:, :, 2:], be2[:, :, 2:])
+    # mask2 = (be1[:,:, 2] < be2[:,:, 2]) ^ (be1[:,:, 3] < be2[:,:, 3])
+    # mask2 = ~mask2
 
     delta = rb - lt
     delta[delta < 0] = 0
-    intersect = delta[:,:,0]*delta[:,:,1]
-    #*mask1.float()*mask2.float()
+    intersect = delta[:, :, 0] * delta[:, :, 1]
+    # *mask1.float()*mask2.float()
 
-    delta1 = be1[:,:,2:] - be1[:,:,:2]
-    area1 = delta1[:,:,0]*delta1[:,:,1]
-    delta2 = be2[:,:,2:] - be2[:,:,:2]
-    area2 = delta2[:,:,0]*delta2[:,:,1]
+    delta1 = be1[:, :, 2:] - be1[:, :, :2]
+    area1 = delta1[:, :, 0] * delta1[:, :, 1]
+    delta2 = be2[:, :, 2:] - be2[:, :, :2]
+    area2 = delta2[:, :, 0] * delta2[:, :, 1]
 
-    iou = intersect/(area1 + area2 - intersect)
+    iou = intersect / (area1 + area2 - intersect)
     return iou
 
 
 # This function is from https://github.com/kuangliu/pytorch-ssd.
 class Encoder(object):
     """
-        Inspired by https://github.com/kuangliu/pytorch-src
-        Transform between (bboxes, lables) <-> SSD output
-        dboxes: default boxes in size 8732 x 4,
-            encoder: input ltrb format, output xywh format
-            decoder: input xywh format, output ltrb format
-        encode:
-            input  : bboxes_in (Tensor nboxes x 4), labels_in (Tensor nboxes)
-            output : bboxes_out (Tensor 8732 x 4), labels_out (Tensor 8732)
-            criteria : IoU threshold of bboexes
-        decode:
-            input  : bboxes_in (Tensor 8732 x 4), scores_in (Tensor 8732 x nitems)
-            output : bboxes_out (Tensor nboxes x 4), labels_out (Tensor nboxes)
-            criteria : IoU threshold of bboexes
-            max_output : maximum number of output bboxes
+    Inspired by https://github.com/kuangliu/pytorch-src
+    Transform between (bboxes, labels) <-> SSD output
+    dboxes: default boxes in size 8732 x 4,
+        encoder: input ltrb format, output xywh format
+        decoder: input xywh format, output ltrb format
+    encode:
+        input  : bboxes_in (Tensor nboxes x 4), labels_in (Tensor nboxes)
+        output : bboxes_out (Tensor 8732 x 4), labels_out (Tensor 8732)
+        criteria : IoU threshold of bboexes
+    decode:
+        input  : bboxes_in (Tensor 8732 x 4), scores_in (Tensor 8732 x nitems)
+        output : bboxes_out (Tensor nboxes x 4), labels_out (Tensor nboxes)
+        criteria : IoU threshold of bboexes
+        max_output : maximum number of output bboxes
     """
 
     def __init__(self, dboxes):
@@ -118,8 +118,8 @@ class Encoder(object):
 
     def scale_back_batch(self, bboxes_in, scores_in):
         """
-            Do scale and transform from xywh to ltrb
-            suppose input Nx4xnum_bbox Nxlabel_numxnum_bbox
+        Do scale and transform from xywh to ltrb
+        suppose input Nx4xnum_bbox Nxlabel_numxnum_bbox
         """
         if bboxes_in.device == torch.device("cpu"):
             self.dboxes = self.dboxes.cpu()
@@ -131,26 +131,30 @@ class Encoder(object):
         bboxes_in = bboxes_in.permute(0, 2, 1)
         scores_in = scores_in.permute(0, 2, 1)
 
-        bboxes_in[:, :, :2] = self.scale_xy*bboxes_in[:, :, :2]
-        bboxes_in[:, :, 2:] = self.scale_wh*bboxes_in[:, :, 2:]
+        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]
+        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]
 
-        bboxes_in[:, :, :2] = bboxes_in[:, :, :2]*self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
-        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp()*self.dboxes_xywh[:, :, 2:]
+        bboxes_in[:, :, :2] = (
+            bboxes_in[:, :, :2] * self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
+        )
+        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * self.dboxes_xywh[:, :, 2:]
 
         # Transform format to ltrb
-        l, t, r, b = bboxes_in[:, :, 0] - 0.5*bboxes_in[:, :, 2],\
-                     bboxes_in[:, :, 1] - 0.5*bboxes_in[:, :, 3],\
-                     bboxes_in[:, :, 0] + 0.5*bboxes_in[:, :, 2],\
-                     bboxes_in[:, :, 1] + 0.5*bboxes_in[:, :, 3]
+        left, top, right, bottom = (
+            bboxes_in[:, :, 0] - 0.5 * bboxes_in[:, :, 2],
+            bboxes_in[:, :, 1] - 0.5 * bboxes_in[:, :, 3],
+            bboxes_in[:, :, 0] + 0.5 * bboxes_in[:, :, 2],
+            bboxes_in[:, :, 1] + 0.5 * bboxes_in[:, :, 3],
+        )
 
-        bboxes_in[:, :, 0] = l
-        bboxes_in[:, :, 1] = t
-        bboxes_in[:, :, 2] = r
-        bboxes_in[:, :, 3] = b
+        bboxes_in[:, :, 0] = left
+        bboxes_in[:, :, 1] = top
+        bboxes_in[:, :, 2] = right
+        bboxes_in[:, :, 3] = bottom
 
         return bboxes_in, F.softmax(scores_in, dim=-1)
 
-    def decode_batch(self, bboxes_in, scores_in,  criteria = 0.45, max_output=200):
+    def decode_batch(self, bboxes_in, scores_in, criteria=0.45, max_output=200):
         bboxes, probs = self.scale_back_batch(bboxes_in, scores_in)
 
         output = []
@@ -171,21 +175,23 @@ class Encoder(object):
         for i, score in enumerate(scores_in.split(1, 1)):
             # skip background
             # print(score[score>0.90])
-            if i == 0: continue
+            if i == 0:
+                continue
             # print(i)
 
             score = score.squeeze(1)
             mask = score > 0.05
 
             bboxes, score = bboxes_in[mask, :], score[mask]
-            if score.size(0) == 0: continue
+            if score.size(0) == 0:
+                continue
 
             score_sorted, score_idx_sorted = score.sort(dim=0)
 
             # select max_output indices
             score_idx_sorted = score_idx_sorted[-max_num:]
             candidates = []
-            #maxdata, maxloc = scores_in.sort()
+            # maxdata, maxloc = scores_in.sort()
 
             while score_idx_sorted.numel() > 0:
                 idx = score_idx_sorted[-1].item()
@@ -198,15 +204,16 @@ class Encoder(object):
 
             bboxes_out.append(bboxes[candidates, :])
             scores_out.append(score[candidates])
-            labels_out.extend([i]*len(candidates))
+            labels_out.extend([i] * len(candidates))
 
         if not bboxes_out:
             return [torch.tensor([]) for _ in range(3)]
 
-        bboxes_out, labels_out, scores_out = torch.cat(bboxes_out, dim=0), \
-               torch.tensor(labels_out, dtype=torch.long), \
-               torch.cat(scores_out, dim=0)
-
+        bboxes_out, labels_out, scores_out = (
+            torch.cat(bboxes_out, dim=0),
+            torch.tensor(labels_out, dtype=torch.long),
+            torch.cat(scores_out, dim=0),
+        )
 
         _, max_ids = scores_out.sort(dim=0)
         max_ids = max_ids[-max_output:]
@@ -214,9 +221,9 @@ class Encoder(object):
 
 
 class DefaultBoxes(object):
-    def __init__(self, fig_size, feat_size, steps, scales, aspect_ratios, \
-                       scale_xy=0.1, scale_wh=0.2):
-
+    def __init__(
+        self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2
+    ):
         self.feat_size = feat_size
         self.fig_size = fig_size
 
@@ -228,25 +235,24 @@ class DefaultBoxes(object):
         self.steps = steps
         self.scales = scales
 
-        fk = fig_size/np.array(steps)
+        fk = fig_size / np.array(steps)
         self.aspect_ratios = aspect_ratios
 
         self.default_boxes = []
         # size of feature and number of feature
         for idx, sfeat in enumerate(self.feat_size):
-
-            sk1 = scales[idx]/fig_size
-            sk2 = scales[idx+1]/fig_size
-            sk3 = sqrt(sk1*sk2)
+            sk1 = scales[idx] / fig_size
+            sk2 = scales[idx + 1] / fig_size
+            sk3 = sqrt(sk1 * sk2)
             all_sizes = [(sk1, sk1), (sk3, sk3)]
 
             for alpha in aspect_ratios[idx]:
-                w, h = sk1*sqrt(alpha), sk1/sqrt(alpha)
+                w, h = sk1 * sqrt(alpha), sk1 / sqrt(alpha)
                 all_sizes.append((w, h))
                 all_sizes.append((h, w))
             for w, h in all_sizes:
                 for i, j in itertools.product(range(sfeat), repeat=2):
-                    cx, cy = (j+0.5)/fk[idx], (i+0.5)/fk[idx]
+                    cx, cy = (j + 0.5) / fk[idx], (i + 0.5) / fk[idx]
                     self.default_boxes.append((cx, cy, w, h))
 
         self.dboxes = torch.tensor(self.default_boxes, dtype=torch.float)
@@ -267,8 +273,10 @@ class DefaultBoxes(object):
         return self.scale_wh_
 
     def __call__(self, order="ltrb"):
-        if order == "ltrb": return self.dboxes_ltrb
-        if order == "xywh": return self.dboxes
+        if order == "ltrb":
+            return self.dboxes_ltrb
+        if order == "xywh":
+            return self.dboxes
 
 
 def dboxes300_coco():
@@ -281,6 +289,7 @@ def dboxes300_coco():
     dboxes = DefaultBoxes(figsize, feat_size, steps, scales, aspect_ratios)
     return dboxes
 
+
 class ProbeOp(Operator):
     def setup(self, spec):
         spec.input("in")
@@ -292,13 +301,13 @@ class ProbeOp(Operator):
 
         source_video = in_message.get(self.tensor_name)
         if source_video is not None:
-            
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy): " )
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy): ")
             print(cp.asarray(source_video, dtype=cp.float32))
-            cp.save("./"+self.name, cp.asarray(source_video, dtype=cp.float32))
-            print(f"Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
+            cp.save("./" + self.name, cp.asarray(source_video, dtype=cp.float32))
+            print("Probing " + self.tensor_name + " in " + self.name + " (cupy) shape: ")
             print(cp.shape(source_video))
         op_output.emit(in_message, "out")
+
 
 class DetectionPostprocessorOp(Operator):
     """Example of an operator post processing the tensor from inference component.
@@ -310,8 +319,6 @@ class DetectionPostprocessorOp(Operator):
     """
 
     def __init__(self, *args, **kwargs):
-        
-
         # Need to call the base class constructor last
         super().__init__(*args, **kwargs)
 
@@ -319,47 +326,50 @@ class DetectionPostprocessorOp(Operator):
         spec.input("in")
         spec.output("out")
 
-
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
 
         locs_tensor = in_message.get("inference_output_tensor_loc")
         labels_tensor = in_message.get("inference_output_tensor_label")
 
-        
-
         if locs_tensor is not None:
-            locs_pyt   = torch.tensor(locs_tensor, ).cuda()
-            #print(f"Received locs_pyt(pytorch): {locs_pyt}")
+            locs_pyt = torch.tensor(
+                locs_tensor,
+            ).cuda()
+            # print(f"Received locs_pyt(pytorch): {locs_pyt}")
         if labels_tensor is not None:
-            labels_pyt = torch.tensor(labels_tensor,).cuda()
-            #print(f"Received labels_pyt(pytorch): {labels_pyt}")
-        
-        
+            labels_pyt = torch.tensor(
+                labels_tensor,
+            ).cuda()
+            # print(f"Received labels_pyt(pytorch): {labels_pyt}")
+
         dboxes = dboxes300_coco()
         encoder = Encoder(dboxes)
-        encoded = encoder.decode_batch(locs_pyt, labels_pyt, criteria=0.5, max_output=20) # TIME SINK, TODO: OPTIMIZE
-        
-        bboxes, classes, confidences = [x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]]
-    
+        encoded = encoder.decode_batch(
+            locs_pyt, labels_pyt, criteria=0.5, max_output=20
+        )  # TIME SINK, TODO: OPTIMIZE
+
+        bboxes, classes, confidences = [
+            x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]
+        ]
+
         best = np.argwhere(confidences > 0.3).squeeze()
-       
-        # Holoviz takes in rectangles of shapes [1, n/2, 2] where 
-        # n is the number of rectangles to render. bboxes[idx] has 
+
+        # Holoviz takes in rectangles of shapes [1, n/2, 2] where
+        # n is the number of rectangles to render. bboxes[idx] has
         # four values in range [0,1], representing [left, top, right, bottom]
         bboxes_output = bboxes[best].reshape(1, -1, 2)
-        
-        #for idx in best:
+
+        # for idx in best:
         #    left, top, right, bottom = bboxes[idx] # these four values range from [0, 1]
-        
+
         # output
         out_message = Entity(context)
         output_tensor = hs.as_tensor(bboxes_output)
 
         out_message.add(output_tensor, "rectangles")
         op_output.emit(out_message, "out")
-        
-        
+
 
 class SSDDetectionApp(Application):
     def __init__(self, source="replayer"):
@@ -388,7 +398,7 @@ class SSDDetectionApp(Application):
         is_aja = self.source.lower() == "aja"
         drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
         drop_alpha_num_blocks = 2
-        
+
         if is_aja:
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
@@ -405,10 +415,7 @@ class SSDDetectionApp(Application):
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-            
-            source = VideoStreamReplayerOp(
-                self, name="replayer",  **self.kwargs("replayer")
-            )
+            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
 
         width_preprocessor = 1920
         height_preprocessor = 1080
@@ -425,7 +432,6 @@ class SSDDetectionApp(Application):
             ),
             **self.kwargs("detection_preprocessor"),
         )
-        
 
         tensorrt_cuda_stream_pool = CudaStreamPool(
             self,
@@ -436,9 +442,13 @@ class SSDDetectionApp(Application):
             reserved_size=1,
             max_size=5,
         )
-        if debug_tensor_values_preproc == True:
-            probe_tensor_before_inf = ProbeOp(self, name="probe_tensor_before_inf", tensor_name = "source_video")
-            probe_tensor_before_preproc = ProbeOp(self, name="probe_tensor_before_preproc", tensor_name = "")
+        if debug_tensor_values_preproc is True:
+            probe_tensor_before_inf = ProbeOp(
+                self, name="probe_tensor_before_inf", tensor_name="source_video"
+            )
+            probe_tensor_before_preproc = ProbeOp(
+                self, name="probe_tensor_before_preproc", tensor_name=""
+            )
         detection_inference = TensorRTInferenceOp(
             self,
             name="detection_inference",
@@ -447,7 +457,7 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_inference"),
         )
 
-        detection_postprocessor = DetectionPostprocessorOp( 
+        detection_postprocessor = DetectionPostprocessorOp(
             # this is where we write our own post processor in the BYOM process
             self,
             name="detection_postprocessor",
@@ -455,14 +465,21 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_postprocessor"),
         )
 
-        
         detection_visualizer = HolovizOp(
             self,
             name="detection_visualizer",
-            tensors = [dict(name="", type="color"), dict(name="rectangles", type="rectangles", opacity = 0.5, line_width=4, color=[1.0, 0.0, 0.0, 1.0])],
+            tensors=[
+                dict(name="", type="color"),
+                dict(
+                    name="rectangles",
+                    type="rectangles",
+                    opacity=0.5,
+                    line_width=4,
+                    color=[1.0, 0.0, 0.0, 1.0],
+                ),
+            ],
             **self.kwargs("detection_visualizer"),
         )
-        
 
         if is_aja:
             self.add_flow(source, detection_visualizer, {("video_buffer_output", "receivers")})
@@ -470,25 +487,23 @@ class SSDDetectionApp(Application):
             self.add_flow(drop_alpha_channel, detection_preprocessor)
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
-        
-            if debug_tensor_values_preproc == True:
+
+            if debug_tensor_values_preproc is True:
                 self.add_flow(source, probe_tensor_before_preproc)
                 self.add_flow(probe_tensor_before_preproc, detection_preprocessor)
             else:
                 self.add_flow(source, detection_preprocessor)
-        
-        if debug_tensor_values_preproc == True:
+
+        if debug_tensor_values_preproc is True:
             self.add_flow(detection_preprocessor, probe_tensor_before_inf)
             self.add_flow(probe_tensor_before_inf, detection_inference)
         else:
             self.add_flow(detection_preprocessor, detection_inference)
         self.add_flow(detection_inference, detection_postprocessor)
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
-        
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(
