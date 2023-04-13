@@ -1,6 +1,6 @@
-# V4L2 Plus Extension
+# V4L2 Video Capture Extension
 
-This GXF extension provides support for USB and HDMI input on the Holoscan dev kits.
+This GXF extension provides support for USB and HDMI video capture using V4L2.
 
 ## Requirements
 

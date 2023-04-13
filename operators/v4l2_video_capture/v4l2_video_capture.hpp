@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN_OPERATORS_V4L2_PLUS_SOURCE_HPP
-#define HOLOSCAN_OPERATORS_V4L2_PLUS_SOURCE_HPP
+#ifndef HOLOSCAN_OPERATORS_USB_V4L2_CAPTURE_HPP
+#define HOLOSCAN_OPERATORS_USB_V4L2_CAPTURE_HPP
 
 #include <memory>
 #include <string>
@@ -30,15 +30,15 @@ namespace holoscan::ops {
 /**
  * @brief Operator class to get the video stream from V4L2.
  *
- * This wraps a GXF Codelet(`nvidia::holoscan::V4L2PlusSource`).
+ * This wraps a GXF Codelet(`nvidia::holoscan::V4L2VideoCapture`).
  */
-class V4L2PlusSourceOp : public holoscan::ops::GXFOperator {
+class V4L2VideoCaptureOp : public holoscan::ops::GXFOperator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(V4L2PlusSourceOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(V4L2VideoCaptureOp, holoscan::ops::GXFOperator)
 
-  V4L2PlusSourceOp() = default;
+  V4L2VideoCaptureOp() = default;
 
-  const char* gxf_typename() const override { return "nvidia::holoscan::V4L2PlusSource"; }
+  const char* gxf_typename() const override { return "nvidia::holoscan::V4L2VideoCapture"; }
 
   void setup(OperatorSpec& spec) override;
 
@@ -57,4 +57,4 @@ class V4L2PlusSourceOp : public holoscan::ops::GXFOperator {
 
 }  // namespace holoscan::ops
 
-#endif /* HOLOSCAN_OPERATORS_V4L2_PLUS_SOURCE_HPP */
+#endif /* HOLOSCAN_OPERATORS_V4L2_VIDEO_CAPTURE_HPP */

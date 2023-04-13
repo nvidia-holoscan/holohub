@@ -61,6 +61,6 @@ add_holohub_application(simple_radar_pipeline)
 
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
-add_holohub_application(v4l2_plus DEPENDS 
-                        OPERATORS v4l2_plus_source)
+add_holohub_application(usb_hdmi_video_capture DEPENDS 
+                        OPERATORS v4l2_video_capture)
 

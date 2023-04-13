@@ -15,7 +15,7 @@
 
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET v4l2_plus_source
-    CLASS_NAME "V4L2PlusSourceOp"
-    SOURCES v4l2_plus_source.cpp
+    CPP_CMAKE_TARGET v4l2_video_capture
+    CLASS_NAME "V4L2VideoCaptureOp"
+    SOURCES v4l2_video_capture.cpp
 )

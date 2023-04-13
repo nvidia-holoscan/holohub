@@ -1,4 +1,3 @@
-%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,16 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-extensions:
-  - gxf_extensions/v4l2_plus_source/libgxf_v4l2_plus_source.so
 
-source:  # V4L2PlusSourceOp
-  width: 640
-  height: 480
-  device: "/dev/video0"
-  pixel_format: "YUYV"
+cmake_minimum_required(VERSION 3.20)
+project(usb_hdmi_video_capture LANGUAGES NONE)
 
-sink:  # Holoviz
-  width: 640
-  height: 480
+add_subdirectory(cpp)
+if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
+  add_subdirectory(python)
+endif()

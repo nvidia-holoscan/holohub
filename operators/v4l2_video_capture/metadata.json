@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "v4l2_plus_source",
+		"name": "v4l2_video_capture",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -22,7 +22,7 @@
 		"dependencies": {
 			"gxf_extensions": [
 				{
-					"name": "v4l2_plus_source",
+					"name": "v4l2_video_capture",
 					"version": "1.0"
 				}
 			]

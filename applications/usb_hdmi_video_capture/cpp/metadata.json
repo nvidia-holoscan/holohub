@@ -1,7 +1,7 @@
 {
 	"application": {
-		"name": "V4L2 Plus",
-		"language": "Python",
+		"name": "USB/HDMI Video Capture",
+		"language": "CPP",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -23,13 +23,13 @@
 		"dependencies": {
 			"gxf_extensions": [
 				{
-					"name": "v4l2_plus_source",
+					"name": "v4l2_video_capture",
 					"version": "1.0"
 				}
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/v4l2_plus.py",
+			"command": "<holohub_app_bin>/v4l2_video_capture",
 			"workdir": "holohub_bin"
 		}
 	}

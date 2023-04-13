@@ -14,31 +14,31 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(v4l2_plus CXX)
+project(usb_hdmi_video_capture CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable(v4l2_plus
+add_executable(usb_hdmi_video_capture
     main.cpp
 )
 
-target_link_libraries(v4l2_plus
+target_link_libraries(usb_hdmi_video_capture
    PRIVATE
    holoscan::core
    holoscan::ops::holoviz
-   v4l2_plus_source
+   v4l2_video_capture
 )
 
-target_include_directories(v4l2_plus
+target_include_directories(usb_hdmi_video_capture
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/v4l2_plus_source
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/v4l2_video_capture
 )
 
 # Copy config file
-add_custom_target(v4l2_plus_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/v4l2_plus.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "v4l2_plus.yaml"
-    BYPRODUCTS "v4l2_plus.yaml"
+add_custom_target(usb_hdmi_video_capture_yaml
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/usb_hdmi_video_capture.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "usb_hdmi_video_capture.yaml"
+    BYPRODUCTS "usb_hdmi_video_capture.yaml"
 )
-add_dependencies(v4l2_plus v4l2_plus_yaml)
+add_dependencies(usb_hdmi_video_capture usb_hdmi_video_capture_yaml)

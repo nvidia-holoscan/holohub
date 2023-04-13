@@ -16,7 +16,7 @@
  */
 
 #include <holoscan/holoscan.hpp>
-#include <v4l2_plus_source.hpp>
+#include <v4l2_video_capture.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
 class App : public holoscan::Application {
@@ -24,7 +24,7 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    auto source = make_operator<ops::V4L2PlusSourceOp>(
+    auto source = make_operator<ops::V4L2VideoCaptureOp>(
         "source",
         from_config("source"),
         Arg("allocator") = make_resource<UnboundedAllocator>("allocator"));
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
   // Get the configuration
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path += "/v4l2_plus.yaml";
+  config_path += "/usb_hdmi_video_capture.yaml";
   app.config(config_path);
 
   app.run();

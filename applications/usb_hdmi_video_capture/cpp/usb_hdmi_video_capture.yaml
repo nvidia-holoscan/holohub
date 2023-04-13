@@ -15,8 +15,8 @@
 # limitations under the License.
 ---
 extensions:
-  - gxf_extensions/v4l2_plus_source/libgxf_v4l2_plus_source.so
-  
+  - gxf_extensions/v4l2_video_capture/libgxf_v4l2_video_capture.so
+
 source:  # V4L2PlusSourceOp
   width: 640
   height: 480
