@@ -13,8 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(usb_hdmi_video_capture LANGUAGES NONE)
-
-add_subdirectory(cpp)
-add_subdirectory(python)
+# This application depends on the v4l2_video_capture operator
