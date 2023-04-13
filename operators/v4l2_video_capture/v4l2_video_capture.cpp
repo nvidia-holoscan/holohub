@@ -33,7 +33,7 @@ void V4L2VideoCaptureOp::setup(OperatorSpec& spec) {
   static constexpr char kDefaultPixelFormat[] = "RGBA32";
   static constexpr uint32_t kDefaultWidth = 1920;
   static constexpr uint32_t kDefaultHeight = 1080;
-  static constexpr uint32_t kDefaultNumBuffers = 2;
+  static constexpr uint32_t kDefaultNumBuffers = 4;
 
   spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
 

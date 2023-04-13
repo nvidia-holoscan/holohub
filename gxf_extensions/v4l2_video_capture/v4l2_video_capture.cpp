@@ -36,7 +36,7 @@ static constexpr char kDefaultDevice[] = "/dev/video0";
 static constexpr char kDefaultPixelFormat[] = "RGBA32";
 static constexpr uint32_t kDefaultWidth = 1920;
 static constexpr uint32_t kDefaultHeight = 1080;
-static constexpr uint32_t kDefaultNumBuffers = 2;
+static constexpr uint32_t kDefaultNumBuffers = 4;
 
 gxf_result_t V4L2VideoCapture::registerInterface(gxf::Registrar* registrar) {
   gxf::Expected<void> result;

@@ -58,7 +58,7 @@ class PyV4L2VideoCaptureOp : public V4L2VideoCaptureOp {
   // Define a constructor that fully initializes the object.
   PyV4L2VideoCaptureOp(Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
                  const std::string& device = "/dev/video0"s, uint32_t width = 1920,
-                 uint32_t height = 1080, uint32_t num_buffers = 2,
+                 uint32_t height = 1080, uint32_t num_buffers = 4,
                  const std::string& pixel_format = "RGBA32",
                  const std::string& name = "v4l2_video_capture")
       : V4L2VideoCaptureOp(ArgList{Arg{"allocator", allocator},
@@ -107,7 +107,7 @@ PYBIND11_MODULE(_v4l2_video_capture, m) {
            "device"_a = "0"s,
            "width"_a = 1920,
            "height"_a = 1080,
-           "num_buffers"_a = 2,
+           "num_buffers"_a = 4,
            "pixel_format"_a = "RGBA32"s,
            "name"_a = "v4l2_video_capture"s,
            doc::V4L2VideoCaptureOp::doc_V4L2VideoCaptureOp_python)
