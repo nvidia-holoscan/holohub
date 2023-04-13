@@ -29,7 +29,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/v4l2_video_capture.py",
+			"command": "python3 <holohub_app_source>/usb_hdmi_video_capture.py",
 			"workdir": "holohub_bin"
 		}
 	}

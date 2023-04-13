@@ -29,7 +29,7 @@
 			]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/v4l2_video_capture",
+			"command": "<holohub_app_bin>/usb_hdmi_video_capture",
 			"workdir": "holohub_bin"
 		}
 	}

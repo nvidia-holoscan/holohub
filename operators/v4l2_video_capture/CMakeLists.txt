@@ -18,9 +18,10 @@ project(v4l2_video_capture)
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(v4l2_video_capture SHARED
-v4l2_video_capture.hpp
-v4l2_video_capture.cpp
+add_library(v4l2_video_capture 
+  SHARED
+  v4l2_video_capture.hpp
+  v4l2_video_capture.cpp
   )
 add_library(holoscan::v4l2_video_capture ALIAS v4l2_video_capture)
 target_include_directories(v4l2_video_capture INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

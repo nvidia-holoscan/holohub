@@ -17,6 +17,3 @@ cmake_minimum_required(VERSION 3.20)
 project(usb_hdmi_video_capture LANGUAGES NONE)
 
 add_subdirectory(cpp)
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
-  add_subdirectory(python)
-endif()

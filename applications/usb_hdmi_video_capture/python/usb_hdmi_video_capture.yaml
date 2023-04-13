@@ -17,10 +17,16 @@
 extensions:
   - gxf_extensions/v4l2_video_capture/libgxf_v4l2_video_capture.so
   
-source:  # V4L2PlusSourceOp
+source:  # V4L2VideoCaptureOp
+  # # HDMI
+  # width: 1920
+  # height: 1080
+  # device: "/dev/video0"
+  # pixel_format: "RGBA32"
+  # USB
   width: 640
   height: 480
-  device: "/dev/video0"
+  device: "/dev/video1"
   pixel_format: "YUYV"
 
 sink:  # Holoviz
