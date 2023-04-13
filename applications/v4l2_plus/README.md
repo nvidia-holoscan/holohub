@@ -4,9 +4,8 @@ This app uses V4L2 to capture USB or HDMI input on the Holoscan dev kits and vis
 
 ## Requirements
 
-Install the following two dependencies:
+Install the following dependency:
 ```sh
-sudo apt-get install ffmpeg=7:4.2.7-0ubuntu0.1
 sudo apt-get install libv4l-dev=1.18.0-2build1
 ```
 

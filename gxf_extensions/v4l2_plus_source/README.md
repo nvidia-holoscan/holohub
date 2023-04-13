@@ -4,9 +4,8 @@ This GXF extension provides support for USB and HDMI input on the Holoscan dev k
 
 ## Requirements
 
-Install the following two dependencies:
+Install the following dependency:
 ```sh
-sudo apt-get install ffmpeg=7:4.2.7-0ubuntu0.1
 sudo apt-get install libv4l-dev=1.18.0-2build1
 ```
 
