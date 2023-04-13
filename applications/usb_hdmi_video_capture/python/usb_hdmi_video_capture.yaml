@@ -23,12 +23,10 @@ source:  # V4L2VideoCaptureOp
   height: 1080
   device: "/dev/video0"
   pixel_format: "RGBA32"
-  # # USB
+  # USB
   # width: 640
   # height: 480
   # device: "/dev/video1"
   # pixel_format: "YUYV"
 
-sink:  # Holoviz
-  width: 1920
-  height: 1080
+visualizer:  # Holoviz

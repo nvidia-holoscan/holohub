@@ -29,6 +29,4 @@ source:  # V4L2VideoCaptureOp
   # device: "/dev/video1"
   # pixel_format: "YUYV"
 
-sink:  # Holoviz
-  width: 1920
-  height: 1080
+visualizer:  # Holoviz

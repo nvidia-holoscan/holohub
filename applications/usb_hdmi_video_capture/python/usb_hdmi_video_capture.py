@@ -18,7 +18,7 @@ import os
 from holoscan.core import Application
 from holoscan.logger import load_env_log_level
 from holoscan.operators import HolovizOp
-from holoscan.resources import UnboundedAllocator
+from holoscan.resources import BlockMemoryPool
 
 from holohub.v4l2_video_capture import V4L2VideoCaptureOp
 
@@ -37,20 +37,37 @@ class App(Application):
     """
 
     def compose(self):
+
+        source_args = self.kwargs("source")
+        width = source_args["width"]
+        height = source_args["height"]
+        n_channels = 4
+        block_size = width * height * n_channels
+
         source = V4L2VideoCaptureOp(
             self,
             name="source",
-            allocator=UnboundedAllocator(self, name="allocator"),
-            **self.kwargs("source"),
+            allocator=BlockMemoryPool(
+                self, 
+                name="pool",
+                storage_type=0,
+                block_size=block_size,
+                num_blocks=1
+            ),
+            **source_args,
         )
 
-        sink = HolovizOp(
+        # Set Holoviz width and height from source resolution
+        visualizer_args = self.kwargs("visualizer")
+        visualizer_args["width"] = width
+        visualizer_args["height"] = height
+        visualizer = HolovizOp(
             self,
-            name="sink",
-            **self.kwargs("sink"),
+            name="visualizer",
+            **visualizer_args,
         )
 
-        self.add_flow(source, sink, {("signal", "receivers")})
+        self.add_flow(source, visualizer, {("signal", "receivers")})
 
 
 if __name__ == "__main__":

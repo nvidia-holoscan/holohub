@@ -18,23 +18,37 @@
 #include <holoscan/holoscan.hpp>
 #include <v4l2_video_capture.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
-
+#include <typeinfo>
 class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
 
-    auto source = make_operator<ops::V4L2VideoCaptureOp>(
-        "source",
-        from_config("source"),
-        Arg("allocator") = make_resource<UnboundedAllocator>("allocator"));
+    const int width = from_config("source.width").as<int>();
+    const int height = from_config("source.height").as<int>();
+    const int n_channels = 4;
+    uint64_t block_size = width * height * n_channels;
 
-    auto sink = make_operator<ops::HolovizOp>(
-        "sink",
-        from_config("sink"));
+    auto source = make_operator<ops::V4L2VideoCaptureOp>(
+      "source",
+      from_config("source"),
+      Arg("allocator") = make_resource<BlockMemoryPool>("pool", 0, block_size, 1)
+    );
+
+    // Set Holoviz width and height from source resolution
+    auto viz_args = from_config("visualizer");
+    for (auto& arg : from_config("source")) {
+      if      (arg.name() == "width")  viz_args.add(arg);
+      else if (arg.name() == "height") viz_args.add(arg);
+    }
+
+    auto visualizer = make_operator<ops::HolovizOp>(
+      "visualizer",
+      viz_args
+    );
 
     // Flow definition
-    add_flow(source, sink, {{"signal", "receivers"}});
+    add_flow(source, visualizer, {{"signal", "receivers"}});
   }
 };
 
