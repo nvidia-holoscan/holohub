@@ -68,3 +68,6 @@ Note: To run this application you will need to [create an OpenAI account](https:
   cd applications/speech_to_text_llm 
   python3 stt_to_nlp.py
   ```
+### Sample Audio File
+
+Please note the sample audio file included is licensed as CC-BY-4.0 International, copyright NVIDIA 2023. 
