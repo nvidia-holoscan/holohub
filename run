@@ -359,7 +359,7 @@ build() {
   fi
 
   # We define the python path to make sure we grab the right one
-  cmake_extra_args="-DPython3_EXECUTABLE=/usr/bin/python3"
+  cmake_extra_args="-DPython3_EXECUTABLE=${HOLOHUB_PY_EXE}"
 
   # We set the data directory to be outside the build directory
   cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
@@ -457,7 +457,7 @@ launch() {
    fi
 
    # Use Python to parse json file
-   json=$(python -c 'import json,sys
+   json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
 for k, v in obj["application"]["run"].items():
