@@ -16,6 +16,10 @@
 			  "version": "0.2.5",
 			  "url": "https://github.com/NVIDIA/MatX.git"
 			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/simple_radar_pipeline",
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

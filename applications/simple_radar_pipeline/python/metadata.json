@@ -23,6 +23,10 @@
 				"name": "cusignal",
 				"version": "22.12"
 			}]
+		},
+		"run": {
+			"command": "python3 simple_radar_pipeline.py",
+			"workdir": "holohub_app_source"
 		}
 	}
 }
