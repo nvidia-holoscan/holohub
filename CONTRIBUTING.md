@@ -112,6 +112,39 @@ and dependencies.
 ### Readme file
 While it is not required, adding a README.md file with clarification on the intent and usage of the application or operator is a plus and helps developers and users get started quickly with your application.
 
+### Build System
+#### Adding an Operator or GXF extension
+Each operator should be added in its own directory under the ```operators``` or ```gxf_extensions``` directories and should
+contain a ```metadata.json``` file as well as a README file.
+
+Edit the ```CMakeLists.txt``` file to add the new operator as part of the build system using the ```add_holohub_operator```
+CMake function. If the operator wraps a GXF extension then the optional ```DEPENDS EXTENSIONS``` should be added to tell the build
+system to build the dependent extension(s).
+
+```cmake
+add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
+```
+
+Note that extensions do not have a ```DEPENDS``` option.
+
+#### Adding an application
+Each application should be added in its own directory under the ```applications``` directory and should
+contain a ```metadata.json``` file as well as a README file.
+
+Edit the ```CMakeLists.txt``` file to add the new application  as part of the build system using the ```add_holohub_application```
+CMake function. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
+the build system knows to build the dependent operator(s).
+
+```cmake
+add_holohub_application(my_application DEPENDS
+                        OPERATORS my_operator1
+                                  my_operator2
+                        )
+```
+
+Note that some applications have the optional ```HOLOSCAN_SAMPLE_APP``` keywords at the end of the ```add_holohub_application```
+function. This keyword should only be used for sample applications that are maintained by the Holoscan team.
+
 ## Submitting a new application and operator
 
 ### Coding Guidelines
