@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Simple Classical Radar Pipeline",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Endoscopy Out of Body Detection Pipeline in C++",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "C++",
 		"version": "1.0",
 		"changelog": {

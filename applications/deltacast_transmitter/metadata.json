@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Videomaster transmitter example",
+		"authors": [
+			{
+				"name": "Laurent Radoux",
+				"affiliation": "DELTACAST"
+			}
+		],
 		"language": "C++",
 		"version": "1.0",
 		"changelog": {

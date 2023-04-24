@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Endoscopy Tool Segmentation from MONAI Model Zoo Application",
+		"authors": [
+			{
+				"name": "Jin Lin",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

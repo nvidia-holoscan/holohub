@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Power Spectral Denisty with cuNumeric",
+		"authors": [
+			{
+				"name": "Adam Thompson",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

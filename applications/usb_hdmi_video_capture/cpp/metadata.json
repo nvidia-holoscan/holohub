@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "USB/HDMI Video Capture",
+		"authors": [
+			{
+				"name": "Mikael Brudfors",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "CPP",
 		"version": "1.0",
 		"changelog": {
