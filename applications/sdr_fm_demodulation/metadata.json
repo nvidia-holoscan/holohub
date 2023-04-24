@@ -35,6 +35,10 @@
 				"name": "pyaudio",
 				"version": "0.2.13"
 			}]
+		},
+		"run": {
+			"command": "python3 sdr_fm_demodulation.py",
+			"workdir": "holohub_app_source"
 		}
 	}
 }
