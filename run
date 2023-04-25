@@ -16,9 +16,14 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-"python3"}
+DO_DRY_RUN="false"
 
 #===========================================================================================
 # Utilities
+
+YELLOW="\e[1;33m"
+RED="\e[1;31m"
+NOCOLOR="\e[0m"
 
 # Compare versions
 compare_version () {
@@ -64,14 +69,49 @@ run_command() {
     local status=0
     local cmd="$*"
 
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        echo -e "${YELLOW}[command]${NOCOLOR} ${cmd}"
+    else
+        echo -e "${YELLOW}[dryrun]${NOCOLOR} ${cmd}"
+    fi
+    
     [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
 
-    "$@"
-    status=$?
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        eval "$@"
+        status=$?
+    fi
 
     return $status
 }
 
+
+get_buildtype_str() {
+    local build_type="${1:-}"
+    local build_type_str
+
+    case "${build_type}" in
+        debug|Debug)
+            build_type_str="Debug"
+            ;;
+        release|Release)
+            build_type_str="Release"
+            ;;
+        rel-debug|RelWithDebInfo)
+            build_type_str="RelWithDebInfo"
+            ;;
+        *)
+            build_type_str="${CMAKE_BUILD_TYPE:-Release}"
+            ;;
+    esac
+
+    echo -n "${build_type_str}"
+}
+
+
+print_error() {
+    echo -e "${RED}ERROR${NOCOLOR}:" $*
+}
 
 #===========================================================================================
 # Helper function to install packages
@@ -92,7 +132,7 @@ install_cuda_dependencies_package() {
    package_installed=$(echo $available_version | grep "installed")
 
    if [[ $package_version == "" ]]; then
-    echo "$package_name $preferred_version is not installable."
+    print_error "$package_name $preferred_version is not installable."
     echo "You might want to try to install a newer version manually and rerun the setup:"
     echo "  sudo apt install $package_name"
     exit 1
@@ -153,8 +193,8 @@ setup() {
   # If python version is too high
   python3_max_version=$(compare_version ${python3_dev_version} "3.12.0")
   if [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
-    echo "ERROR: Python version ${python3_dev_version} is not supported"
-    exit
+    print_error "Python version ${python3_dev_version} is not supported"
+    exit 1
   fi
 
   # Install ffmpeg  
@@ -280,13 +320,13 @@ lint() {
     # Since we care about the success/failure of cpplitn and not of grep, we:
     #  1. use `set -o pipefail` to fail if `cpplint` fails
     #  2. use `grep -v ... || true` to ignore whether grep hid any output
-    run_command set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
+    run_command "set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
             --exclude build \
             --exclude install \
             --exclude build-\* \
             --exclude install-\* \
             --recursive $DIR_TO_RUN \
-        | { grep -v "Ignoring\|Done processing" || true; } || exit_code=1
+        | { grep -v 'Ignoring\|Done processing' || true; } || exit_code=1"
 
 
     echo "Code spelling"
@@ -307,6 +347,12 @@ build_desc() {
   echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
+  echo "   --type <debug | release | rel-debug> : Specify the type of build"
+  echo "                                          Default: release"
+  echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
+  echo "   --buildpath <build_directory>        : Change the build path."
+  echo "                                          Default: build"
+  echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --configure-args <extra_args> : Additional configuration arguments"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
@@ -326,6 +372,9 @@ build() {
   local i
   local arg
   local skipnext=0
+  local build_type="${CMAKE_BUILD_TYPE:-release}"
+  local build_path="${CMAKE_BUILD_PATH:-build}"
+
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
       if [[ $skipnext == "1" ]]; then
@@ -338,8 +387,14 @@ build() {
          configure_args="${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
          skipnext=1
+      elif [ "$arg" = "--type" ]; then
+         build_type=$(get_buildtype_str "${ARGS[i+1]}")
+         skipnext=1
+      elif [ "$arg" = "--buildpath" ]; then
+         build_path="${ARGS[i+1]}"
+         skipnext=1
       elif [[ $arg = -* ]]; then
-        echo "Unknown option $arg"
+        print_error "Unknown option $arg"
         exit 1  
       else
         app=$arg    
@@ -366,11 +421,106 @@ build() {
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
-  cmake -S . -B build ${cmake_extra_args} ${holoscan_sdk} ${application}
-  cmake --build build -j
+  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  run_command cmake --build ${build_path} -j
 
   echo "Holohub build done."
 }
+
+
+# Launch a sample app
+launch_desc() {
+  echo ""
+  echo "Launch command allowing to run application directly."
+  echo "Usage: ./run launch <application_name> [language: cpp|python]"
+  echo ""
+  echo "Use './run list' first to list the available applications"
+  echo "Note that applications might be listed but not built."
+  echo "Make sure you ./run build the application first"
+  echo ""
+}
+
+launch() {
+   local appname=$1
+
+   # Export the python path (by default use the one used to build)
+   local holohub_build_dir="${SCRIPT_DIR}/build"
+
+   # Do initial sanitary check to make sure build/ is there, to avoid too many other error messages 
+   if [ ! -d "$holohub_build_dir" ]; then
+     print_error "${holohub_build_dir} does not exist."
+     echo "Did you forget to build your application using './run build $appname' ?"
+     build_desc
+     exit 1
+   fi
+
+   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
+   local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+   local metadata_file="${holohub_app_source}/metadata.json"
+
+   if [[ $2 ]]; then
+     metadata_file="${holohub_app_source}/$2/metadata.json"
+     holohub_app_bin="${holohub_build_dir}/applications/${appname}/$2"
+     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
+   fi
+
+   # Check if the metadata file exists
+   if [ ! -f "$metadata_file" ]; then
+     print_error "The metadata file for this application does not exist."
+     echo "File: ${metadata_file} not found"
+     echo "Did you forget to specify the language?"
+     exit 1
+   fi
+
+   # Check if the build directory exists (for CPP apps)
+   if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
+     print_error "The build directory for this application does not exist."
+     echo "Did you forget to './run build $appname' ?"
+     build_desc
+     exit 1
+   fi
+
+   # Use Python to parse json file
+   json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
+f=open("'${metadata_file}'")
+obj=json.load(f)
+for k, v in obj["application"]["run"].items():
+  print(str(k)+"=\""+str(v)+"\"")
+')
+
+   local json_command=$(echo $json | grep -Po 'command="\K[^"]*')
+   local command=$json_command
+
+   # replace <holohub_data_dir> by the data dir
+   local command=$(echo "${json_command//<holohub_data_dir>/$holohub_data_dir}")
+
+   # replace <holohub_app_bin> by the binary app directory
+   command=$(echo "${command//<holohub_app_bin>/$holohub_app_bin}")
+
+   # replace <holohub_app_source> by the source app directory
+   command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
+
+   # default workdir is bin
+   local workdir="cd ${holohub_app_bin}"
+   local json_workdir=$(echo $json | grep -Po 'workdir="\K[^"]*')
+   if [[ $json_workdir == "holohub_app_source" ]]; then
+      workdir="cd ${holohub_app_source}"
+   elif [[ $json_workdir == "holohub_bin" ]]; then
+      workdir="cd ${holohub_build_dir}"
+   fi
+
+   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib"
+
+   # Run the command
+   run_command $environment
+   run_command $workdir
+   run_command $command
+}
+
+#===========================================================================================
+# Other options
 
 # Build HoloHub sample apps
 _list_desc() {
@@ -413,87 +563,15 @@ list() {
   echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually." 
 }
 
-# Launch a sample app
-launch_desc() {
-  echo ""
-  echo "Launch command allowing to run application directly."
-  echo "Usage: ./run launch <name_of_the_application> [language: cpp|python]"
-  echo ""
-  echo "Use './run list' first to list the available applications"
-  echo "Note that applications might be listed but not built."
-  echo "Make sure you ./run build the application first"
-  echo ""
+clear_cache() {
+  echo "Clearing cache..."
+  run_command rm -rf ${SCRIPT_DIR}/build
+  run_command rm -rf ${SCRIPT_DIR}/build-*
 }
 
-launch() {
-   local appname=$1
-
-   # Export the python path (by default use the one used to build)
-   local holohub_buildir="${SCRIPT_DIR}/build"
-   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_app_bin="${holohub_buildir}/applications/${appname}"
-   local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
-   local metadata_file="${holohub_app_source}/metadata.json"
-
-   if [[ $2 ]]; then
-     metadata_file="${holohub_app_source}/$2/metadata.json"
-     holohub_app_bin="${holohub_buildir}/applications/${appname}/$2"
-     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
-   fi
-
-   # Check if the metadata file exists
-   if [ ! -f "$metadata_file" ]; then
-     echo "The metadata file for this application does not exist."
-     echo "Did you forget to specify the language?"
-     exit 1
-   fi
-
-   # Check if the build directory exists (for CPP apps)
-   if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
-     echo "The build directory for this application does not exist."
-     echo "Did you forget to './run build $appname' ?"
-     exit 1
-   fi
-
-   # Use Python to parse json file
-   json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
-f=open("'${metadata_file}'")
-obj=json.load(f)
-for k, v in obj["application"]["run"].items():
-  print(str(k)+"=\""+str(v)+"\"")
-')
-
-   local json_command=$(echo $json | grep -Po 'command="\K[^"]*')
-   local command=$json_command
-
-   # replace <holohub_data_dir> by the data dir
-   local command=$(echo "${json_command//<holohub_data_dir>/$holohub_data_dir}")
-
-   # replace <holohub_app_bin> by the binary app directory
-   command=$(echo "${command//<holohub_app_bin>/$holohub_app_bin}")
-
-   # replace <holohub_app_source> by the source app directory
-   command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
-
-   # default workdir is bin
-   local workdir="cd ${holohub_app_bin}"
-   local json_workdir=$(echo $json | grep -Po 'workdir="\K[^"]*')
-   if [[ $json_workdir == "holohub_app_source" ]]; then
-      workdir="cd ${holohub_app_source}"
-   elif [[ $json_workdir == "holohub_bin" ]]; then
-      workdir="cd ${holohub_buildir}"
-   fi
-
-   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_buildir}/python/lib"
-
-   echo "workdir=${workdir}"
-   echo "command=${command}"
-
-   # Run the command
-   $environment && $workdir && $command
+clear_cache_desc() {
+  echo "Remove the build folders"
 }
-
 
 parse_args() {
     local OPTIND
@@ -527,7 +605,14 @@ parse_args() {
             CMD="help"
             break
         fi
+        if [ "$arg" = "--dryrun" ]; then
+            unset_pos=$i
+            DO_DRY_RUN="true"  # set to true to print commands to screen without running
+        fi
     done
+    if [ "${unset_pos}" ]; then
+        unset 'ARGS[unset_pos]'
+    fi
 }
 
 print_usage() {
@@ -535,11 +620,16 @@ print_usage() {
     echo
     echo "USAGE: $0 [command] [arguments]..."
     echo ""
-    echo "  --help, -h                               : Print help messages for [command]"
-    echo "  setup                                    : Install HoloHub main required packages"
-    echo "  list                                     : List all the applications"
-    echo "  build [application] [--sdk holoscan_sdk] : Build a specific application. Default is sample apps"
-    echo "  launch <application> <language>          : Run the application"
+    echo "Global Arguments"
+    echo "  --help, -h                                    : Print help messages for [command]"
+    echo "  --dryrun                                      : Print commands to screen without running"
+    echo ""
+    echo "Command List"
+    echo "  setup                                         : Install HoloHub main required packages"
+    echo "  clear_cache                                   : Clear cache folders"
+    echo "  list                                          : List all the applications"
+    echo "  build [application] [--sdk holoscan_sdk]      : Build a specific application. Default is sample apps"
+    echo "  launch <application> <language>               : Run the application"
 }
 
 print_cmd_help_messages() {
