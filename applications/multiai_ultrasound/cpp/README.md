@@ -17,11 +17,8 @@ The provided applications are configured to either use the AJA capture card for 
 
 [📦️ (NGC) Sample App Data for Multi-AI Ultrasound Pipeline](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_multi_ai_ultrasound_sample_data)
 
-Unzip the sample data:
-
-```
-unzip holoscan_multi_ai_ultrasound_sample_data_20221201.zip -d <data_dir>
-```
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://gitlab-master.nvidia.com/clara-holoscan/clara-holoscan-sdk/-/tree/main/public/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Build Instructions
 
@@ -29,20 +26,16 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ### Run Instructions
 
-In your build directory, run the commands of your choice:
+In your `build` directory, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    # C++
-    sed -i -e 's#applications/multiai_ultrasound/data/#<data_dir>/#' <build_dir>/multiai_ultrasound.yaml
-    sed -i -e 's#^source:.*#source: replayer#' <build_dir>/multiai_ultrasound.yaml
-    <build_dir>/multiai_ultrasound
+    sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+    applications/multiai_ultrasound/cpp/multiai_ultrasound --data <DATA_DIR>/multiai_ultrasound
     ```
 
 * Using an AJA card
     ```bash
-    # C++
-    sed -i -e 's#applications/multiai_ultrasound/data/#<data_dir>/#' <build_dir>/multiai_ultrasound.yaml
-    sed -i -e 's#^source:.*#source: aja#' <build_dir>/multiai_ultrasound.yaml
-    <build_dir>/multiai_ultrasound
+    sed -i -e 's#^source:.*#source: aja#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+    applications/multiai_ultrasound/cpp/multiai_ultrasound --data <DATA_DIR>/multiai_ultrasound
     ```

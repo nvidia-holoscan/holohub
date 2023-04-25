@@ -10,11 +10,8 @@ The provided applications are configured to either use the AJA capture card for 
 
 [📦️ (NGC) Sample App Data for AI-based Bone Scoliosis Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_ultrasound_sample_data)
 
-Unzip the sample data:
-
-```
-unzip holoscan_ultrasound_sample_data_20220608.zip -d <data_dir>
-```
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://gitlab-master.nvidia.com/clara-holoscan/clara-holoscan-sdk/-/tree/main/public/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Build Instructions
 
@@ -22,19 +19,16 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ### Run Instructions
 
-In your build directory, run the commands of your choice:
+In your `build` directory, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    # C++
-    sed -i -e 's#applications/ultrasound_segmentation/data/#<data_dir>/#' <build_dir>/ultrasound_segmentation.yaml
-    sed -i -e 's#^source:.*#source: replayer#' <build_dir>/ultrasound_segmentation.yaml
-    <build_dir>/ultrasound_segmentation
+    sed -i -e 's#^source:.*#source: replayer#' applications/ultrasound_segmentation/cpp/ultrasound_segmentation.yaml
+    applications/ultrasound_segmentation/cpp/ultrasound_segmentation --data <data_dir>/ultrasound_segmentation
     ```
 
 * Using an AJA card
     ```bash
-    # C++
-    sed -i -e 's#^source:.*#source: aja#' <build_dir>/ultrasound_segmentation.yaml
-    <build_dir>/ultrasound_segmentation
+    sed -i -e 's#^source:.*#source: aja#' applications/ultrasound_segmentation/cpp/ultrasound_segmentation.yaml
+    applications/ultrasound_segmentation/cpp/ultrasound_segmentation --data <data_dir>/ultrasound_segmentation
     ```
