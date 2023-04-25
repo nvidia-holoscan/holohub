@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Ultrasound Segmentation",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

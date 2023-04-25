@@ -33,6 +33,13 @@ and dependencies.
 "application|operator": {
 	    // Explicit name of the contribution
 		"name": "explicit name of the application/operator",
+		// Author(s) of the contribution
+		"authors": [
+			{
+				"name": "firstname lastname",
+				"affiliation": "affiliation"
+			}
+		],
 		// Supported language
 		// If multiple languages are supported, create a directory per language and a json file accordingly
 		"language": "CPP|Python|GXF",

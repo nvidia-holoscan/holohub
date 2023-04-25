@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Simple Radar Pipeline in C++",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "C++",
 		"version": "1.0",
 		"changelog": {

@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Endoscopy Tool Tracking",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "CPP",
 		"version": "1.0",
 		"changelog": {

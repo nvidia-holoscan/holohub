@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Software Defined Radio FM Demodulation",
+		"authors": [
+			{
+				"name": "Adam Thompson",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Speech-to-text + Large Language Model",
+		"authors": [
+			{
+				"name": "Sean Huver",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
