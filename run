@@ -15,7 +15,9 @@
 # limitations under the License.
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-"python3"}
+HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-python3}
+HOLOHUB_PY_EXE=$(which ${HOLOHUB_PY_EXE})
+HOLOHUB_PY_LIB="${HOLOHUB_PY_EXE/bin/lib}"
 DO_DRY_RUN="false"
 
 #===========================================================================================
@@ -414,7 +416,7 @@ build() {
   fi
 
   # We define the python path to make sure we grab the right one
-  cmake_extra_args="-DPython3_EXECUTABLE=${HOLOHUB_PY_EXE}"
+  cmake_extra_args="-DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
 
   # We set the data directory to be outside the build directory
   cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
