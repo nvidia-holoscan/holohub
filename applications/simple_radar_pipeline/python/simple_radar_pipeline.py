@@ -237,4 +237,4 @@ if __name__ == "__main__":
 
     duration = (iterations * num_pulses * num_channels) / (tstop - tstart)
 
-    print(f"{duration:0.3f} pulses/channel/sec")
+    print(f"{duration:0.3f} pulses/sec")
