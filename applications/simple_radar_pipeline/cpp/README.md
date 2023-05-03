@@ -8,7 +8,7 @@ This demonstration walks the developer through building a simple radar signal pr
 
 While this example generates 'offline' complex-valued data, it could be extended to accept streaming data from a phased array system or simulation via modification of the `SignalGeneratorOperator`.
 
-The output of this demonstration is a measure of the number of pulses per channel per second processed on GPU.
+The output of this demonstration is a measure of the number of pulses per second processed on GPU.
 
  The main objectives of this demonstration are to:
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and existing GPU-Accelerated Python libraries

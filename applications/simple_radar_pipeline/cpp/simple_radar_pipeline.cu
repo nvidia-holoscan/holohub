@@ -26,8 +26,8 @@ using ComplexType = cuda::std::complex<ftype>;
 /* Structures for passing parameters between operators */
 struct PulseCompressionData {
   PulseCompressionData(tensor_t<ComplexType, 1> *_waveformView,
-                       tensor_t<ComplexType, 3> *_inputView,
-                       cudaStream_t _stream)
+                        tensor_t<ComplexType, 3> *_inputView,
+                        cudaStream_t _stream)
     : waveformView(_waveformView), inputView(_inputView), stream(_stream)  {}
   tensor_t<ComplexType, 1> *waveformView;
   tensor_t<ComplexType, 3> *inputView;
@@ -54,7 +54,7 @@ struct DopplerData {
 
 struct CFARData {
   CFARData(tensor_t<ComplexType, 3> *_tpcView,
-           cudaStream_t _stream)
+            cudaStream_t _stream)
     : tpcView(_tpcView), stream(_stream)  {}
   tensor_t<ComplexType, 3> *tpcView;
   cudaStream_t stream;
@@ -64,31 +64,31 @@ struct CFARData {
 template <class O, class I1, class I2, class I3, class I4>
 class calcDets : public BaseOp<calcDets<O, I1, I2, I3, I4>> {
  private:
-  O out_;
-  I1 xpow_;
-  I2 ba_;
-  I3 norm_;
-  I4 pfa_;
+    O out_;
+    I1 xpow_;
+    I2 ba_;
+    I3 norm_;
+    I4 pfa_;
 
  public:
-  calcDets(O out, I1 xpow, I2 ba, I3 norm, I4 pfa)
-      : out_(out), xpow_(xpow), ba_(ba), norm_(norm), pfa_(pfa)  { }
+    calcDets(O out, I1 xpow, I2 ba, I3 norm, I4 pfa)
+        : out_(out), xpow_(xpow), ba_(ba), norm_(norm), pfa_(pfa)  { }
 
-  __device__ inline void operator()(index_t idz, index_t idy, index_t idx) {
-    typename I1::type xpow = xpow_(idz, idy, idx);
-    typename I2::type ba = ba_(idz, idy, idx);
-    typename I2::type norm = norm_(idz, idy, idx);
-    typename I2::type alpha = norm * (std::pow(pfa_, -1.0 / norm) - 1);
-    out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
-  }
+    __device__ inline void operator()(index_t idz, index_t idy, index_t idx) {
+      typename I1::type xpow = xpow_(idz, idy, idx);
+      typename I2::type ba = ba_(idz, idy, idx);
+      typename I2::type norm = norm_(idz, idy, idx);
+      typename I2::type alpha = norm * (std::pow(pfa_, -1.0 / norm) - 1);
+      out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
+    }
 
-  __host__ __device__ inline index_t Size(uint32_t i) const {
-    return out_.Size(i);
-  }
+    __host__ __device__ inline index_t Size(uint32_t i) const {
+      return out_.Size(i);
+    }
 
-  static inline constexpr __host__ __device__ int32_t Rank() {
-    return O::Rank();
-  }
+    static inline constexpr __host__ __device__ int32_t Rank() {
+      return O::Rank();
+    }
 };
 
 
@@ -146,12 +146,12 @@ class PulseCompressionOp : public Operator {
    *    Also, http://en.wikipedia.org/wiki/Pulse_compression
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Pulse compression compute() called");
+    HOLOSCAN_LOG_DEBUG("Pulse compression compute() called");
 
     // Reshape waveform to be waveformLength
     auto waveformPart = waveformView->Slice({0}, {waveformLength.get()});
     auto waveformT    = waveformView->template Clone<3>(
-                            {numChannels.get(), numPulses.get(), matxKeepDim});
+                {numChannels.get(), numPulses.get(), matxKeepDim});
     auto waveformFull = waveformView->Slice({0}, {numSamplesRnd});
 
     auto x = *inputView;
@@ -247,7 +247,7 @@ class ThreePulseCancellerOp : public Operator {
    *       SciTech Publishing, Inc., 2010.  Section 17.4.
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Three pulse canceller compute() called");
+    HOLOSCAN_LOG_DEBUG("Three pulse canceller compute() called");
     auto tpc_data = op_input.receive<ThreePulseCancellerData>("tpc_in");
 
     auto x = tpc_data->inputView->Permute({0, 2, 1}).Slice(
@@ -310,13 +310,13 @@ class DopplerOp : public Operator {
    * simplicity, but others would work. repmat().
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Doppler compute() called");
+    HOLOSCAN_LOG_DEBUG("Doppler compute() called");
     auto dop_data = op_input.receive<DopplerData>("dop_in");
 
     const index_t cpulses = numPulses.get() - (dop_data->cancelMask->Size(0) - 1);
 
     auto xc = dop_data->tpcView->Slice({0, 0, 0},
-                                       {numChannels.get(), cpulses, numCompressedSamples});
+          {numChannels.get(), cpulses, numCompressedSamples});
     auto xf = dop_data->tpcView->Permute({0, 2, 1});
 
     (xc = xc * hamming<1>({numChannels.get(), numPulses.get() - (dop_data->cancelMask->Size(0) - 1),
@@ -445,7 +445,7 @@ class CFAROp : public Operator {
    * Xpow = abs(X).^2;
    */
   void compute(InputContext& op_input, OutputContext&, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("CFAR compute() called");
+    HOLOSCAN_LOG_DEBUG("CFAR compute() called");
     auto cfar_data = op_input.receive<CFARData>("cfar_in");
 
     (*xPow = norm(*cfar_data->tpcView)).run(cfar_data->stream);
@@ -505,24 +505,39 @@ class CFAROp : public Operator {
 
 }  // namespace holoscan::ops
 
+static constexpr int num_iterations = 100;
+
 class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
 
-
     auto pc   = make_operator<ops::PulseCompressionOp>("pulse_compression",
-                                                       from_config("radar_pipeline"),
-                                                       make_condition<CountCondition>(100));
+          from_config("radar_pipeline"), make_condition<CountCondition>(num_iterations));
     auto tpc  = make_operator<ops::ThreePulseCancellerOp>("three_pulse_canceller",
-                                                          from_config("radar_pipeline"));
+          from_config("radar_pipeline"));
     auto dop  = make_operator<ops::DopplerOp>("doppler", from_config("radar_pipeline"));
     auto cfar = make_operator<ops::CFAROp>("cfar", from_config("radar_pipeline"));
+
+    channels   = from_config("radar_pipeline.numChannels").as<int>();
+    num_pulses = from_config("radar_pipeline.numPulses").as<int>();
 
     add_flow(pc, tpc,   {{"pc_out", "tpc_in"}});
     add_flow(tpc, dop,  {{"tpc_out", "dop_in"}});
     add_flow(dop, cfar, {{"dop_out", "cfar_in"}});
   }
+
+  int GetChannels() const {
+    return channels;
+  }
+
+  int GetPulses() const {
+    return num_pulses;
+  }
+
+ private:
+  int channels;
+  int num_pulses;
 };
 
 int main(int argc, char** argv) {
@@ -535,7 +550,12 @@ int main(int argc, char** argv) {
   config_path += "/simple_radar_pipeline.yaml";
   app->config(config_path);
 
+  const auto start = std::chrono::steady_clock::now();
   app->run();
+  const auto stop = std::chrono::steady_clock::now();
+  HOLOSCAN_LOG_INFO("{} pulses/sec", static_cast<uint64_t>(
+      static_cast<double>(num_iterations * app->GetPulses() * app->GetChannels()) /
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() * 1000.f));
 
   return 0;
 }
