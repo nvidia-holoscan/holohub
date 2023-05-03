@@ -553,7 +553,7 @@ int main(int argc, char** argv) {
   const auto start = std::chrono::steady_clock::now();
   app->run();
   const auto stop = std::chrono::steady_clock::now();
-  HOLOSCAN_LOG_INFO("{} pulses/channel/sec", static_cast<uint64_t>(
+  HOLOSCAN_LOG_INFO("{} pulses/sec", static_cast<uint64_t>(
       static_cast<double>(num_iterations * app->GetPulses() * app->GetChannels()) /
     std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() * 1000.f));
 
