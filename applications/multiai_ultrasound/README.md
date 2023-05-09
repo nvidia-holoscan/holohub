@@ -27,7 +27,7 @@ Then:
 The sample application outputs demonstrates 5 keypoints identified by the Plax Chamber model. Keypoints are connected in the output frame as shown in the image below.
 
 ![](docs/multiai_icardio_output.png)<br>
-Fig. 2 Multi AI sample application. Data courtesy of [iCardio.ai](www.icardio.ai) ([NGC Resource](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_multi_ai_ultrasound_sample_data))
+Fig. 2 Multi AI sample application. Data courtesy of [iCardio.ai](https://www.icardio.ai) ([NGC Resource](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_multi_ai_ultrasound_sample_data))
 
 
 

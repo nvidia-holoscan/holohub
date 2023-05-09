@@ -166,11 +166,6 @@ void TensorRTInferenceLogger::log(ILogger::Severity severity, const char* msg) t
       break;
     }
     case Severity::kERROR: {
-      std::cout << NV_TENSORRT_MAJOR << std::endl;
-      std::cout << NV_TENSORRT_MINOR << std::endl;
-      std::cout << NV_TENSORRT_PATCH << std::endl;
-      std::cout << NV_TENSORRT_BUILD << std::endl;
-      if (NV_TENSORRT_BUILD != 3)
       GXF_LOG_ERROR("TRT ERROR: %s", msg);
       break;
     }
