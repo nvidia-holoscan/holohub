@@ -1,0 +1,31 @@
+{
+	"operator": {
+		"name": "advanced_network",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"ranking": 1,
+		"dependencies": {
+				"gxf_extensions": [{
+					"name": "advanced_network",
+					"version": "1.0"
+				}
+			   ]
+			}
+		}
+}
