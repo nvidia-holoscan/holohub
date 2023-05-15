@@ -12,7 +12,7 @@ Full workflow including a generic visualization of segmentation results from a s
 [📦️ (NGC) Sample App Data for AI-based Bone Scoliosis Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_ultrasound_sample_data)
 
 The data is automatically downloaded and converted to the correct format when building the application.
-If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://gitlab-master.nvidia.com/clara-holoscan/clara-holoscan-sdk/-/tree/main/public/scripts#convert_video_to_gxf_entitiespy) script.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Run Instructions
 
@@ -45,5 +45,5 @@ Next, run the commands of your choice:
 * Using an AJA card
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/ultrasound_segmentation/python
-    python3 ultrasound_segmentation.py --source=aja --data <DATA_DIR>/ultrasound_segmentation
+    python3 ultrasound_segmentation.py --source=aja
     ```
