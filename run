@@ -15,10 +15,10 @@
 # limitations under the License.
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+DO_DRY_RUN="false"
 HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-python3}
 HOLOHUB_PY_EXE=$(which ${HOLOHUB_PY_EXE})
 HOLOHUB_PY_LIB="${HOLOHUB_PY_EXE/bin/lib}"
-DO_DRY_RUN="false"
 
 #===========================================================================================
 # Utilities
@@ -76,7 +76,7 @@ run_command() {
     else
         echo -e "${YELLOW}[dryrun]${NOCOLOR} ${cmd}"
     fi
-    
+
     [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
 
     if [ "${DO_DRY_RUN}" != "true" ]; then
@@ -158,7 +158,7 @@ setup() {
   # Run apt-get update
   apt-get update
 
-  # Install wget  
+  # Install wget
   wget_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
   if [[ $wget_version == "" ]]; then
     apt-get install wget
@@ -183,7 +183,7 @@ setup() {
   # Install python dev
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
   python3_min_version=$(compare_version ${python3_dev_version} "3.8.0")
-  
+
   # Python 3.8 to 3.11 are supported
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     echo "Installing python"
@@ -199,18 +199,18 @@ setup() {
     exit 1
   fi
 
-  # Install ffmpeg  
+  # Install ffmpeg
   ffmpeg_version=$(dpkg --status ffmpeg 2>/dev/null | grep -Po '^Version: \K[^-]*')
   if [[ $ffmpeg_version == "" ]]; then
     echo "Installing ffmpeg"
     apt install --no-install-recommends -y ffmpeg
   fi
 
-  # Install ngc-cli  
+  # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
   if [[ $ngc_version == "" ]]; then
     echo "Installing ngc cli"
-    
+
     if [ $(uname -m) == "aarch64" ]; then
       wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
     fi
@@ -230,7 +230,7 @@ setup() {
         break
       fi
    done
-  
+
   short_cuda_version=${cuda_version%.*}
   echo "Cuda version found: $short_cuda_version"
 
@@ -361,6 +361,21 @@ build_desc() {
   echo ""
 }
 
+# Allow users to point "--sdk" to root directory of the SDK installation.
+# This is to address the differences in directory structure between
+# installations between debian image, docker, or when built from source
+resolve_sdk_install_path() {
+  sdk_path=$1
+  
+  if [ -d "${sdk_path}/public/install" ]; then
+    echo "${sdk_path}/public/install"; return
+  elif [ -d "${sdk_path}/install" ]; then
+    echo "${sdk_path}/install"; return
+  else
+    echo "${sdk_path}"; return
+  fi
+}
+
 build() {
   # Holoscan SDK location
   holoscan_sdk=""
@@ -382,8 +397,9 @@ build() {
       if [[ $skipnext == "1" ]]; then
          skipnext=0
       elif [ "$arg" = "--sdk" ]; then
-         holoscan_sdk="-Dholoscan_ROOT=${ARGS[i+1]}"
-         echo "Using Holscan SDK in ${ARGS[i+1]}"
+         sdk_path=$( resolve_sdk_install_path "${ARGS[i+1]}" )
+         holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
+         echo "Using Holscan SDK in ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${ARGS[i+1]}"
@@ -397,9 +413,9 @@ build() {
          skipnext=1
       elif [[ $arg = -* ]]; then
         print_error "Unknown option $arg"
-        exit 1  
+        exit 1
       else
-        app=$arg    
+        app=$arg
       fi
   done
 
@@ -409,7 +425,7 @@ build() {
   application="-DBUILD_SAMPLE_APPS=1"
 
   if [[ $app == "SAMPLE_APPS" ]] ||  [[ $app == "" ]]; then
-     echo "Building sample applications."  
+     echo "Building sample applications."
   else
     echo "building $1 application"
     application="-DAPP_$1=1"
@@ -448,7 +464,7 @@ launch() {
    # Export the python path (by default use the one used to build)
    local holohub_build_dir="${SCRIPT_DIR}/build"
 
-   # Do initial sanitary check to make sure build/ is there, to avoid too many other error messages 
+   # Do initial sanitary check to make sure build/ is there, to avoid too many other error messages
    if [ ! -d "$holohub_build_dir" ]; then
      print_error "${holohub_build_dir} does not exist."
      echo "Did you forget to build your application using './run build $appname' ?"
@@ -539,7 +555,7 @@ list() {
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
-   
+
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
       language=""
@@ -556,13 +572,13 @@ list() {
     sample_app=""
     if [[ ${result} != "" ]]; then
       sample_app="[Sample Application]"
-    fi  
+    fi
 
     echo "- ${filename} ${language} ${sample_app}"
   done
   echo ""
   echo "Run ./run build <app_name> to build a specific app."
-  echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually." 
+  echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually."
 }
 
 clear_cache() {
