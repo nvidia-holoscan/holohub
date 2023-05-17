@@ -20,6 +20,8 @@ We will run a SSD model on the Holoscan SDK's Endoscopy Tool Tracking reference 
 
 When you're developing your own model you could train your own SSD model from your own data using the SSD [GitHub repo](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/Detection/SSD). 
 
+SSD model used in step 1: `epoch24.onnx` from [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model).
+
 To bring your own video data, please first convert it to the tensor format. See this README for utilizing [convert_video_to_gxf_entities.py](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy).
 
 
@@ -43,7 +45,7 @@ Here are some important SDK documentation for understanding the Python API:
 
 We will create this app with Python postprocessing code borrowed from the model training repo and dropped into the Holoscan SDK. 
 
-To start our application development process, we can first take a look at the [Ultrasound Reference Application](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/apps/ultrasound_segmentation/python/ultrasound_segmentation.py) for inspiration on app creation, noting that each of the operators is a wrapped C++ operator. As the documentation on [Python Operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#python-operators) states, two types of operators exist in Holoscan: Native Python operators and Python wrappings of C++ Operators. In our step 1 application, we will utilize the [interoperability between wrapped and native Python operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) to create postprocessing logic in a native Python operator, and connect that native Python operator the the upstream model inference operator and downstream visulization operator, both of which are Python wrappings of C++ operators. 
+To start our application development process, we can first take a look at the [Ultrasound Reference Application](https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_segmentation/python/ultrasound_segmentation.py) for inspiration on app creation, noting that each of the operators is a wrapped C++ operator. As the documentation on [Python Operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#python-operators) states, two types of operators exist in Holoscan: Native Python operators and Python wrappings of C++ Operators. In our step 1 application, we will utilize the [interoperability between wrapped and native Python operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) to create postprocessing logic in a native Python operator, and connect that native Python operator the the upstream model inference operator and downstream visulization operator, both of which are Python wrappings of C++ operators. 
 
 Deep learning model training repos usually include a script or a python notebook for running inference on sample images with the saved model checkpoint. In the SSD repo, there is [examples/inference.ipynb](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb). From the notebook, we can see that to to inference on an image:
 
@@ -73,7 +75,7 @@ for idx in best:
 ```
 The values in `left, top, right, bottom = bboxes[idx]` are the values of the bounding boxes we will want in the end. They are in the value range of [0, 1].
 
-So we will need to create a custom operator for postprocessing the model output. For near zero code change, bring the postprocessing logic from the training repo directly into a native Python Operator as seen in [`ssd_step1.py`](../applications/python/ssd_step1.py), including any functions in [ssd/utils.py](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/ssd/utils.py) including definitions for `calc_iou_tensor, DefaultBoxes, dboxes300_coco, Encoder`, because the postprocessing logic depended on the imports `from ssd.utils import dboxes300_coco, Encoder` in the inference [notebook](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb). 
+So we will need to create a custom operator for postprocessing the model output. For near zero code change, bring the postprocessing logic from the training repo directly into a native Python Operator as seen in [`ssd_step1.py`](../ssd_step1.py), including any functions in [ssd/utils.py](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/ssd/utils.py) including definitions for `calc_iou_tensor, DefaultBoxes, dboxes300_coco, Encoder`, because the postprocessing logic depended on the imports `from ssd.utils import dboxes300_coco, Encoder` in the inference [notebook](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb). 
 
 **Config file** 
 
@@ -326,7 +328,7 @@ Note: To run the application at the same frame rate as the original video, modif
 #### **Language(s) Used**
 Python API.
 #### **Data and Model**
-SSD model with additional NMS op: [models/endo_ssd/epoch24_nms.onnx](../models/endo_ssd/epoch24_nms.onnx)
+SSD model with additional NMS op: `epoch24_nms.onnx` from [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model).
 
 #### **Modifying ONNX Model to include NMS**
 In this step, we will attempt to move the NMS postprocessing step out of the native Python API's postprocessor, and add a layer in the ONNX model itself to perform NMS.
