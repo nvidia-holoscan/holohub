@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Simple Classical Radar Pipeline",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
@@ -23,6 +29,10 @@
 				"name": "cusignal",
 				"version": "22.12"
 			}]
+		},
+		"run": {
+			"command": "python3 simple_radar_pipeline.py",
+			"workdir": "holohub_app_source"
 		}
 	}
 }

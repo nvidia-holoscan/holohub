@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Advanced Networking Benchmark",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "CPP",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"ranking": 1,
+		"dependencies": {
+			"gxf_extensions": [{
+				"name": "advanced_networking_benchmark",
+				"version": "1.0"
+			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/adv_networking_bench",
+			"workdir": "holohub_bin"
+		}
+	}
+}

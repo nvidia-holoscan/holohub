@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Software Defined Radio FM Demodulation",
+		"authors": [
+			{
+				"name": "Adam Thompson",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
@@ -35,6 +41,10 @@
 				"name": "pyaudio",
 				"version": "0.2.13"
 			}]
+		},
+		"run": {
+			"command": "python3 sdr_fm_demodulation.py",
+			"workdir": "holohub_app_source"
 		}
 	}
 }

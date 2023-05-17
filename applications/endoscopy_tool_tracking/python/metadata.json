@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "Endoscopy Tool Tracking",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
@@ -22,7 +28,10 @@
 			"AJA"
 		],
 		"ranking": 1,
-		"dependencies": {},
+		"dependencies": {
+			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
+		},
 		"run": {
 			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"

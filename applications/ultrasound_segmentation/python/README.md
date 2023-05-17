@@ -11,39 +11,39 @@ Full workflow including a generic visualization of segmentation results from a s
 
 [📦️ (NGC) Sample App Data for AI-based Bone Scoliosis Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_ultrasound_sample_data)
 
-```
-unzip holoscan_ultrasound_sample_data_20220608.zip -d <data_dir>
-```
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Run Instructions
 
-* (Optional) Create and use a virtual environment:
 
-  ```
-  python3 -m venv .venv
-  source .venv/bin/activate
+To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
+necessary python libraries based on your Holoscan SDK installation type.
+
+If your Holoscan SDK installation type is:
+
+* python wheels:
+
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
   ```
 
-* Install Holoscan PyPI package
+* otherwise:
 
-  ```
-  pip install holoscan
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
   ```
 
-Run the commands of your choice:
+Next, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    # Python
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    cd ultrasound_segmentation/python
-    python3 ultrasound_segmentation.py --source=aja
+    cd <HOLOHUB_SOURCE_DIR>/applications/ultrasound_segmentation/python
+    python3 ultrasound_segmentation.py --source=replayer --data <DATA_DIR>/ultrasound_segmentation
     ```
 
 * Using an AJA card
     ```bash
-    # Python
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    cd ultrasound_segmentation/python
+    cd <HOLOHUB_SOURCE_DIR>/applications/ultrasound_segmentation/python
     python3 ultrasound_segmentation.py --source=aja
     ```

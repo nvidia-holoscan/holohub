@@ -19,6 +19,16 @@ add_holohub_application(basic_networking_ping DEPENDS
 
 add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 
+add_holohub_application(deltacast_endoscopy_tool_tracking DEPENDS
+                        OPERATORS lstm_tensor_rt_inference
+                                  tool_tracking_postprocessor
+                                  videomaster
+                        )
+
+add_holohub_application(deltacast_transmitter DEPENDS
+                        OPERATORS videomaster
+                        )
+
 add_holohub_application(endoscopy_out_of_body_detection HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(endoscopy_tool_tracking DEPENDS
@@ -51,5 +61,6 @@ add_holohub_application(simple_radar_pipeline)
 
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
-add_holohub_application(v4l2_plus DEPENDS 
-                        OPERATORS v4l2_plus_source)
+add_holohub_application(usb_hdmi_video_capture DEPENDS 
+                        OPERATORS v4l2_video_capture)
+

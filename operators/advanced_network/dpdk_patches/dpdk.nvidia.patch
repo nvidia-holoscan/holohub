@@ -1,0 +1,35 @@
+--- config/arm/meson.build	2023-01-30 15:18:49.413204000 -0800
++++ config/arm/arm_new.build	2023-01-30 15:20:36.110169000 -0800
+@@ -234,6 +234,24 @@
+     }
+ }
+ 
++implementer_nvidia = {
++    'description': 'NVIDIA',
++    'flags': [
++        ['RTE_MACHINE', '"armv8a"'],
++        ['RTE_USE_C11_MEM_MODEL', true],
++        ['RTE_MAX_LCORE', 256],
++        ['RTE_MAX_NUMA_NODES', 4]
++    ],
++    'part_number_config': {
++        '0x4': {
++            'march': 'armv8-a',
++            'march_features': ['crc'],
++            'compiler_options': ['-moutline-atomics']
++        }
++    }
++}
++
++
+ 
+ implementer_qualcomm = {
+     'description': 'Qualcomm',
+@@ -262,6 +280,7 @@
+     '0x41': implementer_arm,
+     '0x43': implementer_cavium,
+     '0x48': implementer_hisilicon,
++    '0x4e': implementer_nvidia,
+     '0x50': implementer_ampere,
+     '0x51': implementer_qualcomm,
+     '0x70': implementer_phytium,

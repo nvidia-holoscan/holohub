@@ -1,0 +1,13 @@
+--- drivers/gpu/cuda/cuda.c	2022-11-27 02:36:36.000000000 -0800
++++ drivers/gpu/cuda/cuda.patch.c	2023-01-30 20:29:35.337900000 -0800
+@@ -201,6 +201,10 @@
+ 	},
+ 	{
+ 		RTE_PCI_DEVICE(NVIDIA_GPU_VENDOR_ID,
++				NVIDIA_GPU_QUADRO_RTX_6000_TURING)
++	},	
++	{
++		RTE_PCI_DEVICE(NVIDIA_GPU_VENDOR_ID,
+ 				NVIDIA_GPU_QUADRO_RTX_8000)
+ 	},
+ 	{

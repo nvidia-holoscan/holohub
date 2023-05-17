@@ -41,5 +41,5 @@ add_subdirectory(applications)
 # Build the operators
 add_subdirectory(operators)
 
-# Build the GXF extensions
+# Build the extensions
 add_subdirectory(gxf_extensions)

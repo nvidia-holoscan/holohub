@@ -9,6 +9,8 @@ The applications uses models and echocardiogram data from iCardio.ai. The models
 - a Viewpoint Classifier model, that determines confidence of each frame to known 28 cardiac anatomical view as defined by the guidelines of the American Society of Echocardiography
 - an Aortic Stenosis Classification model, that provides a score which determines likeability for the presence of aortic stenosis
 
+The default configuration (`multiai_ultrasound.yaml`) runs on default GPU (GPU-0). Multi-AI Ultrasound application can be executed on multiple GPUs with the Holoscan SDK version 0.6 onwards. A sample configuration file for multi GPU configuration for multi-AI ultrasound application (`mgpu_multiai_ultrasound.yaml`) is present in both `cpp` and `python` applications. The multi-GPU configuration file is designed for a system with at least 2 GPUs connected to the same PCIE network.
+
 ### Requirements
 
 - Python 3.8+
@@ -18,41 +20,44 @@ The applications uses models and echocardiogram data from iCardio.ai. The models
 
 [📦️ (NGC) Sample App Data for Multi-AI Ultrasound Pipeline](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_multi_ai_ultrasound_sample_data)
 
-```
-unzip holoscan_multi_ai_ultrasound_sample_data_20221201.zip -d <data_dir>
-```
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Run Instructions
 
-* (Optional) Create and use a virtual environment:
+To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
+necessary python libraries based on your Holoscan SDK installation type.
 
-  ```
-  python3 -m venv .venv
-  source .venv/bin/activate
-  ```
+If your Holoscan SDK installation type is:
 
-* Install Holoscan PyPI package
+* python wheels:
 
-  ```
-  pip install holoscan
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
   ```
 
-Run the commands of your choice:
+* otherwise:
+
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
+  ```
+
+Next, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    # Python
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-    python3 multiai_ultrasound.py --source=replayer
+    cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
+    python3 multiai_ultrasound.py --source=replayer --data <DATA_DIR>/multiai_ultrasound
+    ```
+
+* Using a pre-recorded video on multi-GPU system
+    ```bash
+    cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
+    python3 multiai_ultrasound.py --config mgpu_multiai_ultrasound.yaml --source=replayer --data <DATA_DIR>/multiai_ultrasound
     ```
 
 * Using an AJA card
     ```bash
-    # Python
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
+    cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
     python3 multiai_ultrasound.py --source=aja
     ```
-
-> ℹ️ The python app can run outside those folders if `HOLOSCAN_SAMPLE_DATA_PATH` is set in your environment.

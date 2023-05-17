@@ -10,11 +10,9 @@ The provided applications are configured to either use the AJA capture card for 
 
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
 
-Unzip the sample data:
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
-```
-unzip holoscan_endoscopy_sample_data_20230128.zip -d <data_dir>
-```
 
 ### Build Instructions
 
@@ -22,20 +20,16 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ### Run Instructions
 
-In your build directory, run the commands of your choice:
+In your `build` directory, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    # C++
-    sed -i -e 's#applications/endoscopy_tool_tracking/data#<data_dir>#' <build_dir>/endoscopy_tool_tracking.yaml
-    sed -i -e 's#^source:.*#source: replayer#' <build_dir>/endoscopy_tool_tracking.yaml
-    <build_dir>/endoscopy_tool_tracking
+    sed -i -e 's#^source:.*#source: replayer#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
     ```
 
 * Using an AJA card
     ```bash
-    # C++
-    sed -i -e 's#applications/endoscopy_tool_tracking/data#<data_dir>#' <build_dir>/endoscopy_tool_tracking.yaml
-    sed -i -e 's#^source:.*#source: aja#' <build_dir>/endoscopy_tool_tracking.yaml \
-      && <build_dir>/endoscopy_tool_tracking
+    sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```

@@ -15,4 +15,5 @@
 
 add_holohub_extension(emergent_source)
 add_holohub_extension(lstm_tensor_rt_inference)
-add_holohub_extension(v4l2_plus_source)
+add_holohub_extension(v4l2_video_capture)
+add_holohub_extension(videomaster)

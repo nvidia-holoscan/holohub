@@ -11,28 +11,29 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
 
-Unzip the sample data:
-
-```
-unzip holoscan_endoscopy_sample_data_20230128.zip -d <data_dir>
-```
+The data is automatically downloaded and converted to the correct format when building the application.
+If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Run Instructions
 
-* (Optional) Create and use a virtual environment:
+To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
+necessary python libraries based on your Holoscan SDK installation type.
 
-  ```
-  python3 -m venv .venv
-  source .venv/bin/activate
-  ```
+If your Holoscan SDK installation type is:
 
-* Install Holoscan PyPI package
+* python wheels:
 
-  ```
-  pip install holoscan
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
   ```
 
-Run the commands of your choice:
+* otherwise:
+ 
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
+  ```
+ 
+Next, run the commands of your choice:
 
 This application should **be run in the build directory of Holohub** in order to load the GXF extensions.
 Alternatively, the relative path of the extensions in the corresponding yaml file can be modified to match path of
@@ -40,19 +41,12 @@ the working directory.
 
 * Using a pre-recorded video
     ```bash
-    # Python
     cd <HOLOHUB_BUILD_DIR>
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-    python3 endoscopy_tool_tracking.py --source=replayer
+    python3 <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=replayer --data=<DATA_DIR>/endoscopy
     ```
 
 * Using an AJA card
     ```bash
-    # Python
     cd <HOLOHUB_BUILD_DIR>
-    export HOLOSCAN_DATA_PATH=<DATA_DIRECTORY>
-    export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-    python3 endoscopy_tool_tracking.py --source=aja
+    python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=aja
     ```
-

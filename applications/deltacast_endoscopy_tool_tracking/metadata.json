@@ -1,0 +1,36 @@
+{
+	"application": {
+		"name": "Videomaster endoscopy example application",
+		"authors": [
+			{
+				"name": "Laurent Radoux",
+				"affiliation": "DELTACAST"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.5.0",
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"DeltaCast",
+			"VideoMaster",
+			"Endoscopy",
+			"Classification"
+		],
+		"ranking": 3,
+		"dependencies": {
+			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
+		},
+		"run": {
+			"command": "<holohub_app_bin>/deltacast_endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}

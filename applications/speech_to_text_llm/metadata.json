@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "Speech-to-text + Large Language Model",
+		"authors": [
+			{
+				"name": "Sean Huver",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64"
+		],
+		"tags": [
+			"Speech-to-text",
+			"Large Language Model"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"openai-whisper": "^20230314",
+			"openai": "^0.27.2"
+		},
+		"run": {
+			"command": "python3 stt_to_nlp.py",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

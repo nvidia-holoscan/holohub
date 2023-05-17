@@ -13,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Make sure to order by alphabetical list
+
+add_holohub_operator(basic_network)
+add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
+add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
+add_holohub_operator(tensor_to_video_buffer)
+add_holohub_operator(tool_tracking_postprocessor)
+add_holohub_operator(v4l2_video_capture DEPENDS EXTENSIONS v4l2_video_capture)
 add_holohub_operator(video_decoder)
 add_holohub_operator(video_encoder)
 add_holohub_operator(video_read_bitstream)
 add_holohub_operator(video_write_bitstream)
-add_holohub_operator(tensor_to_video_buffer)
-add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
-add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
-add_holohub_operator(tool_tracking_postprocessor)
+add_holohub_operator(videomaster DEPENDS EXTENSIONS videomaster)
 add_holohub_operator(visualizer_icardio)
-add_holohub_operator(v4l2_plus_source DEPENDS EXTENSIONS v4l2_plus_source)
-add_holohub_operator(basic_network)

@@ -224,7 +224,7 @@ With the application [`ssd_step1.py`](../ssd_step1.py), we have achieved a near 
 
 Please note that the FPS on each hardware will differ, but the overall relative speedup in this tutorial should be observed on any hardware.
 
-The way we can check the FPS right now is by turning on the "Enable Graphics API Visual Indicator" option in window openned by `nvidia-settings` command, and when Holoviz displays via a window, the FPS us indicated on the top left corner. In future Holoscan SDK releases, there will be other latency measurement mechanisms.
+The way we can check the FPS right now is by turning on the "Enable Graphics API Visual Indicator" option in window opened by `nvidia-settings` command, and when Holoviz displays via a window, the FPS us indicated on the top left corner. In future Holoscan SDK releases, there will be other latency measurement mechanisms.
 
 ![FPS Indicator](./images/fps_indicator.PNG)
 

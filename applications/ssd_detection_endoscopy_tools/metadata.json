@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "SSD Detection Application",
+		"authors": [
+			{
+				"name": "Jin Lin",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {

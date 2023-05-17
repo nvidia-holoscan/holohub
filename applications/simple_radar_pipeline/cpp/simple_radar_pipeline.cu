@@ -25,9 +25,9 @@ using ComplexType = cuda::std::complex<ftype>;
 
 /* Structures for passing parameters between operators */
 struct PulseCompressionData {
-  PulseCompressionData( tensor_t<ComplexType, 1> *_waveformView, 
-                        tensor_t<ComplexType, 3> *_inputView, 
-                        cudaStream_t _stream) 
+  PulseCompressionData(tensor_t<ComplexType, 1> *_waveformView,
+                        tensor_t<ComplexType, 3> *_inputView,
+                        cudaStream_t _stream)
     : waveformView(_waveformView), inputView(_inputView), stream(_stream)  {}
   tensor_t<ComplexType, 1> *waveformView;
   tensor_t<ComplexType, 3> *inputView;
@@ -35,63 +35,60 @@ struct PulseCompressionData {
 };
 
 struct ThreePulseCancellerData {
-  ThreePulseCancellerData(tensor_t<ComplexType, 3> *_inputView, 
-                          cudaStream_t _stream) 
+  ThreePulseCancellerData(tensor_t<ComplexType, 3> *_inputView,
+                          cudaStream_t _stream)
     : inputView(_inputView), stream(_stream)  {}
   tensor_t<ComplexType, 3> *inputView;
-  cudaStream_t stream;  
+  cudaStream_t stream;
 };
 
 struct DopplerData {
-  DopplerData(tensor_t<ComplexType, 3> *_tpcView, 
-              tensor_t<ftype, 1> *_cancelMask, 
-              cudaStream_t _stream) 
+  DopplerData(tensor_t<ComplexType, 3> *_tpcView,
+              tensor_t<ftype, 1> *_cancelMask,
+              cudaStream_t _stream)
     : tpcView(_tpcView), cancelMask(_cancelMask), stream(_stream)  {}
   tensor_t<ComplexType, 3> *tpcView;
   tensor_t<ftype, 1> *cancelMask;
-  cudaStream_t stream;  
+  cudaStream_t stream;
 };
 
 struct CFARData {
-  CFARData( tensor_t<ComplexType, 3> *_tpcView,  
-            cudaStream_t _stream) 
+  CFARData(tensor_t<ComplexType, 3> *_tpcView,
+            cudaStream_t _stream)
     : tpcView(_tpcView), stream(_stream)  {}
   tensor_t<ComplexType, 3> *tpcView;
-  cudaStream_t stream;  
+  cudaStream_t stream;
 };
 
 /* Custom MatX operator for calculation detections in CFAR step. */
 template <class O, class I1, class I2, class I3, class I4>
 class calcDets : public BaseOp<calcDets<O, I1, I2, I3, I4>> {
-private:
-  O out_;
-  I1 xpow_;
-  I2 ba_;
-  I3 norm_;
-  I4 pfa_;
+ private:
+    O out_;
+    I1 xpow_;
+    I2 ba_;
+    I3 norm_;
+    I4 pfa_;
 
-public:
-  calcDets(O out, I1 xpow, I2 ba, I3 norm, I4 pfa)
-      : out_(out), xpow_(xpow), ba_(ba), norm_(norm), pfa_(pfa)  { }
+ public:
+    calcDets(O out, I1 xpow, I2 ba, I3 norm, I4 pfa)
+        : out_(out), xpow_(xpow), ba_(ba), norm_(norm), pfa_(pfa)  { }
 
-  __device__ inline void operator()(index_t idz, index_t idy, index_t idx)
-  {
-    typename I1::type xpow = xpow_(idz, idy, idx);
-    typename I2::type ba = ba_(idz, idy, idx);
-    typename I2::type norm = norm_(idz, idy, idx);
-    typename I2::type alpha = norm * (std::pow(pfa_, -1.0 / norm) - 1);
-    out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
-  }
+    __device__ inline void operator()(index_t idz, index_t idy, index_t idx) {
+      typename I1::type xpow = xpow_(idz, idy, idx);
+      typename I2::type ba = ba_(idz, idy, idx);
+      typename I2::type norm = norm_(idz, idy, idx);
+      typename I2::type alpha = norm * (std::pow(pfa_, -1.0 / norm) - 1);
+      out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
+    }
 
-  __host__ __device__ inline index_t Size(uint32_t i) const
-  {
-    return out_.Size(i);
-  }
+    __host__ __device__ inline index_t Size(uint32_t i) const {
+      return out_.Size(i);
+    }
 
-  static inline constexpr __host__ __device__ int32_t Rank()
-  {
-    return O::Rank();
-  }
+    static inline constexpr __host__ __device__ int32_t Rank() {
+      return O::Rank();
+    }
 };
 
 
@@ -104,12 +101,12 @@ class PulseCompressionOp : public Operator {
 
   PulseCompressionOp() = default;
 
-  void setup(OperatorSpec& spec) override { 
+  void setup(OperatorSpec& spec) override {
     spec.output<ThreePulseCancellerData>("pc_out");
     spec.param(numPulses, "numPulses", "Number of pulses", "Number of pulses per channel", {});
     spec.param(numChannels, "numChannels", "Number of channels", "Number of channels", {});
     spec.param(waveformLength, "waveformLength", "NWaveform length", "Length of waveform", {});
-    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});    
+    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});
   }
 
   void initialize() override {
@@ -123,7 +120,7 @@ class PulseCompressionOp : public Operator {
     numSamplesRnd = 1;
     while (numSamplesRnd < numSamples.get()) {
       numSamplesRnd *= 2;
-    }    
+    }
 
     waveformView = new tensor_t<ComplexType, 1>({numSamplesRnd});
     inputView    = new tensor_t<ComplexType, 3>(
@@ -134,13 +131,13 @@ class PulseCompressionOp : public Operator {
                inputView->TotalSize() * sizeof(ComplexType));
 
     waveformView->PrefetchDevice(stream);
-    inputView->PrefetchDevice(stream);    
+    inputView->PrefetchDevice(stream);
     HOLOSCAN_LOG_INFO("PulseCompressionOp::initialize() done");
   }
 
   /**
    * @brief Stage 1 - Pulse compression - convolution via FFTs
-   * 
+   *
    * Pulse compression achieves high range resolution by applying intra-pulse
    * modulation during transmit followed by applying a matched filter after
    * reception. References:
@@ -149,11 +146,12 @@ class PulseCompressionOp : public Operator {
    *    Also, http://en.wikipedia.org/wiki/Pulse_compression
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Pulse compression compute() called");
+    HOLOSCAN_LOG_DEBUG("Pulse compression compute() called");
 
     // Reshape waveform to be waveformLength
     auto waveformPart = waveformView->Slice({0}, {waveformLength.get()});
-    auto waveformT    = waveformView->template Clone<3>({numChannels.get(), numPulses.get(), matxKeepDim});
+    auto waveformT    = waveformView->template Clone<3>(
+                {numChannels.get(), numPulses.get(), matxKeepDim});
     auto waveformFull = waveformView->Slice({0}, {numSamplesRnd});
 
     auto x = *inputView;
@@ -178,7 +176,7 @@ class PulseCompressionOp : public Operator {
     ifft(x, x, 0, stream);
 
     auto params = std::make_shared<ThreePulseCancellerData>(inputView, stream);
-    op_output.emit(params, "pc_out");    
+    op_output.emit(params, "pc_out");
   };
 
  private:
@@ -200,13 +198,13 @@ class ThreePulseCancellerOp : public Operator {
 
   ThreePulseCancellerOp() = default;
 
-  void setup(OperatorSpec& spec) override { 
+  void setup(OperatorSpec& spec) override {
     spec.input<ThreePulseCancellerData>("tpc_in");
     spec.output<DopplerData>("tpc_out");
     spec.param(numPulses, "numPulses", "Number of pulses", "Number of pulses per channel", {});
     spec.param(numChannels, "numChannels", "Number of channels", "Number of channels", {});
     spec.param(waveformLength, "waveformLength", "NWaveform length", "Length of waveform", {});
-    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});    
+    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});
   }
 
   void initialize() override {
@@ -216,7 +214,7 @@ class ThreePulseCancellerOp : public Operator {
     numPulsesRnd = 1;
     while (numPulsesRnd <= numPulses.get()) {
       numPulsesRnd *= 2;
-    }    
+    }
 
     numCompressedSamples = numSamples.get() - waveformLength.get() + 1;
     tpcView = new tensor_t<ComplexType, 3>(
@@ -224,16 +222,16 @@ class ThreePulseCancellerOp : public Operator {
     cancelMask = new tensor_t<ftype, 1>({3});
     cancelMask->SetVals({1, -2, 1});
 
-    cudaMemset(tpcView->Data(), 0, tpcView->TotalSize() * sizeof(ComplexType));    
+    cudaMemset(tpcView->Data(), 0, tpcView->TotalSize() * sizeof(ComplexType));
 
-    tpcView->PrefetchDevice(0);    
-    cancelMask->PrefetchDevice(0);  
+    tpcView->PrefetchDevice(0);
+    cancelMask->PrefetchDevice(0);
     HOLOSCAN_LOG_INFO("ThreePulseCancellerOp::initialize() done");
   }
 
   /**
    * @brief Stage 2 - Three-pulse canceller - 1D convolution
-   * 
+   *
    * The three-pulse canceller is a simple high-pass filter designed to suppress
    * background, or "clutter", such as the ground and other non-moving objects.
    * The three-pulse canceller is a pair of two-pulse cancellers implemented in
@@ -249,7 +247,7 @@ class ThreePulseCancellerOp : public Operator {
    *       SciTech Publishing, Inc., 2010.  Section 17.4.
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Three pulse canceller compute() called");
+    HOLOSCAN_LOG_DEBUG("Three pulse canceller compute() called");
     auto tpc_data = op_input.receive<ThreePulseCancellerData>("tpc_in");
 
     auto x = tpc_data->inputView->Permute({0, 2, 1}).Slice(
@@ -259,7 +257,7 @@ class ThreePulseCancellerOp : public Operator {
     conv1d(xo, x, *cancelMask, matxConvCorrMode_t::MATX_C_MODE_SAME, tpc_data->stream);
 
     auto params = std::make_shared<DopplerData>(tpcView, cancelMask, tpc_data->stream);
-    op_output.emit(params, "tpc_out");    
+    op_output.emit(params, "tpc_out");
   };
 
  private:
@@ -280,13 +278,13 @@ class DopplerOp : public Operator {
 
   DopplerOp() = default;
 
-  void setup(OperatorSpec& spec) override { 
+  void setup(OperatorSpec& spec) override {
     spec.input<DopplerData>("dop_in");
     spec.output<CFARData>("dop_out");
     spec.param(numPulses, "numPulses", "Number of pulses", "Number of pulses per channel", {});
     spec.param(numChannels, "numChannels", "Number of channels", "Number of channels", {});
     spec.param(waveformLength, "waveformLength", "NWaveform length", "Length of waveform", {});
-    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});    
+    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});
   }
 
   void initialize() override {
@@ -299,7 +297,7 @@ class DopplerOp : public Operator {
 
   /**
    * @brief Stage 3 - Doppler Processing - FFTs in pulse
-   * 
+   *
    * Doppler processing converts the range-pulse data to range-Doppler data via
    * an FFT in the Doppler dimension. Explicit spectral analysis can then be
    * performed, such as the detector that will follow as stage 4.
@@ -312,12 +310,13 @@ class DopplerOp : public Operator {
    * simplicity, but others would work. repmat().
    */
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("Doppler compute() called");
+    HOLOSCAN_LOG_DEBUG("Doppler compute() called");
     auto dop_data = op_input.receive<DopplerData>("dop_in");
 
     const index_t cpulses = numPulses.get() - (dop_data->cancelMask->Size(0) - 1);
 
-    auto xc = dop_data->tpcView->Slice({0, 0, 0}, {numChannels.get(), cpulses, numCompressedSamples});
+    auto xc = dop_data->tpcView->Slice({0, 0, 0},
+          {numChannels.get(), cpulses, numCompressedSamples});
     auto xf = dop_data->tpcView->Permute({0, 2, 1});
 
     (xc = xc * hamming<1>({numChannels.get(), numPulses.get() - (dop_data->cancelMask->Size(0) - 1),
@@ -325,7 +324,7 @@ class DopplerOp : public Operator {
     fft(xf, xf, 0, dop_data->stream);
 
     auto params = std::make_shared<CFARData>(dop_data->tpcView, dop_data->stream);
-    op_output.emit(params, "dop_out");    
+    op_output.emit(params, "dop_out");
   };
 
  private:
@@ -334,7 +333,6 @@ class DopplerOp : public Operator {
   Parameter<int64_t> waveformLength;
   Parameter<int64_t> numChannels;
   index_t numCompressedSamples;
-
 };
 
 class CFAROp : public Operator {
@@ -343,12 +341,12 @@ class CFAROp : public Operator {
 
   CFAROp() = default;
 
-  void setup(OperatorSpec& spec) override { 
+  void setup(OperatorSpec& spec) override {
     spec.input<CFARData>("cfar_in");
     spec.param(numPulses, "numPulses", "Number of pulses", "Number of pulses per channel", {});
     spec.param(numChannels, "numChannels", "Number of channels", "Number of channels", {});
     spec.param(waveformLength, "waveformLength", "NWaveform length", "Length of waveform", {});
-    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});    
+    spec.param(numSamples, "numSamples", "Number of samples", "Number of samples per channel", {});
   }
 
   void initialize() override {
@@ -358,7 +356,7 @@ class CFAROp : public Operator {
     numPulsesRnd = 1;
     while (numPulsesRnd <= numPulses.get()) {
       numPulsesRnd *= 2;
-    }        
+    }
 
     numCompressedSamples = numSamples.get() - waveformLength.get() + 1;
 
@@ -371,9 +369,9 @@ class CFAROp : public Operator {
     dets = new tensor_t<int, 3>(
         {numChannels.get(), numPulsesRnd, numCompressedSamples});
     xPow = new tensor_t<ftype, 3>(
-        {numChannels.get(), numPulsesRnd, numCompressedSamples});   
+        {numChannels.get(), numPulsesRnd, numCompressedSamples});
     cfarMaskView = new tensor_t<ftype, 2>(
-        {cfarMaskY, cfarMaskX}); 
+        {cfarMaskY, cfarMaskX});
 
     // Mask for cfar detection
     // G == guard, R == reference, C == CUT
@@ -400,12 +398,12 @@ class CFAROp : public Operator {
 
     // Pre-process CFAR convolution
     conv2d(*normT, ones({numChannels.get(), numPulsesRnd, numCompressedSamples}),
-           *cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL, 0); 
+           *cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL, 0);
 
     ba->PrefetchDevice(0);
     normT->PrefetchDevice(0);
     cfarMaskView->PrefetchDevice(0);
-    dets->PrefetchDevice(0);              
+    dets->PrefetchDevice(0);
     xPow->PrefetchDevice(0);
 
     HOLOSCAN_LOG_INFO("CFAROp::initialize() done");
@@ -413,7 +411,7 @@ class CFAROp : public Operator {
 
   /**
    * @brief Stage 4 - Constant False Alarm Rate (CFAR) Detector - averaging or median
-   * 
+   *
    * filter CFAR detectors in general are designed to provide constant false
    * alarm rates by dynamically adjusting detection thresholds based on certain
    * statistical assumptions and interference estimates made from the data.
@@ -447,7 +445,7 @@ class CFAROp : public Operator {
    * Xpow = abs(X).^2;
    */
   void compute(InputContext& op_input, OutputContext&, ExecutionContext&) override {
-    HOLOSCAN_LOG_INFO("CFAR compute() called");
+    HOLOSCAN_LOG_DEBUG("CFAR compute() called");
     auto cfar_data = op_input.receive<CFARData>("cfar_in");
 
     (*xPow = norm(*cfar_data->tpcView)).run(cfar_data->stream);
@@ -493,7 +491,7 @@ class CFAROp : public Operator {
   index_t numCompressedSamples;
   index_t numPulsesRnd;
   const index_t cfarMaskX = 13;
-  const index_t cfarMaskY = 5;  
+  const index_t cfarMaskY = 5;
   static const constexpr float pfa = 1e-5f;
 
   tensor_t<ftype, 3> *normT = nullptr;
@@ -507,21 +505,39 @@ class CFAROp : public Operator {
 
 }  // namespace holoscan::ops
 
+static constexpr int num_iterations = 100;
+
 class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
 
-
-    auto pc   = make_operator<ops::PulseCompressionOp>("pulse_compression", from_config("radar_pipeline"), make_condition<CountCondition>(100));
-    auto tpc  = make_operator<ops::ThreePulseCancellerOp>("three_pulse_canceller", from_config("radar_pipeline"));
+    auto pc   = make_operator<ops::PulseCompressionOp>("pulse_compression",
+          from_config("radar_pipeline"), make_condition<CountCondition>(num_iterations));
+    auto tpc  = make_operator<ops::ThreePulseCancellerOp>("three_pulse_canceller",
+          from_config("radar_pipeline"));
     auto dop  = make_operator<ops::DopplerOp>("doppler", from_config("radar_pipeline"));
     auto cfar = make_operator<ops::CFAROp>("cfar", from_config("radar_pipeline"));
+
+    channels   = from_config("radar_pipeline.numChannels").as<int>();
+    num_pulses = from_config("radar_pipeline.numPulses").as<int>();
 
     add_flow(pc, tpc,   {{"pc_out", "tpc_in"}});
     add_flow(tpc, dop,  {{"tpc_out", "dop_in"}});
     add_flow(dop, cfar, {{"dop_out", "cfar_in"}});
   }
+
+  int GetChannels() const {
+    return channels;
+  }
+
+  int GetPulses() const {
+    return num_pulses;
+  }
+
+ private:
+  int channels;
+  int num_pulses;
 };
 
 int main(int argc, char** argv) {
@@ -534,7 +550,12 @@ int main(int argc, char** argv) {
   config_path += "/simple_radar_pipeline.yaml";
   app->config(config_path);
 
+  const auto start = std::chrono::steady_clock::now();
   app->run();
+  const auto stop = std::chrono::steady_clock::now();
+  HOLOSCAN_LOG_INFO("{} pulses/sec", static_cast<uint64_t>(
+      static_cast<double>(num_iterations * app->GetPulses() * app->GetChannels()) /
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() * 1000.f));
 
   return 0;
 }

@@ -30,11 +30,13 @@ ffmpeg -i <INPUT_VIDEO_FILE> -fs 900M -pix_fmt rgb24 -f rawvideo pipe:1 | python
 Move the model file and converted video tensor into a directory structure similar to the following:
 
 ```bash
-data/
-├── out_of_body_detection.onnx
-├── sample_clip_out_of_body_detection.mp4
-└── tensor.gxf_entities
-└── tensor.gxf_index
+data
+└── endoscopy_out_of_body_detection
+    ├── LICENSE.md
+    ├── out_of_body_detection.onnx
+    ├── sample_clip_out_of_body_detection.gxf_entities
+    ├── sample_clip_out_of_body_detection.gxf_index
+    └── sample_clip_out_of_body_detection.mp4
 ```
 
 ## Building the application
@@ -43,7 +45,8 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ## Running the application
 
+In your `build` directory, run
+
 ```bash
-# ensure the current working directory contains the <data_dir>.
-<build_dir>/endoscopy_out_of_body
+applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection --data ../data/endoscopy_out_of_body_detection
 ```

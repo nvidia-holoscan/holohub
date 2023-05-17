@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "H.264 Video Decode Reference Application",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "CPP",
 		"version": "1.0",
 		"changelog": {

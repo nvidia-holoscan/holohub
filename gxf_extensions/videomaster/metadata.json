@@ -1,0 +1,31 @@
+{
+	"gxf_extension": {
+		"name": "videomaster",
+		"version": "1.1",
+		"changelog": {
+			"1.0": "Initial Release",
+			"1.1": ""
+		},
+		"gxf_version": "2.5",
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Camera",
+			"Deltacast"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"packages": [
+				{
+					"name": "VideoMaster SDK",
+					"author": "Deltacast",
+					"license": "Proprietary",
+					"version": "",
+					"url": "https://deltacast.tv"
+				}
+			]
+		}
+	}
+}

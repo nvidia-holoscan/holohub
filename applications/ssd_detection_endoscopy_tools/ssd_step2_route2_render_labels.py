@@ -16,7 +16,10 @@
 import os
 from argparse import ArgumentParser
 
+import holoscan as hs
+import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.gxf import Entity
 from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
@@ -31,9 +34,7 @@ from holoscan.resources import (
     MemoryStorageType,
     UnboundedAllocator,
 )
-import numpy as np
-from holoscan.gxf import Entity
-import holoscan as hs
+
 try:
     import cupy as cp
 except ImportError:
@@ -42,7 +43,6 @@ except ImportError:
         "https://docs.cupy.dev/en/stable/install.html"
     )
 import csv
-import json
 
 
 class DetectionPostprocessorOp(Operator):
@@ -54,13 +54,11 @@ class DetectionPostprocessorOp(Operator):
         outputs: "output_tensor"
     """
 
-    def __init__(self, *args, label_dict = {}, 
-                 label_text_size = 0.05, 
-                scores_threshold=0.3, **kwargs):
+    def __init__(self, *args, label_dict={}, label_text_size=0.05, scores_threshold=0.3, **kwargs):
         self.label_text_size = label_text_size
         self.scores_threshold = scores_threshold
         self.label_dict = label_dict
-        
+
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -70,77 +68,76 @@ class DetectionPostprocessorOp(Operator):
     def append_size_to_text_coord(self, text_coord, size):
         # text_coord should be of shape [1, -1, 2]
         # we want to add a third size number to each (x, y)
-        # so the text_coord shape [1, -1, 3] 
+        # so the text_coord shape [1, -1, 3]
         # the size number determines the text display size in Holoviz
         text_size = np.ones((1, text_coord.shape[1], 1)) * size
         new_text_coord = np.append(text_coord, text_size, 2)
         return new_text_coord.astype(np.float32)
 
-        
-
     def compute(self, op_input, op_output, context):
         # Get input message
         in_message = op_input.receive("in")
         # Convert input to numpy array (using CuPy) via .get()
-        output_num_det = cp.asarray(in_message.get("inference_output_num_detections")).get()
+        # output_num_det = cp.asarray(in_message.get("inference_output_num_detections")).get()
         output_bboxes = cp.asarray(in_message.get("inference_output_detection_boxes")).get()
         output_scores = cp.asarray(in_message.get("inference_output_detection_scores")).get()
         output_labels = cp.asarray(in_message.get("inference_output_detection_classes")).get()
         # can check the data type of the incoming tensors here
         # print(output_num_det.dtype)
-        
 
         # Threshold output_scores and prune boxes
         ix = output_scores.flatten() >= self.scores_threshold
         has_rect = ix.any()
-        
-        output_bboxes = output_bboxes[:, ix, :] # output_bboxes is of size [1, num_bbox, 4]
-        output_labels = output_labels[:, ix].flatten() # labels is of size [ num_bbox]
-        
-        
-        bbox_coords = np.zeros([1,2,2], dtype = np.float32) 
+
+        output_bboxes = output_bboxes[:, ix, :]  # output_bboxes is of size [1, num_bbox, 4]
+        output_labels = output_labels[:, ix].flatten()  # labels is of size [ num_bbox]
+
+        bbox_coords = np.zeros([1, 2, 2], dtype=np.float32)
 
         if len(self.label_dict) > 0:
             # the label file isn't empty, we want to colorize the bbox and text colors
             bbox_coords = {}
             text_coords = {}
-            for l in self.label_dict:
-                bbox_coords[l] = np.zeros([1,2,2], dtype = np.float32) 
+            for label in self.label_dict:
+                bbox_coords[label] = np.zeros([1, 2, 2], dtype=np.float32)
                 # coords tensor for text to display in Holoviz can be of shape [1, n, 2] or [1, n, 3]
-                # with each location having [x,y] coords or [x,y,s] coords where s = size of text to display
-                text_coords[l] = np.zeros([1,1,2], dtype = np.float32) - 1.0
-                
-            
+                # with each location having [x,y] coords or [x,y,s] coords where s = size of text to
+                # display
+                text_coords[label] = np.zeros([1, 1, 2], dtype=np.float32) - 1.0
+
             if has_rect:
                 # there are bboxes and we want to colorize them as well as label text
-                for l in self.label_dict:
-                    curr_l_ix = output_labels == l
-                    
+                for label in self.label_dict:
+                    curr_l_ix = output_labels == label
+
                     if curr_l_ix.any():
-                        bbox_coords[l] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
-                        text_coords[l] = self.append_size_to_text_coord(np.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)), self.label_text_size) 
-                        
+                        bbox_coords[label] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
+                        text_coords[label] = self.append_size_to_text_coord(
+                            np.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
+                            self.label_text_size,
+                        )
+
         else:
             # the label file is empty, just display bboxes in one color
             if has_rect:
-                bbox_coords = np.reshape(output_bboxes, (1, -1, 2))   
-        
+                bbox_coords = np.reshape(output_bboxes, (1, -1, 2))
+
         # Creat output message
         out_message = Entity(context)
         if len(self.label_dict) > 0:
             # we have split bboxs and text labels into categories
-            for l in self.label_dict:
-                out_message.add(hs.as_tensor(bbox_coords[l]), "rectangles"+str(l))
-                out_message.add(hs.as_tensor(text_coords[l]), "label"+str(l))
+            for label in self.label_dict:
+                out_message.add(hs.as_tensor(bbox_coords[label]), "rectangles" + str(label))
+                out_message.add(hs.as_tensor(text_coords[label]), "label" + str(label))
         else:
             # only transmit the bbox_coords
             out_message.add(hs.as_tensor(bbox_coords), "rectangles")
-            
+
         op_output.emit(out_message, "out")
-       
+
 
 class SSDDetectionApp(Application):
-    def __init__(self, source="replayer", labelfile = ""):
+    def __init__(self, source="replayer", labelfile=""):
         """Initialize the ssd detection application
 
         Parameters
@@ -166,7 +163,7 @@ class SSDDetectionApp(Application):
         label_dict = {}
         if self.labelfile != "":
             assert os.path.isfile(self.labelfile)
-            with open(self.labelfile, newline='') as labelcsv:
+            with open(self.labelfile, newline="") as labelcsv:
                 csvreader = csv.reader(labelcsv)
                 for row in csvreader:
                     # assume each row looks like: 1, "Grasper", 1.0, 0.0, 1.0
@@ -174,11 +171,10 @@ class SSDDetectionApp(Application):
                     label_dict[int(row[0])]["text"] = str(row[1])
                     label_dict[int(row[0])]["color"] = [float(row[2]), float(row[3]), float(row[4])]
 
-
         is_aja = self.source.lower() == "aja"
         drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
         drop_alpha_num_blocks = 2
-        
+
         if is_aja:
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
@@ -195,10 +191,7 @@ class SSDDetectionApp(Application):
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-           
-            source = VideoStreamReplayerOp(
-                self, name="replayer",  **self.kwargs("replayer")
-            )
+            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
 
         width_preprocessor = 1920
         height_preprocessor = 1080
@@ -215,8 +208,6 @@ class SSDDetectionApp(Application):
             ),
             **self.kwargs("detection_preprocessor"),
         )
-        
-        
 
         tensorrt_cuda_stream_pool = CudaStreamPool(
             self,
@@ -235,32 +226,51 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_inference"),
         )
 
-        detection_postprocessor = DetectionPostprocessorOp( 
+        detection_postprocessor = DetectionPostprocessorOp(
             # this is where we write our own post processor in the BYOM process
             self,
             name="detection_postprocessor",
             allocator=UnboundedAllocator(self, name="allocator"),
-            label_dict = label_dict,
+            label_dict=label_dict,
             **self.kwargs("detection_postprocessor"),
         )
 
         holoviz_tensors = [dict(name="", type="color")]
         if len(label_dict) > 0:
-            for l in label_dict:
-                color = label_dict[l]["color"]
+            for label in label_dict:
+                color = label_dict[label]["color"]
                 color.append(1.0)
-                text = [label_dict[l]["text"]]
-                holoviz_tensors.append(dict(name="rectangles"+str(l), type="rectangles", opacity = 0.5, line_width=4, color=color))
-                holoviz_tensors.append(dict(name="label"+str(l), type="text", opacity = 0.5, color=color, text = text))
+                text = [label_dict[label]["text"]]
+                holoviz_tensors.append(
+                    dict(
+                        name="rectangles" + str(label),
+                        type="rectangles",
+                        opacity=0.5,
+                        line_width=4,
+                        color=color,
+                    )
+                )
+                holoviz_tensors.append(
+                    dict(
+                        name="label" + str(label), type="text", opacity=0.5, color=color, text=text
+                    )
+                )
         else:
-            holoviz_tensors.append(dict(name="rectangles", type="rectangles", opacity = 0.5, line_width=4, color=[1.0, 0.0, 0.0, 1.0]))
+            holoviz_tensors.append(
+                dict(
+                    name="rectangles",
+                    type="rectangles",
+                    opacity=0.5,
+                    line_width=4,
+                    color=[1.0, 0.0, 0.0, 1.0],
+                )
+            )
         detection_visualizer = HolovizOp(
             self,
             name="detection_visualizer",
-            tensors = holoviz_tensors,
+            tensors=holoviz_tensors,
             **self.kwargs("detection_visualizer"),
         )
-        
 
         if is_aja:
             self.add_flow(source, detection_visualizer, {("video_buffer_output", "receivers")})
@@ -269,15 +279,13 @@ class SSDDetectionApp(Application):
         else:
             self.add_flow(source, detection_visualizer, {("", "receivers")})
             self.add_flow(source, detection_preprocessor)
-        
+
         self.add_flow(detection_preprocessor, detection_inference)
         self.add_flow(detection_inference, detection_postprocessor)
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
-        
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(
@@ -308,6 +316,6 @@ if __name__ == "__main__":
     load_env_log_level()
     config_file = os.path.join(os.path.dirname(__file__), "ssd_endo_model_with_NMS.yaml")
 
-    app = SSDDetectionApp(source=args.source, labelfile = args.labelfile)
+    app = SSDDetectionApp(source=args.source, labelfile=args.labelfile)
     app.config(config_file)
     app.run()

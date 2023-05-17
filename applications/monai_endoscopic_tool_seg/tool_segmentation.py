@@ -75,9 +75,7 @@ class EndoToolSegApp(Application):
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-            source = VideoStreamReplayerOp(
-                self, name="replayer", **self.kwargs("replayer")
-            )
+            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
 
         width_preprocessor = 1264
         height_preprocessor = 1080
@@ -142,7 +140,6 @@ class EndoToolSegApp(Application):
 
 
 if __name__ == "__main__":
-
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool segmentation demo application.")
     parser.add_argument(
