@@ -95,15 +95,15 @@ display_usage() {
 	echo "Options"
 	echo "  -h,--help                 =  Show this usage help."
 	echo "  --url                     =  URL of the NGC resource to download."
-	echo "                               If the URL start with https:// then wget is used other NGC CLI is used"
-    echo "  --download_dir            =  Path to download directory where the data will be stored"
-    echo "  --download_name           =  Name of the directory where the data will be stored"
-    echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
-    echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
-    echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
-    echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
-    echo "  --gxf_entities_channels   =  Number of channels of the GXF entities (default = 3)"
-    echo "  --gxf_entities_framerate  =  Framerate of the GXF entities (default = 30)"
+	echo "                               If the URL start with https:// then wget or cURL is used otherwise NGC CLI is used"
+  echo "  --download_dir            =  Path to download directory where the data will be stored"
+  echo "  --download_name           =  Name of the directory where the data will be stored"
+  echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
+  echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
+  echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
+  echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
+  echo "  --gxf_entities_channels   =  Number of channels of the GXF entities (default = 3)"
+  echo "  --gxf_entities_framerate  =  Framerate of the GXF entities (default = 30)"
 	echo ""
 }
 
@@ -301,23 +301,21 @@ fi
 mkdir -p ${download_dir}
 
 if [ "${url:0:8}" == "https://" ]; then
+
+    # Use wget if it is present on the system
     download_command=wget
     if ! command -v wget > /dev/null; then
-      fatal R "Please install " W "wget" R " command to download datasets."
+      # Otherwise try with curl
+      download_command=curl
+      if ! command -v curl > /dev/null; then
+        fatal R "Please install " W "wget or cURL" R " command to download datasets."
+      fi
     fi
 else
     download_command=ngc
     if ! command -v ngc > /dev/null; then
       fatal R "Please install " W "ngc" R " command to download datasets. Follow the instructions in https://ngc.nvidia.com/setup/installers/cli to install NGC CLI."
-    fi  
-fi
-
-# Check if wget or ngc is installed
-if ! command -v ngc > /dev/null; then
-   download_command=wget
-   if ! command -v wget > /dev/null; then
-      fatal R "Please install " W "wget" R " or the " W "ngc" R " command to download datasets. Follow the instructions in https://ngc.nvidia.com/setup/installers/cli to install NGC CLI."
-   fi
+    fi
 fi
 
 # Check if the file already exists
@@ -328,34 +326,43 @@ if [ -f ${download_stamp_file} ]; then
 fi
 
 # HTTP download
-if [ "${download_command}" == "wget" ]; then
+if [ "${download_command}" == "wget" ] || [ "${download_command}" == "curl" ]; then
 
     zipfile="${download_dir_fullname}.zip"
-    run_command wget -q --show-progress --content-disposition ${url} -O ${zipfile}
-    if [ $? -ne 0 ]; then
-        fatal R "Unable to download ${url} via wget."
-    else
 
-      # check the md5
-      if [ $URL_MD5 ]; then
-        md5=$(md5sum ${zipfile} | cut -f 1 -d ' ')
-        if [ "${md5}" = "$URL_MD5" ]; then
-          c_echo G "MD5 matches!"
-        else
-          fatal R "MD5 mismatch: got ${md5} instead of $URL_MD5"
-        fi
-      fi  
-
-      # unzip
-      run_command unzip ${zipfile} -d ${download_dir_fullname}
-
-      # set the stamp file
-      run_command touch ${download_stamp_file}
-
-      # delete the archive
-      run_command rm ${zipfile}
-
+    if [ "${download_command}" == "wget" ]; then
+      run_command wget -q --show-progress --content-disposition ${url} -O ${zipfile}
+      if [ $? -ne 0 ]; then
+          fatal R "Unable to download ${url} via wget."
+      fi
     fi
+
+    if [ "${download_command}" == "curl" ]; then
+      run_command curl -S -# -L -o ${zipfile} ${url}
+      if [ $? -ne 0 ]; then
+          fatal R "Unable to download ${url} via curl."
+      fi
+    fi
+
+    # check the md5
+    if [ $URL_MD5 ]; then
+      md5=$(md5sum ${zipfile} | cut -f 1 -d ' ')
+      if [ "${md5}" = "$URL_MD5" ]; then
+        c_echo G "MD5 matches!"
+      else
+        fatal R "MD5 mismatch: got ${md5} instead of $URL_MD5"
+      fi
+    fi
+
+    # unzip
+    run_command unzip ${zipfile} -d ${download_dir_fullname}
+
+    # set the stamp file
+    run_command touch ${download_stamp_file}
+
+    # delete the archive
+    run_command rm ${zipfile}
+
 fi
 
 # NGC CLI
