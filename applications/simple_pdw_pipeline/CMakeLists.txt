@@ -40,11 +40,6 @@ target_link_libraries(simple_pdw_pipeline
   holoscan::basic_network
 )
 
-target_include_directories(simple_pdw_pipeline
-	PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/../../operators/basic_network
-)
-
 # Copy config file to the build tree
 add_custom_target(simple_pdw_pipeline_yaml
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
@@ -54,11 +49,3 @@ add_custom_target(simple_pdw_pipeline_yaml
 )
 add_dependencies(simple_pdw_pipeline simple_pdw_pipeline_yaml)
 
-# Add testing
-#if(BUILD_TESTING)
-#  add_test(NAME simple_pdw_pipeline_test
-#           COMMAND simple_pdw_pipeline
-#           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-#  set_tests_properties(simple_pdw_pipeline_test PROPERTIES
-#                       PASS_REGULAR_EXPRESSION "Scheduler finished")
-#endif()

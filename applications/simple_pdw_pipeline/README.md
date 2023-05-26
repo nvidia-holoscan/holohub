@@ -9,7 +9,8 @@ processors are used to see what is transmitting in your area, be they radio
 towers or radars.
 
 In the 'supporting' directory is a signal generator written in C that will transmit
-the input to this pipeline.
+the input to this pipeline. There is a contained Makefile that will compile the
+signal generator.
 
 
 BasicNetworkOpRx

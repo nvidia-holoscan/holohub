@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
 
 pulse_detector:
   threshold: 50000
