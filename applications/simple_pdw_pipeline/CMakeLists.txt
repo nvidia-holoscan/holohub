@@ -37,7 +37,7 @@ add_executable(simple_pdw_pipeline
 
 target_link_libraries(simple_pdw_pipeline
   PRIVATE holoscan::core matx::matx 
-  basic_network
+  holoscan::basic_network
 )
 
 target_include_directories(simple_pdw_pipeline
