@@ -27,14 +27,16 @@ uint32_t VideoMasterDvVideoInformation::get_buffer_type() { return VHD_DV_BT_VID
 
 uint32_t VideoMasterDvVideoInformation::get_nb_buffer_types() { return NB_VHD_DV_BUFFERTYPE; }
 
-uint32_t VideoMasterDvVideoInformation::get_stream_processing_mode() { return VHD_DV_STPROC_DISJOINED_VIDEO; }
+uint32_t VideoMasterDvVideoInformation::get_stream_processing_mode() {
+  return VHD_DV_STPROC_DISJOINED_VIDEO; }
 
 std::vector<uint32_t> VideoMasterDvVideoInformation::get_board_properties(uint32_t channel_index) {
   return {};
 }
 
 std::vector<uint32_t> VideoMasterDvVideoInformation::get_stream_properties() {
-  return {VHD_DV_SP_ACTIVE_WIDTH, VHD_DV_SP_ACTIVE_HEIGHT, VHD_DV_SP_INTERLACED, VHD_DV_SP_REFRESH_RATE};
+  return {VHD_DV_SP_ACTIVE_WIDTH, VHD_DV_SP_ACTIVE_HEIGHT,
+          VHD_DV_SP_INTERLACED, VHD_DV_SP_REFRESH_RATE};
 }
 
 gxf::Expected<VideoFormat> VideoMasterDvVideoInformation::get_video_format() {
@@ -45,11 +47,14 @@ gxf::Expected<VideoFormat> VideoMasterDvVideoInformation::get_video_format() {
     return gxf::Expected<VideoFormat>{VideoFormat{0, 0, false, 0}};
 
   return gxf::Expected<VideoFormat>{
-      VideoFormat{stream_properties_values[VHD_DV_SP_ACTIVE_WIDTH], stream_properties_values[VHD_DV_SP_ACTIVE_HEIGHT],
-                  !stream_properties_values[VHD_DV_SP_INTERLACED], stream_properties_values[VHD_DV_SP_REFRESH_RATE]}};
+      VideoFormat{stream_properties_values[VHD_DV_SP_ACTIVE_WIDTH],
+                  stream_properties_values[VHD_DV_SP_ACTIVE_HEIGHT],
+                  !stream_properties_values[VHD_DV_SP_INTERLACED],
+                  stream_properties_values[VHD_DV_SP_REFRESH_RATE]}};
 }
-  
-gxf::Expected<void> VideoMasterDvVideoInformation::update_stream_properties_values(VideoFormat video_format) {
+
+gxf::Expected<void>
+VideoMasterDvVideoInformation::update_stream_properties_values(VideoFormat video_format) {
   stream_properties_values[VHD_DV_SP_ACTIVE_WIDTH] = video_format.width;
   stream_properties_values[VHD_DV_SP_ACTIVE_HEIGHT] = video_format.height;
   stream_properties_values[VHD_DV_SP_INTERLACED] = !video_format.progressive;

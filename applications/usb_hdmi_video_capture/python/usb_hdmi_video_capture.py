@@ -37,7 +37,6 @@ class App(Application):
     """
 
     def compose(self):
-
         source_args = self.kwargs("source")
         width = source_args["width"]
         height = source_args["height"]
@@ -48,11 +47,7 @@ class App(Application):
             self,
             name="source",
             allocator=BlockMemoryPool(
-                self, 
-                name="pool",
-                storage_type=0,
-                block_size=block_size,
-                num_blocks=1
+                self, name="pool", storage_type=0, block_size=block_size, num_blocks=1
             ),
             **source_args,
         )

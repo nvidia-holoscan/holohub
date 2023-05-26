@@ -121,10 +121,12 @@ uint32_t VideoMasterSdiVideoInformation::get_buffer_type() { return VHD_SDI_BT_V
 
 uint32_t VideoMasterSdiVideoInformation::get_nb_buffer_types() { return NB_VHD_SDI_BUFFERTYPE; }
 
-uint32_t VideoMasterSdiVideoInformation::get_stream_processing_mode() { return VHD_SDI_STPROC_DISJOINED_VIDEO; }
+uint32_t VideoMasterSdiVideoInformation::get_stream_processing_mode() {
+  return VHD_SDI_STPROC_DISJOINED_VIDEO; }
 
 std::vector<uint32_t> VideoMasterSdiVideoInformation::get_board_properties(uint32_t channel_index) {
-  return {(uint32_t)rx_channel_standard_board_properties[channel_index], (uint32_t)rx_channel_interface_board_properties[channel_index]};
+  return {(uint32_t)rx_channel_standard_board_properties[channel_index],
+          (uint32_t)rx_channel_interface_board_properties[channel_index]};
 }
 
 std::vector<uint32_t> VideoMasterSdiVideoInformation::get_stream_properties() {
@@ -137,8 +139,9 @@ gxf::Expected<VideoFormat> VideoMasterSdiVideoInformation::get_video_format() {
   if (stream_properties_values.find(VHD_SDI_SP_VIDEO_STANDARD) == stream_properties_values.end())
     return gxf::Expected<VideoFormat>{VideoFormat{0, 0, false, 0}};
 
-  ULONG api_result = VHD_GetVideoCharacteristics((VHD_VIDEOSTANDARD)stream_properties_values[VHD_SDI_SP_VIDEO_STANDARD],
-                                                 &width, &height, &interlaced, &framerate);
+  ULONG api_result = VHD_GetVideoCharacteristics(
+                           (VHD_VIDEOSTANDARD)stream_properties_values[VHD_SDI_SP_VIDEO_STANDARD],
+                            &width, &height, &interlaced, &framerate);
   if (api_result != VHDERR_NOERROR) {
     GXF_LOG_ERROR("Could not retrieve video characteristics");
     return gxf::Unexpected{GXF_FAILURE};
@@ -147,12 +150,14 @@ gxf::Expected<VideoFormat> VideoMasterSdiVideoInformation::get_video_format() {
   return gxf::Expected<VideoFormat>{VideoFormat{width, height, !interlaced, framerate}};
 }
 
-gxf::Expected<void> VideoMasterSdiVideoInformation::update_stream_properties_values(VideoFormat video_format) {
+gxf::Expected<void>
+VideoMasterSdiVideoInformation::update_stream_properties_values(VideoFormat video_format) {
   for (uint32_t video_standard = 0; video_standard < NB_VHD_VIDEOSTANDARDS; video_standard++) {
     ULONG width, height, framerate;
     BOOL32 interlaced;
     ULONG api_result =
-        VHD_GetVideoCharacteristics((VHD_VIDEOSTANDARD)video_standard, &width, &height, &interlaced, &framerate);
+        VHD_GetVideoCharacteristics((VHD_VIDEOSTANDARD)video_standard, &width, &height,
+                                    &interlaced, &framerate);
     if (api_result != VHDERR_NOERROR) {
       GXF_LOG_ERROR("Could not retrieve video characteristics");
       return gxf::Unexpected{GXF_FAILURE};
@@ -163,10 +168,11 @@ gxf::Expected<void> VideoMasterSdiVideoInformation::update_stream_properties_val
       return gxf::Unexpected{GXF_FAILURE};
     }
 
-    if (width == video_format.width && height == video_format.height && interlaced == !video_format.progressive &&
-        framerate == video_format.framerate) {
+    if (width == video_format.width && height == video_format.height
+        && interlaced == !video_format.progressive && framerate == video_format.framerate) {
       stream_properties_values[VHD_SDI_SP_VIDEO_STANDARD] = video_standard;
-      stream_properties_values[VHD_SDI_SP_INTERFACE] = default_interfaces.at((VHD_VIDEOSTANDARD)video_standard);
+      stream_properties_values[VHD_SDI_SP_INTERFACE] =
+                                  default_interfaces.at((VHD_VIDEOSTANDARD)video_standard);
       return gxf::Success;
     }
   }

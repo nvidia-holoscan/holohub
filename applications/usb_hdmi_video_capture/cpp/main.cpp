@@ -32,20 +32,18 @@ class App : public holoscan::Application {
     auto source = make_operator<ops::V4L2VideoCaptureOp>(
       "source",
       from_config("source"),
-      Arg("allocator") = make_resource<BlockMemoryPool>("pool", 0, block_size, 1)
-    );
+      Arg("allocator") = make_resource<BlockMemoryPool>("pool", 0, block_size, 1));
 
     // Set Holoviz width and height from source resolution
     auto viz_args = from_config("visualizer");
     for (auto& arg : from_config("source")) {
-      if      (arg.name() == "width")  viz_args.add(arg);
+      if (arg.name() == "width")  viz_args.add(arg);
       else if (arg.name() == "height") viz_args.add(arg);
     }
 
     auto visualizer = make_operator<ops::HolovizOp>(
       "visualizer",
-      viz_args
-    );
+      viz_args);
 
     // Flow definition
     add_flow(source, visualizer, {{"signal", "receivers"}});

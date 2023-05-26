@@ -42,7 +42,7 @@ and dependencies.
 		],
 		// Supported language
 		// If multiple languages are supported, create a directory per language and a json file accordingly
-		"language": "CPP|Python|GXF",
+		"language": "C++|Python|GXF",
 		// Version of the contribution
 		"version": "Version of the contribution in the form: major.minor.patch",
 		// Change log

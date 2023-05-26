@@ -29,10 +29,9 @@
 
 class App : public holoscan::Application {
  public:
-
   /** Sets the path to the data directory */
-  void set_datapath(const std::string& path){
-     datapath = path;
+  void set_datapath(const std::string& path) {
+    datapath = path;
   }
 
   /** Compose function */
@@ -68,8 +67,8 @@ class App : public holoscan::Application {
     auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
         "lstm_inferer",
         from_config("lstm_inference"),
-        Arg("model_file_path",model_file_path),
-        Arg("engine_cache_dir",engine_cache_dir),
+        Arg("model_file_path", model_file_path),
+        Arg("engine_cache_dir", engine_cache_dir),
         Arg("pool") = make_resource<BlockMemoryPool>(
             "pool", 1, lstm_inferer_block_size, lstm_inferer_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
@@ -135,8 +134,7 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -145,14 +143,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -161,16 +160,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   return true;
 }
 
-
 int main(int argc, char** argv) {
   holoscan::load_env_log_level();
 
   auto app = holoscan::make_application<App>();
-     
+
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -182,7 +180,7 @@ int main(int argc, char** argv) {
     app->config(config_path);
   }
 
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
 
   app->run();
 

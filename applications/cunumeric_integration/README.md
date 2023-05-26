@@ -2,7 +2,7 @@
 
 [cuNumeric](https://github.com/nv-legate/cunumeric) is an drop-in replacement for NumPy that aims to provide a distributed and accelerated drop-in replacement for the NumPy API on top of the [Legion](https://legion.stanford.edu/) runtime. It works best for programs that have very large arrays of data that can't fit in the the memory of a single GPU or node.
 
-In this example application, we are using the cuNumeric library within a Holoscan application graph to determine the Power Spectral Density (PSD) of an incoming signal waveform. Notably, this is simply achived by taking the absolute value of the FFT of a data array.
+In this example application, we are using the cuNumeric library within a Holoscan application graph to determine the Power Spectral Density (PSD) of an incoming signal waveform. Notably, this is simply achieved by taking the absolute value of the FFT of a data array.
 
  The main objectives of this demonstration are to:
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and cuNumeric
