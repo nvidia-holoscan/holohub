@@ -35,9 +35,18 @@ add_executable(simple_pdw_pipeline
   simple_pdw_pipeline.cu
 )
 
+
 target_link_libraries(simple_pdw_pipeline
   PRIVATE holoscan::core matx::matx 
   holoscan::basic_network
+)
+
+add_executable(simple_pdw_siggen
+  siggen.c
+)
+
+target_link_libraries(simple_pdw_siggen
+  pthread
 )
 
 # Copy config file to the build tree
@@ -47,5 +56,5 @@ add_custom_target(simple_pdw_pipeline_yaml
     DEPENDS "simple_pdw_pipeline.yaml"
     BYPRODUCTS "simple_pdw_pipeline.yaml"
 )
-add_dependencies(simple_pdw_pipeline simple_pdw_pipeline_yaml)
+add_dependencies(simple_pdw_pipeline simple_pdw_pipeline_yaml simple_pdw_siggen)
 
