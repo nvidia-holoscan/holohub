@@ -46,4 +46,4 @@ class VideoMasterSource : public VideoMasterBase {
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SOURCE_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SOURCE_HPP

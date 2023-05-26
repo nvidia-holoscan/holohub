@@ -23,18 +23,18 @@ namespace holoscan {
 namespace videomaster {
 
 struct VideoMasterSdiVideoInformation : public VideoMasterVideoInformation {
-  virtual uint32_t get_buffer_type() override;
-  virtual uint32_t get_nb_buffer_types() override;
-  virtual uint32_t get_stream_processing_mode() override;
-  virtual std::vector<uint32_t> get_board_properties(uint32_t channel_index) override;
-  virtual std::vector<uint32_t> get_stream_properties() override;
-  virtual gxf::Expected<VideoFormat> get_video_format() override;
-  virtual gxf::Expected<void> update_stream_properties_values(VideoFormat video_format) override;
-  virtual gxf::Expected<void> configure_stream(void* stream_handle) override;
+  uint32_t get_buffer_type() override;
+  uint32_t get_nb_buffer_types() override;
+  uint32_t get_stream_processing_mode() override;
+  std::vector<uint32_t> get_board_properties(uint32_t channel_index) override;
+  std::vector<uint32_t> get_stream_properties() override;
+  gxf::Expected<VideoFormat> get_video_format() override;
+  gxf::Expected<void> update_stream_properties_values(VideoFormat video_format) override;
+  gxf::Expected<void> configure_stream(void* stream_handle) override;
 };
 
 }  // namespace videomaster
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SDI_VIDEO_INFORMATION_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_SDI_VIDEO_INFORMATION_HPP

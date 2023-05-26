@@ -13,32 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cunumeric as np
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.logger import load_env_log_level
 
-import cunumeric as np
 
 class SourceOp(Operator):
     def __init__(self, *args, **kwargs):
         self.fs = 10e3  # sample rate
         self.N = 1e7  # number of samples
-        self.t = np.arange(self.N) / float(self.fs) # array of segment times
-        self.signal = np.sin(2*np.pi*self.t)
-    
+        self.t = np.arange(self.N) / float(self.fs)  # array of segment times
+        self.signal = np.sin(2 * np.pi * self.t)
+
         super().__init__(*args, **kwargs)
-        
+
     def setup(self, spec: OperatorSpec):
         spec.output("signal_out")
-        
+
     def compute(self, op_input, op_output, context):
         op_output.emit(self.signal, "signal_out")
 
-        
+
 class PSDOp(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def setup(self, spec: OperatorSpec):
         spec.input("signal_in")
         spec.output("psd_out")
@@ -47,14 +47,14 @@ class PSDOp(Operator):
         sig = op_input.receive("signal_in")
         op_output.emit(np.abs(np.fft.fft(sig)), "psd_out")
 
-        
+
 class SinkOp(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def setup(self, spec: OperatorSpec):
         spec.input("psd_in")
-        
+
     def compute(self, op_input, op_output, context):
         sig = op_input.receive("psd_in")
         print(sig[0:5])
@@ -69,7 +69,7 @@ class PSDApp(Application):
         # Connect the operators into the workflow:  src -> psd -> sink
         self.add_flow(src, psd)
         self.add_flow(psd, sink)
-        
+
 
 if __name__ == "__main__":
     load_env_log_level()

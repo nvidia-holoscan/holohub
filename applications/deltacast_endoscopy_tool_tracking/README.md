@@ -15,7 +15,7 @@ This applications uses the dataset from the endoscopy tool tracking application:
 ### Build Instructions
 
 See instructions from the top level README on how to build this application.
-Note that this application requires to provide the VideoMaster_SDK_DIR if it is not located in a default location on the sytem.
+Note that this application requires to provide the VideoMaster_SDK_DIR if it is not located in a default location on the system.
 This can be done with the following command, from the top level Holohub source directory:
 
 ```bash

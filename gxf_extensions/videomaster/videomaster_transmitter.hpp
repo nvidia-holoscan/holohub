@@ -52,4 +52,4 @@ class VideoMasterTransmitter : public VideoMasterBase {
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_TRANSMITTER_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_TRANSMITTER_HPP

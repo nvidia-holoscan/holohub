@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Power Spectral Denisty with cuNumeric",
+		"name": "Power Spectral Density with cuNumeric",
 		"authors": [
 			{
 				"name": "Adam Thompson",

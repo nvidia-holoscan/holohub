@@ -492,7 +492,7 @@ launch() {
      exit 1
    fi
 
-   # Check if the build directory exists (for CPP apps)
+   # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
      echo "Did you forget to './run build $appname' ?"

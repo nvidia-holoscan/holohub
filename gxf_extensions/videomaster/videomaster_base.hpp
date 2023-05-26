@@ -31,7 +31,7 @@ namespace videomaster {
 
 class VideoMasterBase : public gxf::Codelet {
  public:
-  VideoMasterBase(bool is_input);
+  explicit VideoMasterBase(bool is_input);
 
   gxf_result_t stop() override;
 
@@ -62,7 +62,7 @@ class VideoMasterBase : public gxf::Codelet {
 
   bool signal_present();
   bool set_loopback_state(bool state);
-  std::unordered_map<ULONG, ULONG> get_detected_input_information(uint32_t channel_index) ;
+  std::unordered_map<ULONG, ULONG> get_detected_input_information(uint32_t channel_index);
   std::unordered_map<ULONG, ULONG> get_input_information();
 
   bool api_call_success(ULONG api_error_code, std::string error_message);
@@ -75,4 +75,4 @@ class VideoMasterBase : public gxf::Codelet {
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP

@@ -24,9 +24,8 @@
 
 class App : public holoscan::Application {
  public:
-
   /** Sets the path to the data directory */
-  void set_datapath(const std::string& path){
+  void set_datapath(const std::string& path) {
      datapath = path;
   }
 
@@ -39,7 +38,8 @@ class App : public holoscan::Application {
     uint64_t source_block_size = width * height * 4 * 4;
     uint64_t source_num_blocks = from_config("videomaster.use_rdma").as<bool>() ? 3 : 4;
 
-    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), Arg("directory",datapath));
+    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
+                                                            Arg("directory", datapath));
 
     auto format_converter =
         make_operator<ops::FormatConverterOp>("format_converter",
@@ -57,12 +57,11 @@ class App : public holoscan::Application {
   }
 
  private:
-  std::string datapath = "data/endoscopy"; 
+  std::string datapath = "data/endoscopy";
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path)
-{
+bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
@@ -71,14 +70,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   while (int c = getopt_long(argc, argv, "d",
                    long_options, NULL))  {
     if (c == -1 || c == '?') break;
-      switch (c) {
+
+    switch (c) {
       case 'd':
         data_path = optarg;
         break;
       default:
         std::cout << "Unknown arguments returned: " << c << std::endl;
         return false;
-      }
+    }
   }
 
   if (optind < argc) {
@@ -91,11 +91,11 @@ int main(int argc, char** argv) {
   holoscan::load_env_log_level();
 
   auto app = holoscan::make_application<App>();
-     
+
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if(!parse_arguments(argc, argv, config_name, data_path)){
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
     return 1;
   }
 
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     app->config(config_path);
   }
 
-  if(data_path != "") app->set_datapath(data_path);
+  if (data_path != "") app->set_datapath(data_path);
 
   app->run();
 

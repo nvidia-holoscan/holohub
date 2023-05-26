@@ -32,9 +32,12 @@ VideoMasterSource::VideoMasterSource() : VideoMasterBase(true) {}
 
 gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
   gxf::Expected<void> result;
-  result &= registrar->parameter(_use_rdma, "use_rdma", "Use RDMA", "Specifies whether RDMA should be used.");
-  result &= registrar->parameter(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.");
-  result &= registrar->parameter(_channel_index, "input", "Input", "Index of the input channel to use.");
+  result &= registrar->parameter(_use_rdma, "use_rdma", "Use RDMA",
+                                  "Specifies whether RDMA should be used.");
+  result &= registrar->parameter(_board_index, "board", "Board",
+                                  "Index of the Deltacast.TV board to use.");
+  result &= registrar->parameter(_channel_index, "input", "Input",
+                                  "Index of the input channel to use.");
   result &= registrar->parameter(_signal, "signal", "Output", "Output signal.");
   result &= registrar->parameter(_pool, "pool", "Pool", "Pool to allocate the buffers.");
 
@@ -91,7 +94,8 @@ gxf_result_t VideoMasterSource::tick() {
 
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
-  if (!api_call_success(VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(), &buffer, &buffer_size), "Failed to get slot buffer"))
+  if (!api_call_success(VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(),
+                                          &buffer, &buffer_size), "Failed to get slot buffer"))
     return GXF_FAILURE;
 
   auto result = transmit_buffer_data(buffer, buffer_size);
@@ -104,7 +108,8 @@ gxf_result_t VideoMasterSource::tick() {
 
 gxf::Expected<void> VideoMasterSource::transmit_buffer_data(void *buffer, uint32_t buffer_size) {
   if (!_use_rdma) {
-    cudaMemcpy(_rdma_buffers[_slot_count % NB_SLOTS][_video_information->get_buffer_type()].pointer(), buffer,
+    cudaMemcpy(_rdma_buffers[_slot_count % NB_SLOTS]
+                            [_video_information->get_buffer_type()].pointer(), buffer,
                buffer_size, cudaMemcpyHostToDevice);
     buffer = _rdma_buffers[_slot_count % NB_SLOTS][_video_information->get_buffer_type()].pointer();
   }

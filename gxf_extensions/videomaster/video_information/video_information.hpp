@@ -46,4 +46,4 @@ struct VideoMasterVideoInformation {
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_VIDEO_INFORMATION_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_VIDEO_INFORMATION_HPP

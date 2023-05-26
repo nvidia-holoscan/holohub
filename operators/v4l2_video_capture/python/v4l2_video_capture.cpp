@@ -92,7 +92,8 @@ PYBIND11_MODULE(_v4l2_video_capture, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<V4L2VideoCaptureOp, PyV4L2VideoCaptureOp, Operator, std::shared_ptr<V4L2VideoCaptureOp>>(
+  py::class_<V4L2VideoCaptureOp, PyV4L2VideoCaptureOp, Operator,
+             std::shared_ptr<V4L2VideoCaptureOp>>(
       m, "V4L2VideoCaptureOp", doc::V4L2VideoCaptureOp::doc_V4L2VideoCaptureOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<::holoscan::Allocator>,
@@ -112,7 +113,8 @@ PYBIND11_MODULE(_v4l2_video_capture, m) {
            "name"_a = "v4l2_video_capture"s,
            doc::V4L2VideoCaptureOp::doc_V4L2VideoCaptureOp_python)
       .def_property_readonly(
-          "gxf_typename", &V4L2VideoCaptureOp::gxf_typename, doc::V4L2VideoCaptureOp::doc_gxf_typename)
+          "gxf_typename", &V4L2VideoCaptureOp::gxf_typename,
+           doc::V4L2VideoCaptureOp::doc_gxf_typename)
       .def("initialize", &V4L2VideoCaptureOp::initialize, doc::V4L2VideoCaptureOp::doc_initialize)
       .def("setup", &V4L2VideoCaptureOp::setup, "spec"_a, doc::V4L2VideoCaptureOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
