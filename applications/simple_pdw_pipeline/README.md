@@ -14,7 +14,7 @@ the input to this pipeline.
 BasicNetworkOpRx
 --------------------------
 
-This uses the Basic Network Operator to read udp packets this opperator is
+This uses the Basic Network Operator to read udp packets this operator is
 documented elsewhere. 
 
 PacketToTensorOp

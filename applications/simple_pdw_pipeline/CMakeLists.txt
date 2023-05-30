@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(simple_radar_pipeline CXX)
+project(simple_pdw_pipeline C CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")

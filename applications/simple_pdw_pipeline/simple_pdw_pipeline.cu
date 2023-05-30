@@ -358,7 +358,7 @@ class PacketToTensorOp : public holoscan::Operator {
       auto packet = op_input.receive<NetworkOpBurstParams>("burst_in");
       int id = (packet->data[0] << 8) | packet->data[1];  // Getting the first 16 big-endian bits of the packet
       packet->data = packet->data + 2;  // Go up 16 bits to get to the actual packet data
-      matx::index_t size = (packet->len - sizeof(int16_t))/(sizeof(int16_t)* 2) //Calc size in int16s;
+      matx::index_t size = (packet->len - sizeof(int16_t))/(sizeof(int16_t)* 2); // Calc size in int16s
       auto nums = make_tensor<ComplexType>({size});
       int16_t* samples = (int16_t*)packet->data;
       for (int i = 0; i < size; i++) {
