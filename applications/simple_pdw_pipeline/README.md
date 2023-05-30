@@ -1,14 +1,14 @@
 Simple PDW Pipeline
 ==================================
 
-This is a Holoscan pipeline that shows the possiblity of using Holoscan as a
+This is a Holoscan pipeline that shows the possibility of using Holoscan as a
 Pulse Description Word (PDW) generator. This is a process that takes in IQ
 samples (signals represented using time-series complex numbers) and picks out
 peaks in the signal that may be transmissions from another source. These PDW
 processors are used to see what is transmitting in your area, be they radio
 towers or radars.
 
-Siggen.c a signal generator written in C that will transmit
+siggen.c a signal generator written in C that will transmit
 the input to this pipeline. 
 
 BasicNetworkOpRx

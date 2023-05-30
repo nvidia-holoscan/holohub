@@ -57,20 +57,20 @@ struct transmit_config{
 
 struct chirp_description{
   //0 to 2^15 - 1
-	int16_t initial_delta;
+  int16_t initial_delta;
   //0 to 2^31 - 1
-	int32_t chirp_rate;
+  int32_t chirp_rate;
   // bits to attenuate signal by
   unsigned char attenuation;
   //Bin start
-	unsigned long start;
+  unsigned long start;
   //Bin length
-	unsigned long length;
+  unsigned long length;
 };
 
 struct live_signal{
   bool valid;
-	struct chirp_description chirp;
+  struct chirp_description chirp;
 };
 
 /*
@@ -124,17 +124,17 @@ int16_t fpsin(int16_t i)
 
 void linear_chirp_generator(int16_t * output, unsigned long length, const struct chirp_description * chirp)
 {
-	unsigned long end = (length < (chirp->start + chirp->length)) ? length : (chirp->start + chirp->length);
+  unsigned long end = (length < (chirp->start + chirp->length)) ? length : (chirp->start + chirp->length);
   int32_t delta = ((int32_t)chirp->initial_delta) << 16;
   uint16_t phase = 0;
-	for(long unsigned int i=(chirp->start); i<end; i++){
+  for(long unsigned int i=(chirp->start); i<end; i++){
     uint16_t real = (uint16_t)(fpcos((int16_t)phase) >> chirp->attenuation);
     uint16_t imag = (uint16_t)(fpsin((int16_t)phase) >> chirp->attenuation);
     output[i*2] = (int16_t)htons((uint16_t)(real + ntohs((uint16_t)output[i*2]))); //Real
     output[i*2 + 1] = (int16_t)htons((uint16_t)(imag + ntohs((uint16_t)output[i*2 + 1]))); //Real
     phase = (uint16_t)(phase + (delta >> 16));
     delta += chirp->chirp_rate;
-	}
+  }
 }
 
 void fill_with_noise(int16_t * start, unsigned long length, unsigned int error_bits)
