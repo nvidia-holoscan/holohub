@@ -18,6 +18,7 @@
 add_holohub_operator(basic_network)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
 add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
+add_holohub_operator(qcap_source DEPENDS EXTENSIONS qcap_source)
 add_holohub_operator(tensor_to_video_buffer)
 add_holohub_operator(tool_tracking_postprocessor)
 add_holohub_operator(v4l2_video_capture DEPENDS EXTENSIONS v4l2_video_capture)

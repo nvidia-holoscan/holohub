@@ -1,0 +1,21 @@
+{
+    "gxf_extension": {
+        "name": "qcap_source",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "gxf_version": "2.5",
+        "platforms": ["amd64", "arm64"],
+        "tags": ["CaptureCard", "QCAP"],
+        "ranking": 3,
+        "dependencies": {
+            "packages": [{
+                "name": "QCAP SDK",
+                "author": "YUAN High-Tech Development Co., Ltd.",
+                "license": "Proprietary",
+                "url": "https://www.yuan.com.tw/"
+            }]
+        }
+    }
+}
