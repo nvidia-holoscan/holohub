@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 YUAN High-Tech Development Co., Ltd. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_extension(deltacast_videomaster)
-add_holohub_extension(emergent_source)
-add_holohub_extension(lstm_tensor_rt_inference)
-add_holohub_extension(qcap_source)
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET qcap_source
+    CLASS_NAME "QCAPSourceOp"
+    SOURCES qcap_source.cpp
+)

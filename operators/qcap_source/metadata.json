@@ -1,0 +1,26 @@
+{
+    "operator": {
+        "name": "qcap_source",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "0.5.0",
+            "tested_versions": [
+                "0.5.0"
+            ]
+        },
+        "platforms": [ "amd64", "arm64" ],
+        "tags": [ "CaptureCard", "QCAP" ],
+        "ranking": 3,
+        "dependencies": {
+            "gxf_extensions": [
+                {
+                    "name": "qcap_source",
+                    "version": "1.0"
+                }
+            ]
+        }
+    }
+}
