@@ -33,6 +33,7 @@ from holoscan.resources import (
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
+from holohub.qcap_source import QCAPSourceOp
 
 
 class EndoscopyApp(Application):
@@ -44,10 +45,10 @@ class EndoscopyApp(Application):
         record_type : {None, "input", "visualizer"}, optional
             Set to "input" if you want to record the input video stream, or
             "visualizer" if you want to record the visualizer output.
-        source : {"replayer", "aja"}
+        source : {"replayer", "aja", "qcap"}
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA
-            capture card is used.
+            or YUAN capture card is used.
         """
         super().__init__()
 
@@ -68,6 +69,7 @@ class EndoscopyApp(Application):
 
     def compose(self):
         is_aja = self.source.lower() == "aja"
+        is_qcap = self.source.lower() == "qcap"
         record_type = self.record_type
         is_aja_overlay_enabled = False
 
@@ -80,6 +82,16 @@ class EndoscopyApp(Application):
             height = aja_kwargs["height"]
             is_rdma = aja_kwargs["rdma"]
             is_aja_overlay_enabled = is_aja and aja_kwargs["enable_overlay"]
+            source_block_size = width * height * 4 * 4
+            source_num_blocks = 3 if is_rdma else 4
+        elif is_qcap:
+            qcap_kwargs = self.kwargs("qcap")
+            source = QCAPSourceOp(self, name="qcap", **qcap_kwargs)
+
+            # 4 bytes/channel, 4 channels
+            width = qcap_kwargs["width"]
+            height = qcap_kwargs["height"]
+            is_rdma = qcap_kwargs["rdma"]
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if is_rdma else 4
         else:
@@ -117,6 +129,8 @@ class EndoscopyApp(Application):
 
         if is_aja:
             config_key_name = "format_converter_aja"
+        elif is_qcap:
+            config_key_name = "format_converter_qcap"
         else:
             config_key_name = "format_converter_replayer"
 
@@ -196,7 +210,7 @@ class EndoscopyApp(Application):
         self.add_flow(
             source,
             format_converter,
-            {("video_buffer_output" if is_aja else "output", "source_video")},
+            {("video_buffer_output" if is_aja or is_qcap else "output", "source_video")},
         )
         self.add_flow(format_converter, lstm_inferer)
         if is_aja_overlay_enabled:
@@ -205,7 +219,7 @@ class EndoscopyApp(Application):
             self.add_flow(visualizer, source, {("render_buffer_output", "overlay_buffer_input")})
         else:
             self.add_flow(
-                source, visualizer, {("video_buffer_output" if is_aja else "output", "receivers")}
+                source, visualizer, {("video_buffer_output" if is_aja or is_qcap else "output", "receivers")}
             )
         if record_type == "input":
             if is_aja:
@@ -239,11 +253,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja"],
+        choices=["replayer", "aja", "qcap"],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
-            "capture card as the source (default: %(default)s)."
+            "capture card as the source. If 'qcap' use an YUAN capture card "
+            " as the source (default: %(default)s)."
         ),
     )
     parser.add_argument(

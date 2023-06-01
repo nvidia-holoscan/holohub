@@ -45,3 +45,8 @@ In your `build` directory, run the commands of your choice:
     sed -i -e 's#^source:.*#source: deltacast#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
+* Using a YUAN card
+    ```bash
+    sed -i -e 's#^source:.*#source: qcap#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+    ```

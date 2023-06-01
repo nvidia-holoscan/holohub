@@ -21,10 +21,11 @@ extensions:
   - libgxf_serialization.so
   - libgxf_stream_playback.so
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+  - gxf_extensions/qcap_source/libgxf_qcap_source.so
 # Uncomment the following extension when using deltacast as a source
 #  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "replayer" # "replayer" or "aja" or "deltacast"
+source: "replayer" # "replayer" or "aja" or "deltacast" or "qcap
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
                      # to record the visualizer output.
 
@@ -63,6 +64,12 @@ deltacast_visualizer_format_converter:
   alpha_value: 255
   out_dtype: "rgba8888"
   out_channel_order: [2,1,0,3]
+
+qcap:
+  width: 3840
+  height: 2160
+  rdma: true
+  input_type: "hdmi" # "dvi_d", "dp", "sdi" or "hdmi"
 
 replayer:
   basename: "surgical_video"
@@ -103,6 +110,14 @@ format_converter_deltacast:
   scale_max: 255.0
   resize_width: 854
   resize_height: 480  
+
+format_converter_qcap:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
 
 lstm_inference:
   input_tensor_names:

@@ -25,6 +25,7 @@
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <qcap_source.hpp>
 
 #ifdef DELTACAST_VIDEOMASTER
 #include <videomaster_source.hpp>
@@ -82,6 +83,12 @@ class App : public holoscan::Application {
 #endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
+    } else if (source_ == "qcap") {
+      width = from_config("qcap.width").as<uint32_t>();
+      height = from_config("qcap.height").as<uint32_t>();
+      source = make_operator<ops::QCAPSourceOp>("qcap", from_config("qcap"));
+      source_block_size = width * height * 4 * 4;
+      source_num_blocks = from_config("qcap.rdma").as<bool>() ? 3 : 4;
     } else {  // Replayer
       width = 854;
       height = 480;
@@ -94,9 +101,11 @@ class App : public holoscan::Application {
     if (record_type_ != Record::NONE) {
       if (((record_type_ == Record::INPUT) && (source_ != "replayer")) ||
           (record_type_ == Record::VISUALIZER)) {
+        const char* recorder_format_converter_config =
+            source_ == "qcap" ? "format_converter_replayer_qcap" : "format_converter_replayer";
         recorder_format_converter = make_operator<ops::FormatConverterOp>(
             "recorder_format_converter",
-            from_config("recorder_format_converter"),
+            from_config(recorder_format_converter_config),
             Arg("pool") =
                 make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
       }
@@ -163,6 +172,8 @@ class App : public holoscan::Application {
       output_signal = "video_buffer_output";
     } else if (source_ == "deltacast") {
       output_signal = "signal";
+    } else if (source_ == "qcap") {
+      output_signal = "video_buffer_output";
     }
 
     add_flow(source, format_converter, {{output_signal, "source_video"}});

@@ -36,6 +36,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
                                   OPTIONAL deltacast_videomaster
+                                  OPTIONAL qcap_source
                         HOLOSCAN_SAMPLE_APP
                         )
 
