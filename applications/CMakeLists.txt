@@ -34,6 +34,7 @@ add_holohub_application(endoscopy_out_of_body_detection HOLOSCAN_SAMPLE_APP)
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
+                                  qcap_source
                         HOLOSCAN_SAMPLE_APP
                         )
 

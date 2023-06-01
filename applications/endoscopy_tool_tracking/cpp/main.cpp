@@ -25,11 +25,13 @@
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <qcap_source.hpp>
 
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
     if (source == "aja") { is_aja_source_ = true; }
+    if (source == "qcap") { is_qcap_source_ = true; }
   }
 
   enum class Record { NONE, INPUT, VISUALIZER };
@@ -67,6 +69,12 @@ class App : public holoscan::Application {
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
       source_block_size = width * height * 4 * 4;
       source_num_blocks = is_rdma ? 3 : 4;
+    } else if (is_qcap_source_) {
+      width = from_config("qcap.width").as<uint32_t>();
+      height = from_config("qcap.height").as<uint32_t>();
+      source = make_operator<ops::QCAPSourceOp>("qcap", from_config("qcap"));
+      source_block_size = width * height * 4 * 4;
+      source_num_blocks = from_config("qcap.rdma").as<bool>() ? 3 : 4;
     } else {
       width = 854;
       height = 480;
@@ -76,12 +84,15 @@ class App : public holoscan::Application {
       source_num_blocks = 2;
     }
 
+    const bool is_capture_card_ = is_aja_source_ || is_qcap_source_;
     if (record_type_ != Record::NONE) {
-      if (((record_type_ == Record::INPUT) && is_aja_source_) ||
+      if (((record_type_ == Record::INPUT) && is_capture_card_) ||
           (record_type_ == Record::VISUALIZER)) {
+        const char* recorder_format_converter_config =
+            is_qcap_source_ ? "format_converter_replayer_qcap" : "format_converter_replayer";
         recorder_format_converter = make_operator<ops::FormatConverterOp>(
             "recorder_format_converter",
-            from_config("recorder_format_converter"),
+            from_config(recorder_format_converter_config),
             Arg("pool") =
                 make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
       }
@@ -91,9 +102,12 @@ class App : public holoscan::Application {
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
+    const char* format_converter_config = "format_converter_replayer";
+    if (is_aja_source_) format_converter_config = "format_converter_aja";
+    if (is_qcap_source_) format_converter_config = "format_converter_qcap";
     auto format_converter = make_operator<ops::FormatConverterOp>(
         "format_converter",
-        from_config(is_aja_source_ ? "format_converter_aja" : "format_converter_replayer"),
+        from_config(format_converter_config),
         Arg("pool") =
             make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
@@ -124,7 +138,7 @@ class App : public holoscan::Application {
         Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-    if ((record_type_ == Record::VISUALIZER) && !is_aja_source_) {
+    if ((record_type_ == Record::VISUALIZER) && !is_capture_card_) {
       visualizer_allocator =
           make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
     }
@@ -145,7 +159,7 @@ class App : public holoscan::Application {
 
     add_flow(source,
              format_converter,
-             {{is_aja_source_ ? "video_buffer_output" : "output", "source_video"}});
+             {{is_capture_card_ ? "video_buffer_output" : "output", "source_video"}});
     add_flow(format_converter, lstm_inferer);
 
     if (is_aja_overlay_enabled) {
@@ -154,7 +168,7 @@ class App : public holoscan::Application {
       add_flow(visualizer, source, {{"render_buffer_output", "overlay_buffer_input"}});
     } else {
       add_flow(
-          source, visualizer, {{is_aja_source_ ? "video_buffer_output" : "output", "receivers"}});
+          source, visualizer, {{is_capture_card_ ? "video_buffer_output" : "output", "receivers"}});
     }
 
     if (record_type_ == Record::INPUT) {
@@ -172,6 +186,7 @@ class App : public holoscan::Application {
 
  private:
   bool is_aja_source_ = false;
+  bool is_qcap_source_ = false;
   Record record_type_ = Record::NONE;
   std::string datapath = "data/endoscopy";
 };

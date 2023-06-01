@@ -33,6 +33,12 @@ target_link_libraries(endoscopy_tool_tracking
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
+  qcap_source
+)
+
+target_include_directories(endoscopy_tool_tracking
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/qcap_source
 )
 
 # Download the associated dataset if needed

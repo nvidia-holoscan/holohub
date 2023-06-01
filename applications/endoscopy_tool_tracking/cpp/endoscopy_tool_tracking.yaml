@@ -21,8 +21,9 @@ extensions:
   - libgxf_serialization.so
   - libgxf_stream_playback.so
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+  - gxf_extensions/qcap_source/libgxf_qcap_source.so
 
-source: "replayer" # or "aja"
+source: "replayer" # or "aja" or "qcap"
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
                      # to record the visualizer output.
 
@@ -32,6 +33,11 @@ aja:
   rdma: true
   enable_overlay: false
   overlay_rdma: true
+
+qcap:
+  width: 3840
+  height: 2160
+  rdma: true
 
 replayer:
   basename: "surgical_video"
@@ -56,6 +62,14 @@ format_converter_replayer:
 
 format_converter_aja:
   in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+format_converter_qcap:
   out_tensor_name: source_video
   out_dtype: "float32"
   scale_min: 0.0

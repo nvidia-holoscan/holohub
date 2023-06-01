@@ -4,7 +4,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 ### Requirements
 
-The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded endoscopy video (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+The provided applications are configured to either use the AJA capture card for input stream, the YUAN capture card, or a pre-recorded endoscopy video (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
 
@@ -31,5 +31,11 @@ In your `build` directory, run the commands of your choice:
 * Using an AJA card
     ```bash
     sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+    ```
+
+* Using a YUAN card
+    ```bash
+    sed -i -e 's#^source:.*#source: qcap#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
