@@ -26,6 +26,7 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from holohub.qcap_source import QCAPSourceOp
 
 
 class ColonoscopyApp(Application):
@@ -34,10 +35,11 @@ class ColonoscopyApp(Application):
 
         Parameters
         ----------
-        source : {"replayer", "aja"}
+        source : {"replayer", "aja", "qcap}
             When set to "replayer" (the default), pre-recorded sample video data is
-            used as the application input. Otherwise, the video stream from an AJA
-            capture card is used.
+            used as the application input. If use "aja" the video stream from an AJA
+            capture card is used. If use "qcap" the video stream from a YUAN capture
+            card is used.
         """
 
         super().__init__()
@@ -72,6 +74,7 @@ class ColonoscopyApp(Application):
         )
 
         is_aja = self.source.lower() == "aja"
+        is_qcap = self.source.lower() == "qcap"
         if is_aja:
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
@@ -88,6 +91,8 @@ class ColonoscopyApp(Application):
                 cuda_stream_pool=cuda_stream_pool,
                 **self.kwargs("drop_alpha_channel"),
             )
+        elif is_qcap:
+            source = QCAPSourceOp(self, name="qcap", **self.kwargs("qcap"))
         else:
             video_dir = os.path.join(self.sample_data_path)
             if not os.path.exists(video_dir):
@@ -185,11 +190,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja"],
+        choices=["replayer", "aja", "qcap"],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
-            "capture card as the source (default: %(default)s)."
+            "capture card as the source. If 'qcap' use an YUAN catpure card "
+            " as the source (default: %(default)s)."
         ),
     )
     parser.add_argument(
