@@ -33,6 +33,12 @@ target_link_libraries(multiai_ultrasound
     holoscan::ops::multiai_postprocessor
     holoscan::ops::holoviz
     visualizer_icardio
+    qcap_source
+)
+
+target_include_directories(multiai_ultrasound
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/qcap_source
 )
 
 # Download the associated dataset if needed

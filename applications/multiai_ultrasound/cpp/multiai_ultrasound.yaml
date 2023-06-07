@@ -20,8 +20,9 @@ extensions:
   - libgxf_multimedia.so
   - libgxf_serialization.so
   - libgxf_stream_playback.so
+  - gxf_extensions/qcap_source/libgxf_qcap_source.so
 
-source: "replayer" # or "aja"
+source: "replayer" # or "aja", or "qcap"
 do_record: false   # or 'true' if you want to record input video stream.
 
 replayer:
@@ -37,6 +38,11 @@ aja:  # AJASourceOp
   height: 1080
   rdma: true
   enable_overlay: false
+
+qcap:  # QCAPSourceOp
+  width: 3840
+  height: 2160
+  rdma: true
 
 broadcast:
 

@@ -14,7 +14,7 @@ The default configuration (`multiai_ultrasound.yaml`) runs on default GPU (GPU-0
 ### Requirements
 
 - Python 3.8+
-- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the echocardiogram (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+- The provided applications are configured to either use the AJA capture card for input stream, the YUAN capture card, or a pre-recorded video of the echocardiogram (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
 
@@ -60,4 +60,10 @@ Next, run the commands of your choice:
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
     python3 multiai_ultrasound.py --source=aja
+    ```
+
+* Using a YUAN card
+    ```bash
+    cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
+    python3 multiai_ultrasound.py --source=qcap
     ```
