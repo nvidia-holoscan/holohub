@@ -28,6 +28,7 @@ from holoscan.operators import (
 from holoscan.resources import UnboundedAllocator
 
 from holohub.visualizer_icardio import VisualizerICardioOp
+from holohub.qcap_source import QCAPSourceOp
 
 
 class MultiAIICardio(Application):
@@ -42,15 +43,17 @@ class MultiAIICardio(Application):
 
         # Optional parameters affecting the graph created by compose.
         source = source.lower()
-        if source not in ["replayer", "aja"]:
-            raise ValueError(f"unsupported source: {source}. Please use 'replayer' or 'aja'.")
+        if source not in ["replayer", "aja", "qcap"]:
+            raise ValueError(f"unsupported source: {source}. Please use 'replayer', 'aja', or 'qcap'.")
         self.source = source
 
         self.sample_data_path = data
 
     def compose(self):
         is_aja = self.source.lower() == "aja"
+        is_qcap = self.source.lower() == "qcap"
         SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
+        SourceClass = QCAPSourceOp if is_qcap else SourceClass
         source_kwargs = self.kwargs(self.source)
         if self.source == "replayer":
             video_dir = self.sample_data_path
@@ -127,7 +130,7 @@ class MultiAIICardio(Application):
 
         # connect the input to the resizer and each pre-processor
         for op in [plax_cham_resized, plax_cham_pre, aortic_ste_pre, b_mode_pers_pre]:
-            if is_aja:
+            if is_aja or is_qcap:
                 self.add_flow(source, op, {("video_buffer_output", "")})
             else:
                 self.add_flow(source, op)
@@ -165,11 +168,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja"],
+        choices=["replayer", "aja", "qcap"],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
-            "capture card as the source (default: %(default)s)."
+            "capture card as the source. If 'qcap' use an QCAP capture card "
+            "as the source (default: %(default)s)."
         ),
     )
     parser.add_argument(

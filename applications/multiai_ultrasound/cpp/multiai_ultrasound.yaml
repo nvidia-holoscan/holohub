@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source: "replayer" # or "aja"
+extensions:
+  - gxf_extensions/qcap_source/libgxf_qcap_source.so
+
+source: "replayer" # or "aja", or "qcap"
 do_record: false   # or 'true' if you want to record input video stream.
 
 replayer:
@@ -29,6 +32,12 @@ aja:  # AJASourceOp
   height: 1080
   rdma: true
   enable_overlay: false
+
+qcap:  # QCAPSourceOp
+  width: 3840
+  height: 2160
+  rdma: true
+  input_type: "hdmi" # "dvi_d", "dp", "sdi" or "hdmi"
 
 broadcast:
 
