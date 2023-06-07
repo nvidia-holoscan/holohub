@@ -17,7 +17,9 @@
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
+add_holohub_application(colonoscopy_segmentation DEPENDS
+                        OPERATORS qcap_source
+                        HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(deltacast_endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference

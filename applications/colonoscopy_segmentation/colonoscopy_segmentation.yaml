@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+extensions:
+- gxf_extensions/qcap_source/libgxf_qcap_source.so
+
 replayer:  # VideoStreamReplayer
   basename: "colon_exam_720x576"
   frame_rate: 0 # as specified in timestamps
@@ -26,6 +29,11 @@ aja:  # AJASourceOp
   height: 1080
   rdma: true
   enable_overlay: false
+
+qcap:  # QCAPSourceOp
+  width: 3840
+  height: 2160
+  rdma: true
 
 drop_alpha_channel:  # FormatConverter
   in_dtype: "rgba8888"

@@ -5,7 +5,7 @@ Full workflow including a generic visualization of segmentation results from a p
 ### Requirements
 
 - Python 3.8+
-- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the ultrasound data (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+- The provided applications are configured to either use the AJA capture card for input stream, the YUAN capture card, or a pre-recorded video of the ultrasound data (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
 
@@ -45,6 +45,12 @@ Next, run the commands of your choice:
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
     python3 colonoscopy_segmentation.py --source=aja
+    ```
+
+* Using an YUAN card
+    ```bash
+    cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
+    python3 colonoscopy_segmentation.py --source=qcap
     ```
 
 ### Holoscan SDK version
