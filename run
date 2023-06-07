@@ -530,9 +530,11 @@ for k, v in obj["application"]["run"].items():
    fi
 
    local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib"
+   local holohub_env="export HOLOSCAN_LIB_PATH=${holohub_build_dir}"
 
    # Run the command
    run_command $environment
+   run_command $holohub_env
    run_command $workdir
    run_command $command
 }
