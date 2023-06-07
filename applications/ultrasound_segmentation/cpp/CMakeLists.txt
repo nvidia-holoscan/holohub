@@ -32,6 +32,12 @@ target_link_libraries(ultrasound_segmentation
    holoscan::ops::inference
    holoscan::ops::segmentation_postprocessor
    holoscan::ops::holoviz
+   qcap_source
+)
+
+target_include_directories(ultrasound_segmentation
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/qcap_source
 )
 
 # Download the associated dataset if needed

@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source: replayer
+extensions:
+  - gxf_extensions/qcap_source/libgxf_qcap_source.so
+
+source: "replayer" # or "aja", or "qcap"
 
 replayer:  # VideoStreamReplayer
   basename: "ultrasound_256x256"
@@ -28,6 +31,12 @@ aja:  # AJASourceOp
   height: 1080
   rdma: true
   enable_overlay: false
+
+qcap:  # QCAPSourceOp
+  width: 3840
+  height: 2160
+  rdma: true
+  input_type: "hdmi" # "dvi_d", "dp", "sdi" or "hdmi"
 
 drop_alpha_channel:  # FormatConverter
   in_dtype: "rgba8888"

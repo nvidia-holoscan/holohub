@@ -1,6 +1,6 @@
 # Ultrasound Bone Scoliosis Segmentation
 
-This section describes the details of the ultrasound segmentation sample application as well as how to load a custom inference model into the application for some limited customization. Out of the box, the ultrasound segmentation application comes as a "video replayer" and "AJA source", where the user can replay a pre-recorded ultrasound video file included in the holoscan container or stream data from an AJA capture device directly through the GPU respectively.
+This section describes the details of the ultrasound segmentation sample application as well as how to load a custom inference model into the application for some limited customization. Out of the box, the ultrasound segmentation application comes as a "video replayer", "AJA source" or "QCAP source", where the user can replay a pre-recorded ultrasound video file included in the holoscan container or stream data from an AJA capture device or a YUAN capture device directly through the GPU respectively.
 
 This application performs an automatic segmentation of the spine from a trained AI model for the purpose of scoliosis visualization and measurement.
 
@@ -32,6 +32,14 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 - the input source is replaced with [AJA Source](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) (pixel format is `RGBA8888` with a resolution of 1920x1080)
 - a [Format Converter](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) is added in the inference pipeline to convert from `RGBA8888` *(note: could have updated the configuration of the next Format Converter when using AJA instead of adding another operator in the pipeline)*
 
+### YUAN Card input
+
+![](docs/workflow_segmentation_qcap.png)<br>
+Fig. 3 Segmentation application workflow with input from AJA video source
+
+
+The pipeline is similar to the one using the recorded video, with the exceptions below:
+- the input source is replaced with [QCAP Source] (pixel format is `RGB888` with a resolution of 3840x2160)
 
 ### Holoscan SDK version
 

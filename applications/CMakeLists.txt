@@ -79,7 +79,9 @@ add_holohub_application(network_radar_pipeline DEPENDS
                         OPERATORS basic_network
                                   advanced_network)
 
-add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
+add_holohub_application(ultrasound_segmentation DEPENDS
+                        OPERATORS OPTIONAL qcap_source
+                        HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(volume_rendering DEPENDS
                         OPERATORS volume_loader
