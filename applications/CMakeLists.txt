@@ -58,6 +58,8 @@ add_holohub_application(multiai_ultrasound DEPENDS
                         HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(simple_radar_pipeline)                        
+add_holohub_application(simple_pdw_pipeline DEPENDS
+                        OPERATORS basic_network)
 
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
