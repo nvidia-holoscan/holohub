@@ -2,6 +2,9 @@
  * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
+ * The fpsin and fpcos functions are Copyright 2018 Andrew Steadman and available at:
+ * https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,19 +78,6 @@ struct live_signal{
 
 /*
 The fpsin and fpcos functions were from 
-https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/
-and have the following copywright:
-==========LICENCE=============
-Copyright 2018 Andrew Steadman
-
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://nam11.safelinks.protection.outlook.com/?url=http%3A%2F%2Fwww.apache.org%2Flicenses%2FLICENSE-2.0&data=05%7C01%7Cjjomier%40nvidia.com%7C5992447d975048be2a7508db67525601%7C43083d15727340c1b7db39efd9ccc17a%7C0%7C0%7C638217375574205616%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000%7C%7C%7C&sdata=bHeZqmTlmFx5BCcketj0j%2FTod6eoeTOrkouAU%2FAojFY%3D&reserved=0
-
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and limitations under the License.
-==========END LICENCE==========
 
 Implements the 5-order polynomial approximation to sin(x).
 @param i   angle (with 2^15 units/circle)
