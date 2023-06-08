@@ -15,22 +15,19 @@
  * limitations under the License.
  */
 #include <arpa/inet.h>
-#include "holoscan/holoscan.hpp"
+#include <cuda/std/complex>
 #include "basic_network_operator_rx.h"
 #include "basic_network_operator_tx.h"
-#include <cuda/std/complex>
+#include "holoscan/holoscan.hpp"
 #include "matx.h"
 
 using namespace matx;
 using ftype = float;
 using ComplexType = cuda::std::complex<ftype>;
 
-
 // Time or frequency series data with a tag for an id
 struct TaggedSignalData {
-  TaggedSignalData(int _id,
-      tensor_t<ComplexType, 1> _signal)
-    : signal(_signal), id(_id) {}
+  TaggedSignalData(int _id, tensor_t<ComplexType, 1> _signal) : signal(_signal), id(_id) {}
   int id;
   tensor_t<ComplexType, 1> signal;
 };
@@ -39,12 +36,9 @@ struct TaggedSignalData {
 //
 // This represents a pulse that has been found by the threshold detector.
 struct DetectedPulseSlice {
-  DetectedPulseSlice(int _id,
-      int _offset,
-      int _zero_bin,
-      tensor_t<ComplexType, 1> _signal,
-      tensor_t<ftype, 1> _power)
-    : signal(_signal), power(_power), zero_bin(_zero_bin), offset(_offset), id(_id) {}
+  DetectedPulseSlice(int _id, int _offset, int _zero_bin, tensor_t<ComplexType, 1> _signal,
+                     tensor_t<ftype, 1> _power)
+      : signal(_signal), power(_power), zero_bin(_zero_bin), offset(_offset), id(_id) {}
   // ID the pulse is derived from
   int id;
   // Starting bin of the following tensors.
@@ -60,21 +54,16 @@ struct DetectedPulseSlice {
 };
 
 // Processed pulse description
-struct PulseDescription{
-  PulseDescription(int _id,
-      int _low,
-      int _high,
-      int _zero,
-      float _max_amplitude,
-      float _sum_power,
-      float _average_amplitude):
-    id(_id),
-    low_bin(_low),
-    high_bin(_high),
-    zero_bin(_zero),
-    max_amplitude(_max_amplitude),
-    sum_power(_sum_power),
-    average_amplitude(_average_amplitude) {}
+struct PulseDescription {
+  PulseDescription(int _id, int _low, int _high, int _zero, float _max_amplitude, float _sum_power,
+                   float _average_amplitude)
+      : id(_id),
+        low_bin(_low),
+        high_bin(_high),
+        zero_bin(_zero),
+        max_amplitude(_max_amplitude),
+        sum_power(_sum_power),
+        average_amplitude(_average_amplitude) {}
   // Id the pulse was derived from.
   int id;
   // Starting bin of the pulse
@@ -95,12 +84,12 @@ struct PulseDescription{
 const unsigned int burst_length = 7;
 
 // Displays or prints the pulse descriptions.
-class PulsePrinterOp : public holoscan::Operator{
-public:
+class PulsePrinterOp : public holoscan::Operator {
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PulsePrinterOp);
   PulsePrinterOp() = default;
 
-  void setup(holoscan::OperatorSpec& spec) override{
+  void setup(holoscan::OperatorSpec& spec) override {
     spec.input<PulseDescription>("pulse_description");
     spec.output<NetworkOpBurstParams>("burst_out");
     // Sample rate to display the Hz on screen.
@@ -111,11 +100,12 @@ public:
     spec.param(to_tx, "to_tx", "Send Data through Tx", "Send data through Tx", {});
   }
 
-  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
     auto data = op_input.receive<PulseDescription>("pulse_description");
     // Frequency resolution of the FFT
     float resolution_mhz = (sample_rate.get() / (2e6 * data->zero_bin));
-    float low_freq = (data->low_bin - data->zero_bin) * resolution_mhz ;
+    float low_freq = (data->low_bin - data->zero_bin) * resolution_mhz;
     float high_freq = (data->high_bin - data->zero_bin) * resolution_mhz;
     // Print to screen
     if (to_screen.get()) {
@@ -137,9 +127,7 @@ public:
       buff[5] = htonl((uint32_t)data->max_amplitude);
       buff[6] = htonl((uint32_t)data->average_amplitude);
       auto out = std::make_shared<NetworkOpBurstParams>(
-        (uint8_t*)buff,
-        sizeof(uint32_t) * burst_length,
-        1); 
+          (uint8_t*)buff, sizeof(uint32_t) * burst_length, 1);
       HOLOSCAN_LOG_INFO("Forwarding message to Network TX");
       op_output.emit(out, "burst_out");
     }
@@ -151,37 +139,38 @@ public:
 
 // Calculates pulse descriptions.
 class PulseDescriptorOp : public holoscan::Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PulseDescriptorOp);
   PulseDescriptorOp() = default;
 
-  void setup(holoscan::OperatorSpec& spec) override{
+  void setup(holoscan::OperatorSpec& spec) override {
     spec.input<DetectedPulseSlice>("detected_pulses");
     spec.output<PulseDescription>("pulse_description");
   }
 
-  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
     auto data = op_input.receive<DetectedPulseSlice>("detected_pulses");
-    tensor_t<float,0> sum_power{};
-    tensor_t<float,0> maximum_power{};
-    //Compute statistics of of the pulse. Sum and average.
-    sum(sum_power, data->power,0);
-    rmax(maximum_power, data->power,0);
+    tensor_t<float, 0> sum_power{};
+    tensor_t<float, 0> maximum_power{};
+    // Compute statistics of of the pulse. Sum and average.
+    sum(sum_power, data->power, 0);
+    rmax(maximum_power, data->power, 0);
     cudaStreamSynchronize(0);
     float average_amplitude = sum_power() / data->power.Size(0);
-    auto out = std::make_shared<PulseDescription>(
-        data->id,
-        data->offset,
-        data->offset + data->power.Size(0),
-        data->zero_bin,
-        maximum_power(),
-        sum_power(),
-        average_amplitude);
+    auto out = std::make_shared<PulseDescription>(data->id,
+                                                  data->offset,
+                                                  data->offset + data->power.Size(0),
+                                                  data->zero_bin,
+                                                  maximum_power(),
+                                                  sum_power(),
+                                                  average_amplitude);
     op_output.emit(out, "pulse_description");
   }
 };
 
-// This is where the hard math is. This finds where in an array the rising and falling edges are i.e if your signal looks like this:
+// This is where the hard math is. This finds where in an array the rising and falling edges are i.e
+// if your signal looks like this:
 //        ______
 // ______/      \_________
 //       ^      ^
@@ -189,18 +178,27 @@ public:
 //
 // This would forward a pulse between 6-13.
 class ThresholdingOp : public holoscan::Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(ThresholdingOp);
   ThresholdingOp() = default;
-  void setup(holoscan::OperatorSpec& spec) override{
+  void setup(holoscan::OperatorSpec& spec) override {
     spec.input<TaggedSignalData>("fft_input");
     spec.output<DetectedPulseSlice>("detected_pulses");
 
-    spec.param(threshold_param, "threshold", "Constant Threshold", "Samples greater than this threshold will trigger the detector", {});
-    spec.param(max_pulse_count, "max_pulses", "Pulse Detection Limit", "The maximum number of pulses this detector can detect", {});
+    spec.param(threshold_param,
+               "threshold",
+               "Constant Threshold",
+               "Samples greater than this threshold will trigger the detector",
+               {});
+    spec.param(max_pulse_count,
+               "max_pulses",
+               "Pulse Detection Limit",
+               "The maximum number of pulses this detector can detect",
+               {});
   }
 
-  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
     auto data = op_input.receive<TaggedSignalData>("fft_input");
     auto thresh_mask = make_tensor<char>({data->signal.Size(0) + 1});
     tensor_t<float, 1> power = make_tensor<ftype>({data->signal.Size(0)});
@@ -209,7 +207,7 @@ public:
     threshold() = threshold_param.get();
 
     (power = abs(data->signal)).run();
-    //Prepend a zero so we can shift the data to test for rising and falling edges
+    // Prepend a zero so we can shift the data to test for rising and falling edges
     thresh_mask(0) = 0;
     (thresh_mask.Slice({1}, {data->signal.Size(0) + 1}) = (power > threshold)).run();
 
@@ -220,7 +218,7 @@ public:
     auto falling_edges_index = make_tensor<unsigned int>({max_pulse_count.get()});
 
     auto right_shift = thresh_mask.Slice({0}, {data->signal.Size(0)});
-    auto original = thresh_mask.Slice({1}, {data->signal.Size(0)+1});
+    auto original = thresh_mask.Slice({1}, {data->signal.Size(0) + 1});
 
     // Threshold detector works by shifting a binary array by one and using logic to find the edges.
     // This:
@@ -228,7 +226,7 @@ public:
     // ______/      \_________
     // Becomes This:
     // 00000011111111000000000
-    // 
+    //
     // And then gets shifted by 1
     // 00000011111111000000000
     // 00000001111111100000000
@@ -243,47 +241,46 @@ public:
 
     cudaStreamSynchronize(0);
 
-    if(rising_edge_count() != falling_edge_count()){
+    if (rising_edge_count() != falling_edge_count()) {
       HOLOSCAN_LOG_INFO("RISING AND FALLING EDGE COUNTS DO NOT MATCH");
-      for(int i=0;  i< rising_edge_count(); i++){
+      for (int i = 0; i < rising_edge_count(); i++) {
         std::cout << "Rising edge at " << rising_edges_index(i) << std::endl;
       }
-      for(int i=0;  i< falling_edge_count(); i++){
+      for (int i = 0; i < falling_edge_count(); i++) {
         std::cout << "Falling edge at " << falling_edges_index(i) << std::endl;
       }
     } else {
-      for(int i=0;  i< rising_edge_count(); i++){
+      for (int i = 0; i < rising_edge_count(); i++) {
         auto out = std::make_shared<DetectedPulseSlice>(
             data->id,
             rising_edges_index(i),
-            //Falling edge is the index after the pulse since the slice is exclusive at the second
-            //parameter this is correct.
+            // Falling edge is the index after the pulse since the slice is exclusive at the second
+            // parameter this is correct.
             data->signal.Size(0) / 2,
             data->signal.Slice({rising_edges_index(i)}, {falling_edges_index(i)}),
             power.Slice({rising_edges_index(i)}, {falling_edges_index(i)}));
         op_output.emit(out, "detected_pulses");
       }
     }
-
   }
 
-private:
+ private:
   holoscan::Parameter<int64_t> threshold_param;
   holoscan::Parameter<uint32_t> max_pulse_count;
 };
 
-
-//Takes an FFT and shift the FFT so that the center frequency is in the center.
+// Takes an FFT and shift the FFT so that the center frequency is in the center.
 class FFTOp : public holoscan::Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(FFTOp);
   FFTOp() = default;
-  void setup(holoscan::OperatorSpec& spec) override{
+  void setup(holoscan::OperatorSpec& spec) override {
     spec.input<TaggedSignalData>("signal_input");
     spec.output<TaggedSignalData>("fft_output");
   }
 
-  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
     auto data = op_input.receive<TaggedSignalData>("signal_input");
     int size = data->signal.Size(0);
     auto shifted_fft = make_tensor<ComplexType, 1>({size});
@@ -291,22 +288,33 @@ public:
     (data->signal = fftshift1D(data->signal)).run();
     op_output.emit(data, "fft_output");
   }
-  
 };
 
-// Signal Generator Op that can generate a pure chirp. This may be swapped out with the network operator
-// to generate signals without the use of an external network signal generator.
+// Signal Generator Op that can generate a pure chirp. This may be swapped out with the network
+// operator to generate signals without the use of an external network signal generator.
 class SignalGeneratorOp : public holoscan::Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(SignalGeneratorOp);
   SignalGeneratorOp() = default;
 
-  void setup(holoscan::OperatorSpec& spec) override{
+  void setup(holoscan::OperatorSpec& spec) override {
     spec.output<TaggedSignalData>("signal_output");
-    spec.param(number_samples, "samples_per_packet", "Samples per Packet", "The number of samples in a single packet in this generator.", {});
+    spec.param(number_samples,
+               "samples_per_packet",
+               "Samples per Packet",
+               "The number of samples in a single packet in this generator.",
+               {});
     spec.param(sample_rate, "sample_rate", "Samples per second", "Sample rate in Hz.", {});
-    spec.param(chirp_starting_frequency, "chirp_starting_frequency", "Starting frequency", "Chirp Starting Frequency", {});
-    spec.param(chirp_stop_frequency, "chirp_stopping_frequency", "Stopping frequency", "Chirp Stop Frequency", {});
+    spec.param(chirp_starting_frequency,
+               "chirp_starting_frequency",
+               "Starting frequency",
+               "Chirp Starting Frequency",
+               {});
+    spec.param(chirp_stop_frequency,
+               "chirp_stopping_frequency",
+               "Stopping frequency",
+               "Chirp Stop Frequency",
+               {});
   }
 
   void initialize() override {
@@ -315,13 +323,14 @@ public:
     id = 0;
   }
 
-  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
-    double chirp_duration = (1.0/sample_rate.get())*number_samples.get();
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
+    double chirp_duration = (1.0 / sample_rate.get()) * number_samples.get();
     auto chirp_op = cchirp({number_samples.get()},
-        chirp_duration,
-        chirp_starting_frequency.get(),
-        chirp_duration,
-        chirp_stop_frequency.get());
+                           chirp_duration,
+                           chirp_starting_frequency.get(),
+                           chirp_duration,
+                           chirp_stop_frequency.get());
     auto chirp = make_tensor<ComplexType>({number_samples.get()});
     auto out = std::make_shared<TaggedSignalData>(id, chirp);
     (out->signal = chirp_op).run();
@@ -335,38 +344,41 @@ public:
   holoscan::Parameter<float> sample_rate;
   holoscan::Parameter<float> chirp_starting_frequency;
   holoscan::Parameter<float> chirp_stop_frequency;
-  
 };
 
 // Processes network packets into the internal memory representation
 class PacketToTensorOp : public holoscan::Operator {
-  public:
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(PacketToTensorOp);
-    PacketToTensorOp() = default;
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(PacketToTensorOp);
+  PacketToTensorOp() = default;
 
-    void setup(holoscan::OperatorSpec& spec) override {
-      spec.input<NetworkOpBurstParams>("burst_in");
-      spec.output<TaggedSignalData>("tensor_output");
-    }
+  void setup(holoscan::OperatorSpec& spec) override {
+    spec.input<NetworkOpBurstParams>("burst_in");
+    spec.output<TaggedSignalData>("tensor_output");
+  }
 
-    void initialize() override {
-      HOLOSCAN_LOG_INFO("Converting incoming packet data to Complex Tensor data");
-      holoscan::Operator::initialize();
-    }
+  void initialize() override {
+    HOLOSCAN_LOG_INFO("Converting incoming packet data to Complex Tensor data");
+    holoscan::Operator::initialize();
+  }
 
-    void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output, holoscan::ExecutionContext&) override {
-      auto packet = op_input.receive<NetworkOpBurstParams>("burst_in");
-      int id = (packet->data[0] << 8) | packet->data[1];  // Getting the first 16 big-endian bits of the packet
-      packet->data = packet->data + 2;  // Go up 16 bits to get to the actual packet data
-      matx::index_t size = (packet->len - sizeof(int16_t))/(sizeof(int16_t)* 2); // Calc size in int16s
-      auto nums = make_tensor<ComplexType>({size});
-      int16_t* samples = (int16_t*)packet->data;
-      for (int i = 0; i < size; i++) {
-        nums(i) = ComplexType((int16_t)ntohs(samples[i*2]), (int16_t)ntohs(samples[i*2 + 1])); //fill tensor
-      }
-      auto out = std::make_shared<TaggedSignalData>(id, nums);
-      op_output.emit(out, "tensor_output");
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
+    auto packet = op_input.receive<NetworkOpBurstParams>("burst_in");
+    int id = (packet->data[0] << 8) |
+             packet->data[1];         // Getting the first 16 big-endian bits of the packet
+    packet->data = packet->data + 2;  // Go up 16 bits to get to the actual packet data
+    matx::index_t size =
+        (packet->len - sizeof(int16_t)) / (sizeof(int16_t) * 2);  // Calc size in int16s
+    auto nums = make_tensor<ComplexType>({size});
+    int16_t* samples = (int16_t*)packet->data;
+    for (int i = 0; i < size; i++) {
+      nums(i) = ComplexType((int16_t)ntohs(samples[i * 2]),
+                            (int16_t)ntohs(samples[i * 2 + 1]));  // fill tensor
     }
+    auto out = std::make_shared<TaggedSignalData>(id, nums);
+    op_output.emit(out, "tensor_output");
+  }
 };
 
 class App : public holoscan::Application {

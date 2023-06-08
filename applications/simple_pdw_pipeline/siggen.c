@@ -42,8 +42,8 @@ pthread_mutex_t mutexen[NUMBER_OF_BUFFERS];
 pthread_cond_t signal[NUMBER_OF_BUFFERS];
 bool quit;
 
-struct siggen_config{
-  //Number of bits that are error
+struct siggen_config {
+  // Number of bits that are error
   unsigned int error_bits;
   // 0 to RAND_MAX
   unsigned int probability_of_transmission;
@@ -51,27 +51,27 @@ struct siggen_config{
   unsigned int increment;
 };
 
-struct transmit_config{
+struct transmit_config {
   // UDP port
   unsigned short port;
   // IP address to transmit to
   char * address;
 };
 
-struct chirp_description{
-  //0 to 2^15 - 1
+struct chirp_description {
+  // 0 to 2^15 - 1
   int16_t initial_delta;
-  //0 to 2^31 - 1
+  // 0 to 2^31 - 1
   int32_t chirp_rate;
   // bits to attenuate signal by
   unsigned char attenuation;
-  //Bin start
+  // Bin start
   unsigned long start;
-  //Bin length
+  // Bin length
   unsigned long length;
 };
 
-struct live_signal{
+struct live_signal {
   bool valid;
   struct chirp_description chirp;
 };
@@ -85,15 +85,15 @@ Implements the 5-order polynomial approximation to sin(x).
 
 The result is accurate to within +- 1 count. ie: +/-2.44e-4.
 */
-int16_t fpsin(int16_t i)
-{
-    /* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2, which is the region of the curve fit). */
+int16_t fpsin(int16_t i) {
+    /* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2, 
+    *  which is the region of the curve fit). */
     /* ------------------------------------------------------------------- */
     i = (int16_t)(i << 1);
-    uint8_t c = i<0; //set carry for output pos/neg
+    uint8_t c = i < 0;  // set carry for output pos/neg
 
-    if(i == (i|0x4000)) // flip input value to corresponding value in range [0..8192)
-        i = (int16_t)(((1<<15)) - i);
+    if (i == (i|0x4000))  // flip input value to corresponding value in range [0..8192)
+        i = (int16_t)(((1 << 15)) - i);
     i = (i & 0x7FFF) >> 1;
     /* ------------------------------------------------------------------- */
 
@@ -101,65 +101,63 @@ int16_t fpsin(int16_t i)
      = y * 2^-n * ( A1 - 2^(q-p)* y * 2^-n * y * 2^-n * [B1 - 2^-r * y * 2^-n * C1 * y]) * 2^(a-q)
     Where the constants are defined as follows:
     */
-    uint32_t A1=3370945099UL;
-    uint32_t B1=2746362156UL;
-    uint32_t C1=292421UL;
-    unsigned char n=13;
-    unsigned char p=32;
-    unsigned char q=31;
-    unsigned char r=3;
-    unsigned char a=12;
+    uint32_t A1 = 3370945099UL;
+    uint32_t B1 = 2746362156UL;
+    uint32_t C1 = 292421UL;
+    unsigned char n = 13;
+    unsigned char p = 32;
+    unsigned char q = 31;
+    unsigned char r = 3;
+    unsigned char a = 12;
 
-    uint32_t y = ((uint32_t)C1*((uint32_t)i))>>n;
-    y = B1 - (((uint32_t)i*y)>>r);
-    y = (uint32_t)i * (y>>n);
-    y = (uint32_t)i * (y>>n);
-    y = A1 - (y>>(p-q));
-    y = (uint32_t)i * (y>>n);
-    y = (uint32_t)((y+(1UL<<(q-a-1)))>>(q-a)); // Rounding
+    uint32_t y = ((uint32_t)C1*((uint32_t)i)) >> n;
+    y = B1 - (((uint32_t)i*y) >> r);
+    y = (uint32_t)i * (y >> n);
+    y = (uint32_t)i * (y >> n);
+    y = A1 - (y >> (p-q));
+    y = (uint32_t)i * (y >> n);
+    y = (uint32_t)((y+(1UL << (q-a-1))) >> (q-a));  // Rounding
 
     return (int16_t)(c ? -y : y);
 }
 
-//Cos(x) = sin(x + pi/2)
+// Cos(x) = sin(x + pi/2)
 #define fpcos(i) fpsin((int16_t)(((uint16_t)(i)) + 8192U))
 
-
-void linear_chirp_generator(int16_t * output, unsigned long length, const struct chirp_description * chirp)
-{
-  unsigned long end = (length < (chirp->start + chirp->length)) ? length : (chirp->start + chirp->length);
+void linear_chirp_generator(int16_t * output, unsigned long length,
+                                          const struct chirp_description * chirp) {
+  unsigned long end = (length < (chirp->start + chirp->length)) ?
+                                            length : (chirp->start + chirp->length);
   int32_t delta = ((int32_t)chirp->initial_delta) << 16;
   uint16_t phase = 0;
-  for(long unsigned int i=(chirp->start); i<end; i++){
+  for (long unsigned int i = (chirp->start); i < end; i++) {
     uint16_t real = (uint16_t)(fpcos((int16_t)phase) >> chirp->attenuation);
     uint16_t imag = (uint16_t)(fpsin((int16_t)phase) >> chirp->attenuation);
-    output[i*2] = (int16_t)htons((uint16_t)(real + ntohs((uint16_t)output[i*2]))); //Real
-    output[i*2 + 1] = (int16_t)htons((uint16_t)(imag + ntohs((uint16_t)output[i*2 + 1]))); //Real
+    output[i*2] = (int16_t)htons((uint16_t)(real + ntohs((uint16_t)output[i*2])));  // Real
+    output[i*2 + 1] = (int16_t)htons((uint16_t)(imag + ntohs((uint16_t)output[i*2 + 1])));  // Real
     phase = (uint16_t)(phase + (delta >> 16));
     delta += chirp->chirp_rate;
   }
 }
 
-void fill_with_noise(int16_t * start, unsigned long length, unsigned int error_bits)
-{
-  for(unsigned long i=0;
-      i<length;
-      i++){
+void fill_with_noise(int16_t * start, unsigned long length, unsigned int error_bits) {
+  for (unsigned long i = 0;
+      i < length;
+      i++) {
     int16_t rand_val = (int16_t)(rand() & 0xFFFF);
     uint16_t noise_val = (uint16_t)(rand_val % (1 << (error_bits)));
     start[i] = (int16_t)htons(noise_val);
   }
 }
 
-void * siggen_thread(void * ptr)
-{
+void * siggen_thread(void * ptr) {
   struct siggen_config * config = (struct siggen_config*) ptr;
   uint16_t id = 0;
 
   fill_with_noise(main_buffer, BUFFER_SIZE*NUMBER_OF_BUFFERS, config->error_bits);
 
   struct live_signal signals[NUMBER_OF_BUFFERS];
-  for(long i=0; i<NUMBER_OF_BUFFERS; i++){
+  for (long i = 0; i < NUMBER_OF_BUFFERS; i++) {
     ((uint16_t *)main_buffer)[i*BUFFER_SIZE] = id++;
     signals[i].valid = false;
   }
@@ -167,13 +165,13 @@ void * siggen_thread(void * ptr)
   unsigned long count = 0;
   unsigned int index = config->offset;
   unsigned int inc = config->increment;
-  
+
   struct live_signal next_signal;
-  while(count < NUMBER_OF_ITERATIONS){
+  while (count < NUMBER_OF_ITERATIONS) {
     index = count % NUMBER_OF_BUFFERS;
     count += inc;
 
-    if(config->probability_of_transmission > (unsigned int)rand()){
+    if (config->probability_of_transmission > (unsigned int)rand()) {
       next_signal.valid = true;
       next_signal.chirp.start = 0;
       next_signal.chirp.length = SIGNAL_PACKET_SIZE;
@@ -185,8 +183,8 @@ void * siggen_thread(void * ptr)
     }
 
     pthread_mutex_lock(mutexen+index);
-    while(valid_buffer[index]){
-      if(quit){
+    while (valid_buffer[index]) {
+      if (quit) {
         pthread_mutex_unlock(mutexen+index);
         return NULL;
       }
@@ -194,7 +192,7 @@ void * siggen_thread(void * ptr)
     }
 
 
-    if(signals[index].valid){
+    if (signals[index].valid) {
       fill_with_noise(main_buffer+
             (BUFFER_SIZE*index)+
             HEADER_SIZE +
@@ -203,7 +201,7 @@ void * siggen_thread(void * ptr)
           config->error_bits);
     }
 
-    if(next_signal.valid){
+    if (next_signal.valid) {
       linear_chirp_generator(main_buffer + BUFFER_SIZE*index + HEADER_SIZE,
           BUFFER_SIZE,
           &next_signal.chirp);
@@ -212,11 +210,11 @@ void * siggen_thread(void * ptr)
     valid_buffer[index] = true;
     pthread_cond_signal(signal+index);
     pthread_mutex_unlock(mutexen+index);
-     
+
     signals[index] = next_signal;
   }
   quit = true;
-  for(int i=0; i<NUMBER_OF_BUFFERS; i++){
+  for (int i = 0; i < NUMBER_OF_BUFFERS; i++) {
     pthread_mutex_lock(mutexen+index);
     pthread_cond_signal(signal+index);
     pthread_mutex_unlock(mutexen+index);
@@ -224,8 +222,7 @@ void * siggen_thread(void * ptr)
   return NULL;
 }
 
-void * transmit_thread(void * ptr)
-{
+void * transmit_thread(void * ptr) {
   struct transmit_config * config = (struct transmit_config *)ptr;
 
   int sock = socket(
@@ -242,13 +239,13 @@ void * transmit_thread(void * ptr)
 
   unsigned long count = 0;
   unsigned int index = 0;
-  while(1){
+  while (1) {
     index = count % NUMBER_OF_BUFFERS;
     count++;
 
     pthread_mutex_lock(mutexen + index);
-    while(!(valid_buffer[index])){
-      if(quit){
+    while (!(valid_buffer[index])) {
+      if (quit) {
         pthread_mutex_unlock(mutexen+index);
         return NULL;
       }
@@ -261,11 +258,11 @@ void * transmit_thread(void * ptr)
         0,
         (struct sockaddr *)&dest_addr,
         sizeof(dest_addr));
-    if(rc<0){
+    if (rc < 0) {
       perror("Failed to send");
       quit = true;
-      for(unsigned int i=0; i<NUMBER_OF_BUFFERS; i++){
-        if(i != index){
+      for (unsigned int i = 0; i < NUMBER_OF_BUFFERS; i++) {
+        if (i != index) {
           pthread_mutex_lock(mutexen+index);
         }
         pthread_cond_signal(signal+index);
@@ -280,8 +277,7 @@ void * transmit_thread(void * ptr)
   }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
@@ -301,8 +297,8 @@ int main(int argc, char *argv[])
   srand(7);
 
   int opt;
-  while((opt = getopt(argc, argv, "n:o:s:p:a:"))!= -1){
-    switch(opt){
+  while ((opt = getopt(argc, argv, "n:o:s:p:a:")) != -1) {
+    switch (opt) {
       case 'n':
         sg_config.increment = (unsigned int)atoi(optarg);
         break;
@@ -326,19 +322,19 @@ int main(int argc, char *argv[])
   }
 
   quit = false;
-  for(int i=0; i<NUMBER_OF_BUFFERS; i++){
+  for (int i = 0; i < NUMBER_OF_BUFFERS; i++) {
     pthread_mutex_init(mutexen + i, NULL);
     pthread_cond_init(signal + i, NULL);
-    valid_buffer[i]=false;
+    valid_buffer[i] = false;
   }
 
   rc = pthread_create(&siggen, NULL, siggen_thread, &sg_config);
-  if(rc){
+  if (rc) {
     printf("Server thread creation failed\n");
     return rc;
   }
   rc = pthread_create(&transmit, NULL, transmit_thread, &tx_config);
-  if(rc){
+  if (rc) {
     printf("Client thread creation failed\n");
     return rc;
   }
@@ -346,7 +342,7 @@ int main(int argc, char *argv[])
   pthread_join(siggen, NULL);
   pthread_join(transmit, NULL);
 
-  for(int i=0; i<NUMBER_OF_BUFFERS; i++){
+  for (int i = 0; i < NUMBER_OF_BUFFERS; i++) {
     pthread_mutex_destroy(mutexen + i);
   }
 
