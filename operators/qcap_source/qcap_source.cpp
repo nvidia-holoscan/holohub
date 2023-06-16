@@ -31,6 +31,10 @@ void QCAPSourceOp::setup(OperatorSpec& spec) {
   constexpr uint32_t kDefaultHeight = 2160;
   constexpr uint32_t kDefaultFramerate = 60;
   constexpr bool kDefaultRDMA = false;
+  constexpr char kDefaultPixelFormat[] = "bgr24";
+  constexpr char kDefaultInputType[] = "auto";
+  constexpr uint32_t kDefaultMSTMode = 0;
+  constexpr uint32_t kDefaultSDI12GMode = 0;
 
   spec.param(video_buffer_output_,
              "video_buffer_output",
@@ -44,6 +48,14 @@ void QCAPSourceOp::setup(OperatorSpec& spec) {
   spec.param(height_, "height", "Height", "Height of the stream.", kDefaultHeight);
   spec.param(framerate_, "framerate", "Framerate", "Framerate of the stream.", kDefaultFramerate);
   spec.param(use_rdma_, "rdma", "RDMA", "Enable RDMA.", kDefaultRDMA);
+  spec.param(
+      pixel_format_, "pixel_format", "PixelFormat", "Pixel Format.", std::string(kDefaultPixelFormat));
+  spec.param(
+      input_type_, "input_type", "InputType", "Input Type.", std::string(kDefaultInputType));
+  spec.param(
+      mst_mode_, "mst_mode", "MSTMode", "MST Mode.", kDefaultMSTMode);
+  spec.param(
+      mst_mode_, "sdi12g_mode", "SDI12GMode", "SDI 12G Mode.", kDefaultSDI12GMode);
 }
 
 void QCAPSourceOp::initialize() {

@@ -50,6 +50,10 @@ class QCAPSourceOp : public holoscan::ops::GXFOperator {
   Parameter<uint32_t> height_;
   Parameter<uint32_t> framerate_;
   Parameter<bool> use_rdma_;
+  Parameter<std::string> pixel_format_;
+  Parameter<std::string> input_type_;
+  Parameter<uint32_t> mst_mode_;
+  Parameter<uint32_t> sdi12g_mode_;
 };
 
 }  // namespace holoscan::ops

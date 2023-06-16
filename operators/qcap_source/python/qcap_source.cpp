@@ -57,13 +57,22 @@ class PyQCAPSourceOp : public QCAPSourceOp {
   // Define a constructor that fully initializes the object.
   PyQCAPSourceOp(Fragment* fragment, const std::string& device = "SC0710 PCI"s,
                  uint32_t channel = 0, uint32_t width = 3840, uint32_t height = 2160,
-                 uint32_t framerate = 60, bool rdma = true, const std::string& name = "qcap_source")
+                 uint32_t framerate = 60, bool rdma = true,
+                 const std::string & pixel_format = "bgr24"s,
+                 const std::string & input_type = "auto"s,
+                 uint32_t mst_mode = 0, uint32_t sdi12g_mode = 0,
+                 const std::string& name = "qcap_source")
       : QCAPSourceOp(ArgList{Arg{"device", device},
                              Arg{"channel", channel},
                              Arg{"width", width},
                              Arg{"height", height},
                              Arg{"framerate", framerate},
-                             Arg{"rdma", rdma}}) {
+                             Arg{"rdma", rdma},
+                             Arg{"pixel_format", pixel_format},
+                             Arg{"input_type", input_type},
+                             Arg{"mst_mode", mst_mode},
+                             Arg{"sdi12g_mode", sdi12g_mode}
+                             }) {
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -98,6 +107,10 @@ PYBIND11_MODULE(_qcap_source, m) {
                     uint32_t,
                     uint32_t,
                     bool,
+                    const std::string&,
+                    const std::string&,
+                    uint32_t,
+                    uint32_t,
                     const std::string&>(),
            "fragment"_a,
            "device"_a = "SC0710 PCI"s,
@@ -106,6 +119,10 @@ PYBIND11_MODULE(_qcap_source, m) {
            "height"_a = 2160,
            "framerate"_a = 60,
            "rdma"_a = true,
+           "pixel_format"_a = "bgr24"s,
+           "input_type"_a = "auto"s,
+           "mst_mode"_a = 0,
+           "sdi12g_mode"_a = 0,
            "name"_a = "qcap_source"s,
            doc::QCAPSourceOp::doc_QCAPSourceOp_python)
       .def_property_readonly(

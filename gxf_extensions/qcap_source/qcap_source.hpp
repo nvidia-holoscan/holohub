@@ -51,7 +51,33 @@ enum {
   PIXELFORMAT_H264 = 0x34363248,  // 0x34363248 -> MAKEFOURCC('H', '2', '6', '4')
   PIXELFORMAT_H265 = 0x35363248,  // 0x35363248 -> MAKEFOURCC('H', '2', '6', '5')
   PIXELFORMAT_MPG2 = 0x3247504D,  // 0x3247504D -> MAKEFOURCC('M', 'P', 'G', '2')
-};
+} ePIXELFORMAT;
+
+enum {
+  DISPLAYPORT_SST_MODE = 0,
+  DISPLAYPORT_MST_MODE = 1,
+} eDISPLAYPORT_MST_MODE;
+
+enum {
+  SDI12G_DEFAULT_MODE  = 0,
+  SDI12G_QUADLINK_MODE = 1,
+  SDI12G_SI_MODE       = 2,
+} eSDI12G_MODE;
+
+enum {
+  INPUTTYPE_COMPOSITE	    = 0,
+  INPUTTYPE_SVIDEO	    = 1,
+  INPUTTYPE_HDMI	    = 2,
+  INPUTTYPE_DVI_D	    = 3,
+  INPUTTYPE_COMPONENTS	    = 4,
+  INPUTTYPE_YCBCR	    = 4,
+  INPUTTYPE_DVI_A	    = 5,
+  INPUTTYPE_RGB	            = 5,
+  INPUTTYPE_VGA	            = 5,
+  INPUTTYPE_SDI	            = 6,
+  INPUTTYPE_DISPLAY_PORT    = 8,
+  INPUTTYPE_AUTO	    = 7,
+} eINPUT_TYPE;
 
 constexpr char kDefaultDevice[] = "SC0710 PCI";
 constexpr uint32_t kDefaultChannel = 0;
@@ -62,10 +88,15 @@ constexpr uint32_t kDefaultPreviewSize = kDefaultWidth * kDefaultHeight * 4;
 constexpr uint32_t kDefaultGPUDirectRingQueueSize = 6;
 constexpr uint32_t kDefaultColorConvertBufferSize = 3;
 constexpr bool kDefaultRDMA = true;
+constexpr char kDefaultPixelFormatStr[] = "bgr24";
 constexpr uint32_t kDefaultPixelFormat = PIXELFORMAT_BGR24;
 //constexpr uint32_t kDefaultPixelFormat = PIXELFORMAT_YUY2;
 //constexpr uint32_t kDefaultPixelFormat = PIXELFORMAT_NV12;
 constexpr uint32_t kDefaultOutputPixelFormat = PIXELFORMAT_RGB24;
+constexpr uint32_t kDefaultDisplayPortMstMode = DISPLAYPORT_SST_MODE;
+constexpr char kDefaultInputTypeStr[] = "auto";
+constexpr uint32_t kDefaultInputType = INPUTTYPE_AUTO;
+constexpr uint32_t kDefaultSDI12GMode = SDI12G_DEFAULT_MODE;
 
 struct PreviewFrame {
   unsigned char* pFrameBuffer;
@@ -118,8 +149,13 @@ class QCAPSource : public gxf::Codelet {
   gxf::Parameter<uint32_t> height_;
   gxf::Parameter<uint32_t> framerate_;
   gxf::Parameter<bool> use_rdma_;
+  gxf::Parameter<std::string> pixel_format_str_;
   uint32_t pixel_format_;
   uint32_t output_pixel_format_;
+  gxf::Parameter<uint32_t>  mst_mode_;
+  gxf::Parameter<std::string> input_type_str_;
+  uint32_t input_type_;
+  gxf::Parameter<uint32_t> sdi12g_mode_;
 
   volatile DeviceStatus m_status = STATUS_NO_SDK;
   void* m_hDevice = nullptr;
