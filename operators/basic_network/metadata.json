@@ -1,11 +1,22 @@
 {
 	"operator": {
 		"name": "basic_network",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"holoscan_sdk_version": "0.5",
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
 		"platforms": ["amd64", "arm64"],
 		"tags": ["Network", "Networking", "UDP", "Socket", "IP", "TCP"],
 		"ranking": 1,

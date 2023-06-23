@@ -1,6 +1,12 @@
 {
 	"operator": {
 		"name": "emergent_source",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"

@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "visualizer_icardio",
+		"name": "lstm_tensor_rt_inference",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,7 +22,8 @@
 			"arm64"
 		],
 		"tags": [
-			"video"
+			"LSTM",
+			"TensorRT"
 		],
 		"ranking": 1,
 		"dependencies": {}

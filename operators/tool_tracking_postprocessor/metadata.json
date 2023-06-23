@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "visualizer_icardio",
+		"name": "tool_tracking_postprocessor",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,7 +22,8 @@
 			"arm64"
 		],
 		"tags": [
-			"video"
+			"visualization",
+			"tool tracking"
 		],
 		"ranking": 1,
 		"dependencies": {}
