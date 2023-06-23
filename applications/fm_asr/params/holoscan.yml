@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+run_time: 100 # seconds
+RtlSdrGeneratorOp:        
+    tune_frequency: 90100000
+    sample_rate: 2560000    
+    gain: 40  
+PlayAudioOp:
+    play_audio: False
+RivaAsrOp:
+    max_alternatives: 1 # Alternative transcripts, up to limit configured on server
+    word_time_offsets: False # Option to output word timestamps in transcript
+    automatic_punctuation: True # Should RIVA attempt to automatically punctuate the transcript
+    uri: 'localhost:50051' # URI to access Riva server
+    no_verbatim_transcripts: False # If specified, text inverse normalization will be applied
+    boosted_lm_words: null # [unused] Words to boost when decoding
+    boosted_lm_score: null # [unused] Value by which to boost words when decoding
+    language_code: 'en-US' # Language code of the model to be used
+    sample_rate: 16000 # Sample rate expected by the Riva ASR model
+    output_file: ['transcripts', 'transcript.txt'] # File to store transcript; if not provided, transcript will be printed to terminal
+    interim_transcriptions: True # Flag to include interim transcriptions in the output file    
+    recognize_interval: 10 # Specifies the amount of data RIVA processes, in time (s)
+TranscriptSinkOp:
+    output_file: "./transcripts/transcript.txt"
+    
+
