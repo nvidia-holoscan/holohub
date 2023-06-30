@@ -1,6 +1,12 @@
 {
 	"application": {
 		"name": "FM-ASR",
+        "authors": [
+            {
+                "name": "Joshua Martinez",
+                "affiliation": "NVIDIA"
+            }
+        ],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
