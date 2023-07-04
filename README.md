@@ -16,7 +16,7 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
 
 1. Clone this repository.
 
-2. Choose to build Holohub sample apps using development container or bare metal.
+2. Choose to build Holohub using development container or using a local environment.
 
 **Container build**
 
@@ -51,9 +51,9 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
 (2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
 
 
-**Bare metal build** 
+**Local build** 
 
-Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK bare metal: Debian package, Python wheels or from source.
+Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK in local environemnt: Debian package, Python wheels or from source.
 
 Install the package dependencies for Holohub on your host system. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
 
