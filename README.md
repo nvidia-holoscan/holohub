@@ -13,16 +13,53 @@ Holohub is a central repository for users and developers of extensions and appli
 HoloHub is based on [Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk).
 HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of Ubuntu or OS distributions may result in build and/or runtime issues.
 
-1. Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK: Debian package, Python wheels, container or from source.
 
-2. Clone this repository.
+1. Clone this repository.
 
-3. Install the package dependencies. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
+2. Choose to build Holohub sample apps using development container or bare metal.
+
+**Container build**
+
+***Build container:*** Run the following command from the holohub directory to build the development container.
+
+```bash
+  ./dev_container build_image
+```
+
+***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU). 
+
+
+It is possible to configure a locally built Holoscan SDK container by passing the option ```--base_image from_source``` to the build_image or launch command. When using the ```--base_image from_source```  option please make sure that you have checked out holoscan-sdk into the same directory as holohub and that you have built holoscan SDK as described in the [Holoscan SDK README: Build using the run script](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md#recommended-using-the-run-script).
+
+
+***Launch container:***  Run the following command from the holohub directory to launch the development container.
+
+```bash
+  ./dev_container launch
+```
+
+From within the container build the Holohub apps as explained in section [Building HoloHub](#building-holohub).
+
+The development container has been tested on the following platforms: x86_x64 workstation with multiple RTX GPUs, Clara AGX Dev Kit (dGPU mode), IGX Orin Dev Kit (dGPU mode), AGX Orin Dev Kit (iGPU).
+
+The launch script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and presence of Deltacast's Videomaster SDK and map it into the development container.
+
+***Notes for AGX Orin Dev Kit***: 
+
+(1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the Holohub sample apps to work. Please also make sure that the current user is member of the group video.  
+
+(2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
+
+
+**Bare metal build** 
+
+Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK bare metal: Debian package, Python wheels or from source.
+
+Install the package dependencies for Holohub on your host system. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
+
 ```bash
   # if sudo is available
   sudo ./run setup
-  # if sudo is not available (container)
-  ./run setup
 ```
 
 If you prefer you can also install the dependencies manually:
@@ -41,7 +78,8 @@ If you prefer you can also install the dependencies manually:
 
 *Note: the run script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
 
-# Building HoloHub
+# Building HoloHub 
+
 While not all applications requires building HoloHub, the current build system automatically manages dependencies (applications/operators) and also downloads and convert datasets at build time. HoloHub provides a convenient run script to build and run applications (you can run `./run -h` for information about the available commands).
 
 You can refer to the README of each application/operator if you prefer to build/run them manually.
