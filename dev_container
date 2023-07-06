@@ -405,7 +405,8 @@ build_image_desc() { c_echo 'Build dev image
 build_image() {
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
-    local base_image="ngc"
+    local gpu_type=$(get_host_gpu)
+    local base_image="ngc_"$gpu_type
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -417,16 +418,6 @@ build_image() {
            base_image="${ARGS[i+1]}"
         fi
     done
-
-    if [[ "$base_image" == "ngc" ]]; then
-        if lsmod | grep -q nvgpu 
-        then 
-            base_image="ngc_igpu"
-        else 
-            base_image="ngc_dgpu"
-        fi
-    fi
-
 
     # Docker build
     run_command export DOCKER_BUILDKIT=1
@@ -454,7 +445,8 @@ launch() {
     local conditional_opt=""
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
-    local base_image="ngc"
+    local gpu_type=$(get_host_gpu)
+    local base_image="ngc_"$gpu_type
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -466,17 +458,6 @@ launch() {
            base_image="${ARGS[i+1]}"
         fi
     done
-
-    if [[ "$base_image" == "ngc" ]]; then
-        if lsmod | grep -q nvgpu 
-        then 
-            base_image="ngc_igpu"
-        else 
-            base_image="ngc_dgpu"
-        fi
-    fi
-
-
 
     # Skip the first argument to pass the remaining arguments to the docker command.
     if [ -n "$1" ]; then
@@ -503,16 +484,18 @@ launch() {
             mount_device_opt+=" --device /dev/delta-x350${i}:/dev/delta-x350${i}"
         fi
     done
-	
+
     if [ -e /usr/lib/libvideomasterhd.so ]; then
    	conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
     fi
     if [ -d /opt/deltacast/videomaster/Include ]; then
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
+
+    conditional_opt+=" --group-add video"
+
     # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
-   if lsmod | grep -q nvgpu ; then 
-        conditional_opt+=" --group-add video"
+    if [ [$gpu_type == "igpu"] ] ; then 
         conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
         conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
         conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
