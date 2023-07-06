@@ -511,9 +511,16 @@ launch() {
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
     # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
-    if lsmod | grep -q nvgpu ; then 
-        conditional_opt+=" --privileged"
+   if lsmod | grep -q nvgpu ; then 
         conditional_opt+=" --group-add video"
+        conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
+        conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
+        conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
+        conditional_opt+=" --device /dev/nvhost-ctxsw-gpu" 
+        conditional_opt+=" --device /dev/nvhost-nvsched-gpu " 
+        conditional_opt+=" --device /dev/nvhost-sched-gpu " 
+        conditional_opt+=" --device /dev/nvidia0 " 
+        conditional_opt+=" --device /dev/nvidia-modeset " 
     fi
 
     c_echo W "Launching (mount_device_opt:" G "${mount_device_opt}" W ")..."
