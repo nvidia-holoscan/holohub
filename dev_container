@@ -36,10 +36,10 @@ init_globals() {
     HOLOSCAN_DOCKER_EXE=${HOLOSCAN_DOCKER_EXE:-"docker"}
     export HOLOSCAN_DOCKER_EXE
 
-    HOLOSCAN_SDK_VERSION="latest"
+    HOLOSCAN_SDK_VERSION="sdk-latest"
     export HOLOSCAN_SDK_VERSION
-    HOLOHUB_CONTAINER_NAME=holohub:${HOLOSCAN_SDK_VERSION}
-    export HOLOHUB_CONTAINER_NAME
+    HOLOHUB_CONTAINER_BASE_NAME=holohub
+    export HOLOHUB_CONTAINER_BASE_NAME
 
 
     DO_DRY_RUN="false"  # print commands but do not execute them. Used by run_command
@@ -49,38 +49,6 @@ init_globals() {
 # Utility functions
 ################################################################################
 
-
-#######################################
-# Check if current architecture is x86_64.
-#
-# Returns:
-#   Exit code:
-#     0 if $(uname -m) == "x86_64".
-#     1 otherwise.
-#######################################
-checkif_x86_64() {
-    if [ $(uname -m) == "x86_64" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-#######################################
-# Check if current architecture is aarch64.
-#
-# Returns:
-#   Exit code:
-#     0 if $(uname -m) == "aarch64".
-#     1 otherwise.
-#######################################
-checkif_aarch64() {
-    if [ $(uname -m) == "aarch64" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
 
 #######################################
 # Get list of available commands from a given input file.
@@ -247,43 +215,6 @@ c_echo_err() {
     >&2 c_echo "$@"
 }
 
-printf_err() {
-    >&2 printf "$@"
-}
-
-get_unused_ports() {
-    local num_of_ports=${1:-1}
-    local start=${2:-49152}
-    local end=${3:-61000}
-    comm -23 \
-    <(seq ${start} ${end} | sort) \
-    <(ss -tan | awk '{print $4}' | while read line; do echo ${line##*\:}; done | grep '[0-9]\{1,5\}' | sort -u) \
-    | shuf | tail -n ${num_of_ports} # use tail instead head to avoid broken pipe in VSCode terminal
-}
-
-newline() {
-    echo
-}
-
-info() {
-    c_echo_err W "$(date -u '+%Y-%m-%d %H:%M:%S') [INFO] " Z "$@"
-}
-
-error() {
-    c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [ERROR] " Z "$@"
-}
-
-fatal() {
-    if [ -n "$*" ]; then
-        c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [FATAL] " Z "$@"
-        echo_err
-    fi
-    if [ -n "${SCRIPT_DIR}" ]; then
-        exit 1
-    else
-        kill -INT $$  # kill the current process instead of exit in shell environment.
-    fi
-}
 
 run_command() {
     local status=0
@@ -314,60 +245,6 @@ run_docker() {
 # Section: Build
 #===============================================================================
 
-get_buildtype_str() {
-    local build_type="${1:-}"
-    local build_type_str
-
-    case "${build_type}" in
-        debug|Debug)
-            build_type_str="Debug"
-            ;;
-        release|Release)
-            build_type_str="Release"
-            ;;
-        rel-debug|RelWithDebInfo)
-            build_type_str="RelWithDebInfo"
-            ;;
-        *)
-            build_type_str="${CMAKE_BUILD_TYPE:-Release}"
-            ;;
-    esac
-
-    echo -n "${build_type_str}"
-}
-
-get_platform_str() {
-    local platform="${1:-}"
-    local platform_str
-
-    case "${platform}" in
-        amd64|x86_64|x86|linux/amd64)
-            platform_str="linux/amd64"
-            ;;
-        arm64|aarch64|arm|linux/arm64)
-            platform_str="linux/arm64"
-            ;;
-    esac
-
-    echo -n "${platform_str}"
-}
-
-get_gpu_str() {
-    local gpu="${1:-}"
-    local gpu_str=$gpu
-
-    case "${gpu}" in
-        igpu|iGPU|integrated|Jetson)
-            gpu_str="igpu"
-            ;;
-        dgpu|dGPU|discrete|RTX)
-            gpu_str="dgpu"
-            ;;
-    esac
-
-    echo -n "${gpu_str}"
-}
-
 get_host_gpu() {
     if lsmod | grep -q nvidia_drm && command -v nvidia-smi > /dev/null; then
         echo -n "dgpu"
@@ -379,34 +256,24 @@ get_host_gpu() {
     fi
 }
 
-get_cuda_archs() {
-    local cuda_archs="${1:-}"
 
-    case "${cuda_archs}" in
-        native|NATIVE)
-            cuda_archs_str="NATIVE"
-            ;;
-        all|ALL)
-            cuda_archs_str="ALL"
-            ;;
-        *)
-            cuda_archs_str="${1:-}"
-            ;;
-    esac
-
-    echo -n "${cuda_archs_str}"
-}
-
-build_image_desc() { c_echo 'Build dev image
-  --base_image [ngc | from_source : Specify base for holohub container
+build_desc() { c_echo 'Build dev image
+    --holoscan_image [ngc | local : Specify base for holohub container
         Default: Holoscan SDK 0.5.1 container from NGC
+    --docker_file :  path to Dockerfile to use for building container
+    --img_fqn : Specify fully qualified container name
+    --debug : Print variables passed to docker build command
     '
 }
-build_image() {
+
+build() {
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
-    local base_image="ngc_"$gpu_type
+    local docker_file_path="${HOLOHUB_ROOT}/Dockerfile"
+    local holoscan_image="ngc"
+    local img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}"-UNDEFINED"
+    local print_debug=0
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -414,18 +281,55 @@ build_image() {
     local arg
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--base_image" ]; then
-           base_image="${ARGS[i+1]}"
+        if [ "$arg" = "--holoscan_image" ]; then
+           holoscan_image="${ARGS[i+1]}"
+        fi
+        if [ "$arg" = "--docker_file" ]; then
+           docker_file_path="${ARGS[i+1]}"
+           holoscan_image="custom_imgname"
+        fi
+        if [ "$arg" = "--img_fqn" ]; then
+           img_fqn="${ARGS[i+1]}"
+           holoscan_image="custom_imgname"
+        fi
+        if [ "$arg" = "--debug" ]; then
+           print_debug=1
         fi
     done
+
+    echo "[DEBUG build_image] holoscan_image ": ${holoscan_image}
+
+    # udpate base image and container name tag if using Holoscan SDK container from NGC 
+    if [[ $holoscan_image == "local" ]]  ; then 
+        img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":sdk-local-latest-"$gpu_type
+    elif [[ $holoscan_image == "ngc" ]]  ; then 
+        img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":ngc-"$gpu_type
+        holoscan_image=$holoscan_image"_"$gpu_type
+    elif [[ $holoscan_image == "custom_imgname" ]]  ; then 
+        echo "custom image name"
+    else 
+        echo "Error: --holoscan_image used with unsupported option '"${holoscan_image}"'"
+        exit 1
+    fi
+
+
+    if [[ $print_debug -gt 0 ]]; then 
+        c_echo W "Build (HOLOHUB_ROOT:" G "${HOLOHUB_ROOT}" W ")..."
+        c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
+        c_echo W "Build (holoscan_image:" G "${holoscan_image}" W ")..."
+        c_echo W "Build (docker_file_path:" G "${docker_file_path}" W ")..."
+        c_echo W "Build (img_fqn:" G "${img_fqn}" W ")..."
+        c_echo W "Build (img_fqn:" G "${img_fqn}" W ")..."
+    fi
 
     # Docker build
     run_command export DOCKER_BUILDKIT=1
     run_command docker build \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
-        --build-arg BASE_IMAGE=${base_image} \
+        --build-arg BASE_IMAGE=${holoscan_image}\
         --network=host \
-        -t ${HOLOHUB_CONTAINER_NAME}-${base_image} \
+        -f ${docker_file_path} \
+        -t ${img_fqn} \
         ${HOLOHUB_ROOT}
 }
 
@@ -434,8 +338,9 @@ build_image() {
 #===============================================================================
 
 launch_desc() { c_echo 'Launch Docker container
-    --base_image [ngc | from_source : Specify base for holohub container
-        Default: Holoscan SDK 0.5.1 container from NGC
+    --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
+    --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
+    --debug : Print variables passed to docker run command
     '
 }
 launch() {
@@ -443,10 +348,12 @@ launch() {
     local working_dir=${1:-${build_path}}
     local mount_device_opt=""
     local conditional_opt=""
+    local print_debug=0
+    local local_sdk_root="undefined"
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
-    local base_image="ngc_"$gpu_type
+    local img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":ngc-"$gpu_type
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -454,10 +361,18 @@ launch() {
     local arg
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--base_image" ]; then
-           base_image="${ARGS[i+1]}"
+        if [ "$arg" = "--img" ]; then
+           img_fqn="${ARGS[i+1]}"
         fi
+        if [ "$arg" = "--debug" ]; then
+           print_debug=1
+        fi
+        if [ "$arg" = "--local_sdk_root" ]; then
+           local_sdk_root="${ARGS[i+1]}"
+        fi
+
     done
+
 
     # Skip the first argument to pass the remaining arguments to the docker command.
     if [ -n "$1" ]; then
@@ -492,10 +407,9 @@ launch() {
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
 
-    conditional_opt+=" --group-add video"
-
     # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
     if [ [$gpu_type == "igpu"] ] ; then 
+        conditional_opt+=" --group-add video"
         conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
         conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
         conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
@@ -506,7 +420,22 @@ launch() {
         conditional_opt+=" --device /dev/nvidia-modeset " 
     fi
 
-    c_echo W "Launching (mount_device_opt:" G "${mount_device_opt}" W ")..."
+    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holsocan SDK
+    # to map Holoscan SDK into the container for building Holohub
+    local local_sdk_opt="";
+
+    if [ -d  "$local_sdk_root" ] ; then
+        local_sdk_opt+=" -v $local_sdk_root:/workspace/holoscan-sdk"
+         #   Define paths needed by the python applications
+        local_sdk_opt+=" -e PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"
+        local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
+        local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
+        #   Define path for cupy' kernel cache, needed since $HOME does
+        #   not exist when running with `-u id:group`
+        local_sdk_opt+=" -e CUPY_CACHE_DIR=/workspace/holoscan-sdk/.cupy/kernel_cache"
+        local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
+    fi
+
 
     # Find the nvidia_icd.json file which could reside at different paths
     # Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
@@ -526,10 +455,10 @@ launch() {
     #   Ensures the generated files (build, install...) are owned by $USER and not root,
     #   and provide the configuration files to avoid warning for user and group names
     #
-    # -v ${HOLOHUB_ROOT}:/workspace/holoscan-sdk
+    # -v ${HOLOHUB_ROOT}:/workspace/holohub
     #   Mount the source directory
     #
-    # -w /workspace/holoscan-sdk/${working_dir}
+    # -w /workspace/holohub/${working_dir}
     #   Start in the build or install directory
     #
     # --runtime=nvidia \
@@ -545,42 +474,31 @@ launch() {
     #   Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
     #   The configurations files are installed to different locations when installing
     #   with deb packages or with run files, so we look at both places
-    #
-    # --device /dev/video${i}:/dev/video${i}
-    #   Bind video capture devices for V4L2
-    #
-    # --device /dev/ajantv2${i}:/dev/ajantv2${i}
-    #   Bind AJA capture cards for NTV2
-    #
-    # -e PYTHONPATH
-    # -e HOLOSCAN_LIB_PATH
-    # -e HOLOSCAN_SAMPLE_DATA_PATH
-    #   Define paths needed by the python applications
-    #
-    # -e CUPY_CACHE_DIR
-    #   Define path for cupy' kernel cache, needed since $HOME does
-    #   not exist when running with `-u id:group`
+
+    if [[ $print_debug -gt 0 ]]; then 
+        c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
+        c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
+        c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
+        c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
+        c_echo W "Launch (nvidia_icd_json: " G "${nvidia_icd_json}" W ")..."
+        c_echo W "Launch (image: " G "${img_fqn}" W ")..."
+    fi
 
     run_command ${HOLOSCAN_DOCKER_EXE} run -it --rm --net host \
         -u $(id -u):$(id -g) \
         -v /etc/group:/etc/group:ro \
         -v /etc/passwd:/etc/passwd:ro \
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
-        -v ${HOLOHUB_ROOT}/../holoscan-sdk:/workspace/holoscan-sdk \
         -w /workspace/holohub \
         --runtime=nvidia \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \
         ${mount_device_opt} \
-	${conditional_opt} \
+    	${conditional_opt} \
+        ${local_sdk_opt} \
         -v $nvidia_icd_json:$nvidia_icd_json:ro \
-        -e PYTHONPATH=/workspace/holoscan-sdk/${working_dir}/python/lib \
-        -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/${working_dir}/lib \
-        -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data \
-        -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data \
-        -e CUPY_CACHE_DIR=/workspace/holoscan-sdk/.cupy/kernel_cache \
-        ${HOLOHUB_CONTAINER_NAME}-${base_image}
+        ${img_fqn}
 }
 
 

@@ -26,7 +26,7 @@ FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-dgpu AS ngc_dgpu
 # Holoscan SDK 0.5.1 ARM64 iGPU container from NGC (AGX Orin and IGX Orin (iGPU mode) Dev Kits)
 FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-igpu  AS ngc_igpu
 # Holoscan SDK container built from source
-FROM holoscan-sdk-dev:latest as from_source
+FROM holoscan-sdk-dev:latest as local
 
 FROM ${BASE_IMAGE} as base
 

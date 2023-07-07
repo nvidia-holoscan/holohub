@@ -23,20 +23,47 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
 ***Build container:*** Run the following command from the holohub directory to build the development container.
 
 ```bash
-  ./dev_container build_image
+  ./dev_container build
 ```
 
 ***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU). 
 
+***Advanced build options***
 
-It is possible to configure a locally built Holoscan SDK container by passing the option ```--base_image from_source``` to the build_image or launch command. When using the ```--base_image from_source```  option please make sure that you have checked out holoscan-sdk into the same directory as holohub and that you have built holoscan SDK as described in the [Holoscan SDK README: Build using the run script](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md#recommended-using-the-run-script).
+1. Using locally build Holoscan SDK container
 
+```bash
+  /dev_container build --debug --holoscan_image local 
+```
 
-***Launch container:***  Run the following command from the holohub directory to launch the development container.
+It is possible to configure a locally built Holoscan SDK container by passing the option ```--holoscan_image``` to the build_image or launch command. When using the ```--holoscan_image local```  option please make sure that you have checked out holoscan-sdk into the same directory as holohub and that you have built holoscan SDK as described in the [Holoscan SDK README: Build using the run script](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md#recommended-using-the-run-script).
+
+2. Using custom Dockerfile
+
+```bash
+  ./dev_container build --debug --docker_file PATH_TO_DOCKERFILE  --img_fqn holobhub-debug:local-sdk-v0.5.1
+```
+
+***Launch container:***  Run the following command from the holohub directory to launch the default development container built using Holoscan SDK's container from ngc for the local GPU.
 
 ```bash
   ./dev_container launch
 ```
+
+***Advanced launch options***
+
+1. For Holohub image built with locally built Holoscan SDK container
+
+```bash
+  ./dev_container launch --img holobhub:local-sdk-latest --local_sdk_root PATH_TO_HOLOSCAN_SDK
+```
+
+2. Launch custom Holohub container with fully qualified name, e.g. "holobhub:ngc-sdk-sample-app"
+
+```bash
+  ./dev_container launch --img holobhub:ngc-sdk-sample-app
+```
+
 
 From within the container build the Holohub apps as explained in section [Building HoloHub](#building-holohub).
 
