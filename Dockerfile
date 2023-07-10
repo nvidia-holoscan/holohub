@@ -20,21 +20,15 @@
 # Base image
 ############################################################
 
-ARG BASE_IMAGE=ngc_dgpu
-# Holoscan SDK 0.5.1 dGPU container from NGC (x86, Clara AGX and IGX Orin Dev Kits)
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-dgpu AS ngc_dgpu
-# Holoscan SDK 0.5.1 ARM64 iGPU container from NGC (AGX Orin and IGX Orin (iGPU mode) Dev Kits)
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-igpu  AS ngc_igpu
-# Holoscan SDK container built from source
-FROM holoscan-sdk-dev:latest as local
+ARG BASE_IMAGE
+ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM holoscan-sdk-dev:latest as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && \ 
     apt install --no-install-recommends -y \
-    ffmpeg=7:4.2.7-0ubuntu0.1 \
     libv4l-dev=1.18.0-2build1
 
 # --------------------------------------------------------------------------

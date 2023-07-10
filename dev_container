@@ -257,9 +257,16 @@ get_host_gpu() {
 }
 
 
+get_default_base_img() {
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-"$(get_host_gpu)
+}
+
+get_default_img_fqn() {
+    echo -n "holohub:ngc-v0.5.1-"$(get_host_gpu)
+}
+
 build_desc() { c_echo 'Build dev image
-    --holoscan_image [ngc | local : Specify base for holohub container
-        Default: Holoscan SDK 0.5.1 container from NGC
+    --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container
     --img_fqn : Specify fully qualified container name
     --debug : Print variables passed to docker build command
@@ -269,10 +276,10 @@ build_desc() { c_echo 'Build dev image
 build() {
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
-    local gpu_type=$(get_host_gpu)
     local docker_file_path="${HOLOHUB_ROOT}/Dockerfile"
-    local holoscan_image="ngc"
-    local img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}"-UNDEFINED"
+    local gpu_type=$(get_host_gpu)
+    local base_img=$(get_default_base_img)
+    local img_fqn=$(get_default_img_fqn)
     local print_debug=0
 
     # Parse CLI arguments next
@@ -281,44 +288,25 @@ build() {
     local arg
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--holoscan_image" ]; then
-           holoscan_image="${ARGS[i+1]}"
+        if [ "$arg" = "--base_img" ]; then
+           base_img="${ARGS[i+1]}"
         fi
         if [ "$arg" = "--docker_file" ]; then
            docker_file_path="${ARGS[i+1]}"
-           holoscan_image="custom_imgname"
         fi
         if [ "$arg" = "--img_fqn" ]; then
            img_fqn="${ARGS[i+1]}"
-           holoscan_image="custom_imgname"
         fi
         if [ "$arg" = "--debug" ]; then
            print_debug=1
         fi
     done
 
-    echo "[DEBUG build_image] holoscan_image ": ${holoscan_image}
-
-    # udpate base image and container name tag if using Holoscan SDK container from NGC 
-    if [[ $holoscan_image == "local" ]]  ; then 
-        img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":sdk-local-latest-"$gpu_type
-    elif [[ $holoscan_image == "ngc" ]]  ; then 
-        img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":ngc-"$gpu_type
-        holoscan_image=$holoscan_image"_"$gpu_type
-    elif [[ $holoscan_image == "custom_imgname" ]]  ; then 
-        echo "custom image name"
-    else 
-        echo "Error: --holoscan_image used with unsupported option '"${holoscan_image}"'"
-        exit 1
-    fi
-
-
     if [[ $print_debug -gt 0 ]]; then 
         c_echo W "Build (HOLOHUB_ROOT:" G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
-        c_echo W "Build (holoscan_image:" G "${holoscan_image}" W ")..."
+        c_echo W "Build (base_img:" G "${base_img}" W ")..."
         c_echo W "Build (docker_file_path:" G "${docker_file_path}" W ")..."
-        c_echo W "Build (img_fqn:" G "${img_fqn}" W ")..."
         c_echo W "Build (img_fqn:" G "${img_fqn}" W ")..."
     fi
 
@@ -326,7 +314,8 @@ build() {
     run_command export DOCKER_BUILDKIT=1
     run_command docker build \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
-        --build-arg BASE_IMAGE=${holoscan_image}\
+        --build-arg BASE_IMAGE=${base_img}\
+        --build-arg GPU_TYPE=${gpu_type}\
         --network=host \
         -f ${docker_file_path} \
         -t ${img_fqn} \
@@ -353,8 +342,8 @@ launch() {
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
-    local img_fqn=${HOLOHUB_CONTAINER_BASE_NAME}":ngc-"$gpu_type
-
+    local img_fqn=$(get_default_img_fqn)
+    
     # Parse CLI arguments next
     ARGS=("$@")
     local i
