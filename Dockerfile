@@ -23,7 +23,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM holoscan-sdk-dev:latest as base
+FROM ${BASE_IMAGE}} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
