@@ -390,7 +390,7 @@ launch() {
     done
 
     if [ -e /usr/lib/libvideomasterhd.so ]; then
-   	conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
+   	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
     fi
     if [ -d /opt/deltacast/videomaster/Include ]; then
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
@@ -399,9 +399,8 @@ launch() {
     # add user in container to group video to access video devices, e.g. /dev/video0
     conditional_opt+=" --group-add video"
 
-
     # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
-    if [ [$gpu_type == "igpu"] ] ; then 
+    if [[ $gpu_type == "igpu" ]] ; then 
         conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
         conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
         conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
@@ -469,6 +468,7 @@ launch() {
 
     if [[ $print_debug -gt 0 ]]; then 
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
+        c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
