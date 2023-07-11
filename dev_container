@@ -396,9 +396,12 @@ launch() {
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
 
+    # add user in container to group video to access video devices, e.g. /dev/video0
+    conditional_opt+=" --group-add video"
+
+
     # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
     if [ [$gpu_type == "igpu"] ] ; then 
-        conditional_opt+=" --group-add video"
         conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
         conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
         conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
