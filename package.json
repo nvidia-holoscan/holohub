@@ -2,7 +2,7 @@
   "name": "holohub-react",
   "private": true,
   "version": "0.1.0",
-  "homepage": "http://zephyrie.github.io/holohub-react",
+  "homepage": "http://nvidia-holoscan.github.io/holohub",
   "type": "module",
   "scripts": {
     "predeploy": "npm run build",
