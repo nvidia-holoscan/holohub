@@ -1,0 +1,17 @@
+name: Check linting
+
+on: push
+
+jobs:
+  check-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: ./run install_lint_deps
+
+      - name: Run linter
+        run: ./run lint
