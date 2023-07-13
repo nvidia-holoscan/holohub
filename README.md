@@ -67,7 +67,7 @@ where ```--docker_file```  is the path to the container's Dockerfile and ```--im
 
 ***Note***:  To debug the values for base image, docker file, gpu type and output image name use ```--debug```. 
 
-For example, on x86 with dGPU the default build command will print the following values when using the ```--debug``` option. 
+For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--debug``` option. 
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container build --debug
