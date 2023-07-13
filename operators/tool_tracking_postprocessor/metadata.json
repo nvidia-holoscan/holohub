@@ -1,6 +1,6 @@
 {
-	"gxf_extension": {
-		"name": "lstm_tensor_rt_inference",
+	"operator": {
+		"name": "tool_tracking_postprocessor",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -11,10 +11,10 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"gxf_version": {
-			"minimum_required_version": "2.5",
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
 			"tested_versions": [
-				"2.5"
+				"0.5.0"
 			]
 		},
 		"platforms": [
@@ -22,8 +22,8 @@
 			"arm64"
 		],
 		"tags": [
-			"inference",
-			"TensorRT"
+			"visualization",
+			"tool tracking"
 		],
 		"ranking": 1,
 		"dependencies": {}

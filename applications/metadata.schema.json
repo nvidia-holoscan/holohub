@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "application": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "authors": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "affiliation": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "affiliation"
+              ]
+            }
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "changelog": {
+          "type": "object"
+        },
+        "platforms": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "holoscan_sdk": {
+          "type": "object",
+          "properties": {
+            "minimum_required_version": {
+              "type": "string"
+            },
+            "tested_versions": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "required": [
+            "minimum_required_version",
+            "tested_versions"
+          ]
+        },
+        "ranking": {
+          "type": "integer"
+        },
+        "dependencies": {
+          "type": "object",
+          "properties": {
+            "gxf_extensions": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "version"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "platforms",
+        "tags",
+        "holoscan_sdk",
+        "ranking",
+        "dependencies"
+      ]
+    }
+  },
+  "required": [
+    "application"
+  ]
+}

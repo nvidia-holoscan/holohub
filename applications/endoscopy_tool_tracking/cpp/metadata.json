@@ -20,7 +20,7 @@
 		},
 		"platforms": ["amd64", "arm64"],
 		"tags": ["Endoscopy", "Tracking", "AJA"],
-		"ranking": 1,
+		"ranking": 0,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
 			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"

@@ -1,0 +1,14 @@
+name: Check metadata validity
+
+on: push
+
+jobs:
+  check-metadata:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run metadata_validator.py
+        run: python utilities/metadata_validator.py

@@ -1,6 +1,12 @@
 {
 	"operator": {
 		"name": "video_read_bitstream",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
