@@ -86,7 +86,7 @@ Build (img_fqn:holohub:ngc-v0.5.1-dgpu)...
   ./dev_container launch
 ```
 
-The launch script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and presence of Deltacast's Videomaster SDK and map it into the development container.
+The launch script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
 
 ***Advanced launch options***
 
