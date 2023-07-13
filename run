@@ -332,7 +332,7 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx" || exit_code=1
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" || exit_code=1
 
     popd > /dev/null
 

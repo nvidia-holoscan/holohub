@@ -37,8 +37,8 @@ def load_params(*args):
         except FileNotFoundError:
             print(f"{param_file} is not an existing parameter file, ignoring")
         except AssertionError:
-            print(f'{param_file} is not a YAML file, ignoring')
-    
+            print(f"{param_file} is not a YAML file, ignoring")
+
     return params
 
 

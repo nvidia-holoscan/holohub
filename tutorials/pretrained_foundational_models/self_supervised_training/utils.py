@@ -1,4 +1,4 @@
-'''
+"""
 SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
@@ -13,24 +13,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
-from glob import glob
+import json
 import os
 import random
-import json
+from glob import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from monai.data import (
-    CacheDataset,
-    Dataset,
-    DataLoader,
-    decollate_batch,
-    pad_list_data_collate
-)
-from monai.metrics import DiceMetric
+from monai.data import CacheDataset, DataLoader, Dataset, decollate_batch
+from monai.metrics import CumulativeIterationMetric, DiceMetric
+from monai.metrics.utils import do_metric_reduction, ignore_background, is_binary_tensor
 from monai.networks import eval_mode
 from monai.transforms import (
     AddChanneld,
@@ -45,11 +40,7 @@ from monai.transforms import (
     ScaleIntensityd,
     ToTensord,
 )
-
-from monai.metrics.utils import do_metric_reduction, ignore_background, is_binary_tensor
 from monai.utils import MetricReduction
-
-from monai.metrics import CumulativeIterationMetric
 
 
 def get_data(folder):
@@ -65,8 +56,9 @@ def get_data(folder):
     images = sorted(glob(os.path.join(folder, "*[!seg].jpg")))
     labels = [x.replace(".jpg", "_seg.jpg") for x in images]
     for label in labels:
-        assert(os.path.exists(label))
-    return [{"image": i, "label": l} for i, l in zip(images, labels)]
+        assert os.path.exists(label)
+    return [{"image": i, "label": L} for i, L in zip(images, labels)]
+
 
 def get_data_json(fn, data_path):
     """
@@ -79,36 +71,44 @@ def get_data_json(fn, data_path):
         a list of dicts with key words 'image' and 'label'.
     """
     # fn = "all_data.json"
-    with open(data_path+fn,'r') as f:
+    with open(data_path + fn, "r") as f:
         data_info = json.load(f)
 
     update_paths(data_info, data_path, fn)
 
     return data_info
 
+
 def update_paths(info, data_path, fn):
     if "val.json" == fn:
         for entry in info:
             entry["image"] = entry["image"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/",
+                data_path,
             )
             entry["label"] = entry["label"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/",
+                data_path,
             )
             entry["root"] = entry["root"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/clean_up_iter_3/samples/",
+                data_path,
             )
     else:
         for entry in info:
             entry["image"] = entry["image"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset/', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset/",
+                data_path,
             )
             entry["label"] = entry["label"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset/', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset/",
+                data_path,
             )
             entry["root"] = entry["root"].replace(
-                '/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset', data_path
+                "/home/liubin/data/tooltrack_data/dataset_220809_merge/baseline_label/trainset",
+                data_path,
             )
+
 
 def get_trans(phase="train"):
     """
@@ -129,9 +129,7 @@ def get_trans(phase="train"):
                 AddChanneld("label"),
                 Resized(keys, spatial_size=(736, 480)),
                 ScaleIntensityd(keys),
-                RandRotated(
-                    keys, range_x=np.pi, prob=0.8, mode=["bilinear", "nearest"]
-                ),
+                RandRotated(keys, range_x=np.pi, prob=0.8, mode=["bilinear", "nearest"]),
                 RandZoomd(
                     keys,
                     min_zoom=0.8,
@@ -189,12 +187,14 @@ def get_ds_and_dl(data, transforms, shuffle=False):
         dataset and dataloader.
     """
     ds = CacheDataset(data=data, transform=transforms, cache_rate=0.5, num_workers=4)
-    #dl = DataLoader(ds, batch_size=8, num_workers=4, shuffle=shuffle)
-    dl = DataLoader(ds, batch_size=8, num_workers=8, shuffle=shuffle) #collate_fn=pad_list_data_collate
+    # dl = DataLoader(ds, batch_size=8, num_workers=4, shuffle=shuffle)
+    dl = DataLoader(
+        ds, batch_size=8, num_workers=8, shuffle=shuffle
+    )  # collate_fn=pad_list_data_collate
     return ds, dl
 
 
-def get_ds_and_dl_by_data_path(data_path, phase, transforms,train_perc=100):
+def get_ds_and_dl_by_data_path(data_path, phase, transforms, train_perc=100):
     """
     Get dataset and dataloader for all sets.
 
@@ -208,20 +208,21 @@ def get_ds_and_dl_by_data_path(data_path, phase, transforms,train_perc=100):
     """
     data_dir = os.path.join(data_path, phase)
     file_dict = get_data(data_dir)
-    print('$$$', len(file_dict))
-    if (train_perc==100) & ("train" == phase):
+    print("$$$", len(file_dict))
+    if (train_perc == 100) & ("train" == phase):
         return get_ds_and_dl(file_dict, transforms, True)
-    if (train_perc!=100) & ("train" == phase):
-        print(f'### NOTE: Training with {train_perc}% of  the data ###')
+    if (train_perc != 100) & ("train" == phase):
+        print(f"### NOTE: Training with {train_perc}% of  the data ###")
         random.seed(42)
-        file_dict = random.sample(file_dict,int(train_perc/100*len(file_dict)))
+        file_dict = random.sample(file_dict, int(train_perc / 100 * len(file_dict)))
         return get_ds_and_dl(file_dict, transforms, True)
     elif "valid" == phase:
         return get_ds_and_dl(file_dict, transforms, False)
     else:
         return get_ds_and_dl_nocache(file_dict, transforms)
 
-def get_ds_and_dl_by_json(data_path, phase, transforms,train_perc=100):
+
+def get_ds_and_dl_by_json(data_path, phase, transforms, train_perc=100):
     """
     Get dataset and dataloader for all sets.
 
@@ -233,25 +234,24 @@ def get_ds_and_dl_by_json(data_path, phase, transforms,train_perc=100):
     Returns:
         dataset and dataloader.
     """
-    if phase == 'train':
-        fn = 'train.json'
-    elif phase == 'valid':
-        fn = 'val.json'
-    elif phase == 'test':
-        fn = 'test.json'
+    if phase == "train":
+        fn = "train.json"
+    elif phase == "valid":
+        fn = "val.json"
+    elif phase == "test":
+        fn = "test.json"
 
     file_dict = get_data_json(fn, data_path)
 
-
     # data_dir = os.path.join(data_path, phase)
     # file_dict = get_data(data_dir)
-    print('$$$ Full Dataset size', len(file_dict))
-    if (train_perc==100) & ("train" == phase):
+    print("$$$ Full Dataset size", len(file_dict))
+    if (train_perc == 100) & ("train" == phase):
         return get_ds_and_dl(file_dict, transforms, True)
-    if (train_perc!=100) & ("train" == phase):
-        print(f'### NOTE: Training with {train_perc}% of  the data ###')
+    if (train_perc != 100) & ("train" == phase):
+        print(f"### NOTE: Training with {train_perc}% of  the data ###")
         random.seed(42)
-        file_dict = random.sample(file_dict,int(train_perc/100*len(file_dict)))
+        file_dict = random.sample(file_dict, int(train_perc / 100 * len(file_dict)))
         return get_ds_and_dl(file_dict, transforms, True)
     elif "valid" == phase:
         return get_ds_and_dl(file_dict, transforms, False)
@@ -286,18 +286,16 @@ def get_dlds_dict(data_path, phase_list, train_perc=100):
 
 def imsave(ims, phase, save_path):
     """
-    Saveing imgs in dict given by check_set_and_save_function
+    Saving imgs in dict given by check_set_and_save_function
 
     Args:
         ims: an image dict contains images and labels.
         phase: the dataset phase of these images.
-        save_path: a path to save theses images.
+        save_path: a path to save these images.
     """
     nrow = len(ims)
     ncol = len(ims[0])
-    fig, axes = plt.subplots(
-        nrow, ncol, figsize=(ncol * 3, nrow * 3), facecolor="white"
-    )
+    fig, axes = plt.subplots(nrow, ncol, figsize=(ncol * 3, nrow * 3), facecolor="white")
     for i, im_dict in enumerate(ims):
         for j, (title, im) in enumerate(im_dict.items()):
             if isinstance(im, torch.Tensor):
@@ -320,7 +318,7 @@ def check_set_and_save(phase, ds, save_path, size=5, replace=False):
     by random choice.
 
     Args:
-        phase: the dataset phase for saveing.
+        phase: the dataset phase for saving.
         ds: the dataset for reading image.
         save_path: the path for saving random images.
         size: number of images need to be saved.
@@ -424,25 +422,28 @@ def get_test_metrics(dataloader, phase, model, device):
         iou_metric.reset()
         return iou
 
+
 class IoUMetric(CumulativeIterationMetric):
     """
-    Compute IoU metric (Jaccard Score) between two tensors. It can support both multi-classes and multi-labels tasks.
-    Input `y_pred` is compared with ground truth `y`.
-    `y_pred` is expected to have binarized predictions and `y` should be in one-hot format. You can use suitable transforms
+    Compute IoU metric (Jaccard Score) between two tensors. It can support both multi-classes and
+    multi-labels tasks. Input `y_pred` is compared with ground truth `y`. `y_pred` is expected to
+    have binarized predictions and `y` should be in one-hot format. You can use suitable transforms
     in ``monai.transforms.post`` first to achieve binarized values.
-    The `include_background` parameter can be set to ``False`` to exclude
-    the first category (channel index 0) which is by convention assumed to be background. If the non-background
-    segmentations are small compared to the total image size they can get overwhelmed by the signal from the
-    background.
+    The `include_background` parameter can be set to ``False`` to exclude the first category
+    (channel index 0) which is by convention assumed to be background. If the non-background
+    segmentations are small compared to the total image size they can get overwhelmed by the signal
+    from the background.
     `y_pred` and `y` can be a list of channel-first Tensor (CHW[D]) or a batch-first Tensor (BCHW[D]).
     Args:
         include_background: whether to skip IoU score computation on the first channel of
             the predicted output. Defaults to ``True``.
-        reduction: define mode of reduction to the metrics, will only apply reduction on `not-nan` values,
-            available reduction modes: {``"none"``, ``"mean"``, ``"sum"``, ``"mean_batch"``, ``"sum_batch"``,
-            ``"mean_channel"``, ``"sum_channel"``}, default to ``"mean"``. if "none", will not do reduction.
-        get_not_nans: whether to return the `not_nans` count, if True, aggregate() returns (metric, not_nans).
-            Here `not_nans` count the number of not nans for the metric, thus its shape equals to the shape of the metric.
+        reduction: define mode of reduction to the metrics, will only apply reduction on `not-nan`
+            values, available reduction modes: {``"none"``, ``"mean"``, ``"sum"``, ``"mean_batch"``,
+            ``"sum_batch"``, ``"mean_channel"``, ``"sum_channel"``}, default to ``"mean"``. if "none",
+            will not do reduction.
+        get_not_nans: whether to return the `not_nans` count, if True, aggregate() returns
+            (metric, not_nans). Here `not_nans` count the number of not nans for the metric, thus its
+            shape equals to the shape of the metric.
         ignore_empty: whether to ignore empty ground truth cases during calculation.
             If `True`, NaN value will be set for empty ground truth cases.
             If `False`, 1 will be set if the predictions of empty ground truth cases are also empty.
@@ -465,8 +466,8 @@ class IoUMetric(CumulativeIterationMetric):
         """
         Args:
             y_pred: input data to compute, typical segmentation model output.
-                It must be one-hot format and first dim is batch, example shape: [16, 3, 32, 32]. The values
-                should be binarized.
+                It must be one-hot format and first dim is batch, example shape: [16, 3, 32, 32].
+                The values should be binarized.
             y: ground truth to compute IoU metric. It must be one-hot format and first dim is batch.
                 The values should be binarized.
         Raises:
@@ -493,9 +494,11 @@ class IoUMetric(CumulativeIterationMetric):
         """
         Execute reduction logic for the output of `compute_iou`.
         Args:
-            reduction: define mode of reduction to the metrics, will only apply reduction on `not-nan` values,
-                available reduction modes: {``"none"``, ``"mean"``, ``"sum"``, ``"mean_batch"``, ``"sum_batch"``,
-                ``"mean_channel"``, ``"sum_channel"``}, default to `self.reduction`. if "none", will not do reduction.
+            reduction: define mode of reduction to the metrics, will only apply reduction
+                       on `not-nan` values,  available reduction modes: {``"none"``, ``"mean"``,
+                       ``"sum"``, ``"mean_batch"``, ``"sum_batch"``, ``"mean_channel"``,
+                       ``"sum_channel"``}, default to `self.reduction`. if "none", will not
+                       do reduction.
         """
         data = self.get_buffer()
         if not isinstance(data, torch.Tensor):
@@ -515,8 +518,8 @@ def compute_iou(
     """Computes IoU score metric from full size Tensor and collects average.
     Args:
         y_pred: input data to compute, typical segmentation model output.
-            It must be one-hot format and first dim is batch, example shape: [16, 3, 32, 32]. The values
-            should be binarized.
+            It must be one-hot format and first dim is batch, example shape: [16, 3, 32, 32].
+            The values should be binarized.
         y: ground truth to compute IoU metric. It must be one-hot format and first dim is batch.
             The values should be binarized.
         include_background: whether to skip IoU score computation on the first channel of
@@ -537,9 +540,7 @@ def compute_iou(
     y_pred = y_pred.float()
 
     if y.shape != y_pred.shape:
-        raise ValueError(
-            f"y_pred and y should have same shapes, got {y_pred.shape} and {y.shape}."
-        )
+        raise ValueError(f"y_pred and y should have same shapes, got {y_pred.shape} and {y.shape}.")
 
     # reducing only spatial dimensions (not batch nor channels)
     n_len = len(y_pred.shape)
