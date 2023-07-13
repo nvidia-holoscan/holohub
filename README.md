@@ -134,7 +134,7 @@ The development container has been tested on the following platforms: x86_x64 wo
 (2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
 
 
-**Local build** 
+### Local build
 
 Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK in local environemnt: Debian package, Python wheels or from source.
 
