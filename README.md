@@ -63,7 +63,7 @@ holohub                                  sdk-dev-latest    cb0231f77856   54 sec
   ./dev_container build  --docker_file PATH_TO_DOCKERFILE  --img_fqn holohub-debug:local-sdk-v0.5.1
 ```
 
-where ```--docker_file```  is the path to the container's Dockerfile and ```--img_fqn``` to define the fully qualified image name. 
+where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name. 
 
 ***Note***:  To debug the values for base image, docker file, gpu type and output image name use ```--debug```. 
 
