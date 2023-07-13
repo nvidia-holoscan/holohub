@@ -28,7 +28,7 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
 
 ***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU). 
 
-For example on x86 ```docker images``` will list the following new images after ```./dev_container build``` has completed.
+For example, on an x86_64 system with dGPU, ```docker images``` will list the following new images after ```./dev_container build``` has completed.
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ docker images
 REPOSITORY                               TAG           IMAGE ID       CREATED         SIZE
