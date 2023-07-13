@@ -27,10 +27,6 @@ FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && \ 
-    apt install --no-install-recommends -y \
-    libv4l-dev=1.18.0-2build1
-
 # --------------------------------------------------------------------------
 #
 # Holohub run setup 

@@ -206,6 +206,14 @@ setup() {
     apt install --no-install-recommends -y ffmpeg
   fi
 
+  # Install libv4l-dev
+  libv4l_dev_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
+  if [[ $libv4l_dev_version == "" ]]; then
+    echo "Installing libv4l-dev"
+    apt-get install --no-install-recommends -y libv4l-dev
+  fi
+
+
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
   if [[ $ngc_version == "" ]]; then
