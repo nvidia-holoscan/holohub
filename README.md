@@ -46,7 +46,7 @@ It is possible to configure a custom base image for building the Holohub contain
   ./dev_container build --base_img holoscan-sdk-dev:latest --img_fqn holohub:sdk-dev-latest
 ```
 
-where ```--base_img```  is used to configure the base container image and ```--img_fqn``` to define the fully qualified image name. 
+where ```--base_img```  is used to configure the base container image and ```--img``` defines the fully qualified image name. 
 
 After ```./dev_container build``` has completed ```docker images``` will list the following new image
 
