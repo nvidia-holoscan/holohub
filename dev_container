@@ -261,14 +261,14 @@ get_default_base_img() {
     echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-"$(get_host_gpu)
 }
 
-get_default_img_fqn() {
+get_default_img() {
     echo -n "holohub:ngc-v0.5.1-"$(get_host_gpu)
 }
 
 build_desc() { c_echo 'Build dev image
     --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container
-    --img_fqn : Specify fully qualified container name
+    --img : Specify fully qualified container name
     --verbose : Print variables passed to docker build command
     '
 }
@@ -279,7 +279,7 @@ build() {
     local docker_file_path="${HOLOHUB_ROOT}/Dockerfile"
     local gpu_type=$(get_host_gpu)
     local base_img=$(get_default_base_img)
-    local img_fqn=$(get_default_img_fqn)
+    local img=$(get_default_img)
     local print_verbose=0
 
     # Parse CLI arguments next
@@ -294,8 +294,8 @@ build() {
         if [ "$arg" = "--docker_file" ]; then
            docker_file_path="${ARGS[i+1]}"
         fi
-        if [ "$arg" = "--img_fqn" ]; then
-           img_fqn="${ARGS[i+1]}"
+        if [ "$arg" = "--img" ]; then
+           img="${ARGS[i+1]}"
         fi
         if [ "$arg" = "--verbose" ]; then
            print_verbose=1
@@ -307,7 +307,7 @@ build() {
         c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
         c_echo W "Build (base_img:" G "${base_img}" W ")..."
         c_echo W "Build (docker_file_path:" G "${docker_file_path}" W ")..."
-        c_echo W "Build (img_fqn:" G "${img_fqn}" W ")..."
+        c_echo W "Build (img:" G "${img}" W ")..."
     fi
 
     # Docker build
@@ -318,7 +318,7 @@ build() {
         --build-arg GPU_TYPE=${gpu_type}\
         --network=host \
         -f ${docker_file_path} \
-        -t ${img_fqn} \
+        -t ${img} \
         ${HOLOHUB_ROOT}
 }
 
@@ -342,7 +342,7 @@ launch() {
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
-    local img_fqn=$(get_default_img_fqn)
+    local img=$(get_default_img)
     
     # Parse CLI arguments next
     ARGS=("$@")
@@ -351,7 +351,7 @@ launch() {
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
         if [ "$arg" = "--img" ]; then
-           img_fqn="${ARGS[i+1]}"
+           img="${ARGS[i+1]}"
         fi
         if [ "$arg" = "--verbose" ]; then
            print_verbose=1
@@ -473,7 +473,7 @@ launch() {
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (nvidia_icd_json: " G "${nvidia_icd_json}" W ")..."
-        c_echo W "Launch (image: " G "${img_fqn}" W ")..."
+        c_echo W "Launch (image: " G "${img}" W ")..."
     fi
 
     run_command ${HOLOSCAN_DOCKER_EXE} run -it --rm --net host \
@@ -490,7 +490,7 @@ launch() {
     	${conditional_opt} \
         ${local_sdk_opt} \
         -v $nvidia_icd_json:$nvidia_icd_json:ro \
-        ${img_fqn}
+        ${img}
 }
 
 
