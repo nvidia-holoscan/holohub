@@ -80,7 +80,7 @@ Build (img_fqn:holohub:ngc-v0.5.1-dgpu)...
 ```
 
 
-***Launch container:***  Run the following command from the holohub directory to launch the default development container built using Holoscan SDK's container from ngc for the local GPU.
+***Launching dev container:***  Run the following command from the holohub directory to launch the default development container built using Holoscan SDK's container from ngc for the local GPU.
 
 ```bash
   ./dev_container launch
