@@ -1,12 +1,12 @@
 {
 	"application": {
 		"name": "FM-ASR",
-        "authors": [
-            {
-                "name": "Joshua Martinez",
-                "affiliation": "NVIDIA"
-            }
-        ],
+		"authors": [
+			{
+				"name": "Joshua Martinez",
+				"affiliation": "NVIDIA"
+			}
+		],
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
@@ -19,27 +19,35 @@
 				"0.5.0"
 			]
 		},
-		"platforms": ["amd64"],
-		"tags": ["Signal Processing", "NLP", "ASR", "Automatic Speech Recognition"],
+		"platforms": [
+			"amd64"
+		],
+		"tags": [
+			"Signal Processing",
+			"NLP",
+			"ASR",
+			"Automatic Speech Recognition"
+		],
 		"ranking": 3,
 		"dependencies": {
-			"libraries": [{
-				"name": "cusignal",
-				"version": "23.06"
-			},
-			{
-				"name": "nvidia-riva-client",
-				"version":"2.10.0",
-			},
-			{
-				"name": "rtl-sdr",
-				"version":"0.6.0-3",
-			},
-			{
-				"name": "NVIDIA Riva",
-				"container":"https://catalog.ngc.nvidia.com/orgs/nvidia/teams/riva/resources/riva_quickstart",
-			}
-		   ]
+			"libraries": [
+				{
+					"name": "cusignal",
+					"version": "23.06"
+				},
+				{
+					"name": "nvidia-riva-client",
+					"version": "2.10.0"
+				},
+				{
+					"name": "rtl-sdr",
+					"version": "0.6.0-3"
+				},
+				{
+					"name": "NVIDIA Riva",
+					"container": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/riva/resources/riva_quickstart"
+				}
+			]
 		},
 		"run": {
 			"command": "./fm_asr_app.py holoscan.yml",

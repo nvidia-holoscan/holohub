@@ -32,15 +32,7 @@
           "type": "string"
         },
         "changelog": {
-          "type": "object",
-          "properties": {
-            "1.0": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "1.0"
-          ]
+          "type": "object"
         },
         "platforms": {
           "type": "array",
