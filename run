@@ -207,7 +207,7 @@ setup() {
   fi
 
   # Install libv4l-dev
-  libv4l_dev_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
+  libv4l_dev_version=$(dpkg --status libv4l-dev | grep -Po '^Version: \K[^-]*')
   if [[ $libv4l_dev_version == "" ]]; then
     echo "Installing libv4l-dev"
     apt-get install --no-install-recommends -y libv4l-dev
