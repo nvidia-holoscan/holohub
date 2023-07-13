@@ -32,6 +32,7 @@ def validate_json(json_data, directory):
     return True, 'valid'
 
 def validate_json_directory(directory,ignore_patterns=[]):
+    exit_code = 0
     # Convert json to python object.
     current_wdir = os.getcwd()
 
@@ -58,9 +59,14 @@ def validate_json_directory(directory,ignore_patterns=[]):
                 print(name+': valid')
             else:
                 print('ERROR:'+name+': invalid')
-                print(msg)        
+                print(msg)
+                exit_code = 1
+
+    return exit_code               
 
 # Validate the directories
-validate_json_directory('operators')
-validate_json_directory('gxf_extensions',['utils'])
-validate_json_directory('applications')
+exit_code_op = validate_json_directory('operators')
+exit_code_extensions = validate_json_directory('gxf_extensions',['utils'])
+exit_code_applications = validate_json_directory('applications')
+
+sys.exit(max(exit_code_op,exit_code_extensions,exit_code_applications))
