@@ -60,7 +60,7 @@ holohub                                  sdk-dev-latest    cb0231f77856   54 sec
 2. Using custom Dockerfile
 
 ```bash
-  ./dev_container build  --docker_file PATH_TO_DOCKERFILE  --img_fqn holohub-debug:local-sdk-v0.5.1
+  ./dev_container build  --docker_file <path_to_dockerfile>  --img holohub-debug:local-sdk-v0.5.1
 ```
 
 where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name. 
