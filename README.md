@@ -18,7 +18,7 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
 
 2. Choose to build Holohub using development container or using a local environment.
 
-**Container build**
+### Container build
 
 ***Building dev container:*** Run the following command from the holohub directory to build the development container.
 
