@@ -1,0 +1,624 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Error out if a command fails
+set -e
+
+#===============================================================================
+# Default values for environment variables.
+#===============================================================================
+
+init_globals() {
+    if [ "$0" != "/bin/bash" ] && [ "$0" != "bash" ]; then
+        SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+        export RUN_SCRIPT_FILE="$(readlink -f "$0")"
+    else
+        export RUN_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    fi
+
+    export HOLOHUB_ROOT=$(dirname "${RUN_SCRIPT_FILE}")
+
+    HOLOSCAN_PY_EXE=${HOLOSCAN_PY_EXE:-"python3"}
+    export HOLOSCAN_PY_EXE
+    HOLOSCAN_DOCKER_EXE=${HOLOSCAN_DOCKER_EXE:-"docker"}
+    export HOLOSCAN_DOCKER_EXE
+
+    HOLOSCAN_SDK_VERSION="sdk-latest"
+    export HOLOSCAN_SDK_VERSION
+    HOLOHUB_CONTAINER_BASE_NAME=holohub
+    export HOLOHUB_CONTAINER_BASE_NAME
+
+
+    DO_DRY_RUN="false"  # print commands but do not execute them. Used by run_command
+}
+
+################################################################################
+# Utility functions
+################################################################################
+
+
+#######################################
+# Get list of available commands from a given input file.
+#
+# Available commands and command summary are extracted by checking a pattern
+# "_desc() { c_echo '".
+# Section title is extracted by checking a pattern "# Section: ".
+# This command is used for listing available commands in CLI.
+#
+# e.g.)
+#   "# Section: String/IO functions"
+#     => "# String/IO functions"
+#   "to_lower_desc() { c_echo 'Convert to lower case"
+#     => "to_lower ----------------- Convert to lower case"
+#
+# Arguments:
+#   $1 - input file that defines commands
+# Returns:
+#   Print list of available commands from $1
+#######################################
+get_list_of_available_commands() {
+    local mode="color"
+    if [ "${1:-}" = "color" ]; then
+        mode="color"
+        shift
+    elif [ "${1:-}" = "nocolor" ]; then
+        mode="nocolor"
+        shift
+    fi
+
+    local file_name="$1"
+    if [ ! -e "$1" ]; then
+        echo "$1 doesn't exist!"
+    fi
+
+    local line_str='--------------------------------'
+    local IFS= cmd_lines="$(IFS= cat "$1" | grep -E -e "^(([[:alpha:]_[:digit:]]+)_desc\(\)|# Section: )" | sed "s/_desc() *{ *c_echo '/ : /")"
+    local line
+    while IFS= read -r line; do
+        local cmd=$(echo "$line" | cut -d":" -f1)
+        local desc=$(echo "$line" | cut -d":" -f2-)
+        if [ "$cmd" = "# Section" ]; then
+            c_echo ${mode} B "${desc}"
+        else
+            # there is no substring operation in 'sh' so use 'cut'
+            local dash_line="$(echo "${line_str}" | cut -c ${#cmd}-)"  #  = "${line_str:${#cmd}}"
+             c_echo ${mode} Y "   ${cmd}" w " ${dash_line} ${desc}"
+        fi
+        # use <<EOF, not '<<<"$cmd_lines"' to be executable in sh
+    done <<EOF
+$cmd_lines
+EOF
+}
+
+my_cat_prefix() {
+    local IFS
+    local prefix="$1"
+    local line
+    while IFS= read -r line; do
+        echo "${prefix}${line}" # -e option doesn't work in 'sh' so disallow escaped characters
+    done <&0
+}
+
+c_str() {
+    local old_color=39
+    local old_attr=0
+    local color=39
+    local attr=0
+    local text=""
+    local mode="color"
+    if [ "${1:-}" = "color" ]; then
+        mode="color"
+        shift
+    elif [ "${1:-}" = "nocolor" ]; then
+        mode="nocolor"
+        shift
+    fi
+
+    for i in "$@"; do
+        case "$i" in
+            r|R)
+                color=31
+                ;;
+            g|G)
+                color=32
+                ;;
+            y|Y)
+                color=33
+                ;;
+            b|B)
+                color=34
+                ;;
+            p|P)
+                color=35
+                ;;
+            c|C)
+                color=36
+                ;;
+            w|W)
+                color=37
+                ;;
+
+            z|Z)
+                color=0
+                ;;
+        esac
+        case "$i" in
+            l|L|R|G|Y|B|P|C|W)
+                attr=1
+                ;;
+            n|N|r|g|y|b|p|c|w)
+                attr=0
+                ;;
+            z|Z)
+                attr=0
+                ;;
+            *)
+                text="${text}$i"
+        esac
+        if [ "${mode}" = "color" ]; then
+            if [ ${old_color} -ne ${color} ] || [ ${old_attr} -ne ${attr} ]; then
+                text="${text}\033[${attr};${color}m"
+                old_color=$color
+                old_attr=$attr
+            fi
+        fi
+    done
+    /bin/echo -en "$text"
+}
+
+c_echo() {
+    # Select color/nocolor based on the first argument
+    local mode="color"
+    if [ "${1:-}" = "color" ]; then
+        mode="color"
+        shift
+    elif [ "${1:-}" = "nocolor" ]; then
+        mode="nocolor"
+        shift
+    else
+        if [ ! -t 1 ]; then
+            mode="nocolor"
+        fi
+    fi
+
+    local old_opt="$(shopt -op xtrace)" # save old xtrace option
+    set +x # unset xtrace
+
+    if [ "${mode}" = "color" ]; then
+        local text="$(c_str color "$@")"
+        /bin/echo -e "$text\033[0m"
+    else
+        local text="$(c_str nocolor "$@")"
+        /bin/echo -e "$text"
+    fi
+    eval "${old_opt}" # restore old xtrace option
+}
+
+echo_err() {
+    >&2 echo "$@"
+}
+
+c_echo_err() {
+    >&2 c_echo "$@"
+}
+
+
+run_command() {
+    local status=0
+    local cmd="$*"
+
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        c_echo_err B "$(date -u '+%Y-%m-%d %H:%M:%S') " W "\$ " G "${cmd}"
+    else
+        c_echo_err B "$(date -u '+%Y-%m-%d %H:%M:%S') " C "[dryrun] " W "\$ " G "${cmd}"
+    fi
+
+    [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
+
+    if [ "${DO_DRY_RUN}" != "true" ]; then
+        "$@"
+        status=$?
+    fi
+
+    return $status
+}
+
+run_docker() {
+    $(./run docker_cmd "-u $(id -u):$(id -g)") "$@"
+}
+
+
+#===============================================================================
+# Section: Build
+#===============================================================================
+
+get_host_gpu() {
+    if lsmod | grep -q nvidia_drm && command -v nvidia-smi > /dev/null; then
+        echo -n "dgpu"
+    elif lsmod | grep -q nvgpu ; then
+        echo -n "igpu"
+    else
+        c_echo_err Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo -n "dgpu"
+    fi
+}
+
+
+get_default_base_img() {
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-"$(get_host_gpu)
+}
+
+get_default_img() {
+    echo -n "holohub:ngc-v0.5.1-"$(get_host_gpu)
+}
+
+build_desc() { c_echo 'Build dev image
+    --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
+    --docker_file :  path to Dockerfile to use for building container
+    --img : Specify fully qualified container name
+    --verbose : Print variables passed to docker build command
+    '
+}
+
+build() {
+
+    # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
+    local docker_file_path="${HOLOHUB_ROOT}/Dockerfile"
+    local gpu_type=$(get_host_gpu)
+    local base_img=$(get_default_base_img)
+    local img=$(get_default_img)
+    local print_verbose=0
+
+    # Parse CLI arguments next
+    ARGS=("$@")
+    local i
+    local arg
+    for i in "${!ARGS[@]}"; do
+        arg="${ARGS[i]}"
+        if [ "$arg" = "--base_img" ]; then
+           base_img="${ARGS[i+1]}"
+        fi
+        if [ "$arg" = "--docker_file" ]; then
+           docker_file_path="${ARGS[i+1]}"
+        fi
+        if [ "$arg" = "--img" ]; then
+           img="${ARGS[i+1]}"
+        fi
+        if [ "$arg" = "--verbose" ]; then
+           print_verbose=1
+        fi
+    done
+
+    if [[ $print_verbose -gt 0 ]]; then 
+        c_echo W "Build (HOLOHUB_ROOT:" G "${HOLOHUB_ROOT}" W ")..."
+        c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
+        c_echo W "Build (base_img:" G "${base_img}" W ")..."
+        c_echo W "Build (docker_file_path:" G "${docker_file_path}" W ")..."
+        c_echo W "Build (img:" G "${img}" W ")..."
+    fi
+
+    # Docker build
+    run_command export DOCKER_BUILDKIT=1
+    run_command docker build \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
+        --build-arg BASE_IMAGE=${base_img}\
+        --build-arg GPU_TYPE=${gpu_type}\
+        --network=host \
+        -f ${docker_file_path} \
+        -t ${img} \
+        ${HOLOHUB_ROOT}
+}
+
+#===============================================================================
+# Section: Launch
+#===============================================================================
+
+launch_desc() { c_echo 'Launch Docker container
+    --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
+    --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
+    --verbose : Print variables passed to docker run command
+    '
+}
+launch() {
+    local build_path="${CMAKE_BUILD_PATH:-build}"
+    local working_dir=${1:-${build_path}}
+    local mount_device_opt=""
+    local conditional_opt=""
+    local print_verbose=0
+    local local_sdk_root="undefined"
+
+    # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
+    local gpu_type=$(get_host_gpu)
+    local img=$(get_default_img)
+    
+    # Parse CLI arguments next
+    ARGS=("$@")
+    local i
+    local arg
+    for i in "${!ARGS[@]}"; do
+        arg="${ARGS[i]}"
+        if [ "$arg" = "--img" ]; then
+           img="${ARGS[i+1]}"
+        fi
+        if [ "$arg" = "--verbose" ]; then
+           print_verbose=1
+        fi
+        if [ "$arg" = "--local_sdk_root" ]; then
+           local_sdk_root="${ARGS[i+1]}"
+        fi
+
+    done
+
+
+    # Skip the first argument to pass the remaining arguments to the docker command.
+    if [ -n "$1" ]; then
+        shift
+    fi
+
+    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
+    run_command xhost +local:docker
+
+    for i in 0 1 2 3; do
+        if [ -e /dev/video${i} ]; then
+            mount_device_opt+=" --device /dev/video${i}:/dev/video${i}"
+        fi
+        if [ -e /dev/ajantv2${i} ]; then
+            mount_device_opt+=" --device /dev/ajantv2${i}:/dev/ajantv2${i}"
+        fi
+        # Deltacast capture boards and Videomaster SDK
+        # Deltacast SDI capture board
+	    if [ -e /dev/delta-x380${i} ]; then
+            mount_device_opt+=" --device /dev/delta-x380${i}:/dev/delta-x380${i}"
+        fi
+	    # Deltacast HDMI capture board
+	    if [ -e /dev/delta-x350${i} ]; then
+            mount_device_opt+=" --device /dev/delta-x350${i}:/dev/delta-x350${i}"
+        fi
+    done
+
+    if [ -e /usr/lib/libvideomasterhd.so ]; then
+   	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
+    fi
+    if [ -d /opt/deltacast/videomaster/Include ]; then
+        conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
+    fi
+
+    # add user in container to group video to access video devices, e.g. /dev/video0
+    conditional_opt+=" --group-add video"
+
+    # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
+    if [[ $gpu_type == "igpu" ]] ; then 
+        conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
+        conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
+        conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
+        conditional_opt+=" --device /dev/nvhost-ctxsw-gpu" 
+        conditional_opt+=" --device /dev/nvhost-nvsched-gpu " 
+        conditional_opt+=" --device /dev/nvhost-sched-gpu " 
+        conditional_opt+=" --device /dev/nvidia0 " 
+        conditional_opt+=" --device /dev/nvidia-modeset " 
+    fi
+
+    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holsocan SDK
+    # to map Holoscan SDK into the container for building Holohub
+    local local_sdk_opt="";
+
+    if [ -d  "$local_sdk_root" ] ; then
+        local_sdk_opt+=" -v $local_sdk_root:/workspace/holoscan-sdk"
+         #   Define paths needed by the python applications
+        local_sdk_opt+=" -e PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"
+        local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
+        local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
+        #   Define path for cupy' kernel cache, needed since $HOME does
+        #   not exist when running with `-u id:group`
+        local_sdk_opt+=" -e CUPY_CACHE_DIR=/workspace/holoscan-sdk/.cupy/kernel_cache"
+        local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
+    fi
+
+
+    # Find the nvidia_icd.json file which could reside at different paths
+    # Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
+    nvidia_icd_json=$(find /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f,l -print -quit 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
+
+    # DOCKER PARAMETERS
+    #
+    # -it
+    #   The container needs to be interactive to be able to interact with the X11 windows
+    #
+    # --rm
+    #   Deletes the container after the command runs
+    #
+    # -u $(id -u):$(id -g)
+    # -v /etc/group:/etc/group:ro
+    # -v /etc/passwd:/etc/passwd:ro
+    #   Ensures the generated files (build, install...) are owned by $USER and not root,
+    #   and provide the configuration files to avoid warning for user and group names
+    #
+    # -v ${HOLOHUB_ROOT}:/workspace/holohub
+    #   Mount the source directory
+    #
+    # -w /workspace/holohub/${working_dir}
+    #   Start in the build or install directory
+    #
+    # --runtime=nvidia \
+    # -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display
+    #   Enable GPU acceleration
+    #
+    # -v /tmp/.X11-unix:/tmp/.X11-unix
+    # -e DISPLAY
+    #   Enable graphical applications
+    #
+    # -v $nvidia_icd_json:$nvidia_icd_json:ro
+    #   Bind NVIDIA's Vulkan installable client driver to run Vulkan
+    #   Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
+    #   The configurations files are installed to different locations when installing
+    #   with deb packages or with run files, so we look at both places
+
+    if [[ $print_verbose -gt 0 ]]; then 
+        c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
+        c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
+        c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
+        c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
+        c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
+        c_echo W "Launch (nvidia_icd_json: " G "${nvidia_icd_json}" W ")..."
+        c_echo W "Launch (image: " G "${img}" W ")..."
+    fi
+
+    run_command ${HOLOSCAN_DOCKER_EXE} run -it --rm --net host \
+        -u $(id -u):$(id -g) \
+        -v /etc/group:/etc/group:ro \
+        -v /etc/passwd:/etc/passwd:ro \
+        -v ${HOLOHUB_ROOT}:/workspace/holohub \
+        -w /workspace/holohub \
+        --runtime=nvidia \
+        -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -e DISPLAY \
+        ${mount_device_opt} \
+    	${conditional_opt} \
+        ${local_sdk_opt} \
+        -v $nvidia_icd_json:$nvidia_icd_json:ro \
+        ${img}
+}
+
+
+#===============================================================================
+
+parse_args() {
+    local OPTIND
+    while getopts 'yh' option;
+    do
+        case "${option}" in
+            y)
+                ALWAYS_YES="true"
+                ;;
+            h)
+                print_usage
+                if [ -n "${SCRIPT_DIR}" ]; then
+                    exit 1
+                fi
+                ;;
+            *)
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
+    CMD="$1"
+    shift
+
+    ARGS=("$@")
+    # Check if the command has `--help`, `-h`, or `--dryrun`, and override the CMD
+    local i
+    local arg
+    local unset_pos
+    for i in "${!ARGS[@]}"; do
+        arg="${ARGS[i]}"
+        if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
+            ARGS=("$CMD")
+            CMD="help"
+            break
+        fi
+        if [ "$arg" = "--dryrun" ]; then
+            unset_pos=$i
+            DO_DRY_RUN="true"  # set to true to print commands to screen without running
+        fi
+    done
+    if [ "${unset_pos}" ]; then
+        unset 'ARGS[unset_pos]'
+    fi
+}
+
+print_usage() {
+    set +x
+    echo_err
+    echo_err "USAGE: $0 [command] [arguments]..."
+    echo_err ""
+    c_echo_err W "Global Arguments"
+    c_echo_err "  --help, -h      : Print help messages for [command]"
+    c_echo_err "  --dryrun        : Print commands to screen without running"
+    echo_err
+    c_echo_err W "Command List"
+    c_echo_err Y "    help  " w "----------------------------  Print detailed description for a given argument (command name)"
+    echo_err "$(get_list_of_available_commands color "${RUN_SCRIPT_FILE}" | my_cat_prefix " ")"
+    echo_err
+}
+
+print_cmd_help_messages() {
+    local cmd="$1"
+    if [ -n "${cmd}" ]; then
+        if type ${cmd}_desc > /dev/null 2>&1; then
+            ${cmd}_desc
+            exit 0
+        else
+            c_echo_err R "Command '${cmd}' doesn't exist!"
+            exit 1
+        fi
+    fi
+    print_usage
+    return 0
+}
+
+main() {
+    local ret=0
+    parse_args "$@"
+
+    case "$CMD" in
+        help)
+            print_cmd_help_messages "${ARGS[@]}"
+            exit 0
+            ;;
+        ''|main)
+            print_usage
+            ;;
+        *)
+            if type ${CMD} > /dev/null 2>&1; then
+                "$CMD" "${ARGS[@]}"
+            else
+                print_usage
+                exit 1
+            fi
+            ;;
+    esac
+    ret=$?
+    if [ -n "${SCRIPT_DIR}" ]; then
+        exit $ret
+    fi
+}
+
+init_globals
+
+if [ -n "${SCRIPT_DIR}" ]; then
+    main "$@"
+fi
+
+#===============================================================================
+# Description template
+#===============================================================================
+# Globals:
+#   HOLOSCAN_OS
+#   HOLOSCAN_TARGET
+#   HOLOSCAN_USER (used if HOLOSCAN_OS is "linux")
+#   HOLOSCAN_HOST (used if HOLOSCAN_OS is "linux")
+# Arguments:
+#   Command line to execute
+# Returns:
+#   Outputs print messages during the execution (stdout->stdout, stderr->stderr).
+#
+#   Note:
+#     This command removes "\r" characters from stdout.
+#
+#   Exit code:
+#     exit code returned from executing a given command
