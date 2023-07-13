@@ -26,6 +26,7 @@
 			"Colonoscopy",
 			"Classification"
 		],
+		"ranking": 1,
 		"dependencies": {
 			"data": "https://ngc.nvidia.com/resources/colonoscopy_sample_app_data"
 		},

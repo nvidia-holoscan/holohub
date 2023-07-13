@@ -12,7 +12,12 @@
 			"1.0": "Initial Release",
 			"1.1": ""
 		},
-		"gxf_version": "2.5",
+		"gxf_version": {
+			"minimum_required_version": "2.5",
+			"tested_versions": [
+				"2.5"
+			]
+		},
 		"platforms": [
 			"amd64",
 			"arm64"
