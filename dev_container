@@ -269,7 +269,7 @@ build_desc() { c_echo 'Build dev image
     --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container
     --img_fqn : Specify fully qualified container name
-    --debug : Print variables passed to docker build command
+    --verbose : Print variables passed to docker build command
     '
 }
 
@@ -280,7 +280,7 @@ build() {
     local gpu_type=$(get_host_gpu)
     local base_img=$(get_default_base_img)
     local img_fqn=$(get_default_img_fqn)
-    local print_debug=0
+    local print_verbose=0
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -297,12 +297,12 @@ build() {
         if [ "$arg" = "--img_fqn" ]; then
            img_fqn="${ARGS[i+1]}"
         fi
-        if [ "$arg" = "--debug" ]; then
-           print_debug=1
+        if [ "$arg" = "--verbose" ]; then
+           print_verbose=1
         fi
     done
 
-    if [[ $print_debug -gt 0 ]]; then 
+    if [[ $print_verbose -gt 0 ]]; then 
         c_echo W "Build (HOLOHUB_ROOT:" G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
         c_echo W "Build (base_img:" G "${base_img}" W ")..."
@@ -329,7 +329,7 @@ build() {
 launch_desc() { c_echo 'Launch Docker container
     --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
-    --debug : Print variables passed to docker run command
+    --verbose : Print variables passed to docker run command
     '
 }
 launch() {
@@ -337,7 +337,7 @@ launch() {
     local working_dir=${1:-${build_path}}
     local mount_device_opt=""
     local conditional_opt=""
-    local print_debug=0
+    local print_verbose=0
     local local_sdk_root="undefined"
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
@@ -353,8 +353,8 @@ launch() {
         if [ "$arg" = "--img" ]; then
            img_fqn="${ARGS[i+1]}"
         fi
-        if [ "$arg" = "--debug" ]; then
-           print_debug=1
+        if [ "$arg" = "--verbose" ]; then
+           print_verbose=1
         fi
         if [ "$arg" = "--local_sdk_root" ]; then
            local_sdk_root="${ARGS[i+1]}"
@@ -466,7 +466,7 @@ launch() {
     #   The configurations files are installed to different locations when installing
     #   with deb packages or with run files, so we look at both places
 
-    if [[ $print_debug -gt 0 ]]; then 
+    if [[ $print_verbose -gt 0 ]]; then 
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
