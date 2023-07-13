@@ -102,7 +102,7 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
   ./dev_container launch --img holohub:ngc-sdk-sample-app
 ```
 
-***Note***:  To debug the values passed to the docker run command when using add the ```--debug``` option to the launch command.
+***Note***:  To print the values passed to the docker run command, add the ```--debug``` option to the launch command.
 
 For example, on x86 with dGPU ```./dev_container launch --debug``` will print the following values. 
 
