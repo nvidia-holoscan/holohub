@@ -43,7 +43,7 @@ nvcr.io/nvidia/clara-holoscan/holoscan   v0.5.1-dgpu       1b4df7733d5b   5 week
 It is possible to configure a custom base image for building the Holohub container. E.g., if you built Holoscan SDK locally and want to use the locally built container as the base image, use the following command: 
 
 ```bash
-  ./dev_container build --base_img holoscan-sdk-dev:latest --img_fqn holohub:sdk-dev-latest
+  ./dev_container build --base_img holoscan-sdk-dev:latest --img holohub:sdk-dev-latest
 ```
 
 where ```--base_img```  is used to configure the base container image and ```--img``` defines the fully qualified image name. 
