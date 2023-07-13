@@ -104,7 +104,7 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
 
 ***Note***:  To print the values passed to the docker run command, add the ```--debug``` option to the launch command.
 
-For example, on x86 with dGPU ```./dev_container launch --debug``` will print the following values. 
+For example, on an x86_64 system with dGPU ```./dev_container launch --debug``` will print the following values. 
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container launch  --debug
