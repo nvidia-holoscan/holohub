@@ -93,7 +93,7 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
 1. For Holohub image built with locally built Holoscan SDK container
 
 ```bash
-  ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root PATH_TO_HOLOSCAN_SDK
+  ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root <path_to_holoscan_sdk>
 ```
 
 2. Launch custom Holohub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
