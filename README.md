@@ -65,12 +65,12 @@ holohub                                  sdk-dev-latest    cb0231f77856   54 sec
 
 where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name. 
 
-***Note***:  To debug the values for base image, docker file, gpu type and output image name use ```--debug```. 
+***Note***:  To print the values for base image, docker file, gpu type and output image name use ```--verbose```. 
 
-For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--debug``` option. 
+For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option. 
 
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container build --debug
+user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container build --verbose
 Build (HOLOHUB_ROOT:/media/data/github/holohub)...
 Build (gpu_type_type:dgpu)...
 Build (base_img:nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-dgpu)...
@@ -102,12 +102,12 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
   ./dev_container launch --img holohub:ngc-sdk-sample-app
 ```
 
-***Note***:  To print the values passed to the docker run command, add the ```--debug``` option to the launch command.
+***Note***:  To print the values passed to the docker run command, add the ```--verbose``` option to the launch command.
 
-For example, on an x86_64 system with dGPU ```./dev_container launch --debug``` will print the following values. 
+For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values. 
 
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container launch  --debug
+user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container launch  --verbose
 2023-07-10 18:36:53 $ xhost +local:docker
 non-network local connections being added to access control list
 Launch (HOLOHUB_ROOT: /media/data/github/holohub)...
@@ -124,7 +124,7 @@ Please note that the values of some of the variables will vary depending on conf
 
 From within the container build the Holohub apps as explained in section [Building HoloHub](#building-holohub).
 
-The development container has been tested on the following platforms: x86_x64 workstation with multiple RTX GPUs, Clara AGX Dev Kit (dGPU mode), IGX Orin Dev Kit (dGPU mode), AGX Orin Dev Kit (iGPU).
+The development container has been tested on the following platforms: x86_x64 workstation with multiple RTX GPUs, Clara AGX Dev Kit (dGPU mode), IGX Orin Dev Kit (dGPU and iGPU mode), AGX Orin Dev Kit (iGPU).
 
 
 ***Notes for AGX Orin Dev Kit***: 
