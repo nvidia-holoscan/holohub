@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import scipy.io as sio
-import numpy as np
 #import cupy as cp
 import pickle
+
+import numpy as np
+import scipy.io as sio
 
 
 def npot(x):
