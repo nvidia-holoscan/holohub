@@ -631,7 +631,7 @@ for k, v in obj["application"]["run"].items():
       workdir="cd ${holohub_build_dir}"
    fi
 
-   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib"
+   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
 
    # Run the command
    run_command $environment
