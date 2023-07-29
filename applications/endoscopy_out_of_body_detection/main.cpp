@@ -21,8 +21,8 @@
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include <holoscan/operators/multiai_inference/multiai_inference.hpp>
-#include <holoscan/operators/multiai_postprocessor/multiai_postprocessor.hpp>
+#include <holoscan/operators/inference/inference.hpp>
+#include <holoscan/operators/inference_processor/inference_processor.hpp>
 
 class App : public holoscan::Application {
  public:
@@ -56,16 +56,16 @@ class App : public holoscan::Application {
                                               Arg("in_dtype") = in_dtype,
                                               Arg("pool") = pool_resource);
 
-    ops::MultiAIInferenceOp::DataMap model_path_map;
-    model_path_map.insert("out_of_body", datapath+"/out_of_body_detection.onnx");
+    ops::InferenceOp::DataMap model_path_map;
+    model_path_map.insert("out_of_body", datapath + "/out_of_body_detection.onnx");
 
-    auto out_of_body_inference = make_operator<ops::MultiAIInferenceOp>(
+    auto out_of_body_inference = make_operator<ops::InferenceOp>(
         "out_of_body_inference", from_config("out_of_body_inference"),
-                                 Arg("model_path_map", model_path_map),
-                                 Arg("allocator") = pool_resource);
+        Arg("model_path_map", model_path_map),
+        Arg("allocator") = pool_resource);
 
     auto out_of_body_postprocessor =
-        make_operator<ops::MultiAIPostprocessorOp>("out_of_body_postprocessor",
+        make_operator<ops::InferenceProcessorOp>("out_of_body_postprocessor",
                                                    from_config("out_of_body_postprocessor"),
                                                    Arg("allocator") = pool_resource,
                                                    Arg("disable_transmitter") = true);
@@ -115,8 +115,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char **argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments

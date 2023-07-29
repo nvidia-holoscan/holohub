@@ -22,8 +22,8 @@
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "video_read_bitstream.hpp"
 #include "video_decoder.hpp"
+#include "video_read_bitstream.hpp"
 
 class App : public holoscan::Application {
  public:
@@ -47,11 +47,22 @@ class App : public holoscan::Application {
                                                      source_num_blocks));
 
 
-    auto video_decoder = make_operator<ops::VideoDecoderOp>(
-        "video_decoder",
-        from_config("video_decoder"),
-        Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size,
-                                                     source_num_blocks));
+    auto video_decoder_context = make_resource<ops::VideoDecoderContext>();
+    auto async_scheduling_condition =
+                                  make_condition<AsynchronousCondition>("async_scheduling_term");
+    auto video_decoder_request =
+      make_operator<ops::VideoDecoderRequestOp>("video_decoder_request",
+                                         from_config("video_decoder_request"),
+                                         Arg("async_scheduling_term") = async_scheduling_condition,
+                                         Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_response =
+      make_operator<ops::VideoDecoderResponseOp>("video_decoder_response",
+                                         from_config("video_decoder_response"),
+                                         async_scheduling_condition,
+                                         Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                                                                                source_block_size,
+                                                                                source_num_blocks),
+                                         Arg("videodecoder_context") = video_decoder_context);
 
 
     auto decoder_output_format_converter =
@@ -70,8 +81,8 @@ class App : public holoscan::Application {
       Arg("enable_render_buffer_output") = false,
       Arg("allocator") = visualizer_allocator);
 
-    add_flow(bitstream_reader, video_decoder, {{"output_transmitter", "image_receiver"}});
-    add_flow(video_decoder, decoder_output_format_converter,
+    add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
+    add_flow(video_decoder_response, decoder_output_format_converter,
              {{"output_transmitter", "source_video"}});
     add_flow(decoder_output_format_converter, visualizer, {{"tensor", "receivers"}});
   }
@@ -108,8 +119,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
   GxfSetSeverity(app->executor().context(), GXF_SEVERITY_WARNING);
 

@@ -33,4 +33,8 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 - the [Format Converter](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) in the recording pipeline is used for `record_type: INPUT` also
 
 For AJA cards that support Hardware Keying, the pipeline can also be configured to overlay the segmentation results on the input video on the AJA card FPGA, instead of on the GPU: when `is_aja_overlay_enabled` is True, the overlay layer is sent from [Holoviz](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) back to the [AJA Source](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator which handles the alpha blending and outputs it to a port of the the AJA card. The blended image is also sent back to the [Holoviz](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator (instead of the input video only) for rendering the same image buffer.
-
+*The overlay configuration does not work with Holoscan SDK v0.6. As Holoscan supports only [Directed
+Acyclic Graph (DAG) for a
+fragment](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html), the cycle formed by
+the edge between the Holoviz and AJA Source operators is incompatible. The overlay feature will
+again be available in a future release of Holoscan SDK.*

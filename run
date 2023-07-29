@@ -321,7 +321,7 @@ lint() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
-    run_command ruff $DIR_TO_RUN || exit_code=1
+    run_command ruff $DIR_TO_RUN --ignore E712 || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m isort -c $DIR_TO_RUN || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m black --check $DIR_TO_RUN || exit_code=1
 
@@ -340,7 +340,8 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" || exit_code=1
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
+                          -L nd || exit_code=1
 
     popd > /dev/null
 
@@ -363,7 +364,7 @@ build_desc() {
   echo "   --buildpath <build_directory>        : Change the build path."
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
-  echo "   --configure-args <extra_args> : Additional configuration arguments"
+  echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
   echo ""
@@ -458,7 +459,10 @@ build() {
 launch_desc() {
   echo ""
   echo "Launch command allowing to run application directly."
-  echo "Usage: ./run launch <application_name> [language: cpp|python]"
+  echo "Usage: ./run launch <application_name> [language: cpp|python] [--extra_args <args>]"
+  echo "Options:"
+  echo "   --extra_args <args>       : additional arguments passed to the application command"
+  echo ""
   echo ""
   echo "Use './run list' first to list the available applications"
   echo "Note that applications might be listed but not built."
@@ -466,7 +470,24 @@ launch_desc() {
   echo ""
 }
 
+
 launch() {
+   local extra_args=""
+
+   for i in "${!ARGS[@]}"; do
+     arg="${ARGS[i]}"
+     if [ "$arg" = "--extra_args" ]; then
+       unset_pos=$i
+       extra_args="${ARGS[i+1]}"
+       break
+     fi
+   done
+   if [ "${unset_pos}" ]; then
+     # Call unset twice to remove both the --extra_args option and the args provided
+     unset 'ARGS[unset_pos]'
+     unset 'ARGS[unset_pos]'
+   fi
+
    local appname=$1
 
    # Export the python path (by default use the one used to build)
@@ -542,7 +563,7 @@ for k, v in obj["application"]["run"].items():
    # Run the command
    run_command $environment
    run_command $workdir
-   run_command $command
+   run_command $command $extra_args
 }
 
 #===========================================================================================

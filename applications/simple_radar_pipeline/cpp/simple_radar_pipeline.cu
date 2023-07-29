@@ -541,8 +541,6 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Get the configuration

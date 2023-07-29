@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Object detection using frcnn based pytorch model in C++",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Object detection"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "./object_detection_torch --data <holohub_data_dir>/object_detection_torch",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

@@ -20,7 +20,6 @@ import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -72,7 +71,7 @@ class DetectionPostprocessorOp(Operator):
         ).get()  # (nbatch, nboxes)
         # Threshold scores and prune boxes
         ix = scores.flatten() >= scores_threshold
-        if np.all(ix is False):
+        if np.all(ix == False):
             bboxes = np.zeros([1, 2, 2], dtype=np.float32)
         else:
             bboxes = bboxes[:, ix, :]
@@ -213,7 +212,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    load_env_log_level()
     config_file = os.path.join(os.path.dirname(__file__), "ssd_endo_model_with_NMS.yaml")
 
     app = SSDDetectionApp(source=args.source)

@@ -24,8 +24,8 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
 #include "tensor_to_video_buffer.hpp"
-#include "video_encoder.hpp"
 #include "video_decoder.hpp"
+#include "video_encoder.hpp"
 #include "video_read_bitstream.hpp"
 #include "video_write_bitstream.hpp"
 
@@ -44,111 +44,148 @@ class App : public holoscan::Application {
     int64_t source_num_blocks = 2;
 
     auto bitstream_reader =
-      make_operator<ops::VideoReadBitstreamOp>("bitstream_reader", from_config("bitstream_reader"),
-          Arg("input_file_path", datapath+"/surgical_video.264"),
-          make_condition<CountCondition>(2000),
-          Arg("pool") = make_resource<BlockMemoryPool>("pool",
-          0, source_block_size, source_num_blocks));
+        make_operator<ops::VideoReadBitstreamOp>("bitstream_reader",
+            from_config("bitstream_reader"),
+            Arg("input_file_path", datapath+"/surgical_video.264"),
+            make_condition<CountCondition>(2000),
+            Arg("pool") = make_resource<BlockMemoryPool>("pool",
+            0, source_block_size, source_num_blocks));
 
-    auto video_decoder =
-      make_operator<ops::VideoDecoderOp>("video_decoder",
-                                         from_config("video_decoder"),
-                                         Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                         source_block_size, source_num_blocks));
+    auto video_decoder_context = make_resource<ops::VideoDecoderContext>();
+
+    auto async_scheduling_condition =
+        make_condition<AsynchronousCondition>("async_scheduling_term");
+
+    auto video_decoder_request =
+        make_operator<ops::VideoDecoderRequestOp>("video_decoder_request",
+            from_config("video_decoder_request"),
+            Arg("async_scheduling_term") = async_scheduling_condition,
+            Arg("videodecoder_context") = video_decoder_context);
+
+    auto video_decoder_response =
+        make_operator<ops::VideoDecoderResponseOp>("video_decoder_response",
+            from_config("video_decoder_response"),
+            async_scheduling_condition,
+            Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                source_block_size, source_num_blocks),
+            Arg("videodecoder_context") = video_decoder_context);
 
     auto decoder_output_format_converter =
-      make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
-                                             from_config("decoder_output_format_converter"),
-                                             Arg("pool") = make_resource<BlockMemoryPool>("pool",
-                                             1, source_block_size, source_num_blocks));
+        make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
+            from_config("decoder_output_format_converter"),
+            Arg("pool") = make_resource<BlockMemoryPool>("pool",
+                1, source_block_size, source_num_blocks));
 
     auto rgb_float_format_converter =
-      make_operator<ops::FormatConverterOp>("rgb_float_format_converter",
-                                            from_config("rgb_float_format_converter"),
-                                            Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                            source_block_size, source_num_blocks));
+        make_operator<ops::FormatConverterOp>("rgb_float_format_converter",
+            from_config("rgb_float_format_converter"),
+            Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                source_block_size, source_num_blocks));
 
     const std::string model_file_path = datapath+"/tool_loc_convlstm.onnx";
     const std::string engine_cache_dir = datapath+"/engines";
 
     auto lstm_inferer =
-      make_operator<ops::LSTMTensorRTInferenceOp>("lstm_inferer", from_config("lstm_inference"),
-                                                  Arg("model_file_path", model_file_path),
-                                                  Arg("engine_cache_dir", engine_cache_dir),
-                                                  Arg("pool") =
-                                                  make_resource<UnboundedAllocator>("pool"),
-                                                  Arg("cuda_stream_pool") =
-                                                  make_resource<CudaStreamPool>("cuda_stream", 0,
-                                                  0, 0, 1, 5));
+        make_operator<ops::LSTMTensorRTInferenceOp>("lstm_inferer",
+            from_config("lstm_inference"),
+            Arg("model_file_path", model_file_path),
+            Arg("engine_cache_dir", engine_cache_dir),
+            Arg("pool") =
+            make_resource<UnboundedAllocator>("pool"),
+            Arg("cuda_stream_pool") = make_resource<CudaStreamPool>(
+                "cuda_stream", 0, 0, 0, 1, 5));
 
     auto tool_tracking_postprocessor =
-      make_operator<ops::ToolTrackingPostprocessorOp>("tool_tracking_postprocessor",
-                                                      from_config("tool_tracking_postprocessor"),
-                                                      Arg("device_allocator") =
-                                                      make_resource<UnboundedAllocator>(
-                                                      "device_allocator"),
-                                                      Arg("host_allocator") =
-                                                      make_resource<UnboundedAllocator>(
-                                                      "host_allocator"));
+        make_operator<ops::ToolTrackingPostprocessorOp>(
+            "tool_tracking_postprocessor",
+            from_config("tool_tracking_postprocessor"),
+            Arg("device_allocator") = make_resource<UnboundedAllocator>(
+                "device_allocator"),
+            Arg("host_allocator") = make_resource<UnboundedAllocator>(
+                "host_allocator"));
 
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator =
-      make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
+        make_resource<BlockMemoryPool>("allocator", 1,
+            source_block_size, source_num_blocks);
     auto visualizer =
-      make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"),
-                                    Arg("width") = width,
-                                    Arg("height") = height,
-                                    Arg("enable_render_buffer_input") = false,
-                                    Arg("enable_render_buffer_output") = true,
-                                    Arg("allocator") = visualizer_allocator);
+        make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"),
+            Arg("width") = width,
+            Arg("height") = height,
+            Arg("enable_render_buffer_input") = false,
+            Arg("enable_render_buffer_output") = true,
+            Arg("allocator") = visualizer_allocator);
 
-    auto video_encoder =
-      make_operator<ops::VideoEncoderOp>("video_encoder", from_config("video_encoder"),
-                                          Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                          source_block_size, source_num_blocks));
-
-    auto holoviz_output_format_converter =
-      make_operator<ops::FormatConverterOp>("holoviz_output_format_converter",
-                                            from_config("holoviz_output_format_converter"),
-                                            Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                            source_block_size, source_num_blocks));
-
-    auto encoder_input_format_converter =
-      make_operator<ops::FormatConverterOp>("encoder_input_format_converter",
-                                            from_config("encoder_input_format_converter"),
-                                            Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                            source_block_size, source_num_blocks));
-
-    auto tensor_to_video_buffer =
-      make_operator<ops::TensorToVideoBufferOp>("tensor_to_video_buffer",
-                                                from_config("tensor_to_video_buffer"));
-
-    auto bitstream_writer =
-      make_operator<ops::VideoWriteBitstreamOp>("bitstream_writer",
-          from_config("bitstream_writer"),
-          Arg("output_video_path", datapath+"/surgical_video_output.264"),
-          Arg("input_crc_file_path", datapath+"/surgical_video_output.txt"),
-          Arg("pool") =
-          make_resource<BlockMemoryPool>("pool", 0,
-          source_block_size, source_num_blocks));
-
-    add_flow(bitstream_reader, video_decoder, {{"output_transmitter", "image_receiver"}});
-    add_flow(video_decoder, decoder_output_format_converter,
-             {{"output_transmitter", "source_video"}});
-    add_flow(decoder_output_format_converter, visualizer, {{"tensor", "receivers"}});
+    add_flow(bitstream_reader, video_decoder_request,
+        {{"output_transmitter", "input_frame"}});
+    add_flow(video_decoder_response, decoder_output_format_converter,
+        {{"output_transmitter", "source_video"}});
+    add_flow(decoder_output_format_converter, visualizer,
+        {{"tensor", "receivers"}});
     add_flow(decoder_output_format_converter, rgb_float_format_converter,
-             {{"tensor", "source_video"}});
+        {{"tensor", "source_video"}});
     add_flow(rgb_float_format_converter, lstm_inferer);
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
     add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
-    add_flow(visualizer, holoviz_output_format_converter,
-             {{"render_buffer_output", "source_video"}});
-    add_flow(holoviz_output_format_converter, encoder_input_format_converter,
-             {{"tensor", "source_video"}});
-    add_flow(encoder_input_format_converter, tensor_to_video_buffer, {{"tensor", "in_tensor"}});
-    add_flow(tensor_to_video_buffer, video_encoder, {{"out_video_buffer", "input_frame"}});
-    add_flow(video_encoder, bitstream_writer, {{"output_transmitter", "data_receiver"}});
+    const bool record_output = from_config("record_output").as<bool>();
+    if (record_output) {
+      auto video_encoder_context = make_resource<ops::VideoEncoderContext>();
+
+      auto encoder_async_condition =
+          make_condition<AsynchronousCondition>("async_scheduling_term");
+
+      auto video_encoder_request =
+          make_operator<ops::VideoEncoderRequestOp>("video_encoder_request",
+              from_config("video_encoder_request"),
+              Arg("async_scheduling_term") = encoder_async_condition,
+              Arg("videoencoder_context") = video_encoder_context);
+
+      auto video_encoder_response =
+          make_operator<ops::VideoEncoderResponseOp>("video_encoder_response",
+              from_config("video_encoder_response"),
+              encoder_async_condition,
+              Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                  source_block_size, source_num_blocks),
+              Arg("videoencoder_context") = video_encoder_context);
+
+      auto holoviz_output_format_converter =
+          make_operator<ops::FormatConverterOp>(
+              "holoviz_output_format_converter",
+              from_config("holoviz_output_format_converter"),
+              Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                  source_block_size, source_num_blocks));
+
+      auto encoder_input_format_converter =
+          make_operator<ops::FormatConverterOp>(
+              "encoder_input_format_converter",
+              from_config("encoder_input_format_converter"),
+              Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
+                  source_block_size, source_num_blocks));
+
+      auto tensor_to_video_buffer =
+          make_operator<ops::TensorToVideoBufferOp>("tensor_to_video_buffer",
+              from_config("tensor_to_video_buffer"));
+
+      auto bitstream_writer =
+          make_operator<ops::VideoWriteBitstreamOp>("bitstream_writer",
+              from_config("bitstream_writer"),
+              Arg("output_video_path", datapath+"/surgical_video_output.264"),
+              Arg("input_crc_file_path", datapath+"/surgical_video_output.txt"),
+              Arg("pool") = make_resource<BlockMemoryPool>("pool", 0,
+                  source_block_size, source_num_blocks));
+
+      add_flow(visualizer, holoviz_output_format_converter,
+          {{"render_buffer_output", "source_video"}});
+      add_flow(holoviz_output_format_converter, encoder_input_format_converter,
+          {{"tensor", "source_video"}});
+      add_flow(encoder_input_format_converter, tensor_to_video_buffer,
+          {{"tensor", "in_tensor"}});
+      add_flow(tensor_to_video_buffer, video_encoder_request,
+          {{"out_video_buffer", "input_frame"}});
+      add_flow(video_encoder_response, bitstream_writer,
+          {{"output_transmitter", "data_receiver"}});
+    }
   }
 
  private:
@@ -183,8 +220,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
   GxfSetSeverity(app->executor().context(), GXF_SEVERITY_WARNING);
 

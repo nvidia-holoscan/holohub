@@ -205,8 +205,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 
 /** Main function */
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments

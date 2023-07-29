@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "TAO PeopleNet Detection Model on Video Stream",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Computer Vision",
+			"Detection"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
+		},
+		"run": {
+			"command": "python3 ../applications/tao_peoplenet/tao_peoplenet.py --engine ${HOLOSCAN_DATA_PATH}/engine.trt",
+			"workdir": "holohub_bin"
+		}
+	}
+}

@@ -22,7 +22,7 @@ add_library(tensor_to_video_buffer SHARED
   tensor_to_video_buffer.hpp
   tensor_to_video_buffer.cpp
   )
-add_library(holoscan::tensor_to_video_buffer ALIAS tensor_to_video_buffer)
+add_library(holoscan::ops::tensor_to_video_buffer ALIAS tensor_to_video_buffer)
 
 target_include_directories(tensor_to_video_buffer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

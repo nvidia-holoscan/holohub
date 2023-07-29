@@ -16,7 +16,6 @@
 import cunumeric as np
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.logger import load_env_log_level
 
 
 class SourceOp(Operator):
@@ -72,7 +71,6 @@ class PSDApp(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
     app = PSDApp()
     app.config("")
     app.run()

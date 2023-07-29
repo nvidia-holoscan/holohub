@@ -21,7 +21,7 @@
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include <holoscan/operators/multiai_inference/multiai_inference.hpp>
+#include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
@@ -78,9 +78,6 @@ class App : public holoscan::Application {
             "pool", 1, preprocessor_block_size, preprocessor_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    ops::MultiAIInferenceOp::DataMap model_path_map;
-    model_path_map.insert("ultrasound_seg", datapath+"/us_unet_256x256_nhwc.onnx");
-
     const int n_channels_inference = 2;
     const int width_inference = 256;
     const int height_inference = 256;
@@ -88,14 +85,15 @@ class App : public holoscan::Application {
     const uint64_t inference_block_size =
         width_inference * height_inference * n_channels_inference * bpp_inference;
     const uint64_t inference_num_blocks = 2;
-    auto segmentation_inference = make_operator<ops::MultiAIInferenceOp>(
+
+    ops::InferenceOp::DataMap model_path_map;
+    model_path_map.insert("ultrasound_seg", datapath + "/us_unet_256x256_nhwc.onnx");
+    auto segmentation_inference = make_operator<ops::InferenceOp>(
         "segmentation_inference_holoinfer",
         from_config("segmentation_inference_holoinfer"),
         Arg("model_path_map", model_path_map),
         Arg("allocator") =
             make_resource<BlockMemoryPool>("pool", 1, inference_block_size, inference_num_blocks));
-    // TODO: add support for cuda_stream_pool to MultiAIInferenceOp
-    //  Arg("cuda_stream_pool") = cuda_stream_pool);
 
     const uint64_t postprocessor_block_size = width_inference * height_inference;
     const uint64_t postprocessor_num_blocks = 2;
@@ -160,8 +158,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments

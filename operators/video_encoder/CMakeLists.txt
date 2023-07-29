@@ -15,14 +15,18 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_encoder)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(video_encoder SHARED
-  video_encoder.hpp
-  video_encoder.cpp
-  )
-add_library(holoscan::video_encoder ALIAS video_encoder)
+  video_encoder_context/video_encoder_context.hpp
+  video_encoder_request/video_encoder_request.hpp
+  video_encoder_request/video_encoder_request.cpp
+  video_encoder_response/video_encoder_response.hpp
+  video_encoder_response/video_encoder_response.cpp
+)
+add_library(holoscan::ops::video_encoder ALIAS video_encoder)
+
 target_include_directories(video_encoder INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(video_encoder holoscan::core)

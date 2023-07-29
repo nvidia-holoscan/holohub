@@ -32,3 +32,15 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 - the input source is replaced with [AJA Source](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) (pixel format is `RGBA8888` with a resolution of 1920x1080)
 - a [Format Converter](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) is added in the inference pipeline to convert from `RGBA8888` *(note: could have updated the configuration of the next Format Converter when using AJA instead of adding another operator in the pipeline)*
 
+
+### Holoscan SDK version
+
+Ultrasound segmentation application in HoloHub required version 0.6 of the Holoscan SDK.
+If the Holoscan SDK version is 0.5 or lower, following code changes must be made in the application:
+
+* In cpp/main.cpp: `#include <holoscan/operators/inference/inference.hpp>` is replaced with `#include <holoscan/operators/multiai_inference/multiai_inference.hpp>`
+* In cpp/main.cpp: `ops::InferenceOp` is replaced with `ops::MultiAIInferenceOp`
+* In cpp/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
+* In cpp/CMakeLists.txt: `holoscan::ops::inference` is replaced with `holoscan::ops::multiai_inference`
+* In python/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
+* In python/multiai_ultrasound.py: `InferenceOp` is replaced with `MultiAIInferenceOp`

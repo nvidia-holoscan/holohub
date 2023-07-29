@@ -17,7 +17,6 @@ import os
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -153,8 +152,6 @@ if __name__ == "__main__":
         ),
     )
     args = parser.parse_args()
-
-    load_env_log_level()
 
     config_file = os.path.join(os.path.dirname(__file__), "tool_segmentation.yaml")
 

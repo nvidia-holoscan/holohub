@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "holoscan/core/gxf/gxf_operator.hpp"
+#include "holoscan/utils/cuda_stream_handler.hpp"
 
 #include "holoinfer.hpp"
 #include "holoinfer_utils.hpp"
@@ -37,23 +38,23 @@ namespace holoscan::ops {
  *
  * Class wraps a GXF Codelet(`nvidia::holoscan::multiai::VisualizerICardio`).
  */
-class VisualizerICardioOp : public holoscan::Operator {
+class VisualizerICardioOp: public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VisualizerICardioOp)
 
   VisualizerICardioOp() = default;
 
-  void setup(OperatorSpec& spec) override;
+  void setup(OperatorSpec &spec) override;
   void start() override;
-  void compute(InputContext& op_input, OutputContext& op_output,
-               ExecutionContext& context) override;
+  void compute(InputContext &op_input, OutputContext &op_output,
+                ExecutionContext &context) override;
 
  private:
   Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::vector<std::string>> out_tensor_names_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
-  Parameter<std::vector<IOSpec*>> receivers_;
-  Parameter<std::vector<IOSpec*>> transmitters_;
+  Parameter<std::vector<IOSpec *>> receivers_;
+  Parameter<std::vector<IOSpec *>> transmitters_;
   Parameter<bool> input_on_cuda_;
 
   // Internal state
@@ -76,8 +77,9 @@ class VisualizerICardioOp : public holoscan::Operator {
 
   const std::string path_to_logo_file_ = "../data/multiai_ultrasound/logo.txt";
   std::vector<int> logo_image_;
+  CudaStreamHandler cuda_stream_handler_;
 };
 
 }  // namespace holoscan::ops
 
-#endif /* HOLOSCAN_OPERATORS_VISUALIZER_ICARDIO_HPP */
+#endif  /* HOLOSCAN_OPERATORS_VISUALIZER_ICARDIO_HPP */

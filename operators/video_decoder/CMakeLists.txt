@@ -15,14 +15,17 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_decoder)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(video_decoder SHARED
-  video_decoder.hpp
-  video_decoder.cpp
-  )
-add_library(holoscan::video_decoder ALIAS video_decoder)
+  video_decoder_context/video_decoder_context.hpp
+  video_decoder_request/video_decoder_request.hpp
+  video_decoder_request/video_decoder_request.cpp
+  video_decoder_response/video_decoder_response.hpp
+  video_decoder_response/video_decoder_response.cpp
+)
+add_library(holoscan::ops::video_decoder ALIAS video_decoder)
 
 target_include_directories(video_decoder INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

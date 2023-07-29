@@ -29,7 +29,9 @@ class BasicNetworkPingTxOp : public Operator {
 
   BasicNetworkPingTxOp() = default;
 
-  void setup(OperatorSpec& spec) override { spec.output<NetworkOpBurstParams>("burst_out"); }
+  void setup(OperatorSpec& spec) override {
+    spec.output<std::shared_ptr<NetworkOpBurstParams>>("burst_out");
+  }
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
     auto mem = new uint8_t[sizeof(index_)];
@@ -41,7 +43,7 @@ class BasicNetworkPingTxOp : public Operator {
     op_output.emit(value, "burst_out");
 
     index_++;
-  };
+  }
 
   int index_ = 0;
 };
@@ -52,10 +54,12 @@ class BasicNetworkPingRxOp : public Operator {
 
   BasicNetworkPingRxOp() = default;
 
-  void setup(OperatorSpec& spec) override { spec.input<NetworkOpBurstParams>("burst_in"); }
+  void setup(OperatorSpec& spec) override {
+    spec.input<std::shared_ptr<NetworkOpBurstParams>>("burst_in");
+  }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    auto in = op_input.receive<NetworkOpBurstParams>("burst_in");
+    auto in = op_input.receive<std::shared_ptr<NetworkOpBurstParams>>("burst_in").value();
     auto val = *reinterpret_cast<int*>(in->data);
     HOLOSCAN_LOG_INFO("Ping message received with value {}", val);
 
@@ -88,8 +92,6 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Get the configuration

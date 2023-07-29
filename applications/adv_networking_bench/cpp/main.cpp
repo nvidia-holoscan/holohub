@@ -60,7 +60,7 @@ class AdvNetworkingBenchTxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.output<AdvNetBurstParams>("burst_out");
+    spec.output<std::shared_ptr<AdvNetBurstParams>>("burst_out");
 
     spec.param<uint32_t>(batch_size_, "batch_size", "Batch size",
       "Batch size for each processing epoch", 1000);
@@ -148,8 +148,8 @@ class AdvNetworkingBenchRxOp : public Operator {
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
     int64_t ttl_bytes_in_cur_batch_   = 0;
-    auto burst                        = op_input.receive<AdvNetBurstParams>("burst_in");
-    ttl_pkts_recv_                    += adv_net_get_num_pkts(burst);
+    auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
+    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     if (burst->hdr.q_id == 0) {
@@ -262,8 +262,6 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Get the configuration

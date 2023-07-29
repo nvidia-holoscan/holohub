@@ -52,10 +52,10 @@ and dependencies.
 		// Holoscan SDK
 		"holoscan_sdk": {
 			// Minimum supported holoscan version
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "0.6.0",
 			// All versions of Holoscan SDK tested for this operator/application
 			"tested_versions": [
-				"0.5.0"
+				"0.6.0"
 			]
 		},
 		// Supported platforms
@@ -182,6 +182,7 @@ git push -u origin <local-branch>:<remote-branch>
 
 4. Upon review the PR will be accepted only if it meets the standards for HoloHub.
 
+
 ### Signing Your Contribution
 
 * We require that all contributors "sign-off" on their commits. This certifies that the contribution is your original work, or you have rights to submit it under the same license, or a compatible license.
@@ -224,6 +225,24 @@ git push -u origin <local-branch>:<remote-branch>
     
     (d) I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
   ```
+
+## Linting
+
+The code submitted to Holohub needs to pass linting.
+
+To install the necessary linting tools, run:
+
+```sh
+./run install_lint_deps
+```
+
+The following command can then be used to run various linting tools on the repository.
+You may optionally pass a path argument to limit the linting to a specific subdirectory.
+
+```sh
+./run lint [path]
+```
+
 
 ## Reporting issues
 

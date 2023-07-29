@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(ultrasound_segmentation CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(ultrasound_segmentation
@@ -29,7 +29,7 @@ target_link_libraries(ultrasound_segmentation
    holoscan::ops::aja
    holoscan::ops::video_stream_replayer
    holoscan::ops::format_converter
-   holoscan::ops::multiai_inference
+   holoscan::ops::inference
    holoscan::ops::segmentation_postprocessor
    holoscan::ops::holoviz
 )
@@ -63,7 +63,7 @@ if(BUILD_TESTING)
 
   # Check the terminal output
   set_tests_properties(ultrasound_segmentation_test PROPERTIES
-                       ENVIRONMENT "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CMAKE_BINARY_DIR}/gxf_extensions"
+                       ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}/gxf_extensions"
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
-                       FAIL_REGULAR_EXPRESSION "ERROR;Failed")
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

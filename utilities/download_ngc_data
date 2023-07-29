@@ -373,7 +373,12 @@ if [ "${download_command}" == "ngc" ]; then
 
     # Run inside the download_dir
     cd ${download_dir}
-    ngcoutput=$(run_command ngc registry resource download-version ${url})
+
+    # Newer version of ngc cli needs the following env settings to print progress bar
+    export PYTHONIOENCODING=utf-8
+    export LC_ALL=C.UTF-8
+    ngcoutput=$(run_command ngc registry resource download-version ${url} --dest .)
+
     if [ $? -ne 0 ]; then
         fatal R "Unable to download " W "${url}" R ".
             If you are using a private registry, please try to configure NGC CLI ('ngc config set') or change NGC_CLI_API_KEY, NGC_CLI_ORG, and NGC_CLI_TEAM environment variables to the correct API key and organization name/team of NGC CLI." B '
@@ -384,13 +389,15 @@ if [ "${download_command}" == "ngc" ]; then
         export NGC_CLI_API_KEY=<your-api-key> # see https://ngc.nvidia.com/setup/api-key'
     fi
 
-    # Find the local path from the ngcoutput
-    outputdir=$(echo $ngcoutput | grep -Po 'Downloaded local path: \K[^ ]*')
+    # Expecting the URL to be templated as <ORG>/<TEAM>/<DATA_NAME>:<DATA_TAG>
+    dataset_fullname=$(basename ${url})
+    dataset_name=$(echo ${dataset_fullname} | cut -d':' -f1)
+    dataset_version=$(echo ${dataset_fullname} | cut -d':' -f2)
+    outputdir="${dataset_name}_v${dataset_version}"
 
     # Rename the directory
-    run_command mkdir -p ${download_name}
-    run_command mv ${outputdir}/* ${download_name}
-    run_command rm -rf ${outputdir}
+    run_command rm -rf ${download_name}
+    run_command mv ${outputdir} ${download_name}
 
     # Go back to the main directory
     cd ${current_working_dir}

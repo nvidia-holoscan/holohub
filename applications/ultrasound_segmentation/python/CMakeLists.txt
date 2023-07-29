@@ -16,7 +16,7 @@
 # Add testing
 if(BUILD_TESTING)
   # To get the environment path
-  find_package(holoscan 0.5 REQUIRED CONFIG
+  find_package(holoscan 0.6 REQUIRED CONFIG
                PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
   # Configure the yaml file to only play 10 frames
@@ -36,5 +36,5 @@ if(BUILD_TESTING)
   
   set_tests_properties(ultrasound_segmentation_python_test 
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
-                FAIL_REGULAR_EXPRESSION "ERROR;Failed")
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

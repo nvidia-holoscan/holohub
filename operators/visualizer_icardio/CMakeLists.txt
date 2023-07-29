@@ -29,6 +29,8 @@ target_link_libraries(visualizer_icardio
     holoscan::infer_utils)
 
 target_include_directories(visualizer_icardio INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(visualizer_icardio PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
+target_compile_definitions(visualizer_icardio PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)

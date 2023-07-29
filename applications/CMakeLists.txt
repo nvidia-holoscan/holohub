@@ -14,6 +14,9 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
+add_holohub_application(adv_networking_bench DEPENDS
+                        OPERATORS basic_network)
+
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
@@ -29,6 +32,8 @@ add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS videomaster
                         )
 
+add_holohub_application(endoscopy_depth_estimation)
+
 add_holohub_application(endoscopy_out_of_body_detection HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(endoscopy_tool_tracking DEPENDS
@@ -37,7 +42,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                         HOLOSCAN_SAMPLE_APP
                         )
 
-add_holohub_application(h264_endoscopy_tool_tracking DEPENDS 
+add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
                         OPERATORS video_encoder video_decoder
                                   video_read_bitstream video_write_bitstream
                                   tensor_to_video_buffer
@@ -53,16 +58,23 @@ add_holohub_application(h264_video_decode DEPENDS
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
+add_holohub_application(multiai_endoscopy HOLOSCAN_SAMPLE_APP)
+
 add_holohub_application(multiai_ultrasound DEPENDS
                         OPERATORS visualizer_icardio
                         HOLOSCAN_SAMPLE_APP)
 
-add_holohub_application(simple_radar_pipeline)                        
+add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
+add_holohub_application(object_detection_torch HOLOSCAN_SAMPLE_APP)
+
+add_holohub_application(tao_peoplenet)
+
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
-add_holohub_application(usb_hdmi_video_capture DEPENDS 
-                        OPERATORS v4l2_video_capture)
-
+add_holohub_application(volume_rendering DEPENDS
+                        OPERATORS volume_loader
+                                  volume_renderer
+                        HOLOSCAN_SAMPLE_APP)

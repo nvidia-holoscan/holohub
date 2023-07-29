@@ -17,7 +17,6 @@ import os
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from holoscan.operators import BayerDemosaicOp, HolovizOp
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
@@ -71,8 +70,6 @@ class HighSpeedEndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
-
     parser = ArgumentParser(description="High-speed endoscopy demo application.")
     args = parser.parse_args()
 
