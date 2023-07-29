@@ -14,14 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  # These extensions are automatically loaded on import in the Python application
-  # - libgxf_std.so
-  # - libgxf_cuda.so
-  # - libgxf_multimedia.so
-  # - libgxf_serialization.so
-  # - libgxf_stream_playback.so
-
 source: "replayer" # or "aja"
 do_record: false   # or 'true' if you want to record input video stream.
 

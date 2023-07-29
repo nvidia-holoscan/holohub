@@ -1,0 +1,51 @@
+{
+	"application": {
+		"name": "Multi AI SSD Detection MONAI Endoscopic Tool Segmentation Application",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Multiai",
+			"SSD",
+			"bounding box",
+			"Detection",
+			"MONAI",
+			"Segmentation"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [
+				{
+					"name": "numpy",
+					"version": "1.22.3"
+				},
+				{
+					"name": "cupy",
+					"version": "11.6.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/multi_ai.py --data <holohub_data_dir>/",
+			"workdir": "holohub_bin"
+		}
+	}
+}

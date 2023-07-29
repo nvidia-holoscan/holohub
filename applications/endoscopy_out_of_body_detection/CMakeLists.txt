@@ -16,11 +16,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(endoscopy_out_of_body_detection CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-             
+
 add_executable(endoscopy_out_of_body_detection
     main.cpp
 )
@@ -31,8 +31,8 @@ target_link_libraries(endoscopy_out_of_body_detection
     holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
-    holoscan::ops::multiai_inference
-    holoscan::ops::multiai_postprocessor
+    holoscan::ops::inference
+    holoscan::ops::inference_processor
 )
 
 # Download the associated dataset if needed
@@ -75,5 +75,5 @@ if(BUILD_TESTING)
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(endoscopy_out_of_body_detection_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
-                       FAIL_REGULAR_EXPRESSION "ERROR;Failed")
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

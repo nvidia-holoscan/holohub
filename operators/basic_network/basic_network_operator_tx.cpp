@@ -22,7 +22,7 @@
 namespace holoscan::ops {
 
 void BasicNetworkOpTx::setup(OperatorSpec& spec) {
-  spec.input<NetworkOpBurstParams>("burst_in");
+  spec.input<std::shared_ptr<NetworkOpBurstParams>>("burst_in");
 
   spec.param<std::string>(
       ip_addr_, "ip_addr", "IP Address", "IP address of interface to bind to", "0.0.0.0");
@@ -80,7 +80,7 @@ void BasicNetworkOpTx::initialize() {
 void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
                                [[maybe_unused]] ExecutionContext&) {
   HOLOSCAN_LOG_DEBUG("BasicNetworkOpTx::compute");
-  auto msg = op_input.receive<NetworkOpBurstParams>("burst_in");
+  auto msg = op_input.receive<std::shared_ptr<NetworkOpBurstParams>>("burst_in").value();
   int sent;
 
   if (!connected_) {

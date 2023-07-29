@@ -25,11 +25,11 @@ bitstream_reader:
   outbuf_storage_type: 0
   aud_nal_present: 0
 
-video_decoder:
-  inbuf_storage_type: 0
+video_decoder_request:
+  inbuf_storage_type: 1
+
+video_decoder_response:
   outbuf_storage_type: 1
-  device: "/dev/nvidia0"
-  codec: 0
 
 decoder_output_format_converter:
   in_dtype: "nv12"

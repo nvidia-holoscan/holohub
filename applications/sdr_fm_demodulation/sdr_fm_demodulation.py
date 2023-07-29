@@ -39,7 +39,6 @@ except ImportError:
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.logger import load_env_log_level
 
 # Demodulation and Radio Settings
 fm_freq = 88500000
@@ -155,8 +154,6 @@ class FMDemod(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
-
     app = FMDemod()
     app.config("")
 

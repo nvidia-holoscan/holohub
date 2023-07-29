@@ -71,7 +71,7 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
                                           ExecutionContext& context) {
   // Process input message
   // The type of `in_message` is 'holoscan::gxf::Entity'.
-  auto in_message = op_input.receive<gxf::Entity>("in_tensor");
+  auto in_message = op_input.receive<gxf::Entity>("in_tensor").value();
 
   const std::string in_tensor_name = in_tensor_name_.get();
 

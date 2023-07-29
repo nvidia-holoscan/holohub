@@ -43,6 +43,16 @@ data
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
+Additionally, if the Holoscan SDK version is 0.5 or lower, following code changes must be made in the application:
+
+* In main.cpp: `#include <holoscan/operators/inference/inference.hpp>` is replaced with `#include <holoscan/operators/multiai_inference/multiai_inference.hpp>`
+* In main.cpp: `#include <holoscan/operators/inference_processor/inference_processor.hpp>` is replaced with `#include <holoscan/operators/multiai_postprocessor/multiai_postprocessor.hpp>`
+* In main.cpp: `ops::InferenceOp` is replaced with `ops::MultiAIInferenceOp`
+* In main.cpp: `ops::InferenceProcessorOp` is replaced with `ops::MultiAIPostprocessorOp`
+* In CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
+* In CMakeLists.txt: `holoscan::ops::inference` is replaced with `holoscan::ops::multiai_inference`
+* In CMakeLists.txt: `holoscan::ops::inference_processor` is replaced with `holoscan::ops::multiai_postprocessor`
+
 ## Running the application
 
 In your `build` directory, run

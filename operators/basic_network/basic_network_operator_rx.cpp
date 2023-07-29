@@ -22,7 +22,7 @@
 namespace holoscan::ops {
 
 void BasicNetworkOpRx::setup(OperatorSpec& spec) {
-  spec.output<NetworkOpBurstParams>("burst_out");
+  spec.output<std::shared_ptr<NetworkOpBurstParams>>("burst_out");
 
   spec.param<std::string>(ip_addr_, "ip_addr", "IP Address", "IP address of interface to bind to");
   spec.param<uint16_t>(port_, "udp_dst_port", "L4 port ", "UDP or TCP port to listen on");

@@ -14,14 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
-  - libgxf_cuda.so
-  - libgxf_multimedia.so
-  - libgxf_serialization.so
-  - libgxf_stream_playback.so
-
-source: "replayer" # or "aja"
+source: replayer
 
 replayer:  # VideoStreamReplayer
   basename: "ultrasound_256x256"
@@ -43,7 +36,6 @@ drop_alpha_channel:  # FormatConverter
   out_dtype: "rgb888"
 
 segmentation_preprocessor:  # FormatConverter
-    # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
     resize_width: 256
@@ -51,8 +43,6 @@ segmentation_preprocessor:  # FormatConverter
 
 segmentation_inference_holoinfer:  # MultiAIInference
   backend: "trt"
-  #model_path_map:
-  #  "ultrasound_seg": "applications/ultrasound_segmentation/data/model/us_unet_256x256_nhwc.onnx"
   pre_processor_map:
     "ultrasound_seg": ["source_video"]
   inference_map:

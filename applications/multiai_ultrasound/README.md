@@ -35,3 +35,19 @@ Aortic Stenosis and B-mode Perspective models are the Classification models. Cla
 
 > **Note:**
 The Holoscan SDK provides capability to process all models in ONNX, TensorRT FP32 and TensorRT FP16 format. Classification models (Aortic Stenosis and B-mode Perspective), do not support TensorRT FP16 conversion. Plax Chamber model is supported for all available formats (ONNX, TensorRT FP32 and TensorRT FP16).
+
+### Holoscan SDK version
+
+Multi AI application in HoloHub requires version 0.6+ of the Holoscan SDK.
+If the Holoscan SDK version is 0.5 or lower, following code changes must be made in the application:
+
+* In cpp/main.cpp: `#include <holoscan/operators/inference/inference.hpp>` is replaced with `#include <holoscan/operators/multiai_inference/multiai_inference.hpp>`
+* In cpp/main.cpp: `#include <holoscan/operators/inference_processor/inference_processor.hpp>` is replaced with `#include <holoscan/operators/multiai_postprocessor/multiai_postprocessor.hpp>`
+* In cpp/main.cpp: `ops::InferenceOp` is replaced with `ops::MultiAIInferenceOp`
+* In cpp/main.cpp: `ops::InferenceProcessorOp` is replaced with `ops::MultiAIPostprocessorOp`
+* In cpp/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
+* In cpp/CMakeLists.txt: `holoscan::ops::inference` is replaced with `holoscan::ops::multiai_inference`
+* In cpp/CMakeLists.txt: `holoscan::ops::inference_processor` is replaced with `holoscan::ops::multiai_postprocessor`
+* In python/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
+* In python/multiai_ultrasound.py: `InferenceOp` is replaced with `MultiAIInferenceOp`
+* In python/multiai_ultrasound.py: `InferenceProcessorOp` is replaced with `MultiAIPostprocessorOp`

@@ -18,7 +18,6 @@ from collections import deque
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from operators.audio_handler import AudioHandler
 from operators.demodulate_op import DemodulateOp
 from operators.pcm_op import PCMOp
@@ -80,8 +79,6 @@ class FmAsr(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
-
     app = FmAsr()
     app.config("")
 

@@ -92,7 +92,7 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
 void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext& op_output,
                                           ExecutionContext& context) {
   // The type of `in_message` is 'holoscan::gxf::Entity'.
-  auto in_message = op_input.receive<gxf::Entity>("in");
+  auto in_message = op_input.receive<gxf::Entity>("in").value();
   auto maybe_tensor = in_message.get<Tensor>("probs");
   if (!maybe_tensor) { throw std::runtime_error("Tensor 'probs' not found in message."); }
   auto probs_tensor = maybe_tensor;

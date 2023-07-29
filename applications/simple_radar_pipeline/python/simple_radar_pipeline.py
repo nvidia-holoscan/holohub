@@ -33,7 +33,6 @@ except ImportError:
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.logger import load_env_log_level
 
 # Radar Settings
 num_channels = 16
@@ -228,8 +227,6 @@ class BasicRadarFlow(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
-
     app = BasicRadarFlow()
     app.config("")
 

@@ -1,0 +1,59 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+replayer:
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+viz_preprocessor:
+  out_tensor_name: source_video
+  out_dtype: "uint8"
+  resize_width: 480
+  resize_height: 270
+
+preprocessor:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: -2.
+  scale_max: 2.44
+  resize_width: 480
+  resize_height: 270
+
+inference:  # InferenceOp
+  backend: "trt"
+  pre_processor_map:
+    "model": ["source_video"]
+  inference_map:
+    "model": "inference_output_tensor"
+  in_tensor_names: ["source_video"]
+  out_tensor_names: ["inference_output_tensor"]
+
+postprocessor:
+  in_tensor_name: "inference_output_tensor"
+  scale_min: -2.
+  scale_max: 2.44
+
+holoviz:
+  width: 854
+  height: 480
+  tensors:
+    - name: "depth_data"
+      type: depth_map
+      depth_map_render_mode: triangles
+    - name: "color_data"
+      type: depth_map_color

@@ -24,7 +24,6 @@ import torch
 import torch.nn.functional as F
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -486,7 +485,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    load_env_log_level()
     # config file: "ssd_endo_model.yaml"
     config_file = os.path.join(os.path.dirname(__file__), "ssd_endo_model.yaml")
 

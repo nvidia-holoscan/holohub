@@ -27,11 +27,11 @@ target_link_libraries(h264_endoscopy_tool_tracking
   holoscan::core
   holoscan::ops::format_converter
   holoscan::ops::holoviz
-  holoscan::video_decoder
-  holoscan::video_encoder
-  holoscan::video_read_bitstream
-  holoscan::video_write_bitstream
-  holoscan::tensor_to_video_buffer
+  holoscan::ops::video_decoder
+  holoscan::ops::video_encoder
+  holoscan::ops::video_read_bitstream
+  holoscan::ops::video_write_bitstream
+  holoscan::ops::tensor_to_video_buffer
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
 )
@@ -56,7 +56,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
   add_dependencies(h264_endoscopy_tool_tracking endoscopy_data)
-endif()  
+endif()
 
 # Add testing
 if(BUILD_TESTING)

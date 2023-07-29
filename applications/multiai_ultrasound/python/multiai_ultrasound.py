@@ -17,13 +17,12 @@ import os
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
     HolovizOp,
-    MultiAIInferenceOp,
-    MultiAIPostprocessorOp,
+    InferenceOp,
+    InferenceProcessorOp,
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
@@ -99,16 +98,24 @@ class MultiAIICardio(Application):
         for k, v in model_path_map.items():
             if not os.path.exists(v):
                 raise RuntimeError(f"Could not find model file: {v}")
-        infererence_kwargs = self.kwargs("multiai_inference")
-        infererence_kwargs["model_path_map"] = model_path_map
-        multiai_inference = MultiAIInferenceOp(
+        inference_kwargs = self.kwargs("multiai_inference")
+        inference_kwargs["model_path_map"] = model_path_map
+
+        device_map = dict()
+        if "device_map" in inference_kwargs.keys():
+            device_map = inference_kwargs["device_map"]
+            for k, v in device_map.items():
+                device_map[k] = str(v)
+            inference_kwargs["device_map"] = device_map
+
+        multiai_inference = InferenceOp(
             self,
             name="multiai_inference",
             allocator=pool,
-            **infererence_kwargs,
+            **inference_kwargs,
         )
 
-        multiai_postprocessor = MultiAIPostprocessorOp(
+        multiai_postprocessor = InferenceProcessorOp(
             self,
             allocator=pool,
             **self.kwargs("multiai_postprocessor"),
@@ -154,7 +161,6 @@ class MultiAIICardio(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
     parser = ArgumentParser(description="Multi-AI demo application.")
     parser.add_argument(
         "-s",

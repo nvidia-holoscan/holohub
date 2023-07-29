@@ -17,12 +17,11 @@ import os
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
     HolovizOp,
-    MultiAIInferenceOp,
+    InferenceOp,
     SegmentationPostprocessorOp,
     VideoStreamReplayerOp,
 )
@@ -122,7 +121,7 @@ class UltrasoundApp(Application):
             width_inference * height_inference * n_channels_inference * bpp_inference
         )
         inference_num_blocks = 2
-        segmentation_inference = MultiAIInferenceOp(
+        segmentation_inference = InferenceOp(
             self,
             name="segmentation_inference_holoinfer",
             backend="trt",
@@ -141,8 +140,6 @@ class UltrasoundApp(Application):
             input_on_cuda=True,
             output_on_cuda=True,
             transmit_on_cuda=True,
-            # TODO: add support for cuda_stream_pool to MultiAIInferenceOp
-            # cuda_stream_pool=cuda_stream_pool,
         )
 
         postprocessor_block_size = width_inference * height_inference
@@ -208,8 +205,6 @@ if __name__ == "__main__":
         help=("Set the data path"),
     )
     args = parser.parse_args()
-
-    load_env_log_level()
 
     if args.config == "none":
         config_file = os.path.join(os.path.dirname(__file__), "ultrasound_segmentation.yaml")

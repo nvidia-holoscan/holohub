@@ -31,7 +31,7 @@ struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
 
 
 void AdvNetworkOpRx::setup(OperatorSpec& spec) {
-  spec.output<AdvNetBurstParams *>("burst_out");
+  spec.output<std::shared_ptr<AdvNetBurstParams>>("burst_out");
 
   spec.param(
       cfg_,

@@ -27,8 +27,8 @@ target_link_libraries(h264_video_decode
   holoscan::core
   holoscan::ops::format_converter
   holoscan::ops::holoviz
-  holoscan::video_decoder
-  holoscan::video_read_bitstream
+  holoscan::ops::video_decoder
+  holoscan::ops::video_read_bitstream
 )
 
 # Copy config file

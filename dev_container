@@ -258,11 +258,11 @@ get_host_gpu() {
 
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.1-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v0.5.1-"$(get_host_gpu)
+    echo -n "holohub:ngc-v0.6.0-"$(get_host_gpu)
 }
 
 build_desc() { c_echo 'Build dev image

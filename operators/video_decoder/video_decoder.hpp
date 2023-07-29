@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,43 +15,12 @@
  * limitations under the License.
  */
 
-
 #ifndef HOLOSCAN_OPERATORS_VIDEO_DECODER_VIDEO_DECODER
 #define HOLOSCAN_OPERATORS_VIDEO_DECODER_VIDEO_DECODER
 
-#include <memory>
-#include <string>
+#include "video_decoder_context/video_decoder_context.hpp"
+#include "video_decoder_request/video_decoder_request.hpp"
+#include "video_decoder_response/video_decoder_response.hpp"
 
-#include "holoscan/core/gxf/gxf_operator.hpp"
-namespace holoscan::ops {
-
-/**
- * @brief Operator class to decode h264 bit stream to YUV.
- *
- * This wraps a GXF Codelet(`nvidia::gxf::VideoDecoder`).
- */
-class VideoDecoderOp: public holoscan::ops::GXFOperator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoDecoderOp, holoscan::ops::GXFOperator)
-
-  VideoDecoderOp() = default;
-
-  const char* gxf_typename() const override {
-    return "nvidia::gxf::VideoDecoder";
-  }
-
-  void setup(OperatorSpec& spec) override;
-
- private:
-  Parameter<std::shared_ptr<Allocator>> pool_;
-  Parameter<holoscan::IOSpec*> image_receiver_;
-  Parameter<holoscan::IOSpec*> output_transmitter_;
-  Parameter<int32_t> codec_;
-  Parameter<int32_t> inbuf_storage_type_;
-  Parameter<int32_t> outbuf_storage_type_;
-  Parameter<std::string> device_;
-};
-
-}  // namespace holoscan::ops
 
 #endif  // HOLOSCAN_OPERATORS_VIDEO_DECODER_VIDEO_DECODER

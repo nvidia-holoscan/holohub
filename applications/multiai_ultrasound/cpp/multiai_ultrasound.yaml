@@ -14,18 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
-  - libgxf_cuda.so
-  - libgxf_multimedia.so
-  - libgxf_serialization.so
-  - libgxf_stream_playback.so
-
 source: "replayer" # or "aja"
 do_record: false   # or 'true' if you want to record input video stream.
 
 replayer:
-  #directory: "applications/multiai_ultrasound/data/video"
   basename: "icardio_input1"
   frame_rate: 0   # as specified in timestamps
   repeat: true    # default: false
@@ -66,10 +58,6 @@ b_mode_pers_pre:
 
 multiai_inference:
   backend: "trt"
-  #model_path_map: 
-  #  "plax_chamber": "applications/multiai_ultrasound/data/models/plax_chamber.onnx"
-  #  "aortic_stenosis": "applications/multiai_ultrasound/data/models/aortic_stenosis.onnx"
-  #  "bmode_perspective": "applications/multiai_ultrasound/data/models/bmode_perspective.onnx"
   pre_processor_map: 
     "plax_chamber": ["plax_cham_pre_proc"]
     "aortic_stenosis": ["aortic_pre_proc"]

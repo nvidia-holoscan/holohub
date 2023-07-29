@@ -268,7 +268,7 @@ Once the ports are connected, inside the `compute()` function of your operator y
 when a batch is complete:
 
 ```
-auto burst = op_input.receive<AdvNetBurstParams>("burst_in");
+auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
 ```
 
 The packets arrive in scattered packet buffers. Depending on the application, you may need to iterate through the packets to

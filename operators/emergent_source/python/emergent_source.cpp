@@ -67,7 +67,6 @@ class PyEmergentSourceOp : public EmergentSourceOp {
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
     setup(*spec_.get());
-    initialize();
   }
 };
 

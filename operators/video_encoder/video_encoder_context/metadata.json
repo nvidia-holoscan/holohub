@@ -1,0 +1,43 @@
+{
+	"operator": {
+		"name": "video_encoder_context",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"video",
+			"encoder",
+			"context"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"gxf_extensions": [
+				{
+					"name": "videoencoder",
+					"version": "1.0"
+				},
+				{
+					"name": "videoencoderio",
+					"version": "1.0"
+				}
+			]
+		}
+	}
+}

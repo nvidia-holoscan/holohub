@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2023 DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,8 +88,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments

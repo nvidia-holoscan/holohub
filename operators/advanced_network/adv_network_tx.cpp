@@ -117,7 +117,7 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
     impl->tx_meta_pool = rte_mempool_lookup("TX_META_POOL");
   }
 
-  auto burst = op_input.receive<AdvNetBurstParams>("burst_in");
+  auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
   auto port_id = burst->hdr.port_id;
   auto q_id    = burst->hdr.q_id;
 

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include <holoscan/operators/multiai_inference/multiai_inference.hpp>
-#include <holoscan/operators/multiai_postprocessor/multiai_postprocessor.hpp>
+#include <holoscan/operators/inference/inference.hpp>
+#include <holoscan/operators/inference_processor/inference_processor.hpp>
 #include <visualizer_icardio.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
@@ -69,18 +69,18 @@ class App : public holoscan::Application {
                                                                  Arg("in_dtype") = in_dtype,
                                                                  Arg("pool") = pool_resource);
 
-    ops::MultiAIInferenceOp::DataMap model_path_map;
-    model_path_map.insert("plax_chamber", datapath+"/plax_chamber.onnx");
-    model_path_map.insert("aortic_stenosis", datapath+"/aortic_stenosis.onnx");
-    model_path_map.insert("bmode_perspective", datapath+"/bmode_perspective.onnx");
+    ops::InferenceOp::DataMap model_path_map;
+    model_path_map.insert("plax_chamber", datapath + "/plax_chamber.onnx");
+    model_path_map.insert("aortic_stenosis", datapath + "/aortic_stenosis.onnx");
+    model_path_map.insert("bmode_perspective", datapath + "/bmode_perspective.onnx");
 
-    auto multiai_inference = make_operator<ops::MultiAIInferenceOp>(
+    auto multiai_inference = make_operator<ops::InferenceOp>(
         "multiai_inference", from_config("multiai_inference"),
-                             Arg("model_path_map", model_path_map),
-                             Arg("allocator") = pool_resource);
+        Arg("model_path_map", model_path_map),
+        Arg("allocator") = pool_resource);
 
     auto multiai_postprocessor =
-        make_operator<ops::MultiAIPostprocessorOp>("multiai_postprocessor",
+        make_operator<ops::InferenceProcessorOp>("multiai_postprocessor",
                                                    from_config("multiai_postprocessor"),
                                                    Arg("allocator") = pool_resource);
 
@@ -157,8 +157,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-  holoscan::load_env_log_level();
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments

@@ -22,7 +22,7 @@ add_library(video_read_bitstream SHARED
   video_read_bitstream.hpp
   video_read_bitstream.cpp
   )
-add_library(holoscan::video_read_bitstream ALIAS video_read_bitstream)
+add_library(holoscan::ops::video_read_bitstream ALIAS video_read_bitstream)
 
 target_include_directories(video_read_bitstream INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

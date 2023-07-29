@@ -14,17 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  # The following extensions are automatically loaded upon Python App
-  # initialization, so they do not need to be listed here.
-  # This is a difference in behavior from the C++-API which currently requires
-  # explicitly listing these.
-  # - libgxf_std.so
-  # - libgxf_cuda.so
-  # - libgxf_multimedia.so
-  # - libgxf_serialization.so
-  # - libgxf_stream_playback.so
-
 replayer:  # VideoStreamReplayer
   basename: "ultrasound_256x256"
   frame_rate: 0 # as specified in timestamps

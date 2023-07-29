@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(multiai_ultrasound CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(multiai_ultrasound
@@ -29,9 +29,9 @@ target_link_libraries(multiai_ultrasound
     holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
-    holoscan::ops::multiai_inference
-    holoscan::ops::multiai_postprocessor
     holoscan::ops::holoviz
+    holoscan::ops::inference
+    holoscan::ops::inference_processor
     visualizer_icardio
 )
 
@@ -48,6 +48,13 @@ add_custom_target(multiai_ultrasound_yaml
 )
 add_dependencies(multiai_ultrasound multiai_ultrasound_yaml)
 
+add_custom_target(mgpu_multiai_ultrasound_yaml
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/mgpu_multiai_ultrasound.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "mgpu_multiai_ultrasound.yaml"
+    BYPRODUCTS "mgpu_multiai_ultrasound.yaml"
+)
+add_dependencies(multiai_ultrasound mgpu_multiai_ultrasound_yaml)
+
 # Add testing
 if(BUILD_TESTING)
   # Configure the yaml file to only play 10 frames
@@ -63,5 +70,5 @@ if(BUILD_TESTING)
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(multiai_ultrasound_cpp_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
-                       FAIL_REGULAR_EXPRESSION "ERROR;Failed")
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

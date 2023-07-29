@@ -17,7 +17,6 @@ import os
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.logger import load_env_log_level
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -228,8 +227,6 @@ class EndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-    load_env_log_level()
-
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
     parser.add_argument(

@@ -22,7 +22,7 @@ add_library(video_write_bitstream SHARED
   video_write_bitstream.hpp
   video_write_bitstream.cpp
   )
-add_library(holoscan::video_write_bitstream ALIAS video_write_bitstream)
+add_library(holoscan::ops::video_write_bitstream ALIAS video_write_bitstream)
 
 target_include_directories(video_write_bitstream INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

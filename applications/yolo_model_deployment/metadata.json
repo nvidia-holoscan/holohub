@@ -1,0 +1,41 @@
+{
+	"application": {
+		"name": "Yolo Detection Application",
+		"authors": [
+			{
+				"name": "Meiran Peng",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": ["amd64, arm64"],
+		"tags": ["Yolo", "bounding box"],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [{
+				"name": "numpy",
+				"version": "1.22.3"
+			},
+            {
+				"name": "cupy",
+				"version": "11.3"
+			}
+            ]
+		},
+		"run": {
+			"command": "python3 yolo_detection --data=./ --source=replayer --video_dir=./example_video",
+			"workdir": "holohub_app_source"
+		}
+
+	}
+}

@@ -1,0 +1,58 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+extensions:
+
+source: "replayer" # or "aja"
+do_record: false   # or 'true' if you want to record input video stream.
+
+replayer:
+  basename: "cars"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+aja:  # AJASourceOp
+  width: 1920
+  height: 1080
+  rdma: true
+  enable_overlay: false
+
+detect_preprocessor:
+  out_tensor_name: detect_preprocessed
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 1.0
+
+detect_inference:
+  backend: "torch"
+  pre_processor_map:
+    "detect": ["detect_preprocessed"]
+  inference_map:
+    "detect": ["boxes","labels","scores"]
+
+detect_postprocessor:
+  process_operations:
+    "boxes:scores:labels": ["generate_boxes"]
+  in_tensor_names: ["boxes","scores","labels"]
+  input_on_cuda: false
+  output_on_cuda: false
+  transmit_on_cuda: true
+
+holoviz:  # Holoviz
+  width: 1920
+  height: 1080

@@ -1,26 +1,21 @@
-### Video Decoder
+### Video Decoder Operators
 
-The `video_decoder` decodes h264 bit stream to YUV.
+The `video_decoder` is a set of operators that can be used together to decode h264 bit stream to YUV.
 
-#### `holoscan::ops::VideoDecoderOp`
+#### `holoscan::ops::VideoDecoderRequestOp`
 
-Operator class to decode h264 bit stream to YUV.
+Operator class to handle the decoder input.
 
-This implementation is based on `nvidia::gxf::VideoDecoder`.
+This implementation is based on `nvidia::gxf::VideoDecoderRequest`.
 
-##### Parameters
+#### `holoscan::ops::VideoDecoderResponseOp`
 
-- **`image_receiver`**: Receiver to get the input image
-  - type: `holoscan::IOSpec*`
-- **`output_transmitter`**: Transmitter to send the decoded data
-  - type: `holoscan::IOSpec*`
-- **`pool`**: Memory pool for allocating output data
-  - type: `std::shared_ptr<Allocator>`
-- **`inbuf_storage_type`**: Input Buffer storage type, 0:kHost, 1:kDevice
-  - type: `int32_t`
-- **`outbuf_storage_type`**: Output Buffer storage type, 0:kHost, 1:kDevice
-  - type: `int32_t`
-- **`device`**: Path to the V4L2 device. Default:"/dev/nvidia0"
-  - type: `std::string`
-- **`codec`**: Video codec,  0:H264, only H264 supported. Default:0
-  - type: `int32_t`
+Operator class to handle the decoder output.
+
+This implementation is based on `nvidia::gxf::VideoDecoderResponse`.
+
+#### `holoscan::ops::VideoDecoderContext`
+
+`VideoDecoderContext` is used to hold common variables and underlying context. The decoder context handle is passed to both `VideoDecoderRequestOp` and `VideoDecoderRequestOp`
+
+This implementation is based on `nvidia::gxf::VideoDecoderContext`.
