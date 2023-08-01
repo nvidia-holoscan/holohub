@@ -57,25 +57,15 @@ detection_preprocessor:  # FormatConverter
     scale_min: -1.0
     scale_max: 1.0
     
-
-detection_inference:  # TensorRtInference
-  
-  model_file_path: "/byom/models/endo_ssd/epoch24.onnx"
-  engine_cache_dir: "/byom/models/endo_ssd/epoch24_engines"
-  input_tensor_names:
-    - source_video
-  input_binding_names:
-    - INPUT__0
-  output_tensor_names:
-    - inference_output_tensor_loc
-    - inference_output_tensor_label
-  output_binding_names:
-    - OUTPUT__LOC
-    - OUTPUT__LABEL
-  force_engine_update: false
-  verbose: true
-  max_workspace_size: 2147483648
-  enable_fp16_: false
+detection_inference:
+  backend: "trt"
+  pre_processor_map:
+    "ssd": ["source_video"]
+  model_path_map:
+    "ssd": "/byom/models/endo_ssd/epoch24.onnx"
+  inference_map:
+    "ssd": ["inference_output_tensor_loc", "inference_output_tensor_label"]
+  enable_fp16: true
 
 detection_postprocessor:  # Postprocessor
   

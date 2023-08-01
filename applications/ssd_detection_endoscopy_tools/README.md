@@ -39,15 +39,17 @@ For this application we will use the same [Endoscopy Sample Data](https://catalo
 
 ## Requirements
 There are two requirements 
-1. To run `ssd_step1.py` and `ssd_step2_route1.py` with the original exported model, we need the installation of PyTorch and CuPy. <br> To run `ssd_step2_route2.py` and `ssd_step2_route2_render_labels.py` with the exported model with additional NMS layer in ONNX, we need the installation of CuPy. <br>If you choose to build the SDK from source, you can find the [modified Dockerfile here](./docker/Dockerfile) to replace the SDK repo [Dockerfile](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/Dockerfile) to satisfy the installation requirements. 
+1. To run `ssd_step1.py` and `ssd_step2_route1.py` with the original exported model, we need the installation of PyTorch and CuPy. 
+<br> To run `ssd_step2_route2.py` and `ssd_step2_route2_render_labels.py` with the exported model with additional NMS layer in ONNX, we need the installation of CuPy. 
+<br> If you're using the dGPU on the devkit, since there are no prebuilt PyTorch wheels for aarch64 dGPU, the simplest way is to modify the Dockerfile and build from source; if you're on x86 or using the iGPU on the devkit, there should be existing prebuilt PyTorch wheels.
+<br> If you choose to build the SDK from source, you can find the [modified Dockerfile here](./docker/Dockerfile) to replace the SDK repo [Dockerfile](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/Dockerfile) to satisfy the installation requirements. 
+<br> The main changes in Dockerfile for dGPU: the base image changed to `nvcr.io/nvidia/pytorch:22.03-py3` instead of the `nvcr.io/nvidia/tensorrt:22.03-py3` as dGPU's base image; adding the installation of NVTX for optional profiling.
+<br>Build the SDK container following the [README instructions](https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script). 
 <br>
-The main changes in Dockerfile: 
-<br>(1) the base image changed to `nvcr.io/nvidia/pytorch:22.03-py3` instead of the `nvcr.io/nvidia/tensorrt:22.03-py3`. This is mainly for the PyTorch dependency in `ssd_step1.py` and `ssd_step2_route1.py` while running on aarch64 developer kits, as there are no compatible PyTorch pip wheels available for aarch64. <br>(2) added the installation of NVTX for profiling.
-<br>Then, build the dev container following the [README instructions](https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script).<br>
-When launching the container, make sure this directory containing applications and the directory containing models are mounted in the runtime container. Add the `-v` mount options to the `docker run` command.
+ Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the `-v` mount options to the `docker run` command launched by `./run launch` in the SDK repo. 
 
 2. Make sure the model and data are accessible by the application. 
-<br> Make sure the yaml file ssd_endo_model.yaml and ssd_endo_model_with_NMS.yaml are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the `epoch24_nms.onnx` and `epoch24.onnx` are located at:
+<br> Make sure the yaml files `ssd_endo_model.yaml` and `ssd_endo_model_with_NMS.yaml` are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the `epoch24_nms.onnx` and `epoch24.onnx` are located at:
 ```
 model_file_path: /byom/models/endo_ssd/epoch24_nms.onnx 
 engine_cache_dir: /byom/models/endo_ssd/epoch24_nms_engines

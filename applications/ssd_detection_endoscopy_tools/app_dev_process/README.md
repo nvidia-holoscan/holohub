@@ -106,33 +106,24 @@ Here the parameter `directory` is where our pre-converted GXF tensors are stored
 
 Let's walk through how to access the specific tensor outputs from our SSD model in this example. 
 
-From looking at the ONNX model (via [netron.app](http://netron.app) or some other way), we know the names of the output tensors are `OUTPUT__LOC` and `OUTPUT__LABEL`. Therefore in the config yaml file we can specify
+From looking at the ONNX model (via [netron.app](http://netron.app) or some other way), while the names of the output tensors are `OUTPUT__LOC` and `OUTPUT__LABEL`, it's not required in InferenceOp to explicitly state the output tensor names. Here we name the two output tensors `inference_output_tensor_loc` and `inference_output_tensor_label` for interacting with downstream operators. Therefore in the config yaml file we can specify
 
 ```
-detection_inference:  # TensorRtInference
-  model_file_path: "/byom/models/endo_ssd/epoch24.onnx"
-  engine_cache_dir: "/byom/models/endo_ssd/epoch24_engines"
-  input_tensor_names:
-    - source_video
-  input_binding_names:
-    - INPUT__0
-  output_tensor_names:
-    - inference_output_tensor_loc
-    - inference_output_tensor_label
-  output_binding_names:
-    - OUTPUT__LOC
-    - OUTPUT__LABEL
-  force_engine_update: false
-  verbose: true
-  max_workspace_size: 2147483648
-  enable_fp16_: false
+detection_inference:
+  backend: "trt"
+  pre_processor_map:
+    "ssd": ["source_video"]
+  model_path_map:
+    "ssd": "/byom/models/endo_ssd/epoch24.onnx"
+  inference_map:
+    "ssd": ["inference_output_tensor_loc", "inference_output_tensor_label"]
+  enable_fp16: true
 ```
-to name the two output tensors `inference_output_tensor_loc` and `inference_output_tensor_label` for interacting with downstream operators. 
 
-Even though the ONNX model and the `detection_inference` wrapped operator outputs multiple tensors, its output is 'one message' (one Entity object in GXF). You can see that it has one output port (one transmitter which is ['tx'](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/clara_holoscan_extensions.html#id6)).
+Even though the ONNX model and the `detection_inference`  operator outputs multiple tensors, its output is 'one message' (one Entity object in GXF). You can see that it has one output port (one transmitter which is `transmitter`).
 
-An Entity is like a map so it can include multiple GXF components. For the the reason, GXF is using an Entity (message) as TensorMap.
-In this (two tensor output names), the downstream operator can define only one input port in the `setup()` method for the output port of TensorRTInferenceOp:
+An Entity is like a map so it can include multiple tensor components. For the the reason, Holoscan is using an Entity (message) as TensorMap.
+In this (two tensor output names), the downstream operator can define only one input port in the `setup()` method for the output port of InferenceOp:
 
 ```
 def setup(self, spec: OperatorSpec):
@@ -160,17 +151,17 @@ if labels_tensor is not None:
 In the application definition, we can simply connect the native Python postprocessor to the wrapped C++ Holoscan operators like:
 
 ```
-self.add_flow(detection_inference, detection_postprocessor)
+self.add_flow(detection_inference, detection_postprocessor, {("transmitter", "in")})
 self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 ```
-Since there is only one output port `'tx'` from `detection_inference` and one input port to the `detection_postprocessor`, we can also do `add_flow` without specifying which port. From `detection_postprocessor` to `detection_visualizer` (Holoviz), we connect the `out` port from the postprocessor to Holoviz `receivers`. 
+Since there is only one output port `transmitter` from `detection_inference` and one input port to the `detection_postprocessor`, we can also do `add_flow` without specifying which port. From `detection_postprocessor` to `detection_visualizer` (Holoviz), we connect the `out` port from the postprocessor to Holoviz `receivers`. 
 
 What if we want to pass multiple tensors from our postprocessor into Holoviz (or any other operator)? 
 
+A good example is [examples/holoviz/python/holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py).
+
 In `ssd_step1.py` we only output one tensor with the name `rectangles` to Holoviz, but even if we need to output multiple tensors from the postprocessor to Holoviz, we'd still only need to do `add_flow` once, because we can add multiple tensors to the output port in postprocessor. An example of the postprocessor needing to output multiple tensors to Holoviz in one output port is `ssd_step2_route2_render_labels.py`. We can keep the single output port in the postprocessor and then call `out_message.add` multiple times to specify each tensor by name. Then refer to the specified names in the HolovizOp tensors argument.
 
-
-For the output port names for each wrapped C++ operator in Holoscan, you could see the source code for each GXF extension in [https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/gxf_extensions](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/gxf_extensions).
 
 **Holoviz Rendering of Bounding Boxes**
 
@@ -200,12 +191,12 @@ The `"rectangles"` type in Holoviz expects tensors of shape [1, n/2, 2], where n
 
 **Note on Data Type** 
 
-The tensor passed into Holoviz has to be of type `float32`. If you are passing the correct bounding box values but nothing is showing up in Holoviz, or if we ever get this type of error message:
+The tensor passed into Holoviz has to be of a support data type. If you are passing the correct bounding box values but nothing is showing up in Holoviz, or if we ever get this type of error message:
 
 ```
 [2023-02-03 17:58:45.729] [holoscan] [error] [gxf_wrapper.cpp:68] Exception occurred for operator: 'holoviz' - Expected gxf::PrimitiveType::kFloat32 element type for coordinates, but got element type 10
 ```
-it's likely that the tensors passed into Holoviz is not the expected format, in this case, it's expecting float32, so we need to make sure the data type is explicit by doing `astype` or something similar before passing the tensor from the postprocessor to Holoviz. Some examples of what that might look like when you develop your own postprocessor:
+it's likely that the tensors passed into Holoviz is not supported, so we need to make sure the data type is explicit by doing `astype` or something similar before passing the tensor from the postprocessor to Holoviz. Some examples of what that might look like when you develop your own postprocessor:
 
 ```
 out_message.add(hs.as_tensor(bboxes.astype(np.float32)), "rectangles")
@@ -222,7 +213,7 @@ In your first time running the app, you will encounter up to a few minutes of mo
 Python API.
 
 #### **Result**
-With the application [`ssd_step1.py`](../ssd_step1.py), we have achieved a near zero code change from the model [training repo](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb) to deploying the model in Holoscan SDK! We should be seeing ~22 FPS on the NVIDIA IGX Orin DevKit (Early Access). 
+With the application [`ssd_step1.py`](../ssd_step1.py), we have achieved a near zero code change from the model [training repo](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb) to deploying the model in Holoscan SDK! We should be seeing ~22 FPS on the NVIDIA IGX Orin DevKit. 
 
 Please note that the FPS on each hardware will differ, but the overall relative speedup in this tutorial should be observed on any hardware.
 
@@ -310,11 +301,11 @@ indices = torchvision.ops.nms(boxes = bboxes_nms, scores = scores_nms, iou_thres
 ```
 This is where we gain speedup. 
 
-The same method of looking for GPU optimized implementations of postprocessing logic in existing frameworks (PyTorch, Tensorflow, RAPIDS, Cupy) can apply to any model's needs, and it is very easy to use any Python functions from those frameworks thanks to the tensor interoperability in the Python API, which is a new feature in Holoscan SDK v0.4. When you bring your own models into Holoscan, you could import the GPU optimized functions in familiar frameworks directly to the Holoscan SDK in this way.
+The same method of looking for GPU optimized implementations of postprocessing logic in existing frameworks (PyTorch, Tensorflow, RAPIDS, Cupy) can apply to any model's needs, and it is very easy to use any Python functions from those frameworks thanks to the tensor interoperability in the Python API, which was introduced in Holoscan SDK v0.4. When you bring your own models into Holoscan, you could import the GPU optimized functions in familiar frameworks directly to the Holoscan SDK in this way.
 
 
 #### **Result**
-With [`ssd_step2_route1.py`](../ssd_step2_route1.py), the app runs at ~90 FPS (see top left corner of the following screen capture) on the NVIDIA IGX Orin DevKit (Early Access).
+With [`ssd_step2_route1.py`](../ssd_step2_route1.py), the app runs at ~90 FPS (see top left corner of the following screen capture) on the NVIDIA IGX Orin DevKit.
 
 ![ssd step2 route 1](./images/ssd_step2_route1.PNG)
 
@@ -376,7 +367,7 @@ Label file: [`endo_ref_data_labels.csv`](../endo_ref_data_labels.csv)
 
 The label text can be rendered as text in Holoviz, alongside rectangle bboxes, with a different color for each detected class. 
 
-There is only one color for each group of pimitives, not color for each rectangle/text label. If we want a different color for each rectangle/text label, we have to create separate tensors for each color an input spec to the Holoviz operator definition's `tensors` like this
+If we want a different color for each rectangle/text label, we can do so at each frame following [SDK examples/holoviz/python/holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py). We can also create separate tensors for each color an input spec to the Holoviz operator definition's `tensors` like this
 
 ```
 dict(name="red_rectangles",
@@ -423,6 +414,8 @@ text_coords = text_coords[np.newaxis, :, :]
 out_message.add(hs.as_tensor(text_coords), "text_coords")
 ```
 For the relationship between the number of coordinates and the `text`, if you have only one item text=['text'] and three coordinates then it renders text three times. If you have text=['text_1', 'text_2'] and three coordinates then it renders text_1 at the first coordinate, text_2 at the second and then text_2 again at the third.
+
+For rendering dynamic text and colors, please see the SDK example at [examples/holoviz/python/holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py).
 
 In our app [ssd_step2_route2_render_labels.py](../ssd_step2_route2_render_labels.py), we will create a separate tensor for each bbox class and each text class:
 
@@ -497,7 +490,7 @@ parser.add_argument(
 ```
 
 #### **Python API Result**
-With [`ssd_step2_route2.py`](../ssd_step2_route2.py), the app runs at around 100 FPS; with [`ssd_step2_route2_render_labels.py`](../ssd_step2_route2_render_labels.py), the app runs at a little less around 95 FPS on a NVIDIA IGX Orin DevKit (Early Access).
+With [`ssd_step2_route2.py`](../ssd_step2_route2.py), the app runs at around 100 FPS; with [`ssd_step2_route2_render_labels.py`](../ssd_step2_route2_render_labels.py), the app runs at a little less around 95 FPS on a NVIDIA IGX Orin DevKit.
 
 ![ssd step2 route2](./images/ssd_step2_route2.PNG)
 ![ssd step2 route2 render labels](./images/ssd_step2_route2_render_labels.PNG)
