@@ -167,7 +167,7 @@ class DetectionPostprocessorOp : public Operator {
 
     // Find box indices with a score larger than threshold
     auto ix_mx = matx::make_tensor<int>({Nb});
-    auto Ns = matx::make_tensor<int>();  // Number of boxes above threshold
+    auto Ns = matx::make_tensor<int>({});  // Number of boxes above threshold
     (matx::mtie(ix_mx, Ns) = matx::find_idx(scores_mx, matx::GTE{scores_threshold_.get()})).run(
                                          matx::SingleThreadHostExecutor());
 
@@ -184,7 +184,7 @@ class DetectionPostprocessorOp : public Operator {
                                                                 matx::SingleThreadHostExecutor());
 
     // Create messages for each label
-    auto Nl = matx::make_tensor<int>();  // Number of label boxes
+    auto Nl = matx::make_tensor<int>({});  // Number of label boxes
     for (int k = 0; k < label_names_.get().size(); k++) {
       // Loop over label name and index
       auto label = label_names_.get()[k];
