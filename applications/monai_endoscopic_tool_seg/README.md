@@ -12,7 +12,7 @@ Note that you could also use the MONAI model zoo repo for training your own sema
 ### Model conversion to ONNX
 Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br>
 You can choose to 
-- download the [already converted ONNX model here](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model) directly and skip the rest of this Model section, or 
+- download the [MONAI Endoscopic Tool Segmentation Model on NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model) directly and skip the rest of this Model section, or 
 - go through the following conversion steps yourself. 
 
  1. Download the PyTorch model checkpoint linked in the README of [endoscopic tool segmentation](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation#model-overview). We will assume its name to be `model.pt`.
@@ -55,23 +55,28 @@ python scripts/graph_surgeon_tool_seg.py --orig_model model_endoscopic_tool_seg_
 For this application we will use the same [Endoscopy Sample Data](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data) as the Holoscan SDK reference applications.
 
 ## Requirements
-The only requirement is to make sure the model and data are accessible by the application. If running inside a Docker container, please mount the path(s) where the model and data are.
+The only requirement is to make sure the model and data are accessible by the application. At runtime we will need to specify via the `--data` arg, assuming the directory specified contains two subdirectories `endoscopy/` (endoscopy video data directory) and `monai_tool_seg_model/` (model directory).
+
 ## Running the application
-If running within a Docker container, while launching the container, make sure this directory containing applications and the directory containing models are mounted in the runtime container. Add the `-v` mount options to the `docker run` command.
+To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
+necessary python libraries based on your Holoscan SDK installation type.
 
-Make sure the [yaml file](./tool_segmentation.yaml) is pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the converted ONNX model is located at:
-```
-model_file_path: /byom/models/tool_seg/model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx
-engine_cache_dir: /byom/models/tool_seg/model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out_engines
-```
-and the [Endoscopy Sample Data](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data) is assumed to be at 
-```
-/workspace/holoscan-sdk/data/endoscopy
-```
+If your Holoscan SDK installation type is:
 
-Please check and modify the paths to model and data in the yaml file if needed.
+* python wheels:
 
-Run the Python application simply by:
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
+  ```
+
+* otherwise:
+
+  ```bash
+  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
+  ```
+Next, run the application, where <DATA_DIR> is a directory that contains two subdirectories `endoscopy/` and `monai_tool_seg_model/`.:
+
 ```
-python tool_segmentation.py
+python3 tool_segmentation.py --data <DATA_DIR>
 ```
+If you'd like the application to run at the input framerate, change the `replayer` config in the yaml file to `realtime: true`.
