@@ -21,20 +21,15 @@ from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
     HolovizOp,
+    InferenceOp,
     SegmentationPostprocessorOp,
-    TensorRTInferenceOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import (
-    BlockMemoryPool,
-    CudaStreamPool,
-    MemoryStorageType,
-    UnboundedAllocator,
-)
+from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
 
 class EndoToolSegApp(Application):
-    def __init__(self, source="replayer"):
+    def __init__(self, data, source="replayer"):
         """Initialize the endoscopy tool segmentation application
 
         Parameters
@@ -53,9 +48,32 @@ class EndoToolSegApp(Application):
         # Optional parameters affecting the graph created by compose.
         self.source = source
 
+        if data == "none":
+            data = os.environ.get("HOLOSCAN_DATA_PATH", "../data")
+
+        self.sample_data_path = data
+
+        self.model_path_map = {
+            "tool_seg": os.path.join(
+                self.sample_data_path,
+                "monai_tool_seg_model",
+                "model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
+            ),
+        }
+
     def compose(self):
         n_channels = 4  # RGBA
         bpp = 4  # bytes per pixel
+
+        cuda_stream_pool = CudaStreamPool(
+            self,
+            name="cuda_stream",
+            dev_id=0,
+            stream_flags=0,
+            stream_priority=0,
+            reserved_size=1,
+            max_size=5,
+        )
 
         is_aja = self.source.lower() == "aja"
         if is_aja:
@@ -71,10 +89,16 @@ class EndoToolSegApp(Application):
                     block_size=drop_alpha_block_size,
                     num_blocks=drop_alpha_num_blocks,
                 ),
+                cuda_stream_pool=cuda_stream_pool,
                 **self.kwargs("drop_alpha_channel"),
             )
         else:
-            source = VideoStreamReplayerOp(self, name="replayer", **self.kwargs("replayer"))
+            video_dir = os.path.join(self.sample_data_path, "endoscopy")
+            if not os.path.exists(video_dir):
+                raise ValueError(f"Could not find video data: {video_dir=}")
+            source = VideoStreamReplayerOp(
+                self, name="replayer", directory=video_dir, **self.kwargs("replayer")
+            )
 
         width_preprocessor = 1264
         height_preprocessor = 1080
@@ -89,36 +113,57 @@ class EndoToolSegApp(Application):
                 block_size=preprocessor_block_size,
                 num_blocks=preprocessor_num_blocks,
             ),
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("segmentation_preprocessor"),
         )
 
-        tensorrt_cuda_stream_pool = CudaStreamPool(
-            self,
-            name="cuda_stream",
-            dev_id=0,
-            stream_flags=0,
-            stream_priority=0,
-            reserved_size=1,
-            max_size=5,
+        n_channels_inference = 2
+        width_inference = 736
+        height_inference = 480
+        bpp_inference = 4
+        inference_block_size = (
+            width_inference * height_inference * n_channels_inference * bpp_inference
         )
-        segmentation_inference = TensorRTInferenceOp(
+        inference_num_blocks = 2
+        segmentation_inference = InferenceOp(
             self,
-            name="segmentation_inference",
-            pool=UnboundedAllocator(self, name="pool"),
-            cuda_stream_pool=tensorrt_cuda_stream_pool,
-            **self.kwargs("segmentation_inference"),
+            name="monai_endoscopy_segmentation_inference",
+            backend="trt",
+            allocator=BlockMemoryPool(
+                self,
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=inference_block_size,
+                num_blocks=inference_num_blocks,
+            ),
+            model_path_map=self.model_path_map,
+            pre_processor_map={"tool_seg": ["seg_preprocessed"]},
+            inference_map={"tool_seg": "tool_seg_inferred"},
+            in_tensor_names=["seg_preprocessed"],
+            out_tensor_names=["tool_seg_inferred"],
+            enable_fp16=True,
+            input_on_cuda=True,
+            output_on_cuda=True,
+            transmit_on_cuda=True,
         )
 
+        postprocessor_block_size = width_inference * height_inference
+        postprocessor_num_blocks = 2
         segmentation_postprocessor = SegmentationPostprocessorOp(
             self,
             name="segmentation_postprocessor",
-            allocator=UnboundedAllocator(self, name="allocator"),
+            allocator=BlockMemoryPool(
+                self,
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=postprocessor_block_size,
+                num_blocks=postprocessor_num_blocks,
+            ),
             **self.kwargs("segmentation_postprocessor"),
         )
 
         segmentation_visualizer = HolovizOp(
             self,
             name="segmentation_visualizer",
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("segmentation_visualizer"),
         )
 
@@ -129,8 +174,8 @@ class EndoToolSegApp(Application):
         else:
             self.add_flow(source, segmentation_visualizer, {("", "receivers")})
             self.add_flow(source, segmentation_preprocessor)
-        self.add_flow(segmentation_preprocessor, segmentation_inference)
-        self.add_flow(segmentation_inference, segmentation_postprocessor)
+        self.add_flow(segmentation_preprocessor, segmentation_inference, {("", "receivers")})
+        self.add_flow(segmentation_inference, segmentation_postprocessor, {("transmitter", "")})
         self.add_flow(
             segmentation_postprocessor,
             segmentation_visualizer,
@@ -151,10 +196,25 @@ if __name__ == "__main__":
             "capture card as the source (default: %(default)s)."
         ),
     )
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="none",
+        help=("Set config path to override the default config file location"),
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="none",
+        help=("Set the data path"),
+    )
     args = parser.parse_args()
 
-    config_file = os.path.join(os.path.dirname(__file__), "tool_segmentation.yaml")
+    if args.config == "none":
+        config_file = os.path.join(os.path.dirname(__file__), "tool_segmentation.yaml")
+    else:
+        config_file = args.config
 
-    app = EndoToolSegApp(source=args.source)
+    app = EndoToolSegApp(source=args.source, data=args.data)
     app.config(config_file)
     app.run()
