@@ -1,6 +1,11 @@
 ## Using NVTX Profiling on ssd_step1.py
 *This file relates to the `Step 2: Optimize performance for postprocessing code from Step 1` section in the [README](README.md).*
 
+Before we get started, make sure you have installed NVTX:
+```
+python3 -m pip install nvtx
+```
+
 First, see the profiling of 15 seconds of running the app without doing any code modification to the python app: 
 
 ```

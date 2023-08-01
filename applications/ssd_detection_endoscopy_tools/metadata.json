@@ -8,14 +8,15 @@
 			}
 		],
 		"language": "Python",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
-			"1.0": "Initial Release"
+			"1.0": "Initial Release",
+			"1.1": "Update from TensorRTInferenceOp to InferenceOp"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "0.6.0",
 			"tested_versions": [
-				"0.5.0"
+				"0.6.0"
 			]
 		},
 		"platforms": ["amd64, arm64"],
@@ -28,7 +29,7 @@
 			},
             {
 				"name": "cupy",
-				"version": "11.3.0"
+				"version": "11.6.0"
 			}
             ]
 		}

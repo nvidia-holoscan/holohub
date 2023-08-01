@@ -24,15 +24,10 @@ from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
     HolovizOp,
-    TensorRTInferenceOp,
+    InferenceOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import (
-    BlockMemoryPool,
-    CudaStreamPool,
-    MemoryStorageType,
-    UnboundedAllocator,
-)
+from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
 
 try:
     import cupy as cp
@@ -208,20 +203,10 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_preprocessor"),
         )
 
-        tensorrt_cuda_stream_pool = CudaStreamPool(
-            self,
-            name="cuda_stream",
-            dev_id=0,
-            stream_flags=0,
-            stream_priority=0,
-            reserved_size=1,
-            max_size=5,
-        )
-        detection_inference = TensorRTInferenceOp(
+        detection_inference = InferenceOp(
             self,
             name="detection_inference",
-            pool=UnboundedAllocator(self, name="pool"),
-            cuda_stream_pool=tensorrt_cuda_stream_pool,
+            allocator=UnboundedAllocator(self, name="pool"),
             **self.kwargs("detection_inference"),
         )
 
@@ -279,8 +264,8 @@ class SSDDetectionApp(Application):
             self.add_flow(source, detection_visualizer, {("", "receivers")})
             self.add_flow(source, detection_preprocessor)
 
-        self.add_flow(detection_preprocessor, detection_inference)
-        self.add_flow(detection_inference, detection_postprocessor)
+        self.add_flow(detection_preprocessor, detection_inference, {("", "receivers")})
+        self.add_flow(detection_inference, detection_postprocessor, {("transmitter", "in")})
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 
 
