@@ -28,9 +28,18 @@ add_holohub_operator(basic_network)
 add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
 add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
-add_holohub_operator(npp_filter)
-add_holohub_operator(prohawk_video_processing)
-add_holohub_operator(qt_video)
+# -----------------------------------------------------------------
+# 
+# >> begin ORSI operators
+#
+# New ORSI Holoscan native operators
+add_holohub_operator(orsi_format_converter)
+add_holohub_operator(orsi_segmentation_postprocessor)
+add_holohub_operator(orsi_segmentation_preprocessor)
+add_holohub_operator(orsi_visualizer)
+# 
+# >> end ORSI operators
+# -----------------------------------------------------------------
 add_holohub_operator(tensor_to_video_buffer)
 add_holohub_operator(tool_tracking_postprocessor)
 add_holohub_operator(video_decoder)
@@ -40,5 +49,5 @@ add_holohub_operator(video_write_bitstream)
 add_holohub_operator(visualizer_icardio)
 add_holohub_operator(volume_loader)
 add_holohub_operator(volume_renderer)
-add_holohub_operator(XrFrameOp)
-add_holohub_operator(XrTransformOp)
+
+
