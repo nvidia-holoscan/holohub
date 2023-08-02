@@ -187,24 +187,12 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
   if(   shape.width != expected_shape[0]
      ||shape.height != expected_shape[1]){
-    std::cout << "// -------------------------------------------------------------------------------\n";
-    std::cout << "//";
-    std::cout << "// Orsi::SegPostProc Invalid shape for input tensor " << in_tensor_name << "\n";
-    std::cout << "// Received shape [ " << shape.height << ", " << shape.width 
-                     << "] expected [" << expected_shape[0] << ", " << expected_shape[1] << "]\n";
-    std::cout << "//\n";
 
-#define DO_FIX_SHAPE
-
-#ifdef DO_FIX_SHAPE
+    HOLOSCAN_LOG_WARN(fmt::format(
+        "Received shape [{}, {}] for tensor: {}. Expected [{}, {}]!",  shape.width,  shape.height, in_tensor_name,expected_shape[0], expected_shape[1]));
     shape.width = expected_shape[0];
     shape.height = expected_shape[1];
-    std::cout << "// Setting expected shape [1,1] to avoid application crash!\n";
-    std::cout << "//\n";
-#endif
   }
-
-
 
   if (static_cast<size_t>(shape.channels) > kMaxChannelCount) {
     throw std::runtime_error(fmt::format(
@@ -227,7 +215,6 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   out_tensor.value()->reshape<uint8_t>(
       output_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
   if (!out_tensor.value()->pointer()) {
-    std::cout << "// Failed to allocate output tensor buffer of size [ " << shape.height << ", " << shape.width << "]\n";
     throw std::runtime_error("Failed to allocate output tensor buffer.");
   }
 
