@@ -154,11 +154,6 @@ private:
         from_config("segmentation_postprocessor"),
         Arg("allocator") = allocator_resource
         );
-    auto anonymization_postprocessor = make_operator<ops::orsi::SegmentationPostprocessorOp>(
-        "anonymization_postprocessor",
-        from_config("anonymization_postprocessor"),
-        Arg("allocator") = allocator_resource
-        );
 
     // -------------------------------------------------------------------------------------
     //
@@ -187,14 +182,15 @@ private:
         break;
     }
 
-    add_flow(format_converter, segmentation_preprocessor);
+    // in / out body detection
     add_flow(format_converter_anonymization, anonymization_preprocessor);
-    add_flow(segmentation_preprocessor, multiai_inference, {{"", "receivers"}});
     add_flow(anonymization_preprocessor, multiai_inference, {{"", "receivers"}});
+    add_flow(multiai_inference, segmentation_visualizer, {{"transmitter", "receivers"}});
+    // non - organic structure segmentation
+    add_flow(format_converter, segmentation_preprocessor);
+    add_flow(segmentation_preprocessor, multiai_inference, {{"", "receivers"}});
     add_flow(multiai_inference, segmentation_postprocessor, {{"transmitter", ""}});
-    add_flow(multiai_inference, anonymization_postprocessor, {{"transmitter", ""}});
     add_flow(segmentation_postprocessor, segmentation_visualizer, {{"", "receivers"}});
-    add_flow(anonymization_postprocessor, segmentation_visualizer, {{"", "receivers"}});
   }
 
 };

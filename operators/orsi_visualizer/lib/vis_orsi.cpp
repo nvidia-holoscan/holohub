@@ -261,7 +261,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 
   static const std::string surgical_video_buffer_key = "";
   static const std::string segmentation_tensor_key = "segmentation_postprocessed";
-  static const std::string anon_key = "anonymization_postprocessed";
+  static const std::string anon_key = "anonymization_infer";
 
   cudaError_t cuda_status = {};
 
@@ -444,6 +444,8 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
   if(input_buffers.count(anon_key))
   {
 
+    std::cout << __FILE__ << " - " << __LINE__ << std::endl;
+
     auto ibuffer = input_buffers.at(anon_key);
     auto anonymization_mask_tensor = ibuffer.tensor;
 
@@ -460,12 +462,16 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
       throw std::runtime_error("Anonymization tensor is not a single channel tensor");
     }
 
-    auto anonymization_ptr = anonymization_mask_tensor->data<uint8_t>().value();
+    auto anonymization_ptr = anonymization_mask_tensor->data<float>().value();
 
-    uint8_t anonymization_value = 0;
-    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_value, anonymization_ptr, sizeof(uint8_t), cudaMemcpyDeviceToHost));
+    float anonymization_infer_value = 0;
+    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_infer_value, anonymization_ptr, sizeof(float), cudaMemcpyDeviceToHost));
     // read anonymization value to host and pass as GLSL uniform
-    apply_anonymization_effect_ = anonymization_value;
+
+    const double sigmoid_value = 1.0 / (1.0 + exp(-anonymization_infer_value));
+    const uint8_t sigmoid_result = sigmoid_value  > 0.5 ? 1 : 0;
+
+    apply_anonymization_effect_ = sigmoid_result;
 
     if (!toggle_anonymization_){
       apply_anonymization_effect_ = false;
