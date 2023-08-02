@@ -113,9 +113,6 @@ void VtkView::start() {
   for (const auto stl_model_name : stl_names_) {
     // Reader creation
     const std::string filename = case_directory + stl_model_name + ".stl";
-
-    std::cout << "STL filename: " << filename << std::endl;
-
     vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
     reader->SetFileName(filename.c_str());
     reader->Update();
