@@ -78,7 +78,7 @@ class calcDets : public BaseOp<calcDets<O, I1, I2, I3, I4>> {
       typename I1::type xpow = xpow_(idz, idy, idx);
       typename I2::type ba = ba_(idz, idy, idx);
       typename I2::type norm = norm_(idz, idy, idx);
-      typename I2::type alpha = norm * (std::pow(pfa_, -1.0 / norm) - 1);
+      typename I2::type alpha = norm * (cuda::std::powf(pfa_, -1.0f / norm) - 1.f);
       out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
     }
 
