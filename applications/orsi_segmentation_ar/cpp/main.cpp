@@ -90,7 +90,7 @@ private:
       drop_alpha_channel = make_operator<ops::orsi::FormatConverterOp>(
           "drop_alpha_channel",
           from_config("drop_alpha_channel_videomaster"),
-           Arg("pool") = make_resource<BlockMemoryPool>(
+           Arg("allocator") = make_resource<BlockMemoryPool>(
               "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
           Arg("cuda_stream_pool") = cuda_stream_pool);
     }
