@@ -23,12 +23,10 @@
 
 #include "holoscan/core/operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
-
-
 #include "segmentation_postprocessor.cuh"
 
-using holoscan::ops::segmentation_postprocessor::DataFormat;
-using holoscan::ops::segmentation_postprocessor::NetworkOutputType;
+using holoscan::ops::orsi::segmentation_postprocessor::DataFormat;
+using holoscan::ops::orsi::segmentation_postprocessor::NetworkOutputType;
 
 namespace holoscan::ops::orsi {
 
@@ -75,8 +73,7 @@ class SegmentationPostprocessorOp : public Operator {
                    const int32_t resize_width,
                    const int32_t resize_height);
 
-   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_process_;
-   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_resize_;
+   std::unique_ptr<nvidia::gxf::MemoryBuffer> resize_buffer_;
 };
 
 }  // namespace holoscan::ops::orsi

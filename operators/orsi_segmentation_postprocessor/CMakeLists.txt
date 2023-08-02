@@ -40,7 +40,6 @@ PRIVATE
   CUDA::nppidei
   CUDA::nppig
   CUDA::nppicc
-  holoscan::ops::segmentation_postprocessor
 )
 
 # TODO

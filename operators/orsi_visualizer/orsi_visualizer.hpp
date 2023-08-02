@@ -40,9 +40,9 @@ namespace holoscan::ops::orsi {
  *
  */
 
-class OrsiVisualizationOp : public Operator {
+class OpenGLVisualizationOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(OrsiVisualizationOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(OpenGLVisualizationOp)
   
   void setup(OperatorSpec& spec) override;
   void initialize() override;
