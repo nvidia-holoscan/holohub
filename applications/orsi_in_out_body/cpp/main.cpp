@@ -29,7 +29,6 @@
 #include <format_converter.hpp>
 #include <segmentation_preprocessor.hpp>
 #include <orsi_visualizer.hpp>
-#include <segmentation_postprocessor.hpp>
 
 enum class VideoSource { REPLAYER, VIDEOMASTER };
 
@@ -138,17 +137,6 @@ private:
 
     // -------------------------------------------------------------------------------------
     //
-    // Post-processing Operators
-    //
-
-    auto anonymization_postprocessor = make_operator<ops::orsi::SegmentationPostprocessorOp>(
-        "anonymization_postprocessor",
-        from_config("anonymization_postprocessor"),
-        Arg("allocator") = allocator_resource
-        );
-
-    // -------------------------------------------------------------------------------------
-    //
     // Visualization Operator
     //
 
@@ -172,10 +160,10 @@ private:
         break;
     }
 
+    // in / out body detection
     add_flow(format_converter_anonymization, anonymization_preprocessor);
     add_flow(anonymization_preprocessor, multiai_inference, {{"", "receivers"}});
-    add_flow(multiai_inference, anonymization_postprocessor, {{"transmitter", ""}});
-    add_flow(anonymization_postprocessor, segmentation_visualizer, {{"", "receivers"}});
+    add_flow(multiai_inference, segmentation_visualizer, {{"transmitter", "receivers"}});
   }
 
 };
@@ -211,7 +199,7 @@ int main(int argc, char** argv) {
 
   auto app = holoscan::make_application<App>();
 
-  holoscan::set_log_level(holoscan::LogLevel::ERROR);
+  // holoscan::set_log_level(holoscan::LogLevel::ERROR);
 
   // Parse the arguments
   std::string data_path = "";
