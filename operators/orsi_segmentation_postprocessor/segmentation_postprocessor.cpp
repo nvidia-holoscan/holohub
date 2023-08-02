@@ -159,23 +159,42 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }
 
+  const auto& in_shape = in_tensor->shape();
+  const auto in_rank = in_shape.size();
+
+  // << debug begin
+  {
+    std::cout << __FILE__ << " " << __LINE__ << " \n"
+              << "in_tensor_name: " << in_tensor_name << " rank: " << in_rank << " shape: [";
+    for (uint32_t i = 0; i < in_rank - 1; ++i) { std::cout << in_shape[i] << ", "; }
+    std::cout << in_shape[in_rank - 1] << "]\n";
+  }
+  // << debug end
+
   segmentation_postprocessor::Shape shape = {};
-  switch (data_format_value_) {
-    case DataFormat::kHWC: {
-      shape.height = in_tensor->shape()[0];
-      shape.width = in_tensor->shape()[1];
-      shape.channels = in_tensor->shape()[2];
-    } break;
-    case DataFormat::kNCHW: {
-      shape.channels = in_tensor->shape()[1];
-      shape.height = in_tensor->shape()[2];
-      shape.width = in_tensor->shape()[3];
-    } break;
-    case DataFormat::kNHWC: {
-      shape.height = in_tensor->shape()[1];
-      shape.width = in_tensor->shape()[2];
-      shape.channels = in_tensor->shape()[3];
-    } break;
+  if(in_rank == 4) {
+    switch (data_format_value_) {
+      case DataFormat::kHWC: {
+        shape.height = in_tensor->shape()[0];
+        shape.width = in_tensor->shape()[1];
+        shape.channels = in_tensor->shape()[2];
+      } break;
+      case DataFormat::kNCHW: {
+        shape.channels = in_tensor->shape()[1];
+        shape.height = in_tensor->shape()[2];
+        shape.width = in_tensor->shape()[3];
+      } break;
+      case DataFormat::kNHWC: {
+        shape.height = in_tensor->shape()[1];
+        shape.width = in_tensor->shape()[2];
+        shape.channels = in_tensor->shape()[3];
+      } break;
+    }
+  } else if (in_rank == 2) { 
+     shape.width  = in_tensor->shape()[0];
+     shape.height = in_tensor->shape()[1];
+  } else {
+    throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported ranks: 2 or 4!", in_rank));
   }
 
   // TMP workaround for bug in Holoscan SDK's inference op
