@@ -162,15 +162,6 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   const auto& in_shape = in_tensor->shape();
   const auto in_rank = in_shape.size();
 
-  // << debug begin
-  {
-    std::cout << __FILE__ << " " << __LINE__ << " \n"
-              << "in_tensor_name: " << in_tensor_name << " rank: " << in_rank << " shape: [";
-    for (uint32_t i = 0; i < in_rank - 1; ++i) { std::cout << in_shape[i] << ", "; }
-    std::cout << in_shape[in_rank - 1] << "]\n";
-  }
-  // << debug end
-
   segmentation_postprocessor::Shape shape = {};
   if(in_rank == 4) {
     switch (data_format_value_) {
@@ -195,22 +186,6 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
      shape.height = in_tensor->shape()[1];
   } else {
     throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported ranks: 2 or 4!", in_rank));
-  }
-
-  // TMP workaround for bug in Holoscan SDK's inference op
-  int expected_shape[2] =  { 1, 1};
-  if(in_tensor_name == "tool_seg_infer") {
-    expected_shape[0] = 512;
-    expected_shape[1] = 512;
-  }
-
-  if(   shape.width != expected_shape[0]
-     ||shape.height != expected_shape[1]){
-
-    HOLOSCAN_LOG_WARN(fmt::format(
-        "Received shape [{}, {}] for tensor: {}. Expected [{}, {}]!",  shape.width,  shape.height, in_tensor_name,expected_shape[0], expected_shape[1]));
-    shape.width = expected_shape[0];
-    shape.height = expected_shape[1];
   }
 
   if (static_cast<size_t>(shape.channels) > kMaxChannelCount) {
