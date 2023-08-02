@@ -90,7 +90,7 @@ private:
       drop_alpha_channel = make_operator<ops::orsi::FormatConverterOp>(
           "drop_alpha_channel",
           from_config("drop_alpha_channel_videomaster"),
-           Arg("allocator") = make_resource<BlockMemoryPool>(
+           Arg("pool") = make_resource<BlockMemoryPool>(
               "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
           Arg("cuda_stream_pool") = cuda_stream_pool);
     }
@@ -154,6 +154,11 @@ private:
         from_config("segmentation_postprocessor"),
         Arg("allocator") = allocator_resource
         );
+    auto anonymization_postprocessor = make_operator<ops::orsi::SegmentationPostprocessorOp>(
+        "anonymization_postprocessor",
+        from_config("anonymization_postprocessor"),
+        Arg("allocator") = allocator_resource
+        );
 
     // -------------------------------------------------------------------------------------
     //
@@ -161,7 +166,7 @@ private:
     //
 
     auto segmentation_visualizer =
-        make_operator<ops::orsi::OrsiVisualizationOp>("segmentation_visualizer",
+        make_operator<ops::orsi::OpenGLVisualizationOp>("segmentation_visualizer",
                                       from_config("segmentation_visualizer"),
                                       Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
                                       Arg("allocator") = allocator_resource);
@@ -182,15 +187,14 @@ private:
         break;
     }
 
-    // in / out body detection
-    add_flow(format_converter_anonymization, anonymization_preprocessor);
-    add_flow(anonymization_preprocessor, multiai_inference, {{"", "receivers"}});
-    add_flow(multiai_inference, segmentation_visualizer, {{"transmitter", "receivers"}});
-    // non - organic structure segmentation
     add_flow(format_converter, segmentation_preprocessor);
+    add_flow(format_converter_anonymization, anonymization_preprocessor);
     add_flow(segmentation_preprocessor, multiai_inference, {{"", "receivers"}});
+    add_flow(anonymization_preprocessor, multiai_inference, {{"", "receivers"}});
     add_flow(multiai_inference, segmentation_postprocessor, {{"transmitter", ""}});
+    add_flow(multiai_inference, anonymization_postprocessor, {{"transmitter", ""}});
     add_flow(segmentation_postprocessor, segmentation_visualizer, {{"", "receivers"}});
+    add_flow(anonymization_postprocessor, segmentation_visualizer, {{"", "receivers"}});
   }
 
 };
@@ -224,9 +228,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 
 int main(int argc, char** argv) {
 
-
-  holoscan::set_log_level(holoscan::LogLevel::ERROR);
-
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments
@@ -247,11 +248,7 @@ int main(int argc, char** argv) {
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
   if (data_path != "") app->set_datapath(data_path);
-
-  auto& tracker = app->track(); 
   app->run();
-  std::cout << "// Application::run completed. Printing tracker results" << std::endl;
-  tracker.print();
 
   return 0;
 }

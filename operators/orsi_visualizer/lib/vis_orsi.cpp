@@ -261,7 +261,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 
   static const std::string surgical_video_buffer_key = "";
   static const std::string segmentation_tensor_key = "segmentation_postprocessed";
-  static const std::string anon_key = "anonymization_infer";
+  static const std::string anon_key = "anonymization_postprocessed";
 
   cudaError_t cuda_status = {};
 
@@ -385,6 +385,9 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     auto ibuffer = input_buffers.at(segmentation_tensor_key);
     auto seg_mask_tensor = ibuffer.tensor;
 
+    //  tool segmentation mask Texture
+    // --------------------------------------------------------------------------------------------
+
     const nvidia::gxf::Shape& shape = ibuffer.shape;
     const int32_t columns = shape.dimension(1);
     const int32_t rows = shape.dimension(0);
@@ -444,6 +447,9 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     auto ibuffer = input_buffers.at(anon_key);
     auto anonymization_mask_tensor = ibuffer.tensor;
 
+    //  tool segmentation mask Texture
+    // --------------------------------------------------------------------------------------------
+
     const nvidia::gxf::Shape& shape = ibuffer.shape;
     const int32_t columns = shape.dimension(1);
     const int32_t rows = shape.dimension(0);
@@ -454,16 +460,12 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
       throw std::runtime_error("Anonymization tensor is not a single channel tensor");
     }
 
-    auto anonymization_ptr = anonymization_mask_tensor->data<float>().value();
+    auto anonymization_ptr = anonymization_mask_tensor->data<uint8_t>().value();
 
-    float anonymization_infer_value = 0;
-    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_infer_value, anonymization_ptr, sizeof(float), cudaMemcpyDeviceToHost));
+    uint8_t anonymization_value = 0;
+    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_value, anonymization_ptr, sizeof(uint8_t), cudaMemcpyDeviceToHost));
     // read anonymization value to host and pass as GLSL uniform
-
-    const double sigmoid_value = 1.0 / (1.0 + exp(-anonymization_infer_value));
-    const uint8_t sigmoid_result = sigmoid_value  > 0.5 ? 1 : 0;
-
-    apply_anonymization_effect_ = sigmoid_result;
+    apply_anonymization_effect_ = anonymization_value;
 
     if (!toggle_anonymization_){
       apply_anonymization_effect_ = false;
