@@ -58,38 +58,38 @@ static void glfwProcessInput(GLFWwindow* window) {
 // whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 static void glfwFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onFramebufferSizeCallback(width, height); }
 }
 
 static void glfwSetWindowFocusCallback(GLFWwindow* window, int focused) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onWindowFocusCallback(focused); }
 }
 
 static void glfwCharCallback(GLFWwindow* window, unsigned int codepoint) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onChar(codepoint); }
 }
 
 static void glfwCursorPosCallback(GLFWwindow* window, double x, double y) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onMouseMove(x, y); }
 }
 
 static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onMouseButtonCallback(button, action, mods); }
 }
 
 static void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onScrollCallback(xoffset, yoffset); }
 }
 
 // GLFW Key Events
 static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  OpenGLVisualizationOp * op = static_cast<OpenGLVisualizationOp*>(glfwGetWindowUserPointer(window));
+  OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
   if (op) {  op->onKeyCallback(key, scancode, action, mods); }
 }
 
@@ -98,7 +98,7 @@ static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int actio
 // event handlers
 //
 
-void OpenGLVisualizationOp::onFramebufferSizeCallback(int width, int height) {
+void OrsiVisualizationOp::onFramebufferSizeCallback(int width, int height) {
 
   vp_width_ = width; 
   vp_height_ = height;
@@ -106,31 +106,31 @@ void OpenGLVisualizationOp::onFramebufferSizeCallback(int width, int height) {
   pimpl_->onFramebufferSizeCallback(window_, width, height);
 }
 
-void OpenGLVisualizationOp::onWindowFocusCallback(int focused) {
+void OrsiVisualizationOp::onWindowFocusCallback(int focused) {
   pimpl_->onWindowFocusCallback(window_, focused);
 }
 
-void OpenGLVisualizationOp::onChar(unsigned int codepoint) {
+void OrsiVisualizationOp::onChar(unsigned int codepoint) {
   pimpl_->onChar(window_, codepoint);
 }
 
-void OpenGLVisualizationOp::onEnter(int entered) {
+void OrsiVisualizationOp::onEnter(int entered) {
   pimpl_->onEnter(window_, entered);
 }
 
-void OpenGLVisualizationOp::onMouseMove(double x, double y) {
+void OrsiVisualizationOp::onMouseMove(double x, double y) {
   pimpl_->onMouseMove(window_, x,y);
 }
 
-void OpenGLVisualizationOp::onMouseButtonCallback(int button, int action, int mods) {
+void OrsiVisualizationOp::onMouseButtonCallback(int button, int action, int mods) {
   pimpl_->onMouseButtonCallback(window_, button, action, mods);
 }
 
-void OpenGLVisualizationOp::onScrollCallback(double xoffset, double yoffset) {
+void OrsiVisualizationOp::onScrollCallback(double xoffset, double yoffset) {
   pimpl_->onScrollCallback(window_, xoffset,yoffset);
 }
 
-void OpenGLVisualizationOp::onKeyCallback(int key, int scancode, int action, int mods) {
+void OrsiVisualizationOp::onKeyCallback(int key, int scancode, int action, int mods) {
   pimpl_->onKeyCallback(window_, key, scancode, action, mods);
 }
 
@@ -138,7 +138,7 @@ void OpenGLVisualizationOp::onKeyCallback(int key, int scancode, int action, int
 using holoscan::orsi::vis::VisIntf; 
 using holoscan::orsi::vis::BufferInfo;
 
-void OpenGLVisualizationOp::setup(OperatorSpec& spec) {
+void OrsiVisualizationOp::setup(OperatorSpec& spec) {
 
   pimpl_.reset(new holoscan::orsi::OrsiVis);
 
@@ -161,7 +161,7 @@ void OpenGLVisualizationOp::setup(OperatorSpec& spec) {
   cuda_stream_handler_.defineParams(spec);
 }
 
-void OpenGLVisualizationOp::initialize() {
+void OrsiVisualizationOp::initialize() {
 
   // Set up prerequisite parameters before calling GXFOperator::initialize()
   auto frag = fragment();
@@ -183,7 +183,7 @@ void OpenGLVisualizationOp::initialize() {
 }
 
 
-void OpenGLVisualizationOp::start()
+void OrsiVisualizationOp::start()
 {
 
 
@@ -257,7 +257,7 @@ void OpenGLVisualizationOp::start()
   bool_cond->enable_tick();
 }
 
-void OpenGLVisualizationOp::compute(InputContext& op_input, OutputContext& op_output,
+void OrsiVisualizationOp::compute(InputContext& op_input, OutputContext& op_output,
                         ExecutionContext& context) {
 
   std::vector<gxf::Entity> messages_h = op_input.receive<std::vector<gxf::Entity>>("receivers").value();
@@ -322,7 +322,7 @@ void OpenGLVisualizationOp::compute(InputContext& op_input, OutputContext& op_ou
 
 }
 
-void OpenGLVisualizationOp::stop()
+void OrsiVisualizationOp::stop()
 {
     // Free mem allocated in utility classes.
   // ----------------------------------------------------------------------------------

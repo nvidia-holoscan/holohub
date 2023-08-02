@@ -166,7 +166,7 @@ private:
     //
 
     auto segmentation_visualizer =
-        make_operator<ops::orsi::OpenGLVisualizationOp>("segmentation_visualizer",
+        make_operator<ops::orsi::OrsiVisualizationOp>("segmentation_visualizer",
                                       from_config("segmentation_visualizer"),
                                       Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
                                       Arg("allocator") = allocator_resource);
@@ -248,7 +248,11 @@ int main(int argc, char** argv) {
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
   if (data_path != "") app->set_datapath(data_path);
+
+  auto& tracker = app->track(); 
   app->run();
+  std::cout << "// Application::run completed. Printing tracker results" << std::endl;
+  tracker.print();
 
   return 0;
 }
