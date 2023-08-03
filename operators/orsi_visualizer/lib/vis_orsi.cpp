@@ -385,9 +385,6 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     auto ibuffer = input_buffers.at(segmentation_tensor_key);
     auto seg_mask_tensor = ibuffer.tensor;
 
-    //  tool segmentation mask Texture
-    // --------------------------------------------------------------------------------------------
-
     const nvidia::gxf::Shape& shape = ibuffer.shape;
     const int32_t columns = shape.dimension(1);
     const int32_t rows = shape.dimension(0);
@@ -444,13 +441,8 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
   if(input_buffers.count(anon_key))
   {
 
-    std::cout << __FILE__ << " - " << __LINE__ << std::endl;
-
     auto ibuffer = input_buffers.at(anon_key);
     auto anonymization_mask_tensor = ibuffer.tensor;
-
-    //  tool segmentation mask Texture
-    // --------------------------------------------------------------------------------------------
 
     const nvidia::gxf::Shape& shape = ibuffer.shape;
     const int32_t columns = shape.dimension(1);
