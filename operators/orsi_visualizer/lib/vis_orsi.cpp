@@ -50,8 +50,7 @@ namespace holoscan::orsi {
 // event handlers
 //
 
-void OrsiVis::onFramebufferSizeCallback(GLFWwindow* wnd, int width, int height)
-{
+void OrsiVis::onFramebufferSizeCallback(GLFWwindow* wnd, int width, int height) {
   vtk_view_.onSize(wnd, width, height);
 }
 
@@ -112,11 +111,7 @@ void OrsiVis::onKeyCallback(GLFWwindow* wnd, int key, int scancode, int action, 
 //
 // Main GXF Codelet interface implementation
 //
-
-
-
-void OrsiVis::setup(OperatorSpec& spec)
-{
+void OrsiVis::setup(OperatorSpec& spec) {
   spec.param(swizzle_video_,
              "swizzle_video",
              "Swizzle Video channels",
@@ -140,8 +135,7 @@ void OrsiVis::setup(OperatorSpec& spec)
              "Keybindings used to toggle on/off the corresponding STL file 3D structure");
 }
 
-void OrsiVis::initialize()
-{
+void OrsiVis::initialize() {
 }
 
 
@@ -190,7 +184,6 @@ void OrsiVis::resizeVideoBufferResources(int width, int height, int channels) {
       throw std::runtime_error("Failed to register video frame texture for CUDA / OpenGL Interop");
     }
   }
-
 }
 
 void OrsiVis::resizeSegmentationMaskResources(int width, int height) {
@@ -226,11 +219,8 @@ void OrsiVis::resizeSegmentationMaskResources(int width, int height) {
 }
 
 void OrsiVis::start() {
-
-
   // Initialize helper class instancces
   // ----------------------------------------------------------------------------------
-
   if (swizzle_video_.get()) {
     HOLOSCAN_LOG_INFO("Surgical Video format will be change from RGB to BGR during vis");
   }
@@ -243,20 +233,17 @@ void OrsiVis::start() {
   vtk_view_.setStlKeys(stl_keys_);
 
   vtk_view_.start();
-
 }
 
 void OrsiVis::stop() {
   // Free mem allocated in utility classes.
   // ----------------------------------------------------------------------------------
-
   video_frame_vis_.stop();
   vtk_view_.stop();
-
 }
 
-void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis::BufferInfo>& input_buffers) {
-
+void OrsiVis::compute(const std::unordered_map<std::string,
+                      holoscan::orsi::vis::BufferInfo>& input_buffers) {
   using holoscan::orsi::vis::BufferInfo;
 
   static const std::string surgical_video_buffer_key = "";
@@ -267,8 +254,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 
   #if 1
   // Update Surgical Video
-  if(input_buffers.count(surgical_video_buffer_key))
-  {
+  if (input_buffers.count(surgical_video_buffer_key)) {
     auto ibuffer = input_buffers.at(surgical_video_buffer_key);
 
     const nvidia::gxf::Shape& shape = ibuffer.shape;
@@ -277,8 +263,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     const int32_t channels = shape.dimension(2);
     uint8_t* in_tensor_ptr = nullptr;
 
-
-  if(ibuffer.type == BufferInfo::VIDEO) {
+  if (ibuffer.type == BufferInfo::VIDEO) {
       // NOTE: VideoBuffer::moveToTensor() converts VideoBuffer instance to the Tensor instance
       // with an unexpected shape:  [width, height] or [width, height, num_planes].
       // And, if we use moveToTensor() to convert VideoBuffer to Tensor, we may lose the the
@@ -338,8 +323,10 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
                                                  video_frame_height_,
                                                  cudaMemcpyDeviceToDevice));
       if (cuda_status) {
-        HOLOSCAN_LOG_ERROR("Failed to copy video frame to OpenGL texture via CUDA / OpenGL interop");
-        throw std::runtime_error("Failed to copy video frame to OpenGL texture via CUDA / OpenGL interop");
+        HOLOSCAN_LOG_ERROR("Failed to copy video frame to OpenGL texture "
+                           "via CUDA / OpenGL interop");
+        throw std::runtime_error("Failed to copy video frame to OpenGL texture "
+                                 "via CUDA / OpenGL interop");
       }
       cuda_status = CUDA_TRY(cudaGraphicsUnmapResources(1, &cuda_video_frame_tex_resource_, 0));
       if (cuda_status) {
@@ -368,8 +355,6 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
                       video_frame_buffer_host_.data());
     }
   }  // if (in_tensor_ptr && buffer_size > 0)
-
-  
   }
 
   #endif
@@ -377,11 +362,10 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
   // ----------------------------------------------------------------------------------------------
   //
   // Update Non-Organic Structure segmentation
-  // 
+  //
 
 #if 1
-  if(input_buffers.count(segmentation_tensor_key))
-  {
+  if (input_buffers.count(segmentation_tensor_key)) {
     auto ibuffer = input_buffers.at(segmentation_tensor_key);
     auto seg_mask_tensor = ibuffer.tensor;
 
@@ -391,7 +375,8 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     const int32_t channels = shape.dimension(2);
 
     if (channels != 1) {
-      HOLOSCAN_LOG_ERROR("Segmentation mask is not a single channel tensor. #%d channels!", channels);
+      HOLOSCAN_LOG_ERROR("Segmentation mask is not a single channel tensor. #%d channels!",
+                         channels);
       throw std::runtime_error("Segmentation mask is not a single channel tensor");
     }
 
@@ -403,7 +388,8 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
       cuda_status = CUDA_TRY(cudaGraphicsMapResources(1, &cuda_seg_mask_tex_resource_, 0));
       if (cuda_status) {
         HOLOSCAN_LOG_ERROR("Failed to map segmentation mask texture via CUDA / OpenGL interop");
-        throw std::runtime_error("Failed to map segmentation mask texture via CUDA / OpenGL interop");
+        throw std::runtime_error("Failed to map segmentation mask texture "
+                                 "via CUDA / OpenGL interop");
       }
 
       cudaArray* texture_ptr = nullptr;
@@ -417,30 +403,31 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
       cuda_status = CUDA_TRY(cudaMemcpy2DToArray(
           texture_ptr, 0, 0, ptr, spitch, spitch, seg_mask_height_, cudaMemcpyDeviceToDevice));
       if (cuda_status) {
-        HOLOSCAN_LOG_ERROR("Failed to copy video frame to OpenGL texture via CUDA / OpenGL interop");
-        throw std::runtime_error("Failed to copy video frame to OpenGL texture via CUDA / OpenGL interop");
+        HOLOSCAN_LOG_ERROR("Failed to copy video frame to OpenGL texture "
+                           "via CUDA / OpenGL interop");
+        throw std::runtime_error("Failed to copy video frame to OpenGL texture "
+                                 "via CUDA / OpenGL interop");
       }
 
       // unmap the graphics resource again
       cuda_status = CUDA_TRY(cudaGraphicsUnmapResources(1, &cuda_seg_mask_tex_resource_, 0));
       if (cuda_status) {
-        HOLOSCAN_LOG_ERROR("Failed to unmap segmentation mask texture via CUDA / OpenGL interop");
-        throw std::runtime_error("Failed to unmap segmentation mask texture via CUDA / OpenGL interop");
+        HOLOSCAN_LOG_ERROR("Failed to unmap segmentation mask texture "
+                           "via CUDA / OpenGL interop");
+        throw std::runtime_error("Failed to unmap segmentation mask texture "
+                                 "via CUDA / OpenGL interop");
       }
     }
-  } else { 
+  } else {
     apply_tool_overlay_effect_ = false;
   }
 #endif
 
   // ----------------------------------------------------------------------------------------------
   //
-  // Update Anonymization 
-  // 
-
-  if(input_buffers.count(anon_key))
-  {
-
+  // Update Anonymization
+  //
+  if (input_buffers.count(anon_key)) {
     auto ibuffer = input_buffers.at(anon_key);
     auto anonymization_mask_tensor = ibuffer.tensor;
 
@@ -450,14 +437,16 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
     const int32_t channels = shape.dimension(2);
 
     if (channels != 1) {
-      HOLOSCAN_LOG_ERROR("Anonymization tensor is not a single channel tensor. #%d channels!", channels);
+      HOLOSCAN_LOG_ERROR("Anonymization tensor is not a single channel tensor. #%d channels!",
+                         channels);
       throw std::runtime_error("Anonymization tensor is not a single channel tensor");
     }
 
     auto anonymization_ptr = anonymization_mask_tensor->data<float>().value();
 
     float anonymization_infer_value = 0;
-    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_infer_value, anonymization_ptr, sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_status = CUDA_TRY(cudaMemcpy(&anonymization_infer_value, anonymization_ptr, sizeof(float),
+                           cudaMemcpyDeviceToHost));
     // read anonymization value to host and pass as GLSL uniform
 
     const double sigmoid_value = 1.0 / (1.0 + exp(-anonymization_infer_value));
@@ -465,10 +454,10 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 
     apply_anonymization_effect_ = sigmoid_result;
 
-    if (!toggle_anonymization_){
+    if (!toggle_anonymization_) {
       apply_anonymization_effect_ = false;
     }
-  } else { 
+  } else {
     apply_anonymization_effect_ = false;
   }
 
@@ -477,7 +466,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 #if 1
   GLuint preop_mesh_tex = vtk_view_.getTexture();
   // only re-render if manipulator is unlocked / active
-  if(enable_model_manip_ || first_frame_) {
+  if (enable_model_manip_ || first_frame_) {
     vtk_view_.render();
   }
 #endif
@@ -497,7 +486,7 @@ void OrsiVis::compute(const std::unordered_map<std::string, holoscan::orsi::vis:
 
 #endif
 
-  if(first_frame_) { 
+  if (first_frame_) {
     first_frame_ = false;
   }
 }

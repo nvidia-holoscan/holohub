@@ -33,7 +33,7 @@
 enum class VideoSource { REPLAYER, VIDEOMASTER };
 
 class App : public holoscan::Application {
-private:
+ private:
   VideoSource video_source_ = VideoSource::REPLAYER;
   std::string datapath = "data";
 
@@ -53,7 +53,8 @@ private:
 
     std::shared_ptr<Operator> source;
     std::shared_ptr<Operator> drop_alpha_channel;
-    std::shared_ptr<Resource> allocator_resource = make_resource<UnboundedAllocator>("unbounded_allocator");
+    std::shared_ptr<Resource> allocator_resource =
+                         make_resource<UnboundedAllocator>("unbounded_allocator");
 
 
     switch (video_source_) {
@@ -64,7 +65,7 @@ private:
             Arg("pool") = allocator_resource);
         break;
       default:
-        source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), 
+        source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                             Arg("directory", datapath + "/video"));
         break;
     }
@@ -132,8 +133,7 @@ private:
     auto multiai_inference = make_operator<ops::InferenceOp>(
       "multiai_inference", from_config("multiai_inference"),
       Arg("model_path_map", model_path_map),
-      Arg("allocator") = allocator_resource
-    );
+      Arg("allocator") = allocator_resource);
 
     // -------------------------------------------------------------------------------------
     //
@@ -165,7 +165,6 @@ private:
     add_flow(anonymization_preprocessor, multiai_inference, {{"", "receivers"}});
     add_flow(multiai_inference, segmentation_visualizer, {{"transmitter", "receivers"}});
   }
-
 };
 
 /** Helper function to parse the command line arguments */
@@ -196,7 +195,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 }
 
 int main(int argc, char** argv) {
-
   auto app = holoscan::make_application<App>();
 
   // holoscan::set_log_level(holoscan::LogLevel::ERROR);
@@ -219,7 +217,7 @@ int main(int argc, char** argv) {
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
   if (data_path != "") app->set_datapath(data_path);
-  auto& tracker = app->track(); 
+  auto& tracker = app->track();
   app->run();
   std::cout << "// Application::run completed. Printing tracker results" << std::endl;
   tracker.print();

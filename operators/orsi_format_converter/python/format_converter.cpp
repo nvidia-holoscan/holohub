@@ -106,7 +106,8 @@ PYBIND11_MODULE(_format_converter, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<orsi::FormatConverterOp, PyOrsiFormatConverterOp, Operator, std::shared_ptr<orsi::FormatConverterOp>>(
+  py::class_<orsi::FormatConverterOp, PyOrsiFormatConverterOp, Operator,
+                                               std::shared_ptr<orsi::FormatConverterOp>>(
       m, "OrsiFormatConverterOp", doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<holoscan::Allocator>,
@@ -139,7 +140,9 @@ PYBIND11_MODULE(_format_converter, m) {
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "format_converter"s,
            doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp_python)
-      .def("initialize", &orsi::FormatConverterOp::initialize, doc::OrsiFormatConverterOp::doc_initialize)
-      .def("setup", &orsi::FormatConverterOp::setup, "spec"_a, doc::OrsiFormatConverterOp::doc_setup);
+      .def("initialize", &orsi::FormatConverterOp::initialize,
+           doc::OrsiFormatConverterOp::doc_initialize)
+      .def("setup", &orsi::FormatConverterOp::setup, "spec"_a,
+           doc::OrsiFormatConverterOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

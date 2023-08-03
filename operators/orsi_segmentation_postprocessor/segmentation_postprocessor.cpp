@@ -144,8 +144,9 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   const auto& in_shape = in_tensor->shape();
   const auto in_rank = in_shape.size();
 
-  if(in_rank != 4) {
-    throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported rank: 4!", in_rank));
+  if (in_rank != 4) {
+    throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported rank: 4!",
+                                                                                        in_rank));
   }
 
   segmentation_postprocessor::Shape shape = {};
@@ -187,26 +188,28 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   nvidia::gxf::Shape scratch_buffer_process_shape{shape.height, shape.width, 1};
   nvidia::gxf::Shape scratch_buffer_resize_shape{cropped_width_, cropped_height_, 1};
 
-   auto frag = fragment();
+  auto frag = fragment();
   // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
   auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(frag->executor().context(),
                                                                   allocator_->gxf_cid());
-  if(roi_enabled) {
+  if (roi_enabled) {
     // set new output shape
     output_shape =  nvidia::gxf::Shape{resolution_height_, resolution_width_, 1};
-    // resize scratch buffer 
+    // resize scratch buffer
     if (scratch_buffer_process_->size() == 0) {
       const uint64_t buffer_size = scratch_buffer_process_shape.dimension(0)
                                  * scratch_buffer_process_shape.dimension(1)
                                  * scratch_buffer_process_shape.dimension(2);
-      scratch_buffer_process_->resize(allocator.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
+      scratch_buffer_process_->resize(allocator.value(), buffer_size,
+                                      nvidia::gxf::MemoryStorageType::kDevice);
     }
 
-    if(scratch_buffer_resize_->size() == 0) {
+    if (scratch_buffer_resize_->size() == 0) {
       const uint64_t buffer_size = scratch_buffer_resize_shape.dimension(0)
                                  * scratch_buffer_resize_shape.dimension(1)
                                  * scratch_buffer_resize_shape.dimension(2);
-      scratch_buffer_resize_->resize(allocator.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
+      scratch_buffer_resize_->resize(allocator.value(), buffer_size,
+                                     nvidia::gxf::MemoryStorageType::kDevice);
     }
   }
 
@@ -222,7 +225,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   // choose output buffer for post processing. By default use out tensor buffer
   // When ROI enabled use scratch buffer
   uint8_t * post_process_output_buffer = out_tensor_data.value();
-  if(roi_enabled) {
+  if (roi_enabled) {
     post_process_output_buffer = scratch_buffer_process_->pointer();
     std::cout << "Using scratch buffer for postprocess output" << std::endl;
   }
@@ -236,24 +239,25 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
                   post_process_output_buffer,
                   cuda_stream_handler_.getCudaStream(context.context()));
 
-  if(roi_enabled) {
+  if (roi_enabled) {
       // ------------------------------------------------------------------------
       //
       //  Step 1: resize to original ROI region dimensions
       //
-      const NppiSize src_size = {static_cast<int>(scratch_buffer_process_shape.dimension(0)), 
+      const NppiSize src_size = {static_cast<int>(scratch_buffer_process_shape.dimension(0)),
                                  static_cast<int>(scratch_buffer_process_shape.dimension(1))};
-      const NppiRect src_roi = {0, 0, static_cast<int>(scratch_buffer_process_shape.dimension(0)), 
+      const NppiRect src_roi = {0, 0, static_cast<int>(scratch_buffer_process_shape.dimension(0)),
                                       static_cast<int>(scratch_buffer_process_shape.dimension(1))};
       const NppiSize dst_size = {static_cast<int>(cropped_width_),
                                  static_cast<int>(cropped_height_)};
-      const NppiRect dst_roi = {0, 0, static_cast<int>(cropped_width_), static_cast<int>(cropped_height_)};
+      const NppiRect dst_roi = {0, 0, static_cast<int>(cropped_width_),
+                                      static_cast<int>(cropped_height_)};
 
       const uint8_t * src_buffer = scratch_buffer_process_->pointer();
       uint8_t * dst_buffer = scratch_buffer_resize_->pointer();
 
-      NppStatus status = nppiResize_8u_C1R(src_buffer, src_size.width, src_size, src_roi, 
-                                           dst_buffer, dst_size.width, dst_size, dst_roi, 
+      NppStatus status = nppiResize_8u_C1R(src_buffer, src_size.width, src_size, src_roi,
+                                           dst_buffer, dst_size.width, dst_size, dst_roi,
                                            NPPI_INTER_CUBIC);
 
       if (status != NPP_SUCCESS) {
@@ -286,7 +290,6 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 }
 
 void SegmentationPostprocessorOp::start() {
-
   const std::string network_output_type = network_output_type_.get();
   if (network_output_type == "sigmoid") {
     network_output_type_value_ = NetworkOutputType::kSigmoid;

@@ -20,18 +20,15 @@
 
 #include "opengl_utils.hpp"
 
-const std::string vertex_shader_source  = 
+const std::string vertex_shader_source =
   #include "glsl/viewport_filling_triangle.vert"
 ;
 
-const std::string fragment_shader_source = 
+const std::string fragment_shader_source =
   #include "glsl/video_frame.frag"
 ;
 
-
 namespace holoscan::orsi {
-
-
 
 gxf_result_t VideoFrame::start(bool swizzleVideo) {
   glGenVertexArrays(1, &vao_);
@@ -72,7 +69,8 @@ gxf_result_t VideoFrame::start(bool swizzleVideo) {
 
 gxf_result_t VideoFrame::tick(GLuint video_tex, GLenum video_tex_filter, GLuint preop_mesh_tex,
                               GLenum preop_mesh_filter, GLuint tool_mask_tex,
-                              GLenum tool_mask_filter, bool applyInstrumentOverlayEffect, bool applyAnonymizationEffect) {
+                              GLenum tool_mask_filter, bool applyInstrumentOverlayEffect,
+                              bool applyAnonymizationEffect) {
   glActiveTexture(GL_TEXTURE0);
 
   glBindSampler(0, surgical_video_sampler_);
@@ -95,7 +93,6 @@ gxf_result_t VideoFrame::tick(GLuint video_tex, GLenum video_tex_filter, GLuint 
   glUseProgram(program_);
   glProgramUniform1i(program_, 2, applyInstrumentOverlayEffect);
   glProgramUniform1i(program_, 3, applyAnonymizationEffect);
-  
 
   glBindVertexArray(vao_);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);

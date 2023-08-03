@@ -1,3 +1,20 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #pragma once
 
 #ifndef NVIDIA_CLARA_HOLOSCAN_GXF_ORSI_VTK_VIEW_HPP_
@@ -21,7 +38,6 @@ namespace holoscan::orsi {  // namespace visualizer_orsi
 
 class VtkView {
  private:
-  
   static void isCurrentCallbackFn(vtkObject* caller, long unsigned int eventId, void* clientData,
                                   void* callData);
 
@@ -35,8 +51,8 @@ class VtkView {
   int32_t vp_width_ = 0;
   int32_t vp_height_ = 0;
   bool realloc_texture = false;
-  
-  std::map<std::string,vtkSmartPointer<vtkActor>> m_;
+
+  std::map<std::string, vtkSmartPointer<vtkActor>> m_;
   std::map<std::string, bool> part_visible_map_;
 
   bool visibility_all_ = true;
@@ -48,7 +64,6 @@ class VtkView {
   std::vector<int> stl_keys_;
 
  public:
-  
   VtkView() = default;
   ~VtkView() = default;
 
@@ -92,5 +107,5 @@ class VtkView {
   unsigned int getTexture() const;
 };
 
-}
-#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_ORSI_VTK_VIEW_HPP_
+}  // namespace holoscan::orsi
+#endif

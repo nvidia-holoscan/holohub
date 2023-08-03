@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,17 +56,16 @@ __forceinline__ __device__ uint32_t hw1_to_index(Shape shape, uint32_t y, uint32
 }
 
 template <enum DataFormat data_format>
-__global__ void preprocessing_kernel(Shape shape, const float* input, float* output, float* means, float* stds) {
+__global__ void preprocessing_kernel(Shape shape, const float* input, float* output, float* means,
+                                                                                      float* stds) {
   const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
   if ((x >= shape.width) || (y >= shape.height)) { return; }
-  
 
   for (uint32_t c = 0; c < shape.channels; c++) {
     output[data_format_to_index<data_format>(shape, y, x, c)] =
         (input[data_format_to_index<data_format>(shape, y, x, c)] - means[c]) / stds[c];
-
   }
 }
 
@@ -75,22 +74,23 @@ uint16_t ceil_div(uint16_t numerator, uint16_t denominator) {
   return accumulator / denominator;
 }
 
-void cuda_preprocess(enum DataFormat data_format, Shape shape, const float* input, float* output, float* means, float* stds) {
+void cuda_preprocess(enum DataFormat data_format, Shape shape, const float* input, float* output,
+                                                                      float* means, float* stds) {
   dim3 block(32, 32, 1);
   dim3 grid(ceil_div(shape.width, block.x), ceil_div(shape.height, block.y), 1);
- 
+
   switch (data_format) {
-        case DataFormat::kNCHW:
-          preprocessing_kernel<DataFormat::kNCHW><<<grid, block>>>(shape, input, output, means, stds);
-          break;
-        case DataFormat::kHWC:
-          preprocessing_kernel<DataFormat::kHWC><<<grid, block>>>(shape, input, output, means, stds);
-          break;
-        case DataFormat::kNHWC:
-          preprocessing_kernel<DataFormat::kNHWC><<<grid, block>>>(shape, input, output,  means, stds);
-          break;
+    case DataFormat::kNCHW:
+      preprocessing_kernel<DataFormat::kNCHW><<<grid, block>>>(shape, input, output, means, stds);
+      break;
+    case DataFormat::kHWC:
+      preprocessing_kernel<DataFormat::kHWC><<<grid, block>>>(shape, input, output, means, stds);
+      break;
+    case DataFormat::kNHWC:
+      preprocessing_kernel<DataFormat::kNHWC><<<grid, block>>>(shape, input, output,  means, stds);
+      break;
       }
 }
 
 }  // namespace segmentation_preprocessor
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::orsi

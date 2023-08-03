@@ -27,7 +27,6 @@
 #include <string>
 #include <vector>
 
-
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
@@ -43,7 +42,7 @@ namespace holoscan::ops::orsi {
 class OrsiVisualizationOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(OrsiVisualizationOp)
-  
+
   void setup(OperatorSpec& spec) override;
   void initialize() override;
   void start() override;
@@ -61,13 +60,12 @@ class OrsiVisualizationOp : public Operator {
   void onScrollCallback(double x, double y);
   void onKeyCallback(int key, int scancode, int action, int mods);
 
- protected: 
+ protected:
   // pointer to vis implementation
   std::unique_ptr<holoscan::orsi::vis::VisIntf> pimpl_;
 
  private:
-
-   // GLFW members and callback
+  // GLFW members and callback
   GLFWwindow* window_ = nullptr;
   // GL viewport
   int vp_width_ = 0;
@@ -77,8 +75,7 @@ class OrsiVisualizationOp : public Operator {
   Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::shared_ptr<BooleanCondition>> window_close_scheduling_term_;
 
-  CudaStreamHandler cuda_stream_handler_; 
+  CudaStreamHandler cuda_stream_handler_;
 };
 
-}  // namespace holoscan::ops
-
+}  // namespace holoscan::ops::orsi

@@ -25,28 +25,26 @@ void GLAPIENTRY OpenGLDebugMessageCallback(GLenum source, GLenum type, GLuint id
                                            GLsizei length, const GLchar* message,
                                            const void* userParam);
 
-// FBO 
+// FBO
 
-struct Tex2DFBO
-{
+struct Tex2DFBO {
     GLuint  fbo_ = 0;
     GLuint  tex_ = 0;
     int32_t width_, height_;
 
-    void resize(const int32_t width, const int32_t height)
-    {
-        if(fbo_ != 0 && width_ == width && height_ == height) { return; }
+    void resize(const int32_t width, const int32_t height)  {
+        if (fbo_ != 0 && width_ == width && height_ == height) { return; }
 
-        width_ = width; 
+        width_ = width;
         height_ = height;
 
-        if(!fbo_) {
+        if (!fbo_) {
           glGenFramebuffers(1, &fbo_);
         }
 
         GLuint tex2delete(tex_);
         glCreateTextures(GL_TEXTURE_2D, 1, &tex_);
-        if(tex2delete) {
+        if (tex2delete) {
             glDeleteTextures(1, &tex2delete);
         }
         // allocate 2D texture storage
@@ -55,40 +53,34 @@ struct Tex2DFBO
         glNamedFramebufferTexture(fbo_,  GL_COLOR_ATTACHMENT0, tex_, 0);
     }
 
-    void bind()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+    void bind() {
+      glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     }
 
-    void destroy()
-    {
-        glDeleteTextures(1, &tex_);
-        glDeleteFramebuffers(1, &fbo_);
+    void destroy() {
+      glDeleteTextures(1, &tex_);
+      glDeleteFramebuffers(1, &fbo_);
     }
 };
 
-
-
-struct RenderBufferFBO
-{
+struct RenderBufferFBO {
     GLuint  fbo_ = 0;
     GLuint  rb_ = 0;
     int32_t width_, height_;
 
-    void resize(const int32_t width, const int32_t height)
-    {
-        if(fbo_ != 0 && width_ == width && height_ == height) { return; }
+    void resize(const int32_t width, const int32_t height) {
+        if (fbo_ != 0 && width_ == width && height_ == height) { return; }
 
-        width_ = width; 
+        width_ = width;
         height_ = height;
 
-        if(!fbo_) {
+        if (!fbo_) {
           glGenFramebuffers(1, &fbo_);
         }
 
         GLuint rb2delete(rb_);
         glCreateRenderbuffers(1, &rb_);
-        if(rb2delete) {
+        if (rb2delete) {
             glDeleteRenderbuffers(1, &rb2delete);
         }
         // allocate render buffer storage
@@ -97,21 +89,18 @@ struct RenderBufferFBO
         glNamedFramebufferRenderbuffer(fbo_,  GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rb_);
     }
 
-    void bind()
-    {
+    void bind() {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     }
 
-    void destroy()
-    {
+    void destroy() {
         glDeleteRenderbuffers(1, &rb_);
         glDeleteFramebuffers(1, &fbo_);
     }
 };
 
-// GLSL 
+// GLSL
 
 bool createGLSLShader(GLenum shader_type, GLuint& shader, const char* shader_src);
 
 bool linkGLSLProgram(const GLuint vertex_shader, const GLuint fragment_shader, GLuint& program);
-

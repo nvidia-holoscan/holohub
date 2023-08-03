@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,8 @@ typedef uint8_t output_type_t;
 
 static constexpr size_t kMaxChannelCount = std::numeric_limits<output_type_t>::max();
 
-void cuda_preprocess(enum DataFormat data_format, Shape shape, const float* input, float* output, float* means, float* stds);
+void cuda_preprocess(enum DataFormat data_format, Shape shape, const float* input, float* output,
+                                                                       float* means, float* stds);
 
 
 }  // namespace segmentation_preprocessor

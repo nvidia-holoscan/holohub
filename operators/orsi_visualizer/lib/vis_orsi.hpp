@@ -34,7 +34,6 @@
 #include "vtk_view.hpp"
 
 struct cudaGraphicsResource;
-
 namespace holoscan::orsi {
 
 /// @brief Visualization Codelet for Instrument Tracking and Overlay
@@ -44,15 +43,14 @@ namespace holoscan::orsi {
 /// The visualizer renders the location and text of an instrument and optionally displays the
 /// model's confidence score.
 class OrsiVis : public holoscan::orsi::vis::VisIntf {
-
-public:
-
+ public:
   static holoscan::orsi::vis::VisIntf* Create() { return new OrsiVis(); }
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;
   void start() override;
-  void compute(const std::unordered_map<std::string, holoscan::orsi::vis::BufferInfo>& input_buffers) override;
+  void compute(const std::unordered_map<std::string,
+                                        holoscan::orsi::vis::BufferInfo>& input_buffers) override;
   void stop() override;
 
 
@@ -66,11 +64,8 @@ public:
   void onKeyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods);
 
  private:
-
-
   // Videoframe Vis related members
   // --------------------------------------------------------------------
-
   bool use_cuda_opengl_interop_ = true;
   VideoFrame video_frame_vis_;
 
@@ -110,7 +105,6 @@ public:
   VtkView vtk_view_;
   bool enable_model_manip_ = false;
   bool first_frame_ = true;
-
 };
 
 }  // namespace holoscan::orsi
