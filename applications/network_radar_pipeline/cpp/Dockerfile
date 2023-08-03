@@ -1,0 +1,61 @@
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.0
+
+ARG HOLOHUB_DIR=/opt/holohub-internal
+
+# Architecture / version parameters
+# "x86_64" OR "aarch64"
+ARG ARCH=x86_64
+# "arm64" OR "amd64"
+ARG DEB_ARCH=amd64
+
+ARG OFED_VERSION=5.8-1.0.1.1
+ARG UBUNTU_VERSION=20.04
+ARG DPDK_VERSION=22.11.1
+ARG NATS_VER=v2.9.8
+ARG NATS_FILE=nats-server-${NATS_VER}-${DEB_ARCH}.deb
+
+# Mellanox OFED
+ARG MLNX_FILE=MLNX_OFED_LINUX-${OFED_VERSION}-ubuntu${UBUNTU_VERSION}-${ARCH}
+RUN wget http://www.mellanox.com/downloads/ofed/MLNX_OFED-${OFED_VERSION}/${MLNX_FILE}.tgz && \
+        tar xvf ${MLNX_FILE}.tgz && \
+        cd ${MLNX_FILE} && \
+        ./mlnxofedinstall --upstream-libs --dpdk --with-mft --upstream-libs --user-space-only --force --without-fw-update && \
+        cd ../ && \
+        rm -fr ${MLNX_FILE} && \
+        rm -rf /var/lib/apt/lists/*
+
+RUN apt update && apt install -y python3-pyelftools ninja-build meson libbsd-dev sudo
+
+# Download and unzip DPDK
+ADD https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz /tmp/
+RUN cd /tmp && tar xf dpdk-${DPDK_VERSION}.tar.xz
+
+# Setup DPDK and apply patches from advanced network operator
+ARG ADV_NET_DIR=holohub-internal/operators/advanced_network/
+COPY deploy/dpdk_patches/*.patch /tmp/dpdk-stable-${DPDK_VERSION}/
+COPY ${ADV_NET_DIR}/dpdk_patches/*.patch /tmp/dpdk-stable-${DPDK_VERSION}
+
+WORKDIR /tmp/dpdk-stable-${DPDK_VERSION}/
+RUN patch --ignore-whitespace --fuzz 3 config/arm/meson.build /tmp/dpdk-stable-${DPDK_VERSION}/dpdk.nvidia.patch
+RUN patch --ignore-whitespace --fuzz 3 drivers/gpu/cuda/devices.h /tmp/dpdk-stable-${DPDK_VERSION}/devices.h.patch
+RUN patch --ignore-whitespace --fuzz 3 drivers/gpu/cuda/cuda.c /tmp/dpdk-stable-${DPDK_VERSION}/cuda.c.patch
+RUN CFLAGS=-I/usr/local/cuda/include meson build -Dplatform=generic -Dc_args=-I/usr/local/cuda/include \
+        -Ddisabled_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,\
+        common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,\
+        net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,\
+        net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2
+RUN ninja -C build install
+RUN rm /tmp/dpdk-${DPDK_VERSION}.tar.xz
+
+# Build application
+ADD holohub-internal ${HOLOHUB_DIR}
+WORKDIR ${HOLOHUB_DIR}
+RUN ls -lart ${HOLOHUB_DIR}
+RUN ./run build network_radar_pipeline
+
+WORKDIR /tmp/
+RUN wget https://github.com/nats-io/nats-server/releases/download/${NATS_VER}/${NATS_FILE} && \
+        dpkg -i ${NATS_FILE}
+RUN rm /tmp/${NATS_FILE}
+
+RUN pip3 install scipy plotly plotly_express matplotlib dash dash_bootstrap_components nats-py loguru attrs

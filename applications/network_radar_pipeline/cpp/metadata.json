@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "Networked Radar Pipeline",
+		"authors": [
+			{
+				"name": "Dylan Eustice",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.5.0",
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
+		"ranking": 1,
+		"dependencies": {
+			"operators": [{
+				"name": "basic_network",
+				"version": "1.0"
+			}, {
+				"name": "advanced_network",
+				"version": "1.0"
+			}],
+			"libraries": [{
+			  "name": "MatX",
+			  "version": "0.2.5",
+			  "url": "https://github.com/NVIDIA/MatX.git"
+			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/network_radar_pipeline",
+			"workdir": "holohub_bin"
+		}
+	}
+}
