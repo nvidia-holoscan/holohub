@@ -144,30 +144,27 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   const auto& in_shape = in_tensor->shape();
   const auto in_rank = in_shape.size();
 
+  if(in_rank != 4) {
+    throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported rank: 4!", in_rank));
+  }
+
   segmentation_postprocessor::Shape shape = {};
-  if(in_rank == 4) {
-    switch (data_format_value_) {
-      case DataFormat::kHWC: {
-        shape.height = in_tensor->shape()[0];
-        shape.width = in_tensor->shape()[1];
-        shape.channels = in_tensor->shape()[2];
-      } break;
-      case DataFormat::kNCHW: {
-        shape.channels = in_tensor->shape()[1];
-        shape.height = in_tensor->shape()[2];
-        shape.width = in_tensor->shape()[3];
-      } break;
-      case DataFormat::kNHWC: {
-        shape.height = in_tensor->shape()[1];
-        shape.width = in_tensor->shape()[2];
-        shape.channels = in_tensor->shape()[3];
-      } break;
-    }
-  } else if (in_rank == 2) { 
-     shape.width  = in_tensor->shape()[0];
-     shape.height = in_tensor->shape()[1];
-  } else {
-    throw std::runtime_error(fmt::format("Unsupported input tensor rank {}. Supported ranks: 2 or 4!", in_rank));
+  switch (data_format_value_) {
+    case DataFormat::kHWC: {
+      shape.height = in_tensor->shape()[0];
+      shape.width = in_tensor->shape()[1];
+      shape.channels = in_tensor->shape()[2];
+    } break;
+    case DataFormat::kNCHW: {
+      shape.channels = in_tensor->shape()[1];
+      shape.height = in_tensor->shape()[2];
+      shape.width = in_tensor->shape()[3];
+    } break;
+    case DataFormat::kNHWC: {
+      shape.height = in_tensor->shape()[1];
+      shape.width = in_tensor->shape()[2];
+      shape.channels = in_tensor->shape()[3];
+    } break;
   }
 
   if (static_cast<size_t>(shape.channels) > kMaxChannelCount) {
@@ -212,8 +209,9 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
     
     nvidia::gxf::PrimitiveType out_primitive_type = out_tensor.value()->element_type();
 
-    auto resize_result = resizeImage(out_tensor_data.value(), output_shape.dimension(0), output_shape.dimension(1), output_shape.dimension(2), out_primitive_type,
-                                     	  cropped_width_, cropped_height_);
+    auto resize_result = resizeImage(out_tensor_data.value(), 
+                                     output_shape.dimension(0), output_shape.dimension(1), output_shape.dimension(2), 
+                                     out_primitive_type, cropped_width_, cropped_height_);
 
     if (!resize_result) {
       throw std::runtime_error("Failed to resize output image.");
