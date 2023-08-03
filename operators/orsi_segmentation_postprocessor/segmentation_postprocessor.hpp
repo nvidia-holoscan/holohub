@@ -75,7 +75,8 @@ class SegmentationPostprocessorOp : public Operator {
                    const int32_t resize_width,
                    const int32_t resize_height);
 
-   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_;
+   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_process_;
+   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_resize_;
 };
 
 }  // namespace holoscan::ops::orsi
