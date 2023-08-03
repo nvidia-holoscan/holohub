@@ -172,12 +172,25 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
         "Input channel count larger than allowed: {} > {}", shape.channels, kMaxChannelCount));
   }
 
+
+  nvidia::gxf::Shape scratch_buffer_size { shape.height, shape.width, 1};
+
   // Create a new message (nvidia::gxf::Entity)
   auto out_message = nvidia::gxf::Entity::New(context.context());
 
   const std::string out_tensor_name = out_tensor_name_.get();
   auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name.c_str());
   if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
+
+  std::cout << __FUNCTION__ << "Input Shape: ["  << shape.height << ", " << shape.width << ", " <<  shape.channels  << "]" << std::endl;
+
+  const bool roi_enabled = cropped_width_ > 0 && cropped_height_ > 0;
+  if(roi_enabled) {
+    std::cout << __FUNCTION__ << "ROI : ["  << offset_x_  << ", " << offset_y_ << ", " << cropped_width_ << ", " << cropped_height_ << "]" << std::endl;
+    std::cout << __FUNCTION__ << "Output Shape: ["  << resolution_width_  << ", " << resolution_height_ << "]" << std::endl;
+  } else {
+    std::cout << __FUNCTION__ << "Ouput Shape: ["  << shape.height << ", " << shape.width << "]" << std::endl;
+  }
 
   // Allocate and convert output buffer on the device.
   nvidia::gxf::Shape output_shape{shape.height, shape.width, 1};
