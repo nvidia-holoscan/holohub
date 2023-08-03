@@ -30,6 +30,7 @@ if(VIDEO_MASTER_SDK_FOUND)
     list(APPEND HOLOSCAN_OPERATORS  videomaster)
 endif()
 
+add_subdirectory(lib)
 
 add_holohub_application(orsi_multi_ai_ar DEPENDS
                         OPERATORS ${HOLOSCAN_OPERATORS})
