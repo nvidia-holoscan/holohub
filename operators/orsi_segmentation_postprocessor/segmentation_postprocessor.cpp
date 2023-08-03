@@ -35,35 +35,15 @@
 #include "holoscan/core/resources/gxf/allocator.hpp"
 #include "holoscan/core/resources/gxf/cuda_stream_pool.hpp"
 
+using holoscan::ops::segmentation_postprocessor::cuda_postprocess;
+using holoscan::ops::segmentation_postprocessor::DataFormat;
+using holoscan::ops::segmentation_postprocessor::NetworkOutputType;
+using holoscan::ops::segmentation_postprocessor::output_type_t;
+using holoscan::ops::segmentation_postprocessor::Shape;
 
-// TODO: consider to add this as utility macro in Holoscan SDK
-#define CUDA_TRY(stmt)                                                                     \
-  ({                                                                                       \
-    cudaError_t _holoscan_cuda_err = stmt;                                                 \
-    if (cudaSuccess != _holoscan_cuda_err) {                                               \
-      HOLOSCAN_LOG_ERROR("CUDA Runtime call %s in line %d of file %s failed with '%s' (%d).\n", \
-                    #stmt,                                                                 \
-                    __LINE__,                                                              \
-                    __FILE__,                                                              \
-                    cudaGetErrorString(_holoscan_cuda_err),                                \
-                    _holoscan_cuda_err);                                                   \
-    }                                                                                      \
-    _holoscan_cuda_err;                                                                    \
-  })
-
-using holoscan::ops::orsi::segmentation_postprocessor::cuda_postprocess;
 using holoscan::ops::orsi::segmentation_postprocessor::cuda_resize;
-using holoscan::ops::orsi::segmentation_postprocessor::DataFormat;
-using holoscan::ops::orsi::segmentation_postprocessor::NetworkOutputType;
-using holoscan::ops::orsi::segmentation_postprocessor::output_type_t;
-using holoscan::ops::orsi::segmentation_postprocessor::Shape;
 
 namespace holoscan::ops::orsi {
-
-// Utility sigmoid function for on host compute
-double sigmoid(double a) {
-      return 1.0 / (1.0 + exp(-a)); 
-}
 
 void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
   auto& in_tensor = spec.input<gxf::Entity>("in_tensor");
@@ -75,7 +55,8 @@ void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
   spec.param(in_tensor_name_,
              "in_tensor_name",
              "InputTensorName",
-             "Name of the input tensor.");
+             "Name of the input tensor.",
+             std::string());
   spec.param(network_output_type_,
              "network_output_type",
              "NetworkOutputType",
@@ -91,34 +72,35 @@ void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
   spec.param(out_tensor_name_,
              "out_tensor_name",
              "OutputTensorName",
-             "Name of the output tensor.");
-  spec.param(cropped_width_, 
-            "cropped_width", 
+             "Name of the output tensor.",
+             std::string());
+  spec.param(cropped_width_,
+            "cropped_width",
             "Cropped width",
             "Width for the reverse cropping. No actions if this value is zero.",
             0);
-  spec.param(cropped_height_, 
-            "cropped_height", 
+  spec.param(cropped_height_,
+            "cropped_height",
             "Cropped height",
             "Height for the reverse cropping. No actions if this value is zero.",
             0);
-  spec.param(offset_x_, 
-            "offset_x", 
+  spec.param(offset_x_,
+            "offset_x",
             "Offset x",
             "X coordinate of the top left corner from which the image resizing starts.",
             0);
-  spec.param(offset_y_, 
-            "offset_y", 
+  spec.param(offset_y_,
+            "offset_y",
             "Offset y",
             "Y coordinate of the top left corner from which the image resizing starts.",
             0);
-  spec.param(resolution_width_, 
-             "resolution_width", 
+  spec.param(resolution_width_,
+             "resolution_width",
              "Resolution width",
-             "Width for the output resolution.", 
+             "Width for the output resolution.",
              1920);
-  spec.param(resolution_height_, 
-             "resolution_height", 
+  spec.param(resolution_height_,
+             "resolution_height",
              "Resolution height",
              "Height for the output resolution.",
              1080);
@@ -218,24 +200,12 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
 
-  // process small tensor on host and not on GPU.
-  if(network_output_type_value_ == NetworkOutputType::kRawValues && shape.height == 1 && shape.width == 1 && shape.channels == 1) {
-
-    cudaError_t cuda_rv = cudaSuccess;
-
-    float in_tensor_host = -1.0f;
-    cuda_rv = CUDA_TRY(cudaMemcpy(&in_tensor_host, in_tensor_data, sizeof(float), cudaMemcpyDeviceToHost));
-    const double sigmoid_value = sigmoid(in_tensor_host);
-    const uint8_t sigmoid_result = sigmoid_value  > 0.5 ? 1 : 0;
-    cuda_rv = CUDA_TRY(cudaMemcpy(out_tensor_data.value(), (void *) &sigmoid_result, sizeof(uint8_t), cudaMemcpyHostToDevice)); // works
-  } else {
-    cuda_postprocess(network_output_type_value_,
-                    data_format_value_,
-                    shape,
-                    in_tensor_data,
-                    out_tensor_data.value(),
-                    cuda_stream_handler_.getCudaStream(context.context()));
-  }
+  cuda_postprocess(network_output_type_value_,
+                  data_format_value_,
+                  shape,
+                  in_tensor_data,
+                  out_tensor_data.value(),
+                  cuda_stream_handler_.getCudaStream(context.context()));
 
 
   if (cropped_width_ > 0 && cropped_height_ > 0) {
@@ -282,10 +252,7 @@ void SegmentationPostprocessorOp::start() {
     network_output_type_value_ = NetworkOutputType::kSigmoid;
   } else if (network_output_type == "softmax") {
     network_output_type_value_ = NetworkOutputType::kSoftmax;
-  } else if(network_output_type == "raw") {
-    network_output_type_value_ = NetworkOutputType::kRawValues;
-  }
-  else {
+  } else {
     throw std::runtime_error(
         fmt::format("Unsupported network output type {}", network_output_type));
   }
