@@ -33,6 +33,7 @@ set(LINK_LIBRARIES
    holoscan::orsi::segmentation_postprocessor
    holoscan::orsi::segmentation_preprocessor
    holoscan::orsi::visualizer
+   orsi_app_lib
 )
 
 set(VIDEOMASTER_OPERATOR "")

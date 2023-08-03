@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-#include <getopt.h>
 
 #include <holoscan/holoscan.hpp>
 
@@ -33,31 +32,10 @@
 #include <segmentation_preprocessor.hpp>
 #include <orsi_visualizer.hpp>
 
+#include  <orsi_app.hpp>
+class App : public OrsiApp {
 
-enum class VideoSource { 
-  REPLAYER, 
-#ifdef USE_VIDEOMASTER
-  VIDEOMASTER
-#endif
-};
-
-class App : public holoscan::Application {
- private:
-  VideoSource video_source_ = VideoSource::REPLAYER;
-  std::string datapath = "data";
-
- public:
-  void set_source(const std::string& source) {
-    #ifdef USE_VIDEOMASTER
-    if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
-    #endif
-    if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
-  }
-
-  void set_datapath(const std::string& path) {
-     datapath = path;
-  }
-
+public:
 
   void compose() override {
     using namespace holoscan;
@@ -214,58 +192,17 @@ class App : public holoscan::Application {
   }
 };
 
-/** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {
-      {"data",    required_argument, 0,  'd' },
-      {0,         0,                 0,  0 }
-  };
-
-  while (int c = getopt_long(argc, argv, "d",
-                   long_options, NULL))  {
-    if (c == -1 || c == '?') break;
-
-    switch (c) {
-      case 'd':
-        data_path = optarg;
-        break;
-      default:
-        std::cout << "Unknown arguments returned: " << c << std::endl;
-        return false;
-    }
-  }
-
-  if (optind < argc) {
-    config_name = argv[optind++];
-  }
-  return true;
-}
 
 int main(int argc, char** argv) {
   holoscan::set_log_level(holoscan::LogLevel::ERROR);
 
   auto app = holoscan::make_application<App>();
-
-  // Parse the arguments
-  std::string data_path = "";
-  std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) {
+  // Parse the arguments, set source, datapath, config file
+  if(!app->init(argc, argv)) {
     return 1;
   }
 
-  if (config_name != "") {
-    app->config(config_name);
-  } else {
-    auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/app_config.yaml";
-    app->config(config_path);
-  }
-
-  auto source = app->from_config("source").as<std::string>();
-  app->set_source(source);
-  if (data_path != "") app->set_datapath(data_path);
-
-  auto& tracker = app->track();
+  auto& tracker = app->track(); 
   app->run();
   std::cout << "// Application::run completed. Printing tracker results" << std::endl;
   tracker.print();
