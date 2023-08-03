@@ -24,7 +24,9 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 // Holohub operators
+#ifdef USE_VIDEOMASTER
 #include <videomaster_source.hpp>
+#endif
 // Orsi: Holoscan native operators
 #include <format_converter.hpp>
 #include <segmentation_postprocessor.hpp>
@@ -32,7 +34,13 @@
 #include <orsi_visualizer.hpp>
 
 
-enum class VideoSource { REPLAYER, VIDEOMASTER };
+enum class VideoSource { 
+  REPLAYER, 
+#ifdef USE_VIDEOMASTER
+  VIDEOMASTER
+#endif
+};
+
 
 class App : public holoscan::Application {
  private:
@@ -41,7 +49,9 @@ class App : public holoscan::Application {
 
  public:
   void set_source(const std::string& source) {
+    #ifdef USE_VIDEOMASTER
     if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
+    #endif
     if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
   }
 
@@ -60,12 +70,14 @@ class App : public holoscan::Application {
 
 
     switch (video_source_) {
+#ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
         source = make_operator<ops::VideoMasterSourceOp>(
             "videomaster",
             from_config("videomaster"),
             Arg("pool") = allocator_resource);
         break;
+#endif
       default:
         source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                             Arg("directory", datapath + "/video"));
@@ -85,6 +97,7 @@ class App : public holoscan::Application {
     // Format conversion operators
     //
 
+#ifdef USE_VIDEOMASTER
     if (video_source_ == VideoSource::VIDEOMASTER) {
       uint64_t drop_alpha_block_size = width * height * n_channels * bpp;
       uint64_t drop_alpha_num_blocks = 2;
@@ -95,16 +108,25 @@ class App : public holoscan::Application {
               "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
           Arg("cuda_stream_pool") = cuda_stream_pool);
     }
+#endif
 
     int width_preprocessor = 1264;
     int height_preprocessor = 1080;
     uint64_t preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * bpp;
     uint64_t preprocessor_num_blocks = 2;
+
+    std::string video_format_converter_in_tensor_name = "";
+#ifdef USE_VIDEOMASTER
+    if(video_source_ == VideoSource::VIDEOMASTER) {
+      video_format_converter_in_tensor_name = "source_video";
+    }
+#endif
+
     auto format_converter = make_operator<ops::orsi::FormatConverterOp>(
         "format_converter",
         from_config("format_converter"),
         Arg("in_tensor_name",
-            std::string(video_source_ == VideoSource::VIDEOMASTER ? "source_video" : "")),
+            video_format_converter_in_tensor_name),
             Arg("allocator") = allocator_resource);
 
     // -------------------------------------------------------------------------------------
@@ -153,11 +175,14 @@ class App : public holoscan::Application {
 
     // Flow definition
     switch (video_source_) {
+
+#ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
         add_flow(source, segmentation_visualizer, {{"signal", "receivers"}});
         add_flow(source, drop_alpha_channel, {{"signal", ""}});
         add_flow(drop_alpha_channel, format_converter);
         break;
+#endif
       case VideoSource::REPLAYER:
       default:
         add_flow(source, segmentation_visualizer, {{"", "receivers"}});
