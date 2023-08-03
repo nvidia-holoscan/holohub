@@ -84,31 +84,4 @@ add_holohub_application(volume_rendering DEPENDS
                                   volume_renderer
                         HOLOSCAN_SAMPLE_APP)
 
-
-# Orsi
-add_holohub_application(orsi_multi_ai_ar DEPENDS
-                        OPERATORS orsi_visualizer_deprecated
-                                  orsi_format_converter
-                                  orsi_segmentation_postprocessor
-                                  orsi_segmentation_preprocessor
-                                  orsi_visualizer
-                                  videomaster
-                        )
-
-add_holohub_application(orsi_in_out_body DEPENDS
-OPERATORS orsi_visualizer_deprecated
-        orsi_format_converter
-        orsi_segmentation_postprocessor
-        orsi_segmentation_preprocessor
-        orsi_visualizer
-        videomaster
-)
-
-add_holohub_application(orsi_segmentation_ar DEPENDS
-OPERATORS orsi_visualizer_deprecated
-        orsi_format_converter
-        orsi_segmentation_postprocessor
-        orsi_segmentation_preprocessor
-        orsi_visualizer
-        videomaster
-)
+add_subdirectory(orsi)
