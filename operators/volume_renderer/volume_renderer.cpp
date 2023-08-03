@@ -569,7 +569,6 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   const std::shared_ptr<VideoBufferBlob> color_buffer_blob(new VideoBufferBlob(color_buffer));
   std::shared_ptr<VideoBufferBlob> depth_buffer_blob;
   if (depth_buffer) { depth_buffer_blob = std::make_shared<VideoBufferBlob>(depth_buffer); }
-  auto w = color_buffer->video_frame_info().width;
   impl_->image_service_->Render(color_buffer->video_frame_info().width,
                                 color_buffer->video_frame_info().height,
                                 color_buffer_blob,
@@ -603,7 +602,7 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     if (cudaEventRecord(cuda_event->event().value(), impl_->stream_) != cudaSuccess) {
       throw std::runtime_error("cudaEventRecord failed");
     }
-    output.emit(depth_message, "depth_buffer_out");
+    output.emit(depth_message.value(), "depth_buffer_out");
   }
 }
 
