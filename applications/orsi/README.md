@@ -59,17 +59,17 @@ This folder contains three sample applications
 **1. orsi_in_out_body** 
 
 ```bash
-./run launch orsi/orsi_in_out_body cpp
+./run launch orsi_in_out_body cpp
 ```
 
 **2. orsi_segmentation_ar** 
 
 ```bash
-./run launch orsi/orsi_segmentation_ar cpp
+./run launch orsi_segmentation_ar cpp
 ```
 
 **3. orsi_multi_ai_ar** 
 
 ```bash
-./run launch orsi/orsi_multi_ai_ar cpp
+./run launch orsi_multi_ai_ar cpp
 ```
