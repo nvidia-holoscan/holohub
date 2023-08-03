@@ -230,7 +230,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
       throw std::runtime_error("Failed to resize output image.");
     }
 
-    const auto converted_tensor_ptr = resize_buffer_->pointer();
+    const auto converted_tensor_ptr = scratch_buffer_->pointer();
 
     output_shape = nvidia::gxf::Shape{resolution_height_, resolution_width_, 1};
     out_tensor.value()->reshape<uint8_t>(output_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
@@ -256,7 +256,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
 void SegmentationPostprocessorOp::start() {
 
-  resize_buffer_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
+  scratch_buffer_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
 
   const std::string network_output_type = network_output_type_.get();
   if (network_output_type == "sigmoid") {
@@ -282,7 +282,7 @@ void SegmentationPostprocessorOp::start() {
 
 
 void SegmentationPostprocessorOp::stop() {
-  resize_buffer_.reset();
+  scratch_buffer_.reset();
 }
 
 
@@ -292,7 +292,7 @@ nvidia::gxf::Expected<void*> SegmentationPostprocessorOp::resizeImage(
                                  const nvidia::gxf::PrimitiveType primitive_type,
                                  const int32_t resize_width,
                                  const int32_t resize_height) {
-  if (resize_buffer_->size() == 0) {
+  if (scratch_buffer_->size() == 0) {
 
     auto frag = fragment();
     // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
@@ -300,10 +300,10 @@ nvidia::gxf::Expected<void*> SegmentationPostprocessorOp::resizeImage(
                                                                     allocator_->gxf_cid());
 
     uint64_t buffer_size = resize_width * resize_height * channels;
-    resize_buffer_->resize(pool.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
+    scratch_buffer_->resize(pool.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
   }
 
-  const auto converted_tensor_ptr = resize_buffer_->pointer();
+  const auto converted_tensor_ptr = scratch_buffer_->pointer();
   if (converted_tensor_ptr == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to allocate memory for the resizing image");
     return nvidia::gxf::ExpectedOrCode(GXF_FAILURE, nullptr);
