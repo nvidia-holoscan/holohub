@@ -37,3 +37,7 @@ target_link_libraries(orsi_visualizer
   orsi_visualizer_lib
 )
 
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
+

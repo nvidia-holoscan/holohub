@@ -43,7 +43,7 @@ PRIVATE
   holoscan::ops::segmentation_postprocessor
 )
 
-# TODO
-#if(HOLOHUB_BUILD_PYTHON)
-#    add_subdirectory(python)
-#endif()
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

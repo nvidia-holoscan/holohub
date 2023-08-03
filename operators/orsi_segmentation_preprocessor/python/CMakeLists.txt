@@ -12,29 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.20)
-project(orsi_format_converter)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(orsi_format_converter 
-  SHARED
-  format_converter.hpp
-  format_converter.cpp
-  )
-add_library(holoscan::orsi::format_converter ALIAS orsi_format_converter)
-target_include_directories(orsi_format_converter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(orsi_format_converter 
-PUBLIC
-    holoscan::core
-PRIVATE
-  CUDA::nppidei
-  CUDA::nppig
-  CUDA::nppicc
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET orsi_segmentation_preprocessor
+    CLASS_NAME "OrsiSegmentationPreProcessorOp"
+    SOURCES segmentation_preprocessor.cpp
 )
-
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()

@@ -38,7 +38,6 @@ PUBLIC
     holoscan::core
 )
 
-# TODO
-#if(HOLOHUB_BUILD_PYTHON)
-#    add_subdirectory(python)
-#endif()
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
