@@ -17,35 +17,13 @@
 
 #pragma once
 
-#include <driver_types.h>
-#include <cstdint>
+#include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.cuh>
 
 namespace holoscan::ops::orsi {
 namespace segmentation_postprocessor {
 
-struct Shape {
-  int32_t height;
-  int32_t width;
-  int32_t channels;
-};
+using holoscan::ops::segmentation_postprocessor::Shape;
 
-enum NetworkOutputType {
-  kSigmoid,
-  kSoftmax,
-  kRawValues,
-};
-
-enum DataFormat {
-  kNCHW,
-  kHWC,
-  kNHWC,
-};
-
-typedef uint8_t output_type_t;
-
-void cuda_postprocess(enum NetworkOutputType network_output_type, enum DataFormat data_format,
-                      Shape shape, const float* input, output_type_t* output,
-                      cudaStream_t cuda_stream = cudaStreamDefault);
 
 // TODO: to verify if this function is actually needed. Ideally replace with NPP implementation.
 void cuda_resize(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output, 

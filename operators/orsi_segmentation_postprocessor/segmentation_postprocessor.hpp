@@ -23,10 +23,12 @@
 
 #include "holoscan/core/operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
+
+
 #include "segmentation_postprocessor.cuh"
 
-using holoscan::ops::orsi::segmentation_postprocessor::DataFormat;
-using holoscan::ops::orsi::segmentation_postprocessor::NetworkOutputType;
+using holoscan::ops::segmentation_postprocessor::DataFormat;
+using holoscan::ops::segmentation_postprocessor::NetworkOutputType;
 
 namespace holoscan::ops::orsi {
 
