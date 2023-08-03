@@ -19,8 +19,8 @@
 namespace holoscan::ops {
 
 void BasicConnectorOpRx::setup(OperatorSpec& spec) {
-  spec.input<NetworkOpBurstParams>("burst_in");
-  spec.output<RFArray>("rf_out");
+  spec.input<std::shared_ptr<NetworkOpBurstParams>>("burst_in");
+  spec.output<std::shared_ptr<RFArray>>("rf_out");
   spec.param(max_pkts, "batch_size",
               "Max packets",
               "Max number of packets received", {});
@@ -73,7 +73,7 @@ void BasicConnectorOpRx::initialize() {
 void BasicConnectorOpRx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
-  auto in = op_input.receive<NetworkOpBurstParams>("burst_in");
+  auto in = op_input.receive<std::shared_ptr<NetworkOpBurstParams>>("burst_in").value();
   num_rx += in->num_pkts;
 
   uint8_t *buf_ptr = in->data;

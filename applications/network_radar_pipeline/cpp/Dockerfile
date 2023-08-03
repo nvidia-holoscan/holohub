@@ -1,13 +1,14 @@
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.5.0
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu
 
 ARG HOLOHUB_DIR=/opt/holohub-internal
 
-# Architecture / version parameters
+# Architecture setup
 # "x86_64" OR "aarch64"
 ARG ARCH=x86_64
 # "arm64" OR "amd64"
 ARG DEB_ARCH=amd64
 
+# Version parameters
 ARG OFED_VERSION=5.8-1.0.1.1
 ARG UBUNTU_VERSION=20.04
 ARG DPDK_VERSION=22.11.1

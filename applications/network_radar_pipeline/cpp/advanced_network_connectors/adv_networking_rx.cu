@@ -147,8 +147,8 @@ void place_packet_data(complex_t *out,
 namespace holoscan::ops {
 
 void AdvConnectorOpRx::setup(OperatorSpec& spec) {
-  spec.input<AdvNetBurstParams>("burst_in");
-  spec.output<RFArray>("rf_out");
+  spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+  spec.output<std::shared_ptr<RFArray>>("rf_out");
   spec.param<bool>(hds_,
     "split_boundary",
     "Header-data split boundary",
@@ -237,7 +237,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
                                ExecutionContext& context) {
   //todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
-  auto burst                      = op_input.receive<AdvNetBurstParams>("burst_in");
+  auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
   if (burst->hdr.q_id == 0) { // queue 0 is configured to be non-GPUDirect in yaml config

@@ -20,7 +20,7 @@ namespace holoscan::ops {
 
 // ----- TargetSimulator ------------------------------------------------------
 void TargetSimulator::setup(OperatorSpec& spec) {
-  spec.output<RFChannel>("rf_out");
+  spec.output<std::shared_ptr<RFChannel>>("rf_out");
   spec.param(numTransmits, "numTransmits",
               "Number of waveform transmissions",
               "Number of waveform transmissions to simulate", {});

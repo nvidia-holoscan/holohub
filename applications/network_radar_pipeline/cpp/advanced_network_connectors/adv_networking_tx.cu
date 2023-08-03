@@ -20,8 +20,8 @@
 namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
-  spec.input<RFChannel>("rf_in");
-  spec.output<AdvNetBurstParams>("burst_out");
+  spec.input<std::shared_ptr<RFChannel>>("rf_in");
+  spec.output<std::shared_ptr<AdvNetBurstParams>>("burst_out");
 
   spec.param<uint32_t>(batch_size_,
     "batch_size",
@@ -89,7 +89,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   AdvNetStatus ret;
 
   // Input is pulse/sample data from a single channel
-  auto rf_data = op_input.receive<RFChannel>("rf_in");
+  auto rf_data = op_input.receive<std::shared_ptr<RFChannel>>("rf_in").value();
 
   /**
    * Spin waiting until a buffer is free. This can be stalled by sending

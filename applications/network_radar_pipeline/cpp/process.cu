@@ -20,8 +20,8 @@ namespace holoscan::ops {
 
 // ----- PulseCompressionOp ---------------------------------------------------
 void PulseCompressionOp::setup(OperatorSpec& spec) {
-  spec.input<ThreePulseCancellerData>("rf_in");
-  spec.output<ThreePulseCancellerData>("pc_out");
+  spec.input<std::shared_ptr<RFArray>>("rf_in");
+  spec.output<std::shared_ptr<ThreePulseCancellerData>>("pc_out");
   spec.param(numPulses,
               "numPulses",
               "Number of pulses",
@@ -89,7 +89,7 @@ void PulseCompressionOp::compute(InputContext& op_input,
                                  OutputContext& op_output,
                                  ExecutionContext&) {
   HOLOSCAN_LOG_INFO("PulseCompressionOp::compute() called");
-  auto in = op_input.receive<RFArray>("rf_in");
+  auto in = op_input.receive<std::shared_ptr<RFArray>>("rf_in").value();
   auto x = in->data;
   cudaStream_t stream = in->stream;
 
@@ -108,8 +108,8 @@ void PulseCompressionOp::compute(InputContext& op_input,
 
 // ----- ThreePulseCancellerOp ------------------------------------------------
 void ThreePulseCancellerOp::setup(OperatorSpec& spec) {
-  spec.input<ThreePulseCancellerData>("tpc_in");
-  spec.output<DopplerData>("tpc_out");
+  spec.input<std::shared_ptr<ThreePulseCancellerData>>("tpc_in");
+  spec.output<std::shared_ptr<DopplerData>>("tpc_out");
   spec.param(numPulses,
               "numPulses",
               "Number of pulses",
@@ -171,7 +171,7 @@ void ThreePulseCancellerOp::compute(InputContext& op_input,
                                     OutputContext& op_output,
                                     ExecutionContext&) {
   HOLOSCAN_LOG_INFO("Three pulse canceller compute() called");
-  auto tpc_data = op_input.receive<ThreePulseCancellerData>("tpc_in");
+  auto tpc_data = op_input.receive<std::shared_ptr<ThreePulseCancellerData>>("tpc_in").value();
 
   auto x = tpc_data->inputView.Permute({0, 2, 1}).Slice(
       {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
@@ -185,8 +185,8 @@ void ThreePulseCancellerOp::compute(InputContext& op_input,
 
 // ----- DopplerOp ------------------------------------------------------------
 void DopplerOp::setup(OperatorSpec& spec) {
-  spec.input<DopplerData>("dop_in");
-  spec.output<CFARData>("dop_out");
+  spec.input<std::shared_ptr<DopplerData>>("dop_in");
+  spec.output<std::shared_ptr<CFARData>>("dop_out");
   spec.param(numPulses,
               "numPulses",
               "Number of pulses",
@@ -231,7 +231,7 @@ void DopplerOp::compute(InputContext& op_input,
                         OutputContext& op_output,
                         ExecutionContext&) {
   HOLOSCAN_LOG_INFO("Doppler compute() called");
-  auto dop_data = op_input.receive<DopplerData>("dop_in");
+  auto dop_data = op_input.receive<std::shared_ptr<DopplerData>>("dop_in").value();
 
   const index_t cpulses = numPulses.get() - (dop_data->cancelMask->Size(0) - 1);
 
@@ -249,7 +249,7 @@ void DopplerOp::compute(InputContext& op_input,
 
 // ----- CFAROp ---------------------------------------------------------------
 void CFAROp::setup(OperatorSpec& spec) {
-  spec.input<CFARData>("cfar_in");
+  spec.input<std::shared_ptr<CFARData>>("cfar_in");
   spec.param(numTransmits, "numTransmits",
               "Number of waveform transmissions",
               "Number of waveform transmissions to simulate", {});
@@ -372,7 +372,7 @@ void CFAROp::compute(InputContext& op_input,
                      OutputContext&,
                      ExecutionContext& context) {
   HOLOSCAN_LOG_INFO("CFAR compute() called");
-  auto cfar_data = op_input.receive<CFARData>("cfar_in");
+  auto cfar_data = op_input.receive<std::shared_ptr<CFARData>>("cfar_in").value();
 
   (*xPow = norm(*cfar_data->tpcView)).run(cfar_data->stream);
 

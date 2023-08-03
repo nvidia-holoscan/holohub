@@ -19,8 +19,8 @@
 namespace holoscan::ops {
 
 void BasicConnectorOpTx::setup(OperatorSpec& spec) {
-  spec.input<RFChannel>("rf_in");
-  spec.output<NetworkOpBurstParams>("burst_out");
+  spec.input<std::shared_ptr<RFChannel>>("rf_in");
+  spec.output<std::shared_ptr<NetworkOpBurstParams>>("burst_out");
   spec.param(payload_size, "max_payload_size",
               "Max payload size in bytes",
               "Max payload size in bytes for received packets", {});
@@ -60,7 +60,7 @@ void BasicConnectorOpTx::compute(InputContext& op_input,
   HOLOSCAN_LOG_INFO("BasicConnectorOpTx::compute()");
 
   // Input is pulse/sample data from a single channel
-  auto rf_data = op_input.receive<RFChannel>("rf_in");
+  auto rf_data = op_input.receive<std::shared_ptr<RFChannel>>("rf_in").value();
 
   // Determine buffer size; dependent on whether this is the last channel
   const size_t buf_stride = RFPacket::packet_size(samples_per_pkt);
