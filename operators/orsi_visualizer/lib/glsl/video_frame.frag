@@ -67,11 +67,9 @@ void main() {
 
 // change to #if 1 to enable debug display of tool segmentation mask
 #if 0
-  if(texture2D(surgical_tool_mask, tex_coords).r >= 0.0) {
-    out_color *= 0.5;
-    out_color += vec4(0.0, 0.5, 0.0, 1.0);
+  if(texture2D(surgical_tool_mask, tex_coords).r > 0.0) {
+    out_color.g = 1.0;
   }
-
 #endif
 
 
