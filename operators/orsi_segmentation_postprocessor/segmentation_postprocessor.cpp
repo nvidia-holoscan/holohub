@@ -173,7 +173,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   }
 
 
-  nvidia::gxf::Shape scratch_buffer_size { shape.height, shape.width, 1};
+  nvidia::gxf::Shape scratch_buffer_process_size { shape.height, shape.width, 1};
 
   // Create a new message (nvidia::gxf::Entity)
   auto out_message = nvidia::gxf::Entity::New(context.context());
@@ -193,50 +193,115 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   }
 
   // Allocate and convert output buffer on the device.
-  nvidia::gxf::Shape output_shape{shape.height, shape.width, 1};
+  nvidia::gxf::Shape output_shape  {shape.height, shape.width, 1};
+  nvidia::gxf::Shape scratch_buffer_process_shape{shape.height, shape.width, 1};
+  nvidia::gxf::Shape scratch_buffer_resize_shape{cropped_width_, cropped_height_, 1};
 
+   auto frag = fragment();
   // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
-  auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(),
-                                                                       allocator_->gxf_cid());
+  auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(frag->executor().context(),
+                                                                  allocator_->gxf_cid());
+  if(roi_enabled) {
+    // set new output shape
+    output_shape =  nvidia::gxf::Shape{resolution_width_, resolution_height_, 1};
+    // resize scratch buffer 
+    if (scratch_buffer_process_->size() == 0) {
+      const uint64_t buffer_size = scratch_buffer_process_shape.dimension(0)
+                                 * scratch_buffer_process_shape.dimension(1)
+                                 * scratch_buffer_process_shape.dimension(2);
+      scratch_buffer_process_->resize(allocator.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
+    }
+
+    if(scratch_buffer_resize_->size() == 0) {
+      const uint64_t buffer_size = scratch_buffer_resize_shape.dimension(0)
+                                 * scratch_buffer_resize_shape.dimension(1)
+                                 * scratch_buffer_resize_shape.dimension(2);
+      scratch_buffer_resize_->resize(allocator.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
+
+    }
+  }
+
+  // reshape out tensor buffer
   out_tensor.value()->reshape<uint8_t>(
       output_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
   if (!out_tensor.value()->pointer()) {
     throw std::runtime_error("Failed to allocate output tensor buffer.");
   }
-
-  const float* in_tensor_data = static_cast<float*>(in_tensor->data());
-
   nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
   if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
+  // choose output buffer for post processing. By default use out tensor buffer
+  // When ROI enabled use scratch buffer
+  uint8_t * post_process_output_buffer = out_tensor_data.value();
+  if(roi_enabled) {
+    post_process_output_buffer = scratch_buffer_process_->pointer();
+    std::cout << "Using scratch buffer for postprocess output" << std::endl;
+  }
+
+  const float* in_tensor_data = static_cast<float*>(in_tensor->data());
 
   cuda_postprocess(network_output_type_value_,
                   data_format_value_,
                   shape,
                   in_tensor_data,
-                  out_tensor_data.value(),
+                  post_process_output_buffer,
                   cuda_stream_handler_.getCudaStream(context.context()));
 
+  if(roi_enabled) {
+      // ------------------------------------------------------------------------
+      //
+      //  Step 1: resize to original ROI region dimensions
+      //
+      const NppiSize src_size = {static_cast<int>(scratch_buffer_process_shape.dimension(0)), 
+                                 static_cast<int>(scratch_buffer_process_shape.dimension(1))};
+      const NppiRect src_roi = {0, 0, static_cast<int>(scratch_buffer_process_shape.dimension(0)), 
+                                      static_cast<int>(scratch_buffer_process_shape.dimension(1))};
+      const NppiSize dst_size = {static_cast<int>(cropped_width_),
+                                 static_cast<int>(cropped_height_)};
+      const NppiRect dst_roi = {0, 0, static_cast<int>(cropped_width_), static_cast<int>(cropped_height_)};
 
-  if (cropped_width_ > 0 && cropped_height_ > 0) {
-    
-    nvidia::gxf::PrimitiveType out_primitive_type = out_tensor.value()->element_type();
+      const uint8_t * src_buffer = scratch_buffer_process_->pointer();
+      uint8_t * dst_buffer = scratch_buffer_resize_->pointer();
 
-    auto resize_result = resizeImage(out_tensor_data.value(), 
-                                     output_shape.dimension(0), output_shape.dimension(1), output_shape.dimension(2), 
-                                     out_primitive_type, cropped_width_, cropped_height_);
+      std::cout << "// -----------------------------------------------------------\n"
+                << "//\n"
+                << "// Resize params\n"
+                << "//";
 
-    if (!resize_result) {
-      throw std::runtime_error("Failed to resize output image.");
-    }
+      std::cout << "Src Size [ " <<  src_size.width << ", "  <<  src_size.height << "]" << std::endl;
+      std::cout << "Src Rect [ " <<  src_roi.x << ", "  <<  src_roi.y  << ", "
+                                 <<  src_roi.width << ", "  <<  src_roi.height << "]" << std::endl;
+      std::cout << "Dst Size [ " <<  dst_size.width << ", "  <<  dst_size.height << "]" << std::endl;
+      std::cout << "Dst Rect [ " <<  dst_roi.x << ", "  <<  dst_roi.y  << ", "
+                                 <<  dst_roi.width << ", "  <<  dst_roi.height << "]" << std::endl;
 
-    const auto converted_tensor_ptr = scratch_buffer_->pointer();
+      NppStatus status = nppiResize_8u_C1R(src_buffer, src_size.width, src_size, src_roi, 
+                                           dst_buffer, dst_size.width, dst_size, dst_roi, 
+                                           NPPI_INTER_CUBIC);
 
-    output_shape = nvidia::gxf::Shape{resolution_height_, resolution_width_, 1};
-    out_tensor.value()->reshape<uint8_t>(output_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
+      if (status != NPP_SUCCESS) {
+        throw std::runtime_error("Failed to insert post processed buffer into output buffer");
+      }
 
-    out_tensor_data = out_tensor.value()->data<uint8_t>();
-    cuda_resize({cropped_height_, cropped_width_, 1},
+      // ------------------------------------------------------------------------
+      //
+      //  Step 2: Insert into output buffer
+      //
+
+      std::cout << "// -----------------------------------------------------------\n"
+                << "//\n"
+                << "// Cuda params\n"
+                << "//";
+
+      std::cout << "{" << cropped_height_ << ", " << cropped_width_ << "," <<  1 << "}," 
+                << "{" << output_shape.dimension(0)  << ", " << output_shape.dimension(1) << ", " << output_shape.dimension(2) << "},\n" 
+                << offset_x_  << ",\n" 
+                << offset_y_  << ",\n";
+
+
+      const auto converted_tensor_ptr = scratch_buffer_resize_->pointer();
+      out_tensor_data = out_tensor.value()->data<uint8_t>();
+      cuda_resize({cropped_height_, cropped_width_, 1},
                 {output_shape.dimension(0), output_shape.dimension(1), output_shape.dimension(2)},
                 converted_tensor_ptr,
                 out_tensor_data.value(),
@@ -256,7 +321,8 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
 void SegmentationPostprocessorOp::start() {
 
-  scratch_buffer_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
+  scratch_buffer_process_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
+  scratch_buffer_resize_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
 
   const std::string network_output_type = network_output_type_.get();
   if (network_output_type == "sigmoid") {
@@ -280,48 +346,10 @@ void SegmentationPostprocessorOp::start() {
   }
 }
 
-
 void SegmentationPostprocessorOp::stop() {
-  scratch_buffer_.reset();
+  scratch_buffer_process_.reset();
+  scratch_buffer_resize_.reset();
 }
 
-
-nvidia::gxf::Expected<void*> SegmentationPostprocessorOp::resizeImage(
-                                 const void* in_tensor_data, const int32_t rows,
-                                 const int32_t columns, const int16_t channels,
-                                 const nvidia::gxf::PrimitiveType primitive_type,
-                                 const int32_t resize_width,
-                                 const int32_t resize_height) {
-  if (scratch_buffer_->size() == 0) {
-
-    auto frag = fragment();
-    // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
-    auto pool = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(frag->executor().context(),
-                                                                    allocator_->gxf_cid());
-
-    uint64_t buffer_size = resize_width * resize_height * channels;
-    scratch_buffer_->resize(pool.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
-  }
-
-  const auto converted_tensor_ptr = scratch_buffer_->pointer();
-  if (converted_tensor_ptr == nullptr) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate memory for the resizing image");
-    return nvidia::gxf::ExpectedOrCode(GXF_FAILURE, nullptr);
-  }
-
-  // Resize image
-  const NppiSize src_size = {static_cast<int>(columns), static_cast<int>(rows)};
-  const NppiRect src_roi = {0, 0, static_cast<int>(columns), static_cast<int>(rows)};
-  const NppiSize dst_size = {static_cast<int>(resize_width), static_cast<int>(resize_height)};
-  const NppiRect dst_roi = {0, 0, static_cast<int>(resize_width), static_cast<int>(resize_height)};
-
-  NppStatus status = nppiResize_8u_C1R(static_cast<const Npp8u*>(in_tensor_data), columns * channels,
-                                     src_size, src_roi, converted_tensor_ptr,
-                                     resize_width * channels, dst_size, dst_roi, NPPI_INTER_CUBIC);
-
-  if (status != NPP_SUCCESS) { return nvidia::gxf::ExpectedOrCode(GXF_FAILURE, nullptr); }
-
-  return nvidia::gxf::ExpectedOrCode(GXF_SUCCESS, converted_tensor_ptr);
-}
 
 }  // namespace holoscan::ops
