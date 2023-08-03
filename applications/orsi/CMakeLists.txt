@@ -16,29 +16,26 @@
 cmake_minimum_required(VERSION 3.20)
 project(orsi_sample_apps LANGUAGES NONE)
 
+# TODO: add detection for presence of Deltacast VideoMaster SDK 
+set(VIDEO_MASTER_SDK_FOUND OFF)
+
+set(HOLOSCAN_OPERATORS
+        orsi_format_converter
+        orsi_segmentation_postprocessor
+        orsi_segmentation_preprocessor
+        orsi_visualizer
+)
+
+if(VIDEO_MASTER_SDK_FOUND)
+    list(APPEND HOLOSCAN_OPERATORS  videomaster)
+endif()
+
+
 add_holohub_application(orsi_multi_ai_ar DEPENDS
-                        OPERATORS orsi_visualizer_deprecated
-                                  orsi_format_converter
-                                  orsi_segmentation_postprocessor
-                                  orsi_segmentation_preprocessor
-                                  orsi_visualizer
-                                  videomaster
-                        )
+                        OPERATORS ${HOLOSCAN_OPERATORS})
 
 add_holohub_application(orsi_in_out_body DEPENDS
-OPERATORS orsi_visualizer_deprecated
-        orsi_format_converter
-        orsi_segmentation_postprocessor
-        orsi_segmentation_preprocessor
-        orsi_visualizer
-        videomaster
-)
+                        OPERATORS ${HOLOSCAN_OPERATORS})
 
 add_holohub_application(orsi_segmentation_ar DEPENDS
-OPERATORS orsi_visualizer_deprecated
-        orsi_format_converter
-        orsi_segmentation_postprocessor
-        orsi_segmentation_preprocessor
-        orsi_visualizer
-        videomaster
-)
+                        OPERATORS ${HOLOSCAN_OPERATORS})

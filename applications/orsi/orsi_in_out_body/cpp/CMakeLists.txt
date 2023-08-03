@@ -23,19 +23,27 @@ add_executable(${PROJECT_NAME}
     main.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
-   PRIVATE
+set(LINK_LIBRARIES 
    ${HOLOSCAN_PACKAGE_NAME}
    # Holoscan SDK operators
    holoscan::ops::video_stream_replayer
    holoscan::ops::inference
-   # Holohub operators
-   holoscan::videomaster
    # Orsi Holohub operators
    holoscan::orsi::format_converter
    holoscan::orsi::segmentation_postprocessor
    holoscan::orsi::segmentation_preprocessor
    holoscan::orsi::visualizer
+)
+
+set(VIDEOMASTER_OPERATOR "")
+if(VIDEO_MASTER_SDK_FOUND) 
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
+    list(APPEND LINK_LIBRARIES  holoscan::videomaster)
+endif()
+
+
+target_link_libraries(${PROJECT_NAME}
+   PRIVATE ${LINK_LIBRARIES}
 )
 
 # Copy config file
