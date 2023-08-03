@@ -64,7 +64,7 @@ class FormatConverterOp : public holoscan::Operator {
   nvidia::gxf::Expected<void*> resizeImage(const void* in_tensor_data, const int32_t rows,
                                            const int32_t columns, const int16_t channels,
                                            const nvidia::gxf::PrimitiveType primitive_type,
-                                           const int32_t resize_width, const int32_t resize_height, 
+                                           const int32_t resize_width, const int32_t resize_height,
                                            const int32_t roi_width, const int32_t roi_height,
                                            const int32_t x_origin_roi, const int32_t y_origin_roi);
   void convertTensorFormat(const void* in_tensor_data, void* out_tensor_data, const int32_t rows,

@@ -60,27 +60,25 @@ namespace holoscan::ops::orsi {
 
 // Utility sigmoid function for on host compute
 double sigmoid(double a) {
-      return 1.0 / (1.0 + exp(-a)); 
+      return 1.0 / (1.0 + exp(-a));
 }
 
-// Utility function to extract named tensor from message 
+// Utility function to extract named tensor from message
 // TODO: consider to add this as utility function in Holoscan SDK
-std::shared_ptr<holoscan::Tensor> getTensorByName(holoscan::gxf::Entity in_message, const std::string& in_tensor_name)
-{
+std::shared_ptr<holoscan::Tensor> getTensorByName(holoscan::gxf::Entity in_message,
+                                                  const std::string& in_tensor_name) {
   auto maybe_tensor = in_message.get<Tensor>(in_tensor_name.c_str());
   if (!maybe_tensor) {
     maybe_tensor = in_message.get<Tensor>();
     if (!maybe_tensor) {
-      HOLOSCAN_LOG_ERROR("Tensor '{%s}' not found in message ",in_tensor_name.c_str());
+      HOLOSCAN_LOG_ERROR("Tensor '{%s}' not found in message ", in_tensor_name.c_str());
       throw std::runtime_error(fmt::format("Tensor '{}' not found in message", in_tensor_name));
     }
   }
   return maybe_tensor;
 }
 
-
 void SegmentationPreprocessorOp::setup(OperatorSpec& spec) {
- 
   auto& in_tensor = spec.input<gxf::Entity>("in_tensor");
   auto& out_tensor = spec.output<gxf::Entity>("out_tensor");
 
@@ -122,7 +120,6 @@ void SegmentationPreprocessorOp::setup(OperatorSpec& spec) {
 
 void SegmentationPreprocessorOp::compute(InputContext& op_input, OutputContext& op_output,
                                           ExecutionContext& context) {
-
   constexpr size_t kMaxChannelCount = std::numeric_limits<output_type_t>::max();
 
   // Process input message
@@ -189,7 +186,8 @@ void SegmentationPreprocessorOp::compute(InputContext& op_input, OutputContext& 
   nvidia::gxf::Expected<float*> out_tensor_data = out_tensor.value()->data<float>();
   if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
-  cuda_preprocess(data_format_value_, shape, in_tensor_data, out_tensor_data.value(), means_cuda_, stds_cuda_);
+  cuda_preprocess(data_format_value_, shape, in_tensor_data, out_tensor_data.value(), means_cuda_,
+                  stds_cuda_);
 
   // pass the CUDA stream to the output message
   stream_handler_result = cuda_stream_handler_.toMessage(out_message);
@@ -202,7 +200,6 @@ void SegmentationPreprocessorOp::compute(InputContext& op_input, OutputContext& 
 }
 
 void SegmentationPreprocessorOp::start() {
-
   const std::string data_format = data_format_.get();
   if (data_format == "nchw") {
     data_format_value_ = DataFormat::kNCHW;
@@ -217,31 +214,32 @@ void SegmentationPreprocessorOp::start() {
   means_host_ = normalize_means_;
   stds_host_ = normalize_stds_;
 
-  if(means_host_.empty() || stds_host_.empty()) {
+  if (means_host_.empty() || stds_host_.empty()) {
     throw std::runtime_error("Invalid per channel mean and std vectors");
   }
 
- 
   const std::size_t sizeInBytesMeans = sizeof(float) * means_host_.size();
   const std::size_t sizeInBytesStds = sizeof(float) * stds_host_.size();
 
   // means vector
   cudaError_t cuda_error = CUDA_TRY(cudaMalloc((void **)&means_cuda_, sizeInBytesMeans));
-  if(cudaSuccess != cuda_error){
+  if (cudaSuccess != cuda_error) {
     throw std::runtime_error("Could not allocator_ate cuda memory for per channel mean vector");
   }
-  cuda_error = CUDA_TRY(cudaMemcpy(means_cuda_, means_host_.data(), sizeInBytesMeans, cudaMemcpyHostToDevice));
-  if(cudaSuccess != cuda_error){
+  cuda_error = CUDA_TRY(cudaMemcpy(means_cuda_, means_host_.data(), sizeInBytesMeans,
+                                   cudaMemcpyHostToDevice));
+  if (cudaSuccess != cuda_error) {
     throw std::runtime_error("Failed to copy per channel std vector from host to device");
   }
 
   // std vector
   cuda_error = CUDA_TRY(cudaMalloc((void **)&stds_cuda_, sizeInBytesStds));
-  if(cudaSuccess != cuda_error){
+  if (cudaSuccess != cuda_error) {
     throw std::runtime_error("Could not allocator_ate cuda memory for per channel std vector");
   }
-  cuda_error= CUDA_TRY(cudaMemcpy(stds_cuda_, stds_host_.data(), sizeInBytesStds, cudaMemcpyHostToDevice));
-  if(cudaSuccess != cuda_error){
+  cuda_error = CUDA_TRY(cudaMemcpy(stds_cuda_, stds_host_.data(), sizeInBytesStds,
+                                                                      cudaMemcpyHostToDevice));
+  if (cudaSuccess != cuda_error) {
     throw std::runtime_error("Failed to copy per channel std vector from host to device");
   }
 }
@@ -251,5 +249,4 @@ void SegmentationPreprocessorOp::stop() {
   CUDA_TRY(cudaFree(stds_cuda_));
 }
 
-
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::orsi

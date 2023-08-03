@@ -26,7 +26,7 @@ using holoscan::ops::segmentation_postprocessor::Shape;
 
 
 // TODO: to verify if this function is actually needed. Ideally replace with NPP implementation.
-void cuda_resize(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output, 
+void cuda_resize(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output,
                  int32_t offset_x, int32_t offset_y);
 
 }  // namespace segmentation_postprocessor

@@ -25,7 +25,6 @@
 #include "holoscan/utils/cuda_stream_handler.hpp"
 #include "segmentation_preprocessor.cuh"
 
-
 namespace holoscan::ops::orsi {
 
 class SegmentationPreprocessorOp : public Operator {
@@ -42,7 +41,6 @@ class SegmentationPreprocessorOp : public Operator {
   void stop() override;
 
  private:
-
   segmentation_preprocessor::DataFormat data_format_value_;
 
   Parameter<holoscan::IOSpec*> in_;
@@ -62,10 +60,8 @@ class SegmentationPreprocessorOp : public Operator {
 
   float* means_cuda_ = nullptr;
   float* stds_cuda_ = nullptr;
-  
+
   CudaStreamHandler cuda_stream_handler_;
-
-
 };
 
 }  // namespace holoscan::ops::orsi

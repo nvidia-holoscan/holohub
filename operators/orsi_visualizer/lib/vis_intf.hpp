@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 #pragma once
 
 // clang-format off
@@ -30,17 +29,14 @@
 #include "gxf/std/tensor.hpp"
 #include "gxf/std/allocator.hpp"
 
-
 namespace holoscan::orsi::vis {
 
 // Copied from Holoscan SDK's Holoviz operator
 /// Buffer information, can be initialized either with a tensor or a video buffer
 struct BufferInfo {
-
-  enum Type 
-  {
-    INVALID, 
-    VIDEO, 
+  enum Type {
+    INVALID,
+    VIDEO,
     TENSOR
   };
 
@@ -71,8 +67,6 @@ struct BufferInfo {
    * @returns error code
    */
   gxf_result_t init(const nvidia::gxf::Handle<nvidia::gxf::VideoBuffer>& video) {
-
-
     // NOTE: VideoBuffer::moveToTensor() converts VideoBuffer instance to the Tensor instance
     // with an unexpected shape:  [width, height] or [width, height, num_planes].
     // And, if we use moveToTensor() to convert VideoBuffer to Tensor, we may lose the original
@@ -138,14 +132,10 @@ struct BufferInfo {
   Type type = INVALID;
   nvidia::gxf::Handle<nvidia::gxf::VideoBuffer> video_buffer;
   nvidia::gxf::Handle<nvidia::gxf::Tensor> tensor;
-
 };
 
-
-class VisIntf { 
-
-public: 
-
+class VisIntf {
+ public:
     virtual ~VisIntf() = default;
 
     // Main Holsocan Operator interface
@@ -165,8 +155,7 @@ public:
     virtual void onScrollCallback(GLFWwindow* wnd, double x, double y) { }
     virtual void onKeyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods) { }
 
-protected: 
-
+ protected:
     VisIntf() = default;
 
     VisIntf(const VisIntf&) = delete;
@@ -174,9 +163,7 @@ protected:
 
     VisIntf(const VisIntf&&) = delete;
     VisIntf& operator=(const VisIntf&&) = delete;
-
 };
-
 
 }  // namespace holoscan::orsi::vis
 

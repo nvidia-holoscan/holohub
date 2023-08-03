@@ -37,14 +37,11 @@ namespace holoscan::ops::orsi {
 //
 // GLFW callbacks
 //
-
-
 static void glfwPrintErrorCallback(int error, const char* msg) {
-
-  if(error == 65539) {
+  if (error == 65539) {
     return;
   }
-  
+
   std::cerr << " [" << error << "] " << msg << "\n";
 }
 
@@ -97,10 +94,8 @@ static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int actio
 //
 // event handlers
 //
-
 void OrsiVisualizationOp::onFramebufferSizeCallback(int width, int height) {
-
-  vp_width_ = width; 
+  vp_width_ = width;
   vp_height_ = height;
 
   pimpl_->onFramebufferSizeCallback(window_, width, height);
@@ -119,7 +114,7 @@ void OrsiVisualizationOp::onEnter(int entered) {
 }
 
 void OrsiVisualizationOp::onMouseMove(double x, double y) {
-  pimpl_->onMouseMove(window_, x,y);
+  pimpl_->onMouseMove(window_, x, y);
 }
 
 void OrsiVisualizationOp::onMouseButtonCallback(int button, int action, int mods) {
@@ -127,7 +122,7 @@ void OrsiVisualizationOp::onMouseButtonCallback(int button, int action, int mods
 }
 
 void OrsiVisualizationOp::onScrollCallback(double xoffset, double yoffset) {
-  pimpl_->onScrollCallback(window_, xoffset,yoffset);
+  pimpl_->onScrollCallback(window_, xoffset, yoffset);
 }
 
 void OrsiVisualizationOp::onKeyCallback(int key, int scancode, int action, int mods) {
@@ -135,11 +130,10 @@ void OrsiVisualizationOp::onKeyCallback(int key, int scancode, int action, int m
 }
 
 
-using holoscan::orsi::vis::VisIntf; 
+using holoscan::orsi::vis::VisIntf;
 using holoscan::orsi::vis::BufferInfo;
 
 void OrsiVisualizationOp::setup(OperatorSpec& spec) {
-
   pimpl_.reset(new holoscan::orsi::OrsiVis);
 
   spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
@@ -162,7 +156,6 @@ void OrsiVisualizationOp::setup(OperatorSpec& spec) {
 }
 
 void OrsiVisualizationOp::initialize() {
-
   // Set up prerequisite parameters before calling GXFOperator::initialize()
   auto frag = fragment();
 
@@ -182,11 +175,7 @@ void OrsiVisualizationOp::initialize() {
   Operator::initialize();
 }
 
-
-void OrsiVisualizationOp::start()
-{
-
-
+void OrsiVisualizationOp::start() {
   glfwSetErrorCallback(glfwPrintErrorCallback);
 
   // Create window
@@ -225,7 +214,7 @@ void OrsiVisualizationOp::start()
 
   glfwMakeContextCurrent(window_);
 
-  // propage width, height manually as first framebuffer resize callback is not triggered
+  // propagate width, height manually as first framebuffer resize callback is not triggered
   onFramebufferSizeCallback(wnd_width, wnd_height);
 
   // Load all OpenGL function pointers
@@ -246,11 +235,7 @@ void OrsiVisualizationOp::start()
 
   // Initialize helper class instancces
   // ----------------------------------------------------------------------------------
-
-
-
   pimpl_->start();
-
 
   // cast Condition to BooleanCondition
   auto bool_cond = window_close_scheduling_term_.get();
@@ -259,8 +244,8 @@ void OrsiVisualizationOp::start()
 
 void OrsiVisualizationOp::compute(InputContext& op_input, OutputContext& op_output,
                         ExecutionContext& context) {
-
-  std::vector<gxf::Entity> messages_h = op_input.receive<std::vector<gxf::Entity>>("receivers").value();
+  std::vector<gxf::Entity> messages_h =
+                       op_input.receive<std::vector<gxf::Entity>>("receivers").value();
 
   // create vector of nvidia::gxf::Entity as expected by the code below
   std::vector<nvidia::gxf::Entity> messages;
@@ -319,11 +304,9 @@ void OrsiVisualizationOp::compute(InputContext& op_input, OutputContext& op_outp
   // -------------------------------------------------------------------------------
   glfwSwapBuffers(window_);
   glfwPollEvents();
-
 }
 
-void OrsiVisualizationOp::stop()
-{
+void OrsiVisualizationOp::stop() {
     // Free mem allocated in utility classes.
   // ----------------------------------------------------------------------------------
 
@@ -340,4 +323,4 @@ void OrsiVisualizationOp::stop()
   glfwTerminate();
 }
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::orsi

@@ -397,9 +397,9 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
                                      in_primitive_type,
                                      resize_width_,
                                      resize_height_,
-                                     roi_width_, 
-                                     roi_height_, 
-                                     x_origin_roi_, 
+                                     roi_width_,
+                                     roi_height_,
+                                     x_origin_roi_,
                                      y_origin_roi_);
     if (!resize_result) { throw std::runtime_error("Failed to resize image.\n"); }
 
@@ -503,7 +503,8 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
   // Resize image
   NppStatus status = NPP_ERROR;
   const NppiSize src_size = {static_cast<int>(columns), static_cast<int>(rows)};
-  const NppiRect src_roi = {x_origin_roi, y_origin_roi, static_cast<int>(roi_width), static_cast<int>(roi_height)};
+  const NppiRect src_roi = {x_origin_roi, y_origin_roi, static_cast<int>(roi_width),
+                            static_cast<int>(roi_height)};
   const NppiSize dst_size = {static_cast<int>(resize_width), static_cast<int>(resize_height)};
   const NppiRect dst_roi = {0, 0, static_cast<int>(resize_width), static_cast<int>(resize_height)};
 
@@ -875,7 +876,6 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
 }
 
 void FormatConverterOp::setup(OperatorSpec& spec) {
-
   auto& in_tensor = spec.input<gxf::Entity>("source_video");
   auto& out_tensor = spec.output<gxf::Entity>("tensor");
 
@@ -912,27 +912,27 @@ void FormatConverterOp::setup(OperatorSpec& spec) {
              "Resize height",
              "Height for resize. No actions if this value is zero.",
              0);
-  spec.param(roi_width_, 
-            "roi_width", 
+  spec.param(roi_width_,
+            "roi_width",
             "Roi width",
             "Width for resize. No actions if this value is zero.",
             1920);
-  spec.param(roi_height_, 
-            "roi_height", 
+  spec.param(roi_height_,
+            "roi_height",
             "Roi height",
-            "Height for resize. No actions if this value is zero.", 
+            "Height for resize. No actions if this value is zero.",
             1080);
-  spec.param(x_origin_roi_, 
-             "x_origin_roi", 
+  spec.param(x_origin_roi_,
+             "x_origin_roi",
              "X origin roi",
              "X coordinate of the top left corner from which "
-             "the image rezing starts.", 
+             "the image rezing starts.",
              0);
-  spec.param(y_origin_roi_, 
-             "y_origin_roi", 
+  spec.param(y_origin_roi_,
+             "y_origin_roi",
              "Y origin roi",
              "Y coordinate of the top left corner from which "
-             "the image rezing starts.", 
+             "the image rezing starts.",
              0);
   spec.param(resize_mode_,
              "resize_mode",
@@ -953,4 +953,4 @@ void FormatConverterOp::setup(OperatorSpec& spec) {
   // TODO (gbae): incorporate std::expected to not throw exceptions
 }
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::orsi

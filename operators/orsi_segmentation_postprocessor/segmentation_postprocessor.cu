@@ -31,21 +31,24 @@ uint16_t ceil_div(uint16_t numerator, uint16_t denominator) {
 }
 
 
-__global__ void resizing_kernel(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output, int32_t offset_x, int32_t offset_y) {
+__global__ void resizing_kernel(Shape input_shape, Shape output_shape, const uint8_t* input,
+                              uint8_t* output, int32_t offset_x, int32_t offset_y) {
   const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
   if ((x >= input_shape.width) || (y >= input_shape.height)) { return; }
 
-  output[hw1_to_index(output_shape, y + offset_y, x  + offset_x)] = input[hw1_to_index(input_shape, y, x)];
+  output[hw1_to_index(output_shape, y + offset_y, x  + offset_x)] =
+                                                          input[hw1_to_index(input_shape, y, x)];
 }
 
-void cuda_resize(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output, int32_t offset_x, int32_t offset_y) {
+void cuda_resize(Shape input_shape, Shape output_shape, const uint8_t* input, uint8_t* output,
+                                                           int32_t offset_x, int32_t offset_y) {
   dim3 block(32, 32, 1);
   dim3 grid(ceil_div(input_shape.width, block.x), ceil_div(input_shape.height, block.y), 1);
-  
+
   resizing_kernel<<<grid, block>>>(input_shape, output_shape, input, output, offset_x, offset_y);
 }
 
 }  // namespace segmentation_postprocessor
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::orsi

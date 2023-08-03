@@ -1,3 +1,20 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "vtk_view.hpp"
 #include <GL/glew.h>
 #include "common/logger.hpp"
@@ -17,18 +34,17 @@
 
 namespace holoscan::orsi {  // namespace visualizer_orsi
 
-
 // setters
-void VtkView::setStlFilePath(std::string stl_file_path_){
+void VtkView::setStlFilePath(std::string stl_file_path_) {
   this->stl_file_path_ = stl_file_path_;
 }
-void VtkView::setStlNames(std::vector<std::string> stl_names_){
+void VtkView::setStlNames(std::vector<std::string> stl_names_) {
   this->stl_names_ = stl_names_;
 }
-void VtkView::setStlColors(std::vector<std::vector<int>> stl_colors_){
+void VtkView::setStlColors(std::vector<std::vector<int>> stl_colors_) {
   this->stl_colors_ = stl_colors_;
 }
-void VtkView::setStlKeys(std::vector<int> stl_keys_){
+void VtkView::setStlKeys(std::vector<int> stl_keys_) {
   this->stl_keys_ = stl_keys_;
 }
 
@@ -96,7 +112,7 @@ void VtkView::start() {
   if (!isCurrentCallback) { GXF_LOG_ERROR("Failed to initialize vtk callback"); }
   isCurrentCallback->SetCallback(&isCurrentCallbackFn);
   vtk_render_wnd_->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
-  
+
   vtk_render_wnd_->SwapBuffersOn();
 
   vtk_render_wnd_->SetOffScreenRendering(true);
@@ -124,7 +140,10 @@ void VtkView::start() {
     // Actor creation
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
-    std::array<unsigned char, 4> arr{{static_cast<unsigned char>(stl_colors_[idx][0]),static_cast<unsigned char>(stl_colors_[idx][1]), static_cast<unsigned char>(stl_colors_[idx][2]),static_cast<unsigned char>(stl_colors_[idx][3])}};
+    std::array<unsigned char, 4> arr{{static_cast<unsigned char>(stl_colors_[idx][0]),
+             static_cast<unsigned char>(stl_colors_[idx][1]),
+             static_cast<unsigned char>(stl_colors_[idx][2]),
+             static_cast<unsigned char>(stl_colors_[idx][3])}};
     colors->SetColor(stl_model_name +"_Color", arr.data());
     actor->GetProperty()->SetColor(colors->GetColor3d(stl_model_name +"_Color").GetData());
     actor->SetVisibility(true);
@@ -144,8 +163,6 @@ void VtkView::start() {
 }
 
 void VtkView::render() {
-
-
   // skip frames with invalid dimensions
   if (vp_width_ <= 0 || vp_height_ <= 0) { return; }
 
@@ -308,13 +325,12 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
   int idx = 0;
   for (const auto stl_key : stl_keys_) {
     if ((key == stl_key) && (action == GLFW_RELEASE)) {
-      if (part_visible_map_.find(stl_names_[idx]) != part_visible_map_.end()){
+      if (part_visible_map_.find(stl_names_[idx]) != part_visible_map_.end()) {
         part_visible_map_[stl_names_[idx]] = !part_visible_map_[stl_names_[idx]];
-        if (m_.find(stl_names_[idx]) != m_.end()){
+        if (m_.find(stl_names_[idx]) != m_.end()) {
           m_[stl_names_[idx]]->SetVisibility(part_visible_map_[stl_names_[idx]]);
         }
       }
-      
     }
   idx++;
   }
@@ -327,7 +343,7 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
     }
     }
   }
-  
+
   if ((key == GLFW_KEY_KP_ADD) && (action == GLFW_RELEASE)) {
     opacity_ += 0.05;
     for (const auto stl_model_name : stl_names_) {
@@ -335,8 +351,8 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
       m_[stl_model_name]->GetProperty()->SetOpacity(opacity_);
     }
     }
-    
   }
+
   if ((key == GLFW_KEY_KP_SUBTRACT) && (action == GLFW_RELEASE)) {
     opacity_ -= 0.05;
       for (const auto stl_model_name : stl_names_) {
@@ -355,14 +371,13 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
 }
 
 int VtkView::onSize(GLFWwindow* wnd, int w, int h) {
-
   if (vp_width_ != w || vp_height_ != h) {
     vp_width_ = w;
     vp_height_ = h;
     realloc_texture = true;
   }
 
-  if(!vtk_interactor_) {
+  if (!vtk_interactor_) {
     return 0;
   }
 
@@ -370,4 +385,4 @@ int VtkView::onSize(GLFWwindow* wnd, int w, int h) {
   return vtk_interactor_->InvokeEvent(vtkCommand::ConfigureEvent, nullptr);
 }
 
-}
+}  // namespace holoscan::orsi

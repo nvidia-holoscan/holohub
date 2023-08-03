@@ -12,7 +12,12 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"holoscan_sdk_version": "0.6.0",
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
 		"platforms": [
 			"amd64",
 			"arm64"
