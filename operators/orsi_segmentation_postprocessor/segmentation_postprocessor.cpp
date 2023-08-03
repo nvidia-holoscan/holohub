@@ -227,7 +227,6 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   uint8_t * post_process_output_buffer = out_tensor_data.value();
   if (roi_enabled) {
     post_process_output_buffer = scratch_buffer_process_->pointer();
-    std::cout << "Using scratch buffer for postprocess output" << std::endl;
   }
 
   const float* in_tensor_data = static_cast<float*>(in_tensor->data());
