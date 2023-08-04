@@ -26,13 +26,11 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
   spec.param<uint32_t>(batch_size_,
     "batch_size",
     "Batch size",
-    "Batch size for each processing epoch", 1000
-  );
+    "Batch size for each processing epoch", 1000);
   spec.param<uint16_t>(payload_size_,
     "payload_size",
     "Payload size",
-    "Payload size to send. Does not include <= L4 headers", 1400
-  );
+    "Payload size to send. Does not include <= L4 headers", 1400);
   spec.param(numPulses, "numPulses",
               "Number of pulses",
               "Number of pulses per channel", {});
@@ -60,12 +58,11 @@ void AdvConnectorOpTx::initialize() {
   HOLOSCAN_LOG_INFO("samples_per_pkt: {}", samples_per_pkt);
   HOLOSCAN_LOG_INFO("num_packets_buf: {}", num_packets_buf);
 
-  //todo Figure out a better way to break up and send a large chunk of data
+  // todo Figure out a better way to break up and send a large chunk of data
   if (num_packets_buf >= batch_size_.get()) {
     HOLOSCAN_LOG_ERROR(
       "RF array size too large: [{}, {}] requires {} packets and the max batch size is set to {}",
-      numPulses.get(), numSamples.get(), num_packets_buf, batch_size_.get()
-    );
+      numPulses.get(), numSamples.get(), num_packets_buf, batch_size_.get());
     exit(1);
   }
 
@@ -116,8 +113,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
       // Slice to the samples this packet will send
       auto data = rf_data->data.Slice<1>(
         {ix_pulse, ix_sample},
-        {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)}
-      );
+        {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)});
 
       // Use accessor functions to set payload
       packets_buf[ix_buf].set_waveform_id(rf_data->waveform_id);
@@ -146,8 +142,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
       msg,
       pkt_idx,
       packets_buf[pkt_idx].get_ptr(),
-      buf_stride
-    )) != AdvNetStatus::SUCCESS) {
+      buf_stride)) != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Failed to create packet {}", pkt_idx);
     }
   }

@@ -25,7 +25,7 @@
 #include "holoscan/holoscan.hpp"
 
 class App : public holoscan::Application {
-private:
+ private:
   /**
    * @brief Setup the application as a radar I/Q data generation pipeline
    */
@@ -36,8 +36,7 @@ private:
     // Target/signal simulation
     auto target_sim = make_operator<ops::TargetSimulator>(
       "target_sim",
-      from_config("radar_pipeline")
-    );
+      from_config("radar_pipeline"));
 
     // Network operators
     if (from_config("advanced_network.enable").as<bool>()) {
@@ -46,27 +45,22 @@ private:
         "packet_gen",
         from_config("radar_pipeline"),
         from_config("advanced_network.packet_gen"),
-        make_condition<BooleanCondition>("is_alive", true)
-      );
+        make_condition<BooleanCondition>("is_alive", true));
       auto adv_net_tx = make_operator<ops::AdvNetworkOpTx>(
         "adv_network_tx",
-        from_config("advanced_network")
-      );
+        from_config("advanced_network"));
 
       add_flow(target_sim, adv_packet_gen, {{"rf_out", "rf_in"}});
       add_flow(adv_packet_gen, adv_net_tx, {{"burst_out", "burst_in"}});
-    }
-    else {
+    } else {
       // Basic
       auto bas_packet_gen = make_operator<ops::BasicConnectorOpTx>(
         "packet_gen",
         from_config("radar_pipeline"),
-        from_config("basic_network")
-      );
+        from_config("basic_network"));
       auto bas_net_tx = make_operator<ops::BasicNetworkOpTx>(
         "bas_network_tx",
-        from_config("basic_network")
-      );
+        from_config("basic_network"));
 
       add_flow(target_sim, bas_packet_gen, {{"rf_out", "rf_in"}});
       add_flow(bas_packet_gen, bas_net_tx, {{"burst_out", "burst_in"}});
@@ -84,12 +78,10 @@ private:
     auto pc   = make_operator<ops::PulseCompressionOp>(
       "pulse_compression",
       from_config("radar_pipeline"),
-      make_condition<CountCondition>(from_config("radar_pipeline.numTransmits").as<size_t>())
-    );
+      make_condition<CountCondition>(from_config("radar_pipeline.numTransmits").as<size_t>()));
     auto tpc  = make_operator<ops::ThreePulseCancellerOp>(
       "three_pulse_canceller",
-      from_config("radar_pipeline")
-    );
+      from_config("radar_pipeline"));
     auto dop  = make_operator<ops::DopplerOp>("doppler", from_config("radar_pipeline"));
     auto cfar = make_operator<ops::CFAROp>("cfar", from_config("radar_pipeline"));
 
@@ -99,28 +91,23 @@ private:
       auto adv_net_rx = make_operator<ops::AdvNetworkOpRx>(
         "adv_network_rx",
         from_config("advanced_network"),
-        make_condition<BooleanCondition>("is_alive", true)
-      );
+        make_condition<BooleanCondition>("is_alive", true));
       auto adv_rx_pkt = make_operator<ops::AdvConnectorOpRx>(
         "bench_rx",
         from_config("advanced_network.packet_gen"),
-        from_config("radar_pipeline")
-      );
+        from_config("radar_pipeline"));
       add_flow(adv_net_rx, adv_rx_pkt, {{"burst_out", "burst_in"}});
       add_flow(adv_rx_pkt, pc,         {{"rf_out", "rf_in"}});
-    }
-    else {
+    } else {
       // Basic
       auto bas_net_rx = make_operator<ops::BasicNetworkOpRx>(
         "bas_network_rx",
         from_config("basic_network"),
-        make_condition<BooleanCondition>("is_alive", true)
-      );
+        make_condition<BooleanCondition>("is_alive", true));
       auto bas_rx_pkt = make_operator<ops::BasicConnectorOpRx>(
         "rx_pkt",
         from_config("basic_network"),
-        from_config("radar_pipeline")
-      );
+        from_config("radar_pipeline"));
       add_flow(bas_net_rx, bas_rx_pkt, {{"burst_out", "burst_in"}});
       add_flow(bas_rx_pkt, pc,         {{"rf_out", "rf_in"}});
     }
@@ -130,14 +117,13 @@ private:
     add_flow(dop, cfar, {{"dop_out", "cfar_in"}});
   }
 
-public:
+ public:
   void compose() {
     using namespace holoscan;
 
     if (from_config("radar_pipeline.isSource").as<bool>()) {
       setup_tx();
-    }
-    else {
+    } else {
       setup_rx();
     }
   }

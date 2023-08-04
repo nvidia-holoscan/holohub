@@ -21,7 +21,7 @@
 namespace holoscan::ops {
 
 class TargetSimulator : public Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(TargetSimulator)
 
   TargetSimulator() = default;
@@ -35,7 +35,7 @@ public:
   void initialize() override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
-private:
+ private:
   cudaStream_t stream;
   Parameter<uint16_t> numTransmits;
   Parameter<uint16_t> numPulses;

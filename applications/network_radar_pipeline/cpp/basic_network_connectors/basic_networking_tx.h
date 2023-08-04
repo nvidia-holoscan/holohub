@@ -22,7 +22,7 @@
 namespace holoscan::ops {
 
 class BasicConnectorOpTx : public Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(BasicConnectorOpTx)
 
   BasicConnectorOpTx() = default;
@@ -32,7 +32,7 @@ public:
   void initialize() override;
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override;
 
-private:
+ private:
   Parameter<uint16_t> payload_size;
   Parameter<uint16_t> numPulses;
   Parameter<uint16_t> numSamples;
@@ -42,6 +42,6 @@ private:
   index_t num_packets_buf;
   RFPacket *packets_buf;
   uint8_t *mem_buf;
-}; // BasicConnectorOpTx
+};  // BasicConnectorOpTx
 
 }  // namespace holoscan::ops

@@ -80,16 +80,14 @@ void BasicConnectorOpRx::compute(InputContext& op_input,
   for (size_t i = 0; i < in->num_pkts; i++) {
     // Get packet and adjust pointer
     pkt_buf[i] = RFPacket(buf_ptr);
-    buf_ptr += payload_size; //RFPacket::packet_size(pkt_buf[i].get_num_samples());
+    buf_ptr += payload_size;  // RFPacket::packet_size(pkt_buf[i].get_num_samples());
 
     // Make sure this isn't wrapping the buffer - drop if it is
-    if ((pkt_buf[i].get_waveform_id() >= buffer_track.pos + bufferSize.get()) or
+    if ((pkt_buf[i].get_waveform_id() >= buffer_track.pos + bufferSize.get()) ||
         (pkt_buf[i].get_waveform_id() < buffer_track.pos)) {
       HOLOSCAN_LOG_ERROR("Waveform ID {} exceeds buffer limits (pos: {}, size: {}), dropping",
         pkt_buf[i].get_waveform_id(), buffer_track.pos, bufferSize.get());
-    }
-    // Copy into rf_data
-    else {
+    } else {  // Copy into rf_data
       const index_t buffer_idx  = pkt_buf[i].get_waveform_id() % bufferSize.get();
       const index_t channel_idx = pkt_buf[i].get_channel_idx();
       const index_t pulse_idx   = pkt_buf[i].get_pulse_idx();
@@ -104,8 +102,7 @@ void BasicConnectorOpRx::compute(InputContext& op_input,
       buffer_track.sample_cnt[buffer_idx] += pkt_buf[i].get_num_samples();
       auto rf_tensor = rf_data->Slice<1>(
         {buffer_idx, channel_idx, pulse_idx, sample_idx},
-        {matxDropDim, matxDropDim, matxDropDim, sample_idx + pkt_buf[i].get_num_samples()}
-      );
+        {matxDropDim, matxDropDim, matxDropDim, sample_idx + pkt_buf[i].get_num_samples()});
       const size_t n_bytes = RFPacket::payload_size(pkt_buf[i].get_num_samples());
       cudaMemcpy(rf_tensor.Data(), pkt_buf[i].data(), n_bytes, cudaMemcpyHostToDevice);
     }
@@ -130,10 +127,8 @@ void BasicConnectorOpRx::compute(InputContext& op_input,
     auto params = std::make_shared<RFArray>(
       rf_data->Slice<3>(
         {static_cast<index_t>(buffer_track.pos_wrap), 0, 0, 0},
-        {matxDropDim, matxEnd, matxEnd, matxEnd}
-      ),
-      0, stream
-    );
+        {matxDropDim, matxEnd, matxEnd, matxEnd}),
+      0, stream);
     op_output.emit(params, "rf_out");
     HOLOSCAN_LOG_INFO("Emitting {} with {}/{} samples",
       buffer_track.pos,

@@ -79,12 +79,12 @@ void place_packet_data_kernel(complex_t *out,
 #endif
 
   const uint16_t buffer_idx = meta->waveform_id % buffer_size;
-  if (meta->end_array and threadIdx.x == 0) {
+  if (meta->end_array && threadIdx.x == 0) {
     received_end[buffer_idx] = true;
   }
 
   // Make sure this isn't wrapping the buffer - drop if it is
-  if (meta->waveform_id >= buffer_pos + buffer_size or
+  if (meta->waveform_id >= buffer_pos + buffer_size ||
       meta->waveform_id < buffer_pos) {
     if (threadIdx.x == 0) {
       atomicAdd(dropped_cnt, 1);
@@ -106,7 +106,7 @@ void place_packet_data_kernel(complex_t *out,
   }
 
   if (threadIdx.x == 0) {
-    //todo Smarter way than atomicAdd
+    // todo Smarter way than atomicAdd
     atomicAdd(&sample_cnt[buffer_idx], meta->pkt_samples);
   }
 }
@@ -152,38 +152,31 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
   spec.param<bool>(hds_,
     "split_boundary",
     "Header-data split boundary",
-    "Byte boundary where header and data is split", false
-  );
+    "Byte boundary where header and data is split", false);
   spec.param<uint32_t>(batch_size_,
     "batch_size",
     "Batch size",
-    "Batch size in packets for each processing epoch", 1000
-  );
+    "Batch size in packets for each processing epoch", 1000);
   spec.param<uint16_t>(max_packet_size_,
     "max_packet_size",
     "Max packet size",
-    "Maximum packet size expected from sender", 9100
-  );
+    "Maximum packet size expected from sender", 9100);
   spec.param<uint16_t>(bufferSize,
     "bufferSize",
     "Size of RF buffer",
-    "Max number of transmits that can be held at once", {}
-  );
+    "Max number of transmits that can be held at once", {});
   spec.param<uint16_t>(numChannels,
     "numChannels",
     "Number of channels",
-    "Number of channels", {}
-  );
+    "Number of channels", {});
   spec.param<uint16_t>(numPulses,
     "numPulses",
     "Number of pulses",
-    "Number of pulses per channel", {}
-  );
+    "Number of pulses per channel", {});
   spec.param<uint16_t>(numSamples,
     "numSamples",
     "Number of samples",
-    "Number of samples per channel", {}
-  );
+    "Number of samples per channel", {});
 }
 
 void AdvConnectorOpRx::initialize() {
@@ -197,7 +190,7 @@ void AdvConnectorOpRx::initialize() {
   nom_payload_size_ = max_packet_size_.get() - sizeof(UDPIPV4Pkt);
   samples_per_arr = numPulses.get() * numChannels.get() * numSamples.get();
 
-  if (not hds_.get()) {
+  if (!hds_.get()) {
     HOLOSCAN_LOG_ERROR("Only configured for split_boundary = TRUE");
     exit(1);
   }
@@ -215,12 +208,13 @@ void AdvConnectorOpRx::initialize() {
   // Compute packets delivered per pulse and max waveform ID based on parameters
   const size_t spoof_pkt_size = sizeof(complex_t) * SPOOF_SAMPLES_PER_PKT + RFPacket::header_size();
   pkts_per_pulse  = static_cast<uint16_t>(packets_per_pulse(spoof_pkt_size, numSamples.get()));
-  max_waveform_id = static_cast<uint16_t>(bufferSize.get() * (65535 / bufferSize.get())); // Max of uint16_t
+  max_waveform_id = static_cast<uint16_t>(
+    bufferSize.get() * (65535 / bufferSize.get()));  // Max of uint16_t
   HOLOSCAN_LOG_WARN("Spoofing packet metadata, ignoring packet header. Pkts / pulse: {}",
     pkts_per_pulse);
   if (spoof_pkt_size >= max_packet_size_.get()) {
     HOLOSCAN_LOG_ERROR("Max packets size ({}) can't fit the expected samples ({})",
-      max_packet_size_.get(),SPOOF_SAMPLES_PER_PKT);
+      max_packet_size_.get(), SPOOF_SAMPLES_PER_PKT);
     exit(1);
   }
 #else
@@ -235,12 +229,12 @@ void AdvConnectorOpRx::initialize() {
 void AdvConnectorOpRx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
-  //todo Some sort of warm start for the processing stages?
+  // todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
   auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
-  if (burst->hdr.q_id == 0) { // queue 0 is configured to be non-GPUDirect in yaml config
+  if (burst->hdr.q_id == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
     adv_net_free_cpu_pkts_and_burst(burst);
     HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
     return;
@@ -280,18 +274,15 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
     ttl_pkts_recv_ += aggr_pkts_recv_;
     aggr_pkts_recv_ = 0;
 
-    buffer_track.transfer(cudaMemcpyDeviceToHost); //todo Remove unnecessary copies
+    buffer_track.transfer(cudaMemcpyDeviceToHost);  // todo Remove unnecessary copies
     for (size_t i = 0; i < buffer_track.buffer_size; i++) {
       const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
       if (buffer_track.received_end_h[pos_wrap]) {
-
         auto params = std::make_shared<RFArray>(
           rf_data->Slice<3>(
             {static_cast<index_t>(pos_wrap), 0, 0, 0},
-            {matxDropDim, matxEnd, matxEnd, matxEnd}
-          ),
-          0, proc_stream
-        );
+            {matxDropDim, matxEnd, matxEnd, matxEnd}),
+          0, proc_stream);
 
         op_output.emit(params, "rf_out");
         HOLOSCAN_LOG_INFO("Emitting {} with {}/{} samples",
@@ -303,7 +294,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
           buffer_track.increment();
           HOLOSCAN_LOG_INFO("Next waveform expected: {}", buffer_track.pos);
         }
-        buffer_track.transfer(cudaMemcpyHostToDevice); //todo Remove unnecessary copies
+        buffer_track.transfer(cudaMemcpyHostToDevice);  // todo Remove unnecessary copies
         break;
       }
     }
@@ -336,8 +327,7 @@ void AdvConnectorOpRx::stop() {
     ttl_bytes_recv_,
     ttl_pkts_recv_,
     ttl_pkts_recv_ - ttl_pkts_drop_h,
-    ttl_pkts_drop_h
-  );
+    ttl_pkts_drop_h);
 }
 
 }  // namespace holoscan::ops

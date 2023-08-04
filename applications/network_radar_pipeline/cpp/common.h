@@ -60,8 +60,7 @@ struct RFArray {
 
 // Used to represent the data passed over the network
 struct RFPacket {
-
-private:
+ private:
   uint8_t *payload;
   static const size_t sample_offset     = 0;
   static const size_t waveformid_offset = sizeof(uint16_t) + sample_offset;
@@ -73,7 +72,7 @@ private:
   static const size_t payload_offset    = sizeof(complex_t) * (
     (sizeof(uint16_t) + end_array_offset) / sizeof(complex_t) + 1);
 
-public:
+ public:
   static size_t header_size() {
     return payload_offset;
   }
@@ -85,7 +84,7 @@ public:
   }
 
   RFPacket() = default;
-  RFPacket(uint8_t *buf_ptr) : payload{buf_ptr} {}
+  explicit RFPacket(uint8_t *buf_ptr) : payload{buf_ptr} {}
 
   // Set accessors
   void set_sample_idx(uint16_t sample_idx) {
@@ -143,8 +142,7 @@ public:
   void get_payload(uint8_t *ptr, const bool host) {
     if (host) {
       memcpy(ptr, payload, packet_size(get_num_samples()));
-    }
-    else {
+    } else {
       cudaMemcpyAsync(ptr,
                       payload,
                       packet_size(get_num_samples()),

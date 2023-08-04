@@ -80,8 +80,7 @@ void BasicConnectorOpTx::compute(InputContext& op_input,
       // Slice to the samples this packet will send
       auto data = rf_data->data.Slice<1>(
         {ix_pulse, ix_sample},
-        {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)}
-      );
+        {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)});
 
       // Use accessor functions to set payload
       packets_buf[ix_buf].set_waveform_id(rf_data->waveform_id);

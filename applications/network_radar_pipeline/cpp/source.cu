@@ -64,7 +64,7 @@ void TargetSimulator::compute(InputContext&,
     transmit_count+1, numTransmits.get(), channel_idx+1, numChannels.get());
 
   if (channel_idx == 0) {
-    //todo Simulate targets
+    // todo Simulate targets
     auto sig_real = simSignal->RealView();
     auto sig_imag = simSignal->ImagView();
     (sig_real = sig_real + ones(sig_real.Shape())).run(stream);
@@ -87,6 +87,6 @@ void TargetSimulator::compute(InputContext&,
   }
 
   HOLOSCAN_LOG_INFO("TargetSimulator::compute() done");
-};
+}
 
 }  // namespace holoscan::ops

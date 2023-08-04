@@ -119,7 +119,7 @@ class PulseCompressionOp : public Operator {
 
   tensor_t<complex_t, 1> *waveformView = nullptr;
   tensor_t<float_t, 0> *norms = nullptr;
-}; // PulseCompressionOp
+};  // PulseCompressionOp
 
 class ThreePulseCancellerOp : public Operator {
  public:
@@ -159,7 +159,7 @@ class ThreePulseCancellerOp : public Operator {
 
   tensor_t<float_t, 1> *cancelMask = nullptr;
   tensor_t<complex_t, 3> *tpcView = nullptr;
-}; // ThreePulseCancellerOp
+};  // ThreePulseCancellerOp
 
 class DopplerOp : public Operator {
  public:
@@ -192,7 +192,7 @@ class DopplerOp : public Operator {
   Parameter<int64_t> waveformLength;
   Parameter<int64_t> numChannels;
   index_t numCompressedSamples;
-}; // DopplerOp
+};  // DopplerOp
 
 class CFAROp : public Operator {
  public:
@@ -258,6 +258,6 @@ class CFAROp : public Operator {
   tensor_t<int, 3> *dets = nullptr;
   tensor_t<float_t, 3> *xPow = nullptr;
   tensor_t<float_t, 2> *cfarMaskView = nullptr;
-}; // CFAROp
+};  // CFAROp
 
 }  // namespace holoscan::ops

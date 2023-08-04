@@ -28,7 +28,7 @@
 // can be useful when testing, where we have a packet generator that isn't
 // transmitting data that isn't generating packets that use our data format.
 #define SPOOF_PACKET_DATA      true
-#define SPOOF_SAMPLES_PER_PKT  1024 // byte count must be less than 'max_packet_size' config
+#define SPOOF_SAMPLES_PER_PKT  1024  // byte count must be less than 'max_packet_size' config
 
 // Example IPV4 UDP packet using Linux headers
 struct UDPIPV4Pkt {
@@ -72,8 +72,7 @@ struct AdvBufferTracking {
     if (kind == cudaMemcpyHostToDevice) {
       src = sample_cnt_h;
       dst = sample_cnt_d;
-    }
-    else {
+    } else {
       src = sample_cnt_d;
       dst = sample_cnt_h;
     }
@@ -87,19 +86,17 @@ struct AdvBufferTracking {
     if (kind == cudaMemcpyHostToDevice) {
       src = received_end_h;
       dst = received_end_d;
-    }
-    else if (kind == cudaMemcpyDeviceToHost) {
+    } else if (kind == cudaMemcpyDeviceToHost) {
       src = received_end_d;
       dst = received_end_h;
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_ERROR("Unknown option {}", kind);
       return cudaErrorInvalidValue;
     }
     return cudaMemcpy(dst, src, buffer_size*sizeof(bool), kind);
   }
 
-  //todo Faster way than two separate memcpy's?
+  // todo Faster way than two separate memcpy's?
   cudaError_t transfer(const cudaMemcpyKind kind) {
     cudaError_t err = transferSamples(kind);
     if (err != cudaSuccess) {
@@ -117,14 +114,14 @@ struct AdvBufferTracking {
   }
 
   bool is_ready(const size_t samples_per_arr) {
-    return received_end_h[pos_wrap] or sample_cnt_h[pos_wrap] >= samples_per_arr;
+    return received_end_h[pos_wrap] || sample_cnt_h[pos_wrap] >= samples_per_arr;
   }
 };
 
 namespace holoscan::ops {
 
 class AdvConnectorOpRx : public Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvConnectorOpRx)
 
   AdvConnectorOpRx() = default;
@@ -141,7 +138,7 @@ public:
                ExecutionContext& context) override;
   void stop() override;
 
-private:
+ private:
   // Radar settings
   Parameter<uint16_t> bufferSize;
   Parameter<uint16_t> numChannels;
@@ -150,18 +147,18 @@ private:
 
   // Holds burst buffers that cannot be freed yet
   std::array<std::shared_ptr<AdvNetBurstParams>, 256> burst_bufs_;
-  int     burst_buf_idx_  = 0;          // Index into burst_buf_idx_ of current burst
-  int64_t ttl_bytes_recv_ = 0;          // Total bytes received in operator
-  int64_t ttl_pkts_recv_  = 0;          // Total packets received in operator
-  uint64_t *ttl_pkts_drop_;             // Total packets dropped by kernel
-  int64_t aggr_pkts_recv_ = 0;          // Aggregate packets received in processing batch
-  uint16_t nom_payload_size_;           // Nominal payload size (no headers)
-  void **h_dev_ptrs_;                   // Host-pinned list of device pointers
-  void *full_batch_data_h_;             // Host-pinned aggregated batch
-  void *full_batch_data_d_;             // Device aggregated batch
-  Parameter<bool> hds_;                 // Header-data split enabled
-  Parameter<uint32_t> batch_size_;      // Batch size for one processing block
-  Parameter<uint16_t> max_packet_size_; // Maximum size of a single packet
+  int     burst_buf_idx_  = 0;           // Index into burst_buf_idx_ of current burst
+  int64_t ttl_bytes_recv_ = 0;           // Total bytes received in operator
+  int64_t ttl_pkts_recv_  = 0;           // Total packets received in operator
+  uint64_t *ttl_pkts_drop_;              // Total packets dropped by kernel
+  int64_t aggr_pkts_recv_ = 0;           // Aggregate packets received in processing batch
+  uint16_t nom_payload_size_;            // Nominal payload size (no headers)
+  void **h_dev_ptrs_;                    // Host-pinned list of device pointers
+  void *full_batch_data_h_;              // Host-pinned aggregated batch
+  void *full_batch_data_d_;              // Device aggregated batch
+  Parameter<bool> hds_;                  // Header-data split enabled
+  Parameter<uint32_t> batch_size_;       // Batch size for one processing block
+  Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet
 
   size_t samples_per_arr;
   uint16_t pkts_per_pulse;
@@ -170,7 +167,6 @@ private:
   tensor_t<complex_t, 4> *rf_data = nullptr;
   cudaStream_t proc_stream;
   cudaStream_t rx_stream;
-
-}; // AdvConnectorOpRx
+};  // AdvConnectorOpRx
 
 }  // namespace holoscan::ops

@@ -27,7 +27,7 @@
 namespace holoscan::ops {
 
 class AdvConnectorOpTx : public Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvConnectorOpTx)
 
   AdvConnectorOpTx() = default;
@@ -39,7 +39,7 @@ public:
                OutputContext& op_output,
                ExecutionContext& context) override;
 
-private:
+ private:
   // Radar settings
   Parameter<uint16_t> numPulses;
   Parameter<uint16_t> numSamples;
@@ -57,7 +57,6 @@ private:
   size_t buf_size;
   RFPacket *packets_buf;
   uint8_t *mem_buf;
-
-}; // AdvConnectorOpTx
+};  // AdvConnectorOpTx
 
 }  // namespace holoscan::ops

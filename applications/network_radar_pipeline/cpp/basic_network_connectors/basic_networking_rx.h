@@ -28,7 +28,7 @@ struct BasicBufferTracking {
   std::vector<size_t> sample_cnt;
 
   BasicBufferTracking() = default;
-  BasicBufferTracking(const size_t _buffer_size)
+  explicit BasicBufferTracking(const size_t _buffer_size)
     : pos(0),
       pos_wrap(0),
       buffer_size(_buffer_size),
@@ -43,14 +43,14 @@ struct BasicBufferTracking {
   }
 
   bool is_ready(const size_t samples_per_arr) {
-    return received_end[pos_wrap] or sample_cnt[pos_wrap] >= samples_per_arr;
+    return received_end[pos_wrap] || sample_cnt[pos_wrap] >= samples_per_arr;
   }
 };
 
 namespace holoscan::ops {
 
 class BasicConnectorOpRx : public Operator {
-public:
+ public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(BasicConnectorOpRx)
 
   BasicConnectorOpRx() = default;
@@ -65,7 +65,7 @@ public:
                OutputContext& op_output,
                ExecutionContext& context) override;
 
-private:
+ private:
   int num_rx;
   Parameter<uint16_t> max_pkts;
   Parameter<uint16_t> payload_size;
@@ -81,6 +81,6 @@ private:
   BasicBufferTracking buffer_track;
   tensor_t<complex_t, 4> *rf_data = nullptr;
   cudaStream_t stream;
-}; // BasicConnectorOpRx
+};  // BasicConnectorOpRx
 
 }  // namespace holoscan::ops
