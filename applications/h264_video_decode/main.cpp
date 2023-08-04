@@ -39,52 +39,61 @@ class App : public holoscan::Application {
     int64_t source_block_size = width * height * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto bitstream_reader =
-    make_operator<ops::VideoReadBitstreamOp>("bitstream_reader", from_config("bitstream_reader"),
-        Arg("input_file_path", datapath+"/surgical_video.264"),
+    auto bitstream_reader = make_operator<ops::VideoReadBitstreamOp>(
+        "bitstream_reader",
+        from_config("bitstream_reader"),
+        Arg("input_file_path", datapath + "/surgical_video.264"),
         make_condition<CountCondition>(2000),
-        Arg("pool") = make_resource<BlockMemoryPool>("pool", 0, source_block_size,
-                                                     source_num_blocks));
+        Arg("pool") =
+            make_resource<BlockMemoryPool>(
+                "pool", 0, source_block_size, source_num_blocks));
 
+    auto response_condition =
+        make_condition<AsynchronousCondition>("response_condition");
+    auto video_decoder_context = make_resource<ops::VideoDecoderContext>(
+        "decoder-context", Arg("async_scheduling_term") = response_condition);
 
-    auto video_decoder_context = make_resource<ops::VideoDecoderContext>();
-    auto async_scheduling_condition =
-                                  make_condition<AsynchronousCondition>("async_scheduling_term");
-    auto video_decoder_request =
-      make_operator<ops::VideoDecoderRequestOp>("video_decoder_request",
-                                         from_config("video_decoder_request"),
-                                         Arg("async_scheduling_term") = async_scheduling_condition,
-                                         Arg("videodecoder_context") = video_decoder_context);
-    auto video_decoder_response =
-      make_operator<ops::VideoDecoderResponseOp>("video_decoder_response",
-                                         from_config("video_decoder_response"),
-                                         async_scheduling_condition,
-                                         Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
-                                                                                source_block_size,
-                                                                                source_num_blocks),
-                                         Arg("videodecoder_context") = video_decoder_context);
+    auto request_condition =
+        make_condition<AsynchronousCondition>("request_condition");
+    auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
+        "video_decoder_request",
+        from_config("video_decoder_request"),
+        request_condition,
+        Arg("async_scheduling_term") = request_condition,
+        Arg("videodecoder_context") = video_decoder_context);
 
+    auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
+        "video_decoder_response",
+        from_config("video_decoder_response"),
+        response_condition,
+        Arg("pool") =
+            make_resource<BlockMemoryPool>(
+                "pool", 1, source_block_size, source_num_blocks),
+        Arg("videodecoder_context") = video_decoder_context);
 
     auto decoder_output_format_converter =
-      make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
-          from_config("decoder_output_format_converter"),
-          Arg("pool") = make_resource<BlockMemoryPool>("pool",
-              1, source_block_size, source_num_blocks));
+        make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
+            from_config("decoder_output_format_converter"),
+            Arg("pool") = make_resource<BlockMemoryPool>(
+                "pool", 1, source_block_size, source_num_blocks));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator =
-      make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
-    auto visualizer =
-      make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"),
-      Arg("width") = width,
-      Arg("height") = height,
-      Arg("enable_render_buffer_input") = false,
-      Arg("enable_render_buffer_output") = false,
-      Arg("allocator") = visualizer_allocator);
+        make_resource<BlockMemoryPool>(
+            "allocator", 1, source_block_size, source_num_blocks);
+    auto visualizer = make_operator<ops::HolovizOp>("holoviz",
+        from_config("holoviz"),
+        Arg("width") = width,
+        Arg("height") = height,
+        Arg("enable_render_buffer_input") = false,
+        Arg("enable_render_buffer_output") = false,
+        Arg("allocator") = visualizer_allocator);
 
-    add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
+    add_flow(bitstream_reader, video_decoder_request,
+        {{"output_transmitter", "input_frame"}});
     add_flow(video_decoder_response, decoder_output_format_converter,
-             {{"output_transmitter", "source_video"}});
-    add_flow(decoder_output_format_converter, visualizer, {{"tensor", "receivers"}});
+        {{"output_transmitter", "source_video"}});
+    add_flow(decoder_output_format_converter, visualizer,
+        {{"tensor", "receivers"}});
   }
 
  private:
@@ -92,7 +101,8 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
+bool parse_arguments(int argc, char** argv, std::string& config_name,
+    std::string& data_path) {
   static struct option long_options[] = {
       {"data",    required_argument, 0,  'd' },
       {0,         0,                 0,  0 }
