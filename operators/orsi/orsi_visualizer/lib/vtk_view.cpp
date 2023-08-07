@@ -106,6 +106,47 @@ void SetVtkCameraParams(vtkRenderer* renderer, VtkCameraParams const& camera_par
 }
 
 
+struct VtkProp3DTransformParams
+{
+  std::vector<double> origin_ { 0.0, 0.0, 0.0}; // Get / SetOrigin
+  std::vector<double> position_ { 0.0, 0.0, 0.0};  // Get/SetPosition
+  std::vector<double> orientation_ { 0.0, 0.0, 0.0};  // Get/SetOrientation
+  std::vector<double> scale_ { 0.0, 0.0, 0.0};  // Get / SetScale
+};
+
+VtkProp3DTransformParams GetObjectTransform(vtkProp3D* p)
+{
+
+  VtkProp3DTransformParams params;
+
+  convert(p->GetOrigin(), params.origin_);
+  convert(p->GetPosition(), params.position_);
+  convert(p->GetOrientation(), params.orientation_);
+  convert(p->GetScale(), params.scale_);
+
+
+  return params;
+}
+
+void SetObjectTransform(vtkProp3D* p, VtkProp3DTransformParams const& params)
+{
+  p->SetOrigin(params.origin_[0], params.origin_[1], params.origin_[2]);
+  p->SetPosition(params.position_[0], params.position_[1], params.position_[2]);
+  p->SetOrientation(params.orientation_[0], params.orientation_[1], params.orientation_[2]);
+  p->SetScale(params.scale_[0], params.scale_[1], params.scale_[2]);
+}
+
+
+std::ostream& operator<<(std::ostream& os, const VtkProp3DTransformParams& p) {
+
+  os << p.origin_[0] << " " <<  p.origin_[1] << " " <<  p.origin_[2] << std::endl;
+  os << p.position_[0] << " " <<  p.position_[1] << " " <<  p.position_[2] << std::endl;
+  os << p.orientation_[0] << " " <<  p.orientation_[1] << " " <<  p.orientation_[2] << std::endl;
+  os << p.scale_[0] << " " <<  p.scale_[1] << " " <<  p.scale_[2] << std::endl;
+  return os;
+}
+
+
 // setters
 void VtkView::setStlFilePath(std::string stl_file_path_) {
   this->stl_file_path_ = stl_file_path_;
@@ -161,7 +202,7 @@ void VtkView::start() {
 
 
   vtkNew<vtkNamedColors> colors;
-  vtkNew<vtkAssembly> assembly;
+
   const std::string case_directory = stl_file_path_;
 
   int idx = 0;
@@ -192,7 +233,7 @@ void VtkView::start() {
 
     actor->SetScale(1, 1, -1);
     // Putting together all the different parts
-    assembly->AddPart(actor);
+    assembly_->AddPart(actor);
     idx++;
   }
 
@@ -206,7 +247,7 @@ void VtkView::start() {
   if (!vtk_renderer_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk renderer"); }
   vtk_renderer_->SetBackground(colors->GetColor3d("BkgColor").GetData());
   vtk_renderer_->SetBackgroundAlpha(0.0);
-  vtk_renderer_->AddActor(assembly);
+  vtk_renderer_->AddActor(assembly_);
 
   // -------------------------------------------------------------------------------
   //
@@ -456,29 +497,44 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
   }
 
   static VtkCameraParams camera_params;
+  static VtkProp3DTransformParams transform_params;
 
   if(ctrl && action == GLFW_RELEASE) {
 
 
     if(key == GLFW_KEY_S) {
+      #if 0
       // save current camera
       std::cout << "Save Camera matrix " << std::endl;
       camera_params = GetVtkCameraParams(vtk_renderer_);
+      std::cout << "// Debug Camera Params:\n";
       std::cout << camera_params << std::endl;
+      #endif 
+
+      transform_params = GetObjectTransform(assembly_);
+      std::cout << "// Debug Object Transform Params:\n";
+      std::cout << transform_params << std::endl;
 
     } else if (key == GLFW_KEY_L) {
 
       // load camera
       std::cout << "Load Camera matrix " << std::endl;
-
+      #if 0
       std::cout << "Stored camera params\n";
       std::cout << camera_params << std::endl;
-
       SetVtkCameraParams(vtk_renderer_, camera_params);
-
       VtkCameraParams tmp_camera_params = GetVtkCameraParams(vtk_renderer_);
       std::cout << "Debug camera params\n";
       std::cout << tmp_camera_params << std::endl;
+      #endif
+
+      SetObjectTransform(assembly_, transform_params);
+
+      VtkProp3DTransformParams tmp_transform_params = GetObjectTransform(assembly_);
+
+      std::cout << "// Debug: Restored Object Transform Params:\n";
+      std::cout << transform_params << std::endl;
+
 
     }
   }
