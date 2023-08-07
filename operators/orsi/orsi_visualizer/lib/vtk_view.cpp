@@ -17,7 +17,7 @@
 
 #include "vtk_view.hpp"
 #include <GL/glew.h>
-#include "common/logger.hpp"
+#include <holoscan/logger/logger.hpp>
 
 // VTK includes
 
@@ -27,12 +27,84 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkSTLReader.h>
+#include <vtkCamera.h>
+
 
 #include <GLFW/glfw3.h>  // NOLINT(build/include_order)
 
 #include <iostream>
 
 namespace holoscan::orsi {  // namespace visualizer_orsi
+
+void convert(const double * src, std::vector<double>& dst)
+{
+  for(int i = 0; i != dst.size(); ++i) {
+    dst[i] = src[i];
+  }
+}
+
+struct VtkCameraParams
+{
+  std::vector<double> position_ { 0.0, 0.0, 0.0};
+  std::vector<double> focal_point_ { 0.0, 0.0, 0.0};
+  std::vector<double> view_up_ { 0.0, 0.0, 0.0};
+  double distance_ = 0;
+  std::vector<double> clipping_range_ { 0.0, 0.0, 0.0};
+  std::vector<double> orientation_ { 0.0, 0.0, 0.0};
+};
+
+
+std::ostream& operator<<(std::ostream& os, const VtkCameraParams& p) {
+
+  os << p.position_[0] << " " <<  p.position_[1] << " " <<  p.position_[2] << std::endl;
+  os << p.focal_point_[0] << " " <<  p.focal_point_[1] << " " <<  p.focal_point_[2] << std::endl;
+  os << p.view_up_[0] << " " <<  p.view_up_[1] << " " <<  p.view_up_[2] << std::endl;
+
+  os << p.distance_<< std::endl;
+  os << p.clipping_range_[0] << " " <<  p.clipping_range_[1] << " " <<  p.clipping_range_[2] << std::endl;
+  os << p.orientation_[0] << " " <<  p.orientation_[1] << " " <<  p.orientation_[2] << std::endl;
+
+  return os;
+}
+
+std::istream& operator>>(std::istream& is, VtkCameraParams& p)
+{
+  is >> p.position_[0] >> p.position_[1] >> p.position_[2] ;
+  is >> p.focal_point_[0] >> p.focal_point_[1] >> p.focal_point_[2] ;
+  is >> p.view_up_[0] >> p.view_up_[1] >> p.view_up_[2] ;
+
+  is >> p.distance_;
+  is >> p.clipping_range_[0] >> p.clipping_range_[1] >> p.clipping_range_[2] ;
+  is >> p.orientation_[0] >> p.orientation_[1] >> p.orientation_[2] ;
+
+  return is;
+}
+
+VtkCameraParams GetVtkCameraParams(vtkRenderer * renderer)
+{
+  VtkCameraParams camera_params;
+
+  vtkCamera* camera = renderer->GetActiveCamera();
+  convert(camera->GetPosition(), camera_params.position_);
+  convert(camera->GetFocalPoint(), camera_params.focal_point_);
+  convert(camera->GetViewUp(), camera_params.view_up_);
+  camera_params.distance_ = camera->GetDistance();
+  convert(camera->GetClippingRange(), camera_params.clipping_range_);
+  convert(camera->GetOrientation(), camera_params.orientation_);
+
+  return camera_params;
+}
+
+void SetVtkCameraParams(vtkRenderer* renderer, VtkCameraParams const& camera_params)
+{
+  vtkCamera* camera = renderer->GetActiveCamera();
+  camera->SetPosition(camera_params.position_.data());
+  camera->SetFocalPoint(camera_params.focal_point_.data());
+  camera->SetViewUp(camera_params.view_up_.data());
+  camera->SetDistance(camera_params.distance_);
+  camera->SetClippingRange(camera_params.clipping_range_.data());
+}
+
 
 // setters
 void VtkView::setStlFilePath(std::string stl_file_path_) {
@@ -86,40 +158,7 @@ unsigned int VtkView::getTexture() const {
 }
 
 void VtkView::start() {
-  vtk_renderer_ = vtkSmartPointer<vtkRenderer>::New();
-  if (!vtk_renderer_) { GXF_LOG_ERROR("Failed to initialize vtk renderer"); }
-  vtk_renderer_->ResetCamera();
-  vtk_renderer_->SetBackground(0.0, 0.0, 0.0);
-  vtk_renderer_->SetBackgroundAlpha(0.0);
 
-  vtk_interactor_style_ = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-  if (!vtk_interactor_style_) { GXF_LOG_ERROR("Failed to initialize vtk interactor style"); }
-  vtk_interactor_style_->SetDefaultRenderer(vtk_renderer_);
-
-  vtk_interactor_ = vtkSmartPointer<vtkGenericRenderWindowInteractor>::New();
-  if (!vtk_renderer_) { GXF_LOG_ERROR("Failed to initialize vtk interactor"); }
-  vtk_interactor_->SetInteractorStyle(vtk_interactor_style_);
-  vtk_interactor_->EnableRenderOff();
-
-  int viewportSize[2] = {static_cast<int>(vp_width_), static_cast<int>(vp_height_)};
-
-  vtk_render_wnd_ = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-  if (!vtk_renderer_) { GXF_LOG_ERROR("Failed to initialize vtk render window"); }
-  vtk_render_wnd_->SetSize(viewportSize);
-
-  vtkSmartPointer<vtkCallbackCommand> isCurrentCallback =
-      vtkSmartPointer<vtkCallbackCommand>::New();
-  if (!isCurrentCallback) { GXF_LOG_ERROR("Failed to initialize vtk callback"); }
-  isCurrentCallback->SetCallback(&isCurrentCallbackFn);
-  vtk_render_wnd_->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
-
-  vtk_render_wnd_->SwapBuffersOn();
-
-  vtk_render_wnd_->SetOffScreenRendering(true);
-  vtk_render_wnd_->SetFrameBlitModeToNoBlit();
-
-  vtk_render_wnd_->AddRenderer(vtk_renderer_);
-  vtk_render_wnd_->SetInteractor(vtk_interactor_);
 
   vtkNew<vtkNamedColors> colors;
   vtkNew<vtkAssembly> assembly;
@@ -157,9 +196,67 @@ void VtkView::start() {
     idx++;
   }
 
-  // Background color setting
-  vtk_renderer_->AddActor(assembly);
+
+  // -------------------------------------------------------------------------------
+  // 
+  // VTK renderer
+  // 
+
+  vtk_renderer_ = vtkSmartPointer<vtkRenderer>::New();
+  if (!vtk_renderer_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk renderer"); }
   vtk_renderer_->SetBackground(colors->GetColor3d("BkgColor").GetData());
+  vtk_renderer_->SetBackgroundAlpha(0.0);
+  vtk_renderer_->AddActor(assembly);
+
+  // -------------------------------------------------------------------------------
+  //
+  // VTK render window
+  //
+  vtk_render_wnd_ = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+  if (!vtk_render_wnd_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk render window"); }
+
+  int viewportSize[2] = {static_cast<int>(vp_width_), static_cast<int>(vp_height_)};
+  vtk_render_wnd_->SetSize(viewportSize);
+
+  vtkSmartPointer<vtkCallbackCommand> isCurrentCallback =
+      vtkSmartPointer<vtkCallbackCommand>::New();
+  if (!isCurrentCallback) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk callback"); }
+  isCurrentCallback->SetCallback(&isCurrentCallbackFn);
+  vtk_render_wnd_->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
+
+  vtk_render_wnd_->SwapBuffersOn();
+  vtk_render_wnd_->SetOffScreenRendering(true);
+  vtk_render_wnd_->SetFrameBlitModeToNoBlit();
+  vtk_render_wnd_->AddRenderer(vtk_renderer_);
+
+  // OIT via Depth Deeling
+
+  vtk_render_wnd_->SetAlphaBitPlanes(1);
+  vtk_render_wnd_->SetMultiSamples(0);
+  vtk_renderer_->SetUseDepthPeeling(1);
+  vtk_renderer_->SetMaximumNumberOfPeels(4);
+  vtk_renderer_->SetOcclusionRatio(0.1);
+  
+
+  // -------------------------------------------------------------------------------
+  //
+  // VTK render window interactor
+  //
+
+  vtk_interactor_ = vtkSmartPointer<vtkGenericRenderWindowInteractor>::New();
+  if (!vtk_interactor_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor"); }
+  vtk_interactor_->SetRenderWindow(vtk_render_wnd_);
+  vtk_interactor_->EnableRenderOff();
+
+  // -------------------------------------------------------------------------------
+  //
+  // VTK interactor style
+  //
+
+  vtk_interactor_style_ = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  if (!vtk_interactor_style_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor style"); }
+  vtk_interactor_->SetInteractorStyle(vtk_interactor_style_);
+  vtk_renderer_->ResetCamera();
 }
 
 void VtkView::render() {
@@ -200,11 +297,7 @@ void VtkView::render() {
     realloc_texture = false;
   }
 
-  vtk_render_wnd_->SetAlphaBitPlanes(1);
-  vtk_render_wnd_->SetMultiSamples(0);
-  vtk_renderer_->SetUseDepthPeeling(1);
-  vtk_renderer_->SetMaximumNumberOfPeels(4);
-  vtk_renderer_->SetOcclusionRatio(0.1);
+
 
   vtk_render_wnd_->Render();
   vtk_render_wnd_->WaitForCompletion();
@@ -359,6 +452,34 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
         if (m_.find(stl_model_name) != m_.end()) {
         m_[stl_model_name]->GetProperty()->SetOpacity(opacity_);
       }
+    }
+  }
+
+  static VtkCameraParams camera_params;
+
+  if(ctrl && action == GLFW_RELEASE) {
+
+
+    if(key == GLFW_KEY_S) {
+      // save current camera
+      std::cout << "Save Camera matrix " << std::endl;
+      camera_params = GetVtkCameraParams(vtk_renderer_);
+      std::cout << camera_params << std::endl;
+
+    } else if (key == GLFW_KEY_L) {
+
+      // load camera
+      std::cout << "Load Camera matrix " << std::endl;
+
+      std::cout << "Stored camera params\n";
+      std::cout << camera_params << std::endl;
+
+      SetVtkCameraParams(vtk_renderer_, camera_params);
+
+      VtkCameraParams tmp_camera_params = GetVtkCameraParams(vtk_renderer_);
+      std::cout << "Debug camera params\n";
+      std::cout << tmp_camera_params << std::endl;
+
     }
   }
 
