@@ -16,8 +16,13 @@
 cmake_minimum_required(VERSION 3.20)
 project(orsi_sample_apps LANGUAGES NONE)
 
-# TODO: add detection for presence of Deltacast VideoMaster SDK 
-set(VIDEO_MASTER_SDK_FOUND OFF)
+set(ORSI_VIDEO_MASTER_SDK_FOUND OFF)
+
+if(IS_DIRECTORY "/usr/local/deltacast/Include")
+    if(EXISTS "/usr/lib/libvideomasterhd.so")
+        set(ORSI_VIDEO_MASTER_SDK_FOUND ON)
+    endif()
+endif()
 
 set(HOLOSCAN_OPERATORS
         orsi_format_converter
@@ -26,7 +31,7 @@ set(HOLOSCAN_OPERATORS
         orsi_visualizer
 )
 
-if(VIDEO_MASTER_SDK_FOUND)
+if(ORSI_VIDEO_MASTER_SDK_FOUND)
     list(APPEND HOLOSCAN_OPERATORS  videomaster)
 endif()
 

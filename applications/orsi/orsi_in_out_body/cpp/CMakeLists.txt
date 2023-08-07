@@ -37,7 +37,7 @@ set(LINK_LIBRARIES
 )
 
 set(VIDEOMASTER_OPERATOR "")
-if(VIDEO_MASTER_SDK_FOUND) 
+if(ORSI_VIDEO_MASTER_SDK_FOUND) 
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
     list(APPEND LINK_LIBRARIES  holoscan::videomaster)
 endif()
