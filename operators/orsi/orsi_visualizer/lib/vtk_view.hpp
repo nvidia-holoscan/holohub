@@ -25,7 +25,7 @@
 #include <vtkCommand.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGenericRenderWindowInteractor.h>
-#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkInteractorStyleTrackballActor.h>
 #include <vtkOpenGLFramebufferObject.h>
 #include <vtkProp.h>
 #include <vtkPropCollection.h>
@@ -43,7 +43,7 @@ class VtkView {
 
   vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_render_wnd_ = nullptr;
   vtkSmartPointer<vtkGenericRenderWindowInteractor> vtk_interactor_ = nullptr;
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> vtk_interactor_style_ = nullptr;
+  vtkSmartPointer<vtkInteractorStyleTrackballActor> vtk_interactor_style_ = nullptr;
   vtkSmartPointer<vtkRenderer> vtk_renderer_ = nullptr;
 
   uint32_t vtk_gl_color_tex_ = 0;
@@ -95,13 +95,13 @@ class VtkView {
   void setRenderWindow(const vtkSmartPointer<vtkGenericOpenGLRenderWindow>& renderWindow);
   void setInteractor(const vtkSmartPointer<vtkGenericRenderWindowInteractor>& interactor);
   void setInteractorStyle(
-      const vtkSmartPointer<vtkInteractorStyleTrackballCamera>& interactorStyle);
+      const vtkSmartPointer<vtkInteractorStyleTrackballActor>& interactorStyle);
 
   void setRenderer(const vtkSmartPointer<vtkRenderer>& renderer);
 
   vtkSmartPointer<vtkGenericOpenGLRenderWindow>& getRenderWindow();
   vtkSmartPointer<vtkGenericRenderWindowInteractor>& getInteractor();
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera>& getInteractorStyle();
+  vtkSmartPointer<vtkInteractorStyleTrackballActor>& getInteractorStyle();
   vtkSmartPointer<vtkRenderer>& getRenderer();
 
   unsigned int getTexture() const;
