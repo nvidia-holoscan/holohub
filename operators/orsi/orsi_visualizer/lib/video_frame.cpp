@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 #include "video_frame.hpp"
+#include <holoscan/logger/logger.hpp>
 
 #include <string>
 
@@ -46,24 +47,24 @@ gxf_result_t VideoFrame::start(bool swizzleVideo) {
   glSamplerParameteri(surgical_tool_mask_sampler_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   if (!createGLSLShader(GL_VERTEX_SHADER, vertex_shader_, vertex_shader_source.c_str())) {
-    GXF_LOG_ERROR("Failed to create GLSLvertex shader");
+    HOLOSCAN_LOG_ERROR("Failed to create GLSLvertex shader");
     return GXF_FAILURE;
   }
 
   if (!createGLSLShader(GL_FRAGMENT_SHADER, fragment_shader_, fragment_shader_source.c_str())) {
-    GXF_LOG_ERROR("Failed to create GLSL fragment shader");
+    HOLOSCAN_LOG_ERROR("Failed to create GLSL fragment shader");
     return GXF_FAILURE;
   }
 
   if (!linkGLSLProgram(vertex_shader_, fragment_shader_, program_)) {
-    GXF_LOG_ERROR("Failed to link GLSL program.");
+    HOLOSCAN_LOG_ERROR("Failed to link GLSL program.");
     return GXF_FAILURE;
   }
 
   // apply swizzleVideo from at config time
   glProgramUniform1i(program_, 1, swizzleVideo);
 
-  GXF_LOG_INFO("Build GLSL shaders and program successfully");
+  HOLOSCAN_LOG_INFO("Build GLSL shaders and program successfully");
   return GXF_SUCCESS;
 }
 

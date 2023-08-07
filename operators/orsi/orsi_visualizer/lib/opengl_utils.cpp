@@ -21,6 +21,7 @@
 #include <string>
 
 #include "common/assert.hpp"
+#include <holoscan/logger/logger.hpp>
 
 #ifndef UNUSED
 #define UNUSED(NAME) (void)(NAME)
@@ -98,13 +99,13 @@ void OpenGLDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
   const char* severity_str = glDebugSeverity2Str(severity);
 
   if (severity == GL_DEBUG_TYPE_ERROR) {
-    GXF_LOG_ERROR("GL CALLBACK: source = %s, type = %s, severity = %s, message = %s\n",
+    HOLOSCAN_LOG_ERROR("GL CALLBACK: source = %s, type = %s, severity = %s, message = %s\n",
                   source_str,
                   type_str,
                   severity_str,
                   message);
   } else {
-    GXF_LOG_INFO("GL CALLBACK: source = %s, type = %s, severity = %s, message = %s\n",
+    HOLOSCAN_LOG_INFO("GL CALLBACK: source = %s, type = %s, severity = %s, message = %s\n",
                  source_str,
                  type_str,
                  severity_str,
@@ -129,7 +130,7 @@ bool createGLSLShader(GLenum shader_type, GLuint& shader, const char* shader_src
     compile_log.resize(maxLength);
     glGetShaderInfoLog(shader, maxLength, NULL, &compile_log[0]);
 
-    GXF_LOG_ERROR("Shader compilation failed:  %s ", compile_log.c_str());
+    HOLOSCAN_LOG_ERROR("Shader compilation failed:  %s ", compile_log.c_str());
     return false;
   }
   return true;
@@ -151,7 +152,7 @@ bool linkGLSLProgram(const GLuint vertex_shader, const GLuint fragment_shader, G
     std::string link_log;
     link_log.resize(maxLength);
     glGetProgramInfoLog(program, maxLength, &maxLength, &link_log[0]);
-    GXF_LOG_ERROR("Failed to link GLSL program. Log: %s", link_log.c_str());
+    HOLOSCAN_LOG_ERROR("Failed to link GLSL program. Log: %s", link_log.c_str());
     // The program is useless now. So delete it.
     glDeleteProgram(program);
     // Provide the infolog in whatever manner you deem best.
