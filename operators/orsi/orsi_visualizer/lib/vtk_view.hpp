@@ -31,6 +31,7 @@
 #include <vtkPropCollection.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+#include <vtkAssembly.h>
 
 struct GLFWwindow;
 
@@ -62,6 +63,8 @@ class VtkView {
   std::vector<std::string> stl_names_;
   std::vector<std::vector<int>> stl_colors_;
   std::vector<int> stl_keys_;
+
+  vtkNew<vtkAssembly> assembly_;
 
  public:
   VtkView() = default;
@@ -103,6 +106,7 @@ class VtkView {
   vtkSmartPointer<vtkGenericRenderWindowInteractor>& getInteractor();
   vtkSmartPointer<vtkInteractorStyleTrackballActor>& getInteractorStyle();
   vtkSmartPointer<vtkRenderer>& getRenderer();
+  
 
   unsigned int getTexture() const;
 };
