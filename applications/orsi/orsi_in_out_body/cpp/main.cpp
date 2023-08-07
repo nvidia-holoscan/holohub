@@ -165,6 +165,9 @@ public:
 };
 
 int main(int argc, char** argv) {
+
+  holoscan::set_log_level(holoscan::LogLevel::WARN);
+
   auto app = holoscan::make_application<App>();
   // Parse the arguments, set source, datapath, config file
   if(!app->init(argc, argv)) {
