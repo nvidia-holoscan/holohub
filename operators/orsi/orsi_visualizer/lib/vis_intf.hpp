@@ -97,8 +97,7 @@ struct BufferInfo {
         channels = 4;
         break;
       default:
-//        GXF_LOG_ERROR("Unsupported input format: %" PRId64 "\n",
-//                      static_cast<int64_t>(buffer_info.color_format));
+        HOLOSCAN_LOG_ERROR("Unsupported input format");
         return GXF_FAILURE;
     }
 
