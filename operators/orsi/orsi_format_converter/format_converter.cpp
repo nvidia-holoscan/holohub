@@ -507,13 +507,6 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
   const NppiSize dst_size = {output_img_size[0], output_img_size[1]};
   const NppiRect dst_roi = {0, 0, output_img_size[0], output_img_size[1]};
 
-  // debug src / dst params
-  std::cout << "Src size: " << src_size.width << ", " << src_size.height << std::endl;
-  std::cout << "Src rect: " << src_roi.x << ", " << src_roi.y << ", " << src_roi.width << ", " << src_roi.height << std::endl;
-  std::cout << "Dst size: " << dst_size.width << ", " << dst_size.height << std::endl;
-  std::cout << "Dst rect: " << dst_roi.x << ", " << dst_roi.y << ", " << dst_roi.width << ", " << dst_roi.height << std::endl;
-  std::cout << std::endl;
-
   switch (channels) {
     case 3:
       switch (primitive_type) {
