@@ -41,23 +41,15 @@ format_converter:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
-    resize_width: 512
-    resize_height: 512
-    roi_width: 1264
-    roi_height: 1008
-    x_origin_roi: 328
-    y_origin_roi: 36
+    src_roi_rect: [ 36, 328, 1264, 1008 ]
+    output_img_size : [512, 512] 
 
 format_converter_anonymization:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
-    resize_width: 224
-    resize_height: 224
-    roi_width: 1264
-    roi_height: 1008
-    x_origin_roi: 328
-    y_origin_roi: 36
+    src_roi_rect: [ 36, 328, 1264, 1008 ]
+    output_img_size : [224, 224] 
 
 drop_alpha_channel_videomaster:  # FormatConverter
   in_dtype: "rgba8888"

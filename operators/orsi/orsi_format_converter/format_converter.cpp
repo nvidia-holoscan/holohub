@@ -242,6 +242,9 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
   int16_t in_channels = 0;
   int16_t out_channels = 0;
 
+  const std::vector<int32_t> out_img_size = output_img_size_;
+  const std::vector<int32_t> src_img_roi = src_roi_rect_;
+
   // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
   auto pool = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(),
                                                                   allocator_->gxf_cid());
@@ -389,25 +392,22 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
   }
 
   // Resize the input image before converting data type
-  if (resize_width_ > 0 && resize_height_ > 0) {
+  if (out_img_size[0] > 0 && out_img_size[1] > 0) {
+
     auto resize_result = resizeImage(in_tensor_data,
                                      rows,
                                      columns,
                                      in_channels,
                                      in_primitive_type,
-                                     resize_width_,
-                                     resize_height_,
-                                     roi_width_,
-                                     roi_height_,
-                                     x_origin_roi_,
-                                     y_origin_roi_);
+                                     out_img_size,
+                                     src_img_roi);
     if (!resize_result) { throw std::runtime_error("Failed to resize image.\n"); }
 
     // Update the tensor pointer and shape
-    out_shape = nvidia::gxf::Shape{resize_height_, resize_width_, in_channels};
+    out_shape = nvidia::gxf::Shape{out_img_size[1], out_img_size[0], in_channels};
     in_tensor_data = resize_result.value();
-    rows = resize_height_;
-    columns = resize_width_;
+    rows = out_img_size[1];
+    columns = out_img_size[0];
   }
 
   // Create output message
@@ -480,9 +480,9 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
 
 nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
     const void* in_tensor_data, const int32_t rows, const int32_t columns, const int16_t channels,
-    const nvidia::gxf::PrimitiveType primitive_type, const int32_t resize_width,
-    const int32_t resize_height, const int32_t roi_width, const int32_t roi_height,
-    const int32_t x_origin_roi, const int32_t y_origin_roi) {
+    const nvidia::gxf::PrimitiveType primitive_type, 
+    const std::vector<int32_t>& output_img_size, 
+    const std::vector<int32_t>& src_img_rect) {
   if (resize_buffer_->size() == 0) {
     auto frag = fragment();
 
@@ -490,7 +490,7 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
     auto pool = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(frag->executor().context(),
                                                                     allocator_->gxf_cid());
 
-    uint64_t buffer_size = resize_width * resize_height * channels;
+    uint64_t buffer_size = output_img_size[0] * output_img_size[1] * channels;
     resize_buffer_->resize(pool.value(), buffer_size, nvidia::gxf::MemoryStorageType::kDevice);
   }
 
@@ -503,11 +503,9 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
   // Resize image
   NppStatus status = NPP_ERROR;
   const NppiSize src_size = {static_cast<int>(columns), static_cast<int>(rows)};
-  const NppiRect src_roi = {x_origin_roi, y_origin_roi, static_cast<int>(roi_width),
-                            static_cast<int>(roi_height)};
-  const NppiSize dst_size = {static_cast<int>(resize_width), static_cast<int>(resize_height)};
-  const NppiRect dst_roi = {0, 0, static_cast<int>(resize_width), static_cast<int>(resize_height)};
-
+  const NppiRect src_roi = {src_img_rect[0], src_img_rect[1], src_img_rect[2],src_img_rect[3]};
+  const NppiSize dst_size = {output_img_size[0], output_img_size[1]};
+  const NppiRect dst_roi = {0, 0, output_img_size[0], output_img_size[1]};
   switch (channels) {
     case 3:
       switch (primitive_type) {
@@ -517,7 +515,7 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
                                          src_size,
                                          src_roi,
                                          converted_tensor_ptr,
-                                         resize_width * channels,
+                                         output_img_size[0] * channels,
                                          dst_size,
                                          dst_roi,
                                          resize_mode_,
@@ -536,7 +534,7 @@ nvidia::gxf::Expected<void*> FormatConverterOp::resizeImage(
                                          src_size,
                                          src_roi,
                                          converted_tensor_ptr,
-                                         resize_width * channels,
+                                         output_img_size[0] * channels,
                                          dst_size,
                                          dst_roi,
                                          resize_mode_,
@@ -902,38 +900,19 @@ void FormatConverterOp::setup(OperatorSpec& spec) {
              "Alpha value that can be used to fill the alpha channel when "
              "converting RGB888 to RGBA8888.",
              static_cast<uint8_t>(255));
-  spec.param(resize_width_,
-             "resize_width",
-             "Resize width",
-             "Width for resize. No actions if this value is zero.",
-             0);
-  spec.param(resize_height_,
-             "resize_height",
-             "Resize height",
-             "Height for resize. No actions if this value is zero.",
-             0);
-  spec.param(roi_width_,
-            "roi_width",
-            "Roi width",
-            "Width for resize. No actions if this value is zero.",
-            1920);
-  spec.param(roi_height_,
-            "roi_height",
-            "Roi height",
-            "Height for resize. No actions if this value is zero.",
-            1080);
-  spec.param(x_origin_roi_,
-             "x_origin_roi",
-             "X origin roi",
-             "X coordinate of the top left corner from which "
-             "the image rezing starts.",
-             0);
-  spec.param(y_origin_roi_,
-             "y_origin_roi",
-             "Y origin roi",
-             "Y coordinate of the top left corner from which "
-             "the image rezing starts.",
-             0);
+
+  spec.param(src_roi_rect_,
+             "src_roi_rect",
+             "src image roi rect",
+             "Src image roi rect [x, y, width, height]",
+             std::vector<int32_t>{0, 0, 1920, 1080});
+
+  spec.param(output_img_size_,
+             "output_img_size",
+             "Output image size after resize",
+             "Ouput image size [ width, height ] after resize",
+             std::vector<int32_t>({0, 0}));
+ 
   spec.param(resize_mode_,
              "resize_mode",
              "Resize mode",
