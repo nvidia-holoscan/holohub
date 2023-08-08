@@ -74,36 +74,15 @@ void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
              "OutputTensorName",
              "Name of the output tensor.",
              std::string());
-  spec.param(cropped_width_,
-            "cropped_width",
-            "Cropped width",
-            "Width for the reverse cropping. No actions if this value is zero.",
-            0);
-  spec.param(cropped_height_,
-            "cropped_height",
-            "Cropped height",
-            "Height for the reverse cropping. No actions if this value is zero.",
-            0);
-  spec.param(offset_x_,
-            "offset_x",
-            "Offset x",
-            "X coordinate of the top left corner from which the image resizing starts.",
-            0);
-  spec.param(offset_y_,
-            "offset_y",
-            "Offset y",
-            "Y coordinate of the top left corner from which the image resizing starts.",
-            0);
-  spec.param(resolution_width_,
-             "resolution_width",
-             "Resolution width",
-             "Width for the output resolution.",
-             1920);
-  spec.param(resolution_height_,
-             "resolution_height",
-             "Resolution height",
-             "Height for the output resolution.",
-             1080);
+  spec.param(output_roi_rect_,
+             "output_roi_rect",
+             "output image roi rect",
+             "output image roi rect [x, y, width, height]");
+
+  spec.param(output_img_size_,
+             "output_img_size",
+             "Output image size after resize",
+             "Ouput image size [ width, height ] after resize");
 
   cuda_stream_handler_.defineParams(spec);
 
@@ -182,11 +161,11 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name.c_str());
   if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
 
-  const bool roi_enabled = cropped_width_ > 0 && cropped_height_ > 0;
+  const bool roi_enabled = output_roi_.width > 0 && output_roi_.height > 0;
   // Allocate and convert output buffer on the device.
   nvidia::gxf::Shape output_shape  {shape.height, shape.width, 1};
   nvidia::gxf::Shape scratch_buffer_process_shape{shape.height, shape.width, 1};
-  nvidia::gxf::Shape scratch_buffer_resize_shape{cropped_width_, cropped_height_, 1};
+  nvidia::gxf::Shape scratch_buffer_resize_shape{output_roi_.width, output_roi_.height, 1};
 
   auto frag = fragment();
   // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
@@ -194,7 +173,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
                                                                   allocator_->gxf_cid());
   if (roi_enabled) {
     // set new output shape
-    output_shape =  nvidia::gxf::Shape{resolution_height_, resolution_width_, 1};
+    output_shape =  nvidia::gxf::Shape{output_size_.height, output_size_.width, 1};
     // resize scratch buffer
     if (scratch_buffer_process_->size() == 0) {
       const uint64_t buffer_size = scratch_buffer_process_shape.dimension(0)
@@ -247,10 +226,10 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
                                  static_cast<int>(scratch_buffer_process_shape.dimension(1))};
       const NppiRect src_roi = {0, 0, static_cast<int>(scratch_buffer_process_shape.dimension(0)),
                                       static_cast<int>(scratch_buffer_process_shape.dimension(1))};
-      const NppiSize dst_size = {static_cast<int>(cropped_width_),
-                                 static_cast<int>(cropped_height_)};
-      const NppiRect dst_roi = {0, 0, static_cast<int>(cropped_width_),
-                                      static_cast<int>(cropped_height_)};
+      const NppiSize dst_size = {static_cast<int>(output_roi_.width),
+                                 static_cast<int>(output_roi_.height)};
+      const NppiRect dst_roi = {0, 0, static_cast<int>(output_roi_.width),
+                                      static_cast<int>(output_roi_.height)};
 
       const uint8_t * src_buffer = scratch_buffer_process_->pointer();
       uint8_t * dst_buffer = scratch_buffer_resize_->pointer();
@@ -270,12 +249,12 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
       const auto converted_tensor_ptr = scratch_buffer_resize_->pointer();
       out_tensor_data = out_tensor.value()->data<uint8_t>();
-      cuda_resize({cropped_height_, cropped_width_, 1},
+      cuda_resize({output_roi_.height, output_roi_.width, 1},
                 {output_shape.dimension(1), output_shape.dimension(1), output_shape.dimension(2)},
                 converted_tensor_ptr,
                 out_tensor_data.value(),
-                offset_x_,
-                offset_y_);
+                output_roi_.x,
+                output_roi_.y);
   }
 
   // pass the CUDA stream to the output message
@@ -309,6 +288,22 @@ void SegmentationPostprocessorOp::start() {
   } else {
     throw std::runtime_error(fmt::format("Unsupported data format type {}", data_format));
   }
+
+  const std::vector<int32_t>  roi = output_roi_rect_;
+  if(roi.size() != 4) {
+    throw std::runtime_error(fmt::format("Invalid number: {} of dimensions for output image region of interest. Expected ROI in format [x, y, width, height]!", roi.size()));
+  }
+  output_roi_.x = roi[0];
+  output_roi_.y = roi[1];
+  output_roi_.width = roi[2];
+  output_roi_.height = roi[3];
+
+  const std::vector<int32_t>  out_img_size = output_img_size_;
+  if(out_img_size.size() != 2) {
+    throw std::runtime_error(fmt::format("Invalid number: {} of dimensions for output image size. Expected size in format [width, height]!", out_img_size.size()));
+  }
+  output_size_.width = out_img_size[0];
+  output_size_.height = out_img_size[1];
 
   scratch_buffer_process_ = std::make_unique<nvidia::gxf::MemoryBuffer>();
   scratch_buffer_resize_ = std::make_unique<nvidia::gxf::MemoryBuffer>();

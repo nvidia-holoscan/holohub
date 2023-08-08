@@ -86,10 +86,8 @@ segmentation_postprocessor:  # Postprocessor
   in_tensor_name: tool_seg_infer
   network_output_type: softmax
   data_format: nchw
-  cropped_width: 1264
-  cropped_height: 1008
-  offset_x: 328
-  offset_y: 36
+  output_roi_rect: [ 328, 36, 1264, 1008 ]
+  output_img_size: [ 1920, 1080 ]
   out_tensor_name: segmentation_postprocessed
 
 segmentation_visualizer:  # OrsiVizGXF Codelet
