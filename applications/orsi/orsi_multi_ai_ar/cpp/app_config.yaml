@@ -90,7 +90,7 @@ segmentation_postprocessor:  # Postprocessor
   output_img_size: [ 1920, 1080 ]
   out_tensor_name: segmentation_postprocessed
 
-segmentation_visualizer:  # OrsiVizGXF Codelet
+orsi_visualizer:  # Orsi Visualizer
   swizzle_video : false # set this value to true to change the colorformat of the surgical video from rgb to bgr during vis
   stl_names: [1_full_arterial_tree, 2_venous_tree_all, 3_artery_stentzone, 4_vene_stentzone, 5_ureter_artphase_left, 6_parenchyma_left, 7_stent, 8_left_short_renal_artery, 9_left_long_renal_artery, 10_wervelzuil, 11_variceus_kluwen_linker_vene]
   stl_colors: [[255, 0, 0, 0], [0, 0, 255, 0], [255, 0, 0, 0], [0, 0, 255, 0], [255, 255, 0, 0], [180, 180, 180, 0], [170, 255, 0, 0], [255, 0, 0, 0], [255, 0, 0, 0], [200, 200, 180, 0], [0, 0, 255, 0]] # in RGBA format

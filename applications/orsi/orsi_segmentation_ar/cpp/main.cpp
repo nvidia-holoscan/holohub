@@ -143,9 +143,9 @@ class App : public OrsiApp {
     // Visualization Operator
     //
 
-    auto segmentation_visualizer =
-        make_operator<ops::orsi::OrsiVisualizationOp>("segmentation_visualizer",
-                                      from_config("segmentation_visualizer"),
+    auto orsi_visualizer =
+        make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
+                                      from_config("orsi_visualizer"),
                                       Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
                                       Arg("allocator") = allocator_resource);
 
@@ -154,14 +154,14 @@ class App : public OrsiApp {
 
 #ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
-        add_flow(source, segmentation_visualizer, {{"signal", "receivers"}});
+        add_flow(source, orsi_visualizer, {{"signal", "receivers"}});
         add_flow(source, drop_alpha_channel, {{"signal", ""}});
         add_flow(drop_alpha_channel, format_converter);
         break;
 #endif
       case VideoSource::REPLAYER:
       default:
-        add_flow(source, segmentation_visualizer, {{"", "receivers"}});
+        add_flow(source, orsi_visualizer, {{"", "receivers"}});
         add_flow(source, format_converter);
         break;
     }
@@ -169,7 +169,7 @@ class App : public OrsiApp {
     add_flow(format_converter, segmentation_preprocessor);
     add_flow(segmentation_preprocessor, multiai_inference, {{"", "receivers"}});
     add_flow(multiai_inference, segmentation_postprocessor, {{"transmitter", ""}});
-    add_flow(segmentation_postprocessor, segmentation_visualizer, {{"", "receivers"}});
+    add_flow(segmentation_postprocessor, orsi_visualizer, {{"", "receivers"}});
   }
 };
 
