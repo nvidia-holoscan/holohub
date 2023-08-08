@@ -73,7 +73,7 @@ multiai_inference:  # InferenceOp
     "anonymization": [ "anonymization_infer" ]
   enable_fp16: true
 
-segmentation_visualizer:  # OrsiVizGXF Codelet
+orsi_visualizer:  # OrsiVizGXF Codelet
   swizzle_video : false # set this value to true to change the colorformat of the surgical video from rgb to bgr during vis
   stl_names: []
   stl_colors: [] # in RGBA format
