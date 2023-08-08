@@ -41,14 +41,14 @@ format_converter:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
-    src_roi_rect: [ 36, 328, 1264, 1008 ]
+    src_roi_rect: [ 328, 36, 1264, 1008 ]
     output_img_size : [512, 512] 
 
 format_converter_anonymization:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
-    src_roi_rect: [ 36, 328, 1264, 1008 ]
+    src_roi_rect: [ 328, 36, 1264, 1008 ]
     output_img_size : [224, 224] 
 
 drop_alpha_channel_videomaster:  # FormatConverter
