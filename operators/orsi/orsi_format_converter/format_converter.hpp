@@ -64,9 +64,8 @@ class FormatConverterOp : public holoscan::Operator {
   nvidia::gxf::Expected<void*> resizeImage(const void* in_tensor_data, const int32_t rows,
                                            const int32_t columns, const int16_t channels,
                                            const nvidia::gxf::PrimitiveType primitive_type,
-                                           const int32_t resize_width, const int32_t resize_height,
-                                           const int32_t roi_width, const int32_t roi_height,
-                                           const int32_t x_origin_roi, const int32_t y_origin_roi);
+                                           const std::vector<int32_t>& output_img_size,
+                                           const std::vector<int32_t>& src_roi_rect);
   void convertTensorFormat(const void* in_tensor_data, void* out_tensor_data, const int32_t rows,
                            const int32_t columns, const int16_t in_channels,
                            const int16_t out_channels);
@@ -80,13 +79,9 @@ class FormatConverterOp : public holoscan::Operator {
   Parameter<float> scale_min_;
   Parameter<float> scale_max_;
   Parameter<uint8_t> alpha_value_;
-  Parameter<int32_t> resize_width_;
-  Parameter<int32_t> resize_height_;
   Parameter<int32_t> resize_mode_;
-  Parameter<int32_t> roi_width_;
-  Parameter<int32_t> roi_height_;
-  Parameter<int32_t> x_origin_roi_;
-  Parameter<int32_t> y_origin_roi_;
+  Parameter<std::vector<int32_t>> src_roi_rect_;
+  Parameter<std::vector<int32_t>> output_img_size_;
   Parameter<std::vector<int>> out_channel_order_;
 
   std::unique_ptr<nvidia::gxf::MemoryBuffer> resize_buffer_;
@@ -106,7 +101,6 @@ class FormatConverterOp : public holoscan::Operator {
   FormatConversionType format_conversion_type_ = FormatConversionType::kUnknown;
 
   NppStreamContext npp_stream_ctx_{};
-
   CudaStreamHandler cuda_stream_handler_;
 };
 
