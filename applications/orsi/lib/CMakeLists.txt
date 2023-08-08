@@ -28,6 +28,11 @@ target_link_libraries(${PROJECT_NAME}
    PUBLIC   holoscan::core
 )
 
+set(VIDEOMASTER_OPERATOR "")
+if(ORSI_VIDEO_MASTER_SDK_FOUND) 
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
+endif()
+
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
