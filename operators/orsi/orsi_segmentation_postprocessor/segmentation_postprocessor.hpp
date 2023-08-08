@@ -32,6 +32,16 @@ using holoscan::ops::segmentation_postprocessor::NetworkOutputType;
 
 namespace holoscan::ops::orsi {
 
+struct Rect
+{
+  int32_t x,y, width, height;
+};
+
+struct Size 
+{
+  int32_t width, height;
+};
+
 class SegmentationPostprocessorOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(SegmentationPostprocessorOp)
@@ -59,12 +69,8 @@ class SegmentationPostprocessorOp : public Operator {
   Parameter<std::string> network_output_type_;
   Parameter<std::string> data_format_;
 
-  Parameter<int32_t> cropped_width_;
-  Parameter<int32_t> cropped_height_;
-  Parameter<int32_t> offset_x_;
-  Parameter<int32_t> offset_y_;
-  Parameter<int32_t> resolution_width_;
-  Parameter<int32_t> resolution_height_;
+  Parameter<std::vector<int32_t>> output_roi_rect_;
+  Parameter<std::vector<int32_t>> output_img_size_;
 
   CudaStreamHandler cuda_stream_handler_;
 
@@ -77,6 +83,10 @@ class SegmentationPostprocessorOp : public Operator {
 
   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_process_;
   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_resize_;
+
+  Rect output_roi_;
+  Size output_size_;
+
 };
 
 }  // namespace holoscan::ops::orsi
