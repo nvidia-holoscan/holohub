@@ -6,12 +6,12 @@
 </div>
 
 ## Introduction:
->With the recent release of the [Llama-2](https://about.fb.com/news/2023/07/llama-2/) family of models, there has been an excess of excitement in the LLM community due to these models being released freely for research and commerical use. Upon their release, the 70b version of the Llama-2 model quickly rose to the top place on HuggingFace's [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard). Addititionally, thanks to the publishing of the model weights, fine-tuned versions of these models are consistently being released and raising the bar for the top performing open-LLM. This most recent release of Llama-2 provides some of the first legitimate open-source alternatives to the previously unparelled performance of closed-source LLMs. This enables developers to deploy these Llama-2 models locally, and benefit from being able to use some of the most advanced LLMs ever created, while also keeping all of their data on their own host machines.
+>With the recent release of the [Llama-2](https://about.fb.com/news/2023/07/llama-2/) family of models, there has been an excess of excitement in the LLM community due to these models being released freely for research and commercial use. Upon their release, the 70b version of the Llama-2 model quickly rose to the top place on HuggingFace's [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard). Additionally, thanks to the publishing of the model weights, fine-tuned versions of these models are consistently being released and raising the bar for the top performing open-LLM. This most recent release of Llama-2 provides some of the first legitimate open-source alternatives to the previously unparalleled performance of closed-source LLMs. This enables developers to deploy these Llama-2 models locally, and benefit from being able to use some of the most advanced LLMs ever created, while also keeping all of their data on their own host machines.
 >
 > The only edge device that is capable of running the Llama-2 70b locally is the [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/). In order to get the Llama-2 70b model running inference, all you need is an IGX Orin, a mouse, a keyboard, and to follow the tutorial below.
 
 ## Overview:
->This tutorial will walk you through how to run a quantized vesion of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin. Specifically, we will use [Llama.cpp](https://github.com/ggerganov/llama.cpp), a project that ports Llama models into C and C++ with CUDA acceleration, to load and run the quantized Llama-2 models. We will setup Llama.cpp's `api_like_OAI.py` Flask app that emulates the OpenAI API. This will then enable us to create a Gradio chatbot app that utilizes the popular OpenAI API Python library to interact with our local Llama-2 model. Thus, at the conclusion of this tutorial you will have a chatbot app that rivals the performance of closed-source models, while keeping all of your data local and running everything self-contained on an NVIDIA IGX Orin.
+>This tutorial will walk you through how to run a quantized version of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin. Specifically, we will use [Llama.cpp](https://github.com/ggerganov/llama.cpp), a project that ports Llama models into C and C++ with CUDA acceleration, to load and run the quantized Llama-2 models. We will setup Llama.cpp's `api_like_OAI.py` Flask app that emulates the OpenAI API. This will then enable us to create a Gradio chatbot app that utilizes the popular OpenAI API Python library to interact with our local Llama-2 model. Thus, at the conclusion of this tutorial you will have a chatbot app that rivals the performance of closed-source models, while keeping all of your data local and running everything self-contained on an NVIDIA IGX Orin.
 
 ---
 
@@ -27,8 +27,8 @@
 - [`build-essential`](https://packages.ubuntu.com/focal/build-essential) apt package (gcc, g++, etc.)
 - [Cmake](https://apt.kitware.com/) >= 3.17
 
-## Cloning and building Llamma.cpp ⚒️:
-1. Clone Llamma.cpp:
+## Cloning and building Llama.cpp ⚒️:
+1. Clone Llama.cpp:
 ```bash
 git clone https://github.com/ggerganov/llama.cpp.git
 ```
@@ -47,7 +47,7 @@ The only issue with using Llama.cpp, is that utilizing the IGX's dGPU is not cur
 #endif
 ```
 
-3. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llamma.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
+3. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llama.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
 Navigate to the `/Llama.cpp` directory:
 ```bash
 cd llama.cpp
@@ -63,7 +63,7 @@ cd build
 cmake .. -DLLAMA_CUBLAS=ON
 cmake -build . -config Release
 ```
-By succesfully executing these commands you will now be able to run Llama models on your local machine with BLAS acceleration!
+By successfully executing these commands you will now be able to run Llama models on your local machine with BLAS acceleration!
 
 ## Downloading Llama-2 70B ⬇️💾:
 >In order to use Llama-2 70b as it is provided by Meta, you’d need 140 GB of VRAM (70b params x 2 bytes = 140 GB in FP16). However, by utilizing model quantization, we can reduce the computational and memory costs of running inference by representing the weights and activations as low-precision data types, like int8 and int4, instead of higher-precision data types like FP16 and FP32. To learn more about quantization, check out: The [Ultimate Guide to Deep Learning Model Quantization](https://deci.ai/quantization-and-quantization-aware-training/).
@@ -138,7 +138,7 @@ llama server listening at http://127.0.0.1:8080
 {"timestamp":1690580264,"level":"INFO","function":"main","line":1341,"message":"HTTP server listening","hostname":"127.0.0.1","port":8080}
 ```
 
-Now, you can interact with the simple web front end by browsing to http://127.0.0.1:8080. Use the provided chat interface to query the Llama-2 model and experiment with manipulating the provided hyperparameters to tune the reponses to your liking.
+Now, you can interact with the simple web front end by browsing to http://127.0.0.1:8080. Use the provided chat interface to query the Llama-2 model and experiment with manipulating the provided hyperparameters to tune the responses to your liking.
 
 <div align="center">
 <img src="./llama_cpp_api.png" width=40% style="border: 2px solid black;">
@@ -182,7 +182,7 @@ def to_oai_chat(history):
                     {'role': 'assistant', 'content': '<bot_message>'}]
 
     Additionally, this adds the 'system' message to the chat to tell the
-    assitant how to act.
+    assistant how to act.
     """
     chat = [
         {
@@ -195,7 +195,7 @@ def to_oai_chat(history):
         if msg_pair[0]:
             chat.append({"role": "user", "content": msg_pair[0]})
         if msg_pair[1]:
-            chat.append({"role": "asssistant", "content": msg_pair[1]})
+            chat.append({"role": "assistant", "content": msg_pair[1]})
     return chat
 
 
@@ -231,7 +231,7 @@ with gr.Blocks() as demo:
             next_token = response_chunk["choices"][0]["delta"].get("content")
             if next_token:
                 history[-1][1] += next_token
-                # Update the Gradio app with the streamed repsonse
+                # Update the Gradio app with the streamed response
                 yield history
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(bot, chatbot, chatbot)
@@ -252,7 +252,7 @@ python chatbot.py
 <img src="./chatbot_app.png" width=70% style="border: 2px solid black;">
 </div>
 
-You’re now set up to interact with the Llama-2 70b model, with everything running locally! If you want to take this project further, you can experiment with different system messages to suit your needs or add the ability to interact with your local documents using frameworks like LangChain. Enjoy experimenting!
+You're now set up to interact with the Llama-2 70b model, with everything running locally! If you want to take this project further, you can experiment with different system messages to suit your needs or add the ability to interact with your local documents using frameworks like LangChain. Enjoy experimenting!
 ## Sources:
 - https://huggingface.co/meta-llama/Llama-2-70b-chat-hf/tree/main
 - https://huggingface.co/docs/optimum/concept_guides/quantization
