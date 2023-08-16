@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_holohub_extension(deltacast_videomaster)
 add_holohub_extension(emergent_source)
 add_holohub_extension(lstm_tensor_rt_inference)
-add_holohub_extension(videomaster)
