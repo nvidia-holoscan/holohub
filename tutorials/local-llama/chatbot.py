@@ -31,7 +31,7 @@ def to_oai_chat(history):
                     {'role': 'assistant', 'content': '<bot_message>'}]
 
     Additionally, this adds the 'system' message to the chat to tell the
-    assitant how to act.
+    assistant how to act.
     """
     chat = [
         {
@@ -44,7 +44,7 @@ def to_oai_chat(history):
         if msg_pair[0]:
             chat.append({"role": "user", "content": msg_pair[0]})
         if msg_pair[1]:
-            chat.append({"role": "asssistant", "content": msg_pair[1]})
+            chat.append({"role": "assistant", "content": msg_pair[1]})
     return chat
 
 
@@ -80,7 +80,7 @@ with gr.Blocks() as demo:
             next_token = response_chunk["choices"][0]["delta"].get("content")
             if next_token:
                 history[-1][1] += next_token
-                # Update the Gradio app with the streamed repsonse
+                # Update the Gradio app with the streamed response
                 yield history
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(bot, chatbot, chatbot)
