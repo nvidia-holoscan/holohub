@@ -13,7 +13,7 @@
 		"dependencies": {
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/basic_networking_ping.py <holohub_app_source>/../basic_networking_ping.yaml",
+			"command": "python3 <holohub_app_source>/basic_networking_ping.py",
 			"workdir": "holohub_app_bin"
 		}
 	}

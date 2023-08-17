@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +13,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+extensions:
+  - libgxf_std.so
 
-from enum import Enum
-
-class L4Proto(Enum):
-  TCP = 0
-  UDP = 1
-
-class NetworkOpBurstParams:
-  data: bytearray
-  num_pkts: int
-
-  def reset(self):
-    self.data = bytearray()
-    self.num_pkts = 0
-
-  def __init__(self) -> None:
-    self.reset()
+network_tx:
+  max_payload_size: 1400  
+  dst_port: 4096
+  l4_proto: "udp"
+  ip_addr: "127.0.0.1"
+  min_ipg_ns: 0
+  retry_connect: 1

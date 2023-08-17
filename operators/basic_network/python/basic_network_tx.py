@@ -59,21 +59,30 @@ class BasicNetworkOpTx(Operator):
         spec.input("burst_in")
 
     def compute(self, op_input, op_output, context):
-        burst: NetworkOpBurstParams = op_input.receive("burst_in")
-        print("HERE")
+        burst: bytearray = op_input.receive("burst_in")
         if self.l4_proto == L4Proto.TCP:
-            while not self.connected:
+            if not self.connected:
                 try:
-                    self.sock_fd.create_connection((self.ip_addr, self.dst_port), timeout=self.retry_connect)
+                    self.sock_fd.connect((self.ip_addr, self.dst_port))
                     self.connected = True
-                    self.logger.info(f"Successfully connected to server at {self.ip_addr}:{self.port}")
+                    print("HEE")
+                    self.logger.info(f"Successfully connected to server at {self.ip_addr}:{self.dst_port}")
                 except:
-                    self.logger.warn(f'Failed to connect to TCP server. Retrying....')
+                    self.logger.warn(f'Failed to connect to TCP server at {self.ip_addr}:{self.dst_port}. Retrying....')
                     sleep(self.retry_connect)
                     return
 
+            ttl = 0
+            while ttl < len(burst):
+                sent = self.sock_fd.send(burst[ttl:])
+                if sent == 0:
+                    raise RuntimeError("socket connection broken")
+                ttl = ttl + sent
 
-        sent = self.sock_fd.sendall(burst.data)
-        if sent == None:
-            self.logger.error("Failed to send data")
-
+        else:
+            ttl = 0
+            while ttl < len(burst):
+                sent = self.sock_fd.sendto(burst[ttl:], (self.ip_addr,self.dst_port))
+                if sent == 0:
+                    raise RuntimeError("socket connection broken")
+                ttl = ttl + sent

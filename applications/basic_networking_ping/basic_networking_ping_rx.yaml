@@ -20,14 +20,6 @@ extensions:
 network_rx:
   batch_size: 1
   max_payload_size: 1400
-  udp_dst_port: 4096
-  l4_proto: "tcp"
+  dst_port: 4096
+  l4_proto: "udp"
   ip_addr: "127.0.0.1"
-
-network_tx:
-  max_payload_size: 1400  
-  udp_dst_port: 4096
-  l4_proto: "tcp"
-  ip_addr: "127.0.0.1"
-  min_ipg_ns: 0
-  retry_connect: 1

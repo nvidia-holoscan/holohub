@@ -17,6 +17,7 @@ from holoscan.core import Operator, OperatorSpec
 from .basic_network_common import NetworkOpBurstParams, L4Proto
 import socket
 import logging
+import copy
 
 class BasicNetworkOpRx(Operator):
     sock_fd: socket.socket = None
@@ -40,10 +41,11 @@ class BasicNetworkOpRx(Operator):
             self.sock_fd.bind((self.ip_addr, self.dst_port))
             if self.l4_proto == L4Proto.TCP:
                 self.sock_fd.listen(1)
+
+            self.logger.error(f"Successfully listening on {self.ip_addr}:{self.dst_port}")
         except socket.error:
-            print("FAIL")
             self.logger.error("Failed to create socket")
-        print("INIT SUCCESS")
+
         self.logger.info("Basic RX operator initialized")
 
     def __init__(self, *args, **kwargs):
@@ -60,34 +62,41 @@ class BasicNetworkOpRx(Operator):
         spec.output("burst_out")
 
     def compute(self, op_input, op_output, context):
-        #burst.num_pkts = 1
-
         if self.l4_proto == L4Proto.TCP and not self.connected:
             try:
-                self.sock_fd.settimeout(0.1)
-                print("dddd")
+                self.sock_fd.settimeout(1)
                 self.conn, self.addr = self.sock_fd.accept()
-                
-                with self.conn:
-                    logger.info(f'Connected by {self.addr}')
-                    self.connected = True
+                self.logger.info(f'Connected by {self.addr}')
+                self.connected = True
             except socket.error:
                 return
             finally:
                 self.sock_fd.settimeout(None)
-        print("CONNECTED")
-        while self.send_burst.num_pkts < self.batch_size:
-            print("here")
-            n = self.conn.recv(self.max_payload_size, flags=socket.MSG_DONTWAIT)
-            print("here")
+
+        while True:
+            try:
+                if self.l4_proto == L4Proto.UDP:
+                    tmp = self.sock_fd.recvfrom(self.max_payload_size, socket.MSG_DONTWAIT)
+                    n = tmp[0]
+                else:
+                    n = self.conn.recv(self.max_payload_size, socket.MSG_DONTWAIT)
+            except BlockingIOError:
+                if len(self.send_burst.data) > 0:
+                    self.send_burst.num_pkts = 1
+                    break
+                else:
+                    return
+
             if len(n) > 0:
-                self.send_burst.data.append(n)
-                self.send_burst.len      += len(n)
-                self.send_burst.num_pkts += 1
+                self.send_burst.data.extend(n)
             else:
                 return
 
-        op_output.emit(self.send_burst, "burst_out")
+            if self.send_burst.num_pkts >= self.batch_size:
+                tmp = copy.deepcopy(self.send_burst)
+                op_output.emit(tmp, "burst_out")
+                self.send_burst.reset()
+                return
 
 
 

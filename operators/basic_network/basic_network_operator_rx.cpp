@@ -25,7 +25,7 @@ void BasicNetworkOpRx::setup(OperatorSpec& spec) {
   spec.output<std::shared_ptr<NetworkOpBurstParams>>("burst_out");
 
   spec.param<std::string>(ip_addr_, "ip_addr", "IP Address", "IP address of interface to bind to");
-  spec.param<uint16_t>(port_, "udp_dst_port", "L4 port ", "UDP or TCP port to listen on");
+  spec.param<uint16_t>(port_, "dst_port", "L4 port ", "UDP or TCP port to listen on");
   spec.param<std::string>(
       l4_proto_p_, "l4_proto", "Layer 4 protocol", "Layer 4 protocol (udp or tcp)");
   spec.param<uint32_t>(batch_size_, "batch_size", "Batch size", "Number of packets in batch");

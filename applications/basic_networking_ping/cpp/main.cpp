@@ -84,7 +84,7 @@ class App : public holoscan::Application {
 
     auto net_rx = make_operator<ops::BasicNetworkOpRx>(
         "network_rx", from_config("network_rx"), make_condition<BooleanCondition>("is_alive"));
-    auto rx = make_operator<ops::BasicNetworkPingRxOp>("rx", "dfg");
+    auto rx = make_operator<ops::BasicNetworkPingRxOp>("rx");
 
     add_flow(net_rx, rx, {{"burst_out", "burst_in"}});
     add_flow(tx, net_tx, {{"burst_out", "burst_in"}});
