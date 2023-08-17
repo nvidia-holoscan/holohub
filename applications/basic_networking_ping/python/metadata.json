@@ -1,0 +1,20 @@
+{
+	"application": {
+		"name": "Basic Networking Ping",
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk_version": "0.5.0",
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Networking", "Network", "UDP", "IP"],
+		"ranking": 1,
+		"dependencies": {
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/basic_networking_ping.py <holohub_app_source>/../basic_networking_ping.yaml",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

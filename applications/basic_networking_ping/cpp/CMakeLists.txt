@@ -29,16 +29,9 @@ target_link_libraries(basic_networking_ping
   basic_network
 )
 
-target_include_directories(basic_networking_ping
-  PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/basic_network
-)
-
 # Copy config file
 add_custom_target(basic_networking_ping_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping.yaml"
 )
 add_dependencies(basic_networking_ping basic_networking_ping_yaml)
-
-

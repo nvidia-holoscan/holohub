@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(basic_networking_ping LANGUAGES NONE)
-
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
-  add_subdirectory(python)
-endif()
-
+# target does nothing but be created if this folder is reached
+# to set dependencies on adequate operators
+add_custom_target(basic_networking_ping_python ALL
+  DEPENDS basic_network_python
+)
