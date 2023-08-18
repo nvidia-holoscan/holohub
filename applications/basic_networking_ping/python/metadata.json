@@ -1,22 +1,31 @@
 {
 	"application": {
-		"name": "Basic Networking Ping",
+		"name": "Basic Networking Benchmark",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "Python",
+		"language": "C++",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"holoscan_sdk_version": "0.5.0",
 		"platforms": ["amd64", "arm64"],
-		"tags": ["Networking", "Network", "UDP", "IP"],
+		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
 		"ranking": 1,
 		"dependencies": {
+			"gxf_extensions": [{
+				"name": "basic_networking_ping",
+				"version": "1.0"
+			}]
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/basic_networking_ping.py",

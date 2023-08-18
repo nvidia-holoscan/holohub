@@ -1,9 +1,9 @@
 {
 	"operator": {
-		"name": "basic_network",
+		"name": "basic_networking",
 		"authors": [
 			{
-				"name": "Holoscan Team",
+				"name": "Cliff Burdick",
 				"affiliation": "NVIDIA"
 			}
 		],
@@ -11,14 +11,14 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "0.6.0",
 			"tested_versions": [
-				"0.5.0"
+				"0.6.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "Networking", "UDP", "Socket", "IP", "TCP"],
 		"ranking": 1,
 		"dependencies": {
 				"gxf_extensions": [{

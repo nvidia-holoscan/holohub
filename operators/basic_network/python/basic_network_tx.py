@@ -68,11 +68,11 @@ class BasicNetworkOpTx(Operator):
                 try:
                     self.sock_fd.connect((self.ip_addr, self.dst_port))
                     self.connected = True
-                    self.logger.info(f"Successfully connected to server at "
-                                     f"{self.ip_addr}:{self.dst_port}")
+                    self.logger.info(f'Successfully connected to server at '
+                                     f'{self.ip_addr}:{self.dst_port}')
                 except socket.error:
-                    self.logger.warn(f'Failed to connect to TCP server at "
-                                     f"{self.ip_addr}:{self.dst_port}. Retrying....')
+                    self.logger.warn(f'Failed to connect to TCP server at '
+                                     f'{self.ip_addr}:{self.dst_port}. Retrying....')
                     sleep(self.retry_connect)
                     return
 
