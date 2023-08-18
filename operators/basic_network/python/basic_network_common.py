@@ -17,16 +17,17 @@ from enum import Enum
 
 
 class L4Proto(Enum):
-  TCP = 0
-  UDP = 1
+    TCP = 0
+    UDP = 1
+
 
 class NetworkOpBurstParams:
-  data: bytearray
-  num_pkts: int
+    data: bytearray
+    num_pkts: int
 
-  def reset(self):
-    self.data = bytearray()
-    self.num_pkts = 0
+    def reset(self):
+        self.data = bytearray()
+        self.num_pkts = 0
 
-  def __init__(self) -> None:
-    self.reset()
+    def __init__(self) -> None:
+        self.reset()

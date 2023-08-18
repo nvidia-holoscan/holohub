@@ -35,7 +35,7 @@ class BasicNetworkOpRx(Operator):
     def initialize(self):
         Operator.initialize(self)
         try:
-            if (self.l4_proto == "udp"):
+            if self.l4_proto == "udp":
                 self.l4_proto = L4Proto.UDP
                 self.sock_fd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             else:
@@ -69,7 +69,7 @@ class BasicNetworkOpRx(Operator):
             try:
                 self.sock_fd.settimeout(1)
                 self.conn, self.addr = self.sock_fd.accept()
-                self.logger.info(f'Connected by {self.addr}')
+                self.logger.info(f"Connected by {self.addr}")
                 self.connected = True
             except socket.error:
                 return
@@ -100,6 +100,3 @@ class BasicNetworkOpRx(Operator):
                 op_output.emit(tmp, "burst_out")
                 self.send_burst.reset()
                 return
-
-
-

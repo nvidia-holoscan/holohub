@@ -41,7 +41,7 @@ class BasicNetworkOpTx(Operator):
     def initialize(self):
         Operator.initialize(self)
         try:
-            if (self.l4_proto == "udp"):
+            if self.l4_proto == "udp":
                 self.l4_proto = L4Proto.UDP
                 self.sock_fd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             else:
@@ -68,11 +68,14 @@ class BasicNetworkOpTx(Operator):
                 try:
                     self.sock_fd.connect((self.ip_addr, self.dst_port))
                     self.connected = True
-                    self.logger.info(f'Successfully connected to server at '
-                                     f'{self.ip_addr}:{self.dst_port}')
+                    self.logger.info(
+                        f"Successfully connected to server at " f"{self.ip_addr}:{self.dst_port}"
+                    )
                 except socket.error:
-                    self.logger.warn(f'Failed to connect to TCP server at '
-                                     f'{self.ip_addr}:{self.dst_port}. Retrying....')
+                    self.logger.warn(
+                        f"Failed to connect to TCP server at "
+                        f"{self.ip_addr}:{self.dst_port}. Retrying...."
+                    )
                     sleep(self.retry_connect)
                     return
 
@@ -86,7 +89,7 @@ class BasicNetworkOpTx(Operator):
         else:
             ttl = 0
             while ttl < len(burst):
-                sent = self.sock_fd.sendto(burst[ttl:], (self.ip_addr,self.dst_port))
+                sent = self.sock_fd.sendto(burst[ttl:], (self.ip_addr, self.dst_port))
                 if sent == 0:
                     raise RuntimeError("socket connection broken")
                 ttl = ttl + sent

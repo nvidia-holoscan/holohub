@@ -24,6 +24,7 @@ from holohub.basic_network import BasicNetworkOpRx, BasicNetworkOpTx
 logger = logging.getLogger("BasicNetworkingPing")
 logging.basicConfig(level=logging.INFO)
 
+
 class BasicNetworkPingTxOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         self.index = 1
@@ -34,7 +35,7 @@ class BasicNetworkPingTxOp(Operator):
 
     def compute(self, op_input, op_output, context):
         value = self.index
-        to_send = list(range(value, value+10))
+        to_send = list(range(value, value + 10))
         logger.info(f"Sending index {self.index}: {bytearray(to_send)}")
         self.index += 1
         op_output.emit(bytearray(to_send), "msg_out")
@@ -55,25 +56,27 @@ class BasicNetworkPingRxOp(Operator):
         logger.info(f"Rx message received (count: {self.count}, size: {len(data)}, value:{data})")
         self.count += 1
 
+
 # Now define a simple application using the operators defined above
 NUM_MSGS = 10
+
+
 class App(Application):
     def compose(self):
         # Define the tx, mx, rx operators, allowing the tx operator to execute 10 times
         if len(self.kwargs("network_tx")) > 0:
             tx = BasicNetworkPingTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
-            basic_net_tx = BasicNetworkOpTx(self, name = "basic_net_tx", **self.kwargs("network_tx"))
+            basic_net_tx = BasicNetworkOpTx(self, name="basic_net_tx", **self.kwargs("network_tx"))
             self.add_flow(tx, basic_net_tx, {("msg_out", "burst_in")})
         else:
             logger.info("No TX config found")
 
         if len(self.kwargs("network_rx")) > 0:
-            basic_net_rx = BasicNetworkOpRx(self, name = "basic_net_rx", **self.kwargs("network_rx"))
+            basic_net_rx = BasicNetworkOpRx(self, name="basic_net_rx", **self.kwargs("network_rx"))
             rx = BasicNetworkPingRxOp(self, name="rx")
             self.add_flow(basic_net_rx, rx, {("burst_out", "msg_in")})
         else:
             logger.info("No RX config found")
-
 
 
 if __name__ == "__main__":
