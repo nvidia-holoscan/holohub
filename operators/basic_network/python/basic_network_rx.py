@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from holoscan.core import Operator, OperatorSpec
-from .basic_network_common import NetworkOpBurstParams, L4Proto
-import socket
-import logging
 import copy
+import logging
+import socket
+
+from holoscan.core import Operator, OperatorSpec
+
+from .basic_network_common import L4Proto, NetworkOpBurstParams
+
 
 class BasicNetworkOpRx(Operator):
     sock_fd: socket.socket = None

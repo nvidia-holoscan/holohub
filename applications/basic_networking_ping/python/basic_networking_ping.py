@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import sys
+
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-from holohub.basic_network import BasicNetworkOpTx, BasicNetworkOpRx
-import sys
-import logging
+
+from holohub.basic_network import BasicNetworkOpRx, BasicNetworkOpTx
 
 logger = logging.getLogger("BasicNetworkingPing")
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +35,7 @@ class BasicNetworkPingTxOp(Operator):
     def compute(self, op_input, op_output, context):
         value = self.index
         to_send = list(range(value, value+10))
-        logger.info(f"Sending index {self.index}: {bytearray(to_send)}")        
+        logger.info(f"Sending index {self.index}: {bytearray(to_send)}")
         self.index += 1
         op_output.emit(bytearray(to_send), "msg_out")
 

@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from holoscan.core import Operator, OperatorSpec
-from .basic_network_common import NetworkOpBurstParams, L4Proto
-import socket
 import logging
+import socket
 from time import sleep
+
+from holoscan.core import Operator, OperatorSpec
+
+from .basic_network_common import L4Proto
+
 
 class BasicNetworkOpTx(Operator):
     ip_addr_bytes: bytes = None
@@ -65,10 +68,11 @@ class BasicNetworkOpTx(Operator):
                 try:
                     self.sock_fd.connect((self.ip_addr, self.dst_port))
                     self.connected = True
-                    print("HEE")
-                    self.logger.info(f"Successfully connected to server at {self.ip_addr}:{self.dst_port}")
-                except:
-                    self.logger.warn(f'Failed to connect to TCP server at {self.ip_addr}:{self.dst_port}. Retrying....')
+                    self.logger.info(f"Successfully connected to server at "
+                                     f"{self.ip_addr}:{self.dst_port}")
+                except socket.error:
+                    self.logger.warn(f'Failed to connect to TCP server at "
+                                     f"{self.ip_addr}:{self.dst_port}. Retrying....')
                     sleep(self.retry_connect)
                     return
 
