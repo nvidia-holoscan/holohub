@@ -133,8 +133,8 @@ public:
     //
 
     ops::InferenceOp::DataMap model_path_map;
-    model_path_map.insert("tool_segmentation", datapath + "/model/fpn_one_output_nhwc.onnx");
-    model_path_map.insert("anonymization", datapath + "/model/ANON_FINAL_nhwc.onnx");
+    model_path_map.insert("tool_segmentation", datapath + "/model/segmentation_model.onnx");
+    model_path_map.insert("anonymization", datapath + "/model/anonymization_model.onnx");
 
     auto multiai_inference = make_operator<ops::InferenceOp>(
       "multiai_inference", from_config("multiai_inference"),
@@ -159,7 +159,7 @@ public:
     auto orsi_visualizer =
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
-                                      Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
+                                      Arg("stl_file_path" , datapath + "/stl/MultiAI/"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition

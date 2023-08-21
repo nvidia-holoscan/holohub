@@ -121,7 +121,7 @@ class App : public OrsiApp {
     //
 
     ops::InferenceOp::DataMap model_path_map;
-    model_path_map.insert("tool_segmentation", datapath + "/model/fpn_one_output_nhwc.onnx");
+    model_path_map.insert("tool_segmentation", datapath + "/model/segmentation_model.onnx");
 
     auto multiai_inference = make_operator<ops::InferenceOp>(
       "multiai_inference", from_config("multiai_inference"),
@@ -142,11 +142,11 @@ class App : public OrsiApp {
     //
     // Visualization Operator
     //
-
+    std::cout<<datapath<<std::endl;
     auto orsi_visualizer =
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
-                                      Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
+                                      Arg("stl_file_path" , datapath + "/stl/Segmentation/"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition

@@ -123,7 +123,7 @@ public:
     //
 
     ops::InferenceOp::DataMap model_path_map;
-    model_path_map.insert("anonymization", datapath + "/model/ANON_FINAL_nhwc.onnx");
+    model_path_map.insert("anonymization", datapath + "/model/anonymization_model.onnx");
 
     auto multiai_inference = make_operator<ops::InferenceOp>(
       "multiai_inference", from_config("multiai_inference"),
