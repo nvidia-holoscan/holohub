@@ -9,11 +9,11 @@ the needs of the application.
 
 ### Configuration
 
-The application is configured using the file basic_networking_ping.yaml. Depending on how the machine
-is configured, the IP and UDP port likely need to be configured. All other settings do not need to be
-changed.
+The application is configured using the file basic_networking_ping_rx.yaml or basic_networking_ping_tx.yaml,
+where RX will receive packets and TX will transmit. Depending on how the machine is configured, the IP and
+UDP port likely need to be configured. All other settings do not need to be changed.
 
-Please refer to the basic network operator documentation for more configuration information
+Please refer to the basic network operator documentation for more configuration information.
 
 ### Requirements
 
@@ -26,9 +26,11 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ### Run Instructions
 
-First, go in your `build` or `install` directory. Then, run the commands of your choice:
+Running the sample uses the standard HoloHub `run` script:
 
 
 ```bash
-./build/applications/basic_networking_ping/cpp/basic_networking_ping
+./run launch basic_networking_ping <language> --configure-args config_file.yaml
 ```
+
+Language can be either C++ or Python.

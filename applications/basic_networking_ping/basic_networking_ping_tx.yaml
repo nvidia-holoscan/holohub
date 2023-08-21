@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
-
 network_tx:
   max_payload_size: 1400  
   dst_port: 4096

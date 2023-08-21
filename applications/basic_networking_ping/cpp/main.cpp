@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 
   // Get the configuration
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path += "/basic_networking_ping.yaml";
+  config_path += "/" + std::string(argv[1]);
   app->config(config_path);
 
   app->run();

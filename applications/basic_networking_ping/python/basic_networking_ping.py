@@ -63,7 +63,7 @@ NUM_MSGS = 10
 
 class App(Application):
     def compose(self):
-        # Define the tx, mx, rx operators, allowing the tx operator to execute 10 times
+        # Define the tx and rx operators, allowing the tx operator to execute 10 times
         if len(self.kwargs("network_tx")) > 0:
             tx = BasicNetworkPingTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
             basic_net_tx = BasicNetworkOpTx(self, name="basic_net_tx", **self.kwargs("network_tx"))
