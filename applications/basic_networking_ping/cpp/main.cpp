@@ -111,7 +111,6 @@ class App : public holoscan::Application {
 
       add_flow(net_rx, rx, {{"burst_out", "burst_in"}});
     }
-    
   }
 };
 
