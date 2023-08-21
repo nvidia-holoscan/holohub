@@ -31,6 +31,7 @@ add_library(advanced_network SHARED
 
 add_library(holoscan::advanced_network ALIAS advanced_network)
 
+
 ######## DPDK Configuration ########
 # Set this to wherever your DPDK installation was built if not in a standard location. this
 # can be removed if it was installed globally.
@@ -45,5 +46,6 @@ target_include_directories(advanced_network INTERFACE ${CMAKE_CURRENT_SOURCE_DIR
 target_compile_options(advanced_network PUBLIC ${DPDK_CFLAGS})
 target_link_libraries(advanced_network holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
 
-
-
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
