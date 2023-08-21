@@ -85,9 +85,15 @@ segmentation_postprocessor:  # Postprocessor
 
 orsi_visualizer:  # Orsi Visualizer
   swizzle_video : false # set this value to true to change the colorformat of the surgical video from rgb to bgr during vis
-  stl_names: [1_full_arterial_tree, 2_venous_tree_all, 3_artery_stentzone, 4_vene_stentzone, 5_ureter_artphase_left, 6_parenchyma_left, 7_stent, 8_left_short_renal_artery, 9_left_long_renal_artery, 10_wervelzuil, 11_variceus_kluwen_linker_vene]
-  stl_colors: [[255, 0, 0, 0], [0, 0, 255, 0], [255, 0, 0, 0], [0, 0, 255, 0], [255, 255, 0, 0], [180, 180, 180, 0], [170, 255, 0, 0], [255, 0, 0, 0], [255, 0, 0, 0], [200, 200, 180, 0], [0, 0, 255, 0]] # in RGBA format
-  stl_keys: [321, 322, 324, 325, 326, 327, 328, 329, 320, 332, 331] # see https://www.glfw.org/docs/3.3/group__keys.html
+  #all stl files
+  # stl_names: [1_full_arterial_tree, 2_venous_tree_all, 3_artery_stentzone, 4_vene_stentzone, 5_ureter_artphase_left, 6_parenchyma_left, 7_stent, 8_left_short_renal_artery, 9_left_long_renal_artery, 10_wervelzuil, 11_variceus_kluwen_linker_vene]
+  # stl_colors: [[255, 0, 0, 0], [0, 0, 255, 0], [255, 0, 0, 0], [0, 0, 255, 0], [255, 255, 0, 0], [180, 180, 180, 0], [170, 255, 0, 0], [255, 0, 0, 0], [255, 0, 0, 0], [200, 200, 180, 0], [0, 0, 255, 0]] # in RGBA format
+  # stl_keys: [321, 322, 324, 325, 326, 327, 328, 329, 320, 332, 331] # see https://www.glfw.org/docs/3.3/group__keys.html
+  
+  #fewer stl files
+  stl_names: [2_venous_tree_all, 4_vene_stentzone, 7_stent]
+  stl_colors: [[0, 0, 255, 0], [0, 0, 255, 0], [170, 255, 0, 0]]
+  stl_keys: [320, 321, 322]
   in_tensor_names:
     - ""
     - segmentation_postprocessed
