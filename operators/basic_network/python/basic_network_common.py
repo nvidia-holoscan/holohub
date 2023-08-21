@@ -23,11 +23,9 @@ class L4Proto(Enum):
 
 class NetworkOpBurstParams:
     data: bytearray
-    num_pkts: int
 
     def reset(self):
         self.data = bytearray()
-        self.num_pkts = 0
 
     def __init__(self) -> None:
         self.reset()

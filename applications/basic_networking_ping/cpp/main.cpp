@@ -77,17 +77,41 @@ class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
+    auto& yaml_nodes = config().yaml_nodes();
+    bool rx_en = false;
+    bool tx_en = false;
 
-    auto tx =
-        make_operator<ops::BasicNetworkPingTxOp>("tx", make_condition<CountCondition>(NUM_MSGS));
-    auto net_tx = make_operator<ops::BasicNetworkOpTx>("network_tx", from_config("network_tx"));
+    for (const auto& yaml_node : yaml_nodes) {
+      try {
+        auto tmp = yaml_node["network_rx"].IsMap();
+        rx_en = true;
+        HOLOSCAN_LOG_INFO("Receive enabled");
+      }
+      catch (YAML::InvalidNode &e) {}
 
-    auto net_rx = make_operator<ops::BasicNetworkOpRx>(
-        "network_rx", from_config("network_rx"), make_condition<BooleanCondition>("is_alive"));
-    auto rx = make_operator<ops::BasicNetworkPingRxOp>("rx");
+      try {
+        auto tmp = yaml_node["network_tx"].IsMap();
+        tx_en = true;
+        HOLOSCAN_LOG_INFO("Transmit enabled");
+      }
+      catch (YAML::InvalidNode &e) {}
+    }
 
-    add_flow(net_rx, rx, {{"burst_out", "burst_in"}});
-    add_flow(tx, net_tx, {{"burst_out", "burst_in"}});
+    if (tx_en) {
+      auto tx =
+          make_operator<ops::BasicNetworkPingTxOp>("tx", make_condition<CountCondition>(NUM_MSGS));
+      auto net_tx = make_operator<ops::BasicNetworkOpTx>("network_tx", from_config("network_tx"));
+      add_flow(tx, net_tx, {{"burst_out", "burst_in"}});
+    }
+
+    if (rx_en) {
+      auto net_rx = make_operator<ops::BasicNetworkOpRx>(
+          "network_rx", from_config("network_rx"), make_condition<BooleanCondition>("is_alive"));
+      auto rx = make_operator<ops::BasicNetworkPingRxOp>("rx");
+
+      add_flow(net_rx, rx, {{"burst_out", "burst_in"}});
+    }
+    
   }
 };
 
@@ -95,8 +119,7 @@ int main(int argc, char** argv) {
   auto app = holoscan::make_application<App>();
 
   // Get the configuration
-  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path += "/" + std::string(argv[1]);
+  auto config_path = std::string(argv[1]);
   app->config(config_path);
 
   app->run();

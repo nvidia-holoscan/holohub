@@ -80,7 +80,7 @@ class App(Application):
 
 
 if __name__ == "__main__":
-    config_path = "/" + sys.argv[1]
+    config_path = sys.argv[1]
     app = App()
     app.config(config_path)
     app.run()

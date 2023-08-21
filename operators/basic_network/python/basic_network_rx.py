@@ -85,7 +85,6 @@ class BasicNetworkOpRx(Operator):
                     n = self.conn.recv(self.max_payload_size, socket.MSG_DONTWAIT)
             except BlockingIOError:
                 if len(self.send_burst.data) > 0:
-                    self.send_burst.num_pkts = 1
                     break
                 else:
                     return
@@ -95,7 +94,7 @@ class BasicNetworkOpRx(Operator):
             else:
                 return
 
-            if self.send_burst.num_pkts >= self.batch_size:
+            if len(self.send_burst.data) >= self.batch_size:
                 tmp = copy.deepcopy(self.send_burst)
                 op_output.emit(tmp, "burst_out")
                 self.send_burst.reset()
