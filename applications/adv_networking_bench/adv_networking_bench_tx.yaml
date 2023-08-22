@@ -22,7 +22,7 @@ advanced_network:
     version: 1
     master_core: 5              # Master CPU core
     tx:
-      - if_name: 03:00.0       # PCIe BFD of NIC  
+      - if_name: 3d:00.0       # PCIe BFD of NIC  
         queues:
           - name: "ADC Samples"
             id: 0

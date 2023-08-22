@@ -14,7 +14,4 @@
 # limitations under the License.
 
 add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
-  add_subdirectory(python)
-endif()
+add_subdirectory(python)

@@ -19,7 +19,7 @@ import sys
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 
-from holohub.advanced_network_rx import AdvNetworkOpRx, AdvNetworkOpTx
+from holohub.advanced_network_tx import AdvNetworkOpTx
 
 logger = logging.getLogger("AdvancedNetworkingBench")
 logging.basicConfig(level=logging.INFO)
@@ -64,10 +64,10 @@ NUM_MSGS = 10
 class App(Application):
     def compose(self):
         # Define the tx and rx operators, allowing the tx operator to execute 10 times
-        if len(self.kwargs("advanced_network.cfg.tx")) > 0:
+        if "cfg" in self.kwargs("advanced_network") and "tx" in self.kwargs("advanced_network")["cfg"]:
             tx = AdvancedNetworkingBenchTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
-            basic_net_tx = AdvNetworkOpTx(self, name="adv_net_tx", **self.kwargs("advanced_network"))
-            self.add_flow(tx, basic_net_tx, {("msg_out", "burst_in")})
+            adv_net_tx = AdvNetworkOpTx(self, name="adv_net_tx")
+            self.add_flow(tx, adv_net_tx, {("msg_out", "burst_in")})
         else:
             logger.info("No TX config found")
 
@@ -80,7 +80,6 @@ class App(Application):
 
 
 if __name__ == "__main__":
-    print("HERE")
     config_path = sys.argv[1]
     app = App()
     app.config(config_path)

@@ -1,0 +1,39 @@
+{
+	"application": {
+		"name": "Advanced Networking Benchmark",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"ranking": 1,
+		"dependencies": {
+			"operators": [{
+				"name": "adv_network_rx",
+				"version": "1.0"
+			},
+      {
+				"name": "adv_network_tx",
+				"version": "1.0"
+			}]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/main.py",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}
