@@ -13,8 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(cpp)
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET advanced_network_rx
+    CLASS_NAME "AdvNetworkOpRx"
+    SOURCES adv_network_rx_pybind.cpp
+)
 
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
-  add_subdirectory(python)
-endif()
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET advanced_network_tx
+    CLASS_NAME "AdvNetworkOpTx"
+    SOURCES adv_network_tx_pybind.cpp
+)
+
+pybind11_add_module(adv_network_common adv_network_common_pybind.cpp)
+target_link_libraries(adv_network_common PRIVATE holoscan::core)

@@ -15,21 +15,29 @@
 cmake_minimum_required(VERSION 3.20)
 project(advanced_network)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 find_package(PkgConfig)
 
 enable_language(CUDA)
 
-add_library(advanced_network SHARED
-  adv_network_rx.cpp
-  adv_network_tx.cpp
+add_library(advanced_network_common SHARED
   adv_network_common.cpp
   adv_network_kernels.cu
   adv_network_dpdk_mgr.cpp
 )
 
-add_library(holoscan::advanced_network ALIAS advanced_network)
+add_library(advanced_network_rx SHARED
+  adv_network_rx.cpp
+)
+
+add_library(advanced_network_tx SHARED
+  adv_network_tx.cpp
+)
+
+
+add_library(holoscan::advanced_network_rx ALIAS advanced_network_rx)
+add_library(holoscan::advanced_network_tx ALIAS advanced_network_tx)
 
 
 ######## DPDK Configuration ########
@@ -42,9 +50,16 @@ set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl
 
 pkg_check_modules(DPDK REQUIRED libdpdk)
 
-target_include_directories(advanced_network INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_options(advanced_network PUBLIC ${DPDK_CFLAGS})
-target_link_libraries(advanced_network holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
+target_include_directories(advanced_network_rx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(advanced_network_tx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_compile_options(advanced_network_common PUBLIC ${DPDK_CFLAGS})
+target_compile_options(advanced_network_rx PUBLIC ${DPDK_CFLAGS})
+target_compile_options(advanced_network_tx PUBLIC ${DPDK_CFLAGS})
+
+target_link_libraries(advanced_network_common holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
+target_link_libraries(advanced_network_rx advanced_network_common)
+target_link_libraries(advanced_network_tx advanced_network_common)
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
