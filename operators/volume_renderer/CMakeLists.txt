@@ -26,6 +26,9 @@ set(CLARA_VIZ_WITH_EXAMPLES OFF CACHE INTERNAL "")
 # we are downloading large content, it's better to see the progress
 set(FETCHCONTENT_QUIET OFF)
 
+# enable CMP0135 policy to use timestamp when fetching content
+cmake_policy(SET CMP0135 NEW)
+
 set(_clara_viz_version "0.3.1")
 include(FetchContent)
 FetchContent_Declare(
