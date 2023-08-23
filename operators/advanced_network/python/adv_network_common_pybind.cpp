@@ -23,7 +23,7 @@ namespace py = pybind11;
 namespace holoscan::ops {
 
 
-PYBIND11_MODULE(adv_network_common, m) {
+PYBIND11_MODULE(_advanced_network_common, m) {
     m.doc() = "Advanced networking operator utility functions";
 
     m.def("adv_net_free_pkt", &adv_net_free_pkt, "Free a single packet");

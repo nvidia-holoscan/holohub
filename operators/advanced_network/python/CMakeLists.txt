@@ -26,5 +26,27 @@ pybind11_add_holohub_module(
     SOURCES adv_network_tx_pybind.cpp
 )
 
-pybind11_add_module(adv_network_common adv_network_common_pybind.cpp)
-target_link_libraries(adv_network_common PRIVATE holoscan::core)
+set(MODULE_NAME advanced_network_common)
+set(MODULE_CLASS_NAME "*")
+
+pybind11_add_module(${MODULE_NAME}_python MODULE adv_network_common_pybind.cpp)
+#target_link_libraries(${MODULE_NAME}_python PRIVATE holoscan::core)
+
+target_link_libraries(${MODULE_NAME}_python
+PRIVATE
+    holoscan::core
+    ${MODULE_NAME}
+)
+
+set(CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+set(CMAKE_SUBMODULE_OUT_DIR ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/${MODULE_NAME})
+
+set_target_properties(${MODULE_NAME}_python PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SUBMODULE_OUT_DIR}
+    OUTPUT_NAME _${MODULE_NAME}
+)
+
+configure_file(
+    ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
+    ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/advanced_network_common/__init__.py
+)

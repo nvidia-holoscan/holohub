@@ -31,7 +31,7 @@ advanced_network:
             num_concurrent_batches: 5      # Number of batches that can be used at any time
             batch_size: 10240              # Number of packets in a batch      
             fill_type: "udp"                    # Highest layer that network operator should populate
-            eth_dst_addr: "48:B0:2D:D9:30:A2"   # Destination MAC to populate
+            eth_dst_addr: "48:b0:2d:63:84:ac"   # Destination MAC to populate
             ip_src_addr: "192.168.1.2"          # Source IP send from
             ip_dst_addr: "192.168.10.1"         # Destination IP to send to
             udp_dst_port: 4096                  # UDP destination port
