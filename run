@@ -260,7 +260,7 @@ install_lint_deps_desc() { echo 'Install lint dependencies
 This command will install the dependencies required to run the linting tools.
 
 - Python linting: ruff, isort, black, mypy
-- C++ linting: cpplint
+- C++ linting: cpplint, clang-format
 - Spelling: codespell
 '
 }
@@ -288,6 +288,9 @@ install_lint_deps() {
     echo "Install Lint Dependencies for C++"
     if ! command -v cpplint &> /dev/null; then
         run_command ${HOLOHUB_PY_EXE} -m pip install cpplint || exit_code=1
+    fi
+    if ! command -v clang-format &> /dev/null; then
+        run_command apt-get install --no-install-recommends -y clang-format || exit_code=1
     fi
 
     echo "Install Lint Dependencies for Code Spelling"
