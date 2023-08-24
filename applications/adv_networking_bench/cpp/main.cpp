@@ -78,7 +78,7 @@ class AdvNetworkingBenchTxOp : public Operator {
     */
     while (!adv_net_tx_burst_available(batch_size_.get())) {}
 
-    auto msg = CreateSharedBurstParams();
+    auto msg = adv_net_create_shared_burst_params();
     adv_net_set_hdr(msg, port_id, queue_id, batch_size_);
 
     if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
@@ -87,7 +87,7 @@ class AdvNetworkingBenchTxOp : public Operator {
     }
 
     void *pkt;
-    for (int num_pkt = 0; num_pkt < msg->hdr.num_pkts; num_pkt++) {
+    for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       if ((ret = adv_net_set_cpu_udp_payload( msg,
                                               num_pkt,
                                               static_cast<char*>(full_batch_data_h_) +
@@ -152,7 +152,7 @@ class AdvNetworkingBenchRxOp : public Operator {
     ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
-    if (burst->hdr.q_id == 0) {
+    if (adv_net_get_q_id(burst) == 0) {
       adv_net_free_cpu_pkts_and_burst(burst);
       HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
       return;

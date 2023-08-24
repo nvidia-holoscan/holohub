@@ -44,10 +44,13 @@ struct UDPPkt {
 } __attribute__((packed));
 
 
+std::shared_ptr<AdvNetBurstParams> adv_net_create_shared_burst_params() {
+  return std::make_shared<AdvNetBurstParams>();
+}
+
 void adv_net_free_pkt(void *pkt) {
   rte_pktmbuf_free_seg(static_cast<rte_mbuf*>(pkt));
 }
-
 
 uint16_t adv_net_get_cpu_packet_len(AdvNetBurstParams *burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx])->data_len;
@@ -71,20 +74,18 @@ void adv_net_free_pkts(void **pkts, int num_pkts) {
   }
 }
 
-
 void adv_net_free_all_burst_pkts(AdvNetBurstParams *burst) {
-  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.num_pkts);
-  adv_net_free_pkts(burst->gpu_pkts, burst->hdr.num_pkts);
+  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.hdr.num_pkts);
+  adv_net_free_pkts(burst->gpu_pkts, burst->hdr.hdr.num_pkts);
 }
 
 void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> &burst) {
   return adv_net_free_all_burst_pkts(burst.get());
 }
 
-
 void adv_net_free_all_burst_pkts_and_burst(AdvNetBurstParams *burst) {
-  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.num_pkts);
-  adv_net_free_pkts(burst->gpu_pkts, burst->hdr.num_pkts);
+  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.hdr.num_pkts);
+  adv_net_free_pkts(burst->gpu_pkts, burst->hdr.hdr.num_pkts);
   adv_net_free_rx_burst(burst);
 }
 
@@ -92,9 +93,8 @@ void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> &b
   adv_net_free_all_burst_pkts_and_burst(burst.get());
 }
 
-
 void adv_net_free_cpu_pkts_and_burst(AdvNetBurstParams *burst) {
-  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.num_pkts);
+  adv_net_free_pkts(burst->cpu_pkts, burst->hdr.hdr.num_pkts);
   adv_net_free_rx_burst(burst);
 }
 
@@ -134,7 +134,7 @@ AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst) {
   }
 
   if (rte_pktmbuf_alloc_bulk(pkt_pool, reinterpret_cast<rte_mbuf**>(burst->cpu_pkts),
-              static_cast<int>(burst->hdr.num_pkts)) != 0) {
+              static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
     rte_mempool_put(burst_pool, reinterpret_cast<void*>(burst->cpu_pkts));
     return AdvNetStatus::NO_FREE_CPU_PACKET_BUFFERS;
   }
@@ -173,15 +173,23 @@ AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> &bur
 }
 
 int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst) {
-  return burst->hdr.num_pkts;
+  return burst->hdr.hdr.num_pkts;
 }
 
 int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst) {
   return adv_net_get_num_pkts(burst.get());
 }
 
+int64_t adv_net_get_q_id(AdvNetBurstParams *burst) {
+  return burst->hdr.hdr.q_id;
+}
+
+int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> &burst) {
+  return adv_net_get_q_id(burst.get());
+}
+
 void adv_net_set_num_pkts(AdvNetBurstParams *burst, int64_t num) {
-  burst->hdr.num_pkts = num;
+  burst->hdr.hdr.num_pkts = num;
 }
 
 void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst, int64_t num) {
@@ -189,9 +197,9 @@ void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst, int64_t num
 }
 
 void adv_net_set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num) {
-  burst->hdr.num_pkts = num;
-  burst->hdr.port_id = port;
-  burst->hdr.q_id = q;
+  burst->hdr.hdr.num_pkts = num;
+  burst->hdr.hdr.port_id = port;
+  burst->hdr.hdr.q_id = q;  
 }
 
 void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> &burst,

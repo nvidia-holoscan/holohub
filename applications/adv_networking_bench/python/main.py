@@ -22,7 +22,11 @@ from holoscan.core import Application, Operator, OperatorSpec
 
 from holohub.advanced_network_tx import AdvNetworkOpTx
 from holohub.advanced_network_common import (
-    adv_net_tx_burst_available
+    adv_net_tx_burst_available,
+    adv_net_create_shared_burst_params,
+    adv_net_set_hdr,
+    adv_net_get_tx_pkt_burst
+
 )
 
 # import holohub.advanced_network_common.holohub as hh
@@ -122,9 +126,15 @@ class AdvancedNetworkingBenchTxOp(Operator):
         value = self.index
 
         while not adv_net_tx_burst_available(self.batch_size):
-          pass
-          
-        print("HERE")
+          continue
+
+        msg = adv_net_create_shared_burst_params()
+        adv_net_set_hdr(msg, 0, 0, self.batch_size)
+
+        ret = adv_net_get_tx_pkt_burst(msg)
+        if ret != AdvNetStatus.SUCCESS:
+          logger.error(f"Error returned from adv_net_get_tx_pkt_burst: {ret}");
+          return
 
 # Now define a simple application using the operators defined above
 NUM_MSGS = 10

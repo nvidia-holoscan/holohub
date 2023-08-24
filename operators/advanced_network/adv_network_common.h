@@ -39,26 +39,28 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
  * @brief Header of AdvNetBurstParams
  *
  */
-struct AdvNetBurstParamsHdr {
+struct AdvNetBurstHdrParams {
   size_t        num_pkts;
-  uint16_t       port_id;
+  uint16_t      port_id;
   uint16_t      q_id;
 };
 
+struct AdvNetBurstHdr {
+    AdvNetBurstHdrParams hdr;
+
+    // Pad without union to make bindings readable
+    uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+};
+
 struct AdvNetBurstParams {
-  union {
-    AdvNetBurstParamsHdr hdr;
-    uint8_t buf[ADV_NETWORK_HEADER_SIZE_BYTES];
-  };
+  AdvNetBurstHdr hdr;
 
   void **cpu_pkts;
   void **gpu_pkts;
 };
 
 // this part is purely optional, just a helper for the user
-inline auto CreateSharedBurstParams() {
-  return std::make_shared<AdvNetBurstParams>();
-}
+std::shared_ptr<AdvNetBurstParams> adv_net_create_shared_burst_params();
 
 
 /**
@@ -322,6 +324,14 @@ void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> &burst);
  */
 int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst);
 int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst);
+
+/**
+ * @brief Get the queue ID of a burst
+ *
+ * @param burst Burst structure with packets
+ */
+int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
+int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> &burst);
 
 /**
  * @brief Set the number of packets in a burst
