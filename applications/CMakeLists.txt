@@ -80,8 +80,11 @@ add_holohub_application(volume_rendering DEPENDS
                         OPERATORS volume_loader
                                   volume_renderer
                         HOLOSCAN_SAMPLE_APP)
+
 add_holohub_application(volume_rendering_xr DEPENDS
                         OPERATORS volume_loader
                                   volume_renderer
                                   XrFrameOp
                                   XrTransformOp)
+
+add_holohub_application(cvcuda_basic)
