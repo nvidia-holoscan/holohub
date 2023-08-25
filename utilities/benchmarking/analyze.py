@@ -1,0 +1,256 @@
+# This python script parses the Data Frame Flow Tracking module's generated log file
+# The format is the following:
+#(replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460) -> (lstm_inferer,1685129021159626,1685129021161404) -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) -> (holoviz,1685129021194404,1685129021265517)
+
+# The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
+# publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
+
+import sys
+import matplotlib.pyplot as plt
+import numpy as np
+import argparse
+
+linestyles = ['-', '--', ':', '-.']
+colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink', 'brown']
+index = 0
+
+def parse_line(line):
+    operators = line.split("->")
+    # print (operators)
+    op_timestamps = []
+    for operator in operators:
+        # trim whitespaces for left and right side
+        # print ("op: ", operator)
+        op_name_timestamp = operator.strip().rstrip()[1:-1]
+        op_timestamps.append(op_name_timestamp.split(","))
+    return op_timestamps
+
+# return a path and latency pair where a path is a comma separate string of operators
+def get_latency(op_timestamps):
+    path = ""
+    latency = 0
+    for op_timestamp in op_timestamps:
+        # print (op_timestamp)
+        path += op_timestamp[0] + ","
+    # convert the latency to ms
+    latency = float(int(op_timestamps[-1][2]) - int(op_timestamps[0][1])) / 1000
+    return path[:-1], latency
+
+def parse_log(log_file):
+    with open(log_file, "r") as f:
+        paths_latencies = {}
+        for line in f:
+            # print ("line: ", line)
+            if line[0] == "(":
+                path_latency = get_latency(parse_line(line))
+                if path_latency[0] in paths_latencies:
+                    paths_latencies[path_latency[0]].append(path_latency[1])
+                else:
+                    paths_latencies[path_latency[0]] = [path_latency[1]]
+        return paths_latencies
+
+# This function merges the latencies of the same path from different log files
+def merge_path_latencies(multiple_path_latencies, skip_begin_messages = 10, discard_last_messages = 10):
+    merged_path_latencies = {}
+    for path_latencies in multiple_path_latencies:
+        for path, latencies in path_latencies.items():
+            modified_latencies = latencies[skip_begin_messages:-discard_last_messages]
+            if path in merged_path_latencies:
+                merged_path_latencies[path].extend(modified_latencies)
+            else:
+                merged_path_latencies[path] = modified_latencies
+    return merged_path_latencies
+
+def get_avg_latencies(paths_latencies, skip_begin_messages = 10, discard_last_messages = 10):
+    avg_latencies = {}
+    for path in paths_latencies:
+        avg_latencies[path] = np.mean(paths_latencies[path][skip_begin_messages:-discard_last_messages])
+    return avg_latencies
+
+def get_max_latencies(paths_latencies, skip_begin_messages = 10, discard_last_messages = 10):
+    max_latencies = {}
+    for path in paths_latencies:
+        max_latencies[path] = max(paths_latencies[path][skip_begin_messages:-discard_last_messages])
+    return max_latencies
+
+def get_cdf_data(latencies):
+    data = sorted(latencies)
+    n = len(data)
+    p = []
+    for i in range(n):
+        p.append(i/n)
+    return data, p
+
+# draw a CDF curve of the latencies using matplotlib where Y-Axis is the CDF and X-Axis is the
+# latency
+def draw_cdf(ax, latencies, label = None):
+    global index
+
+    data, p = get_cdf_data(latencies)
+    data_max = max(data)
+    data_avg = np.mean(data)
+    data_stddev = np.std(data)
+
+    ax.plot(data, p, label=label, linewidth=2.0, color=colors[index], linestyle=linestyles[index])
+    ax.axvline(x=data_avg, color=colors[index], linestyle=linestyles[index], linewidth=1)
+    # put a shaded area of stddev around average latency
+    ax.axvspan(data_avg - data_stddev, data_avg + data_stddev, alpha=0.2, color=colors[index])
+
+    ax.axvline(x=data_max, color=colors[index], linestyle=linestyles[index], linewidth=1.5)
+    # put an annotation of the max latency parallel to the max line
+    # format float to 2 decimal places
+    # ax.annotate("max: {:.2f}".format(data_max), xy=(data_max - 2, 0.5), xytext=(data_max - 2, 0.5), color=colors[index], rotation=90)
+    # ax.annotate("avg: {:.2f}\nstddev: {:.2f}".format(data_avg, data_stddev), xy=(17, 0.5 - index / 5), xytext=(17, 0.5 - index / 5), color=colors[index])
+    index += 1
+
+def init_cdf_plot(title=None):
+    fig, ax = plt.subplots()
+    ax.set_xlabel("Latency (ms)")
+    ax.set_ylabel("CDF")
+    if title:
+        ax.set_title(title)
+    return fig, ax
+
+def complete_cdf_plot(fig, ax):
+    # ax.set_ylim([-0.02, 1.03])
+    vals = ax.get_yticks()
+    # convert the Y-axis ticks to percentage
+    ax.set_yticklabels(['{:,.0%}'.format(x) for x in vals])
+    ax.legend(prop={'size': 12}, loc="best")
+    fig.tight_layout()
+
+def get_latency_difference(latencies, percentile_start, percentile_end, skip_begin_messages = 10, discard_last_messages = 10):
+    data = sorted(latencies[skip_begin_messages:-discard_last_messages])
+    n = len(data)
+    start_index = int(n * percentile_start/100.0)
+    end_index = int(n * percentile_end/100.0 - 1)
+    return "{:.2f}".format(data[end_index] - data[start_index])
+
+# This function shortens a path by taking first 3 letters of each operator name if
+# it's more than 4 letters long
+def shorten_path(path):
+    operators = path.split(",")
+    modified_operators = []
+    for operator in operators:
+        if len(operator) > 4:
+            modified_operators.append(operator[:3])
+        else:
+            modified_operators.append( operator)
+    return ",".join(modified_operators)
+
+# write a main function that takes a log file as argument and calls parse line
+def main():
+    parser = argparse.ArgumentParser(description='Analyze the log files generated by the Data Frame Flow Tracking module in Holoscan SDK')
+
+    parser.add_argument("-m", "--max", action="store_true", help="show the maximum latencies for all paths")
+
+    parser.add_argument("-a", "--avg", action="store_true", help="show the average latencies for all paths")
+
+    parser.add_argument("--stddev", action="store_true", help="show the standard deviation of latencies for all paths")
+
+    parser.add_argument("--min", action="store_true", help="show the minimum latencies for all paths")
+
+    parser.add_argument("--median", action="store_true", help="show the median latencies for all paths")
+
+    parser.add_argument("--tail", action="store_true", help="show the difference between 95 and 100 percentile latencies for all paths")
+
+    parser.add_argument("--flatness", action="store_true", help="show the difference between 10 and 90 percentile latencies for all paths")
+
+    parser.add_argument("--draw-cdf", nargs="?", type=str, const="cdf_curve.png", help="draw a CDF curve for the first path of each group of log files", required=False)
+
+    parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw a CDF curve for the every path of each group of log files")
+
+    parser.add_argument("--display-graphs", action="store_true", help="display the graphs", default=True, required=False)
+
+    requiredArgument = parser.add_argument_group('required arguments')
+    requiredArgument.add_argument("-g", "--group_log_files", nargs="+", action="append", help="specify a group of the log files to combine and analyze. You can optionally specify a group name at the end of the list of log files", required=True)
+
+    args = parser.parse_args()
+
+    # Group the log files and parse the latencies from the log files
+    groups = args.group_log_files
+
+    group_name = "Group"
+    group_name_counter = 1
+
+    grouped_path_latenices = {}
+    grouped_log_files = {}
+    for group in groups:
+        # check whether the last entry has a dot in it, then it does not have a group name
+        current_group_name = ""
+        current_log_files = []
+        if group[-1].find(".") != -1:
+            current_group_name = group_name + str(group_name_counter)
+            group_name_counter += 1
+            current_log_files = group
+        else:
+            current_group_name = group[-1]
+            current_log_files = group[:-1]
+        parsed_latencies_per_file = []
+        for log_file in current_log_files:
+            parsed_latencies_per_file.append(parse_log(log_file))
+        grouped_path_latenices[current_group_name] = merge_path_latencies(parsed_latencies_per_file)
+        grouped_log_files[current_group_name] = current_log_files
+
+    if args.max:
+        print ("==================\nMax Latencies\n==============")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            max_latencies = get_max_latencies(paths_latencies)
+            for path, latency in max_latencies.items():
+                print ("Path:", path, ": ", latency, "ms")
+    if args.avg:
+        print ("==================\nAverage Latencies\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            avg_latencies = get_avg_latencies(paths_latencies)
+            for path, latency in avg_latencies.items():
+                print ("Path:", path, ": ", latency, "ms")
+    if args.median:
+        print ("==================\nMedian Latencies\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            for path, latency in paths_latencies.items():
+                print ("Path:", path, ": ", np.median(latency), "ms")
+
+
+    # need to do similar things for stddev, min
+
+    if args.tail:
+        print ("==================\nLatency CDF Curve Tails\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            for path, latency in paths_latencies.items():
+                print ("Path:", path, ": ", get_latency_difference(latency, 95, 100), "ms")
+    if args.flatness:
+        print ("==================\nLatency CDF Curve Flatness\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            for path, latency in paths_latencies.items():
+                print ("Path:", path, ": ", get_latency_difference(latency, 10, 90), "ms")
+
+    if args.draw_cdf:
+        fig, ax = init_cdf_plot()
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            draw_cdf(ax, paths_latencies[list(paths_latencies.keys())[0]], group_name)
+        complete_cdf_plot(fig, ax)
+        plt.tight_layout()
+        plt.savefig(args.draw_cdf, bbox_inches='tight')
+        if args.display_graphs:
+            plt.show()
+
+    if args.draw_cdf_paths:
+        fig, ax = init_cdf_plot()
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            for path, latency in paths_latencies.items():
+                draw_cdf(ax, latency, group_name + "-" + shorten_path(path))
+        complete_cdf_plot(fig, ax)
+        plt.tight_layout()
+        plt.savefig(args.draw_cdf_paths, bbox_inches='tight')
+        if args.display_graphs:
+            plt.show()
+
+
+
+if __name__ == "__main__":
+    main()
