@@ -80,7 +80,12 @@ class App(Application):
 
 
 if __name__ == "__main__":
-    config_path = sys.argv[1]
+    if len(sys.argv) != 2:
+        logger.error("Must specficy configuration file as second argument. If using the 'run' script, "\
+                    "use --extra_args <config_name>")
+        sys.exit(-1)
+
+    config_path = sys.argv[1]    
     app = App()
     app.config(config_path)
     app.run()
