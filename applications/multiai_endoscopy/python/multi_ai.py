@@ -18,10 +18,8 @@ import os
 from argparse import ArgumentParser
 
 import cupy as cp
-import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.gxf import Entity
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -63,15 +61,15 @@ class DetectionPostprocessorOp(Operator):
         return new_text_coord.astype(np.float32)
 
     def compute(self, op_input, op_output, context):
-        # Get input message
+        # Get input message which is a dictionary
         in_message = op_input.receive("in")
         # Convert input to numpy array (using CuPy)
         cp.asarray(in_message.get("inference_output_num_detections")).get()
-        output_bboxes = cp.asarray(in_message.get("inference_output_detection_boxes")).get()
-        output_scores = cp.asarray(in_message.get("inference_output_detection_scores")).get()
-        output_labels = cp.asarray(in_message.get("inference_output_detection_classes")).get()
+        output_bboxes = cp.asarray(in_message["inference_output_detection_boxes"]).get()
+        output_scores = cp.asarray(in_message["inference_output_detection_scores"]).get()
+        output_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
         # can check the data type of the incoming tensors here
-        # print(output_num_det.dtype)
+        # print(output_labels.dtype)
 
         # Threshold output_scores and prune boxes
         ix = output_scores.flatten() >= self.scores_threshold
@@ -111,15 +109,15 @@ class DetectionPostprocessorOp(Operator):
                 bbox_coords = np.reshape(output_bboxes, (1, -1, 2))
 
         # Creat output message
-        out_message = Entity(context)
+        out_message = {}
         if len(self.label_dict) > 0:
             # we have split bboxs and text labels into categories
             for label in self.label_dict:
-                out_message.add(hs.as_tensor(bbox_coords[label]), "rectangles" + str(label))
-                out_message.add(hs.as_tensor(text_coords[label]), "label" + str(label))
+                out_message["rectangles" + str(label)] = bbox_coords[label]
+                out_message["label" + str(label)] = text_coords[label]
         else:
             # only transmit the bbox_coords
-            out_message.add(hs.as_tensor(bbox_coords), "rectangles")
+             out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
 

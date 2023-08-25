@@ -16,10 +16,9 @@
 import os
 from argparse import ArgumentParser
 
-import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.gxf import Entity
+
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -55,14 +54,14 @@ class DetectionPostprocessorOp(Operator):
         spec.output("out")
 
     def compute(self, op_input, op_output, context, scores_threshold=0.3):
-        # Get input message
+        # Get input message which is a dictionary
         in_message = op_input.receive("in")
-        # Convert input to numpy array (using CuPy) via .get()
+        # Convert input to numpy array (using CuPy) via .get() 
         bboxes = cp.asarray(
-            in_message.get("inference_output_detection_boxes")
+            in_message["inference_output_detection_boxes"]
         ).get()  # (nbatch, nboxes, ncoord)
         scores = cp.asarray(
-            in_message.get("inference_output_detection_scores")
+            in_message["inference_output_detection_scores"]
         ).get()  # (nbatch, nboxes)
         # Threshold scores and prune boxes
         ix = scores.flatten() >= scores_threshold
@@ -73,8 +72,8 @@ class DetectionPostprocessorOp(Operator):
             # Make box shape compatible with Holoviz
             bboxes = np.reshape(bboxes, (1, -1, 2))  # (nbatch, nboxes*2, ncoord/2)
         # Creat output message
-        out_message = Entity(context)
-        out_message.add(hs.as_tensor(bboxes), "rectangles")
+        out_message = {}
+        out_message["rectangles"] = bboxes
         op_output.emit(out_message, "out")
 
 
