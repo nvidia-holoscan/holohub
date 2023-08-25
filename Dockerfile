@@ -23,7 +23,64 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+############################################################
+# CV-CUDA Downloader
+############################################################
+FROM ${BASE_IMAGE} as cvcuda-downloader
+
+ARG GCC_VERSION=11
+ARG CVCUDA_TAG=v0.3.1-beta
+ARG DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /opt/nvidia
+
+# install gcc-11, g++-11 and libssl-dev
+RUN apt update \
+    && apt install --no-install-recommends -y \
+      software-properties-common="0.99.*" \
+    && apt install -y libssl-dev
+
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
+RUN apt install -y gcc-${GCC_VERSION} g++-${GCC_VERSION}
+
+# download patch for building CV-CUDA with CUDA 11.6
+RUN curl -S -L -o cvcuda_cuda11_6.patch  "https://gist.githubusercontent.com/grlee77/ba5d1449ae37ff2e13c7ee93710fe482/raw/f335c08d00fb6e6efeb94e99889fd15957f01d47/cvcuda_cuda11_6.patch"
+
+# download and patch CV-CUDA
+RUN git clone https://github.com/CVCUDA/CV-CUDA \
+    && mv cvcuda_cuda11_6.patch CV-CUDA \
+    && cd CV-CUDA \
+    && git checkout ${CVCUDA_TAG} \
+    && git submodule update --init \
+    && git apply cvcuda_cuda11_6.patch
+
+# replace broken stub binaries in the v0.3.1-beta tag
+# (https://github.com/CVCUDA/CV-CUDA/issues/26)
+RUN cd CV-CUDA/src/util/stubs \
+    && rm *.so \
+	&& curl -S -L -o libdl-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/libdl-2.17_stub.so \
+	&& curl -S -L -o libpthread-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/libpthread-2.17_stub.so \
+	&& curl -S -L -o librt-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/librt-2.17_stub.so
+
+############################################################
+# CV-CUDA Builder
+############################################################
+
+FROM cvcuda-downloader as cvcuda-builder
+WORKDIR /opt/nvidia/CV-CUDA
+
+# compile CV-CUDA
+RUN bash ./ci/build.sh
+
+# create and install the Debian packages
+RUN cd build-rel \
+	&& cpack -G DEB . \
+    && dpkg -i nvcv*.deb 
+
+############################################################
+# Base (final)
+############################################################
+FROM cvcuda-builder as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -47,4 +104,6 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
 
-
+# Copy the CV-CUDA build folder and install the debian files contained there
+# COPY --from=cvcuda-downloader /opt/nvidia/CV-CUDA /opt/nvidia/CV-CUDA
+# RUN dpkg -i /opt/nvidia/CV-CUDA/build-rel/nvcv*.deb
