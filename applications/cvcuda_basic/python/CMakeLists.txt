@@ -21,14 +21,14 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME cvcuda_basic_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cvcuda_basic.py 
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cvcuda_basic.py
                    --data ${HOLOHUB_DATA_DIR}/endoscopy
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   set_property(TEST cvcuda_basic_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
   
-  set_tests_properties(multiai_ultrasound_python_test 
+  set_tests_properties(cvcuda_basic_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()
