@@ -143,7 +143,7 @@ class AdvancedNetworkingBenchTxOp(Operator):
           if ret != AdvNetStatus.SUCCESS:
             logger.error(f"Error returned from adv_net_set_cpu_udp_payload: {ret} != {AdvNetStatus.SUCCESS}")
             return
-   
+        print(type(msg))
         op_output.emit(msg, "msg_out")
 
 # Now define a simple application using the operators defined above
