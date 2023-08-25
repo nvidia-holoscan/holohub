@@ -103,7 +103,3 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 # - We use ARG to only set it at docker build time, so it does not affect cmake builds
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
-
-# Copy the CV-CUDA build folder and install the debian files contained there
-# COPY --from=cvcuda-downloader /opt/nvidia/CV-CUDA /opt/nvidia/CV-CUDA
-# RUN dpkg -i /opt/nvidia/CV-CUDA/build-rel/nvcv*.deb
