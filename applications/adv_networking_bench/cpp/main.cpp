@@ -78,7 +78,7 @@ class AdvNetworkingBenchTxOp : public Operator {
     */
     while (!adv_net_tx_burst_available(batch_size_.get())) {}
 
-    auto msg = adv_net_create_shared_burst_params();
+    auto msg = adv_net_create_burst_params();
     adv_net_set_hdr(msg, port_id, queue_id, batch_size_);
 
     if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {

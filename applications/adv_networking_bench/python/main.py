@@ -23,10 +23,12 @@ from holoscan.core import Application, Operator, OperatorSpec
 from holohub.advanced_network_tx import AdvNetworkOpTx
 from holohub.advanced_network_common import (
     adv_net_tx_burst_available,
-    adv_net_create_shared_burst_params,
+    adv_net_create_burst_params,
     adv_net_set_hdr,
-    adv_net_get_tx_pkt_burst
-
+    adv_net_get_tx_pkt_burst,
+    adv_net_get_num_pkts,
+    adv_net_set_cpu_udp_payload,
+    AdvNetStatus
 )
 
 # import holohub.advanced_network_common.holohub as hh
@@ -113,7 +115,7 @@ class AdvancedNetworkingBenchTxOp(Operator):
         self.batch_size = batch_size
         self.payload_size = payload_size
         self.buf_size = self.batch_size * self.payload_size
-        self.buf = cupy.cuda.alloc_pinned_memory(self.buf_size)        
+        self.buf = cupy.cuda.alloc_pinned_memory(self.buf_size)
         super().__init__(fragment, *args, **kwargs)
 
     def initialize(self):
@@ -128,13 +130,21 @@ class AdvancedNetworkingBenchTxOp(Operator):
         while not adv_net_tx_burst_available(self.batch_size):
           continue
 
-        msg = adv_net_create_shared_burst_params()
+        msg = adv_net_create_burst_params()
         adv_net_set_hdr(msg, 0, 0, self.batch_size)
 
         ret = adv_net_get_tx_pkt_burst(msg)
         if ret != AdvNetStatus.SUCCESS:
-          logger.error(f"Error returned from adv_net_get_tx_pkt_burst: {ret}");
+          logger.error(f"Error returned from adv_net_get_tx_pkt_burst: {ret}")
           return
+
+        for num_pkt in range(adv_net_get_num_pkts(msg)):
+          ret = adv_net_set_cpu_udp_payload(msg, num_pkt, self.buf.ptr + num_pkt * self.payload_size, self.payload_size)
+          if ret != AdvNetStatus.SUCCESS:
+            logger.error(f"Error returned from adv_net_set_cpu_udp_payload: {ret} != {AdvNetStatus.SUCCESS}")
+            return
+   
+        op_output.emit(msg, "msg_out")
 
 # Now define a simple application using the operators defined above
 NUM_MSGS = 10

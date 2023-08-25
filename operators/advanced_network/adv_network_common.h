@@ -60,7 +60,7 @@ struct AdvNetBurstParams {
 };
 
 // this part is purely optional, just a helper for the user
-std::shared_ptr<AdvNetBurstParams> adv_net_create_shared_burst_params();
+AdvNetBurstParams* adv_net_create_burst_params();
 
 
 /**
@@ -155,7 +155,7 @@ inline int EnabledDirections(const std::string &dir) {
  * @return Pointer to packet data
  */
 void *adv_net_get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx);
-void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> &burst, int idx);
+void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Returns a raw GPU packet pointer from a pointer in AdvNetBurstParams
@@ -169,7 +169,7 @@ void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> &burst, int idx
  * @return Pointer to packet data
  */
 void *adv_net_get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx);
-void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> &burst, int idx);
+void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 
 /**
@@ -182,7 +182,7 @@ void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> &burst, int idx
  * @return uint16_t Length of packet
  */
 uint16_t adv_net_get_cpu_packet_len(AdvNetBurstParams *burst, int idx);
-uint16_t adv_net_get_cpu_packet_len(std::shared_ptr<AdvNetBurstParams> &burst, int idx);
+uint16_t adv_net_get_cpu_packet_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Get packet length of a GPU packet
@@ -194,7 +194,7 @@ uint16_t adv_net_get_cpu_packet_len(std::shared_ptr<AdvNetBurstParams> &burst, i
  * @return uint16_t Length of packet
  */
 uint16_t adv_net_get_gpu_packet_len(AdvNetBurstParams *burst, int idx);
-uint16_t adv_net_get_gpu_packet_len(std::shared_ptr<AdvNetBurstParams> &burst, int idx);
+uint16_t adv_net_get_gpu_packet_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Populate a TX packet burst buffer
@@ -210,7 +210,7 @@ uint16_t adv_net_get_gpu_packet_len(std::shared_ptr<AdvNetBurstParams> &burst, i
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
 AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst);
-AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> &burst);
+AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Set UDP payload parameters in packet
@@ -223,7 +223,7 @@ AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> &burst)
  *    SUCCESS: Packet populated successfully
  */
 AdvNetStatus adv_net_set_cpu_udp_payload(AdvNetBurstParams *burst, int idx, void *data, int len);
-AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> &burst,
+AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
                 int idx, void *data, int len);
 
 /**
@@ -249,7 +249,7 @@ bool adv_net_tx_burst_available(int num_pkts);
  * @param burst Burst to free
  */
 void adv_net_free_cpu_pkts_and_burst(AdvNetBurstParams *burst);
-void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> &burst);
+void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free all packets and a burst
@@ -259,7 +259,7 @@ void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param burst Burst structure containing packet lists
  */
 void adv_net_free_all_burst_pkts_and_burst(AdvNetBurstParams *burst);
-void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> &burst);
+void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Frees a single packet
@@ -293,7 +293,7 @@ void adv_net_free_pkts(void **pkts, int len);
  * @param burst Burst structure containing packet lists
  */
 void adv_net_free_all_burst_pkts(AdvNetBurstParams *burst);
-void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> &burst);
+void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free a receive burst
@@ -304,7 +304,7 @@ void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param burst
  */
 void adv_net_free_rx_burst(AdvNetBurstParams *burst);
-void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> &burst);
+void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free a transmit burst buffer
@@ -315,7 +315,7 @@ void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param burst Burst structure to free
  */
 void adv_net_free_tx_burst(AdvNetBurstParams *burst);
-void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> &burst);
+void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Get the number of packets in a burst
@@ -323,7 +323,7 @@ void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param burst Burst structure with packets
  */
 int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst);
-int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst);
+int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Get the queue ID of a burst
@@ -331,7 +331,7 @@ int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param burst Burst structure with packets
  */
 int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
-int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> &burst);
+int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Set the number of packets in a burst
@@ -340,7 +340,7 @@ int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> &burst);
  * @param num Number of packets
  */
 void adv_net_set_num_pkts(AdvNetBurstParams *burst, int64_t num);
-void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst, int64_t num);
+void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num);
 
 /**
  * @brief Set the header fields in a burst
@@ -351,7 +351,7 @@ void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> &burst, int64_t num
  * @param num Number of packets
  */
 void adv_net_set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num);
-void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> &burst,
+void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
           uint16_t port, uint16_t q, int64_t num);
 
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
