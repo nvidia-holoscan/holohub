@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(adv_networking_bench CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 find_package(PkgConfig REQUIRED)
@@ -28,17 +28,18 @@ add_executable(adv_networking_bench
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network
+  holoscan::advanced_network_rx
+  holoscan::advanced_network_tx
 )
 
 # Copy config file
 add_custom_target(adv_networking_bench_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rx.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml"
 )
 add_custom_target(adv_networking_bench_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_tx.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml"
 )
 
 add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml)

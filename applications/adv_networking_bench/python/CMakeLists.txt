@@ -13,5 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+# target does nothing but be created if this folder is reached
+# to set dependencies on adequate operators
+# add_custom_target(advanced_networking_bench_python ALL
+#   DEPENDS advanced_network_python
+# )

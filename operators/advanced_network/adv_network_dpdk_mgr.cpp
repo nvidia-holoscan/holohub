@@ -906,7 +906,7 @@ void DpdkMgr::check_pkts_to_free(rte_ring *msg_ring,
     rte_mempool *burst_pool, rte_mempool *meta_pool) {
     AdvNetBurstParams *msg;
     if (rte_ring_dequeue(msg_ring, reinterpret_cast<void**>(&msg)) == 0) {
-      for (int p = 0; p < msg->hdr.num_pkts; p++) {
+      for (int p = 0; p < msg->hdr.hdr.num_pkts; p++) {
         rte_pktmbuf_free_seg(reinterpret_cast<rte_mbuf*>(msg->cpu_pkts[p]));
       }
       rte_mempool_put(burst_pool, msg->cpu_pkts);
@@ -952,7 +952,7 @@ int DpdkMgr::rx_core(void *arg) {
     }
 
     //  Queue ID for receiver to differentiate
-    burst->hdr.q_id = tparams->queue;
+    burst->hdr.hdr.q_id = tparams->queue;
 
     if (tparams->hds) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void **>(&burst->gpu_pkts)) < 0) {
@@ -966,7 +966,7 @@ int DpdkMgr::rx_core(void *arg) {
 
     if (nb_rx > 0) {
       memcpy(&burst->cpu_pkts[0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
-      burst->hdr.num_pkts = nb_rx;
+      burst->hdr.hdr.num_pkts = nb_rx;
 
       if (tparams->hds) {
         for (int p = 0; p < nb_rx; p++) {
@@ -976,7 +976,7 @@ int DpdkMgr::rx_core(void *arg) {
 
       nb_rx = 0;
     } else {
-      burst->hdr.num_pkts = 0;
+      burst->hdr.hdr.num_pkts = 0;
     }
 
     // DPDK on some ARM platforms requires that you always pass nb_pkts as a number divisible
@@ -984,7 +984,7 @@ int DpdkMgr::rx_core(void *arg) {
     // running out of buffers.
     do {
       int burst_size = std::min((uint32_t)DEFAULT_NUM_RX_BURST,
-          (uint32_t)(tparams->batch_size - burst->hdr.num_pkts));
+          (uint32_t)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       nb_rx  = rte_eth_rx_burst(tparams->port, tparams->queue,
           reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]), DEFAULT_NUM_RX_BURST);
 
@@ -992,19 +992,19 @@ int DpdkMgr::rx_core(void *arg) {
         continue;
       }
 
-      to_copy       = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.num_pkts));
-      memcpy(&burst->cpu_pkts[burst->hdr.num_pkts], mbuf_arr, sizeof(rte_mbuf*) * to_copy);
+      to_copy       = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
+      memcpy(&burst->cpu_pkts[burst->hdr.hdr.num_pkts], mbuf_arr, sizeof(rte_mbuf*) * to_copy);
       if (tparams->hds) {
         for (int p = 0; p < to_copy; p++) {
-          burst->gpu_pkts[burst->hdr.num_pkts + p] = mbuf_arr[p]->next;
+          burst->gpu_pkts[burst->hdr.hdr.num_pkts + p] = mbuf_arr[p]->next;
         }
       }
 
-      burst->hdr.num_pkts += to_copy;
+      burst->hdr.hdr.num_pkts += to_copy;
       nb_rx               -= to_copy;
       total_pkts          += nb_rx;
 
-      if (burst->hdr.num_pkts == tparams->batch_size) {
+      if (burst->hdr.hdr.num_pkts == tparams->batch_size) {
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void *>(burst));
         break;
       }
@@ -1035,7 +1035,7 @@ int DpdkMgr::tx_core(void *arg) {
 
     HOLOSCAN_LOG_DEBUG("Got burst in TX");
 
-    for (size_t p = 0; p < msg->hdr.num_pkts; p++) {
+    for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
       auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->cpu_pkts[p]);
       auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
 #pragma GCC diagnostic push
@@ -1046,12 +1046,12 @@ int DpdkMgr::tx_core(void *arg) {
       mbuf->ol_flags = RTE_MBUF_F_TX_IPV4 | RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_UDP_CKSUM;
     }
 
-    auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.num_pkts);
+    auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
 
     size_t pkts_tx = 0;
-    while (pkts_tx != msg->hdr.num_pkts && !force_quit.load()) {
+    while (pkts_tx != msg->hdr.hdr.num_pkts && !force_quit.load()) {
       auto to_send = static_cast<uint16_t>(
-            std::min(static_cast<size_t>(DEFAULT_NUM_TX_BURST), msg->hdr.num_pkts - pkts_tx));
+            std::min(static_cast<size_t>(DEFAULT_NUM_TX_BURST), msg->hdr.hdr.num_pkts - pkts_tx));
       int tx = rte_eth_tx_burst(tparams->port,
             tparams->queue, reinterpret_cast<rte_mbuf**>(&msg->cpu_pkts[pkts_tx]), to_send);
 

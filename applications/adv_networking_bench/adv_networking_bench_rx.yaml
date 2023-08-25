@@ -22,7 +22,7 @@ advanced_network:
     version: 1
     master_core: 5                  # Master CPU core
     rx:
-      - if_name: 0005:03:00.1       # PCIe BFD of NIC
+      - if_name: 3d:00.0       # PCIe BFD of NIC
         flow_isolation: true
         queues:
           - name: "Default"

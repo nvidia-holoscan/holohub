@@ -563,6 +563,7 @@ for k, v in obj["application"]["run"].items():
    # Run the command
    run_command $environment
    run_command $workdir
+   echo  $command $extra_args
    run_command $command $extra_args
 }
 
