@@ -16,9 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(multiai_endoscopy CXX)
 
-
 # Holoscan
-find_package(Holoscan REQUIRED CONFIG 
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(multiai_endoscopy
