@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
-
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
