@@ -117,7 +117,7 @@ class DetectionPostprocessorOp(Operator):
                 out_message["label" + str(label)] = text_coords[label]
         else:
             # only transmit the bbox_coords
-             out_message["rectangles"] = bbox_coords
+            out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
 

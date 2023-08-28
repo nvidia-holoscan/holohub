@@ -56,7 +56,7 @@ class DetectionPostprocessorOp(Operator):
     def compute(self, op_input, op_output, context, scores_threshold=0.3):
         # Get input message which is a dictionary
         in_message = op_input.receive("in")
-        # Convert input to numpy array (using CuPy) via .get() 
+        # Convert input to numpy array (using CuPy) via .get()
         bboxes = cp.asarray(
             in_message["inference_output_detection_boxes"]
         ).get()  # (nbatch, nboxes, ncoord)
