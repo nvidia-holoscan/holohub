@@ -16,24 +16,14 @@ limitations under the License.
 """  # no qa
 
 import os
-import sys
 from argparse import ArgumentParser
 
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.gxf import Entity
 from holoscan.operators import HolovizOp, VideoStreamReplayerOp
 
-import cvcuda
-import nvcv
-
-try:
-    import cupy as cp
-    import cupyx.scipy.ndimage as ndi
-except ImportError:
-    raise ImportError(
-        "CuPy must be installed to run this example. See "
-        "https://docs.cupy.dev/en/stable/install.html"
-    )
+# currently must import cvcuda after holoscan
+import cvcuda  # isort:skip
+import nvcv  # isort:skip
 
 
 # Define custom Operators for use in the demo
@@ -97,6 +87,7 @@ class MyVideoProcessingApp(Application):
     The ImageProcessingOp processes the frames and sends the processed frames to the HolovizOp.
     The HolovizOp displays the processed frames.
     """
+
     def __init__(self, data):
         super().__init__()
 
