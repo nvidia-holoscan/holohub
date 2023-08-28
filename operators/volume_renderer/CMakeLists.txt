@@ -26,8 +26,18 @@ set(CLARA_VIZ_WITH_EXAMPLES OFF CACHE INTERNAL "")
 # we are downloading large content, it's better to see the progress
 set(FETCHCONTENT_QUIET OFF)
 
-# enable CMP0135 policy to use timestamp when fetching content
+# Set CMP0135 policy to NEW to use time of extraction for files extracted by
+# FetchContent/ExternalProject_Add.
+# This ensures that anything that depends on the extracted contents will be rebuilt whenever
+# the URL changes.
 cmake_policy(SET CMP0135 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+
+# set CMP0148 policy to OLD to allow FindCUDA to be used by ClaraViz
+if(POLICY CMP0146)
+  cmake_policy(SET CMP0146 OLD)
+  set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
+endif()
 
 set(_clara_viz_version "0.3.1")
 include(FetchContent)

@@ -18,6 +18,13 @@ project(volume_loader)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Set CMP0135 policy to NEW to use time of extraction for files extracted by
+# FetchContent/ExternalProject_Add.
+# This ensures that anything that depends on the extracted contents will be rebuilt whenever
+# the URL changes.
+cmake_policy(SET CMP0135 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+
 # NIFTI c lib
 include(FetchContent)
 FetchContent_Declare(
@@ -25,6 +32,7 @@ FetchContent_Declare(
   GIT_REPOSITORY "https://github.com/NIFTI-Imaging/nifti_clib.git"
   GIT_TAG "v3.0.0"
 )
+
 set(NIFTI_INSTALL_NO_DOCS ON CACHE INTERNAL "")
 set(NIFTI_BUILD_TESTING OFF CACHE INTERNAL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
