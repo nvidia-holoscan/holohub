@@ -25,8 +25,9 @@
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include "benchmark.hpp"
 
-class App : public holoscan::Application {
+class App : public BenchmarkedApplication {
  public:
   void set_source(const std::string& source) {
     if (source == "aja") { is_aja_source_ = true; }

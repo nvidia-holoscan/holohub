@@ -1,8 +1,14 @@
 # Benchmarking Package for HoloHub
 
 This is a tool to evaluate the performance of HoloHub applications. The tool currently supports
-benchmarking a C++ application only.
+benchmarking only a C++ HoloHub application.
 
+## Pre-requisites
+The following Python libraries are needed to be installed (`pip install <library name>` can be used):
+
+```
+numpy matplotlib nvitop argparse
+```
 ## Steps for Benchmarking
 
 1. Patch the application for benchmarking
@@ -32,6 +38,10 @@ python utilities/benchmarking/benchmark.py -a <application name> <other options>
 ```
 
 `python utilities/benchmarking/benchmark.py -h` shows all the possible evaluation options.
+
+All the different log file names are printed out at the end of the evaulation. The data flow
+tracking log files are located in the `build` directory, and the GPU utilization log files are in the
+same directory as the script is running from.
 
 4. Get performance results and insights
 
