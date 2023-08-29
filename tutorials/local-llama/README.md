@@ -40,7 +40,7 @@ git checkout dadbed99e65252d79f81101a392d0d6497b86caa # Commit date: 8/21/23
 ```
 The only issue with using Llama.cpp, is that utilizing the IGX's dGPU is not currently supported due to the IGX's ARM architecture. However, this can be easily fixed by modifying the `ggml.h` file to use the `half` data type when the CUDA compiler is being used, as opposed to using the `__fp16` data type.
 
-3. Edit Llama.cpp's `ggml.h` at [line 248](https://github.com/ggerganov/llama.cpp/blob/eb542d39324574a6778fad9ba9e34ba7a14a82a3/ggml.h#L248) and make the changes shown below:
+3. Edit Llama.cpp's `ggml.h` at [line 258](https://github.com/ggerganov/llama.cpp/blob/dadbed99e65252d79f81101a392d0d6497b86caa/ggml.h#L258C8-L258C8) and make the changes shown below:
 
 ```diff
 + #if defined(__ARM_NEON) && !defined(__CUDACC__)
