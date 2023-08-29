@@ -1,9 +1,17 @@
-# This python script parses the Data Frame Flow Tracking module's generated log file
-# The format is the following:
-#(replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460) -> (lstm_inferer,1685129021159626,1685129021161404) -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) -> (holoviz,1685129021194404,1685129021265517)
-
-# The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
-# publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import matplotlib.pyplot as plt
@@ -36,6 +44,12 @@ def get_latency(op_timestamps):
     latency = float(int(op_timestamps[-1][2]) - int(op_timestamps[0][1])) / 1000
     return path[:-1], latency
 
+# This python script parses the Data Frame Flow Tracking module's generated log file
+# The format is the following:
+#(replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460) -> (lstm_inferer,1685129021159626,1685129021161404) -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) -> (holoviz,1685129021194404,1685129021265517)
+
+# The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
+# publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
 def parse_log(log_file):
     with open(log_file, "r") as f:
         paths_latencies = {}
