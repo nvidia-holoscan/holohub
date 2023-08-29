@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
+np.set_printoptions(precision=2)
+
 linestyles = ['-', '--', ':', '-.']
 colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink', 'brown']
 index = 0
@@ -44,9 +46,9 @@ def get_latency(op_timestamps):
     latency = float(int(op_timestamps[-1][2]) - int(op_timestamps[0][1])) / 1000
     return path[:-1], latency
 
-# This python script parses the Data Frame Flow Tracking module's generated log file
+# This python function parses the DFFT-generated log file
 # The format is the following:
-#(replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460) -> (lstm_inferer,1685129021159626,1685129021161404) -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) -> (holoviz,1685129021194404,1685129021265517)
+# (replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460) -> (lstm_inferer,1685129021159626,1685129021161404) -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) -> (holoviz,1685129021194404,1685129021265517)
 
 # The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
 # publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
@@ -105,16 +107,14 @@ def draw_cdf(ax, latencies, label = None):
     data_avg = np.mean(data)
     data_stddev = np.std(data)
 
-    ax.plot(data, p, label=label, linewidth=2.0, color=colors[index], linestyle=linestyles[index])
-    ax.axvline(x=data_avg, color=colors[index], linestyle=linestyles[index], linewidth=1)
+    colorindex = index % len(colors)
+    linestylesindex = index % len(linestyles)
+    ax.plot(data, p, label=label, linewidth=2.0, color=colors[colorindex], linestyle=linestyles[linestylesindex])
+    ax.axvline(x=data_avg, color=colors[colorindex], linestyle=linestyles[linestylesindex], linewidth=1)
     # put a shaded area of stddev around average latency
-    ax.axvspan(data_avg - data_stddev, data_avg + data_stddev, alpha=0.2, color=colors[index])
+    ax.axvspan(data_avg - data_stddev, data_avg + data_stddev, alpha=0.2, color=colors[colorindex])
 
-    ax.axvline(x=data_max, color=colors[index], linestyle=linestyles[index], linewidth=1.5)
-    # put an annotation of the max latency parallel to the max line
-    # format float to 2 decimal places
-    # ax.annotate("max: {:.2f}".format(data_max), xy=(data_max - 2, 0.5), xytext=(data_max - 2, 0.5), color=colors[index], rotation=90)
-    # ax.annotate("avg: {:.2f}\nstddev: {:.2f}".format(data_avg, data_stddev), xy=(17, 0.5 - index / 5), xytext=(17, 0.5 - index / 5), color=colors[index])
+    ax.axvline(x=data_max, color=colors[colorindex], linestyle=linestyles[linestylesindex], linewidth=1.5)
     index += 1
 
 def init_cdf_plot(title=None):
@@ -130,7 +130,10 @@ def complete_cdf_plot(fig, ax):
     vals = ax.get_yticks()
     # convert the Y-axis ticks to percentage
     ax.set_yticklabels(['{:,.0%}'.format(x) for x in vals])
-    ax.legend(prop={'size': 12}, loc="best")
+    # ax.legend(prop={'size': 12}, loc="best")
+    legends = ax.legend(prop={'size': 12}, loc="upper center", ncol=2)
+    bbox_to_anchor=(0.5, 1 + 0.12 * len(legends.get_texts()) / (2 if len(legends.get_texts()) > 2 else 1))
+    legends.set_bbox_to_anchor(bbox_to_anchor)
     fig.tight_layout()
 
 def get_latency_difference(latencies, percentile_start, percentile_end, skip_begin_messages = 10, discard_last_messages = 10):
@@ -160,26 +163,34 @@ def main():
 
     parser.add_argument("-a", "--avg", action="store_true", help="show the average latencies for all paths")
 
+    parser.add_argument("--median", action="store_true", help="show the median latencies for all paths")
+
     parser.add_argument("--stddev", action="store_true", help="show the standard deviation of latencies for all paths")
 
     parser.add_argument("--min", action="store_true", help="show the minimum latencies for all paths")
-
-    parser.add_argument("--median", action="store_true", help="show the median latencies for all paths")
 
     parser.add_argument("--tail", action="store_true", help="show the difference between 95 and 100 percentile latencies for all paths")
 
     parser.add_argument("--flatness", action="store_true", help="show the difference between 10 and 90 percentile latencies for all paths")
 
-    parser.add_argument("--draw-cdf", nargs="?", type=str, const="cdf_curve.png", help="draw a CDF curve for the first path of each group of log files", required=False)
+    parser.add_argument("--save-csv", action="store_true", help="save the respective values (max, avg, median, etc.) of the first path for every group in a CSV file in comma-separated format. (avg: avg_values.csv, max:max_values.csv)", required=False)
 
-    parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw a CDF curve for the every path of each group of log files")
+    parser.add_argument("--draw-cdf", nargs="?", type=str, const="cdf_curve.png", help="draw a end-to-end latency CDF curve for the first path of each group of log files. An (optional) filename could also be provided in which the graph will be saved.", required=False)
+
+    parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw a end-to-end latency CDF curve for the every path in each group of log files. An (optional) filename could also be provided in which the graph will be saved.", required=False)
+
+    parser.add_argument("--draw-bar-graph", nargs=2, metavar=('type', 'filename'), default=["avg", "bar_graph_avg.png"], help="draw a bar graph for the first path of each group of log files", required=False)
 
     parser.add_argument("--display-graphs", action="store_true", help="display the graphs", default=True, required=False)
+
+    parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files", required=False)
 
     requiredArgument = parser.add_argument_group('required arguments')
     requiredArgument.add_argument("-g", "--group_log_files", nargs="+", action="append", help="specify a group of the log files to combine and analyze. You can optionally specify a group name at the end of the list of log files", required=True)
 
     args = parser.parse_args()
+
+    bar_graph_options = ["avg", "max"]
 
     # Group the log files and parse the latencies from the log files
     groups = args.group_log_files
@@ -207,41 +218,96 @@ def main():
         grouped_log_files[current_group_name] = current_log_files
 
     if args.max:
+        if args.save_csv:
+            with open("max_values.csv", "w") as f:
+                f.truncate(0)
         print ("==================\nMax Latencies\n==============")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
             max_latencies = get_max_latencies(paths_latencies)
             for path, latency in max_latencies.items():
                 print ("Path:", path, ": ", latency, "ms")
+            if args.save_csv:
+                with open("max_values.csv", "a") as f:
+                    f.write(str(max_latencies[list(max_latencies.keys())[0]]) + ",")
     if args.avg:
+        if args.save_csv:
+            with open("avg_values.csv", "w") as f:
+                f.truncate(0)
         print ("==================\nAverage Latencies\n==================")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
             avg_latencies = get_avg_latencies(paths_latencies)
             for path, latency in avg_latencies.items():
                 print ("Path:", path, ": ", latency, "ms")
+            if args.save_csv:
+                with open("avg_values.csv", "a") as f:
+                    f.write(str(avg_latencies[list(avg_latencies.keys())[0]]) + ",")
+
     if args.median:
+        if args.save_csv:
+            with open("median_values.csv", "w") as f:
+                f.truncate(0)
         print ("==================\nMedian Latencies\n==================")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
             for path, latency in paths_latencies.items():
                 print ("Path:", path, ": ", np.median(latency), "ms")
+            if args.save_csv:
+                with open("median_values.csv", "a") as f:
+                    f.write(str(np.median(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
 
+    if args.stddev:
+        if args.save_csv:
+            with open("stddev_values.csv", "w") as f:
+                f.truncate(0)
+        print ("==================\nStandard Deviation of Latencies\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            for path, latency in paths_latencies.items():
+                print ("Path:", path, ": ", np.std(latency), "ms")
+            if args.save_csv:
+                with open("stddev_values.csv", "a") as f:
+                    f.write(str(np.std(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
 
-    # need to do similar things for stddev, min
+    if args.min:
+        if args.save_csv:
+            with open("min_values.csv", "w") as f:
+                f.truncate(0)
+        print ("==================\nMin Latencies\n==================")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
+            for path, latency in paths_latencies.items():
+                print ("Path:", path, ": ", min(latency), "ms")
+            if args.save_csv:
+                with open("min_values.csv", "a") as f:
+                    f.write(str(min(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
 
     if args.tail:
-        print ("==================\nLatency CDF Curve Tails\n==================")
+        if args.save_csv:
+            with open("tail_values.csv", "w") as f:
+                f.truncate(0)
+        print ("==================\nLatency CDF Curve Tail (95-100)\n==================")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
             for path, latency in paths_latencies.items():
                 print ("Path:", path, ": ", get_latency_difference(latency, 95, 100), "ms")
+            if args.save_csv:
+                with open("tail_values.csv", "a") as f:
+                    f.write(str(get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 95, 100)) + ",")
+
     if args.flatness:
-        print ("==================\nLatency CDF Curve Flatness\n==================")
+        if args.save_csv:
+            with open("flatness_values.csv", "w") as f:
+                f.truncate(0)
+        print ("==================\nLatency CDF Curve Flatness (10-90)\n==================")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print ("Group : ", group_name, "(", ", ".join(grouped_log_files[group_name]), ")" "\n------------------")
             for path, latency in paths_latencies.items():
                 print ("Path:", path, ": ", get_latency_difference(latency, 10, 90), "ms")
+            if args.save_csv:
+                with open("flatness_values.csv", "a") as f:
+                    f.write(str(get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 10, 90)) + ",")
 
     if args.draw_cdf:
         fig, ax = init_cdf_plot()
@@ -264,6 +330,42 @@ def main():
         if args.display_graphs:
             plt.show()
 
+    if args.group_utilization_files:
+        # combine the GPU utilization files the same way as done for log files
+        util_groups = args.group_utilization_files
+        util_group_name = "UGroup"
+        util_group_name_counter = 1
+        grouped_gpu_util = {}
+        grouped_gpu_util_log_files = {}
+        for group in util_groups:
+            current_util_group_name = ""
+            current_gpu_util_files = []
+            if group[-1].find(".") != -1:
+                current_util_group_name = util_group_name + str(util_group_name_counter)
+                util_group_name_counter += 1
+                current_gpu_util_files = group
+            else:
+                current_util_group_name = group[-1]
+                current_gpu_util_files = group[:-1]
+            parsed_gpu_utils = []
+            for gpu_util_file in current_gpu_util_files:
+                with open(gpu_util_file, "r") as f:
+                    all_utils = f.readlines()
+                    for lines in all_utils:
+                        for value in lines.strip().split(","):
+                            parsed_gpu_utils.append(float(value))
+            grouped_gpu_util[current_util_group_name] = parsed_gpu_utils
+            grouped_gpu_util_log_files[current_util_group_name] = current_gpu_util_files
+        if args.save_csv:
+            with open("avg_gpu_utilization_values.csv", "w") as f:
+                f.truncate(0)
+        for group_name, gpu_utils in grouped_gpu_util.items():
+            print ("==================\nAverage GPU Utilization\n==================")
+            print ("Group : ", group_name, "(", ", ".join(grouped_gpu_util_log_files[group_name]), ")" "\n------------------")
+            print ("Average GPU Utilization: ", round(np.mean(gpu_utils), 2), "%")
+            if args.save_csv:
+                with open("avg_gpu_utilization_values.csv", "a") as f:
+                    f.write(str(round(np.mean(gpu_utils), 2)) + ",")
 
 
 if __name__ == "__main__":

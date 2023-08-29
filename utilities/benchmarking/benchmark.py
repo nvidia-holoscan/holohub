@@ -18,31 +18,36 @@ import os, sys, subprocess, time
 import threading
 import argparse
 
-devices = Device.all()
+# global variables for GPU monitoring
+stop_gpu_monitoring = False
+stop_gpu_monitoring_lock = threading.Lock()
 
-# if CUDA_VISIBLE_DEVICES is set to A4000
-# a4000 = devices[0]
-# a6000 = devices[1]
-# devices = [a6000]
-
-stop = False
-
-def monitor_gpu():
-    print ("Monitoring GPU utilization")
-    # run every 1 seconds
-    global stop
-    stop = False
+def monitor_gpu(gpu_uuids, filename):
+    print ("Monitoring GPU utilization in a separate thread")
+    devices = []
+    if gpu_uuids == "all" or gpu_uuids == "" or gpu_uuids is None:
+        devices = Device.all()
+    else:
+        devices = [Device(uuid=uuid) for uuid in gpu_uuids.split(",")]
+    # run every 2 seconds
+    global stop_gpu_monitoring
+    stop_gpu_monitoring = False
     average_gpu_utilizations = []
-    while not stop:
-        time.sleep(2)
+    while True:
+        stop_gpu_monitoring_lock.acquire()
+        if stop_gpu_monitoring:
+            stop_gpu_monitoring_lock.release()
+            break
+        stop_gpu_monitoring_lock.release()
         average_gpu_utilizations.append(sum(device.gpu_utilization() for device in devices) / len(devices))
+        time.sleep(2)
         # write average gpu utilization to a file and a new line
-    with open("gpu_utilization.txt", "a") as f:
+
+    with open(filename, "w") as f:
         # discard first 2 and last 2 values
         average_text = ",".join(map(str, average_gpu_utilizations[2:-2]))
         f.write(str(average_text) + "\n")
-        print ("Written GPU utilization to a file")
-    stop = False
+        print (f"Written GPU utilization to {filename}")
 
 def run_command(app_launch_command, env):
     try:
@@ -87,9 +92,9 @@ def main():
         print ("Currently non-HoloHub applications are not supported")
         sys.exit(1)
 
-    if args.monitor_gpu:
-        print ("Currently, collecting GPU utilization data is not supported")
-        sys.exit(1)
+    # if args.monitor_gpu:
+    #     print ("Currently, collecting GPU utilization data is not supported")
+    #     sys.exit(1)
 
     env = os.environ.copy()
     if args.gpu != "all":
@@ -101,6 +106,7 @@ def main():
     app_launch_command = "./run launch " + args.holohub_application + " cpp"
 
     log_files = []
+    gpu_utilization_log_files = []
     for scheduler in args.sched:
         if scheduler == "multithread":
             env["HOLOSCAN_SCHEDULER"] = scheduler
@@ -113,6 +119,10 @@ def main():
 
         for i in range(1, args.runs + 1):
             instance_threads = []
+            if args.monitor_gpu:
+                gpu_utilization_logfile_name = "gpu_utilization_" + scheduler + "_" + str(i) + ".csv"
+                gpu_monitoring_thread = threading.Thread(target=monitor_gpu, args=(args.gpu, gpu_utilization_logfile_name))
+                gpu_monitoring_thread.start()
             for j in range(1, args.instances + 1):
                 # log file name format: logger_<scheduler>_<run-id>_<instance-id>.log
                 logfile_name = "logger_" + scheduler + "_" + str(i) + "_" + str(j) + ".log"
@@ -123,13 +133,21 @@ def main():
                 log_files.append(logfile_name)
             for each_thread in instance_threads:
                 each_thread.join()
+            if args.monitor_gpu:
+                stop_gpu_monitoring_lock.acquire()
+                global stop_gpu_monitoring
+                stop_gpu_monitoring = True
+                stop_gpu_monitoring_lock.release()
+                gpu_monitoring_thread.join()
+                gpu_utilization_log_files.append(gpu_utilization_logfile_name)
             print (f"Run {i} completed for {scheduler} scheduler")
             time.sleep(1) # cool down period
 
     # Just print comma-separate values of log_files
-    print ("Evaluation completed. All the log files are: ", ", ".join(log_files))
-    # global stop
-    # need to integrate with the collection of GPU utilization data
+    print ("Evaluation completed.")
+    print ("All the flow tracking log files are: ", ", ".join(log_files))
+    if args.monitor_gpu:
+        print ("All the GPU utilization log files are: ", ", ".join(gpu_utilization_log_files))
 
 if __name__ == "__main__":
     main()
