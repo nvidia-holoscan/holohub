@@ -63,7 +63,7 @@ def run_command(app_launch_command, env):
         sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description='Run performance evaluation for an (HoloHub) application', formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description='Run performance evaluation for a HoloHub application', formatter_class=argparse.RawTextHelpFormatter)
 
     requiredArgument = parser.add_argument_group('required arguments')
     requiredArgument.add_argument("--sched", nargs='+', choices=["greedy", "multithread"], required=True, help="scheduler(s) to use")
