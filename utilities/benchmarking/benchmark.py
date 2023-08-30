@@ -68,11 +68,13 @@ def main():
     requiredArgument = parser.add_argument_group('required arguments')
     requiredArgument.add_argument("--sched", nargs='+', choices=["greedy", "multithread"], required=True, help="scheduler(s) to use")
 
-    parser.add_argument("-a", "--holohub_application", type=str, required=False, help="name of HoloHub application to run", default="endoscopy_tool_tracking")
+    parser.add_argument("-a", "--holohub-application", type=str, required=False, help="name of HoloHub application to run", default="endoscopy_tool_tracking")
 
-    parser.add_argument("--not_holohub", action="store_true", help="enable this to indicate a non-HoloHub application")
+    parser.add_argument("-d", "--log-directory", type=str, required=False, help="directory where the log results will be stored")
 
-    parser.add_argument("-p", "--binary_path", type=str, required=False, help="command to run the application if it is not a HoloHub application")
+    # parser.add_argument("--not_holohub", action="store_true", help="enable this to indicate a non-HoloHub application")
+
+    # parser.add_argument("-p", "--binary_path", type=str, required=False, help="command to run the application if it is not a HoloHub application")
 
     parser.add_argument("-g", "--gpu", type=str, required=False, help="the GPU UUIDs to run the application on (default: all)", default="all")
 
@@ -82,18 +84,30 @@ def main():
 
     parser.add_argument("-m", "--num_source_messages", type=int, default=100, help="number of source messages to send (default: 100)", required=False)
 
-    parser.add_argument("-u", "--monitor_gpu", action="store_true", help="enable this to monitor GPU utilization")
-
     parser.add_argument("-w", "--num_worker_threads", type=int, default=1, help="number of worker threads for multithread scheduler (default: 1)", required=False)
+
+    parser.add_argument("-u", "--monitor_gpu", action="store_true", help="enable this to monitor GPU utilization")
 
     args = parser.parse_args()
 
-    if args.not_holohub or args.binary_path is not None:
-        print ("Currently non-HoloHub applications are not supported")
-        sys.exit(1)
+    if "multithread" not in args.sched and args.num_worker_threads != 1:
+        print ("Warning: num_worker_threads is ignored as multithread scheduler is not used")
 
-    # if args.monitor_gpu:
-    #     print ("Currently, collecting GPU utilization data is not supported")
+    log_directory = None
+    if args.log_directory is None:
+        # create a timestamped directory: log_directory_<timestamp> in the current directory
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        log_directory = "log_directory_" + timestamp
+        os.mkdir(log_directory)
+    else:
+        # check if the given directory is valid or not
+        log_directory = args.log_directory
+        if not os.path.isdir(log_directory):
+            print ("Log directory is not found. Creating a new directory at", os.path.abspath(log_directory))
+            os.mkdir(os.path.abspath(log_directory))
+
+    # if args.not_holohub or args.binary_path is not None:
+    #     print ("Currently non-HoloHub applications are not supported")
     #     sys.exit(1)
 
     env = os.environ.copy()
@@ -124,10 +138,21 @@ def main():
                 gpu_monitoring_thread = threading.Thread(target=monitor_gpu, args=(args.gpu, gpu_utilization_logfile_name))
                 gpu_monitoring_thread.start()
             for j in range(1, args.instances + 1):
+                # prepend the full path of the log directory before log file name
                 # log file name format: logger_<scheduler>_<run-id>_<instance-id>.log
                 logfile_name = "logger_" + scheduler + "_" + str(i) + "_" + str(j) + ".log"
-                env["HOLOSCAN_FLOW_TRACKING_LOG_FILE"] = logfile_name
-                instance_thread = threading.Thread(target=run_command, args=(app_launch_command, env))
+                fully_qualified_log_filename = ""
+                if log_directory is not None:
+                    fully_qualified_log_filename = os.path.join(log_directory, logfile_name)
+                else:
+                    fully_qualified_log_filename = os.path.join(os.getcwd(), logfile_name)
+                    print ("Warning: log directory is not specified. Log file will be stored in the current directory")
+                fully_qualified_log_filename = os.path.abspath(fully_qualified_log_filename)
+                print ("Log file name: ", fully_qualified_log_filename)
+                # make a copy of env before sending to the thread
+                env_copy = env.copy()
+                env_copy["HOLOSCAN_FLOW_TRACKING_LOG_FILE"] = fully_qualified_log_filename
+                instance_thread = threading.Thread(target=run_command, args=(app_launch_command, env_copy))
                 instance_thread.start()
                 instance_threads.append(instance_thread)
                 log_files.append(logfile_name)
@@ -140,12 +165,13 @@ def main():
                 stop_gpu_monitoring_lock.release()
                 gpu_monitoring_thread.join()
                 gpu_utilization_log_files.append(gpu_utilization_logfile_name)
-            print (f"Run {i} completed for {scheduler} scheduler")
+            print (f"Run {i} completed for {scheduler} scheduler.")
             time.sleep(1) # cool down period
 
     # Just print comma-separate values of log_files
-    print ("Evaluation completed.")
-    print ("All the flow tracking log files are: ", ", ".join(log_files))
+    print ("\nEvaluation completed.")
+    print ("Log file directory: ", os.path.abspath(log_directory))
+    print ("All the DFFT log files are: ", ", ".join(log_files))
     if args.monitor_gpu:
         print ("All the GPU utilization log files are: ", ", ".join(gpu_utilization_log_files))
 
