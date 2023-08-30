@@ -47,7 +47,7 @@ def monitor_gpu(gpu_uuids, filename):
         # discard first 2 and last 2 values
         average_text = ",".join(map(str, average_gpu_utilizations[2:-2]))
         f.write(str(average_text) + "\n")
-        print (f"Written GPU utilization to {filename}")
+        # print (f"Written GPU utilization to {filename}")
 
 def run_command(app_launch_command, env):
     try:
