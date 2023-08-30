@@ -1,10 +1,10 @@
-# Benchmarking Package for HoloHub
+# A Benchmarking Tool for HoloHub
 
 This is a tool to evaluate the performance of HoloHub applications. The tool currently supports
-benchmarking only a C++ HoloHub application.
+benchmarking only a C++ HoloHub application. We plan to support Python applications in the future.
 
 ## Pre-requisites
-The following Python libraries are needed to be installed (`pip install <library name>` can be used):
+The following Python libraries are needed to be installed to run the benchmarking (`pip install <library name>` can be used):
 
 ```
 numpy matplotlib nvitop argparse
@@ -27,28 +27,27 @@ This script saves the unmodified `cpp` files in a `*.cpp.bak` file.
 2. Build the application
 
 ```
-./run build <application name> <other options> --configure-args \
+$ ./run build <application name> <other options> --configure-args \
     -DCMAKE_CXX_FLAGS=-I$PWD/utilities/benchmarking
 ```
 
 3. Run the performance evaluation
 
 ```
-python utilities/benchmarking/benchmark.py -a <application name> <other options>
+$ python utilities/benchmarking/benchmark.py -a <application name> <other options>
 ```
 
 `python utilities/benchmarking/benchmark.py -h` shows all the possible evaluation options.
 
-All the different log file names are printed out at the end of the evaulation. The data flow
-tracking log files are located in the `build` directory, and the GPU utilization log files are in the
-same directory as the script is running from.
+All the log filenames are printed out at the end of the evaulation. The format of the log filename is:
+`logger_<scheduler>_<run_number>_<instance-id>.log`
 
 4. Get performance results and insights
 
 ```
-python utilities/benchmarking/analyze.py <options> -g <group of log files>
+$ python utilities/benchmarking/analyze.py -g <group of log files> <options>
 ```
-`python utilities/benchmarking/analyze.py -h` shows all the possible analysis options.
+`python utilities/benchmarking/analyze.py -h` shows all the possible options.
 
 5. Restore the application
 
