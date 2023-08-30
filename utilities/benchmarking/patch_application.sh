@@ -38,6 +38,6 @@ for file in $cpp_files; do
     # "BenchmarkedApplication"
     sed -i 's/holoscan::Application/BenchmarkedApplication/g' "$file"
 
-    echo "Patched $file. Original file is backed up in $file.bak."
+    echo "Patched $file. Original file is backed up in $file.bak. diff -u $file $file.bak to see the changes."
 done
 

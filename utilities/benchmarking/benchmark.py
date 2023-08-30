@@ -135,19 +135,14 @@ def main():
             instance_threads = []
             if args.monitor_gpu:
                 gpu_utilization_logfile_name = "gpu_utilization_" + scheduler + "_" + str(i) + ".csv"
-                gpu_monitoring_thread = threading.Thread(target=monitor_gpu, args=(args.gpu, gpu_utilization_logfile_name))
+                fully_qualified_gpu_utilization_logfile_name = os.path.abspath(os.path.join(log_directory, gpu_utilization_logfile_name))
+                gpu_monitoring_thread = threading.Thread(target=monitor_gpu, args=(args.gpu, fully_qualified_gpu_utilization_logfile_name))
                 gpu_monitoring_thread.start()
             for j in range(1, args.instances + 1):
                 # prepend the full path of the log directory before log file name
                 # log file name format: logger_<scheduler>_<run-id>_<instance-id>.log
                 logfile_name = "logger_" + scheduler + "_" + str(i) + "_" + str(j) + ".log"
-                fully_qualified_log_filename = ""
-                if log_directory is not None:
-                    fully_qualified_log_filename = os.path.join(log_directory, logfile_name)
-                else:
-                    fully_qualified_log_filename = os.path.join(os.getcwd(), logfile_name)
-                    print ("Warning: log directory is not specified. Log file will be stored in the current directory")
-                fully_qualified_log_filename = os.path.abspath(fully_qualified_log_filename)
+                fully_qualified_log_filename = os.path.abspath(os.path.join(log_directory, logfile_name))
                 print ("Log file name: ", fully_qualified_log_filename)
                 # make a copy of env before sending to the thread
                 env_copy = env.copy()
