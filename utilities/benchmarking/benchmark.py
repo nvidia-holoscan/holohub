@@ -115,7 +115,7 @@ def main():
         env["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     if args.num_messages != 100:
-        env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_source_messages)
+        env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_messages)
 
     app_launch_command = "./run launch " + args.holohub_application + " cpp"
 
