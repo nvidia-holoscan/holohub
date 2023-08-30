@@ -63,7 +63,7 @@ def run_command(app_launch_command, env):
         sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description='Run performance evaluation for an (HoloHub) application')
+    parser = argparse.ArgumentParser(description='Run performance evaluation for an (HoloHub) application', formatter_class=argparse.RawTextHelpFormatter)
 
     requiredArgument = parser.add_argument_group('required arguments')
     requiredArgument.add_argument("--sched", nargs='+', choices=["greedy", "multithread"], required=True, help="scheduler(s) to use")
@@ -76,13 +76,13 @@ def main():
 
     # parser.add_argument("-p", "--binary_path", type=str, required=False, help="command to run the application if it is not a HoloHub application")
 
-    parser.add_argument("-g", "--gpu", type=str, required=False, help="the GPU UUIDs to run the application on (default: all)", default="all")
+    parser.add_argument("-g", "--gpu", type=str, required=False, help="comma-separated GPU UUIDs to run the application on. This option sets the CUDA_VISIBLE_DEVICES in the environment variable. (default: all)\nWarning: This option does not override any custom GPU assigment in Holoscan's Inference operator.", default="all")
 
-    parser.add_argument("-i", "--instances", type=int, required=False, help="number of instances to run in parallel (default: 1)", default=1)
+    parser.add_argument("-i", "--instances", type=int, required=False, help="number of application instances to run in parallel (default: 1)", default=1)
 
-    parser.add_argument("-r", "--runs", type=int, default=1, help="number of times to run the application (default: 1)", required=False)
+    parser.add_argument("-r", "--runs", type=int, default=1, help="number of times to repeat the experiment (default: 1)", required=False)
 
-    parser.add_argument("-m", "--num_source_messages", type=int, default=100, help="number of source messages to send (default: 100)", required=False)
+    parser.add_argument("-m", "--num_messages", type=int, default=100, help="number of messages or data frames to consider in benchmarking (default: 100)", required=False)
 
     parser.add_argument("-w", "--num_worker_threads", type=int, default=1, help="number of worker threads for multithread scheduler (default: 1)", required=False)
 
@@ -114,7 +114,7 @@ def main():
     if args.gpu != "all":
         env["CUDA_VISIBLE_DEVICES"] = args.gpu
 
-    if args.num_source_messages != 100:
+    if args.num_messages != 100:
         env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_source_messages)
 
     app_launch_command = "./run launch " + args.holohub_application + " cpp"
