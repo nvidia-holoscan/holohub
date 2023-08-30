@@ -143,7 +143,6 @@ def main():
                 # log file name format: logger_<scheduler>_<run-id>_<instance-id>.log
                 logfile_name = "logger_" + scheduler + "_" + str(i) + "_" + str(j) + ".log"
                 fully_qualified_log_filename = os.path.abspath(os.path.join(log_directory, logfile_name))
-                print ("Log file name: ", fully_qualified_log_filename)
                 # make a copy of env before sending to the thread
                 env_copy = env.copy()
                 env_copy["HOLOSCAN_FLOW_TRACKING_LOG_FILE"] = fully_qualified_log_filename
