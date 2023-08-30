@@ -249,6 +249,10 @@ setup() {
   install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
 
+  # Install the autocomplete
+  echo "Installing autocomplete"
+  cp ${SCRIPT_DIR}/utilities/holohub_autocomplete /etc/bash_completion.d/
+
   echo "Setup for HoloHub is ready. Happy Holocoding!"
 }
 
@@ -608,6 +612,17 @@ list() {
   echo ""
   echo "Run ./run build <app_name> to build a specific app."
   echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually."
+}
+
+# Returns the list of words for autocompletion
+autocompletion_list() {
+  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
+  for d in ${apps}; do
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+    filename="${appname%/*}"
+    echo "${filename}"
+  done
+  echo "build launch clear_cache cpp python install_lint_deps lint setup"
 }
 
 clear_cache() {
