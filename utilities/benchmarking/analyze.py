@@ -179,8 +179,6 @@ def main():
 
     parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw a end-to-end latency CDF curve for the every path in each group of log files. An (optional) filename could also be provided in which the graph will be saved.", required=False)
 
-    parser.add_argument("--draw-bar-graph", nargs=2, metavar=('type', 'filename'), default=["avg", "bar_graph_avg.png"], help="draw a bar graph for the first path of each group of log files", required=False)
-
     parser.add_argument("--display-graphs", action="store_true", help="display the graphs", default=True, required=False)
 
     parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files", required=False)
