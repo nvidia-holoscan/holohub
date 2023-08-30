@@ -39,8 +39,9 @@ $ python utilities/benchmarking/benchmark.py -a <application name> <other option
 
 `python utilities/benchmarking/benchmark.py -h` shows all the possible evaluation options.
 
-All the log filenames are printed out at the end of the evaulation. The format of the log filename is:
-`logger_<scheduler>_<run_number>_<instance-id>.log`
+All the log filenames are printed out at the end of the evaulation. The format of the flow tracking log filename is:
+`logger_<scheduler>_<run_number>_<instance-id>.log`. The format of the GPU utilization log filename
+is: `gpu_utilization_<scheduler>_<run_number>.csv`.
 
 4. Get performance results and insights
 
