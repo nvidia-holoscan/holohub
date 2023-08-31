@@ -145,8 +145,6 @@ def main():
                 # make a copy of env before sending to the thread
                 env_copy = env.copy()
                 env_copy["HOLOSCAN_FLOW_TRACKING_LOG_FILE"] = fully_qualified_log_filename
-                print ("Log file for instance", j, "is", fully_qualified_log_filename)	
-                print (env)
                 instance_thread = threading.Thread(target=run_command, args=(app_launch_command, env_copy))
                 instance_thread.start()
                 instance_threads.append(instance_thread)
