@@ -119,7 +119,7 @@ def draw_cdf(ax, latencies, label = None):
 
 def init_cdf_plot(title=None):
     fig, ax = plt.subplots()
-    ax.set_xlabel("Latency (ms)")
+    ax.set_xlabel("End-to-End Latency (ms)")
     ax.set_ylabel("CDF")
     if title:
         ax.set_title(title)
