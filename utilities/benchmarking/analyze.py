@@ -80,7 +80,7 @@ def merge_path_latencies(multiple_path_latencies, skip_begin_messages = 10, disc
 def get_avg_latencies(paths_latencies, skip_begin_messages = 10, discard_last_messages = 10):
     avg_latencies = {}
     for path in paths_latencies:
-        avg_latencies[path] = np.mean(paths_latencies[path][skip_begin_messages:-discard_last_messages])
+        avg_latencies[path] = round(np.mean(paths_latencies[path][skip_begin_messages:-discard_last_messages]), 2)
     return avg_latencies
 
 def get_max_latencies(paths_latencies, skip_begin_messages = 10, discard_last_messages = 10):
@@ -179,7 +179,7 @@ def main():
 
     parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw a end-to-end latency CDF curve for the every path in each group of log files. An (optional) filename could also be provided in which the graph will be saved.", required=False)
 
-    parser.add_argument("--display-graphs", action="store_true", help="display the graphs", default=True, required=False)
+    parser.add_argument("--display-graphs", action="store_true", help="display the graphs", default=False, required=False)
 
     parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files", required=False)
 
@@ -266,7 +266,7 @@ def main():
                 print ("Path:", path, ": ", np.std(latency), "ms")
             if args.save_csv:
                 with open("stddev_values.csv", "a") as f:
-                    f.write(str(np.std(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
+                    f.write(str(round(np.std(paths_latencies[list(paths_latencies.keys())[0]]), 2)) + ",")
 
     if args.min:
         if args.save_csv:
@@ -357,8 +357,8 @@ def main():
         if args.save_csv:
             with open("avg_gpu_utilization_values.csv", "w") as f:
                 f.truncate(0)
+        print ("==================\nAverage GPU Utilization\n==================")
         for group_name, gpu_utils in grouped_gpu_util.items():
-            print ("==================\nAverage GPU Utilization\n==================")
             print ("Group : ", group_name, "(", ", ".join(grouped_gpu_util_log_files[group_name]), ")" "\n------------------")
             print ("Average GPU Utilization: ", round(np.mean(gpu_utils), 2), "%")
             if args.save_csv:
