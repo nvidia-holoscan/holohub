@@ -19,7 +19,7 @@ The VQE operates by employing a hybrid quantum-classical approach:
 
 ## Integration with Holoscan and CUDA Quantum
 - **NVIDIA Holoscan SDK**: This SDK is designed for efficient handling of high-throughput, low-latency GPU tasks. Within the context of VQE, the Holoscan SDK facilitates the rapid classical computations necessary for parameter adjustments and optimization. The `ClassicalComputeOp` in the provided code sample is an example of this SDK in action, preparing the quantum circuits efficiently.
-- **CUDA Quantum**: CUDA Quantum is a framework that manages hybrid quantum-classical workflows. For VQE, CUDA Quantum processes quantum data and executes quantum operations. The `QuantumComputeOp` operator in the code uses the cuQuantum simulator backend, but the user may actually switch out for a real quantum cloud backend provided by either IonQ .
+- **CUDA Quantum**: CUDA Quantum is a framework that manages hybrid quantum-classical workflows. For VQE, CUDA Quantum processes quantum data and executes quantum operations. The `QuantumComputeOp` operator in the code uses the cuQuantum simulator backend, but the user may optionally switch out the simulator for a real quantum cloud backend provided by either IonQ or Quantinuum ((see CUDA Quantum backend documentation)[https://nvidia.github.io/cuda-quantum/latest/using/hardware.html#]).
 
 By integrating VQE with the Holoscan SDK and CUDA Quantum, the process is streamlined. Holoscan ensures swift and efficient classical computations, while CUDA Quantum manages the quantum components with precision.
 
