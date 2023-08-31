@@ -1,0 +1,10 @@
+chromadb==0.3.26
+GitPython~=3.1
+gradio~=3.0
+halo
+langchain==0.0.223
+openai
+pypdf~=3.12
+python-dotenv~=1.0
+requests~=2.31
+tiktoken

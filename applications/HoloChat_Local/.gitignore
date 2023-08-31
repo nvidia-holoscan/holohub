@@ -1,0 +1,6 @@
+.venv/
+embeddings/
+.env
+__pycache__/
+holoscan-sdk/
+holohub/
