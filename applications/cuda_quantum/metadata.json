@@ -1,0 +1,51 @@
+Here is a sample metadata.json file for the application ../holohub-internal/applications/cuda_quantum/cuda_quantum.py:
+
+```json
+{
+    "application": {
+        "name": "cuda_quantum",
+        "authors": [
+            {
+                "name": "NVIDIA CORPORATION & AFFILIATES",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0.0": "Initial release of cuda_quantum application"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "0.6.0",
+            "tested_versions": [
+                "0.6.0"
+            ]
+        },
+        "platforms": ["amd64", "arm64"],
+        "tags": ["Quantum Computing", "CUDA", "VQE"],
+        "ranking": 4,
+        "dependencies": {
+            "operators": [
+                {
+                    "name": "ClassicalComputeOp",
+                    "version": "1.0.0"
+                },
+                {
+                    "name": "QuantumComputeOp",
+                    "version": "1.0.0"
+                },
+                {
+                    "name": "PrintOp",
+                    "version": "1.0.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "python3 cuda_quantum.py",
+            "workdir": "holohub_app_bin"
+        }
+    }
+}
+```
+
+Please note that the "version" and "changelog" fields are placeholders and should be updated with the actual version and changes of the application. The "dependencies" field lists the operators used in the application, and their versions should also be updated accordingly. The "run" field specifies the command to run the application, which is assumed to be "python3 cuda_quantum.py" in this case.
