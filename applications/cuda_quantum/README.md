@@ -18,10 +18,10 @@ The VQE operates by employing a hybrid quantum-classical approach:
 3. **Iterative Process**: The combination of quantum evaluation and classical refinement is iterative. Over multiple cycles, the parameters are tuned to get increasingly closer to the true ground state energy.
 
 ## Integration with Holoscan and CUDA Quantum
-- **NVIDIA Holoscan SDK**: This SDK is designed for efficient handling of high-throughput, low-latency GPU tasks. Within the context of VQE, the Holoscan SDK facilitates the rapid classical computations necessary for parameter adjustments and optimization. The `ClassicalComputeOp` in the provided code sample is an example of this SDK in action, preparing the quantum circuits efficiently.
+- **NVIDIA Holoscan SDK**: The Holoscan SDK is designed for efficient handling of high-throughput, low-latency GPU tasks. Within the context of VQE, the Holoscan SDK facilitates the rapid classical computations necessary for parameter adjustments and optimization. The `ClassicalComputeOp` in the provided code sample is an example of this SDK in action, preparing the quantum circuits efficiently.
 - **CUDA Quantum**: CUDA Quantum is a framework that manages hybrid quantum-classical workflows. For VQE, CUDA Quantum processes quantum data and executes quantum operations. The `QuantumComputeOp` operator in the code uses the cuQuantum simulator backend, but the user may optionally switch out the simulator for a real quantum cloud backend provided by either IonQ or Quantinuum ([see CUDA Quantum backend documentation](https://nvidia.github.io/cuda-quantum/latest/using/hardware.html#)).
 
-By integrating VQE with the Holoscan SDK and CUDA Quantum, the process is streamlined. Holoscan ensures swift and efficient classical computations, while CUDA Quantum manages the quantum components with precision.
+Holoscan ensures swift and efficient classical computations, while CUDA Quantum manages the quantum components with precision.
 
 ## Conclusion
 
@@ -29,9 +29,9 @@ By integrating VQE with the Holoscan SDK and CUDA Quantum, the process is stream
 
 To run the application, you need to have CUDA Quantum, Qiskit, and Holoscan installed. You also need an IBM Quantum account to use their quantum backends.
 
-1. Clone the repository and navigate to the directory containing `cuda_quantum.py` and `cuda_quantum.yaml`.
+1. Clone the repository and navigate to the `cuda_quantum` directory containing.
 
-2. Replace `'your_ibm_api_key_here'` in `cuda_quantum.yaml` with your IBM Quantum API key.
+2. Either use or replace the `'hamiltonian'` in `cuda_quantum.yaml` dependent on the physical system you wish to model.
 
 3. Run the application with the command `python cuda_quantum.py`.
 
@@ -39,9 +39,9 @@ To run the application, you need to have CUDA Quantum, Qiskit, and Holoscan inst
 
 The application uses three types of operators:
 
-- `ClassicalComputeOp`: This operator performs classical computations. It creates a quantum kernel and a Hamiltonian.
+- `ClassicalComputeOp`: This operator performs classical computations. It also creates a quantum kernel representing the initial ansatz, or guess of the state of the system, and a Hamiltonian.
 
-- `QuantumComputeOp`: This operator performs quantum computations. It uses the quantum kernel and Hamiltonian from `ClassicalComputeOp` to compute the energy and parameter using VQE.
+- `QuantumComputeOp`: This operator performs quantum computations. It uses the quantum kernel and Hamiltonian from `ClassicalComputeOp` to iterate towards the ground state energy and parameter using VQE.
 
 - `PrintOp`: This operator prints the result from `QuantumComputeOp`.
 
@@ -56,15 +56,3 @@ flowchart LR
 ```
 
 `ClassicalComputeOp` sends the quantum kernel and Hamiltonian to `QuantumComputeOp`, which computes the energy and parameter and sends the result to `PrintOp`.
-
-## Example
-
-Here is an example of the output you might see when you run the application:
-
-```
-Printing Circuit:  <cudaq.kernel.Kernel object at 0x7f8c0b1c3d30>
-VQE Result:  energy: -1.85727503015
- parameter: [3.14159265]
-```
-
-This means that the VQE found the minimum energy to be approximately -1.857 with a parameter of approximately 3.142.
