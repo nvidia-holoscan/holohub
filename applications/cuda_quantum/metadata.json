@@ -25,7 +25,7 @@
                 {
                    "cuda_quantum": "^0.4.0"
                 }
-        },
+        ],
         "run": {
             "command": "python3 cuda_quantum.py",
             "workdir": "holohub_bin"
