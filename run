@@ -338,29 +338,20 @@ lint() {
     local exit_code=0
 
     if [ $FIX == true ]; then
-      echo "Running linting fix on modified files in the repository"
-      modified_files=$(git diff --name-only)
-      modified_files_python=$(git diff --name-only *.py)
-      modified_files_cpp=$(git diff --name-only *.c *.cpp *.h *.hpp)
 
-      if [ "${modified_files_python}" != "" ]; then
-        # Fix python
-        run_command ruff --fix --ignore E712 ${modified_files_python} || exit_code=1
-        # Fix python isort issues, run:
-        run_command isort ${modified_files_python} || exit_code=1
-        # Fix python black code formatting issues, run:
-        run_command black ${modified_files_python} || exit_code=1
-      fi
+      # Fix python
+      run_command ruff --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      # Fix python isort issues, run:
+      run_command isort ${DIR_TO_RUN} || exit_code=1
+      # Fix python black code formatting issues, run:
+      run_command black ${DIR_TO_RUN} || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd || exit_code=1
 
-      if [ "${modified_files_cpp}" != "" ]; then
+      # To-do: fix cpplint with clang
+      #if [ "${modified_files_cpp}" != "" ]; then
         # Fix C++ lint issues, run:
-        run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${modified_files_cpp} || exit_code=1
-      fi
-
-      if [ "${modified_files}" != "" ]; then
-        # Fix codespell issues, run:
-        run_command codespell -w -i 3 ${modified_files} -L nd || exit_code=1
-      fi
+        #run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${modified_files_cpp} || exit_code=1
+      #fi
 
       exit $exit_code
     fi
