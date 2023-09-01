@@ -345,16 +345,24 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
 
       # To-do: fix cpplint with clang
-      #if [ "${modified_files_cpp}" != "" ]; then
-        # Fix C++ lint issues, run:
-        #run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${modified_files_cpp} || exit_code=1
-      #fi
+      files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
+            --exclude build \
+            --exclude install \
+            --exclude build-\* \
+            --exclude install-\* \
+            --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
 
+      # Fix C++ lint issues by running clang-format:
+      for file in ${files_to_fix}; do
+        run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${file} || exit_code=1
+      done
+     
       exit $exit_code
     fi
+
 
     # We use $(command) || exit_code=1 to run all linting tools, and exit
     # with failure after all commands were executed if any of them failed
