@@ -26,14 +26,6 @@ FetchContent_Declare(pybind11
 )
 FetchContent_MakeAvailable(pybind11)
 
-if(NOT CMAKE_INSTALL_LIBDIR)
-  set(CMAKE_INSTALL_LIBDIR lib)
-endif()
-
-# create top-level holohub package folder
-set(CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
-file(MAKE_DIRECTORY ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR})
-
 # Helper function to generate pybind11 operator modules
 function(pybind11_add_holohub_module)
     cmake_parse_arguments(MODULE        # PREFIX
@@ -73,13 +65,13 @@ function(pybind11_add_holohub_module)
     unset(_rpath)
 
     # make submodule folder
-    file(MAKE_DIRECTORY ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/${MODULE_NAME})
+    file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME})
 
     # custom target to ensure the module's __init__.py file is copied
-    set(CMAKE_SUBMODULE_OUT_DIR ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/${MODULE_NAME})
+    set(CMAKE_SUBMODULE_OUT_DIR ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME})
     configure_file(
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
-        ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/${MODULE_NAME}/__init__.py
+        ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME}/__init__.py
     )
 
     # Note: OUTPUT_NAME filename (_${MODULE_NAME}) must match the module name in the PYBIND11_MODULE macro

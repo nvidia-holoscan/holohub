@@ -1,3 +1,4 @@
+%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,13 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-cmake_minimum_required(VERSION 3.20)
-project(basic_networking_ping LANGUAGES NONE)
-
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
-  add_subdirectory(python)
-endif()
-
+---
+network_rx:
+  batch_size: 1
+  max_payload_size: 1400
+  dst_port: 4096
+  l4_proto: "udp"
+  ip_addr: "127.0.0.1"
