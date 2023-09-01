@@ -257,7 +257,7 @@ black [path]
 # To fix C++ lint issues, run:
 clang-format --style=file --sort-includes=0 --lines=20:10000 -i <filename>
 # To fix codespell issues, run:
-codespell --fix [path]
+codespell -w -i 3 [path]
 ```
 
 
