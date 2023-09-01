@@ -1,4 +1,2 @@
 cuda_quantum
-qiskit-aer
-qiskit-ibmq-provider
 holoscan
