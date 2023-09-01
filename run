@@ -337,8 +337,8 @@ lint() {
 
     local exit_code=0
 
+    # If we call with --fix
     if [ $FIX == true ]; then
-
       # Fix python
       run_command ruff --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
       # Fix python isort issues, run:
@@ -347,7 +347,7 @@ lint() {
       run_command black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
 
-      # To-do: fix cpplint with clang
+      # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
             --exclude build \
             --exclude install \
