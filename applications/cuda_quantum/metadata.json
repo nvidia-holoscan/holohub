@@ -22,24 +22,13 @@
         "tags": ["Quantum Computing", "CUDA", "VQE"],
         "ranking": 4,
         "dependencies": {
-            "operators": [
                 {
-                    "name": "ClassicalComputeOp",
-                    "version": "1.0.0"
-                },
-                {
-                    "name": "QuantumComputeOp",
-                    "version": "1.0.0"
-                },
-                {
-                    "name": "PrintOp",
-                    "version": "1.0.0"
+                   "cuda_quantum": "^0.4.0"
                 }
-            ]
         },
         "run": {
             "command": "python3 cuda_quantum.py",
-            "workdir": "holohub_app_bin"
+            "workdir": "holohub_bin"
         }
     }
 }
