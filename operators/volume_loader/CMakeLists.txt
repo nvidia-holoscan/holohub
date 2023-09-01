@@ -22,8 +22,10 @@ find_package(holoscan 0.6 REQUIRED CONFIG
 # FetchContent/ExternalProject_Add.
 # This ensures that anything that depends on the extracted contents will be rebuilt whenever
 # the URL changes.
-cmake_policy(SET CMP0135 NEW)
-set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
 
 # NIFTI c lib
 include(FetchContent)
