@@ -18,12 +18,12 @@
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "volume_loader.hpp"
-#include "volume_renderer.hpp"
-
 #include <string>
 
 #include <getopt.h>
+
+#include "volume_loader.hpp"
+#include "volume_renderer.hpp"
 
 /**
  * Dummy YAML convert function for shared data type
@@ -231,7 +231,8 @@ int main(int argc, char** argv) {
                      "(default '"
                   << mask_volume_file_default << "')" << std::endl
                   << "  -n <COUNT>, --count <COUNT>           Duration to run application "
-                     "(default '-1' for unlimited duration)" << std::endl;
+                     "(default '-1' for unlimited duration)"
+                  << std::endl;
         return 0;
 
       case 'c':
@@ -265,7 +266,7 @@ int main(int argc, char** argv) {
   }
 
   auto app = holoscan::make_application<App>(
-               render_config_file, density_volume_file, mask_volume_file, count);
+      render_config_file, density_volume_file, mask_volume_file, count);
   app->run();
 
   holoscan::log_info("Application has finished running.");
