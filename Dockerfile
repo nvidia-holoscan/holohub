@@ -29,7 +29,8 @@ ARG GPU_TYPE
 FROM ${BASE_IMAGE} as cvcuda-downloader
 
 ARG GCC_VERSION=11
-ARG CVCUDA_TAG=v0.3.1-beta
+ARG CVCUDA_TAG=v0.4.0-beta
+ARG CVCUDA_RELEASE_BRANCH=release_v0.4.x
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt/nvidia
@@ -58,9 +59,9 @@ RUN git clone https://github.com/CVCUDA/CV-CUDA \
 # (https://github.com/CVCUDA/CV-CUDA/issues/26)
 RUN cd CV-CUDA/src/util/stubs \
     && rm *.so \
-	&& curl -S -L -o libdl-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/libdl-2.17_stub.so \
-	&& curl -S -L -o libpthread-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/libpthread-2.17_stub.so \
-	&& curl -S -L -o librt-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/release_v0.3.x/src/util/stubs/librt-2.17_stub.so
+	&& curl -S -L -o libdl-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/libdl-2.17_stub.so \
+	&& curl -S -L -o libpthread-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/libpthread-2.17_stub.so \
+	&& curl -S -L -o librt-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/librt-2.17_stub.so
 
 ############################################################
 # CV-CUDA Builder
