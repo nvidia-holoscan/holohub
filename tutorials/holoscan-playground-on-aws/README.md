@@ -22,11 +22,11 @@ In the `Application and OS Images (Amazon Machine Image)` window, search for `NV
 
 From the results, switch to `AWS Marketplace AMIs` and choose `NVIDIA GPU-Optimized AMI`.
 
-<img src="./images/Launch Instance 3.png" alt="drawing" width="600"/>
+<img src="./images/Launch Instance 3.png" alt="drawing" width="900"/>
 
 Select `Continue` after viewing the details of this AMI.
 
-<img src="./images/Launch Instance 4.png" alt="drawing" width="600"/>
+<img src="./images/Launch Instance 4.png" alt="drawing" width="900"/>
 
 The selected AMI should look like this in the view to create an instance:
 
@@ -63,22 +63,22 @@ Please note that with a different instance type, Storage (volumes) may look diff
 
 Click `Launch instance`, and you should see a `Success` notification.
 
-<img src="./images/Launch Instance 11.png" alt="drawing" width="600"/>
+<img src="./images/Launch Instance 11.png" alt="drawing" width="900"/>
 
 Now go back to the `Instances` window to view the `Status check` of the instance we had just launched. It should show `Initializing` for a few minutes:
 
-<img src="./images/Launch Instance 12.png" alt="drawing" width="600"/>
+<img src="./images/Launch Instance 12.png" alt="drawing" width="900"/>
 
 And later it should show `2/2 checks passed`:
 
-<img src="./images/Launch Instance 13.png" alt="drawing" width="600"/>
+<img src="./images/Launch Instance 13.png" alt="drawing" width="900"/>
 
 Now we’re ready to ssh into the instance.
 
 ## SSH into EC2 Instance
 Click on the instance ID, and you should see this layout for instance details. Click on the `Connect` button on the top right.
 
-<img src="./images/SSH into Instance 1.png" alt="drawing" width="600"/>
+<img src="./images/SSH into Instance 1.png" alt="drawing" width="900"/>
 
 Under the `SSH client` tab there are the SSH instructions. Note that the username `root` is guessed, and for the AMI we chose, it should be `ubuntu`. The private key file that you saved from when you were configuring the instance should be on the machine that you are ssh’ing from. 
 
