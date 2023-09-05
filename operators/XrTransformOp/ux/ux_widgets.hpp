@@ -70,7 +70,7 @@ struct UxBoundingBox {
   Eigen::Affine3f local_transform;
 
   // the transformation of the bounding box within the
-  // global coordinate syste. This will be used to compute
+  // global coordinate system. This will be used to compute
   // the transformation matrix of the volumetric dataset
   Eigen::Affine3f global_transform;
 
