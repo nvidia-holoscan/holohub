@@ -80,7 +80,9 @@ Click on the instance ID, and you should see this layout for instance details. C
 
 <img src="./images/SSH into Instance 1.png" alt="drawing" width="600"/>
 
-Under the `SSH client` tab there are the SSH instructions. Note that the username `root` is guessed, and for the AMI we chose, it should be `ubuntu`. The private key file that you saved from when you were configuring the instance should be on the machine that you are ssh’ing from. Adding `-X` to the ssh command.
+Under the `SSH client` tab there are the SSH instructions. Note that the username `root` is guessed, and for the AMI we chose, it should be `ubuntu`. The private key file that you saved from when you were configuring the instance should be on the machine that you are ssh’ing from. 
+
+Add `-X` to the ssh command to enable display forwarding.
 
 
 <img src="./images/SSH into Instance 2.png" alt="drawing" width="600"/>
@@ -103,8 +105,7 @@ xeyes
 https://github.com/jin-nvidia/holohub/assets/60405124/57c76bed-ca16-458b-8740-1e4351ca63f7
 
 
-If you run into display issues, first ensure that `-X` is added to the ssh command and the machine you’re ssh’ing from has X11 forwarding enabled.
-Hint: on Windows, try using MobaXTerm to establish a SSH connection with X11 forwarding enabled.
+If you run into display issues, ensure the machine you’re ssh’ing from has X11 forwarding enabled. Please see the [Troubleshooting](#troubleshooting) section.
 
 ### In a Docker Container On EC2 Instance
 
@@ -357,3 +358,33 @@ Please see the application graph and more on [HoloHub](https://github.com/nvidia
 Now that you have run several Holoscan Examples and HoloHub Applications, please continue exploring the rest of Examples and Applications, and when you’re ready, stop the instance by going back to EC2 page with the list of `Instances`, select the launched instance, and select `Stop Instance` in the dropdown `Instance state`.
 
 <img src="./images/stop instance.png" alt="drawing" width="200"/>
+
+## Troubleshooting
+
+If you receive a display forwarding error such as 
+```
+unable to open display "localhost:10.0"
+```
+```
+Glfw Error 65544: X11: Failed to open display localhost:10.0
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  Failed to initialize glfw
+```
+Please see below to find the suggestion for your OS.
+
+### From a Linux Local Machine
+* Ensure that `-X` is added to the ssh command when connecting to the EC2 instance.
+
+### From a Windows Local Machine
+* Ensure that `-X` is added to the ssh command when connecting to the EC2 instance.
+* Try using MobaXTerm to establish a SSH connection with X11 forwarding enabled.
+
+### From a Mac Local Machine
+
+* Download [Quartz](https://www.xquartz.org/), reboot, and enable the following. 
+
+  <img src="./images/mac x11.png" alt="drawing" width="300"/>
+
+  Once Quartz is downloaded it will automatically launch when running display forwarding apps like `xeyes`.
+
+* Ensure that `-X` is added to the ssh command when connecting to the EC2 instance.
