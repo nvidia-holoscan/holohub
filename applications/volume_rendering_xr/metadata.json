@@ -1,0 +1,59 @@
+{ 
+ "application": {
+	"name": "Medical Image viewer in XR",
+	"authors": [
+		{
+			"name": "Andreas Heumann",
+			"affiliation": "NVIDIA"
+		},
+		{
+			"name": "Connor Smith",
+			"affiliation": "NVIDIA"
+		},
+		{
+			"name": "Cristiana Dinea",
+			"affiliation": "NVIDIA"
+		},
+		{
+			"name": "Jiwen Cai",
+			"affiliation": "Magic Leap"
+		},
+		{
+			"name": "Jochen Stier",
+			"affiliation": "Magic Leap"
+		}
+	],
+	"language": "C++",
+	"version": "0.0",
+	"changelog": {
+		"0.0": "Initial release"
+	},
+	"holoscan_sdk": {
+		"minimum_required_version": "0.6.0",
+		"tested_versions": [
+			"0.6.0"
+		]
+	},
+	"platforms": ["amd64", "arm64"],
+	"tags": ["Volume", "Rendering", "OpenXR","Mixed","Reality"],
+	"ranking": 2,
+	"dependencies": {
+		"libraries": [{
+			"name": "windrunner",
+			"version": "1.2.88"
+		},
+		{
+			"name": "monado-service",
+			"version": "21.0.0"
+		},
+		{	"name": "remote viewer apk",
+			"version": "1.2.85"
+		}
+	   ]
+	},
+	"run": {
+		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
+		"workdir": "holohub_bin"
+	}
+  }
+}
