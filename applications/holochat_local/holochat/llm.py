@@ -112,7 +112,6 @@ class LLM:
 
 
 def _to_llama_prompt(history, question, docs):
-    """An attempt to mirror Alpaca-style prompting as closely as possible: https://github.com/arielnlee/Platypus/blob/main/templates/alpaca.json"""
     user_prefix = "### User Message:"
     bot_prefix = "### Assistant:"
     bot_rule_prefix = "### System Prompt:"
