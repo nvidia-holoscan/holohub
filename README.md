@@ -102,6 +102,12 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
   ./dev_container launch --img holohub:ngc-sdk-sample-app
 ```
 
+3. Enable X11 forwarding of graphical HoloHub applications over SSH
+
+```bash
+  ./dev_container launch --ssh_x11
+```
+
 ***Note***:  To print the values passed to the docker run command, add the ```--verbose``` option to the launch command.
 
 For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values. 
