@@ -339,6 +339,7 @@ launch() {
     local conditional_opt=""
     local print_verbose=0
     local local_sdk_root="undefined"
+    local ssh_x11=0
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
@@ -359,7 +360,9 @@ launch() {
         if [ "$arg" = "--local_sdk_root" ]; then
            local_sdk_root="${ARGS[i+1]}"
         fi
-
+        if [ "$arg" = "--ssh_x11" ]; then
+           ssh_x11=1
+        fi
     done
 
 
@@ -431,6 +434,17 @@ launch() {
     # Find the nvidia_icd.json file which could reside at different paths
     # Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
     nvidia_icd_json=$(find /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f,l -print -quit 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
+
+    # Allow X11 forwarding over SSH
+    if [[ $ssh_x11 -gt 0 ]]; then
+	XAUTH=/tmp/.docker.xauth
+	xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+	chmod 777 $XAUTH
+
+	conditional_opt+=" -v $XAUTH:$XAUTH"
+	conditional_opt+=" -e XAUTHORITY=$XAUTH"
+    fi
+
 
     # DOCKER PARAMETERS
     #
