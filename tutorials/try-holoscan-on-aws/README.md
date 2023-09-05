@@ -100,7 +100,8 @@ Next, run “xeyes” in the terminal, and you should get a display window poppi
 xeyes
 ```
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/9df5c89d-b08e-445e-a714-2cf19617c5db
+https://github.com/jin-nvidia/holohub/assets/60405124/57c76bed-ca16-458b-8740-1e4351ca63f7
+
 
 If you run into display issues, first ensure that `-X` is added to the ssh command and the machine you’re ssh’ing from has X11 forwarding enabled.
 Hint: on Windows, try using MobaXTerm to establish a SSH connection with X11 forwarding enabled.
@@ -180,7 +181,7 @@ cd /opt/nvidia/holoscan
 ```
 You should see a window like below
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/fa121dde-8356-4113-b2f9-f68622905ed0
+https://github.com/jin-nvidia/holohub/assets/60405124/7ae99409-ca42-4c38-b495-84a59648b671
 
 > Please note that it is normal for the video stream to be lagging behind since it is forwarded from a docker container on a EC2 instance to your local machine. How much the forwarded video will lag heavily depends on the internet connection. When running Holoscan applications on the edge, we should have significantly less latency lag.
 
@@ -212,7 +213,7 @@ python3 /opt/nvidia/holoscan/examples/tensor_interop/python/tensor_interop.py
 ```
 This example applies a Gaussian filtering to each frame of an endoscopy video stream and displays the filtered (blurred) video stream. You should see a window like below
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/971b301b-44ba-4636-a1ae-05a51475741b
+https://github.com/jin-nvidia/holohub/assets/60405124/b043637b-5fd9-4ee1-abc5-0dae069e785f
 
 The native Python operator is defined at [tensor_interop.py#L37](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/python/tensor_interop.py#L37). We can see in the initialization `__init__()` of the operator, `self.count` was initialize to 1. In the `setup()` method, the input message, output message and the parameter `sigma` is defined. The `compute()` method is what gets called every time. In the `compute()` method, first we receive the upstream tensor by 
 
@@ -255,7 +256,7 @@ python3 /opt/nvidia/holoscan/examples/holoviz/python/holoviz_geometry.py
 
 You should get something like below on the display
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/6010b53f-bcac-4b7e-86bb-750816b481a4
+https://github.com/jin-nvidia/holohub/assets/60405124/6d79845a-66bd-4448-9646-284b90c5e5f3
 
 Please take your time to look through [holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py) for how each one of the shapes and text in the native Holoscan Python operator is defined. 
 
@@ -325,7 +326,7 @@ Build the sample app and run:
 ```
 You should see a window like:
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/9fa7a63c-9392-40ae-beba-8c05d72641f1
+https://github.com/jin-nvidia/holohub/assets/60405124/8eb93c50-d893-4b2c-897b-57de94b91371
 
 > Note: Be prepared to wait a few minutes as we’re running the app for the first time, and it will convert the ONNX model to a TensorRT engine. The conversion happens only for the first time, after that, each time we run the app the TensorRT engine is already present.
 
@@ -345,7 +346,7 @@ Launch the Python application:
 ```
 You should see a window like below:
 
-https://github.com/jin-nvidia/Holoscan_on_EC2/assets/60405124/b1b59322-5494-4c09-b9e3-79ac49da5438
+https://github.com/jin-nvidia/holohub/assets/60405124/9d347b44-d635-4cc6-b013-7d26e3e4e2be
 
 You can find more information on Holoscan Inference Module [here](https://docs.nvidia.com/holoscan/sdk-user-guide/clara_holoinfer.html), including the parameters you can specify to define inference configuration, how to specify the multiple (or single) model(s) you want to run, and how the Holoscan Inference Module functions as an operator within the Holoscan SDK framework.
 
