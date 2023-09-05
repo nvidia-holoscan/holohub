@@ -1,4 +1,4 @@
-# Getting Started with Holoscan SDK on AWS
+# Holoscan Playground on AWS
 ## Overview
 The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK. The [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) lists out the hardware prerequisites. If you have a compatible hardware at hand, please get started with the SDK on your hardware. Otherwise, you could utilize an AWS EC2 instance to have a first look at the Holoscan SDK by following this guide. 
 
