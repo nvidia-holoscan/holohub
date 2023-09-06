@@ -23,6 +23,7 @@ WORKDIR /workspace
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Clone Llama.cpp and checkout a stable commit
 RUN git clone https://github.com/ggerganov/llama.cpp.git \
     && cd llama.cpp \
     && git checkout cf9b08485c4c2d4d945c6e74fe20f273a38b6104 \
