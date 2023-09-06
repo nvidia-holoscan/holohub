@@ -18,14 +18,19 @@
                 "0.6.0"
             ]
         },
-        "platforms": ["amd64", "arm64"],
-        "tags": ["Quantum Computing", "CUDA", "VQE"],
-        "ranking": 4,
-        "dependencies": [
-                {
-                   "cuda_quantum": "^0.4.0"
-                }
+        "platforms": [
+            "amd64",
+            "arm64"
         ],
+        "tags": [
+            "Quantum Computing",
+            "CUDA",
+            "VQE"
+        ],
+        "ranking": 4,
+        "dependencies": {
+            "cuda_quantum": "^0.4.0"
+        },
         "run": {
             "command": "python3 cuda_quantum.py",
             "workdir": "holohub_bin"
