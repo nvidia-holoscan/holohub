@@ -1,6 +1,6 @@
 # HoloChat-local
 
-HoloChat-local is an AI-driven chatbot, built on top of a local Code Llama model running on IGX Orin. The chatbot leverages vector databases to generate human-like responses and write code.
+git 
 <p align="center">
   <kbd style="border: 2px solid black;">
     <img src="holochat_demo.gif" alt="HoloChat Demo" />
