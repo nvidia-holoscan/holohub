@@ -25,6 +25,9 @@ from tqdm import tqdm
 
 
 def clone_repository(repo, token):
+    """
+    Used to clone nvidia-holoscan repos
+    """
     print(f"Cloning repository: {repo}")
     time.sleep(1)
     try:
@@ -39,6 +42,9 @@ def clone_repository(repo, token):
 
 
 def clone_general_repository(repo, token):
+    """
+    Used to clone general repos
+    """
     print(f"Cloning repository: {repo}")
     time.sleep(1)
     try:
@@ -81,8 +87,12 @@ def get_files(files, type):
     return contents
 
 
-# langchain method can't handle 'disallowed_special' - use tiktoken for now
 def get_source_chunks(all_contents, file_type=None, chunk_size=1500, chunk_overlap=150):
+    """
+    Method that splits Documents into chunks for storage. If the language is supported,
+    it is split according to the syntax of that language (Ex: not splitting python
+    functions in the middle)
+    """
     if file_type in ["python", "cpp", "markdown"]:
         splitter = RecursiveCharacterTextSplitter.from_language(
             language=file_type, chunk_size=chunk_size, chunk_overlap=chunk_overlap

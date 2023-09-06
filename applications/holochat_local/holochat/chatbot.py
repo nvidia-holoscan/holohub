@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Simple Gradio Chatbot app, for details visit:
+# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
+
 import gradio as gr
 import sklearn
 from llm import LLM
@@ -20,11 +23,6 @@ from llm import LLM
 sklearn.__version__
 
 initial_prompt = "Welcome to HoloChat! How can I assist you today?"
-
-python_prompt = """Create a Python Holoscan 'hello world' app with video
- as input, use HoloViz to print 'Hello World' on each frame, and then output
- it to the user. After the code explain the process step-by-step."""
-
 
 def ask_question(message, chat_history):
     if chat_history is None:
@@ -39,9 +37,7 @@ def ask_question(message, chat_history):
 def stream_response(chat_history, llm):
     if llm is None:
         llm = LLM()
-
     response = llm.answer_question(chat_history)
-
     for chunk in response:
         yield chunk, llm
 
@@ -101,7 +97,10 @@ def main():
                         ["What operating system can I use with the Holoscan SDK?"],
                         ["What hardware does Holoscan support?"],
                         ["How do I create a C++ Holoscan Operator?"],
-                        [python_prompt],
+                        ["Create a Python Holoscan 'hello world' app with video " \
+                         "as input, use HoloViz to print 'Hello World' on each frame, " \
+                         "and then output it to the user. After the code explain the " \
+                         "process step-by-step."],
                     ],
                     inputs=tbInput,
                 )
