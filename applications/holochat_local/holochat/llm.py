@@ -32,15 +32,17 @@ NUM_HOLOSCAN_DOCS = 7
 LLAMA_SERVER = "http://127.0.0.1:8080"
 SERVER_TIMEOUT = 60  # Timeout in seconds to connect to llama.cpp
 
-system_prompt = "You are NVIDIA-GPT, an expert at all things NVIDIA who knows " \
-  "the Holoscan user guide, as well as examples from Holohub and the api from the SDK. " \
-  "You are an assistant who answers questions step-by-step and always provides your " \
-  "reasoning so you have the correct result. Answer the questions based on the provided " \
-  "context and augment with your general knowledge where appropriate. Reformat the provided " \
-  "code examples as necessary since they were retrieved with a web scrape. " \
-  "Under no circumstances will you make up Holoscan API functions or functionality that does not " \
-  "exist! Do not conflate Holoscan Python API with Holoscan C++ API. You ALWAYS end your response " \
-  "with '</s>'. Below is NVIDIA Holoscan SDK documentation to assist you in answering questions:"
+system_prompt = (
+    "You are NVIDIA-GPT, an expert at all things NVIDIA who knows "
+    "the Holoscan user guide, as well as examples from Holohub and the api from the SDK. "
+    "You are an assistant who answers questions step-by-step and always provides your "
+    "reasoning so you have the correct result. Answer the questions based on the provided "
+    "context and augment with your general knowledge where appropriate. Reformat the provided "
+    "code examples as necessary since they were retrieved with a web scrape. "
+    "Under no circumstances will you make up Holoscan API functions or functionality that does not "
+    "exist! Do not conflate Holoscan Python API with Holoscan C++ API. You ALWAYS end your response "
+    "with '</s>'. Below is NVIDIA Holoscan SDK documentation to assist you in answering questions:"
+)
 
 
 class LLM:
@@ -125,19 +127,23 @@ def _to_llama_prompt(history, question, docs):
     bot_rule_prefix = "### System Prompt:"
 
     # Explain the context of the information being provided
-    opening_prompt = f"Below is a chat between a user '{user_prefix}', and you, " \
-                      "the AI assistant '{bot_prefix}'. You follow the given rule "\
-                      "'{bot_rule_prefix}' no matter what."
+    opening_prompt = (
+        f"Below is a chat between a user '{user_prefix}', and you, "
+        "the AI assistant '{bot_prefix}'. You follow the given rule "
+        "'{bot_rule_prefix}' no matter what."
+    )
 
     # Combine all the vector db docs into a single string
     docs = "\n\n".join(list(map(lambda lc_doc: lc_doc.page_content, docs)))
     # Add the system prompt with the vector db docs
     opening_prompt += f"\n\n{bot_rule_prefix}\n{system_prompt}\n\n{docs}"
     # Define the final portion of the prompt
-    ending_prompt = f"\n\n{user_prefix}\nUsing the previous conversation history, " \
-        "the provided NVIDIA Holoscan SDK documentation, AND your own expert knowledge, answer " \
-        "the following question (include markdown code snippets for coding questions and do not " \
+    ending_prompt = (
+        f"\n\n{user_prefix}\nUsing the previous conversation history, "
+        "the provided NVIDIA Holoscan SDK documentation, AND your own expert knowledge, answer "
+        "the following question (include markdown code snippets for coding questions and do not "
         f"acknowledge that documentation was provided to you):\n{question}"
+    )
 
     # Loop over the chat history and convert it to a single string
     msg_hist = ""
@@ -163,7 +169,6 @@ def _to_llama_prompt(history, question, docs):
 
     # Create the final prompt
     prompt = opening_prompt + msg_hist + ending_prompt + f"\n\n{bot_prefix}\n"
-    print(prompt)
     return prompt
 
 

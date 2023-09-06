@@ -52,7 +52,7 @@ start_holochat:
 	-p 7860:7860 \
 	-p 8080:8080 \
 	--gpus all \
-	--ipc=host 
+	--ipc=host \
 	--ulimit memlock=-1 \
 	--ulimit stack=67108864 \
 	-v ./holochat:/holochat \
