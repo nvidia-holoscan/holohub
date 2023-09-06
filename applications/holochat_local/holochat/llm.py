@@ -118,7 +118,7 @@ class LLM:
 def _to_llama_prompt(history, question, docs):
     """
     Function that takes the chat history, current question, and the documents
-    from vector db and create a single string to prompt the Llama model with
+    from the vector db and creates a single string to prompt the Llama model with
     """
 
     # Phind v2's prompt prefixes (Note these are dependent on the model used)
