@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import cudaq
+from cudaq import spin  # noqa: F401
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-import cudaq
-import os
-from cudaq import spin
 
 
 class ClassicalComputeOp(Operator):
@@ -37,12 +38,13 @@ class ClassicalComputeOp(Operator):
         kernel.ry(thetas[0], qubits[1])
         kernel.cx(qubits[1], qubits[0])
 
-        print('Printing Circuit: ', kernel)
+        print("Printing Circuit: ", kernel)
 
         self.count += 1
 
         op_output.emit(self.hamiltonian, "Hamiltonian")
         op_output.emit(kernel, "QuantumKernel")
+
 
 class QuantumComputeOp(Operator):
     def __init__(self, *args, backend_name, api_key=None, **kwargs):
@@ -62,13 +64,12 @@ class QuantumComputeOp(Operator):
         optimizer = cudaq.optimizers.COBYLA()
 
         energy, parameter = cudaq.vqe(
-            kernel=kernel,
-            spin_operator=hamiltonian,
-            optimizer=optimizer,
-            parameter_count=1)
-        
+            kernel=kernel, spin_operator=hamiltonian, optimizer=optimizer, parameter_count=1
+        )
+
         result = "energy: " + str(energy) + "\n parameter: " + str(parameter)
         op_output.emit(result, "Result")
+
 
 class PrintOp(Operator):
     def __init__(self, *args, prompt="Result: ", **kwargs):
@@ -85,16 +86,27 @@ class PrintOp(Operator):
 
 class QuantumVQEApp(Application):
     def compose(self):
-        classical_computer_operator = ClassicalComputeOp(self, CountCondition(self, count=1), name="classical_op", **self.kwargs("ClassicalComputeOp"))
-        quantum_computer_operator = QuantumComputeOp(self, name="Quantum Ops", **self.kwargs("QuantumComputeOp"))
+        classical_computer_operator = ClassicalComputeOp(
+            self,
+            CountCondition(self, count=1),
+            name="classical_op",
+            **self.kwargs("ClassicalComputeOp"),
+        )
+        quantum_computer_operator = QuantumComputeOp(
+            self, name="Quantum Ops", **self.kwargs("QuantumComputeOp")
+        )
         print_result = PrintOp(self, name="print_result", prompt="VQE Result: ")
 
-        self.add_flow(classical_computer_operator, quantum_computer_operator, {("Hamiltonian", "Hamiltonian"), ("QuantumKernel", "QuantumKernel")})
+        self.add_flow(
+            classical_computer_operator,
+            quantum_computer_operator,
+            {("Hamiltonian", "Hamiltonian"), ("QuantumKernel", "QuantumKernel")},
+        )
         self.add_flow(quantum_computer_operator, print_result, {("Result", "text")})
+
 
 if __name__ == "__main__":
     app = QuantumVQEApp()
     config_file = os.path.join(os.path.dirname(__file__), "cuda_quantum.yaml")
     app.config(config_file)
     app.run()
-
