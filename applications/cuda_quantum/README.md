@@ -23,8 +23,6 @@ The VQE operates by employing a hybrid quantum-classical approach:
 
 Holoscan ensures swift and efficient classical computations, while CUDA Quantum manages the quantum components with precision.
 
-## Conclusion
-
 ## Usage
 
 To run the application, you need to have CUDA Quantum, Qiskit, and Holoscan installed. You also need an IBM Quantum account to use their quantum backends.
