@@ -24,6 +24,9 @@ linestyles = ['-', '--', ':', '-.']
 colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink', 'brown']
 index = 0
 
+# the separator between operators in a path
+path_separator = "→ "
+
 def parse_line(line):
     operators = line.split("->")
     # print (operators)
@@ -44,7 +47,7 @@ def get_latency(op_timestamps):
     # convert the latency to ms
     latency = float(int(op_timestamps[-1][2]) - int(op_timestamps[0][1])) / 1000
     # join the operators with ASCII of "->" right-arrow sign
-    path = "→ ".join(operators)
+    path = path_separator.join(operators)
     return path, latency
 
 # This python function parses the DFFT-generated log file
@@ -126,7 +129,7 @@ def init_cdf_plot(title=None):
         ax.set_title(title)
     return fig, ax
 
-def complete_cdf_plot(fig, ax):
+def complete_cdf_plot(fig, ax, operator_legends = None):
     vals = ax.get_yticks()
     # convert the Y-axis ticks to percentage
     ax.set_yticks(vals)
@@ -134,8 +137,15 @@ def complete_cdf_plot(fig, ax):
     ax.set_ylim([-0.05, 1.05])
     # ax.legend(prop={'size': 12}, loc="best")
     legends = ax.legend(prop={'size': 12}, loc="upper center", ncol=2)
-    bbox_to_anchor=(0.5, 1 + 0.12 * len(legends.get_texts()) / (2 if len(legends.get_texts()) > 2 else 1))
+    bbox_yoffset = 0.12 * len(legends.get_texts()) / (2 if len(legends.get_texts()) > 2 else 1)
+    bbox_to_anchor=(0.5, 1 + bbox_yoffset)
     legends.set_bbox_to_anchor(bbox_to_anchor)
+    # also show operator legends in a separate box above the legends
+    if operator_legends:
+        operator_legends_str = "operator name legends:\n"
+        for legend, operator in operator_legends.items():
+            operator_legends_str += legend + ": " + operator + "\n"
+        ax.text(0, 1 + bbox_yoffset + 0.15, operator_legends_str, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
     fig.tight_layout()
 
 def get_latency_difference(latencies, percentile_start, percentile_end, skip_begin_messages = 10, discard_last_messages = 10):
@@ -146,16 +156,21 @@ def get_latency_difference(latencies, percentile_start, percentile_end, skip_beg
     return "{:.2f}".format(data[end_index] - data[start_index])
 
 # This function shortens a path by taking first 3 letters of each operator name if
-# it's more than 4 letters long
-def shorten_path(path):
-    operators = path.split(",")
+# it's more than 3 letters long
+def shorten_path(path, operator_legends):
+    operators = path.split(path_separator)
     modified_operators = []
     for operator in operators:
-        if len(operator) > 4:
-            modified_operators.append(operator[:3])
+        modified_operator_name = operator[:3] if len(operator) > 3 else operator
+        if modified_operator_name not in operator_legends:
+            operator_legends[modified_operator_name] = operator
         else:
-            modified_operators.append( operator)
-    return ",".join(modified_operators)
+            if operator_legends[modified_operator_name] != operator:
+                print(f"ERROR: Operator {operator} has the same first 3 letters as {operator_legends[modified_operator_name]}")
+                print ("CDF Curve legends for operators cannot be created. CDF Curve creation aborted.")
+                sys.exit(1)
+        modified_operators.append(modified_operator_name)
+    return path_separator.join(modified_operators)
 
 # print metric title in a green background with 60 "=" before and after the title
 def print_metric_title(title):
@@ -341,20 +356,23 @@ def main():
         complete_cdf_plot(fig, ax)
         plt.tight_layout()
         plt.savefig(args.draw_cdf, bbox_inches='tight')
-        print ("Saved the CDF curve graph of the first path of each group in: ", args.draw_cdf)
+        print ("Saved the CDF curve graph of the first path of each group in:", args.draw_cdf)
         if not args.no_display_graphs:
+            plt.tight_layout()
             plt.show()
 
     if args.draw_cdf_paths:
         fig, ax = init_cdf_plot()
+        operator_legends = {}
         for group_name, paths_latencies in grouped_path_latenices.items():
             for path, latency in paths_latencies.items():
-                draw_cdf(ax, latency, group_name + "-" + shorten_path(path))
-        complete_cdf_plot(fig, ax)
+                draw_cdf(ax, latency, group_name + "-" + shorten_path(path, operator_legends))
+        complete_cdf_plot(fig, ax, operator_legends=operator_legends)
         plt.tight_layout()
         plt.savefig(args.draw_cdf_paths, bbox_inches='tight')
-        print ("Saved the CDF curve graph of all paths of each group in: ", args.draw_cdf_paths)
+        print ("Saved the CDF curve graph of all paths of each group in:", args.draw_cdf_paths)
         if not args.no_display_graphs:
+            plt.tight_layout()
             plt.show()
 
     if args.group_utilization_files:
