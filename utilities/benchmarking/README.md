@@ -84,6 +84,7 @@ $ python utilities/benchmarking/analyze.py --draw-cdf single_path_cdf.png -g myo
 Saved the CDF curve graph of the first path of each group in: single_path_cdf.png
 ```
 The `single_path_cdf.png` looks like below:
+
 ![single_path_cdf.png](single_path_cdf.png)
 
 5. **Restore the application**
