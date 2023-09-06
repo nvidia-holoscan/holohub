@@ -35,6 +35,8 @@ CHROMA_DB_PATH = f'/holochat/embeddings/{os.path.basename("holoscan")}'
 def main():
     content_lists = {file_type: [] for file_type in file_types}
     total_files = 0
+
+    # Loop over each repo and create a Document for each file found
     for repo in repos:
         clone_repository(repo, "")
         for file_type in file_types:
@@ -53,6 +55,7 @@ def main():
                                 )
                             )
 
+    # Loop over the user guide and create a Document for each page
     content_lists[".pdf"] = []
     for doc in docs:
         loader = PyPDFLoader(doc)
@@ -77,6 +80,7 @@ def main():
                 Document(page_content=page_content, metadata={"userguide": doc})
             )
 
+    # Dictionary used to map file type to language
     ext_to_language = {
         ".py": "python",
         ".cpp": "cpp",
@@ -95,6 +99,7 @@ def main():
     model_kwargs = {"device": "cuda"}
     encode_kwargs = {"normalize_embeddings": True}  # set True to compute cosine similarity
 
+    # Create local embedding model cached at ./models
     embedding_model = HuggingFaceBgeEmbeddings(
         model_name=model_name,
         model_kwargs=model_kwargs,
