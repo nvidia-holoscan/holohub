@@ -127,10 +127,11 @@ def init_cdf_plot(title=None):
     return fig, ax
 
 def complete_cdf_plot(fig, ax):
-    # ax.set_ylim([-0.02, 1.03])
     vals = ax.get_yticks()
     # convert the Y-axis ticks to percentage
+    ax.set_yticks(vals)
     ax.set_yticklabels(['{:,.0%}'.format(x) for x in vals])
+    ax.set_ylim([-0.05, 1.05])
     # ax.legend(prop={'size': 12}, loc="best")
     legends = ax.legend(prop={'size': 12}, loc="upper center", ncol=2)
     bbox_to_anchor=(0.5, 1 + 0.12 * len(legends.get_texts()) / (2 if len(legends.get_texts()) > 2 else 1))
@@ -201,7 +202,7 @@ def main():
 
     parser.add_argument("--draw-cdf-paths", nargs="?", type=str, const="cdf_curve_paths.png", help="draw an end-to-end latency CDF curve for the every path in each group of log files. An (optional) filename could also be provided where the graph will be saved.", required=False)
 
-    parser.add_argument("--display-graphs", action="store_true", help="display the graphs. Display graphs in a window only if --draw-cdf or --draw-cdf-paths is present.", default=False, required=False)
+    parser.add_argument("--no-display-graphs", action="store_true", help="don't display the graphs in a window. Graphs are displayed by default with --draw-cdf and --draw-cdf-paths options.", default=False, required=False)
 
     parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files", required=False)
 
@@ -340,7 +341,8 @@ def main():
         complete_cdf_plot(fig, ax)
         plt.tight_layout()
         plt.savefig(args.draw_cdf, bbox_inches='tight')
-        if args.display_graphs:
+        print ("Saved the CDF curve graph of the first path of each group in: ", args.draw_cdf)
+        if not args.no_display_graphs:
             plt.show()
 
     if args.draw_cdf_paths:
@@ -351,7 +353,8 @@ def main():
         complete_cdf_plot(fig, ax)
         plt.tight_layout()
         plt.savefig(args.draw_cdf_paths, bbox_inches='tight')
-        if args.display_graphs:
+        print ("Saved the CDF curve graph of all paths of each group in: ", args.draw_cdf_paths)
+        if not args.no_display_graphs:
             plt.show()
 
     if args.group_utilization_files:
