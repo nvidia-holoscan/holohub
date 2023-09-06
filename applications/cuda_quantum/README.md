@@ -29,9 +29,11 @@ To run the application, you need to have CUDA Quantum, Qiskit, and Holoscan inst
 
 1. Clone the repository and navigate to the `cuda_quantum` directory containing.
 
-2. Either use or replace the `'hamiltonian'` in `cuda_quantum.yaml` dependent on the physical system you wish to model.
+2. Install the requirements `pip install -r requirements.txt`
 
-3. Run the application with the command `python cuda_quantum.py`.
+3. Either use or replace the `'hamiltonian'` in `cuda_quantum.yaml` dependent on the physical system you wish to model.
+
+4. Run the application with the command `python cuda_quantum.py`.
 
 ## Operators
 
