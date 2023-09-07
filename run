@@ -249,6 +249,10 @@ setup() {
   install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
 
+  # Install the autocomplete
+  echo "Installing autocomplete"
+  cp ${SCRIPT_DIR}/utilities/holohub_autocomplete /etc/bash_completion.d/
+
   echo "Setup for HoloHub is ready. Happy Holocoding!"
 }
 
@@ -260,7 +264,7 @@ install_lint_deps_desc() { echo 'Install lint dependencies
 This command will install the dependencies required to run the linting tools.
 
 - Python linting: ruff, isort, black, mypy
-- C++ linting: cpplint
+- C++ linting: cpplint, clang-format
 - Spelling: codespell
 '
 }
@@ -289,6 +293,9 @@ install_lint_deps() {
     if ! command -v cpplint &> /dev/null; then
         run_command ${HOLOHUB_PY_EXE} -m pip install cpplint || exit_code=1
     fi
+    if ! command -v clang-format &> /dev/null; then
+        run_command apt-get install --no-install-recommends -y clang-format || exit_code=1
+    fi
 
     echo "Install Lint Dependencies for Code Spelling"
     if ! command -v codespell &> /dev/null; then
@@ -308,16 +315,61 @@ Spelling: codespell
 
 Arguments:
   $@ - directories to lint (default: .)
-'
+
+Options:
+  --fix: to fix all linting errors'
 }
 
 lint() {
-    local DIR_TO_RUN=${@:-"."}
+
+    # Parse the arguments
+    ARGS=("$@")
+    local DIR_TO_RUN="."
+    local FIX=false
+
+    for i in "${!ARGS[@]}"; do
+      arg="${ARGS[i]}"
+      if [ "$arg" = "--fix" ]; then
+         FIX=true
+      elif [[ $arg = -* ]]; then
+        print_error "Unknown option $arg"
+        exit 1
+      else
+        DIR_TO_RUN=$arg
+      fi
+    done
+
+    local exit_code=0
+
+    # If we call with --fix
+    if [ $FIX == true ]; then
+      # Fix python
+      run_command ruff --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      # Fix python isort issues, run:
+      run_command isort ${DIR_TO_RUN} || exit_code=1
+      # Fix python black code formatting issues, run:
+      run_command black ${DIR_TO_RUN} || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
+
+      # Fix cpplint with clang
+      files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
+            --exclude build \
+            --exclude install \
+            --exclude build-\* \
+            --exclude install-\* \
+            --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
+
+      # Fix C++ lint issues by running clang-format:
+      for file in ${files_to_fix}; do
+        run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${file} || exit_code=1
+      done
+     
+      exit $exit_code
+    fi
+
 
     # We use $(command) || exit_code=1 to run all linting tools, and exit
     # with failure after all commands were executed if any of them failed
-    local exit_code=0
-
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
@@ -608,6 +660,17 @@ list() {
   echo ""
   echo "Run ./run build <app_name> to build a specific app."
   echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually."
+}
+
+# Returns the list of words for autocompletion
+autocompletion_list() {
+  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
+  for d in ${apps}; do
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+    filename="${appname%/*}"
+    echo "${filename}"
+  done
+  echo "build launch clear_cache cpp python install_lint_deps lint setup"
 }
 
 clear_cache() {

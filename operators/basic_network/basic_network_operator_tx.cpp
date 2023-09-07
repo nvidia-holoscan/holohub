@@ -26,7 +26,7 @@ void BasicNetworkOpTx::setup(OperatorSpec& spec) {
 
   spec.param<std::string>(
       ip_addr_, "ip_addr", "IP Address", "IP address of interface to bind to", "0.0.0.0");
-  spec.param<uint16_t>(port_, "udp_dst_port", "L4 port ", "UDP or TCP port to listen on");
+  spec.param<uint16_t>(port_, "dst_port", "L4 port ", "UDP or TCP port to listen on");
   spec.param<std::string>(
       l4_proto_p_, "l4_proto", "Layer 4 protocol", "Layer 4 protocol (udp or tcp)", "udp");
   spec.param<uint16_t>(

@@ -1,0 +1,41 @@
+{
+	"application": {
+			"name": "HoloChat-local",
+			"authors": [
+				{
+					"name": "Nigel Nelson",
+					"affiliation": "NVIDIA"
+				}
+			],
+			"language": "Python",
+			"version": "0.1.0",
+			"changelog": {
+				"0.1.0": "Beta release"
+			},
+			"holoscan_sdk": {
+				"minimum_required_version": "0.6.0",
+				"tested_versions": [
+					"0.6.0"
+				]
+			},
+			"platforms": ["amd64", "arm64"],
+			"tags": ["LLM", "Vector Database", "AI-Assistant"],
+			"ranking": 4,
+			"dependencies": {
+				"OSS": [
+					{
+						"name": "Llama.cpp",
+						"version": "cf9b08485c4c2d4d945c6e74fe20f273a38b6104"
+					},
+					{
+						"name": "LangChain",
+						"version": "0.0.277"
+					}
+			   ]
+			},
+			"run": {
+				"command": "make -C ./applications/holochat_local run_holochat",
+				"workdir": "holohub_bin"
+			}
+		}
+	}

@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
-
 advanced_network:
   cfg:
     version: 1

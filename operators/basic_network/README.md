@@ -17,7 +17,7 @@ Basic networking operator
 
 ##### Receiver Configuration Parameters
 
-- **`batch_size`**: Packets in batch
+- **`batch_size`**: Bytes in batch
   - type: `integer`
 - **`max_payload_size`**: Maximum payload size for a single packet
   - type: `integer`

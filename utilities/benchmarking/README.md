@@ -4,7 +4,7 @@ This is a tool to evaluate the performance of HoloHub applications. The tool cur
 benchmarking of C++ HoloHub applications. We plan to have support for Python applications in the future.
 
 ## Pre-requisites
-The following Python libraries need to be installed to run the benchmarking scripts (`pip install <library name>` can be used):
+The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):
 
 ```
 numpy matplotlib nvitop argparse
@@ -39,7 +39,7 @@ $ python utilities/benchmarking/benchmark.py -a <application name> <other option
 
 `python utilities/benchmarking/benchmark.py -h` shows all the possible evaluation options.
 
-All the log filenames are printed out at the end of the evaulation. The format of the flow tracking log filename is:
+All the log filenames are printed out at the end of the evaluation. The format of the flow tracking log filename is:
 `logger_<scheduler>_<run_number>_<instance-id>.log`. The format of the GPU utilization log filename
 is: `gpu_utilization_<scheduler>_<run_number>.csv`.
 

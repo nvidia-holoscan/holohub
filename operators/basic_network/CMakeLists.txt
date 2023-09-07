@@ -24,7 +24,11 @@ add_library(basic_network SHARED
 )
 
 add_library(holoscan::basic_network ALIAS basic_network)
-target_include_directories(basic_network INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(basic_network PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(basic_network holoscan::core)
 
+# Python equivalent
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

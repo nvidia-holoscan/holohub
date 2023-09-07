@@ -34,9 +34,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN mkdir -p /tmp/scripts
 COPY run /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
 # - We use ARG to only set it at docker build time, so it does not affect cmake builds

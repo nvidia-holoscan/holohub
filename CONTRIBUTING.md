@@ -230,6 +230,8 @@ git push -u origin <local-branch>:<remote-branch>
 
 The code submitted to Holohub needs to pass linting.
 
+### Running lint
+
 To install the necessary linting tools, run:
 
 ```sh
@@ -241,6 +243,21 @@ You may optionally pass a path argument to limit the linting to a specific subdi
 
 ```sh
 ./run lint [path]
+```
+
+### Fixing lint issues
+
+```sh
+# To fix python ruff issues which can be automatically fixed, run:
+ruff --fix --ignore E712 [path]
+# To fix python isort issues, run:
+isort [path]
+# To fix python black code formatting issues, run:
+black [path]
+# To fix C++ lint issues, run:
+clang-format --style=file --sort-includes=0 --lines=20:10000 -i <filename>
+# To fix codespell issues, run:
+codespell -w -i 3 [path]
 ```
 
 

@@ -13,8 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Make sure to order by alphabetical list
+if (HOLOHUB_BUILD_PYTHON)
+  # Define and create a directory to store python operators under the holohub python module
+  if(NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR lib)
+  endif()
+  set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+endif()
 
+# the operators
 add_holohub_operator(advanced_network)
 add_holohub_operator(basic_network)
 add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
@@ -29,3 +37,5 @@ add_holohub_operator(video_write_bitstream)
 add_holohub_operator(visualizer_icardio)
 add_holohub_operator(volume_loader)
 add_holohub_operator(volume_renderer)
+add_holohub_operator(XrFrameOp)
+add_holohub_operator(XrTransformOp)

@@ -1,4 +1,3 @@
-%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,21 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-extensions:
-  - libgxf_std.so
 
-network_rx:
-  batch_size: 1
-  max_payload_size: 1400
-  udp_dst_port: 4096
-  l4_proto: "tcp"
-  ip_addr: "127.0.0.1"
-
-network_tx:
-  max_payload_size: 1400  
-  udp_dst_port: 4096
-  l4_proto: "tcp"
-  ip_addr: "127.0.0.1"
-  min_ipg_ns: 0
-  retry_connect: 1
+# target does nothing but be created if this folder is reached
+# to set dependencies on adequate operators
+add_custom_target(basic_networking_ping_python ALL
+  DEPENDS basic_network_python
+)

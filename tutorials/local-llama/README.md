@@ -32,9 +32,15 @@
 ```bash
 git clone https://github.com/ggerganov/llama.cpp.git
 ```
+
+2. Checkout to the last stable commit ([breaking changes](https://github.com/ggerganov/llama.cpp/pull/2398) were recently introduced):
+```bash
+cd llama.cpp
+git checkout dadbed99e65252d79f81101a392d0d6497b86caa # Commit date: 8/21/23
+```
 The only issue with using Llama.cpp, is that utilizing the IGX's dGPU is not currently supported due to the IGX's ARM architecture. However, this can be easily fixed by modifying the `ggml.h` file to use the `half` data type when the CUDA compiler is being used, as opposed to using the `__fp16` data type.
 
-2. Edit Llama.cpp's `ggml.h` at [line 248](https://github.com/ggerganov/llama.cpp/blob/eb542d39324574a6778fad9ba9e34ba7a14a82a3/ggml.h#L248) and make the changes shown below:
+3. Edit Llama.cpp's `ggml.h` at [line 258](https://github.com/ggerganov/llama.cpp/blob/dadbed99e65252d79f81101a392d0d6497b86caa/ggml.h#L258C8-L258C8) and make the changes shown below:
 
 ```diff
 + #if defined(__ARM_NEON) && !defined(__CUDACC__)
@@ -47,7 +53,7 @@ The only issue with using Llama.cpp, is that utilizing the IGX's dGPU is not cur
 #endif
 ```
 
-3. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llama.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
+4. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llama.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
 Navigate to the `/Llama.cpp` directory:
 ```bash
 cd llama.cpp
@@ -56,13 +62,7 @@ Using `make`:
 ```bash
 make LLAMA_CUBLA=1
 ```
-Using `Cmake`:
-```bash
-mkdir build
-cd build
-cmake .. -DLLAMA_CUBLAS=ON
-cmake -build . -config Release
-```
+
 By successfully executing these commands you will now be able to run Llama models on your local machine with BLAS acceleration!
 
 ## Downloading Llama-2 70B ⬇️💾:
