@@ -73,7 +73,7 @@ def run_command(app_launch_command, env):
         sys.exit(1)
     if result.returncode != 0:
         # The command returned an error
-        print(f"Error: Command exited with code {result.returncode}")
+        print(f"Error: Command {app_launch_command} exited with code {result.returncode}")
         sys.exit(1)
 
 
