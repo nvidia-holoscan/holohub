@@ -166,7 +166,7 @@ def shorten_path(path, operator_legends):
             operator_legends[modified_operator_name] = operator
         else:
             if operator_legends[modified_operator_name] != operator:
-                print(f"ERROR: Operator {operator} has the same first 3 letters as {operator_legends[modified_operator_name]}")
+                print(f"\033[91mError: Operator {operator} has the same first 3 letters as {operator_legends[modified_operator_name]}\033[0m")
                 print ("CDF Curve legends for operators cannot be created. CDF Curve creation aborted.")
                 sys.exit(1)
         modified_operators.append(modified_operator_name)
@@ -182,16 +182,16 @@ def print_metric_title(title):
 def print_group_name_with_log_files(group_name, log_files):
     # print group name in blue color font
     # print log files in grey color font
-    print ("\n\033[94m" + "Group: " + group_name + "\033[0m \033[90m" + "(" + ", ".join(log_files) + ")\033[0m")
+    print ("\n\033[94m" + "Group: \033[1m" + group_name + "\033[0m \033[90m" + "(" + ", ".join(log_files) + ")\033[0m")
     print ("--------------------")
 
 def print_path_metric_ms(path, metric_ms):
     # print path in blue background
-    # print metric_ms in red backgroynd
-    print ("\033[44mPath:" + "\033[0m " + path + ": \033[41m" + str(metric_ms) + " ms\033[0m")
+    # print metric_ms in bold and blue foregoround color
+    print ("\033[1mPath:" + "\033[0m " + path + ": \033[1m\033[94m" + str(metric_ms) + " ms\033[0m")
 
 def print_metric(metric_title, metric_value):
-    print ("\033[44m" + metric_title + "\033[0m: \033[41m" + str(metric_value) + "\033[0m")
+    print ("\033[1m" + metric_title + "\033[0m: \033[1m\033[94m" + str(metric_value) + "\033[0m")
 
 # write a main function that takes a log file as argument and calls parse line
 def main():
@@ -219,10 +219,10 @@ def main():
 
     parser.add_argument("--no-display-graphs", action="store_true", help="don't display the graphs in a window. Graphs are displayed by default with --draw-cdf and --draw-cdf-paths options.", default=False, required=False)
 
-    parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files", required=False)
+    parser.add_argument("-u", "--group-utilization-files", nargs="+", action="append", help="specify a group of the GPU utilization files to combine and analyze. You can optionally specify a group name at the end of the list of utilization files. Group name must not contain any period.", required=False)
 
     requiredArgument = parser.add_argument_group('required arguments')
-    requiredArgument.add_argument("-g", "--group-log-files", nargs="+", action="append", help="specify a group of the log files to combine and analyze. You can optionally specify a group name at the end of the list of log files", required=True)
+    requiredArgument.add_argument("-g", "--group-log-files", nargs="+", action="append", help="specify a group of the log files to combine and analyze. You can optionally specify a group name at the end of the list of log files. Group name must not contain any period.", required=True)
 
     args = parser.parse_args()
 
@@ -248,7 +248,7 @@ def main():
             current_group_name = group[-1]
             current_log_files = group[:-1]
         if len(current_log_files) == 0:
-            print ("No log files provided for group: ", current_group_name)
+            print ("\033[91m" + "Error: No log files provided for group: ", current_group_name + "\033[0m")
             sys.exit(1)
         parsed_latencies_per_file = []
         for log_file in current_log_files:
@@ -393,7 +393,7 @@ def main():
                 current_util_group_name = group[-1]
                 current_gpu_util_files = group[:-1]
             if len(current_gpu_util_files) == 0:
-                print ("No GPU utilization files provided for group: ", current_util_group_name)
+                print ("\033[91m" + "Error: No GPU utilization files provided for group: ", current_util_group_name + "\033[0m")
                 sys.exit(1)
             parsed_gpu_utils = []
             for gpu_util_file in current_gpu_util_files:
