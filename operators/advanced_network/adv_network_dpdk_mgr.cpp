@@ -22,7 +22,7 @@
 #include <iostream>
 #include <map>
 #include <set>
-
+#include <sys/time.h>
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 
@@ -164,10 +164,10 @@ void DpdkMgr::Initialize() {
   num_ports = ifs.size();
   HOLOSCAN_LOG_INFO("Attempting to use {} ports for high-speed network", num_ports);
 
-  if (num_ports > 1) {
-    HOLOSCAN_LOG_CRITICAL("Only single NIC interface supported at this time!");
-    return;
-  }
+  // if (num_ports > 1) {
+  //   HOLOSCAN_LOG_CRITICAL("Only single NIC interface supported at this time!");
+  //   return;
+  // }
 
   strncpy(_argv[arg++], "adv_net_operator", max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
@@ -274,7 +274,7 @@ void DpdkMgr::Initialize() {
     }
 
     for (auto &q : rx.queues_) {
-      HOLOSCAN_LOG_INFO("Configuring queue: {} ({})", q.common_.name_, q.common_.id_);
+      HOLOSCAN_LOG_INFO("Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, rx.port_id_);
       q.common_.backend_config_ = new DPDKQueueConfig;
       auto q_backend = static_cast<DPDKQueueConfig *>(q.common_.backend_config_);
 
@@ -453,13 +453,9 @@ void DpdkMgr::Initialize() {
       return;
     }
 
-    for (auto &q : tx.queues_) {
-      ret = rte_eth_dev_get_port_by_name(tx.if_name_.c_str(), &portid);
-      if (ret < 0) {
-        HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", tx.if_name_);
-        return;
-      }
+    HOLOSCAN_LOG_INFO("Using port {} for TX", tx.port_id_);
 
+    for (auto &q : tx.queues_) {
       if (q.common_.gpu_direct_ && q.common_.hds_ > 0) {
         HOLOSCAN_LOG_CRITICAL("Header data split not supported on TX yet");
         return;
@@ -471,15 +467,17 @@ void DpdkMgr::Initialize() {
       max_batch_size = std::max(max_batch_size, q.common_.batch_size_);
       auto tx_mbufs = q.common_.num_concurrent_batches_* q.common_.batch_size_;
       auto pkt_size = q.common_.max_packet_size_ + RTE_PKTMBUF_HEADROOM;
-      q_backend->pools[0] = rte_pktmbuf_pool_create("TX_POOL",
+      std::string pool_name = std::string("TX_POOL") + "_P" + std::to_string(tx.port_id_) + "_Q" +
+          std::to_string(q.common_.id_);
+      q_backend->pools[0] = rte_pktmbuf_pool_create(pool_name.c_str(),
           tx_mbufs, MEMPOOL_CACHE_SIZE, 0, pkt_size, rte_socket_id());
       if (q_backend->pools[0] == NULL) {
-        HOLOSCAN_LOG_CRITICAL("Cannot init TX mbuf pool");
+        HOLOSCAN_LOG_CRITICAL("Cannot init TX mbuf pool: {} ({})", rte_errno, rte_strerror(rte_errno));
         return;
       }
 
-      HOLOSCAN_LOG_INFO("Created TX pool with packet size {} bytes and {} mbufs",
-            pkt_size, tx_mbufs);
+      HOLOSCAN_LOG_INFO("Created TX pool with packet size {} bytes and {} mbufs at {}",
+            pkt_size, tx_mbufs, (void*)q_backend->pools[0]);
     }
 
     local_port_conf[tx.port_id_].txmode.mq_mode  =  RTE_ETH_MQ_TX_NONE;
@@ -514,7 +512,7 @@ void DpdkMgr::Initialize() {
     return;
   }
 
-  HOLOSCAN_LOG_INFO("Setting up TX burst pool with {} pointers", max_batch_size);
+
   tx_burst_buffer = rte_mempool_create("TX_BURST_POOL",
                     (1U << 5) - 1U,
                     sizeof(void *) * max_batch_size * 2,
@@ -530,6 +528,8 @@ void DpdkMgr::Initialize() {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX message pool!");
     return;
   }
+
+  HOLOSCAN_LOG_INFO("Setting up TX burst pool with {} pointers at {}", max_batch_size, (void*)tx_burst_buffer);  
 
   for (const auto &[port, queues] : port_q_num) {
     HOLOSCAN_LOG_INFO("Initializing port {} with {} RX queues and {} TX queues...",
@@ -635,7 +635,6 @@ void DpdkMgr::Initialize() {
       HOLOSCAN_LOG_INFO("Successfully started port {}", port);
     }
 
-    rte_eth_promiscuous_enable(port);
     HOLOSCAN_LOG_INFO("Port {}, MAC address: {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
       port,
       conf_ports_eth_addr[port].addr_bytes[0],
@@ -648,6 +647,10 @@ void DpdkMgr::Initialize() {
 
   int flow_num = 0;
   for (const auto &rx : cfg_.rx_) {
+    if (rx.flow_isolation_) {
+      rte_eth_promiscuous_enable(rx.port_id_);
+    }
+    
     for (const auto &flow : rx.flows_) {
       HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
       AddFlow(rx.port_id_, flow);
@@ -1024,7 +1027,8 @@ int DpdkMgr::tx_core(void *arg) {
   uint64_t pkts_tx = 0;
   AdvNetBurstParams *msg;
   int64_t bursts = 0;
-
+   timeval t1, t2, t3;
+   //gettimeofday(&t1, NULL);
   HOLOSCAN_LOG_INFO("Starting TX Core {}, port {}, queue {} socket {}", rte_lcore_id(),
         tparams->port, tparams->queue, rte_socket_id());
 
@@ -1043,20 +1047,34 @@ int DpdkMgr::tx_core(void *arg) {
       rte_ether_addr_copy(&tparams->mac_addr, reinterpret_cast<rte_ether_addr *>(pkt + 6));
 #pragma GCC diagnostic pop
 
-      mbuf->ol_flags = RTE_MBUF_F_TX_IPV4 | RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_UDP_CKSUM;
+      //mbuf->ol_flags = RTE_MBUF_F_TX_IPV4 | RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_UDP_CKSUM;
     }
 
     auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
 
+    //gettimeofday(&t2, NULL);
+
     size_t pkts_tx = 0;
     while (pkts_tx != msg->hdr.hdr.num_pkts && !force_quit.load()) {
+       //if (pkts_tx == 0) {
+      //   auto *pkt  = rte_pktmbuf_mtod((struct rte_mbuf*)msg->cpu_pkts[0], uint8_t*);
+      //   for (int i = 0; i < ((struct rte_mbuf*)msg->cpu_pkts[0])->data_len; i++) {
+      //     printf("%02x ", pkt[i]);
+      //   }
+      //   printf("\n");
+
       auto to_send = static_cast<uint16_t>(
             std::min(static_cast<size_t>(DEFAULT_NUM_TX_BURST), msg->hdr.hdr.num_pkts - pkts_tx));
+
       int tx = rte_eth_tx_burst(tparams->port,
             tparams->queue, reinterpret_cast<rte_mbuf**>(&msg->cpu_pkts[pkts_tx]), to_send);
 
       pkts_tx += tx;
     }
+    //     gettimeofday(&t1, NULL);
+
+    //     timersub(&t1, &t2, &t3);
+    // printf("%ld\n", t3.tv_usec);    
 
     rte_mempool_put(tparams->burst_pool, static_cast<void*>(msg->cpu_pkts));
     rte_mempool_put(tparams->meta_pool, msg);

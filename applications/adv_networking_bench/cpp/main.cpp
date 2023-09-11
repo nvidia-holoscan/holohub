@@ -24,7 +24,7 @@
 #include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
-
+#include <sys/time.h>
 
 namespace holoscan::ops {
 
@@ -76,12 +76,18 @@ class AdvNetworkingBenchTxOp : public Operator {
      * expect the transmit operator to operate much faster than the receiver since it's not having to do any work
      * to construct packets, and just copying from a buffer into memory.
     */
-    while (!adv_net_tx_burst_available(batch_size_.get())) {}
+   //timeval t1, t2;
+   //gettimeofday(&t1, NULL);
+    while (!adv_net_tx_burst_available(batch_size_.get(), port_id)) {}
+    // gettimeofday(&t2, NULL);
+    // timeval t3;
+    // timersub(&t2, &t1, &t3);
+    // printf("%ld\n", t3.tv_usec);
 
     auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id, queue_id, batch_size_);
+    adv_net_set_hdr(msg, port_id, queue_id, batch_size_.get());
 
-    if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
+    if ((ret = adv_net_get_tx_pkt_burst(msg, port_id)) != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
     }

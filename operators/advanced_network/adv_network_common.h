@@ -203,14 +203,15 @@ uint16_t adv_net_get_gpu_packet_len(std::shared_ptr<AdvNetBurstParams> burst, in
  * allocated packets and fill with the desired data/headers.
  *
  * @param burst Burst structure to populate
+ * @param port Port ID for packets
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packets allocated
  *    NULL_PTR: Burst or packet pools uninitialized
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst);
-AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
+AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst, int port);
+AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst, int port);
 
 /**
  * @brief Set UDP payload parameters in packet
@@ -235,10 +236,11 @@ AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burs
  * use this function to loop or return later to try again.
  *
  * @param num_pkts Number of packets to test allocation for
+ * @param port Port ID for packets
  * @return true Burst is available
  * @return false Burst is not available
  */
-bool adv_net_tx_burst_available(int num_pkts);
+bool adv_net_tx_burst_available(int num_pkts, int port);
 
 /**
  * @brief Free all CPU packets and burst

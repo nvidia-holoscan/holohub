@@ -41,7 +41,11 @@ add_custom_target(adv_networking_bench_tx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml"
 )
+add_custom_target(adv_networking_bench_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml"
+)
 
-add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml)
+add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml adv_networking_bench_tx_rx_yaml)
 
 

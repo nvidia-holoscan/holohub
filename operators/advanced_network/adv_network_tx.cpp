@@ -108,7 +108,7 @@ int AdvNetworkOpTx::Init() {
 void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
       [[maybe_unused]] ExecutionContext&) {
   int n;
-printf("here33\n");
+
   if (unlikely(impl->tx_ring == nullptr)) {
     impl->tx_ring = rte_ring_lookup("TX_RING");
   }
@@ -116,9 +116,8 @@ printf("here33\n");
   if (unlikely(impl->tx_meta_pool == nullptr)) {
     impl->tx_meta_pool = rte_mempool_lookup("TX_META_POOL");
   }
-printf("here34\n");
+
   auto burst = op_input.receive<AdvNetBurstParams *>("burst_in").value();
-  printf("here34\n");
   auto port_id = burst->hdr.hdr.port_id;
   auto q_id    = burst->hdr.hdr.q_id;
 

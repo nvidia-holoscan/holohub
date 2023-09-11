@@ -46,8 +46,8 @@ PYBIND11_MODULE(_advanced_network_common, m) {
     m.def("adv_net_free_cpu_pkts_and_burst", py::overload_cast<AdvNetBurstParams *>(&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
     m.def("adv_net_free_cpu_pkts_and_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >(&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
     m.def("adv_net_tx_burst_available", &adv_net_tx_burst_available, "Return true if a TX burst is available for use");
-    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<AdvNetBurstParams *>(&adv_net_get_tx_pkt_burst), "Get TX packet burst");
-    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >(&adv_net_get_tx_pkt_burst), "Get TX packet burst");
+    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<AdvNetBurstParams *, int>(&adv_net_get_tx_pkt_burst), "Get TX packet burst");
+    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>(&adv_net_get_tx_pkt_burst), "Get TX packet burst");
     // m.def("adv_net_set_cpu_udp_payload", py::overload_cast<AdvNetBurstParams *, int, void *, int>(&adv_net_set_cpu_udp_payload), "Set UDP header parameters and copy payload");
     // m.def("adv_net_set_cpu_udp_payload", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int, void *, int>(&adv_net_set_cpu_udp_payload), "Set UDP header parameters and copy payload");
 

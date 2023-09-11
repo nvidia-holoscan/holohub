@@ -103,10 +103,14 @@ void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
 }
 
 
-bool adv_net_tx_burst_available(int num_pkts) {
+bool adv_net_tx_burst_available(int num_pkts, int port) {
   auto burst_pool = rte_mempool_lookup("TX_BURST_POOL");
-  auto pkt_pool   = rte_mempool_lookup("TX_POOL");
+
+  // Only single queue
+  const std::string pool_name = "TX_POOL" + std::string("_P") + std::to_string(port) + "_Q0";
+  auto pkt_pool   = rte_mempool_lookup(pool_name.c_str());
   if (burst_pool == nullptr || pkt_pool == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {}", port);
     return false;
   }
 
@@ -114,7 +118,9 @@ bool adv_net_tx_burst_available(int num_pkts) {
     return false;
   }
 
-  if (rte_mempool_avail_count(pkt_pool) < num_pkts) {
+  // Wait for 2x the number of buffers to be available since some may still be in transit
+  // by the NIC and this number can decrease
+  if (rte_mempool_avail_count(pkt_pool) < num_pkts * 2) {
     return false;
   }
 
@@ -122,9 +128,12 @@ bool adv_net_tx_burst_available(int num_pkts) {
 }
 
 
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst) {
+AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst, int port) {
   auto burst_pool = rte_mempool_lookup("TX_BURST_POOL");
-  auto pkt_pool   = rte_mempool_lookup("TX_POOL");
+
+  // Only single queue
+  const std::string pool_name = "TX_POOL" + std::string("_P") + std::to_string(port) + "_Q0";
+  auto pkt_pool   = rte_mempool_lookup(pool_name.c_str());
   if (burst_pool == nullptr || pkt_pool == nullptr) {
     return AdvNetStatus::NULL_PTR;
   }
@@ -142,8 +151,8 @@ AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst) {
   return AdvNetStatus::SUCCESS;
 }
 
-AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst) {
-  return adv_net_get_tx_pkt_burst(burst.get());
+AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst, int port) {
+  return adv_net_get_tx_pkt_burst(burst.get(), port);
 }
 
 
