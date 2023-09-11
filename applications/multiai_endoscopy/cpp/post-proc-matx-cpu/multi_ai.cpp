@@ -308,7 +308,7 @@ class App : public holoscan::Application {
 
     // Source
     if (is_aja_source_) {
-      add_flow(source, holoviz, {{"video_buffer_output", ""}});
+      add_flow(source, holoviz, {{"video_buffer_output", "receivers"}});
       add_flow(source, detection_preprocessor, {{"video_buffer_output", ""}});
       add_flow(source, segmentation_preprocessor, {{"video_buffer_output", ""}});
     } else {

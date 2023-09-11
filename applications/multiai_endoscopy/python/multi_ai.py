@@ -257,7 +257,7 @@ class MultiAIDetectionSegmentation(Application):
         if is_aja:
             self.add_flow(source, detection_preprocessor, {("video_buffer_output", "")})
             self.add_flow(source, segmentation_preprocessor, {("video_buffer_output", "")})
-            self.add_flow(source, holoviz, {("video_buffer_output", "")})
+            self.add_flow(source, holoviz, {("video_buffer_output", "receivers")})
         else:
             self.add_flow(source, detection_preprocessor)
             self.add_flow(source, segmentation_preprocessor)
