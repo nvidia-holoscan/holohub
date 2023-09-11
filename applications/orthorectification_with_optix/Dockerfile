@@ -15,25 +15,21 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
      /bin/bash ~/miniconda.sh -b -p /opt/conda
 
 # Install libarchive
-RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y libarchive13
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y libarchive13 gdal-bin libgdal-dev
 
 # Put conda in path so we can use conda activate
 ENV PATH=$CONDA_DIR/bin:$PATH
 RUN conda init bash
 RUN ln -sf /bin/bash /bin/sh
 
-# Install mamba to speed the solve up
 RUN conda config --set ssl_verify false &&\
-    conda config --add pkgs_dirs /opt/conda/pkgs &&\
-    conda config --env --add channels conda-forge &&\
-    /opt/conda/bin/conda install -y -n base -c conda-forge "mamba >=0.22" "boa >=0.10" python=${PYTHON_VER}
+    conda config --add pkgs_dirs /opt/conda/pkgs
 
 # Create a base environment
 RUN --mount=type=cache,id=conda_pkgs,target=/opt/conda/pkgs,sharing=locked \
-    # Create the environment and install as little dependencies as possible
-    CONDA_ALWAYS_YES=true /opt/conda/bin/mamba create -n ${CONDA_ENV_NAME} -c conda-forge python=${PYTHON_VER}
+    CONDA_ALWAYS_YES=true /opt/conda/bin/conda create -n ${CONDA_ENV_NAME} -c conda-forge python=${PYTHON_VER}
 
-RUN source activate ${CONDA_ENV_NAME} && mamba install -c conda-forge -y numpy cupy pillow pytest gdal shapely && \
+RUN source activate ${CONDA_ENV_NAME} && conda install -c conda-forge -y numpy cupy pillow pytest gdal shapely && \
     pip install pynvrtc tqdm opencv-python odm_report_shot_coverage
 
 # MUST RUN BUILD COMMAND FROM ABOVE HOLOHUB-INTERNAL REPO
