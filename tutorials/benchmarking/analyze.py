@@ -122,9 +122,6 @@ def draw_cdf(ax, latencies, label=None):
     global index
 
     data, p = get_cdf_data(latencies)
-    data_max = max(data)
-    data_avg = np.mean(data)
-    data_stddev = np.std(data)
 
     colorindex = index % len(colors)
     linestylesindex = index % len(linestyles)
@@ -135,15 +132,6 @@ def draw_cdf(ax, latencies, label=None):
         linewidth=2.0,
         color=colors[colorindex],
         linestyle=linestyles[linestylesindex],
-    )
-    ax.axvline(
-        x=data_avg, color=colors[colorindex], linestyle=linestyles[linestylesindex], linewidth=1
-    )
-    # put a shaded area of stddev around average latency
-    ax.axvspan(data_avg - data_stddev, data_avg + data_stddev, alpha=0.2, color=colors[colorindex])
-
-    ax.axvline(
-        x=data_max, color=colors[colorindex], linestyle=linestyles[linestylesindex], linewidth=1.5
     )
     index += 1
 
@@ -158,6 +146,7 @@ def init_cdf_plot(title=None):
 
 
 def complete_cdf_plot(fig, ax, operator_legends=None):
+    ax.grid(True, axis="y")
     vals = ax.get_yticks()
     # convert the Y-axis ticks to percentage
     ax.set_yticks(vals)
