@@ -83,7 +83,8 @@ RUN if [ $(uname -m) = "aarch64" ]; then CMAKE_ARGS="-DENABLE_NEON=ON"; \
 	make install && \
 	ldconfig
 
-# TODO : add installation of phruntime
+# Install prohawk runtime
+RUN wget https://prohawkholoscanv051runtime.s3.us-west-2.amazonaws.com/phruntime_v60_aarch64.zip && unzip phruntime_v60_aarch64.zip -d /usr/local
 
 # - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
 # - We use ARG to only set it at docker build time, so it does not affect cmake builds

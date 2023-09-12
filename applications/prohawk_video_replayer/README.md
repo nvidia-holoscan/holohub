@@ -1,8 +1,6 @@
-# Video Replayer
+# Prohawk video replayer
 
-Minimal example to demonstrate the use of the video stream replayer operator to load video from disk. The video frames need to have been converted to a gxf entity format, as shown [here](../../scripts/README.md#convert_video_to_gxf_entitiespy).
-
-> Note: Support for H264 stream support is in progress
+This example demonstrates how to use the Prohawk video processing operator on a pre-recorded video.
 
 ## Data
 
@@ -25,3 +23,6 @@ Inside the container build the application:
 
   `./run build prohawk_video_replayer`
   
+Inside the container run the application:
+
+  `./run launch prohawk_video_replayer`

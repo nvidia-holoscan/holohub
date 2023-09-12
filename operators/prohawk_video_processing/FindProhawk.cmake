@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Find the main root of the SDK
-find_path(Prohawk_SDK_DIR NAMES PTGDE/CPTGDE.h PATHS /usr/local/prohawk REQUIRED)
+find_path(Prohawk_SDK_DIR NAMES PTGDE/CPTGDE.h PATHS /usr/local/phruntime REQUIRED)
 
 find_path(Prohawk_INCLUDE_DIR NAMES CPTGDE.h PATHS ${Prohawk_SDK_DIR}/PTGDE REQUIRED)
 mark_as_advanced(Prohawk_INCLUDE_DIR)

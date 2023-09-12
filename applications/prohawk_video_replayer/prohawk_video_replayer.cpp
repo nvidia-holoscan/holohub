@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     app->config(config_name);
   } else {
     auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/prohawk_video_processing.yaml";
+    config_path += "/prohawk_video_replayer.yaml";
     app->config(config_path);
   }
 
