@@ -41,6 +41,10 @@ class BenchmarkedApplication : public holoscan::Application {
     // messages.
     if (Fragment::graph().is_root(upstream_op)) {
       if (conditioned_roots_.find(upstream_op) == conditioned_roots_.end()) {
+        // Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
+        const char* src_frame_str = std::getenv("HOLOSCAN_NUM_SOURCE_MESSAGES");
+        if (src_frame_str) { num_source_messages_ = std::stoi(src_frame_str); }
+
         conditioned_roots_.insert(upstream_op);
         upstream_op->add_arg(make_condition<holoscan::CountCondition>(num_source_messages_));
       }
@@ -48,7 +52,7 @@ class BenchmarkedApplication : public holoscan::Application {
   }
 
   inline void run() override {
-    // Enable DFFT
+    // Enable data flow tracking
     if (!data_flow_tracker()) track();
     tracker_ = data_flow_tracker();
     // Get the data flow tracking logging file name from the environment variable
@@ -66,6 +70,7 @@ class BenchmarkedApplication : public holoscan::Application {
           holoscan::Fragment::make_scheduler<holoscan::MultiThreadScheduler>(
               "multithread-scheduler"));
       auto scheduler = holoscan::Fragment::scheduler();
+
       const char* num_threads_str = std::getenv("HOLOSCAN_MULTITHREAD_WORKER_THREADS");
       if (num_threads_str)
         scheduler->add_arg(holoscan::Arg("worker_thread_number", std::stoi(num_threads_str)));
@@ -78,11 +83,6 @@ class BenchmarkedApplication : public holoscan::Application {
       holoscan::Fragment::scheduler(
           holoscan::Fragment::make_scheduler<holoscan::GreedyScheduler>("greedy-scheduler"));
     }
-
-    // Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
-    const char* src_frame_str = std::getenv("HOLOSCAN_NUM_SOURCE_MESSAGES");
-    // convert string to int
-    if (src_frame_str) { num_source_messages_ = std::stoi(src_frame_str); }
 
     // Call the parent's class' run()
     holoscan::Application::run();

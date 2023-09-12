@@ -52,7 +52,7 @@ def get_latency(op_timestamps):
     return path, latency
 
 
-# This python function parses the DFFT-generated log file
+# This python function parses the data-flow-tracking log file
 # The format is the following:
 # (replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460)
 #                                   -> (lstm_inferer,1685129021159626,1685129021161404) 

@@ -251,9 +251,9 @@ def main():
     # Just print comma-separate values of log_files
     print("\nEvaluation completed.")
     print("Log file directory: ", os.path.abspath(log_directory))
-    print("All the DFFT log files are: ", ", ".join(log_files))
+    print("All the data flow tracking log files are:", ", ".join(log_files))
     if args.monitor_gpu:
-        print("All the GPU utilization log files are: ", ", ".join(gpu_utilization_log_files))
+        print("All the GPU utilization log files are:", ", ".join(gpu_utilization_log_files))
 
 
 if __name__ == "__main__":

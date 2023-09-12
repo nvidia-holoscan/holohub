@@ -27,7 +27,7 @@ for file in $cpp_files; do
     if grep -q "BenchmarkedApplication" "$file"; then
         # move the backup file to the original file
         mv "$file.bak" "$file"
-    # else skip the file as it does not contain any benchmarking code
+    # else skip the file as it may not contain any benchmarking code
     else
         # Show a message that this file is skipped from being restored
         echo "File $file is probably not patched. Skipping restoration."
