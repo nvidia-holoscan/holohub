@@ -1,10 +1,13 @@
 # Prohawk video replayer
 
-This example demonstrates how to use the Prohawk video processing operator on a pre-recorded video.
+This application demonstrates how to use the Prohawk video processing operator on a pre-recorded video.
+This application receives video from a previously recorded file via Holoscan's video_stream_replayer operator, and then works to enhance 
+the imagery so that additional details may be seen in the video output. 
+This application and operator provide various preset and detailed enhancement parameters that can be changed by the command menu display.
 
 ## Data
 
-The following dataset is used by this example:
+The following dataset is used by this application:
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data).
 
 ##  Building the application
@@ -26,3 +29,5 @@ Inside the container build the application:
 Inside the container run the application:
 
   `./run launch prohawk_video_replayer`
+
+For technical support or other assistance, please don't hesitate to visit us at [https://prohawk.ai/contact](https://prohawk.ai/contact)
