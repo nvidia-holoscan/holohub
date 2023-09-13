@@ -543,7 +543,7 @@ def main():
         print_metric_title("Average GPU Utilization")
         for group_name, gpu_utils in grouped_gpu_util.items():
             print_group_name_with_log_files(group_name, grouped_gpu_util_log_files[group_name])
-            print_metric("Average GPU Utilization", str(round(max(gpu_utils), 2)) + "%")
+            print_metric("Average GPU Utilization", str(round(np.mean(gpu_utils), 2)) + "%")
             if args.save_csv:
                 with open("avg_gpu_utilization_values.csv", "a") as f:
                     f.write(str(round(np.mean(gpu_utils), 2)) + ",")
