@@ -16,7 +16,7 @@
 ---
 extensions:
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
-  - gxf_extensions/videomaster/libgxf_videomaster.so
+  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
 videomaster:
   width: 1920
