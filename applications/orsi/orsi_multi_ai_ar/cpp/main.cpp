@@ -160,6 +160,7 @@ public:
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
                                       Arg("stl_file_path" , datapath + "/stl/MultiAI/"),
+                                      Arg("tf_params_path", datapath + "/tf_params/orsi_multi_ai_ar.txt"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition

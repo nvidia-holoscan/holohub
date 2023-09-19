@@ -147,6 +147,7 @@ class App : public OrsiApp {
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
                                       Arg("stl_file_path" , datapath + "/stl/Segmentation/"),
+                                      Arg("tf_params_path", datapath + "/tf_params/orsi_segmentation_ar.txt"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition

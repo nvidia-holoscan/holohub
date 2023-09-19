@@ -90,6 +90,9 @@ std::istream& operator>>(std::istream& is, VtkProp3DTransformParams& p) {
 void VtkView::setStlFilePath(std::string stl_file_path_) {
   this->stl_file_path_ = stl_file_path_;
 }
+void VtkView::setTfParams(std::string tf_params_path_) {
+  this->tf_params_path_ = tf_params_path_;
+}
 void VtkView::setStlNames(std::vector<std::string> stl_names_) {
   this->stl_names_ = stl_names_;
 }
@@ -434,19 +437,36 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
     }
   }
 
-  static VtkProp3DTransformParams transform_params;
+  
+VtkProp3DTransformParams transform_params;
 
   if(ctrl && action == GLFW_RELEASE) {
     if(key == GLFW_KEY_S) {
       transform_params = GetObjectTransform(assembly_);
-      std::cout << "// Debug Object Transform Params:\n";
-      std::cout << transform_params << std::endl;
-
+      std::ofstream myfile;
+      myfile.open (tf_params_path_);
+      myfile << transform_params<< std::endl;
+      myfile.close();
     } else if (key == GLFW_KEY_L) {
+      std::ifstream t(tf_params_path_);
+      std::string s;
+      std::string ss;
+      std::vector<double> params;
+      std::istringstream iss;
+      while(getline(t, s)){
+        iss.clear();
+        iss.str(s);
+        while (getline( iss, ss, ' ' ) ) {
+        params.push_back(std::stod(ss));
+      }
+      }
+      if (!params.empty()){
+      transform_params.origin_ = {params.begin(), params.begin() + 3};
+      transform_params.position_ = {params.begin()+3, params.begin() + 6};
+      transform_params.orientation_ = {params.begin()+6, params.begin() + 9};
+      transform_params.scale_ = {params.begin()+9, params.begin() + 12};
       SetObjectTransform(assembly_, transform_params);
-      VtkProp3DTransformParams tmp_transform_params = GetObjectTransform(assembly_);
-      std::cout << "// Debug: Restored Object Transform Params:\n";
-      std::cout << transform_params << std::endl;
+      }
     }
   }
 
