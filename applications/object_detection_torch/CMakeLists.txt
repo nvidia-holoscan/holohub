@@ -55,7 +55,7 @@ endif()
 # Copy config file
 add_custom_target(object_detection_torch_yaml
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/object_detection_torch.yaml"
-                                                  "${HOLOHUB_DATA_DIR}/object_detection_torch/object_detection_torch.yaml"
+                                                  "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/postprocessing.yaml"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/postprocessing.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/frcnn_resnet50_t.yaml"
