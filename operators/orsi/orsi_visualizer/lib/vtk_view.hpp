@@ -60,6 +60,7 @@ class VtkView {
 
   float opacity_ = 0.5;
   std::string stl_file_path_;
+  std::string tf_params_path_;
   std::vector<std::string> stl_names_;
   std::vector<std::vector<int>> stl_colors_;
   std::vector<int> stl_keys_;
@@ -92,6 +93,7 @@ class VtkView {
   void removeActor(const vtkSmartPointer<vtkProp>& actor);
 
   void setStlFilePath(std::string stl_file_path);
+  void setTfParams(std::string tf_params_path_);
   void setStlNames(std::vector<std::string> stl_names);
   void setStlColors(std::vector<std::vector<int>> stl_colors);
   void setStlKeys(std::vector<int> stl_keys);

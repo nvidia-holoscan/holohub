@@ -138,7 +138,7 @@ public:
     auto orsi_visualizer =
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
-                                      Arg("stl_file_path" , datapath + "/stl/stent_example_case/"),
+                                      Arg("stl_file_path" , datapath + "/stl/"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition

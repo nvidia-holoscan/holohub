@@ -133,6 +133,10 @@ void OrsiVis::setup(OperatorSpec& spec) {
              "stl_keys",
              "STL Keybindings",
              "Keybindings used to toggle on/off the corresponding STL file 3D structure");
+  spec.param(tf_params_path_,
+             "tf_params_path",
+             "TF params",
+             "VtkProp3DTransformParams for 3D structure");
 }
 
 void OrsiVis::initialize() {
@@ -228,6 +232,7 @@ void OrsiVis::start() {
   video_frame_vis_.start(swizzle_video_.get());
 
   vtk_view_.setStlFilePath(stl_file_path_);
+  vtk_view_.setTfParams(tf_params_path_);
   vtk_view_.setStlNames(stl_names_);
   vtk_view_.setStlColors(stl_colors_);
   vtk_view_.setStlKeys(stl_keys_);
