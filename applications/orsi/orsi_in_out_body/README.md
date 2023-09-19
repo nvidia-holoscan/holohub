@@ -1,5 +1,17 @@
 # Orsi In - Out - Body Detection sample app
 
+## Controls
+
+| Action    | Control |
+| -------- | ------- |
+| Enable anonymization | B |
+
+
+
+### Toggle on/off STL files:
+
+
+
 
 ### Build app
 
