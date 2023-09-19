@@ -36,7 +36,22 @@ If resolution is updated in entity generation, it must be updated in the followi
 
 ## Building the application
 
-Please refer to the top level Holohub README.md file for information on how to build this application.
+The best way to run this application is inside the container, as it would provide all the required third-party packages:
+
+```bash
+# Create the container image for this application
+./dev_container build --docker_file applications/object_detection_torch/Dockerfile --img object_detection_torch
+# Launch the container
+./dev_container launch --img object_detection_torch
+# Build the application. Note that this downloads the video data as well
+./run build object_detection_torch
+# Generate the pytorch model
+python3 applications/object_detection_torch/generate_resnet_model.py  data/object_detection_torch/frcnn_resnet50_t.pt
+# Run the application
+./run launch object_detection_torch
+```
+
+Please refer to the top level Holohub README.md file for more information on how to build this application.
 
 ## Running the application
 

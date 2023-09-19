@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
+import sys
 
 import torch
 from torchvision.models import detection
 
-os.environ['TORCH_HOME'] = os.getcwd()
+os.environ["TORCH_HOME"] = os.getcwd()
 
 model_file = "frcnn_resnet50_t.pt"
 if len(sys.argv) > 1:
@@ -27,7 +27,9 @@ if len(sys.argv) > 1:
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-det_model = detection.fasterrcnn_resnet50_fpn(progress=True).to(DEVICE)
+det_model = detection.fasterrcnn_resnet50_fpn(
+    pretrained=True, progress=True, weights_backbone=True
+).to(DEVICE)
 
 det_model.eval()
 det_model_script = torch.jit.script(det_model)
