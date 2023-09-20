@@ -37,8 +37,8 @@ __global__ void simple_packet_reorder_kernel(void * __restrict__ out,
   if (pkt_idx < num_pkts) {
     for (int pos = threadIdx.x; pos < len / 4; pos += blockDim.x) {
       const uint32_t *in_ptr  = static_cast<const uint32_t*>(in_pkt) + pos;
-      uint32_t *out_ptr       = static_cast<uint32_t*>(out)    + pos;
-      out_ptr[pos]            = in_ptr[pos];
+      uint32_t *out_ptr       = (uint32_t*)((uint8_t *)out + pkt_idx * pkt_len)  + pos;
+      *out_ptr                = *in_ptr;
     }
   }
 }
