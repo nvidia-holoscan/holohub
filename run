@@ -363,7 +363,7 @@ lint() {
       for file in ${files_to_fix}; do
         run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${file} || exit_code=1
       done
-     
+
       exit $exit_code
     fi
 
@@ -428,7 +428,7 @@ build_desc() {
 # installations between debian image, docker, or when built from source
 resolve_sdk_install_path() {
   sdk_path=$1
-  
+
   if [ -d "${sdk_path}/public/install" ]; then
     echo "${sdk_path}/public/install"; return
   elif [ -d "${sdk_path}/install" ]; then
@@ -520,6 +520,7 @@ launch_desc() {
   echo "Usage: ./run launch <application_name> [language: cpp|python] [--extra_args <args>]"
   echo "Options:"
   echo "   --extra_args <args>       : additional arguments passed to the application command"
+  echo "   --nsys_profile            : profile using Nsight Systems"
   echo ""
   echo ""
   echo "Use './run list' first to list the available applications"
@@ -530,23 +531,24 @@ launch_desc() {
 
 
 launch() {
+   local appname=""
+   local language=""
    local extra_args=""
+   local nsys_profile=false
 
    for i in "${!ARGS[@]}"; do
      arg="${ARGS[i]}"
      if [ "$arg" = "--extra_args" ]; then
-       unset_pos=$i
        extra_args="${ARGS[i+1]}"
        break
+     elif [ "$arg" = "--nsys_profile" ]; then
+       nsys_profile=true
+     elif [ -z "${appname}" ]; then
+       appname=$arg
+     elif [ -z "${language}" ]; then
+       language=$arg
      fi
    done
-   if [ "${unset_pos}" ]; then
-     # Call unset twice to remove both the --extra_args option and the args provided
-     unset 'ARGS[unset_pos]'
-     unset 'ARGS[unset_pos]'
-   fi
-
-   local appname=$1
 
    # Export the python path (by default use the one used to build)
    local holohub_build_dir="${SCRIPT_DIR}/build"
@@ -565,8 +567,8 @@ launch() {
    local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
    local metadata_file="${holohub_app_source}/metadata.json"
 
-   if [[ $2 ]]; then
-     metadata_file="${holohub_app_source}/$2/metadata.json"
+   if [[ "${language}" ]]; then
+     metadata_file="${holohub_app_source}/${language}/metadata.json"
      holohub_app_bin="${holohub_build_dir}/applications/${appname}/$2"
      holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
    fi
@@ -596,7 +598,6 @@ for k, v in obj["application"]["run"].items():
 ')
 
    local json_command=$(echo $json | grep -Po 'command="\K[^"]*')
-   local command=$json_command
 
    # replace <holohub_data_dir> by the data dir
    local command=$(echo "${json_command//<holohub_data_dir>/$holohub_data_dir}")
@@ -606,6 +607,20 @@ for k, v in obj["application"]["run"].items():
 
    # replace <holohub_app_source> by the source app directory
    command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
+
+   if [ $nsys_profile == true ]; then
+      if [ ! command -v nsys &> /dev/null ]; then
+        print_error "Nsight Systems CLI command 'nsys' not found."
+        exit 1
+      fi
+      local perf_event_level=$(cat /proc/sys/kernel/perf_event_paranoid)
+      if (( ${perf_event_level} > 2 )); then
+        print_error "For Nsight Systems profiling the Linux operating system's perf_event_paranoid level must be 2 or less."
+        echo "See https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html#linux-requirements for more information."
+        exit 1
+      fi
+      command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+   fi
 
    # default workdir is bin
    local workdir="cd ${holohub_app_bin}"

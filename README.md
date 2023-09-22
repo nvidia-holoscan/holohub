@@ -26,7 +26,7 @@ HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of U
   ./dev_container build
 ```
 
-***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU). 
+***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU).
 
 For example, on an x86_64 system with dGPU, ```docker images``` will list the following new images after ```./dev_container build``` has completed.
 ```bash
@@ -40,13 +40,13 @@ nvcr.io/nvidia/clara-holoscan/holoscan   v0.6.0-dgpu       1b4df7733d5b   5 week
 
 1. Custom base image
 
-It is possible to configure a custom base image for building the Holohub container. E.g., if you built Holoscan SDK locally and want to use the locally built container as the base image, use the following command: 
+It is possible to configure a custom base image for building the Holohub container. E.g., if you built Holoscan SDK locally and want to use the locally built container as the base image, use the following command:
 
 ```bash
   ./dev_container build --base_img holoscan-sdk-dev:latest --img holohub:sdk-dev-latest
 ```
 
-where ```--base_img```  is used to configure the base container image and ```--img``` defines the fully qualified image name. 
+where ```--base_img```  is used to configure the base container image and ```--img``` defines the fully qualified image name.
 
 After ```./dev_container build``` has completed ```docker images``` will list the following new image
 
@@ -63,11 +63,11 @@ holohub                                  sdk-dev-latest    cb0231f77856   54 sec
   ./dev_container build  --docker_file <path_to_dockerfile>  --img holohub-debug:local-sdk-v0.6.0
 ```
 
-where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name. 
+where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name.
 
-***Note***:  To print the values for base image, docker file, gpu type and output image name use ```--verbose```. 
+***Note***:  To print the values for base image, docker file, gpu type and output image name use ```--verbose```.
 
-For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option. 
+For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option.
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container build --verbose
@@ -108,9 +108,15 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
   ./dev_container launch --ssh_x11
 ```
 
+4. Support Nsight Systems profiling in container
+
+```bash
+  ./dev_container launch --nsys_profile
+```
+
 ***Note***:  To print the values passed to the docker run command, add the ```--verbose``` option to the launch command.
 
-For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values. 
+For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values.
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container launch  --verbose
@@ -125,7 +131,7 @@ Launch (image: holohub:ngc-v0.6.0-dgpu)...
 ....
 ```
 
-Please note that the values of some of the variables will vary depending on configured options, iGPU or dGPU, availability of devices for video capture, ... 
+Please note that the values of some of the variables will vary depending on configured options, iGPU or dGPU, availability of devices for video capture, ...
 
 
 From within the container build the Holohub apps as explained in section [Building HoloHub](#building-holohub).
@@ -133,9 +139,9 @@ From within the container build the Holohub apps as explained in section [Buildi
 The development container has been tested on the following platforms: x86_x64 workstation with multiple RTX GPUs, Clara AGX Dev Kit (dGPU mode), IGX Orin Dev Kit (dGPU and iGPU mode), AGX Orin Dev Kit (iGPU).
 
 
-***Notes for AGX Orin Dev Kit***: 
+***Notes for AGX Orin Dev Kit***:
 
-(1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the Holohub sample apps to work. Please also make sure that the current user is member of the group video.  
+(1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the Holohub sample apps to work. Please also make sure that the current user is member of the group video.
 
 (2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
 
@@ -167,7 +173,7 @@ If you prefer you can also install the dependencies manually:
 
 *Note: the run script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
 
-# Building HoloHub 
+# Building HoloHub
 
 While not all applications requires building HoloHub, the current build system automatically manages dependencies (applications/operators) and also downloads and convert datasets at build time. HoloHub provides a convenient run script to build and run applications (you can run `./run -h` for information about the available commands).
 
@@ -254,6 +260,35 @@ and to run the same application in python:
 
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
 Make sure you build the application (if applicable) before running it.
+
+## Advanced launch options
+
+1. Pass additional arguments to the application command
+
+```bash
+  ./run launch endoscopy_tool_tracking python --extra_args '-r visualizer'
+```
+
+2. Profile using Nsight Systems
+
+```bash
+  ./run launch endoscopy_tool_tracking python --nsys_profile
+```
+
+This will create a Nsight Sytems report file in the application working directory. Information on the generated report file is printed on the end of the application log:
+
+```
+Generating '/tmp/nsys-report-bcd8.qdstrm'
+[1/1] [========================100%] report8.nsys-rep
+Generated:
+    /workspace/holohub/build/report8.nsys-rep
+```
+
+This file can be loaded and visualized with the Nsight Systems UI application:
+
+```bash
+  nsys-ui /workspace/holohub/build/report8.nsys-rep
+```
 
 # Contributing to HoloHub
 
