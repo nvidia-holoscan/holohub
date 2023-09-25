@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "prohawk_video_replayer",
+		"authors": [
+			{
+				"name": "Tim Wooldridge",
+				"affiliation": "Prohawk Technology Group"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Added watermark to the Prohawk restoration engine"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.1",
+			"tested_versions": [
+				"0.5.1",
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [
+			"Video Processing",
+			"Prohawk"
+		],
+		"ranking": 4,
+		"dependencies": {
+			"operators": [
+				{
+					"name": "prohawk",
+					"version": "1.0.0"
+				}
+			]
+		},
+		"run": {
+			"command": "./prohawk_video_replayer --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

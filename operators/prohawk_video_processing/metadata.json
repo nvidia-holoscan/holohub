@@ -1,0 +1,34 @@
+{
+	"operator": {
+		"name": "prohawk_video_processing",
+		"authors": [
+			{
+				"name": "Tim Wooldridge",
+				"affiliation": "Prohawk Technology Group"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Added watermark to the prohawk restoration engine"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.1",
+			"tested_versions": [
+				"0.5.1",
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [
+			"Video processing",
+			"Prohawk"
+		],
+		"ranking": 4,
+		"dependencies": {
+			"SDK": "Prohawk runtime"
+		}
+	}
+}

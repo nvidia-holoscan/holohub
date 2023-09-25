@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
- - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
-
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
@@ -24,19 +21,11 @@ replayer:
   realtime: true  # default: true
   count: 0        # default: 0 (no frame count restriction)
 
-output_format_converter:
-  in_dtype: "rgb888"
-  alpha_value: 255
-  out_dtype: "rgba8888"
-  out_channel_order: [2,1,0,3]
-  resize_width: 1920
-  resize_height: 1080
-
-videomaster:
-  width: 1920
-  height: 1080
-  progressive: true
-  framerate: 25
-  board: 0
-  output: 0
-  use_rdma: false
+holoviz:
+  width: 854
+  height: 480
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0

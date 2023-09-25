@@ -102,7 +102,9 @@ class App : public holoscan::Application {
     }
 
     if (!std::filesystem::exists(processing_config_path)) {
-      HOLOSCAN_LOG_ERROR("Config path not found.");
+      HOLOSCAN_LOG_ERROR("Config path not found. Please make sure the path exists {}",
+                          processing_config_path);
+      HOLOSCAN_LOG_ERROR("Did you forget to download the datasets manually?");
       std::exit(1);
     }
 

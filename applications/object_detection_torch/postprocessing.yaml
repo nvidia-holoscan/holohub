@@ -1,0 +1,17 @@
+generate_boxes:
+  display:
+    width: 1920
+    height: 1080
+  objects:
+    car: 50
+    person: 50
+    motorcycle: 10
+    object: 50 # everything else is labeled as object
+  color:
+    car: "1.0 0.0 0.0 1.0"
+    person: "0.0 1.0 0.0 1.0"
+    motorcycle: "1.0 1.0 0.0 1.0"
+    object: "0.0 0.0 1.0 1.0"
+  params:
+    threshold: 0.75
+    label_file: labels.txt
