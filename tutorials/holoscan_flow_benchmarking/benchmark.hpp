@@ -37,17 +37,15 @@ class BenchmarkedApplication : public holoscan::Application {
     // Call the parent add_flow
     Fragment::add_flow(upstream_op, downstream_op, port_pairs);
 
-    // Add a CountCondition to a operator so that the application stops after a certain number of
+    // Add a CountCondition to an operator so that the application stops after a certain number of
     // messages.
-    if (Fragment::graph().is_root(upstream_op)) {
-      if (conditioned_roots_.find(upstream_op) == conditioned_roots_.end()) {
-        // Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
-        const char* src_frame_str = std::getenv("HOLOSCAN_NUM_SOURCE_MESSAGES");
-        if (src_frame_str) { num_source_messages_ = std::stoi(src_frame_str); }
+    if (conditioned_nodes_.find(upstream_op) == conditioned_nodes_.end()) {
+      // Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
+      const char* src_frame_str = std::getenv("HOLOSCAN_NUM_SOURCE_MESSAGES");
+      if (src_frame_str) { num_source_messages_ = std::stoi(src_frame_str); }
 
-        conditioned_roots_.insert(upstream_op);
-        upstream_op->add_arg(make_condition<holoscan::CountCondition>(num_source_messages_));
-      }
+      conditioned_nodes_.insert(upstream_op);
+      upstream_op->add_arg(make_condition<holoscan::CountCondition>(num_source_messages_));
     }
   }
 
@@ -92,7 +90,7 @@ class BenchmarkedApplication : public holoscan::Application {
 
  private:
   holoscan::DataFlowTracker* tracker_ = nullptr;
-  std::unordered_set<std::shared_ptr<holoscan::Operator>> conditioned_roots_;
+  std::unordered_set<std::shared_ptr<holoscan::Operator>> conditioned_nodes_;
   int num_source_messages_ = 100;
 };
 
