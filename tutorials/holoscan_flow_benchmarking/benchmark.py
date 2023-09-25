@@ -102,6 +102,14 @@ def main():
     )
 
     parser.add_argument(
+        "--run-command",
+        type=str,
+        required=False,
+        help="command to run the application (this argument overwrites -a or --holohub-application parameter)",
+        default=""
+    )
+
+    parser.add_argument(
         "-d",
         "--log-directory",
         type=str,
@@ -193,7 +201,10 @@ def main():
     if args.num_messages != 100:
         env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_messages)
 
-    app_launch_command = "./run launch " + args.holohub_application + " cpp"
+    if args.run_command != "":
+        app_launch_command = "./run launch " + args.holohub_application + " cpp"
+    else:
+        app_launch_command = args.run_command
 
     log_files = []
     gpu_utilization_log_files = []
