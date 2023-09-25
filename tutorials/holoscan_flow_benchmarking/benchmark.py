@@ -201,7 +201,7 @@ def main():
     if args.num_messages != 100:
         env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_messages)
 
-    if args.run_command != "":
+    if args.run_command == "":
         app_launch_command = "./run launch " + args.holohub_application + " cpp"
     else:
         app_launch_command = args.run_command
