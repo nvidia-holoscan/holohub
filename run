@@ -168,7 +168,7 @@ setup() {
   cmake_version=$(dpkg --status cmake | grep -Po '^Version: \K[^-]*')
   ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
 
-  cmake_need_upload=$(compare_version ${cmake_version} "3.20.1")
+  cmake_need_upload=$(compare_version ${cmake_version} "3.24.0")
 
   # If we should update cmake
   # Install from https://apt.kitware.com/
