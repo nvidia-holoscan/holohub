@@ -152,7 +152,7 @@ Install the package dependencies for Holohub on your host system. The easiest wa
 ```
 
 If you prefer you can also install the dependencies manually:
-- [CMake](https://www.cmake.org): 3.20.1+
+- [CMake](https://www.cmake.org): 3.24.0+
 - Python interpreter: 3.8 to 3.11
 - Python dev: 3.8 to 3.11 (matching version of the interpreter)
 - ffmpeg runtime
