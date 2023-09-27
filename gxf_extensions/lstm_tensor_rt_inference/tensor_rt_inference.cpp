@@ -170,8 +170,7 @@ void TensorRTInferenceLogger::log(ILogger::Severity severity, const char* msg) t
       std::cout << NV_TENSORRT_MINOR << std::endl;
       std::cout << NV_TENSORRT_PATCH << std::endl;
       std::cout << NV_TENSORRT_BUILD << std::endl;
-      if (NV_TENSORRT_BUILD != 3)
-      GXF_LOG_ERROR("TRT ERROR: %s", msg);
+      if (NV_TENSORRT_BUILD != 3) GXF_LOG_ERROR("TRT ERROR: %s", msg);
       break;
     }
     case Severity::kWARNING: {
@@ -475,7 +474,7 @@ gxf_result_t TensorRtInference::start() {
     }
 
     // Keeps binding info
-    const auto &dims = cuda_engine_->getTensorShape(binding_name.c_str());
+    const auto& dims = cuda_engine_->getTensorShape(binding_name.c_str());
     binding_infos_[tensor_name] = BindingInfo{binding_index,
                                               static_cast<uint32_t>(dims.nbDims),
                                               binding_name,
@@ -550,7 +549,7 @@ gxf_result_t TensorRtInference::start() {
     }
 
     // Keeps binding info
-    const auto &dims = cuda_engine_->getTensorShape(binding_name.c_str());
+    const auto& dims = cuda_engine_->getTensorShape(binding_name.c_str());
     binding_infos_[tensor_name] = BindingInfo{binding_index,
                                               static_cast<uint32_t>(dims.nbDims),
                                               binding_name,
@@ -641,8 +640,8 @@ gxf::Expected<std::vector<char>> TensorRtInference::convertModelToEngine() {
   builderConfig->addOptimizationProfile(optimization_profile);
 
   // Creates TensorRT Engine Plan
-  NvInferHandle<nvinfer1::IHostMemory> model_stream(builder->buildSerializedNetwork(
-                                                                      *network, *builderConfig));
+  NvInferHandle<nvinfer1::IHostMemory> model_stream(
+      builder->buildSerializedNetwork(*network, *builderConfig));
   if (!model_stream || model_stream->size() == 0 || model_stream->data() == nullptr) {
     GXF_LOG_ERROR("Fail to serialize TensorRT Engine.");
     return gxf::Unexpected{GXF_FAILURE};
@@ -698,7 +697,7 @@ gxf_result_t TensorRtInference::tick() {
   // Populates input tensors
   for (uint32_t input_index = 0; input_index < input_tensor_names_.get().size(); ++input_index) {
     const auto& tensor_name = input_tensor_names_.get()[input_index];
-    const std::string &binding_name = input_binding_names_.get()[input_index];
+    const std::string& binding_name = input_binding_names_.get()[input_index];
 
     gxf::Expected<gxf::Handle<gxf::Tensor>> maybe_tensor = gxf::Unexpected{GXF_UNINITIALIZED_VALUE};
     if (std::find(input_state_tensor_names_.get().begin(),
@@ -811,7 +810,6 @@ gxf_result_t TensorRtInference::tick() {
 
     // Updates the latest dimension of input tensor
     if (!cuda_execution_ctx_->setInputShape(binding_name.c_str(), dims)) {
-
       GXF_LOG_ERROR("Failed to update input binding %s dimensions.",
                     binding_info.binding_name.c_str());
       return GXF_FAILURE;
@@ -826,9 +824,10 @@ gxf_result_t TensorRtInference::tick() {
   if (!maybe_result_message) { return gxf::ToResultCode(maybe_result_message); }
 
   // Creates tensors for output
-  for (uint32_t output_index = 0; output_index < output_tensor_names_.get().size(); ++output_index) {
-    const auto &tensor_name = output_tensor_names_.get()[output_index];
-    const std::string &binding_name = output_binding_names_.get()[output_index];
+  for (uint32_t output_index = 0; output_index < output_tensor_names_.get().size();
+       ++output_index) {
+    const auto& tensor_name = output_tensor_names_.get()[output_index];
+    const std::string& binding_name = output_binding_names_.get()[output_index];
 
     auto maybe_result_tensor = maybe_result_message.value().add<gxf::Tensor>(tensor_name.c_str());
     if (!maybe_result_tensor) {
@@ -854,7 +853,8 @@ gxf_result_t TensorRtInference::tick() {
     }
 
     // Allocates gpu buffer for output tensors
-    cuda_execution_ctx_->setTensorAddress(binding_name.c_str(), maybe_result_tensor.value()->pointer());
+    cuda_execution_ctx_->setTensorAddress(binding_name.c_str(),
+                                          maybe_result_tensor.value()->pointer());
   }
 
   // Runs inference on specified CUDA stream
@@ -971,14 +971,14 @@ gxf::Expected<std::string> TensorRtInference::findEngineFilePath(
   std::string engine_file_path;
   if (!IsValidDirectory(engine_cache_dir_.get())) {
     // Create the directory
-    if (!std::filesystem::is_directory(engine_cache_dir_.get())
-        || !std::filesystem::exists(engine_cache_dir_.get())) {  // Check if src folder exists
-        if (!std::filesystem::create_directory(engine_cache_dir_.get())) {
-          GXF_LOG_ERROR(
-          "Cannot create engine cache directory '%s'! Please create a valid cache directory.",
-          engine_cache_dir_.get().c_str());
-          return gxf::Unexpected{};
-        }
+    if (!std::filesystem::is_directory(engine_cache_dir_.get()) ||
+        !std::filesystem::exists(engine_cache_dir_.get())) {  // Check if src folder exists
+      if (!std::filesystem::create_directory(engine_cache_dir_.get())) {
+        GXF_LOG_ERROR(
+            "Cannot create engine cache directory '%s'! Please create a valid cache directory.",
+            engine_cache_dir_.get().c_str());
+        return gxf::Unexpected{};
+      }
     }
   }
   engine_file_path = engine_cache_dir_.get() + "/" + host_engine_capability + ".engine";
