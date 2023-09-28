@@ -33,34 +33,20 @@
 git clone https://github.com/ggerganov/llama.cpp.git
 ```
 
-2. Checkout to the last stable commit ([breaking changes](https://github.com/ggerganov/llama.cpp/pull/2398) were recently introduced):
+2. Checkout a stable commit of llama.cpp:
 ```bash
 cd llama.cpp
-git checkout dadbed99e65252d79f81101a392d0d6497b86caa # Commit date: 8/21/23
-```
-The only issue with using Llama.cpp, is that utilizing the IGX's dGPU is not currently supported due to the IGX's ARM architecture. However, this can be easily fixed by modifying the `ggml.h` file to use the `half` data type when the CUDA compiler is being used, as opposed to using the `__fp16` data type.
-
-3. Edit Llama.cpp's `ggml.h` at [line 258](https://github.com/ggerganov/llama.cpp/blob/dadbed99e65252d79f81101a392d0d6497b86caa/ggml.h#L258C8-L258C8) and make the changes shown below:
-
-```diff
-+ #if defined(__ARM_NEON) && !defined(__CUDACC__)
-- #ifdef __ARM_NEON
-    typedef __fp16 ggml_fp16_t;
-+ #elif defined(__ARM_NEON) && defined(__CUDACC__)
-+    typedef half ggml_fp16_t;
-#else
-    typedef uint16_t ggml_fp16_t;
-#endif
+git checkout e519621010cac02c6fec0f8f3b16cda0591042c0 # Commit date: 9/27/23
 ```
 
-4. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llama.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
+3. Follow [cuBLAS build instructions](https://github.com/ggerganov/llama.cpp/tree/master#cublas) for Llama.cpp to provide BLAS acceleration using the CUDA cores of your NVIDIA GPU.
 Navigate to the `/Llama.cpp` directory:
 ```bash
 cd llama.cpp
 ```
 Using `make`:
 ```bash
-make LLAMA_CUBLA=1
+make LLAMA_CUBLAS=1
 ```
 
 By successfully executing these commands you will now be able to run Llama models on your local machine with BLAS acceleration!
@@ -68,15 +54,15 @@ By successfully executing these commands you will now be able to run Llama model
 ## Downloading Llama-2 70B ⬇️💾:
 >In order to use Llama-2 70b as it is provided by Meta, you’d need 140 GB of VRAM (70b params x 2 bytes = 140 GB in FP16). However, by utilizing model quantization, we can reduce the computational and memory costs of running inference by representing the weights and activations as low-precision data types, like int8 and int4, instead of higher-precision data types like FP16 and FP32. To learn more about quantization, check out: The [Ultimate Guide to Deep Learning Model Quantization](https://deci.ai/quantization-and-quantization-aware-training/).
 >
->Llama.cpp uses quantized models that are stored in the GGML format. Browse to [TheBloke](https://huggingface.co/TheBloke) on [Huggingface.co](https://huggingface.co/), who provides hundred of the latest quantized models. Feel free to choose a GGML model that suits your needs. However, for this tutorial, we will use [*TheBloke's* 4-bit GGML quantization](https://huggingface.co/TheBloke/Llama-2-70B-Chat-GGML) of Meta’s LLama-2-70B-Chat model.
-1. Download the GGML model from Huggingface.co.
+>Llama.cpp uses quantized models that are stored in the GGUF format. Browse to [TheBloke](https://huggingface.co/TheBloke) on [Huggingface.co](https://huggingface.co/), who provides hundred of the latest quantized models. Feel free to choose a GGUF model that suits your needs. However, for this tutorial, we will use [*TheBloke's* 4-bit medium GGUF quantization](https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF) of Meta’s LLama-2-70B-Chat model.
+1. Download the GGUF model from Huggingface.co.
 
 :warning: This model requires ~43 GB of VRAM.
 ```bash
 cd /media/m2 # Download the model to your SSD drive
-mkdir models # Create a directory for GGML models
+mkdir models # Create a directory for GGUF models
 cd models
-wget https://huggingface.co/TheBloke/Llama-2-70B-Chat-GGML/resolve/main/llama-2-70b-chat.ggmlv3.q4_1.bin
+wget https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF/resolve/main/llama-2-70b-chat.Q4_K_M.gguf
 ```
 
 ## Running Llama-2 70B 🤖:
@@ -87,55 +73,66 @@ cd <your_parent_dir>/llama.cpp
 
 2. Run Llama.cpp’s example server application to set up a HTTP API server and a simple web front end to interact with our Llama model:
 ```bash
-./server -m /media/m2/models/llama-2-70b-chat.ggmlv3.q4_1.bin -gqa 8 -ngl 1000 -c 4096 --alias llama_2
+./server -m /media/m2/models/llama-2-70b-chat.Q4_K_M.gguf -ngl 1000 -c 4096 --alias llama_2
 ```
 
 - `-m`: indicates the location of our model.
-- `-gqa`: Grouped-query attention factor (use 8 for Llama-2 70B).
 - `-ngl`: the number of layers to offload to the GPU (1000 ensures all layers are).
 - `-c`: the size of the prompt context.
 - `--alias`: name given to our model for access through the API.
 
 After executing, you should see the below output indicating the model being loaded to VRAM and the specs of the model:
 ```bash
-Device 0: NVIDIA RTX A6000, compute capability 8.6
-{"timestamp":1690580249,"level":"INFO","function":"main","line":1123,"message":"build info","build":913,"commit":"eb542d3"}
-{"timestamp":1690580249,"level":"INFO","function":"main","line":1125,"message":"system info","n_threads":6,"total_threads":12,"system_info":"AVX = 0 | AVX2 = 0 | AVX512 = 0 | AVX512_VBMI = 0 | AVX512_VNNI = 0 | FMA = 0 | NEON = 1 | ARM_FMA = 1 | F16C = 0 | FP16_VA = 0 | WASM_SIMD = 0 | BLAS = 1 | SSE3 = 0 | VSX = 0 | "}
-llama.cpp: loading model from /media/m2/models/llama-2-70b-chat.ggmlv3.q4_1.bin
-llama_model_load_internal: warning: assuming 70B model based on GQA == 8
-llama_model_load_internal: format     = ggjt v3 (latest)
-llama_model_load_internal: n_vocab    = 32000
-llama_model_load_internal: n_ctx      = 4096
-llama_model_load_internal: n_embd     = 8192
-llama_model_load_internal: n_mult     = 4096
-llama_model_load_internal: n_head     = 64
-llama_model_load_internal: n_head_kv  = 8
-llama_model_load_internal: n_layer    = 80
-llama_model_load_internal: n_rot      = 128
-llama_model_load_internal: n_gqa      = 8
-llama_model_load_internal: rnorm_eps  = 5.0e-06
-llama_model_load_internal: n_ff       = 28672
-llama_model_load_internal: freq_base  = 10000.0
-llama_model_load_internal: freq_scale = 1
-llama_model_load_internal: ftype      = 3 (mostly Q4_1)
-llama_model_load_internal: model size = 70B
-llama_model_load_internal: ggml ctx size =    0.21 MB
-llama_model_load_internal: using CUDA for GPU acceleration
-llama_model_load_internal: mem required  = 1233.47 MB (+ 1280.00 MB per state)
-llama_model_load_internal: allocating batch_size x (1536 kB + n_ctx x 416 B) = 1600 MB VRAM for the scratch buffer
-llama_model_load_internal: offloading 80 repeating layers to GPU
-llama_model_load_internal: offloading non-repeating layers to GPU
-llama_model_load_internal: offloading v cache to GPU
-llama_model_load_internal: offloading k cache to GPU
-llama_model_load_internal: offloaded 83/83 layers to GPU
-llama_model_load_internal: total VRAM used: 43891 MB
+ggml_init_cublas: found 1 CUDA devices:
+  Device 0: NVIDIA RTX A6000, compute capability 8.6
+{"timestamp":1695853185,"level":"INFO","function":"main","line":1294,"message":"build info","build":1279,"commit":"e519621"}
+{"timestamp":1695853185,"level":"INFO","function":"main","line":1296,"message":"system info","n_threads":6,"total_threads":12,"system_info":"AVX = 0 | AVX2 = 0 | AVX512 = 0 | AVX512_VBMI = 0 | AVX512_VNNI = 0 | FMA = 0 | NEON = 1 | ARM_FMA = 1 | F16C = 0 | FP16_VA = 0 | WASM_SIMD = 0 | BLAS = 1 | SSE3 = 0 | SSSE3 = 0 | VSX = 0 | "}
+llama_model_loader: loaded meta data with 19 key-value pairs and 723 tensors from /media/m2/models/llama-2-70b-chat.Q4_K_M.gguf (version GGUF V2 (latest))
+**Verbose llama_model_loader output removed for conciseness**
+llm_load_print_meta: format         = GGUF V2 (latest)
+llm_load_print_meta: arch           = llama
+llm_load_print_meta: vocab type     = SPM
+llm_load_print_meta: n_vocab        = 32000
+llm_load_print_meta: n_merges       = 0
+llm_load_print_meta: n_ctx_train    = 4096
+llm_load_print_meta: n_ctx          = 4096
+llm_load_print_meta: n_embd         = 8192
+llm_load_print_meta: n_head         = 64
+llm_load_print_meta: n_head_kv      = 8
+llm_load_print_meta: n_layer        = 80
+llm_load_print_meta: n_rot          = 128
+llm_load_print_meta: n_gqa          = 8
+llm_load_print_meta: f_norm_eps     = 0.0e+00
+llm_load_print_meta: f_norm_rms_eps = 1.0e-05
+llm_load_print_meta: n_ff           = 28672
+llm_load_print_meta: freq_base      = 10000.0
+llm_load_print_meta: freq_scale     = 1
+llm_load_print_meta: model type     = 70B
+llm_load_print_meta: model ftype    = mostly Q4_K - Medium
+llm_load_print_meta: model params   = 68.98 B
+llm_load_print_meta: model size     = 38.58 GiB (4.80 BPW) 
+llm_load_print_meta: general.name   = LLaMA v2
+llm_load_print_meta: BOS token = 1 '<s>'
+llm_load_print_meta: EOS token = 2 '</s>'
+llm_load_print_meta: UNK token = 0 '<unk>'
+llm_load_print_meta: LF token  = 13 '<0x0A>'
+llm_load_tensors: ggml ctx size =    0.23 MB
+llm_load_tensors: using CUDA for GPU acceleration
+llm_load_tensors: mem required  =  140.86 MB (+ 1280.00 MB per state)
+llm_load_tensors: offloading 80 repeating layers to GPU
+llm_load_tensors: offloading non-repeating layers to GPU
+llm_load_tensors: offloading v cache to GPU
+llm_load_tensors: offloading k cache to GPU
+llm_load_tensors: offloaded 83/83 layers to GPU
+llm_load_tensors: VRAM used: 40643 MB
+....................................................................................................
 llama_new_context_with_model: kv self size  = 1280.00 MB
-
+llama_new_context_with_model: compute buffer total size =  561.47 MB
+llama_new_context_with_model: VRAM scratch buffer: 560.00 MB
 
 llama server listening at http://127.0.0.1:8080
 
-
-{"timestamp":1690580264,"level":"INFO","function":"main","line":1341,"message":"HTTP server listening","hostname":"127.0.0.1","port":8080}
+{"timestamp":1695853195,"level":"INFO","function":"main","line":1602,"message":"HTTP server listening","hostname":"127.0.0.1","port":8080}
 ```
 
 Now, you can interact with the simple web front end by browsing to http://127.0.0.1:8080. Use the provided chat interface to query the Llama-2 model and experiment with manipulating the provided hyperparameters to tune the responses to your liking.
