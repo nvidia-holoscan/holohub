@@ -14,13 +14,21 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(adv_networking_bench CXX)
+project(adv_networking_bench CXX CUDA)
 
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 find_package(PkgConfig REQUIRED)
-        
+
+include(FetchContent)
+FetchContent_Declare(
+  MatX
+  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
+  GIT_TAG cdcdffd
+)
+FetchContent_MakeAvailable(MatX)
+
 add_executable(adv_networking_bench
   main.cpp
 )
@@ -28,19 +36,25 @@ add_executable(adv_networking_bench
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network
+  holoscan::advanced_network_rx
+  holoscan::advanced_network_tx
+  matx::matx
 )
 
 # Copy config file
 add_custom_target(adv_networking_bench_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rx.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml"
 )
 add_custom_target(adv_networking_bench_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_tx.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml"
+)
+add_custom_target(adv_networking_bench_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml"
 )
 
-add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml)
+add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml adv_networking_bench_tx_rx_yaml)
 
 
