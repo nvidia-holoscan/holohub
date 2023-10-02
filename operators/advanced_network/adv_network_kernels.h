@@ -21,4 +21,5 @@
 void simple_packet_reorder(void *out,
                            const void *const *const in,
                            uint16_t pkt_len,
-                           uint32_t num_pkts);
+                           uint32_t num_pkts,
+                           cudaStream_t stream);

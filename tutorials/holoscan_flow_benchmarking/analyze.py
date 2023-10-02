@@ -28,6 +28,7 @@ index = 0
 # the separator between operators in a path
 path_separator = "→ "
 
+
 def parse_line(line):
     operators = line.split("->")
     # print (operators)
@@ -38,6 +39,7 @@ def parse_line(line):
         op_name_timestamp = operator.strip().rstrip()[1:-1]
         op_timestamps.append(op_name_timestamp.split(","))
     return op_timestamps
+
 
 # return a path and latency pair where a path is a comma separate string of operators
 def get_latency(op_timestamps):
@@ -55,8 +57,8 @@ def get_latency(op_timestamps):
 # This python function parses the data-flow-tracking log file
 # The format is the following:
 # (replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460)
-#                                   -> (lstm_inferer,1685129021159626,1685129021161404) 
-#                                   -> (tool_tracking_postprocessor,1685129021161568,1685129021194271) 
+#                                   -> (lstm_inferer,1685129021159626,1685129021161404)
+#                                   -> (tool_tracking_postprocessor,1685129021161568,1685129021194271)
 #                                   -> (holoviz,1685129021194404,1685129021265517)
 
 
@@ -199,7 +201,8 @@ def shorten_path(path, operator_legends):
                       as {operator_legends[modified_operator_name]}\033[0m"
                 )
                 print(
-                    "\033[91mCDF Curve legends for operators cannot be created. CDF Curve creation aborted.\033[0m"
+                    "\033[91mCDF Curve legends for operators cannot be created. \
+                    CDF Curve creation aborted.\033[0m"
                 )
                 sys.exit(1)
         modified_operators.append(modified_operator_name)
@@ -361,7 +364,9 @@ def main():
             current_group_name = group[-1]
             current_log_files = group[:-1]
         if len(current_log_files) == 0:
-            print("\033[91mError: No log files provided for group: " + current_group_name + "\033[0m")
+            print(
+                "\033[91mError: No log files provided for group: " + current_group_name + "\033[0m"
+            )
             sys.exit(1)
         parsed_latencies_per_file = []
         for log_file in current_log_files:
@@ -526,7 +531,11 @@ def main():
                 current_util_group_name = group[-1]
                 current_gpu_util_files = group[:-1]
             if len(current_gpu_util_files) == 0:
-                print("\033[91mError: No GPU utilization files provided for group: " + current_util_group_name + "\033[0m")
+                print(
+                    "\033[91mError: No GPU utilization files provided for group: "
+                    + current_util_group_name
+                    + "\033[0m"
+                )
                 sys.exit(1)
             parsed_gpu_utils = []
             for gpu_util_file in current_gpu_util_files:

@@ -105,8 +105,9 @@ def main():
         "--run-command",
         type=str,
         required=False,
-        help="command to run the application (this argument overwrites -a or --holohub-application parameter)",
-        default=""
+        help="command to run the application (this argument overwrites \
+              -a or --holohub-application parameter)",
+        default="",
     )
 
     parser.add_argument(

@@ -16,6 +16,7 @@
  */
 
 #include "adv_network_kernels.h"
+#include <stdio.h>
 
 /**
  * @brief Simple packet reorder kernel to demonstrate reordering a batch of packets into 
@@ -38,7 +39,7 @@ __global__ void simple_packet_reorder_kernel(void * __restrict__ out,
     for (int pos = threadIdx.x; pos < len / 4; pos += blockDim.x) {
       const uint32_t *in_ptr  = static_cast<const uint32_t*>(in_pkt) + pos;
       uint32_t *out_ptr       = (uint32_t*)((uint8_t *)out + pkt_idx * pkt_len)  + pos;
-      *out_ptr                = *in_ptr;
+      *out_ptr            = *in_ptr;
     }
   }
 }
@@ -52,6 +53,6 @@ __global__ void simple_packet_reorder_kernel(void * __restrict__ out,
  * @param num_pkts Number of packets
  */
 void simple_packet_reorder(void *out, const void *const *const in,
-          uint16_t pkt_len, uint32_t num_pkts) {
-  simple_packet_reorder_kernel<<<num_pkts, 128>>>(out, in, pkt_len, num_pkts);
+          uint16_t pkt_len, uint32_t num_pkts, cudaStream_t stream) {
+  simple_packet_reorder_kernel<<<num_pkts, 128, 0, stream>>>(out, in, pkt_len, num_pkts);
 }

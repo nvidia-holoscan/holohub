@@ -1,0 +1,87 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 4
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+advanced_network:
+  cfg:
+    version: 1
+    master_core: 8              # Master CPU core
+    # tx:
+    #   - if_name: 0005:03:00.1       # PCIe BFD of NIC  
+    #     queues:
+    #       - name: "ADC Samples"
+    #         id: 0
+    #         gpu_direct: false
+    #         max_packet_size: 8000          # Maximum payload size
+    #         num_concurrent_batches: 5      # Number of batches that can be used at any time
+    #         batch_size: 10240              # Number of packets in a batch
+    #         fill_type: "udp"                    # Highest layer that network operator should populate
+    #         eth_dst_addr: "00:00:00:00:11:22"   # Destination MAC to populate
+    #         ip_src_addr: "192.168.0.1"          # Source IP send from
+    #         ip_dst_addr: "192.168.0.2"         # Destination IP to send to
+    #         udp_dst_port: 4096                  # UDP destination port
+    #         udp_src_port: 4096                  # UDP source port
+    #         cpu_cores: "9"                     # CPU cores for transmitting
+    rx:
+      - if_name: 0005:03:00.1       # PCIe BFD of NIC
+        flow_isolation: true
+        queues:
+          - name: "Default"
+            id: 0
+            gpu_direct: false
+            cpu_cores: "10"
+            max_packet_size: 9000        # Maximum payload size
+            num_concurrent_batches: 32767   # Number of batches that can be used at any time
+            batch_size: 1              # Number of packets in a batch
+          - name: "ADC Samples"
+            id: 1
+            gpu_device: 0
+            gpu_direct: true
+            split_boundary: 0
+            cpu_cores: "11"
+            max_packet_size: 9000     # Maximum payload size
+            num_concurrent_batches: 15   # Number of batches that can be used at any time
+            batch_size: 10240              # Number of packets in a batch
+        flows:
+          - name: "ADC Samples"
+            action: 
+              type: queue
+              id: 1
+            match:
+              udp_src: 12288
+              udp_dst: 12288
+
+bench_rx:
+  split_boundary: false
+  gpu_direct: true
+  batch_size: 10240
+  max_packet_size: 8064
+  header_size: 64
+
+
+# bench_tx:
+#   batch_size: 10000
+#   payload_size: 7680                  # + 42 bytes of <= L4 headers to get 1280 max
