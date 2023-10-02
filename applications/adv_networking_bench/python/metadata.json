@@ -7,13 +7,13 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
-		"version": "1.1",
+		"language": "Python",
+		"version": "1.0",
 		"changelog": {
-			"1.1": "GPUDirect mode without header data split"
+			"1.0": "Initial Release"
 		},
 		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
+		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -22,14 +22,18 @@
 		},
 		"ranking": 1,
 		"dependencies": {
-			"gxf_extensions": [{
-				"name": "advanced_networking_benchmark",
-				"version": "1.1"
+			"operators": [{
+				"name": "adv_network_rx",
+				"version": "1.0"
+			},
+      {
+				"name": "adv_network_tx",
+				"version": "1.0"
 			}]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/adv_networking_bench",
-			"workdir": "holohub_bin"
+			"command": "python3 <holohub_app_source>/main.py",
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

@@ -117,12 +117,12 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
     impl->tx_meta_pool = rte_mempool_lookup("TX_META_POOL");
   }
 
-  auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
-  auto port_id = burst->hdr.port_id;
-  auto q_id    = burst->hdr.q_id;
+  auto burst = op_input.receive<AdvNetBurstParams *>("burst_in").value();
+  auto port_id = burst->hdr.hdr.port_id;
+  auto q_id    = burst->hdr.hdr.q_id;
 
   if (fill[port_id][q_id] >= FILL_ETH) {
-    for (size_t p = 0; p < burst->hdr.num_pkts; p++) {
+    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
       auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
       memcpy(reinterpret_cast<void*>(&pkt->eth.dst_addr),
              reinterpret_cast<void*>(&raw_eth_dst_[port_id][q_id][0]),
@@ -130,7 +130,7 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
     }
   }
   if (fill[port_id][q_id] >= FILL_IP) {
-    for (size_t p = 0; p < burst->hdr.num_pkts; p++) {
+    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
       auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
       pkt->ip.src_addr = raw_ip_src_[port_id][q_id];
       pkt->ip.dst_addr = raw_ip_dst_[port_id][q_id];
@@ -138,7 +138,7 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
   }
 
   if (fill[port_id][q_id] >= FILL_UDP) {
-    for (size_t p = 0; p < burst->hdr.num_pkts; p++) {
+    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
       auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
       pkt->udp.src_port = raw_udp_src_port_[port_id][q_id];
       pkt->udp.dst_port = raw_udp_dst_port_[port_id][q_id];
@@ -151,12 +151,14 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
     return;
   }
 
-  rte_memcpy(static_cast<void*>(d_params), burst.get(), sizeof(*burst));
+  rte_memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
   if (rte_ring_enqueue(impl->tx_ring, reinterpret_cast<void *>(d_params)) != 0) {
-    adv_net_free_tx_burst(burst.get());
+    adv_net_free_tx_burst(burst);
     rte_mempool_put(impl->tx_meta_pool, d_params);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
     return;
   }
+
+  delete burst;
 }
 };  // namespace holoscan::ops

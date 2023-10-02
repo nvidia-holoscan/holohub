@@ -1,16 +1,16 @@
 ### Advanced Network Operator
 
-The Advanced Network Operator provides a way for users to achieve the highest throughput and lowest latency 
+The Advanced Network Operator provides a way for users to achieve the highest throughput and lowest latency
 for transmitting and receiving Ethernet frames out of and into their operators. Direct access to the NIC hardware
-is available in userspace using this operator, thus bypassing the kernel's networking stack entirely. With a 
-properly tuned system the advanced network operator can achieve hundreds of Gbps with latencies in the low 
-microseconds. Performance is highly dependent on system tuning, packet sizes, batch sizes, and other factors. 
+is available in userspace using this operator, thus bypassing the kernel's networking stack entirely. With a
+properly tuned system the advanced network operator can achieve hundreds of Gbps with latencies in the low
+microseconds. Performance is highly dependent on system tuning, packet sizes, batch sizes, and other factors.
 The data may optionally be sent to the GPU using GPUDirect to prevent extra copies to and from the CPU.
 
 Since the kernel's networking stack is bypassed, the user is responsible for defining the protocols used
-over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their 
+over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their
 simplicity, but any type of protocol can be implemented or used. The advanced network operator
-gives the option to use several primitives to remove the need for filling out these headers for basic packet types, 
+gives the option to use several primitives to remove the need for filling out these headers for basic packet types,
 but raw headers can also be constructed.
 
 #### Requirements
@@ -48,20 +48,20 @@ The limitations below will be removed in a future release.
 
 Internally the advanced network operator is implemented using DPDK. DPDK is an open-source userspace packet processing
 library supported across platforms and vendors. While the DPDK interface is abstracted away from users of the
-advanced network operator, the method in which DPDK integrates with Holoscan is important for understanding 
-how to achieve the highest performance and for debugging. 
+advanced network operator, the method in which DPDK integrates with Holoscan is important for understanding
+how to achieve the highest performance and for debugging.
 
 When the advanced network operator is compiled/linked against a Holoscan application, an instance of the DPDK manager
-is created, waiting to accept configuration. When either an RX or TX advanced network operator is defined in a 
+is created, waiting to accept configuration. When either an RX or TX advanced network operator is defined in a
 Holoscan application, their configuration is sent to the DPDK manager. Once all advanced network operators have initialized,
-the DPDK manager is told to initialize DPDK. At this point the NIC is configured using all parameters given by the operators. 
-This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal 
+the DPDK manager is told to initialize DPDK. At this point the NIC is configured using all parameters given by the operators.
+This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal
 threads. The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible. They
 act as a proxy between the advanced network operators and DPDK by handling packets faster than the operators may be
 able to.
 
 To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above. When the user
-receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU 
+receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU
 memory. This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
 Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.
 
@@ -72,7 +72,7 @@ in the application. This section details how to perform the basic tuning steps n
 
 ##### Create Hugepages
 
-Hugepages give the kernel access to a larger page size than the default (usually 4K) which reduces the number of memory 
+Hugepages give the kernel access to a larger page size than the default (usually 4K) which reduces the number of memory
 translations that have to be actively maintained in MMUs. 1GB hugepages are ideal, but 2MB may be used as well if 1GB is not
 available. To configure 1GB hugepages:
 
@@ -124,7 +124,7 @@ can be done as part of the `docker run` command by adding the following flags:
 ```
 -v /mnt/huge:/mnt/huge \
 --privileged \
-```        
+```    
 
 #### Configuration Parameters
 
@@ -140,7 +140,7 @@ The common configuration container parameters are used by both TX and RX:
   - type: `integer`
 - **`master_core`**: Master core used to fork and join network threads. This core is not used for packet processing and can be
 bound to a non-isolated core
-  - type: `integer`  
+  - type: `integer`
 
 ##### Receive Configuration
 
@@ -151,7 +151,7 @@ bound to a non-isolated core
 - **`name`**: Name of queue
   - type: `string`
 - **`gpu_direct`**: GPUDirect is enabled on the queue
-  - type: `boolean`  
+  - type: `boolean`
 - **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
 larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
 buffer. A smaller number reduces latency and bandwidth by passing more messages.
@@ -162,9 +162,9 @@ unnecessarily use excess CPU and/or GPU memory.
 - **`max_packet_size`**: Largest packet size expected
   - type: `integer`
 - **`split_boundary`**: Split point in bytes where any byte before this value is sent to CPU, and anything after to GPU
-  - type: `integer` 
+  - type: `integer`
 - **`gpu_device`**: GPU device number if using GPUDirect
-  - type: `integer` 
+  - type: `integer`
 - **`cpu_cores`**: List of CPU cores from the isolated set used by the operator for receiving
   - type: `string`
 - **`flows`**: Array of flows
@@ -182,8 +182,8 @@ unnecessarily use excess CPU and/or GPU memory.
 - **`udp_src`**: UDP source port
   - type: `integer`
 - **`udp_dst`**: UDP destination port
-  - type: `integer`    
-  
+  - type: `integer`
+
 ##### Transmit Configuration
 
 - **`if_name`**: Name of the interface or PCIe BDF to use
@@ -191,11 +191,11 @@ unnecessarily use excess CPU and/or GPU memory.
 - **`queues`**: Array of queues
   - type: `array`
 - **`name`**: Name of queue
-  - type: `string`  
+  - type: `string`
 - **`id`**: ID of queue to steer to
-  - type: `integer`  
+  - type: `integer`
 - **`gpu_direct`**: GPUDirect is enabled on the queue
-  - type: `boolean`    
+  - type: `boolean`
 - **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
 larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
 buffer. A smaller number reduces latency and bandwidth by passing more messages.
@@ -205,13 +205,13 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 - **`layer_fill`**: Layer(s) that the advanced network operator should populate in the packet. Anything higher than the layer
 specified must be populated by the user. For example, if `ethernet` is specified, the user is responsible for populating values of
 any item above that layer (IP, UDP, etc...). Valid values are `raw`, `ethernet`, `ip`, and `udp`
-  - type: `string` 
+  - type: `string`
 - **`eth_dst_addr`**: Destination ethernet MAC address. Only used for `ethernet` layer_fill mode or above
-  - type: `string` 
+  - type: `string`
 - **`ip_src_addr`**: Source IP address to send packets from. Only used for `ip` layer_fill and above
   - type: `string`
 - **`ip_dst_addr`**: Destination IP address to send packets to. Only used for `ip` layer_fill and above
-  - type: `string`  
+  - type: `string`
 - **`udp_dst_port`**: UDP destination port. Only used for `udp` layer_fill and above
   - type: `integer`
 - **`udp_src_port`**: UDP source port. Only used for `udp` layer_fill and above
@@ -221,7 +221,7 @@ any item above that layer (IP, UDP, etc...). Valid values are `raw`, `ethernet`,
 
   #### API Structures
 
-  Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators. 
+  Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators.
   `AdvNetBurstParams` provides pointers to all packets on the CPU and GPU, and contains metadata needed by the operator to track
   allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network
   card library, interacting with the `AdvNetBurstParams` is mostly done with the helper functions described below. A user should
@@ -241,27 +241,27 @@ any item above that layer (IP, UDP, etc...). Valid values are `raw`, `ethernet`,
 ```
 
 Starting from the top, the `hdr` field contains metadata about the batch of packets. `buf` is a placeholder for future expansion
-of fields. `cpu_pkts` contains pointers to CPU packets, while `gpu_pkts` contains pointers to the GPU packets. As mentioned above, 
+of fields. `cpu_pkts` contains pointers to CPU packets, while `gpu_pkts` contains pointers to the GPU packets. As mentioned above,
 the `cpu_pkts` and `gpu_pkts` are opaque pointers and should not be access directly. See the next section for information on interacting
 with these fields.
 
 #### Example API Usage
 
-For an entire list of API functions, please see the `adv_network_common.h` header file. 
+For an entire list of API functions, please see the `adv_network_common.h` header file.
 
 ##### Receive
 
 The section below describes a workflowusing GPUDirect to receive packets using header-data split. The job of the user's operator(s)
-is to process and free the buffers as quickly as possible. This might be copying to interim buffers or freeing before the entire 
+is to process and free the buffers as quickly as possible. This might be copying to interim buffers or freeing before the entire
 pipeline is done processing. This allows the networking piece to use relatively few buffers while still achieving very high rates.
 
 The first step in receiving from the advanced network operator is to tie your operator's input port to the output port of the RX
-network operator's `burst_out` port. 
+network operator's `burst_out` port.
 
 ```
 auto adv_net_rx    = make_operator<ops::AdvNetworkOpRx>("adv_network_rx", from_config("adv_network_common"), from_config("adv_network_rx"), make_condition<BooleanCondition>("is_alive", true));
 auto my_receiver   = make_operator<ops::MyReceiver>("my_receiver", from_config("my_receiver"));
-add_flow(adv_net_rx, my_receiver, {{"burst_out", "burst_in"}});   
+add_flow(adv_net_rx, my_receiver, {{"burst_out", "burst_in"}});
 ```
 
 Once the ports are connected, inside the `compute()` function of your operator you will receive a `AdvNetBurstParams` structure
@@ -282,7 +282,7 @@ buffer:
     ttl_bytes_in_cur_batch_           += adv_net_get_gpu_packet_len(burst, p) + sizeof(UDPPkt);
   }
 
-  simple_packet_reorder(buffer, h_dev_ptrs, packet_len, burst->hdr.num_pkts); 
+  simple_packet_reorder(buffer, h_dev_ptrs, packet_len, burst->hdr.num_pkts);
 ```
 
 For this example we are tossing the header portion (CPU), so we don't need to examine the packets. Since we launched a reorder
@@ -293,16 +293,16 @@ advanced network operator at this point:
 adv_net_free_all_burst_pkts_and_burst(burst_bufs_[b]);
 ```
 
-##### Transmit 
+##### Transmit
 
 Transmitting packets works similar to the receive side, except the user is tasked with filling out the packets as much as it
-needs to. As mentioned above, helper functions are available to fill in most boilerplate header information if that doesn't 
-change often. 
+needs to. As mentioned above, helper functions are available to fill in most boilerplate header information if that doesn't
+change often.
 
 Similar to the receive, the transmit operator needs to connect to `burst_in` on the advanced network operator transmitter:
 
 ```
-auto my_transmitter  = make_operator<ops::MyTransmitter>("my_transmitter", from_config("my_transmitter"), make_condition<BooleanCondition>("is_alive", true));      
+auto my_transmitter  = make_operator<ops::MyTransmitter>("my_transmitter", from_config("my_transmitter"), make_condition<BooleanCondition>("is_alive", true));  
 auto adv_net_tx       = make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("adv_network_common"), from_config("adv_network_tx"));
 add_flow(my_transmitter, adv_net_tx, {{"burst_out", "burst_in"}});
 ```
@@ -316,9 +316,9 @@ if ((ret = adv_net_get_tx_pkt_burst(msg.get())) != AdvNetStatus::SUCCESS) {
   HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
   return;
 }
-```      
+```  
 
-The code above creates a shared `AdvNetBurstParams` that will be passed to the advanced network operator, and uses 
+The code above creates a shared `AdvNetBurstParams` that will be passed to the advanced network operator, and uses
 `adv_net_get_tx_pkt_burst` to populate the burst buffers with valid packet buffers. On success, the buffers inside the
 burst structure will be allocate and are ready to be filled in. Each packet must be filled in by the user. In this
 example we loop through each packet and populate a buffer:
