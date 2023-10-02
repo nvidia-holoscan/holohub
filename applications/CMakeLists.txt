@@ -22,6 +22,8 @@ add_holohub_application(basic_networking_ping DEPENDS
 
 add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 
+add_holohub_application(cvcuda_basic)
+
 add_holohub_application(deltacast_endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
@@ -86,5 +88,3 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   volume_renderer
                                   XrFrameOp
                                   XrTransformOp)
-
-add_holohub_application(cvcuda_basic)
