@@ -1,6 +1,10 @@
 # Holoscan Flow Benchmarking for HoloHub
 
-This is a benchmarking tool to evaluate the performance of HoloHub applications. The tool currently supports
+This is a benchmarking tool to evaluate the performance of HoloHub and other Holoscan applications.
+Following is a high-level overview of Holoscan Flow Benchmarking. For more details on its possible
+use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md).
+
+The tool currently supports
 benchmarking of the following HoloHub C++ applications: `endoscopy_tool_tracking, multiai_endoscopy,
 multiai_ultrasound, ultrasound_segmentation`.
 We plan to have support for other C++ and Python applications in the future.
