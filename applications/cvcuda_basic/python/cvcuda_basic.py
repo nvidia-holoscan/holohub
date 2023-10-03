@@ -34,8 +34,8 @@ class ImageProcessingOp(Operator):
         inputs:  "input_tensor"
         outputs: "output_tensor"
 
-    The data from each input is processed by a CuPy gaussian filter and
-    the result is sent to the output.
+    Each input frame is processed by CV-CUDA's flip operator to perform
+    a vertical flip of the video.
 
     In this demo, the input and output image (2D RGB) is a 3D array of shape
     (height, width, channels).
