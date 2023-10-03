@@ -352,7 +352,7 @@ void UxBoundingBoxController::test_edge(Eigen::Vector3f& cursor, Edge& edge) {
     float activation_distance = segment_length * UX_ACTIVATION_THRESHOLD;
 
     if (distance < activation_distance) {
-      // test if pojected point is on the edge
+      // test if projected point is on the edge
       Eigen::Vector3f n = segment / segment_length;
       float d = n.dot(v0);
       if (d > activation_distance / 2 && d < segment_length - activation_distance / 2) {
