@@ -25,15 +25,14 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_endoscopy_sample_data/versions/20230222/zip
     DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
     URL_MD5 d54f84a562d29ed560a87d2607eba973
-    #URL_MD5 9732a54944589f7ca4f1337e8adf0838
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 480
     GXF_ENTITIES_WIDTH 854
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
+    ALL
   )
 endif()
 
-add_subdirectory(cpp)
 add_subdirectory(python)
