@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "CV-CUDA: Basic Interoperability",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"CV-CUDA",
+			"Computer Vision",
+			"CV"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+			"libraries": [{
+				"name": "cvcuda",
+				"version": "0.3.1-beta"
+			}]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/cvcuda_basic.py --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}
