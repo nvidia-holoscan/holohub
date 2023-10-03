@@ -4,26 +4,26 @@ This project is aiming to provide basic guidance to deploy Yolo-based model to H
 The reference application's pipeline is the same as [Ultrasound Segmentation Application in Holoscan SDK](https://github.com/nvidia-holoscan/holohub/tree/main/applications/ultrasound_segmentation).
 
 
-The operators applied in this operation including:    
+The operators applied in this operation including:
 - Video Stream Replayer (replayer as source) | AJASourceOp (AJA card is as source)
 - Format Converter (float32 + resize)
 - TensorRT Inference
 - Detection PostProcessor (customized Python Operator to extract Bounding Box)
-- HoloViz  
+- HoloViz
 
-This project includes below precedures:
-1. [Prerequisition](#prerequisition)    
-    1.1 Prepare Holoscan SDK env    
+This project includes below procedures:
+1. [Prerequisition](#prerequisition)
+    1.1 Prepare Holoscan SDK env
     1.2 Prepare dependent libraries inside container.
-2. [Deploy Procedures](#precedures)    
+2. [Deploy Procedures](#procedures)
     2.1 [Step1: prepare the model with NMS](#step-1-prepare-the-model-with-nms-layer-and-nms-plugin) depend on pytorch env, can be done outside Holoscan SDK, refer each models' installation env section.     
-    2.2 [Step2: Deployment](#step-2-deployment)     
-        - Prepare Env    
-        - Update Model with NHWC as input    
-        - Prepare test video with gxf support format    
-        - Update application with py/yaml     
-        - Prepare working folder    
-        - Run the Application.    
+    2.2 [Step2: Deployment](#step-2-deployment)
+        - Prepare Env
+        - Update Model with NHWC as input
+        - Prepare test video with gxf support format
+        - Update application with py/yaml
+        - Prepare working folder
+        - Run the Application.
 
 This repo takes yolo v7 as an example.
 
@@ -35,7 +35,7 @@ This repo takes yolo v7 as an example.
 
 
 ## Prerequisition
-- Holoscan environment: 
+- Holoscan environment:
     - NGC container: [Holoscan container image on NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan)
 
 - Install below libraries inside container via, or skip it to [Step 2: Deployment](#step-2-deployment)
@@ -50,7 +50,7 @@ This repo takes yolo v7 as an example.
     - cupy is used in custom operators for performance improvements
     - numpy is used in script to convert video in [Step 2](#step-2-deployment)
 
-## Precedures
+## Procedures
 ### Step 1: Prepare the Model with NMS Layer and NMS Plugin
 - [Yolo_v8](https://github.com/triple-Mu/YOLOv8-TensorRT)
     - ```git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git```
@@ -73,23 +73,23 @@ This repo takes yolo v7 as an example.
         NOTE: the ```end2end``` parameter will output the the end to end model with NMS Layer and Plugin. Other parameters pls refer detail information via [link](https://github.com/WongKinYiu/yolov7/blob/main/export.py#L19)
     - Check the model via [netron](https://netron.app/) shall include EfficientNMS_TRT layer with output ```num_dets```, ```det_boxes```, ```det_scores```, and ```det_classes```
 
-NOTE: The output name maybe different for different export models, pls correct yolo_detecton.yaml section "output_binding_names" in detection_inference part accordingly.     
+NOTE: The output name maybe different for different export models, pls correct yolo_detecton.yaml section "output_binding_names" in detection_inference part accordingly.
 
 ### Step 2: Deployment 
-- ```git clone ``` this repo to your local folder, e.g. ./holohub    
+- ```git clone ``` this repo to your local folder, e.g. ./holohub
 
 - ```cd ./holohub/applications/yolo_model_deployment```
 
-- Copy the onnx model with NMS in Step 1 to this application folder. (The onnx model name in this example is yolov8s.onnx for yolo v8 model, and yolov7-tiny.onnx for yolo v7 model)     
+- Copy the onnx model with NMS in Step 1 to this application folder. (The onnx model name in this example is yolov8s.onnx for yolo v8 model, and yolov7-tiny.onnx for yolo v7 model)
 
 - Run the Holoscan container via
     ```
     # Update the ngc container image path as needed
     export NGC_CONTAINER_IMAGE_PATH="nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0"
 
-    # DISPLAY env may be different due to different settings, 
+    # DISPLAY env may be different due to different settings,
     # try DISPLAY=:1 if failure with "Failed to open display :0"
-    export DISPLAY=:0 
+    export DISPLAY=:0
     xhost +local:docker
 
     # Find the nvidia_icd.json file which could reside at different paths
