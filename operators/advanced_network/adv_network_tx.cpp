@@ -59,7 +59,7 @@ void AdvNetworkOpTx::initialize() {
 
 int AdvNetworkOpTx::Init() {
   impl = new AdvNetworkOpTxImpl();
-  impl->cfg = cfg_.get();;
+  impl->cfg = cfg_.get();
   impl->dpdk_mgr = &dpdk_mgr;
   impl->tx_ring = nullptr;
   impl->dpdk_mgr->SetConfigAndInitialize(impl->cfg);
@@ -70,35 +70,6 @@ int AdvNetworkOpTx::Init() {
     if (!port_opt) {
       HOLOSCAN_LOG_CRITICAL("Failed to get port ID from interface {}", tx.if_name_);
       return -1;
-    }
-
-    auto port = port_opt.value();
-
-    for (auto &q : tx.queues_) {
-      auto q_id       = q.common_.id_;
-      auto fill_type  = q.fill_type_;
-      if (fill_type == "eth") {
-        fill[port][q_id] = FILL_ETH;
-      } else if (fill_type == "ip") {
-        fill[port][q_id] = FILL_IP;
-      } else if (fill_type == "udp") {
-        fill[port][q_id] = FILL_UDP;
-      } else {
-        fill[port][q_id] = FILL_NONE;
-      }
-
-      if (fill[port][q_id] >= FILL_ETH) {
-        rte_ether_unformat_addr(q.eth_dst_.c_str(),
-          reinterpret_cast<rte_ether_addr*>(&raw_eth_dst_[port][q_id][0]));
-      }
-      if (fill[port][q_id] >= FILL_IP) {
-        inet_pton(AF_INET, q.ip_src_.c_str(), &(raw_ip_src_[port][q_id]));
-        inet_pton(AF_INET, q.ip_dst_.c_str(), &(raw_ip_dst_[port][q_id]));
-      }
-      if (fill[port][q_id] >= FILL_UDP) {
-        raw_udp_src_port_[port][q_id] = htons(q.udp_src_port_);
-        raw_udp_dst_port_[port][q_id] = htons(q.udp_dst_port_);
-      }
     }
   }
 
@@ -118,32 +89,6 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
   }
 
   auto burst = op_input.receive<AdvNetBurstParams *>("burst_in").value();
-  auto port_id = burst->hdr.hdr.port_id;
-  auto q_id    = burst->hdr.hdr.q_id;
-
-  if (fill[port_id][q_id] >= FILL_ETH) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      memcpy(reinterpret_cast<void*>(&pkt->eth.dst_addr),
-             reinterpret_cast<void*>(&raw_eth_dst_[port_id][q_id][0]),
-             sizeof(raw_eth_dst_[port_id][q_id]));
-    }
-  }
-  if (fill[port_id][q_id] >= FILL_IP) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      pkt->ip.src_addr = raw_ip_src_[port_id][q_id];
-      pkt->ip.dst_addr = raw_ip_dst_[port_id][q_id];
-    }
-  }
-
-  if (fill[port_id][q_id] >= FILL_UDP) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      pkt->udp.src_port = raw_udp_src_port_[port_id][q_id];
-      pkt->udp.dst_port = raw_udp_dst_port_[port_id][q_id];
-    }
-  }
 
   AdvNetBurstParams *d_params;
   if (rte_mempool_get(impl->tx_meta_pool, reinterpret_cast<void**>(&d_params)) != 0) {
