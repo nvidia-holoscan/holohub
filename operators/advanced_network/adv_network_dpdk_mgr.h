@@ -86,16 +86,17 @@ class DpdkMgr {
 
  private:
     static void flush_packets(int port);
-    struct rte_flow *AddFlow(int port, const FlowConfig &cfg);
     int SetupPoolsAndRings(int max_rx_batch, int max_tx_batch);
+    struct rte_flow *AddFlow(int port, const FlowConfig &cfg);
     std::string GetQueueName(int port, int q, AdvNetDirection dir);
+    std::optional<struct rte_pktmbuf_extmem> AllocateGpuPktMbuf(int port_id, uint16_t pkt_size,
+                                                                int num_mbufs, int gpu_dev);
 
     AdvNetConfigYaml cfg_;
     std::array<std::string, MAX_IFS> if_names;
     std::array<std::string, MAX_IFS> pcie_addrs;
     std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
     struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
-    struct rte_pktmbuf_extmem ext_mem;
     struct rte_ring *rx_ring;
     struct rte_ring *tx_ring;
     struct rte_mempool *rx_burst_buffer;

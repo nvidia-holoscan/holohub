@@ -27,13 +27,6 @@ namespace holoscan::ops {
   but requires more configuration that's not necessarily needed with low-speed networks.
 */
 
-enum PacketLayerFill {
-  FILL_NONE = 0,
-  FILL_ETH = 1,
-  FILL_IP = 2,
-  FILL_UDP = 3
-};
-
 class AdvNetworkOpTx : public Operator {
   class AdvNetworkOpTxImpl;
 
@@ -54,12 +47,5 @@ class AdvNetworkOpTx : public Operator {
     void SetFillInfo();
     Parameter<AdvNetConfigYaml> cfg_;
     AdvNetworkOpTxImpl *impl;
-
-    PacketLayerFill fill[MAX_INTERFACES][MAX_NUM_TX_QUEUES] = {FILL_NONE};
-    uint8_t  raw_eth_dst_[MAX_INTERFACES][MAX_NUM_TX_QUEUES][6];
-    uint32_t raw_ip_src_[MAX_INTERFACES][MAX_NUM_TX_QUEUES];
-    uint32_t raw_ip_dst_[MAX_INTERFACES][MAX_NUM_TX_QUEUES];
-    uint16_t raw_udp_src_port_[MAX_INTERFACES][MAX_NUM_TX_QUEUES];
-    uint16_t raw_udp_dst_port_[MAX_INTERFACES][MAX_NUM_TX_QUEUES];
 };
 };  // namespace holoscan::ops

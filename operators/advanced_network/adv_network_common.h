@@ -189,8 +189,8 @@ uint16_t adv_net_get_cpu_packet_len(std::shared_ptr<AdvNetBurstParams> burst, in
  *
  * Returns the length of an individual GPU packet
  *
- * @param pkt Packet to get length of
  * @param burst Burst structure containing packets
+ * @param idx Index of packet
  * @return uint16_t Length of packet
  */
 uint16_t adv_net_get_gpu_packet_len(AdvNetBurstParams *burst, int idx);
@@ -203,20 +203,77 @@ uint16_t adv_net_get_gpu_packet_len(std::shared_ptr<AdvNetBurstParams> burst, in
  * allocated packets and fill with the desired data/headers.
  *
  * @param burst Burst structure to populate
- * @param port Port ID for packets
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packets allocated
  *    NULL_PTR: Burst or packet pools uninitialized
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst, int port);
-AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst, int port);
+AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst);
+AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
- * @brief Set UDP payload parameters in packet
+ * @brief Set IPv4 header in CPU-only packet
  *
- * @param pkt Pointer to packet to fill parameters
+ * @param burst Burst structure to populate
+ * @param idx Index of packet
+ * @param dst_addr Ethernet destination address
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Packet populated successfully
+ */
+AdvNetStatus adv_net_set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
+                                      char *dst_addr);
+AdvNetStatus adv_net_set_cpu_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
+                                      int idx,
+                                      char *dst_addr);
+
+/**
+ * @brief Set IPv4 header in CPU-only packet
+ *
+ * @param burst Burst structure to populate
+ * @param idx Index of packet
+ * @param ip_len Length of packet after IPv4 header
+ * @param proto L4 protocol
+ * @param src_host Source host in host byte order
+ * @param dst_host Destination host in host byte order
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Packet populated successfully
+ */
+AdvNetStatus adv_net_set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+                                      int ip_len,
+                                      uint8_t proto,
+                                      unsigned int src_host,
+                                      unsigned int dst_host);
+AdvNetStatus adv_net_set_cpu_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
+                int idx,
+                int ip_len,
+                uint8_t proto,
+                unsigned int src_host,
+                unsigned int dst_host);
+
+/**
+ * @brief Set UDP header in CPU-only packet
+ *
+ * @param burst Burst structure to populate
+ * @param idx Index of packet
+ * @param udp_len Length of packet after UDP header
+ * @param src_port Source port
+ * @param dst_port Destination port
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Packet populated successfully
+ */
+AdvNetStatus adv_net_set_cpu_udp_hdr(AdvNetBurstParams *burst,
+                                      int idx,
+                                      int udp_len,
+                                      uint16_t src_port,
+                                      uint16_t dst_port);
+AdvNetStatus adv_net_set_cpu_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst,
+                int idx, int udp_len, uint16_t src_port, uint16_t dst_port);
+
+/**
+ * @brief Set UDP payload in CPU-only packet
+ *
+ * @param burst Burst structure to populate
  * @param idx Index of packet
  * @param data Payload data after UDP header
  * @param len Length of payload
@@ -235,12 +292,12 @@ AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burs
  * is not keeping up with the desired rate. Rather than returning an error, the user can
  * use this function to loop or return later to try again.
  *
- * @param num_pkts Number of packets to test allocation for
- * @param port Port ID for packets
+ * @param burst Info about burst of packets
  * @return true Burst is available
  * @return false Burst is not available
  */
-bool adv_net_tx_burst_available(int num_pkts, int port);
+bool adv_net_tx_burst_available(AdvNetBurstParams *burst);
+bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free all CPU packets and burst
@@ -262,6 +319,24 @@ void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
  */
 void adv_net_free_all_burst_pkts_and_burst(AdvNetBurstParams *burst);
 void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
+
+/**
+ * @brief Set packet length in metadata
+ *
+ * Sets metadata packet length. This is needed in addition to L3+L4 lengths for hardware
+ *
+ * @param burst Burst structure containing packet lists
+ * @param idx Index of packet
+ * @param cpu_len Length of CPU portion
+ * @param gpu_len Length of GPU portion
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Packet populated successfully
+ */
+AdvNetStatus adv_net_set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len);
+AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
+                                    int idx,
+                                    int cpu_len,
+                                    int gpu_len);
 
 /**
  * @brief Frees a single packet
@@ -356,6 +431,14 @@ void adv_net_set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_
 void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
           uint16_t port, uint16_t q, int64_t num);
 
+/**
+ * @brief First MAC address string to char buffer
+ *
+ * @param dst Destination buffer
+ * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
+ */
+void adv_net_format_eth_addr(char *dst, std::string addr);
+
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
 
 struct CommonQueueConfig {
@@ -377,12 +460,6 @@ struct RxQueueConfig {
 
 struct TxQueueConfig {
   CommonQueueConfig common_;
-  std::string eth_dst_;
-  std::string ip_src_;
-  std::string ip_dst_;
-  std::string fill_type_;
-  uint16_t udp_src_port_;
-  uint16_t udp_dst_port_;
 };
 
 // struct FlowConfig {
@@ -546,23 +623,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
             q.common_.batch_size_       = q_item["batch_size"].as<int>();
 
-            q.eth_dst_      = q_item["eth_dst_addr"].as<std::string>();
-            q.ip_src_       = q_item["ip_src_addr"].as<std::string>();
-            q.ip_dst_       = q_item["ip_dst_addr"].as<std::string>();
-            q.fill_type_    = q_item["fill_type"].as<std::string>();
-            q.udp_src_port_ = q_item["udp_src_port"].as<uint16_t>();
-            q.udp_dst_port_ = q_item["udp_dst_port"].as<uint16_t>();
-
             tx_cfg.queues_.emplace_back(q);
           }
-
-          // for (const auto &flow_item:  tx_item["flows"]) {
-          //   holoscan::ops::FlowConfig flow;
-          //   flow.name_          = flow_item["name"].as<std::string>();
-          //   flow.pattern_       = flow_item["pattern"].as<std::string>();
-
-          //   tx_cfg.flows_.emplace_back(flow);
-          // }
 
           input_spec.tx_.emplace_back(tx_cfg);
         }

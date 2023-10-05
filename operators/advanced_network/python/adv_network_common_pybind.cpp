@@ -57,22 +57,25 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         (&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
     m.def("adv_net_free_cpu_pkts_and_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
         (&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
-    m.def("adv_net_tx_burst_available", &adv_net_tx_burst_available,
-                                            "Return true if a TX burst is available for use");
-    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<AdvNetBurstParams *, int>
+    m.def("adv_net_tx_burst_available", py::overload_cast<AdvNetBurstParams *>
+        (&adv_net_tx_burst_available), "Return true if a TX burst is available for use");
+    m.def("adv_net_tx_burst_available", py::overload_cast<std::shared_ptr<AdvNetBurstParams>>
+        (&adv_net_tx_burst_available), "Return true if a TX burst is available for use");
+    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<AdvNetBurstParams *>
         (&adv_net_get_tx_pkt_burst), "Get TX packet burst");
-    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>
+    m.def("adv_net_get_tx_pkt_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams>>
         (&adv_net_get_tx_pkt_burst), "Get TX packet burst");
 
-    m.def("adv_net_set_cpu_udp_payload",
-        [](AdvNetBurstParams *burst, int idx, long int data, int len) {
-                return adv_net_set_cpu_udp_payload(burst, idx,
-                        reinterpret_cast<void*>(data), len); },
-                "Set UDP header parameters and copy payload");
-    m.def("adv_net_set_cpu_udp_payload",
-        [](std::shared_ptr<AdvNetBurstParams> burst, int idx, long int data, int len) {
-            return adv_net_set_cpu_udp_payload(burst, idx, reinterpret_cast<void*>(data), len); },
-            "Set UDP header parameters and copy payload");
+    // m.def("adv_net_set_cpu_udp_payload",
+    //     [](AdvNetBurstParams *burst, int idx, long int data, int len) {
+    //             return adv_net_set_cpu_udp_payload(burst, idx,
+    //                     reinterpret_cast<void*>(data), len); },
+    //             "Set UDP header parameters and copy payload");
+    // m.def("adv_net_set_cpu_udp_payload",
+    //     [](std::shared_ptr<AdvNetBurstParams> burst, int idx, long int data, int len) {
+    //         return adv_net_set_cpu_udp_payload(burst, idx,
+    //              reinterpret_cast<void*>(data), len); },
+    //         "Set UDP header parameters and copy payload");
 
     m.def("adv_net_get_num_pkts", py::overload_cast<AdvNetBurstParams *>
         (&adv_net_get_num_pkts), "Get number of packets in a burst");

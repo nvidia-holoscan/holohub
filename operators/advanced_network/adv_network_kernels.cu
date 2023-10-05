@@ -49,10 +49,37 @@ __global__ void simple_packet_reorder_kernel(void * __restrict__ out,
  *
  * @param out Output buffer
  * @param in Pointer to list of input packet pointers
- * @param pkt_len Length of each packet. All packets must be same length for this example
+ * @param pkt_len Length of each packet in bytes. Must be a multiple of 4
  * @param num_pkts Number of packets
+ * @param stream CUDA stream
  */
 void simple_packet_reorder(void *out, const void *const *const in,
           uint16_t pkt_len, uint32_t num_pkts, cudaStream_t stream) {
   simple_packet_reorder_kernel<<<num_pkts, 128, 0, stream>>>(out, in, pkt_len, num_pkts);
 }
+
+
+__global__ void populate_packets(uint8_t **gpu_bufs,
+  uint16_t pkt_len) {
+    int pkt = blockIdx.x;
+
+    for (int samp = threadIdx.x; samp < pkt_len / 4; samp += blockDim.x) {
+      auto p = reinterpret_cast<uint32_t *>(gpu_bufs[pkt] + samp * sizeof(uint32_t));
+      *p = (samp << 16) | (samp & 0xff);
+    }
+}
+
+/**
+ * @brief Populate each packet with a monotonically-increasing sequence
+ *
+ * @param gpu_bufs GPU packet pointer list from ANO "gpu_pkts"
+ * @param pkt_len Length of each packet in bytes. Must be a multiple of 4
+ * @param num_pkts Number of packets
+ * @param stream CUDA stream
+ */
+void populate_packets(uint8_t **gpu_bufs,
+  uint16_t pkt_len,
+  uint32_t num_pkts,
+  cudaStream_t stream) {
+    populate_packets<<<num_pkts, 256, 0, stream>>>(gpu_bufs, pkt_len);
+  }
