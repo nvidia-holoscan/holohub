@@ -26,6 +26,10 @@
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#ifdef DELTACAST_VIDEOMASTER
+  #include <videomaster_source.hpp>
+#endif
+
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
@@ -52,6 +56,10 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> source;
     std::shared_ptr<Operator> recorder;
     std::shared_ptr<Operator> recorder_format_converter;
+
+#ifdef DELTACAST_VIDEOMASTER
+test
+#endif
 
     const bool is_rdma = from_config("aja.rdma").as<bool>();
     const bool is_aja_overlay_enabled =
