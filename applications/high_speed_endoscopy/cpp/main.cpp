@@ -33,12 +33,19 @@ class App : public holoscan::Application {
     // emergent camera is the source for this app for data acquisition in Bayer format
     source = make_operator<ops::EmergentSourceOp>("emergent", from_config("emergent"));
 
+    auto cuda_stream_pool = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
+
+// Fix to initialize the cuda_stream_pool for Holoscan 0.6 only
+#if HOLOSCAN_MAJOR_VERSION == 0 && HOLOSCAN_MINOR_VERSION == 6
+    cuda_stream_pool->initialize();
+#endif
+
     // bayer demosaic is the post processing step to convert Bayer frame to RGB format
     bayer_demosaic = make_operator<ops::BayerDemosaicOp>(
         "bayer_demosaic",
         from_config("demosaic"),
         Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, 72576000, 2),
-        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // Holoviz is the visualizer being used for the peak performance
     viz = make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"));
