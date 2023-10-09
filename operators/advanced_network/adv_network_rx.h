@@ -18,6 +18,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include "adv_network_common.h"
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
@@ -50,6 +51,7 @@ class AdvNetworkOpRx : public Operator {
  private:
     static constexpr int RX_BURST_SIZE = 128;
     AdvNetworkOpRxImpl *impl;
+    std::unordered_map<uint32_t, std::string> pq_map_;
     Parameter<std::string> if_name_;
     Parameter<std::string> cpu_cores_;
     Parameter<std::string> master_core_;

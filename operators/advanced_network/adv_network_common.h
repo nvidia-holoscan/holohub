@@ -455,6 +455,7 @@ struct CommonQueueConfig {
 };
 
 struct RxQueueConfig {
+  std::string output_port_;
   CommonQueueConfig common_;
 };
 
@@ -583,6 +584,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             q.common_.num_concurrent_batches_  = q_item["num_concurrent_batches"].as<int>();
             q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
             q.common_.batch_size_       = q_item["batch_size"].as<int>();
+            q.output_port_              = q_item["output_port"].as<std::string>();
 
             rx_cfg.queues_.emplace_back(q);
           }

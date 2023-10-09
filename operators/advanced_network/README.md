@@ -39,9 +39,6 @@ but raw headers can also be constructed.
 
 The limitations below will be removed in a future release.
 
-- GPUDirect only works in the RX direction. TX will come in a future release
-- GPUDirect only supports header-data split mode
-- Only a single RX and TX DPDK core have been tested
 - Only UDP fill mode is supported
 
 #### Implementation
@@ -316,7 +313,7 @@ if ((ret = adv_net_get_tx_pkt_burst(msg.get())) != AdvNetStatus::SUCCESS) {
   HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
   return;
 }
-```  
+```
 
 The code above creates a shared `AdvNetBurstParams` that will be passed to the advanced network operator, and uses
 `adv_net_get_tx_pkt_burst` to populate the burst buffers with valid packet buffers. On success, the buffers inside the

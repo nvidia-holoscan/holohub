@@ -46,6 +46,7 @@
 #include <rte_flow.h>
 #include <rte_gpudev.h>
 #include <atomic>
+#include <unordered_map>
 #include "adv_network_common.h"
 
 namespace holoscan::ops {
@@ -98,11 +99,11 @@ class DpdkMgr {
     std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
     struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
     struct rte_ring *rx_ring;
-    struct rte_ring *tx_ring;
+    std::unordered_map<uint32_t, struct rte_ring *> tx_rings;
+    std::unordered_map<uint32_t, struct rte_mempool *> tx_burst_buffers;
     struct rte_mempool *rx_burst_buffer;
     struct rte_mempool *rx_meta;
     struct rte_mempool *tx_meta;
-    struct rte_mempool *tx_burst_buffer;
     std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
     bool initialized = false;

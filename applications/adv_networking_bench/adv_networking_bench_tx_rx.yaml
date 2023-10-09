@@ -21,26 +21,26 @@ delay_step: 0.01
 
 scheduler:
   check_recession_period_ms: 0
-  worker_thread_number: 4
+  worker_thread_number: 7
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
 advanced_network:
   cfg:
     version: 1
-    master_core: 8              # Master CPU core
+    master_core: 5              # Master CPU core
     tx:
-      - if_name: 0005:03:00.1       # PCIe BFD of NIC  
+      - if_name: 0005:03:00.1       # PCIe BFD of NIC
         queues:
           - name: "ADC Samples"
             id: 0
             gpu_direct: true
             gpu_device: 0
-            split_boundary: 64
+            split_boundary: 0
             max_packet_size: 8064          # Maximum payload size
             num_concurrent_batches: 5      # Number of batches that can be used at any time
             batch_size: 10240              # Number of packets in a batch
-            cpu_cores: "9"                     # CPU cores for transmitting
+            cpu_cores: "7"                 # CPU cores for transmitting
     rx:
       - if_name: 0005:03:00.1       # PCIe BFD of NIC
         flow_isolation: true
@@ -52,6 +52,7 @@ advanced_network:
             max_packet_size: 9000        # Maximum payload size
             num_concurrent_batches: 32767   # Number of batches that can be used at any time
             batch_size: 1              # Number of packets in a batch
+            output_port: "bench_rx_out"
           - name: "ADC Samples"
             id: 1
             gpu_device: 0
@@ -61,9 +62,10 @@ advanced_network:
             max_packet_size: 9000     # Maximum payload size
             num_concurrent_batches: 15   # Number of batches that can be used at any time
             batch_size: 10240              # Number of packets in a batch
+            output_port: "bench_rx_out"
         flows:
           - name: "ADC Samples"
-            action: 
+            action:
               type: queue
               id: 1
             match:
@@ -83,8 +85,10 @@ bench_tx:
   udp_dst_port: 4096                  # UDP destination port
   udp_src_port: 4096                  # UDP source port
   gpu_direct: true
-  split_boundary: 64
+  split_boundary: 0
   batch_size: 10000
   payload_size: 8000
+  header_size: 64
   ip_src_addr: 192.168.0.1          # Source IP send from
-  ip_dst_addr: 192.168.0.2          # Destination IP to send to  
+  ip_dst_addr: 192.168.0.2          # Destination IP to send to
+  port_id: 0
