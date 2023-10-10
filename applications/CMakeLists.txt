@@ -24,12 +24,6 @@ add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(cvcuda_basic)
 
-add_holohub_application(deltacast_endoscopy_tool_tracking DEPENDS
-                        OPERATORS lstm_tensor_rt_inference
-                                  tool_tracking_postprocessor
-                                  deltacast_videomaster
-                        )
-
 add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS deltacast_videomaster
                         )

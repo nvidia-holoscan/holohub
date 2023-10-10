@@ -4,7 +4,11 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 ### Requirements
 
-The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded endoscopy video (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded endoscopy video (replayer). 
+
+Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+
+Refer to the Deltacast documentation to use the Deltacast VideoMaster capture card.
 
 ### Data
 
@@ -17,6 +21,7 @@ If you want to manually convert the video data, please refer to the instructions
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
+In order to build with the Deltacast VideoMaster operator use ```./run build --with deltacast_videomaster```
 
 ### Run Instructions
 
@@ -31,5 +36,11 @@ In your `build` directory, run the commands of your choice:
 * Using an AJA card
     ```bash
     sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+    ```
+
+* Using a Deltacast card
+    ```bash
+    sed -i -e 's#^source:.*#source: deltacast#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```

@@ -23,18 +23,20 @@ extensions:
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
   - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "replayer" # or "aja" or "videomaster"
+source: "replayer" # "replayer" or "aja" or "deltacast"
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
                      # to record the visualizer output.
+
+external_source:
+  rdma: true
+  overlay: false
 
 aja:
   width: 1920
   height: 1080
-  rdma: true
-  enable_overlay: false
   overlay_rdma: true
 
-videomaster:
+deltacast:
   width: 1920
   height: 1080
   progressive: true
@@ -42,20 +44,8 @@ videomaster:
   board: 0
   input: 0
   output: 0
-  use_rdma: false
-  overlay: false
 
-format_converter:
-  in_dtype: "rgba8888"
-  out_tensor_name: source_video
-  out_dtype: "float32"
-  out_channel_order: [2,1,0]
-  scale_min: 0.0
-  scale_max: 255.0
-  resize_width: 854
-  resize_height: 480
-
-overlay_format_converter:
+deltacast_overlay_format_converter:
   in_dtype: "rgba8888"
   alpha_value: 255
   out_dtype: "rgba8888"
@@ -63,11 +53,11 @@ overlay_format_converter:
   resize_width: 1920
   resize_height: 1080
 
-drop_alpha_channel_converter:
+deltacast_drop_alpha_channel_converter:
   in_dtype: "rgba8888"
   out_dtype: "rgb888"
 
-visualizer_format_converter:
+deltacast_visualizer_format_converter:
   in_dtype: "rgb888"
   alpha_value: 255
   out_dtype: "rgba8888"
@@ -102,6 +92,16 @@ format_converter_aja:
   scale_max: 255.0
   resize_width: 854
   resize_height: 480
+
+format_converter_deltacast:
+  in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  out_channel_order: [2,1,0]
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480  
 
 lstm_inference:
   input_tensor_names:
