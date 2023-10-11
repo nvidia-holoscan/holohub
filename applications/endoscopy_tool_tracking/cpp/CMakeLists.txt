@@ -35,6 +35,8 @@ target_link_libraries(endoscopy_tool_tracking
   tool_tracking_postprocessor
 )
 
+target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>)
+
 # Download the associated dataset if needed
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)

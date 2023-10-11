@@ -26,11 +26,14 @@
 #include <tool_tracking_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#ifdef DELTACAST_VIDEOMASTER
+#include <videomaster_source.hpp>
+#include <videomaster_transmitter.hpp>
+#endif
+
 class App : public holoscan::Application {
  public:
-  void set_source(const std::string& source) {
-    if (source == "aja") { is_aja_source_ = true; }
-  }
+  void set_source(const std::string& source) { source_ = source; }
 
   enum class Record { NONE, INPUT, VISUALIZER };
 
@@ -42,9 +45,7 @@ class App : public holoscan::Application {
     }
   }
 
-  void set_datapath(const std::string& path) {
-     datapath = path;
-  }
+  void set_datapath(const std::string& path) { datapath = path; }
 
   void compose() override {
     using namespace holoscan;
@@ -53,21 +54,33 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> recorder;
     std::shared_ptr<Operator> recorder_format_converter;
 
-    const bool is_rdma = from_config("aja.rdma").as<bool>();
-    const bool is_aja_overlay_enabled =
-        is_aja_source_ && from_config("aja.enable_overlay").as<bool>();
+    const bool use_rdma = from_config("external_source.rdma").as<bool>();
+    const bool overlay_enabled =
+        (source_ != "replayer") && from_config("external_source.overlay").as<bool>();
+
     uint32_t width = 0;
     uint32_t height = 0;
     uint64_t source_block_size = 0;
     uint64_t source_num_blocks = 0;
 
-    if (is_aja_source_) {
+    if (source_ == "aja") {
       width = from_config("aja.width").as<uint32_t>();
       height = from_config("aja.height").as<uint32_t>();
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
       source_block_size = width * height * 4 * 4;
-      source_num_blocks = is_rdma ? 3 : 4;
-    } else {
+      source_num_blocks = use_rdma ? 3 : 4;
+    } else if (source_ == "deltacast") {
+      width = from_config("deltacast.width").as<uint32_t>();
+      height = from_config("deltacast.height").as<uint32_t>();
+#ifdef DELTACAST_VIDEOMASTER
+      source = make_operator<ops::VideoMasterSourceOp>(
+          "deltacast",
+          from_config("deltacast"),
+          Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+#endif
+      source_block_size = width * height * 4 * 4;
+      source_num_blocks = use_rdma ? 3 : 4;
+    } else {  // Replayer
       width = 854;
       height = 480;
       source = make_operator<ops::VideoStreamReplayerOp>(
@@ -77,7 +90,7 @@ class App : public holoscan::Application {
     }
 
     if (record_type_ != Record::NONE) {
-      if (((record_type_ == Record::INPUT) && is_aja_source_) ||
+      if (((record_type_ == Record::INPUT) && (source_ != "replayer")) ||
           (record_type_ == Record::VISUALIZER)) {
         recorder_format_converter = make_operator<ops::FormatConverterOp>(
             "recorder_format_converter",
@@ -91,15 +104,15 @@ class App : public holoscan::Application {
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
-    auto format_converter = make_operator<ops::FormatConverterOp>(
-        "format_converter",
-        from_config(is_aja_source_ ? "format_converter_aja" : "format_converter_replayer"),
-        Arg("pool") =
-            make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
-        Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto format_converter =
+        make_operator<ops::FormatConverterOp>("format_converter",
+                                              from_config("format_converter_" + source_),
+                                              Arg("pool") = make_resource<BlockMemoryPool>(
+                                                  "pool", 1, source_block_size, source_num_blocks),
+                                              Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    const std::string model_file_path = datapath+"/tool_loc_convlstm.onnx";
-    const std::string engine_cache_dir = datapath+"/engines";
+    const std::string model_file_path = datapath + "/tool_loc_convlstm.onnx";
+    const std::string engine_cache_dir = datapath + "/engines";
 
     const uint64_t lstm_inferer_block_size = 107 * 60 * 7 * 4;
     const uint64_t lstm_inferer_num_blocks = 2 + 5 * 2;
@@ -124,42 +137,80 @@ class App : public holoscan::Application {
         Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-    if ((record_type_ == Record::VISUALIZER) && !is_aja_source_) {
+    if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
       visualizer_allocator =
           make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
     }
-    std::shared_ptr<ops::HolovizOp> visualizer = make_operator<ops::HolovizOp>(
-        "holoviz",
-        from_config(is_aja_overlay_enabled ? "holoviz_overlay" : "holoviz"),
-        Arg("width") = width,
-        Arg("height") = height,
-        Arg("enable_render_buffer_input") = is_aja_overlay_enabled,
-        Arg("enable_render_buffer_output") =
-            is_aja_overlay_enabled || (record_type_ == Record::VISUALIZER),
-        Arg("allocator") = visualizer_allocator,
-        Arg("cuda_stream_pool") = cuda_stream_pool);
+    std::shared_ptr<ops::HolovizOp> visualizer =
+        make_operator<ops::HolovizOp>("holoviz",
+                                      from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
+                                      Arg("width") = width,
+                                      Arg("height") = height,
+                                      Arg("enable_render_buffer_input") = overlay_enabled,
+                                      Arg("enable_render_buffer_output") =
+                                          overlay_enabled || (record_type_ == Record::VISUALIZER),
+                                      Arg("allocator") = visualizer_allocator,
+                                      Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // Flow definition
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
     add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
-    add_flow(source,
-             format_converter,
-             {{is_aja_source_ ? "video_buffer_output" : "output", "source_video"}});
+    std::string output_signal = "output";  // replayer output signal name
+    if (source_ == "aja") {
+      output_signal = "video_buffer_output";
+    } else if (source_ == "deltacast") {
+      output_signal = "signal";
+    }
+
+    add_flow(source, format_converter, {{output_signal, "source_video"}});
+
     add_flow(format_converter, lstm_inferer);
 
-    if (is_aja_overlay_enabled) {
-      // Overlay buffer flow between AJA source and visualizer
-      add_flow(source, visualizer, {{"overlay_buffer_output", "render_buffer_input"}});
-      add_flow(visualizer, source, {{"render_buffer_output", "overlay_buffer_input"}});
+    if (source_ == "deltacast") {
+#ifdef DELTACAST_VIDEOMASTER
+      if (overlay_enabled) {
+        // Overlay buffer flow between source and visualizer
+        auto overlayer = make_operator<ops::VideoMasterTransmitterOp>(
+            "videomaster_overlayer",
+            from_config("videomaster"),
+            Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+        auto overlay_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
+            "overlay_format_converter",
+            from_config("deltacast_overlay_format_converter"),
+            Arg("pool") =
+                make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+        add_flow(visualizer, overlay_format_converter_videomaster, {{"render_buffer_output", ""}});
+        add_flow(overlay_format_converter_videomaster, overlayer);
+      } else {
+        auto visualizer_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
+            "visualizer_format_converter",
+            from_config("deltacast_visualizer_format_converter"),
+            Arg("pool") =
+                make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+        auto drop_alpha_channel_converter = make_operator<ops::FormatConverterOp>(
+            "drop_alpha_channel_converter",
+            from_config("deltacast_drop_alpha_channel_converter"),
+            Arg("pool") =
+                make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+        add_flow(source, drop_alpha_channel_converter);
+        add_flow(drop_alpha_channel_converter, visualizer_format_converter_videomaster);
+        add_flow(visualizer_format_converter_videomaster, visualizer, {{"", "receivers"}});
+      }
+#endif
     } else {
-      add_flow(
-          source, visualizer, {{is_aja_source_ ? "video_buffer_output" : "output", "receivers"}});
+      if (overlay_enabled) {
+        // Overlay buffer flow between source and visualizer
+        add_flow(source, visualizer, {{"overlay_buffer_output", "render_buffer_input"}});
+        add_flow(visualizer, source, {{"render_buffer_output", "overlay_buffer_input"}});
+      } else {
+        add_flow(source, visualizer, {{output_signal, "receivers"}});
+      }
     }
 
     if (record_type_ == Record::INPUT) {
-      if (is_aja_source_) {
-        add_flow(source, recorder_format_converter, {{"video_buffer_output", "source_video"}});
+      if (source_ != "replayer") {
+        add_flow(source, recorder_format_converter, {{output_signal, "source_video"}});
         add_flow(recorder_format_converter, recorder);
       } else {
         add_flow(source, recorder);
@@ -171,20 +222,16 @@ class App : public holoscan::Application {
   }
 
  private:
-  bool is_aja_source_ = false;
+  std::string source_ = "replayer";
   Record record_type_ = Record::NONE;
   std::string datapath = "data/endoscopy";
 };
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {
-      {"data",    required_argument, 0,  'd' },
-      {0,         0,                 0,  0 }
-  };
+  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "d",
-                   long_options, NULL))  {
+  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
@@ -197,9 +244,7 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) {
-    config_name = argv[optind++];
-  }
+  if (optind < argc) { config_name = argv[optind++]; }
   return true;
 }
 
@@ -210,9 +255,7 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) {
-    return 1;
-  }
+  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
 
   if (config_name != "") {
     app->config(config_name);

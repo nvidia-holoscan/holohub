@@ -410,6 +410,7 @@ build_desc() {
   echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
+  echo "   --with <list of operators>  : Optional operators that should be built"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
@@ -462,8 +463,13 @@ build() {
          holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
          echo "Using Holscan SDK in ${sdk_path}"
          skipnext=1
+      elif [ "$arg" = "--with" ]; then
+         operator="${ARGS[i+1]}"
+         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=${operator}"
+         echo "Building with operator ${operator}"
+         skipnext=1
       elif [ "$arg" = "--configure-args" ]; then
-         configure_args="${ARGS[i+1]}"
+         configure_args="${configure_args} ${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
          skipnext=1
       elif [ "$arg" = "--type" ]; then

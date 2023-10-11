@@ -20,7 +20,7 @@ function(add_holohub_application NAME)
 
   set(appname "APP_${NAME}")
   option(${appname} "Build the ${NAME} application" ${BUILD_ALL})
-  
+
   # If the application is a holoscan sample application and
   # the variable BUILD_SAMPLE_APPS is set we build this app
   if(BUILD_SAMPLE_APPS AND APP_HOLOSCAN_SAMPLE_APP)
@@ -38,8 +38,22 @@ function(add_holohub_application NAME)
         set("EXT_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
       endforeach()
 
+      unset(op_optional)
       foreach(dependency IN LISTS DEPS_OPERATORS)
-        set("OP_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
+
+        # Handle optional operator dependencies
+        if(dependency STREQUAL "OPTIONAL")
+          set(op_optional 1)
+          continue()
+        endif()
+
+        if(op_optional)
+          if(${dependency} IN_LIST HOLOHUB_BUILD_OPERATORS)
+            set("OP_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
+          endif()
+        else()
+          set("OP_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
+        endif()
       endforeach()
     endif()
 
@@ -54,7 +68,7 @@ function(add_holohub_operator NAME)
 
   set(opname "OP_${NAME}")
   option(${opname} "Build the ${NAME} operator" ${BUILD_ALL})
-  
+
   if(${opname})
     add_subdirectory(${NAME})
 
@@ -75,7 +89,7 @@ endfunction()
 function(add_holohub_extension NAME)
   set(extname "EXT_${NAME}")
   option(${extname} "Build the ${NAME} extension" ${BUILD_ALL})
-  
+
   if(${extname})
     add_subdirectory(${NAME})
   endif()
