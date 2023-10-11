@@ -21,7 +21,8 @@ extensions:
   - libgxf_serialization.so
   - libgxf_stream_playback.so
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
-  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
+# Uncomment the following extension when using deltacast as a source
+#  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
 source: "replayer" # "replayer" or "aja" or "deltacast"
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
