@@ -31,6 +31,10 @@
 #include <videomaster_transmitter.hpp>
 #endif
 
+#ifdef YUAN_QCAP
+#include <qcap_source.hpp>
+#endif
+
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) { source_ = source; }
@@ -67,6 +71,14 @@ class App : public holoscan::Application {
       width = from_config("aja.width").as<uint32_t>();
       height = from_config("aja.height").as<uint32_t>();
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+      source_block_size = width * height * 4 * 4;
+      source_num_blocks = use_rdma ? 3 : 4;
+    } else if (source_ == "yuan") {
+      width = from_config("yuan.width").as<uint32_t>();
+      height = from_config("yuan.height").as<uint32_t>();
+#ifdef YUAN_QCAP
+      source = make_operator<ops::QCAPSourceOp>("yuan", from_config("yuan"));
+#endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
     } else if (source_ == "deltacast") {
@@ -157,10 +169,10 @@ class App : public holoscan::Application {
     add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
     std::string output_signal = "output";  // replayer output signal name
-    if (source_ == "aja") {
-      output_signal = "video_buffer_output";
-    } else if (source_ == "deltacast") {
+    if (source_ == "deltacast") {
       output_signal = "signal";
+    } else {
+      output_signal = "video_buffer_output";
     }
 
     add_flow(source, format_converter, {{output_signal, "source_video"}});

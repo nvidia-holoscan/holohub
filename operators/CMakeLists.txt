@@ -22,7 +22,7 @@ if (HOLOHUB_BUILD_PYTHON)
   file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
 endif()
 
-# the operators
+# Add operators (in alphabetical order)
 add_holohub_operator(advanced_network)
 add_holohub_operator(basic_network)
 add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
@@ -40,3 +40,4 @@ add_holohub_operator(volume_loader)
 add_holohub_operator(volume_renderer)
 add_holohub_operator(XrFrameOp)
 add_holohub_operator(XrTransformOp)
+add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)

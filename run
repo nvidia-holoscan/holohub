@@ -363,7 +363,7 @@ lint() {
       for file in ${files_to_fix}; do
         run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${file} || exit_code=1
       done
-     
+
       exit $exit_code
     fi
 
@@ -393,9 +393,13 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd || exit_code=1
+                          -L nd --exclude-file codespell.txt || exit_code=1
 
     popd > /dev/null
+
+    if [ $exit_code == 0 ]; then
+        echo "Everything looks good!"
+    fi
 
     exit $exit_code
 }
