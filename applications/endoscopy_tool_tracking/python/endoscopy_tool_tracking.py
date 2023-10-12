@@ -32,6 +32,7 @@ from holoscan.resources import (
 )
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
+from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 
@@ -44,9 +45,9 @@ class EndoscopyApp(Application):
         record_type : {None, "input", "visualizer"}, optional
             Set to "input" if you want to record the input video stream, or
             "visualizer" if you want to record the visualizer output.
-        source : {"replayer", "aja"}
+        source : {"replayer", "aja", "yuan"}
             When set to "replayer" (the default), pre-recorded sample video data is
-            used as the application input. Otherwise, the video stream from an AJA
+            used as the application input. Otherwise, the video stream from an AJA or Yuan
             capture card is used.
         """
         super().__init__()
@@ -67,21 +68,31 @@ class EndoscopyApp(Application):
         self.sample_data_path = data
 
     def compose(self):
-        is_aja = self.source.lower() == "aja"
+        rdma = False
         record_type = self.record_type
-        is_aja_overlay_enabled = False
+        is_overlay_enabled = False
 
-        if is_aja:
+        if self.source.lower() == "aja":
             aja_kwargs = self.kwargs("aja")
             source = AJASourceOp(self, name="aja", **aja_kwargs)
 
             # 4 bytes/channel, 4 channels
             width = aja_kwargs["width"]
             height = aja_kwargs["height"]
-            is_rdma = aja_kwargs["rdma"]
-            is_aja_overlay_enabled = is_aja and aja_kwargs["enable_overlay"]
+            rdma = aja_kwargs["rdma"]
+            is_overlay_enabled = aja_kwargs["enable_overlay"]
             source_block_size = width * height * 4 * 4
-            source_num_blocks = 3 if is_rdma else 4
+            source_num_blocks = 3 if rdma else 4
+        elif self.source.lower() == "yuan":
+            yuan_kwargs = self.kwargs("yuan")
+            source = QCAPSourceOp(self, name="yuan", **yuan_kwargs)
+
+            # 4 bytes/channel, 4 channels
+            width = yuan_kwargs["width"]
+            height = yuan_kwargs["height"]
+            rdma = yuan_kwargs["rdma"]
+            source_block_size = width * height * 4 * 4
+            source_num_blocks = 3 if rdma else 4
         else:
             width = 854
             height = 480
@@ -104,7 +115,9 @@ class EndoscopyApp(Application):
             num_blocks=source_num_blocks,
         )
         if record_type is not None:
-            if ((record_type == "input") and is_aja) or (record_type == "visualizer"):
+            if ((record_type == "input") and (self.source != "replayer")) or (
+                record_type == "visualizer"
+            ):
                 recorder_format_converter = FormatConverterOp(
                     self,
                     name="recorder_format_converter",
@@ -115,10 +128,7 @@ class EndoscopyApp(Application):
                 name="recorder", fragment=self, **self.kwargs("recorder")
             )
 
-        if is_aja:
-            config_key_name = "format_converter_aja"
-        else:
-            config_key_name = "format_converter_replayer"
+        config_key_name = "format_converter_" + self.source.lower()
 
         cuda_stream_pool = CudaStreamPool(
             self,
@@ -173,7 +183,7 @@ class EndoscopyApp(Application):
             host_allocator=UnboundedAllocator(self, name="host_allocator"),
         )
 
-        if (record_type == "visualizer") and not is_aja:
+        if (record_type == "visualizer") and (self.source == "replayer"):
             visualizer_allocator = BlockMemoryPool(self, name="allocator", **source_pool_kwargs)
         else:
             visualizer_allocator = None
@@ -183,11 +193,11 @@ class EndoscopyApp(Application):
             name="holoviz",
             width=width,
             height=height,
-            enable_render_buffer_input=is_aja_overlay_enabled,
-            enable_render_buffer_output=is_aja_overlay_enabled or record_type == "visualizer",
+            enable_render_buffer_input=is_overlay_enabled,
+            enable_render_buffer_output=is_overlay_enabled or record_type == "visualizer",
             allocator=visualizer_allocator,
             cuda_stream_pool=cuda_stream_pool,
-            **self.kwargs("holoviz_overlay" if is_aja_overlay_enabled else "holoviz"),
+            **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
         )
 
         # Flow definition
@@ -196,19 +206,21 @@ class EndoscopyApp(Application):
         self.add_flow(
             source,
             format_converter,
-            {("video_buffer_output" if is_aja else "output", "source_video")},
+            {("video_buffer_output" if self.source != "replayer" else "output", "source_video")},
         )
         self.add_flow(format_converter, lstm_inferer)
-        if is_aja_overlay_enabled:
+        if is_overlay_enabled:
             # Overlay buffer flow between AJA source and visualizer
             self.add_flow(source, visualizer, {("overlay_buffer_output", "render_buffer_input")})
             self.add_flow(visualizer, source, {("render_buffer_output", "overlay_buffer_input")})
         else:
             self.add_flow(
-                source, visualizer, {("video_buffer_output" if is_aja else "output", "receivers")}
+                source,
+                visualizer,
+                {("video_buffer_output" if self.source != "replayer" else "output", "receivers")},
             )
         if record_type == "input":
-            if is_aja:
+            if self.source != "replayer":
                 self.add_flow(
                     source,
                     recorder_format_converter,
@@ -239,10 +251,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja"],
+        choices=["replayer", "aja", "yuan"],
         default="replayer",
         help=(
-            "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
+            "If 'replayer', replay a prerecorded video. Otherwise use a "
             "capture card as the source (default: %(default)s)."
         ),
     )

@@ -401,14 +401,18 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd,ba,activ,Activ,dne,unexpect,hsi || exit_code=1
+                          -L nd,ba,activ,Activ,dne,unexpect,hsi \
+                          --exclude-file codespell.txt || exit_code=1
 
     echo "Linting CMake"
     cmakelint --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs \
               $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*") || exit_code=1 
 
-
     popd > /dev/null
+
+    if [ $exit_code == 0 ]; then
+        echo "Everything looks good!"
+    fi
 
     exit $exit_code
 }
