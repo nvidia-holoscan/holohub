@@ -275,7 +275,7 @@ Make sure you build the application (if applicable) before running it.
   ./run launch endoscopy_tool_tracking python --nsys_profile
 ```
 
-This will create a Nsight Sytems report file in the application working directory. Information on the generated report file is printed on the end of the application log:
+This will create a Nsight Systems report file in the application working directory. Information on the generated report file is printed on the end of the application log:
 
 ```
 Generating '/tmp/nsys-report-bcd8.qdstrm'
