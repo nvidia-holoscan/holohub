@@ -112,17 +112,18 @@ void adv_net_format_eth_addr(char *dst, std::string addr) {
 }
 
 bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
-  const auto burst_pool = rte_mempool_lookup("TX_BURST_POOL");
-
-  if (burst_pool == nullptr) {
-    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {}", burst->hdr.hdr.port_id);
-    return false;
-  }
-
   const auto append = "_POOL_P" +
                 std::to_string(burst->hdr.hdr.port_id) +
                 "_Q" +
                 std::to_string(burst->hdr.hdr.q_id);
+
+  const auto burst_pool_name = std::string("TX_BURST") + append;
+  const auto burst_pool = rte_mempool_lookup(burst_pool_name.c_str());
+  if (burst_pool == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
+      burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return false;
+  }
 
   const std::string cpu_pool_str = std::string("TX_CPU") + append;
   auto cpu_pool   = rte_mempool_lookup(cpu_pool_str.c_str());
@@ -155,15 +156,18 @@ bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst) {
 
 
 AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst) {
-  const auto burst_pool = rte_mempool_lookup("TX_BURST_POOL");
-  if (burst_pool == nullptr) {
-    return AdvNetStatus::NULL_PTR;
-  }
-
   const auto append = "_POOL_P" +
                 std::to_string(burst->hdr.hdr.port_id) +
                 "_Q" +
                 std::to_string(burst->hdr.hdr.q_id);
+
+  const auto burst_pool_name = std::string("TX_BURST") + append;
+  const auto burst_pool = rte_mempool_lookup(burst_pool_name.c_str());
+  if (burst_pool == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
+      burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;;
+  }
 
   const std::string cpu_pool_str = std::string("TX_CPU") + append;
   auto cpu_pool   = rte_mempool_lookup(cpu_pool_str.c_str());
@@ -360,7 +364,12 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
 
 
 void adv_net_free_tx_burst(AdvNetBurstParams *burst) {
-  auto burst_pool = rte_mempool_lookup("TX_BURST_POOL");
+  const auto append = "_POOL_P" +
+                std::to_string(burst->hdr.hdr.port_id) +
+                "_Q" +
+                std::to_string(burst->hdr.hdr.q_id);
+  const auto name = "TX_BURST" + append;
+  auto burst_pool = rte_mempool_lookup(name.c_str());
   if (burst->cpu_pkts != nullptr) {
     rte_mempool_put(burst_pool, (void *)burst->cpu_pkts);
   }
