@@ -38,20 +38,20 @@ struct ThreePulseCancellerData {
 };
 
 struct DopplerData {
-  DopplerData(tensor_t<complex_t, 3> *_tpcView,
-              tensor_t<float_t, 1> *_cancelMask,
+  DopplerData(tensor_t<complex_t, 3> _tpcView,
+              tensor_t<float_t, 1> _cancelMask,
               cudaStream_t _stream)
     : tpcView(_tpcView), cancelMask(_cancelMask), stream(_stream)  {}
-  tensor_t<complex_t, 3> *tpcView;
-  tensor_t<float_t, 1> *cancelMask;
+  tensor_t<complex_t, 3> tpcView;
+  tensor_t<float_t, 1> cancelMask;
   cudaStream_t stream;
 };
 
 struct CFARData {
-  CFARData(tensor_t<complex_t, 3> *_tpcView,
+  CFARData(tensor_t<complex_t, 3> _tpcView,
            cudaStream_t _stream)
     : tpcView(_tpcView), stream(_stream)  {}
-  tensor_t<complex_t, 3> *tpcView;
+  tensor_t<complex_t, 3> tpcView;
   cudaStream_t stream;
 };
 
@@ -117,8 +117,9 @@ class PulseCompressionOp : public Operator {
   Parameter<int64_t> numChannels;
   index_t numSamplesRnd;
 
-  tensor_t<complex_t, 1> *waveformView = nullptr;
-  tensor_t<float_t, 0> *norms = nullptr;
+  tensor_t<complex_t, 1> waveformView;
+  tensor_t<complex_t, 0> norms;
+  tensor_t<complex_t, 3> zeroPaddedInput;
 };  // PulseCompressionOp
 
 class ThreePulseCancellerOp : public Operator {
@@ -157,8 +158,8 @@ class ThreePulseCancellerOp : public Operator {
   index_t numCompressedSamples;
   index_t numPulsesRnd;
 
-  tensor_t<float_t, 1> *cancelMask = nullptr;
-  tensor_t<complex_t, 3> *tpcView = nullptr;
+  tensor_t<float_t, 1> cancelMask;
+  tensor_t<complex_t, 3> tpcView;
 };  // ThreePulseCancellerOp
 
 class DopplerOp : public Operator {
@@ -253,11 +254,11 @@ class CFAROp : public Operator {
   static const constexpr float pfa = 1e-5f;
   size_t transmits;
 
-  tensor_t<float_t, 3> *normT = nullptr;
-  tensor_t<float_t, 3> *ba = nullptr;
-  tensor_t<int, 3> *dets = nullptr;
-  tensor_t<float_t, 3> *xPow = nullptr;
-  tensor_t<float_t, 2> *cfarMaskView = nullptr;
+  tensor_t<float_t, 3> normT;
+  tensor_t<float_t, 3> ba;
+  tensor_t<int, 3> dets;
+  tensor_t<float_t, 3> xPow;
+  tensor_t<float_t, 2> cfarMaskView;
 };  // CFAROp
 
 }  // namespace holoscan::ops
