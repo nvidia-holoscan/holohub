@@ -83,3 +83,5 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   volume_renderer
                                   XrFrameOp
                                   XrTransformOp)
+
+add_holohub_application(webrtc_video_server)

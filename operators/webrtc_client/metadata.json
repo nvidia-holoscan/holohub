@@ -1,0 +1,32 @@
+{
+	"operator": {
+		"name": "webrtc_client",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["WebRTC", "Client", "Browser", "Video"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"ranking": 1,
+		"dependencies": {
+			"libraries": [
+				{
+					"name": "aiortc",
+					"version": "1.5.0"
+				}
+			]
+		}
+	}
+}
