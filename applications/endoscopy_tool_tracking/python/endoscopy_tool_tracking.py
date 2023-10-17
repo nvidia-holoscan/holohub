@@ -45,7 +45,7 @@ class EndoscopyApp(Application):
         record_type : {None, "input", "visualizer"}, optional
             Set to "input" if you want to record the input video stream, or
             "visualizer" if you want to record the visualizer output.
-        source : {"replayer", "aja", "yuan"}
+        source : {"replayer", "aja", "deltacast", "yuan"}
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA or Yuan
             capture card is used.
