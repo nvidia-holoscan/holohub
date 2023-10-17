@@ -128,6 +128,7 @@ struct VolumeRendererOp::Impl {
   Parameter<std::vector<IOSpec*>> settings_;
   Parameter<std::vector<IOSpec*>> merge_settings_;
   Parameter<std::string> config_file_;
+  Parameter<std::string> write_config_file_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<uint32_t> alloc_width_;
   Parameter<uint32_t> alloc_height_;
@@ -288,15 +289,14 @@ void VolumeRendererOp::start() {
     throw std::runtime_error("cudaStreamCreate failed");
   }
 
-  // setup renderer by reading settings from the configuration file
-  {
-    const std::string config_file_name = impl_->config_file_.has_value()
-                                             ? impl_->config_file_.get()
-                                             : impl_->config_file_.default_value();
-    std::ifstream input_file_stream(config_file_name);
-    if (!input_file_stream) { throw std::runtime_error("Could not open configuration"); }
+  if (!impl_->config_file_.get().empty()) {
+    // setup renderer by reading settings from the configuration file
+    std::ifstream input_file_stream(impl_->config_file_.get());
+    if (!input_file_stream) {
+      throw std::runtime_error("Could not open configuration for reading");
+    }
 
-    nlohmann::json settings = nlohmann::json::parse(input_file_stream);
+    const nlohmann::json settings = nlohmann::json::parse(input_file_stream);
 
     // set the configuration from the settings
     impl_->json_interface_->MergeSettings(settings);
@@ -305,11 +305,6 @@ void VolumeRendererOp::start() {
       auto& dataset_settings = settings.at("dataset");
       impl_->dataset_.SetFrameDuration(std::chrono::duration<float, std::chrono::seconds::period>(
           dataset_settings.value("frameDuration", 1.f)));
-    }
-
-    {
-      clara::viz::DataCropInterface::AccessGuard access(impl_->data_crop_interface_);
-      impl_->limits_ = access->limits.Get();
     }
   }
 }
@@ -340,8 +335,15 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
   spec.param(impl_->config_file_,
              "config_file",
              "Configuration file",
-             "Configuration file",
-             std::string("./configs/ctnv_bb_er.json"));
+             "Name of the JSON renderer configuration file to load",
+             std::string(""));
+  spec.param(impl_->write_config_file_,
+             "write_config_file",
+             "Write config settings file",
+             "Deduce config settings from volume data and write to file. Sets a light in correct "
+             "distance. Sets a transfer function using the histogram of the data. Writes the "
+             "JSON configuration to the file with the given name",
+             std::string(""));
   spec.param(impl_->allocator_,
              "allocator",
              "Allocator",
@@ -399,6 +401,32 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   if (new_volume) {
     impl_->dataset_.Configure(impl_->data_config_interface_);
     impl_->dataset_.Set(*impl_->data_interface_.get());
+
+    // the volume is defined, if the config file is empty we can deduce settings now
+    if (impl_->config_file_.get().empty()) {
+      impl_->json_interface_->DeduceSettings(clara::viz::ViewMode::CINEMATIC);
+    }
+
+    if (!impl_->write_config_file_.get().empty()) {
+      // get the settings and write to file
+      const nlohmann::json settings = impl_->json_interface_->GetSettings();
+      std::ofstream output_file_stream(impl_->write_config_file_.get());
+      if (!output_file_stream) {
+        throw std::runtime_error("Could not open configuration for writing");
+      }
+      output_file_stream << settings;
+    }
+
+    {
+      clara::viz::DataCropInterface::AccessGuard access(impl_->data_crop_interface_);
+      impl_->limits_ = access->limits.Get();
+      if (impl_->limits_.empty()) {
+        impl_->limits_ = {clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f)};
+      }
+    }
   }
 
   // get the input buffers
@@ -452,8 +480,14 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
 
   // update cameras
   {
+    std::string camera_name;
+    {
+      clara::viz::ViewInterface::AccessGuard access(impl_->view_interface_);
+      camera_name = access->GetView()->camera_name;
+    }
+
     clara::viz::CameraInterface::AccessGuard access(impl_->camera_interface_);
-    auto camera = access->GetCamera();
+    auto camera = access->GetCamera(camera_name);
 
     auto left_pose = input.receive<nvidia::gxf::Pose3D>("left_camera_pose");
     if (left_pose) { camera->left_eye_pose = toMatrix(*left_pose); }
@@ -474,6 +508,11 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     auto camera_matrix = input.receive<std::shared_ptr<std::array<float, 16>>>("camera_matrix");
     if (camera_matrix && camera_matrix.value()) {
       // convert the camera matrix to eye, up and look_at vectors
+      clara::viz::Vector3f look_at(camera_matrix.value()->at(2 + 0 * 4),
+                                   camera_matrix.value()->at(2 + 1 * 4),
+                                   camera_matrix.value()->at(2 + 2 * 4));
+      camera->look_at.Set(look_at);
+
       clara::viz::Vector3f eye(camera_matrix.value()->at(3 + 0 * 4),
                                camera_matrix.value()->at(3 + 1 * 4),
                                camera_matrix.value()->at(3 + 2 * 4));
@@ -494,11 +533,6 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
       up(2) *= inv_length;
       up(1) = -up(1);
       camera->up.Set(up);
-
-      clara::viz::Vector3f look_at(camera_matrix.value()->at(2 + 0 * 4),
-                                   camera_matrix.value()->at(2 + 1 * 4),
-                                   camera_matrix.value()->at(2 + 2 * 4));
-      camera->look_at.Set(look_at);
     }
 
     auto depth_range = input.receive<nvidia::gxf::Vector2f>("depth_range");

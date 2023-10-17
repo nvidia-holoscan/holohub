@@ -95,9 +95,10 @@ class SharedDataSinkOp : public Operator {
 
 class App : public holoscan::Application {
  public:
-  App(const std::string& render_config_file, const std::string& density_volume_file,
-      const std::string& mask_volume_file, int count)
+  App(const std::string& render_config_file, const std::string& write_config_file,
+      const std::string& density_volume_file, const std::string& mask_volume_file, int count)
       : render_config_file_(render_config_file),
+        write_config_file_(write_config_file),
         density_volume_file_(density_volume_file),
         mask_volume_file_(mask_volume_file),
         count_(count) {}
@@ -106,7 +107,9 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Resource> allocator = make_resource<UnboundedAllocator>("allocator");
+    const std::shared_ptr<Resource> allocator = make_resource<UnboundedAllocator>("allocator");
+    const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
+        make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
     auto density_volume_loader =
         make_operator<ops::VolumeLoaderOp>("density_volume_loader",
@@ -128,6 +131,7 @@ class App : public holoscan::Application {
     auto volume_renderer =
         make_operator<ops::VolumeRendererOp>("volume_renderer",
                                              Arg("config_file", render_config_file_),
+                                             Arg("write_config_file", write_config_file_),
                                              Arg("allocator", allocator),
                                              Arg("alloc_width", 1024u),
                                              Arg("alloc_height", 768u));
@@ -137,7 +141,8 @@ class App : public holoscan::Application {
         // stop application after short duration when testing
         make_condition<CountCondition>(count_),
         Arg("window_title", std::string("Volume Rendering with ClaraViz")),
-        Arg("enable_camera_pose_output", true));
+        Arg("enable_camera_pose_output", true),
+        Arg("cuda_stream_pool", cuda_stream_pool));
 
     // volume data loader
     add_flow(density_volume_loader,
@@ -184,6 +189,7 @@ class App : public holoscan::Application {
   }
 
   const std::string render_config_file_;
+  const std::string write_config_file_;
   const std::string density_volume_file_;
   const std::string mask_volume_file_;
   const int count_;
@@ -194,13 +200,15 @@ int main(int argc, char** argv) {
   const std::string density_volume_file_default("../data/volume_rendering/highResCT.mhd");
   const std::string mask_volume_file_default("../data/volume_rendering/smoothmasks.seg.mhd");
 
-  std::string render_config_file;
+  std::string render_config_file(render_config_file_default);
+  std::string write_config_file;
   std::string density_volume_file;
   std::string mask_volume_file;
   int count = -1;
 
   struct option long_options[] = {{"help", no_argument, 0, 'h'},
                                   {"config", required_argument, 0, 'c'},
+                                  {"write_config", required_argument, 0, 'w'},
                                   {"density", required_argument, 0, 'd'},
                                   {"mask", required_argument, 0, 'm'},
                                   {"count", optional_argument, 0, 'n'},
@@ -210,20 +218,23 @@ int main(int argc, char** argv) {
   while (true) {
     int option_index = 0;
 
-    const int c = getopt_long(argc, argv, "hc:d:m:n:", long_options, &option_index);
+    const int c = getopt_long(argc, argv, "hc:w:d:m:e", long_options, &option_index);
 
     if (c == -1) { break; }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
-        std::cout << "Holoscan ClaraViz volume renderer."
+        std::cout << "Holoscan ClaraViz volume renderer." << std::endl
                   << "Usage: " << argv[0] << " [options]" << std::endl
                   << "Options:" << std::endl
                   << "  -h, --help                            Display this information" << std::endl
                   << "  -c <FILENAME>, --config <FILENAME>    Name of the renderer JSON "
                      "configuration file to load (default '"
                   << render_config_file_default << "')" << std::endl
+                  << "  -w <FILENAME>, --write_config <FILENAME> Name of the renderer JSON "
+                     "configuration file to write to (default '')"
+                  << std::endl
                   << "  -d <FILENAME>, --density <FILENAME>   Name of density volume file to load "
                      "(default '"
                   << density_volume_file_default << "')" << std::endl
@@ -237,6 +248,10 @@ int main(int argc, char** argv) {
 
       case 'c':
         render_config_file = argument;
+        break;
+
+      case 'w':
+        write_config_file = argument;
         break;
 
       case 'd':
@@ -259,14 +274,13 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (render_config_file.empty()) { render_config_file = render_config_file_default; }
   if (density_volume_file.empty()) {
     density_volume_file = density_volume_file_default;
     mask_volume_file = mask_volume_file_default;
   }
 
   auto app = holoscan::make_application<App>(
-      render_config_file, density_volume_file, mask_volume_file, count);
+      render_config_file, write_config_file, density_volume_file, mask_volume_file, count);
   app->run();
 
   holoscan::log_info("Application has finished running.");
