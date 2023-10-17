@@ -101,7 +101,6 @@ void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
   output.emit(volume.permute_axis_, "permute_axis");
   output.emit(volume.flip_axes_, "flip_axes");
   output.emit(volume.space_origin_, "space_origin");
-  output.emit(volume.space_directions_, "space_directions");
 
   std::array<float, 3> extent;
   nvidia::gxf::Shape shape = volume.tensor_->shape();
