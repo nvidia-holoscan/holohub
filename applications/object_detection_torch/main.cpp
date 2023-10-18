@@ -37,21 +37,6 @@ class App : public holoscan::Application {
     datapath = path;
   }
 
-  bool is_platform_aarch64() {
-    struct utsname buffer;
-
-    if (uname(&buffer) == 0) {
-      std::string machine(buffer.machine);
-
-      if (machine.find("arm") != std::string::npos
-          || machine.find("aarch64") != std::string::npos) {
-        return true;
-      }
-    }
-    // Return false in all other conditions.
-    return false;
-  }
-
   void compose() override {
     using namespace holoscan;
 
@@ -74,10 +59,6 @@ class App : public holoscan::Application {
 
     ops::InferenceOp::DataMap model_path_map;
     std::string model_file_name = "frcnn_resnet50_t.pt";
-
-    if (is_platform_aarch64()) {
-      model_file_name = "frcnn_resnet50_t_aarch64.pt";
-    }
 
     model_path_map.insert("detect", datapath + "/" + model_file_name);
 

@@ -60,11 +60,9 @@ add_custom_target(object_detection_torch_yaml
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/postprocessing.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/frcnn_resnet50_t.yaml"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.yaml"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/frcnn_resnet50_t_aarch64.yaml"
-                                                  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t_aarch64.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/labels.txt"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/labels.txt"
-    DEPENDS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "frcnn_resnet50_t_aarch64.yaml" "labels.txt"
-    BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "frcnn_resnet50_t_aarch64.yaml" "labels.txt"
+    DEPENDS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+    BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
 )
 add_dependencies(object_detection_torch object_detection_torch_yaml)
