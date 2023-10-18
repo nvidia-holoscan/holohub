@@ -447,6 +447,11 @@ launch() {
     # Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
     nvidia_icd_json=$(find /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f,l -print -quit 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
 
+    # Find the nvoptix.bin file
+    if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
+        mount_nvoptix_bin="-v /usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro"
+    fi
+
     # Allow X11 forwarding over SSH
     if [[ $ssh_x11 -gt 0 ]]; then
 	XAUTH=/tmp/.docker.xauth
@@ -491,6 +496,10 @@ launch() {
     #   Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
     #   The configurations files are installed to different locations when installing
     #   with deb packages or with run files, so we look at both places
+    #
+    # ${mount_nvoptix_bin}
+    #   Mount Optix denoiser weights.
+
 
     if [[ $print_verbose -gt 0 ]]; then
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
@@ -516,6 +525,7 @@ launch() {
     	${conditional_opt} \
         ${local_sdk_opt} \
         -v $nvidia_icd_json:$nvidia_icd_json:ro \
+        ${mount_nvoptix_bin} \
         ${img}
 }
 
