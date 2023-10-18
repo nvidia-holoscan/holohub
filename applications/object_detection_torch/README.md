@@ -11,9 +11,9 @@ This application need `Libtorch` for inferencing. Ensure that the Holoscan SDK i
 
 To run this application, you will need the following:
 
-- Model name: frcnn_resnet50_t.pt or frcnn_resnet50_t_aarch64.pt
-    - The model should be converted to torchscript format.  The original pytorch model can be downloaded from [pytorch model](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.fasterrcnn_resnet50_fpn.html). `frcnn_resnet50_t.pt` is used for `x86_64` and `frcnn_resnet50_t_aarch64.pt` is used for `aarch64` platform.
-- Model configuration file: frcnn_resnet50_t.yaml or frcnn_resnet50_t_aarch64.yaml
+- Model name: frcnn_resnet50_t.pt
+    - The model should be converted to torchscript format.  The original pytorch model can be downloaded from [pytorch model](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.fasterrcnn_resnet50_fpn.html). `frcnn_resnet50_t.pt` is used
+- Model configuration file: frcnn_resnet50_t.yaml
     - Model config documents input and output nodes, their dimensions and respective datatype.
 - Labels file: labels.txt
     - Labels for identified objects.
