@@ -67,6 +67,12 @@ if(BUILD_TESTING)
   set_tests_properties(endoscopy_tool_tracking_cpp_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # Add benchmarking in testing
+  add_test(NAME endoscopy_tool_tracking_cpp_benchmarking
+           COMMAND sh -c "python3 tutorials/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -i 1 -r 10 -m 1000 -d ./endoscopy_1 --sched greedy && python3 tutorials/holoscan_flow_benchmarking/analyze.py -g ./endoscopy_1/log* --avg --stddev --max --tail --flatness --save-csv && mv avg_values.csv avg_values_$(date +%Y-%m-%d).csv && mv stddev_values.csv stddev_values_$(date +%Y-%m-%d).csv && mv max_values.csv max_values_$(date +%Y-%m-%d).csv && mv tail_values.csv tail_values_$(date +%Y-%m-%d).csv && mv flatness_values.csv flatness_values_$(date +%Y-%m-%d).csv && python3 bar_plot_generic_datewise.py max_values_*.csv && python3 bar_plot_generic_datewise.py tail_values_*.csv && python3 bar_plot_generic_datewise.py flatness_values_*.csv && python3 bar_plot_avg_datewise.py avg_values_*.csv stddev_values_*.csv"
+           WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  set_tests_properties(endoscopy_tool_tracking_cpp_benchmarking PROPERTIES TIMEOUT 600)
 endif()
 
 # Flow benchmarking
