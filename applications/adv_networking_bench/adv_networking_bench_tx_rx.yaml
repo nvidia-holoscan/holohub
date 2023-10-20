@@ -21,7 +21,7 @@ delay_step: 0.01
 
 scheduler:
   check_recession_period_ms: 0
-  worker_thread_number: 7
+  worker_thread_number: 5
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
@@ -61,7 +61,7 @@ advanced_network:
             cpu_cores: "11"
             max_packet_size: 9000     # Maximum payload size
             num_concurrent_batches: 15   # Number of batches that can be used at any time
-            batch_size: 10240              # Number of packets in a batch
+            batch_size: 5120              # Number of packets in a batch
             output_port: "bench_rx_out"
         flows:
           - name: "ADC Samples"

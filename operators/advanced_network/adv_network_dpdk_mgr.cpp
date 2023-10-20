@@ -890,7 +890,7 @@ void PrintDpdkStats() {
       printf(" - Transmit bytes:      %lu\n", eth_stats.obytes);
       printf(" - Missed packets:      %lu\n", eth_stats.imissed);
       printf(" - Errored packets:     %lu\n", eth_stats.ierrors);
-      printf(" - RX no mbufs:         %lu\n", eth_stats.rx_nombuf);
+      printf(" - RX out of buffers:   %lu\n", eth_stats.rx_nombuf);
 
       printf("\nXStats\n");
 
