@@ -357,7 +357,7 @@ class AdvNetworkingBenchRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<AdvNetBurstParams>("burst_in");
+    spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     spec.param<bool>(hds_, "split_boundary", "Header-data split boundary",
         "Byte boundary where header and data is split", false);
     spec.param<bool>(gpu_direct_, "gpu_direct", "GPUDirect enabled",
@@ -370,9 +370,31 @@ class AdvNetworkingBenchRxOp : public Operator {
         "Header size", "Header size on each packet from L4 and below", 42);
   }
 
+  void free_bufs() {
+    while (out_q.size() > 0) {
+      const auto first = out_q.front();
+      if (cudaEventQuery(first.evt) == cudaSuccess) {
+        for (auto m = 0; m < first.num_batches; m++) {
+          adv_net_free_all_burst_pkts_and_burst(first.msg[m]);
+        }
+        out_q.pop();
+      } else {
+        break;
+      }
+    }
+  }
+
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
     int64_t ttl_bytes_in_cur_batch_   = 0;
-    auto burst = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in").value();
+
+    auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    if (!burst_opt) {
+      free_bufs();
+      return;
+    }
+
+    auto burst = burst_opt.value();
+
     ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
@@ -420,21 +442,14 @@ class AdvNetworkingBenchRxOp : public Operator {
     }
 
     aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
+    cur_msg_.msg[cur_msg_.num_batches++] = burst;
 
     if (aggr_pkts_recv_ >= batch_size_.get()) {
       // Do some work on full_batch_data_h_ or full_batch_data_d_
       aggr_pkts_recv_ = 0;
 
       if (gpu_direct_.get()) {
-        while (out_q.size() > 0) {
-          const auto first = out_q.front();
-          if (cudaEventQuery(first.evt) == cudaSuccess) {
-            adv_net_free_all_burst_pkts_and_burst(first.msg);
-            out_q.pop();
-          } else {
-            break;
-          }
-        }
+        free_bufs();
 
         if (out_q.size() == num_concurrent) {
           HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
@@ -447,8 +462,12 @@ class AdvNetworkingBenchRxOp : public Operator {
                       nom_payload_size_,
                       batch_size_.get(),
                       streams_[cur_idx]);
+
         cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-        out_q.push(RxMsg{burst, events_[cur_idx]});
+
+        cur_msg_.evt = events_[cur_idx];
+        out_q.push(cur_msg_);
+        cur_msg_.num_batches = 0;
 
         if (cudaGetLastError() != cudaSuccess)  {
           HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
@@ -460,21 +479,23 @@ class AdvNetworkingBenchRxOp : public Operator {
         adv_net_free_all_burst_pkts_and_burst(burst);
       }
 
-      burst_bufs_[cur_idx] = burst;
       cur_idx = (++cur_idx % num_concurrent);
     }
   }
 
  private:
+  static constexpr int num_concurrent   = 4;   // Number of concurrent batches processing
+  static constexpr int MAX_ANO_BATCHES  = 10;  // Batches from ANO for one app batch
+
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
-    std::shared_ptr<AdvNetBurstParams> msg;
+    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
+    int num_batches;
     cudaEvent_t evt;
   };
 
-  static constexpr int num_concurrent = 4;
+  RxMsg   cur_msg_{};
   std::queue<RxMsg> out_q;
-  std::array<std::shared_ptr<AdvNetBurstParams>, num_concurrent> burst_bufs_{nullptr};
   int     burst_buf_idx_ = 0;                // Index into burst_buf_idx_ of current burst
   int64_t ttl_bytes_recv_ = 0;               // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                // Total packets received in operator
