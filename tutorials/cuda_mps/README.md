@@ -34,9 +34,9 @@ CUDA MPS provides many options to customize resource allocation for MPS clients.
 an option to limit the maximum number of GPU threads that can 
 be used by every MPS client. 
 The `CUDA_MPS_ACTIVE_THREAD_PERCENTAGE` environment variable can be used to control this limit
-system-wide. This limit can also be set by communicating the active thread percentage to the control daemon with  
+system-wide. This limit can also be configured by communicating the active thread percentage to the control daemon with  
 `echo "set_default_active_thread_percentage <Thread Percentage>" | nvidia-cuda-mps-control`.
-Our `start_mps_daemon.sh` script also takes this percentage as the first argument.
+Our `start_mps_daemon.sh` script takes this percentage as the first argument as well.
 
 ```bash
 ./start_mps_daemon.sh <Active Thread Percentage>
@@ -48,6 +48,9 @@ environment variable separately for each application. It is elaborated in detail
 
 There are other customizations available in CUDA MPS as well. Please refer to the CUDA MPS
 [documentation](https://docs.nvidia.com/deploy/mps/index.html#topic_5_1_1) to know more about them.
+Please note that concurrently running Holoscan applications may increase the GPU device memory
+footprint. Therefore, one needs to be careful about hitting the GPU memory size and [potential
+delay due to page faults](https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/).
 
 ## Performance Benefits
 
