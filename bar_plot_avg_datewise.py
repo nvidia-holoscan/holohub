@@ -58,6 +58,10 @@ def main():
     plt.tight_layout()
     # plt.show()
     plt.savefig(f"avg_{dates[-1]}.png")
+    # print the image file as a ctest measurement output
+    print(
+        f'<CTestMeasurementFile type="image/png" name="average">avg_{dates[-1]}.png</CTestMeasurementFile>'
+    )
 
 
 if __name__ == "__main__":
