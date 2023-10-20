@@ -15,6 +15,8 @@ def main():
         print("Usage: python bar_plot_generic_datewise.py <filename1> <filename2> ...")
         return
     filenames = sys.argv[1:]
+    # sort the filenames by date where filename format is <metric_name>_<date>.csv
+    filenames.sort(key=lambda x: x.split("_")[-1].split(".")[0])
     # read all the single values from all files as arrays. All files have a value of "value,"
     all_values = []
     for filename in filenames:

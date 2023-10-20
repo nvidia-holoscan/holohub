@@ -18,6 +18,8 @@ def main():
             "Usage: python bar_plot_avg_datewise <avg filename1> <avg filename2> ... <stddev filename1> <stddev filename2>"
         )
         return
+    # sort the filenames by date where filename format is <metric_name>_<date>.csv
+    filenames.sort(key=lambda x: x.split("_")[-1].split(".")[0])
     # read all the avg and stddev values
     all_avg_values = []
     all_stddev_values = []
