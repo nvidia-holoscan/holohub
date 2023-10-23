@@ -89,7 +89,7 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
 
 /* The python module */
 
-PYBIND11_MODULE(_format_converter, m) {
+PYBIND11_MODULE(_orsi_format_converter, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------

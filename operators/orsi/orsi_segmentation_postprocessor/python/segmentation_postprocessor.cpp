@@ -76,7 +76,7 @@ class PyOrsiSegmentationPostprocessorOp : public orsi::SegmentationPostprocessor
 
 /* The python module */
 
-PYBIND11_MODULE(_segmentation_postprocessor, m) {
+PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------

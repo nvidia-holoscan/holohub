@@ -21,14 +21,14 @@
 
 #include <macros.hpp>
 
-namespace holoscan::doc::SegmentationPreprocessorOp {
+namespace holoscan::doc::OrsiSegmentationPreprocessorOp {
 
-PYDOC(SegmentationPreprocessorOp, R"doc(
+PYDOC(OrsiSegmentationPreprocessorOp, R"doc(
 Operator carrying out post-processing operations on segmentation outputs.
 )doc")
 
 // PySegmentationPreprocessorOp Constructor
-PYDOC(SegmentationPreprocessorOp_python, R"doc(
+PYDOC(OrsiSegmentationPreprocessorOp_python, R"doc(
 Operator carrying out post-processing operations on segmentation outputs.
 
 Parameters
@@ -66,5 +66,5 @@ spec : holoscan.core.OperatorSpec
     The operator specification.
 )doc")
 
-}  // namespace holoscan::doc::SegmentationPreprocessorOp
+}  // namespace holoscan::doc::OrsiSegmentationPreprocessorOp
 
