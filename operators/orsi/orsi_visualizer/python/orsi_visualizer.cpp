@@ -50,13 +50,13 @@ namespace holoscan::ops {
  * The sequence of events in this constructor is based on Fragment::make_operator<OperatorT>
  */
 
-class PyOrsiOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
+class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
  public:
   /* Inherit the constructors */
   using  orsi::OrsiVisualizationOp::OrsiVisualizationOp;
 
   // Define a constructor that fully initializes the object.
-  PyOrsiOrsiVisualizationOp(
+  PyOrsiVisualizationOp(
       Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
       const std::string& in_tensor_name = "", const std::string& network_output_type = "softmax"s,
       const std::string& data_format = "hwc"s,
@@ -94,7 +94,7 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
 #endif
 
   py::class_< orsi::OrsiVisualizationOp,
-             PyOrsiOrsiVisualizationOp,
+             PyOrsiVisualizationOp,
              Operator,
              std::shared_ptr< orsi::OrsiVisualizationOp>>(
       m,

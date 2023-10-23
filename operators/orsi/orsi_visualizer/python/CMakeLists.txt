@@ -17,6 +17,6 @@
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET orsi_visualizer
-    CLASS_NAME "OrsiVisualizerOp"
+    CLASS_NAME "OrsiVisualizationOp"
     SOURCES orsi_visualizer.cpp
 )

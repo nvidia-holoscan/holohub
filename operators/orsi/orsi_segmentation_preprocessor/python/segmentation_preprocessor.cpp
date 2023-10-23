@@ -76,7 +76,7 @@ class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp
 
 /* The python module */
 
-PYBIND11_MODULE(_segmentation_postprocessor, m) {
+PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
@@ -98,8 +98,8 @@ PYBIND11_MODULE(_segmentation_postprocessor, m) {
              Operator,
              std::shared_ptr< orsi::SegmentationPreprocessorOp>>(
       m,
-      "SegmentationPreprocessorOp",
-      doc::SegmentationPreprocessorOp::doc_SegmentationPreprocessorOp)
+      "OrsiSegmentationPreprocessorOp",
+      doc::OrsiSegmentationPreprocessorOp::doc_OrsiSegmentationPreprocessorOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<::holoscan::Allocator>,
                     const std::string&,
@@ -114,10 +114,10 @@ PYBIND11_MODULE(_segmentation_postprocessor, m) {
            "data_format"_a = "hwc"s,
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "segmentation_postprocessor"s,
-           doc::SegmentationPreprocessorOp::doc_SegmentationPreprocessorOp_python)
+           doc::OrsiSegmentationPreprocessorOp::doc_OrsiSegmentationPreprocessorOp_python)
       .def("setup",
            & orsi::SegmentationPreprocessorOp::setup,
            "spec"_a,
-           doc::SegmentationPreprocessorOp::doc_setup);
+           doc::OrsiSegmentationPreprocessorOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

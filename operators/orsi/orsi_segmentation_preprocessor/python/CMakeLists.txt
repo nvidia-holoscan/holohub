@@ -17,6 +17,6 @@
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET orsi_segmentation_preprocessor
-    CLASS_NAME "OrsiSegmentationPreProcessorOp"
+    CLASS_NAME "OrsiSegmentationPreprocessorOp"
     SOURCES segmentation_preprocessor.cpp
 )
