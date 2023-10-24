@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  - libgxf_std.so
-
 basic_network:
   batch_size: 100            # RX message batch size
   timeout_ms: 10             # RX timeout (ms) if no new packets have arrived
