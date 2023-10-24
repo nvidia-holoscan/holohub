@@ -14,7 +14,7 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable cuda language
