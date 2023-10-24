@@ -32,8 +32,7 @@ ADD https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz /tmp/
 RUN cd /tmp && tar xf dpdk-${DPDK_VERSION}.tar.xz
 
 # Setup DPDK and apply patches from advanced network operator
-ARG ADV_NET_DIR=holohub-internal/operators/advanced_network/
-COPY deploy/dpdk_patches/*.patch /tmp/dpdk-stable-${DPDK_VERSION}/
+ARG ADV_NET_DIR=operators/advanced_network/
 COPY ${ADV_NET_DIR}/dpdk_patches/*.patch /tmp/dpdk-stable-${DPDK_VERSION}
 
 WORKDIR /tmp/dpdk-stable-${DPDK_VERSION}/
@@ -41,15 +40,12 @@ RUN patch --ignore-whitespace --fuzz 3 config/arm/meson.build /tmp/dpdk-stable-$
 RUN patch --ignore-whitespace --fuzz 3 drivers/gpu/cuda/devices.h /tmp/dpdk-stable-${DPDK_VERSION}/devices.h.patch
 RUN patch --ignore-whitespace --fuzz 3 drivers/gpu/cuda/cuda.c /tmp/dpdk-stable-${DPDK_VERSION}/cuda.c.patch
 RUN CFLAGS=-I/usr/local/cuda/include meson build -Dplatform=generic -Dc_args=-I/usr/local/cuda/include \
-        -Ddisabled_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,\
-        common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,\
-        net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,\
-        net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2
+          -Ddisabled_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2,
 RUN ninja -C build install
 RUN rm /tmp/dpdk-${DPDK_VERSION}.tar.xz
 
 # Build application
-ADD holohub-internal ${HOLOHUB_DIR}
+ADD . ${HOLOHUB_DIR}
 WORKDIR ${HOLOHUB_DIR}
 RUN ls -lart ${HOLOHUB_DIR}
 RUN ./run build network_radar_pipeline
