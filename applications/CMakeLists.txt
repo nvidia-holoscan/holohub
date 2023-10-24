@@ -71,6 +71,10 @@ add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_p
 
 add_holohub_application(tao_peoplenet)
 
+add_holohub_application(network_radar_pipeline DEPENDS
+                        OPERATORS basic_network
+                                  advanced_network)
+
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(volume_rendering DEPENDS
