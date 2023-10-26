@@ -96,7 +96,7 @@ class App : public holoscan::Application {
         "bench_rx",
         from_config("advanced_network.packet_gen"),
         from_config("radar_pipeline"));
-      add_flow(adv_net_rx, adv_rx_pkt, {{"burst_out", "burst_in"}});
+      add_flow(adv_net_rx, adv_rx_pkt, {{"bench_rx_out", "burst_in"}});
       add_flow(adv_rx_pkt, pc,         {{"rf_out", "rf_in"}});
     } else {
       // Basic
