@@ -141,7 +141,8 @@ int main(int argc, char** argv) {
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path += "/" + std::string(argv[1]);
   app->config(config_path);
-
+  app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
+        "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
   return 0;
