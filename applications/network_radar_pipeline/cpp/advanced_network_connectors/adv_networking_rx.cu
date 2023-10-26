@@ -320,8 +320,9 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
                         max_waveform_id,  // only needed if spoofing packets
                         streams_[cur_idx]);
       ttl_pkts_recv_ += aggr_pkts_recv_;
+      cudaStreamSynchronize(streams_[cur_idx]);
 
-      buffer_track.transfer(cudaMemcpyDeviceToHost);  // todo Remove unnecessary copies
+      buffer_track.transfer(cudaMemcpyDeviceToHost, streams_[cur_idx]);  // todo Remove unnecessary copies
       for (size_t i = 0; i < buffer_track.buffer_size; i++) {
         const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
         if (!buffer_track.received_end_h[pos_wrap]) {
@@ -349,7 +350,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
           HOLOSCAN_LOG_INFO("Next waveform expected: {}", buffer_track.pos);
         }
 
-        buffer_track.transfer(cudaMemcpyHostToDevice);  // todo Remove unnecessary copies
+        buffer_track.transfer(cudaMemcpyHostToDevice, streams_[cur_idx]);  // todo Remove unnecessary copies
         break;
       }
 

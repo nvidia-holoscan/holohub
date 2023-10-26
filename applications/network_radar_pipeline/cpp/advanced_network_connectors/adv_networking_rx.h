@@ -64,7 +64,7 @@ struct AdvBufferTracking {
     cudaMemset(received_end_d, 0, buffer_size*sizeof(bool));
   }
 
-  cudaError_t transferSamples(const cudaMemcpyKind kind) {
+  cudaError_t transferSamples(const cudaMemcpyKind kind, cudaStream_t stream) {
     void *src;
     void *dst;
 
@@ -75,10 +75,10 @@ struct AdvBufferTracking {
       src = sample_cnt_d;
       dst = sample_cnt_h;
     }
-    return cudaMemcpy(dst, src, buffer_size*sizeof(int), kind);
+    return cudaMemcpyAsync(dst, src, buffer_size*sizeof(int), kind, stream);
   }
 
-  cudaError_t transferEndArray(const cudaMemcpyKind kind) {
+  cudaError_t transferEndArray(const cudaMemcpyKind kind, cudaStream_t stream) {
     void *src;
     void *dst;
 
@@ -92,17 +92,17 @@ struct AdvBufferTracking {
       HOLOSCAN_LOG_ERROR("Unknown option {}", kind);
       return cudaErrorInvalidValue;
     }
-    return cudaMemcpy(dst, src, buffer_size*sizeof(bool), kind);
+    return cudaMemcpyAsync(dst, src, buffer_size*sizeof(bool), kind, stream);
   }
 
   // todo Faster way than two separate memcpy's?
-  cudaError_t transfer(const cudaMemcpyKind kind) {
-    cudaError_t err = transferSamples(kind);
+  cudaError_t transfer(const cudaMemcpyKind kind, cudaStream_t stream) {
+    cudaError_t err = transferSamples(kind, stream);
     if (err != cudaSuccess) {
       return err;
     }
 
-    return transferEndArray(kind);
+    return transferEndArray(kind, stream);
   }
 
   void increment() {
@@ -139,7 +139,7 @@ class AdvConnectorOpRx : public Operator {
   void stop() override;
 
  private:
-  static constexpr int num_concurrent  = 4;   // Number of concurrent batches processing
+  static constexpr int num_concurrent  = 1;   // Number of concurrent batches processing
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
 
   // Radar settings
