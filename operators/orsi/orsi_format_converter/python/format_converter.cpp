@@ -65,6 +65,8 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
                       float scale_max = 1.f, uint8_t alpha_value = static_cast<uint8_t>(255),
                       int32_t resize_height = 0, int32_t resize_width = 0, int32_t resize_mode = 0,
                       const std::vector<int> out_channel_order = std::vector<int>{},
+                      const std::vector<int> src_roi_rect = std::vector<int>{},
+                      const std::vector<int> output_img_size = std::vector<int>{},
                       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
                       const std::string& name = "format_converter")
       : orsi::FormatConverterOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
@@ -78,6 +80,8 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
                                   Arg{"resize_height", resize_height},
                                   Arg{"resize_mode", resize_mode},
                                   Arg{"out_channel_order", out_channel_order},
+                                  Arg{"src_roi_rect", src_roi_rect},
+                                  Arg{"output_img_size", output_img_size},
                                   Arg{"pool", pool}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     name_ = name;
@@ -122,6 +126,8 @@ PYBIND11_MODULE(_orsi_format_converter, m) {
                     int32_t,
                     int32_t,
                     const std::vector<int>,
+                    const std::vector<int>,
+                    const std::vector<int>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
            "fragment"_a,
@@ -137,6 +143,8 @@ PYBIND11_MODULE(_orsi_format_converter, m) {
            "resize_width"_a = 0,
            "resize_mode"_a = 0,
            "out_channel_order"_a = std::vector<int>{},
+           "src_roi_rect"_a = std::vector<int>{},
+           "output_img_size"_a = std::vector<int>{},
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "format_converter"s,
            doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp_python)
