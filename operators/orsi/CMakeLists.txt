@@ -14,6 +14,6 @@
 # limitations under the License.
 
 add_holohub_operator(orsi_format_converter)
-add_holohub_operator(orsi_segmentation_postprocessor)
 add_holohub_operator(orsi_segmentation_preprocessor)
+add_holohub_operator(orsi_segmentation_postprocessor)
 add_holohub_operator(orsi_visualizer)

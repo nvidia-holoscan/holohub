@@ -60,6 +60,10 @@ resize_mode : int, optional
     Resize mode enum value corresponding to NPP's nppiInterpolationMode (default=NPPI_INTER_CUBIC).
 channel_order : sequence of int
     Sequence of integers describing how channel values are permuted.
+src_roi_rec : sequence of int
+    Sequence of integers describing region of interest to crop.
+output_img_size : sequence of int
+    Sequence of integers describing size of output image after resizing.
 cuda_stream_pool : holoscan.resources.CudaStreamPool, optional
     CudaStreamPool instance to allocate CUDA streams.
 name : str, optional

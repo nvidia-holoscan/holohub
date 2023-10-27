@@ -45,7 +45,10 @@ data_format : str, optional
     Data format of network output.
 cuda_stream_pool : holoscan.resources.CudaStreamPool, optional
     CudaStreamPool instance to allocate CUDA streams.
-
+normalize_means : sequence of int
+    Sequence of integers describing the color channel means to use when normalizing the tensor.
+normalize_stds : sequence of int
+    Sequence of integers describing the color channel stds to use when normalizing the tensor.
 name : str, optional
     The name of the operator.
 )doc")
