@@ -95,14 +95,18 @@ struct AdvBufferTracking {
     return cudaMemcpyAsync(dst, src, buffer_size*sizeof(bool), kind, stream);
   }
 
-  // todo Faster way than two separate memcpy's?
+  //todo: Faster way than two separate memcpy's?
   cudaError_t transfer(const cudaMemcpyKind kind, cudaStream_t stream) {
-    cudaError_t err = transferSamples(kind, stream);
+    cudaError_t err;
+    err = transferSamples(kind, stream);
     if (err != cudaSuccess) {
       return err;
     }
-
-    return transferEndArray(kind, stream);
+    err = transferEndArray(kind, stream);
+    if (err != cudaSuccess) {
+      return err;
+    }
+    return cudaSuccess;
   }
 
   void increment() {
@@ -139,7 +143,7 @@ class AdvConnectorOpRx : public Operator {
   void stop() override;
 
  private:
-  static constexpr int num_concurrent  = 1;   // Number of concurrent batches processing
+  static constexpr int num_concurrent  = 4;   // Number of concurrent batches processing
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
 
   // Radar settings
@@ -159,9 +163,11 @@ class AdvConnectorOpRx : public Operator {
   struct RxMsg {
     std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
     int num_batches;
+    cudaStream_t stream;
     cudaEvent_t evt;
   };
-  void free_bufs();
+  std::vector<RxMsg> free_bufs();
+  void free_bufs_and_emit_arrays(OutputContext& op_output);
 
   RxMsg cur_msg_{};
   std::queue<RxMsg> out_q;

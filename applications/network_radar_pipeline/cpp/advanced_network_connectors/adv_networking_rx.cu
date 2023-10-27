@@ -242,10 +242,14 @@ void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize() complete");
 }
 
-void AdvConnectorOpRx::free_bufs() {
+std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
+  std::vector<AdvConnectorOpRx::RxMsg> completed;
+
+  // Loop over all batches, checking if any have completed
   while (out_q.size() > 0) {
     const auto first = out_q.front();
     if (cudaEventQuery(first.evt) == cudaSuccess) {
+      completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
         adv_net_free_all_burst_pkts_and_burst(first.msg[m]);
       }
@@ -254,6 +258,50 @@ void AdvConnectorOpRx::free_bufs() {
     else {
       break;
     }
+  }
+  return completed;
+}
+
+void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
+  std::vector<AdvConnectorOpRx::RxMsg> completed_msgs = free_bufs();
+  if (completed_msgs.empty()) {
+    return;
+  }
+  cudaStream_t stream = completed_msgs[0].stream;
+
+  buffer_track.transfer(cudaMemcpyDeviceToHost, stream);
+  cudaStreamSynchronize(stream);
+
+  for (size_t i = 0; i < buffer_track.buffer_size; i++) {
+    const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
+    if (!buffer_track.received_end_h[pos_wrap]) {
+      continue;
+    }
+
+    // Received End-of-Array (EOA) message, emit to downstream operators
+    auto params = std::make_shared<RFArray>(
+      rf_data->Slice<3>(
+        {static_cast<index_t>(pos_wrap), 0, 0, 0},
+        {matxDropDim, matxEnd, matxEnd, matxEnd}),
+      0, proc_stream);
+
+    op_output.emit(params, "rf_out");
+    HOLOSCAN_LOG_INFO("Emitting {} with {}/{} samples",
+      buffer_track.pos + i,
+      buffer_track.sample_cnt_h[pos_wrap],
+      samples_per_arr);
+
+    // Increment the tracker 'i' number of times. This allows us to not get hung on arrays
+    // where the EOA was either dropped or missed. Ex: if the EOA for array 11 was dropped,
+    // we will emit array 12 when its EOA arrives, incrementing from 10 -> 12.
+    for (size_t j = 0; j <= i; j++) {
+      buffer_track.increment();
+      HOLOSCAN_LOG_INFO("Next waveform expected: {}", buffer_track.pos);
+    }
+
+    buffer_track.transfer(cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+    break;
   }
 }
 
@@ -295,13 +343,13 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   // Once we've aggregated enough packets, do some work
   if (aggr_pkts_recv_ >= batch_size_.get()) {
     if (gpu_direct_.get()) {
-      free_bufs();
-
-      if (out_q.size() == num_concurrent) {
-        HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-        adv_net_free_all_burst_pkts_and_burst(burst);
-        return;
-      }
+      do {
+        free_bufs_and_emit_arrays(op_output);
+        if (out_q.size() == num_concurrent) {
+          HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
+          cudaStreamSynchronize(streams_[cur_idx]);
+        }
+      } while (out_q.size() == num_concurrent);
 
       // Copy packet I/Q contents to appropriate location in 'rf_data'
       place_packet_data(rf_data->Data(),
@@ -319,46 +367,14 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
                         pkts_per_pulse,   // only needed if spoofing packets
                         max_waveform_id,  // only needed if spoofing packets
                         streams_[cur_idx]);
-      ttl_pkts_recv_ += aggr_pkts_recv_;
-      cudaStreamSynchronize(streams_[cur_idx]);
-
-      buffer_track.transfer(cudaMemcpyDeviceToHost, streams_[cur_idx]);  // todo Remove unnecessary copies
-      for (size_t i = 0; i < buffer_track.buffer_size; i++) {
-        const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
-        if (!buffer_track.received_end_h[pos_wrap]) {
-          continue;
-        }
-
-        // Received End-of-Array (EOA) message, emit to downstream operators
-        auto params = std::make_shared<RFArray>(
-          rf_data->Slice<3>(
-            {static_cast<index_t>(pos_wrap), 0, 0, 0},
-            {matxDropDim, matxEnd, matxEnd, matxEnd}),
-          0, proc_stream);
-
-        op_output.emit(params, "rf_out");
-        HOLOSCAN_LOG_INFO("Emitting {} with {}/{} samples",
-          buffer_track.pos + i,
-          buffer_track.sample_cnt_h[pos_wrap],
-          samples_per_arr);
-
-        // Increment the tracker 'i' number of times. This allows us to not get hung on arrays
-        // where the EOA was either dropped or missed. Ex: if the EOA for array 11 was dropped,
-        // we will emit array 12 when its EOA arrives, incrementing from 10 -> 12.
-        for (size_t j = 0; j <= i; j++) {
-          buffer_track.increment();
-          HOLOSCAN_LOG_INFO("Next waveform expected: {}", buffer_track.pos);
-        }
-
-        buffer_track.transfer(cudaMemcpyHostToDevice, streams_[cur_idx]);  // todo Remove unnecessary copies
-        break;
-      }
 
       cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-
-      cur_msg_.evt = events_[cur_idx];
+      cur_msg_.stream = streams_[cur_idx];
+      cur_msg_.evt    = events_[cur_idx];
       out_q.push(cur_msg_);
       cur_msg_.num_batches = 0;
+
+      ttl_pkts_recv_ += aggr_pkts_recv_;
 
       if (cudaGetLastError() != cudaSuccess)  {
         HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
