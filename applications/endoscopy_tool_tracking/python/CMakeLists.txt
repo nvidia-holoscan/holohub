@@ -20,7 +20,7 @@ if(BUILD_TESTING)
 
   # Configure the yaml file to only play 10 frames
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" CONFIG_FILE)
-  string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
+  string(REGEX REPLACE "^source:[^\n]*" "^source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml ${CONFIG_FILE})
 
