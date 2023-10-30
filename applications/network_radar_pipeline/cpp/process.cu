@@ -99,8 +99,8 @@ void PulseCompressionOp::compute(InputContext& op_input,
   HOLOSCAN_LOG_INFO("Dim: {}, {}, {}", in->data.Size(0), in->data.Size(1), in->data.Size(2));
 
   // Zero out the pad portion of the zero-padded input and copy the data portion
-  auto zp = slice<3>(zeroPaddedInput, {0,0,numSamples.get()}, {matxEnd, matxEnd, numSamplesRnd});
-  auto data = slice<3>(zeroPaddedInput, {0,0,0}, {matxEnd, matxEnd, numSamples.get()});
+  auto zp = slice<3>(zeroPaddedInput, {0, 0, numSamples.get()}, {matxEnd, matxEnd, numSamplesRnd});
+  auto data = slice<3>(zeroPaddedInput, {0, 0, 0}, {matxEnd, matxEnd, numSamples.get()});
   (zp = 0).run(stream);
   matx::copy(data, in->data, stream);
 
@@ -289,8 +289,10 @@ void CFAROp::initialize() {
 
   numCompressedSamples = numSamples.get() - waveformLength.get() + 1;
 
-  make_tensor(normT, {numChannels.get(), numPulsesRnd + cfarMaskY - 1, numCompressedSamples + cfarMaskX - 1});
-  make_tensor(ba, {numChannels.get(), numPulsesRnd + cfarMaskY - 1, numCompressedSamples + cfarMaskX - 1});
+  make_tensor(normT, {numChannels.get(), numPulsesRnd + cfarMaskY - 1,
+              numCompressedSamples + cfarMaskX - 1});
+  make_tensor(ba, {numChannels.get(), numPulsesRnd + cfarMaskY - 1,
+              numCompressedSamples + cfarMaskX - 1});
   make_tensor(dets, {numChannels.get(), numPulsesRnd, numCompressedSamples});
   make_tensor(xPow, {numChannels.get(), numPulsesRnd, numCompressedSamples});
   make_tensor(cfarMaskView, {cfarMaskY, cfarMaskX});
@@ -319,7 +321,8 @@ void CFAROp::initialize() {
                           {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}});
 
   // Pre-process CFAR convolution
-  (normT = conv2d(ones({numChannels.get(), numPulsesRnd, numCompressedSamples}), cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL)).run();
+  (normT = conv2d(ones({numChannels.get(), numPulsesRnd, numCompressedSamples}), cfarMaskView,
+           matxConvCorrMode_t::MATX_C_MODE_FULL)).run();
 
   ba.PrefetchDevice(0);
   normT.PrefetchDevice(0);
