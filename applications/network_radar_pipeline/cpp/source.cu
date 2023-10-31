@@ -60,6 +60,10 @@ void TargetSimulator::initialize() {
 void TargetSimulator::compute(InputContext&,
                               OutputContext& op_output,
                               ExecutionContext& context) {
+  if (transmit_count == numTransmits.get()) {
+    return;
+  }
+
   HOLOSCAN_LOG_INFO("TargetSimulator::compute() - simulation {} of {}, channel {} of {}",
     transmit_count+1, numTransmits.get(), channel_idx+1, numChannels.get());
 
@@ -81,9 +85,6 @@ void TargetSimulator::compute(InputContext&,
     // Sent all channels, move to next array
     transmit_count++;
     channel_idx = 0;
-    if (transmit_count == numTransmits.get()) {
-      GxfGraphInterrupt(context.context());
-    }
   }
 
   HOLOSCAN_LOG_INFO("TargetSimulator::compute() done");

@@ -45,6 +45,7 @@ class App : public holoscan::Application {
         "packet_gen",
         from_config("radar_pipeline"),
         from_config("advanced_network.packet_gen"),
+        from_config("advanced_network.networking"),
         make_condition<BooleanCondition>("is_alive", true));
       auto adv_net_tx = make_operator<ops::AdvNetworkOpTx>(
         "adv_network_tx",

@@ -31,7 +31,12 @@ class AdvConnectorOpTx : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvConnectorOpTx)
 
   AdvConnectorOpTx() = default;
-  ~AdvConnectorOpTx() = default;
+
+  ~AdvConnectorOpTx() {
+    //todo: bytes / packets sent
+    HOLOSCAN_LOG_INFO("Finished transmitter!");
+    if (packets_buf) { delete packets_buf; }
+  }
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;
@@ -40,23 +45,50 @@ class AdvConnectorOpTx : public Operator {
                ExecutionContext& context) override;
 
  private:
-  // Radar settings
-  Parameter<uint16_t> numPulses;
-  Parameter<uint16_t> numSamples;
-  Parameter<uint16_t> waveformLength;
-  Parameter<uint16_t> numChannels;
+  static constexpr int num_concurrent  = 4;   // Number of concurrent batches processing
+  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
+  static constexpr uint16_t queue_id   = 0;
 
-  static constexpr uint16_t port_id = 0;
-  static constexpr uint16_t queue_id = 0;
+  AdvNetStatus set_cpu_hdr(AdvNetBurstParams *msg, const int pkt_idx);
+
+  // Radar settings
+  Parameter<uint16_t> num_pulses_;
+  Parameter<uint16_t> num_samples_;
+  Parameter<uint16_t> waveform_length_;
+  Parameter<uint16_t> num_channels_;
+
+  // Networking settings
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> payload_size_;
+  Parameter<int> hds_;                   // Header-data split boundary (0 if disabled)
+  Parameter<uint16_t> header_size_;      // Header size of packet
+  Parameter<bool> gpu_direct_;           // GPUDirect enabled
+
+  Parameter<uint16_t> udp_src_port_;
+  Parameter<uint16_t> udp_dst_port_;
+  Parameter<std::string> ip_src_addr_;
+  Parameter<std::string> ip_dst_addr_;
+  Parameter<std::string> eth_dst_addr_;
+  Parameter<uint16_t> port_id_;
+
+  char eth_dst_[6];
+  uint32_t ip_src_;
+  uint32_t ip_dst_;
+
+  // Concurrent batch structures
+  std::array<cudaStream_t, num_concurrent> streams_;
+  std::array<cudaEvent_t, num_concurrent> events_;
+  int cur_idx = 0;
+
+  // Memory buffers
+  uint8_t *mem_buf_h_;
+  RFPacket *packets_buf;
+  std::array<uint8_t **, num_concurrent> gpu_bufs;
 
   index_t samples_per_pkt;
   index_t num_packets_buf;
   size_t buf_stride;
   size_t buf_size;
-  RFPacket *packets_buf;
-  uint8_t *mem_buf;
 };  // AdvConnectorOpTx
 
 }  // namespace holoscan::ops
