@@ -526,7 +526,7 @@ std::pair<nvcv::Tensor, nvcv::TensorDataStridedCuda::Buffer> holoscan_tensor_to_
 std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_tensor_like(
     gxf_context_t context, nvcv::Tensor reference_nhwc_tensor) {
   // Create an out_message entity containing a single GXF tensor corresponding to the output.
-  // We will then reuse the same data pointer to intialize the CV-CUDA output tensor.
+  // We will then reuse the same data pointer to initialize the CV-CUDA output tensor.
   auto element_type = nvcvdatatype_to_gxfprimitivetype(reference_nhwc_tensor.dtype());
   auto shape = reference_nhwc_tensor.shape();
   if (shape.size() != 4) { throw std::runtime_error("expected 4D tensor (NHWC format)"); }
