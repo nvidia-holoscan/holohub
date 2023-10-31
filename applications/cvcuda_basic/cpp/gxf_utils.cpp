@@ -36,7 +36,7 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
     }
   });
 
-  // Allocate the CUDA memory (don't need to explicitly intialize)
+  // Allocate the CUDA memory (don't need to explicitly initialize)
   cudaError_t err = cudaMalloc(pointer.get(), nbytes);
   // Holoscan Tensor doesn't support direct memory allocation.
   // Thus, create an Entity and use GXF tensor to wrap the CUDA memory.
