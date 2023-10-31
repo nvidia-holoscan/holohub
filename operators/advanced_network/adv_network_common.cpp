@@ -131,20 +131,27 @@ bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
   const std::string gpu_pool_str = std::string("TX_GPU") + append;
   auto gpu_pool   = rte_mempool_lookup(gpu_pool_str.c_str());
 
+  int num_pools = 0;
 
   // Wait for 2x the number of buffers to be available since some may still be in transit
   // by the NIC and this number can decrease
   auto batch = 0;
   if (cpu_pool != nullptr) {
+    num_pools++;
     if (rte_mempool_avail_count(cpu_pool) < burst->hdr.hdr.num_pkts * 2) {
       return false;
     }
   }
 
   if (gpu_pool != nullptr) {
+    num_pools++;
     if (rte_mempool_avail_count(gpu_pool) < burst->hdr.hdr.num_pkts * 2) {
       return false;
     }
+  }
+
+  if (rte_mempool_avail_count(burst_pool) < num_pools) {
+    return false;
   }
 
   return true;
