@@ -57,10 +57,12 @@ void BasicConnectorOpTx::initialize() {
 void BasicConnectorOpTx::compute(InputContext& op_input,
                                  OutputContext& op_output,
                                  ExecutionContext&) {
-  HOLOSCAN_LOG_INFO("BasicConnectorOpTx::compute()");
-
   // Input is pulse/sample data from a single channel
   auto rf_data = op_input.receive<std::shared_ptr<RFChannel>>("rf_in").value();
+  if (rf_data == nullptr) {
+    return;
+  }
+  HOLOSCAN_LOG_INFO("BasicConnectorOpTx::compute()");
 
   // Determine buffer size; dependent on whether this is the last channel
   const size_t buf_stride = RFPacket::packet_size(samples_per_pkt);

@@ -69,7 +69,7 @@ advanced_network:
 
 radar_pipeline:
   isSource: true         # Defines app type (source, process)
-  numTransmits: 10      # Use N-1 of numTransmits in source
+  numTransmits: 1000     # Use N-1 of numTransmits in source
   numPulses: 128
   numSamples: 9000
   numChannels: 16

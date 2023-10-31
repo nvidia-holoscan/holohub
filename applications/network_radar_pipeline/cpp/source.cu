@@ -61,6 +61,7 @@ void TargetSimulator::compute(InputContext&,
                               OutputContext& op_output,
                               ExecutionContext& context) {
   if (transmit_count == numTransmits.get()) {
+    op_output.emit(nullptr, "rf_out");
     return;
   }
 

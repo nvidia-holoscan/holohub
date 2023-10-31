@@ -51,7 +51,7 @@ class AdvConnectorOpTx : public Operator {
 
   AdvNetStatus set_cpu_hdr(AdvNetBurstParams *msg, const int pkt_idx);
   void populate_packets(uint8_t **out_ptr,
-                        uint8_t *rf_data,
+                        complex_t *rf_data,
                         uint16_t waveform_id,
                         uint16_t channel_idx,
                         uint16_t offset,
@@ -83,6 +83,8 @@ class AdvConnectorOpTx : public Operator {
 
   struct TxMsg {
     AdvNetBurstParams *msg;
+    uint16_t waveform_id;
+    uint16_t channel_id;
     cudaEvent_t evt;
   };
   std::queue<TxMsg> out_q;

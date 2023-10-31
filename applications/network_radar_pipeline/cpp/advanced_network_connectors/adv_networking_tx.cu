@@ -196,7 +196,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
  */
 __global__
 void populate_packets_kernel(uint8_t **out_ptr,
-                             uint8_t *rf_data,
+                             complex_t *rf_data,
                              uint16_t waveform_id,
                              uint16_t channel_idx,
                              uint16_t samples_per_pkt,
@@ -207,30 +207,43 @@ void populate_packets_kernel(uint8_t **out_ptr,
   int pkt_idx   = blockIdx.x;
   int pulse_idx = blockIdx.y;
   int buf_idx   = pkt_idx + pulse_idx * pkt_per_pulse;
+  uint8_t *pkt  = out_ptr[buf_idx] + offset;
 
-  int samp_offset = samples_per_pkt * pkt_idx;
-  int pkt_samples = min(samples_per_pkt, num_samples - samp_offset);
+  int sample_idx  = samples_per_pkt * pkt_idx;
+  int pkt_samples = min(samples_per_pkt, num_samples - sample_idx);
+
+  // Send EOA if this is the last packet of the array (i.e. the last packet of the
+  // last pulse of the last channel)
+  const bool last_channel = num_channels == (channel_idx + 1);
+  const bool last_pulse   = gridDim.y == (pulse_idx + 1);  // gridDim.y == # pulses
+  const bool last_packet  = gridDim.x == (pkt_idx + 1);  // gridDim.x == packets/pulse
+  bool set_eoa = last_channel && last_pulse && last_packet;
 
   // Copy in meta data
-  uint16_t *meta = reinterpret_cast<uint16_t *>(out_ptr[buf_idx] + offset);
-  meta[RFPacket::sample_offset]     = samp_offset;
-  meta[RFPacket::waveformid_offset] = waveform_id;
-  meta[RFPacket::channel_offset]    = channel_idx;
-  meta[RFPacket::pulse_offset]      = pulse_idx;
-  meta[RFPacket::num_sample_offset] = pkt_samples;
-  meta[RFPacket::end_array_offset]  = 0; //todo
+  uint16_t *meta = reinterpret_cast<uint16_t *>(pkt);
+  meta[0] = sample_idx;
+  meta[1] = waveform_id;
+  meta[2] = channel_idx;
+  meta[3] = pulse_idx;
+  meta[4] = pkt_samples;
+  meta[5] = set_eoa;
 
-  //todo: Payload
+  // Copy over payload
+  auto out = reinterpret_cast<complex_t *>(pkt + RFPacket::payload_offset);
+  auto in  = &rf_data[sample_idx + num_samples * pulse_idx];
+  for (int samp = threadIdx.x; samp < pkt_samples; samp += blockDim.x) {
+    out[samp] = in[samp];
+  }
 }
 
 void AdvConnectorOpTx::populate_packets(uint8_t **out_ptr,
-                                        uint8_t *rf_data,
+                                        complex_t *rf_data,
                                         uint16_t waveform_id,
                                         uint16_t channel_idx,
                                         uint16_t offset,
                                         cudaStream_t stream) {
   const dim3 grid(pkt_per_pulse, num_pulses_.get(), 1);
-  populate_packets_kernel<<<grid, 256, 0, stream>>>(
+  populate_packets_kernel<<<grid, 128, 0, stream>>>(
     out_ptr,
     rf_data,
     waveform_id,
@@ -245,9 +258,6 @@ void AdvConnectorOpTx::populate_packets(uint8_t **out_ptr,
 void AdvConnectorOpTx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
-  HOLOSCAN_LOG_INFO("AdvConnectorOpTx::compute()");
-  AdvNetStatus ret;
-
   // Check if GPU send is falling behind
   if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
     HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
@@ -256,6 +266,24 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
   // Input is pulse/sample data from a single channel
   auto rf_data = op_input.receive<std::shared_ptr<RFChannel>>("rf_in").value();
+  if (rf_data == nullptr) {
+    if (gpu_direct_.get() && out_q.size() > 0) {
+      // If packet setup is done, send to ANO
+      const auto first = out_q.front();
+      if (cudaEventQuery(first.evt) == cudaSuccess) {
+        // Transmit
+        HOLOSCAN_LOG_INFO("AdvConnectorOpTx sending {} packets... ({}, {})",
+                          adv_net_get_num_pkts(first.msg),
+                          first.waveform_id,
+                          first.channel_id);
+        op_output.emit(first.msg, "burst_out");
+        out_q.pop();
+      }
+    }
+    return;
+  }
+  HOLOSCAN_LOG_INFO("AdvConnectorOpTx::compute()");
+  AdvNetStatus ret;
 
   /**
    * Spin waiting until a buffer is free. This can be stalled by sending
@@ -360,34 +388,38 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     //todo: GPU-only mode
   }
 
-  // Populate packets with 16-bit numbers of {0,0}, {1,1}, ...
+  // Populate packets with I/Q data
   if (gpu_direct_.get()) {
     const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
     populate_packets(gpu_bufs[cur_idx],
-                     reinterpret_cast<uint8_t *>(rf_data->data.Data()),
+                     rf_data->data.Data(),
                      rf_data->waveform_id,
                      rf_data->channel_id,
                      offset,
                      streams_[cur_idx]);
     cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-    out_q.push(TxMsg{msg, events_[cur_idx]});
+    out_q.push(TxMsg{msg, rf_data->waveform_id, rf_data->channel_id, events_[cur_idx]});
   }
-
-  // Transmit
-  HOLOSCAN_LOG_INFO("AdvConnectorOpTx sending {} packets... ({}, {})",
-    adv_net_get_num_pkts(msg),
-    rf_data->waveform_id,
-    rf_data->channel_id);
 
   if (gpu_direct_.get()) {
     // If packet setup is done, send to ANO
     const auto first = out_q.front();
     if (cudaEventQuery(first.evt) == cudaSuccess) {
+      // Transmit
+      HOLOSCAN_LOG_INFO("AdvConnectorOpTx sending {} packets... ({}, {})",
+                        adv_net_get_num_pkts(first.msg),
+                        first.waveform_id,
+                        first.channel_id);
       op_output.emit(first.msg, "burst_out");
       out_q.pop();
     }
   }
   else {
+    // Transmit
+    HOLOSCAN_LOG_INFO("AdvConnectorOpTx sending {} packets... ({}, {})",
+                      adv_net_get_num_pkts(msg),
+                      rf_data->waveform_id,
+                      rf_data->channel_id);
     op_output.emit(msg, "burst_out");
   }
 
