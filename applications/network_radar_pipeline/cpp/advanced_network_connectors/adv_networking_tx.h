@@ -50,6 +50,12 @@ class AdvConnectorOpTx : public Operator {
   static constexpr uint16_t queue_id   = 0;
 
   AdvNetStatus set_cpu_hdr(AdvNetBurstParams *msg, const int pkt_idx);
+  void populate_packets(uint8_t **out_ptr,
+                        uint8_t *rf_data,
+                        uint16_t waveform_id,
+                        uint16_t channel_idx,
+                        uint16_t offset,
+                        cudaStream_t stream);
 
   // Radar settings
   Parameter<uint16_t> num_pulses_;
@@ -75,6 +81,12 @@ class AdvConnectorOpTx : public Operator {
   uint32_t ip_src_;
   uint32_t ip_dst_;
 
+  struct TxMsg {
+    AdvNetBurstParams *msg;
+    cudaEvent_t evt;
+  };
+  std::queue<TxMsg> out_q;
+
   // Concurrent batch structures
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
@@ -86,6 +98,7 @@ class AdvConnectorOpTx : public Operator {
   std::array<uint8_t **, num_concurrent> gpu_bufs;
 
   index_t samples_per_pkt;
+  index_t pkt_per_pulse;
   index_t num_packets_buf;
   size_t buf_stride;
   size_t buf_size;

@@ -41,9 +41,9 @@ advanced_network:
   packet_gen:
     batch_size: 10000
     payload_size: 8208  # num_samples = (payload_size - 16) / 8
-    split_boundary: 0
+    split_boundary: 42
     header_size: 42
-    gpu_direct: false
+    gpu_direct: true
   networking:
     udp_src_port: 4096               # UDP source port
     udp_dst_port: 4096               # UDP destination port
@@ -53,15 +53,15 @@ advanced_network:
     port_id: 0
   cfg:
     version: 1
-    master_core: 5              # Master CPU core
+    master_core: 16             # Master CPU core
     tx:
       - if_name: 0000:81:00.0   # PCIe BFD of NIC
         queues:
           - name: "ADC Samples"
             id: 0
-            gpu_direct: false
+            gpu_direct: true
             gpu_device: 0
-            split_boundary: 0
+            split_boundary: 42
             max_packet_size: 9000      # Maximum payload size
             num_concurrent_batches: 5  # Number of batches that can be used at any time
             batch_size: 10240          # Number of packets in a batch

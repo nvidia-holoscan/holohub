@@ -96,6 +96,7 @@ void AdvConnectorOpTx::initialize() {
 
   // Compute how many packets sent per array
   samples_per_pkt = (payload_size_.get() - RFPacket::header_size()) / sizeof(complex_t);
+  pkt_per_pulse   = packets_per_pulse(payload_size_.get(), num_samples_.get());
   num_packets_buf = packets_per_channel(payload_size_.get(), num_pulses_.get(), num_samples_.get());
   HOLOSCAN_LOG_INFO("samples_per_pkt: {}", samples_per_pkt);
   HOLOSCAN_LOG_INFO("num_packets_buf: {}", num_packets_buf);
@@ -124,14 +125,13 @@ void AdvConnectorOpTx::initialize() {
     }
   }
   else {
-    //todo: GPU-only mode
-    // // On GPU
-    // for (int n = 0; n < num_concurrent; n++) {
-    //   cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
-    //   cudaStreamCreate(&streams_[n]);
-    //   cudaEventCreate(&events_[n]);
-    // }
-    // HOLOSCAN_LOG_INFO("Initialized {} streams and events", num_concurrent);
+    // On GPU
+    for (int n = 0; n < num_concurrent; n++) {
+      cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
+      cudaStreamCreate(&streams_[n]);
+      cudaEventCreate(&events_[n]);
+    }
+    HOLOSCAN_LOG_INFO("Initialized {} streams and events", num_concurrent);
   }
 
   adv_net_format_eth_addr(eth_dst_, eth_dst_addr_.get());
@@ -142,7 +142,11 @@ void AdvConnectorOpTx::initialize() {
   ip_src_ = ntohl(ip_src_);
   ip_dst_ = ntohl(ip_dst_);
 
-  //todo: GPU-only mode Eth+IP+UDP headers
+  if (gpu_direct_.get() && hds_.get() == 0) {
+    //todo: GPU-only mode Eth+IP+UDP headers
+    HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
+    return;
+  }
 
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize() complete");
 }
@@ -187,6 +191,57 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
   return AdvNetStatus::SUCCESS;
 }
 
+/**
+ * @brief Copy I/Q RF data from tensor to packets
+ */
+__global__
+void populate_packets_kernel(uint8_t **out_ptr,
+                             uint8_t *rf_data,
+                             uint16_t waveform_id,
+                             uint16_t channel_idx,
+                             uint16_t samples_per_pkt,
+                             uint16_t pkt_per_pulse,
+                             uint16_t num_channels,
+                             uint16_t num_samples,
+                             uint16_t offset) {
+  int pkt_idx   = blockIdx.x;
+  int pulse_idx = blockIdx.y;
+  int buf_idx   = pkt_idx + pulse_idx * pkt_per_pulse;
+
+  int samp_offset = samples_per_pkt * pkt_idx;
+  int pkt_samples = min(samples_per_pkt, num_samples - samp_offset);
+
+  // Copy in meta data
+  uint16_t *meta = reinterpret_cast<uint16_t *>(out_ptr[buf_idx] + offset);
+  meta[RFPacket::sample_offset]     = samp_offset;
+  meta[RFPacket::waveformid_offset] = waveform_id;
+  meta[RFPacket::channel_offset]    = channel_idx;
+  meta[RFPacket::pulse_offset]      = pulse_idx;
+  meta[RFPacket::num_sample_offset] = pkt_samples;
+  meta[RFPacket::end_array_offset]  = 0; //todo
+
+  //todo: Payload
+}
+
+void AdvConnectorOpTx::populate_packets(uint8_t **out_ptr,
+                                        uint8_t *rf_data,
+                                        uint16_t waveform_id,
+                                        uint16_t channel_idx,
+                                        uint16_t offset,
+                                        cudaStream_t stream) {
+  const dim3 grid(pkt_per_pulse, num_pulses_.get(), 1);
+  populate_packets_kernel<<<grid, 256, 0, stream>>>(
+    out_ptr,
+    rf_data,
+    waveform_id,
+    channel_idx,
+    samples_per_pkt,
+    pkt_per_pulse,
+    num_channels_.get(),
+    num_samples_.get(),
+    offset);
+}
+
 void AdvConnectorOpTx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
@@ -195,9 +250,8 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
   // Check if GPU send is falling behind
   if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
-    //todo: GPU-only mode
-    // HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
-    // return;
+    HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
+    return;
   }
 
   // Input is pulse/sample data from a single channel
@@ -219,35 +273,37 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     return;
   }
 
-  // Generate packets from RF data //todo Optimize this process
-  index_t ix_buf = 0;
-  index_t ix_max = static_cast<index_t>(num_samples_.get());
-  for (index_t ix_pulse = 0; ix_pulse < num_pulses_.get(); ix_pulse++) {
-    for (index_t ix_sample = 0; ix_sample < num_samples_.get(); ix_sample += samples_per_pkt) {
-      // Slice to the samples this packet will send
-      auto data = rf_data->data.Slice<1>(
-        {ix_pulse, ix_sample},
-        {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)});
+  if (!gpu_direct_.get()) {
+    // Generate packets from RF data //todo Optimize this process
+    index_t ix_buf = 0;
+    index_t ix_max = static_cast<index_t>(num_samples_.get());
+    for (index_t ix_pulse = 0; ix_pulse < num_pulses_.get(); ix_pulse++) {
+      for (index_t ix_sample = 0; ix_sample < num_samples_.get(); ix_sample += samples_per_pkt) {
+        // Slice to the samples this packet will send
+        auto data = rf_data->data.Slice<1>(
+          {ix_pulse, ix_sample},
+          {matxDropDim, std::min(ix_sample + samples_per_pkt, ix_max)});
 
-      // Use accessor functions to set payload
-      packets_buf[ix_buf].set_waveform_id(rf_data->waveform_id);
-      packets_buf[ix_buf].set_sample_idx(ix_sample);
-      packets_buf[ix_buf].set_channel_idx(rf_data->channel_id);
-      packets_buf[ix_buf].set_pulse_idx(ix_pulse);
-      packets_buf[ix_buf].set_num_samples(data.Size(0));
-      packets_buf[ix_buf].set_end_array(0);
-      packets_buf[ix_buf].set_payload(data.Data(), rf_data->stream);
-      ix_buf++;
+        // Use accessor functions to set payload
+        packets_buf[ix_buf].set_waveform_id(rf_data->waveform_id);
+        packets_buf[ix_buf].set_sample_idx(ix_sample);
+        packets_buf[ix_buf].set_channel_idx(rf_data->channel_id);
+        packets_buf[ix_buf].set_pulse_idx(ix_pulse);
+        packets_buf[ix_buf].set_num_samples(data.Size(0));
+        packets_buf[ix_buf].set_end_array(0);
+        packets_buf[ix_buf].set_payload(data.Data(), rf_data->stream);
+        ix_buf++;
+      }
     }
-  }
-  if (num_packets_buf != ix_buf || adv_net_get_num_pkts(msg) != ix_buf) {
-    HOLOSCAN_LOG_ERROR("Not sending expected number of packets");
-  }
+    if (num_packets_buf != ix_buf || adv_net_get_num_pkts(msg) != ix_buf) {
+      HOLOSCAN_LOG_ERROR("Not sending expected number of packets");
+    }
 
-  // Send end-of-array message if this is the last channel of the transmit
-  const bool send_eoa_msg = rf_data->channel_id == (num_channels_.get() - 1);
-  if (send_eoa_msg) {
-    packets_buf[num_packets_buf - 1].set_end_array(1);
+    // Send end-of-array message if this is the last channel of the transmit
+    const bool send_eoa_msg = rf_data->channel_id == (num_channels_.get() - 1);
+    if (send_eoa_msg) {
+      packets_buf[num_packets_buf - 1].set_end_array(1);
+    }
   }
 
   // Setup packets
@@ -276,22 +332,20 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
     // Figure out the CPU and GPU length portions for ANO
     if (gpu_direct_.get() && hds_.get() > 0) {
-      //todo: GPU-only mode
-      // cpu_len = hds_.get();
-      // gpu_len = payload_size_.get();
-      // gpu_bufs[cur_idx][pkt_idx] = reinterpret_cast<uint8_t *>(
-      //   adv_net_get_gpu_pkt_ptr(msg, pkt_idx));
+      cpu_len = hds_.get();
+      gpu_len = payload_size_.get();
     }
     else if (!gpu_direct_.get()) {
       cpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
       gpu_len = 0;
     }
     else {
-      //todo: GPU-only mode
-      // cpu_len = 0;
-      // gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-      // gpu_bufs[cur_idx][pkt_idx] = reinterpret_cast<uint8_t *>(
-      //   adv_net_get_gpu_pkt_ptr(msg, pkt_idx));
+      cpu_len = 0;
+      gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
+    }
+    if (gpu_direct_.get()) {
+      gpu_bufs[cur_idx][pkt_idx] = reinterpret_cast<uint8_t *>(
+        adv_net_get_gpu_pkt_ptr(msg, pkt_idx));
     }
 
     if ((ret = adv_net_set_pkt_len(msg, pkt_idx, cpu_len, gpu_len)) != AdvNetStatus::SUCCESS) {
@@ -304,18 +358,19 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   // In GPU-only mode copy the header
   if (gpu_direct_.get() && hds_.get() == 0) {
     //todo: GPU-only mode
-    // copy_headers(gpu_bufs[cur_idx], gds_header_,
-    //   header_size_.get(), adv_net_get_num_pkts(msg), streams_[cur_idx]);
   }
 
   // Populate packets with 16-bit numbers of {0,0}, {1,1}, ...
   if (gpu_direct_.get()) {
-    //todo: GPU-only mode
-    // const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
-    // populate_packets(gpu_bufs[cur_idx], payload_size_.get(),
-    //     adv_net_get_num_pkts(msg), offset, streams_[cur_idx]);
-    // cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-    // out_q.push(TxMsg{msg, events_[cur_idx]});
+    const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
+    populate_packets(gpu_bufs[cur_idx],
+                     reinterpret_cast<uint8_t *>(rf_data->data.Data()),
+                     rf_data->waveform_id,
+                     rf_data->channel_id,
+                     offset,
+                     streams_[cur_idx]);
+    cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+    out_q.push(TxMsg{msg, events_[cur_idx]});
   }
 
   // Transmit
@@ -323,13 +378,14 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     adv_net_get_num_pkts(msg),
     rf_data->waveform_id,
     rf_data->channel_id);
+
   if (gpu_direct_.get()) {
-    //todo: GPU-only mode
-    // const auto first = out_q.front();
-    // if (cudaEventQuery(first.evt) == cudaSuccess) {
-    //   op_output.emit(first.msg, "burst_out");
-    //   out_q.pop();
-    // }
+    // If packet setup is done, send to ANO
+    const auto first = out_q.front();
+    if (cudaEventQuery(first.evt) == cudaSuccess) {
+      op_output.emit(first.msg, "burst_out");
+      out_q.pop();
+    }
   }
   else {
     op_output.emit(msg, "burst_out");
