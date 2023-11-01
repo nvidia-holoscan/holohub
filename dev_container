@@ -404,6 +404,12 @@ launch() {
     if [ -d /opt/deltacast/videomaster/Include ]; then
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
+    if [ -d /opt/yuan/qcap/include ]; then
+        conditional_opt+=" -v /opt/yuan/qcap/include:/opt/yuan/qcap/include"
+    fi
+    if [ -d /opt/yuan/qcap/lib ]; then
+        conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
+    fi
 
     # add user in container to group video to access video devices, e.g. /dev/video0
     conditional_opt+=" --group-add video"
