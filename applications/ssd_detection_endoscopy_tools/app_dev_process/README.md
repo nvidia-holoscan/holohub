@@ -351,7 +351,7 @@ def compute(self, op_input, op_output, context, scores_threshold=0.3):
         bboxes = bboxes[:, ix, :]
         # Make box shape compatible with Holoviz
         bboxes = np.reshape(bboxes, (1, -1, 2))  # (nbatch, nboxes*2, ncoord/2)
-    # Creat output message
+    # Create output message
     out_message = Entity(context)
     out_message.add(hs.as_tensor(bboxes), "rectangles")
     op_output.emit(out_message, "out")
@@ -440,7 +440,7 @@ detection_visualizer = HolovizOp(
 In `DetectionPostprocessorOp`'s `compute()`, add the bounding box tensor as following
 
 ```
-# Creat output message
+# Create output message
 out_message = Entity(context)
 if len(self.label_dict) > 0:
     # we have split bboxs and text labels into categories

@@ -77,7 +77,7 @@ class DetectionPostprocessorOp(Operator):
             bboxes = np.reshape(bboxes, (1, -1, 2))  # (nbatch, nboxes*2, ncoord/2)
             bboxes = bboxes / self.width  # The x, y need to be rescaled to [0,1]
 
-        # Creat output message
+        # Create output message
         out_message = Entity(context)
         out_message.add(hs.as_tensor(bboxes), "rectangles")
         op_output.emit(out_message, "out")

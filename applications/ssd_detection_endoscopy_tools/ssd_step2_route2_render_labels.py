@@ -113,7 +113,7 @@ class DetectionPostprocessorOp(Operator):
             if has_rect:
                 bbox_coords = np.reshape(output_bboxes, (1, -1, 2))
 
-        # Creat output message
+        # Create output message
         out_message = {}
         if len(self.label_dict) > 0:
             # we have split bboxs and text labels into categories
