@@ -393,7 +393,7 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd || exit_code=1
+                          -L nd,ba,activ,Activ,dne,unexpect || exit_code=1
 
     popd > /dev/null
 
@@ -418,6 +418,8 @@ build_desc() {
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
+  echo "                                          multiple arguments can be passed between quotes"
+  echo "                                          or using several --configure-args in the command line"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
   echo ""

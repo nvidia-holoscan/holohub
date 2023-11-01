@@ -70,7 +70,7 @@ class DetectionPostprocessorOp(Operator):
             bboxes = bboxes[:, ix, :]
             # Make box shape compatible with Holoviz
             bboxes = np.reshape(bboxes, (1, -1, 2))  # (nbatch, nboxes*2, ncoord/2)
-        # Creat output message
+        # Create output message
         out_message = {}
         out_message["rectangles"] = bboxes
         op_output.emit(out_message, "out")

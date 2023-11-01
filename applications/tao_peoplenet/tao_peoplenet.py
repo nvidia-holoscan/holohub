@@ -46,7 +46,7 @@ class FormatInferenceInputOp(Operator):
         tensor = np.moveaxis(tensor, 2, 0)[None]
         tensor = cp.asarray(tensor)
 
-        # Creat output message
+        # Create output message
         out_message = Entity(context)
         out_message.add(hs.as_tensor(tensor), "preprocessed")
         op_output.emit(out_message, "out")
@@ -112,7 +112,7 @@ class PostprocessorOp(Operator):
                 out[label] = cp.reshape(out[label][None], (1, -1, 2))
                 out[label] = cp.asnumpy(out[label])
 
-        # Creat output message
+        # Create output message
         out_message = Entity(context)
         out_message.add(hs.as_tensor(out["person"]), "person")
         out_message.add(hs.as_tensor(out["faces"]), "faces")

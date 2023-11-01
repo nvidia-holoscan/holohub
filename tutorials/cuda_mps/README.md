@@ -71,7 +71,7 @@ endoscopy tool tracking and ultrasound segmentation applications, respectively.
 
 In another set of experiments, we concurrently run multiple instances of the endoscopy tool tracking
 application in different processes. We set the active thread percentage to be 20\% for each MPS client. The below graph shows the maximum end-to-end latency with and
-without CUDA MPS. The experiment demonstrates upto 36% improvement with CUDA MPS.
+without CUDA MPS. The experiment demonstrates up to 36% improvement with CUDA MPS.
 
 ![Alt text](image.png)
 
