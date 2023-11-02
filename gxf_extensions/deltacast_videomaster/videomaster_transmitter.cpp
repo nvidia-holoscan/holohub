@@ -46,7 +46,7 @@ VideoMasterTransmitter::VideoMasterTransmitter() : VideoMasterBase(false) {}
 
 gxf_result_t VideoMasterTransmitter::registerInterface(gxf::Registrar *registrar) {
   gxf::Expected<void> result;
-  result &= registrar->parameter(_use_rdma, "use_rdma", "Use RDMA",
+  result &= registrar->parameter(_use_rdma, "rdma", "Use RDMA",
                                  "Specifies whether RDMA should be used.");
   result &= registrar->parameter(_board_index, "board", "Board",
                                  "Index of the Deltacast.TV board to use.");
@@ -61,7 +61,7 @@ gxf_result_t VideoMasterTransmitter::registerInterface(gxf::Registrar *registrar
                                  "Framerate of the signal to generate.");
   result &= registrar->parameter(_source, "source", "Source", "Source data.");
   result &= registrar->parameter(_pool, "pool", "Pool", "Pool to allocate the buffers.");
-  result &= registrar->parameter(_overlay, "overlay", "Overlay",
+  result &= registrar->parameter(_overlay, "enable_overlay", "Overlay",
                 "Specifies whether the input buffers should be treated as overlay data.", false);
 
   return gxf::ToResultCode(result);

@@ -28,7 +28,7 @@ namespace holoscan::ops {
 void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
   auto& source = spec.input<gxf::Entity>("source");
 
-  spec.param(_use_rdma, "use_rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
+  spec.param(_use_rdma, "rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
   spec.param(_channel_index, "output", "Output", "Index of the output channel to use.", 0u);
   spec.param(_width, "width", "Width", "Width of the video frames to send.", 1920u);
@@ -42,8 +42,8 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
   spec.param(_source, "source", "Source", "Source data.", &source);
   spec.param(_pool, "pool", "Pool", "Pool to allocate the buffers.");
   spec.param(_overlay,
-             "overlay",
-             "Overlay",
+             "enable_overlay",
+             "EnableOverlay",
              "Specifies whether the input buffers should be treated as overlay data.",
              false);
 }

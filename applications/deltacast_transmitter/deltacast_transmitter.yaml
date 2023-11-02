@@ -39,4 +39,4 @@ videomaster:
   framerate: 25
   board: 0
   output: 0
-  use_rdma: false
+  rdma: false
