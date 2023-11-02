@@ -29,7 +29,7 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
   auto& signal = spec.output<gxf::Entity>("signal");
 
   spec.param(_signal, "signal", "Output", "Output signal.", &signal);
-  spec.param(_use_rdma, "use_rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
+  spec.param(_use_rdma, "rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
   spec.param(_channel_index, "input", "Input", "Index of the input channel to use.", 0u);
   spec.param(_pool, "pool", "Pool", "Pool to allocate the buffers.");

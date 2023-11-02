@@ -30,7 +30,7 @@ record_type: "none"  # or "input" if you want to record input video stream, or "
 
 external_source:
   rdma: true
-  overlay: false
+  enable_overlay: false
 
 aja:
   width: 1920

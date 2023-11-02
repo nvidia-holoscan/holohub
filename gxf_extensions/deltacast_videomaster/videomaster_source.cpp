@@ -32,7 +32,7 @@ VideoMasterSource::VideoMasterSource() : VideoMasterBase(true) {}
 
 gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
   gxf::Expected<void> result;
-  result &= registrar->parameter(_use_rdma, "use_rdma", "Use RDMA",
+  result &= registrar->parameter(_use_rdma, "rdma", "Use RDMA",
                                   "Specifies whether RDMA should be used.");
   result &= registrar->parameter(_board_index, "board", "Board",
                                   "Index of the Deltacast.TV board to use.");

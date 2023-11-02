@@ -56,7 +56,7 @@ class App : public holoscan::Application {
 
     const bool use_rdma = from_config("external_source.rdma").as<bool>();
     const bool overlay_enabled =
-        (source_ != "replayer") && from_config("external_source.overlay").as<bool>();
+        (source_ != "replayer") && from_config("external_source.enable_overlay").as<bool>();
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -66,7 +66,8 @@ class App : public holoscan::Application {
     if (source_ == "aja") {
       width = from_config("aja.width").as<uint32_t>();
       height = from_config("aja.height").as<uint32_t>();
-      source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+      source = make_operator<ops::AJASourceOp>("aja",
+         from_config("aja"), from_config("external_source"));
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
     } else if (source_ == "deltacast") {
@@ -76,6 +77,7 @@ class App : public holoscan::Application {
       source = make_operator<ops::VideoMasterSourceOp>(
           "deltacast",
           from_config("deltacast"),
+          from_config("external_source"),
           Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 #endif
       source_block_size = width * height * 4 * 4;
