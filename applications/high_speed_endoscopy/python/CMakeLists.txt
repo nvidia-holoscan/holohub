@@ -25,7 +25,7 @@ if(BUILD_TESTING)
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/high_speed_endoscopy.py
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_property(TEST high_speed_endoscopy_test_python PROPERTY ENVIRONMENT
-               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")       
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
   set_tests_properties(high_speed_endoscopy_test_python PROPERTIES
                        PASS_REGULAR_EXPRESSION "No EVT camera found.")
 endif()

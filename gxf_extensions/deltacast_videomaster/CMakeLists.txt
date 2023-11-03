@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(gxf_videomaster)
 
-find_package(holoscan REQUIRED CONFIG 
+find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Finds the VideoMaster SDK
