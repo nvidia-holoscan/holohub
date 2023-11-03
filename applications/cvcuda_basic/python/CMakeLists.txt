@@ -27,7 +27,7 @@ if(BUILD_TESTING)
 
   set_property(TEST cvcuda_basic_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
-  
+
   set_tests_properties(cvcuda_basic_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")

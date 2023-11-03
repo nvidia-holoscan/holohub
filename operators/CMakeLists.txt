@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (HOLOHUB_BUILD_PYTHON)
+if(HOLOHUB_BUILD_PYTHON)
   # Define and create a directory to store python operators under the holohub python module
   if(NOT CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR lib)

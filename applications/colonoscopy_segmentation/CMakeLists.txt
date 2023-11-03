@@ -47,14 +47,14 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME colonoscopy_segmentation_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py 
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_property(TEST colonoscopy_segmentation_python_test PROPERTY ENVIRONMENT 
-               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")  
-  
-  set_tests_properties(colonoscopy_segmentation_python_test 
+  set_property(TEST colonoscopy_segmentation_python_test PROPERTY ENVIRONMENT
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
+
+  set_tests_properties(colonoscopy_segmentation_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

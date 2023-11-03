@@ -36,7 +36,7 @@ target_include_directories(high_speed_endoscopy
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../operators/emergent_source
 )
 
-target_compile_definitions(high_speed_endoscopy 
+target_compile_definitions(high_speed_endoscopy
 PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR}
 PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
 
