@@ -37,11 +37,11 @@ class TargetSimulator : public Operator {
 
  private:
   cudaStream_t stream;
-  Parameter<uint16_t> numTransmits;
-  Parameter<uint16_t> numPulses;
-  Parameter<uint16_t> numSamples;
-  Parameter<uint16_t> waveformLength;
-  Parameter<uint16_t> numChannels;
+  Parameter<uint16_t> num_transmits;
+  Parameter<uint16_t> num_pulses;
+  Parameter<uint16_t> num_samples;
+  Parameter<uint16_t> waveform_length;
+  Parameter<uint16_t> num_channels;
   Parameter<uint16_t> samplesPerPkt;
   index_t transmit_count;
   index_t channel_idx;

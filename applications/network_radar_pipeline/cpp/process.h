@@ -111,11 +111,11 @@ class PulseCompressionOp : public Operator {
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override;
 
  private:
-  Parameter<int64_t> numPulses;
-  Parameter<int64_t> numSamples;
-  Parameter<int64_t> waveformLength;
-  Parameter<int64_t> numChannels;
-  index_t numSamplesRnd;
+  Parameter<int64_t> num_pulses;
+  Parameter<int64_t> num_samples;
+  Parameter<int64_t> waveform_length;
+  Parameter<int64_t> num_channels;
+  index_t num_samples_rnd;
 
   tensor_t<complex_t, 1> waveformView;
   tensor_t<complex_t, 0> norms;
@@ -151,12 +151,12 @@ class ThreePulseCancellerOp : public Operator {
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override;
 
  private:
-  Parameter<int64_t> numPulses;
-  Parameter<int64_t> numSamples;
-  Parameter<int64_t> waveformLength;
-  Parameter<int64_t> numChannels;
+  Parameter<int64_t> num_pulses;
+  Parameter<int64_t> num_samples;
+  Parameter<int64_t> waveform_length;
+  Parameter<int64_t> num_channels;
   index_t numCompressedSamples;
-  index_t numPulsesRnd;
+  index_t num_pulses_rnd;
 
   tensor_t<float_t, 1> cancelMask;
   tensor_t<complex_t, 3> tpcView;
@@ -188,10 +188,10 @@ class DopplerOp : public Operator {
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override;
 
  private:
-  Parameter<int64_t> numPulses;
-  Parameter<int64_t> numSamples;
-  Parameter<int64_t> waveformLength;
-  Parameter<int64_t> numChannels;
+  Parameter<int64_t> num_pulses;
+  Parameter<int64_t> num_samples;
+  Parameter<int64_t> waveform_length;
+  Parameter<int64_t> num_channels;
   index_t numCompressedSamples;
 };  // DopplerOp
 
@@ -242,13 +242,13 @@ class CFAROp : public Operator {
   void compute(InputContext& op_input, OutputContext&, ExecutionContext&) override;
 
  private:
-  Parameter<uint16_t> numTransmits;
-  Parameter<int64_t> numPulses;
-  Parameter<int64_t> numSamples;
-  Parameter<int64_t> waveformLength;
-  Parameter<int64_t> numChannels;
+  Parameter<uint16_t> num_transmits;
+  Parameter<int64_t> num_pulses;
+  Parameter<int64_t> num_samples;
+  Parameter<int64_t> waveform_length;
+  Parameter<int64_t> num_channels;
   index_t numCompressedSamples;
-  index_t numPulsesRnd;
+  index_t num_pulses_rnd;
   const index_t cfarMaskX = 13;
   const index_t cfarMaskY = 5;
   static const constexpr float pfa = 1e-5f;

@@ -25,6 +25,12 @@ scheduler:
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
+rx_params:
+  use_ano: true
+  split_boundary: true
+  batch_size: 5120
+  max_packet_size: 9000
+
 basic_network:
   batch_size: 100            # RX message batch size
   timeout_ms: 10             # RX timeout (ms) if no new packets have arrived
@@ -37,11 +43,6 @@ basic_network:
   retry_connect: 1
 
 advanced_network:
-  enable: true
-  packet_gen:
-    split_boundary: true
-    batch_size: 5120
-    max_packet_size: 9000
   cfg:
     version: 1
     master_core: 16                 # Master CPU core
@@ -77,10 +78,10 @@ advanced_network:
               udp_dst: 4096
 
 radar_pipeline:
-  isSource: false         # Defines app type (source, process)
-  numTransmits: 1000      # Use N-1 of numTransmits in source
-  numPulses: 128
-  numSamples: 9000
-  numChannels: 16
-  waveformLength: 1000
-  bufferSize: 10          # Number of RF arrays to store in rx buffer
+  is_source: false         # Defines app type (source, process)
+  num_transmits: 1000      # Use N-1 of num_transmits in source
+  num_pulses: 128
+  num_samples: 9000
+  num_channels: 16
+  waveform_length: 1000
+  buffer_size: 10          # Number of RF arrays to store in rx buffer

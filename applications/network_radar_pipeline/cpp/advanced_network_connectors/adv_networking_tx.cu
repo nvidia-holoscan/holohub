@@ -23,47 +23,40 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
   spec.input<std::shared_ptr<RFChannel>>("rf_in");
   spec.output<std::shared_ptr<AdvNetBurstParams>>("burst_out");
 
-  // Packet size / type parameters
-  spec.param<uint32_t>(batch_size_,
-    "batch_size",
-    "Batch size",
-    "Batch size for each processing epoch", 1000);
-  spec.param<uint16_t>(payload_size_,
-    "payload_size",
-    "Payload size",
-    "Payload size to send. Does not include <= L4 headers", 1400);
-  spec.param<int>(hds_,
-    "split_boundary",
-    "Header-data split boundary",
-    "Byte boundary where header and data is split", 0);
-  spec.param<uint16_t>(header_size_,
-    "header_size",
-    "Header size",
-    "Header size on each packet from L4 and below", 42);
-  spec.param<bool>(gpu_direct_,
-    "gpu_direct",
-    "GPUDirect enabled",
-    "Byte boundary where header and data is split", false);
+  // Advanced network operator parameters
+  spec.param<AdvNetConfigYaml>(cfg_,
+    "cfg",
+    "Configuration",
+    "Configuration for the advanced network operator",
+    AdvNetConfigYaml());
 
   // Radar parameters
-  spec.param(num_pulses_,
-    "numPulses",
+  spec.param<uint16_t>(num_pulses_,
+    "num_pulses",
     "Number of pulses",
     "Number of pulses per channel", {});
-  spec.param(num_channels_,
-    "numChannels",
+  spec.param<uint16_t>(num_channels_,
+    "num_channels",
     "Number of channels",
     "Number of channels", {});
-  spec.param(waveform_length_,
-    "waveformLength",
+  spec.param<uint16_t>(waveform_length_,
+    "waveform_length",
     "Waveform length",
     "Length of waveform", {});
-  spec.param(num_samples_,
-    "numSamples",
+  spec.param<uint16_t>(num_samples_,
+    "num_samples",
     "Number of samples",
     "Number of samples per channel", {});
 
   // Networking parameters
+  spec.param<uint16_t>(samples_per_packet_,
+    "samples_per_packet",
+    "Number of complex I/Q samples to send per packet",
+    "Payload size computed based on samples/packet, not including <= L4 headers", 128);
+  spec.param<uint16_t>(header_size_,
+    "header_size",
+    "Header size",
+    "Header size on each packet from L4 and below", 42);
   spec.param<uint16_t>(udp_src_port_,
     "udp_src_port",
     "UDP source port",
@@ -92,27 +85,44 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
 
 void AdvConnectorOpTx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize()");
+  register_converter<holoscan::ops::AdvNetConfigYaml>();
   holoscan::Operator::initialize();
 
+  // Read some parameters from config
+  if (cfg_.get().tx_.size() != 1 || cfg_.get().tx_[0].queues_.size() != 1) {
+    HOLOSCAN_LOG_ERROR("Currently can only handle 1 Tx queue");
+    return;
+  }
+  payload_size_ = RFPacket::packet_size(samples_per_packet_.get());
+  batch_size_   = cfg_.get().tx_[0].queues_[0].common_.batch_size_;
+  hds_          = cfg_.get().tx_[0].queues_[0].common_.hds_;
+  gpu_direct_   = cfg_.get().tx_[0].queues_[0].common_.gpu_direct_;
+
+  if (gpu_direct_ && hds_ == 0) {
+    //todo: GPU-only mode Eth+IP+UDP headers
+    HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
+    return;
+  }
+
   // Compute how many packets sent per array
-  samples_per_pkt = (payload_size_.get() - RFPacket::header_size()) / sizeof(complex_t);
-  pkt_per_pulse   = packets_per_pulse(payload_size_.get(), num_samples_.get());
-  num_packets_buf = packets_per_channel(payload_size_.get(), num_pulses_.get(), num_samples_.get());
+  samples_per_pkt = (payload_size_ - RFPacket::header_size()) / sizeof(complex_t);
+  pkt_per_pulse   = packets_per_pulse(payload_size_, num_samples_.get());
+  num_packets_buf = packets_per_channel(payload_size_, num_pulses_.get(), num_samples_.get());
   HOLOSCAN_LOG_INFO("samples_per_pkt: {}", samples_per_pkt);
   HOLOSCAN_LOG_INFO("num_packets_buf: {}", num_packets_buf);
 
-  if (num_packets_buf >= batch_size_.get()) {
+  if (num_packets_buf >= batch_size_) {
     //todo: Figure out a better way to break up and send a large chunk of data
     HOLOSCAN_LOG_ERROR(
       "RF array size too large: [{}, {}] requires {} packets and the max batch size is set to {}",
-      num_pulses_.get(), num_samples_.get(), num_packets_buf, batch_size_.get());
+      num_pulses_.get(), num_samples_.get(), num_packets_buf, batch_size_);
     return;
   }
 
   // Reserve memory
   buf_stride = RFPacket::packet_size(samples_per_pkt);
   buf_size   = num_packets_buf * buf_stride;
-  if (!gpu_direct_.get()) {
+  if (!gpu_direct_) {
     // On CPU
     mem_buf_h_ = static_cast<uint8_t *>(malloc(buf_size));
     if (mem_buf_h_ == nullptr) {
@@ -127,7 +137,7 @@ void AdvConnectorOpTx::initialize() {
   else {
     // On GPU
     for (int n = 0; n < num_concurrent; n++) {
-      cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
+      cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_);
       cudaStreamCreate(&streams_[n]);
       cudaEventCreate(&events_[n]);
     }
@@ -142,15 +152,12 @@ void AdvConnectorOpTx::initialize() {
   ip_src_ = ntohl(ip_src_);
   ip_dst_ = ntohl(ip_dst_);
 
-  if (gpu_direct_.get() && hds_.get() == 0) {
-    //todo: GPU-only mode Eth+IP+UDP headers
-    HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
-    return;
-  }
-
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize() complete");
 }
 
+/**
+ * @brief Set UDP headers on Host memory
+ */
 AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt_idx) {
   AdvNetStatus ret;
 
@@ -164,7 +171,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
   }
 
   // Remove Eth + IP size
-  const auto ip_len = payload_size_.get() + header_size_.get() - (14 + 20);
+  const auto ip_len = payload_size_ + header_size_.get() - (14 + 20);
   if ((ret = adv_net_set_cpu_ipv4_hdr(msg,
                                       pkt_idx,
                                       ip_len,
@@ -180,7 +187,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
   if ((ret = adv_net_set_cpu_udp_hdr(msg,
                                      pkt_idx,
                                      // Remove Eth + IP + UDP headers
-                                     payload_size_.get() + header_size_.get() - (14 + 20 + 8),
+                                     payload_size_ + header_size_.get() - (14 + 20 + 8),
                                      udp_src_port_.get(),
                                      udp_dst_port_.get())) != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
@@ -259,7 +266,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
   // Check if GPU send is falling behind
-  if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
+  if (gpu_direct_ && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
     HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
     return;
   }
@@ -267,7 +274,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   // Input is pulse/sample data from a single channel
   auto rf_data = op_input.receive<std::shared_ptr<RFChannel>>("rf_in").value();
   if (rf_data == nullptr) {
-    if (gpu_direct_.get() && out_q.size() > 0) {
+    if (gpu_direct_ && out_q.size() > 0) {
       // If packet setup is done, send to ANO
       const auto first = out_q.front();
       if (cudaEventQuery(first.evt) == cudaSuccess) {
@@ -301,7 +308,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     return;
   }
 
-  if (!gpu_direct_.get()) {
+  if (!gpu_direct_) {
     // Generate packets from RF data //todo Optimize this process
     index_t ix_buf = 0;
     index_t ix_max = static_cast<index_t>(num_samples_.get());
@@ -339,18 +346,18 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   int gpu_len;
   for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(msg); pkt_idx++) {
     // For HDS mode or CPU mode populate the packet headers
-    if (!gpu_direct_.get() || hds_.get() > 0) {
+    if (!gpu_direct_ || hds_ > 0) {
       ret = set_cpu_hdr(msg, pkt_idx); // set packet headers
       if (ret != AdvNetStatus::SUCCESS) {
         return;
       }
 
       // Only set payload on CPU buffer if we're not using GPUDirect
-      if (!gpu_direct_.get()) {
+      if (!gpu_direct_) {
         if ((ret = adv_net_set_cpu_udp_payload(msg,
                                                pkt_idx,
                                                packets_buf[pkt_idx].get_ptr(),
-                                               payload_size_.get())) != AdvNetStatus::SUCCESS) {
+                                               payload_size_)) != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set UDP payload for packet {}", pkt_idx);
           adv_net_free_all_burst_pkts_and_burst(msg);
           return;
@@ -359,19 +366,19 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     }
 
     // Figure out the CPU and GPU length portions for ANO
-    if (gpu_direct_.get() && hds_.get() > 0) {
-      cpu_len = hds_.get();
-      gpu_len = payload_size_.get();
+    if (gpu_direct_ && hds_ > 0) {
+      cpu_len = hds_;
+      gpu_len = payload_size_;
     }
-    else if (!gpu_direct_.get()) {
-      cpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
+    else if (!gpu_direct_) {
+      cpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
       gpu_len = 0;
     }
     else {
       cpu_len = 0;
-      gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
+      gpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
     }
-    if (gpu_direct_.get()) {
+    if (gpu_direct_) {
       gpu_bufs[cur_idx][pkt_idx] = reinterpret_cast<uint8_t *>(
         adv_net_get_gpu_pkt_ptr(msg, pkt_idx));
     }
@@ -384,13 +391,13 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   }
 
   // In GPU-only mode copy the header
-  if (gpu_direct_.get() && hds_.get() == 0) {
+  if (gpu_direct_ && hds_ == 0) {
     //todo: GPU-only mode
   }
 
   // Populate packets with I/Q data
-  if (gpu_direct_.get()) {
-    const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
+  if (gpu_direct_) {
+    const auto offset = (hds_ > 0) ? 0 : header_size_.get();
     populate_packets(gpu_bufs[cur_idx],
                      rf_data->data.Data(),
                      rf_data->waveform_id,
@@ -401,7 +408,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     out_q.push(TxMsg{msg, rf_data->waveform_id, rf_data->channel_id, events_[cur_idx]});
   }
 
-  if (gpu_direct_.get()) {
+  if (gpu_direct_) {
     // If packet setup is done, send to ANO
     const auto first = out_q.front();
     if (cudaEventQuery(first.evt) == cudaSuccess) {

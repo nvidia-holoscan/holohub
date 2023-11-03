@@ -145,19 +145,19 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
 
   // Radar settings
   spec.param<uint16_t>(buffer_size_,
-    "bufferSize",
+    "buffer_size",
     "Size of RF buffer",
     "Max number of transmits that can be held at once", {});
   spec.param<uint16_t>(num_channels_,
-    "numChannels",
+    "num_channels",
     "Number of channels",
     "Number of channels", {});
   spec.param<uint16_t>(num_pulses_,
-    "numPulses",
+    "num_pulses",
     "Number of pulses",
     "Number of pulses per channel", {});
   spec.param<uint16_t>(num_samples_,
-    "numSamples",
+    "num_samples",
     "Number of samples",
     "Number of samples per pulse", {});
 

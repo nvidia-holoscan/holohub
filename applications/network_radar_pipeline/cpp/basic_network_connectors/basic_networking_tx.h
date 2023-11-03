@@ -34,10 +34,10 @@ class BasicConnectorOpTx : public Operator {
 
  private:
   Parameter<uint16_t> payload_size;
-  Parameter<uint16_t> numPulses;
-  Parameter<uint16_t> numSamples;
-  Parameter<uint16_t> waveformLength;
-  Parameter<uint16_t> numChannels;
+  Parameter<uint16_t> num_pulses;
+  Parameter<uint16_t> num_samples;
+  Parameter<uint16_t> waveform_length;
+  Parameter<uint16_t> num_channels;
   index_t samples_per_pkt;
   index_t num_packets_buf;
   RFPacket *packets_buf;

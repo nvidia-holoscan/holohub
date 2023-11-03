@@ -21,22 +21,22 @@ namespace holoscan::ops {
 // ----- TargetSimulator ------------------------------------------------------
 void TargetSimulator::setup(OperatorSpec& spec) {
   spec.output<std::shared_ptr<RFChannel>>("rf_out");
-  spec.param(numTransmits, "numTransmits",
+  spec.param(num_transmits, "num_transmits",
               "Number of waveform transmissions",
               "Number of waveform transmissions to simulate", {});
-  spec.param(numPulses, "numPulses",
+  spec.param(num_pulses, "num_pulses",
               "Number of pulses",
               "Number of pulses per channel", {});
-  spec.param(numChannels,
-              "numChannels",
+  spec.param(num_channels,
+              "num_channels",
               "Number of channels",
               "Number of channels", {});
-  spec.param(waveformLength,
-              "waveformLength",
+  spec.param(waveform_length,
+              "waveform_length",
               "Waveform length",
               "Length of waveform", {});
-  spec.param(numSamples,
-              "numSamples",
+  spec.param(num_samples,
+              "num_samples",
               "Number of samples",
               "Number of samples per channel", {});
 }
@@ -51,7 +51,7 @@ void TargetSimulator::initialize() {
 
   // Initialize tensor
   simSignal = new tensor_t<complex_t, 3>(
-    {numChannels.get(), numPulses.get(), numSamples.get()});
+    {num_channels.get(), num_pulses.get(), num_samples.get()});
 
   simSignal->PrefetchDevice(stream);
   HOLOSCAN_LOG_INFO("TargetSimulator::initialize() done");
@@ -60,13 +60,13 @@ void TargetSimulator::initialize() {
 void TargetSimulator::compute(InputContext&,
                               OutputContext& op_output,
                               ExecutionContext& context) {
-  if (transmit_count == numTransmits.get()) {
+  if (transmit_count == num_transmits.get()) {
     op_output.emit(nullptr, "rf_out");
     return;
   }
 
   HOLOSCAN_LOG_INFO("TargetSimulator::compute() - simulation {} of {}, channel {} of {}",
-    transmit_count+1, numTransmits.get(), channel_idx+1, numChannels.get());
+    transmit_count+1, num_transmits.get(), channel_idx+1, num_channels.get());
 
   if (channel_idx == 0) {
     // todo Simulate targets
@@ -82,7 +82,7 @@ void TargetSimulator::compute(InputContext&,
   op_output.emit(params, "rf_out");
 
   channel_idx++;
-  if (channel_idx == numChannels.get()) {
+  if (channel_idx == num_channels.get()) {
     // Sent all channels, move to next array
     transmit_count++;
     channel_idx = 0;

@@ -24,19 +24,19 @@ void BasicConnectorOpTx::setup(OperatorSpec& spec) {
   spec.param(payload_size, "max_payload_size",
               "Max payload size in bytes",
               "Max payload size in bytes for received packets", {});
-  spec.param(numPulses, "numPulses",
+  spec.param(num_pulses, "num_pulses",
               "Number of pulses",
               "Number of pulses per channel", {});
-  spec.param(numChannels,
-              "numChannels",
+  spec.param(num_channels,
+              "num_channels",
               "Number of channels",
               "Number of channels", {});
-  spec.param(waveformLength,
-              "waveformLength",
+  spec.param(waveform_length,
+              "waveform_length",
               "Waveform length",
               "Length of waveform", {});
-  spec.param(numSamples,
-              "numSamples",
+  spec.param(num_samples,
+              "num_samples",
               "Number of samples",
               "Number of samples per channel", {});
 }
@@ -47,7 +47,7 @@ void BasicConnectorOpTx::initialize() {
 
   // Compute how many packets sent per array
   samples_per_pkt = (payload_size.get() - RFPacket::header_size()) / sizeof(complex_t);
-  num_packets_buf = packets_per_channel(payload_size.get(), numPulses.get(), numSamples.get());
+  num_packets_buf = packets_per_channel(payload_size.get(), num_pulses.get(), num_samples.get());
   HOLOSCAN_LOG_INFO("samples_per_pkt: {}", samples_per_pkt);
   HOLOSCAN_LOG_INFO("num_packets_buf: {}", num_packets_buf);
   packets_buf = new RFPacket[num_packets_buf];
@@ -76,9 +76,9 @@ void BasicConnectorOpTx::compute(InputContext& op_input,
 
   // Generate packets from RF data //todo Optimize this process
   index_t ix_buf = 0;
-  index_t ix_max = static_cast<index_t>(numSamples.get());
-  for (index_t ix_pulse = 0; ix_pulse < numPulses.get(); ix_pulse++) {
-    for (index_t ix_sample = 0; ix_sample < numSamples.get(); ix_sample += samples_per_pkt) {
+  index_t ix_max = static_cast<index_t>(num_samples.get());
+  for (index_t ix_pulse = 0; ix_pulse < num_pulses.get(); ix_pulse++) {
+    for (index_t ix_sample = 0; ix_sample < num_samples.get(); ix_sample += samples_per_pkt) {
       // Slice to the samples this packet will send
       auto data = rf_data->data.Slice<1>(
         {ix_pulse, ix_sample},
@@ -100,7 +100,7 @@ void BasicConnectorOpTx::compute(InputContext& op_input,
   }
 
   // Send end-of-array message if this is the last channel of the transmit
-  const bool send_eoa_msg = rf_data->channel_id == numChannels.get() - 1;
+  const bool send_eoa_msg = rf_data->channel_id == num_channels.get() - 1;
   if (send_eoa_msg) {
     packets_buf[num_packets_buf - 1].set_end_array(1);
   }

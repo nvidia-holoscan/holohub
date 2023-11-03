@@ -57,30 +57,6 @@ class AdvConnectorOpTx : public Operator {
                         uint16_t offset,
                         cudaStream_t stream);
 
-  // Radar settings
-  Parameter<uint16_t> num_pulses_;
-  Parameter<uint16_t> num_samples_;
-  Parameter<uint16_t> waveform_length_;
-  Parameter<uint16_t> num_channels_;
-
-  // Networking settings
-  Parameter<uint32_t> batch_size_;
-  Parameter<uint16_t> payload_size_;
-  Parameter<int> hds_;                   // Header-data split boundary (0 if disabled)
-  Parameter<uint16_t> header_size_;      // Header size of packet
-  Parameter<bool> gpu_direct_;           // GPUDirect enabled
-
-  Parameter<uint16_t> udp_src_port_;
-  Parameter<uint16_t> udp_dst_port_;
-  Parameter<std::string> ip_src_addr_;
-  Parameter<std::string> ip_dst_addr_;
-  Parameter<std::string> eth_dst_addr_;
-  Parameter<uint16_t> port_id_;
-
-  char eth_dst_[6];
-  uint32_t ip_src_;
-  uint32_t ip_dst_;
-
   struct TxMsg {
     AdvNetBurstParams *msg;
     uint16_t waveform_id;
@@ -88,6 +64,32 @@ class AdvConnectorOpTx : public Operator {
     cudaEvent_t evt;
   };
   std::queue<TxMsg> out_q;
+
+  Parameter<AdvNetConfigYaml> cfg_;
+
+  // Radar settings
+  Parameter<uint16_t> num_pulses_;
+  Parameter<uint16_t> num_samples_;
+  Parameter<uint16_t> waveform_length_;
+  Parameter<uint16_t> num_channels_;
+
+  // Networking settings
+  Parameter<uint16_t> samples_per_packet_;
+  Parameter<uint16_t> header_size_;
+  Parameter<uint16_t> udp_src_port_;
+  Parameter<uint16_t> udp_dst_port_;
+  Parameter<std::string> ip_src_addr_;
+  Parameter<std::string> ip_dst_addr_;
+  Parameter<std::string> eth_dst_addr_;
+  Parameter<uint16_t> port_id_;
+  uint16_t payload_size_;
+  uint32_t batch_size_;
+  int hds_;
+  bool gpu_direct_;
+
+  char eth_dst_[6];
+  uint32_t ip_src_;
+  uint32_t ip_dst_;
 
   // Concurrent batch structures
   std::array<cudaStream_t, num_concurrent> streams_;
