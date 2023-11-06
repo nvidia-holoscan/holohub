@@ -37,6 +37,7 @@ class TargetSimulator : public Operator {
 
  private:
   cudaStream_t stream;
+  Parameter<int> data_rate;
   Parameter<uint16_t> num_transmits;
   Parameter<uint16_t> num_pulses;
   Parameter<uint16_t> num_samples;
@@ -45,6 +46,7 @@ class TargetSimulator : public Operator {
   Parameter<uint16_t> samplesPerPkt;
   index_t transmit_count;
   index_t channel_idx;
+  int tsleep_us;
 
   tensor_t<complex_t, 3> *simSignal = nullptr;
 };

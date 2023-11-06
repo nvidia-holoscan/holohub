@@ -65,8 +65,9 @@ advanced_network:
             cpu_cores: "17"            # CPU cores for transmitting
 
 radar_pipeline:
-  is_source: true         # Defines app type (source, process)
-  num_transmits: 1000     # Use N-1 of num_transmits in source
+  is_source: true      # Defines app type (source, process)
+  data_rate: 95        # (Gbps)
+  num_transmits: 1000  # Use N-1 of num_transmits in source
   num_pulses: 128
   num_samples: 9000
   num_channels: 16

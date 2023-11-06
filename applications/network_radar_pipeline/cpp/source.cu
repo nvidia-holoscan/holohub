@@ -16,11 +16,16 @@
  */
 #include "source.h"
 
+#include <chrono>
+
 namespace holoscan::ops {
 
 // ----- TargetSimulator ------------------------------------------------------
 void TargetSimulator::setup(OperatorSpec& spec) {
   spec.output<std::shared_ptr<RFChannel>>("rf_out");
+  spec.param(data_rate, "data_rate",
+              "Data rate to generate data (Gbps)",
+              "Operates by sleeping before emitting a single channel", {});
   spec.param(num_transmits, "num_transmits",
               "Number of waveform transmissions",
               "Number of waveform transmissions to simulate", {});
@@ -49,6 +54,23 @@ void TargetSimulator::initialize() {
   transmit_count = 0;
   channel_idx = 0;
 
+  /**
+   * This is a rudimentary formula to account for the fact that there is unaccounted for
+   * processing outside of this Operator. Without it, the true data rate when set to higher
+   * values will skew low.
+   */
+  double modifier = 1;
+  int lowest_realtime = 20; // Lowest data rate modifier is necessary
+  if (data_rate.get() > lowest_realtime) {
+    double diff = 0.0015 * static_cast<double>(data_rate.get() - lowest_realtime);
+    modifier = modifier > diff ? modifier - diff : 0;
+  }
+
+  // Compute how long to sleep to acheive desired data rate
+  double bits_per_channel = 8 * num_samples.get() * num_pulses.get() * sizeof(complex_t);
+  double tsleep_sec = bits_per_channel / static_cast<double>(1e9 * data_rate.get());
+  tsleep_us = static_cast<int>(modifier * tsleep_sec * 1e6);
+
   // Initialize tensor
   simSignal = new tensor_t<complex_t, 3>(
     {num_channels.get(), num_pulses.get(), num_samples.get()});
@@ -65,6 +87,8 @@ void TargetSimulator::compute(InputContext&,
     return;
   }
 
+  std::chrono::steady_clock::time_point sim_start = std::chrono::steady_clock::now();
+
   HOLOSCAN_LOG_INFO("TargetSimulator::compute() - simulation {} of {}, channel {} of {}",
     transmit_count+1, num_transmits.get(), channel_idx+1, num_channels.get());
 
@@ -74,6 +98,13 @@ void TargetSimulator::compute(InputContext&,
     auto sig_imag = simSignal->ImagView();
     (sig_real = sig_real + ones(sig_real.Shape())).run(stream);
     (sig_imag = sig_imag + 2 * ones(sig_imag.Shape())).run(stream);
+  }
+
+  // Subtract time spent simulating from channel sleep time
+  std::chrono::steady_clock::time_point sim_end = std::chrono::steady_clock::now();
+  auto sim_dt = std::chrono::duration_cast<std::chrono::microseconds>(sim_end - sim_start).count();
+  if (tsleep_us > sim_dt) {
+    usleep(tsleep_us - sim_dt);
   }
 
   auto channel_data = simSignal->Slice<2>({channel_idx, 0, 0},
