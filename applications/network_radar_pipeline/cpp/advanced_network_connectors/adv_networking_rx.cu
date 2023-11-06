@@ -77,15 +77,15 @@ void place_packet_data_kernel(complex_t *out,
   const complex_t *samples = reinterpret_cast<const complex_t *>(in[pkt_idx]) + 2;
 #endif
 
-  const uint16_t buffer_idx = meta->waveform_id % buffer_size;
-  if (meta->end_array && threadIdx.x == 0) {
-    received_end[buffer_idx] = true;
-  }
-
   // Make sure this isn't wrapping the buffer - drop if it is
   if (meta->waveform_id >= buffer_pos + buffer_size ||
       meta->waveform_id < buffer_pos) {
     return;
+  }
+
+  const uint16_t buffer_idx = meta->waveform_id % buffer_size;
+  if (meta->end_array && threadIdx.x == 0) {
+    received_end[buffer_idx] = true;
   }
 
   // Compute pointer in buffer memory
