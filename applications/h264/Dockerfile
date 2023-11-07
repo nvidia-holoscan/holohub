@@ -13,13 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Dockerfile to build a docker image on top of Holoscan SDK required to run
-# Holohub H264 Encode / Decode applications.
 
-ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvstaging/holoscan/holoscan
-ARG HOLOSCAN_SDK_VERSION=v1.0.0.3
-ARG CONTAINER_TYPE=dgpu
-FROM ${HOLOSCAN_SDK_IMAGE}:${HOLOSCAN_SDK_VERSION}-${CONTAINER_TYPE}
+############################################################
+# Base image
+############################################################
+
+ARG BASE_IMAGE
+ARG GPU_TYPE
+
+FROM ${BASE_IMAGE} as base
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# --------------------------------------------------------------------------
+#
+# Holohub run setup
+#
+
+RUN mkdir -p /tmp/scripts
+COPY run /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/run
+RUN /tmp/scripts/run setup
+
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+# - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
+# - We use ARG to only set it at docker build time, so it does not affect cmake builds
+#   performed at docker run time in case users want to use a different BUILD_TYPE
+ARG CMAKE_BUILD_TYPE=Release
 
 # Install libv4l-dev required for nvv4l2
 RUN apt update && apt install -y libv4l-dev
@@ -27,9 +51,8 @@ RUN apt update && apt install -y libv4l-dev
 # Below workaround is required to get H264 Encode working
 RUN ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so
 
-COPY ./install_dependencies.sh /
+COPY applications/h264/install_dependencies.sh /
 
 WORKDIR /
 
 RUN /install_dependencies.sh
-

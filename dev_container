@@ -571,6 +571,10 @@ launch() {
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
         -w /workspace/holohub \
         --runtime=nvidia \
+        --gpus all \
+        --cap-add CAP_SYS_PTRACE \
+        --ipc=host \
+        --ulimit memlock=-1 \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \

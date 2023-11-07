@@ -22,11 +22,13 @@ for rendering decoded data to the native window.
 
 ### Building Holohub Dev Container
 
-Below script builds Holohub dev container, it uses Holoscan SDK dGPU container as
-a base image. The Holoscan SDK version to be used is specified in ./VERSION file.
+Use the following command from the Holohub root dir to builds the Holohub dev container with
+h264 support.
 
 ```bash
-./build_holohub_container.sh
+./dev_container build --docker_file ./applications/h264/Dockerfile
+                      --base_img nvcr.io/nvstaging/holoscan/holoscan:v1.0.0.3-dgpu
+                      --img holohub:h264
 ```
 
 ### Starting Holohub Dev Container 
@@ -34,7 +36,7 @@ a base image. The Holoscan SDK version to be used is specified in ./VERSION file
 Start Holohub dev container from current directory using below command:
 
 ```bash
-./build_holohub_container.sh
+./dev_container launch --img holohub:h264
 ```
 
 ### Building And Running H.264 Applications

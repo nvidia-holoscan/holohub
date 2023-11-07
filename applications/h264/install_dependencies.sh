@@ -40,7 +40,7 @@ wget "$GXF_MM_URL" -O gxf-mm.tar
 mkdir -p gxf-mm
 tar -xf gxf-mm.tar -C gxf-mm
 rm gxf-mm.tar
-mkdir -p /opt/nvidia/holoscan/lib
+mkdir -p ${HOLOSCAN_LIBS_DIR}
 find ./gxf-mm/$SUBFOLDER/ -iname *.so -execdir cp "{}" $HOLOSCAN_LIBS_DIR ";"
 rm -rf gxf-mm
 

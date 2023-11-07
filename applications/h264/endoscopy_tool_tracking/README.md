@@ -27,7 +27,7 @@ The data is automatically downloaded when building the application.
 ## Building And Running H.264 Endoscopy Tool Tracking Application
 
 Follow steps in README.md from parents directory to build and run the Holohub
-dev ontainer. Once inside the Holohub dev container, follow steps mentioned
+dev container. Once inside the Holohub dev container, follow steps mentioned
 below to build and run H.264 Endoscopy Tool Tracking application.
 
 ## Building the application

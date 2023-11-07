@@ -711,14 +711,14 @@ list() {
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
-
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
       language=""
+      filename="${appname}"
     else
       language="(${language})"
+      filename="${appname%/*}"
     fi
-    filename="${appname%/*}"
 
     # Check in the CMakelists if the application is a sample application
     appcmakelist="applications/CMakeLists.txt"
