@@ -39,7 +39,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                         HOLOSCAN_SAMPLE_APP
                         )
 
-add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
+add_holohub_application(h264/endoscopy_tool_tracking DEPENDS
                         OPERATORS video_encoder video_decoder
                                   video_read_bitstream video_write_bitstream
                                   tensor_to_video_buffer

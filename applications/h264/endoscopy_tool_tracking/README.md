@@ -1,4 +1,4 @@
-# H264 Endoscopy Tool Tracking Application
+# H.264 Endoscopy Tool Tracking Application
 
 The application showcases how to use H.264 video source as input to and output
 from the Holoscan pipeline. This application is a modified version of Endoscopy
@@ -24,24 +24,19 @@ can be specified in the 'h264_endoscopy_tool_tracking.yaml' file.
 
 The data is automatically downloaded when building the application.
 
-## Building the Holohub H264 Encode / Decode container
+## Building And Running H.264 Endoscopy Tool Tracking Application
 
-```bash
-./docker/build.sh
-```
+Follow steps in README.md from parents directory to build and run the Holohub
+dev ontainer. Once inside the Holohub dev container, follow steps mentioned
+below to build and run H.264 Endoscopy Tool Tracking application.
 
 ## Building the application
 
-Start Holohub H264 Encode / Decode container from application directory using below command:
+Once inside Holohub dev container, run below command from a top level Holohub
+directory.
 
 ```bash
-./docker/run.sh
-```
-
-Once inside Holohub H264 Encode / Decode container, run below command from application directory:
-
-```bash
-./run build h264_endoscopy_tool_tracking
+./run build h264/endoscopy_tool_tracking
 ```
 
 ## Running the application
@@ -49,13 +44,13 @@ Once inside Holohub H264 Encode / Decode container, run below command from appli
 * Running the application from the top level Holohub directory
 
 ```bash
-./run launch h264_endoscopy_tool_tracking
+./run launch h264/endoscopy_tool_tracking
 ```
 
 * Running the application `h264_endoscopy_tool_tracking` from the build directory.
 
 ```bash
-cd <build_dir>/applications/h264_endoscopy_tool_tracking/ \
+cd <build_dir>/applications/h264/endoscopy_tool_tracking/ \
   && ./h264_endoscopy_tool_tracking --data <HOLOHUB_DATA_DIR>/endoscopy
 ```
 
@@ -63,6 +58,6 @@ cd <build_dir>/applications/h264_endoscopy_tool_tracking/ \
 
 The recording of the output can be enabled by setting `record_output` flag in
 the config file
-`<build_dir>/applications/h264_endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
+`<build_dir>/applications/h264/endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
 to `true`.
 

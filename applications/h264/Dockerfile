@@ -27,7 +27,7 @@ RUN apt update && apt install -y libv4l-dev
 # Below workaround is required to get H264 Encode working
 RUN ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so
 
-COPY ./docker/install_dependencies.sh /
+COPY ./install_dependencies.sh /
 
 WORKDIR /
 

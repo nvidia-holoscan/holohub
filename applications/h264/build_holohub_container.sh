@@ -15,17 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script builds h264 encode/decode apps docker image.
+# This script builds holohub dev container with all the packages required
+# for h264 encode/decode apps.
 
-IMAGE=holohub-h264-enc-dec
+IMAGE=holohub_dev_container
 SCRIPT=`realpath "$0"`
 HERE=`dirname "$SCRIPT"`
-ROOT=`realpath "$HERE/.."`
+ROOT=`realpath "$HERE"`
 VERSION=`cat $ROOT/VERSION`
 
 docker build \
     --network=host \
     -t $IMAGE:$VERSION \
-    -f ./docker/Dockerfile \
+    -f ./Dockerfile \
     $ROOT
 

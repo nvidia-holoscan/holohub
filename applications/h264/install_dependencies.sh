@@ -27,7 +27,7 @@ DS_DEPS_URL="https://urm.nvidia.com/artifactory/sw-isaac-gxf-generic-local/depen
 ARCH=$(arch)
 HOLOSCAN_LIBS_DIR=/opt/nvidia/holoscan/lib/
 
-# Get and extract gxf-mm libs depending on the architecture
+# Download and install gxf-mm libs depending on the architecture
 if [[ $ARCH == "x86_64" ]]; then
   SUBFOLDER="gxf_x86_64_cuda_12_2"
 elif [[ $ARCH == "aarch64" ]]; then
@@ -41,7 +41,6 @@ mkdir -p gxf-mm
 tar -xf gxf-mm.tar -C gxf-mm
 rm gxf-mm.tar
 mkdir -p /opt/nvidia/holoscan/lib
-# copy libs to the required folder
 find ./gxf-mm/$SUBFOLDER/ -iname *.so -execdir cp "{}" $HOLOSCAN_LIBS_DIR ";"
 rm -rf gxf-mm
 
