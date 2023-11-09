@@ -348,7 +348,10 @@ launch() {
     local gpu_type=$(get_host_gpu)
     local img=$(get_default_img)
 
-    # Parse CLI arguments next
+    # Initialize an empty string to hold additional volume mounts
+    additional_volumes=""
+
+    # Parse CLI arguments
     ARGS=("$@")
     local i
     local arg
@@ -368,6 +371,11 @@ launch() {
         fi
         if [ "$arg" = "--nsys_profile" ]; then
            nsys_profile=true
+        fi
+        if [ "$arg" = "--add-volume" ]; then
+            path="${ARGS[i+1]}"
+            base=$(basename "$path")
+            additional_volumes+="-v $path:/workspace/volumes/$base "
         fi
     done
 
@@ -521,6 +529,7 @@ launch() {
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \
+        ${additional_volumes} \
         ${mount_device_opt} \
     	${conditional_opt} \
         ${local_sdk_opt} \
