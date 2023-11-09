@@ -1,3 +1,4 @@
+%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,8 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+replayer:
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
 
-cmake_minimum_required(VERSION 3.20)
-project(prohawk_video_replayer LANGUAGES NONE)
-
-add_subdirectory(cpp)
+holoviz:
+  width: 854
+  height: 480
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0

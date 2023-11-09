@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(prohawk_video_replayer LANGUAGES NONE)
-
-add_subdirectory(cpp)
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET prohawk_video_processing
+    CLASS_NAME "ProhawkOp"
+    SOURCES prohawkop.cpp
+)
