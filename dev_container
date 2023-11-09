@@ -332,7 +332,7 @@ launch_desc() { c_echo 'Launch Docker container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
     --verbose : Print variables passed to docker run command
-    --add-volume : Mount additional directories or file to /workspace/volumes/
+    --add-volume : Mount additional directories or files to /workspace/volumes/
     '
 }
 launch() {
