@@ -114,6 +114,12 @@ The launch script will also inspect for available video devices (V4L2, AJA captu
   ./dev_container launch --nsys_profile
 ```
 
+5. Mount additional directories or files to the container's `/workspace/volumes/` directory
+
+```bash
+  ./dev_container launch --add-volume /usr/dev/models --add-volume /media/m2/test_data.json
+```
+
 ***Note***:  To print the values passed to the docker run command, add the ```--verbose``` option to the launch command.
 
 For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values.
