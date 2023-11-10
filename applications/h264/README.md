@@ -35,8 +35,24 @@ h264 support.
 
 Start Holohub dev container from current directory using below command:
 
+On x86:
+
 ```bash
 ./dev_container launch --img holohub:h264
+```
+
+On aarch64, applications also need tegra folder mounted inside the container and
+the `LD_LIBRARY_PATH` environment variable should be updated to include
+tegra folder path:
+
+```bash
+./dev_container launch --mount /usr/lib/aarch64-linux-gnu/tegra/ --img holohub:h264
+```
+
+Once inside the container on aarch64, run:
+
+```bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
 
 ### Building And Running H.264 Applications

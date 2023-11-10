@@ -48,10 +48,13 @@ ARG CMAKE_BUILD_TYPE=Release
 # Install libv4l-dev required for nvv4l2
 RUN apt update && apt install -y libv4l-dev
 
-# Below workaround is required to get H264 Encode working on x86
-RUN if [ $(uname -m) = "x86_64" ]; then \
-        ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so; \
+# Below workarounds are required to get H.264 Encode and Decode working inside
+# the docker container.
+RUN if [ ! -e "/usr/lib/$(arch)-linux-gnu/libnvidia-encode.so" ]; then \
+        ln -s /usr/lib/$(arch)-linux-gnu/libnvidia-encode.so.1 /usr/lib/$(arch)-linux-gnu/libnvidia-encode.so; \
     fi
+RUN mkdir /usr/lib/$(arch)-linux-gnu/libv4l/plugins/nv && \
+    ln -s /usr/lib/$(arch)-linux-gnu/tegra/libv4l2_nvcuvidvideocodec.so /usr/lib/$(arch)-linux-gnu/libv4l/plugins/nv/libv4l2_nvcuvidvideocodec.so
 
 COPY applications/h264/install_dependencies.sh /
 
