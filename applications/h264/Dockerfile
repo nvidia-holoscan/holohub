@@ -48,8 +48,10 @@ ARG CMAKE_BUILD_TYPE=Release
 # Install libv4l-dev required for nvv4l2
 RUN apt update && apt install -y libv4l-dev
 
-# Below workaround is required to get H264 Encode working
-RUN ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so
+# Below workaround is required to get H264 Encode working on x86
+RUN if [ $(uname -m) = "x86_64" ]; then \
+        ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so; \
+    fi
 
 COPY applications/h264/install_dependencies.sh /
 
