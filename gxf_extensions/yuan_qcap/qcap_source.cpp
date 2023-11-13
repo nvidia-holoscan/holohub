@@ -16,11 +16,9 @@
  */
 #include "qcap_source.hpp"
 
-#ifdef BUILD_WITH_QCAP_SDK
 #include <qcap.common.h>
 #include <qcap.h>
 #include <qcap.linux.h>
-#endif
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -50,7 +48,6 @@ EXPAND_FILE(no_sdk_png)
 namespace nvidia {
 namespace holoscan {
 
-#ifdef BUILD_WITH_QCAP_SDK
 QRETURN on_process_signal_removed(PVOID pDevice, ULONG nVideoInput, ULONG nAudioInput,
                                   PVOID pUserData) {
   struct QCAPSource* qcap = (struct QCAPSource*)pUserData;
@@ -154,7 +151,6 @@ QRETURN on_process_audio_preview(PVOID pDevice, double dSampleTime, BYTE* pFrame
                                  ULONG nFrameBufferLen, PVOID pUserData) {
   return QCAP_RT_OK;
 }
-#endif
 
 QCAPSource::QCAPSource()
     : pixel_format_(kDefaultPixelFormat),
@@ -196,12 +192,7 @@ gxf_result_t QCAPSource::registerInterface(gxf::Registrar* registrar) {
   result &= registrar->parameter(
       sdi12g_mode_, "sdi12g_mode", "SDI12GMode", "SDI 12G Mode.", kDefaultSDI12GMode);
 
-#ifdef BUILD_WITH_QCAP_SDK
   m_status = STATUS_NO_DEVICE;
-#else
-  GXF_LOG_WARNING("QCAP Source: build without QCAP sdk.\n");
-  m_status = STATUS_NO_SDK;
-#endif
 
   return gxf::ToResultCode(result);
 }
@@ -356,7 +347,6 @@ gxf_result_t QCAPSource::start() {
     cudaMalloc((void**)&m_pRGBBUffer[i], kDefaultPreviewSize);
   }
 
-#ifdef BUILD_WITH_QCAP_SDK
   QCAP_CREATE((char*)device_specifier_.get().c_str(), 0, nullptr, &m_hDevice, TRUE);
 
   QCAP_SET_DEVICE_CUSTOM_PROPERTY(m_hDevice, QCAP_DEVPROP_IO_METHOD, 1);
@@ -422,13 +412,11 @@ gxf_result_t QCAPSource::start() {
   }
 
   QCAP_RUN(m_hDevice);
-#endif
 
   return GXF_SUCCESS;
 }
 
 gxf_result_t QCAPSource::stop() {
-#ifdef BUILD_WITH_QCAP_SDK
   if (m_hDevice) {
     QCAP_STOP(m_hDevice);
 
@@ -455,7 +443,6 @@ gxf_result_t QCAPSource::stop() {
     QCAP_DESTROY(m_hDevice);
     m_hDevice = nullptr;
   }
-#endif
   return GXF_SUCCESS;
 }
 
@@ -514,7 +501,6 @@ gxf_result_t QCAPSource::tick() {
     return gxf::ToResultCode(message);
   }
 
-#ifdef BUILD_WITH_QCAP_SDK
   // GXF_LOG_ERROR("QCAP Source: status %d block >>", m_status);
   if (m_queue.pop_block(preview) == false) {
     // GXF_LOG_ERROR("QCAP Source: status %d block <<<", m_status);
@@ -596,9 +582,6 @@ gxf_result_t QCAPSource::tick() {
   const auto result = video_buffer_output_->publish(std::move(message.value()));
 
   return gxf::ToResultCode(message);
-#else
-  return GXF_SUCCESS;
-#endif
 }
 
 }  // namespace holoscan
