@@ -282,6 +282,14 @@ build() {
     local img=$(get_default_img)
     local print_verbose=0
 
+    # Check if buildx exists
+    if ! $(docker buildx version &> /dev/null) ; then
+        c_echo_err G "docker buildx plugin" W " is missing. Please install " G "docker-buildx-plugin" W ":
+
+        https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository"
+        exit
+    fi
+
     # Parse CLI arguments next
     ARGS=("$@")
     local i
@@ -332,6 +340,7 @@ launch_desc() { c_echo 'Launch Docker container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
     --verbose : Print variables passed to docker run command
+    --add-volume : Mount additional volume
     '
 }
 launch() {
@@ -359,31 +368,33 @@ launch() {
         arg="${ARGS[i]}"
         if [ "$arg" = "--img" ]; then
            img="${ARGS[i+1]}"
+           shift
+           shift
         fi
         if [ "$arg" = "--verbose" ]; then
            print_verbose=1
+           shift
         fi
         if [ "$arg" = "--local_sdk_root" ]; then
            local_sdk_root="${ARGS[i+1]}"
+           shift
         fi
         if [ "$arg" = "--ssh_x11" ]; then
            ssh_x11=1
+           shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
            nsys_profile=true
+           shift
         fi
         if [ "$arg" = "--add-volume" ]; then
             path="${ARGS[i+1]}"
             base=$(basename "$path")
             additional_volumes+="-v $path:/workspace/volumes/$base "
+            shift
+            shift
         fi
     done
-
-
-    # Skip the first argument to pass the remaining arguments to the docker command.
-    if [ -n "$1" ]; then
-        shift
-    fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
     run_command xhost +local:docker
@@ -535,7 +546,8 @@ launch() {
         ${local_sdk_opt} \
         -v $nvidia_icd_json:$nvidia_icd_json:ro \
         ${mount_nvoptix_bin} \
-        ${img}
+        ${img} \
+        "$@"
 }
 
 

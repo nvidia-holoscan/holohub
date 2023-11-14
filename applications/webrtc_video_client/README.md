@@ -36,7 +36,7 @@ pip install aiohttp aiortc
 Run the command:
 
 ```bash
-./run launch webrtc_client
+./run launch webrtc_video_client
 ```
 
 On the same machine open a browser and connect to `127.0.0.1:8080`.

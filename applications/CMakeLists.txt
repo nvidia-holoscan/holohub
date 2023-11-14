@@ -45,12 +45,10 @@ add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
                                   tensor_to_video_buffer
                                   lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                        HOLOSCAN_SAMPLE_APP
                         )
 
 add_holohub_application(h264_video_decode DEPENDS
-                        OPERATORS video_decoder video_read_bitstream
-                        HOLOSCAN_SAMPLE_APP)
+                        OPERATORS video_decoder video_read_bitstream)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
