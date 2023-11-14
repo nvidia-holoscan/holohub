@@ -175,14 +175,31 @@ def complete_cdf_plot(fig, ax, operator_legends=None):
     fig.tight_layout()
 
 
+def latency_percentile(latencies, percentile, sorted=False):
+    if not sorted:
+        latencies = sorted(latencies)
+    if percentile == 100:
+        return latencies[-1]
+    index = int(len(latencies) * percentile / 100.0)
+    return latencies[index]
+
+
+# Latency percentile with filtering for cool-down and warm-up periods
+def latency_percentile_filtered(
+    latencies, percentile, skip_begin_messages=10, discard_last_messages=10
+):
+    data = sorted(latencies[skip_begin_messages:-discard_last_messages])
+    return "{:.2f}".format(latency_percentile(data, percentile, sorted=True))
+
+
 def get_latency_difference(
     latencies, percentile_start, percentile_end, skip_begin_messages=10, discard_last_messages=10
 ):
     data = sorted(latencies[skip_begin_messages:-discard_last_messages])
     n = len(data)
-    start_index = int(n * percentile_start / 100.0)
-    end_index = int(n * percentile_end / 100.0 - 1)
-    return "{:.2f}".format(data[end_index] - data[start_index])
+    start_value = latency_percentile(data, percentile_start, sorted=True)
+    end_value = latency_percentile(data, percentile_end, sorted=True)
+    return "{:.2f}".format(end_value - start_value)
 
 
 # This function shortens a path by taking first 3 letters of each operator name if
@@ -281,6 +298,10 @@ def main():
         "--flatness",
         action="store_true",
         help="show the difference between 10 and 90 percentile latencies for all paths",
+    )
+
+    parser.add_argument(
+        "-p", "--percentile", type=int, help="show percentile latencies for all paths"
     )
 
     parser.add_argument(
@@ -482,6 +503,28 @@ def main():
                         str(
                             get_latency_difference(
                                 paths_latencies[list(paths_latencies.keys())[0]], 10, 90
+                            )
+                        )
+                        + ","
+                    )
+    if args.percentile:
+        if args.save_csv:
+            with open("percentile_values.csv", "w") as f:
+                f.truncate(0)
+        print_metric_title(f"Latency Percentile ({args.percentile})")
+        for group_name, paths_latencies in grouped_path_latenices.items():
+            print_group_name_with_log_files(group_name, grouped_log_files[group_name])
+            for path, latency in paths_latencies.items():
+                print_path_metric_ms(
+                    path, latency_percentile_filtered(latency, int(args.percentile))
+                )
+            if args.save_csv:
+                with open("percentile_values.csv", "a") as f:
+                    f.write(
+                        str(
+                            latency_percentile_filtered(
+                                paths_latencies[list(paths_latencies.keys())[0]],
+                                int(args.percentile),
                             )
                         )
                         + ","
