@@ -196,7 +196,6 @@ def get_latency_difference(
     latencies, percentile_start, percentile_end, skip_begin_messages=10, discard_last_messages=10
 ):
     data = sorted(latencies[skip_begin_messages:-discard_last_messages])
-    n = len(data)
     start_value = latency_percentile(data, percentile_start, sorted=True)
     end_value = latency_percentile(data, percentile_end, sorted=True)
     return "{:.2f}".format(end_value - start_value)
