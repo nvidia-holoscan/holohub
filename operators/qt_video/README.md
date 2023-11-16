@@ -2,7 +2,7 @@
 
 The `qt_video` operator is used to display a video in a [QtQuick](https://doc.qt.io/qt-6/qtquick-index.html) application.
 
-For more information on how to use this operator in an application see [Qt example](../../applications/qt/README.md).
+For more information on how to use this operator in an application see [Qt video replayer example](../../applications/qt_video_replayer/README.md).
 
 #### `holoscan::ops::QtVideoOp`
 

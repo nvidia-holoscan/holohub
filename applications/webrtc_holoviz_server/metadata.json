@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "webrtc_holoviz_server",
+		"name": "WebRTC Holoviz Server",
 		"authors": [
 			{
 				"name": "Holoscan Team",
