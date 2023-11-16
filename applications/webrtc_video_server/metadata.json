@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "webrtc_video_server",
+		"name": "WebRTC Video Server",
 		"authors": [
 			{
 				"name": "Holoscan Team",

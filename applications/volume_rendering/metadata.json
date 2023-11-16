@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "volume_rendering",
+		"name": "Volume Rendering",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -24,7 +24,8 @@
 		],
 		"tags": [
 			"Volume",
-			"Render"
+			"Render",
+			"ClaraViz"
 		],
 		"ranking": 1,
 		"dependencies": {},
