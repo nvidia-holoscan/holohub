@@ -28,6 +28,14 @@ Towards realtime anonymization, a binary out-of-body classifier was trained and 
 
 ## Launch app
 
+**C++** 
+
 ```bash
 ./run launch orsi/orsi_in_out_body cpp
+```
+
+**Python**
+
+```bash
+./run launch orsi/orsi_in_out_body python
 ```
