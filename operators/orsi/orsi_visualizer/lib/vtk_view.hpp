@@ -67,6 +67,10 @@ class VtkView {
 
   vtkNew<vtkAssembly> assembly_;
 
+  void update(); 
+
+  bool update_frame_ = true;
+
  public:
   VtkView() = default;
   ~VtkView() = default;

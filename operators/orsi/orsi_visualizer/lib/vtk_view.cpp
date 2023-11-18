@@ -239,11 +239,26 @@ void VtkView::start() {
   if (!vtk_interactor_style_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor style"); }
   vtk_interactor_->SetInteractorStyle(vtk_interactor_style_);
   vtk_renderer_->ResetCamera();
+
+  update();
 }
 
 void VtkView::render() {
   // skip frames with invalid dimensions
   if (vp_width_ <= 0 || vp_height_ <= 0) { return; }
+
+  if(!update_frame_) {
+      vtk_render_wnd_->WaitForCompletion();
+      return;
+  }
+#define DEBUG_FRAME_
+#ifdef DEBUG_FRAME_
+{
+  static uint32_t frame_cnt = 0;
+  std::cout << "render frame #"  << ++frame_cnt << std::endl;
+}
+#endif
+
 
   if (realloc_texture) {
     // Free old buffers
@@ -283,6 +298,8 @@ void VtkView::render() {
 
   vtk_render_wnd_->Render();
   vtk_render_wnd_->WaitForCompletion();
+
+  update_frame_ = false;
 }
 
 void VtkView::stop() {
@@ -308,6 +325,8 @@ int VtkView::onChar(GLFWwindow* wnd, unsigned int codepoint) {
   int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
   vtk_interactor_->SetAltKey(alt);
 
+  update();
+
   vtk_interactor_->SetKeyEventInformation(ctrl, shift, codepoint);
   return vtk_interactor_->InvokeEvent(vtkCommand::CharEvent, nullptr);
 }
@@ -315,6 +334,8 @@ int VtkView::onChar(GLFWwindow* wnd, unsigned int codepoint) {
 int VtkView::onEnter(GLFWwindow* wnd, int entered) {
   // TODO: fix  MouseInWindow
   // vtk_interactor_->MouseInWindow = entered;
+  update();
+
   if (entered) return vtk_interactor_->InvokeEvent(vtkCommand::EnterEvent, nullptr);
   else
     return vtk_interactor_->InvokeEvent(vtkCommand::LeaveEvent, nullptr);
@@ -323,19 +344,22 @@ int VtkView::onEnter(GLFWwindow* wnd, int entered) {
 int VtkView::onMouseMove(GLFWwindow* wnd, double x, double y) {
   // TODO: fix  MouseInWindow
   // if (!vtk_interactor_->MouseInWindow) return 0;
-
-  int alt = glfwGetKey(wnd, GLFW_MOD_ALT);
-  int ctrl = glfwGetKey(wnd, GLFW_MOD_CONTROL);
-  int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
+  const int alt = glfwGetKey(wnd, GLFW_MOD_ALT);
+  const int ctrl = glfwGetKey(wnd, GLFW_MOD_CONTROL);
+  const int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
+  
+  update();
+  
   vtk_interactor_->SetAltKey(alt);
   vtk_interactor_->SetEventInformation(x, y, ctrl, shift);
   return vtk_interactor_->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
 }
 
 int VtkView::onMouseButtonCallback(GLFWwindow* wnd, int button, int action, int mods) {
-  int alt = mods & GLFW_MOD_ALT;
-  int ctrl = mods & GLFW_MOD_CONTROL;
-  int shift = mods & GLFW_MOD_SHIFT;
+  const int alt = mods & GLFW_MOD_ALT;
+  const int ctrl = mods & GLFW_MOD_CONTROL;
+  const int shift = mods & GLFW_MOD_SHIFT;
+  update();
   vtk_interactor_->SetAltKey(alt);
 
   double x(0), y(0);
@@ -376,9 +400,11 @@ int VtkView::onMouseButtonCallback(GLFWwindow* wnd, int button, int action, int 
 }
 
 int VtkView::onScrollCallback(GLFWwindow* wnd, double x, double y) {
-  int alt = glfwGetKey(wnd, GLFW_MOD_ALT);
-  int ctrl = glfwGetKey(wnd, GLFW_MOD_CONTROL);
-  int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
+  const int alt = glfwGetKey(wnd, GLFW_MOD_ALT);
+  const int ctrl = glfwGetKey(wnd, GLFW_MOD_CONTROL);
+  const int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
+  update();
+
   vtk_interactor_->SetAltKey(alt);
   vtk_interactor_->SetControlKey(ctrl);
   vtk_interactor_->SetShiftKey(shift);
@@ -391,9 +417,11 @@ int VtkView::onScrollCallback(GLFWwindow* wnd, double x, double y) {
 }
 
 int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods) {
-  int alt = mods & GLFW_MOD_ALT;
-  int ctrl = mods & GLFW_MOD_CONTROL;
-  int shift = mods & GLFW_MOD_SHIFT;
+  const int alt = mods & GLFW_MOD_ALT;
+  const int ctrl = mods & GLFW_MOD_CONTROL;
+  const int shift = mods & GLFW_MOD_SHIFT;
+
+  update();
 
   const char* keysym = glfwGetKeyName(key, scancode);
   int repeat = (action == GLFW_REPEAT);
@@ -438,7 +466,7 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
   }
 
   
-VtkProp3DTransformParams transform_params;
+  VtkProp3DTransformParams transform_params;
 
   if(ctrl && action == GLFW_RELEASE) {
     if(key == GLFW_KEY_S) {
@@ -448,6 +476,10 @@ VtkProp3DTransformParams transform_params;
       myfile << transform_params<< std::endl;
       myfile.close();
     } else if (key == GLFW_KEY_L) {
+
+
+      std::cout << "About to load save transfrom from " << tf_params_path_ << std::endl;
+
       std::ifstream t(tf_params_path_);
       std::string s;
       std::string ss;
@@ -488,9 +520,15 @@ int VtkView::onSize(GLFWwindow* wnd, int w, int h) {
   if (!vtk_interactor_) {
     return 0;
   }
+  update();
 
   vtk_interactor_->UpdateSize(w, h);
   return vtk_interactor_->InvokeEvent(vtkCommand::ConfigureEvent, nullptr);
+}
+
+void VtkView::update()
+{
+  update_frame_ = true;
 }
 
 }  // namespace holoscan::orsi
