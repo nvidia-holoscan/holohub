@@ -88,9 +88,12 @@ void OrsiVis::onKeyCallback(GLFWwindow* wnd, int key, int scancode, int action, 
     }
     if (key == GLFW_KEY_T) {
       enable_model_manip_ = !enable_model_manip_;
-      if (enable_model_manip_) HOLOSCAN_LOG_INFO("3D Model transform enabled!");
-      else
+      if (enable_model_manip_) {
+        HOLOSCAN_LOG_INFO("3D Model transform enabled!");
+      }
+      else {
         HOLOSCAN_LOG_INFO("3D Model transform locked!");
+      }
 
       return;
     }
@@ -136,7 +139,7 @@ void OrsiVis::setup(OperatorSpec& spec) {
   spec.param(tf_params_path_,
              "tf_params_path",
              "TF params",
-             "VtkProp3DTransformParams for 3D structure");
+             "VtkProp3DTransformParams for 3D structure", {});
 }
 
 void OrsiVis::initialize() {
@@ -471,9 +474,7 @@ void OrsiVis::compute(const std::unordered_map<std::string,
 #if 1
   GLuint preop_mesh_tex = vtk_view_.getTexture();
   // only re-render if manipulator is unlocked / active
-  if (enable_model_manip_ || first_frame_) {
-    vtk_view_.render();
-  }
+  vtk_view_.render();
 #endif
 
   // Draw Frame
@@ -491,9 +492,7 @@ void OrsiVis::compute(const std::unordered_map<std::string,
 
 #endif
 
-  if (first_frame_) {
-    first_frame_ = false;
-  }
+
 }
 
 }  // namespace holoscan::orsi

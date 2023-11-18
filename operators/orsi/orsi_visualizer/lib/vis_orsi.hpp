@@ -105,7 +105,6 @@ class OrsiVis : public holoscan::orsi::vis::VisIntf {
 
   VtkView vtk_view_;
   bool enable_model_manip_ = false;
-  bool first_frame_ = true;
 };
 
 }  // namespace holoscan::orsi
