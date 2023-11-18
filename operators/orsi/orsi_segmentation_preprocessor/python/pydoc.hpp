@@ -24,12 +24,12 @@
 namespace holoscan::doc::OrsiSegmentationPreprocessorOp {
 
 PYDOC(OrsiSegmentationPreprocessorOp, R"doc(
-Operator carrying out post-processing operations on segmentation outputs.
+Operator carrying out pre-processing operations on segmentation outputs.
 )doc")
 
 // PySegmentationPreprocessorOp Constructor
 PYDOC(OrsiSegmentationPreprocessorOp_python, R"doc(
-Operator carrying out post-processing operations on segmentation outputs.
+Operator carrying out pre-processing operations on segmentation outputs.
 
 Parameters
 ----------
