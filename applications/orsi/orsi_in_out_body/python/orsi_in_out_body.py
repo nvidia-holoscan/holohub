@@ -15,46 +15,43 @@ class OrsiInOutBodyApp(Application):
     def __init__(self):
         super().__init__()
         self.name = "OrsiInOutBodyApp"
-        self.data_path = "data/orsi"
+        self.data_path = os.environ.get("HOLOSCAN_DATA_PATH", "../data/orsi")
 
 
     def compose(self):
 
-        pool=UnboundedAllocator(self, name="pool")
-
+        allocator=UnboundedAllocator(self, name="allocator")
+        # Built-in Holoscan operators
         source_type = self.kwargs("source")['source']
-        if source_type.lower() == "replayer":
-            source = VideoStreamReplayerOp(
-                self,
-                name="replayer",
-                directory=self.data_path + "/video",
-                **self.kwargs("replayer"),
-            )
-        format_converter_anonymization = OrsiFormatConverterOp(
+        source = VideoStreamReplayerOp(
             self,
-            name="format_converter",
-            pool=pool,
-            **self.kwargs("format_converter_anonymization"),
+            name="replayer",
+            directory=self.data_path + "/video",
+            **self.kwargs("replayer"),
         )
-        anonymization_preprocessor = OrsiSegmentationPreprocessorOp(
-            self,
-            name="anonymization_preprocessor",
-            pool=pool,
-            **self.kwargs("anonymization_preprocessor")
-        )
-
         multi_ai_inference = InferenceOp(
             self,
             name="multiai_inference",
-            pool=pool,
+            allocator=allocator,
             model_path_map = {"anonymization":self.data_path+"/model/anonymization_model.onnx"},
             **self.kwargs("multiai_inference"),
         )
-
+        # Orsi operators
+        anonymization_preprocessor = OrsiSegmentationPreprocessorOp(
+            self,
+            name="anonymization_preprocessor",
+            allocator=allocator,
+            **self.kwargs("anonymization_preprocessor")
+        )
+        format_converter_anonymization = OrsiFormatConverterOp(
+            self,
+            name="format_converter",
+            allocator=allocator,
+            **self.kwargs("format_converter_anonymization"),
+        )
         orsi_visualizer = OrsiVisualizationOp(
             self,
             name="orsi_visualizer",
-            pool=pool,
             **self.kwargs("orsi_visualizer"),
         )
         self.add_flow(source, orsi_visualizer, {("", "receivers")})

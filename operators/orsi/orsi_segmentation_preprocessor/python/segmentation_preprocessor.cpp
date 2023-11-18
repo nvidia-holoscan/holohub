@@ -61,20 +61,26 @@ class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp
 
   // Define a constructor that fully initializes the object.
   PyOrsiSegmentationPreprocessorOp(
-      Fragment* fragment, std::shared_ptr<::holoscan::Allocator> pool,
+      Fragment* fragment, 
+      std::shared_ptr<::holoscan::Allocator> allocator,
       const std::string& in_tensor_name = "", 
+      const std::string& out_tensor_name = "", 
       const std::string& network_output_type = "softmax"s,
       const std::string& data_format = "hwc"s,
       const std::vector<float> normalize_means = std::vector<float>{},
       const std::vector<float> normalize_stds = std::vector<float>{},
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-      const std::string& name = "segmentation_preprocessor"s)
-      :  orsi::SegmentationPreprocessorOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
+      const std::string& name = "segmentation_preprocessor"s
+  )
+      :  orsi::SegmentationPreprocessorOp(ArgList{
+                                            Arg{"in_tensor_name", in_tensor_name},
+                                            Arg{"out_tensor_name", out_tensor_name},
                                             Arg{"network_output_type", network_output_type},
                                             Arg{"data_format", data_format},
                                             Arg{"normalize_means", normalize_means},
                                             Arg{"normalize_stds", normalize_stds},
-                                            Arg{"pool", pool}}) {
+                                            Arg{"allocator", allocator}
+                                          }) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     name_ = name;
     fragment_ = fragment;
@@ -114,6 +120,7 @@ PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
                     const std::string&,
                     const std::string&,
                     const std::string&,
+                    const std::string&,
                     const std::vector<float>,
                     const std::vector<float>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
@@ -121,6 +128,7 @@ PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
            "fragment"_a,
            "allocator"_a,
            "in_tensor_name"_a = ""s,
+           "out_tensor_name"_a = ""s,
            "network_output_type"_a = "softmax"s,
            "data_format"_a = "hwc"s,
            "normalize_means"_a = std::vector<float>{},
