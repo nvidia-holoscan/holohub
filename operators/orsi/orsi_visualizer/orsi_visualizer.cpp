@@ -138,12 +138,6 @@ void OrsiVisualizationOp::setup(OperatorSpec& spec) {
 
   spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
 
-  spec.param(in_tensor_names_,
-             "in_tensor_names",
-             "Input Tensor Names",
-             "Names of input tensors.",
-             {std::string("")});
-
   spec.param(
       window_close_scheduling_term_,
       "window_close_scheduling_term",

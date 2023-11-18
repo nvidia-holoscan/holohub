@@ -94,8 +94,4 @@ orsi_visualizer:  # Orsi Visualizer
   stl_names: [2_venous_tree_all, 4_vene_stentzone, 7_stent]
   stl_colors: [[0, 0, 255, 0], [0, 0, 255, 0], [170, 255, 0, 0]]
   stl_keys: [320, 321, 322]
-  in_tensor_names:
-    - ""
-    - segmentation_postprocessed
-    - anonymization_postprocessed
 
