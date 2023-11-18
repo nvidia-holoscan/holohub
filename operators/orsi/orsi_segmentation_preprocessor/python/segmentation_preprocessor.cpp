@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
+
+#define PYBIND11_DETAILED_ERROR_MESSAGES
+
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>  // for c++ stl
 
 #include <memory>
 #include <string>
@@ -58,7 +62,8 @@ class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp
   // Define a constructor that fully initializes the object.
   PyOrsiSegmentationPreprocessorOp(
       Fragment* fragment, std::shared_ptr<::holoscan::Allocator> pool,
-      const std::string& in_tensor_name = "", const std::string& network_output_type = "softmax"s,
+      const std::string& in_tensor_name = "", 
+      const std::string& network_output_type = "softmax"s,
       const std::string& data_format = "hwc"s,
       const std::vector<float> normalize_means = std::vector<float>{},
       const std::vector<float> normalize_stds = std::vector<float>{},
