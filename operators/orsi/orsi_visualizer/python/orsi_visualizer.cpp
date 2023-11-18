@@ -59,16 +59,25 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
 
   // Define a constructor that fully initializes the object.
   PyOrsiVisualizationOp(
-      Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
-      const std::string& in_tensor_name = "", const std::string& network_output_type = "softmax"s,
-      const std::string& data_format = "hwc"s,
-      std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-      const std::string& name = "segmentation_postprocessor"s)
-      :  orsi::OrsiVisualizationOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
-                                            Arg{"network_output_type", network_output_type},
-                                            Arg{"data_format", data_format},
-                                            Arg{"allocator", allocator}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+      Fragment* fragment,
+      std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
+      std::vector<std::string> in_tensor_names = {},
+      bool swizzle_video = false,
+      const std::string& stl_file_path = "",
+      std::vector<std::string> stl_names = {},
+      std::vector<std::vector<int32_t>> stl_colors = {}, 
+      std::vector<int> stl_keys = {},
+      const std::string& tf_params_path = "",
+      const std::string& name = "orsi_viz_op"s)
+      :  orsi::OrsiVisualizationOp(ArgList{ 
+                                     Arg{"receivers", receivers},
+                                     Arg{"in_tensor_names", in_tensor_names},
+                                     Arg{"swizzle_video", swizzle_video},
+                                     Arg{"stl_file_path", stl_file_path},
+                                     Arg{"stl_names", stl_names},
+                                     Arg{"stl_colors", stl_colors},
+                                     Arg{"stl_keys", stl_keys}, 
+                                     Arg{"tf_params_path", tf_params_path}}) {
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -103,19 +112,25 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
       "OrsiVisualizationOp",
       doc::OrsiVisualizationOp::doc_OrsiVisualizationOp)
       .def(py::init<Fragment*,
-                    std::shared_ptr<::holoscan::Allocator>,
-                    const std::string&,
-                    const std::string&,
-                    const std::string&,
-                    std::shared_ptr<holoscan::CudaStreamPool>,
+                    std::vector<holoscan::IOSpec*>,
+                    std::vector<std::string>,
+                    bool, 
+                    const std::string&, 
+                    std::vector<std::string>,
+                    std::vector<std::vector<int32_t>>, 
+                    std::vector<int>,
+                    const std::string&, 
                     const std::string&>(),
            "fragment"_a,
-           "allocator"_a,
-           "in_tensor_name"_a = ""s,
-           "network_output_type"_a = "softmax"s,
-           "data_format"_a = "hwc"s,
-           "cuda_stream_pool"_a = py::none(),
-           "name"_a = "segmentation_postprocessor"s,
+           "receivers"_a = std::vector<holoscan::IOSpec*>(),
+           "in_tensor_names"_a = std::vector<std::string>(),
+           "swizzle_video"_a = false, 
+           "stl_file_path"_a = ""s,
+           "stl_names"_a = std::vector<std::string>(),
+           "stl_colors"_a =  std::vector<std::vector<int32_t>>{}, 
+           "stl_keys"_a =  std::vector<int>{}, 
+           "tf_params_path"_a = ""s, 
+           "name"_a = "orsi_viz_op"s,
            doc::OrsiVisualizationOp::doc_OrsiVisualizationOp_python)
       .def("setup",
            & orsi::OrsiVisualizationOp::setup,
