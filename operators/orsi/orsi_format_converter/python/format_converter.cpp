@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+#define PYBIND11_DETAILED_ERROR_MESSAGES
+
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>  // for vector
+#include <pybind11/stl.h>  // for c++ stl
 
 #include <cstdint>
 #include <memory>
