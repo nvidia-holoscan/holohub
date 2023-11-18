@@ -72,7 +72,6 @@ class OrsiVisualizationOp : public Operator {
   int vp_height_ = 0;
 
   Parameter<std::vector<holoscan::IOSpec*>> receivers_;
-  Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::shared_ptr<BooleanCondition>> window_close_scheduling_term_;
 
   CudaStreamHandler cuda_stream_handler_;

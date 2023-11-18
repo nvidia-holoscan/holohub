@@ -78,7 +78,4 @@ orsi_visualizer:  # OrsiVizGXF Codelet
   stl_names: []
   stl_colors: [] # in RGBA format
   stl_keys: [] # see https://www.glfw.org/docs/3.3/group__keys.html
-  in_tensor_names:
-    - ""
-    - anonymization_postprocessed
 

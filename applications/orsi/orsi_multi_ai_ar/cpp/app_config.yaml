@@ -95,8 +95,3 @@ orsi_visualizer:  # Orsi Visualizer
   stl_names: [arterial_tree, venous_tree, ureter, par, tumor]
   stl_colors: [[255, 0, 0, 0], [0, 0, 255, 0], [255, 255, 0, 0], [180, 180, 180, 0], [170, 255, 0, 0]] # in RGBA format
   stl_keys: [321, 322, 324, 325, 326] # see https://www.glfw.org/docs/3.3/group__keys.html
-  in_tensor_names:
-    - ""
-    - segmentation_postprocessed
-    - anonymization_postprocessed
-

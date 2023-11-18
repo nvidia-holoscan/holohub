@@ -61,7 +61,6 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
   PyOrsiVisualizationOp(
       Fragment* fragment,
       std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
-      std::vector<std::string> in_tensor_names = {},
       bool swizzle_video = false,
       const std::string& stl_file_path = "",
       std::vector<std::string> stl_names = {},
@@ -70,14 +69,14 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
       const std::string& tf_params_path = "",
       const std::string& name = "orsi_viz_op"s)
       :  orsi::OrsiVisualizationOp(ArgList{ 
-                                     Arg{"receivers", receivers},
-                                     Arg{"in_tensor_names", in_tensor_names},
                                      Arg{"swizzle_video", swizzle_video},
                                      Arg{"stl_file_path", stl_file_path},
                                      Arg{"stl_names", stl_names},
                                      Arg{"stl_colors", stl_colors},
                                      Arg{"stl_keys", stl_keys}, 
                                      Arg{"tf_params_path", tf_params_path}}) {
+
+      if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -113,7 +112,6 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
       doc::OrsiVisualizationOp::doc_OrsiVisualizationOp)
       .def(py::init<Fragment*,
                     std::vector<holoscan::IOSpec*>,
-                    std::vector<std::string>,
                     bool, 
                     const std::string&, 
                     std::vector<std::string>,
@@ -123,7 +121,6 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
                     const std::string&>(),
            "fragment"_a,
            "receivers"_a = std::vector<holoscan::IOSpec*>(),
-           "in_tensor_names"_a = std::vector<std::string>(),
            "swizzle_video"_a = false, 
            "stl_file_path"_a = ""s,
            "stl_names"_a = std::vector<std::string>(),
