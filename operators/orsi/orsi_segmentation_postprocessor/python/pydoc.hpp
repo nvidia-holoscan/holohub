@@ -21,14 +21,14 @@
 
 #include <macros.hpp>
 
-namespace holoscan::doc::SegmentationPostprocessorOp {
+namespace holoscan::doc::OrsiSegmentationPostprocessorOp {
 
-PYDOC(SegmentationPostprocessorOp, R"doc(
+PYDOC(OrsiSegmentationPostprocessorOp, R"doc(
 Operator carrying out post-processing operations on segmentation outputs.
 )doc")
 
 // PySegmentationPostprocessorOp Constructor
-PYDOC(SegmentationPostprocessorOp_python, R"doc(
+PYDOC(OrsiSegmentationPostprocessorOp_python, R"doc(
 Operator carrying out post-processing operations on segmentation outputs.
 
 Parameters

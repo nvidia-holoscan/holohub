@@ -60,16 +60,28 @@ class PyOrsiSegmentationPostprocessorOp : public orsi::SegmentationPostprocessor
 
   // Define a constructor that fully initializes the object.
   PyOrsiSegmentationPostprocessorOp(
-      Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
-      const std::string& in_tensor_name = "", const std::string& network_output_type = "softmax"s,
+      Fragment* fragment, 
+      std::shared_ptr<::holoscan::Allocator> allocator,
+      const std::string& in_tensor_name = "", 
+      const std::string& network_output_type = "softmax"s,
       const std::string& data_format = "hwc"s,
+      const std::string& out_tensor_name = ""s,
+      const std::vector<int32_t> output_roi_rect = {}, 
+      const std::vector<int32_t> output_img_size = {},
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
       const std::string& name = "segmentation_postprocessor"s)
-      :  orsi::SegmentationPostprocessorOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
+      :  orsi::SegmentationPostprocessorOp(ArgList{
+                                            Arg{"in_tensor_name", in_tensor_name},
                                             Arg{"network_output_type", network_output_type},
                                             Arg{"data_format", data_format},
+                                            Arg{"out_tensor_name", out_tensor_name},
+                                            Arg{"output_roi_rect", output_roi_rect},
+                                            Arg{"output_img_size", output_img_size},
                                             Arg{"allocator", allocator}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+
+
+
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -83,7 +95,7 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
-        .. currentmodule:: _segmentation_postprocessor
+        .. currentmodule:: _orsi_segmentation_postprocessor
         .. autosummary::
            :toctree: _generate
            add
@@ -101,13 +113,16 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
              Operator,
              std::shared_ptr< orsi::SegmentationPostprocessorOp>>(
       m,
-      "SegmentationPostprocessorOp",
-      doc::SegmentationPostprocessorOp::doc_SegmentationPostprocessorOp)
+      "OrsiSegmentationPostprocessorOp",
+      doc::OrsiSegmentationPostprocessorOp::doc_OrsiSegmentationPostprocessorOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<::holoscan::Allocator>,
                     const std::string&,
                     const std::string&,
                     const std::string&,
+                    const std::string&,
+                    const std::vector<int32_t>, 
+                    const std::vector<int32_t>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
            "fragment"_a,
@@ -115,12 +130,15 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
            "in_tensor_name"_a = ""s,
            "network_output_type"_a = "softmax"s,
            "data_format"_a = "hwc"s,
+           "out_tensor_name"_a = ""s,
+           "output_roi_rect"_a = std::vector<int32_t>{},
+           "output_img_size"_a = std::vector<int32_t>{},
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "segmentation_postprocessor"s,
-           doc::SegmentationPostprocessorOp::doc_SegmentationPostprocessorOp_python)
+           doc::OrsiSegmentationPostprocessorOp::doc_OrsiSegmentationPostprocessorOp_python)
       .def("setup",
            & orsi::SegmentationPostprocessorOp::setup,
            "spec"_a,
-           doc::SegmentationPostprocessorOp::doc_setup);
+           doc::OrsiSegmentationPostprocessorOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

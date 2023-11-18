@@ -95,7 +95,7 @@ PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
-        .. currentmodule:: _segmentation_preprocessor
+        .. currentmodule:: _orsi_segmentation_preprocessor
         .. autosummary::
            :toctree: _generate
            add
