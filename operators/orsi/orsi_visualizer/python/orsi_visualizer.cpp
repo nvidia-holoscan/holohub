@@ -71,12 +71,13 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
       :  orsi::OrsiVisualizationOp(ArgList{ 
                                      Arg{"swizzle_video", swizzle_video},
                                      Arg{"stl_file_path", stl_file_path},
-                                     Arg{"tf_params_path", tf_params_path}}) {
+                                     Arg{"tf_params_path", tf_params_path},
+                                     Arg{"stl_names", stl_names},
+                                     Arg{"stl_colors", stl_colors},
+                                     Arg{"stl_keys", stl_keys}
+                                     }) {
 
       if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
-      if (stl_names.size() > 0) { this->add_arg(Arg{"stl_names", stl_names}); }
-      if (stl_colors.size() > 0) { this->add_arg(Arg{"stl_colors", stl_colors}); }
-      if (stl_keys.size() > 0) { this->add_arg(Arg{"stl_keys", stl_keys}); }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
