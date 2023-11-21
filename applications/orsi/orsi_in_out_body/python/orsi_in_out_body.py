@@ -1,5 +1,7 @@
 import os
+
 from holoscan.core import Application
+from holoscan.logger import LogLevel, set_log_level
 from holoscan.operators import (
     InferenceOp,
     VideoStreamReplayerOp,
@@ -59,8 +61,14 @@ class OrsiInOutBodyApp(Application):
         self.add_flow(format_converter_anonymization, anonymization_preprocessor)
         self.add_flow(anonymization_preprocessor, multi_ai_inference, {("", "receivers")})
         self.add_flow(multi_ai_inference, orsi_visualizer, {("transmitter", "receivers")})
-if __name__ == "__main__":
+
+def main():
+    set_log_level(LogLevel.WARN)
+
     app = OrsiInOutBodyApp()
     config_file = os.path.join(os.path.dirname(__file__), "app_config.yaml")
     app.config(config_file)
     app.run()
+
+if __name__ == "__main__":
+    main()

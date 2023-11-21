@@ -86,8 +86,6 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
                                   Arg{"scale_min", scale_min},
                                   Arg{"scale_max", scale_max},
                                   Arg{"alpha_value", alpha_value},
-                                  Arg{"resize_width", resize_width},
-                                  Arg{"resize_height", resize_height},
                                   Arg{"resize_mode", resize_mode},
                                   Arg{"out_channel_order", out_channel_order},
                                   Arg{"src_roi_rect", src_roi_rect},

@@ -1,5 +1,6 @@
 import os
 from holoscan.core import Application
+from holoscan.logger import LogLevel, set_log_level
 from holoscan.operators import (
     InferenceOp,
     VideoStreamReplayerOp,
@@ -88,8 +89,14 @@ class OrsiMultiAIARApp(Application):
         self.add_flow(segmentation_preprocessor, multi_ai_inference, {("", "receivers")})
         self.add_flow(multi_ai_inference, segmentation_postprocessor, {("transmitter", "")})
         self.add_flow(segmentation_postprocessor, orsi_visualizer, {("", "receivers")})
-if __name__ == "__main__":
+
+
+def main():
+    set_log_level(LogLevel.WARN)
     app = OrsiMultiAIARApp()
     config_file = os.path.join(os.path.dirname(__file__), "app_config.yaml")
     app.config(config_file)
     app.run()
+
+if __name__ == "__main__":
+    main()

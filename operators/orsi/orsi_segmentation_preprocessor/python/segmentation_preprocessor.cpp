@@ -75,7 +75,6 @@ class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp
       :  orsi::SegmentationPreprocessorOp(ArgList{
                                             Arg{"in_tensor_name", in_tensor_name},
                                             Arg{"out_tensor_name", out_tensor_name},
-                                            Arg{"network_output_type", network_output_type},
                                             Arg{"data_format", data_format},
                                             Arg{"normalize_means", normalize_means},
                                             Arg{"normalize_stds", normalize_stds},
