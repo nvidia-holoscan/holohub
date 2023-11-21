@@ -53,6 +53,8 @@ add_holohub_application(h264_video_decode DEPENDS
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
+add_holohub_application(hyperspectral_segmentation)
+
 add_holohub_application(multiai_endoscopy HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(multiai_ultrasound DEPENDS
