@@ -400,7 +400,7 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd,ba,activ,Activ,dne,unexpect || exit_code=1
+                          -L nd,ba,activ,Activ,dne,unexpect,hsi || exit_code=1
 
     echo "Linting CMake"
     cmakelint --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs \
