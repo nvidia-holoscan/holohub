@@ -35,7 +35,7 @@ endif()
 if(BUILD_TESTING)
   # Add test
   add_test(NAME hyperspectral_segmentation_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/hyperspectral_segmentation.py 
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/hyperspectral_segmentation.py
                    --output_folder ${CMAKE_CURRENT_SOURCE_DIR}/
                    --data "${HOLOHUB_DATA_DIR}/hyperspectral/data"
                    --model "${HOLOHUB_DATA_DIR}/hyperspectral"

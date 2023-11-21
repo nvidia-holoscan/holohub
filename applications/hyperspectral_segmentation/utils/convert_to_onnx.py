@@ -13,20 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pickle
+from pathlib import Path
+
+import blosc
+import imageio
+import numpy as np
+import onnx
+import onnxruntime
 import segmentation_models_pytorch as smp
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
 import torch.onnx
-
-import onnx
-import onnxruntime
-
-import numpy as np
-import blosc
-import pickle
-from pathlib import Path
-import imageio
+import torchvision.transforms as transforms
 
 
 class Model(nn.Module):
@@ -47,19 +46,17 @@ class ModelImage(nn.Module):
 
         channels = 100
 
-        ArchitectureClass = getattr(smp, 'Unet')
+        ArchitectureClass = getattr(smp, "Unet")
         self.architecture = ArchitectureClass(
-            classes=19, in_channels=channels, **{
-            "encoder_name": "efficientnet-b5",
-            "encoder_weights": "imagenet"
-        }
+            classes=19,
+            in_channels=channels,
+            **{"encoder_name": "efficientnet-b5", "encoder_weights": "imagenet"},
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.architecture(x)
 
         return x
-
 
 
 def decompress_file(path):
@@ -93,17 +90,21 @@ def decompress_file(path):
 
 
 run_folder = "2022-02-03_22-58-44_generated_default_model_comparison"  # HSI model
-model = Model() 
+model = Model()
 
 # Load model from https://github.com/IMSY-DKFZ/htc
-dict = torch.load('image@2022-02-03_22-58-44_generated_default_model_comparison/image/2022-02-03_22-58-44_generated_default_model_comparison/fold_P041,P060,P069/epoch=46-dice_metric=0.87.ckpt')["state_dict"]
-dict = {k: v for k, v in dict.items() if 'ce_loss' not in k}
+dict = torch.load(
+    "image@2022-02-03_22-58-44_generated_default_model_comparison/image/2022-02-03_22-58-44_generated_default_model_comparison/fold_P041,P060,P069/epoch=46-dice_metric=0.87.ckpt"
+)["state_dict"]
+dict = {k: v for k, v in dict.items() if "ce_loss" not in k}
 
 model.load_state_dict(dict)
 model.eval()
 
 # Use files from https://www.heiporspectral.org/ to get input/output shapes
-img = decompress_file(Path("HeiPorSPECTRAL_example/intermediates/preprocessing/L1/P086#2021_04_15_09_22_02.blosc"))
+img = decompress_file(
+    Path("HeiPorSPECTRAL_example/intermediates/preprocessing/L1/P086#2021_04_15_09_22_02.blosc")
+)
 transform = transforms.ToTensor()
 
 img = transform(img).to(torch.float32)
@@ -111,28 +112,35 @@ img = transform(img).to(torch.float32)
 orig_output = model(img[None])
 output = torch.argmax(orig_output, dim=1)
 
-rgb = imageio.imread("HeiPorSPECTRAL_example/intermediates/rgb_crops/P086/P086#2021_04_15_09_22_02.png")
+rgb = imageio.imread(
+    "HeiPorSPECTRAL_example/intermediates/rgb_crops/P086/P086#2021_04_15_09_22_02.png"
+)
 rgb = torch.as_tensor(np.moveaxis(rgb, -1, 0))
 
 # Export the model to ONNX
-torch.onnx.export(model,                     # model being run
-                  img[None],                         # model input (or a tuple for multiple inputs)
-                  "hyperspectral_segmentation.onnx",   # where to save the model (can be a file or file-like object)
-                  export_params=True,        # store the trained parameter weights inside the model file
-                  opset_version=11,          # the ONNX version to export the model to
-                  do_constant_folding=True,  # whether to execute constant folding for optimization
-                  input_names = ['input'],   # the model's input names
-                  output_names = ['output'], # the model's output names
-                  dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
-                                'output' : {0 : 'batch_size'}})
+torch.onnx.export(
+    model,  # model being run
+    img[None],  # model input (or a tuple for multiple inputs)
+    "hyperspectral_segmentation.onnx",  # where to save the model (can be a file or file-like object)
+    export_params=True,  # store the trained parameter weights inside the model file
+    opset_version=11,  # the ONNX version to export the model to
+    do_constant_folding=True,  # whether to execute constant folding for optimization
+    input_names=["input"],  # the model's input names
+    output_names=["output"],  # the model's output names
+    dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},  # variable length axes
+)
 
 onnx_model = onnx.load("hyperspectral_segmentation.onnx")
 onnx.checker.check_model(onnx_model)
 
-ort_session = onnxruntime.InferenceSession("hyperspectral_segmentation.onnx", providers=["CPUExecutionProvider"])
+ort_session = onnxruntime.InferenceSession(
+    "hyperspectral_segmentation.onnx", providers=["CPUExecutionProvider"]
+)
+
 
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
 
 # compute ONNX Runtime output prediction
 ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(img[None])}

@@ -13,54 +13,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import glob
+import os
+import pickle
 from argparse import ArgumentParser
 from pathlib import Path
 
 import blosc
-import numpy as np
-import pickle
-import torch
-from PIL import Image
-
 import matplotlib.pyplot as plt
-
+import numpy as np
 import onnx
 import onnxruntime
-
+import torch
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
+from PIL import Image
 
-LABEL_COLORMAP = torch.tensor([
-    [0, 0, 0],
-    [128, 64, 128],
-    [244, 35, 232],
-    [70, 70, 70],
-    [102, 102, 156],
-    [190, 153, 153],
-    [153, 153, 153],
-    [250, 170, 30],
-    [220, 220, 0],
-    [107, 142, 35],
-    [152, 251, 152],
-    [70, 130, 180],
-    [220, 20, 60],
-    [255, 0, 0],
-    [0, 0, 142],
-    [0, 0, 70],
-    [0, 60, 100],
-    [0, 80, 100],
-    [0, 0, 230],
-    [119, 11, 32]
-])
+LABEL_COLORMAP = torch.tensor(
+    [
+        [0, 0, 0],
+        [128, 64, 128],
+        [244, 35, 232],
+        [70, 70, 70],
+        [102, 102, 156],
+        [190, 153, 153],
+        [153, 153, 153],
+        [250, 170, 30],
+        [220, 220, 0],
+        [107, 142, 35],
+        [152, 251, 152],
+        [70, 130, 180],
+        [220, 20, 60],
+        [255, 0, 0],
+        [0, 0, 142],
+        [0, 0, 70],
+        [0, 60, 100],
+        [0, 80, 100],
+        [0, 0, 230],
+        [119, 11, 32],
+    ]
+)
 
 
 class LoadDataOp(Operator):
     def __init__(self, *args, data_path=None, **kwargs):
         self.count = 0
-        self.cube_file_list = sorted(glob.glob(os.path.join(data_path, '*.blosc')))
-        self.rgb_file_list = sorted(glob.glob(os.path.join(data_path, '*.png')))
+        self.cube_file_list = sorted(glob.glob(os.path.join(data_path, "*.blosc")))
+        self.rgb_file_list = sorted(glob.glob(os.path.join(data_path, "*.png")))
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -90,10 +89,10 @@ class LoadDataOp(Operator):
         Args:
             path: File to the blosc data.
 
-        Returns: Decompressed array data. 
+        Returns: Decompressed array data.
         """
         res = {}
-        
+
         with path.open("rb") as f:
             meta = pickle.load(f)
             shape, dtype = meta
@@ -102,7 +101,7 @@ class LoadDataOp(Operator):
             blosc.decompress_ptr(data, array.__array_interface__["data"][0])
 
             res = array
-            
+
         return res
 
 
@@ -112,7 +111,9 @@ class HyperspectralInferenceOp(Operator):
         onnx_model = onnx.load(model_path)
         onnx.checker.check_model(onnx_model)
 
-        self.ort_session = onnxruntime.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+        self.ort_session = onnxruntime.InferenceSession(
+            model_path, providers=["CPUExecutionProvider"]
+        )
 
     def setup(self, spec: OperatorSpec):
         spec.input("cube")
@@ -123,7 +124,7 @@ class HyperspectralInferenceOp(Operator):
     def compute(self, op_input, op_output, context):
         cube = op_input.receive("cube")
         rgb = op_input.receive("rgb")
-        
+
         ort_inputs = {self.ort_session.get_inputs()[0].name: self.to_numpy(cube[None])}
         segmentation = self.ort_session.run(None, ort_inputs)[0]
 
@@ -153,29 +154,29 @@ class HyperspectralVizOp(Operator):
         plt.figure(figsize=(18, 7))
         plt.subplot(1, 3, 1)
         plt.imshow(rgb)
-        plt.gca().set_title('RGB image')
-        plt.axis('off')
+        plt.gca().set_title("RGB image")
+        plt.axis("off")
 
         plt.subplot(1, 3, 2)
         plt.imshow(rgb_seg)
-        plt.gca().set_title('Segmentation')
-        plt.axis('off')
+        plt.gca().set_title("Segmentation")
+        plt.axis("off")
 
         plt.subplot(1, 3, 3)
         plt.imshow(rgb)
         plt.imshow(rgb_seg, alpha=0.5)
-        plt.gca().set_title('Overlay')
-        plt.axis('off')
+        plt.gca().set_title("Overlay")
+        plt.axis("off")
 
-        plt.savefig(os.path.join(self.output_folder, "result.png"), bbox_inches='tight', pad_inches=0)
+        plt.savefig(
+            os.path.join(self.output_folder, "result.png"), bbox_inches="tight", pad_inches=0
+        )
         plt.close()
 
 
 class HSApp(Application):
     def __init__(self, data=None, model=None, output_folder=None, count=-1):
-        """Hyperspectral segmentation application
-
-        """
+        """Hyperspectral segmentation application"""
         super().__init__()
         data = os.environ.get("HOLOSCAN_DATA_PATH", "../data") if data is None else data
         model = data if model is None else model
@@ -187,13 +188,14 @@ class HSApp(Application):
         self.output_folder = self.model_dir if output_folder is None else output_folder
 
     def compose(self):
-
-        rgb_file_list = glob.glob(os.path.join(self.data_path, '*.png'))
+        rgb_file_list = glob.glob(os.path.join(self.data_path, "*.png"))
         count = self.count if (self.count != -1) else len(rgb_file_list)
-        loader = LoadDataOp(self, CountCondition(self, count), data_path=self.data_path, name='data_loader')
-        inference = HyperspectralInferenceOp(self, model_path=self.model_path, name='inference')
-        viz = HyperspectralVizOp(self, output_folder=self.output_folder, name='viz')
-        
+        loader = LoadDataOp(
+            self, CountCondition(self, count), data_path=self.data_path, name="data_loader"
+        )
+        inference = HyperspectralInferenceOp(self, model_path=self.model_path, name="inference")
+        viz = HyperspectralVizOp(self, output_folder=self.output_folder, name="viz")
+
         # Define the workflow
         self.add_flow(loader, inference, {("cube", "cube"), ("rgb", "rgb")})
         self.add_flow(inference, viz, {("segmentation", "segmentation"), ("image", "rgb")})
@@ -201,7 +203,7 @@ class HSApp(Application):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Hyperspectral segmentation application.")
-    
+
     parser.add_argument(
         "-o",
         "--output_folder",
@@ -232,7 +234,9 @@ if __name__ == "__main__":
 
     config_file = os.path.join(os.path.dirname(__file__), "hs.yaml")
 
-    app = HSApp(data=args.data, model=args.model, output_folder=args.output_folder, count=args.count)
+    app = HSApp(
+        data=args.data, model=args.model, output_folder=args.output_folder, count=args.count
+    )
     app.config(config_file)
     app.run()
 
