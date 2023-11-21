@@ -313,6 +313,13 @@ def main():
     )
 
     parser.add_argument(
+        "--cdash",
+        action="store_true",
+        help="write out the values for CTest/CDash",
+        required=False,
+    )
+
+    parser.add_argument(
         "--draw-cdf",
         nargs="?",
         type=str,
@@ -364,6 +371,10 @@ def main():
 
     args = parser.parse_args()
 
+    # Tell CTest to send the full output to CDash
+    if args.cdash:
+        print("CTEST_FULL_OUTPUT")
+
     # Group the log files and parse the latencies from the log files
     groups = args.group_log_files
 
@@ -404,6 +415,13 @@ def main():
             max_latencies = get_max_latencies(paths_latencies)
             for path, latency in max_latencies.items():
                 print_path_metric_ms(path, latency)
+            if args.cdash:
+                (path, latency) = next(iter(max_latencies.items()))
+                print(
+                    '<CTestMeasurement type="numeric/double" name="maximum_latency">'
+                    + str(latency)
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("max_values.csv", "a") as f:
                     f.write(str(max_latencies[list(max_latencies.keys())[0]]) + ",")
@@ -418,6 +436,13 @@ def main():
             avg_latencies = get_avg_latencies(paths_latencies)
             for path, latency in avg_latencies.items():
                 print_path_metric_ms(path, latency)
+            if args.cdash:
+                (path, latency) = next(iter(avg_latencies.items()))
+                print(
+                    '<CTestMeasurement type="numeric/double" name="average_latency">'
+                    + str(latency)
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("avg_values.csv", "a") as f:
                     f.write(str(avg_latencies[list(avg_latencies.keys())[0]]) + ",")
@@ -431,6 +456,13 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.median(latency), 2)))
+            if args.cdash:
+                (path, latency) = next(iter(paths_latencies.items()))
+                print(
+                    '<CTestMeasurement type="numeric/double" name="median_latency">'
+                    + str(round(np.median(latency), 2))
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("median_values.csv", "a") as f:
                     f.write(
@@ -447,6 +479,13 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.std(latency), 2)))
+            if args.cdash:
+                (path, latency) = next(iter(paths_latencies.items()))
+                print(
+                    '<CTestMeasurement type="numeric/double" name="std_latency">'
+                    + str(round(np.std(latency), 2))
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("stddev_values.csv", "a") as f:
                     f.write(
@@ -463,6 +502,13 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(min(latency), 2)))
+            if args.cdash:
+                (path, latency) = next(iter(paths_latencies.items()))
+                print(
+                    '<CTestMeasurement type="numeric/double" name="min_latency">'
+                    + str(round(min(latency), 2))
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("min_values.csv", "a") as f:
                     f.write(str(min(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
@@ -540,6 +586,12 @@ def main():
         if not args.no_display_graphs:
             plt.tight_layout()
             plt.show()
+        if args.cdash:
+            print(
+                '<CTestMeasurementFile type="image/png" name="cdf_plot">'
+                + args.draw_cdf
+                + "</CTestMeasurementFile>"
+            )
 
     if args.draw_cdf_paths:
         fig, ax = init_cdf_plot()

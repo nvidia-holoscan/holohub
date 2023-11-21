@@ -67,7 +67,7 @@ Run 2 completed for greedy scheduler.
 Run 3 completed for greedy scheduler.
 
 Evaluation completed.
-Log file directory:  /home/ubuntu/holoscan-sdk/holohub-internal/myoutputs
+Log file directory:  /home/ubuntu/holoscan-sdk/holohub/myoutputs
 All the data flow tracking log files are: logger_greedy_1_1.log, logger_greedy_1_2.log, logger_greedy_1_3.log, logger_greedy_2_1.log, logger_greedy_2_2.log, logger_greedy_2_3.log, logger_greedy_3_1.log, logger_greedy_3_2.log, logger_greedy_3_3.log
 
 ```
