@@ -62,6 +62,8 @@ struct RFArray {
 struct RFPacket {
  private:
   uint8_t *payload;
+
+ public:
   static const size_t sample_offset     = 0;
   static const size_t waveformid_offset = sizeof(uint16_t) + sample_offset;
   static const size_t channel_offset    = sizeof(uint16_t) + waveformid_offset;

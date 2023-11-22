@@ -69,12 +69,12 @@ class BasicConnectorOpRx : public Operator {
   int num_rx;
   Parameter<uint16_t> max_pkts;
   Parameter<uint16_t> payload_size;
-  Parameter<uint16_t> numTransmits;
-  Parameter<uint16_t> bufferSize;
-  Parameter<uint16_t> numPulses;
-  Parameter<uint16_t> numSamples;
-  Parameter<uint16_t> waveformLength;
-  Parameter<uint16_t> numChannels;
+  Parameter<uint16_t> num_transmits;
+  Parameter<uint16_t> buffer_size;
+  Parameter<uint16_t> num_pulses;
+  Parameter<uint16_t> num_samples;
+  Parameter<uint16_t> waveform_length;
+  Parameter<uint16_t> num_channels;
   RFPacket *pkt_buf;
   size_t samples_per_arr;
   size_t pkts_per_arr;

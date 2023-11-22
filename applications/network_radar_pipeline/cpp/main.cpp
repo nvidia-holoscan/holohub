@@ -39,12 +39,13 @@ class App : public holoscan::Application {
       from_config("radar_pipeline"));
 
     // Network operators
-    if (from_config("advanced_network.enable").as<bool>()) {
+    if (from_config("tx_params.use_ano").as<bool>()) {
       // Advanced
       auto adv_packet_gen = make_operator<ops::AdvConnectorOpTx>(
         "packet_gen",
+        from_config("advanced_network"),
         from_config("radar_pipeline"),
-        from_config("advanced_network.packet_gen"),
+        from_config("tx_params"),
         make_condition<BooleanCondition>("is_alive", true));
       auto adv_net_tx = make_operator<ops::AdvNetworkOpTx>(
         "adv_network_tx",
@@ -78,7 +79,7 @@ class App : public holoscan::Application {
     auto pc   = make_operator<ops::PulseCompressionOp>(
       "pulse_compression",
       from_config("radar_pipeline"),
-      make_condition<CountCondition>(from_config("radar_pipeline.numTransmits").as<size_t>()));
+      make_condition<CountCondition>(from_config("radar_pipeline.num_transmits").as<size_t>()));
     auto tpc  = make_operator<ops::ThreePulseCancellerOp>(
       "three_pulse_canceller",
       from_config("radar_pipeline"));
@@ -86,7 +87,7 @@ class App : public holoscan::Application {
     auto cfar = make_operator<ops::CFAROp>("cfar", from_config("radar_pipeline"));
 
     // Network operators
-    if (from_config("advanced_network.enable").as<bool>()) {
+    if (from_config("rx_params.use_ano").as<bool>()) {
       // Advanced
       auto adv_net_rx = make_operator<ops::AdvNetworkOpRx>(
         "adv_network_rx",
@@ -94,9 +95,9 @@ class App : public holoscan::Application {
         make_condition<BooleanCondition>("is_alive", true));
       auto adv_rx_pkt = make_operator<ops::AdvConnectorOpRx>(
         "bench_rx",
-        from_config("advanced_network.packet_gen"),
+        from_config("rx_params"),
         from_config("radar_pipeline"));
-      add_flow(adv_net_rx, adv_rx_pkt, {{"burst_out", "burst_in"}});
+      add_flow(adv_net_rx, adv_rx_pkt, {{"bench_rx_out", "burst_in"}});
       add_flow(adv_rx_pkt, pc,         {{"rf_out", "rf_in"}});
     } else {
       // Basic
@@ -121,7 +122,7 @@ class App : public holoscan::Application {
   void compose() {
     using namespace holoscan;
 
-    if (from_config("radar_pipeline.isSource").as<bool>()) {
+    if (from_config("radar_pipeline.is_source").as<bool>()) {
       setup_tx();
     } else {
       setup_rx();
@@ -141,7 +142,8 @@ int main(int argc, char** argv) {
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path += "/" + std::string(argv[1]);
   app->config(config_path);
-
+  app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
+        "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
   return 0;

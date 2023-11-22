@@ -27,25 +27,25 @@ void BasicConnectorOpRx::setup(OperatorSpec& spec) {
   spec.param(payload_size, "max_payload_size",
               "Max payload size in bytes",
               "Max payload size in bytes for received packets", {});
-  spec.param(numTransmits, "numTransmits",
+  spec.param(num_transmits, "num_transmits",
               "Number of waveform transmissions",
               "Number of waveform transmissions to simulate", {});
-  spec.param(bufferSize, "bufferSize",
+  spec.param(buffer_size, "buffer_size",
               "Size of RF buffer",
               "Max number of transmits that can be held at once", {});
-  spec.param(numPulses, "numPulses",
+  spec.param(num_pulses, "num_pulses",
               "Number of pulses",
               "Number of pulses per channel", {});
-  spec.param(numChannels,
-              "numChannels",
+  spec.param(num_channels,
+              "num_channels",
               "Number of channels",
               "Number of channels", {});
-  spec.param(waveformLength,
-              "waveformLength",
+  spec.param(waveform_length,
+              "waveform_length",
               "Waveform length",
               "Length of waveform", {});
-  spec.param(numSamples,
-              "numSamples",
+  spec.param(num_samples,
+              "num_samples",
               "Number of samples",
               "Number of samples per channel", {});
 }
@@ -53,21 +53,21 @@ void BasicConnectorOpRx::setup(OperatorSpec& spec) {
 void BasicConnectorOpRx::initialize() {
   holoscan::Operator::initialize();
   num_rx = 0;
-  buffer_track = BasicBufferTracking(bufferSize.get());
+  buffer_track = BasicBufferTracking(buffer_size.get());
   pkt_buf = new RFPacket[max_pkts];
   rf_data = new tensor_t<complex_t, 4>(
-    {bufferSize.get(), numChannels.get(), numPulses.get(), numSamples.get()});
+    {buffer_size.get(), num_channels.get(), num_pulses.get(), num_samples.get()});
 
   // Compute number of packets expected per array
-  samples_per_arr = numPulses.get() * numChannels.get() * numSamples.get();
+  samples_per_arr = num_pulses.get() * num_channels.get() * num_samples.get();
   pkts_per_arr = packets_per_array(payload_size.get(),
-                                    numPulses.get(),
-                                    numChannels.get(),
-                                    numSamples.get());
+                                    num_pulses.get(),
+                                    num_channels.get(),
+                                    num_samples.get());
 
   cudaStreamCreate(&stream);
 
-  HOLOSCAN_LOG_INFO("Expecting to receive {} packets", numTransmits.get() * pkts_per_arr);
+  HOLOSCAN_LOG_INFO("Expecting to receive {} packets", num_transmits.get() * pkts_per_arr);
 }
 
 void BasicConnectorOpRx::compute(InputContext& op_input,
@@ -83,12 +83,12 @@ void BasicConnectorOpRx::compute(InputContext& op_input,
     buf_ptr += payload_size;  // RFPacket::packet_size(pkt_buf[i].get_num_samples());
 
     // Make sure this isn't wrapping the buffer - drop if it is
-    if ((pkt_buf[i].get_waveform_id() >= buffer_track.pos + bufferSize.get()) ||
+    if ((pkt_buf[i].get_waveform_id() >= buffer_track.pos + buffer_size.get()) ||
         (pkt_buf[i].get_waveform_id() < buffer_track.pos)) {
       HOLOSCAN_LOG_ERROR("Waveform ID {} exceeds buffer limits (pos: {}, size: {}), dropping",
-        pkt_buf[i].get_waveform_id(), buffer_track.pos, bufferSize.get());
+        pkt_buf[i].get_waveform_id(), buffer_track.pos, buffer_size.get());
     } else {  // Copy into rf_data
-      const index_t buffer_idx  = pkt_buf[i].get_waveform_id() % bufferSize.get();
+      const index_t buffer_idx  = pkt_buf[i].get_waveform_id() % buffer_size.get();
       const index_t channel_idx = pkt_buf[i].get_channel_idx();
       const index_t pulse_idx   = pkt_buf[i].get_pulse_idx();
       const index_t sample_idx  = pkt_buf[i].get_sample_idx();

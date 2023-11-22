@@ -747,7 +747,7 @@ int DpdkMgr::SetupPoolsAndRings(int max_rx_batch, int max_tx_batch) {
 
       name = "TX_BURST_POOL_" + append;
       tx_burst_buffers[key] = rte_mempool_create(name.c_str(),
-                        (1U << 6) - 1U,
+                        (1U << 7) - 1U,
                         sizeof(void *) * max_tx_batch,
                         0,
                         0,

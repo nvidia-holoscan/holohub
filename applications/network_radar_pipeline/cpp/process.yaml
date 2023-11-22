@@ -14,23 +14,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 8
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+rx_params:
+  use_ano: true
+  split_boundary: true
+  batch_size: 5120
+  max_packet_size: 9000
+
 basic_network:
   batch_size: 100            # RX message batch size
-  timeout_ms: 10             # RX timeout (ms) if no new packets have arrived
   max_payload_size: 8208     # Max bytes of single packet (stride)
-  udp_src_port: 4096         # Source port
-  udp_dst_port: 4096         # Destination port
+  dst_port: 4096             # Destination port
   l4_proto: "udp"            # Protocol ('udp' or "tcp")
   ip_addr: "192.168.200.17"  # Destination IP address
   min_ipg_ns: 0              # Minimum inter-packet gap (nano-seconds)
   retry_connect: 1
 
 advanced_network:
-  enable: true
-  packet_gen:
-    split_boundary: true
-    batch_size: 5120
-    max_packet_size: 9000
   cfg:
     version: 1
     master_core: 16                 # Master CPU core
@@ -45,6 +55,7 @@ advanced_network:
             max_packet_size: 9000          # Maximum payload size
             num_concurrent_batches: 32767  # Number of batches that can be used at any time
             batch_size: 1                  # Number of packets in a batch
+            output_port: "bench_rx_out"
           - name: "ADC Samples"
             id: 1
             gpu_device: 0
@@ -52,8 +63,9 @@ advanced_network:
             split_boundary: 42
             cpu_cores: "17"
             max_packet_size: 9000       # Maximum payload size
-            num_concurrent_batches: 60  # Number of batches that can be used at any time
-            batch_size: 1024            # Number of packets in a batch
+            num_concurrent_batches: 15  # Number of batches that can be used at any time
+            batch_size: 5120            # Number of packets in a batch
+            output_port: "bench_rx_out"
         flows:
           - name: "ADC Samples"
             action:
@@ -64,10 +76,10 @@ advanced_network:
               udp_dst: 4096
 
 radar_pipeline:
-  isSource: false         # Defines app type (source, process)
-  numTransmits: 1000      # Use N-1 of numTransmits in source
-  numPulses: 128
-  numSamples: 9000
-  numChannels: 16
-  waveformLength: 1000
-  bufferSize: 10          # Number of RF arrays to store in rx buffer
+  is_source: false         # Defines app type (source, process)
+  num_transmits: 1000      # Use N-1 of num_transmits in source
+  num_pulses: 128
+  num_samples: 9000
+  num_channels: 16
+  waveform_length: 1000
+  buffer_size: 10          # Number of RF arrays to store in rx buffer

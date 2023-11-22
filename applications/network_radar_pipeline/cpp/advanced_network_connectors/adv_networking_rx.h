@@ -27,7 +27,7 @@
 // Compiler option that allows us to spoof packet metadata. This functionality
 // can be useful when testing, where we have a packet generator that isn't
 // transmitting data that isn't generating packets that use our data format.
-#define SPOOF_PACKET_DATA      true
+#define SPOOF_PACKET_DATA      false
 #define SPOOF_SAMPLES_PER_PKT  1024  // byte count must be less than 'max_packet_size' config
 
 // Example IPV4 UDP packet using Linux headers
@@ -47,11 +47,10 @@ struct AdvBufferTracking {
   int *sample_cnt_d;
   bool *received_end_h;
   bool *received_end_d;
-  cudaStream_t stream;
 
   AdvBufferTracking() = default;
-  AdvBufferTracking(const size_t _buffer_size, cudaStream_t _stream)
-    : pos(0), pos_wrap(0), buffer_size(_buffer_size), stream(_stream) {
+  AdvBufferTracking(const size_t _buffer_size)
+    : pos(0), pos_wrap(0), buffer_size(_buffer_size) {
     // Reserve sample count
     cudaMallocHost((void **)&sample_cnt_h, buffer_size*sizeof(int));
     cudaMalloc((void **)&sample_cnt_d,     buffer_size*sizeof(int));
@@ -65,7 +64,7 @@ struct AdvBufferTracking {
     cudaMemset(received_end_d, 0, buffer_size*sizeof(bool));
   }
 
-  cudaError_t transferSamples(const cudaMemcpyKind kind) {
+  cudaError_t transferSamples(const cudaMemcpyKind kind, cudaStream_t stream) {
     void *src;
     void *dst;
 
@@ -76,10 +75,10 @@ struct AdvBufferTracking {
       src = sample_cnt_d;
       dst = sample_cnt_h;
     }
-    return cudaMemcpy(dst, src, buffer_size*sizeof(int), kind);
+    return cudaMemcpyAsync(dst, src, buffer_size*sizeof(int), kind, stream);
   }
 
-  cudaError_t transferEndArray(const cudaMemcpyKind kind) {
+  cudaError_t transferEndArray(const cudaMemcpyKind kind, cudaStream_t stream) {
     void *src;
     void *dst;
 
@@ -93,17 +92,21 @@ struct AdvBufferTracking {
       HOLOSCAN_LOG_ERROR("Unknown option {}", kind);
       return cudaErrorInvalidValue;
     }
-    return cudaMemcpy(dst, src, buffer_size*sizeof(bool), kind);
+    return cudaMemcpyAsync(dst, src, buffer_size*sizeof(bool), kind, stream);
   }
 
-  // todo Faster way than two separate memcpy's?
-  cudaError_t transfer(const cudaMemcpyKind kind) {
-    cudaError_t err = transferSamples(kind);
+  //todo: Faster way than two separate memcpy's?
+  cudaError_t transfer(const cudaMemcpyKind kind, cudaStream_t stream) {
+    cudaError_t err;
+    err = transferSamples(kind, stream);
     if (err != cudaSuccess) {
       return err;
     }
-
-    return transferEndArray(kind);
+    err = transferEndArray(kind, stream);
+    if (err != cudaSuccess) {
+      return err;
+    }
+    return cudaSuccess;
   }
 
   void increment() {
@@ -125,10 +128,10 @@ class AdvConnectorOpRx : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvConnectorOpRx)
 
   AdvConnectorOpRx() = default;
+
   ~AdvConnectorOpRx() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
       ttl_bytes_recv_, ttl_pkts_recv_);
-    if (rf_data) { delete rf_data; }
   }
 
   void setup(OperatorSpec& spec) override;
@@ -139,26 +142,49 @@ class AdvConnectorOpRx : public Operator {
   void stop() override;
 
  private:
-  // Radar settings
-  Parameter<uint16_t> bufferSize;
-  Parameter<uint16_t> numChannels;
-  Parameter<uint16_t> numPulses;
-  Parameter<uint16_t> numSamples;
+  static constexpr int num_concurrent  = 4;   // Number of concurrent batches processing
+  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
 
-  // Holds burst buffers that cannot be freed yet
-  std::array<std::shared_ptr<AdvNetBurstParams>, 256> burst_bufs_;
-  int     burst_buf_idx_  = 0;           // Index into burst_buf_idx_ of current burst
-  int64_t ttl_bytes_recv_ = 0;           // Total bytes received in operator
-  int64_t ttl_pkts_recv_  = 0;           // Total packets received in operator
-  uint64_t *ttl_pkts_drop_;              // Total packets dropped by kernel
-  int64_t aggr_pkts_recv_ = 0;           // Aggregate packets received in processing batch
-  uint16_t nom_payload_size_;            // Nominal payload size (no headers)
-  void **h_dev_ptrs_;                    // Host-pinned list of device pointers
-  void *full_batch_data_h_;              // Host-pinned aggregated batch
-  void *full_batch_data_d_;              // Device aggregated batch
+  // Radar settings
+  Parameter<uint16_t> buffer_size_;
+  Parameter<uint16_t> num_channels_;
+  Parameter<uint16_t> num_pulses_;
+  Parameter<uint16_t> num_samples_;
+
+  // Networking settings
   Parameter<bool> hds_;                  // Header-data split enabled
+  Parameter<bool> gpu_direct_;           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet
+  Parameter<uint16_t> header_size_;      // Header size of packet
+
+  // Holds burst buffers that cannot be freed yet
+  struct RxMsg {
+    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
+    int num_batches;
+    cudaStream_t stream;
+    cudaEvent_t evt;
+  };
+  std::vector<RxMsg> free_bufs();
+  void free_bufs_and_emit_arrays(OutputContext& op_output);
+
+  RxMsg cur_msg_{};
+  std::queue<RxMsg> out_q;
+
+  // Buffer memory and tracking
+  std::array<void **, num_concurrent> h_dev_ptrs_;           // Host-pinned list of device pointers
+  std::array<uint64_t **, num_concurrent> ttl_pkts_drop_;  // Total packets dropped by kernel
+
+  // Concurrent batch structures
+  std::array<cudaStream_t, num_concurrent> streams_;
+  std::array<cudaEvent_t, num_concurrent> events_;
+  int cur_idx = 0;
+
+  // Holds burst buffers that cannot be freed yet
+  int64_t ttl_bytes_recv_ = 0;           // Total bytes received in operator
+  int64_t ttl_pkts_recv_  = 0;           // Total packets received in operator
+  int64_t aggr_pkts_recv_ = 0;           // Aggregate packets received in processing batch
+  uint16_t nom_payload_size_;            // Nominal payload size (no headers)
 
   size_t samples_per_arr;
   uint16_t pkts_per_pulse;
@@ -166,7 +192,6 @@ class AdvConnectorOpRx : public Operator {
   AdvBufferTracking buffer_track;
   tensor_t<complex_t, 4> *rf_data = nullptr;
   cudaStream_t proc_stream;
-  cudaStream_t rx_stream;
 };  // AdvConnectorOpRx
 
 }  // namespace holoscan::ops
