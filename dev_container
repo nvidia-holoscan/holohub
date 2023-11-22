@@ -378,6 +378,7 @@ launch() {
         if [ "$arg" = "--local_sdk_root" ]; then
            local_sdk_root="${ARGS[i+1]}"
            shift
+           shift
         fi
         if [ "$arg" = "--ssh_x11" ]; then
            ssh_x11=1
