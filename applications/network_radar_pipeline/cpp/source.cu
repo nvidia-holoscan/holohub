@@ -72,9 +72,7 @@ void TargetSimulator::initialize() {
   tsleep_us = static_cast<int>(modifier * tsleep_sec * 1e6);
 
   // Initialize tensor
-  simSignal = new tensor_t<complex_t, 3>(
-    {num_channels.get(), num_pulses.get(), num_samples.get()});
-
+  make_tensor(simSignal, {num_channels.get(), num_pulses.get(), num_samples.get()});
   simSignal->PrefetchDevice(stream);
   HOLOSCAN_LOG_INFO("TargetSimulator::initialize() done");
 }

@@ -25,11 +25,7 @@ class TargetSimulator : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(TargetSimulator)
 
   TargetSimulator() = default;
-  ~TargetSimulator() override {
-    if (simSignal) {
-      delete simSignal;
-    }
-  }
+  ~TargetSimulator() = default;
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;

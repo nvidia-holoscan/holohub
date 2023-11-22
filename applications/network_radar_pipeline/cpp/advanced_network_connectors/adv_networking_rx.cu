@@ -213,7 +213,7 @@ void AdvConnectorOpRx::initialize() {
     }
 
     buffer_track = AdvBufferTracking(buffer_size_.get());
-    rf_data = new tensor_t<complex_t, 4>(
+    make_tensor(rf_data,
       {buffer_size_.get(), num_channels_.get(), num_pulses_.get(), num_samples_.get()});
 
     cudaStreamCreate(&streams_[n]);
