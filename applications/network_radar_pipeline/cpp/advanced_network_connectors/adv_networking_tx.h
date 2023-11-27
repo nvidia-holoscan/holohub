@@ -33,7 +33,7 @@ class AdvConnectorOpTx : public Operator {
   AdvConnectorOpTx() = default;
 
   ~AdvConnectorOpTx() {
-    //todo: bytes / packets sent
+    // TODO: bytes / packets sent
     HOLOSCAN_LOG_INFO("Finished transmitter!");
     if (packets_buf) { delete packets_buf; }
   }

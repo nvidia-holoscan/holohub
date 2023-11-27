@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "adv_networking_tx.h"  //todo: Rename networking connectors
+#include "adv_networking_tx.h"  // TODO: Rename networking connectors
 
 namespace holoscan::ops {
 
@@ -99,7 +99,7 @@ void AdvConnectorOpTx::initialize() {
   gpu_direct_   = cfg_.get().tx_[0].queues_[0].common_.gpu_direct_;
 
   if (gpu_direct_ && hds_ == 0) {
-    //todo: GPU-only mode Eth+IP+UDP headers
+    // TODO: GPU-only mode Eth+IP+UDP headers
     HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
     return;
   }
@@ -112,7 +112,7 @@ void AdvConnectorOpTx::initialize() {
   HOLOSCAN_LOG_INFO("num_packets_buf: {}", num_packets_buf);
 
   if (num_packets_buf >= batch_size_) {
-    //todo: Figure out a better way to break up and send a large chunk of data
+    // TODO: Figure out a better way to break up and send a large chunk of data
     HOLOSCAN_LOG_ERROR(
       "RF array size too large: [{}, {}] requires {} packets and the max batch size is set to {}",
       num_pulses_.get(), num_samples_.get(), num_packets_buf, batch_size_);
@@ -133,8 +133,7 @@ void AdvConnectorOpTx::initialize() {
     for (size_t i = 0; i < num_packets_buf; i++) {
       packets_buf[i] = RFPacket(&mem_buf_h_[i * buf_stride]);
     }
-  }
-  else {
+  } else {
     // On GPU
     for (int n = 0; n < num_concurrent; n++) {
       cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_);
@@ -347,7 +346,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(msg); pkt_idx++) {
     // For HDS mode or CPU mode populate the packet headers
     if (!gpu_direct_ || hds_ > 0) {
-      ret = set_cpu_hdr(msg, pkt_idx); // set packet headers
+      ret = set_cpu_hdr(msg, pkt_idx);  // set packet headers
       if (ret != AdvNetStatus::SUCCESS) {
         return;
       }
@@ -369,15 +368,14 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     if (gpu_direct_ && hds_ > 0) {
       cpu_len = hds_;
       gpu_len = payload_size_;
-    }
-    else if (!gpu_direct_) {
+    } else if (!gpu_direct_) {
       cpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
       gpu_len = 0;
-    }
-    else {
+    } else {
       cpu_len = 0;
       gpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
     }
+
     if (gpu_direct_) {
       gpu_bufs[cur_idx][pkt_idx] = reinterpret_cast<uint8_t *>(
         adv_net_get_gpu_pkt_ptr(msg, pkt_idx));
@@ -392,7 +390,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
   // In GPU-only mode copy the header
   if (gpu_direct_ && hds_ == 0) {
-    //todo: GPU-only mode
+    // TODO: GPU-only mode
   }
 
   // Populate packets with I/Q data
@@ -420,8 +418,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
       op_output.emit(first.msg, "burst_out");
       out_q.pop();
     }
-  }
-  else {
+  } else {
     // Transmit
     HOLOSCAN_LOG_INFO("AdvConnectorOpTx sending {} packets... ({}, {})",
                       adv_net_get_num_pkts(msg),

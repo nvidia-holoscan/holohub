@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "adv_networking_rx.h"  //todo: Rename networking connectors
+#include "adv_networking_rx.h"  // TODO: Rename networking connectors
 
 #if SPOOF_PACKET_DATA
 /**
@@ -200,8 +200,7 @@ void AdvConnectorOpRx::initialize() {
   if (!(hds_.get() && gpu_direct_.get())) {
     HOLOSCAN_LOG_ERROR("Only configured to run with Header-Data Split and GPUDirect");
     exit(1);
-  }
-  else if (hds_.get() && !gpu_direct_.get()) {
+  } else if (hds_.get() && !gpu_direct_.get()) {
     HOLOSCAN_LOG_ERROR("If Header-Data Split mode is enabled, GPUDirect needs to be too");
     exit(1);
   }
@@ -254,8 +253,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
         adv_net_free_all_burst_pkts_and_burst(first.msg[m]);
       }
       out_q.pop();
-    }
-    else {
+    } else {
       break;
     }
   }
@@ -381,8 +379,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
                 batch_size_.get(), batch_size_.get()*nom_payload_size_);
         exit(1);
       }
-    }
-    else {
+    } else {
       adv_net_free_all_burst_pkts_and_burst(burst);
     }
     aggr_pkts_recv_ = 0;
