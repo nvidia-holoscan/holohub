@@ -45,7 +45,7 @@ Press the `Start` button. Video frames are displayed. To stop, press the `Stop` 
 ### Command Line Arguments
 
 ```
-usage: webrtc_server.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose VERBOSE]
+usage: webrtc_server.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose] [--ice-server ICE_SERVER]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -55,4 +55,38 @@ optional arguments:
   --host HOST           Host for HTTP server (default: 0.0.0.0)
   --port PORT           Port for HTTP server (default: 8080)
   --verbose, -v
+  --ice-server ICE_SERVER
+                        ICE server config in the form of `turn:<ip>:<port>[<username>:<password>]` or `stun:<ip>:<port>`. This option can be specified multiple times to add multiple ICE servers.
 ```
+
+## Running With TURN server
+
+A TURN server may be needed if you're running in a containerized environment without host networking (e.g. Kubernetes or Docker). Here are some basic steps to run this example with a TURN server.
+
+Run the TURN server in the same machine that you're running the app on.
+
+**Note: It is strongly recommended to run the TURN server with docker network=host for best performance**
+
+```
+# This is the external IP address of the machine running the TURN server
+export TURN_SERVER_EXTERNAL_IP="<ip>"
+
+# Command below use admin:admin as the username and password as an example
+docker run -d --rm --network=host instrumentisto/coturn \
+    -n --log-file=stdout \
+    --external-ip=$TURN_SERVER_EXTERNAL_IP \
+    --listening-ip=$TURN_SERVER_EXTERNAL_IP \
+    --lt-cred-mech --fingerprint \
+    --user=admin:admin \
+    --no-multicast-peers \
+    --verbose \
+    --realm=default.realm.org
+```
+
+Then you can pass in the TURN server config into the app
+
+```
+python webrtc_server.py --ice-server "turn:<ip>:3478[admin:admin]"
+```
+
+This will enable you to access the webRTC browser application from different machines.
