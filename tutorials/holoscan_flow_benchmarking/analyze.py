@@ -522,16 +522,18 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
+            latency_tail_one_path = str(
+                get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 95, 100)
+            )
+            if args.cdash:
+                print(
+                    '<CTestMeasurement type="numeric/double" name="distribution_tail">'
+                    + latency_tail_one_path
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("tail_values.csv", "a") as f:
-                    f.write(
-                        str(
-                            get_latency_difference(
-                                paths_latencies[list(paths_latencies.keys())[0]], 95, 100
-                            )
-                        )
-                        + ","
-                    )
+                    f.write(latency_tail_one_path + ",")
 
     if args.flatness:
         if args.save_csv:
@@ -542,16 +544,19 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
+            latency_flatness_one_path = str(
+                get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 10, 90)
+            )
+            if args.cdash:
+                print(
+                    '<CTestMeasurement type="numeric/double" name="distribution_flatness">'
+                    + latency_flatness_one_path
+                    + "</CTestMeasurement>"
+                )
             if args.save_csv:
                 with open("flatness_values.csv", "a") as f:
-                    f.write(
-                        str(
-                            get_latency_difference(
-                                paths_latencies[list(paths_latencies.keys())[0]], 10, 90
-                            )
-                        )
-                        + ","
-                    )
+                    f.write(latency_flatness_one_path + ",")
+
     if args.percentile:
         if args.save_csv:
             with open("percentile_values.csv", "w") as f:
