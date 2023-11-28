@@ -1,6 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
+
+import matplotlib.pyplot as plt
 
 
 # Usage: python bar_plot_avg_datewise <avg filename1> <avg filename2> ... <stddev filename1> <stddev

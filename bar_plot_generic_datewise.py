@@ -1,6 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
+
+import matplotlib.pyplot as plt
 
 metric_names = {
     "max": "Maximum E2E Latency",
