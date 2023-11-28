@@ -60,13 +60,13 @@ void TargetSimulator::initialize() {
    * values will skew low.
    */
   double modifier = 1;
-  int lowest_realtime = 20; // Lowest data rate modifier is necessary
+  int lowest_realtime = 20;  // Lowest data rate modifier is necessary
   if (data_rate.get() > lowest_realtime) {
     double diff = 0.0015 * static_cast<double>(data_rate.get() - lowest_realtime);
     modifier = modifier > diff ? modifier - diff : 0;
   }
 
-  // Compute how long to sleep to acheive desired data rate
+  // Compute how long to sleep to achieve desired data rate
   double bits_per_channel = 8 * num_samples.get() * num_pulses.get() * sizeof(complex_t);
   double tsleep_sec = bits_per_channel / static_cast<double>(1e9 * data_rate.get());
   tsleep_us = static_cast<int>(modifier * tsleep_sec * 1e6);

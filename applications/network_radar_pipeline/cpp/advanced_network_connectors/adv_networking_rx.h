@@ -49,7 +49,7 @@ struct AdvBufferTracking {
   bool *received_end_d;
 
   AdvBufferTracking() = default;
-  AdvBufferTracking(const size_t _buffer_size)
+  explicit AdvBufferTracking(const size_t _buffer_size)
     : pos(0), pos_wrap(0), buffer_size(_buffer_size) {
     // Reserve sample count
     cudaMallocHost((void **)&sample_cnt_h, buffer_size*sizeof(int));
@@ -95,7 +95,7 @@ struct AdvBufferTracking {
     return cudaMemcpyAsync(dst, src, buffer_size*sizeof(bool), kind, stream);
   }
 
-  //todo: Faster way than two separate memcpy's?
+  // TODO: Faster way than two separate memcpy's?
   cudaError_t transfer(const cudaMemcpyKind kind, cudaStream_t stream) {
     cudaError_t err;
     err = transferSamples(kind, stream);

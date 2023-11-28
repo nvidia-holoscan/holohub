@@ -99,7 +99,8 @@ void PulseCompressionOp::compute(InputContext& op_input,
   HOLOSCAN_LOG_INFO("Dim: {}, {}, {}", in->data.Size(0), in->data.Size(1), in->data.Size(2));
 
   // Zero out the pad portion of the zero-padded input and copy the data portion
-  auto zp = slice<3>(zeroPaddedInput, {0, 0, num_samples.get()}, {matxEnd, matxEnd, num_samples_rnd});
+  auto zp = slice<3>(zeroPaddedInput, {0, 0, num_samples.get()},
+                                      {matxEnd, matxEnd, num_samples_rnd});
   auto data = slice<3>(zeroPaddedInput, {0, 0, 0}, {matxEnd, matxEnd, num_samples.get()});
   (zp = 0).run(stream);
   matx::copy(data, in->data, stream);
