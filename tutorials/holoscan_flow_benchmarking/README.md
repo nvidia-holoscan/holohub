@@ -96,9 +96,20 @@ We can also produce CDF curve of the observed latencies for a single path by the
 $ python tutorials/holoscan_flow_benchmarking/analyze.py --draw-cdf single_path_cdf.png -g myoutputs/logger_greedy_* MyCustomGroup --no-display-graphs
 Saved the CDF curve graph of the first path of each group in: single_path_cdf.png
 ```
+
 The `single_path_cdf.png` looks like below:
 
 ![single_path_cdf.png](single_path_cdf.png)
+
+A few auxiliary scripts are also provided to help plotting datewise results. For example, the
+following script plots the average end-to-end latency along with standard deviation for three
+consecutive dates:
+
+```
+python bar_plot_avg_datewise.py avg_values_2023-10-19.csv avg_values_2023-10-20.csv avg_values_2023-10-21.csv stddev_values_2023-10-19.csv stddev_values_2023-10-20.csv stddev_values_2023-10-21.csv
+```
+
+![avg_2023-10-21.png](avg_2023-10-21.png)
 
 5. **Restore the application**
 
