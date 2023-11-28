@@ -32,6 +32,13 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
 option(BUILD_SAMPLE_APPS "Build Holoscan SDK sample applications" OFF)
 
+# Enable flow benchmarking
+option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
+if(FLOW_BENCHMARKING)
+  set(FLOW_BENCHMARK_DIR "${CMAKE_BINARY_DIR}/flow_benchmarks")
+  file(MAKE_DIRECTORY "${FLOW_BENCHMARK_DIR}")
+endif()
+
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
 
