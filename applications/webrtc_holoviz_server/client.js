@@ -18,17 +18,26 @@
 // peer connection
 var pc = null;
 
-function createPeerConnection() {
+async function getIceServers() {
+    return fetch('/iceServers',
+    ).then(function (response) {
+        return response.json();
+    }).catch(function (e) {
+        alert(e);
+    });
+}
+
+function createPeerConnection(iceServers) {
     var config = {
-        sdpSemantics: 'unified-plan'
+        sdpSemantics: 'unified-plan',
+        iceServers: iceServers,
     };
 
-    config.iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
 
     pc = new RTCPeerConnection(config);
 
     // connect audio / video
-    pc.addEventListener('track', function(evt) {
+    pc.addEventListener('track', function (evt) {
         if (evt.track.kind == 'video')
             document.getElementById('video').srcObject = evt.streams[0];
     });
@@ -37,24 +46,9 @@ function createPeerConnection() {
 }
 
 function negotiate() {
-    return pc.createOffer().then(function(offer) {
+    return pc.createOffer().then(function (offer) {
         return pc.setLocalDescription(offer);
-    }).then(function() {
-        // wait for ICE gathering to complete
-        return new Promise(function(resolve) {
-            if (pc.iceGatheringState === 'complete') {
-                resolve();
-            } else {
-                function checkState() {
-                    if (pc.iceGatheringState === 'complete') {
-                        pc.removeEventListener('icegatheringstatechange', checkState);
-                        resolve();
-                    }
-                }
-                pc.addEventListener('icegatheringstatechange', checkState);
-            }
-        });
-    }).then(function() {
+    }).then(function () {
         var offer = pc.localDescription;
 
         return fetch('/offer', {
@@ -67,21 +61,43 @@ function negotiate() {
             },
             method: 'POST'
         });
-    }).then(function(response) {
+    }).then(function (response) {
         return response.json();
-    }).then(function(answer) {
+    }).then(function (answer) {
         return pc.setRemoteDescription(answer);
-    }).catch(function(e) {
+    }).then(function () {
+        // wait for ICE gathering to complete
+        return new Promise(function (resolve) {
+            if (pc.iceGatheringState === 'complete') {
+                console.log("Ice gathering complete")
+                resolve();
+            } else {
+                function checkState() {
+                    if (pc.iceGatheringState === 'complete') {
+                        console.log("Ice gathering complete")
+                        pc.removeEventListener('icegatheringstatechange', checkState);
+                        resolve();
+                    }
+                }
+                pc.addEventListener('icegatheringstatechange', checkState);
+            }
+        });
+    }).catch(function (e) {
         alert(e);
     });
 }
 
-function start() {
+async function start() {
     document.getElementById('start').style.display = 'none';
 
-    pc = createPeerConnection();
+    var iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }]
+    var newIceServers = await getIceServers();
+    iceServers = iceServers.concat(newIceServers)
+    console.log("Using the following ice servers: " + JSON.stringify(iceServers));
 
-    pc.addTransceiver('video', {direction: 'recvonly'});
+    pc = createPeerConnection(iceServers);
+
+    pc.addTransceiver('video', { direction: 'recvonly' });
 
     negotiate();
 
@@ -93,7 +109,7 @@ function stop() {
 
     // close transceivers
     if (pc.getTransceivers) {
-        pc.getTransceivers().forEach(function(transceiver) {
+        pc.getTransceivers().forEach(function (transceiver) {
             if (transceiver.stop) {
                 transceiver.stop();
             }
@@ -101,7 +117,7 @@ function stop() {
     }
 
     // close peer connection
-    setTimeout(function() {
+    setTimeout(function () {
         pc.close();
     }, 500);
 

@@ -17,7 +17,7 @@
 
 // peer connection
 var pc = null;
-var iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }]
+
 
 async function getIceServers() {
     return fetch('/iceServers',
@@ -28,7 +28,7 @@ async function getIceServers() {
     });
 }
 
-function createPeerConnection() {
+function createPeerConnection(iceServers) {
     var config = {
         sdpSemantics: 'unified-plan',
         iceServers: iceServers,
@@ -91,11 +91,12 @@ function negotiate() {
 async function start() {
     document.getElementById('start').style.display = 'none';
 
+    var iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }]
     var newIceServers = await getIceServers();
     iceServers = iceServers.concat(newIceServers)
     console.log("Using the following ice servers: " + JSON.stringify(iceServers));
 
-    pc = createPeerConnection();
+    pc = createPeerConnection(iceServers);
 
     pc.addTransceiver('video', { direction: 'recvonly' });
 
