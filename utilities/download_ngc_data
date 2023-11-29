@@ -331,7 +331,7 @@ if [ "${download_command}" == "wget" ] || [ "${download_command}" == "curl" ]; t
     zipfile="${download_dir_fullname}.zip"
 
     if [ "${download_command}" == "wget" ]; then
-      run_command wget -q --show-progress --content-disposition ${url} -O ${zipfile}
+      run_command wget -q --show-progress --progress=bar:force --content-disposition ${url} -O ${zipfile}
       if [ $? -ne 0 ]; then
           fatal R "Unable to download ${url} via wget."
       fi
