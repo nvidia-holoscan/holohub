@@ -91,24 +91,6 @@ def merge_path_latencies(multiple_path_latencies, skip_begin_messages=10, discar
     return merged_path_latencies
 
 
-def get_avg_latencies(paths_latencies, skip_begin_messages=10, discard_last_messages=10):
-    avg_latencies = {}
-    for path in paths_latencies:
-        avg_latencies[path] = round(
-            np.mean(paths_latencies[path][skip_begin_messages:-discard_last_messages]), 2
-        )
-    return avg_latencies
-
-
-def get_max_latencies(paths_latencies, skip_begin_messages=10, discard_last_messages=10):
-    max_latencies = {}
-    for path in paths_latencies:
-        max_latencies[path] = round(
-            max(paths_latencies[path][skip_begin_messages:-discard_last_messages]), 2
-        )
-    return max_latencies
-
-
 def get_cdf_data(latencies):
     data = sorted(latencies)
     n = len(data)
@@ -175,8 +157,8 @@ def complete_cdf_plot(fig, ax, operator_legends=None):
     fig.tight_layout()
 
 
-def latency_percentile(latencies, percentile, sorted=False):
-    if not sorted:
+def latency_percentile(latencies, percentile, is_sorted=False):
+    if not is_sorted:
         latencies = sorted(latencies)
     if percentile == 100:
         return latencies[-1]
@@ -184,20 +166,10 @@ def latency_percentile(latencies, percentile, sorted=False):
     return latencies[index]
 
 
-# Latency percentile with filtering for cool-down and warm-up periods
-def latency_percentile_filtered(
-    latencies, percentile, skip_begin_messages=10, discard_last_messages=10
-):
-    data = sorted(latencies[skip_begin_messages:-discard_last_messages])
-    return "{:.2f}".format(latency_percentile(data, percentile, sorted=True))
-
-
-def get_latency_difference(
-    latencies, percentile_start, percentile_end, skip_begin_messages=10, discard_last_messages=10
-):
-    data = sorted(latencies[skip_begin_messages:-discard_last_messages])
-    start_value = latency_percentile(data, percentile_start, sorted=True)
-    end_value = latency_percentile(data, percentile_end, sorted=True)
+def get_latency_difference(latencies, percentile_start, percentile_end):
+    data = sorted(latencies)
+    start_value = latency_percentile(data, percentile_start, is_sorted=True)
+    end_value = latency_percentile(data, percentile_end, is_sorted=True)
     return "{:.2f}".format(end_value - start_value)
 
 
@@ -290,17 +262,17 @@ def main():
     parser.add_argument(
         "--tail",
         action="store_true",
-        help="show the difference between 95 and 100 percentile latencies for all paths",
+        help="show the difference between 95 and 100 percentile latencies (latency distribution tail) for all paths",
     )
 
     parser.add_argument(
         "--flatness",
         action="store_true",
-        help="show the difference between 10 and 90 percentile latencies for all paths",
+        help="show the difference between 10 and 90 percentile latencies (latency distribution flatness) for all paths",
     )
 
     parser.add_argument(
-        "-p", "--percentile", type=int, help="show percentile latencies for all paths"
+        "-p", "--percentile", type=float, help="show percentile latencies for all paths"
     )
 
     parser.add_argument(
@@ -412,19 +384,18 @@ def main():
         print_metric_title("Maximum (Worst-case) Latencies")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
-            max_latencies = get_max_latencies(paths_latencies)
-            for path, latency in max_latencies.items():
-                print_path_metric_ms(path, latency)
+            for path, latency in paths_latencies.items():
+                print_path_metric_ms(path, str(round(np.max(latency), 2)))
+            (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
-                (path, latency) = next(iter(max_latencies.items()))
                 print(
                     '<CTestMeasurement type="numeric/double" name="maximum_latency">'
-                    + str(latency)
+                    + str(round(np.max(latency), 2))
                     + "</CTestMeasurement>"
                 )
             if args.save_csv:
                 with open("max_values.csv", "a") as f:
-                    f.write(str(max_latencies[list(max_latencies.keys())[0]]) + ",")
+                    f.write(str(round(np.max(latency), 2)) + ",")
 
     if args.avg:
         if args.save_csv:
@@ -433,19 +404,18 @@ def main():
         print_metric_title("Average Latencies")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
-            avg_latencies = get_avg_latencies(paths_latencies)
-            for path, latency in avg_latencies.items():
-                print_path_metric_ms(path, latency)
+            for path, latency in paths_latencies.items():
+                print_path_metric_ms(path, str(round(np.mean(latency), 2)))
+            (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
-                (path, latency) = next(iter(avg_latencies.items()))
                 print(
                     '<CTestMeasurement type="numeric/double" name="average_latency">'
-                    + str(latency)
+                    + str(round(np.mean(latency), 2))
                     + "</CTestMeasurement>"
                 )
             if args.save_csv:
                 with open("avg_values.csv", "a") as f:
-                    f.write(str(avg_latencies[list(avg_latencies.keys())[0]]) + ",")
+                    f.write(str(round(np.mean(latency), 2)) + ",")
 
     if args.median:
         if args.save_csv:
@@ -456,8 +426,8 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.median(latency), 2)))
+            (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
-                (path, latency) = next(iter(paths_latencies.items()))
                 print(
                     '<CTestMeasurement type="numeric/double" name="median_latency">'
                     + str(round(np.median(latency), 2))
@@ -465,10 +435,7 @@ def main():
                 )
             if args.save_csv:
                 with open("median_values.csv", "a") as f:
-                    f.write(
-                        str(round(np.median(paths_latencies[list(paths_latencies.keys())[0]]), 2))
-                        + ","
-                    )
+                    f.write(str(round(np.median(latency), 2)) + ",")
 
     if args.stddev:
         if args.save_csv:
@@ -479,8 +446,8 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.std(latency), 2)))
+            (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
-                (path, latency) = next(iter(paths_latencies.items()))
                 print(
                     '<CTestMeasurement type="numeric/double" name="std_latency">'
                     + str(round(np.std(latency), 2))
@@ -488,10 +455,7 @@ def main():
                 )
             if args.save_csv:
                 with open("stddev_values.csv", "a") as f:
-                    f.write(
-                        str(round(np.std(paths_latencies[list(paths_latencies.keys())[0]]), 2))
-                        + ","
-                    )
+                    f.write(str(round(np.std(latency), 2)) + ",")
 
     if args.min:
         if args.save_csv:
@@ -502,8 +466,8 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(min(latency), 2)))
+            (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
-                (path, latency) = next(iter(paths_latencies.items()))
                 print(
                     '<CTestMeasurement type="numeric/double" name="min_latency">'
                     + str(round(min(latency), 2))
@@ -511,20 +475,19 @@ def main():
                 )
             if args.save_csv:
                 with open("min_values.csv", "a") as f:
-                    f.write(str(min(paths_latencies[list(paths_latencies.keys())[0]])) + ",")
+                    f.write(str(round(min(latency), 2)) + ",")
 
     if args.tail:
         if args.save_csv:
             with open("tail_values.csv", "w") as f:
                 f.truncate(0)
-        print_metric_title("Latency CDF Curve Tail (95-100 percentile)")
+        print_metric_title("Latency Distribution Tail (95-100 percentile)")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
-            latency_tail_one_path = str(
-                get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 95, 100)
-            )
+            (path, latency) = next(iter(paths_latencies.items()))
+            latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
             if args.cdash:
                 print(
                     '<CTestMeasurement type="numeric/double" name="distribution_tail">'
@@ -539,14 +502,13 @@ def main():
         if args.save_csv:
             with open("flatness_values.csv", "w") as f:
                 f.truncate(0)
-        print_metric_title("Latency CDF Curve Flatness (10-90 percentile)")
+        print_metric_title("Latency Distribution Flatness (10-90 percentile)")
         for group_name, paths_latencies in grouped_path_latenices.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
-            latency_flatness_one_path = str(
-                get_latency_difference(paths_latencies[list(paths_latencies.keys())[0]], 10, 90)
-            )
+            (path, latency) = next(iter(paths_latencies.items()))
+            latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
             if args.cdash:
                 print(
                     '<CTestMeasurement type="numeric/double" name="distribution_flatness">'
@@ -565,20 +527,17 @@ def main():
         for group_name, paths_latencies in grouped_path_latenices.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(
-                    path, latency_percentile_filtered(latency, int(args.percentile))
+                latency_percentile_str = "{:.2f}".format(
+                    latency_percentile(latency, float(args.percentile))
                 )
+                print_path_metric_ms(path, latency_percentile_str)
+            (path, latency) = next(iter(paths_latencies.items()))
+            latency_percentile_filtered_one_path = "{:.2f}".format(
+                latency_percentile(latency, float(args.percentile))
+            )
             if args.save_csv:
                 with open("percentile_values.csv", "a") as f:
-                    f.write(
-                        str(
-                            latency_percentile_filtered(
-                                paths_latencies[list(paths_latencies.keys())[0]],
-                                int(args.percentile),
-                            )
-                        )
-                        + ","
-                    )
+                    f.write(latency_percentile_filtered_one_path + ",")
 
     if args.draw_cdf:
         fig, ax = init_cdf_plot()

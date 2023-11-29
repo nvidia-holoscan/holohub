@@ -4,10 +4,8 @@ This is a benchmarking tool to evaluate the performance of HoloHub and other Hol
 Following is a high-level overview of Holoscan Flow Benchmarking. For more details on its possible
 use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md).
 
-The tool currently supports
-benchmarking of the following HoloHub C++ applications: `endoscopy_tool_tracking, multiai_endoscopy,
-multiai_ultrasound, ultrasound_segmentation`.
-We plan to have support for other C++ and Python applications in the future.
+The tool supports benchmarking of any Holoscan C++ application. Holoscan Python applications will be
+supported in the future.
 
 ## Pre-requisites
 The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):
@@ -48,11 +46,13 @@ tracking application.
 $ python tutorials/holoscan_flow_benchmarking/benchmark.py -a <application name> <other options>
 ```
 
-`python tutorials/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible evaluation options.
+The above command will run an application which is executed normally by 
+`./run launch <application name> cpp`. If an application is executed differently, then use the
+`--run-command` argument to specify the command to run an application.
 
-All the log filenames are printed out at the end of the evaluation. 
+`python tutorials/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible benchmarking options.
 
-The format of the filename for the data flow tracking log files is:
+All the log filenames are printed out at the end of the evaluation. The format of the filename for the data flow tracking log files is:
 `logger_<scheduler>_<run_number>_<instance-id>.log`. The format of the filename for the GPU
 utilization log files is: `gpu_utilization_<scheduler>_<run_number>.csv`.
 
