@@ -418,6 +418,21 @@ launch() {
         fi
     done
 
+    # Find all audio devices
+    audio_devices=$(find /dev/snd -type c)
+
+    # Mount all found audio devices
+    for audio_dev in $audio_devices; do
+        mount_device_opt+=" --device $audio_dev"
+    done
+
+    # mounts the ALSA configuration for the user running the script
+    mount_device_opt+=" -v /etc/asound.conf:/etc/asound.conf"
+
+    # grants access to the sound group
+    sound_group_gid=$(getent group audio | cut -d: -f3)
+    mount_device_opt+=" --group-add $sound_group_gid"
+
     if [ -e /usr/lib/libvideomasterhd.so ]; then
    	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
     fi
