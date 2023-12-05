@@ -232,12 +232,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config_file = os.path.join(os.path.dirname(__file__), "hs.yaml")
-
     app = HSApp(
         data=args.data, model=args.model, output_folder=args.output_folder, count=args.count
     )
-    app.config(config_file)
     app.run()
 
     print("Application finished successfully.")
