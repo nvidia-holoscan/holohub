@@ -6,7 +6,6 @@ This folder contains three sample applications
 2. Non Organic Structure Segmentation and with AI enhanced visualization of AR over or pre-operative structures rendered with VTK sample app  
 3. Multi AI (models from 1. and 2.) and AI enhanced visualization of AR over or pre-operative structures rendered with VTK sample app
 
-
 ### (1) Download video and ONNX model
 
 1. Download [orsi.zip](https://nvidia-my.sharepoint.com/:u:/p/okutter/EZdPgSx1OVtJoqQGQsZF1WYB5gSTLyQn2c6N-lDKJqrLxQ?e=jsLka8). 
@@ -58,18 +57,38 @@ This folder contains three sample applications
 
 **1. orsi_in_out_body** 
 
+C++:
 ```bash
 ./run launch orsi_in_out_body cpp
 ```
 
+Python:
+```bash
+./run launch orsi_in_out_body python
+```
+
 **2. orsi_segmentation_ar** 
 
+C++:
 ```bash
 ./run launch orsi_segmentation_ar cpp
 ```
 
+Python:
+```bash
+./run launch orsi_segmentation_ar python
+```
+
 **3. orsi_multi_ai_ar** 
 
+C++:
 ```bash
 ./run launch orsi_multi_ai_ar cpp
 ```
+
+Python:
+```bash
+./run launch orsi_multi_ai_ar python
+```
+
+Please refer to the respective application README for details on assets and use.
