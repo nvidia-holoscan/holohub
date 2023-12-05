@@ -32,7 +32,7 @@ set(HOLOSCAN_OPERATORS
 )
 
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
-    list(APPEND HOLOSCAN_OPERATORS  videomaster)
+    list(APPEND HOLOSCAN_OPERATORS  deltacast_videomaster)
 endif()
 
 add_subdirectory(lib)
