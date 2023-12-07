@@ -669,7 +669,7 @@ list() {
   echo ""
   echo "***** HoloHub applications ******"
 
-  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
+  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
 
