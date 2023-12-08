@@ -42,7 +42,7 @@ static void glfwPrintErrorCallback(int error, const char* msg) {
     return;
   }
 
-  std::cerr << " [" << error << "] " << msg << "\n";
+  HOLOSCAN_LOG_ERROR("GLFW ERROR [%d], msg:  %s\n", error, msg);
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react
