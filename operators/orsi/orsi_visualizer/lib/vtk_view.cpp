@@ -251,14 +251,6 @@ void VtkView::render() {
       vtk_render_wnd_->WaitForCompletion();
       return;
   }
-#define DEBUG_FRAME_
-#ifdef DEBUG_FRAME_
-{
-  static uint32_t frame_cnt = 0;
-  std::cout << "render frame #"  << ++frame_cnt << std::endl;
-}
-#endif
-
 
   if (realloc_texture) {
     // Free old buffers
@@ -476,9 +468,6 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
       myfile << transform_params<< std::endl;
       myfile.close();
     } else if (key == GLFW_KEY_L) {
-
-
-      std::cout << "About to load save transfrom from " << tf_params_path_ << std::endl;
 
       std::ifstream t(tf_params_path_);
       std::string s;
