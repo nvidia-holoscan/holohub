@@ -17,7 +17,7 @@
 extensions:
   - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "videomaster" # Valid values "replayer"  or "videomaster"
+source: "replayer" # Valid values "replayer"  or "videomaster"
 
 replayer:  # VideoStreamReplayer
   basename: "segmentation_snippet_1"
