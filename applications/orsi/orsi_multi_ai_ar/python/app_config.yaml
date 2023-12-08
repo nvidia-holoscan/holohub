@@ -15,9 +15,8 @@
 # limitations under the License.
 ---
 extensions:
-  - gxf_extensions/videomaster/libgxf_videomaster.so
-
-source: "replayer" # Valid values "replayer"  or "videomaster"
+  
+source: "replayer" # Valid values "replayer"  
 
 replayer:  # VideoStreamReplayer
   basename: "MultiAI"
@@ -26,10 +25,6 @@ replayer:  # VideoStreamReplayer
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
 
-videomaster:
-  board: 0
-  input: 0
-  use_rdma: true
 
 drop_alpha_channel:  # FormatConverter
   in_dtype: "rgba8888"
@@ -50,13 +45,6 @@ format_converter_anonymization:  # FormatConverter
     out_dtype: "float32"
     src_roi_rect: [ 328, 36, 1264, 1008 ]
     output_img_size : [224, 224] 
-
-drop_alpha_channel_videomaster:  # FormatConverter
-  in_dtype: "rgba8888"
-  in_tensor_name: source_video
-  out_tensor_name: source_video
-  out_dtype: "rgb888"
-  out_channel_order: [2,1,0]
 
 segmentation_preprocessor: # Preprocessor
    in_tensor_name: source_video
