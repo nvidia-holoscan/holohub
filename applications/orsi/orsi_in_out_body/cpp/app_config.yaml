@@ -20,7 +20,7 @@ extensions:
 source: "replayer" # Valid values "replayer"  or "videomaster"
 
 replayer:  # VideoStreamReplayer
-  basename: "Anonymization"
+  basename: "anonymization"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true

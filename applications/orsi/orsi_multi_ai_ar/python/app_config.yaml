@@ -19,7 +19,7 @@ extensions:
 source: "replayer" # Valid values "replayer"  
 
 replayer:  # VideoStreamReplayer
-  basename: "MultiAI"
+  basename: "multi_ai"
   frame_rate: 120 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
