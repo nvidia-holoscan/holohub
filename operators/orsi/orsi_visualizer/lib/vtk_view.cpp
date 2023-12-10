@@ -90,8 +90,8 @@ std::istream& operator>>(std::istream& is, VtkProp3DTransformParams& p) {
 void VtkView::setStlFilePath(std::string stl_file_path_) {
   this->stl_file_path_ = stl_file_path_;
 }
-void VtkView::setTfParams(std::string tf_params_path_) {
-  this->tf_params_path_ = tf_params_path_;
+void VtkView::setTfParams(std::string registration_params_path_) {
+  this->registration_params_path_ = registration_params_path_;
 }
 void VtkView::setStlNames(std::vector<std::string> stl_names_) {
   this->stl_names_ = stl_names_;
@@ -464,12 +464,12 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
     if(key == GLFW_KEY_S) {
       transform_params = GetObjectTransform(assembly_);
       std::ofstream myfile;
-      myfile.open (tf_params_path_);
+      myfile.open (registration_params_path_);
       myfile << transform_params<< std::endl;
       myfile.close();
     } else if (key == GLFW_KEY_L) {
 
-      std::ifstream t(tf_params_path_);
+      std::ifstream t(registration_params_path_);
       std::string s;
       std::string ss;
       std::vector<double> params;

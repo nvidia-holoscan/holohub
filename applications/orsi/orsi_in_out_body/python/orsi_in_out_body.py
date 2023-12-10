@@ -28,7 +28,7 @@ class OrsiInOutBodyApp(Application):
         source = VideoStreamReplayerOp(
             self,
             name="replayer",
-            directory=self.data_path + "/video",
+            directory=self.data_path,
             **self.kwargs("replayer"),
         )
         multi_ai_inference = InferenceOp(

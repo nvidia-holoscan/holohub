@@ -70,7 +70,7 @@ class OrsiVis : public holoscan::orsi::vis::VisIntf {
   VideoFrame video_frame_vis_;
 
   Parameter<std::string> stl_file_path_;
-  Parameter<std::string> tf_params_path_;
+  Parameter<std::string> registration_params_path_;
   Parameter<std::vector<std::string>> stl_names_;
   Parameter<std::vector<std::vector<int32_t>>> stl_colors_;
   Parameter<std::vector<int>> stl_keys_;
