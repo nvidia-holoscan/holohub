@@ -28,7 +28,7 @@ class OrsiSegmentationARApp(Application):
         source = VideoStreamReplayerOp(
             self,
             name="replayer",
-            directory=self.data_path + "/video",
+            directory=self.data_path,
             **self.kwargs("replayer"),
         )
         multi_ai_inference = InferenceOp(
@@ -60,8 +60,8 @@ class OrsiSegmentationARApp(Application):
         orsi_visualizer = OrsiVisualizationOp(
             self,
             name="orsi_visualizer",
-            stl_file_path=self.data_path + "/stl/Segmentation/",
-            tf_params_path=self.data_path + "/tf_params/orsi_segmentation_ar.txt",
+            stl_file_path=self.data_path + "/stl/segmentation/",
+            registration_params_path=self.data_path + "/registration_params/segmentation_ar.txt",
             **self.kwargs("orsi_visualizer"),
         )
         self.add_flow(source, orsi_visualizer, {("", "receivers")})

@@ -53,7 +53,7 @@ public:
 #endif
       default:
         source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
-                                                            Arg("directory", datapath + "/video"));
+                                                            Arg("directory", datapath));
         break;
     }
 

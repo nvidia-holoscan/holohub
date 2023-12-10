@@ -28,7 +28,7 @@ class OrsiMultiAIARApp(Application):
         source = VideoStreamReplayerOp(
             self,
             name="replayer",
-            directory=self.data_path + "/video",
+            directory=self.data_path ,
             **self.kwargs("replayer"),
         )
         multi_ai_inference = InferenceOp(
@@ -74,8 +74,8 @@ class OrsiMultiAIARApp(Application):
         orsi_visualizer = OrsiVisualizationOp(
             self,
             name="orsi_visualizer",
-            stl_file_path=self.data_path + "/stl/MultiAI/",
-            tf_params_path=self.data_path + "/tf_params/orsi_multi_ai_ar.txt",
+            stl_file_path=self.data_path + "/stl/multi_ai/",
+            registration_params_path=self.data_path + "/registration_params/multi_ai_ar.txt",
             **self.kwargs("orsi_visualizer"),
         )
         self.add_flow(source, orsi_visualizer, {("", "receivers")})

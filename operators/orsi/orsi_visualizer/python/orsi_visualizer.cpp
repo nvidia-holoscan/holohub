@@ -66,12 +66,12 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
       std::vector<std::string> stl_names = {},
       std::vector<std::vector<int32_t>> stl_colors = {}, 
       std::vector<int> stl_keys = {},
-      const std::string& tf_params_path = "",
+      const std::string& registration_params_path = "",
       const std::string& name = "orsi_viz_op"s)
       :  orsi::OrsiVisualizationOp(ArgList{ 
                                      Arg{"swizzle_video", swizzle_video},
                                      Arg{"stl_file_path", stl_file_path},
-                                     Arg{"tf_params_path", tf_params_path},
+                                     Arg{"registration_params_path", registration_params_path},
                                      Arg{"stl_names", stl_names},
                                      Arg{"stl_colors", stl_colors},
                                      Arg{"stl_keys", stl_keys}
@@ -127,7 +127,7 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
            "stl_names"_a = std::vector<std::string>(),
            "stl_colors"_a =  std::vector<std::vector<int32_t>>{}, 
            "stl_keys"_a =  std::vector<int>{}, 
-           "tf_params_path"_a = ""s, 
+           "registration_params_path"_a = ""s, 
            "name"_a = "orsi_viz_op"s,
            doc::OrsiVisualizationOp::doc_OrsiVisualizationOp_python)
       .def("setup",

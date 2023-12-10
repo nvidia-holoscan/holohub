@@ -56,7 +56,7 @@ class App : public OrsiApp {
 #endif
       default:
         source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
-                                                            Arg("directory", datapath + "/video"));
+                                                            Arg("directory", datapath));
         break;
     }
 
@@ -146,8 +146,8 @@ class App : public OrsiApp {
     auto orsi_visualizer =
         make_operator<ops::orsi::OrsiVisualizationOp>("orsi_visualizer",
                                       from_config("orsi_visualizer"),
-                                      Arg("stl_file_path" , datapath + "/stl/Segmentation/"),
-                                      Arg("tf_params_path", datapath + "/tf_params/orsi_segmentation_ar.txt"),
+                                      Arg("stl_file_path" , datapath + "/stl/segmentation/"),
+                                      Arg("registration_params_path", datapath + "/registration_params/segmentation_ar.txt"),
                                       Arg("allocator") = allocator_resource);
 
     // Flow definition
