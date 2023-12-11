@@ -255,8 +255,7 @@ class FaceDetectApp(Application):
 
         inference_args = self.kwargs("inference")
         inference_args["model_path_map"] = {
-            "face_detect": os.path.join(os.path.dirname(__file__),
-            "resnet34_peoplenet_int8.onnx")
+            "face_detect": os.path.join(os.path.dirname(__file__), "resnet34_peoplenet_int8.onnx")
         }
 
         device_map = dict()
