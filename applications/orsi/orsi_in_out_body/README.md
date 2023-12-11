@@ -46,3 +46,5 @@ ffmpeg -i Segmentation_snippet_1.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python 
 ```bash
 ./run launch orsi/orsi_in_out_body python
 ```
+
+<center> <img src="./docs/orsi_logo.png" width="400"></center>
