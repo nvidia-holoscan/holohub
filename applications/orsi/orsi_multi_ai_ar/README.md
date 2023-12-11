@@ -63,3 +63,5 @@ ffmpeg -i MultiAI.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python ../../../utilit
 ```bash
 ./run launch orsi/orsi_multi_ai_ar cpp
 ```
+
+<center> <img src="./docs/orsi_logo.png" width="400"></center>

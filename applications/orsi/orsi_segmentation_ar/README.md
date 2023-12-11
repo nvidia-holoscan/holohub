@@ -60,4 +60,4 @@ ffmpeg -i Anonymization.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python ../../../
 ./run launch orsi/orsi_segmentation_ar cpp
 ```
 
-
+<center> <img src="./docs/orsi_logo.png" width="400"></center>
