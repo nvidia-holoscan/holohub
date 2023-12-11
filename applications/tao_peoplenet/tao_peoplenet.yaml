@@ -30,11 +30,11 @@ inference:
   pre_processor_map:
     "face_detect": ["preprocessed"]
   inference_map:
-    "face_detect": ["boxes", "scores"]
+    "face_detect": ["scores", "boxes"]
   device_map:
     "face_detect": "0"
   input_on_cuda: true
-  is_engine_path: true
+  is_engine_path: false
 
 postprocessor:
   iou_threshold: 0.15

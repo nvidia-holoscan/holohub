@@ -31,7 +31,7 @@
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
 		},
 		"run": {
-			"command": "python3 ../applications/tao_peoplenet/tao_peoplenet.py --engine ${HOLOSCAN_DATA_PATH}/engine.trt",
+			"command": "python3 ../applications/tao_peoplenet/tao_peoplenet.py",
 			"workdir": "holohub_bin"
 		}
 	}
