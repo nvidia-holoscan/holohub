@@ -32,7 +32,7 @@ The segmentation and Multi AI pipelines have successfully been used in multiple 
 ## Run the sample applications
 ### (1) Download video and ONNX model
 
-1. Download [orsi.zip](https://nvidia-my.sharepoint.com/:u:/p/okutter/EZdPgSx1OVtJoqQGQsZF1WYB5gSTLyQn2c6N-lDKJqrLxQ?e=jsLka8). 
+1. Download the data from NGC.
 2. Create data folder in main holohub folder.
 3. Unzip orsi.zip to data/orsi in main holohub folder.
 

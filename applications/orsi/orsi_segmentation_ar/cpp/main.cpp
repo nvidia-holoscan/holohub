@@ -116,7 +116,7 @@ class App : public OrsiApp {
     //
 
     ops::InferenceOp::DataMap model_path_map;
-    model_path_map.insert("tool_segmentation", datapath + "/model/segmentation_model.onnx");
+    model_path_map.insert("tool_segmentation", datapath + "/models/segmentation_model.onnx");
 
     auto multiai_inference = make_operator<ops::InferenceOp>("multiai_inference",
                                                              from_config("multiai_inference"),

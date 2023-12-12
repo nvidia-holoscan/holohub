@@ -16,6 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(orsi_sample_apps LANGUAGES NONE)
 
+# Check if Deltacast is found
 set(ORSI_VIDEO_MASTER_SDK_FOUND OFF)
 
 if(IS_DIRECTORY "/usr/local/deltacast/Include")
@@ -33,6 +34,26 @@ set(HOLOSCAN_OPERATORS
 
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
     list(APPEND HOLOSCAN_OPERATORS  deltacast_videomaster)
+endif()
+
+# Download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# Download ORSI sample data from NGC
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(orsi
+    #URL URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_orsi_academy_sample_data/versions/20231210/zip
+    URL nvstaging/holoscan/holoscan_orsi_academy_sample_data:20231210
+    DOWNLOAD_NAME orsi.zip
+    URL_MD5 d54f84a562d29ed560a87d2607eba973
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 1080
+    GXF_ENTITIES_WIDTH 1920
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+  )
 endif()
 
 add_subdirectory(lib)
