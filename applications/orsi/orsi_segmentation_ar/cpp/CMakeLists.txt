@@ -19,12 +19,13 @@ project(orsi_segmentation_ar CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable(${PROJECT_NAME}
+add_executable(orsi_segmentation_ar
     main.cpp
 )
 
-set(LINK_LIBRARIES
-   ${HOLOSCAN_PACKAGE_NAME}
+target_link_libraries(orsi_segmentation_ar
+   PRIVATE
+   holoscan::core
    # Holoscan SDK operators
    holoscan::ops::video_stream_replayer
    holoscan::ops::inference
@@ -39,35 +40,36 @@ set(LINK_LIBRARIES
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
-    list(APPEND LINK_LIBRARIES  holoscan::videomaster)
+    target_link_libraries(orsi_segmentation_ar PRIVATE holoscan::videomaster)
 endif()
 
-target_link_libraries(${PROJECT_NAME}
-   PRIVATE ${LINK_LIBRARIES}
-)
-
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  add_dependencies(orsi_segmentation_ar orsi_data)
+endif()
 
 # Copy config file
-add_custom_target(${PROJECT_NAME}_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml"
+add_custom_target(orsi_segmentation_ar_yaml
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/orsi_segmentation_ar.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/orsi_segmentation_ar.yaml"
 )
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_yaml)
+add_dependencies(orsi_segmentation_ar orsi_segmentation_ar_yaml)
 
-# Set the install RPATH based on the location of the Holoscan SDK libraries
-# The GXF extensions are loaded by the GXF libraries - no need to include here
-file(RELATIVE_PATH install_lib_relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${HOLOSCAN_INSTALL_LIB_DIR})
-set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "\$ORIGIN/${install_lib_relative_path}")
+# Add testing
+if(BUILD_TESTING)
+  # Add test
+  # Configure the yaml file to only play 10 frames
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/orsi_segmentation_ar.yaml" CONFIG_FILE)
+  string(REGEX REPLACE "^source:[^\n]*" "^source: replayer" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/orsi_segmentation_ar_testing.yaml" ${CONFIG_FILE})
 
-# Get relative folder path for the app
-file(RELATIVE_PATH app_relative_dest_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+  add_test(NAME orsi_segmentation_ar_cpp_test
+           COMMAND orsi_segmentation_ar
+                   ${CMAKE_CURRENT_BINARY_DIR}/orsi_segmentation_ar_testing.yaml
+                   --data ${HOLOHUB_DATA_DIR}/orsi
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-# Install the app
-install(TARGETS ${PROJECT_NAME}
-    DESTINATION "${app_relative_dest_path}"
-    COMPONENT "holoscan-apps"
-)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml"
-    DESTINATION ${app_relative_dest_path}
-    COMPONENT "holoscan-apps"
-)
+  set_tests_properties(orsi_segmentation_ar_cpp_test PROPERTIES
+                PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+endif()

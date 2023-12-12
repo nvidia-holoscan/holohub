@@ -16,9 +16,15 @@
 # Add testing
 if(BUILD_TESTING)
   # To get the environment path
-  find_package(holoscan 0.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+  find_package(holoscan 0.5 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
   # Add test
+  # Configure the yaml file to only play 10 frames
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/orsi_in_out_body.yaml" CONFIG_FILE)
+  string(REGEX REPLACE "^source:[^\n]*" "^source: replayer" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/orsi_in_out_body_testing.yaml" ${CONFIG_FILE})
+
   add_test(NAME orsi_in_out_body_python_test
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/orsi_in_out_body.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/orsi_in_out_body_testing.yaml

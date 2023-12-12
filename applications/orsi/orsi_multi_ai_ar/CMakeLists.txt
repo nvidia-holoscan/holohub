@@ -14,3 +14,4 @@
 # limitations under the License.
 
 add_subdirectory(cpp)
+add_subdirectory(python)

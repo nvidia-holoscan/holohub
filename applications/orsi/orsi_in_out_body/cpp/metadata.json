@@ -36,7 +36,7 @@
             "data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
         },
         "run": {
-            "command": "<holohub_app_bin>/orsi_in_out_body --data <holohub_data_dir>/orsi",
+            "command": "<holohub_app_bin>/orsi_in_out_body <holohub_app_bin>/orsi_in_out_body.yaml --data <holohub_data_dir>/orsi",
             "workdir": "holohub_bin"
         }
     }
