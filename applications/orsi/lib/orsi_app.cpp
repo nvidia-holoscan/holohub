@@ -19,23 +19,20 @@
 #include <getopt.h>
 
 void OrsiApp::set_source(const std::string& source) {
-  #ifdef USE_VIDEOMASTER
+#ifdef USE_VIDEOMASTER
   if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
-  #endif
+#endif
   if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
 }
 
 void OrsiApp::set_datapath(const std::string& path) {
-     datapath = path;
+  datapath = path;
 }
 
-bool OrsiApp::init(int argc, char **argv)
-{
+bool OrsiApp::init(int argc, char** argv) {
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) {
-    return false;
-  }
+  if (!parse_arguments(argc, argv, config_name, data_path)) { return false; }
 
   if (config_name != "") {
     this->config(config_name);
@@ -55,13 +52,9 @@ bool OrsiApp::init(int argc, char **argv)
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {
-      {"data",    required_argument, 0,  'd' },
-      {0,         0,                 0,  0 }
-  };
+  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "d",
-                   long_options, NULL))  {
+  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
@@ -74,8 +67,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) {
-    config_name = argv[optind++];
-  }
+  if (optind < argc) { config_name = argv[optind++]; }
   return true;
 }

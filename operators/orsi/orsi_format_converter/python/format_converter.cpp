@@ -60,37 +60,30 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
   using orsi::FormatConverterOp::FormatConverterOp;
 
   // Define a constructor that fully initializes the object.
-  PyOrsiFormatConverterOp(
-    Fragment* fragment, 
-    std::shared_ptr<holoscan::Allocator> allocator,
-    const std::string& out_dtype, 
-    const std::string& in_dtype = "",
-    const std::string& in_tensor_name = "",
-    const std::string& out_tensor_name = "", 
-    float scale_min = 0.f,
-    float scale_max = 1.f, 
-    uint8_t alpha_value = static_cast<uint8_t>(255),
-    int32_t resize_height = 0, 
-    int32_t resize_width = 0, 
-    int32_t resize_mode = 0,
-    const std::vector<int> out_channel_order = std::vector<int>{},
-    const std::vector<int> src_roi_rect = std::vector<int>{},
-    const std::vector<int> output_img_size = std::vector<int>{},
-    std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-    const std::string& name = "format_converter"
-)
-    : orsi::FormatConverterOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
-                                  Arg{"in_dtype", in_dtype},
-                                  Arg{"out_tensor_name", out_tensor_name},
-                                  Arg{"out_dtype", out_dtype},
-                                  Arg{"scale_min", scale_min},
-                                  Arg{"scale_max", scale_max},
-                                  Arg{"alpha_value", alpha_value},
-                                  Arg{"resize_mode", resize_mode},
-                                  Arg{"out_channel_order", out_channel_order},
-                                  Arg{"src_roi_rect", src_roi_rect},
-                                  Arg{"output_img_size", output_img_size},
-                                  Arg{"allocator", allocator}}) {
+  PyOrsiFormatConverterOp(Fragment* fragment, std::shared_ptr<holoscan::Allocator> allocator,
+                          const std::string& out_dtype, const std::string& in_dtype = "",
+                          const std::string& in_tensor_name = "",
+                          const std::string& out_tensor_name = "", float scale_min = 0.f,
+                          float scale_max = 1.f, uint8_t alpha_value = static_cast<uint8_t>(255),
+                          int32_t resize_height = 0, int32_t resize_width = 0,
+                          int32_t resize_mode = 0,
+                          const std::vector<int> out_channel_order = std::vector<int>{},
+                          const std::vector<int> src_roi_rect = std::vector<int>{},
+                          const std::vector<int> output_img_size = std::vector<int>{},
+                          std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
+                          const std::string& name = "format_converter")
+      : orsi::FormatConverterOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
+                                        Arg{"in_dtype", in_dtype},
+                                        Arg{"out_tensor_name", out_tensor_name},
+                                        Arg{"out_dtype", out_dtype},
+                                        Arg{"scale_min", scale_min},
+                                        Arg{"scale_max", scale_max},
+                                        Arg{"alpha_value", alpha_value},
+                                        Arg{"resize_mode", resize_mode},
+                                        Arg{"out_channel_order", out_channel_order},
+                                        Arg{"src_roi_rect", src_roi_rect},
+                                        Arg{"output_img_size", output_img_size},
+                                        Arg{"allocator", allocator}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     name_ = name;
     fragment_ = fragment;
@@ -118,8 +111,10 @@ PYBIND11_MODULE(_orsi_format_converter, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<orsi::FormatConverterOp, PyOrsiFormatConverterOp, Operator,
-                                               std::shared_ptr<orsi::FormatConverterOp>>(
+  py::class_<orsi::FormatConverterOp,
+             PyOrsiFormatConverterOp,
+             Operator,
+             std::shared_ptr<orsi::FormatConverterOp>>(
       m, "OrsiFormatConverterOp", doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp)
       .def(py::init<Fragment*,
                     std::shared_ptr<holoscan::Allocator>,
@@ -156,9 +151,12 @@ PYBIND11_MODULE(_orsi_format_converter, m) {
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "format_converter"s,
            doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp_python)
-      .def("initialize", &orsi::FormatConverterOp::initialize,
+      .def("initialize",
+           &orsi::FormatConverterOp::initialize,
            doc::OrsiFormatConverterOp::doc_initialize)
-      .def("setup", &orsi::FormatConverterOp::setup, "spec"_a,
+      .def("setup",
+           &orsi::FormatConverterOp::setup,
+           "spec"_a,
            doc::OrsiFormatConverterOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

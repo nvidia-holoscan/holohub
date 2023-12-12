@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
 )
 
-set(LINK_LIBRARIES 
+set(LINK_LIBRARIES
    ${HOLOSCAN_PACKAGE_NAME}
    # Holoscan SDK operators
    holoscan::ops::video_stream_replayer
@@ -37,7 +37,7 @@ set(LINK_LIBRARIES
 )
 
 set(VIDEOMASTER_OPERATOR "")
-if(ORSI_VIDEO_MASTER_SDK_FOUND) 
+if(ORSI_VIDEO_MASTER_SDK_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
     list(APPEND LINK_LIBRARIES  holoscan::videomaster)
 endif()
@@ -55,7 +55,7 @@ add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_yaml)
 
 # Set the install RPATH based on the location of the Holoscan SDK libraries
 # The GXF extensions are loaded by the GXF libraries - no need to include here
-file(RELATIVE_PATH install_lib_relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${HOLOSCAN_INSTALL_LIB_DIR} )
+file(RELATIVE_PATH install_lib_relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${HOLOSCAN_INSTALL_LIB_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "\$ORIGIN/${install_lib_relative_path}")
 
 # Get relative folder path for the app

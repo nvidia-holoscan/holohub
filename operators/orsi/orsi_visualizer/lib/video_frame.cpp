@@ -21,13 +21,13 @@
 
 #include "opengl_utils.hpp"
 
-const std::string vertex_shader_source =
-  #include "glsl/viewport_filling_triangle.vert"
-;
+const std::string vertex_shader_source = // NOLINT
+#include "glsl/viewport_filling_triangle.vert"
+    ; // NOLINT
 
-const std::string fragment_shader_source =
-  #include "glsl/video_frame.frag"
-;
+const std::string fragment_shader_source = // NOLINT
+#include "glsl/video_frame.frag"
+    ; // NOLINT
 
 namespace holoscan::orsi {
 

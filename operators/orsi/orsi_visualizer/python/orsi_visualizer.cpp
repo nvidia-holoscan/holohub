@@ -55,29 +55,24 @@ namespace holoscan::ops {
 class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
  public:
   /* Inherit the constructors */
-  using  orsi::OrsiVisualizationOp::OrsiVisualizationOp;
+  using orsi::OrsiVisualizationOp::OrsiVisualizationOp;
 
   // Define a constructor that fully initializes the object.
-  PyOrsiVisualizationOp(
-      Fragment* fragment,
-      std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
-      bool swizzle_video = false,
-      const std::string& stl_file_path = "",
-      std::vector<std::string> stl_names = {},
-      std::vector<std::vector<int32_t>> stl_colors = {}, 
-      std::vector<int> stl_keys = {},
-      const std::string& registration_params_path = "",
-      const std::string& name = "orsi_viz_op"s)
-      :  orsi::OrsiVisualizationOp(ArgList{ 
-                                     Arg{"swizzle_video", swizzle_video},
-                                     Arg{"stl_file_path", stl_file_path},
-                                     Arg{"registration_params_path", registration_params_path},
-                                     Arg{"stl_names", stl_names},
-                                     Arg{"stl_colors", stl_colors},
-                                     Arg{"stl_keys", stl_keys}
-                                     }) {
-
-      if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
+  PyOrsiVisualizationOp(Fragment* fragment,
+                        std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
+                        bool swizzle_video = false, const std::string& stl_file_path = "",
+                        std::vector<std::string> stl_names = {},
+                        std::vector<std::vector<int32_t>> stl_colors = {},
+                        std::vector<int> stl_keys = {},
+                        const std::string& registration_params_path = "",
+                        const std::string& name = "orsi_viz_op"s)
+      : orsi::OrsiVisualizationOp(ArgList{Arg{"swizzle_video", swizzle_video},
+                                          Arg{"stl_file_path", stl_file_path},
+                                          Arg{"registration_params_path", registration_params_path},
+                                          Arg{"stl_names", stl_names},
+                                          Arg{"stl_colors", stl_colors},
+                                          Arg{"stl_keys", stl_keys}}) {
+    if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -104,34 +99,32 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_< orsi::OrsiVisualizationOp,
+  py::class_<orsi::OrsiVisualizationOp,
              PyOrsiVisualizationOp,
              Operator,
-             std::shared_ptr< orsi::OrsiVisualizationOp>>(
-      m,
-      "OrsiVisualizationOp",
-      doc::OrsiVisualizationOp::doc_OrsiVisualizationOp)
+             std::shared_ptr<orsi::OrsiVisualizationOp>>(
+      m, "OrsiVisualizationOp", doc::OrsiVisualizationOp::doc_OrsiVisualizationOp)
       .def(py::init<Fragment*,
                     std::vector<holoscan::IOSpec*>,
-                    bool, 
-                    const std::string&, 
+                    bool,
+                    const std::string&,
                     std::vector<std::string>,
-                    std::vector<std::vector<int32_t>>, 
+                    std::vector<std::vector<int32_t>>,
                     std::vector<int>,
-                    const std::string&, 
+                    const std::string&,
                     const std::string&>(),
            "fragment"_a,
            "receivers"_a = std::vector<holoscan::IOSpec*>(),
-           "swizzle_video"_a = false, 
+           "swizzle_video"_a = false,
            "stl_file_path"_a = ""s,
            "stl_names"_a = std::vector<std::string>(),
-           "stl_colors"_a =  std::vector<std::vector<int32_t>>{}, 
-           "stl_keys"_a =  std::vector<int>{}, 
-           "registration_params_path"_a = ""s, 
+           "stl_colors"_a = std::vector<std::vector<int32_t>>{},
+           "stl_keys"_a = std::vector<int>{},
+           "registration_params_path"_a = ""s,
            "name"_a = "orsi_viz_op"s,
            doc::OrsiVisualizationOp::doc_OrsiVisualizationOp_python)
       .def("setup",
-           & orsi::OrsiVisualizationOp::setup,
+           &orsi::OrsiVisualizationOp::setup,
            "spec"_a,
            doc::OrsiVisualizationOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT

@@ -56,31 +56,25 @@ namespace holoscan::ops {
 class PyOrsiSegmentationPostprocessorOp : public orsi::SegmentationPostprocessorOp {
  public:
   /* Inherit the constructors */
-  using  orsi::SegmentationPostprocessorOp::SegmentationPostprocessorOp;
+  using orsi::SegmentationPostprocessorOp::SegmentationPostprocessorOp;
 
   // Define a constructor that fully initializes the object.
   PyOrsiSegmentationPostprocessorOp(
-      Fragment* fragment, 
-      std::shared_ptr<::holoscan::Allocator> allocator,
-      const std::string& in_tensor_name = "", 
-      const std::string& network_output_type = "softmax"s,
-      const std::string& data_format = "hwc"s,
-      const std::string& out_tensor_name = ""s,
-      const std::vector<int32_t> output_roi_rect = {}, 
+      Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
+      const std::string& in_tensor_name = "", const std::string& network_output_type = "softmax"s,
+      const std::string& data_format = "hwc"s, const std::string& out_tensor_name = ""s,
+      const std::vector<int32_t> output_roi_rect = {},
       const std::vector<int32_t> output_img_size = {},
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
       const std::string& name = "segmentation_postprocessor"s)
-      :  orsi::SegmentationPostprocessorOp(ArgList{
-                                            Arg{"in_tensor_name", in_tensor_name},
-                                            Arg{"network_output_type", network_output_type},
-                                            Arg{"data_format", data_format},
-                                            Arg{"out_tensor_name", out_tensor_name},
-                                            Arg{"output_roi_rect", output_roi_rect},
-                                            Arg{"output_img_size", output_img_size},
-                                            Arg{"allocator", allocator}}) {
+      : orsi::SegmentationPostprocessorOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
+                                                  Arg{"network_output_type", network_output_type},
+                                                  Arg{"data_format", data_format},
+                                                  Arg{"out_tensor_name", out_tensor_name},
+                                                  Arg{"output_roi_rect", output_roi_rect},
+                                                  Arg{"output_img_size", output_img_size},
+                                                  Arg{"allocator", allocator}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
-
-
 
     name_ = name;
     fragment_ = fragment;
@@ -108,10 +102,10 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_< orsi::SegmentationPostprocessorOp,
+  py::class_<orsi::SegmentationPostprocessorOp,
              PyOrsiSegmentationPostprocessorOp,
              Operator,
-             std::shared_ptr< orsi::SegmentationPostprocessorOp>>(
+             std::shared_ptr<orsi::SegmentationPostprocessorOp>>(
       m,
       "OrsiSegmentationPostprocessorOp",
       doc::OrsiSegmentationPostprocessorOp::doc_OrsiSegmentationPostprocessorOp)
@@ -121,7 +115,7 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
                     const std::string&,
                     const std::string&,
                     const std::string&,
-                    const std::vector<int32_t>, 
+                    const std::vector<int32_t>,
                     const std::vector<int32_t>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
@@ -137,7 +131,7 @@ PYBIND11_MODULE(_orsi_segmentation_postprocessor, m) {
            "name"_a = "segmentation_postprocessor"s,
            doc::OrsiSegmentationPostprocessorOp::doc_OrsiSegmentationPostprocessorOp_python)
       .def("setup",
-           & orsi::SegmentationPostprocessorOp::setup,
+           &orsi::SegmentationPostprocessorOp::setup,
            "spec"_a,
            doc::OrsiSegmentationPostprocessorOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT

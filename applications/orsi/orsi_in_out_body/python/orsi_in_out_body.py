@@ -2,16 +2,15 @@ import os
 
 from holoscan.core import Application
 from holoscan.logger import LogLevel, set_log_level
-from holoscan.operators import (
-    InferenceOp,
-    VideoStreamReplayerOp,
-)
-# from holoscan.videomaster import VideoMasterSourceOp
-
+from holoscan.operators import InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import UnboundedAllocator
+
 from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
 from holohub.orsi_visualizer import OrsiVisualizationOp
+
+# from holoscan.videomaster import VideoMasterSourceOp
+
 
 class OrsiInOutBodyApp(Application):
     def __init__(self):
@@ -19,12 +18,9 @@ class OrsiInOutBodyApp(Application):
         self.name = "OrsiInOutBodyApp"
         self.data_path = os.environ.get("HOLOSCAN_DATA_PATH", "../data/orsi")
 
-
     def compose(self):
-
-        allocator=UnboundedAllocator(self, name="allocator")
+        allocator = UnboundedAllocator(self, name="allocator")
         # Built-in Holoscan operators
-        source_type = self.kwargs("source")['source']
         source = VideoStreamReplayerOp(
             self,
             name="replayer",
@@ -35,7 +31,7 @@ class OrsiInOutBodyApp(Application):
             self,
             name="multiai_inference",
             allocator=allocator,
-            model_path_map = {"anonymization":self.data_path+"/model/anonymization_model.onnx"},
+            model_path_map={"anonymization": self.data_path + "/model/anonymization_model.onnx"},
             **self.kwargs("multiai_inference"),
         )
         # Orsi operators
@@ -43,7 +39,7 @@ class OrsiInOutBodyApp(Application):
             self,
             name="anonymization_preprocessor",
             allocator=allocator,
-            **self.kwargs("anonymization_preprocessor")
+            **self.kwargs("anonymization_preprocessor"),
         )
         format_converter_anonymization = OrsiFormatConverterOp(
             self,
@@ -62,6 +58,7 @@ class OrsiInOutBodyApp(Application):
         self.add_flow(anonymization_preprocessor, multi_ai_inference, {("", "receivers")})
         self.add_flow(multi_ai_inference, orsi_visualizer, {("transmitter", "receivers")})
 
+
 def main():
     set_log_level(LogLevel.WARN)
 
@@ -69,6 +66,7 @@ def main():
     config_file = os.path.join(os.path.dirname(__file__), "app_config.yaml")
     app.config(config_file)
     app.run()
+
 
 if __name__ == "__main__":
     main()

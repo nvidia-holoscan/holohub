@@ -18,17 +18,18 @@ project(orsi_format_converter)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(orsi_format_converter 
+add_library(orsi_format_converter
   SHARED
   format_converter.hpp
   format_converter.cpp
   )
+
 add_library(holoscan::orsi::format_converter ALIAS orsi_format_converter)
 target_include_directories(orsi_format_converter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(orsi_format_converter 
+target_link_libraries(orsi_format_converter
 PUBLIC
-    holoscan::core
+  holoscan::core
 PRIVATE
   CUDA::nppidei
   CUDA::nppig

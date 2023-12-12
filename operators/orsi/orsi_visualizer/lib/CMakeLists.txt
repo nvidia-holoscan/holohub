@@ -22,19 +22,19 @@ find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 
 find_package(VTK COMPONENTS
-	CommonColor
-	CommonCore
-	CommonDataModel
-	FiltersSources
-	InteractionStyle
-	IOGeometry
-	IOImage
-	RenderingContextOpenGL2
-	RenderingCore
-	RenderingFreeType
-	RenderingGL2PSOpenGL2
-	RenderingOpenGL2
-	TestingRendering
+  CommonColor
+  CommonCore
+  CommonDataModel
+  FiltersSources
+  InteractionStyle
+  IOGeometry
+  IOImage
+  RenderingContextOpenGL2
+  RenderingCore
+  RenderingFreeType
+  RenderingGL2PSOpenGL2
+  RenderingOpenGL2
+  TestingRendering
 )
 
 # -------------------------------------------------------------------------------
@@ -69,9 +69,8 @@ target_link_libraries(orsi_visualizer_lib
   ${VTK_LIBRARIES}
 )
 
-
 # vtk_model_autoinit is needed
 vtk_module_autoinit(
-	TARGETS orsi_visualizer_lib 
-	MODULES ${VTK_LIBRARIES}
+  TARGETS orsi_visualizer_lib
+  MODULES ${VTK_LIBRARIES}
 )

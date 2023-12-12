@@ -2,7 +2,6 @@
 
 ## Introduction
 
-
 This folder contains three sample applications, please refer to the respective application README for details on assets and use.
 
 1. **[In and out of body detection and anonymization of surgical video sample app](./orsi_in_out_body/README.md):**
@@ -16,7 +15,7 @@ This folder contains three sample applications, please refer to the respective a
 
     A Multi AI pipeline featuring both the segmentation and anonymization models.
 
-The segmentation and Multi AI pipelines have succesfully been used in multiple in human procedures:
+The segmentation and Multi AI pipelines have successfully been used in multiple in human procedures:
 - Robot-assisted partial nephrectomy
 - Robot-assisted migrated endovascular stent removal
 - Robot-assisted liver metastasectomy
@@ -35,44 +34,44 @@ The segmentation and Multi AI pipelines have succesfully been used in multiple i
 
 1. Download [orsi.zip](https://nvidia-my.sharepoint.com/:u:/p/okutter/EZdPgSx1OVtJoqQGQsZF1WYB5gSTLyQn2c6N-lDKJqrLxQ?e=jsLka8). 
 2. Create data folder in main holohub folder.
-3. Unzip orsi.zip to data/orsi in main holohub folder. 
+3. Unzip orsi.zip to data/orsi in main holohub folder.
 
 ### (2) Build Dev Container with dependencies for Orsi Sample Apps
 
 #### Holoscan Container from NGC:
 ```bash
- ./dev_container build --verbose --docker_file applications/orsi/docker/Dockerfile   --img holohub:orsi
+ ./dev_container build --docker_file applications/orsi/Dockerfile --img holohub:orsi
 ```
 #### Local Holoscan SDK Container
 ```bash
-./dev_container build --verbose --docker_file applications/orsi/docker/Dockerfile --base_img  holoscan-sdk-dev:latest  --img holohub:orsi-sdk-local
+./dev_container build --docker_file applications/orsi/Dockerfile --base_img holoscan-sdk-dev:latest --img holohub:orsi-sdk-local
 ```
-### (3) Launch Dev Container 
+### (3) Launch Dev Container
 #### Holoscan Container from NGC:
 
 ```bash
-./dev_container launch --img holohub:orsi 
+./dev_container launch --img holohub:orsi
 ```
-#### Local Holoscan SDK Container: 
+#### Local Holoscan SDK Container:
 ```bash
 ./dev_container launch --img holohub:orsi-sdk-local --local_sdk_root PATH_TO_LOCAL_HOLOSCAN_SDK
 ```
 ### (4) Build sample apps
 
-**1. orsi_in_out_body** 
+**1. orsi_in_out_body**
 
 ```bash
-./run build orsi_in_out_body  
+./run build orsi_in_out_body
 ```
 
 
-**2. orsi_segmentation_ar** 
+**2. orsi_segmentation_ar**
 
 ```bash
 ./run build orsi_segmentation_ar
 ```
 
-**3. orsi_multi_ai_ar** 
+**3. orsi_multi_ai_ar**
 
 ```bash
 ./run build orsi_multi_ai_ar
@@ -80,7 +79,7 @@ The segmentation and Multi AI pipelines have succesfully been used in multiple i
 
 ### (5) Run sample apps
 
-**1. orsi_in_out_body** 
+**1. orsi_in_out_body**
 
 C++:
 ```bash
@@ -92,7 +91,7 @@ Python:
 ./run launch orsi_in_out_body python
 ```
 
-**2. orsi_segmentation_ar** 
+**2. orsi_segmentation_ar**
 
 C++:
 ```bash
@@ -104,7 +103,7 @@ Python:
 ./run launch orsi_segmentation_ar python
 ```
 
-**3. orsi_multi_ai_ar** 
+**3. orsi_multi_ai_ar**
 
 C++:
 ```bash
