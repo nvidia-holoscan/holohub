@@ -24,7 +24,6 @@
 #include "holoscan/core/operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
-
 #include "segmentation_postprocessor.cuh"
 
 using holoscan::ops::segmentation_postprocessor::DataFormat;
@@ -32,13 +31,11 @@ using holoscan::ops::segmentation_postprocessor::NetworkOutputType;
 
 namespace holoscan::ops::orsi {
 
-struct Rect
-{
-  int32_t x,y, width, height;
+struct Rect {
+  int32_t x, y, width, height;
 };
 
-struct Size 
-{
+struct Size {
   int32_t width, height;
 };
 
@@ -74,19 +71,16 @@ class SegmentationPostprocessorOp : public Operator {
 
   CudaStreamHandler cuda_stream_handler_;
 
-
-  nvidia::gxf::Expected<void*>  resizeImage(const void* in_tensor_data, const int32_t rows,
-                   const int32_t columns, const int16_t channels,
-                   const nvidia::gxf::PrimitiveType primitive_type,
-                   const int32_t resize_width,
-                   const int32_t resize_height);
+  nvidia::gxf::Expected<void*> resizeImage(const void* in_tensor_data, const int32_t rows,
+                                           const int32_t columns, const int16_t channels,
+                                           const nvidia::gxf::PrimitiveType primitive_type,
+                                           const int32_t resize_width, const int32_t resize_height);
 
   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_process_;
   std::unique_ptr<nvidia::gxf::MemoryBuffer> scratch_buffer_resize_;
 
   Rect output_roi_;
   Size output_size_;
-
 };
 
 }  // namespace holoscan::ops::orsi

@@ -28,31 +28,24 @@
 #include <vtkProperty.h>
 #include <vtkSTLReader.h>
 
-
-
 #include <GLFW/glfw3.h>  // NOLINT(build/include_order)
 
 #include <iostream>
 
 namespace holoscan::orsi {  // namespace visualizer_orsi
 
-void convert(const double * src, std::vector<double>& dst)
-{
-  for(int i = 0; i != dst.size(); ++i) {
-    dst[i] = src[i];
-  }
+void convert(const double* src, std::vector<double>& dst) {
+  for (int i = 0; i != dst.size(); ++i) { dst[i] = src[i]; }
 }
 
-struct VtkProp3DTransformParams
-{
-  std::vector<double> origin_ { 0.0, 0.0, 0.0}; // Get / SetOrigin
-  std::vector<double> position_ { 0.0, 0.0, 0.0};  // Get/SetPosition
-  std::vector<double> orientation_ { 0.0, 0.0, 0.0};  // Get/SetOrientation
-  std::vector<double> scale_ { 0.0, 0.0, 0.0};  // Get / SetScale
+struct VtkProp3DTransformParams {
+  std::vector<double> origin_{0.0, 0.0, 0.0};       // Get / SetOrigin
+  std::vector<double> position_{0.0, 0.0, 0.0};     // Get/SetPosition
+  std::vector<double> orientation_{0.0, 0.0, 0.0};  // Get/SetOrientation
+  std::vector<double> scale_{0.0, 0.0, 0.0};        // Get / SetScale
 };
 
-VtkProp3DTransformParams GetObjectTransform(vtkProp3D* p)
-{
+VtkProp3DTransformParams GetObjectTransform(vtkProp3D* p) {
   VtkProp3DTransformParams params;
   convert(p->GetOrigin(), params.origin_);
   convert(p->GetPosition(), params.position_);
@@ -61,8 +54,7 @@ VtkProp3DTransformParams GetObjectTransform(vtkProp3D* p)
   return params;
 }
 
-void SetObjectTransform(vtkProp3D* p, VtkProp3DTransformParams const& params)
-{
+void SetObjectTransform(vtkProp3D* p, VtkProp3DTransformParams const& params) {
   p->SetOrigin(params.origin_[0], params.origin_[1], params.origin_[2]);
   p->SetPosition(params.position_[0], params.position_[1], params.position_[2]);
   p->SetOrientation(params.orientation_[0], params.orientation_[1], params.orientation_[2]);
@@ -70,19 +62,18 @@ void SetObjectTransform(vtkProp3D* p, VtkProp3DTransformParams const& params)
 }
 
 std::ostream& operator<<(std::ostream& os, const VtkProp3DTransformParams& p) {
-  os << p.origin_[0] << " " <<  p.origin_[1] << " " <<  p.origin_[2] << std::endl;
-  os << p.position_[0] << " " <<  p.position_[1] << " " <<  p.position_[2] << std::endl;
-  os << p.orientation_[0] << " " <<  p.orientation_[1] << " " <<  p.orientation_[2] << std::endl;
-  os << p.scale_[0] << " " <<  p.scale_[1] << " " <<  p.scale_[2] << std::endl;
+  os << p.origin_[0] << " " << p.origin_[1] << " " << p.origin_[2] << std::endl;
+  os << p.position_[0] << " " << p.position_[1] << " " << p.position_[2] << std::endl;
+  os << p.orientation_[0] << " " << p.orientation_[1] << " " << p.orientation_[2] << std::endl;
+  os << p.scale_[0] << " " << p.scale_[1] << " " << p.scale_[2] << std::endl;
   return os;
 }
 
-
 std::istream& operator>>(std::istream& is, VtkProp3DTransformParams& p) {
-  is >> p.origin_[0] >>  p.origin_[1] >>  p.origin_[2];
-  is >> p.position_[0] >>  p.position_[1] >>  p.position_[2];
-  is >> p.orientation_[0] >>  p.orientation_[1] >>  p.orientation_[2];
-  is >> p.scale_[0] >>  p.scale_[1] >>  p.scale_[2];
+  is >> p.origin_[0] >> p.origin_[1] >> p.origin_[2];
+  is >> p.position_[0] >> p.position_[1] >> p.position_[2];
+  is >> p.orientation_[0] >> p.orientation_[1] >> p.orientation_[2];
+  is >> p.scale_[0] >> p.scale_[1] >> p.scale_[2];
   return is;
 }
 
@@ -141,8 +132,6 @@ unsigned int VtkView::getTexture() const {
 }
 
 void VtkView::start() {
-
-
   vtkNew<vtkNamedColors> colors;
 
   const std::string case_directory = stl_file_path_;
@@ -163,11 +152,11 @@ void VtkView::start() {
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     std::array<unsigned char, 4> arr{{static_cast<unsigned char>(stl_colors_[idx][0]),
-             static_cast<unsigned char>(stl_colors_[idx][1]),
-             static_cast<unsigned char>(stl_colors_[idx][2]),
-             static_cast<unsigned char>(stl_colors_[idx][3])}};
-    colors->SetColor(stl_model_name +"_Color", arr.data());
-    actor->GetProperty()->SetColor(colors->GetColor3d(stl_model_name +"_Color").GetData());
+                                      static_cast<unsigned char>(stl_colors_[idx][1]),
+                                      static_cast<unsigned char>(stl_colors_[idx][2]),
+                                      static_cast<unsigned char>(stl_colors_[idx][3])}};
+    colors->SetColor(stl_model_name + "_Color", arr.data());
+    actor->GetProperty()->SetColor(colors->GetColor3d(stl_model_name + "_Color").GetData());
     actor->SetVisibility(true);
     actor->GetProperty()->SetOpacity(opacity_);
     m_[stl_model_name] = actor;
@@ -178,7 +167,6 @@ void VtkView::start() {
     assembly_->AddPart(actor);
     idx++;
   }
-
 
   // -------------------------------------------------------------------------------
   //
@@ -247,9 +235,9 @@ void VtkView::render() {
   // skip frames with invalid dimensions
   if (vp_width_ <= 0 || vp_height_ <= 0) { return; }
 
-  if(!update_frame_) {
-      vtk_render_wnd_->WaitForCompletion();
-      return;
+  if (!update_frame_) {
+    vtk_render_wnd_->WaitForCompletion();
+    return;
   }
 
   if (realloc_texture) {
@@ -285,8 +273,6 @@ void VtkView::render() {
 
     realloc_texture = false;
   }
-
-
 
   vtk_render_wnd_->Render();
   vtk_render_wnd_->WaitForCompletion();
@@ -339,9 +325,9 @@ int VtkView::onMouseMove(GLFWwindow* wnd, double x, double y) {
   const int alt = glfwGetKey(wnd, GLFW_MOD_ALT);
   const int ctrl = glfwGetKey(wnd, GLFW_MOD_CONTROL);
   const int shift = glfwGetKey(wnd, GLFW_MOD_SHIFT);
-  
+
   update();
-  
+
   vtk_interactor_->SetAltKey(alt);
   vtk_interactor_->SetEventInformation(x, y, ctrl, shift);
   return vtk_interactor_->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
@@ -427,15 +413,15 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
         }
       }
     }
-  idx++;
+    idx++;
   }
 
   if ((key == GLFW_KEY_E) && (action == GLFW_RELEASE)) {
     visibility_all_ = !visibility_all_;
     for (const auto stl_model_name : stl_names_) {
       if (m_.find(stl_model_name) != m_.end()) {
-      m_[stl_model_name]->SetVisibility(visibility_all_);
-    }
+        m_[stl_model_name]->SetVisibility(visibility_all_);
+      }
     }
   }
 
@@ -443,50 +429,46 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
     opacity_ += 0.05;
     for (const auto stl_model_name : stl_names_) {
       if (m_.find(stl_model_name) != m_.end()) {
-      m_[stl_model_name]->GetProperty()->SetOpacity(opacity_);
-    }
-    }
-  }
-
-  if ((key == GLFW_KEY_KP_SUBTRACT) && (action == GLFW_RELEASE)) {
-    opacity_ -= 0.05;
-      for (const auto stl_model_name : stl_names_) {
-        if (m_.find(stl_model_name) != m_.end()) {
         m_[stl_model_name]->GetProperty()->SetOpacity(opacity_);
       }
     }
   }
 
-  
+  if ((key == GLFW_KEY_KP_SUBTRACT) && (action == GLFW_RELEASE)) {
+    opacity_ -= 0.05;
+    for (const auto stl_model_name : stl_names_) {
+      if (m_.find(stl_model_name) != m_.end()) {
+        m_[stl_model_name]->GetProperty()->SetOpacity(opacity_);
+      }
+    }
+  }
+
   VtkProp3DTransformParams transform_params;
 
-  if(ctrl && action == GLFW_RELEASE) {
-    if(key == GLFW_KEY_S) {
+  if (ctrl && action == GLFW_RELEASE) {
+    if (key == GLFW_KEY_S) {
       transform_params = GetObjectTransform(assembly_);
       std::ofstream myfile;
-      myfile.open (registration_params_path_);
-      myfile << transform_params<< std::endl;
+      myfile.open(registration_params_path_);
+      myfile << transform_params << std::endl;
       myfile.close();
     } else if (key == GLFW_KEY_L) {
-
       std::ifstream t(registration_params_path_);
       std::string s;
       std::string ss;
       std::vector<double> params;
       std::istringstream iss;
-      while(getline(t, s)){
+      while (getline(t, s)) {
         iss.clear();
         iss.str(s);
-        while (getline( iss, ss, ' ' ) ) {
-        params.push_back(std::stod(ss));
+        while (getline(iss, ss, ' ')) { params.push_back(std::stod(ss)); }
       }
-      }
-      if (!params.empty()){
-      transform_params.origin_ = {params.begin(), params.begin() + 3};
-      transform_params.position_ = {params.begin()+3, params.begin() + 6};
-      transform_params.orientation_ = {params.begin()+6, params.begin() + 9};
-      transform_params.scale_ = {params.begin()+9, params.begin() + 12};
-      SetObjectTransform(assembly_, transform_params);
+      if (!params.empty()) {
+        transform_params.origin_ = {params.begin(), params.begin() + 3};
+        transform_params.position_ = {params.begin() + 3, params.begin() + 6};
+        transform_params.orientation_ = {params.begin() + 6, params.begin() + 9};
+        transform_params.scale_ = {params.begin() + 9, params.begin() + 12};
+        SetObjectTransform(assembly_, transform_params);
       }
     }
   }
@@ -506,17 +488,14 @@ int VtkView::onSize(GLFWwindow* wnd, int w, int h) {
     realloc_texture = true;
   }
 
-  if (!vtk_interactor_) {
-    return 0;
-  }
+  if (!vtk_interactor_) { return 0; }
   update();
 
   vtk_interactor_->UpdateSize(w, h);
   return vtk_interactor_->InvokeEvent(vtkCommand::ConfigureEvent, nullptr);
 }
 
-void VtkView::update()
-{
+void VtkView::update() {
   update_frame_ = true;
 }
 

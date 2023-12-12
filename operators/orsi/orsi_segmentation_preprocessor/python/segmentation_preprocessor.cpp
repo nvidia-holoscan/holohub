@@ -57,29 +57,23 @@ namespace holoscan::ops {
 class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp {
  public:
   /* Inherit the constructors */
-  using  orsi::SegmentationPreprocessorOp::SegmentationPreprocessorOp;
+  using orsi::SegmentationPreprocessorOp::SegmentationPreprocessorOp;
 
   // Define a constructor that fully initializes the object.
   PyOrsiSegmentationPreprocessorOp(
-      Fragment* fragment, 
-      std::shared_ptr<::holoscan::Allocator> allocator,
-      const std::string& in_tensor_name = "", 
-      const std::string& out_tensor_name = "", 
-      const std::string& network_output_type = "softmax"s,
-      const std::string& data_format = "hwc"s,
+      Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
+      const std::string& in_tensor_name = "", const std::string& out_tensor_name = "",
+      const std::string& network_output_type = "softmax"s, const std::string& data_format = "hwc"s,
       const std::vector<float> normalize_means = std::vector<float>{},
       const std::vector<float> normalize_stds = std::vector<float>{},
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-      const std::string& name = "segmentation_preprocessor"s
-  )
-      :  orsi::SegmentationPreprocessorOp(ArgList{
-                                            Arg{"in_tensor_name", in_tensor_name},
-                                            Arg{"out_tensor_name", out_tensor_name},
-                                            Arg{"data_format", data_format},
-                                            Arg{"normalize_means", normalize_means},
-                                            Arg{"normalize_stds", normalize_stds},
-                                            Arg{"allocator", allocator}
-                                          }) {
+      const std::string& name = "segmentation_preprocessor"s)
+      : orsi::SegmentationPreprocessorOp(ArgList{Arg{"in_tensor_name", in_tensor_name},
+                                                 Arg{"out_tensor_name", out_tensor_name},
+                                                 Arg{"data_format", data_format},
+                                                 Arg{"normalize_means", normalize_means},
+                                                 Arg{"normalize_stds", normalize_stds},
+                                                 Arg{"allocator", allocator}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     name_ = name;
     fragment_ = fragment;
@@ -107,10 +101,10 @@ PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_< orsi::SegmentationPreprocessorOp,
+  py::class_<orsi::SegmentationPreprocessorOp,
              PyOrsiSegmentationPreprocessorOp,
              Operator,
-             std::shared_ptr< orsi::SegmentationPreprocessorOp>>(
+             std::shared_ptr<orsi::SegmentationPreprocessorOp>>(
       m,
       "OrsiSegmentationPreprocessorOp",
       doc::OrsiSegmentationPreprocessorOp::doc_OrsiSegmentationPreprocessorOp)
@@ -135,10 +129,11 @@ PYBIND11_MODULE(_orsi_segmentation_preprocessor, m) {
            "cuda_stream_pool"_a = py::none(),
            "name"_a = "segmentation_preprocessor"s,
            doc::OrsiSegmentationPreprocessorOp::doc_OrsiSegmentationPreprocessorOp_python)
-      .def("initialize", &orsi::SegmentationPreprocessorOp::initialize,
+      .def("initialize",
+           &orsi::SegmentationPreprocessorOp::initialize,
            doc::OrsiSegmentationPreprocessorOp::doc_initialize)
       .def("setup",
-           & orsi::SegmentationPreprocessorOp::setup,
+           &orsi::SegmentationPreprocessorOp::setup,
            "spec"_a,
            doc::OrsiSegmentationPreprocessorOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT

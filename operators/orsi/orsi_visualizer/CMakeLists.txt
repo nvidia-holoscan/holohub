@@ -33,11 +33,10 @@ add_library(holoscan::orsi::visualizer ALIAS orsi_visualizer)
 target_include_directories(orsi_visualizer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(orsi_visualizer
-  holoscan::core 
+  holoscan::core
   orsi_visualizer_lib
 )
 
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
-

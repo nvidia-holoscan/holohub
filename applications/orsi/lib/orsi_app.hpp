@@ -18,24 +18,22 @@
 #include <holoscan/holoscan.hpp>
 #include <string>
 
-enum class VideoSource { 
-  REPLAYER, 
+enum class VideoSource {
+  REPLAYER,
 #ifdef USE_VIDEOMASTER
   VIDEOMASTER
 #endif
 };
 
 class OrsiApp : public holoscan::Application {
-
-protected:
-
+ protected:
   VideoSource video_source_ = VideoSource::REPLAYER;
   std::string datapath = "data";
 
-public:
+ public:
   void set_source(const std::string& source);
   void set_datapath(const std::string& path);
-  bool init(int argc, char **argv);
+  bool init(int argc, char** argv);
 };
 
 /** Helper function to parse the command line arguments */

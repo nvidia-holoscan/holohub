@@ -66,5 +66,4 @@ spec : holoscan.core.OperatorSpec
     The operator specification.
 )doc")
 
-}  // namespace holoscan::doc::SegmentationPostprocessorOp
-
+}  // namespace holoscan::doc::OrsiSegmentationPostprocessorOp

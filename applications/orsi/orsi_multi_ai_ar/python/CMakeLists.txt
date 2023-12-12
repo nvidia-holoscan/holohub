@@ -20,14 +20,14 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME orsi_multi_ai_ar_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/orsi_multi_ai_ar_body.py 
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/orsi_multi_ai_ar_body.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/orsi_multi_ai_ar_testing.yaml
                    --data ${HOLOHUB_DATA_DIR}/orsi
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_property(TEST orsi_multi_ai_ar_python_test PROPERTY ENVIRONMENT 
+  set_property(TEST orsi_multi_ai_ar_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
-  
+
   set_tests_properties(orsi_multi_ai_ar_python_test PROPERTIES
                 PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")

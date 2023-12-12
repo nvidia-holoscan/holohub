@@ -67,7 +67,7 @@ class VtkView {
 
   vtkNew<vtkAssembly> assembly_;
 
-  void update(); 
+  void update();
 
   bool update_frame_ = true;
 
@@ -103,8 +103,7 @@ class VtkView {
   void setStlKeys(std::vector<int> stl_keys);
   void setRenderWindow(const vtkSmartPointer<vtkGenericOpenGLRenderWindow>& renderWindow);
   void setInteractor(const vtkSmartPointer<vtkGenericRenderWindowInteractor>& interactor);
-  void setInteractorStyle(
-      const vtkSmartPointer<vtkInteractorStyleTrackballActor>& interactorStyle);
+  void setInteractorStyle(const vtkSmartPointer<vtkInteractorStyleTrackballActor>& interactorStyle);
 
   void setRenderer(const vtkSmartPointer<vtkRenderer>& renderer);
 
@@ -112,7 +111,6 @@ class VtkView {
   vtkSmartPointer<vtkGenericRenderWindowInteractor>& getInteractor();
   vtkSmartPointer<vtkInteractorStyleTrackballActor>& getInteractorStyle();
   vtkSmartPointer<vtkRenderer>& getRenderer();
-  
 
   unsigned int getTexture() const;
 };

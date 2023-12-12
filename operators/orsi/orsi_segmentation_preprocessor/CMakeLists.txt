@@ -33,7 +33,7 @@ set_target_properties(${PROJECT_NAME}  PROPERTIES CUDA_ARCHITECTURES "70;80")
 add_library(holoscan::orsi::segmentation_preprocessor ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
 PUBLIC
     holoscan::core
 )
