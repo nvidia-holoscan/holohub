@@ -114,10 +114,11 @@ Python:
 ```bash
 ./run launch orsi_multi_ai_ar python
 ```
+### note:
+This application is patent pending:
+-	EP23163230.8: European pattent application “Real-time instrument delineation in robotic surgery”
+-	US18/211,269: US pattent application “Real-time instrument delineation in robotic surgery”
 
-## License
-
-Please refer to [license agreement](./LICENSE) for use.
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>
 
