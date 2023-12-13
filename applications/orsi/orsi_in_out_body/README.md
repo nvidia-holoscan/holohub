@@ -20,12 +20,6 @@ Towards realtime anonymization, a binary out-of-body classifier was trained and 
 | -------- | ------- |
 | Enable anonymization | B |
 
-## Prepare Assets
-
-In order to run the demo app, the .mp4 assets need to be converted into GXF entities. To do so, please install ffmpeg, numpy and python and run below command in the data/orsi/video directory:
-```bash
-ffmpeg -i Segmentation_snippet_1.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python ../../../utilities/convert_video_to_gxf_entities.py --width 1920 --height 1080 --channels 3 --framerate 30 --basename Segmentation_snippet_1
-```
 
 ## Build app
 

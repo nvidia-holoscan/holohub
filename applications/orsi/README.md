@@ -116,8 +116,8 @@ Python:
 ```
 ### note:
 This application is patent pending:
--	EP23163230.8: European pattent application “Real-time instrument delineation in robotic surgery”
--	US18/211,269: US pattent application “Real-time instrument delineation in robotic surgery”
+-	EP23163230.8: European patent application “Real-time instrument delineation in robotic surgery”
+-	US18/211,269: US patent application “Real-time instrument delineation in robotic surgery”
 
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

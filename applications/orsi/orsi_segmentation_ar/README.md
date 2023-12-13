@@ -41,12 +41,6 @@ Towards realtime segmentation and AR overlay, a binary segmentation model for no
 | Toggle venous stent zone | 1 |
 | Toggle stent | 2 |
 
-## Prepare Assets
-
-In order to run the demo app, the .mp4 assets need to be converted into GXF entities. To do so, please install ffmpeg, numpy and python and run below command in the data/orsi directory:
-```bash
-ffmpeg -i Anonymization.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python ../../../utilities/convert_video_to_gxf_entities.py --width 1920 --height 1080 --channels 3 --framerate 30 --basename Anonymization
-```
 
 ## Build app
 
