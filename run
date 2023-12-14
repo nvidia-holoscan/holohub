@@ -438,6 +438,9 @@ build_desc() {
   echo ""
 }
 
+# See how many directories under the input path matches "install*" pattern
+# If we find exactly one, this is probably the SDK install path the user wants to use
+# Print out a warning message if we find multiple install paths and ask user to specify exact path using --sdk option
 get_install_path() {
     dir=$1
     install_paths=($(find $dir -maxdepth 1 -type d -name "install*" 2>/dev/null))
