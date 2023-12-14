@@ -438,19 +438,44 @@ build_desc() {
   echo ""
 }
 
+# See how many directories under the input path matches "install*" pattern
+# If we find exactly one, this is probably the SDK install path the user wants to use
+# Print out a warning message if we find multiple install paths and ask user to specify exact path using --sdk option
+get_install_path() {
+    dir=$1
+    install_paths=($(find $dir -maxdepth 1 -type d -name "install*" 2>/dev/null))
+    if [ ${#install_paths[@]} -eq 1 ]; then
+        echo "${install_paths[0]}"
+    elif [ ${#install_paths[@]} -gt 1 ]; then
+        echo "Warning: Multiple install directories found under $dir, please specify exact path to --sdk option with one of the following directories" >&2
+        for path in "${install_paths[@]}"; do
+            echo "- $path" >&2
+        done
+        echo ""
+    else
+        echo ""
+    fi
+}
+
 # Allow users to point "--sdk" to root directory of the SDK installation.
 # This is to address the differences in directory structure between
 # installations between debian image, docker, or when built from source
 resolve_sdk_install_path() {
   sdk_path=$1
 
-  if [ -d "${sdk_path}/public/install" ]; then
-    echo "${sdk_path}/public/install"; return
-  elif [ -d "${sdk_path}/install" ]; then
-    echo "${sdk_path}/install"; return
-  else
-    echo "${sdk_path}"; return
+  install_path=$(get_install_path "${sdk_path}/public")
+  if [[ -n $install_path ]]; then
+    echo "${install_path}";
+    return
   fi
+
+  install_path=$(get_install_path "${sdk_path}/")
+  if [[ -n $install_path ]]; then
+    echo "${install_path}";
+    return
+  fi
+
+  echo "${sdk_path}"
 }
 
 build() {
@@ -476,7 +501,7 @@ build() {
       elif [ "$arg" = "--sdk" ]; then
          sdk_path=$( resolve_sdk_install_path "${ARGS[i+1]}" )
          holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
-         echo "Using Holscan SDK in ${sdk_path}"
+         echo "Setting Holoscan SDK install path to ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--with" ]; then
          operator="${ARGS[i+1]}"
