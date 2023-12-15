@@ -379,7 +379,7 @@ gxf_result_t QCAPSource::start() {
 
   ULONG nVideoInput = 0;
   QCAP_GET_VIDEO_INPUT(m_hDevice, &nVideoInput);
-  GXF_LOG_INFO("QCAP Source: Use input %d", nVideoInput);
+  GXF_LOG_INFO("QCAP Source: Use input %lu", nVideoInput);
   if (nVideoInput == QCAP_INPUT_TYPE_SDI) {
     GXF_LOG_INFO("QCAP Source: SDI 12G mode is %d", sdi12g_mode_.get());
 

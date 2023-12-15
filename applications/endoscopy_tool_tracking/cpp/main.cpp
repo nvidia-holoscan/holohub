@@ -173,7 +173,7 @@ class App : public holoscan::Application {
     std::string output_signal = "output";  // replayer output signal name
     if (source_ == "deltacast") {
       output_signal = "signal";
-    } else {
+    } else if (source_ == "aja" || source_ == "yuan") {
       output_signal = "video_buffer_output";
     }
 
