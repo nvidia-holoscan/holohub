@@ -2,7 +2,9 @@
 
 This is a benchmarking tool to evaluate the performance of HoloHub and other Holoscan applications.
 Following is a high-level overview of Holoscan Flow Benchmarking. For more details on its possible
-use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md).
+use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md) 
+(up-to-date) or 
+[Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf).
 
 The tool supports benchmarking of any Holoscan C++ application. Holoscan Python applications will be
 supported in the future.
@@ -31,8 +33,8 @@ This script saves the original `cpp` files in a `*.cpp.bak` file.
 2. **Build the application**
 
 ```
-$ ./run build <application name> <other options> --configure-args \
-    -DCMAKE_CXX_FLAGS=-I$PWD/tutorials/holoscan_flow_benchmarking
+$ ./run build <application name> <other options> \
+    --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/tutorials/holoscan_flow_benchmarking
 ```
 
 Please make sure to test that the application runs correctly after building it, and before going to
