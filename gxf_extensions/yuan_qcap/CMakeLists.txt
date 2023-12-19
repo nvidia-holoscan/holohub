@@ -58,7 +58,7 @@ target_link_libraries(gxf_qcap_source_lib
 )
 
 target_include_directories(gxf_qcap_source_lib
-  SYSTEM 
+  SYSTEM
   BEFORE
   PUBLIC ${QCAP_INCLUDE}
   PRIVATE stb
