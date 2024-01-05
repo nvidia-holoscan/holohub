@@ -11,14 +11,19 @@ Holohub is a central repository for users and developers of extensions and appli
 
 # Prerequisites
 HoloHub is based on [Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk).
-HoloHub has been tested and is known to run on Ubuntu 20.04. Other versions of Ubuntu or OS distributions may result in build and/or runtime issues.
-
+HoloHub has been tested and is known to run on Ubuntu 20.04.
+Other versions of Ubuntu or OS distributions may result in build and/or runtime issues.
 
 1. Clone this repository.
 
 2. Choose to build Holohub using development container or using a local environment.
 
 ### Container build
+
+***Prerequisites***
+To build and run Holohub in a containerized environment you will need:
+  - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) v1.12.2+
+  - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
 
 ***Building dev container:*** Run the following command from the holohub directory to build the development container.
 

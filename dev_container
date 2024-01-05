@@ -215,6 +215,16 @@ c_echo_err() {
     >&2 c_echo "$@"
 }
 
+fatal() {
+    if [ -n "$*" ]; then
+        c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [FATAL] " Z "$@"
+    fi
+    if [ -n "${SCRIPT_DIR}" ]; then
+        exit 1
+    else
+        kill -INT $$  # kill the current process instead of exit in shell environment.
+    fi
+}
 
 run_command() {
     local status=0
