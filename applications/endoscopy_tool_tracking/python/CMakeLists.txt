@@ -20,7 +20,7 @@ if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_endoscopy_tool_tracking_output)
-  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/testing/endoscopy_tool_tracking/)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/endoscopy_tool_tracking/testing/)
 
   file(MAKE_DIRECTORY ${RECORDING_DIR})
 
@@ -50,7 +50,7 @@ if(BUILD_TESTING)
 
   # Add a test to check the validity of the frames
   add_test(NAME endoscopy_tool_tracking_python_render_test
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/testing/video_validation.py
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
     --source_video_dir ${RECORDING_DIR}
     --source_video_basename ${SOURCE_VIDEO_BASENAME}
     --output_dir ${RECORDING_DIR}
