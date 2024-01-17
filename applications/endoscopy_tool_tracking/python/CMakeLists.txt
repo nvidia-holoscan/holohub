@@ -20,13 +20,12 @@ if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_endoscopy_tool_tracking_output)
-  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/endoscopy_tool_tracking/testing/)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/testing/endoscopy_tool_tracking/)
 
   file(MAKE_DIRECTORY ${RECORDING_DIR})
 
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" CONFIG_FILE)
-
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "basename: \"tensor\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
