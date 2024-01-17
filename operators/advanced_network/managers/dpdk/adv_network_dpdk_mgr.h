@@ -51,21 +51,15 @@
 
 namespace holoscan::ops {
 
-class DpdkMgr {
+class DpdkMgr : public ANOMgr {
  public:
     DpdkMgr() {
       static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
     }
     ~DpdkMgr();
-    void SetConfigAndInitialize(const AdvNetConfigYaml &cfg);
-    int GetRxPkts(void **pkts, int num);
-    void Initialize();
-    void Run();
-    void wait();
-    static int rx_core(void *arg);
-    static int tx_core(void *arg);
-    static void check_pkts_to_free(rte_ring *msg_ring,
-          rte_mempool *burst_pool, rte_mempool *meta_pool);
+    virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
+    virtual void initialize() override;
+    virtual void run() override;
     static constexpr int JUMBFRAME_SIZE = 9100;
     static constexpr int DEFAULT_NUM_TX_BURST = 256;
     static constexpr int DEFAULT_NUM_RX_BURST = 64;
@@ -84,13 +78,47 @@ class DpdkMgr {
     static constexpr int BUFFER_SPLIT_SEGS = 2;
     static constexpr int MAX_ETH_HDR_SIZE = 18;
 
+    virtual void *get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
+    virtual void *get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
+    virtual uint16_t get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
+    virtual uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
+    virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
+    virtual AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
+                                      char *dst_addr) override;
+    virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+                                      int ip_len,
+                                      uint8_t proto,
+                                      unsigned int src_host,
+                                      unsigned int dst_host) override;
+    virtual AdvNetStatus set_cpu_udp_hdr(AdvNetBurstParams *burst,
+                                      int idx,
+                                      int udp_len,
+                                      uint16_t src_port,
+                                      uint16_t dst_port) override;
+    virtual AdvNetStatus set_cpu_udp_payload(AdvNetBurstParams *burst, int idx,
+                                      void *data, int len) override;
+    virtual bool tx_burst_available(AdvNetBurstParams *burst) override;
+
+    virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) override;
+    virtual void free_pkt(void *pkt) override;
+    virtual void free_pkts(void **pkts, int len) override;
+    virtual void free_all_burst_pkts(AdvNetBurstParams *burst) override;
+    virtual void free_rx_burst(AdvNetBurstParams *burst) override;
+    virtual void free_tx_burst(AdvNetBurstParams *burst) override;
+
+    virtual void set_num_pkts(AdvNetBurstParams *burst, int64_t num) override;
+    virtual void set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num) override;
+    virtual void format_eth_addr(char *dst, std::string addr) override;
+    virtual void get_port_from_ifname(const std::string &name) override;
+
 
  private:
+    static int rx_core_worker(void *arg);
+    static int tx_core_worker(void *arg); 
     static void flush_packets(int port);
-    int SetupPoolsAndRings(int max_rx_batch, int max_tx_batch);
-    struct rte_flow *AddFlow(int port, const FlowConfig &cfg);
-    std::string GetQueueName(int port, int q, AdvNetDirection dir);
-    std::optional<struct rte_pktmbuf_extmem> AllocateGpuPktMbuf(int port_id, uint16_t pkt_size,
+    int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
+    struct rte_flow *add_flow(int port, const FlowConfig &cfg);
+    std::optional<struct rte_pktmbuf_extmem> allocate_gpu_pktmbuf(int port_id, uint16_t pkt_size,
                                                                 int num_mbufs, int gpu_dev);
 
     AdvNetConfigYaml cfg_;
@@ -101,14 +129,16 @@ class DpdkMgr {
     struct rte_ring *rx_ring;
     std::unordered_map<uint32_t, struct rte_ring *> tx_rings;
     std::unordered_map<uint32_t, struct rte_mempool *> tx_burst_buffers;
+    std::unordered_map<uint32_t, struct rte_mempool *> tx_cpu_pkt_pools;
+    std::unordered_map<uint32_t, struct rte_mempool *> tx_gpu_pkt_pools;
+    std::unordered_map<uint32_t, struct rte_mempool *> rx_cpu_pkt_pools;
+    std::unordered_map<uint32_t, struct rte_mempool *> rx_gpu_pkt_pools;
     struct rte_mempool *rx_burst_buffer;
     struct rte_mempool *rx_meta;
     struct rte_mempool *tx_meta;
     std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
-    bool initialized = false;
     int num_init = 0;
 };
 
-extern DpdkMgr dpdk_mgr;
 };  // namespace holoscan::ops

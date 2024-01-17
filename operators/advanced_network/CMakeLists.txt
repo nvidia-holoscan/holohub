@@ -24,7 +24,8 @@ enable_language(CUDA)
 add_library(advanced_network_common SHARED
   adv_network_common.cpp
   adv_network_kernels.cu
-  adv_network_dpdk_mgr.cpp
+  managers/adv_network_mgr.cpp
+  managers/dpdk/adv_network_dpdk_mgr.cpp
 )
 
 add_library(advanced_network_rx SHARED
@@ -50,8 +51,8 @@ set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl
 
 pkg_check_modules(DPDK REQUIRED libdpdk)
 
-target_include_directories(advanced_network_rx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(advanced_network_tx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(advanced_network_rx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/managers ${CMAKE_CURRENT_SOURCE_DIR}/managers/dpdk)
+target_include_directories(advanced_network_tx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/managers ${CMAKE_CURRENT_SOURCE_DIR}/managers/dpdk)
 
 target_compile_options(advanced_network_common PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_rx PUBLIC ${DPDK_CFLAGS})

@@ -16,13 +16,13 @@
  */
 
 #include "adv_network_rx.h"
-#include "adv_network_dpdk_mgr.h"
+#include "adv_network_mgr.h"
 #include <memory>
 
 namespace holoscan::ops {
 
 struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
-  DpdkMgr *dpdk_mgr;
+  ANOMgr *ano_mgr;
   struct rte_ring *rx_ring;
   struct rte_mempool *rx_desc_pool;
   struct rte_mempool *rx_meta_pool;
