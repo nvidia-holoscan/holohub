@@ -20,7 +20,7 @@ if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_endoscopy_tool_tracking_output)
-  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/testing/endoscopy_tool_tracking/)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/endoscopy_tool_tracking/testing/)
 
   file(MAKE_DIRECTORY ${RECORDING_DIR})
 

@@ -1102,3 +1102,7 @@ class EntityWriter:
         self._index += 1
 
         return entity
+<<<<<<< HEAD
+=======
+
+>>>>>>> f85f970 (updated test file locations)
