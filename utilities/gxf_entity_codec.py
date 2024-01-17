@@ -1103,6 +1103,10 @@ class EntityWriter:
 
         return entity
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> f85f970 (updated test file locations)
+=======
+
+>>>>>>> 34a9c0c (updated test file locations)
