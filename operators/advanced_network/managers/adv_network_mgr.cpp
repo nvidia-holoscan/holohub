@@ -14,5 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "adv_network_mgr.h"
+#include "adv_network_dpdk_mgr.h"
+#include "holoscan/holoscan.hpp"
+
+namespace holoscan::ops {
 
 ANOMgr *g_ano_mgr = nullptr;
+
+void set_ano_mgr(const AdvNetConfigYaml &cfg) {
+  if (1) {
+    HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
+    g_ano_mgr = new DpdkMgr{};
+  }
+  else {
+    HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
+  }
+}
+
+};

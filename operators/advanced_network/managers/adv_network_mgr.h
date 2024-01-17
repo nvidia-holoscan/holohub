@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "adv_network_common.h"
 #include "adv_network_types.h"
+#include <optional>
 
 namespace holoscan::ops {
 
@@ -29,7 +29,7 @@ namespace holoscan::ops {
 class ANOMgr {
   public:
     virtual void initialize() = 0;
-    virtual void is_initialized() const { return initialized_; }
+    virtual bool is_initialized() const { return initialized_; }
     virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) = 0;
     virtual void run() = 0;
 
@@ -41,7 +41,8 @@ class ANOMgr {
     virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) = 0;
     virtual AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
                                       char *dst_addr) = 0;
-    virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+    virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst,
+                                      int idx,
                                       int ip_len,
                                       uint8_t proto,
                                       unsigned int src_host,
@@ -58,17 +59,21 @@ class ANOMgr {
     virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) = 0;
     virtual void free_pkt(void *pkt) = 0;
     virtual void free_pkts(void **pkts, int len) = 0;
-    virtual void free_all_burst_pkts(AdvNetBurstParams *burst) = 0;
     virtual void free_rx_burst(AdvNetBurstParams *burst) = 0;
     virtual void free_tx_burst(AdvNetBurstParams *burst) = 0;
 
-    virtual void set_num_pkts(AdvNetBurstParams *burst, int64_t num) = 0;
-    virtual void set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num) = 0;
     virtual void format_eth_addr(char *dst, std::string addr) = 0;
-    virtual void get_port_from_ifname(const std::string &name) = 0;
+    virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) = 0;
+    virtual AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) = 0;
+    virtual void free_rx_meta(AdvNetBurstParams *burst) = 0;
+    virtual void free_tx_meta(AdvNetBurstParams *burst) = 0;
+    virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) = 0;
+    virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) = 0;
 
   protected:
     bool initialized_ = false;
 };
+
+void set_ano_mgr(const AdvNetConfigYaml &cfg);
 
 }

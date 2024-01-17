@@ -149,7 +149,7 @@ std::optional<struct rte_pktmbuf_extmem> DpdkMgr::allocate_gpu_pktmbuf(
 
 
 
-void DpdkMgr::Initialize() {
+void DpdkMgr::initialize() {
   int ret;
   uint16_t portid;
 
@@ -979,8 +979,8 @@ void DpdkMgr::run() {
 
   HOLOSCAN_LOG_INFO("Starting advanced network workers");
   // determine the correct process types for input/output
-  int (*rx_worker)(void*) = rx_core;
-  int (*tx_worker)(void*) = tx_core;
+  int (*rx_worker)(void*) = rx_core_worker;
+  int (*tx_worker)(void*) = tx_core_worker;
 
   for (auto &rx : cfg_.rx_) {
     if (rx.empty) {
@@ -1262,7 +1262,7 @@ uint16_t DpdkMgr::get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) {
 }
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams *burst) {
-  const uint32_t key = (burst->hdr.hdr..port_id_ << 16) | burst->hdr.hdr.common_.id_;
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
@@ -1360,13 +1360,13 @@ AdvNetStatus DpdkMgr::set_cpu_udp_payload(AdvNetBurstParams *burst, int idx, voi
 }
 
 bool DpdkMgr::tx_burst_available(AdvNetBurstParams *burst) {
-  const uint32_t key = (burst->hdr.hdr..port_id_ << 16) | burst->hdr.hdr.common_.id_;
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
     HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-    return AdvNetStatus::NO_FREE_BURST_BUFFERS;;
+    return false;
   }
 
   const auto cpu_pool   = tx_cpu_pkt_pools.find(key);
@@ -1390,14 +1390,6 @@ bool DpdkMgr::tx_burst_available(AdvNetBurstParams *burst) {
   return true;
 }
 
-void DpdkMgr::free_rx_burst(AdvNetBurstParams *burst) {
-  if (burst->cpu_pkts != nullptr) {
-    rte_mempool_put(rx_burst_buffer, (void *)burst->cpu_pkts);
-  }
-  if (burst->gpu_pkts != nullptr) {
-    rte_mempool_put(rx_burst_buffer, (void *)burst->gpu_pkts);
-  }
-}
 
 AdvNetStatus DpdkMgr::set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) {
   if (cpu_len == 0) {
@@ -1442,7 +1434,7 @@ void DpdkMgr::free_rx_burst(AdvNetBurstParams *burst) {
 }
 
 void DpdkMgr::free_tx_burst(AdvNetBurstParams *burst) {
-  const uint32_t key = (burst->hdr.hdr..port_id_ << 16) | burst->hdr.hdr.common_.id_;
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst->cpu_pkts != nullptr) {
@@ -1461,6 +1453,54 @@ std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string &name) {
   }
 
   return port;
+}
+
+AdvNetStatus DpdkMgr::get_rx_burst(AdvNetBurstParams **burst) {
+  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
+    return AdvNetStatus::NOT_READY;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::free_rx_meta(AdvNetBurstParams *burst) {
+  rte_mempool_put(rx_meta, burst);
+}
+
+void DpdkMgr::free_tx_meta(AdvNetBurstParams *burst) {
+  rte_mempool_put(tx_meta, burst);
+}
+
+AdvNetStatus DpdkMgr::get_tx_meta_buf(AdvNetBurstParams **burst) {
+  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(burst)) != 0) {
+    HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams *burst) {
+  uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  const auto ring = tx_rings.find(key);
+
+  if (ring == tx_rings.end()) {
+    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return AdvNetStatus::INVALID_PARAMETER;
+  }
+
+  if (rte_ring_enqueue(ring->second, reinterpret_cast<void *>(burst)) != 0) {
+    free_tx_burst(burst);
+    free_tx_meta(burst);
+    HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
+    return AdvNetStatus::NO_SPACE_AVAILABLE;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::format_eth_addr(char *dst, std::string addr) {
+  rte_ether_unformat_addr(addr.c_str(), reinterpret_cast<struct rte_ether_addr *>(dst));
 }
 
 };  // namespace holoscan::ops

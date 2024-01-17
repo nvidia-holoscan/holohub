@@ -47,15 +47,16 @@
 #include <rte_gpudev.h>
 #include <atomic>
 #include <unordered_map>
+#include "adv_network_mgr.h"
 #include "adv_network_common.h"
 
 namespace holoscan::ops {
 
 class DpdkMgr : public ANOMgr {
  public:
-    DpdkMgr() {
-      static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
-    }
+   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
+
+    DpdkMgr() = default;
     ~DpdkMgr();
     virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
     virtual void initialize() override;
@@ -102,14 +103,16 @@ class DpdkMgr : public ANOMgr {
     virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) override;
     virtual void free_pkt(void *pkt) override;
     virtual void free_pkts(void **pkts, int len) override;
-    virtual void free_all_burst_pkts(AdvNetBurstParams *burst) override;
     virtual void free_rx_burst(AdvNetBurstParams *burst) override;
     virtual void free_tx_burst(AdvNetBurstParams *burst) override;
-
-    virtual void set_num_pkts(AdvNetBurstParams *burst, int64_t num) override;
-    virtual void set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num) override;
     virtual void format_eth_addr(char *dst, std::string addr) override;
-    virtual void get_port_from_ifname(const std::string &name) override;
+    virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
+
+    virtual AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
+    virtual void free_rx_meta(AdvNetBurstParams *burst) override;
+    virtual void free_tx_meta(AdvNetBurstParams *burst) override;
+    virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
+    virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
 
 
  private:

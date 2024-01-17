@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#include "adv_network_mgr.h"
 #include "adv_network_common.h"
 #include "holoscan/holoscan.hpp"
 #include <rte_mbuf.h>
@@ -47,15 +48,15 @@ uint16_t adv_net_get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) {
   return g_ano_mgr->get_cpu_pkt_len(burst, idx);
 }
 
-inline uint16_t adv_net_get_cpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
+uint16_t adv_net_get_cpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   return adv_net_get_cpu_pkt_len(burst.get(), idx);
 }
 
 uint16_t adv_net_get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) {
-  return get_gpu_pkt_len(burst, idx);
+  return g_ano_mgr->get_gpu_pkt_len(burst, idx);
 }
 
-inline uint16_t adv_net_get_gpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
+uint16_t adv_net_get_gpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   return adv_net_get_gpu_pkt_len(burst.get(), idx);
 }
 
@@ -68,7 +69,7 @@ void adv_net_free_all_burst_pkts(AdvNetBurstParams *burst) {
   adv_net_free_pkts(burst->gpu_pkts, burst->hdr.hdr.num_pkts);
 }
 
-inline void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> burst) {
+void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> burst) {
   return adv_net_free_all_burst_pkts(burst.get());
 }
 
@@ -83,7 +84,7 @@ void adv_net_free_all_burst_pkts_and_burst(AdvNetBurstParams *burst) {
   g_ano_mgr->free_rx_burst(burst);
 }
 
-inline void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
+void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
   adv_net_free_all_burst_pkts_and_burst(burst.get());
 }
 
@@ -92,19 +93,19 @@ void adv_net_free_cpu_pkts_and_burst(AdvNetBurstParams *burst) {
   g_ano_mgr->free_rx_burst(burst);
 }
 
-inline void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
+void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
   adv_net_free_cpu_pkts_and_burst(burst.get());
 }
 
 void adv_net_format_eth_addr(char *dst, std::string addr) {
-  rte_ether_unformat_addr(addr.c_str(), reinterpret_cast<struct rte_ether_addr *>(dst));
+  g_ano_mgr->format_eth_addr(dst, addr);
 }
 
 bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
-  g_ano_mgr->tx_burst_available(burst);
+  return g_ano_mgr->tx_burst_available(burst);
 }
 
-inline bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst) {
+bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst) {
   return adv_net_tx_burst_available(burst.get());
 }
 
@@ -135,10 +136,10 @@ AdvNetStatus adv_net_set_cpu_ipv4_hdr(AdvNetBurstParams *burst,
                                       uint8_t proto,
                                       unsigned int src_host,
                                       unsigned int dst_host) {
-  return g_ano_mgr->set_cpu_ipv4_hdr(idx, ip_len, proto, src_host);
+  return g_ano_mgr->set_cpu_ipv4_hdr(burst, idx, ip_len, proto, src_host, dst_host);
 }
 
-inline AdvNetStatus adv_net_set_cpu_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
+AdvNetStatus adv_net_set_cpu_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
                                       int idx,
                                       int ip_len,
                                       uint8_t proto,
@@ -172,7 +173,7 @@ AdvNetStatus adv_net_set_cpu_udp_payload(AdvNetBurstParams *burst, int idx, void
   return g_ano_mgr->set_cpu_udp_payload(burst, idx, data, len);
 }
 
-inline AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
+AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
               int idx, void *data, int len) {
   return adv_net_set_cpu_udp_payload(burst.get(), idx, data, len);
 }
@@ -181,7 +182,7 @@ AdvNetStatus adv_net_set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len,
   return g_ano_mgr->set_pkt_len(burst, idx, cpu_len, gpu_len);
 }
 
-inline AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
+AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
                                   int idx,
                                   int cpu_len,
                                   int gpu_len) {
@@ -208,7 +209,7 @@ void adv_net_set_num_pkts(AdvNetBurstParams *burst, int64_t num) {
   burst->hdr.hdr.num_pkts = num;
 }
 
-inline void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num) {
+void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num) {
   return adv_net_set_num_pkts(burst.get(), num);
 }
 
@@ -225,10 +226,10 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
 
 
 void adv_net_free_tx_burst(AdvNetBurstParams *burst) {
-  g_ano_mgr->adv_net_free_tx_burst(burst);
+  g_ano_mgr->free_tx_burst(burst);
 }
 
-inline void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst) {
+void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst) {
   return adv_net_free_tx_burst(burst.get());
 }
 
@@ -236,7 +237,7 @@ void adv_net_free_rx_burst(AdvNetBurstParams *burst) {
   g_ano_mgr->free_rx_burst(burst);
 }
 
-inline void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst) {
+void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst) {
   return adv_net_free_rx_burst(burst.get());
 }
 
@@ -244,7 +245,7 @@ void *adv_net_get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx)   {
   return g_ano_mgr->get_cpu_pkt_ptr(burst, idx);
 }
 
-inline void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
+void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   return adv_net_get_cpu_pkt_ptr(burst.get(), idx);
 }
 
@@ -252,7 +253,7 @@ void *adv_net_get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx)   {
   return g_ano_mgr->get_gpu_pkt_ptr(burst, idx);
 }
 
-inline void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
+void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   return adv_net_get_gpu_pkt_ptr(burst.get(), idx);
 }
 

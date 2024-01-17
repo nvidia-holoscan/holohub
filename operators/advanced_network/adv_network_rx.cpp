@@ -21,11 +21,8 @@
 
 namespace holoscan::ops {
 
+extern ANOMgr *g_ano_mgr;
 struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
-  ANOMgr *ano_mgr;
-  struct rte_ring *rx_ring;
-  struct rte_mempool *rx_desc_pool;
-  struct rte_mempool *rx_meta_pool;
   AdvNetConfigYaml cfg;
 };
 
@@ -52,13 +49,12 @@ void AdvNetworkOpRx::initialize() {
 int AdvNetworkOpRx::Init() {
   impl = new AdvNetworkOpRxImpl();
   impl->cfg = cfg_.get();
-  impl->dpdk_mgr = &dpdk_mgr;
-  impl->dpdk_mgr->SetConfigAndInitialize(impl->cfg);
-  impl->rx_desc_pool = nullptr;
-  impl->rx_ring = nullptr;
+  set_ano_mgr(impl->cfg);
+
+  g_ano_mgr->set_config_and_initialize(impl->cfg);
 
   for (const auto &rx : impl->cfg.rx_) {
-    auto port_opt = adv_net_get_port_from_ifname(rx.if_name_);
+    auto port_opt = g_ano_mgr->get_port_from_ifname(rx.if_name_);
     if (!port_opt.has_value()) {
       HOLOSCAN_LOG_ERROR("Failed to get port from name {}", rx.if_name_);
       return -1;
@@ -79,21 +75,16 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
   int n;
   AdvNetBurstParams *burst;
 
-  if (unlikely(impl->rx_ring == nullptr)) {
-    impl->rx_ring = rte_ring_lookup("RX_RING");
-  }
+  const auto res = g_ano_mgr->get_rx_burst(&burst);
 
-  if (unlikely(impl->rx_meta_pool == nullptr)) {
-    impl->rx_meta_pool = rte_mempool_lookup("RX_META_POOL");
-  }
-
-  if (rte_ring_dequeue(impl->rx_ring, reinterpret_cast<void**>(&burst)) < 0) {
+  if (res != AdvNetStatus::SUCCESS) {
     return;
   }
 
   auto adv_burst = std::make_shared<AdvNetBurstParams>();
   memcpy(adv_burst.get(), burst, sizeof(*burst));
-  rte_mempool_put(impl->rx_meta_pool, burst);
+  
+  g_ano_mgr->free_rx_meta(burst);
 
   const auto port_str = pq_map_[(adv_burst->hdr.hdr.port_id << 16) | adv_burst->hdr.hdr.q_id];
   op_output.emit(adv_burst, port_str.c_str());

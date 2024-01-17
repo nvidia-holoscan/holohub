@@ -36,14 +36,14 @@ PYBIND11_MODULE(_advanced_network_common, m) {
     m.def("adv_net_create_burst_params", &adv_net_create_burst_params,
         py::return_value_policy::reference, "Create a shared pointer burst params structure");
     m.def("adv_net_free_pkt", &adv_net_free_pkt, "Free a single packet");
-    m.def("adv_net_get_cpu_packet_len", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_cpu_packet_len), "Get length of the CPU portion of the packet");
-    m.def("adv_net_get_cpu_packet_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_cpu_packet_len), "Get length of the CPU portion of the packet");
-    m.def("adv_net_get_gpu_packet_len", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_gpu_packet_len), "Get length of the GPU portion of the packet");
-    m.def("adv_net_get_gpu_packet_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_gpu_packet_len), "Get length of the GPU portion of the packet");
+    m.def("adv_net_get_cpu_pkt_len", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_get_cpu_pkt_len), "Get length of the CPU portion of the packet");
+    m.def("adv_net_get_cpu_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
+        (&adv_net_get_cpu_pkt_len), "Get length of the CPU portion of the packet");
+    m.def("adv_net_get_gpu_pkt_len", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_get_gpu_pkt_len), "Get length of the GPU portion of the packet");
+    m.def("adv_net_get_gpu_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
+        (&adv_net_get_gpu_pkt_len), "Get length of the GPU portion of the packet");
     m.def("adv_net_free_all_burst_pkts", py::overload_cast<AdvNetBurstParams *>
         (&adv_net_free_all_burst_pkts), "Free all packets in a burst");
     m.def("adv_net_free_all_burst_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
