@@ -65,7 +65,8 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         (&adv_net_get_tx_pkt_burst), "Get TX packet burst");
     m.def("adv_net_get_tx_pkt_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams>>
         (&adv_net_get_tx_pkt_burst), "Get TX packet burst");
-
+    m.def("adv_net_shutdown", (&adv_net_shutdown), "Shut down the ANO manager");
+    m.def("adv_net_print_stats", (&adv_net_print_stats), "Print statistics in in the ANO");
     // m.def("adv_net_set_cpu_udp_payload",
     //     [](AdvNetBurstParams *burst, int idx, long int data, int len) {
     //             return adv_net_set_cpu_udp_payload(burst, idx,

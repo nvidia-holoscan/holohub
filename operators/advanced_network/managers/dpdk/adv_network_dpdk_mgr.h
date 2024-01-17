@@ -113,6 +113,8 @@ class DpdkMgr : public ANOMgr {
     virtual void free_tx_meta(AdvNetBurstParams *burst) override;
     virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
     virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
+    virtual void shutdown() override;
+    virtual void print_stats() override;
 
 
  private:

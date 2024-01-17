@@ -61,7 +61,10 @@ class ANOMgr {
     virtual void free_pkts(void **pkts, int len) = 0;
     virtual void free_rx_burst(AdvNetBurstParams *burst) = 0;
     virtual void free_tx_burst(AdvNetBurstParams *burst) = 0;
+    virtual void shutdown() = 0;
+    virtual void print_stats() = 0;
 
+    /* Internal functions used by ANO operators */
     virtual void format_eth_addr(char *dst, std::string addr) = 0;
     virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) = 0;
     virtual AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) = 0;

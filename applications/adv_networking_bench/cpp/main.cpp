@@ -58,6 +58,11 @@ class AdvNetworkingBenchTxOp : public Operator {
 
   AdvNetworkingBenchTxOp() = default;
 
+  ~AdvNetworkingBenchTxOp() {
+    HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down");
+    adv_net_shutdown();
+  }
+
   void initialize() override {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchTxOp::initialize()");
     holoscan::Operator::initialize();
@@ -325,6 +330,10 @@ class AdvNetworkingBenchRxOp : public Operator {
   ~AdvNetworkingBenchRxOp() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
         ttl_bytes_recv_, ttl_pkts_recv_);
+
+    HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
+    adv_net_shutdown();
+    adv_net_print_stats();
   }
 
   void initialize() override {

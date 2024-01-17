@@ -358,6 +358,19 @@ void adv_net_format_eth_addr(char *dst, std::string addr);
 
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
 
+/**
+ * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
+ * in the manager's destructor.
+ * 
+ */
+void adv_net_shutdown();
+
+/**
+ * @brief Print port statistics
+ * 
+ */
+void adv_net_print_stats();
+
 };  // namespace holoscan::ops
 
 

@@ -22,13 +22,17 @@ namespace holoscan::ops {
 
 ANOMgr *g_ano_mgr = nullptr;
 
+/* This function decides what ANO backend or "manager" is used for packet processing. The choice of
+   manager is based on what we believe is the best selection based on the user's configuration. */
 void set_ano_mgr(const AdvNetConfigYaml &cfg) {
-  if (1) {
-    HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
-    g_ano_mgr = new DpdkMgr{};
-  }
-  else {
-    HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
+  if (g_ano_mgr == nullptr) {
+    if (1) {
+      HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
+      g_ano_mgr = new DpdkMgr{};
+    }
+    else {
+      HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
+    }
   }
 }
 

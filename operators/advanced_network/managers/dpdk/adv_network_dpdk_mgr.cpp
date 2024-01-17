@@ -89,6 +89,8 @@ void DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
     // whole application
     std::thread t(&DpdkMgr::initialize, this);
     t.join();
+
+    this->initialized_ = true;
     run();
   }
 }
@@ -707,8 +709,6 @@ void DpdkMgr::initialize() {
       add_flow(rx.port_id_, flow);
     }
   }
-
-  this->initialized_ = true;
 }
 
 int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
@@ -1233,11 +1233,10 @@ int DpdkMgr::tx_core_worker(void *arg) {
 
     rte_mempool_put(tparams->meta_pool, msg);
 
-    HOLOSCAN_LOG_DEBUG("Sent {} packets\n", pkts_tx);
-
     bursts++;
   }
-  printf("TX thread exiting\n");
+
+  HOLOSCAN_LOG_INFO("TX thread exiting with {} packets sent\n", pkts_tx);
 
   return 0;
 }
@@ -1502,5 +1501,17 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams *burst) {
 void DpdkMgr::format_eth_addr(char *dst, std::string addr) {
   rte_ether_unformat_addr(addr.c_str(), reinterpret_cast<struct rte_ether_addr *>(dst));
 }
+
+void DpdkMgr::shutdown() {
+  if (!force_quit.load()) {
+    HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
+    force_quit.store(false);
+  }
+}
+
+void DpdkMgr::print_stats() {
+  PrintDpdkStats();
+}
+
 
 };  // namespace holoscan::ops

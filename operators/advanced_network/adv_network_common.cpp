@@ -261,6 +261,14 @@ std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name) {
   return g_ano_mgr->get_port_from_ifname(name);
 }
 
+void adv_net_shutdown() {
+  g_ano_mgr->shutdown();
+}
+
+void adv_net_print_stats() {
+  g_ano_mgr->print_stats();
+}
+
 
 
 };  // namespace holoscan::ops
