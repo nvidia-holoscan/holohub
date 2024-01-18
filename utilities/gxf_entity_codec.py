@@ -1102,4 +1102,3 @@ class EntityWriter:
         self._index += 1
 
         return entity
-
