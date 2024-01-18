@@ -29,11 +29,10 @@ void set_ano_mgr(const AdvNetConfigYaml &cfg) {
     if (1) {
       HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
       g_ano_mgr = new DpdkMgr{};
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
     }
   }
 }
 
-};
+};  // namespace holoscan::ops

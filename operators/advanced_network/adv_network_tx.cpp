@@ -54,7 +54,7 @@ int AdvNetworkOpTx::Init() {
   impl->cfg = cfg_.get();
   set_ano_mgr(impl->cfg);
 
-  g_ano_mgr->set_config_and_initialize(impl->cfg);  
+  g_ano_mgr->set_config_and_initialize(impl->cfg);
 
   return 0;
 }

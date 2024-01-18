@@ -83,7 +83,7 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
 
   auto adv_burst = std::make_shared<AdvNetBurstParams>();
   memcpy(adv_burst.get(), burst, sizeof(*burst));
-  
+
   g_ano_mgr->free_rx_meta(burst);
 
   const auto port_str = pq_map_[(adv_burst->hdr.hdr.port_id << 16) | adv_burst->hdr.hdr.q_id];

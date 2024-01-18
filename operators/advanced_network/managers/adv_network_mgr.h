@@ -24,10 +24,10 @@ namespace holoscan::ops {
 
 /**
  * @brief (Almost) ABC representing an interface into an ANO backend implementation
- * 
+ *
  */
 class ANOMgr {
-  public:
+ public:
     virtual void initialize() = 0;
     virtual bool is_initialized() const { return initialized_; }
     virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) = 0;
@@ -56,7 +56,8 @@ class ANOMgr {
                                       void *data, int len) = 0;
     virtual bool tx_burst_available(AdvNetBurstParams *burst) = 0;
 
-    virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) = 0;
+    virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx,
+                                        int cpu_len, int gpu_len) = 0;
     virtual void free_pkt(void *pkt) = 0;
     virtual void free_pkts(void **pkts, int len) = 0;
     virtual void free_rx_burst(AdvNetBurstParams *burst) = 0;
@@ -73,10 +74,10 @@ class ANOMgr {
     virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) = 0;
     virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) = 0;
 
-  protected:
+ protected:
     bool initialized_ = false;
 };
 
 void set_ano_mgr(const AdvNetConfigYaml &cfg);
 
-}
+}  // namespace holoscan::ops

@@ -54,13 +54,13 @@ namespace holoscan::ops {
 
 class DpdkMgr : public ANOMgr {
  public:
-   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
+    static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
 
     DpdkMgr() = default;
     ~DpdkMgr();
-    virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
-    virtual void initialize() override;
-    virtual void run() override;
+    void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
+    void initialize() override;
+    void run() override;
     static constexpr int JUMBFRAME_SIZE = 9100;
     static constexpr int DEFAULT_NUM_TX_BURST = 256;
     static constexpr int DEFAULT_NUM_RX_BURST = 64;
@@ -79,47 +79,47 @@ class DpdkMgr : public ANOMgr {
     static constexpr int BUFFER_SPLIT_SEGS = 2;
     static constexpr int MAX_ETH_HDR_SIZE = 18;
 
-    virtual void *get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
-    virtual void *get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
-    virtual uint16_t get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
-    virtual uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
-    virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
-    virtual AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
+    void *get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
+    void *get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
+    uint16_t get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
+    uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
+    AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
+    AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
                                       char *dst_addr) override;
-    virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+    AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
                                       int ip_len,
                                       uint8_t proto,
                                       unsigned int src_host,
                                       unsigned int dst_host) override;
-    virtual AdvNetStatus set_cpu_udp_hdr(AdvNetBurstParams *burst,
+    AdvNetStatus set_cpu_udp_hdr(AdvNetBurstParams *burst,
                                       int idx,
                                       int udp_len,
                                       uint16_t src_port,
                                       uint16_t dst_port) override;
-    virtual AdvNetStatus set_cpu_udp_payload(AdvNetBurstParams *burst, int idx,
+    AdvNetStatus set_cpu_udp_payload(AdvNetBurstParams *burst, int idx,
                                       void *data, int len) override;
-    virtual bool tx_burst_available(AdvNetBurstParams *burst) override;
+    bool tx_burst_available(AdvNetBurstParams *burst) override;
 
-    virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) override;
-    virtual void free_pkt(void *pkt) override;
-    virtual void free_pkts(void **pkts, int len) override;
-    virtual void free_rx_burst(AdvNetBurstParams *burst) override;
-    virtual void free_tx_burst(AdvNetBurstParams *burst) override;
-    virtual void format_eth_addr(char *dst, std::string addr) override;
-    virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
+    AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) override;
+    void free_pkt(void *pkt) override;
+    void free_pkts(void **pkts, int len) override;
+    void free_rx_burst(AdvNetBurstParams *burst) override;
+    void free_tx_burst(AdvNetBurstParams *burst) override;
+    void format_eth_addr(char *dst, std::string addr) override;
+    std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
 
-    virtual AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
-    virtual void free_rx_meta(AdvNetBurstParams *burst) override;
-    virtual void free_tx_meta(AdvNetBurstParams *burst) override;
-    virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
-    virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
-    virtual void shutdown() override;
-    virtual void print_stats() override;
+    AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
+    void free_rx_meta(AdvNetBurstParams *burst) override;
+    void free_tx_meta(AdvNetBurstParams *burst) override;
+    AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
+    AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
+    void shutdown() override;
+    void print_stats() override;
 
 
  private:
     static int rx_core_worker(void *arg);
-    static int tx_core_worker(void *arg); 
+    static int tx_core_worker(void *arg);
     static void flush_packets(int port);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     struct rte_flow *add_flow(int port, const FlowConfig &cfg);

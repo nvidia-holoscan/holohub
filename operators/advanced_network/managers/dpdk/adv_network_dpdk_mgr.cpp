@@ -1484,7 +1484,8 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams *burst) {
   const auto ring = tx_rings.find(key);
 
   if (ring == tx_rings.end()) {
-    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}",
+                        burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
     return AdvNetStatus::INVALID_PARAMETER;
   }
 

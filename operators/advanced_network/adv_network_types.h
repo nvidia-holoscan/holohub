@@ -205,4 +205,4 @@ auto adv_net_get_rx_tx_cfg_en(const Config &config) {
   return std::make_tuple(rx, tx);
 }
 
-};
+};  // namespace holoscan::ops
