@@ -276,7 +276,7 @@ def main():
         "--percentile",
         nargs="+",
         type=float,
-        help="provide a list of percentile values (e.g., "90 95 99 99.9"). It will display these percentile latencies for all paths.",
+        help="provide a list of percentile values (e.g., '90 95 99 99.9'). It will display these percentile latencies for all paths.",
         required=False,
     )
 
