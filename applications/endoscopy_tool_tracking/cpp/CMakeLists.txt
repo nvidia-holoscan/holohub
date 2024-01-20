@@ -87,12 +87,29 @@ if(FLOW_BENCHMARKING)
 
   # Add the test
   add_test(NAME endoscopy_tool_tracking_cpp_benchmark_test
-           COMMAND bash -c "python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
-                     --run-command \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
-                     -r 3 -i 3 -m 200 --sched greedy -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking \
-                     && python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
-                     -m -a --stddev --median --min --cdash \
-                     --draw-cdf ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/single_path_cdf.png --no-display-graphs \
-                     -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/logger_greedy_* EndoscopyToolTracking"
+           COMMAND bash -c "for i in {1..5}; do \
+            python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
+              --run-command \
+              \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
+              -i $i -r 1 -m 100 -u --sched greedy \
+              -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i \
+              && \
+              python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
+                --cdash --max --avg --stddev --median --min -p 90 95 99 99.9\
+                -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i/logger_greedy_* EndoscopyToolTracking$i;\
+           done;\
+           python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
+             --save-csv --max --avg --stddev --median --min -p 90 95 99 99.9\
+             -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_1/logger_greedy_* EndoscopyToolTracking1 \
+             -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_2/logger_greedy_* EndoscopyToolTracking2 \
+             -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_3/logger_greedy_* EndoscopyToolTracking3 \
+             -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_4/logger_greedy_* EndoscopyToolTracking4 \
+             -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_5/logger_greedy_* EndoscopyToolTracking5 \
+             && \
+             # for all the csv files in current directory
+             for f in *.csv; do \
+             python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/generate_bar_graph.py $f;\
+             done \
+            "
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()

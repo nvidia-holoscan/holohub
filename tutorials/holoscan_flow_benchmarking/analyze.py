@@ -272,7 +272,12 @@ def main():
     )
 
     parser.add_argument(
-        "-p", "--percentile", type=float, help="show percentile latencies for all paths"
+        "-p",
+        "--percentile",
+        nargs="+",
+        type=float,
+        help="provide a list of percentile values (e.g., "90 95 99 99.9"). It will display these percentile latencies for all paths.",
+        required=False,
     )
 
     parser.add_argument(
@@ -389,7 +394,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="maximum_latency">'
+                    f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
                     + str(round(np.max(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -409,7 +414,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="average_latency">'
+                    f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
                     + str(round(np.mean(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -429,7 +434,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="median_latency">'
+                    f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
                     + str(round(np.median(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -449,7 +454,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="std_latency">'
+                    f'<CTestMeasurement type="numeric/double" name="std_latency_{group_name}">'
                     + str(round(np.std(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -469,7 +474,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="min_latency">'
+                    f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
                     + str(round(min(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -490,7 +495,7 @@ def main():
             latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="distribution_tail">'
+                    f'<CTestMeasurement type="numeric/double" name="distribution_tail_{group_name}">'
                     + latency_tail_one_path
                     + "</CTestMeasurement>"
                 )
@@ -511,7 +516,7 @@ def main():
             latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
             if args.cdash:
                 print(
-                    '<CTestMeasurement type="numeric/double" name="distribution_flatness">'
+                    f'<CTestMeasurement type="numeric/double" name="distribution_flatness_{group_name}">'
                     + latency_flatness_one_path
                     + "</CTestMeasurement>"
                 )
@@ -520,24 +525,31 @@ def main():
                     f.write(latency_flatness_one_path + ",")
 
     if args.percentile:
-        if args.save_csv:
-            with open("percentile_values.csv", "w") as f:
+        for percentile in args.percentile:
+            percentile_file = f"percentile_{percentile}_values.csv"
+            with open(percentile_file, "w") as f:
                 f.truncate(0)
-        print_metric_title(f"Latency Percentile ({args.percentile})")
-        for group_name, paths_latencies in grouped_path_latenices.items():
-            print_group_name_with_log_files(group_name, grouped_log_files[group_name])
-            for path, latency in paths_latencies.items():
-                latency_percentile_str = "{:.2f}".format(
-                    latency_percentile(latency, float(args.percentile))
+            print_metric_title(f"Latency Percentile ({percentile})")
+            for group_name, paths_latencies in grouped_path_latenices.items():
+                print_group_name_with_log_files(group_name, grouped_log_files[group_name])
+                for path, latency in paths_latencies.items():
+                    latency_percentile_str = "{:.2f}".format(
+                        latency_percentile(latency, float(percentile))
+                    )
+                    print_path_metric_ms(path, latency_percentile_str)
+                (path, latency) = next(iter(paths_latencies.items()))
+                latency_percentile_filtered_one_path = "{:.2f}".format(
+                    latency_percentile(latency, float(percentile))
                 )
-                print_path_metric_ms(path, latency_percentile_str)
-            (path, latency) = next(iter(paths_latencies.items()))
-            latency_percentile_filtered_one_path = "{:.2f}".format(
-                latency_percentile(latency, float(args.percentile))
-            )
-            if args.save_csv:
-                with open("percentile_values.csv", "a") as f:
-                    f.write(latency_percentile_filtered_one_path + ",")
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="percentile_{percentile}_{group_name}">'
+                        + latency_percentile_filtered_one_path
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open(percentile_file, "a") as f:
+                        f.write(latency_percentile_filtered_one_path + ",")
 
     if args.draw_cdf:
         fig, ax = init_cdf_plot()
