@@ -95,11 +95,11 @@ if(FLOW_BENCHMARKING)
               -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i \
               && \
               python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
-                --cdash --max --avg --stddev --median --min -p 90 95 99 99.9\
+                --cdash --max --avg --stddev --median --min --tail --flatness -p 90 95 99 99.9\
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i/logger_greedy_* EndoscopyToolTracking$i;\
            done;\
            python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
-             --save-csv --max --avg --stddev --median --min -p 90 95 99 99.9\
+             --save-csv --max --avg --stddev --median --min --tail --flatness -p 90 95 99 99.9\
              -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_1/logger_greedy_* EndoscopyToolTracking1 \
              -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_2/logger_greedy_* EndoscopyToolTracking2 \
              -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_3/logger_greedy_* EndoscopyToolTracking3 \
