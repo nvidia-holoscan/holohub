@@ -91,7 +91,7 @@ if(FLOW_BENCHMARKING)
             python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
               --run-command \
               \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
-              -i $i -r 1 -m 100 -u --sched greedy \
+              -i $i -r 5 -m 1000 -u --sched greedy \
               -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i \
               && \
               python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
