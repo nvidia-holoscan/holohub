@@ -16,7 +16,7 @@
 ---
 replayer:  # VideoStreamReplayer
   # basename: "surgical_video"
-  basename: "ultrasound_256x256"
+  # basename: "ultrasound_256x256"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
@@ -40,7 +40,7 @@ inference:  # Inference
   parallel_inference: true
   enable_fp16: false
 
-postprocessor:  # InferencePostprocessor
+postprocessor:  #SegmentationPostprocessor
   network_output_type: softmax
   data_format: nchw
 

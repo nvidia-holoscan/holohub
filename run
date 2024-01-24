@@ -775,10 +775,12 @@ parse_args() {
     local arg
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
-            ARGS=("$CMD")
-            CMD="help"
-            break
+        if [ "$i" = "0" ]; then
+            if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
+                ARGS=("$CMD")
+                CMD="help"
+                break
+            fi
         fi
         if [ "$arg" = "--dryrun" ]; then
             unset_pos=$i

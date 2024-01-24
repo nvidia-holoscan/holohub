@@ -28,7 +28,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/benchmark_model --data <holohub_data_dir>/ultrasound_segmentation",
+			"command": "<holohub_app_bin>/benchmark_model",
 			"workdir": "holohub_app_bin"
 		}
 	}

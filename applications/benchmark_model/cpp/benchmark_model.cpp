@@ -24,10 +24,6 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include "holoscan/holoscan.hpp"
 
-bool only_inference = false;
-bool inference_postprocessing = false;
-int num_inferences = 1;
-
 namespace holoscan::ops {
 
 /**
@@ -52,33 +48,44 @@ class NoOpSink : public holoscan::Operator {
 class App : public holoscan::Application {
  public:
   App() = default;
-  App(const std::string& videopath, const std::string& modelpath)
-      : videopath(videopath), modelpath(modelpath) {
+  App(const std::string& datapath, const std::string& model_name, const std::string& video_name,
+      int num_inferences, bool only_inference, bool inference_postprocessing)
+      : datapath(datapath),
+        model_name(model_name),
+        video_name(video_name),
+        num_inferences(num_inferences),
+        only_inference(only_inference),
+        inference_postprocessing(inference_postprocessing) {
     holoscan::Application();
   }
 
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Operator> source;
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
-    source = make_operator<ops::VideoStreamReplayerOp>(
-        "replayer", from_config("replayer"), Arg("directory", videopath));
+    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer",
+                                                            from_config("replayer"),
+                                                            Arg("directory") = datapath,
+                                                            Arg("basename") = video_name);
 
     auto preprocessor = make_operator<ops::FormatConverterOp>(
         "preprocessor", from_config("preprocessor"), Arg("pool") = pool_resource);
 
-    std::cout << "Model Path is " << modelpath << std::endl;
-    std::cout << "Video Path is " << videopath << std::endl;
+    HOLOSCAN_LOG_DEBUG("Datapath is {}", datapath);
 
     ops::InferenceOp::DataMap model_path_map;
     ops::InferenceOp::DataVecMap pre_processor_map;
     ops::InferenceOp::DataVecMap inference_map;
+
+    HOLOSCAN_LOG_DEBUG("Number of parallel inferences: {}", num_inferences);
     for (int i = 0; i < num_inferences; i++) {
-      model_path_map.insert("own_model_" + std::to_string(i),
-                            modelpath + "/us_unet_256x256_nhwc.onnx");
-      pre_processor_map.insert("own_model_" + std::to_string(i), {"source_video"});
-      inference_map.insert("own_model_" + std::to_string(i), {"output" + std::to_string(i)});
+      std::string model_index_str = "own_model_" + std::to_string(i);
+
+      model_path_map.insert(model_index_str, datapath + "/" + model_name);
+      pre_processor_map.insert(model_index_str, {"source_video"});
+
+      std::string output_name = "output" + std::to_string(i);
+      inference_map.insert(model_index_str, {output_name});
     }
     auto inference = make_operator<ops::InferenceOp>("inference",
                                                      from_config("inference"),
@@ -87,14 +94,18 @@ class App : public holoscan::Application {
                                                      Arg("pre_processor_map", pre_processor_map),
                                                      Arg("inference_map", inference_map));
 
-    auto holoviz =
-        make_operator<ops::HolovizOp>("viz", from_config("viz"), Arg("allocator") = pool_resource);
-
+    std::vector<std::shared_ptr<Operator>> holovizs;
+    holovizs.reserve(num_inferences);
     // Flow definition
 
     // Passthrough to Visualization
     if (!only_inference && !inference_postprocessing) {
-      add_flow(source, holoviz, {{"output", "receivers"}});
+      for (int i = 0; i < num_inferences; i++) {
+        std::string holoviz_name = "holoviz" + std::to_string(i);
+        auto holoviz = make_operator<ops::HolovizOp, std::string>(holoviz_name, from_config("viz"));
+        holovizs.push_back(holoviz);
+        add_flow(source, holoviz, {{"output", "receivers"}});
+      }
     }
 
     // Inference Path
@@ -107,41 +118,94 @@ class App : public holoscan::Application {
       add_flow(inference, sink);
       return;
     }
-    auto postprocessor = make_operator<ops::SegmentationPostprocessorOp>(
-        "postprocessor", from_config("postprocessor"), Arg("allocator") = pool_resource);
-    add_flow(inference, postprocessor, {{"transmitter", "in_tensor"}});
+
+    std::vector<std::shared_ptr<Operator>> postprocessors;
+    postprocessors.reserve(num_inferences);
+
+    for (int i = 0; i < num_inferences; i++) {
+      std::string postprocessor_name = "postprocessor" + std::to_string(i);
+      std::string in_tensor_name = "output" + std::to_string(i);
+      auto postprocessor = make_operator<ops::SegmentationPostprocessorOp, std::string>(
+          postprocessor_name,
+          from_config("postprocessor"),
+          Arg("allocator") = pool_resource,
+          Arg("in_tensor_name") = in_tensor_name);
+      postprocessors.push_back(postprocessor);
+      add_flow(inference, postprocessor, {{"transmitter", "in_tensor"}});
+    }
 
     if (inference_postprocessing) {
       HOLOSCAN_LOG_INFO("Inference and Post-processing mode is on. No visualization will be done.");
-      auto sink = make_operator<ops::NoOpSink>("sink");
-      add_flow(postprocessor, sink);
+      for (int i = 0; i < num_inferences; i++) {
+        std::string sink_name = "sink" + std::to_string(i);
+        auto sink = make_operator<ops::NoOpSink, std::string>(sink_name);
+        add_flow(postprocessors[i], sink);
+      }
       return;
     }
 
-    add_flow(postprocessor, holoviz, {{"out_tensor", "receivers"}});
+    for (int i = 0; i < num_inferences; i++) {
+      add_flow(postprocessors[i], holovizs[i], {{"out_tensor", "receivers"}});
+    }
   }
 
  private:
-  bool is_aja_source_ = false;
-  std::string videopath = "../data";
-  std::string modelpath = "model/";
+  int num_inferences = 1;
+  bool only_inference = false, inference_postprocessing = false;
+  std::string datapath, model_name, video_name;
 };
+
+void print_help() {
+  std::cout << "Usage: benchmark_model [OPTIONS] [Config Path]" << std::endl;
+  std::cout << "Options:" << std::endl;
+  std::cout << "  -d, --data <path>               Path to the data directory (default: "
+               "$HOLOSCAN_INPUT_PATH/../data)"
+            << std::endl;
+  std::cout << "  -m, --model-name <path>              Path to the model directory (default: "
+               "identity_model.onnx)"
+            << std::endl;
+  std::cout << "  -v, --video-name <path>         Path to the video file (default: video)"
+            << std::endl;
+  std::cout << "  -i, --only-inference            Only run inference, no post-processing or "
+               "visualization"
+            << std::endl;
+  std::cout << "  -p, --inference-postprocessing  Run inference and post-processing, no "
+               "visualization"
+            << std::endl;
+  std::cout
+      << "  -l, --multi-inference <num>     Number of inferences to run in parallel (default: 1)"
+      << std::endl;
+  std::cout << "  -h, --help                      Print this help" << std::endl;
+}
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path,
-                     bool& only_inference, bool& inference_postprocessing, int& num_inferences) {
-  static struct option long_options[] = {{"data", required_argument, 0, 'd'},
+                     std::string& model_name, std::string& video_name, bool& only_inference,
+                     bool& inference_postprocessing, int& num_inferences) {
+  static struct option long_options[] = {{"help", required_argument, 0, 'h'},
+                                         {"data", required_argument, 0, 'd'},
+                                         {"model-name", required_argument, 0, 'm'},
+                                         {"video-name", required_argument, 0, 'v'},
                                          {"only-inference", optional_argument, 0, 'i'},
                                          {"inference-postprocessing", optional_argument, 0, 'p'},
-                                         {"multi-inference", required_argument, 0, 'm'},
+                                         {"multi-inference", required_argument, 0, 'l'},
                                          {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "dipm", long_options, NULL)) {
+  while (int c = getopt_long(argc, argv, "hd:m:v:ipl:", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
+      case 'h':
+        print_help();
+        return false;
       case 'd':
         data_path = optarg;
+        break;
+      case 'm':
+        model_name = optarg;
+        break;
+      case 'v':
+        video_name = optarg;
         break;
       case 'i':
         only_inference = true;
@@ -149,11 +213,12 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
       case 'p':
         inference_postprocessing = true;
         break;
-      case 'm':
+      case 'l':
         num_inferences = std::stoi(optarg);
         break;
       default:
-        std::cout << "Unknown arguments returned: " << c << std::endl;
+        std::cerr << "Unknown arguments returned: " << c << std::endl;
+        print_help();
         return false;
     }
   }
@@ -165,21 +230,32 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 int main(int argc, char** argv) {
   // Parse the arguments
   std::string config_name = "";
-  // get std::string from std::getenv("HOLOSCAN_INPUT_PATH")
   auto env_var = std::getenv("HOLOSCAN_INPUT_PATH");
   auto data_path = std::string((env_var == nullptr ? "" : env_var)) + "../data";
+  std::string model_name = "identity_model.onnx";
+  std::string video_name = "video";
+  bool only_inference = false, inference_postprocessing = false;
+  int num_inferences = 1;
   if (!parse_arguments(argc,
                        argv,
                        config_name,
                        data_path,
+                       model_name,
+                       video_name,
                        only_inference,
                        inference_postprocessing,
                        num_inferences)) {
     return 1;
   }
 
-  auto app = holoscan::make_application<App>(data_path, data_path);
+  auto app = holoscan::make_application<App>(
+      data_path, model_name, video_name, num_inferences, only_inference, inference_postprocessing);
   if (config_name != "") {
+    // Check if config_name is a valid path
+    if (!std::filesystem::exists(config_name)) {
+      std::cerr << "Config file " << config_name << " does not exist." << std::endl;
+      return 0;
+    }
     app->config(config_name);
   } else {
     auto config_path = std::filesystem::canonical(argv[0]).parent_path();
