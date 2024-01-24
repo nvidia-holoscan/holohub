@@ -31,8 +31,6 @@ using namespace std::chrono;
 
 namespace holoscan::ops {
 
-DpdkMgr dpdk_mgr{};
-
 std::atomic<bool> force_quit = false;
 
 struct TxWorkerParams {
@@ -64,6 +62,16 @@ struct DPDKQueueConfig {
   union  rte_eth_rxseg  rx_useg[DpdkMgr::BUFFER_SPLIT_SEGS] = {};
 };
 
+/**
+ * @brief Generic UDP packet structure
+ *
+ */
+struct UDPPkt {
+  struct rte_ether_hdr eth;
+  struct rte_ipv4_hdr ip;
+  struct rte_udp_hdr udp;
+  uint8_t payload[];
+} __attribute__((packed));
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,21 +79,23 @@ struct DPDKQueueConfig {
 ///  \brief Init
 ///
 ////////////////////////////////////////////////////////////////////////////////
-void DpdkMgr::SetConfigAndInitialize(const AdvNetConfigYaml &cfg) {
-  if (!initialized) {
+void DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
+  if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
     long nproc, i;
 
     // Start Initialize in a separate thread so it doesn't set the affinity for the
     // whole application
-    std::thread t(&DpdkMgr::Initialize, this);
+    std::thread t(&DpdkMgr::initialize, this);
     t.join();
-    Run();
+
+    this->initialized_ = true;
+    run();
   }
 }
 
-std::optional<struct rte_pktmbuf_extmem> DpdkMgr::AllocateGpuPktMbuf(
+std::optional<struct rte_pktmbuf_extmem> DpdkMgr::allocate_gpu_pktmbuf(
     int port_id,
     uint16_t pkt_size,
     int num_mbufs,
@@ -141,7 +151,7 @@ std::optional<struct rte_pktmbuf_extmem> DpdkMgr::AllocateGpuPktMbuf(
 
 
 
-void DpdkMgr::Initialize() {
+void DpdkMgr::initialize() {
   int ret;
   uint16_t portid;
 
@@ -333,6 +343,7 @@ void DpdkMgr::Initialize() {
       q.common_.backend_config_ = new DPDKQueueConfig;
       auto q_backend = static_cast<DPDKQueueConfig *>(q.common_.backend_config_);
 
+      uint32_t key = (rx.port_id_ << 16) | q.common_.id_;
       std::string append = "_P" + std::to_string(rx.port_id_) + "_Q" +
           std::to_string(q.common_.id_);
       auto rx_mbufs = q.common_.num_concurrent_batches_* q.common_.batch_size_;
@@ -340,7 +351,7 @@ void DpdkMgr::Initialize() {
       max_pkt_size   = std::max(max_pkt_size, q.common_.max_packet_size_);
 
       if (q.common_.gpu_direct_) {
-        auto ext_mem = AllocateGpuPktMbuf(rx.port_id_,
+        auto ext_mem = allocate_gpu_pktmbuf(rx.port_id_,
                                           q.common_.max_packet_size_ - q.common_.hds_,
                                           rx_mbufs,
                                           q.common_.gpu_dev_);
@@ -363,6 +374,8 @@ void DpdkMgr::Initialize() {
 
           HOLOSCAN_LOG_INFO("Created GPU mempool for GPUDirect: {} mbufs={} elsize={} ptr={}",
               gpu_name, rx_mbufs, ext_mem->elt_size, (void*)q_backend->pools[0]);
+
+          rx_gpu_pkt_pools[key] = q_backend->pools[0];
         } else {
           HOLOSCAN_LOG_INFO(
               "Enabling header-data split on RX with split point of {} and GPU payload size {}",
@@ -423,6 +436,9 @@ void DpdkMgr::Initialize() {
 
           local_port_conf[rx.port_id_].rxmode.offloads |=
               RTE_ETH_RX_OFFLOAD_SCATTER | RTE_ETH_RX_OFFLOAD_BUFFER_SPLIT;
+
+          rx_cpu_pkt_pools[key] = q_backend->pools[0];
+          rx_gpu_pkt_pools[key] = q_backend->pools[1];
         }
       } else {
         /* Create the mbuf pools. */
@@ -434,6 +450,8 @@ void DpdkMgr::Initialize() {
           HOLOSCAN_LOG_CRITICAL("Cannot init mbuf pool");
           return;
         }
+
+        rx_cpu_pkt_pools[key] = q_backend->pools[0];
 
         HOLOSCAN_LOG_INFO("Created RX pool {} with packet size {} bytes and {} mbufs at {}",
             name, pkt_size, rx_mbufs, (void*)q_backend->pools[0]);
@@ -468,9 +486,10 @@ void DpdkMgr::Initialize() {
       std::string append = "_P" + std::to_string(tx.port_id_) + "_Q" +
           std::to_string(q.common_.id_);
       auto tx_mbufs = q.common_.num_concurrent_batches_* q.common_.batch_size_;
+      uint32_t key = (tx.port_id_ << 16) | q.common_.id_;
 
       if (q.common_.gpu_direct_) {
-        auto ext_mem = AllocateGpuPktMbuf(tx.port_id_,
+        auto ext_mem = allocate_gpu_pktmbuf(tx.port_id_,
                                           q.common_.max_packet_size_ - q.common_.hds_,
                                           tx_mbufs,
                                           q.common_.gpu_dev_);
@@ -490,6 +509,8 @@ void DpdkMgr::Initialize() {
             HOLOSCAN_LOG_CRITICAL("Could not create EXT memory mempool");
             return;
           }
+
+          tx_gpu_pkt_pools[key] = q_backend->pools[0];
 
           HOLOSCAN_LOG_INFO("Created GPU mempool for GPUDirect: {} mbufs={} elsize={} ptr={}",
               gpu_name, tx_mbufs, ext_mem->elt_size, (void*)q_backend->pools[0]);
@@ -524,6 +545,9 @@ void DpdkMgr::Initialize() {
                 cpu_name, rte_errno);
             return;
           }
+
+          tx_cpu_pkt_pools[key] = q_backend->pools[0];
+          tx_gpu_pkt_pools[key] = q_backend->pools[1];
         }
       } else {
         auto pkt_size = q.common_.max_packet_size_ + RTE_PKTMBUF_HEADROOM;
@@ -535,6 +559,8 @@ void DpdkMgr::Initialize() {
                         rte_errno, rte_strerror(rte_errno));
           return;
         }
+
+        tx_cpu_pkt_pools[key] = q_backend->pools[0];
 
         HOLOSCAN_LOG_INFO("Created CPU TX pool with packet size {} bytes and {} mbufs at {}",
               pkt_size, tx_mbufs, (void*)q_backend->pools[0]);
@@ -548,7 +574,7 @@ void DpdkMgr::Initialize() {
                                                     RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
   }
 
-  if (SetupPoolsAndRings(max_rx_batch_size, max_tx_batch_size) < 0) {
+  if (setup_pools_and_rings(max_rx_batch_size, max_tx_batch_size) < 0) {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
     return;
   }
@@ -680,14 +706,12 @@ void DpdkMgr::Initialize() {
 
     for (const auto &flow : rx.flows_) {
       HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
-      AddFlow(rx.port_id_, flow);
+      add_flow(rx.port_id_, flow);
     }
   }
-
-  initialized = true;
 }
 
-int DpdkMgr::SetupPoolsAndRings(int max_rx_batch, int max_tx_batch) {
+int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   HOLOSCAN_LOG_DEBUG("Setting up RX ring");
   rx_ring = rte_ring_create("RX_RING", 2048, rte_socket_id(),
       RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
@@ -792,7 +816,7 @@ int DpdkMgr::SetupPoolsAndRings(int max_rx_batch, int max_tx_batch) {
 #define MAX_ACTION_NUM    2
 
 // Taken from flow_block.c DPDK example */
-struct rte_flow *DpdkMgr::AddFlow(int port, const FlowConfig &cfg) {
+struct rte_flow *DpdkMgr::add_flow(int port, const FlowConfig &cfg) {
   /* Declaring structs being used. 8< */
   struct rte_flow_attr attr;
   struct rte_flow_item pattern[MAX_PATTERN_NUM];
@@ -865,11 +889,6 @@ struct rte_flow *DpdkMgr::AddFlow(int port, const FlowConfig &cfg) {
 
   return nullptr;
 }
-
-int DpdkMgr::GetRxPkts(void **pkts, int num) {
-  return rte_ring_dequeue_bulk(rx_ring, pkts, num, nullptr);
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -954,14 +973,14 @@ DpdkMgr::~DpdkMgr() {
 ///  \brief
 ///
 ////////////////////////////////////////////////////////////////////////////////
-void DpdkMgr::Run() {
+void DpdkMgr::run() {
   int secondary_id = 0;
   int icore;
 
   HOLOSCAN_LOG_INFO("Starting advanced network workers");
   // determine the correct process types for input/output
-  int (*rx_worker)(void*) = rx_core;
-  int (*tx_worker)(void*) = tx_core;
+  int (*rx_worker)(void*) = rx_core_worker;
+  int (*tx_worker)(void*) = tx_core_worker;
 
   for (auto &rx : cfg_.rx_) {
     if (rx.empty) {
@@ -1007,20 +1026,6 @@ void DpdkMgr::Run() {
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
 
-void DpdkMgr::wait() {
-  int icore = 0;
-
-  HOLOSCAN_LOG_INFO("Stopping all workers");
-  force_quit.store(true);
-  RTE_LCORE_FOREACH_WORKER(icore) {
-    if (rte_eal_wait_lcore(icore) < 0) {
-      fprintf(stderr, "bad exit for coreid: %d\n", icore);
-      break;
-    }
-  }
-
-  PrintDpdkStats();
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -1035,24 +1040,12 @@ void DpdkMgr::flush_packets(int port) {
   }
 }
 
-void DpdkMgr::check_pkts_to_free(rte_ring *msg_ring,
-    rte_mempool *burst_pool, rte_mempool *meta_pool) {
-    // AdvNetBurstParams *msg;
-    // if (rte_ring_dequeue(msg_ring, reinterpret_cast<void**>(&msg)) == 0) {
-    //   for (int p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-    //     rte_pktmbuf_free_seg(reinterpret_cast<rte_mbuf*>(msg->cpu_pkts[p]));
-    //   }
-    //   rte_mempool_put(burst_pool, msg->cpu_pkts);
-    //   rte_mempool_put(meta_pool, msg);
-    // }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief
 ///
 ////////////////////////////////////////////////////////////////////////////////
-int DpdkMgr::rx_core(void *arg) {
+int DpdkMgr::rx_core_worker(void *arg) {
   RxWorkerParams *tparams = (RxWorkerParams*)arg;
   struct rte_mbuf * rx_mbufs[DEFAULT_NUM_RX_BURST];
   int ret = 0;
@@ -1168,7 +1161,7 @@ int DpdkMgr::rx_core(void *arg) {
 
 
 
-int DpdkMgr::tx_core(void *arg) {
+int DpdkMgr::tx_core_worker(void *arg) {
   TxWorkerParams *tparams = (TxWorkerParams*)arg;
   uint64_t seq;
   uint64_t pkts_tx = 0;
@@ -1240,12 +1233,286 @@ int DpdkMgr::tx_core(void *arg) {
 
     rte_mempool_put(tparams->meta_pool, msg);
 
-    HOLOSCAN_LOG_DEBUG("Sent {} packets\n", pkts_tx);
-
     bursts++;
   }
-  printf("TX thread exiting\n");
+
+  HOLOSCAN_LOG_INFO("TX thread exiting with {} packets sent\n", pkts_tx);
 
   return 0;
 }
+
+
+/* ANO interface implementations */
+
+void *DpdkMgr::get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) {
+  return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]), void*);
+}
+
+void *DpdkMgr::get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx)   {
+  return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->gpu_pkts[idx]), void*);
+}
+
+uint16_t DpdkMgr::get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) {
+  return reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx])->data_len;
+}
+
+uint16_t DpdkMgr::get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) {
+  return reinterpret_cast<rte_mbuf*>(burst->gpu_pkts[idx])->data_len;
+}
+
+AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams *burst) {
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+
+  const auto burst_pool = tx_burst_buffers.find(key);
+  if (burst_pool == tx_burst_buffers.end()) {
+    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
+      burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;;
+  }
+
+  const auto cpu_pool   = tx_cpu_pkt_pools.find(key);
+  const auto gpu_pool   = tx_gpu_pkt_pools.find(key);
+
+  if (cpu_pool != tx_cpu_pkt_pools.end()) {
+    if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->cpu_pkts)) != 0) {
+      return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+    }
+
+    if (rte_pktmbuf_alloc_bulk(cpu_pool->second, reinterpret_cast<rte_mbuf**>(burst->cpu_pkts),
+                static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
+      rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->cpu_pkts));
+      return AdvNetStatus::NO_FREE_CPU_PACKET_BUFFERS;
+    }
+  }
+
+  if (gpu_pool != tx_gpu_pkt_pools.end()) {
+    if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->gpu_pkts)) != 0) {
+      free_pkts(burst->cpu_pkts, burst->hdr.hdr.num_pkts);
+      rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->cpu_pkts));
+      return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+    }
+
+    if (rte_pktmbuf_alloc_bulk(gpu_pool->second, reinterpret_cast<rte_mbuf**>(burst->gpu_pkts),
+                static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
+      free_pkts(burst->cpu_pkts, burst->hdr.hdr.num_pkts);
+      rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->cpu_pkts));
+      rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->gpu_pkts));
+      return AdvNetStatus::NO_FREE_GPU_PACKET_BUFFERS;
+    }
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::set_cpu_eth_hdr(AdvNetBurstParams *burst,
+                                      int idx,
+                                      char *dst_addr) {
+  auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+  auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
+  memcpy(reinterpret_cast<void*>(&mbuf_data->eth.dst_addr),
+          reinterpret_cast<void*>(dst_addr),
+          sizeof(mbuf_data->eth.dst_addr));
+
+  mbuf_data->eth.ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::set_cpu_ipv4_hdr(AdvNetBurstParams *burst,
+                                      int idx,
+                                      int ip_len,
+                                      uint8_t proto,
+                                      unsigned int src_host,
+                                      unsigned int dst_host) {
+  auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+  auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
+  mbuf_data->ip.next_proto_id = proto;
+  mbuf_data->ip.ihl = 5;
+  mbuf_data->ip.total_length =
+        rte_cpu_to_be_16(sizeof(mbuf_data->ip) + ip_len);
+  mbuf_data->ip.version = 4;
+  mbuf_data->ip.src_addr = htonl(src_host);
+  mbuf_data->ip.dst_addr = htonl(dst_host);
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::set_cpu_udp_hdr(AdvNetBurstParams *burst,
+                                      int idx,
+                                      int udp_len,
+                                      uint16_t src_port,
+                                      uint16_t dst_port) {
+  auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+  auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
+
+  mbuf_data->udp.dgram_cksum = 0;
+  mbuf_data->udp.src_port = htons(src_port);
+  mbuf_data->udp.dst_port = htons(dst_port);
+  mbuf_data->udp.dgram_len = htons(udp_len + sizeof(mbuf_data->udp));
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::set_cpu_udp_payload(AdvNetBurstParams *burst, int idx, void *data, int len) {
+  auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+  auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
+
+  rte_memcpy(mbuf_data->payload, data, len);
+  return AdvNetStatus::SUCCESS;
+}
+
+bool DpdkMgr::tx_burst_available(AdvNetBurstParams *burst) {
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+
+  const auto burst_pool = tx_burst_buffers.find(key);
+  if (burst_pool == tx_burst_buffers.end()) {
+    HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
+      burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return false;
+  }
+
+  const auto cpu_pool   = tx_cpu_pkt_pools.find(key);
+  const auto gpu_pool   = tx_gpu_pkt_pools.find(key);
+
+  // Wait for 2x the number of buffers to be available since some may still be in transit
+  // by the NIC and this number can decrease
+  auto batch = 0;
+  if (cpu_pool != tx_cpu_pkt_pools.end()) {
+    if (rte_mempool_avail_count(cpu_pool->second) < burst->hdr.hdr.num_pkts * 2) {
+      return false;
+    }
+  }
+
+  if (gpu_pool != tx_gpu_pkt_pools.end()) {
+    if (rte_mempool_avail_count(gpu_pool->second) < burst->hdr.hdr.num_pkts * 2) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+AdvNetStatus DpdkMgr::set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) {
+  if (cpu_len == 0) {
+    auto mbuf = reinterpret_cast<rte_mbuf*>(burst->gpu_pkts[idx]);
+    mbuf->data_len = gpu_len;
+    mbuf->pkt_len  = gpu_len;
+  } else {
+    if (gpu_len == 0) {
+      auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+      mbuf->data_len = cpu_len;
+      mbuf->pkt_len  = cpu_len;
+    } else {
+      auto cpu_mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
+      auto gpu_mbuf = reinterpret_cast<rte_mbuf*>(burst->gpu_pkts[idx]);
+      cpu_mbuf->data_len = cpu_len;
+      cpu_mbuf->pkt_len  = cpu_len + gpu_len;
+      gpu_mbuf->data_len = gpu_len;
+      gpu_mbuf->pkt_len  = cpu_len + gpu_len;
+    }
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::free_pkt(void *pkt) {
+  rte_pktmbuf_free_seg(static_cast<rte_mbuf*>(pkt));
+}
+
+void DpdkMgr::free_pkts(void **pkts, int num_pkts) {
+  for (int p = 0; p < num_pkts; p++) {
+    rte_pktmbuf_free_seg(reinterpret_cast<rte_mbuf**>(pkts)[p]);
+  }
+}
+
+void DpdkMgr::free_rx_burst(AdvNetBurstParams *burst) {
+  if (burst->cpu_pkts != nullptr) {
+    rte_mempool_put(rx_burst_buffer, (void *)burst->cpu_pkts);
+  }
+  if (burst->gpu_pkts != nullptr) {
+    rte_mempool_put(rx_burst_buffer, (void *)burst->gpu_pkts);
+  }
+}
+
+void DpdkMgr::free_tx_burst(AdvNetBurstParams *burst) {
+  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+
+  const auto burst_pool = tx_burst_buffers.find(key);
+  if (burst->cpu_pkts != nullptr) {
+    rte_mempool_put(burst_pool->second, (void *)burst->cpu_pkts);
+  }
+  if (burst->gpu_pkts != nullptr) {
+    rte_mempool_put(burst_pool->second, (void *)burst->gpu_pkts);
+  }
+}
+
+std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string &name) {
+  uint16_t port;
+  auto ret = rte_eth_dev_get_port_by_name(name.c_str(), &port);
+  if (ret < 0) {
+    return {};
+  }
+
+  return port;
+}
+
+AdvNetStatus DpdkMgr::get_rx_burst(AdvNetBurstParams **burst) {
+  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
+    return AdvNetStatus::NOT_READY;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::free_rx_meta(AdvNetBurstParams *burst) {
+  rte_mempool_put(rx_meta, burst);
+}
+
+void DpdkMgr::free_tx_meta(AdvNetBurstParams *burst) {
+  rte_mempool_put(tx_meta, burst);
+}
+
+AdvNetStatus DpdkMgr::get_tx_meta_buf(AdvNetBurstParams **burst) {
+  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(burst)) != 0) {
+    HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams *burst) {
+  uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  const auto ring = tx_rings.find(key);
+
+  if (ring == tx_rings.end()) {
+    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}",
+                        burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return AdvNetStatus::INVALID_PARAMETER;
+  }
+
+  if (rte_ring_enqueue(ring->second, reinterpret_cast<void *>(burst)) != 0) {
+    free_tx_burst(burst);
+    free_tx_meta(burst);
+    HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
+    return AdvNetStatus::NO_SPACE_AVAILABLE;
+  }
+
+  return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::format_eth_addr(char *dst, std::string addr) {
+  rte_ether_unformat_addr(addr.c_str(), reinterpret_cast<struct rte_ether_addr *>(dst));
+}
+
+void DpdkMgr::shutdown() {
+  if (!force_quit.load()) {
+    HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
+    force_quit.store(false);
+  }
+}
+
+void DpdkMgr::print_stats() {
+  PrintDpdkStats();
+}
+
+
 };  // namespace holoscan::ops
