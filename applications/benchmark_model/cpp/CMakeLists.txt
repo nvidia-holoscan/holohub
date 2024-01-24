@@ -34,9 +34,9 @@ target_link_libraries(benchmark_model
 )
 
 # Copy config file
-add_custom_target(byom_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/byom.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "byom.yaml"
-    BYPRODUCTS "byom.yaml"
+add_custom_target(benchmark_model_yaml
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "benchmark_model.yaml"
+    BYPRODUCTS "benchmark_model.yaml"
 )
-add_dependencies(benchmark_model byom_yaml)
+add_dependencies(benchmark_model benchmark_model_yaml)

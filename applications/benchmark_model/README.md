@@ -1,0 +1,1 @@
+This package contains a program to quickly test performance of a model.

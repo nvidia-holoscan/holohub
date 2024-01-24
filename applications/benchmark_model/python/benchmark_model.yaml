@@ -15,8 +15,6 @@
 # limitations under the License.
 ---
 replayer:  # VideoStreamReplayer
-  # basename: "surgical_video"
-  basename: "icardio_input1"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
@@ -25,29 +23,25 @@ replayer:  # VideoStreamReplayer
 preprocessor:  # FormatConverter
   out_tensor_name: source_video
   out_dtype: "float32"
-  resize_width: 300
-  resize_height: 300
-  # resize_width: 512
-  # resize_height: 512
+  resize_width: 256
+  resize_height: 256
 
 inference:  # Inference
   backend: "trt"
-  pre_processor_map: 
-    "byom_model": ["source_video"]
-  inference_map: 
-    "byom_model": ["output"]
   input_on_cuda: true
   output_on_cuda: true
   transmit_on_cuda: true
+  parallel_inference: true
+  enable_fp16: false
 
-postprocessor:  # SegmentationPostprocessor
-  in_tensor_name: output
-  # network_output_type: None
-  # data_format: nchw
+postprocessor:  #SegmentationPostprocessor
+  network_output_type: softmax
+  data_format: nchw
 
 viz:  # Holoviz
   width: 320
   height: 320
   color_lut: [
     [0.65, 0.81, 0.89, 0.1],
+    [0.2, 0.63, 0.17, 0.7]
     ]

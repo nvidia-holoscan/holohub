@@ -15,8 +15,6 @@
 # limitations under the License.
 ---
 replayer:  # VideoStreamReplayer
-  # basename: "surgical_video"
-  # basename: "ultrasound_256x256"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
@@ -30,10 +28,6 @@ preprocessor:  # FormatConverter
 
 inference:  # Inference
   backend: "trt"
-  pre_processor_map:
-    "own_model": ["source_video"]
-  inference_map:
-    "own_model": ["output"]
   input_on_cuda: true
   output_on_cuda: true
   transmit_on_cuda: true

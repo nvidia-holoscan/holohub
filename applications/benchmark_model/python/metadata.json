@@ -27,7 +27,7 @@
         ],
         "ranking": 1,
         "run": {
-            "command": "python3 <holohub_app_source>/byom.py --data <holohub_data_dir>/",
+            "command": "python3 <holohub_app_source>/benchmark_model.py",
             "workdir": "holohub_bin"
         }
     }

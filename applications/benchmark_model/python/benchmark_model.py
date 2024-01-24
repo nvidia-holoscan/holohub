@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from holoscan.core import Application
 from holoscan.operators import (
@@ -27,7 +27,7 @@ from holoscan.operators import (
 from holoscan.resources import UnboundedAllocator
 
 
-class BYOMApp(Application):
+class App(Application):
     def __init__(self, data):
         """Initialize the application
 
@@ -39,7 +39,7 @@ class BYOMApp(Application):
         super().__init__()
 
         # set name
-        self.name = "BYOM App"
+        self.name = "Benchmark Model App"
 
         if data == "none":
             data = os.environ.get("HOLOSCAN_INPUT_PATH", "../data")
@@ -48,7 +48,7 @@ class BYOMApp(Application):
 
         self.model_path = os.path.join(self.sample_data_path, "multiai_ultrasound")
         self.model_path_map = {
-            "byom_model": os.path.join(self.model_path, "aortic_stenosis.onnx"),
+            "own_model": os.path.join(self.model_path, "aortic_stenosis.onnx"),
         }
 
         self.video_dir = os.path.join(self.sample_data_path, "multiai_ultrasound")
@@ -89,7 +89,7 @@ class BYOMApp(Application):
 
 
 def main(config_file, data):
-    app = BYOMApp(data=data)
+    app = App(data=data)
     # if the --config command line argument was provided, it will override this config_file
     app.config(config_file)
     app.run()
@@ -97,14 +97,50 @@ def main(config_file, data):
 
 if __name__ == "__main__":
     # Parse args
-    parser = ArgumentParser(description="BYOM demo application.")
+    parser = ArgumentParser(
+        description="Benchmark Model application.",
+        formatter_class=ArgumentDefaultsHelpFormatter,
+    )
+    default_data_path = os.environ.get("HOLOSCAN_INPUT_PATH", "../data")
     parser.add_argument(
         "-d",
         "--data",
-        default="none",
-        help=("Set the data path"),
+        type=str,
+        default=default_data_path,
+        help="Path to the data directory",
     )
+    parser.add_argument(
+        "-m",
+        "--model-name",
+        type=str,
+        default="identity_model.onnx",
+        help="Path to the model directory",
+    )
+    parser.add_argument(
+        "-v", "--video-name", type=str, default="video", help="Path to the video file"
+    )
+    parser.add_argument(
+        "-i",
+        "--only-inference",
+        action="store_true",
+        help="Only run inference, no post-processing or visualization",
+    )
+    parser.add_argument(
+        "-p",
+        "--inference-postprocessing",
+        action="store_true",
+        help="Run inference and post-processing, no visualization",
+    )
+    parser.add_argument(
+        "-l",
+        "--multi-inference",
+        type=int,
+        default=1,
+        help="Number of inferences to run in parallel",
+    )
+    # add positional argument CONFIG which is just a string
+    config_file = os.path.join(os.path.dirname(__file__), "benchmark_model.yaml")
+    parser.add_argument("ConfigPath", nargs="?", default=config_file, help="Path to config file")
 
     args = parser.parse_args()
-    config_file = os.path.join(os.path.dirname(__file__), "byom.yaml")
     main(config_file=config_file, data=args.data)

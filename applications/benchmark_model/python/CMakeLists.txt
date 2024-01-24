@@ -16,24 +16,16 @@
 file(RELATIVE_PATH app_relative_dest_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Copy configuration file into the build tree
-add_custom_target(python_byom ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/byom.py" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "byom.py"
-  BYPRODUCTS "byom.py"
+add_custom_target(python_benchmark_model ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.py" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "benchmark_model.py"
+  BYPRODUCTS "benchmark_model.py"
 )
 
 # Copy configuration file into the build tree
-add_custom_target(python_byom_yaml ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/byom.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "byom.yaml"
-  BYPRODUCTS "byom.yaml"
+add_custom_target(python_benchmark_model_yaml ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "benchmark_model.yaml"
+  BYPRODUCTS "benchmark_model.yaml"
 )
-add_dependencies(python_byom_yaml python_byom)
-
-# Install the configuration file
-install(FILES
-  "${CMAKE_CURRENT_SOURCE_DIR}/byom.py"
-  "${CMAKE_CURRENT_SOURCE_DIR}/byom.yaml"
-  DESTINATION "${app_relative_dest_path}"
-  COMPONENT "holoscan-examples"
-)
+add_dependencies(python_benchmark_model python_benchmark_model_yaml)
