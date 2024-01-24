@@ -17,6 +17,13 @@ import os
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from holoscan.core import Application
+from holoscan.core import (
+    ExecutionContext,
+    InputContext,
+    Operator,
+    OperatorSpec,
+    OutputContext,
+)
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -27,8 +34,27 @@ from holoscan.operators import (
 from holoscan.resources import UnboundedAllocator
 
 
+class SinkOp(Operator):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, *args, **kwargs)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+
+    def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
+        value = op_input.receive("in")
+
+
 class App(Application):
-    def __init__(self, data):
+    def __init__(
+        self,
+        datapath,
+        model_name,
+        video_name,
+        num_inferences,
+        only_inference,
+        inference_postprocessing,
+    ):
         """Initialize the application
 
         Parameters
@@ -41,55 +67,105 @@ class App(Application):
         # set name
         self.name = "Benchmark Model App"
 
-        if data == "none":
-            data = os.environ.get("HOLOSCAN_INPUT_PATH", "../data")
+        self.datapath = datapath
+        self.model_name = model_name
+        self.video_name = video_name
+        self.num_inferences = num_inferences
+        self.only_inference = only_inference
+        self.inference_postprocessing = inference_postprocessing
 
-        self.sample_data_path = data
+        if not os.path.exists(self.datapath):
+            raise ValueError(f"Data path {self.datapath} does not exist.")
 
-        self.model_path = os.path.join(self.sample_data_path, "multiai_ultrasound")
-        self.model_path_map = {
-            "own_model": os.path.join(self.model_path, "aortic_stenosis.onnx"),
-        }
-
-        self.video_dir = os.path.join(self.sample_data_path, "multiai_ultrasound")
-        if not os.path.exists(self.video_dir):
-            raise ValueError(f"Could not find video data: {self.video_dir=}")
+        self.model_path = os.path.join(self.datapath, model_name)
+        if not os.path.exists(self.model_path):
+            raise ValueError(f"Model path {self.model_path} does not exist.")
 
     def compose(self):
         host_allocator = UnboundedAllocator(self, name="host_allocator")
 
         source = VideoStreamReplayerOp(
-            self, name="replayer", directory=self.video_dir, **self.kwargs("replayer")
+            self,
+            name="replayer",
+            directory=self.datapath,
+            basename=self.video_name,
+            **self.kwargs("replayer"),
         )
 
         preprocessor = FormatConverterOp(
             self, name="preprocessor", pool=host_allocator, **self.kwargs("preprocessor")
         )
 
+        model_path_map = {}
+        pre_processor_map = {}
+        inference_map = {}
+
+        for i in range(0, self.num_inferences):
+            model_path_map[f"own_model_{i}"] = self.model_path
+            pre_processor_map[f"own_model_{i}"] = ["source_video"]
+            inference_map[f"own_model_{i}"] = [f"output{i}"]
+
         inference = InferenceOp(
             self,
             name="inference",
             allocator=host_allocator,
-            model_path_map=self.model_path_map,
+            model_path_map=model_path_map,
+            pre_processor_map=pre_processor_map,
+            inference_map=inference_map,
             **self.kwargs("inference"),
         )
 
-        postprocessor = SegmentationPostprocessorOp(
-            self, name="postprocessor", allocator=host_allocator, **self.kwargs("postprocessor")
-        )
+        holovizs = []
+        if not self.only_inference and not self.inference_postprocessing:
+            for i in range(0, self.num_inferences):
+                viz = HolovizOp(self, name=f"holoviz{i}", **self.kwargs("viz"))
+                holovizs.append(viz)
+                # Passthrough to Visualization
+                self.add_flow(source, viz, {("output", "receivers")})
 
-        viz = HolovizOp(self, name="viz", **self.kwargs("viz"))
-
-        # Define the workflow
-        self.add_flow(source, viz, {("output", "receivers")})
+        # Inference path
         self.add_flow(source, preprocessor, {("output", "source_video")})
         self.add_flow(preprocessor, inference, {("tensor", "receivers")})
-        self.add_flow(inference, postprocessor, {("transmitter", "in_tensor")})
-        self.add_flow(postprocessor, viz, {("out_tensor", "receivers")})
+
+        if self.only_inference:
+            print("Only inference mode is on, no post-processing and visualization will be done.")
+            sink = SinkOp(self, name="sink")
+            self.add_flow(inference, sink)
+            return
+
+        postprocessors = []
+        for i in range(0, self.num_inferences):
+            in_tensor_name = f"output{i}"
+            postprocessor = SegmentationPostprocessorOp(
+                self,
+                name=f"postprocessor{i}",
+                allocator=host_allocator,
+                in_tensor_name=in_tensor_name,
+                **self.kwargs("postprocessor"),
+            )
+            postprocessors.append(postprocessor)
+            self.add_flow(inference, postprocessor, {("transmitter", "in_tensor")})
+
+        if self.inference_postprocessing:
+            print("Inference and post-processing mode is on, no visualization will be done.")
+            for i in range(0, self.num_inferences):
+                sink = SinkOp(self, name=f"sink{i}")
+                self.add_flow(postprocessors[i], sink)
+            return
+
+        for i in range(0, self.num_inferences):
+            self.add_flow(postprocessors[i], holovizs[i], {("out_tensor", "receivers")})
 
 
-def main(config_file, data):
-    app = App(data=data)
+def main(args):
+    app = App(
+        args.data,
+        args.model_name,
+        args.video_name,
+        args.multi_inference,
+        args.only_inference,
+        args.inference_postprocessing,
+    )
     # if the --config command line argument was provided, it will override this config_file
     app.config(config_file)
     app.run()
@@ -98,7 +174,7 @@ def main(config_file, data):
 if __name__ == "__main__":
     # Parse args
     parser = ArgumentParser(
-        description="Benchmark Model application.",
+        description="Benchmark Model Application.",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     default_data_path = os.environ.get("HOLOSCAN_INPUT_PATH", "../data")
@@ -143,4 +219,4 @@ if __name__ == "__main__":
     parser.add_argument("ConfigPath", nargs="?", default=config_file, help="Path to config file")
 
     args = parser.parse_args()
-    main(config_file=config_file, data=args.data)
+    main(args)

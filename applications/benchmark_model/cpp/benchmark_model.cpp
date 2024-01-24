@@ -31,11 +31,11 @@ namespace holoscan::ops {
  * without any function.
  *
  */
-class NoOpSink : public holoscan::Operator {
+class SinkOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(NoOpSink)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(SinkOp)
 
-  NoOpSink() = default;
+  SinkOp() = default;
 
   void setup(OperatorSpec& spec) { spec.input<std::any>("in"); }
 
@@ -57,6 +57,17 @@ class App : public holoscan::Application {
         only_inference(only_inference),
         inference_postprocessing(inference_postprocessing) {
     holoscan::Application();
+    if (!std::filesystem::exists(datapath)) {
+      std::cerr << "Data path " << datapath << " does not exist." << std::endl;
+      exit(1);
+    }
+
+    std::string model_path =
+        datapath.back() == '/' ? (datapath + model_name) : (datapath + "/" + model_name);
+    if (!std::filesystem::exists(model_path)) {
+      std::cerr << "Model path " << model_path << " does not exist." << std::endl;
+      exit(1);
+    }
   }
 
   void compose() override {
@@ -71,13 +82,10 @@ class App : public holoscan::Application {
     auto preprocessor = make_operator<ops::FormatConverterOp>(
         "preprocessor", from_config("preprocessor"), Arg("pool") = pool_resource);
 
-    HOLOSCAN_LOG_DEBUG("Datapath is {}", datapath);
-
     ops::InferenceOp::DataMap model_path_map;
     ops::InferenceOp::DataVecMap pre_processor_map;
     ops::InferenceOp::DataVecMap inference_map;
 
-    HOLOSCAN_LOG_DEBUG("Number of parallel inferences: {}", num_inferences);
     for (int i = 0; i < num_inferences; i++) {
       std::string model_index_str = "own_model_" + std::to_string(i);
 
@@ -98,12 +106,12 @@ class App : public holoscan::Application {
     holovizs.reserve(num_inferences);
     // Flow definition
 
-    // Passthrough to Visualization
     if (!only_inference && !inference_postprocessing) {
       for (int i = 0; i < num_inferences; i++) {
         std::string holoviz_name = "holoviz" + std::to_string(i);
         auto holoviz = make_operator<ops::HolovizOp, std::string>(holoviz_name, from_config("viz"));
         holovizs.push_back(holoviz);
+        // Passthrough to Visualization
         add_flow(source, holoviz, {{"output", "receivers"}});
       }
     }
@@ -114,7 +122,7 @@ class App : public holoscan::Application {
     if (only_inference) {
       HOLOSCAN_LOG_INFO(
           "Only inference mode is on, no post-processing and visualization will be done.");
-      auto sink = make_operator<ops::NoOpSink>("sink");
+      auto sink = make_operator<ops::SinkOp>("sink");
       add_flow(inference, sink);
       return;
     }
@@ -138,7 +146,7 @@ class App : public holoscan::Application {
       HOLOSCAN_LOG_INFO("Inference and Post-processing mode is on. No visualization will be done.");
       for (int i = 0; i < num_inferences; i++) {
         std::string sink_name = "sink" + std::to_string(i);
-        auto sink = make_operator<ops::NoOpSink, std::string>(sink_name);
+        auto sink = make_operator<ops::SinkOp, std::string>(sink_name);
         add_flow(postprocessors[i], sink);
       }
       return;
