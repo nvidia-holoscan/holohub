@@ -47,9 +47,6 @@ set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl
 
 pkg_check_modules(DPDK REQUIRED libdpdk)
 
-# target_include_directories(advanced_network_rx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-# target_include_directories(advanced_network_tx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
 target_compile_options(advanced_network_common PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_rx PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_tx PUBLIC ${DPDK_CFLAGS})
