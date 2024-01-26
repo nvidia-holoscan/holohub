@@ -53,4 +53,7 @@ RUN apt update \
         libgstreamer1.0-0 \
         libgstreamer-plugins-base1.0-0 \
         libgles2 \
-        libopengl0 \
+        libopengl0
+
+# For benchmarking
+RUN pip install nvitop
