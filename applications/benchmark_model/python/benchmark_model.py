@@ -55,12 +55,7 @@ class App(Application):
         only_inference,
         inference_postprocessing,
     ):
-        """Initialize the application
-
-        Parameters
-        ----------
-        data : Location to the data
-        """
+        """Initialize the application"""
 
         super().__init__()
 
