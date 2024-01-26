@@ -115,11 +115,11 @@ class ReadImagesOp(Operator):
 
         imagetensor = Tensor.as_tensor(image)
         out_message["source_image"] = imagetensor
-        op_output.emit(out_message, "out")
+        op_output.emit(imagetensor, "out")
         # op_output.emit(image, "out")
 
 
-class ImageClassficicationOp(Operator):
+class ImageClassificationOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.ctx = None
@@ -221,7 +221,6 @@ class App(Application):
 
         model_path_map = {"own_model": "../data/resnet50/resnet_engine.trt"}
         pre_processor_map = {"own_model": ["source_image"]}
-        # pre_processor_map = {}
         inference_map = {"own_model": ["output"]}
         inference = InferenceOp(
             self,
@@ -233,7 +232,7 @@ class App(Application):
             is_engine_path=True,
             **self.kwargs("inference"),
         )
-        # inference = ImageClassficicationOp(self, name="inference")
+        # inference = ImageClassificationOp(self, name="inference")
 
         textoutput = PrintTextOp(self, name="textoutput")
 
