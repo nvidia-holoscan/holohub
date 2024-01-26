@@ -19,6 +19,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from onnx_helper import thread_cuda_init, thread_cuda_deinit, ONNXClassifierWrapper
 from PIL import Image
 import numpy as np
+import cupy as cp
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
@@ -38,6 +39,8 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
+from holoscan.gxf import Entity
+import holoscan as hs
 
 myfolder = "../images/"
 
@@ -79,7 +82,6 @@ class ReadImagesOp(Operator):
     def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
         PRECISION = np.float32
 
-        out_message = {}
         image_path = os.path.join(
             myfolder, self.filenames[self.index]
         )  # Change this to the path of your image
@@ -111,11 +113,17 @@ class ReadImagesOp(Operator):
         # Transpose to match ONNX model input format (B, C, H, W)
         image = np.transpose(image, (2, 0, 1))
         image = np.expand_dims(image, axis=0)  # Add batch dimension
-        image = np.ascontiguousarray(image.copy())
+        # image = np.ascontiguousarray(image.copy())
 
-        imagetensor = Tensor.as_tensor(image)
+        # image = np.moveaxis(image, 2, 0)[None]
+        imagetensor = cp.asarray(image)
+        imagetensor = Tensor.as_tensor(imagetensor)
+
+        print("Shape:", imagetensor.shape)
+        out_message = {}
         out_message["source_image"] = imagetensor
-        op_output.emit(imagetensor, "out")
+
+        op_output.emit(out_message, "out")
         # op_output.emit(image, "out")
 
 
@@ -170,7 +178,8 @@ class PrintTextOp(Operator):
         pass
 
     def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
-        predictions = op_input.receive("in")
+        predictions = op_input.receive("in").get("output")
+        predictions = cp.asarray(predictions).get()
         # Get the top 5 probability scores and class labels
         top_5_indices = np.argsort(predictions[0])[::-1][:5]
         print(top_5_indices)
@@ -219,7 +228,8 @@ class App(Application):
 
         readimages = ReadImagesOp(self, CountCondition(self, 1), name="source")
 
-        model_path_map = {"own_model": "../data/resnet50/resnet_engine.trt"}
+        # model_path_map = {"own_model": "../data/resnet50/resnet_engine.trt"}
+        model_path_map = {"own_model": "../data/resnet50/model.onnx"}
         pre_processor_map = {"own_model": ["source_image"]}
         inference_map = {"own_model": ["output"]}
         inference = InferenceOp(
@@ -229,14 +239,14 @@ class App(Application):
             model_path_map=model_path_map,
             pre_processor_map=pre_processor_map,
             inference_map=inference_map,
-            is_engine_path=True,
+            # is_engine_path=True,
             **self.kwargs("inference"),
         )
         # inference = ImageClassificationOp(self, name="inference")
 
         textoutput = PrintTextOp(self, name="textoutput")
 
-        self.add_flow(readimages, inference, {("out", "receivers")})
+        self.add_flow(readimages, inference, {("", "receivers")})
         self.add_flow(inference, textoutput, {("transmitter", "in")})
         # self.add_flow(readimages, inference)
         # self.add_flow(inference, textoutput, {("out", "in")})
