@@ -56,4 +56,5 @@ RUN apt update \
         libopengl0
 
 # For benchmarking
-RUN pip install nvitop
+COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
+RUN pip install -r /tmp/benchmarking_requirements.txt
