@@ -15,8 +15,9 @@
 
 
 import datetime
-import matplotlib.pyplot as plt
 import sys
+
+import matplotlib.pyplot as plt
 
 keyword_dictionary = {
     "min": "Minimum E2E Latency",
