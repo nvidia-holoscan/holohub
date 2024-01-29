@@ -262,13 +262,15 @@ def main():
     parser.add_argument(
         "--tail",
         action="store_true",
-        help="show the difference between 95 and 100 percentile latencies (latency distribution tail) for all paths",
+        help="show the difference between 95 and 100 percentile latencies\
+              (latency distribution tail) for all paths",
     )
 
     parser.add_argument(
         "--flatness",
         action="store_true",
-        help="show the difference between 10 and 90 percentile latencies (latency distribution flatness) for all paths",
+        help="show the difference between 10 and 90 percentile latencies\
+              (latency distribution flatness) for all paths",
     )
 
     parser.add_argument(
@@ -276,7 +278,8 @@ def main():
         "--percentile",
         nargs="+",
         type=float,
-        help="provide a list of percentile values (e.g., '90 95 99 99.9'). It will display these percentile latencies for all paths.",
+        help="provide a list of percentile values (e.g., '90 95 99 99.9').\
+              It will display these percentile latencies for all paths.",
         required=False,
     )
 
@@ -454,7 +457,7 @@ def main():
             (path, latency) = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
-                    f'<CTestMeasurement type="numeric/double" name="std_latency_{group_name}">'
+                    f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
                     + str(round(np.std(latency), 2))
                     + "</CTestMeasurement>"
                 )
@@ -516,7 +519,8 @@ def main():
             latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
             if args.cdash:
                 print(
-                    f'<CTestMeasurement type="numeric/double" name="distribution_flatness_{group_name}">'
+                    f'<CTestMeasurement type="numeric/double" name="\
+                      distribution_flatness_{group_name}">'
                     + latency_flatness_one_path
                     + "</CTestMeasurement>"
                 )
@@ -543,7 +547,8 @@ def main():
                 )
                 if args.cdash:
                     print(
-                        f'<CTestMeasurement type="numeric/double" name="percentile_{percentile}_{group_name}">'
+                        f'<CTestMeasurement type="numeric/double" name\
+                          ="percentile_{percentile}_{group_name}">'
                         + latency_percentile_filtered_one_path
                         + "</CTestMeasurement>"
                     )

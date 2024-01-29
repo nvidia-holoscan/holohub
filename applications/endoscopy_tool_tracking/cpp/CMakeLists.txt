@@ -87,9 +87,9 @@ if(FLOW_BENCHMARKING)
 
   # Check if the machine is x86_64 or aarch64. IGX is considered to be aaarch64
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-    set(INSTANCES "5") # run the benchmarking test with upto 5 instances of the application
+    set(INSTANCES "5") # run the benchmarking test with up to 5 instances of the application
   else()
-    set(INSTANCES "3") # run the benchmarking test with upto 3 instances of the application
+    set(INSTANCES "3") # run the benchmarking test with up to 3 instances of the application
   endif()
 
   # Add the test

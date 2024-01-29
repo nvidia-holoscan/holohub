@@ -50,7 +50,9 @@ def main():
     # plt.show()
     plt.savefig(f"{current_metric_name}_{dates[-1]}.png")
     print(
-        f'<CTestMeasurementFile type="image/png" name="{current_metric_name}">{current_metric_name}_{dates[-1]}.png</CTestMeasurementFile>'
+        f'<CTestMeasurementFile type="image/png" \
+          name="{current_metric_name}">{current_metric_name}_{dates[-1]}.\
+          png</CTestMeasurementFile>'
     )
 
 
