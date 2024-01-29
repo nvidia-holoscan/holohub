@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import datetime
 import matplotlib.pyplot as plt
 import sys
-import datetime
 
 keyword_dictionary = {
     "min": "Minimum E2E Latency",
