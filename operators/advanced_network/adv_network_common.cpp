@@ -189,6 +189,15 @@ AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
   return adv_net_set_pkt_len(burst.get(), idx, cpu_len, gpu_len);
 }
 
+AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time) {
+  return g_ano_mgr->set_pkt_tx_time(burst, idx, time);
+}
+
+AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
+                                  int idx, uint64_t time) {
+  return adv_net_set_pkt_tx_time(burst.get(), idx, time);
+}
+
 int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst) {
   return burst->hdr.hdr.num_pkts;
 }

@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <cmath>
+#include <cuda.h>
 #include <complex>
 #include <chrono>
 #include <iostream>
@@ -117,16 +118,28 @@ std::optional<struct rte_pktmbuf_extmem> DpdkMgr::allocate_gpu_pktmbuf(
         num_mbufs, ext_mem.elt_size, ext_mem.buf_len);
   ext_mem.buf_iova = RTE_BAD_IOVA;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  ext_mem.buf_ptr = rte_gpu_mem_alloc(gpu_dev, ext_mem.buf_len, CPU_PAGE_SIZE);
-#pragma GCC diagnostic pop
-  if (ext_mem.buf_ptr == NULL) {
-    HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory", ext_mem.buf_len/1e6);
+  cudaSetDevice(gpu_dev);
+  cudaFree(0);
+
+  CUdeviceptr ptr;
+  const auto alloc_res = cuMemAlloc(&ptr, ext_mem.buf_len);
+  if (alloc_res != CUDA_SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory: {}",
+                        ext_mem.buf_len/1e6, alloc_res);
     return std::nullopt;
   } else {
     HOLOSCAN_LOG_INFO("Allocated {:.2f}MB on GPU", ext_mem.buf_len/1e6);
   }
+
+  unsigned int flag = 1;
+  const auto attr_res = cuPointerSetAttribute(&flag,
+                          CU_POINTER_ATTRIBUTE_SYNC_MEMOPS, ptr);
+  if (attr_res != CUDA_SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Could not set pointer attributes");
+    return std::nullopt;
+  }
+
+  ext_mem.buf_ptr = reinterpret_cast<decltype(ext_mem.buf_ptr)>(ptr);
 
   ret = rte_extmem_register(ext_mem.buf_ptr, ext_mem.buf_len, NULL, ext_mem.buf_iova,
         GPU_PAGE_SIZE);
@@ -147,6 +160,43 @@ std::optional<struct rte_pktmbuf_extmem> DpdkMgr::allocate_gpu_pktmbuf(
   }
 
   return std::make_optional(ext_mem);
+}
+
+void DpdkMgr::setup_accurate_send_scheduling_mask() {
+  static bool done = false;
+  if (done) {
+    return;
+  }
+
+  static const rte_mbuf_dynfield dynfield_desc = {
+      RTE_MBUF_DYNFIELD_TIMESTAMP_NAME,
+      sizeof(uint64_t),
+      .align = __alignof__(uint64_t),
+  };
+
+  static const rte_mbuf_dynflag dynflag_desc = {
+      RTE_MBUF_DYNFLAG_TX_TIMESTAMP_NAME,
+  };
+
+  timestamp_offset_ = rte_mbuf_dynfield_register(&dynfield_desc);
+  if (timestamp_offset_ < 0) {
+    HOLOSCAN_LOG_CRITICAL("{} registration error: {}",
+          RTE_MBUF_DYNFIELD_TIMESTAMP_NAME, rte_strerror(rte_errno));
+    return;
+  }
+
+  int32_t dynflag_bitnum = rte_mbuf_dynflag_register(&dynflag_desc);
+  if (dynflag_bitnum == -1) {
+    HOLOSCAN_LOG_CRITICAL("{} registration error: {}",
+          RTE_MBUF_DYNFLAG_TX_TIMESTAMP_NAME, rte_strerror(rte_errno));
+    return;
+  }
+
+  auto dynflag_shift = static_cast<uint8_t>(dynflag_bitnum);
+  timestamp_mask_    = 1ULL << dynflag_shift;
+  HOLOSCAN_LOG_INFO("Done setting up accurate send scheduling with mask {:x}",
+            timestamp_mask_);
+  done = true;
 }
 
 
@@ -188,7 +238,6 @@ void DpdkMgr::initialize() {
   int arg = 0;
   std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
   std::set<std::string> ifs;
-  std::set<std::string> gpu_bdfs;
   std::unordered_map<uint16_t, std::pair<uint16_t, uint16_t>> port_q_num;
   std::unordered_map<uint16_t, std::string> port_id_to_name;
 
@@ -197,17 +246,6 @@ void DpdkMgr::initialize() {
     ifs.emplace(rx.if_name_);
     for (const auto &q : rx.queues_) {
       cores += q.common_.cpu_cores_ + ",";
-
-      if (q.common_.gpu_direct_) {
-        char gpu_bdf[32];
-        if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), q.common_.gpu_dev_) != cudaSuccess) {
-          HOLOSCAN_LOG_CRITICAL("Cannot get GPU BDF for device ID {}", q.common_.gpu_dev_);
-          return;
-        }
-
-        gpu_bdfs.insert(std::string(gpu_bdf));
-        HOLOSCAN_LOG_INFO("Found GPU BDF {} for device ID {}", gpu_bdf, q.common_.gpu_dev_);
-      }
     }
   }
 
@@ -215,17 +253,6 @@ void DpdkMgr::initialize() {
     ifs.emplace(tx.if_name_);
     for (const auto &q : tx.queues_) {
       cores += q.common_.cpu_cores_ + ",";
-
-      if (q.common_.gpu_direct_) {
-        char gpu_bdf[32];
-        if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), q.common_.gpu_dev_) != cudaSuccess) {
-          HOLOSCAN_LOG_CRITICAL("Cannot get GPU BDF for device ID {}", q.common_.gpu_dev_);
-          return;
-        }
-
-        gpu_bdfs.insert(std::string(gpu_bdf));
-        HOLOSCAN_LOG_INFO("Found GPU BDF {} for device ID {}", gpu_bdf, q.common_.gpu_dev_);
-      }
     }
   }
 
@@ -244,12 +271,6 @@ void DpdkMgr::initialize() {
     strncpy(_argv[arg++], "-a", max_arg_size - 1);
     strncpy(_argv[arg++],
     (name + std::string(",txq_inline_max=0,dv_flow_en=1")).c_str(), max_arg_size - 1);
-  }
-
-  // Add GPU PCIe devices
-  for (const auto &gpu : gpu_bdfs) {
-    strncpy(_argv[arg++], "-a", max_arg_size - 1);
-    strncpy(_argv[arg++], gpu.c_str(), max_arg_size - 1);
   }
 
   _argv[arg] = nullptr;
@@ -567,11 +588,37 @@ void DpdkMgr::initialize() {
       }
     }
 
-    local_port_conf[tx.port_id_].txmode.mq_mode  =  RTE_ETH_MQ_TX_NONE;
-    local_port_conf[tx.port_id_].txmode.offloads =  RTE_ETH_TX_OFFLOAD_IPV4_CKSUM  |
-                                                    RTE_ETH_TX_OFFLOAD_UDP_CKSUM   |
-                                                    RTE_ETH_TX_OFFLOAD_TCP_CKSUM   |
-                                                    RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
+    local_port_conf[tx.port_id_].txmode.offloads = 0;
+
+    struct rte_eth_dev_info dev_info;
+    int ret = rte_eth_dev_info_get(tx.port_id_, &dev_info);
+
+    if (tx.accurate_send_) {
+      setup_accurate_send_scheduling_mask();
+
+      if (ret != 0) {
+        HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", tx.port_id_);
+        return;
+      } else {
+        if ((dev_info.tx_offload_capa & RTE_ETH_RX_OFFLOAD_TIMESTAMP) == 0) {
+          HOLOSCAN_LOG_CRITICAL(
+              "Accurate send scheduling enabled in config, but not supported by NIC!");
+          return;
+        } else {
+          local_port_conf[tx.port_id_].txmode.offloads |= RTE_ETH_RX_OFFLOAD_TIMESTAMP;
+        }
+      }
+    }
+
+    if ((dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE) != 0) {
+      local_port_conf[tx.port_id_].txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
+    }
+
+    local_port_conf[tx.port_id_].txmode.mq_mode   =   RTE_ETH_MQ_TX_NONE;
+    local_port_conf[tx.port_id_].txmode.offloads |=   RTE_ETH_TX_OFFLOAD_IPV4_CKSUM  |
+                                                      RTE_ETH_TX_OFFLOAD_UDP_CKSUM   |
+                                                      RTE_ETH_TX_OFFLOAD_TCP_CKSUM   |
+                                                      RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
   }
 
   if (setup_pools_and_rings(max_rx_batch_size, max_tx_batch_size) < 0) {
@@ -1258,6 +1305,20 @@ uint16_t DpdkMgr::get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) {
 
 uint16_t DpdkMgr::get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->gpu_pkts[idx])->data_len;
+}
+
+AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp) {
+  if (burst->cpu_pkts != nullptr) {
+    reinterpret_cast<rte_mbuf**>(burst->cpu_pkts)[idx]->ol_flags |= timestamp_mask_;
+    *RTE_MBUF_DYNFIELD(reinterpret_cast<rte_mbuf**>(burst->cpu_pkts)[idx],
+        timestamp_offset_, uint64_t*) = timestamp;
+  } else {
+    reinterpret_cast<rte_mbuf**>(burst->gpu_pkts)[idx]->ol_flags |= timestamp_mask_;
+    *RTE_MBUF_DYNFIELD(reinterpret_cast<rte_mbuf**>(burst->gpu_pkts)[idx],
+      timestamp_offset_, uint64_t*) = timestamp;
+  }
+
+  return AdvNetStatus::SUCCESS;
 }
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams *burst) {
