@@ -62,6 +62,7 @@ class ANOMgr {
     virtual void free_pkts(void **pkts, int len) = 0;
     virtual void free_rx_burst(AdvNetBurstParams *burst) = 0;
     virtual void free_tx_burst(AdvNetBurstParams *burst) = 0;
+    virtual AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time) = 0;
     virtual void shutdown() = 0;
     virtual void print_stats() = 0;
 

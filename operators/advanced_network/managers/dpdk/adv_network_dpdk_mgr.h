@@ -109,6 +109,7 @@ class DpdkMgr : public ANOMgr {
     std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
 
     AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
+    AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp);
     void free_rx_meta(AdvNetBurstParams *burst) override;
     void free_tx_meta(AdvNetBurstParams *burst) override;
     AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
@@ -121,6 +122,7 @@ class DpdkMgr : public ANOMgr {
     static int rx_core_worker(void *arg);
     static int tx_core_worker(void *arg);
     static void flush_packets(int port);
+    void setup_accurate_send_scheduling_mask();
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     struct rte_flow *add_flow(int port, const FlowConfig &cfg);
     std::optional<struct rte_pktmbuf_extmem> allocate_gpu_pktmbuf(int port_id, uint16_t pkt_size,
@@ -141,6 +143,8 @@ class DpdkMgr : public ANOMgr {
     struct rte_mempool *rx_burst_buffer;
     struct rte_mempool *rx_meta;
     struct rte_mempool *tx_meta;
+    uint64_t timestamp_mask_{0};
+    uint64_t timestamp_offset_{0};
     std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
     int num_init = 0;

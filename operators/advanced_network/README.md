@@ -18,7 +18,7 @@ but raw headers can also be constructed.
 - Linux
 - A DPDK-compatible network card. For GPUDirect only NVIDIA NICs are supported
 - System tuning as described below
-- DPDK 22.11 installed with gpudev support compiled in
+- DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
 
 #### Features
@@ -74,8 +74,8 @@ translations that have to be actively maintained in MMUs. 1GB hugepages are idea
 available. To configure 1GB hugepages:
 
 ```
-mkdir /mnt/huge
-mount -t hugetlbfs nodev /mnt/huge
+sudo mkdir /mnt/huge
+sudo mount -t hugetlbfs nodev /mnt/huge
 sudo sh -c "echo nodev /mnt/huge hugetlbfs pagesize=1GB 0 0 >> /etc/fstab"
 ```
 
@@ -86,7 +86,7 @@ only available at the boot command since they must be provided before the kernel
 editing the boot command can be done with the following configuration:
 
 ```
-vim /boot/extlinux/extlinux.conf
+sudo vim /boot/extlinux/extlinux.conf
 # Find the line starting with APPEND and add the following
 
 # For Orin IGX:
@@ -97,6 +97,8 @@ isolcpus=4-7 nohz_full=4=7 irqaffinity=0-3 rcu_nocbs=4-7 rcu_nocb_poll tsc=relia
 ```
 
 The settings above isolate CPU cores 6-11 on the Orin and 4-7 on the Clara, and turn 1GB hugepages on.
+
+For non-IGX or AGX systems please look at the documentation for your system to change the boot command.
 
 ##### Setting the CPU governor
 
@@ -185,6 +187,8 @@ unnecessarily use excess CPU and/or GPU memory.
 
 - **`if_name`**: Name of the interface or PCIe BDF to use
   - type: `string`
+- **`accurate_send`**: Boolean flag to turn on accurate TX scheduling
+  - type: `boolean`
 - **`queues`**: Array of queues
   - type: `array`
 - **`name`**: Name of queue

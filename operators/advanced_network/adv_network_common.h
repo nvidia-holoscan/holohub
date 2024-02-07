@@ -256,6 +256,25 @@ AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
                                     int gpu_len);
 
 /**
+ * @brief Set packet TX time
+ *
+ * Sets the transmit time (in PTP time) to transmit the packet. Every packet transmitted
+ * after this one in the same queue will be transmitted no earlier than the time listed
+ * in the function call. This feature is only available on ConnectX-7 or BlueField 3 and
+ * higher cards.
+ *
+ * @param burst Burst structure containing packet lists
+ * @param idx Index of packet
+ * @param time PTP time to transmit
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Time set successfully
+ */
+AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time);
+AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
+                                    int idx,
+                                    uint64_t time);
+
+/**
  * @brief Frees a single packet
  *
  * Frees a single packet from either the CPU or GPU buffer list. This function is extremely
@@ -448,6 +467,12 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
         for (const auto &tx_item : tx) {
           holoscan::ops::AdvNetTxConfig tx_cfg;
           tx_cfg.if_name_ = tx_item["if_name"].as<std::string>();
+
+          try {
+            tx_cfg.accurate_send_ = tx_item["accurate_send"].as<bool>();
+          } catch (const std::exception& e) {
+            tx_cfg.accurate_send_ = false;
+          }
 
           for (const auto &q_item :  tx_item["queues"]) {
             holoscan::ops::TxQueueConfig q;

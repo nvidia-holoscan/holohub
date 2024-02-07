@@ -178,6 +178,7 @@ struct AdvNetRxConfig {
 
 struct AdvNetTxConfig {
     std::string if_name_;
+    bool accurate_send_;
     uint16_t port_id_;
     bool empty;
     std::vector<TxQueueConfig> queues_;
