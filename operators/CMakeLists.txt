@@ -31,6 +31,7 @@ add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_
 add_holohub_operator(npp_filter)
 add_holohub_operator(prohawk_video_processing)
 add_holohub_operator(qt_video)
+add_subdirectory(orsi)
 add_holohub_operator(tensor_to_video_buffer)
 add_holohub_operator(tool_tracking_postprocessor)
 add_holohub_operator(video_decoder)
@@ -43,3 +44,5 @@ add_holohub_operator(volume_renderer)
 add_holohub_operator(XrFrameOp)
 add_holohub_operator(XrTransformOp)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
+
+

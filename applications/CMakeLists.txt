@@ -91,3 +91,4 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   XrTransformOp)
 
 add_holohub_application(webrtc_video_server)
+add_subdirectory(orsi)
