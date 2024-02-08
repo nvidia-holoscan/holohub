@@ -53,4 +53,8 @@ RUN apt update \
         libgstreamer1.0-0 \
         libgstreamer-plugins-base1.0-0 \
         libgles2 \
-        libopengl0 \
+        libopengl0
+
+# For benchmarking
+COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
+RUN pip install -r /tmp/benchmarking_requirements.txt

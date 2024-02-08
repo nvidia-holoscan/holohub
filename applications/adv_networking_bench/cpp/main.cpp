@@ -58,6 +58,11 @@ class AdvNetworkingBenchTxOp : public Operator {
 
   AdvNetworkingBenchTxOp() = default;
 
+  ~AdvNetworkingBenchTxOp() {
+    HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down");
+    adv_net_shutdown();
+  }
+
   void initialize() override {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchTxOp::initialize()");
     holoscan::Operator::initialize();
@@ -325,6 +330,10 @@ class AdvNetworkingBenchRxOp : public Operator {
   ~AdvNetworkingBenchRxOp() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
         ttl_bytes_recv_, ttl_pkts_recv_);
+
+    HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
+    adv_net_shutdown();
+    adv_net_print_stats();
   }
 
   void initialize() override {
@@ -413,14 +422,14 @@ class AdvNetworkingBenchRxOp : public Operator {
       if (hds_.get()) {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   = adv_net_get_gpu_pkt_ptr(burst, p);
-          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_packet_len(burst, p) +
-                                      adv_net_get_cpu_packet_len(burst, p);
+          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_pkt_len(burst, p) +
+                                      adv_net_get_cpu_pkt_len(burst, p);
         }
       } else {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   =
             reinterpret_cast<uint8_t *>(adv_net_get_gpu_pkt_ptr(burst, p)) + header_size_.get();
-          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_packet_len(burst, p);
+          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_pkt_len(burst, p);
         }
       }
 

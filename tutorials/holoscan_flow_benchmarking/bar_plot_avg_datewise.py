@@ -9,13 +9,15 @@ import matplotlib.pyplot as plt
 def main():
     if len(sys.argv) < 3:
         print(
-            "Usage: python bar_plot_avg_datewise <avg filename1> <avg filename2> ... <stddev filename1> <stddev filename2>"
+            "Usage: python bar_plot_avg_datewise <avg filename1> \
+             <avg filename2> ... <stddev filename1> <stddev filename2>"
         )
         return
     filenames = sys.argv[1:]
     if len(filenames) % 2 != 0:
         print(
-            "Usage: python bar_plot_avg_datewise <avg filename1> <avg filename2> ... <stddev filename1> <stddev filename2>"
+            "Usage: python bar_plot_avg_datewise <avg filename1> \
+             <avg filename2> ... <stddev filename1> <stddev filename2>"
         )
         return
     filenames.sort(key=lambda x: x.split("_")[-1].split(".")[0])
@@ -60,7 +62,8 @@ def main():
     # plt.show()
     plt.savefig(f"avg_{dates[-1]}.png")
     print(
-        f'<CTestMeasurementFile type="image/png" name="average">avg_{dates[-1]}.png</CTestMeasurementFile>'
+        f'<CTestMeasurementFile type="image/png" name="average">\
+          avg_{dates[-1]}.png</CTestMeasurementFile>'
     )
 
 
