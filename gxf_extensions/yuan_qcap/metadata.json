@@ -1,0 +1,41 @@
+{
+	"gxf_extension": {
+		"name": "yuan_qcap",
+		"authors": [
+			{
+				"name": "David Su",
+				"affiliation": "Yuan"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"gxf_version": {
+			"minimum_required_version": "2.5",
+			"tested_versions": [
+				"2.5"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Video Capture",
+			"Yuan"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"packages": [
+				{
+					"name": "QCAP SDK",
+					"author": "Yuan",
+					"license": "Proprietary",
+					"version": "",
+					"url": "https://www.yuan.com.tw/"
+				}
+			]
+		}
+	}
+}

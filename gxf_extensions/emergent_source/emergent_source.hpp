@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_
-#define NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_
+#ifndef NVIDIA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_
+#define NVIDIA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_
 
 #include <emergentframe.h>
 #include <emergenterrors.h>
@@ -80,4 +80,4 @@ class EmergentSource : public gxf::Codelet {
 }  // namespace holoscan
 }  // namespace nvidia
 
-#endif  // NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_
+#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_EMERGENT_SOURCE_HPP_

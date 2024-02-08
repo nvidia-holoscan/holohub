@@ -18,12 +18,10 @@ limitations under the License.
 import os
 from argparse import ArgumentParser
 
+import cvcuda
+import nvcv
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import HolovizOp, VideoStreamReplayerOp
-
-# currently must import cvcuda after holoscan
-import cvcuda  # isort:skip
-import nvcv  # isort:skip
 
 
 # Define custom Operators for use in the demo

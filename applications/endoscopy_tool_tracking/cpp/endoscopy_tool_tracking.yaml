@@ -23,8 +23,10 @@ extensions:
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
 # Uncomment the following extension when using deltacast as a source
 #  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
+# Uncomment the following extension when using yuan as source
+#  - gxf_extensions/yuan_qcap/libgxf_qcap_source.so
 
-source: "replayer" # "replayer" or "aja" or "deltacast"
+source: "replayer" # "replayer" or "aja" or "deltacast" or "yuan"
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
                      # to record the visualizer output.
 
@@ -36,6 +38,11 @@ aja:
   width: 1920
   height: 1080
   overlay_rdma: true
+
+yuan:
+  width: 3840
+  height: 2160
+  rdma: true
 
 deltacast:
   width: 1920
@@ -87,6 +94,14 @@ format_converter_replayer:
 
 format_converter_aja:
   in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+format_converter_yuan:
   out_tensor_name: source_video
   out_dtype: "float32"
   scale_min: 0.0
