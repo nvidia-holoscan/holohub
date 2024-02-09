@@ -21,21 +21,32 @@ input file can be specified in the 'h264_video_decode.yaml' file.
 
 The data is automatically downloaded when building the application.
 
+## Building And Running H.264 Endoscopy Tool Tracking Application
+
+Follow steps in README.md from parents directory to build and run the Holohub
+dev container. Once inside the Holohub dev container, follow steps mentioned
+below to build and run H.264 Endoscopy Tool Tracking application.
+
 ## Building the application
 
-Please refer to the top level Holohub README.md file for information on how to build this application.
+Once inside Holohub dev container, run below command from a top level Holohub
+directory.
+
+```bash
+./run build h264/video_decode
+```
 
 ## Running the application
 
-* Running the application `h264_video_decode` from the build directory
+* Running the application from the top level Holohub directory
 
 ```bash
-cd <build_dir>/applications/h264_video_decode && ./h264_video_decode --data <HOLOHUB_DATA_DIR>/endoscopy
+./run launch h264/video_decode
 ```
 
-* Running the application from the top level directory
+* Running the application `h264_video_decode` from the build directory.
 
 ```bash
-./run launch h264_video_decode
+cd <build_dir>/applications/h264/video_decode/ \
+  && ./h264_video_decode --data <HOLOHUB_DATA_DIR>/endoscopy
 ```
-

@@ -18,23 +18,32 @@
 #ifndef HOLOSCAN_OPERATORS_VIDEO_ENCODER_CONTEXT_VIDEO_ENCODER_CONTEXT
 #define HOLOSCAN_OPERATORS_VIDEO_ENCODER_CONTEXT_VIDEO_ENCODER_CONTEXT
 
+#include "holoscan/core/component_spec.hpp"
 #include "holoscan/core/gxf/gxf_resource.hpp"
+
 namespace holoscan::ops {
 
 /**
- * @brief Encoder context class shared by `VideoEncoderRequestOp` and `VideoEncoderResponseOp`.
+ * @brief Encoder context class shared by `VideoEncoderRequestOp` and
+ * `VideoEncoderResponseOp`.
  *
  * This wraps a GXF Component(`nvidia::gxf::VideoEncoderContext`).
  */
 class VideoEncoderContext: public holoscan::gxf::GXFResource {
  public:
-  HOLOSCAN_RESOURCE_FORWARD_ARGS_SUPER(VideoEncoderContext, holoscan::gxf::GXFResource)
+  HOLOSCAN_RESOURCE_FORWARD_ARGS_SUPER(VideoEncoderContext,
+      holoscan::gxf::GXFResource)
 
   VideoEncoderContext() = default;
 
   const char* gxf_typename() const override {
     return "nvidia::gxf::VideoEncoderContext";
   };
+
+  void setup(ComponentSpec& spec) override;
+
+ private:
+  Parameter<std::shared_ptr<holoscan::AsynchronousCondition>> scheduling_term_;
 };
 
 }  // namespace holoscan::ops

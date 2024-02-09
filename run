@@ -715,10 +715,11 @@ list() {
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
       language=""
+      filename="${appname}"
     else
       language="(${language})"
+      filename="${appname%/*}"
     fi
-    filename="${appname%/*}"
 
     # Check in the CMakelists if the application is a sample application
     appcmakelist="applications/CMakeLists.txt"

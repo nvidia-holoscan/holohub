@@ -1,4 +1,4 @@
-# H264 Endoscopy Tool Tracking Application
+# H.264 Endoscopy Tool Tracking Application
 
 The application showcases how to use H.264 video source as input to and output
 from the Holoscan pipeline. This application is a modified version of Endoscopy
@@ -24,29 +24,40 @@ can be specified in the 'h264_endoscopy_tool_tracking.yaml' file.
 
 The data is automatically downloaded when building the application.
 
+## Building And Running H.264 Endoscopy Tool Tracking Application
+
+Follow steps in README.md from parents directory to build and run the Holohub
+dev container. Once inside the Holohub dev container, follow steps mentioned
+below to build and run H.264 Endoscopy Tool Tracking application.
+
 ## Building the application
 
-Please refer to the top level Holohub README.md file for information on how to build this application.
+Once inside Holohub dev container, run below command from a top level Holohub
+directory.
+
+```bash
+./run build h264/endoscopy_tool_tracking
+```
 
 ## Running the application
+
+* Running the application from the top level Holohub directory
+
+```bash
+./run launch h264/endoscopy_tool_tracking
+```
 
 * Running the application `h264_endoscopy_tool_tracking` from the build directory.
 
 ```bash
-cd <build_dir>/applications/h264_endoscopy_tool_tracking/ \
+cd <build_dir>/applications/h264/endoscopy_tool_tracking/ \
   && ./h264_endoscopy_tool_tracking --data <HOLOHUB_DATA_DIR>/endoscopy
-```
-
-* Running the application from the top level directory
-
-```bash
-./run launch h264_endoscopy_tool_tracking
 ```
 
 ## Enable recording of the output
 
 The recording of the output can be enabled by setting `record_output` flag in
 the config file
-`<build_dir>/applications/h264_endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
+`<build_dir>/applications/h264/endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
 to `true`.
 

@@ -51,21 +51,23 @@ class App : public holoscan::Application {
             Arg("pool") = make_resource<BlockMemoryPool>("pool",
             0, source_block_size, source_num_blocks));
 
-    auto video_decoder_context = make_resource<ops::VideoDecoderContext>();
+    auto response_condition =
+        make_condition<AsynchronousCondition>("response_condition");
+    auto video_decoder_context = make_resource<ops::VideoDecoderContext>(
+        Arg("async_scheduling_term") = response_condition);
 
-    auto async_scheduling_condition =
-        make_condition<AsynchronousCondition>("async_scheduling_term");
-
-    auto video_decoder_request =
-        make_operator<ops::VideoDecoderRequestOp>("video_decoder_request",
-            from_config("video_decoder_request"),
-            Arg("async_scheduling_term") = async_scheduling_condition,
-            Arg("videodecoder_context") = video_decoder_context);
+    auto request_condition = make_condition<AsynchronousCondition>("request_condition");
+    auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
+        "video_decoder_request",
+        from_config("video_decoder_request"),
+        request_condition,
+        Arg("async_scheduling_term") = request_condition,
+        Arg("videodecoder_context") = video_decoder_context);
 
     auto video_decoder_response =
         make_operator<ops::VideoDecoderResponseOp>("video_decoder_response",
             from_config("video_decoder_response"),
-            async_scheduling_condition,
+            response_condition,
             Arg("pool") = make_resource<BlockMemoryPool>("pool", 1,
                 source_block_size, source_num_blocks),
             Arg("videodecoder_context") = video_decoder_context);
@@ -104,6 +106,7 @@ class App : public holoscan::Application {
             Arg("host_allocator") = make_resource<UnboundedAllocator>(
                 "host_allocator"));
 
+    const bool record_output = from_config("record_output").as<bool>();
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator =
         make_resource<BlockMemoryPool>("allocator", 1,
@@ -113,7 +116,7 @@ class App : public holoscan::Application {
             Arg("width") = width,
             Arg("height") = height,
             Arg("enable_render_buffer_input") = false,
-            Arg("enable_render_buffer_output") = true,
+            Arg("enable_render_buffer_output") = record_output == true,
             Arg("allocator") = visualizer_allocator);
 
     add_flow(bitstream_reader, video_decoder_request,
@@ -121,25 +124,25 @@ class App : public holoscan::Application {
     add_flow(video_decoder_response, decoder_output_format_converter,
         {{"output_transmitter", "source_video"}});
     add_flow(decoder_output_format_converter, visualizer,
-        {{"tensor", "receivers"}});
+       {{"tensor", "receivers"}});
     add_flow(decoder_output_format_converter, rgb_float_format_converter,
         {{"tensor", "source_video"}});
     add_flow(rgb_float_format_converter, lstm_inferer);
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
     add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
-    const bool record_output = from_config("record_output").as<bool>();
+
     if (record_output) {
-      auto video_encoder_context = make_resource<ops::VideoEncoderContext>();
-
       auto encoder_async_condition =
-          make_condition<AsynchronousCondition>("async_scheduling_term");
+          make_condition<AsynchronousCondition>("encoder_async_condition");
+      auto video_encoder_context =
+          make_resource<ops::VideoEncoderContext>(
+              Arg("scheduling_term") = encoder_async_condition);
 
-      auto video_encoder_request =
-          make_operator<ops::VideoEncoderRequestOp>("video_encoder_request",
-              from_config("video_encoder_request"),
-              Arg("async_scheduling_term") = encoder_async_condition,
-              Arg("videoencoder_context") = video_encoder_context);
+      auto video_encoder_request = make_operator<ops::VideoEncoderRequestOp>(
+          "video_encoder_request",
+          from_config("video_encoder_request"),
+          Arg("videoencoder_context") = video_encoder_context);
 
       auto video_encoder_response =
           make_operator<ops::VideoEncoderResponseOp>("video_encoder_response",

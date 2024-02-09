@@ -475,6 +475,11 @@ launch() {
         conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
     fi
 
+    # add tegra directory
+    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
+        conditional_opt+=" -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra"
+    fi
+
     # add user in container to group video to access video devices, e.g. /dev/video0
     conditional_opt+=" --group-add video"
 
@@ -571,6 +576,10 @@ launch() {
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
         -w /workspace/holohub \
         --runtime=nvidia \
+        --gpus all \
+        --cap-add CAP_SYS_PTRACE \
+        --ipc=host \
+        --ulimit memlock=-1 \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \

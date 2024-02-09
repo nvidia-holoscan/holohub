@@ -32,7 +32,8 @@ namespace holoscan::ops {
  */
 class VideoDecoderRequestOp: public holoscan::ops::GXFOperator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoDecoderRequestOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoDecoderRequestOp,
+      holoscan::ops::GXFOperator)
 
   VideoDecoderRequestOp() = default;
 
@@ -45,8 +46,10 @@ class VideoDecoderRequestOp: public holoscan::ops::GXFOperator {
  private:
   Parameter<holoscan::IOSpec*> input_frame_;
   Parameter<uint32_t> inbuf_storage_type_;
-  Parameter<std::shared_ptr<holoscan::AsynchronousCondition>> async_scheduling_term_;
-  Parameter<std::shared_ptr<holoscan::ops::VideoDecoderContext>> videodecoder_context_;
+  Parameter<std::shared_ptr<holoscan::AsynchronousCondition>>
+      async_scheduling_term_;
+  Parameter<std::shared_ptr<holoscan::ops::VideoDecoderContext>>
+      videodecoder_context_;
   Parameter<uint32_t> codec_;
   Parameter<uint32_t> disableDPB_;
   Parameter<std::string> output_format_;

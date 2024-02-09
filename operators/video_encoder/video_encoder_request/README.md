@@ -12,8 +12,6 @@ This implementation is based on `nvidia::gxf::VideoEncoderRequest`.
 
 - **`input_frame`**: Receiver to get the input frame.
   - type: `holoscan::IOSpec*`
-- **`async_scheduling_term`**: Asynchronous scheduling condition.
-  - type: `std::shared_ptr<holoscan::AsynchronousCondition>`
 - **`videoencoder_context`**: Encoder context Handle.
   - type: `std::shared_ptr<holoscan::ops::VideoEncoderContext>`
 - **`inbuf_storage_type`**: Input Buffer storage type, 0: kHost, 1: kDevice. Default: 1

@@ -19,21 +19,21 @@ project(orsi_app_lib CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(${PROJECT_NAME}
+add_library(orsi_app_lib EXCLUDE_FROM_ALL
     orsi_app.hpp
     orsi_app.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
-   PUBLIC   holoscan::core
+target_link_libraries(orsi_app_lib
+   PUBLIC  holoscan::core
 )
 
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
+    target_compile_definitions(orsi_app_lib PRIVATE -DUSE_VIDEOMASTER)
 endif()
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(orsi_app_lib
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PUBLIC
