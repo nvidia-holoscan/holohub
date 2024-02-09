@@ -123,7 +123,7 @@ class App : public holoscan::Application {
     add_flow(video_decoder_response, decoder_output_format_converter,
         {{"output_transmitter", "source_video"}});
     add_flow(decoder_output_format_converter, visualizer,
-        {{"tensor", "receivers"}});
+       {{"tensor", "receivers"}});
     add_flow(decoder_output_format_converter, rgb_float_format_converter,
         {{"tensor", "source_video"}});
     add_flow(rgb_float_format_converter, lstm_inferer);

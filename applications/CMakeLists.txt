@@ -47,7 +47,7 @@ add_holohub_application(h264/endoscopy_tool_tracking DEPENDS
                                   tool_tracking_postprocessor
                         )
 
-add_holohub_application(h264_video_decode DEPENDS
+add_holohub_application(h264/video_decode DEPENDS
                         OPERATORS video_decoder video_read_bitstream)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
@@ -91,4 +91,5 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   XrTransformOp)
 
 add_holohub_application(webrtc_video_server)
+
 add_subdirectory(orsi)

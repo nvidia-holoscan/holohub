@@ -357,7 +357,6 @@ launch() {
     local build_path="${CMAKE_BUILD_PATH:-build}"
     local working_dir=${1:-${build_path}}
     local mount_device_opt=""
-    local mount_dir_opt=""
     local conditional_opt=""
     local print_verbose=0
     local local_sdk_root="undefined"
@@ -405,9 +404,6 @@ launch() {
             additional_volumes+="-v $path:/workspace/volumes/$base "
             shift
             shift
-        fi
-        if [ "$arg" = "--mount" ]; then
-            mount_dir_opt="-v ${ARGS[i+1]}:${ARGS[i+1]}:ro"
         fi
     done
 
@@ -477,6 +473,11 @@ launch() {
     fi
     if [ -d /opt/yuan/qcap/lib ]; then
         conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
+    fi
+
+    # add tegra directory
+    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
+        conditional_opt+=" -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra"
     fi
 
     # add user in container to group video to access video devices, e.g. /dev/video0
@@ -562,7 +563,6 @@ launch() {
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
-        c_echo W "Launch (mount_dir_opt: " G "${mount_dir_opt}" W ")..."
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."

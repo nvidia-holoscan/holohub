@@ -27,7 +27,7 @@ h264 support.
 
 ```bash
 ./dev_container build --docker_file ./applications/h264/Dockerfile
-                      --base_img nvcr.io/nvstaging/holoscan/holoscan:v1.0.0.3-dgpu
+                      --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu
                       --img holohub:h264
 ```
 
@@ -46,7 +46,7 @@ the `LD_LIBRARY_PATH` environment variable should be updated to include
 tegra folder path:
 
 ```bash
-./dev_container launch --mount /usr/lib/aarch64-linux-gnu/tegra/ --img holohub:h264
+./dev_container launch --img holohub:h264
 ```
 
 Once inside the container on aarch64, run:
