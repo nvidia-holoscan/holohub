@@ -106,6 +106,7 @@ class App : public holoscan::Application {
             Arg("host_allocator") = make_resource<UnboundedAllocator>(
                 "host_allocator"));
 
+    const bool record_output = from_config("record_output").as<bool>();
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator =
         make_resource<BlockMemoryPool>("allocator", 1,
@@ -115,7 +116,7 @@ class App : public holoscan::Application {
             Arg("width") = width,
             Arg("height") = height,
             Arg("enable_render_buffer_input") = false,
-            Arg("enable_render_buffer_output") = true,
+            Arg("enable_render_buffer_output") = record_output == true,
             Arg("allocator") = visualizer_allocator);
 
     add_flow(bitstream_reader, video_decoder_request,
@@ -130,7 +131,7 @@ class App : public holoscan::Application {
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
     add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
-    const bool record_output = from_config("record_output").as<bool>();
+
     if (record_output) {
       auto encoder_async_condition =
           make_condition<AsynchronousCondition>("encoder_async_condition");
