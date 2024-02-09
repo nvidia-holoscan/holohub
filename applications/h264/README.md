@@ -43,11 +43,7 @@ On x86:
 
 On aarch64, applications also need tegra folder mounted inside the container and
 the `LD_LIBRARY_PATH` environment variable should be updated to include
-tegra folder path:
-
-```bash
-./dev_container launch --img holohub:h264
-```
+tegra folder path.
 
 Once inside the container on aarch64, run:
 
