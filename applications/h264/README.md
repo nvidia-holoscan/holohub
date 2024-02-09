@@ -26,8 +26,8 @@ Use the following command from the Holohub root dir to builds the Holohub dev co
 h264 support.
 
 ```bash
-./dev_container build --docker_file ./applications/h264/Dockerfile
-                      --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu
+./dev_container build --docker_file ./applications/h264/Dockerfile \
+                      --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu \
                       --img holohub:h264
 ```
 
