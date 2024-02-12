@@ -14,23 +14,53 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(multiai_ultrasound CXX)
+project(benchmark_model CXX)
 
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+find_package(nvcv_types REQUIRED)
+find_package(cvcuda REQUIRED)
+find_package(OpenCV REQUIRED)
+
 add_executable(benchmark_model
+    cvcuda_utils.cpp
+    gxf_utils.cpp
     benchmark_model.cpp
 )
 
 target_link_libraries(benchmark_model
     PRIVATE
     holoscan::core
-    holoscan::ops::video_stream_replayer
+    holoscan::ops::v4l2
     holoscan::ops::format_converter
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
+    nvcv_types
+    cvcuda
+)
+
+add_executable(benchmark_image_model
+    benchmark_image_model.cpp
+    cvcuda_utils.cpp
+    gxf_utils.cpp
+)
+
+# set the path to the parent of libnvcv_samples_common.so to be NVCV_SAMPLES_COMMON
+get_filename_component(NVCV_SAMPLES_COMMON ${NVCV_SAMPLES_COMMON_LIB} DIRECTORY)
+
+target_link_libraries(benchmark_image_model
+    PRIVATE
+    holoscan::core
+    holoscan::ops::format_converter
+    holoscan::ops::holoviz
+    holoscan::ops::inference
+    nvcv_types
+    cvcuda
+    CUDA::nvjpeg
+    nvcv_samples_common
+    ${OpenCV_LIBS}
 )
 
 # Copy config file
@@ -40,3 +70,4 @@ add_custom_target(benchmark_model_yaml
     BYPRODUCTS "benchmark_model.yaml"
 )
 add_dependencies(benchmark_model benchmark_model_yaml)
+add_dependencies(benchmark_image_model benchmark_model_yaml)

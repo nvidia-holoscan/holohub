@@ -71,28 +71,28 @@ if(BUILD_TESTING)
 endif()
 
 # Flow benchmarking
-if(FLOW_BENCHMARKING)
-  # Patch the current source file
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp" MAIN_CPP_FILE)
-  string(REGEX REPLACE "^(.*holoscan::Application.*)" "#include \"benchmark.hpp\"\\n\\1" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
-  string(REPLACE "holoscan::Application" "BenchmarkedApplication" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp" "${MAIN_CPP_FILE}")
+# if(FLOW_BENCHMARKING)
+#   # Patch the current source file
+#   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp" MAIN_CPP_FILE)
+#   string(REGEX REPLACE "^(.*holoscan::Application.*)" "#include \"benchmark.hpp\"\\n\\1" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
+#   string(REPLACE "holoscan::Application" "BenchmarkedApplication" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
+#   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp" "${MAIN_CPP_FILE}")
 
-  # Create a new executable
-  add_executable(endoscopy_tool_tracking_flowbenchmark ${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp)
-  get_target_property(ENDOSCOPY_LINK_LIBRARIES endoscopy_tool_tracking LINK_LIBRARIES)
-  target_link_libraries(endoscopy_tool_tracking_flowbenchmark PRIVATE ${ENDOSCOPY_LINK_LIBRARIES})
-  target_include_directories(endoscopy_tool_tracking_flowbenchmark
-                             PRIVATE "${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking")
+#   # Create a new executable
+#   add_executable(endoscopy_tool_tracking_flowbenchmark ${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp)
+#   get_target_property(ENDOSCOPY_LINK_LIBRARIES endoscopy_tool_tracking LINK_LIBRARIES)
+#   target_link_libraries(endoscopy_tool_tracking_flowbenchmark PRIVATE ${ENDOSCOPY_LINK_LIBRARIES})
+#   target_include_directories(endoscopy_tool_tracking_flowbenchmark
+#                              PRIVATE "${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking")
 
-  # Add the test
-  add_test(NAME endoscopy_tool_tracking_cpp_benchmark_test
-           COMMAND bash -c "python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
-                     --run-command \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
-                     -r 3 -i 3 -m 200 --sched greedy -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking \
-                     && python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
-                     -m -a --stddev --median --min --cdash \
-                     --draw-cdf ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/single_path_cdf.png --no-display-graphs \
-                     -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/logger_greedy_* EndoscopyToolTracking"
-           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-endif()
+#   # Add the test
+#   add_test(NAME endoscopy_tool_tracking_cpp_benchmark_test
+#            COMMAND bash -c "python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
+#                      --run-command \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
+#                      -r 3 -i 3 -m 200 --sched greedy -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking \
+#                      && python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
+#                      -m -a --stddev --median --min --cdash \
+#                      --draw-cdf ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/single_path_cdf.png --no-display-graphs \
+#                      -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking/logger_greedy_* EndoscopyToolTracking"
+#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+# endif()

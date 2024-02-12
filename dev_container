@@ -427,12 +427,13 @@ launch() {
     fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    run_command xhost +local:docker
+    # run_command xhost +local:docker
+
+    for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
+        mount_device_opt+=" --device $video_dev"
+    done
 
     for i in 0 1 2 3; do
-        if [ -e /dev/video${i} ]; then
-            mount_device_opt+=" --device /dev/video${i}:/dev/video${i}"
-        fi
         if [ -e /dev/ajantv2${i} ]; then
             mount_device_opt+=" --device /dev/ajantv2${i}:/dev/ajantv2${i}"
         fi

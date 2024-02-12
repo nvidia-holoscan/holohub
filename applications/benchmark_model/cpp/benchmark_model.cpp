@@ -17,11 +17,21 @@
 
 #include <getopt.h>
 
+#include <cstdint>
+#include <cvcuda/OpConvertTo.hpp>
+#include <cvcuda/OpCustomCrop.hpp>
+#include <cvcuda/OpCvtColor.hpp>
+#include <cvcuda/OpReformat.hpp>
+#include <cvcuda/OpResize.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <nvcv/Image.hpp>
+#include <nvcv/ImageBatch.hpp>
+#include <nvcv/Tensor.hpp>
+#include "cvcuda_utils.hpp"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -42,6 +52,321 @@ class SinkOp : public holoscan::Operator {
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) {
     auto value = op_input.receive<std::any>("in");
   }
+};
+
+class HoloscanToCvCudaTensorOp : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(HoloscanToCvCudaTensorOp)
+
+  HoloscanToCvCudaTensorOp() = default;
+
+  void setup(OperatorSpec& spec) {
+    spec.input<gxf::Entity>("input");
+    spec.output<nvcv::Tensor>("output");
+  }
+
+  static nvcv::Tensor to_cvcuda_NHWC_tensor(std::shared_ptr<holoscan::Tensor> in_tensor) {
+    // The output tensor will always be created in NHWC format even if no batch dimension existed
+    // on the GXF tensor.
+    int ndim = in_tensor->ndim();
+    int batch_size, image_height, image_width, num_channels;
+    auto in_shape = in_tensor->shape();
+    if (ndim == 4) {
+      batch_size = in_shape[0];
+      image_height = in_shape[1];
+      image_width = in_shape[2];
+      num_channels = in_shape[3];
+    } else if (ndim == 3) {
+      batch_size = 1;
+      image_height = in_shape[0];
+      image_width = in_shape[1];
+      num_channels = in_shape[2];
+    } else if (ndim == 2) {
+      batch_size = 1;
+      image_height = in_shape[0];
+      image_width = in_shape[1];
+      num_channels = 1;
+    } else {
+      throw std::runtime_error(
+          "expected a tensor with (height, width) or (height, width, channels) or "
+          "(batch, height, width, channels) dimensions");
+    }
+
+    // buffer with strides defined for NHWC format (For cvcuda::Flip could also just use HWC)
+    auto in_buffer = holoscan::nhwc_buffer_from_holoscan_tensor(in_tensor);
+    nvcv::TensorShape cv_tensor_shape{{batch_size, image_height, image_width, num_channels},
+                                      NVCV_TENSOR_NHWC};
+    nvcv::DataType cv_dtype = dldatatype_to_nvcvdatatype(in_tensor->dtype());
+
+    // Create a tensor buffer to store the data pointer and pitch bytes for each plane
+    nvcv::TensorDataStridedCuda in_data(cv_tensor_shape, cv_dtype, in_buffer);
+
+    // TensorWrapData allows for interoperation of external tensor representations with CVCUDA
+    // Tensor.
+    nvcv::Tensor cv_in_tensor = nvcv::TensorWrapData(in_data);
+    return cv_in_tensor;
+  }
+
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) {
+    auto input_message = op_input.receive<gxf::Entity>("input").value();
+
+    // auto tensor = input_message.get<holoscan::Tensor>();
+    auto holoscan_tensor = input_message.get<
+        holoscan::Tensor>();  // holoscan::gxf::GXFTensor(*(tensor.value().get())).as_tensor();
+
+    DLDevice dev = holoscan_tensor->device();
+    if (dev.device_type != kDLCUDA) {
+      throw std::runtime_error("expected input tensor to be on a CUDA device");
+    }
+
+    auto ndim_in = holoscan_tensor->ndim();
+    HOLOSCAN_LOG_INFO("in_tensor.ndim() = {}", ndim_in);
+    for (int i = 0; i < ndim_in; i++) {
+      HOLOSCAN_LOG_INFO("in_tensor.shape()[{}] = {}", i, holoscan_tensor->shape()[i]);
+    }
+    DLDataType dtype = holoscan_tensor->dtype();
+    HOLOSCAN_LOG_INFO("in_tensor.dtype().code = {}, dtype().bits: {}", dtype.code, dtype.bits);
+    if (holoscan_tensor->shape()[ndim_in - 1] != 3) {
+      throw std::runtime_error(
+          "expected holoscan_tensor with 3 channels on the last dimension (RGB)");
+    }
+
+    // nvcv::Tensor cv_tensor;
+    const auto& cv_tensor = to_cvcuda_NHWC_tensor(holoscan_tensor);
+    op_output.emit(cv_tensor, "output");
+  }
+};
+
+class VideoBufferToCvCuda : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoBufferToCvCuda)
+
+  VideoBufferToCvCuda() = default;
+
+  void setup(OperatorSpec& spec) {
+    spec.input<gxf::Entity>("input");
+    spec.output<nvcv::Tensor>("output");
+  }
+
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
+    auto in_message = op_input.receive<gxf::Entity>("input").value();
+    auto video_buffer = holoscan::gxf::get_videobuffer(in_message);
+    auto width = video_buffer.get()->video_frame_info().width;
+    auto height = video_buffer.get()->video_frame_info().height;
+
+    HOLOSCAN_LOG_INFO("new image going to be declared");
+    // nvidia::gxf::Tensor;
+    // nvcv::Tensor out_tensor = nvcv::TensorWrapData(outData);
+
+    // nvcv::Image image({width, height}, nvcv::FMT_RGBA8);
+    // nvcv::Image dummy_image({width, height}, nvcv::FMT_RGB8);
+    // HOLOSCAN_LOG_INFO("new image declared");
+
+    // void* image_data;
+    // cudaMallocAsync(&image_data, video_buffer.get()->size(), 0);
+    // cudaMemcpy(image_data,
+    //            video_buffer.get()->pointer(),
+    //            video_buffer.get()->size(),
+    //            cudaMemcpyHostToDevice);
+    // image.setUserPointer(image_data);
+
+    // nvcv::ImageBatchVarShape image_batch_in(1), image_batch_out(1);
+    // image_batch_in.pushBack(image);
+    // image_batch_out.pushBack(dummy_image);
+
+    // HOLOSCAN_LOG_INFO("in num images: {}, out num images: {}",
+    //                   image_batch_in.numImages(),
+    //                   image_batch_out.numImages());
+
+    // cvcuda::CvtColor cvtcolorOp;
+
+    // nvcv::ImageBatch image_batch_in_fixed = image_batch_in, image_batch_out_fixed =
+    // image_batch_out; cvtcolorOp(0, image_batch_in_fixed, image_batch_out_fixed,
+    // NVCV_COLOR_YUV2RGB);
+
+    // HOLOSCAN_LOG_INFO("setuserpointer");
+    // nvcv::ImageBatchVarShape out_image_batch = std::move(image_batch_out_fixed);
+    // auto out_image = out_image_batch[0];
+    // nvcv::Tensor in_tensor = nvcv::TensorWrapImage(image);
+    // nvcv::Tensor out_tensor = nvcv::TensorWrapImage(out_image);
+    // HOLOSCAN_LOG_INFO("wrap succeeded");
+    // op_output.emit(out_tensor, "output");
+  }
+};
+
+class CvCudaToHoloscan : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(CvCudaToHoloscan)
+
+  CvCudaToHoloscan() = default;
+
+  void setup(OperatorSpec& spec) {
+    spec.input<nvcv::Tensor>("input");
+    spec.output<holoscan::TensorMap>("output");
+  }
+
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
+    auto cv_in_tensor = op_input.receive<nvcv::Tensor>("input").value();
+
+    HOLOSCAN_LOG_INFO("cv_in_tensor retrieved");
+
+    nvcv::Tensor::Requirements in_tensor_req =
+        nvcv::Tensor::CalcRequirements(1, {224, 224}, nvcv::FMT_RGBf32p);
+
+    nvcv::Tensor out_tensor_like(
+        nvcv::TensorShape{in_tensor_req.shape, in_tensor_req.rank, in_tensor_req.layout},
+        nvcv::DataType{in_tensor_req.dtype});
+
+    HOLOSCAN_LOG_INFO("before create_out_message_with_tensor_like");
+    const auto& [out_message, tensor_data_pointer] =
+        create_out_message_with_tensor_like(context.context(), out_tensor_like);
+    HOLOSCAN_LOG_INFO("create_out_message_with_tensor_like success");
+
+    // auto cv_in_strided = cv_in_tensor.exportData<nvcv::TensorDataStridedCuda>();
+
+    // int64_t tot_size = nvcv::CalcTotalSizeBytes(nvcv::Requirements{in_tensor_req.mem}.cudaMem());
+    // cudaMemcpy(*tensor_data_pointer, cv_in_strided->basePtr(), tot_size,
+    // cudaMemcpyDeviceToDevice); HOLOSCAN_LOG_INFO("Before cudaMemcpy"); cudaStreamSynchronize(0);
+
+    nvcv::TensorDataStridedCuda::Buffer cv_out_buffer;
+    std::copy(
+        in_tensor_req.strides, in_tensor_req.strides + NVCV_TENSOR_MAX_RANK, cv_out_buffer.strides);
+
+    cv_out_buffer.basePtr = static_cast<NVCVByte*>(*tensor_data_pointer);
+    nvcv::TensorDataStridedCuda out_data(
+        nvcv::TensorShape{in_tensor_req.shape, in_tensor_req.rank, in_tensor_req.layout},
+        cv_in_tensor.dtype(),
+        cv_out_buffer);
+
+    nvcv::Tensor cv_out_tensor = nvcv::TensorWrapData(out_data);
+
+    cvcuda::Reformat reformatOp;
+    reformatOp(0, cv_in_tensor, cv_out_tensor);
+
+    std::cout << "cv_out_tensor shape: " << cv_out_tensor.shape() << std::endl;
+
+    HOLOSCAN_LOG_INFO("After last");
+
+    cudaStreamSynchronize(0);
+
+    op_output.emit(out_message, "output");
+  }
+};
+
+class PreprocessImage : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(PreprocessImage)
+
+  PreprocessImage() = default;
+
+  void setup(OperatorSpec& spec) {
+    spec.input<nvcv::Tensor>("input");
+    spec.output<nvcv::Tensor>("output");
+  }
+
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
+    auto in_tensor = op_input.receive<nvcv::Tensor>("input").value();
+
+    int resize = 256;
+
+    nvcv::Tensor::Requirements outReqs =
+        nvcv::Tensor::CalcRequirements(1, {resize, resize}, nvcv::FMT_RGB8);
+
+    nvcv::TensorDataStridedCuda::Buffer outBuf;
+    std::copy(outReqs.strides, outReqs.strides + NVCV_TENSOR_MAX_RANK, outBuf.strides);
+
+    int64_t outLayerSize = nvcv::CalcTotalSizeBytes(nvcv::Requirements{outReqs.mem}.cudaMem());
+    cudaMalloc(&outBuf.basePtr, outLayerSize);
+
+    nvcv::TensorDataStridedCuda outData(
+        nvcv::TensorShape{outReqs.shape, outReqs.rank, outReqs.layout},
+        nvcv::DataType{outReqs.dtype},
+        outBuf);
+    nvcv::Tensor resized_tensor = TensorWrapData(outData);
+
+    cvcuda::Resize resizeOp;
+    HOLOSCAN_LOG_INFO("Will resize");
+    resizeOp(0, in_tensor, resized_tensor, NVCV_INTERP_NEAREST);
+
+    int crop_size = 224;
+    int xy_start = (resize - crop_size) / 2;
+
+    NVCVRectI crpRect = {xy_start, xy_start, crop_size, crop_size};
+
+    nvcv::Tensor cropTensor(1, {crop_size, crop_size}, nvcv::FMT_RGB8);
+    cvcuda::CustomCrop cropOp;
+    cropOp(0, resized_tensor, cropTensor, crpRect);
+    // cropOp(0, resized_tensor, cropTensor, crpRect);
+
+    // Convert to FP32
+    nvcv::Tensor floatTensor(1, {crop_size, crop_size}, nvcv::FMT_RGBf32);
+    cvcuda::ConvertTo convertOp;
+    convertOp(0, cropTensor, floatTensor, 1.0f / 255.f, 0.0f);
+
+    cudaStreamSynchronize(0);
+
+    // op_output.emit(cropTensor, "output");
+    op_output.emit(floatTensor, "output");
+  }
+};
+
+class PrintTextOp : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(PrintTextOp)
+
+  PrintTextOp() = default;
+
+  void start() override {
+    std::ifstream file(image_classes_file);
+    std::string line;
+    while (std::getline(file, line)) { labels.push_back(line); }
+  }
+
+  void setup(OperatorSpec& spec) { spec.input<holoscan::TensorMap>("in"); }
+
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) {
+    auto value = op_input.receive<holoscan::TensorMap>("in");
+    auto maybe_tensor = value.value().at("output");
+
+    auto predictions = maybe_tensor.get()->data();
+    auto bytes = maybe_tensor.get()->nbytes();
+
+    std::cout << "bytes: " << bytes << std::endl;
+    // allocate host memory
+    float* host_predictions = (float*)malloc(bytes);
+    cudaMemcpy(host_predictions, predictions, bytes, cudaMemcpyDeviceToHost);
+
+    // sync default stream
+    cudaStreamSynchronize(0);
+
+    HOLOSCAN_LOG_DEBUG("Memcpy Successful");
+
+    // convert host_predictions[0]...[num_classes] to a vector
+    std::vector<float> predictions_vec(host_predictions, host_predictions + num_classes);
+
+    HOLOSCAN_LOG_DEBUG("Vector created");
+
+    // sort the vector and return the top 5 indices
+    std::vector<int> indices(num_classes);
+    std::iota(indices.begin(), indices.end(), 0);
+    std::partial_sort(
+        indices.begin(), indices.begin() + 5, indices.end(), [&predictions_vec](int i1, int i2) {
+          return predictions_vec[i1] > predictions_vec[i2];
+        });
+
+    HOLOSCAN_LOG_INFO("Top 5 predictions: ");
+    for (int i = 0; i < 5; i++) {
+      // .2f decimal points
+      std::cout << "Class " << indices[i] << ": " << labels[indices[i]]
+                << " - Probability: " << std::fixed << std::setprecision(2)
+                << predictions_vec[indices[i]] * 100 << "%" << std::endl;
+    }
+  }
+
+ private:
+  int num_classes = 1000;
+  std::string image_classes_file = "/workspace/holohub/data/imagenet_classes.txt";
+  std::vector<std::string> labels;
 };
 }  // namespace holoscan::ops
 
@@ -74,27 +399,53 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
-    auto source = make_operator<ops::VideoStreamReplayerOp>("replayer",
-                                                            from_config("replayer"),
-                                                            Arg("directory") = datapath,
-                                                            Arg("basename") = video_name);
+    auto source = make_operator<ops::V4L2VideoCaptureOp>(
+        "source", from_config("source"), Arg("allocator") = pool_resource);
 
     auto preprocessor = make_operator<ops::FormatConverterOp>(
         "preprocessor", from_config("preprocessor"), Arg("pool") = pool_resource);
+
+    auto holoscantocvcuda = make_operator<ops::HoloscanToCvCudaTensorOp>("holoscantocvcuda");
+
+    auto cvcudatoholoscan = make_operator<ops::CvCudaToHoloscan>("cvcudatoholoscan");
+
+    auto preprocess = make_operator<ops::PreprocessImage>("preprocess");
+
+    auto videobuffertocvcuda = make_operator<ops::VideoBufferToCvCuda>("videobuffertocvcuda");
+
+    auto holoviz = make_operator<ops::HolovizOp>("viz", from_config("viz"));
+
+    auto preinference = make_operator<ops::FormatConverterOp>(
+        "preinference", from_config("preinference"), Arg("pool") = pool_resource);
+
+    // add_flow(source, videobuffertocvcuda, {{"signal", "input"}});
+    // add_flow(videobuffertocvcuda, cvcudatoholoscan, {{"output", "input"}});
+    // add_flow(cvcudatoholoscan, holoviz, {{"output", "receivers"}});
+
+    // add_flow(source, holoviz, {{"signal", "receivers"}});
+
+    add_flow(source, preprocessor, {{"signal", "source_video"}});
+    // add_flow(preprocessor, holoviz, {{"tensor", "receivers"}});
+
+    add_flow(preprocessor, holoscantocvcuda, {{"tensor", "input"}});
+    add_flow(holoscantocvcuda, preprocess);
+    add_flow(preprocess, cvcudatoholoscan);
+    // add_flow(holoscantocvcuda, cvcudatoholoscan);
+    // add_flow(cvcudatoholoscan, holoviz, {{"output", "receivers"}});
 
     ops::InferenceOp::DataMap model_path_map;
     ops::InferenceOp::DataVecMap pre_processor_map;
     ops::InferenceOp::DataVecMap inference_map;
 
-    for (int i = 0; i < num_inferences; i++) {
-      std::string model_index_str = "own_model_" + std::to_string(i);
+    std::string model_index_str = "own_model";
 
-      model_path_map.insert(model_index_str, datapath + "/" + model_name);
-      pre_processor_map.insert(model_index_str, {"source_video"});
+    model_path_map.insert(model_index_str, "/workspace/holohub/data/resnet50/model.onnx");
+    // pre_processor_map.insert(model_index_str, {"source_video"});
+    pre_processor_map.insert(model_index_str, {"image"});
 
-      std::string output_name = "output" + std::to_string(i);
-      inference_map.insert(model_index_str, {output_name});
-    }
+    std::string output_name = "output";
+    inference_map.insert(model_index_str, {output_name});
+
     auto inference = make_operator<ops::InferenceOp>("inference",
                                                      from_config("inference"),
                                                      Arg("allocator") = pool_resource,
@@ -102,59 +453,92 @@ class App : public holoscan::Application {
                                                      Arg("pre_processor_map", pre_processor_map),
                                                      Arg("inference_map", inference_map));
 
-    std::vector<std::shared_ptr<Operator>> holovizs;
-    holovizs.reserve(num_inferences);
-    // Flow definition
+    // add_flow(cvcudatoholoscan, preinference, {{"output", "source_video"}});
+    // add_flow(preinference, inference, {{"tensor", "receivers"}});
+    add_flow(cvcudatoholoscan, inference, {{"output", "receivers"}});
+    auto print_text_op = make_operator<ops::PrintTextOp>("print_text_op");
+    add_flow(inference, print_text_op);
 
-    if (!only_inference && !inference_postprocessing) {
-      for (int i = 0; i < num_inferences; i++) {
-        std::string holoviz_name = "holoviz" + std::to_string(i);
-        auto holoviz = make_operator<ops::HolovizOp, std::string>(holoviz_name, from_config("viz"));
-        holovizs.push_back(holoviz);
-        // Passthrough to Visualization
-        add_flow(source, holoviz, {{"output", "receivers"}});
-      }
-    }
+    // auto source = make_operator<ops::VideoStreamReplayerOp>("replayer",
+    //                                                         from_config("replayer"),
+    //                                                         Arg("directory") = datapath,
+    //                                                         Arg("basename") = video_name);
 
-    // Inference Path
-    add_flow(source, preprocessor, {{"output", "source_video"}});
-    add_flow(preprocessor, inference, {{"tensor", "receivers"}});
-    if (only_inference) {
-      HOLOSCAN_LOG_INFO(
-          "Only inference mode is on, no post-processing and visualization will be done.");
-      auto sink = make_operator<ops::SinkOp>("sink");
-      add_flow(inference, sink);
-      return;
-    }
+    // ops::InferenceOp::DataMap model_path_map;
+    // ops::InferenceOp::DataVecMap pre_processor_map;
+    // ops::InferenceOp::DataVecMap inference_map;
 
-    std::vector<std::shared_ptr<Operator>> postprocessors;
-    postprocessors.reserve(num_inferences);
+    // for (int i = 0; i < num_inferences; i++) {
+    //   std::string model_index_str = "own_model_" + std::to_string(i);
 
-    for (int i = 0; i < num_inferences; i++) {
-      std::string postprocessor_name = "postprocessor" + std::to_string(i);
-      std::string in_tensor_name = "output" + std::to_string(i);
-      auto postprocessor = make_operator<ops::SegmentationPostprocessorOp, std::string>(
-          postprocessor_name,
-          from_config("postprocessor"),
-          Arg("allocator") = pool_resource,
-          Arg("in_tensor_name") = in_tensor_name);
-      postprocessors.push_back(postprocessor);
-      add_flow(inference, postprocessor, {{"transmitter", "in_tensor"}});
-    }
+    //   model_path_map.insert(model_index_str, datapath + "/" + model_name);
+    //   pre_processor_map.insert(model_index_str, {"source_video"});
 
-    if (inference_postprocessing) {
-      HOLOSCAN_LOG_INFO("Inference and Post-processing mode is on. No visualization will be done.");
-      for (int i = 0; i < num_inferences; i++) {
-        std::string sink_name = "sink" + std::to_string(i);
-        auto sink = make_operator<ops::SinkOp, std::string>(sink_name);
-        add_flow(postprocessors[i], sink);
-      }
-      return;
-    }
+    //   std::string output_name = "output" + std::to_string(i);
+    //   inference_map.insert(model_index_str, {output_name});
+    // }
+    // auto inference = make_operator<ops::InferenceOp>("inference",
+    //                                                  from_config("inference"),
+    //                                                  Arg("allocator") = pool_resource,
+    //                                                  Arg("model_path_map", model_path_map),
+    //                                                  Arg("pre_processor_map", pre_processor_map),
+    //                                                  Arg("inference_map", inference_map));
 
-    for (int i = 0; i < num_inferences; i++) {
-      add_flow(postprocessors[i], holovizs[i], {{"out_tensor", "receivers"}});
-    }
+    // std::vector<std::shared_ptr<Operator>> holovizs;
+    // holovizs.reserve(num_inferences);
+    // // Flow definition
+
+    // if (!only_inference && !inference_postprocessing) {
+    //   for (int i = 0; i < num_inferences; i++) {
+    //     std::string holoviz_name = "holoviz" + std::to_string(i);
+    //     auto holoviz = make_operator<ops::HolovizOp, std::string>(holoviz_name,
+    //     from_config("viz")); holovizs.push_back(holoviz);
+    //     // Passthrough to Visualization
+    //     // add_flow(source, holoviz, {{"output", "receivers"}});
+    //     add_flow(source, holoviz, {{"signal", "receivers"}});
+    //   }
+    // }
+
+    // // Inference Path
+    // // add_flow(source, preprocessor, {{"output", "source_video"}});
+    // add_flow(source, preprocessor, {{"signal", "source_video"}});
+    // add_flow(preprocessor, inference, {{"tensor", "receivers"}});
+    // if (only_inference) {
+    //   HOLOSCAN_LOG_INFO(
+    //       "Only inference mode is on, no post-processing and visualization will be done.");
+    //   auto sink = make_operator<ops::SinkOp>("sink");
+    //   add_flow(inference, sink);
+    //   return;
+    // }
+
+    // std::vector<std::shared_ptr<Operator>> postprocessors;
+    // postprocessors.reserve(num_inferences);
+
+    // for (int i = 0; i < num_inferences; i++) {
+    //   std::string postprocessor_name = "postprocessor" + std::to_string(i);
+    //   std::string in_tensor_name = "output" + std::to_string(i);
+    //   auto postprocessor = make_operator<ops::SegmentationPostprocessorOp, std::string>(
+    //       postprocessor_name,
+    //       from_config("postprocessor"),
+    //       Arg("allocator") = pool_resource,
+    //       Arg("in_tensor_name") = in_tensor_name);
+    //   postprocessors.push_back(postprocessor);
+    //   add_flow(inference, postprocessor, {{"transmitter", "in_tensor"}});
+    // }
+
+    // if (inference_postprocessing) {
+    //   HOLOSCAN_LOG_INFO("Inference and Post-processing mode is on. No visualization will be
+    //   done."); for (int i = 0; i < num_inferences; i++) {
+    //     std::string sink_name = "sink" + std::to_string(i);
+    //     auto sink = make_operator<ops::SinkOp, std::string>(sink_name);
+    //     add_flow(postprocessors[i], sink);
+    //   }
+    //   return;
+    // }
+
+    // for (int i = 0; i < num_inferences; i++) {
+    //   add_flow(postprocessors[i], holovizs[i], {{"out_tensor", "receivers"}});
+    // }
   }
 
  private:

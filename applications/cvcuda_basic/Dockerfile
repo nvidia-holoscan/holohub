@@ -29,8 +29,8 @@ ARG GPU_TYPE
 FROM ${BASE_IMAGE} as cvcuda-downloader
 
 ARG GCC_VERSION=11
-ARG CVCUDA_TAG=v0.5.0-beta
-ARG CVCUDA_RELEASE_BRANCH=feat/milesp/release_v0.5.0-beta3
+ARG CVCUDA_TAG=v0.4.0-beta
+ARG CVCUDA_RELEASE_BRANCH=release_v0.4.x
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt/nvidia
@@ -43,8 +43,10 @@ RUN apt update \
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
 RUN apt install -y gcc-${GCC_VERSION} g++-${GCC_VERSION}
 
-# download patch for building CV-CUDA with CUDA 11.6 (works for both CV-CUDA 0.4-beta and 0.5-beta)
-RUN curl -S -L -o cvcuda_cuda11_6.patch  "https://gist.githubusercontent.com/grlee77/ba5d1449ae37ff2e13c7ee93710fe482/raw/f335c08d00fb6e6efeb94e99889fd15957f01d47/cvcuda_cuda11_6.patch"
+# download patch for building CV-CUDA with CUDA 11.6
+# RUN curl -S -L -o cvcuda_cuda11_6.patch  "https://gist.githubusercontent.com/grlee77/ba5d1449ae37ff2e13c7ee93710fe482/raw/f335c08d00fb6e6efeb94e99889fd15957f01d47/cvcuda_cuda11_6.patch"
+
+COPY cvcuda_cuda11_6.patch /opt/nvidia/cvcuda_cuda11_6.patch
 
 # download and patch CV-CUDA
 RUN git clone https://github.com/CVCUDA/CV-CUDA \
@@ -76,6 +78,13 @@ RUN bash ./ci/build.sh
 RUN cd build-rel \
 	&& cpack -G DEB . \
     && dpkg -i nvcv*.deb 
+
+RUN bash ./ci/build_samples.sh
+
+RUN cp ./build/lib/libnvcv_samples_common.so /usr/lib/
+RUN cp ./samples/common/*.h /usr/include/nvcv/
+
+RUN apt update && apt install -y libopencv-dev
 
 ############################################################
 # Base (final)

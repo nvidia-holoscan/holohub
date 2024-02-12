@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+source:
+  device: "/dev/video6"
+  # pixel_format: "RGB3"
+  # pixel_format: "YU12"
+
 replayer:  # VideoStreamReplayer
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
@@ -22,9 +27,19 @@ replayer:  # VideoStreamReplayer
 
 preprocessor:  # FormatConverter
   out_tensor_name: source_video
+  in_dtype: "rgba8888"
+  # in_dtype: "yuv420"
+  out_dtype: "rgb888"
+  # out_dtype: "float32"
+  # resize_width: 256
+  # resize_height: 256
+  # resize_mode: 1
+
+preinference:  # FormatConverter
+  in_tensor_name: image
+  out_tensor_name: source_video
+  in_dtype: "rgb888"
   out_dtype: "float32"
-  resize_width: 256
-  resize_height: 256
 
 inference:  # Inference
   backend: "trt"

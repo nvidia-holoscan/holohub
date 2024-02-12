@@ -95,8 +95,6 @@ class ReadImagesOp(Operator):
         # Apply preprocessing
         resize = 256
         crop_size = 224
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
 
         # Resize
         image = image.resize((resize, resize))
@@ -109,10 +107,13 @@ class ReadImagesOp(Operator):
         image = image.crop((left, top, right, bottom))
 
         image = np.array(image, dtype=PRECISION) / 255.0  # Normalize the pixel values to [0, 1]
+        print(image.shape)
 
         # Transpose to match ONNX model input format (B, C, H, W)
         image = np.transpose(image, (2, 0, 1))
+        print(image.shape)
         image = np.expand_dims(image, axis=0)  # Add batch dimension
+        print(image.shape)
         # image = np.ascontiguousarray(image.copy())
 
         # image = np.moveaxis(image, 2, 0)[None]
@@ -226,7 +227,7 @@ class App(Application):
     def compose(self):
         host_allocator = UnboundedAllocator(self, name="host_allocator")
 
-        readimages = ReadImagesOp(self, CountCondition(self, 1), name="source")
+        readimages = ReadImagesOp(self, CountCondition(self, 3), name="source")
 
         # model_path_map = {"own_model": "../data/resnet50/resnet_engine.trt"}
         model_path_map = {"own_model": "../data/resnet50/model.onnx"}
