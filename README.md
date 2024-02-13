@@ -18,6 +18,7 @@ Other versions of Ubuntu or OS distributions may result in build and/or runtime 
 
 2. Choose to build Holohub using development container or using a local environment.
 
+***Note:*** The default [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) version for the [Container build](#container-build) process is updated to **`v1.0`**, but if you would like to use an older version of the SDK, simply specify `--base_img` to the older version of NGC's Holoscan SDK container (see *Advanced build options* below).
 ### Container build
 
 ***Prerequisites***
