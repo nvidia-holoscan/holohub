@@ -39,15 +39,34 @@ if(BUILD_TESTING)
   find_package(holoscan 0.6 REQUIRED CONFIG
                PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-  # Configure the yaml file to only play 10 frames
+  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
+  set(SOURCE_VIDEO_BASENAME python_colonoscopy_segmentation_output)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/colonoscopy_segmentation/testing/)
+
+  file(MAKE_DIRECTORY ${RECORDING_DIR})
+
+  # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.yaml" CONFIG_FILE)
   string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_testing.yaml ${CONFIG_FILE})
 
+    # Patch the current example to enable recording the rendering window
+    add_custom_command(OUTPUT colonoscopy_segmentation_test.py
+    PRE_LINK
+    COMMAND patch -u -o colonoscopy_segmentation_test.py ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py
+        ${CMAKE_SOURCE_DIR}/applications/colonoscopy_segmentation/testing/colonoscopy_segmentation.patch
+    COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" colonoscopy_segmentation_test.py
+    COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" colonoscopy_segmentation_test.py
+  )
+
+  add_custom_target(colonoscopy_segmentation_test ALL
+    DEPENDS "colonoscopy_segmentation_test.py"
+  )
+
   # Add test
   add_test(NAME colonoscopy_segmentation_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py
+           COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_test.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -57,4 +76,20 @@ if(BUILD_TESTING)
   set_tests_properties(colonoscopy_segmentation_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # Add a test to check the validity of the frames
+  add_test(NAME colonoscopy_segmentation_python_render_test
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+    --source_video_dir ${RECORDING_DIR}
+    --source_video_basename ${SOURCE_VIDEO_BASENAME}
+    --output_dir ${RECORDING_DIR}
+    --validation_frames_dir ${VALIDATION_FRAMES_DIR}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+
+  set_tests_properties(colonoscopy_segmentation_python_render_test PROPERTIES
+    DEPENDS colonoscopy_segmentation_python_test
+    PASS_REGULAR_EXPRESSION "Valid video output!"
+  )
+
 endif()
