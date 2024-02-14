@@ -27,8 +27,6 @@
 #include <nvcv/DataType.hpp>  // nvcv::DataType
 #include <nvcv/Tensor.hpp>
 #include <nvcv/TensorData.hpp>
-#include "gxf_utils.hpp"
-#include "holoscan/core/resources/gxf/allocator.hpp"
 
 namespace holoscan {
 
@@ -40,30 +38,6 @@ namespace holoscan {
  * @return CV-CUDA data type.
  */
 nvcv::DataType dldatatype_to_nvcvdatatype(DLDataType dtype, int num_channels = 0);
-
-/**
- * @brief Return the GXF tensor primitive type corresponding to a CV-CUDA dtype.
- *
- * The GXF primitive type does not include information on the number of interleaved channels.
- *
- * @param dtype CV-CUDA data type.
- * @return The GXF tensor primitive type
- */
-nvidia::gxf::PrimitiveType nvcvdatatype_to_gxfprimitivetype(nvcv::DataType dtype);
-
-/**
- * @brief Generate output message containing a single Holoscan tensor like reference_nhwc_tensor
- *
- * Note: If dimensions N or C have size 1, the corresponding dimensions will be dropped from
- * the output tensor.
- *
- * @param context The GXF context.
- * @param reference_nhwc_tensor The reference CV-CUDA tensor.
- * @return A GXF entity containing a single tensor like reference_nhwc_tensor.
- */
-std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_tensor_like(
-    gxf_context_t context, nvcv::Tensor reference_nhwc_tensor,
-    std::shared_ptr<Allocator> allocator);
 
 nvcv::TensorDataStridedCuda::Buffer nhwc_buffer_from_holoscan_tensor(
     std::shared_ptr<holoscan::Tensor> tensor, std::shared_ptr<void*>& holoscan_tensor_data);

@@ -22,8 +22,7 @@
 
 #include <gxf/std/tensor.hpp>
 #include <holoscan/core/domain/tensor.hpp>
-#include <holoscan/core/resources/gxf/allocator.hpp>
-#include <iostream>
+#include <nvcv/Tensor.hpp>
 
 namespace holoscan {
 
@@ -50,19 +49,30 @@ inline std::shared_ptr<void*> get_custom_shared_ptr(
   });
   return pointer;
 }
+
 /**
- * @brief Generate output message containing a single tensor
+ * @brief Return the GXF tensor primitive type corresponding to a CV-CUDA dtype.
+ *
+ * The GXF primitive type does not include information on the number of interleaved channels.
+ *
+ * @param dtype CV-CUDA data type.
+ * @return The GXF tensor primitive type
+ */
+nvidia::gxf::PrimitiveType nvcvdatatype_to_gxfprimitivetype(nvcv::DataType dtype);
+
+/**
+ * @brief Generate output message containing a single Holoscan tensor corresponding to the CVCUDA
+ * reference_nhwc_tensor
+ *
+ * Note: If dimensions N or C have size 1, the corresponding dimensions will be dropped from
+ * the output tensor.
  *
  * @param context The GXF context.
- * @param shape The element type of the tensor.
- * @param element_type The element type of the tensor.
- * @param storage_type The storage type of the tensor.
- * @return Pair containing the GXF entity as well as a std::shared_ptr<void*> corresponding to
- * the tensor data.
+ * @param reference_nhwc_tensor The reference CV-CUDA tensor.
+ * @return A GXF entity containing a single tensor like reference_nhwc_tensor.
  */
 std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_tensor(
-    gxf_context_t context, nvidia::gxf::Shape shape, nvidia::gxf::PrimitiveType element_type,
-    nvidia::gxf::MemoryStorageType storage_type, std::shared_ptr<Allocator> allocator, void* data);
+    gxf_context_t context, nvcv::Tensor reference_nhwc_tensor);
 
 /**
  * @brief Validate the Holoscan tensor has less than or equal to four dimensions and  is on the

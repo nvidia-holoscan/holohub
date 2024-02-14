@@ -27,5 +27,5 @@ Operator class to convert a `nvcv::Tensor` to a `holoscan::Tensor`.
 
 ##### Outputs
 
-- **`output`**: A CV-CUDA tensor
+- **`output`**: a CV-CUDA tensor
   - type: `nvcv::Tensor`

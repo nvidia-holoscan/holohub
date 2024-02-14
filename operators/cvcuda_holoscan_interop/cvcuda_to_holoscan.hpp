@@ -18,20 +18,22 @@
 #ifndef HOLOSCAN_OPERATORS_CVCUDA_TO_HOLOSCAN
 #define HOLOSCAN_OPERATORS_CVCUDA_TO_HOLOSCAN
 
-#include <holoscan/core/resources/gxf/allocator.hpp>
 #include <holoscan/holoscan.hpp>
 
 namespace holoscan::ops {
 
+/**
+ * @brief This operator converts a CVCUDA tensor to a Holoscan tensor. It only works for tensor with
+ * less than 4 dimensions (i.e., rank in CVCUDA tensor). If the batch size or channel size is 1,
+ * then those dimensions are dropped in the Holoscan tensor.
+ *
+ */
 class CvCudaToHoloscan : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(CvCudaToHoloscan);
 
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
-
- private:
-  Parameter<std::shared_ptr<Allocator>> pool_;
 };
 
 }  // namespace holoscan::ops

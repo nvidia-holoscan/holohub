@@ -17,15 +17,15 @@
 
 #include "gxf_utils.hpp"
 
+#include <gxf/std/tensor.hpp>
+#include "holoscan/holoscan.hpp"
+
 #include <cuda_runtime.h>
 #include <fmt/format.h>
-
+#include <holoscan/core/domain/tensor.hpp>
 #include <iostream>
 #include <memory>
-
-#include <gxf/std/tensor.hpp>
-#include <holoscan/core/domain/tensor.hpp>
-#include <holoscan/core/resources/gxf/allocator.hpp>
+#include <nvcv/Tensor.hpp>
 
 namespace holoscan {
 
@@ -44,9 +44,112 @@ void validate_holoscan_tensor(std::shared_ptr<holoscan::Tensor> in_tensor) {
   }
 }
 
+nvidia::gxf::PrimitiveType nvcvdatatype_to_gxfprimitivetype(nvcv::DataType dtype) {
+  nvidia::gxf::PrimitiveType type;
+  switch (dtype) {
+    case nvcv::TYPE_U8:
+    case nvcv::TYPE_2U8:
+    case nvcv::TYPE_3U8:
+    case nvcv::TYPE_4U8:
+      type = nvidia::gxf::PrimitiveType::kUnsigned8;
+      break;
+    case nvcv::TYPE_U16:
+    case nvcv::TYPE_2U16:
+    case nvcv::TYPE_3U16:
+    case nvcv::TYPE_4U16:
+      type = nvidia::gxf::PrimitiveType::kUnsigned16;
+      break;
+    case nvcv::TYPE_U32:
+    case nvcv::TYPE_2U32:
+    case nvcv::TYPE_3U32:
+    case nvcv::TYPE_4U32:
+      type = nvidia::gxf::PrimitiveType::kUnsigned32;
+      break;
+    case nvcv::TYPE_U64:
+    case nvcv::TYPE_2U64:
+    case nvcv::TYPE_3U64:
+    case nvcv::TYPE_4U64:
+      type = nvidia::gxf::PrimitiveType::kUnsigned64;
+      break;
+    case nvcv::TYPE_S8:
+    case nvcv::TYPE_2S8:
+    case nvcv::TYPE_3S8:
+    case nvcv::TYPE_4S8:
+      type = nvidia::gxf::PrimitiveType::kInt8;
+      break;
+    case nvcv::TYPE_S16:
+    case nvcv::TYPE_2S16:
+    case nvcv::TYPE_3S16:
+    case nvcv::TYPE_4S16:
+      type = nvidia::gxf::PrimitiveType::kInt16;
+      break;
+    case nvcv::TYPE_S32:
+    case nvcv::TYPE_2S32:
+    case nvcv::TYPE_3S32:
+    case nvcv::TYPE_4S32:
+      type = nvidia::gxf::PrimitiveType::kInt32;
+      break;
+    case nvcv::TYPE_S64:
+    case nvcv::TYPE_2S64:
+    case nvcv::TYPE_3S64:
+    case nvcv::TYPE_4S64:
+      type = nvidia::gxf::PrimitiveType::kInt64;
+      break;
+    case nvcv::TYPE_F32:
+    case nvcv::TYPE_2F32:
+    case nvcv::TYPE_3F32:
+    case nvcv::TYPE_4F32:
+      type = nvidia::gxf::PrimitiveType::kFloat32;
+      break;
+    case nvcv::TYPE_F64:
+    case nvcv::TYPE_2F64:
+    case nvcv::TYPE_3F64:
+    case nvcv::TYPE_4F64:
+      type = nvidia::gxf::PrimitiveType::kFloat64;
+      break;
+    // Can uncomment the complex types below for Holoscan v1.0, but they are unsupported in v0.6.
+    // case nvcv::TYPE_C64:
+    // case nvcv::TYPE_2C64:
+    // case nvcv::TYPE_3C64:
+    // case nvcv::TYPE_4C64:
+    //   type = nvidia::gxf::PrimitiveType::kComplex64;
+    //   break;
+    // case nvcv::TYPE_C128:
+    // case nvcv::TYPE_2C128:
+    //   type = nvidia::gxf::PrimitiveType::kComplex128;
+    //   break;
+    default:
+      throw std::runtime_error("nvcv::DataType does not have a corresponding GXF primitive type");
+  }
+  return type;
+}
+
 std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_tensor(
-    gxf_context_t context, nvidia::gxf::Shape shape, nvidia::gxf::PrimitiveType element_type,
-    nvidia::gxf::MemoryStorageType storage_type, std::shared_ptr<Allocator> allocator, void* data) {
+    gxf_context_t context, nvcv::Tensor reference_nhwc_tensor) {
+  // Create an out_message entity containing a single GXF tensor corresponding to the output.
+  auto element_type = nvcvdatatype_to_gxfprimitivetype(reference_nhwc_tensor.dtype());
+  auto shape = reference_nhwc_tensor.shape();
+  if (shape.size() != 4) { throw std::runtime_error("expected 4D tensor (NHWC format)"); }
+  nvidia::gxf::Shape out_shape;
+  int n = shape[0];
+  int h = shape[1];
+  int w = shape[2];
+  int c = shape[3];
+  if (shape[0] == 1) {
+    // note: omit singleton batch size since, e.g. HolovizOp expects HWC, not NHWC
+    if (shape[3] == 1) {
+      // note: omit singleton channel size
+      out_shape = nvidia::gxf::Shape{h, w};
+    } else {
+      out_shape = nvidia::gxf::Shape{h, w, c};
+    }
+  } else {
+    HOLOSCAN_LOG_DEBUG("Batched CVCUDA to Holoscan tensor with batch size of {}", n);
+    out_shape = nvidia::gxf::Shape{n, h, w, c};
+  }
+  auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
+  auto in_strided_data = reference_nhwc_tensor.exportData<nvcv::TensorDataStridedCuda>();
+
   int element_size = nvidia::gxf::PrimitiveTypeSize(element_type);
   size_t nbytes = shape.size() * element_size;
 
@@ -55,7 +158,7 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
   switch (storage_type) {
     case nvidia::gxf::MemoryStorageType::kDevice: {
       pointer = get_custom_shared_ptr(nbytes, storage_type);
-      *pointer = data;
+      *pointer = static_cast<void*>(in_strided_data->basePtr());
     } break;
     case nvidia::gxf::MemoryStorageType::kHost:
     case nvidia::gxf::MemoryStorageType::kSystem:
@@ -67,10 +170,10 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
   // Thus, create an Entity and use GXF tensor to wrap the CUDA memory.
   auto out_message = nvidia::gxf::Entity::New(context);
   auto gxf_tensor = out_message.value().add<nvidia::gxf::Tensor>("image");
-  gxf_tensor.value()->wrapMemory(shape,
+  gxf_tensor.value()->wrapMemory(out_shape,
                                  element_type,
                                  element_size,
-                                 nvidia::gxf::ComputeTrivialStrides(shape, element_size),
+                                 nvidia::gxf::ComputeTrivialStrides(out_shape, element_size),
                                  nvidia::gxf::MemoryStorageType::kDevice,
                                  *pointer,
                                  [orig_pointer = pointer](void*) mutable {

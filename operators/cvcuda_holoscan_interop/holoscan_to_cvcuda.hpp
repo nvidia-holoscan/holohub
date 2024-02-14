@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include <holoscan/core/resources/gxf/allocator.hpp>
 #include <holoscan/holoscan.hpp>
 #include <nvcv/Tensor.hpp>
 
