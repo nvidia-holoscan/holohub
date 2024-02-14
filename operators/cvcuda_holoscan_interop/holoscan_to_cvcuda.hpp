@@ -46,7 +46,6 @@ class HoloscanToCvCuda : public Operator {
                                             std::shared_ptr<void*>& holoscan_tensor_data);
 
  private:
-  Parameter<std::shared_ptr<Allocator>> pool_;
   std::shared_ptr<void*> holoscan_tensor_data_;
 };
 
