@@ -68,34 +68,24 @@ nvcv::Tensor HoloscanToCvCuda::to_cvcuda_NHWC_tensor(std::shared_ptr<holoscan::T
 }
 
 void HoloscanToCvCuda::setup(OperatorSpec& spec) {
-  spec.input<holoscan::TensorMap>("input");
-  // Keeping the output generic as gxf::Entity, so that we can also receive other data types in the
+  // Keeping the input generic as gxf::Entity, so that we can also receive other data types in the
   // future
+  spec.input<gxf::Entity>("input");
   spec.output<nvcv::Tensor>("output");
 }
 
 void HoloscanToCvCuda::compute(InputContext& op_input, OutputContext& op_output,
                                ExecutionContext&) {
-  auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("input");
-  if (!maybe_tensormap.has_value()) {
-    HOLOSCAN_LOG_ERROR("Failed to receive input message TensorMap");
+  auto maybe_input_message = op_input.receive<gxf::Entity>("input");
+  if (!maybe_input_message.has_value()) {
+    HOLOSCAN_LOG_ERROR("Failed to receive input message gxf::Entity");
     return;
   }
-
-  auto tensormap = maybe_tensormap.value();
-
-  HOLOSCAN_LOG_DEBUG("input tensor size: {}", tensormap.size());
-  if (tensormap.size() > 1) {
-    throw std::runtime_error("expected a single tensor in the input message but received " +
-                             std::to_string(tensormap.size()) + " tensors");
+  auto holoscan_tensor = maybe_input_message.value().get<holoscan::Tensor>();
+  if (!holoscan_tensor) {
+    HOLOSCAN_LOG_ERROR("Failed to receive holoscan::Tensor from input message gxf::Entity");
+    return;
   }
-  auto holoscan_tensor = tensormap.begin()->second;
-
-  // std::cout << "holoscan_tensor shape: ";
-  // for (int i = 0; i < holoscan_tensor->ndim(); i++) {
-  //   std::cout << holoscan_tensor->shape()[i] << ",";
-  // }
-  std::cout << std::endl;
 
   validate_holoscan_tensor(holoscan_tensor);
 

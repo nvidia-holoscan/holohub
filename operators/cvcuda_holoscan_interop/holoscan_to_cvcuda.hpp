@@ -25,6 +25,14 @@
 
 namespace holoscan::ops {
 
+/**
+ * @brief This operator converts a Holoscan tensor to a CVCUDA tensor. It currently works with
+ * tensor dimensions of less than or equal to 4. The tensor also needs to be on the device memory.
+ *
+ * Input is a Holoscan tensor as `holoscan::Tensor`, and output is a CVCUDA tensor as
+ * `nvcv::Tensor`.
+ *
+ */
 class HoloscanToCvCuda : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(HoloscanToCvCuda);

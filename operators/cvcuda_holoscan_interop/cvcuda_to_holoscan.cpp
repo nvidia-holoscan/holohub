@@ -34,16 +34,15 @@ void CvCudaToHoloscan::setup(OperatorSpec& spec) {
 void CvCudaToHoloscan::compute(InputContext& op_input, OutputContext& op_output,
                                ExecutionContext& context) {
   auto cv_in_tensor = op_input.receive<nvcv::Tensor>("input").value();
-  std::cout << "cv_in_tensor shape: " << cv_in_tensor.shape() << std::endl;
-
-  validate_cvcuda_tensor(cv_in_tensor);
 
   HOLOSCAN_LOG_DEBUG("cv_in_tensor retrieved");
 
-  HOLOSCAN_LOG_DEBUG("before create_out_message_with_tensor_like");
+  validate_cvcuda_tensor(cv_in_tensor);
+
   const auto& [out_message, tensor_data_pointer] =
       create_out_message_with_tensor(context.context(), cv_in_tensor);
-  HOLOSCAN_LOG_DEBUG("create_out_message_with_tensor_like success");
+
+  HOLOSCAN_LOG_DEBUG("create_out_message_with_tensor success");
 
   op_output.emit(out_message, "output");
 }

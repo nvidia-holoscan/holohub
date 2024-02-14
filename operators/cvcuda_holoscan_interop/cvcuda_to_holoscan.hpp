@@ -24,8 +24,11 @@ namespace holoscan::ops {
 
 /**
  * @brief This operator converts a CVCUDA tensor to a Holoscan tensor. It only works for tensor with
- * less than 4 dimensions (i.e., rank in CVCUDA tensor). If the batch size or channel size is 1,
- * then those dimensions are dropped in the Holoscan tensor.
+ * less than or equal to 4 dimensions (i.e., rank in CVCUDA tensor). If the batch size or channel
+ * size is 1, then those dimensions are dropped in the Holoscan tensor.
+ *
+ * Input is a CVCUDA tensor as `nvcv::Tensor`, and output is a Holoscan tensor in
+ * `holoscan::TensorMap`.
  *
  */
 class CvCudaToHoloscan : public Operator {

@@ -52,41 +52,38 @@ class ImageProcessingOp : public holoscan::Operator {
                holoscan::ExecutionContext& context) override {
     auto cv_in_tensor = op_input.receive<nvcv::Tensor>("input_tensor").value();
 
-    std::cout << "cv_in_tensor shape in ImageProcessing: " << cv_in_tensor.shape() << std::endl;
-
     // cv_in_tensor will be in NHWC format
     int num_batch = cv_in_tensor.shape()[0];
     if (num_batch > 1) { HOLOSCAN_LOG_ERROR("batch_size > 1 is not supported"); }
     if (cv_in_tensor.rank() > 4) { HOLOSCAN_LOG_ERROR("rank > 4 is not supported"); }
 
-    HOLOSCAN_LOG_DEBUG("cv_in_tensor retrieved");
-    auto reqs = nvcv::Tensor::CalcRequirements(cv_in_tensor.shape(), cv_in_tensor.dtype());
-    // std::copy(reqs.strides, reqs.strides + NVCV_TENSOR_MAX_RANK, cv_out_buffer.strides);
-    auto nbytes = nvcv::CalcTotalSizeBytes(nvcv::Requirements{reqs.mem}.cudaMem());
-
-    auto cv_in_buffer = cv_in_tensor.exportData<nvcv::TensorDataStridedCuda>();
+    // this has two components: strides and basePtr
     nvcv::TensorDataStridedCuda::Buffer cv_out_buffer;
+
+    // Copy the strides from the input tensor
+    auto cv_in_buffer = cv_in_tensor.exportData<nvcv::TensorDataStridedCuda>();
     for (int i = 0; i < cv_in_tensor.rank(); i++) {
       cv_out_buffer.strides[i] = std::move(cv_in_buffer->stride(i));
     }
+
+    // calculate the required device memory to allocate it
+    auto reqs = nvcv::Tensor::CalcRequirements(cv_in_tensor.shape(), cv_in_tensor.dtype());
+    auto nbytes = nvcv::CalcTotalSizeBytes(nvcv::Requirements{reqs.mem}.cudaMem());
+
+    // allocate the memory in the out buffer's basePtr
     cudaMalloc(&cv_out_buffer.basePtr, nbytes);
     nvcv::TensorDataStridedCuda out_data(cv_in_tensor.shape(), cv_in_tensor.dtype(), cv_out_buffer);
 
     HOLOSCAN_LOG_DEBUG("cv_out_buffer created");
 
-    // nvcv::TensorDataStridedCuda out_data(cv_shape, cv_in_tensor.dtype(), cv_out_buffer);
+    // output tensor is now properly formatted and allocated
     nvcv::Tensor cv_out_tensor = nvcv::TensorWrapData(out_data);
-
-    std::cout << "cv_out_tensor shape in ImageProcessing: " << cv_out_tensor.shape() << std::endl;
-
-    HOLOSCAN_LOG_DEBUG("Tensor wrapped");
 
     // apply the Flip operator
     cvcuda::Flip flipOp;
     int32_t flipCode = 0;
     flipOp(0, cv_in_tensor, cv_out_tensor, flipCode);  // Using default stream (0) here
     HOLOSCAN_LOG_DEBUG("Flipped done");
-    cudaStreamSynchronize(0);
 
     // Emit the tensor.
     op_output.emit(cv_out_tensor, "output_tensor");
@@ -142,7 +139,8 @@ class App : public holoscan::Application {
                                       Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // Flow definition
-    add_flow(source, visualizer1, {{"output", "receivers"}});
+    // add_flow(source, visualizer1, {{"output", "receivers"}}); // optional to watch the original
+    // stream
     add_flow(source, holoscan_to_cvcuda);
     add_flow(holoscan_to_cvcuda, image_processing);
     add_flow(image_processing, cvcuda_to_holoscan);

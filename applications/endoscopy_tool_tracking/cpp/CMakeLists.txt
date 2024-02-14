@@ -98,19 +98,19 @@ if(BUILD_TESTING)
 endif()
 
 # Flow benchmarking
-# if(FLOW_BENCHMARKING)
-#   # Patch the current source file
-#   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp" MAIN_CPP_FILE)
-#   string(REGEX REPLACE "^(.*holoscan::Application.*)" "#include \"benchmark.hpp\"\\n\\1" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
-#   string(REPLACE "holoscan::Application" "BenchmarkedApplication" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
-#   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp" "${MAIN_CPP_FILE}")
+if(FLOW_BENCHMARKING)
+  # Patch the current source file
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp" MAIN_CPP_FILE)
+  string(REGEX REPLACE "^(.*holoscan::Application.*)" "#include \"benchmark.hpp\"\\n\\1" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
+  string(REPLACE "holoscan::Application" "BenchmarkedApplication" MAIN_CPP_FILE "${MAIN_CPP_FILE}")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp" "${MAIN_CPP_FILE}")
 
-#   # Create a new executable
-#   add_executable(endoscopy_tool_tracking_flowbenchmark ${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp)
-#   get_target_property(ENDOSCOPY_LINK_LIBRARIES endoscopy_tool_tracking LINK_LIBRARIES)
-#   target_link_libraries(endoscopy_tool_tracking_flowbenchmark PRIVATE ${ENDOSCOPY_LINK_LIBRARIES})
-#   target_include_directories(endoscopy_tool_tracking_flowbenchmark
-#                              PRIVATE "${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking")
+  # Create a new executable
+  add_executable(endoscopy_tool_tracking_flowbenchmark ${CMAKE_CURRENT_BINARY_DIR}/main_benchmark.cpp)
+  get_target_property(ENDOSCOPY_LINK_LIBRARIES endoscopy_tool_tracking LINK_LIBRARIES)
+  target_link_libraries(endoscopy_tool_tracking_flowbenchmark PRIVATE ${ENDOSCOPY_LINK_LIBRARIES})
+  target_include_directories(endoscopy_tool_tracking_flowbenchmark
+                             PRIVATE "${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking")
 
   # Check if the machine is x86_64 or aarch64. IGX is considered to be aaarch64
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")

@@ -32,7 +32,6 @@ namespace holoscan {
 void validate_holoscan_tensor(std::shared_ptr<holoscan::Tensor> in_tensor) {
   auto ndim_in = in_tensor->ndim();
 
-  // assume 2D + channels without batch dimension
   if (ndim_in > 4) {
     throw std::runtime_error("Holoscan tensors of more than four dimensions are not supported");
   }

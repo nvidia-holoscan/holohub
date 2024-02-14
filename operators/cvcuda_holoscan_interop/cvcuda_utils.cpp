@@ -387,7 +387,12 @@ nvcv::TensorDataStridedCuda::Buffer nhwc_buffer_from_holoscan_tensor(
         "(batch, height, width, channels) dimensions");
   }
   // cudaMalloc(&in_buffer.basePtr, tensor->nbytes());
+  // We are making a copy here from the holoscan tensor data to CVCUDA tensor's buffer
+  // This is not optimal and could be avoided by just using the tensor->data() pointer directly in
+  // the CVCUDA tensor buffer's basePtr. However, this is creating issues with further processing of
+  // the CVCUDA tensor.
   holoscan_tensor_data = get_custom_shared_ptr(tensor->nbytes());
+  // *holoscan_tensor_data = static_cast<void*>(tensor->data());
   in_buffer.basePtr = static_cast<NVCVByte*>(*holoscan_tensor_data);
   cudaMemcpy(in_buffer.basePtr, tensor->data(), tensor->nbytes(), cudaMemcpyDeviceToDevice);
   return in_buffer;
