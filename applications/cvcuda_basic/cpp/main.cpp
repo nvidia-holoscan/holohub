@@ -25,7 +25,6 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include "cvcuda_to_holoscan.hpp"
-#include "gxf_utils.hpp"
 #include "holoscan/holoscan.hpp"
 #include "holoscan_to_cvcuda.hpp"
 
@@ -102,9 +101,6 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Resource> pool1 = make_resource<UnboundedAllocator>("pool1");
-    std::shared_ptr<Resource> pool2 = make_resource<UnboundedAllocator>("pool2");
-
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
@@ -113,14 +109,11 @@ class App : public holoscan::Application {
     auto source = make_operator<ops::VideoStreamReplayerOp>(
         "replayer", from_config("replayer"), Arg("directory", datapath));
 
-    auto holoscan_to_cvcuda =
-        make_operator<ops::HoloscanToCvCuda>("holoscan_to_cvcuda", Arg("pool") = pool1);
+    auto holoscan_to_cvcuda = make_operator<ops::HoloscanToCvCuda>("holoscan_to_cvcuda");
 
-    auto image_processing =
-        make_operator<ops::ImageProcessingOp>("image_processing", Arg("pool") = pool1);
+    auto image_processing = make_operator<ops::ImageProcessingOp>("image_processing");
 
-    auto cvcuda_to_holoscan =
-        make_operator<ops::CvCudaToHoloscan>("cvcuda_to_holoscan", Arg("pool") = pool2);
+    auto cvcuda_to_holoscan = make_operator<ops::CvCudaToHoloscan>("cvcuda_to_holoscan");
 
     std::shared_ptr<ops::HolovizOp> visualizer1 =
         make_operator<ops::HolovizOp>("holoviz1",

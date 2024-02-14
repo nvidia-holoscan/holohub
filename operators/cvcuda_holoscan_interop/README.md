@@ -14,16 +14,15 @@ Operator class to convert a `nvcv::Tensor` to a `holoscan::Tensor`.
 
 ##### Outputs
 
-- **`output`**: a Holoscan tensor
-  - type: `holoscan::Tensor`
+- **`output`**: a Holoscan tensor as `holoscan::Tensor` in `holoscan::TensorMap`
+  - type: `holoscan::TensorMap`
 
 #### `holoscan::ops::HoloscanToCvCuda`
 
 ##### Inputs
 
-- **`input`**: a Holoscan tensor map (a `gxf::Entity` is also accepted, and it will be converted to
-  a tensor map automatically). A `holoscan::Tensor` could also be passed inside a `holoscan::TensorMap`.
-  - type: `holoscan::TensorMap`
+- **`input`**: a `gxf::Entity` containing a Holoscan tensor as `holoscan::Tensor`
+  - type: `gxf::Entity`
 
 ##### Outputs
 
