@@ -1,0 +1,84 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+source: "replayer" # Valid values "replayer" 
+
+replayer:  # VideoStreamReplayer
+  basename: "segmentation_ex1"
+  frame_rate: 0 # as specified in timestamps
+  repeat: true # default: false
+  realtime: true # default: true
+  count: 0 # default: 0 (no frame count restriction)
+
+
+drop_alpha_channel:  # FormatConverter
+  in_dtype: "rgba8888"
+  in_tensor_name: source_video
+  out_tensor_name: source_video
+  out_dtype: "rgb888"
+
+format_converter:  # FormatConverter
+    # in_tensor_name: source_video
+    out_tensor_name: source_video
+    out_dtype: "float32"
+    src_roi_rect: [ 328, 36, 1264, 1008 ]
+    output_img_size : [512, 512] 
+
+format_converter_anonymization:  # FormatConverter
+    # in_tensor_name: source_video
+    out_tensor_name: source_video
+    out_dtype: "float32"
+    src_roi_rect: [ 328, 36, 1264, 1008 ]
+    output_img_size : [224, 224] 
+
+segmentation_preprocessor: # Preprocessor
+   in_tensor_name: source_video
+   out_tensor_name: preprocess_segmentation
+   data_format: hwc
+   normalize_means: [0.485, 0.456, 0.406]
+   normalize_stds: [0.229, 0.224, 0.225]
+
+
+
+multiai_inference:  # InferenceOp
+  backend: "trt"
+  pre_processor_map:
+    "tool_segmentation": [preprocess_segmentation]
+  inference_map:
+    "tool_segmentation": [ "tool_seg_infer" ]
+  enable_fp16: true
+
+segmentation_postprocessor:  # Postprocessor
+  in_tensor_name: tool_seg_infer
+  network_output_type: softmax
+  data_format: nchw
+  output_roi_rect: [ 328, 36, 1264, 1008 ]
+  output_img_size: [ 1920, 1080 ]
+  out_tensor_name: segmentation_postprocessed
+
+orsi_visualizer:  # Orsi Visualizer
+  swizzle_video : false # set this value to true to change the colorformat of the surgical video from rgb to bgr during vis
+  #all stl files
+  # stl_names: [1_full_arterial_tree, 2_venous_tree_all, 3_artery_stentzone, 4_vene_stentzone, 5_ureter_artphase_left, 6_parenchyma_left, 7_stent, 8_left_short_renal_artery, 9_left_long_renal_artery, 10_wervelzuil, 11_variceus_kluwen_linker_vene]
+  # stl_colors: [[255, 0, 0, 0], [0, 0, 255, 0], [255, 0, 0, 0], [0, 0, 255, 0], [255, 255, 0, 0], [180, 180, 180, 0], [170, 255, 0, 0], [255, 0, 0, 0], [255, 0, 0, 0], [200, 200, 180, 0], [0, 0, 255, 0]] # in RGBA format
+  # stl_keys: [321, 322, 324, 325, 326, 327, 328, 329, 320, 332, 331] # see https://www.glfw.org/docs/3.3/group__keys.html
+  
+  #fewer stl files
+  stl_names: [2_venous_tree_all, 4_vene_stentzone, 7_stent]
+  stl_colors: [[0, 0, 255, 0], [0, 0, 255, 0], [170, 255, 0, 0]]
+  stl_keys: [320, 321, 322]
+

@@ -48,6 +48,5 @@ class AdvNetworkOpTx : public Operator {
     std::unordered_map<uint32_t, void *> tx_rings_;
     Parameter<AdvNetConfigYaml> cfg_;
     AdvNetworkOpTxImpl *impl;
-    bool init = false;
 };
 };  // namespace holoscan::ops

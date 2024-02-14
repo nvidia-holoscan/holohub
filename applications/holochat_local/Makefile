@@ -43,7 +43,8 @@ build_db:
 .PHONY: download_llama
 download_llama:
 	mkdir -p holochat/docs
-	wget -nc -P ./holochat/models https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF/resolve/main/phind-codellama-34b-v2.Q5_K_M.gguf
+	wget -nc -P ./holochat/models https://api.ngc.nvidia.com/v2/models/nvidia/clara-holoscan/phind-codellama-34b-v2-q5_k_m/versions/2.0/zip
+	unzip ./holochat/models/zip -d ./holochat/models/
 
 # Runs HoloChat inside the pytorch container
 .PHONY: start_holochat

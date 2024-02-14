@@ -28,13 +28,15 @@
 namespace holoscan::ops {
 
 /**
- * @brief Operator class to handle the input for encoding YUV frames to H264 bit stream.
+ * @brief Operator class to handle the input for encoding YUV frames to H264
+ * bit stream.
  *
  * This wraps a GXF Codelet(`nvidia::gxf::VideoEncoderRequest`).
  */
 class VideoEncoderRequestOp: public holoscan::ops::GXFOperator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoEncoderRequestOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoEncoderRequestOp,
+      holoscan::ops::GXFOperator)
 
   VideoEncoderRequestOp() = default;
 
@@ -48,8 +50,8 @@ class VideoEncoderRequestOp: public holoscan::ops::GXFOperator {
  private:
   Parameter<holoscan::IOSpec*> input_frame_;
   Parameter<uint32_t> inbuf_storage_type_;
-  Parameter<std::shared_ptr<holoscan::AsynchronousCondition>> async_scheduling_conditon_;
-  Parameter<std::shared_ptr<holoscan::ops::VideoEncoderContext>> videoencoder_context_;
+  Parameter<std::shared_ptr<holoscan::ops::VideoEncoderContext>>
+      videoencoder_context_;
   Parameter<int32_t> codec_;
   Parameter<uint32_t> input_height_;
   Parameter<uint32_t> input_width_;
