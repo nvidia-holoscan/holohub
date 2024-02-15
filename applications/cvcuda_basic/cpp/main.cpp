@@ -44,7 +44,6 @@ class ImageProcessingOp : public holoscan::Operator {
   void setup(holoscan::OperatorSpec& spec) override {
     spec.input<nvcv::Tensor>("input_tensor");
     spec.output<nvcv::Tensor>("output_tensor");
-    spec.param(pool_, "pool", "Pool", "Pool to allocate the Holoscan tensor");
   }
 
   void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
@@ -87,9 +86,6 @@ class ImageProcessingOp : public holoscan::Operator {
     // Emit the tensor.
     op_output.emit(cv_out_tensor, "output_tensor");
   }
-
- private:
-  Parameter<std::shared_ptr<Allocator>> pool_;
 };
 
 }  // namespace holoscan::ops

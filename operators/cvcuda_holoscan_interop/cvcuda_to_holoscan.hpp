@@ -34,6 +34,7 @@ namespace holoscan::ops {
 class CvCudaToHoloscan : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(CvCudaToHoloscan);
+  CvCudaToHoloscan() = default;
 
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
