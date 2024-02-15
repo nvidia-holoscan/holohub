@@ -24,8 +24,6 @@ find_package(cvcuda REQUIRED)
 
 add_executable(cvcuda_basic
   main.cpp
-  cvcuda_utils.cpp
-  gxf_utils.cpp
 )
 
 target_link_libraries(cvcuda_basic
@@ -33,6 +31,7 @@ target_link_libraries(cvcuda_basic
   holoscan::core
   holoscan::ops::video_stream_replayer
   holoscan::ops::holoviz
+  holoscan::ops::cvcuda_holoscan_interop
   nvcv_types
   cvcuda
 )

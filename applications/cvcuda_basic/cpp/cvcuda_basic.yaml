@@ -21,9 +21,17 @@ replayer:
   realtime: true  # default: true
   count: 0        # default: 0 (no frame count restriction)
 
-holoviz:
+
+holoviz1:
   tensors:
-    - name: image
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+
+holoviz2:
+  tensors:
+    - name: "image"
       type: color
       opacity: 1.0
       priority: 0
