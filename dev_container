@@ -349,7 +349,7 @@ launch_desc() { c_echo 'Launch Docker container
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
-    --init : Suport tini entry point
+    --init : Support tini entry point
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     '
