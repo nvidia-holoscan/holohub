@@ -439,10 +439,11 @@ launch() {
         mount_device_opt+=" --device $video_dev"
     done
 
+    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
+        mount_device_opt+=" --device $video_dev:$video_dev"
+    done
+
     for i in 0 1 2 3; do
-        if [ -e /dev/ajantv2${i} ]; then
-            mount_device_opt+=" --device /dev/ajantv2${i}:/dev/ajantv2${i}"
-        fi
         # Deltacast capture boards and Videomaster SDK
         # Deltacast SDI capture board
 	    if [ -e /dev/delta-x380${i} ]; then
