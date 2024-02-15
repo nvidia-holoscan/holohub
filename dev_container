@@ -349,6 +349,7 @@ launch_desc() { c_echo 'Launch Docker container
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
+    --init : Support tini entry point
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     '
@@ -361,6 +362,7 @@ launch() {
     local print_verbose=0
     local local_sdk_root="undefined"
     local ssh_x11=0
+    local use_tini=0
     local nsys_profile=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
@@ -392,6 +394,10 @@ launch() {
         fi
         if [ "$arg" = "--ssh_x11" ]; then
            ssh_x11=1
+           shift
+        fi
+        if [ "$arg" = "--init" ]; then
+           use_tini=1
            shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
@@ -518,6 +524,11 @@ launch() {
         conditional_opt+=" -e XAUTHORITY=$XAUTH"
     fi
 
+    # Use tini
+    if [[ $use_tini -gt 0 ]]; then
+        conditional_opt+=" --init"
+    fi
+
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
@@ -580,7 +591,6 @@ launch() {
         --gpus all \
         --cap-add CAP_SYS_PTRACE \
         --ipc=host \
-        --ulimit memlock=-1 \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \
