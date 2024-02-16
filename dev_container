@@ -268,11 +268,11 @@ get_host_gpu() {
 
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v0.6.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v1.0.3-"$(get_host_gpu)
 }
 
 build_desc() { c_echo 'Build dev image
@@ -349,6 +349,7 @@ launch_desc() { c_echo 'Launch Docker container
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
+    --init : Support tini entry point
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     '
@@ -361,6 +362,7 @@ launch() {
     local print_verbose=0
     local local_sdk_root="undefined"
     local ssh_x11=0
+    local use_tini=0
     local nsys_profile=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
@@ -392,6 +394,10 @@ launch() {
         fi
         if [ "$arg" = "--ssh_x11" ]; then
            ssh_x11=1
+           shift
+        fi
+        if [ "$arg" = "--init" ]; then
+           use_tini=1
            shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
@@ -427,16 +433,17 @@ launch() {
     fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    # run_command xhost +local:docker
+    run_command xhost +local:docker
 
     for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
         mount_device_opt+=" --device $video_dev"
     done
 
+    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
+        mount_device_opt+=" --device $video_dev:$video_dev"
+    done
+
     for i in 0 1 2 3; do
-        if [ -e /dev/ajantv2${i} ]; then
-            mount_device_opt+=" --device /dev/ajantv2${i}:/dev/ajantv2${i}"
-        fi
         # Deltacast capture boards and Videomaster SDK
         # Deltacast SDI capture board
 	    if [ -e /dev/delta-x380${i} ]; then
@@ -476,6 +483,11 @@ launch() {
         conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
     fi
 
+    # add tegra directory
+    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
+        conditional_opt+=" -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra"
+    fi
+
     # add user in container to group video to access video devices, e.g. /dev/video0
     conditional_opt+=" --group-add video"
 
@@ -511,6 +523,11 @@ launch() {
 
         conditional_opt+=" -v $XAUTH:$XAUTH"
         conditional_opt+=" -e XAUTHORITY=$XAUTH"
+    fi
+
+    # Use tini
+    if [[ $use_tini -gt 0 ]]; then
+        conditional_opt+=" --init"
     fi
 
     # Define path for cupy's kernel cache, needed since $HOME does
@@ -572,6 +589,9 @@ launch() {
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
         -w /workspace/holohub \
         --runtime=nvidia \
+        --gpus all \
+        --cap-add CAP_SYS_PTRACE \
+        --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \

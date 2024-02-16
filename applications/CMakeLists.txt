@@ -24,7 +24,7 @@ add_holohub_application(benchmark_model)
 
 add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 
-add_holohub_application(cvcuda_basic)
+add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
 
 add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS deltacast_videomaster
@@ -41,16 +41,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                         HOLOSCAN_SAMPLE_APP
                         )
 
-add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
-                        OPERATORS video_encoder video_decoder
-                                  video_read_bitstream video_write_bitstream
-                                  tensor_to_video_buffer
-                                  lstm_tensor_rt_inference
-                                  tool_tracking_postprocessor
-                        )
-
-add_holohub_application(h264_video_decode DEPENDS
-                        OPERATORS video_decoder video_read_bitstream)
+add_subdirectory(h264)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
@@ -93,3 +84,5 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   XrTransformOp)
 
 add_holohub_application(webrtc_video_server)
+
+add_subdirectory(orsi)

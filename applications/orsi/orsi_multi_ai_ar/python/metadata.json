@@ -1,0 +1,43 @@
+{
+    "application": {
+        "name": "ORSI Academy Surgical Tool Segmentation, Anonymization and AR Overlay",
+        "authors": [
+            {
+                "name": "Jasper Hofman",
+                "affiliation": "Orsi Academy"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "0.6.0",
+            "tested_versions": [
+                "0.6.0"
+            ]
+        },
+        "platforms": [
+            "amd64",
+            "arm64"
+        ],
+        "tags": [
+            "DeltaCast",
+            "VideoMaster",
+            "Endoscopy",
+            "Segmentation",
+            "Augmented Reality", 
+            "VTK"
+        ],
+        "ranking": 3,
+        "dependencies": {
+            "model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+            "data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
+        },
+        "run": {
+            "command": "python3 <holohub_app_source>/orsi_multi_ai_ar.py --data <holohub_data_dir>/orsi",
+            "workdir": "holohub_bin"
+        }
+    }
+}

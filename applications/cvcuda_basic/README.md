@@ -2,7 +2,12 @@
 
 This application demonstrates seamless interoperability between Holoscan tensors and CV-CUDA tensors. The image processing pipeline is just a simple flip of the video orientation.
 
-Note that the C++ version of this application currently requires extra code to handle zero-copy conversion back and forth between CV-CUDA and Holoscan tensor types. On the Python side, the conversion is trivial due to the support for the [DLPack Python specification](https://dmlc.github.io/dlpack/latest/python_spec.html) in both CV-CUDA and Holoscan. We hope to make C++ interoperability with CV-CUDA easier in the future.
+Note that the C++ version of this application currently requires extra code to handle conversion
+back and forth between CV-CUDA and Holoscan tensor types. On the Python side, the conversion is
+trivial due to the support for the [DLPack Python
+specification](https://dmlc.github.io/dlpack/latest/python_spec.html) in both CV-CUDA and Holoscan.
+We provide two [operators](../../operators/cvcuda_holoscan_interop/README.md) to handle the
+interoperability between CVCUDA and Holoscan tensors.
 
 # Using the docker file
 

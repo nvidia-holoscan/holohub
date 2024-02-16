@@ -20,6 +20,7 @@ find_package(holoscan 0.6 REQUIRED CONFIG
 
 add_library(video_encoder SHARED
   video_encoder_context/video_encoder_context.hpp
+  video_encoder_context/video_encoder_context.cpp
   video_encoder_request/video_encoder_request.hpp
   video_encoder_request/video_encoder_request.cpp
   video_encoder_response/video_encoder_response.hpp
