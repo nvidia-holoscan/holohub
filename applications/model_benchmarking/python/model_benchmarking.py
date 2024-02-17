@@ -205,7 +205,7 @@ if __name__ == "__main__":
         help="Number of inferences to run in parallel",
     )
     # add positional argument CONFIG which is just a string
-    config_file = os.path.join(os.path.dirname(__file__), "benchmark_model.yaml")
+    config_file = os.path.join(os.path.dirname(__file__), "model_benchmarking.yaml")
     parser.add_argument("ConfigPath", nargs="?", default=config_file, help="Path to config file")
 
     args = parser.parse_args()

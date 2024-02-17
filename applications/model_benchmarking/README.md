@@ -40,8 +40,8 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from './data/ultrasound_segmentation/ultrasou
 
 Now, the benchmarking application can be built and run:
 ```
-.\run build benchmark_model
-.\run launch benchmark_model <cpp/python>
+.\run build model_benchmarking
+.\run launch model_benchmarking <cpp/python>
 ```
 
 To use your own video, you can play a video via the above `ffmpeg` command.
@@ -52,7 +52,7 @@ residing in the data path directory, with the `-m` option.
 
 To check the full list of options, run:
 ```
-./run launch benchmark_model <cpp/python> --extra_args "-h"
+./run launch model_benchmarking <cpp/python> --extra_args "-h"
 ```
 
 ## Capabilities
@@ -62,7 +62,7 @@ inferences to run. The same model will be loaded to the GPU multiple times. The 
 the application is in Figure 1. The visualization and (visualization + postprocessing) steps are
 marked as grey, as they can optionally be turned off with, respectively, `-p` and `-i` options.
 
-![Benchmark Model](./benchmark_model.png)
+![Benchmark Model](./model_benchmarking.png)
 Figure 1. The schematic diagram of the benchmarking application
 
 The above figure shows a single video data stream is used in the application. However,

@@ -164,9 +164,9 @@ class App : public holoscan::Application {
 };
 
 void print_help() {
-  std::cout << "Usage: benchmark_model [OPTIONS] [ConfigPath]" << std::endl;
+  std::cout << "Usage: model_benchmarking [OPTIONS] [ConfigPath]" << std::endl;
   std::cout << "ConfigPath                    Path to the config file (default: "
-               "<current directory>/benchmark_model.yaml)"
+               "<current directory>/model_benchmarking.yaml)"
             << std::endl;
   std::cout << "Options:" << std::endl;
   std::cout << "  -d, --data <path>               Path to the data directory (default: "
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     app->config(config_name);
   } else {
     auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/benchmark_model.yaml";
+    config_path += "/model_benchmarking.yaml";
     app->config(config_path);
   }
 

@@ -27,7 +27,7 @@
         ],
         "ranking": 1,
         "run": {
-            "command": "python3 <holohub_app_source>/benchmark_model.py",
+            "command": "python3 <holohub_app_source>/model_benchmarking.py",
             "workdir": "holohub_bin"
         }
     }

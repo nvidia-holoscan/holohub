@@ -13,18 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(RELATIVE_PATH app_relative_dest_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_custom_target(python_benchmark_model ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.py" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "benchmark_model.py"
-  BYPRODUCTS "benchmark_model.py"
-)
-
-add_custom_target(python_benchmark_model_yaml ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "benchmark_model.yaml"
-  BYPRODUCTS "benchmark_model.yaml"
-)
-
-add_dependencies(python_benchmark_model python_benchmark_model_yaml)
+add_subdirectory(python)
+add_subdirectory(cpp)

@@ -14,16 +14,16 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(benchmark_model CXX)
+project(model_benchmarking CXX)
 
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable(benchmark_model
-    benchmark_model.cpp
+add_executable(model_benchmarking
+    model_benchmarking.cpp
 )
 
-target_link_libraries(benchmark_model
+target_link_libraries(model_benchmarking
     PRIVATE
     holoscan::core
     holoscan::ops::v4l2
@@ -35,8 +35,8 @@ target_link_libraries(benchmark_model
 
 # Copy config file
 add_custom_target(benchmark_model_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_model.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "benchmark_model.yaml"
-    BYPRODUCTS "benchmark_model.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/model_benchmarking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "model_benchmarking.yaml"
+    BYPRODUCTS "model_benchmarking.yaml"
 )
-add_dependencies(benchmark_model benchmark_model_yaml)
+add_dependencies(model_benchmarking benchmark_model_yaml)

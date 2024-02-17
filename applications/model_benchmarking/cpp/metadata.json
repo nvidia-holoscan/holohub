@@ -28,7 +28,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/benchmark_model",
+			"command": "<holohub_app_bin>/model_benchmarking",
 			"workdir": "holohub_app_bin"
 		}
 	}
