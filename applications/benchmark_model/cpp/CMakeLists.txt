@@ -19,9 +19,6 @@ project(benchmark_model CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-find_package(nvcv_types REQUIRED)
-find_package(cvcuda REQUIRED)
-
 add_executable(benchmark_model
     benchmark_model.cpp
 )
@@ -34,9 +31,6 @@ target_link_libraries(benchmark_model
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
-    holoscan::ops::cvcuda_holoscan_interop
-    nvcv_types
-    cvcuda
 )
 
 # Copy config file

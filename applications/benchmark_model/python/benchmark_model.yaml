@@ -14,11 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-replayer:  # VideoStreamReplayer
-  frame_rate: 0 # as specified in timestamps
-  repeat: true # default: false
-  realtime: true # default: true
-  count: 0 # default: 0 (no frame count restriction)
+source:
+  device: "/dev/video6"
 
 preprocessor:  # FormatConverter
   out_tensor_name: source_video
@@ -43,5 +40,10 @@ viz:  # Holoviz
   height: 320
   color_lut: [
     [0.65, 0.81, 0.89, 0.1],
-    [0.2, 0.63, 0.17, 0.7]
+    [0.2, 0.63, 0.17, 0.7],
+    [0.98, 0.6, 0.6, 0.7],
+    [0.89, 0.1, 0.11, 0.7],
+    [0.99, 0.75, 0.44, 0.7],
+    [1.0, 0.5, 0.0, 0.7],
+    [0.0, 0.0, 0.0, 0.1]
     ]

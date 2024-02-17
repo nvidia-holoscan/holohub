@@ -29,7 +29,7 @@ from holoscan.operators import (
     HolovizOp,
     InferenceOp,
     SegmentationPostprocessorOp,
-    VideoStreamReplayerOp,
+    V4L2VideoCaptureOp,
 )
 from holoscan.resources import UnboundedAllocator
 
@@ -46,11 +46,11 @@ class SinkOp(Operator):
 
 
 class App(Application):
+
     def __init__(
         self,
         datapath,
         model_name,
-        video_name,
         num_inferences,
         only_inference,
         inference_postprocessing,
@@ -64,7 +64,6 @@ class App(Application):
 
         self.datapath = datapath
         self.model_name = model_name
-        self.video_name = video_name
         self.num_inferences = num_inferences
         self.only_inference = only_inference
         self.inference_postprocessing = inference_postprocessing
@@ -79,12 +78,11 @@ class App(Application):
     def compose(self):
         host_allocator = UnboundedAllocator(self, name="host_allocator")
 
-        source = VideoStreamReplayerOp(
+        source = V4L2VideoCaptureOp(
             self,
-            name="replayer",
-            directory=self.datapath,
-            basename=self.video_name,
-            **self.kwargs("replayer"),
+            name="source",
+            allocator=host_allocator,
+            **self.kwargs("source"),
         )
 
         preprocessor = FormatConverterOp(
@@ -116,10 +114,10 @@ class App(Application):
                 viz = HolovizOp(self, name=f"holoviz{i}", **self.kwargs("viz"))
                 holovizs.append(viz)
                 # Passthrough to Visualization
-                self.add_flow(source, viz, {("output", "receivers")})
+                self.add_flow(source, viz, {("signal", "receivers")})
 
         # Inference path
-        self.add_flow(source, preprocessor, {("output", "source_video")})
+        self.add_flow(source, preprocessor, {("signal", "source_video")})
         self.add_flow(preprocessor, inference, {("tensor", "receivers")})
 
         if self.only_inference:
@@ -156,7 +154,6 @@ def main(args):
     app = App(
         args.data,
         args.model_name,
-        args.video_name,
         args.multi_inference,
         args.only_inference,
         args.inference_postprocessing,
@@ -172,7 +169,8 @@ if __name__ == "__main__":
         description="Benchmark Model Application.",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
-    default_data_path = os.environ.get("HOLOSCAN_INPUT_PATH", "../data")
+    default_data_path = "/workspace/holohub/data/ultrasound_segmentation"
+    default_model_name = "us_unet_256x256_nhwc.onnx"
     parser.add_argument(
         "-d",
         "--data",
@@ -184,11 +182,8 @@ if __name__ == "__main__":
         "-m",
         "--model-name",
         type=str,
-        default="identity_model.onnx",
+        default=default_model_name,
         help="Path to the model directory",
-    )
-    parser.add_argument(
-        "-v", "--video-name", type=str, default="video", help="Path to the video file"
     )
     parser.add_argument(
         "-i",
