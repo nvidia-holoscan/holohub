@@ -23,7 +23,6 @@
 #include <cuda_runtime.h>
 #include <fmt/format.h>
 #include <holoscan/core/domain/tensor.hpp>
-#include <holoscan/core/gxf/gxf_tensor.hpp>
 #include <iostream>
 #include <memory>
 #include <nvcv/Tensor.hpp>
@@ -157,7 +156,7 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
 
   switch (storage_type) {
     case nvidia::gxf::MemoryStorageType::kDevice: {
-      pointer = get_custom_shared_ptr(0, storage_type, false);
+      pointer = get_custom_shared_ptr(nbytes, storage_type);
       *pointer = static_cast<void*>(in_strided_data->basePtr());
     } break;
     case nvidia::gxf::MemoryStorageType::kHost:
@@ -169,21 +168,18 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
   // Holoscan Tensor doesn't support direct memory allocation.
   // Thus, create an Entity and use GXF tensor to wrap the CUDA memory.
   auto out_message = nvidia::gxf::Entity::New(context);
-  nvidia::gxf::Tensor gxf_tensor;  // = out_message.value().add<nvidia::gxf::Tensor>("image");
-  gxf_tensor.wrapMemory(out_shape,
-                        element_type,
-                        element_size,
-                        nvidia::gxf::ComputeTrivialStrides(out_shape, element_size),
-                        nvidia::gxf::MemoryStorageType::kDevice,
-                        *pointer,
-                        [orig_pointer = pointer](void*) mutable {
-                          orig_pointer.reset();  // decrement ref count
-                          return nvidia::gxf::Success;
-                        });
+  auto gxf_tensor = out_message.value().add<nvidia::gxf::Tensor>("image");
+  gxf_tensor.value()->wrapMemory(out_shape,
+                                 element_type,
+                                 element_size,
+                                 nvidia::gxf::ComputeTrivialStrides(out_shape, element_size),
+                                 nvidia::gxf::MemoryStorageType::kDevice,
+                                 *pointer,
+                                 [orig_pointer = pointer](void*) mutable {
+                                   orig_pointer.reset();  // decrement ref count
+                                   return nvidia::gxf::Success;
+                                 });
 
-  auto holoscan_gxf_tensor = out_message.value().add<holoscan::gxf::GXFTensor>("image");
-  auto tmp = std::make_shared<holoscan::gxf::GXFTensor>(gxf_tensor);
-  *(holoscan_gxf_tensor.value()) = std::move(*tmp);
   return std::make_pair(out_message.value(), pointer);
 }
 }  // namespace holoscan
