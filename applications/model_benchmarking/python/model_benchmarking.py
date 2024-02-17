@@ -42,7 +42,7 @@ class SinkOp(Operator):
         spec.input("in")
 
     def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
-        value = op_input.receive("in")
+        _ = op_input.receive("in")
 
 
 class App(Application):
