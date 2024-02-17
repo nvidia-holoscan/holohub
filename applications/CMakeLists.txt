@@ -20,7 +20,7 @@ add_holohub_application(adv_networking_bench DEPENDS
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(benchmark_model)
+add_holohub_application(benchmark_model DEPENDS OPERATORS cvcuda_holoscan_interop)
 
 add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 

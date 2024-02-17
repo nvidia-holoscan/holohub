@@ -31,8 +31,9 @@
 #include <nvcv/Image.hpp>
 #include <nvcv/ImageBatch.hpp>
 #include <nvcv/Tensor.hpp>
-#include "cvcuda_utils.hpp"
+#include "cvcuda_to_holoscan.hpp"
 #include "holoscan/holoscan.hpp"
+#include "holoscan_to_cvcuda.hpp"
 
 namespace holoscan::ops {
 
@@ -51,89 +52,6 @@ class SinkOp : public holoscan::Operator {
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) {
     auto value = op_input.receive<std::any>("in");
-  }
-};
-
-class HoloscanToCvCudaTensorOp : public holoscan::Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(HoloscanToCvCudaTensorOp)
-
-  HoloscanToCvCudaTensorOp() = default;
-
-  void setup(OperatorSpec& spec) {
-    spec.input<gxf::Entity>("input");
-    spec.output<nvcv::Tensor>("output");
-  }
-
-  static nvcv::Tensor to_cvcuda_NHWC_tensor(std::shared_ptr<holoscan::Tensor> in_tensor) {
-    // The output tensor will always be created in NHWC format even if no batch dimension existed
-    // on the GXF tensor.
-    int ndim = in_tensor->ndim();
-    int batch_size, image_height, image_width, num_channels;
-    auto in_shape = in_tensor->shape();
-    if (ndim == 4) {
-      batch_size = in_shape[0];
-      image_height = in_shape[1];
-      image_width = in_shape[2];
-      num_channels = in_shape[3];
-    } else if (ndim == 3) {
-      batch_size = 1;
-      image_height = in_shape[0];
-      image_width = in_shape[1];
-      num_channels = in_shape[2];
-    } else if (ndim == 2) {
-      batch_size = 1;
-      image_height = in_shape[0];
-      image_width = in_shape[1];
-      num_channels = 1;
-    } else {
-      throw std::runtime_error(
-          "expected a tensor with (height, width) or (height, width, channels) or "
-          "(batch, height, width, channels) dimensions");
-    }
-
-    // buffer with strides defined for NHWC format (For cvcuda::Flip could also just use HWC)
-    auto in_buffer = holoscan::nhwc_buffer_from_holoscan_tensor(in_tensor);
-    nvcv::TensorShape cv_tensor_shape{{batch_size, image_height, image_width, num_channels},
-                                      NVCV_TENSOR_NHWC};
-    nvcv::DataType cv_dtype = dldatatype_to_nvcvdatatype(in_tensor->dtype());
-
-    // Create a tensor buffer to store the data pointer and pitch bytes for each plane
-    nvcv::TensorDataStridedCuda in_data(cv_tensor_shape, cv_dtype, in_buffer);
-
-    // TensorWrapData allows for interoperation of external tensor representations with CVCUDA
-    // Tensor.
-    nvcv::Tensor cv_in_tensor = nvcv::TensorWrapData(in_data);
-    return cv_in_tensor;
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) {
-    auto input_message = op_input.receive<gxf::Entity>("input").value();
-
-    // auto tensor = input_message.get<holoscan::Tensor>();
-    auto holoscan_tensor = input_message.get<
-        holoscan::Tensor>();  // holoscan::gxf::GXFTensor(*(tensor.value().get())).as_tensor();
-
-    DLDevice dev = holoscan_tensor->device();
-    if (dev.device_type != kDLCUDA) {
-      throw std::runtime_error("expected input tensor to be on a CUDA device");
-    }
-
-    auto ndim_in = holoscan_tensor->ndim();
-    HOLOSCAN_LOG_INFO("in_tensor.ndim() = {}", ndim_in);
-    for (int i = 0; i < ndim_in; i++) {
-      HOLOSCAN_LOG_INFO("in_tensor.shape()[{}] = {}", i, holoscan_tensor->shape()[i]);
-    }
-    DLDataType dtype = holoscan_tensor->dtype();
-    HOLOSCAN_LOG_INFO("in_tensor.dtype().code = {}, dtype().bits: {}", dtype.code, dtype.bits);
-    if (holoscan_tensor->shape()[ndim_in - 1] != 3) {
-      throw std::runtime_error(
-          "expected holoscan_tensor with 3 channels on the last dimension (RGB)");
-    }
-
-    // nvcv::Tensor cv_tensor;
-    const auto& cv_tensor = to_cvcuda_NHWC_tensor(holoscan_tensor);
-    op_output.emit(cv_tensor, "output");
   }
 };
 
@@ -194,65 +112,6 @@ class VideoBufferToCvCuda : public holoscan::Operator {
   }
 };
 
-class CvCudaToHoloscan : public holoscan::Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(CvCudaToHoloscan)
-
-  CvCudaToHoloscan() = default;
-
-  void setup(OperatorSpec& spec) {
-    spec.input<nvcv::Tensor>("input");
-    spec.output<holoscan::TensorMap>("output");
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
-    auto cv_in_tensor = op_input.receive<nvcv::Tensor>("input").value();
-
-    HOLOSCAN_LOG_INFO("cv_in_tensor retrieved");
-
-    nvcv::Tensor::Requirements in_tensor_req =
-        nvcv::Tensor::CalcRequirements(1, {224, 224}, nvcv::FMT_RGBf32p);
-
-    nvcv::Tensor out_tensor_like(
-        nvcv::TensorShape{in_tensor_req.shape, in_tensor_req.rank, in_tensor_req.layout},
-        nvcv::DataType{in_tensor_req.dtype});
-
-    HOLOSCAN_LOG_INFO("before create_out_message_with_tensor_like");
-    const auto& [out_message, tensor_data_pointer] =
-        create_out_message_with_tensor_like(context.context(), out_tensor_like);
-    HOLOSCAN_LOG_INFO("create_out_message_with_tensor_like success");
-
-    // auto cv_in_strided = cv_in_tensor.exportData<nvcv::TensorDataStridedCuda>();
-
-    // int64_t tot_size = nvcv::CalcTotalSizeBytes(nvcv::Requirements{in_tensor_req.mem}.cudaMem());
-    // cudaMemcpy(*tensor_data_pointer, cv_in_strided->basePtr(), tot_size,
-    // cudaMemcpyDeviceToDevice); HOLOSCAN_LOG_INFO("Before cudaMemcpy"); cudaStreamSynchronize(0);
-
-    nvcv::TensorDataStridedCuda::Buffer cv_out_buffer;
-    std::copy(
-        in_tensor_req.strides, in_tensor_req.strides + NVCV_TENSOR_MAX_RANK, cv_out_buffer.strides);
-
-    cv_out_buffer.basePtr = static_cast<NVCVByte*>(*tensor_data_pointer);
-    nvcv::TensorDataStridedCuda out_data(
-        nvcv::TensorShape{in_tensor_req.shape, in_tensor_req.rank, in_tensor_req.layout},
-        cv_in_tensor.dtype(),
-        cv_out_buffer);
-
-    nvcv::Tensor cv_out_tensor = nvcv::TensorWrapData(out_data);
-
-    cvcuda::Reformat reformatOp;
-    reformatOp(0, cv_in_tensor, cv_out_tensor);
-
-    std::cout << "cv_out_tensor shape: " << cv_out_tensor.shape() << std::endl;
-
-    HOLOSCAN_LOG_INFO("After last");
-
-    cudaStreamSynchronize(0);
-
-    op_output.emit(out_message, "output");
-  }
-};
-
 class PreprocessImage : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PreprocessImage)
@@ -266,6 +125,8 @@ class PreprocessImage : public holoscan::Operator {
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
     auto in_tensor = op_input.receive<nvcv::Tensor>("input").value();
+
+    std::cout << "in_tensor shape: " << in_tensor.shape() << std::endl;
 
     int resize = 256;
 
@@ -302,6 +163,8 @@ class PreprocessImage : public holoscan::Operator {
     nvcv::Tensor floatTensor(1, {crop_size, crop_size}, nvcv::FMT_RGBf32);
     cvcuda::ConvertTo convertOp;
     convertOp(0, cropTensor, floatTensor, 1.0f / 255.f, 0.0f);
+
+    std::cout << "floatTensor shape: " << floatTensor.shape() << std::endl;
 
     cudaStreamSynchronize(0);
 
@@ -405,7 +268,7 @@ class App : public holoscan::Application {
     auto preprocessor = make_operator<ops::FormatConverterOp>(
         "preprocessor", from_config("preprocessor"), Arg("pool") = pool_resource);
 
-    auto holoscantocvcuda = make_operator<ops::HoloscanToCvCudaTensorOp>("holoscantocvcuda");
+    auto holoscantocvcuda = make_operator<ops::HoloscanToCvCuda>("holoscantocvcuda");
 
     auto cvcudatoholoscan = make_operator<ops::CvCudaToHoloscan>("cvcudatoholoscan");
 

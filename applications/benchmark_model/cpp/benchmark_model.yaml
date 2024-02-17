@@ -38,7 +38,7 @@ preprocessor:  # FormatConverter
 preinference:  # FormatConverter
   in_tensor_name: image
   out_tensor_name: source_video
-  in_dtype: "rgb888"
+  # in_dtype: "rgb888"
   out_dtype: "float32"
 
 inference:  # Inference

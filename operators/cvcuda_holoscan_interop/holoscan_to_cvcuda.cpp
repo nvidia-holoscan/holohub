@@ -81,15 +81,23 @@ void HoloscanToCvCuda::compute(InputContext& op_input, OutputContext& op_output,
     HOLOSCAN_LOG_ERROR("Failed to receive input message gxf::Entity");
     return;
   }
+
+  HOLOSCAN_LOG_DEBUG("in message received");
   auto holoscan_tensor = maybe_input_message.value().get<holoscan::Tensor>();
   if (!holoscan_tensor) {
     HOLOSCAN_LOG_ERROR("Failed to receive holoscan::Tensor from input message gxf::Entity");
     return;
   }
 
+  HOLOSCAN_LOG_DEBUG("converted to holoscan::Tensor");
+
   validate_holoscan_tensor(holoscan_tensor);
 
+  HOLOSCAN_LOG_DEBUG("validated");
+
   const auto& cv_tensor = to_cvcuda_NHWC_tensor(holoscan_tensor, holoscan_tensor_data_);
+
+  HOLOSCAN_LOG_DEBUG("to cv_tensor");
 
   op_output.emit(cv_tensor, "output");
 }

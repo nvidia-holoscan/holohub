@@ -22,13 +22,15 @@
 
 #include <gxf/std/tensor.hpp>
 #include <holoscan/core/domain/tensor.hpp>
+#include <iostream>
 #include <nvcv/Tensor.hpp>
 
 namespace holoscan {
 
 inline std::shared_ptr<void*> get_custom_shared_ptr(
     int64_t nbytes,
-    nvidia::gxf::MemoryStorageType storage_type = nvidia::gxf::MemoryStorageType::kDevice) {
+    nvidia::gxf::MemoryStorageType storage_type = nvidia::gxf::MemoryStorageType::kDevice,
+    bool allocate_new = true) {
   void* ptr = nullptr;
 
   if (storage_type != nvidia::gxf::MemoryStorageType::kDevice) {
@@ -36,12 +38,17 @@ inline std::shared_ptr<void*> get_custom_shared_ptr(
         "Only device memory is supported for interoperability between CVCUDA and Holoscan "
         "tensors.");
   }
-  cudaMalloc(&ptr, nbytes);
+  if (nbytes == 0 || allocate_new) { cudaMalloc(&ptr, nbytes); }
 
   std::shared_ptr<void*> pointer(new void*(ptr), [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        std::cout << "Freeing pointer" << std::endl;
+        cudaFree(*pointer);
+        *pointer = nullptr;
+      }
       delete pointer;
+      pointer = nullptr;
     }
   });
   return pointer;
