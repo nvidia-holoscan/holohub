@@ -40,8 +40,12 @@ inline std::shared_ptr<void*> get_custom_shared_ptr(
 
   std::shared_ptr<void*> pointer(new void*(ptr), [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+        pointer = nullptr;
+      }
       delete pointer;
+      pointer = nullptr;
     }
   });
   return pointer;
