@@ -31,3 +31,7 @@ add_library(holoscan::prohawk_video_processing ALIAS prohawk_video_processing)
 
 target_link_libraries(prohawk_video_processing holoscan::core Prohawk::ptgde ${OpenCV_LIBS})
 target_include_directories(prohawk_video_processing INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

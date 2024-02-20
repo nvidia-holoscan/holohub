@@ -1,2 +1,6 @@
 build/
+build-*/
 data/
+ci/
+CTestConfig.cmake
+*__pycache__

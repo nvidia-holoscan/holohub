@@ -45,7 +45,11 @@ endif()
 if(BUILD_TESTING)
   # Add test
   add_test(NAME volume_rendering_test
-           COMMAND volume_rendering --count=100
+           COMMAND volume_rendering
+             --count=100
+             -c "${HOLOHUB_DATA_DIR}/volume_rendering/config.json"
+             -d "${HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd"
+             -m "${HOLOHUB_DATA_DIR}/volume_rendering/smoothmasks.seg.mhd"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(volume_rendering_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Application has finished running.")

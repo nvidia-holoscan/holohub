@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "Hyperspectral image segmentation",
+		"authors": [
+			{
+				"name": "Lars Doorenbos",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Segmentation",
+			"Hyperspectral"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"blosc": "^1.11.1",
+			"torch": "^2.1.0",
+			"onnx": "^1.15.0",
+			"onnxruntime": "^1.16.1",
+			"Pillow": "^10.1.0",
+			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation"
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/hyperspectral_segmentation.py --output_folder <holohub_app_source>/ --data <holohub_data_dir>/hyperspectral/data --model <holohub_data_dir>/hyperspectral",
+			"workdir": "holohub_bin"
+		}
+	}
+}

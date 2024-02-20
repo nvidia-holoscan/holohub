@@ -230,7 +230,7 @@ setup() {
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -264,6 +264,7 @@ install_lint_deps_desc() { echo 'Install lint dependencies
 This command will install the dependencies required to run the linting tools.
 
 - Python linting: ruff, isort, black, mypy
+- CMake linting: cmakelint
 - C++ linting: cpplint, clang-format
 - Spelling: codespell
 '
@@ -302,6 +303,11 @@ install_lint_deps() {
         run_command ${HOLOHUB_PY_EXE} -m pip install codespell || exit_code=1
     fi
 
+    c_echo W "Install Lint Dependencies for CMake"
+    if ! command -v cmakelint &> /dev/null; then
+        run_command ${HOLOHUB_PY_EXE} -m pip install cmakelint || exit_code=1
+    fi
+
     popd > /dev/null
 
     exit $exit_code
@@ -311,6 +317,7 @@ lint_desc() { echo 'Lint the repository
 
 Python linting: black, isort, ruff
 C++ linting: cpplint
+CMake linting: cmakelint
 Spelling: codespell
 
 Arguments:
@@ -349,7 +356,8 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi \
+                            --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -363,7 +371,7 @@ lint() {
       for file in ${files_to_fix}; do
         run_command clang-format --style=file --sort-includes=0 --lines=20:10000 -i ${file} || exit_code=1
       done
-     
+
       exit $exit_code
     fi
 
@@ -393,9 +401,18 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd || exit_code=1
+                          -L nd,ba,activ,Activ,dne,unexpect,hsi \
+                          --exclude-file codespell.txt || exit_code=1
+
+    echo "Linting CMake"
+    cmakelint --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs \
+              $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*") || exit_code=1 
 
     popd > /dev/null
+
+    if [ $exit_code == 0 ]; then
+        echo "Everything looks good!"
+    fi
 
     exit $exit_code
 }
@@ -410,6 +427,7 @@ build_desc() {
   echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
+  echo "   --with <list of operators>  : Optional operators that should be built"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
@@ -417,9 +435,30 @@ build_desc() {
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
+  echo "                                          multiple arguments can be passed between quotes"
+  echo "                                          or using several --configure-args in the command line"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
   echo ""
+}
+
+# See how many directories under the input path matches "install*" pattern
+# If we find exactly one, this is probably the SDK install path the user wants to use
+# Print out a warning message if we find multiple install paths and ask user to specify exact path using --sdk option
+get_install_path() {
+    dir=$1
+    install_paths=($(find $dir -maxdepth 1 -type d -name "install*" 2>/dev/null))
+    if [ ${#install_paths[@]} -eq 1 ]; then
+        echo "${install_paths[0]}"
+    elif [ ${#install_paths[@]} -gt 1 ]; then
+        echo "Warning: Multiple install directories found under $dir, please specify exact path to --sdk option with one of the following directories" >&2
+        for path in "${install_paths[@]}"; do
+            echo "- $path" >&2
+        done
+        echo ""
+    else
+        echo ""
+    fi
 }
 
 # Allow users to point "--sdk" to root directory of the SDK installation.
@@ -427,14 +466,20 @@ build_desc() {
 # installations between debian image, docker, or when built from source
 resolve_sdk_install_path() {
   sdk_path=$1
-  
-  if [ -d "${sdk_path}/public/install" ]; then
-    echo "${sdk_path}/public/install"; return
-  elif [ -d "${sdk_path}/install" ]; then
-    echo "${sdk_path}/install"; return
-  else
-    echo "${sdk_path}"; return
+
+  install_path=$(get_install_path "${sdk_path}/public")
+  if [[ -n $install_path ]]; then
+    echo "${install_path}";
+    return
   fi
+
+  install_path=$(get_install_path "${sdk_path}/")
+  if [[ -n $install_path ]]; then
+    echo "${install_path}";
+    return
+  fi
+
+  echo "${sdk_path}"
 }
 
 build() {
@@ -460,10 +505,15 @@ build() {
       elif [ "$arg" = "--sdk" ]; then
          sdk_path=$( resolve_sdk_install_path "${ARGS[i+1]}" )
          holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
-         echo "Using Holscan SDK in ${sdk_path}"
+         echo "Setting Holoscan SDK install path to ${sdk_path}"
+         skipnext=1
+      elif [ "$arg" = "--with" ]; then
+         operator="${ARGS[i+1]}"
+         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=${operator}"
+         echo "Building with operator ${operator}"
          skipnext=1
       elif [ "$arg" = "--configure-args" ]; then
-         configure_args="${ARGS[i+1]}"
+         configure_args="${configure_args} ${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
          skipnext=1
       elif [ "$arg" = "--type" ]; then
@@ -514,6 +564,7 @@ launch_desc() {
   echo "Usage: ./run launch <application_name> [language: cpp|python] [--extra_args <args>]"
   echo "Options:"
   echo "   --extra_args <args>       : additional arguments passed to the application command"
+  echo "   --nsys_profile            : profile using Nsight Systems"
   echo ""
   echo ""
   echo "Use './run list' first to list the available applications"
@@ -524,23 +575,24 @@ launch_desc() {
 
 
 launch() {
+   local appname=""
+   local language=""
    local extra_args=""
+   local nsys_profile=false
 
    for i in "${!ARGS[@]}"; do
      arg="${ARGS[i]}"
      if [ "$arg" = "--extra_args" ]; then
-       unset_pos=$i
        extra_args="${ARGS[i+1]}"
        break
+     elif [ "$arg" = "--nsys_profile" ]; then
+       nsys_profile=true
+     elif [ -z "${appname}" ]; then
+       appname=$arg
+     elif [ -z "${language}" ]; then
+       language=$arg
      fi
    done
-   if [ "${unset_pos}" ]; then
-     # Call unset twice to remove both the --extra_args option and the args provided
-     unset 'ARGS[unset_pos]'
-     unset 'ARGS[unset_pos]'
-   fi
-
-   local appname=$1
 
    # Export the python path (by default use the one used to build)
    local holohub_build_dir="${SCRIPT_DIR}/build"
@@ -555,12 +607,22 @@ launch() {
 
    local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
    local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
    local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+
+   # Check if the application is in a subdirectory
+   if [ ! -d "$holohub_app_source" ]; then
+     sub_app=$(find ${SCRIPT_DIR}/applications -type d -name "${appname}")
+     appname=${sub_app#"${SCRIPT_DIR}/applications/"}
+     if [[ "$appname" != "" ]]; then
+       holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+     fi
+   fi
+
+   local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
    local metadata_file="${holohub_app_source}/metadata.json"
 
-   if [[ $2 ]]; then
-     metadata_file="${holohub_app_source}/$2/metadata.json"
+   if [[ "${language}" ]]; then
+     metadata_file="${holohub_app_source}/${language}/metadata.json"
      holohub_app_bin="${holohub_build_dir}/applications/${appname}/$2"
      holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
    fi
@@ -576,7 +638,7 @@ launch() {
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
-     echo "Did you forget to './run build $appname' ?"
+     echo "Did you forget to './run build $1' ?"
      build_desc
      exit 1
    fi
@@ -590,7 +652,6 @@ for k, v in obj["application"]["run"].items():
 ')
 
    local json_command=$(echo $json | grep -Po 'command="\K[^"]*')
-   local command=$json_command
 
    # replace <holohub_data_dir> by the data dir
    local command=$(echo "${json_command//<holohub_data_dir>/$holohub_data_dir}")
@@ -601,6 +662,20 @@ for k, v in obj["application"]["run"].items():
    # replace <holohub_app_source> by the source app directory
    command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
 
+   if [ $nsys_profile == true ]; then
+      if [ ! command -v nsys &> /dev/null ]; then
+        print_error "Nsight Systems CLI command 'nsys' not found."
+        exit 1
+      fi
+      local perf_event_level=$(cat /proc/sys/kernel/perf_event_paranoid)
+      if (( ${perf_event_level} > 2 )); then
+        print_error "For Nsight Systems profiling the Linux operating system's perf_event_paranoid level must be 2 or less."
+        echo "See https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html#linux-requirements for more information."
+        exit 1
+      fi
+      command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+   fi
+
    # default workdir is bin
    local workdir="cd ${holohub_app_bin}"
    local json_workdir=$(echo $json | grep -Po 'workdir="\K[^"]*')
@@ -610,7 +685,7 @@ for k, v in obj["application"]["run"].items():
       workdir="cd ${holohub_build_dir}"
    fi
 
-   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib"
+   local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
 
    # Run the command
    run_command $environment
@@ -633,17 +708,18 @@ list() {
   echo ""
   echo "***** HoloHub applications ******"
 
-  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
+  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
 
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
       language=""
+      filename="${appname}"
     else
       language="(${language})"
+      filename="${appname%/*}"
     fi
-    filename="${appname%/*}"
 
     # Check in the CMakelists if the application is a sample application
     appcmakelist="applications/CMakeLists.txt"
@@ -655,7 +731,9 @@ list() {
       sample_app="[Sample Application]"
     fi
 
-    echo "- ${filename} ${language} ${sample_app}"
+    application="${filename##*/}"
+
+    echo "- ${application} ${language} ${sample_app}"
   done
   echo ""
   echo "Run ./run build <app_name> to build a specific app."

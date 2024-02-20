@@ -1,0 +1,63 @@
+{
+	"application": {
+		"name": "Riva ASR to local-LLM",
+		"authors": [
+			{
+				"name": "Nigel Nelson",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+            "arm64"
+		],
+		"tags": [
+			"Speech-to-text",
+			"Large Language Model",
+            "ASR",
+            "Local-LLM"
+		],
+		"ranking": 4,
+		"dependencies": {
+            "python-packages": {
+                "requests": {
+                    "version": "2.31.0",
+                    "license-url": "https://github.com/opentracing-contrib/python-requests/blob/master/LICENSE"
+                },
+                "nvidia-riva-client": {
+                    "version": "2.14.0",
+                    "license-url": "https://github.com/nvidia-riva/python-clients/blob/main/LICENSE"
+                },
+				"pyaudio": {
+                    "version": "0.2.13",
+                    "license-url": "https://github.com/CristiFati/pyaudio/blob/master/LICENSE.txt"
+                },
+				"pynput": {
+                    "version": "0.2.13",
+                    "license-url": "https://github.com/moses-palmer/pynput/blob/master/COPYING.LGPL"
+                }
+            },
+			"OSS" : {
+				"llama.cpp": {
+                    "commit": "cf9b08485c4c2d4d945c6e74fe20f273a38b6104",
+                    "license-url": "https://github.com/ggerganov/llama.cpp/blob/master/LICENSE"
+                }
+			}
+		},
+		"run": {
+			"command": "python3 asr_to_llm.py",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

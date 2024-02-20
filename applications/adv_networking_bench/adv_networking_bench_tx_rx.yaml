@@ -21,30 +21,27 @@ delay_step: 0.01
 
 scheduler:
   check_recession_period_ms: 0
-  worker_thread_number: 4
+  worker_thread_number: 5
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
 advanced_network:
   cfg:
     version: 1
-    master_core: 8              # Master CPU core
-    # tx:
-    #   - if_name: 0005:03:00.1       # PCIe BFD of NIC  
-    #     queues:
-    #       - name: "ADC Samples"
-    #         id: 0
-    #         gpu_direct: false
-    #         max_packet_size: 8000          # Maximum payload size
-    #         num_concurrent_batches: 5      # Number of batches that can be used at any time
-    #         batch_size: 10240              # Number of packets in a batch
-    #         fill_type: "udp"                    # Highest layer that network operator should populate
-    #         eth_dst_addr: "00:00:00:00:11:22"   # Destination MAC to populate
-    #         ip_src_addr: "192.168.0.1"          # Source IP send from
-    #         ip_dst_addr: "192.168.0.2"         # Destination IP to send to
-    #         udp_dst_port: 4096                  # UDP destination port
-    #         udp_src_port: 4096                  # UDP source port
-    #         cpu_cores: "9"                     # CPU cores for transmitting
+    master_core: 5              # Master CPU core
+    tx:
+      - if_name: 0005:03:00.1       # PCIe BFD of NIC
+        accurate_send: false
+        queues:
+          - name: "ADC Samples"
+            id: 0
+            gpu_direct: true
+            gpu_device: 0
+            split_boundary: 0
+            max_packet_size: 8064          # Maximum payload size
+            num_concurrent_batches: 5      # Number of batches that can be used at any time
+            batch_size: 10240              # Number of packets in a batch
+            cpu_cores: "7"                 # CPU cores for transmitting
     rx:
       - if_name: 0005:03:00.1       # PCIe BFD of NIC
         flow_isolation: true
@@ -56,6 +53,7 @@ advanced_network:
             max_packet_size: 9000        # Maximum payload size
             num_concurrent_batches: 32767   # Number of batches that can be used at any time
             batch_size: 1              # Number of packets in a batch
+            output_port: "bench_rx_out"
           - name: "ADC Samples"
             id: 1
             gpu_device: 0
@@ -64,15 +62,16 @@ advanced_network:
             cpu_cores: "11"
             max_packet_size: 9000     # Maximum payload size
             num_concurrent_batches: 15   # Number of batches that can be used at any time
-            batch_size: 10240              # Number of packets in a batch
+            batch_size: 5120              # Number of packets in a batch
+            output_port: "bench_rx_out"
         flows:
           - name: "ADC Samples"
-            action: 
+            action:
               type: queue
               id: 1
             match:
-              udp_src: 12288
-              udp_dst: 12288
+              udp_src: 4096 #12288
+              udp_dst: 4096 #12288
 
 bench_rx:
   split_boundary: false
@@ -82,6 +81,15 @@ bench_rx:
   header_size: 64
 
 
-# bench_tx:
-#   batch_size: 10000
-#   payload_size: 7680                  # + 42 bytes of <= L4 headers to get 1280 max
+bench_tx:
+  eth_dst_addr: 00:00:00:00:11:22   # Destination MAC
+  udp_dst_port: 4096                  # UDP destination port
+  udp_src_port: 4096                  # UDP source port
+  gpu_direct: true
+  split_boundary: 0
+  batch_size: 10000
+  payload_size: 8000
+  header_size: 64
+  ip_src_addr: 192.168.0.1          # Source IP send from
+  ip_dst_addr: 192.168.0.2          # Destination IP to send to
+  port_id: 0

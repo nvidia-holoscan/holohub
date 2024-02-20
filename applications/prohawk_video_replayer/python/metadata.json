@@ -1,0 +1,42 @@
+{
+	"application": {
+		"name": "prohawk_video_replayer_py",
+		"authors": [
+			{
+				"name": "Nigel Nelson",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Enable Python support"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [
+			"Video Processing",
+			"Prohawk"
+		],
+		"ranking": 4,
+		"dependencies": {
+			"operators": [
+				{
+					"name": "prohawk",
+					"version": "1.0.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python prohawk_video_replayer.py",
+			"workdir": "/workspace/holohub/applications/prohawk_video_replayer/python"
+		}
+	}
+}

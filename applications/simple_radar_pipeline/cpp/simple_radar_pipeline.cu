@@ -175,7 +175,7 @@ class PulseCompressionOp : public Operator {
     (x = x * waveformT).run(stream);
     ifft(x, x, 0, stream);
 
-    auto params = std::make_shared<ThreePulseCancellerData>(inputView, stream);
+    auto params = ThreePulseCancellerData{inputView, stream};
     op_output.emit(params, "pc_out");
   };
 
@@ -256,7 +256,7 @@ class ThreePulseCancellerOp : public Operator {
         {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
     conv1d(xo, x, *cancelMask, matxConvCorrMode_t::MATX_C_MODE_SAME, tpc_data->stream);
 
-    auto params = std::make_shared<DopplerData>(tpcView, cancelMask, tpc_data->stream);
+    auto params = DopplerData{tpcView, cancelMask, tpc_data->stream};
     op_output.emit(params, "tpc_out");
   };
 
@@ -323,7 +323,7 @@ class DopplerOp : public Operator {
                           numCompressedSamples})).run(dop_data->stream);
     fft(xf, xf, 0, dop_data->stream);
 
-    auto params = std::make_shared<CFARData>(dop_data->tpcView, dop_data->stream);
+    auto params = CFARData{dop_data->tpcView, dop_data->stream};
     op_output.emit(params, "dop_out");
   };
 

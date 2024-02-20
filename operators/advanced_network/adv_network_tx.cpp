@@ -16,27 +16,17 @@
  */
 
 #include "adv_network_tx.h"
-#include "adv_network_dpdk_mgr.h"
-#include <rte_ether.h>
-#include <rte_ip.h>
-#include <rte_udp.h>
+#include "adv_network_mgr.h"
 #include <memory>
 
 namespace holoscan::ops {
 
+extern ANOMgr *g_ano_mgr;
+
 struct AdvNetworkOpTx::AdvNetworkOpTxImpl {
-  DpdkMgr *dpdk_mgr;
-  struct rte_ring *tx_ring;
-  struct rte_mempool *tx_meta_pool;
   AdvNetConfigYaml cfg;
 };
 
-struct UDPPkt {
-  struct rte_ether_hdr eth;
-  struct rte_ipv4_hdr ip;
-  struct rte_udp_hdr udp;
-  uint8_t payload[];
-} __attribute__((packed));
 
 void AdvNetworkOpTx::setup(OperatorSpec& spec)  {
   spec.input<AdvNetBurstParams *>("burst_in");
@@ -54,53 +44,17 @@ void AdvNetworkOpTx::initialize() {
   register_converter<holoscan::ops::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
-  Init();
+  if (Init() < 0) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize ANO TX");
+  }
 }
 
 int AdvNetworkOpTx::Init() {
   impl = new AdvNetworkOpTxImpl();
-  impl->cfg = cfg_.get();;
-  impl->dpdk_mgr = &dpdk_mgr;
-  impl->tx_ring = nullptr;
-  impl->dpdk_mgr->SetConfigAndInitialize(impl->cfg);
+  impl->cfg = cfg_.get();
+  set_ano_mgr(impl->cfg);
 
-  // Set up all LUTs for speed
-  for (auto &tx : cfg_.get().tx_) {
-    auto port_opt = adv_net_get_port_from_ifname(tx.if_name_);
-    if (!port_opt) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port ID from interface {}", tx.if_name_);
-      return -1;
-    }
-
-    auto port = port_opt.value();
-
-    for (auto &q : tx.queues_) {
-      auto q_id       = q.common_.id_;
-      auto fill_type  = q.fill_type_;
-      if (fill_type == "eth") {
-        fill[port][q_id] = FILL_ETH;
-      } else if (fill_type == "ip") {
-        fill[port][q_id] = FILL_IP;
-      } else if (fill_type == "udp") {
-        fill[port][q_id] = FILL_UDP;
-      } else {
-        fill[port][q_id] = FILL_NONE;
-      }
-
-      if (fill[port][q_id] >= FILL_ETH) {
-        rte_ether_unformat_addr(q.eth_dst_.c_str(),
-          reinterpret_cast<rte_ether_addr*>(&raw_eth_dst_[port][q_id][0]));
-      }
-      if (fill[port][q_id] >= FILL_IP) {
-        inet_pton(AF_INET, q.ip_src_.c_str(), &(raw_ip_src_[port][q_id]));
-        inet_pton(AF_INET, q.ip_dst_.c_str(), &(raw_ip_dst_[port][q_id]));
-      }
-      if (fill[port][q_id] >= FILL_UDP) {
-        raw_udp_src_port_[port][q_id] = htons(q.udp_src_port_);
-        raw_udp_dst_port_[port][q_id] = htons(q.udp_dst_port_);
-      }
-    }
-  }
+  g_ano_mgr->set_config_and_initialize(impl->cfg);
 
   return 0;
 }
@@ -109,56 +63,26 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
       [[maybe_unused]] ExecutionContext&) {
   int n;
 
-  if (unlikely(impl->tx_ring == nullptr)) {
-    impl->tx_ring = rte_ring_lookup("TX_RING");
-  }
-
-  if (unlikely(impl->tx_meta_pool == nullptr)) {
-    impl->tx_meta_pool = rte_mempool_lookup("TX_META_POOL");
-  }
-
-  auto burst = op_input.receive<AdvNetBurstParams *>("burst_in").value();
-  auto port_id = burst->hdr.hdr.port_id;
-  auto q_id    = burst->hdr.hdr.q_id;
-
-  if (fill[port_id][q_id] >= FILL_ETH) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      memcpy(reinterpret_cast<void*>(&pkt->eth.dst_addr),
-             reinterpret_cast<void*>(&raw_eth_dst_[port_id][q_id][0]),
-             sizeof(raw_eth_dst_[port_id][q_id]));
-    }
-  }
-  if (fill[port_id][q_id] >= FILL_IP) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      pkt->ip.src_addr = raw_ip_src_[port_id][q_id];
-      pkt->ip.dst_addr = raw_ip_dst_[port_id][q_id];
-    }
-  }
-
-  if (fill[port_id][q_id] >= FILL_UDP) {
-    for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
-      auto *pkt = rte_pktmbuf_mtod((rte_mbuf*)burst->cpu_pkts[p], UDPPkt*);
-      pkt->udp.src_port = raw_udp_src_port_[port_id][q_id];
-      pkt->udp.dst_port = raw_udp_dst_port_[port_id][q_id];
-    }
-  }
-
   AdvNetBurstParams *d_params;
-  if (rte_mempool_get(impl->tx_meta_pool, reinterpret_cast<void**>(&d_params)) != 0) {
-    HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
-    return;
-  }
+  auto rx = op_input.receive<AdvNetBurstParams *>("burst_in");
 
-  rte_memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
-  if (rte_ring_enqueue(impl->tx_ring, reinterpret_cast<void *>(d_params)) != 0) {
-    adv_net_free_tx_burst(burst);
-    rte_mempool_put(impl->tx_meta_pool, d_params);
-    HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
-    return;
-  }
+  if (rx.has_value() && rx.value() != nullptr) {
+    const auto tx_buf_res = g_ano_mgr->get_tx_meta_buf(&d_params);
+    if (tx_buf_res != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor: {}", static_cast<int>(tx_buf_res));
+      return;
+    }
 
-  delete burst;
+    AdvNetBurstParams *burst = rx.value();
+    memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
+
+    const auto tx_res = g_ano_mgr->send_tx_burst(d_params);
+    if (tx_res != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_ERROR("Failed to send TX burst to ANO: {}", static_cast<int>(tx_res));
+      return;
+    }
+
+    delete burst;
+  }
 }
 };  // namespace holoscan::ops

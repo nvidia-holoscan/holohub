@@ -1,0 +1,37 @@
+{
+    "operator": {
+        "name": "qt_video",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0.0",
+        "changelog": {
+			"1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "0.6.0",
+            "tested_versions": [
+                "0.6.0"
+            ]
+        },
+        "platforms": [
+            "amd64",
+            "arm64"
+        ],
+        "tags": [
+            "Qt",
+			"QML",
+			"QtQuick",
+			"Video",
+			"UI",
+			"Userinterface",
+			"Interactive"
+        ],
+        "ranking": 1,
+        "dependencies": { }
+    }
+}

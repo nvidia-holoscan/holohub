@@ -61,7 +61,7 @@ target_link_libraries(volume_rendering_xr
 
 # Copy config file to the build tree
 add_custom_target(volume_rendering_xr_config_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml" ${CMAKE_CURRENT_BINARY_DIR}   
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml" ${CMAKE_CURRENT_BINARY_DIR}
 )
 add_dependencies(volume_rendering_xr volume_rendering_xr_config_yaml)
 

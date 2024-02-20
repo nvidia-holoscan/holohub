@@ -56,8 +56,6 @@ def set_visible_true():
 
 
 def main():
-    logo_size = 92
-
     title = "HoloChat"
     theme = gr.themes.Soft(text_size=gr.themes.sizes.text_md).set(
         button_primary_background_fill="#76b900",
@@ -66,13 +64,14 @@ def main():
 
     with gr.Blocks(
         css="""#col_container { margin-left: auto; margin-right: auto;} 
-        #chatbot {height: 740px; overflow: auto;}""",
+        #chatbot {height: 740px; overflow: auto;}
+        .gr-image { display: block; margin-left: auto; margin-right: auto; max-width: 50px }""",
         theme=theme,
         title=title,
     ) as demo:
         llm = gr.State()
         with gr.Row(variant="compact"):
-            gr.Image("holoscan.png", show_label=False, height=logo_size, width=logo_size)
+            gr.Image("holoscan.png", show_label=False, elem_classes="gr-image")
 
         with gr.Group(visible=True):
             with gr.Row():

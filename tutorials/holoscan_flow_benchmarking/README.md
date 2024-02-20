@@ -2,12 +2,12 @@
 
 This is a benchmarking tool to evaluate the performance of HoloHub and other Holoscan applications.
 Following is a high-level overview of Holoscan Flow Benchmarking. For more details on its possible
-use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md).
+use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarking_tutorial.md) 
+(up-to-date) or 
+[Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf).
 
-The tool currently supports
-benchmarking of the following HoloHub C++ applications: `endoscopy_tool_tracking, multiai_endoscopy,
-multiai_ultrasound, ultrasound_segmentation`.
-We plan to have support for other C++ and Python applications in the future.
+The tool supports benchmarking of any Holoscan C++ application. Holoscan Python applications will be
+supported in the future.
 
 ## Pre-requisites
 The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):
@@ -33,8 +33,8 @@ This script saves the original `cpp` files in a `*.cpp.bak` file.
 2. **Build the application**
 
 ```
-$ ./run build <application name> <other options> --configure-args \
-    -DCMAKE_CXX_FLAGS=-I$PWD/tutorials/holoscan_flow_benchmarking
+$ ./run build <application name> <other options> \
+    --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/tutorials/holoscan_flow_benchmarking
 ```
 
 Please make sure to test that the application runs correctly after building it, and before going to
@@ -48,11 +48,13 @@ tracking application.
 $ python tutorials/holoscan_flow_benchmarking/benchmark.py -a <application name> <other options>
 ```
 
-`python tutorials/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible evaluation options.
+The above command will run an application which is executed normally by 
+`./run launch <application name> cpp`. If an application is executed differently, then use the
+`--run-command` argument to specify the command to run an application.
 
-All the log filenames are printed out at the end of the evaluation. 
+`python tutorials/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible benchmarking options.
 
-The format of the filename for the data flow tracking log files is:
+All the log filenames are printed out at the end of the evaluation. The format of the filename for the data flow tracking log files is:
 `logger_<scheduler>_<run_number>_<instance-id>.log`. The format of the filename for the GPU
 utilization log files is: `gpu_utilization_<scheduler>_<run_number>.csv`.
 
@@ -67,7 +69,7 @@ Run 2 completed for greedy scheduler.
 Run 3 completed for greedy scheduler.
 
 Evaluation completed.
-Log file directory:  /home/ubuntu/holoscan-sdk/holohub-internal/myoutputs
+Log file directory:  /home/ubuntu/holoscan-sdk/holohub/myoutputs
 All the data flow tracking log files are: logger_greedy_1_1.log, logger_greedy_1_2.log, logger_greedy_1_3.log, logger_greedy_2_1.log, logger_greedy_2_2.log, logger_greedy_2_3.log, logger_greedy_3_1.log, logger_greedy_3_2.log, logger_greedy_3_3.log
 
 ```
@@ -96,9 +98,20 @@ We can also produce CDF curve of the observed latencies for a single path by the
 $ python tutorials/holoscan_flow_benchmarking/analyze.py --draw-cdf single_path_cdf.png -g myoutputs/logger_greedy_* MyCustomGroup --no-display-graphs
 Saved the CDF curve graph of the first path of each group in: single_path_cdf.png
 ```
+
 The `single_path_cdf.png` looks like below:
 
 ![single_path_cdf.png](single_path_cdf.png)
+
+A few auxiliary scripts are also provided to help plotting datewise results. For example, the
+following script plots the average end-to-end latency along with standard deviation for three
+consecutive dates:
+
+```
+python bar_plot_avg_datewise.py avg_values_2023-10-19.csv avg_values_2023-10-20.csv avg_values_2023-10-21.csv stddev_values_2023-10-19.csv stddev_values_2023-10-20.csv stddev_values_2023-10-21.csv
+```
+
+![avg_2023-10-21.png](avg_2023-10-21.png)
 
 5. **Restore the application**
 

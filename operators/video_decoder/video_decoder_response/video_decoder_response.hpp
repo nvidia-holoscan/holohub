@@ -33,7 +33,8 @@ namespace holoscan::ops {
  */
 class VideoDecoderResponseOp: public holoscan::ops::GXFOperator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoDecoderResponseOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoDecoderResponseOp,
+      holoscan::ops::GXFOperator)
 
   VideoDecoderResponseOp() = default;
 
@@ -47,7 +48,8 @@ class VideoDecoderResponseOp: public holoscan::ops::GXFOperator {
   Parameter<holoscan::IOSpec*> output_transmitter_;
   Parameter<std::shared_ptr<Allocator>> pool_;
   Parameter<uint32_t> outbuf_storage_type_;
-  Parameter<std::shared_ptr<holoscan::ops::VideoDecoderContext>> videodecoder_context_;
+  Parameter<std::shared_ptr<holoscan::ops::VideoDecoderContext>>
+      videodecoder_context_;
 };
 
 }  // namespace holoscan::ops

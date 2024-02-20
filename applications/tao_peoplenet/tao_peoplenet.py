@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-from argparse import ArgumentParser
 
 import cupy as cp
 import holoscan as hs
@@ -46,7 +45,7 @@ class FormatInferenceInputOp(Operator):
         tensor = np.moveaxis(tensor, 2, 0)[None]
         tensor = cp.asarray(tensor)
 
-        # Creat output message
+        # Create output message
         out_message = Entity(context)
         out_message.add(hs.as_tensor(tensor), "preprocessed")
         op_output.emit(out_message, "out")
@@ -80,8 +79,8 @@ class PostprocessorOp(Operator):
         in_message = op_input.receive("in")
 
         # Convert input to cupy array
-        boxes = cp.asarray(in_message.get("boxes"))
-        scores = cp.asarray(in_message.get("scores"))
+        boxes = cp.asarray(in_message.get("boxes"))[0, ...]
+        scores = cp.asarray(in_message.get("scores"))[0, ...]
 
         # PeopleNet has three classes:
         # 0. Person
@@ -112,7 +111,7 @@ class PostprocessorOp(Operator):
                 out[label] = cp.reshape(out[label][None], (1, -1, 2))
                 out[label] = cp.asnumpy(out[label])
 
-        # Creat output message
+        # Create output message
         out_message = Entity(context)
         out_message.add(hs.as_tensor(out["person"]), "person")
         out_message.add(hs.as_tensor(out["faces"]), "faces")
@@ -222,15 +221,13 @@ class PostprocessorOp(Operator):
 
 
 class FaceDetectApp(Application):
-    def __init__(self, engine=None):
+    def __init__(self):
         """Initialize the face detection application"""
 
         super().__init__()
 
         # set name
         self.name = "Face Detection App"
-        # set engine
-        self.engine = engine
 
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
@@ -257,8 +254,9 @@ class FaceDetectApp(Application):
         )
 
         inference_args = self.kwargs("inference")
-        if self.engine is not None:
-            inference_args["model_path_map"] = {"face_detect": self.engine}
+        inference_args["model_path_map"] = {
+            "face_detect": os.path.join(os.path.dirname(__file__), "resnet34_peoplenet_int8.onnx")
+        }
 
         device_map = dict()
         if "device_map" in inference_args.keys():
@@ -295,25 +293,8 @@ class FaceDetectApp(Application):
 
 
 if __name__ == "__main__":
-    # Parse args
-    parser = ArgumentParser(description="TAO PeopleNet Detection Model on Video Stream.")
-    parser.add_argument(
-        "-e",
-        "--engine",
-        default=None,
-        type=str,
-        help=("Absolute path to TensorRT engine."),
-    )
-    args = parser.parse_args()
-
-    # Sanity check
-    if args.engine is not None:
-        args.engine = os.path.expandvars(args.engine)
-        if not os.path.isfile(args.engine):
-            raise ValueError(f"Engine file {args.engine} does not exist!")
-
     config_file = os.path.join(os.path.dirname(__file__), "tao_peoplenet.yaml")
 
-    app = FaceDetectApp(engine=args.engine)
+    app = FaceDetectApp()
     app.config(config_file)
     app.run()

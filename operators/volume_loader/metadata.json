@@ -24,7 +24,10 @@
         ],
         "tags": [
             "Volume",
-            "Load"
+            "Load",
+            "MHD",
+            "NIFTI",
+            "NRRD"
         ],
         "ranking": 1,
         "dependencies": { }

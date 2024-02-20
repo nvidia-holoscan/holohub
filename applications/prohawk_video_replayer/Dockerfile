@@ -38,7 +38,11 @@ RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
 # Install libraries
-RUN apt update && apt install -y libboost-all-dev libgtk2.0-dev
+RUN apt update && \
+    apt install -y --no-install-recommends \
+    libboost-all-dev \
+    libgtk2.0-dev \
+    portaudio19-dev
 
 # Build OpenCV 4.5.5 (needed by ProHawk SDK)
 RUN if [ $(uname -m) = "aarch64" ]; then CMAKE_ARGS="-DENABLE_NEON=ON"; \
@@ -90,3 +94,12 @@ RUN wget https://prohawkholoscanv051runtime.s3.us-west-2.amazonaws.com/phruntime
 # - We use ARG to only set it at docker build time, so it does not affect cmake builds
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
+
+# Install Riva client and pyaudio to enable Python ASR dev
+RUN pip install \
+    nvidia-riva-client \
+    pyaudio
+
+# Copy the filters to be in the same directory as the Python executable so the application
+# can find them at runtime
+COPY applications/prohawk_video_replayer/cpp/PAFSFilter.bin /usr/bin

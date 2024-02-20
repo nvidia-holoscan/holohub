@@ -36,7 +36,7 @@ class App : public holoscan::Application {
     uint32_t width = from_config("videomaster.width").as<uint32_t>();
     uint32_t height = from_config("videomaster.height").as<uint32_t>();
     uint64_t source_block_size = width * height * 4 * 4;
-    uint64_t source_num_blocks = from_config("videomaster.use_rdma").as<bool>() ? 3 : 4;
+    uint64_t source_num_blocks = from_config("videomaster.rdma").as<bool>() ? 3 : 4;
 
     auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                             Arg("directory", datapath));

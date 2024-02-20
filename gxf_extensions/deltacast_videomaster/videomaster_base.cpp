@@ -111,7 +111,7 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
   if (id_to_channel_type_prop.find(_channel_index) == id_to_channel_type_prop.end() ||
       id_to_stream_type.find(_channel_index) == id_to_stream_type.end()) {
-    GXF_LOG_ERROR("Invalid stream id (%u)", _channel_index);
+    GXF_LOG_ERROR("Invalid stream id (%u)", (unsigned int)_channel_index);
     return gxf::Unexpected{GXF_FAILURE};
   }
 

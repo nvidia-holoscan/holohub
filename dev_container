@@ -215,6 +215,16 @@ c_echo_err() {
     >&2 c_echo "$@"
 }
 
+fatal() {
+    if [ -n "$*" ]; then
+        c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [FATAL] " Z "$@"
+    fi
+    if [ -n "${SCRIPT_DIR}" ]; then
+        exit 1
+    else
+        kill -INT $$  # kill the current process instead of exit in shell environment.
+    fi
+}
 
 run_command() {
     local status=0
@@ -258,11 +268,11 @@ get_host_gpu() {
 
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v0.6.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v1.0.3-"$(get_host_gpu)
 }
 
 build_desc() { c_echo 'Build dev image
@@ -281,6 +291,14 @@ build() {
     local base_img=$(get_default_base_img)
     local img=$(get_default_img)
     local print_verbose=0
+
+    # Check if buildx exists
+    if ! $(docker buildx version &> /dev/null) ; then
+        c_echo_err G "docker buildx plugin" W " is missing. Please install " G "docker-buildx-plugin" W ":
+
+        https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository"
+        exit
+    fi
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -302,7 +320,7 @@ build() {
         fi
     done
 
-    if [[ $print_verbose -gt 0 ]]; then 
+    if [[ $print_verbose -gt 0 ]]; then
         c_echo W "Build (HOLOHUB_ROOT:" G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Build (gpu_type_type:" G "${gpu_type}" W ")..."
         c_echo W "Build (base_img:" G "${base_img}" W ")..."
@@ -329,7 +347,11 @@ build() {
 launch_desc() { c_echo 'Launch Docker container
     --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
+    --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
+    --nsys_profile : Support Nsight Systems profiling in container
+    --init : Support tini entry point
     --verbose : Print variables passed to docker run command
+    --add-volume : Mount additional volume
     '
 }
 launch() {
@@ -340,12 +362,17 @@ launch() {
     local print_verbose=0
     local local_sdk_root="undefined"
     local ssh_x11=0
+    local use_tini=0
+    local nsys_profile=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
     local img=$(get_default_img)
-    
-    # Parse CLI arguments next
+
+    # Initialize an empty string to hold additional volume mounts
+    additional_volumes=""
+
+    # Parse CLI arguments
     ARGS=("$@")
     local i
     local arg
@@ -353,34 +380,73 @@ launch() {
         arg="${ARGS[i]}"
         if [ "$arg" = "--img" ]; then
            img="${ARGS[i+1]}"
+           shift
+           shift
         fi
         if [ "$arg" = "--verbose" ]; then
            print_verbose=1
+           shift
         fi
         if [ "$arg" = "--local_sdk_root" ]; then
            local_sdk_root="${ARGS[i+1]}"
+           shift
+           shift
         fi
         if [ "$arg" = "--ssh_x11" ]; then
            ssh_x11=1
+           shift
+        fi
+        if [ "$arg" = "--init" ]; then
+           use_tini=1
+           shift
+        fi
+        if [ "$arg" = "--nsys_profile" ]; then
+           nsys_profile=true
+           shift
+        fi
+        if [ "$arg" = "--add-volume" ]; then
+            path="${ARGS[i+1]}"
+            base=$(basename "$path")
+            additional_volumes+="-v $path:/workspace/volumes/$base "
+            shift
+            shift
         fi
     done
 
-
-    # Skip the first argument to pass the remaining arguments to the docker command.
-    if [ -n "$1" ]; then
-        shift
+    # Check NVIDIA CTK version
+    min_ctk_version="1.12.0"
+    recommended_ctk_version="1.14.1"
+    if ! command -v nvidia-ctk > /dev/null; then
+        fatal G "nvidia-ctk" W " not found. Please install the NVIDIA Container Toolkit."
+    fi
+    ctk_version_output=$(nvidia-ctk --version | grep version)
+    ctk_version_pattern="([0-9]+\.[0-9]+\.[0-9]+)"
+    if [[ "$ctk_version_output" =~ $ctk_version_pattern ]]; then
+        ctk_version="${BASH_REMATCH[1]}"
+        if [[ "$(echo -e "$ctk_version\n$min_ctk_version" | sort -V | head -n1)" == "$ctk_version" ]]; then
+            fatal "Found nvidia-ctk Version $ctk_version. Version $min_ctk_version+ is required ($recommended_ctk_version+ recommended)."
+        fi
+    else
+        c_echo_err R "Could not extract nvidia-ctk version number."
+        c_echo_err "  Version $min_ctk_version+ required."
+        c_echo_err "  Version $recommended_ctk_version+ recommended."
     fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    run_command xhost +local:docker
+    if [ -v DISPLAY ] && command -v xhost >/dev/null; then
+        run_command xhost +local:docker
+    fi
+
+
+    for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
+        mount_device_opt+=" --device $video_dev"
+    done
+
+    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
+        mount_device_opt+=" --device $video_dev:$video_dev"
+    done
 
     for i in 0 1 2 3; do
-        if [ -e /dev/video${i} ]; then
-            mount_device_opt+=" --device /dev/video${i}:/dev/video${i}"
-        fi
-        if [ -e /dev/ajantv2${i} ]; then
-            mount_device_opt+=" --device /dev/ajantv2${i}:/dev/ajantv2${i}"
-        fi
         # Deltacast capture boards and Videomaster SDK
         # Deltacast SDI capture board
 	    if [ -e /dev/delta-x380${i} ]; then
@@ -392,26 +458,46 @@ launch() {
         fi
     done
 
+    # Find all audio devices
+    audio_devices=$(find /dev/snd -type c)
+
+    # Mount all found audio devices
+    for audio_dev in $audio_devices; do
+        mount_device_opt+=" --device $audio_dev"
+    done
+
+    # mounts the ALSA configuration for the user running the script
+    mount_device_opt+=" -v /etc/asound.conf:/etc/asound.conf"
+
+    # grants access to the sound group
+    sound_group_gid=$(getent group audio | cut -d: -f3)
+    mount_device_opt+=" --group-add $sound_group_gid"
+
     if [ -e /usr/lib/libvideomasterhd.so ]; then
    	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
     fi
     if [ -d /opt/deltacast/videomaster/Include ]; then
         conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
     fi
+    if [ -d /opt/yuan/qcap/include ]; then
+        conditional_opt+=" -v /opt/yuan/qcap/include:/opt/yuan/qcap/include"
+    fi
+    if [ -d /opt/yuan/qcap/lib ]; then
+        conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
+    fi
+
+    # add tegra directory
+    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
+        conditional_opt+=" -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra"
+    fi
 
     # add user in container to group video to access video devices, e.g. /dev/video0
     conditional_opt+=" --group-add video"
 
-    # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
-    if [[ $gpu_type == "igpu" ]] ; then 
-        conditional_opt+=" --device /dev/nvgpu/igpu0/sched"
-        conditional_opt+=" --device /dev/nvgpu/igpu0/nvsched"
-        conditional_opt+=" --device /dev/nvhost-ctrl-nvdec"
-        conditional_opt+=" --device /dev/nvhost-ctxsw-gpu" 
-        conditional_opt+=" --device /dev/nvhost-nvsched-gpu " 
-        conditional_opt+=" --device /dev/nvhost-sched-gpu " 
-        conditional_opt+=" --device /dev/nvidia0 " 
-        conditional_opt+=" --device /dev/nvidia-modeset " 
+    if [[ $nsys_profile == true ]] ; then
+        # enable usage of the the perf_event_open call, see
+        # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#docker-profiling
+        conditional_opt+=" --cap-add=SYS_ADMIN"
     fi
 
     # when using a locally built Holoscan SDK container it is necessary to provide the path to Holsocan SDK
@@ -424,27 +510,38 @@ launch() {
         local_sdk_opt+=" -e PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"
         local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
         local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
-        #   Define path for cupy' kernel cache, needed since $HOME does
-        #   not exist when running with `-u id:group`
-        local_sdk_opt+=" -e CUPY_CACHE_DIR=/workspace/holoscan-sdk/.cupy/kernel_cache"
         local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
     fi
 
-
-    # Find the nvidia_icd.json file which could reside at different paths
-    # Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
-    nvidia_icd_json=$(find /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f,l -print -quit 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
+    # Find the nvoptix.bin file
+    if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
+        mount_nvoptix_bin="-v /usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro"
+    fi
 
     # Allow X11 forwarding over SSH
     if [[ $ssh_x11 -gt 0 ]]; then
-	XAUTH=/tmp/.docker.xauth
-	xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-	chmod 777 $XAUTH
+        XAUTH=/tmp/.docker.xauth
+        xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+        chmod 777 $XAUTH
 
-	conditional_opt+=" -v $XAUTH:$XAUTH"
-	conditional_opt+=" -e XAUTHORITY=$XAUTH"
+        conditional_opt+=" -v $XAUTH:$XAUTH"
+        conditional_opt+=" -e XAUTHORITY=$XAUTH"
     fi
 
+    # Use tini
+    if [[ $use_tini -gt 0 ]]; then
+        conditional_opt+=" --init"
+    fi
+
+    # Define path for cupy's kernel cache, needed since $HOME does
+    # not exist when running with `-u id:group`
+    conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
+
+    # Options needed for UCX
+    ucx_opt=" --ipc=host"
+    ucx_opt+=" --cap-add=CAP_SYS_PTRACE"
+    ucx_opt+=" --ulimit memlock=-1"
+    ucx_opt+=" --ulimit stack=67108864"
 
     # DOCKER PARAMETERS
     #
@@ -474,19 +571,17 @@ launch() {
     # -e DISPLAY
     #   Enable graphical applications
     #
-    # -v $nvidia_icd_json:$nvidia_icd_json:ro
-    #   Bind NVIDIA's Vulkan installable client driver to run Vulkan
-    #   Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
-    #   The configurations files are installed to different locations when installing
-    #   with deb packages or with run files, so we look at both places
+    # ${mount_nvoptix_bin}
+    #   Mount Optix denoiser weights.
 
-    if [[ $print_verbose -gt 0 ]]; then 
+
+    if [[ $print_verbose -gt 0 ]]; then
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
         c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
-        c_echo W "Launch (nvidia_icd_json: " G "${nvidia_icd_json}" W ")..."
+        c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."
         c_echo W "Launch (image: " G "${img}" W ")..."
     fi
 
@@ -497,14 +592,20 @@ launch() {
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
         -w /workspace/holohub \
         --runtime=nvidia \
+        --gpus all \
+        --cap-add CAP_SYS_PTRACE \
+        --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DISPLAY \
+        ${additional_volumes} \
         ${mount_device_opt} \
     	${conditional_opt} \
         ${local_sdk_opt} \
-        -v $nvidia_icd_json:$nvidia_icd_json:ro \
-        ${img}
+        ${mount_nvoptix_bin} \
+        ${ucx_opt} \
+        ${img} \
+        "$@"
 }
 
 

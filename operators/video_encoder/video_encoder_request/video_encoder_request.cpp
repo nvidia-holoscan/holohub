@@ -39,10 +39,6 @@ void VideoEncoderRequestOp::setup(OperatorSpec& spec) {
              "InputFrame",
              "Receiver to get the input frame",
              &input);
-  spec.param(async_scheduling_conditon_,
-             "async_scheduling_term",
-             "Asynchronous Scheduling Condition",
-             "Asynchronous Scheduling Condition");
   spec.param(videoencoder_context_,
              "videoencoder_context",
              "VideoEncoderContext",

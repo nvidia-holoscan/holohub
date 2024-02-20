@@ -1,0 +1,6 @@
+# This file contains the exact lines of code that should be ignore from codespell
+// @OPTIMIZE: provide an option that always forces left-predict or paeth predict
+        acount = 0;
+      acount = stbi__bitcount(ma);
+      if (rcount > 8 || gcount > 8 || bcount > 8 || acount > 8) {
+          a = (ma ? stbi__shiftsigned(v & ma, ashift, acount) : 255);

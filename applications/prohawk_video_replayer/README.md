@@ -32,19 +32,33 @@ The easiest way to build this application is to use the provided Docker file.
 
 From the Holohub main directory run the following command:
 
-  `./dev_container build --docker_file applications/prohawk_video_replayer/Dockerfile --img holohub:prohawk`
+  ```bash
+  ./dev_container build --docker_file applications/prohawk_video_replayer/Dockerfile --img holohub:prohawk
+  ```
 
 Then launch the container to build the application:
 
-  `./dev_container launch --img holohub:prohawk`
+  ```bash
+  ./dev_container launch --img holohub:prohawk
+  ```
 
 Inside the container build the application:
 
-  `./run build prohawk_video_replayer`
+  ```bash
+  ./run build prohawk_video_replayer
+  ```
   
 Inside the container run the application:
 
-  `./run launch prohawk_video_replayer`
+- C++:
+    ```bash
+    ./run launch prohawk_video_replayer cpp
+    ```
+- Python:
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:/workspace/holohub/build/python/lib/
+    python <prohawk_app_dir>/python/prohawk_video_replayer.py
+    ```
 
 For more information about this application and operator please visit [https://prohawk.ai/prohawk-vision-operator/#learn](https://prohawk.ai/prohawk-vision-operator/#learn)
 For technical support or other assistance, please don't hesitate to visit us at [https://prohawk.ai/contact](https://prohawk.ai/contact)

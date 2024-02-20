@@ -1,0 +1,4 @@
+nvidia-riva-client==2.13.0
+pyaudio==0.2.14
+pynput==1.7.6
+llama-cpp-python==0.2.11

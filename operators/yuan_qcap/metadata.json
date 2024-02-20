@@ -1,0 +1,38 @@
+{
+	"operator": {
+		"name": "yuan_qcap",
+		"authors": [
+			{
+				"name": "David Su",
+				"affiliation": "Yuan"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Camera",
+			"Yuan"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"gxf_extensions": [
+				{
+					"name": "yuan_qcap",
+					"version": "1.0"
+				}
+			]
+		}
+	}
+}

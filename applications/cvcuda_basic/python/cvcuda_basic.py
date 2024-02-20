@@ -18,12 +18,10 @@ limitations under the License.
 import os
 from argparse import ArgumentParser
 
+import cvcuda
+import nvcv
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import HolovizOp, VideoStreamReplayerOp
-
-# currently must import cvcuda after holoscan
-import cvcuda  # isort:skip
-import nvcv  # isort:skip
 
 
 # Define custom Operators for use in the demo
@@ -42,7 +40,6 @@ class ImageProcessingOp(Operator):
     """
 
     def __init__(self, fragment, *args, use_flip_into=False, **kwargs):
-        self.count = 1
         self.cv_out = None
 
         # Need to call the base class constructor last
@@ -55,9 +52,6 @@ class ImageProcessingOp(Operator):
     def compute(self, op_input, op_output, context):
         tensormap = op_input.receive("input_tensor")
         input_tensor = tensormap[""]  # stride (2562, 3, 1)
-
-        print(f"message received (count: {self.count})")
-        self.count += 1
 
         cv_in = nvcv.as_tensor(input_tensor, "HWC")  # Input_tensor is (480, 854, 3)
 
@@ -88,13 +82,14 @@ class MyVideoProcessingApp(Application):
     The HolovizOp displays the processed frames.
     """
 
-    def __init__(self, data):
-        super().__init__()
+    def __init__(self, *args, data, count=0, **kwargs):
+        super().__init__(*args, **kwargs)
 
         if data == "none":
             data = os.path.join(os.environ.get("HOLOSCAN_DATA_PATH", "../data"), "endoscopy")
 
         self.sample_data_path = data
+        self.count = count
 
     def compose(self):
         width = 854
@@ -110,7 +105,7 @@ class MyVideoProcessingApp(Application):
             frame_rate=0,
             repeat=True,
             realtime=True,
-            count=0,
+            count=self.count,
         )
 
         image_processing = ImageProcessingOp(self, name="image_processing")
@@ -136,6 +131,13 @@ if __name__ == "__main__":
         default="none",
         help=("Set the data path"),
     )
+    parser.add_argument(
+        "-c",
+        "--count",
+        type=int,
+        default=0,
+        help=("Number of frames to play (0 = run until user closes the window)"),
+    )
     args = parser.parse_args()
-    app = MyVideoProcessingApp(data=args.data)
+    app = MyVideoProcessingApp(data=args.data, count=args.count)
     app.run()

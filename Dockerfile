@@ -47,4 +47,14 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
 
+# Qcap dependency
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libgstreamer1.0-0 \
+        libgstreamer-plugins-base1.0-0 \
+        libgles2 \
+        libopengl0
 
+# For benchmarking
+COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
+RUN pip install -r /tmp/benchmarking_requirements.txt

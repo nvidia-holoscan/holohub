@@ -22,12 +22,12 @@ function(holoscan_download_data dataname)
   endif()
 
   cmake_parse_arguments(DATA "GENERATE_GXF_ENTITIES;ALL"
-                             "URL;URL_MD5;DOWNLOAD_DIR;GXF_ENTITIES_WIDTH;GXF_ENTITIES_HEIGHT;GXF_ENTITIES_CHANNELS;GXF_ENTITIES_FRAMERATE" 
+                             "URL;URL_MD5;DOWNLOAD_DIR;GXF_ENTITIES_WIDTH;GXF_ENTITIES_HEIGHT;GXF_ENTITIES_CHANNELS;GXF_ENTITIES_FRAMERATE"
                              "" ${ARGN})
 
   if(NOT DATA_URL)
     message(FATAL "No URL set for holoscan_download_data. Please set the URL.")
-  endif()  
+  endif()
 
   if(NOT DATA_DOWNLOAD_DIR)
     message(FATAL "No DOWNLOAD_DIR set for holoscan_download_data. Please set the DOWNLOAD_DIR.")

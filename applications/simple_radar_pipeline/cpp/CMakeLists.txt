@@ -19,7 +19,7 @@ find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80") 
+set(CMAKE_CUDA_ARCHITECTURES "70;80")
 enable_language(CUDA)
 
 # Download MatX
@@ -36,12 +36,12 @@ add_executable(simple_radar_pipeline
 )
 
 target_link_libraries(simple_radar_pipeline
-  PRIVATE holoscan::core matx::matx 
+  PRIVATE holoscan::core matx::matx
 )
 
 # Copy config file to the build tree
 add_custom_target(simple_radar_pipeline_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_CURRENT_SOURCE_DIR}/simple_radar_pipeline.yaml" ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS "simple_radar_pipeline.yaml"
     BYPRODUCTS "simple_radar_pipeline.yaml"

@@ -29,16 +29,22 @@ for file in $cpp_files; do
         echo "File $file is probably already patched. Skipping."
         continue
     fi
-    # Find the last #include line and add "#include "benchmark.hpp""" header after it
-    cp "$file" "$file.bak"
-    include_line=$(grep -nE -- "#include" "$file" | tail -n 1 | awk -F ':' '{print $1}')
-    sed -i "$include_line a #include \"benchmark.hpp\"" "$file"
+    # Find the "holoscan::Application" line in the cpp file and include benchmark header file before it
+    include_line=$(grep -nE -- "holoscan::Application" "$file" | tail -n 1 | awk -F ':' '{print $1}')
+    if [ -z "$include_line" ]; then
+        continue
+    fi
 
-    # Find the "holoscan::Application" line in the cpp file and replace it with
-    # "BenchmarkedApplication"
+    # If we detect a holoscan application in this file
+    cp "$file" "$file.bak"
+    include_line=$((include_line-1))
+    sed -i "${include_line} a #include \"benchmark.hpp\"\n" "$file"
+
+    # Modify holoscan::Application to "BenchmarkedApplication"
     sed -i 's/holoscan::Application/BenchmarkedApplication/g' "$file"
 
-    echo "Patched $file. Original file is backed up in $file.bak. diff -u $file $file.bak to see the changes."
+    echo "Patched $file. Original file is backed up in $file.bak.  Run command below to see the differences:"
+    echo "  diff -u $file.bak $file"
 done
 
 
