@@ -303,7 +303,7 @@ install_lint_deps() {
         run_command ${HOLOHUB_PY_EXE} -m pip install codespell || exit_code=1
     fi
 
-    c_echo W "Install Lint Dependencies for CMake"
+    echo "Install Lint Dependencies for CMake"
     if ! command -v cmakelint &> /dev/null; then
         run_command ${HOLOHUB_PY_EXE} -m pip install cmakelint || exit_code=1
     fi
