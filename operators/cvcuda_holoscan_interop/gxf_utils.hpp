@@ -42,7 +42,7 @@ inline std::shared_ptr<void*> get_custom_shared_ptr(
     if (pointer != nullptr) {
       if (*pointer != nullptr) {
         cudaFree(*pointer);
-        pointer = nullptr;
+        *pointer = nullptr;
       }
       delete pointer;
       pointer = nullptr;
