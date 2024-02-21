@@ -1,40 +1,79 @@
-# Welcome to HoloHub!
+# Welcome to NVIDIA HoloHub!
 
-Holohub is a central repository for users and developers of extensions and applications for the Holoscan Platform to share reusable components and sample applications.
+HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan Platform to reuse and contribute components and sample applications.
 
 # Table of Contents
+- [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Building HoloHub](#building-holohub)
 - [Running applications](#running-applications)
 - [Contributing to HoloHub](#contributing-to-holohub)
 - [Useful Links](#useful-links)
 
+# Overview
+
+HoloHub is a collection of applications and extensions created by the Holoscan AI sensor processing community.
+The following directories make up the core of HoloHub:
+
+- Example applications: Visit [`applications`](./applications) to explore an evolving collection of example
+  applications built on the NVIDIA Holoscan platform. Examples are available from NVIDIA, partners, and
+  community collaborators.
+- Community components: Visit [`operators`](./operators/) and [`gxf_extensions`](./gxf_extensions) to explore
+  reusable Holoscan modules.
+- Tutorials: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
+
+Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform.
+
 # Prerequisites
-HoloHub is based on [Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk).
-HoloHub has been tested and is known to run on Ubuntu 20.04.
-Other versions of Ubuntu or OS distributions may result in build and/or runtime issues.
 
-1. Clone this repository.
+## Supported Platforms
 
-2. Choose to build Holohub using development container or using a local environment.
+You will need a platform supported by NVIDIA Holoscan SDK. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) for the latest requirements. In general, Holoscan supported platforms include:
+- An x64 PC with an Ubuntu operating system and an NVIDIA GPU; or
+- A supported NVIDIA ARM development kit.
 
-***Note:*** The default [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) version for the [Container build](#container-build) process is updated to **`v1.0`**, but if you would like to use an older version of the SDK, simply specify `--base_img` to the older version of NGC's Holoscan SDK container (see *Advanced build options* below).
-### Container build
+Individual examples and operators in HoloHub may have additional platform requirements. For instance, some examples may support only ARM platforms.
 
-***Prerequisites***
-To build and run Holohub in a containerized environment you will need:
-  - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) v1.12.2+
+## Build Environment
+
+You may choose to build HoloHub in a containerized development environment or in your native environment.
+
+We strongly recommend new users follow our [Container Build](#container-build-recommended) instructions to set up a container for development.
+
+If you prefer to build locally without `docker`, jump to [Native Build](#native-build-optional) instructions.
+
+Once your development environment is configured you may move on to [Building Sample Applications](#building-sample-applications).
+
+## Container Build (Recommended)
+
+### Software Prerequisites (Container)
+
+To build and run HoloHub in a containerized environment you will need:
+  - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
   - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
+  - `git` version control
 
-***Building dev container:*** Run the following command from the holohub directory to build the development container.
+You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 
-```bash
-  ./dev_container build
+### Fetch HoloHub (Container)
+  
+Clone the HoloHub repository to your local system:
+```sh
+$ git clone https://www.github.com/nvidia-holoscan/holohub.git
 ```
 
-***Note:*** The development container script ```dev_container``` will by default use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the local GPU configuration by detecting if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU).
+Alternatively, download HoloHub sources as a ZIP archive from the HoloHub GitHub homepage.
 
-For example, on an x86_64 system with dGPU, ```docker images``` will list the following new images after ```./dev_container build``` has completed.
+### Build HoloHub (Container)
+
+Simply run the following commands to build the development container. The build may take a few minutes.
+
+```sh
+$ cd holohub
+holohub$ ./dev_container build
+```
+
+Check to verify that the image is created:
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ docker images
 REPOSITORY                               TAG           IMAGE ID       CREATED         SIZE
@@ -42,19 +81,46 @@ holohub                                  ngc-v0.6.0-dgpu   b6d86bccdcac   9 seco
 nvcr.io/nvidia/clara-holoscan/holoscan   v0.6.0-dgpu       1b4df7733d5b   5 weeks ago     8.04GB
 ```
 
-***Advanced build options***
+***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v1.0`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
 
-1. Custom base image
+See also: [Advanced Build Options](#advanced-build-options-container)
 
-It is possible to configure a custom base image for building the Holohub container. E.g., if you built Holoscan SDK locally and want to use the locally built container as the base image, use the following command:
+### Launch HoloHub (Container)
+
+Launch the HoloHub Docker container environment:
+
+```
+holohub$ ./dev_container launch
+```
+
+You are now ready to run HoloHub applications! You may jump to the [Running Applications](#running-applications) section to get started.
+
+***Note***  The `launch` option will use the default development container built using Holoscan SDK's container from NGC for the local GPU. The script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
+
+See also: [Advanced Launch Options](#advanced-launch-options-container)
+
+### Advanced Build Options (Container)
+
+#### View All Options
+
+Run the following to view all build options available for the HoloHub container script:
+```sh
+$ ./dev_container build help
+```
+
+#### Custom Base Image
+
+You may configure a custom base image for building the HoloHub container. For instance, if you want to use a local Holoscan container as the base image, use the following command:
 
 ```bash
   ./dev_container build --base_img holoscan-sdk-dev:latest --img holohub:sdk-dev-latest
 ```
 
-where ```--base_img```  is used to configure the base container image and ```--img``` defines the fully qualified image name.
+The command above uses the following arguments:
+- `--base_img`  is used to configure the base container image;
+- `--img` defines the fully qualified name of the image output by `./dev_container`.
 
-After ```./dev_container build``` has completed ```docker images``` will list the following new image
+After ```./dev_container build``` has completed ```docker images``` will list the new image:
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ docker images
@@ -63,15 +129,21 @@ holohub                                  sdk-dev-latest    cb0231f77856   54 sec
 ```
 
 
-2. Using custom Dockerfile
+#### Using a Custom Dockerfile
+
+Several HoloHub applications use a custom Dockerfile to alter or extend the default HoloHub container. Use the following command to build from a custom Dockerfile:
 
 ```bash
-  ./dev_container build  --docker_file <path_to_dockerfile>  --img holohub-debug:local-sdk-v0.6.0
+$ ./dev_container build  --docker_file <path_to_dockerfile>  --img holohub-debug:local-sdk-v0.6.0
 ```
 
-where ```--docker_file```  is the path to the container's Dockerfile and ```--img``` defines the fully qualified image name.
+Where:
+- `--docker_file`  is the path to the container's Dockerfile;
+- `--img` defines the fully qualified image name.
 
-***Note***:  To print the values for base image, docker file, gpu type and output image name use ```--verbose```.
+#### Build with Verbose Output
+
+To print the values for base image, Dockerfile, GPU type, and output image name, use ```--verbose```.
 
 For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option.
 
@@ -85,42 +157,49 @@ Build (img:holohub:ngc-v0.6.0-dgpu)...
 ....
 ```
 
+### Advanced Launch Options (Container)
 
-***Launching dev container:***  Run the following command from the holohub directory to launch the default development container built using Holoscan SDK's container from ngc for the local GPU.
+#### View All Options
 
-```bash
-  ./dev_container launch
+Run the command below to view all available launch options in the `dev_container` script:
+
+```sh
+$ ./dev_container help launch
 ```
 
-The launch script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
+#### Launch a Local Holoscan SDK Container
 
-***Advanced launch options***
-
-1. For Holohub image built with locally built Holoscan SDK container
+To use a HoloHub container image built with a local Holoscan SDK container:
 
 ```bash
-  ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root <path_to_holoscan_sdk>
+$ ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root <path_to_holoscan_sdk>
 ```
 
-2. Launch custom Holohub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
+#### Launch a Named HoloHub Container
+
+To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
 
 ```bash
-  ./dev_container launch --img holohub:ngc-sdk-sample-app
+$ ./dev_container launch --img holohub:ngc-sdk-sample-app
 ```
 
-3. Enable X11 forwarding of graphical HoloHub applications over SSH
+#### Forward X11 Graphics Over SSH
 
 ```bash
   ./dev_container launch --ssh_x11
 ```
 
-4. Support Nsight Systems profiling in container
+#### Support Nsight Systems profiling in the HoloHub Container
 
 ```bash
   ./dev_container launch --nsys_profile
 ```
 
-***Note***:  To print the values passed to the docker run command, add the ```--verbose``` option to the launch command.
+#### Print Verbose Output
+
+```sh
+  ./dev_container launch --verbose
+```
 
 For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values.
 
@@ -137,26 +216,31 @@ Launch (image: holohub:ngc-v0.6.0-dgpu)...
 ....
 ```
 
-Please note that the values of some of the variables will vary depending on configured options, iGPU or dGPU, availability of devices for video capture, ...
+Please note that the values of some of the variables will vary depending on configured options, iGPU or dGPU, availability of devices for video capture, or other environment factors.
 
+### Platform Notes (Container)
 
-From within the container build the Holohub apps as explained in section [Building HoloHub](#building-holohub).
-
-The development container has been tested on the following platforms: x86_x64 workstation with multiple RTX GPUs, Clara AGX Dev Kit (dGPU mode), IGX Orin Dev Kit (dGPU and iGPU mode), AGX Orin Dev Kit (iGPU).
+The development container has been tested on the following platforms:
+- x86_x64 workstation with multiple RTX GPUs
+- Clara AGX Dev Kit (dGPU mode)
+- IGX Orin Dev Kit (dGPU and iGPU mode)
+- AGX Orin Dev Kit (iGPU)
 
 
 ***Notes for AGX Orin Dev Kit***:
 
-(1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the Holohub sample apps to work. Please also make sure that the current user is member of the group video.
+(1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the HoloHub sample apps to work. Please also make sure that the current user is member of the group video.
 
 (2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
 
 
-### Local build
+## Native Build (Optional)
+
+### Software Prerequisites (Native)
 
 Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK in local environment: Debian package, Python wheels or from source.
 
-Install the package dependencies for Holohub on your host system. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
+Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
 
 ```bash
   # if sudo is available
@@ -179,57 +263,62 @@ If you prefer you can also install the dependencies manually:
 
 *Note: the run script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
 
-# Building HoloHub
+# Building Sample Applications
 
-While not all applications requires building HoloHub, the current build system automatically manages dependencies (applications/operators) and also downloads and convert datasets at build time. HoloHub provides a convenient run script to build and run applications (you can run `./run -h` for information about the available commands).
+_Make sure you have installed the [prerequisites](#prerequisites) before attempting to build HoloHub applications._
 
-You can refer to the README of each application/operator if you prefer to build/run them manually.
+Sample applications based on the Holoscan platform may be found under the [applications](./applications/) directory. Sample applications are a subset of the HoloHub applications and are maintained by Holoscan SDK developers to provide a demonstration of the SDK capabilities.
 
-Make sure you have installed the [prerequisites](#prerequisites) before attempting to build HoloHub.
-## Building Sample applications
-Sample applications based on the Holoscan Platform may be found under the [Applications](./applications/) directory. Sample applications are a subset of the HoloHub applications and are maintained by Holoscan SDK developers to provide a demonstration of the SDK capabilities.
-
-To build sample applications, make sure you have install the prerequisites and setup your NGC credentials then run:
+HoloHub provides a convenient `run` script to build and run applications in your development environment. To build all sample applications in your development environment:
 
 ```bash
   ./run build
 ```
 
-Alternatively if you have an installation of the Holoscan SDK which is not in a standard path, you may want to provide the root directory of your Holoscan SDK installation.
+When the build is successful you can [run the sample applications](#running-applications).
+
+### Advanced Build Options
+
+#### View Build Options
+
+```sh
+./run -h
+```
+
+#### Local SDK Path
+
+If you have an installation of the Holoscan SDK which is not in a standard path, you may want to provide the root directory of your Holoscan SDK installation.
 
 ```bash
   ./run build --sdk <path to the Holoscan SDK installation directory>
 ```
 
-*Note that the run script creates a `data` directory to put the downloaded Holohub data where the run script is located.
-This directory is noted HOLOHUB_DATA_DIR/holohub_data_dir in the documentation, READMEs and metadata files.*
+#### Building a Specific Application
 
-When the build is successful you can [run the sample applications](#running-applications)
-
-## Building a specific application
-By default HoloHub builds the sample applications that are maintained with the SDK, but you can build specific applications by the name of the directory.
+By default HoloHub builds all the sample applications that are maintained with the SDK. You can build specific applications by the name of the directory.
 
 ```bash
   ./run build <application>
 ```
 
-for example:
+For example:
 
 ```bash
   ./run build endoscopy_tool_tracking
 ```
 
-Note that CMake with build the application in the directory specified if there are multiple languages, the script will attempt to build all of them.
+Note that CMake will build the application in the directory specified. If there are multiple languages, the script will attempt to build all of them.
 
 
-## Building application or operator manually
+#### Building application or operator manually
+
 If you prefer to build applications and operator manually you can follow the steps below.
 
 ```bash
 # Export cuda (in case it's not already in the path)
 export PATH=$PATH:/usr/local/cuda/bin
 
-# Configure Holohub with CMake
+# Configure HoloHub with CMake
 cmake -S <path_to_holohub_source>            # Source directory
       -B build                               # Build directory
       -DPython3_EXECUTABLE=/usr/bin/python3  # Specifies the python executable for CMake to find the correct version
@@ -243,7 +332,17 @@ cmake -S <path_to_holohub_source>            # Source directory
 cmake --build build
 ```
 
-# Running applications
+### Additional Build Notes
+
+While not all applications requires building HoloHub, the current build system automatically manages dependencies (applications/operators) and also downloads and converts datasets at build time.
+
+You can refer to the README of each application/operator if you prefer to build/run them manually.
+
+The run script creates a `data` subdirectory to store the downloaded HoloHub data.
+This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation, READMEs and metadata files.
+
+# Running Applications
+
 To list all available applications you can run the following command:
 ```bash
   ./run list
@@ -267,15 +366,15 @@ and to run the same application in python:
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
 Make sure you build the application (if applicable) before running it.
 
-## Advanced launch options
+### Advanced Run Options
 
-1. Pass additional arguments to the application command
+#### Pass additional arguments to the application command
 
 ```bash
   ./run launch endoscopy_tool_tracking python --extra_args '-r visualizer'
 ```
 
-2. Profile using Nsight Systems
+#### Profile using Nsight Systems
 
 ```bash
   ./run launch endoscopy_tool_tracking python --nsys_profile
@@ -298,8 +397,8 @@ This file can be loaded and visualized with the Nsight Systems UI application:
 
 # Contributing to HoloHub
 
-The goal of Holohub is to allow engineering teams to easily contribute and share new functionalities
-and demonstration applications. Please review the [CONTRIBUTING.md file](https://github.com/nvidia-holoscan/holohub/blob/main/CONTRIBUTING.md) for more information on how to contribute.
+The goal of HoloHub is to allow engineering teams to easily contribute and share new functionalities
+and to demonstrate applications. Please review the [HoloHub Contributing Guidelines](https://github.com/nvidia-holoscan/holohub/blob/main/CONTRIBUTING.md) for more information.
 
 # Useful Links
 
