@@ -3,6 +3,7 @@ from holoscan.core import Application
 from holoscan.conditions import CountCondition
 from holoscan.schedulers import GreedyScheduler, MultiThreadScheduler
 
+
 class BenchmarkedApplication(Application):
     conditioned_nodes = set()
 
@@ -19,7 +20,7 @@ class BenchmarkedApplication(Application):
             upstream_op.add_arg(CountCondition(self, num_source_messages))
 
     def run(self):
-        print ("Running benchmarked application")
+        print("Running benchmarked application")
         tracker = self.track()
 
         # Get the data flow tracking log file from environment variable
