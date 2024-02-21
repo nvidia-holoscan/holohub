@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ for file in $cpp_files; do
     # Find whether the file has "BenchmarkedApplication" in it and skip it if it does
     if grep -q "BenchmarkedApplication" "$file"; then
         # Show error message for the file
-        echo "File $file is probably already patched. Skipping."
+        echo "Found \"BenchmarkedApplication\" in file $file. It is probably patched already. Skipping."
         continue
     fi
     # Find the "holoscan::Application" line in the cpp file and include benchmark header file before it
@@ -55,7 +55,7 @@ for file in $py_files; do
     # Find whether the file has "BenchmarkedApplication" in it and skip it if it does
     if grep -q "BenchmarkedApplication" "$file"; then
         # Show error message for the file
-        echo "File $file is probably already patched. Skipping."
+        echo "Found \"BenchmarkedApplication\" in file $file. It is probably patched already. Skipping."
         continue
     fi
 

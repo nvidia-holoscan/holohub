@@ -6,11 +6,11 @@ from holoscan.schedulers import GreedyScheduler, MultiThreadScheduler
 class BenchmarkedApplication(Application):
     conditioned_nodes = set()
 
-    def add_flow(self, upstream_op, downstream_op):
-        self.add_flow(upstream_op, downstream_op, {})
-
-    def add_flow(self, upstream_op, downstream_op, port_pairs):
-        super().add_flow(upstream_op, downstream_op, port_pairs)
+    def add_flow(self, upstream_op, downstream_op, port_pairs=None):
+        if port_pairs:
+            super().add_flow(upstream_op, downstream_op, port_pairs)
+        else:
+            super().add_flow(upstream_op, downstream_op)
 
         if upstream_op not in self.conditioned_nodes:
             # Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
@@ -32,16 +32,14 @@ class BenchmarkedApplication(Application):
         # Load scheduler parameters from environment variables
         scheduler_str = os.environ.get("HOLOSCAN_SCHEDULER", None)
         if scheduler_str and scheduler_str == "multithread":
-            num_threads = None
-            if "HOLOSCAN_MULTITHREAD_WORKER_THREADS" in os.environ:
-                num_threads = int(os.environ["HOLOSCAN_MULTITHREAD_WORKER_THREADS"])
+            num_threads = os.environ.get("HOLOSCAN_MULTITHREAD_WORKER_THREADS", None)
             scheduler = MultiThreadScheduler(
                 self,
                 name="multithread-scheduler",
-                worker_thread_number=num_threads if num_threads is not None else 1,
+                worker_thread_number=int(num_threads) if num_threads is not None else 1,
                 stop_on_deadlock=True,
                 check_recession_period_ms=0,
-                max_duration_ms=100000
+                max_duration_ms=100000,
             )
         else:
             scheduler = GreedyScheduler(self, name="greedy-scheduler")
