@@ -73,6 +73,7 @@ inference on a single data stream. The same ML model is replicated to be loaded 
 the GPU in this application.
 
 ![Benchmark Model](./model_benchmarking.png)
+
 Figure 1. The schematic diagram of the benchmarking application
 
 ## Sample Result
@@ -89,6 +90,7 @@ and variable number of application instances (`-i` parameter of the `benchmark.p
 the model on different IGX platforms.
 
 ![Multi-AI Aortic Stenosis Scalability](./multiai_igx.png)
+
 Figure 2. Multi-AI Aortic Stenosis Scalability Result
 
 Figure 2 shows the result of the experiment. The x-axis shows the number of parallel inferences per
