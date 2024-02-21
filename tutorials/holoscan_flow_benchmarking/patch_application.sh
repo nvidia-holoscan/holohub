@@ -59,7 +59,7 @@ for file in $py_files; do
         continue
     fi
 
-    # Find the first import statement and add "import sys newline sys.path.append(aboslute path of
+    # Find the first import statement and add "import sys newline sys.path.append(absolute path of
     # the directory of this bash script)
     # newline import benchmarked_application before it"
     cp "$file" "$file.bak"
