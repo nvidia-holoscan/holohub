@@ -18,7 +18,7 @@ set -e
 
 # Get the first argument as the directory to search
 dir=$1
-# find all the cpp files in the directory and the subdirectories
+# find all the cpp and py files in the directory and the subdirectories
 all_files=$(find "$dir" -type f \( -name "*.cpp" -o -name "*.py" \))
 
 # Iterate over each found file
