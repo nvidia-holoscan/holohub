@@ -3,6 +3,9 @@ In this application, we show how to build a Multi AI application with detection 
 
 Please refer to the README under [./app_dev_process](./app_dev_process/README.md) to see the process of developing the applications.
 
+The application graph looks like:
+![](./images/multiai_endoscopy_app_graph.png)
+
 ## Model
 We combine two models from the single model applications [SSD Tool Detection](https://github.com/nvidia-holoscan/holohub/tree/main/applications/ssd_detection_endoscopy_tools) and [MONAI Endoscopic Tool Segmentation](https://github.com/nvidia-holoscan/holohub/tree/main/applications/monai_endoscopic_tool_seg):
 

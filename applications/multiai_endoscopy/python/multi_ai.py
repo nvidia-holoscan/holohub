@@ -36,8 +36,8 @@ class DetectionPostprocessorOp(Operator):
     Following the example of tensor_interop.py and ping.py4
 
     This operator has:
-        inputs:  "input_tensor"
-        outputs: "output_tensor"
+        inputs:  "in"
+        outputs: "out"
     """
 
     def __init__(self, *args, label_dict={}, label_text_size=0.05, scores_threshold=0.3, **kwargs):
