@@ -6,8 +6,8 @@ use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarki
 (up-to-date) or 
 [Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf).
 
-The tool supports benchmarking of any Holoscan C++ application. Holoscan Python applications will be
-supported in the future.
+The tool supports benchmarking of any Holoscan application. Holoscan Python applications are
+supported since Holoscan v1.0.
 
 ## Pre-requisites
 The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):

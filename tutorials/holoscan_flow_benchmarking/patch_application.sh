@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ for file in $cpp_files; do
     # Find whether the file has "BenchmarkedApplication" in it and skip it if it does
     if grep -q "BenchmarkedApplication" "$file"; then
         # Show error message for the file
-        echo "File $file is probably already patched. Skipping."
+        echo "Found \"BenchmarkedApplication\" in file $file. It is probably patched already. Skipping."
         continue
     fi
     # Find the "holoscan::Application" line in the cpp file and include benchmark header file before it
@@ -47,3 +47,27 @@ for file in $cpp_files; do
     echo "  diff -u $file.bak $file"
 done
 
+
+# find all the py files in the directory and the subdirectories
+py_files=$(find "$dir" -type f -name "*.py")
+
+for file in $py_files; do
+    # Find whether the file has "BenchmarkedApplication" in it and skip it if it does
+    if grep -q "BenchmarkedApplication" "$file"; then
+        # Show error message for the file
+        echo "Found \"BenchmarkedApplication\" in file $file. It is probably patched already. Skipping."
+        continue
+    fi
+
+    # Find the first import statement and add "import sys newline sys.path.append(absolute path of
+    # the directory of this bash script)
+    # newline import benchmarked_application before it"
+    cp "$file" "$file.bak"
+    import_line=$(grep -nE -- "import" "$file" | head -n 1 | awk -F ':' '{print $1}')
+    sed -i "$import_line i import sys\nsys.path.append(\"$(dirname "$(readlink -f "$0")")\")\nfrom benchmarked_application import BenchmarkedApplication\n" "$file"
+
+    # Find "(Application)" and change it to "(BenchmarkedApplication)"
+    sed -i 's/(Application)/(BenchmarkedApplication)/g' "$file"
+
+    echo "Patched $file. Original file is backed up in $file.bak. diff -u $file $file.bak to see the changes."
+done

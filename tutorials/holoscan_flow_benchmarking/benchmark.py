@@ -97,7 +97,8 @@ def main():
         "--holohub-application",
         type=str,
         required=False,
-        help="name of HoloHub application to run",
+        help="name of HoloHub application to run. It runs the cpp version of an application\n\
+To run a python application, use --run-command option.",
         default="endoscopy_tool_tracking",
     )
 
@@ -106,7 +107,7 @@ def main():
         type=str,
         required=False,
         help="command to run the application (this argument overwrites \
-              -a or --holohub-application parameter)",
+-a or --holohub-application parameter)",
         default="",
     )
 
@@ -124,9 +125,9 @@ def main():
         type=str,
         required=False,
         help="comma-separated GPU UUIDs to run the application on.\
-              This option sets the CUDA_VISIBLE_DEVICES in the environment variable.\
-              (default: all)\nWarning: This option does not override any custom GPU\
-              assignment in Holoscan's Inference operator.",
+This option sets the CUDA_VISIBLE_DEVICES in the environment variable.\
+(default: all)\nWarning: This option does not override any custom GPU\
+assignment in Holoscan's Inference operator.",
         default="all",
     )
 
