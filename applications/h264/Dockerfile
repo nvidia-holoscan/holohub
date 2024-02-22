@@ -45,8 +45,10 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
 
-# Install libv4l-dev required for nvv4l2
-RUN apt update && apt install -y libv4l-dev
+# - Install libv4l-dev required for nvv4l2
+# - Install kmod as a workaround to fix iGPU support.
+#   GXF ENC / DEC needs lsmod to check whether it's dGPU or iGPU.
+RUN apt update && apt install -y libv4l-dev kmod
 
 # Below workarounds are required to get H.264 Encode and Decode working inside
 # the docker container.
