@@ -2,31 +2,91 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
+- [Types of Contributions](#types-of-contributions)
+- [Developer Workflow](#developer-workflow)
 - [Preparing your submission](#preparing-your-submission)
-- [Submitting a new application/operator](#submitting-a-new-application-and-operator)
 - [Reporting issues](#reporting-issues)
-- [Fixing issues](#fixing-issues)
-- [Testing](#testing)
 
 ## Introduction
-HoloHub is a collection of applications and reusable operators that can be shared across engineering teams.
-While formal SQA is not required to submit to HoloHub, it is recommended to follow the guidelines
-in this document to make sure new submission can be easily used by others.
 
-Each submission (application and/or operator) requires a *metadata.json* file which describes its
-specifications and requirements.
+Welcome to HoloHub! Please read our [README](./README.md) document for an overview of the project.
 
-**Every operator should have at least one associated application to demonstrate the capabilities of the operator.**
+HoloHub is a collection of applications and reusable operators available to the NVIDIA Holoscan developer community.
+Polished contributions from community members like you help us augment the Holoscan open source ecosystem with new features
+and demonstrations.
+
+Please read this guide if you are interested in contributing open source code to HoloHub.
+
+## Types of Contributions
+
+Before getting started, assess how your idea or project may best benefit the Holoscan community.
+
+If your idea is:
+- _specific to a narrow practical application or use case:_ Consider submitting to HoloHub as an [application](./applications/).
+- _widely applicable across a domain of interests:_ Consider submitting to HoloHub as an [operator](./operators/) and an accompanying [application](./applications/).
+- _neither a new operator nor an application_: Consider submitting a [tutorial](./tutorials/) to HoloHub.
+
+If your code is:
+- _feature-complete and tested_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to contribute your work to HoloHub.
+- _a work in progress:_ We recommend to [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) HoloHub and track your local development there, then submit to HoloHub when ready. Alternatively, open pull request and indicate that it is a "work-in-progress" with the prefix "WIP".
+- _a patch for an existing application or operator_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and request a review from the original author of the contribution you are patching.
+
+We recommend referring to contributing guidelines for testing and styling goals throughout your development process.
+
+## Developer Workflow
+
+### Requirements
+
+Review [HoloHub prerequisites](./README.md#prerequisites) before getting started.
+
+We recommend that new developers review GitHub's [starting documentation](https://docs.github.com/en/get-started/start-your-journey) before making their first contribution.
+
+### Workflow
+
+1. Developers must first [fork](https://help.github.com/en/articles/fork-a-repo) the [upstream](https://github.com/nvidia-holoscan/holohub) HoloHub repository.
+
+2. Git clone the forked repository and push changes to the personal fork.
+
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
+# Checkout the targeted branch and commit changes
+# Push the commits to a branch on the fork (remote).
+git push -u origin <local-branch>:<remote-branch>
+```
+
+3. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
+  * Exercise caution when selecting the source and target branches for the PR.
+  * Creation of a PR creation kicks off the [code review](#preparing-your-submission) process.
+
+4. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
+
+Thanks in advance for your patience as we review your contributions. We do appreciate them!
 
 ## Preparing your submission
 
-### Naming convention
-Every application and operator should be named with an english descriptive name of the functionality
-provided. Please avoid using acronyms, brand, or team names.
+We request that members follow the guidelines in this document to make sure new submissions can be easily used by others.
+
+A typical submission consists of:
+
+- Application, operator, and/or tutorial code making use of the Holoscan SDK;
+- A [`metadata.json`](#metadata-description) file;
+- A [README](#readme-file) file describing the application, operator, and/or tutorial;
+- A [LICENSE](#license-guidelines) file (optional).
+
+For a submission to be accepted into HoloHub it must meet at least these criteria:
+- Clearly demonstrates added value to the Holoscan community;
+- Receives approval from at least one HoloHub maintainer;
+- [Code linting](#linting) tests pass;
+- Any new [code tests](#testing) pass.
+
+We do not require that community members conduct formal Software Quality Assurance (SQA) to submit to HoloHub.
 
 ### Metadata description
+
 Every application and operator should have an associated *metadata.json* file which describes the features
 and dependencies.
+
+`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), and [operators](./operators/metadata.schema.json), but generally follow the convention below:
 
 ```json
 // Main json definition for application or operator
@@ -83,7 +143,10 @@ and dependencies.
 	}
 ```
 
-### Ranking levels
+### Ranking Levels for `metadata.json`
+
+Please provide a self-assessment of your HoloHub contribution in your `metadata.json` file(s) according to the levels below:
+
 #### Level 0 - In par with Main SDK modules
 - Widespread community dependence
 - Above 90% code coverage
@@ -116,15 +179,21 @@ and dependencies.
 #### Level 5 - Deprecated
 - Deprecated code, known to be of limited utility, perhaps has known bugs
 
-### Readme file
-While it is not required, adding a README.md file with clarification on the intent and usage of the application or operator is a plus and helps developers and users get started quickly with your application.
+### README File
+Adding a `README.md` file with clarification on the intent and usage of the application or operator helps developers and users get started quickly with your contribution.
 
-### Build System
-#### Adding an Operator or GXF extension
-Each operator should be added in its own directory under the ```operators``` or ```gxf_extensions``` directories and should
-contain a ```metadata.json``` file as well as a README file.
+We recommend writing README files in the Markdown format (`.md`).
 
-Edit the ```CMakeLists.txt``` file to add the new operator as part of the build system using the ```add_holohub_operator```
+### Adding an Operator or GXF Extension
+
+Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:
+- A *metadata.json* file which describes its specifications and requirements in accordance with the [operator metadata.json schema](./operators/metadata.schema.json).
+- A README file summarizing the operator's purpose;
+- A LICENSE file governing use (optional).
+
+Additionally, each operator must have at least one associated [application](./applications/) to demonstrate the capabilities of the operator.
+
+Edit [```CMakeLists.txt```](./operators/CMakeLists.txt) to add the new operator as part of the build system using the ```add_holohub_operator```
 CMake function. If the operator wraps a GXF extension then the optional ```DEPENDS EXTENSIONS``` should be added to tell the build
 system to build the dependent extension(s).
 
@@ -134,11 +203,14 @@ add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 
 Note that extensions do not have a ```DEPENDS``` option.
 
-#### Adding an application
-Each application should be added in its own directory under the ```applications``` directory and should
-contain a ```metadata.json``` file as well as a README file.
+### Adding an Application
 
-Edit the ```CMakeLists.txt``` file to add the new application  as part of the build system using the ```add_holohub_application```
+Add each application in its own subdirectory under the ```applications``` directory. The subdirectory should contain:
+- A *metadata.json* file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
+- A README file summarizing the application's purpose and architecture;
+- A LICENSE file governing use (optional).
+
+Edit [```CMakeLists.txt```](./applications/CMakeLists.txt) to add the new application  as part of the build system using the ```add_holohub_application```
 CMake function. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
 the build system knows to build the dependent operator(s).
 
@@ -152,36 +224,28 @@ add_holohub_application(my_application DEPENDS
 Note that some applications have the optional ```HOLOSCAN_SAMPLE_APP``` keywords at the end of the ```add_holohub_application```
 function. This keyword should only be used for sample applications that are maintained by the Holoscan team.
 
-## Submitting a new application and operator
+### Adding a Tutorial
+
+Add each tutorial in its own subdirectory under the [```tutorials```](./tutorials) directory. The subdirectory should contain:
+- A README file summarizing the application's purpose and architecture;
+- A LICENSE file governing use (optional).
+
+There are no project-wide metadata or build requirements for tutorials.
+
+### License Guidelines
+
+- Make sure that you can contribute your work to open source.  Verify that no license and/or patent conflict is introduced by your code. NVIDIA is not responsible for conflicts resulting from community contributions.
+
+- We encourage community submissions under the Apache 2.0 permissive open source license, which is the [default for HoloHub](./LICENSE). However, if you prefer you may use another license in the submission subdirectory at the time of submission.
+
+- We require that members [sign](#signing-your-contribution) their contributions to certify their work.
 
 ### Coding Guidelines
 
 - All source code contributions must strictly adhere to the Holoscan SDK coding style.
 
-- Make sure that you can contribute your work to open source (no license and/or patent conflict is introduced by your code). You will need to [`sign`](#signing-your-work) your commit.
-
-- Thanks in advance for your patience as we review your contributions; we do appreciate them!
-
-### Developer Workflow
-
-1. Developers must first [fork](https://help.github.com/en/articles/fork-a-repo) the [upstream](https://github.com/nvidia-holoscan/holohub) HoloHub repository.
-
-2. Git clone the forked repository and push changes to the personal fork.
-
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
-# Checkout the targeted branch and commit changes
-# Push the commits to a branch on the fork (remote).
-git push -u origin <local-branch>:<remote-branch>
-```
-
-3. Once the code changes are staged on the fork and ready for review, a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) can be [requested](https://help.github.com/en/articles/creating-a-pull-request) to merge the changes from a branch of the fork into a selected branch of upstream.
-  * Exercise caution when selecting the source and target branches for the PR.
-  * Creation of a PR creation kicks off the code review process.
-  * While under review, mark your PRs as work-in-progress by prefixing the PR title with [WIP].
-
-4. Upon review the PR will be accepted only if it meets the standards for HoloHub.
-
+- Every application and operator should be named with an english descriptive name of the functionality
+provided. Please avoid using acronyms, brand, or team names.
 
 ### Signing Your Contribution
 
@@ -228,7 +292,9 @@ git push -u origin <local-branch>:<remote-branch>
 
 ## Linting
 
-The code submitted to Holohub needs to pass linting.
+The code submitted to HoloHub needs to pass linting checks to demonstrate compliance with minimum style guidelines.
+
+HoloHub runs linting checks in CI/CD pipelines when new changes are proposed. You will see a linting check result when you create a new pull request. You can also install and run linting tools to aid in local development.
 
 ### Running lint
 
@@ -260,16 +326,6 @@ clang-format --style=file --sort-includes=0 --lines=20:10000 -i <filename>
 codespell -w -i 3 [path]
 ```
 
-
-## Reporting issues
-
- All enhancement, bugfix, or change requests must begin with the creation of a [HoloHub Issue Request](https://github.com/nvidia-holoscan/holohub/issues).
-
-## Fixing issues
-
-Patches to existing applications and operators are welcome and should follow the same workflow as
-[submitting new contributions](#Submitting-a-new-application-and-operator). Make sure you assign the original author of the contribution as the reviewer.
-
 ## Testing
 
 ### Writing tests
@@ -290,3 +346,7 @@ ctest -V
 # To run with extra verbose mode
 ctest -VV
 ```
+
+## Reporting issues
+
+Please open a [HoloHub Issue Request](https://github.com/nvidia-holoscan/holohub/issues) to request an enhancement, bug fix, or other change in HoloHub.
