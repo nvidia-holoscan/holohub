@@ -164,6 +164,12 @@ setup() {
     apt-get install wget
   fi
 
+  # Install xvfb for running tests/examples headless
+  xvfb_version=$(dpkg --status xvfb | grep -Po '^Version: \K[^-]*')
+  if [[ $xvfb_version == "" ]]; then
+    apt-get install xvfb
+  fi
+
   # Check version of CMake otherwise upgrade
   cmake_version=$(dpkg --status cmake | grep -Po '^Version: \K[^-]*')
   ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
