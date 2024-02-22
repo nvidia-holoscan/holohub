@@ -18,7 +18,7 @@ Build and run the ultrasound segmentation application:
 
 Now, this benchmarking application can be built and run. However, before doing so, the v4l2loopback
 must be run first. Check out the [notes and prerequisites
-here](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera) to play a
+here](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices) to play a
 video via a V4L2 loopback device. Assuming, everything is set up correctly, the ultrasound
 segmentation example video could be run with the following command:
 
