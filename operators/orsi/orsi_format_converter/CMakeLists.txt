@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ add_library(orsi_format_converter
 
 add_library(holoscan::orsi::format_converter ALIAS orsi_format_converter)
 target_include_directories(orsi_format_converter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+# TODO: might need to add DLPack to target_include_directories (gxf/std/tensor.hpp links to it)
 
 target_link_libraries(orsi_format_converter
 PUBLIC

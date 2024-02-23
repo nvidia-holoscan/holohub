@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,11 @@
 #include <utility>
 #include <vector>
 
+#include "gxf/std/tensor.hpp"
 #include "holoscan/core/execution_context.hpp"
 #include "holoscan/core/executor.hpp"
 #include "holoscan/core/fragment.hpp"
 #include "holoscan/core/gxf/entity.hpp"
-#include "holoscan/core/gxf/gxf_tensor.hpp"
 #include "holoscan/core/io_context.hpp"
 #include "holoscan/core/io_spec.hpp"
 #include "holoscan/core/operator_spec.hpp"
@@ -345,10 +345,14 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
     auto in_tensor = maybe_tensor;
 
     // Get needed information from the tensor
-    // cast Holoscan::Tensor to GXFTensor so attribute access code can remain as-is
-    holoscan::gxf::GXFTensor in_tensor_gxf{in_tensor->dl_ctx()};
+    // cast Holoscan::Tensor to nvidia::gxf::Tensor to use it's APIs directly
+    nvidia::gxf::Tensor in_tensor_gxf{in_tensor->dl_ctx()};
     out_shape = in_tensor_gxf.shape();
     in_tensor_data = in_tensor_gxf.pointer();
+    if (in_tensor_data == nullptr) {
+      // This should never happen, but just in case...
+      HOLOSCAN_LOG_ERROR("Unable to get tensor data pointer. nullptr returned.");
+    }
     in_primitive_type = in_tensor_gxf.element_type();
     in_memory_storage_type = in_tensor_gxf.storage_type();
     rows = in_tensor_gxf.shape().dimension(0);

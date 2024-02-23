@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,3 +42,5 @@ add_library(gxf_lstm_tensor_rt_inference SHARED
 target_link_libraries(gxf_lstm_tensor_rt_inference
   PUBLIC gxf_lstm_tensor_rt_inference_lib
 )
+
+# TODO: need DLPack in include path because gxf/std/tensor.hpp is used

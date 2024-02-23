@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -119,13 +119,14 @@ std::shared_ptr<holoscan::Tensor> fvec2tensor(
         return nvidia::gxf::Success;
       });
 
-    // Create Holoscan GXF tensor
-    auto thg = holoscan::gxf::GXFTensor(*tg);
-
-    // Create Holoscan tensor
-    auto th = thg.as_tensor();
-
-    return th;
+    // Export DLPack context corresponding to the nvidia::gxf::Tensor
+    auto maybe_dl_ctx = tg->toDLManagedTensorContext();
+    if (!maybe_dl_ctx) {
+      throw std::runtime_error(
+          "failed to get std::shared_ptr<DLManagedTensorContext> from nvidia::gxf::Tensor");
+    }
+    // zero-copy creation of holoscan::Tensor from the DLPack context
+    return std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
 }
 
 namespace holoscan::ops {

@@ -84,8 +84,8 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       throw std::runtime_error(fmt::format("Tensor '{}' not found in message", in_tensor_name));
     }
   }
-  // Get the holoscan::gxf::GXFTensor from holoscan::Tensor'.
-  auto in_tensor = gxf::GXFTensor::from_tensor(maybe_tensor);
+  // Get the nvidia::gxf::Tensor from holoscan::Tensor'.
+  nvidia::gxf::Tensor in_tensor{(maybe_tensor->dl_ctx())};
 
   nvidia::gxf::Shape out_shape{0, 0, 0};
   void* in_tensor_data = nullptr;
