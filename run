@@ -161,7 +161,13 @@ setup() {
   # Install wget
   wget_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
   if [[ $wget_version == "" ]]; then
-    apt-get install wget
+    apt-get install -y wget
+  fi
+
+  # Install xvfb for running tests/examples headless
+  xvfb_version=$(dpkg --status xvfb | grep -Po '^Version: \K[^-]*')
+  if [[ $xvfb_version == "" ]]; then
+    apt-get install -y xvfb
   fi
 
   # Check version of CMake otherwise upgrade
@@ -303,7 +309,7 @@ install_lint_deps() {
         run_command ${HOLOHUB_PY_EXE} -m pip install codespell || exit_code=1
     fi
 
-    c_echo W "Install Lint Dependencies for CMake"
+    echo "Install Lint Dependencies for CMake"
     if ! command -v cmakelint &> /dev/null; then
         run_command ${HOLOHUB_PY_EXE} -m pip install cmakelint || exit_code=1
     fi

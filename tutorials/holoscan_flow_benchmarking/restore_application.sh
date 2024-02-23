@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +18,11 @@ set -e
 
 # Get the first argument as the directory to search
 dir=$1
-# find all the cpp files in the directory and the subdirectories
-cpp_files=$(find "$dir" -type f -name "*.cpp")
+# find all the cpp and py files in the directory and the subdirectories
+all_files=$(find "$dir" -type f \( -name "*.cpp" -o -name "*.py" \))
 
 # Iterate over each found file
-for file in $cpp_files; do
+for file in $all_files; do
     # Find whether the file has "BenchmarkedApplication" in it and skip it if it does
     if grep -q "BenchmarkedApplication" "$file"; then
         # move the backup file to the original file
