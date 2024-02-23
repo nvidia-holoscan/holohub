@@ -16,11 +16,21 @@
 import os
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
-from holoscan.core import (Application, ExecutionContext, InputContext,
-                           Operator, OperatorSpec, OutputContext)
-from holoscan.operators import (FormatConverterOp, HolovizOp, InferenceOp,
-                                SegmentationPostprocessorOp,
-                                V4L2VideoCaptureOp)
+from holoscan.core import (
+    Application,
+    ExecutionContext,
+    InputContext,
+    Operator,
+    OperatorSpec,
+    OutputContext,
+)
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    SegmentationPostprocessorOp,
+    V4L2VideoCaptureOp,
+)
 from holoscan.resources import UnboundedAllocator
 
 
