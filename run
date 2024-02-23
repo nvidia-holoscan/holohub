@@ -792,12 +792,20 @@ parse_args() {
     # Check if the command has `--help`, `-h`, and override the CMD
     local i
     local arg
+    extra_args=false
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
-            ARGS=("$CMD")
-            CMD="help"
-            break
+        # if any argument is --extra_args, then a subsequent "-h/--help" is passed to the application
+        if [[ "$arg" == "--extra_args" ]]; then
+            extra_args=true
+            continue
+        fi
+        if [[ "$extra_args" == false ]]; then
+          if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
+              ARGS=("$CMD")
+              CMD="help"
+              break
+          fi
         fi
         if [ "$arg" = "--dryrun" ]; then
             unset_pos=$i
