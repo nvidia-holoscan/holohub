@@ -67,8 +67,10 @@ class QtVideoApp : public QtHoloscanApp {
    * @param view
    * @param parent
    */
-  explicit QtVideoApp(QQuickView* view, int count, QObject* parent = nullptr)
-      : QtHoloscanApp(parent), view_(view), count_(count) {
+  explicit QtVideoApp(QQuickView* view, int count, std::string datadir,
+                      std::string basename, QObject* parent = nullptr)
+      : QtHoloscanApp(parent), view_(view), count_(count), datadir_(datadir),
+                      basename_(basename) {
     // Install the event filter. This is used to check for the close event and stop the
     // Holoscan pipeline in that case.
     view_->installEventFilter(this);
@@ -91,8 +93,8 @@ class QtVideoApp : public QtHoloscanApp {
     // Create the operators
     const auto replayer = make_operator<holoscan::ops::VideoStreamReplayerOp>(
         "replayer",
-        holoscan::Arg("directory", std::string("../data/racerx")),
-        holoscan::Arg("basename", std::string("racerx")),
+        holoscan::Arg("directory", datadir_),
+        holoscan::Arg("basename", basename_),
         holoscan::Arg("frame_rate", 0.f),
         holoscan::Arg("repeat", true),
         holoscan::Arg("realtime", true),
@@ -143,6 +145,8 @@ class QtVideoApp : public QtHoloscanApp {
  private:
   QQuickView* view_ = nullptr;
   int count_ = -1;
+  std::string datadir_ = "../data/racerx";
+  std::string basename_ = "racerx";
   std::shared_ptr<holoscan::ops::QtVideoOp> qtvideo_;
 };
 
@@ -162,6 +166,18 @@ int main(int argc, char** argv) {
                                  "count",
                                  "-1");
   parser.addOption(countOption);
+  QCommandLineOption dataOption(QStringList() << "d"
+                                               << "data",
+                                 "Set the directory for the datasets",
+                                 "data",
+                                 "../data/racerx");
+  parser.addOption(dataOption);
+  QCommandLineOption basenameOption(QStringList() << "b"
+                                               << "basename",
+                                 "Basename for the dataset",
+                                 "basename",
+                                 "racerx");
+  parser.addOption(basenameOption);
   parser.process(qt_app);
 
   if (parser.isSet(disableVsyncOption)) {
@@ -179,7 +195,9 @@ int main(int argc, char** argv) {
   // Create the Holoscan application, this needs to be done before calling `setSource()` below
   // to make the Holoscan operator parameters visible in QML.
   auto holoscan_app =
-      holoscan::make_application<QtVideoApp>(&view, parser.value(countOption).toInt());
+      holoscan::make_application<QtVideoApp>(&view, parser.value(countOption).toInt(),
+                                                    parser.value(dataOption).toStdString(),
+                                                    parser.value(basenameOption).toStdString());
 
   view.setSource(QUrl("qrc:///scenegraph/qt_video_replayer/qt_video_replayer.qml"));
   view.show();
