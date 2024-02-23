@@ -26,6 +26,7 @@
             "Benchmarking"
         ],
         "ranking": 1,
+        "dependencies": {},
         "run": {
             "command": "python3 <holohub_app_source>/model_benchmarking.py",
             "workdir": "holohub_bin"
