@@ -75,27 +75,3 @@ the GPU in this application.
 ![Benchmark Model](./model_benchmarking.png)
 
 Figure 1. The schematic diagram of the benchmarking application
-
-## Sample Result
-This application demonstrates how to measure the performance of parallel inferencing by multiple
-replications of the same model on a single video data stream. The [Holoscan Flow
-Benchmarking](../tutorial/holoscan_flow_benchmarking/) guide shows how to run multiple instances of
-the same application where every application instance operates on a single data stream. 
-Here, we present an experiment
-combining these two dimensions (parallel data streams and parallel inferences per data stream). We
-use the [Multi-AI Ultrasound](../multiai_ultrasound/) video and aortic stenosis model in this
-experiment. We use 1 to 4 parallel inferences (`-l` parameter of this application) per data stream 
-and variable number of application instances (`-i` parameter of the `benchmark.py` script of the
-[Flow Benchmarking guide](../tutorial/holoscan_flow_benchmarking/)) to measure the scalability of
-the model on different IGX platforms.
-
-![Multi-AI Aortic Stenosis Scalability](./multiai_igx.png)
-
-Figure 2. Multi-AI Aortic Stenosis Scalability Result
-
-Figure 2 shows the result of the experiment. The x-axis shows the number of parallel inferences per
-data stream, and the y-axis shows the total number of inferences in all the data streams,
-where average end-to-end latency does not exceed `50ms`. The experiment compares scalability among
-different IGX SKUs and demonstrates that IGX with a discrete GPU like RTX
-Ampere A6000 or RTX Ada 6000 handles significantly more total number of inferences without incurring a
-latency penalty.
