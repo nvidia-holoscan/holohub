@@ -46,7 +46,6 @@ class SinkOp(Operator):
 
 
 class App(Application):
-
     def __init__(
         self,
         datapath,
