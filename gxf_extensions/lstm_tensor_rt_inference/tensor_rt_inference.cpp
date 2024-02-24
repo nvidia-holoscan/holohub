@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,8 @@
 #include <vector>
 #include <filesystem>
 
+#include "gxf/core/parameter_parser_std.hpp"
 #include "gxf/cuda/cuda_stream_id.hpp"
-#include "gxf/std/parameter_parser_std.hpp"
 #include "gxf/std/tensor.hpp"
 #include "gxf/std/timestamp.hpp"
 #define CUDA_TRY(stmt)                                                                     \
