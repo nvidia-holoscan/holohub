@@ -22,6 +22,10 @@
 #undef RuntimeError
 
 #include <gxf/std/tensor.hpp>
+#if !__has_include("gxf/std/dlpack_utils.hpp")
+  // Holoscan 1.0 used GXF without DLPack so gxf_tensor.hpp was needed to add it
+  #include <holoscan/core/gxf/gxf_tensor.hpp>
+#endif
 
 #include <chrono>
 #include <memory>

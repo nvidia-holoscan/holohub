@@ -31,7 +31,12 @@
 #include <vector>
 #include <filesystem>
 
+// GXF 4.0 moved parameter_parser_std.hpp from std->core
+#if __has_include("gxf/core/parameter_parser_std.hpp")
 #include "gxf/core/parameter_parser_std.hpp"
+#else
+#include "gxf/std/parameter_parser_std.hpp"
+#endif
 #include "gxf/cuda/cuda_stream_id.hpp"
 #include "gxf/std/tensor.hpp"
 #include "gxf/std/timestamp.hpp"

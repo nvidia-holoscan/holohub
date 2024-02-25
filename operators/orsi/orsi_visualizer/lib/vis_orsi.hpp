@@ -24,7 +24,12 @@
 #include <string>
 #include <vector>
 
-#include "gxf/core/parameter_parser_std.hpp"
+// GXF 4.0 moved parameter_parser_std.hpp from std->core
+#if __has_include("gxf/core/parameter_parser_std.hpp")
+  #include "gxf/core/parameter_parser_std.hpp"
+#else
+  #include "gxf/std/parameter_parser_std.hpp"
+#endif
 #include "gxf/std/codelet.hpp"
 #include "gxf/std/memory_buffer.hpp"
 #include "gxf/std/receiver.hpp"

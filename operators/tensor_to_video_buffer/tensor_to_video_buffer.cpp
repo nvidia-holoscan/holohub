@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,15 @@
  */
 
 #include <utility>
+
+// If GXF has gxf/std/dlpack_utils.hpp it has DLPack support
+#if __has_include("gxf/std/dlpack_utils.hpp")
+  #define GXF_HAS_DLPACK_SUPPORT 1
+  #include "gxf/std/tensor.hpp"
+#else
+  #define GXF_HAS_DLPACK_SUPPORT 0
+  #include "holoscan/core/gxf/gxf_tensor.hpp"
+#endif
 
 #include "gxf/multimedia/video.hpp"
 
@@ -41,26 +50,14 @@ void TensorToVideoBufferOp::setup(OperatorSpec& spec) {
   auto& input = spec.input<gxf::Entity>("in_tensor");
   auto& output = spec.output<gxf::Entity>("out_video_buffer");
 
-  spec.param(data_in_,
-             "data_in",
-             "DataIn",
-             "Data in Holoscan format",
-             &input);
+  spec.param(data_in_, "data_in", "DataIn", "Data in Holoscan format", &input);
   spec.param(in_tensor_name_,
              "in_tensor_name",
              "InputTensorName",
              "Name of the input tensor.",
              std::string(""));
-  spec.param(video_format_,
-             "video_format",
-             "VideoFormat",
-             "Video format",
-             std::string(""));
-  spec.param(data_out_,
-             "data_out",
-             "DataOut",
-             "Data in GXF format",
-             &output);
+  spec.param(video_format_, "video_format", "VideoFormat", "Video format", std::string(""));
+  spec.param(data_out_, "data_out", "DataOut", "Data in GXF format", &output);
 }
 
 void TensorToVideoBufferOp::start() {
@@ -68,7 +65,7 @@ void TensorToVideoBufferOp::start() {
 }
 
 void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_output,
-                                          ExecutionContext& context) {
+                                    ExecutionContext& context) {
   // Process input message
   // The type of `in_message` is 'holoscan::gxf::Entity'.
   auto in_message = op_input.receive<gxf::Entity>("in_tensor").value();
@@ -84,8 +81,13 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       throw std::runtime_error(fmt::format("Tensor '{}' not found in message", in_tensor_name));
     }
   }
-  // Get the nvidia::gxf::Tensor from holoscan::Tensor'.
-  nvidia::gxf::Tensor in_tensor{(maybe_tensor->dl_ctx())};
+  #if GXF_HAS_DLPACK_SUPPORT
+    // Get the nvidia::gxf::Tensor from holoscan::Tensor'.
+    nvidia::gxf::Tensor in_tensor{(maybe_tensor->dl_ctx())};
+  #else
+    // Get the holoscan::gxf::GXFTensor from holoscan::Tensor'.
+    auto in_tensor = gxf::GXFTensor::from_tensor(maybe_tensor);
+  #endif
 
   nvidia::gxf::Shape out_shape{0, 0, 0};
   void* in_tensor_data = nullptr;
@@ -104,8 +106,8 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
   in_channels = in_tensor->shape().dimension(2);
 
   if (in_memory_storage_type != nvidia::gxf::MemoryStorageType::kDevice) {
-    throw std::runtime_error(fmt::format("Tensor '{}' or VideoBuffer is not allocated on device",
-                             in_tensor_name));
+    throw std::runtime_error(
+        fmt::format("Tensor '{}' or VideoBuffer is not allocated on device", in_tensor_name));
   }
 
   // Process image only if the input image is 3 channel image
@@ -118,7 +120,7 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
   if (!out_message) { throw std::runtime_error("Failed to allocate message; terminating."); }
 
   auto buffer = out_message.value().add<nvidia::gxf::VideoBuffer>();
-  if (!buffer) {throw std::runtime_error("Failed to allocate video buffer; terminating."); }
+  if (!buffer) { throw std::runtime_error("Failed to allocate video buffer; terminating."); }
 
   auto in_tensor_ptr = static_cast<uint8_t*>(in_tensor_data);
   switch (video_format_type_) {
@@ -126,11 +128,12 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420> video_type;
       nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420> color_format;
       auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
-      nvidia::gxf::VideoBufferInfo info{width_,
-                              height_,
-                              video_type.value,
-                              color_planes,
-                              nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+      nvidia::gxf::VideoBufferInfo info{
+          width_,
+          height_,
+          video_type.value,
+          color_planes,
+          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
       auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
       auto size = width_ * height_ * in_channels;
       buffer.value()->wrapMemory(info, size, storage_type, in_tensor_ptr, nullptr);
@@ -140,11 +143,12 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB> video_type;
       nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB> color_format;
       auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
-      nvidia::gxf::VideoBufferInfo info{width_,
-                                height_,
-                                video_type.value,
-                                color_planes,
-                                nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+      nvidia::gxf::VideoBufferInfo info{
+          width_,
+          height_,
+          video_type.value,
+          color_planes,
+          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
       auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
       auto size = width_ * height_ * in_channels;
       buffer.value()->wrapMemory(info, size, storage_type, in_tensor_ptr, nullptr);

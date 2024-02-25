@@ -24,7 +24,14 @@
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
-#include "gxf/std/tensor.hpp"
+#include <gxf/std/tensor.hpp>
+#if __has_include("gxf/std/dlpack_utils.hpp")
+  #define GXF_HAS_DLPACK_SUPPORT 1
+#else
+  #define GXF_HAS_DLPACK_SUPPORT 0
+  // Holoscan 1.0 used GXF without DLPack so gxf_tensor.hpp was needed to add it
+  #include <holoscan/core/gxf/gxf_tensor.hpp>
+#endif
 
 #define CUDA_TRY(stmt)                                                                  \
   {                                                                                     \
@@ -119,6 +126,7 @@ std::shared_ptr<holoscan::Tensor> fvec2tensor(
         return nvidia::gxf::Success;
       });
 
+#if GXF_HAS_DLPACK_SUPPORT
     // Export DLPack context corresponding to the nvidia::gxf::Tensor
     auto maybe_dl_ctx = tg->toDLManagedTensorContext();
     if (!maybe_dl_ctx) {
@@ -127,6 +135,15 @@ std::shared_ptr<holoscan::Tensor> fvec2tensor(
     }
     // zero-copy creation of holoscan::Tensor from the DLPack context
     return std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
+#else
+    // Create Holoscan GXF tensor
+    auto thg = holoscan::gxf::GXFTensor(*tg);
+
+    // Create Holoscan tensor
+    auto th = thg.as_tensor();
+
+    return th;
+#endif
 }
 
 namespace holoscan::ops {

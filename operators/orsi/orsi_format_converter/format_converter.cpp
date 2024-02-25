@@ -22,6 +22,13 @@
 #include <vector>
 
 #include "gxf/std/tensor.hpp"
+#if __has_include("gxf/std/dlpack_utils.hpp")
+  #define GXF_HAS_DLPACK_SUPPORT 1
+#else
+  #define GXF_HAS_DLPACK_SUPPORT 0
+  // Holoscan 1.0 used GXF without DLPack so gxf_tensor.hpp was needed to add it
+  #include "holoscan/core/gxf/gxf_tensor.hpp"
+#endif
 #include "holoscan/core/execution_context.hpp"
 #include "holoscan/core/executor.hpp"
 #include "holoscan/core/fragment.hpp"
@@ -345,8 +352,13 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
     auto in_tensor = maybe_tensor;
 
     // Get needed information from the tensor
+#if GXF_HAS_DLPACK_SUPPORT
     // cast Holoscan::Tensor to nvidia::gxf::Tensor to use it's APIs directly
     nvidia::gxf::Tensor in_tensor_gxf{in_tensor->dl_ctx()};
+#else
+    // cast Holoscan::Tensor to GXFTensor so attribute access code can remain as-is
+    holoscan::gxf::GXFTensor in_tensor_gxf{in_tensor->dl_ctx()};
+#endif
     out_shape = in_tensor_gxf.shape();
     in_tensor_data = in_tensor_gxf.pointer();
     if (in_tensor_data == nullptr) {
