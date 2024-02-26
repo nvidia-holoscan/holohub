@@ -14,6 +14,6 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(prohawk_video_replayer LANGUAGES NONE)
+project(prohawk_video_replayer_apps LANGUAGES NONE)
 
 add_subdirectory(cpp)
