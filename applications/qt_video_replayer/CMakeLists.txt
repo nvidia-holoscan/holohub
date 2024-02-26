@@ -72,8 +72,8 @@ if(BUILD_TESTING)
   add_test(NAME qt_video_replayer_test
            COMMAND qt_video_replayer
            --count=100
-           --data="${HOLOHUB_DATA_DIR}/racerx"
-           --basename="racerx"
+           --data=${HOLOHUB_DATA_DIR}/racerx
+           --basename=racerx
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(qt_video_replayer_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.")
