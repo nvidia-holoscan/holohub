@@ -33,6 +33,7 @@ target_link_libraries(gxf_lstm_tensor_rt_inference_lib
     GXF::std
     nvonnxparser
     yaml-cpp
+    holoscan::core  # included only as a way to find dlpack/dlpack.h for GXF::std
 )
 
 # Create extension
@@ -42,5 +43,3 @@ add_library(gxf_lstm_tensor_rt_inference SHARED
 target_link_libraries(gxf_lstm_tensor_rt_inference
   PUBLIC gxf_lstm_tensor_rt_inference_lib
 )
-
-# TODO: need DLPack in include path because gxf/std/tensor.hpp is used
