@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,14 @@
 #include <string>
 #include <vector>
 
+// GXF 4.0 moved parameter_parser_std.hpp from std->core
+#if __has_include("gxf/core/parameter_parser_std.hpp")
+  #include "gxf/core/parameter_parser_std.hpp"
+#else
+  #include "gxf/std/parameter_parser_std.hpp"
+#endif
 #include "gxf/std/codelet.hpp"
 #include "gxf/std/memory_buffer.hpp"
-#include "gxf/std/parameter_parser_std.hpp"
 #include "gxf/std/receiver.hpp"
 #include "gxf/std/scheduling_terms.hpp"
 

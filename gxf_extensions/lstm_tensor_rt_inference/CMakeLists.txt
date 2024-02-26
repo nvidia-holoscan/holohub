@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ target_link_libraries(gxf_lstm_tensor_rt_inference_lib
     GXF::std
     nvonnxparser
     yaml-cpp
+    holoscan::core  # included only as a way to find dlpack/dlpack.h for GXF::std
 )
 
 # Create extension

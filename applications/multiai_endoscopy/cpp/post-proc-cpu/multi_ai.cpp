@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,14 @@
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
-#include "gxf/std/tensor.hpp"
+#include <gxf/std/tensor.hpp>
+#if __has_include("gxf/std/dlpack_utils.hpp")
+  #define GXF_HAS_DLPACK_SUPPORT 1
+#else
+  #define GXF_HAS_DLPACK_SUPPORT 0
+  // Holoscan 1.0 used GXF without DLPack so gxf_tensor.hpp was needed to add it
+  #include <holoscan/core/gxf/gxf_tensor.hpp>
+#endif
 
 #define CUDA_TRY(stmt)                                                                  \
   {                                                                                     \
@@ -119,6 +126,16 @@ std::shared_ptr<holoscan::Tensor> fvec2tensor(
         return nvidia::gxf::Success;
       });
 
+#if GXF_HAS_DLPACK_SUPPORT
+    // Export DLPack context corresponding to the nvidia::gxf::Tensor
+    auto maybe_dl_ctx = tg->toDLManagedTensorContext();
+    if (!maybe_dl_ctx) {
+      throw std::runtime_error(
+          "failed to get std::shared_ptr<DLManagedTensorContext> from nvidia::gxf::Tensor");
+    }
+    // zero-copy creation of holoscan::Tensor from the DLPack context
+    return std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
+#else
     // Create Holoscan GXF tensor
     auto thg = holoscan::gxf::GXFTensor(*tg);
 
@@ -126,6 +143,7 @@ std::shared_ptr<holoscan::Tensor> fvec2tensor(
     auto th = thg.as_tensor();
 
     return th;
+#endif
 }
 
 namespace holoscan::ops {

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,11 @@
 // ClaraViz is defining RuntimeError which collides with Holoscan
 #undef RuntimeError
 
-#include <holoscan/core/gxf/gxf_tensor.hpp>
+#include <gxf/std/tensor.hpp>
+#if !__has_include("gxf/std/dlpack_utils.hpp")
+  // Holoscan 1.0 used GXF without DLPack so gxf_tensor.hpp was needed to add it
+  #include <holoscan/core/gxf/gxf_tensor.hpp>
+#endif
 
 #include <chrono>
 #include <memory>
