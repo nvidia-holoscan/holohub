@@ -113,7 +113,7 @@ $ ./dev_container build help
 You may configure a custom base image for building the HoloHub container. For instance, if you want to use a local Holoscan container as the base image, use the following command:
 
 ```bash
-  ./dev_container build --base_img holoscan-sdk-dev:latest --img holohub:sdk-dev-latest
+  ./dev_container build --base_img holoscan-sdk-build-x86_64:latest --img holohub:sdk-dev-latest
 ```
 
 The command above uses the following arguments:
@@ -128,6 +128,13 @@ REPOSITORY                               TAG               IMAGE ID       CREATE
 holohub                                  sdk-dev-latest    cb0231f77856   54 seconds ago   8.22GB
 ```
 
+Base containers created during the Holoscan SDK build process use the following naming convention by default:
+
+| Base Image Name | Target Architecture | Target IGX Configuration |
+| --- | --- | --- |
+| `holoscan-sdk-build-x86_64` | `x86_64` | N/A |
+| `holoscan-sdk-build-aarch64-dgpu` | `aarch64` | dGPU mode |
+| `holoscan-sdk-build-aarch64-igpu` | `aarch64` | iGPU mode |
 
 #### Using a Custom Dockerfile
 
