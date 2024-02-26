@@ -353,7 +353,7 @@ void FormatConverterOp::compute(InputContext& op_input, OutputContext& op_output
 
     // Get needed information from the tensor
 #if GXF_HAS_DLPACK_SUPPORT
-    // cast Holoscan::Tensor to nvidia::gxf::Tensor to use it's APIs directly
+    // cast Holoscan::Tensor to nvidia::gxf::Tensor to use its APIs directly
     nvidia::gxf::Tensor in_tensor_gxf{in_tensor->dl_ctx()};
 #else
     // cast Holoscan::Tensor to GXFTensor so attribute access code can remain as-is
