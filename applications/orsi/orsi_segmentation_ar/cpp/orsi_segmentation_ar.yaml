@@ -17,7 +17,7 @@
 extensions:
   - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "replayer" # Valid values "replayer"  or "videomaster"
+source: "aja" # Valid values "replayer", "aja" or "videomaster"
 
 replayer:  # VideoStreamReplayer
   basename: "segmentation_ex1"
@@ -26,10 +26,18 @@ replayer:  # VideoStreamReplayer
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
 
+external_source:
+  rdma: true
+  enable_overlay: false
+
 videomaster:
   board: 0
   input: 0
-  rdma: true
+
+aja:
+  width: 1920
+  height: 1080
+  overlay_rdma: true
 
 drop_alpha_channel:  # FormatConverter
   in_dtype: "rgba8888"

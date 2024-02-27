@@ -26,6 +26,7 @@
 #ifdef USE_VIDEOMASTER
 #include <videomaster_source.hpp>
 #endif
+#include <holoscan/operators/aja_source/aja_source.hpp>
 // Orsi: Holoscan native operators
 #include <format_converter.hpp>
 #include <segmentation_postprocessor.hpp>
@@ -43,6 +44,14 @@ class App : public OrsiApp {
     std::shared_ptr<Resource> allocator_resource =
         make_resource<UnboundedAllocator>("unbounded_allocator");
 
+    const bool use_rdma = from_config("external_source.rdma").as<bool>();
+    const bool overlay_enabled =
+        (video_source_ != VideoSource::REPLAYER) && from_config("external_source.enable_overlay").as<bool>();
+
+
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+
     switch (video_source_) {
 #ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
@@ -50,6 +59,13 @@ class App : public OrsiApp {
             "videomaster", from_config("videomaster"), Arg("pool") = allocator_resource);
         break;
 #endif
+      case VideoSource::AJA: 
+        width = from_config("aja.width").as<uint32_t>();
+        height = from_config("aja.height").as<uint32_t>();
+        source = make_operator<ops::AJASourceOp>("aja",
+         from_config("aja"), from_config("external_source"));
+       break;
+
       default:
         source = make_operator<ops::VideoStreamReplayerOp>(
             "replayer", from_config("replayer"), Arg("directory", datapath));
@@ -59,8 +75,6 @@ class App : public OrsiApp {
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
-    const int width = 1920;
-    const int height = 1080;
     const int n_channels = 4;
     const int bpp = 4;
 
@@ -69,8 +83,12 @@ class App : public OrsiApp {
     // Format conversion operators
     //
 
-#ifdef USE_VIDEOMASTER
-    if (video_source_ == VideoSource::VIDEOMASTER) {
+    if (
+        video_source_ == VideoSource::AJA
+#ifdef USE_VIDEOMASTERf
+        || video_source_ == VideoSource::VIDEOMASTER
+#endif
+    ) {
       uint64_t drop_alpha_block_size = width * height * n_channels * bpp;
       uint64_t drop_alpha_num_blocks = 2;
       drop_alpha_channel = make_operator<ops::orsi::FormatConverterOp>(
@@ -80,7 +98,6 @@ class App : public OrsiApp {
               "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
           Arg("cuda_stream_pool") = cuda_stream_pool);
     }
-#endif
 
     int width_preprocessor = 1264;
     int height_preprocessor = 1080;
@@ -88,11 +105,16 @@ class App : public OrsiApp {
     uint64_t preprocessor_num_blocks = 2;
 
     std::string video_format_converter_in_tensor_name = "";
-#ifdef USE_VIDEOMASTER
-    if (video_source_ == VideoSource::VIDEOMASTER) {
+    if (
+        video_source_ == VideoSource::AJA  
+        #ifdef USE_VIDEOMASTER
+        || video_source_ == VideoSource::VIDEOMASTER
+        #endif
+    ) {
       video_format_converter_in_tensor_name = "source_video";
     }
-#endif
+
+
 
     auto format_converter = make_operator<ops::orsi::FormatConverterOp>(
         "format_converter",
@@ -154,6 +176,13 @@ class App : public OrsiApp {
         add_flow(drop_alpha_channel, format_converter);
         break;
 #endif
+      case VideoSource::AJA:
+        add_flow(source, orsi_visualizer, {{"video_buffer_output", "receivers"}});
+        add_flow(source, drop_alpha_channel, {{"video_buffer_output", ""}});
+        add_flow(drop_alpha_channel, format_converter);
+        break;
+
+
       case VideoSource::REPLAYER:
       default:
         add_flow(source, orsi_visualizer, {{"", "receivers"}});

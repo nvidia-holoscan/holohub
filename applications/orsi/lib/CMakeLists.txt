@@ -25,7 +25,7 @@ add_library(orsi_app_lib EXCLUDE_FROM_ALL
 )
 
 target_link_libraries(orsi_app_lib
-   PUBLIC  holoscan::core
+   PUBLIC  holoscan::core holoscan::ops::aja
 )
 
 set(VIDEOMASTER_OPERATOR "")

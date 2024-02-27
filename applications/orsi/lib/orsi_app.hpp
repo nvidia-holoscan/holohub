@@ -21,8 +21,9 @@
 enum class VideoSource {
   REPLAYER,
 #ifdef USE_VIDEOMASTER
-  VIDEOMASTER
+  VIDEOMASTER,
 #endif
+  AJA
 };
 
 class OrsiApp : public holoscan::Application {

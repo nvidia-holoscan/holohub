@@ -23,6 +23,7 @@ void OrsiApp::set_source(const std::string& source) {
   if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
 #endif
   if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
+  if (source == "aja" ) { video_source_ = VideoSource::AJA; }
 }
 
 void OrsiApp::set_datapath(const std::string& path) {
