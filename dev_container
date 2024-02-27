@@ -363,6 +363,7 @@ launch() {
     local local_sdk_root="undefined"
     local ssh_x11=0
     local use_tini=0
+    local use_interactive=1
     local nsys_profile=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
@@ -398,6 +399,10 @@ launch() {
         fi
         if [ "$arg" = "--init" ]; then
            use_tini=1
+           shift
+        fi
+        if [ "$arg" = "--noit" ]; then
+           use_interactive=0
            shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
@@ -533,6 +538,11 @@ launch() {
         conditional_opt+=" --init"
     fi
 
+    # Use interactive mode (default)
+    if [[ $use_interactive -gt 0 ]]; then
+        conditional_opt+=" -it"
+    fi
+
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
@@ -585,7 +595,7 @@ launch() {
         c_echo W "Launch (image: " G "${img}" W ")..."
     fi
 
-    run_command ${HOLOSCAN_DOCKER_EXE} run -it --rm --net host \
+    run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
         -u $(id -u):$(id -g) \
         -v /etc/group:/etc/group:ro \
         -v /etc/passwd:/etc/passwd:ro \
