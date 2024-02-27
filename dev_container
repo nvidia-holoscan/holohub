@@ -543,9 +543,15 @@ launch() {
     ucx_opt+=" --ulimit memlock=-1"
     ucx_opt+=" --ulimit stack=67108864"
 
+    # Only enable TTY if supported
+    local use_tty=""
+    if [ -t 1 ]; then
+      use_tty="--tty"
+    fi
+
     # DOCKER PARAMETERS
     #
-    # -it
+    # --interactive (-i)
     #   The container needs to be interactive to be able to interact with the X11 windows
     #
     # --rm
@@ -585,7 +591,8 @@ launch() {
         c_echo W "Launch (image: " G "${img}" W ")..."
     fi
 
-    run_command ${HOLOSCAN_DOCKER_EXE} run -it --rm --net host \
+    run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
+        --interactive ${use_tty} \
         -u $(id -u):$(id -g) \
         -v /etc/group:/etc/group:ro \
         -v /etc/passwd:/etc/passwd:ro \
