@@ -350,7 +350,6 @@ launch_desc() { c_echo 'Launch Docker container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
     --init : Support tini entry point
-    --noit : disable interactive docker
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     '
@@ -364,7 +363,6 @@ launch() {
     local local_sdk_root="undefined"
     local ssh_x11=0
     local use_tini=0
-    local use_interactive=1
     local nsys_profile=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
@@ -400,10 +398,6 @@ launch() {
         fi
         if [ "$arg" = "--init" ]; then
            use_tini=1
-           shift
-        fi
-        if [ "$arg" = "--noit" ]; then
-           use_interactive=0
            shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
@@ -539,11 +533,6 @@ launch() {
         conditional_opt+=" --init"
     fi
 
-    # Use interactive mode (default)
-    if [[ $use_interactive -gt 0 ]]; then
-        conditional_opt+=" -it"
-    fi
-
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
@@ -554,9 +543,15 @@ launch() {
     ucx_opt+=" --ulimit memlock=-1"
     ucx_opt+=" --ulimit stack=67108864"
 
+    # Only enable TTY if supported
+    local use_tty=""
+    if [ -t 1 ]; then
+      use_tty="--tty"
+    fi
+
     # DOCKER PARAMETERS
     #
-    # -it
+    # --interactive (-i)
     #   The container needs to be interactive to be able to interact with the X11 windows
     #
     # --rm
@@ -597,6 +592,7 @@ launch() {
     fi
 
     run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
+        --interactive ${use_tty} \
         -u $(id -u):$(id -g) \
         -v /etc/group:/etc/group:ro \
         -v /etc/passwd:/etc/passwd:ro \
