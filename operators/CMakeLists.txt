@@ -30,6 +30,7 @@ add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomas
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
 add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
 add_holohub_operator(npp_filter)
+add_holohub_operator(openigtlink)
 add_holohub_operator(prohawk_video_processing)
 add_holohub_operator(qt_video)
 add_subdirectory(orsi)
