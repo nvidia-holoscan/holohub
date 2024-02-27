@@ -1,5 +1,11 @@
 # Welcome to NVIDIA HoloHub!
 
+![Lint](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_lint.yml?branch=main&label=Lint
+)
+![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
+)
+[![Pages](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/generate_pages.yml?branch=main&label=Pages)](https://nvidia-holoscan.github.io/holohub/)
+
 HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan Platform to reuse and contribute components and sample applications.
 
 # Table of Contents
