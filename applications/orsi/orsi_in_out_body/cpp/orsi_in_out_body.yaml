@@ -17,9 +17,7 @@
 extensions:
   - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "replayer" # Valid values "replayer"  or "videomaster"
-
-
+source: "replayer" # Valid values "replayer", "aja"  or "videomaster"
 
 
 replayer:  # VideoStreamReplayer
