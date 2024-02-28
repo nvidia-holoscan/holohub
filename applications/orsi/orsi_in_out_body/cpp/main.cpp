@@ -89,12 +89,6 @@ class App : public OrsiApp {
     }
 #endif
 
-    auto format_converter = make_operator<ops::orsi::FormatConverterOp>(
-        "format_converter",
-        from_config("format_converter"),
-        Arg("in_tensor_name", video_format_converter_in_tensor_name),
-        Arg("allocator") = allocator_resource);
-
     auto format_converter_anonymization = make_operator<ops::orsi::FormatConverterOp>(
         "format_converter_anonymization",
         from_config("format_converter_anonymization"),
