@@ -57,6 +57,7 @@ def validate_json_directory(directory, ignore_patterns=[]):
             )
             if count == 0:
                 print("ERROR:" + subdir + " does not contain metadata.json file")
+                exit_code = 1
 
     # Check if the metadata is valid
     for name in glob.glob(current_wdir + "/" + directory + "/**/metadata.json", recursive=True):
@@ -74,8 +75,9 @@ def validate_json_directory(directory, ignore_patterns=[]):
 
 
 # Validate the directories
-exit_code_op = validate_json_directory("operators")
-exit_code_extensions = validate_json_directory("gxf_extensions", ["utils"])
-exit_code_applications = validate_json_directory("applications")
+if __name__ == "__main__":
+    exit_code_op = validate_json_directory("operators")
+    exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
+    exit_code_applications = validate_json_directory("applications")
 
-sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications))
+    sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications))
