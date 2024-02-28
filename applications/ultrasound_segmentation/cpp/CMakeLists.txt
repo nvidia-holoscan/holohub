@@ -49,21 +49,69 @@ add_dependencies(ultrasound_segmentation ultrasound_segmentation_yaml)
 
 # Add testing
 if(BUILD_TESTING)
-  # Configure the yaml file to only play 10 frames
-  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.yaml CONFIG_FILE)
+
+  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
+  set(SOURCE_VIDEO_BASENAME cpp_ultrasound_segmentation_output)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/)
+
+  file(MAKE_DIRECTORY ${RECORDING_DIR})
+
+  # Configure the yaml file for testing
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.yaml" CONFIG_FILE)
   string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml ${CONFIG_FILE})
 
-  # Add test
-  add_test(NAME ultrasound_segmentation_test
-           COMMAND ultrasound_segmentation ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml
-                   --data "${HOLOHUB_DATA_DIR}/ultrasound_segmentation"
-           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    # Patch the current example to enable recording the rendering window
+    add_custom_command(OUTPUT ultrasound_segmentation_test.cpp
+    PRE_LINK
+    COMMAND patch -u -o ultrasound_segmentation_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/cpp_ultrasound_segmentation.patch
+    COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" ultrasound_segmentation_test.cpp
+    COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" ultrasound_segmentation_test.cpp
+  )
 
-  # Check the terminal output
-  set_tests_properties(ultrasound_segmentation_test PROPERTIES
+  # Create the test executable
+  add_executable(ultrasound_segmentation_cpp_test
+    ultrasound_segmentation_test.cpp
+  )
+
+  target_link_libraries(ultrasound_segmentation_cpp_test
+    PRIVATE
+    holoscan::core
+    holoscan::ops::aja
+    holoscan::ops::video_stream_replayer
+    holoscan::ops::video_stream_recorder
+    holoscan::ops::format_converter
+    holoscan::ops::inference
+    holoscan::ops::segmentation_postprocessor
+    holoscan::ops::holoviz
+  )
+
+  # Add the test and make sure it runs
+  add_test(NAME ultrasound_segmentation_cpp_test
+    COMMAND ultrasound_segmentation_cpp_test ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml
+            --data "${HOLOHUB_DATA_DIR}/ultrasound_segmentation"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_tests_properties(ultrasound_segmentation_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}/gxf_extensions"
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # Add a test to check the validity of the frames
+  add_test(NAME ultrasound_segmentation_cpp_render_test
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+    --source_video_dir ${RECORDING_DIR}
+    --source_video_basename ${SOURCE_VIDEO_BASENAME}
+    --output_dir ${RECORDING_DIR}
+    --validation_frames_dir ${VALIDATION_FRAMES_DIR}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+
+  set_tests_properties(ultrasound_segmentation_cpp_render_test PROPERTIES
+    DEPENDS ultrasound_segmentation_cpp_test
+    PASS_REGULAR_EXPRESSION "Valid video output!"
+  )
+
 endif()
+

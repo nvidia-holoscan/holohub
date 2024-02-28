@@ -1,0 +1,56 @@
+--- ../applications/ultrasound_segmentation/python/ultrasound_segmentation.py	2024-01-10 18:43:58.437526279 +0000
++++ ../applications/ultrasound_segmentation/python/ultrasound_segmentation_recorder.py	2024-02-14 18:38:41.904072365 +0000
+@@ -16,7 +16,7 @@
+ import os
+ from argparse import ArgumentParser
+ 
+-from holoscan.core import Application
++from holoscan.core import Application, kwargs_to_arglist
+ from holoscan.operators import (
+     AJASourceOp,
+     FormatConverterOp,
+@@ -24,8 +24,9 @@
+     InferenceOp,
+     SegmentationPostprocessorOp,
+     VideoStreamReplayerOp,
++    VideoStreamRecorderOp,
+ )
+-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
++from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType, UnboundedAllocator
+ 
+ 
+ class UltrasoundApp(Application):
+@@ -161,6 +162,7 @@
+             name="segmentation_visualizer",
+             cuda_stream_pool=cuda_stream_pool,
+             **self.kwargs("segmentation_visualizer"),
++            enable_render_buffer_output=True, 
+         )
+ 
+         if is_aja:
+@@ -178,6 +180,25 @@
+             {("", "receivers")},
+         )
+ 
++        recorder_format_converter = FormatConverterOp(
++            self,
++            name="recorder_format_converter",
++            in_dtype="rgba8888",
++            out_dtype="rgb888",
++            pool=UnboundedAllocator(self, name="pool")
++        )
++        recorder = VideoStreamRecorderOp(
++            self,
++            name="recorder",
++            directory="RECORDING_DIR",
++            basename="SOURCE_VIDEO_BASENAME"
++        )
++
++        segmentation_visualizer.add_arg(kwargs_to_arglist(allocator=UnboundedAllocator(self, name="allocator")))
++
++        self.add_flow(segmentation_visualizer, recorder_format_converter, {("render_buffer_output", "source_video")})
++        self.add_flow(recorder_format_converter, recorder)
++
+ 
+ if __name__ == "__main__":
+     # Parse args

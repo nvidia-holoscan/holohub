@@ -1,0 +1,47 @@
+--- applications/multiai_endoscopy/python/multi_ai.py	2024-01-10 18:43:58.365526539 +0000
++++ applications/multiai_endoscopy/python/multi_ai_record.py	2024-02-28 17:35:38.776788416 +0000
+@@ -19,7 +19,7 @@
+ 
+ import cupy as cp
+ import numpy as np
+-from holoscan.core import Application, Operator, OperatorSpec
++from holoscan.core import Application, Operator, OperatorSpec, kwargs_to_arglist
+ from holoscan.operators import (
+     AJASourceOp,
+     FormatConverterOp,
+@@ -27,6 +27,7 @@
+     InferenceOp,
+     SegmentationPostprocessorOp,
+     VideoStreamReplayerOp,
++    VideoStreamRecorderOp,
+ )
+ from holoscan.resources import UnboundedAllocator
+ 
+@@ -275,6 +276,27 @@
+         self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
+         self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
+ 
++        recorder_format_converter = FormatConverterOp(
++            self,
++            name="recorder_format_converter",
++            in_dtype="rgba8888",
++            out_dtype="rgb888",
++            pool=UnboundedAllocator(self, name="pool")
++        )
++        recorder = VideoStreamRecorderOp(
++            self,
++            name="recorder",
++            directory="RECORDING_DIR",
++            basename="SOURCE_VIDEO_BASENAME",
++            flush_on_tick=True
++        )
++
++        holoviz.add_arg(kwargs_to_arglist(enable_render_buffer_output=True))
++        holoviz.add_arg(kwargs_to_arglist(allocator=UnboundedAllocator(self, name="allocator")))
++
++        self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
++        self.add_flow(recorder_format_converter, recorder)
++
+ 
+ if __name__ == "__main__":
+     parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")
