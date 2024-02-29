@@ -47,22 +47,21 @@ void OpenIGTLinkRxOp::setup(OperatorSpec& spec) {
     "port",
     "Port",
     "Port number of server.",
-    0
-  );
+    0);
+
   spec.param(
     out_tensor_name_,
     "out_tensor_name",
     "OutTensorName",
     "Name of output tensor.",
-    std::string("")
-  );
+    std::string(""));
+
   spec.param(
     flip_width_height_,
     "flip_width_height",
     "FlipWidthHeight",
     "Flip width and height (necessary for receiving from 3D Slicer).",
-    true
-  );
+    true);
   spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
 }
 
@@ -71,8 +70,7 @@ void OpenIGTLinkRxOp::start() {
   server_socket_ = igtl::ServerSocket::New();
   HOLOSCAN_LOG_INFO("Creating OpenIGTLink server socket...");
   int r = server_socket_->CreateServer(port_.get());
-  if (r < 0)
-  {
+  if (r < 0) {
     throw std::runtime_error("Cannot create server socket.");
   }
   socket_ = server_socket_->WaitForConnection(1000);
@@ -97,8 +95,8 @@ void OpenIGTLinkRxOp::compute(InputContext& op_input, OutputContext& op_output,
   // Allocate output tensor
   auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
     context.context(),
-    allocator_->gxf_cid()
-  );
+    allocator_->gxf_cid());
+
   auto tensor = entity.value().add<nvidia::gxf::Tensor>(out_tensor_name_.get().c_str());
   if (!tensor) {
     throw std::runtime_error("Failed to allocate output tensor.");
@@ -111,12 +109,10 @@ void OpenIGTLinkRxOp::compute(InputContext& op_input, OutputContext& op_output,
       header->InitPack();
       bool timeout = false;
       igtlUint64 r = socket_->Receive(header->GetPackPointer(), header->GetPackSize(), timeout);
-      if (r == 0)
-      {
+      if (r == 0) {
         throw std::runtime_error("Failed to receive message.");
       }
-      if (r != header->GetPackSize())
-      {
+      if (r != header->GetPackSize()) {
         throw std::runtime_error("Packet size zero.");
       }
 
@@ -132,13 +128,10 @@ void OpenIGTLinkRxOp::compute(InputContext& op_input, OutputContext& op_output,
       header->GetTimeStamp(time_stamp_);
       time_stamp_->GetTimeStamp(&sec, &nanosec);
 
-      if (strcmp(header->GetDeviceType(), "IMAGE") == 0)
-      {
+      if (strcmp(header->GetDeviceType(), "IMAGE") == 0) {
         // OBS: Could be GetDeviceName()
         break;
-      }
-      else
-      {
+      } else {
         HOLOSCAN_LOG_INFO("Skipping : {}", header->GetDeviceType());
         socket_->Skip(header->GetBodySizeToRead(), 0);
       }
@@ -200,15 +193,17 @@ void OpenIGTLinkRxOp::compute(InputContext& op_input, OutputContext& op_output,
     int bytes_size = size[0] * size[1] * num_components * bytes_per_element;
     // Allocate tensor
     auto reshape_result = tensor.value()->reshapeCustom(
-        shape, dtype, bytes_per_element, strides, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
-    if (!reshape_result) {  throw std::runtime_error("Failed to generate tensor."); }
+        shape, dtype, bytes_per_element, strides, nvidia::gxf::MemoryStorageType::kDevice,
+        allocator.value());
+    if (!reshape_result) {
+      throw std::runtime_error("Failed to generate tensor.");
+    }
     // Copy data from OpenIGTLink message to tensor
     CUDA_TRY(cudaMemcpy(
       (void*)tensor.value()->pointer(),
       image_msg->GetScalarPointer(),
       bytes_size,
-      cudaMemcpyHostToDevice)
-    );
+      cudaMemcpyHostToDevice));
   }
 
   // Emit output message
