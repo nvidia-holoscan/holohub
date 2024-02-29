@@ -60,6 +60,8 @@ add_holohub_application(simple_pdw_pipeline DEPENDS
 
 add_holohub_application(object_detection_torch HOLOSCAN_SAMPLE_APP)
 
+add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
+
 add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_processing)
 
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
