@@ -55,9 +55,9 @@ exclude = [
   "cmake/pybind11"
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # commented ignore ported from flake8 as E203 is not checked by ruff
 # "scripts/convert_video_to_gxf_entities.py" = ["E203"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["holohub"]
