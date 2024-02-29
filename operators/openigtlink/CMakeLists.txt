@@ -18,8 +18,7 @@ project(openigtlink)
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-SET(OpenIGTLink_DIR "/workspace/OpenIGTLink-build")
-INCLUDE(${OpenIGTLink_DIR}/OpenIGTLinkConfig.cmake)
+find_package(OpenIGTLink REQUIRED PATHS "/workspace/OpenIGTLink-build")
 
 add_library(openigtlink_rx SHARED
   openigtlink_rx.cpp
