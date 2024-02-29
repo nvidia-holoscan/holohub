@@ -55,29 +55,25 @@ void OpenIGTLinkTxOp::setup(OperatorSpec& spec) {
     "host_name",
     "HostName",
     "Host name.",
-    std::string("")
-  );
+    std::string(""));
   spec.param(
     port_,
     "port",
     "Port",
     "Port number of server.",
-    0
-  );
+    0);
   spec.param(
     device_name_,
     "device_name",
     "DeviceName",
     "OpenIGTLink device name",
-    std::string("Holoscan")
-  );
+    std::string("Holoscan"));
   spec.param(
     input_names_,
     "input_names",
     "InputNames",
     "Names of input messages.",
-    std::vector<std::string>{}
-  );
+    std::vector<std::string>{});
 }
 
 void OpenIGTLinkTxOp::start() {
@@ -85,8 +81,7 @@ void OpenIGTLinkTxOp::start() {
   client_socket_ = igtl::ClientSocket::New();
   HOLOSCAN_LOG_INFO("Connecting to OpenIGTLink server...");
   int r = client_socket_->ConnectToServer(host_name_.get().c_str(), port_.get());
-  if (r < 0)
-  {
+  if (r < 0) {
     throw std::runtime_error("Cannot connect to server.");
   }
   HOLOSCAN_LOG_INFO("Connection successful");
@@ -101,7 +96,6 @@ void OpenIGTLinkTxOp::stop() {
 
 void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
               ExecutionContext& context) {
-
   std::vector<gxf::Entity> messages_h =
       op_input.receive<std::vector<gxf::Entity>>("receivers").value();
 
@@ -121,7 +115,6 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
 
     // Check if message is in supported message types
     while (message != messages.end()) {
-
       // Message can be either tensor or video buffer
       auto maybe_input_tensor = message->get<nvidia::gxf::Tensor>(name.c_str());
       auto maybe_input_video = message->get<nvidia::gxf::VideoBuffer>(name.c_str());
@@ -141,8 +134,7 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
 
       if (result != GXF_SUCCESS) {
         throw std::runtime_error(
-          fmt::format("Unsupported buffer format tensor/video buffer '{}'", name)
-        );
+          fmt::format("Unsupported buffer format tensor/video buffer '{}'", name));
       }
 
       // If the buffer is empty, skip processing it
@@ -158,8 +150,7 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
       };
       float spacing[]  = {1.0, 1.0, 1.0};
       int endian = igtl::ImageMessage::ENDIAN_BIG;
-      if (igtl_is_little_endian())
-      {
+      if (igtl_is_little_endian()) {
         endian = igtl::ImageMessage::ENDIAN_LITTLE;
       }
       // IGT scalar type from Holoscan data type
@@ -200,15 +191,13 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
           image_msg->GetScalarPointer(),
           static_cast<const void*>(buffer_info.buffer_ptr),
           buffer_info.bytes_size,
-          cudaMemcpyDeviceToHost)
-        );
+          cudaMemcpyDeviceToHost));
       } else {
         // Copy host to host
         std::memcpy(
           image_msg->GetScalarPointer(),
           static_cast<const void*>(buffer_info.buffer_ptr),
-          image_msg->GetImageSize()
-        );
+          image_msg->GetImageSize());
       }
       // Set orientation matrix to identity
       igtl::Matrix4x4 matrix;
@@ -223,8 +212,7 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
 
     if (!found) {
       throw std::runtime_error(
-        fmt::format("Tensor named `{}` not found in input messages.", name)
-      );
+        fmt::format("Tensor named `{}` not found in input messages.", name));
     }
   }
 }

@@ -43,21 +43,18 @@ class OpenIGTLinkApp : public holoscan::Application {
     auto replayer = make_operator<ops::VideoStreamReplayerOp>(
       "replayer",
       from_config("replayer"),
-      Arg("directory", datapath_)
-    );
+      Arg("directory", datapath_));
 
     // OpenIGTLinkTxOp
     auto openigtlink_tx_slicer_img = make_operator<ops::OpenIGTLinkTxOp>(
       "openigtlink_tx_slicer_img",
-      from_config("openigtlink_tx_slicer_img")
-    );
+      from_config("openigtlink_tx_slicer_img"));
 
     // OpenIGTLinkRxOp
     auto openigtlink_rx_slicer_img = make_operator<ops::OpenIGTLinkRxOp>(
       "openigtlink_rx_slicer_img",
       from_config("openigtlink_rx_slicer_img"),
-      Arg("allocator") = make_resource<UnboundedAllocator>("pool")
-    );
+      Arg("allocator") = make_resource<UnboundedAllocator>("pool"));
 
     // FormatConverterOp
     const int n_channels = 3;
@@ -71,8 +68,7 @@ class OpenIGTLinkApp : public holoscan::Application {
       Arg("in_tensor_name", std::string("")),
       Arg("pool") = make_resource<BlockMemoryPool>(
           "pool", 1, preprocessor_block_size, preprocessor_num_blocks),
-      Arg("cuda_stream_pool") = cuda_stream_pool
-    );
+      Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // FormatConverterOp
     preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * 4;
@@ -82,8 +78,7 @@ class OpenIGTLinkApp : public holoscan::Application {
       Arg("in_tensor_name", std::string("")),
       Arg("pool") = make_resource<BlockMemoryPool>(
           "pool", 1, preprocessor_block_size, preprocessor_num_blocks),
-      Arg("cuda_stream_pool") = cuda_stream_pool
-    );
+      Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // InferenceOp
     const int n_channels_inference = 2;
@@ -109,32 +104,31 @@ class OpenIGTLinkApp : public holoscan::Application {
       "segmentation_postprocessor",
       from_config("segmentation_postprocessor"),
       Arg("allocator") = make_resource<BlockMemoryPool>(
-          "pool", 1, postprocessor_block_size, postprocessor_num_blocks)
-    );
+          "pool", 1, postprocessor_block_size, postprocessor_num_blocks));
 
     // HolovizOp
     auto segmentation_visualizer = make_operator<ops::HolovizOp>(
       "segmentation_visualizer",
       from_config("segmentation_visualizer"),
       Arg("allocator") = make_resource<UnboundedAllocator>("pool"),
-      Arg("cuda_stream_pool") = cuda_stream_pool
-    );
+      Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // OpenIGTLinkTxOp
     auto openigtlink_tx_slicer_holoscan = make_operator<ops::OpenIGTLinkTxOp>(
       "openigtlink_tx_slicer_holoscan",
-      from_config("openigtlink_tx_slicer_holoscan")
-    );
+      from_config("openigtlink_tx_slicer_holoscan"));
 
     // Build flow
     add_flow(replayer, uint8_preprocessor, {{"", "source_video"}});
     add_flow(uint8_preprocessor, openigtlink_tx_slicer_img, {{"tensor", "receivers"}});
     add_flow(openigtlink_rx_slicer_img, segmentation_visualizer, {{"out_tensor", "receivers"}});
-    add_flow(openigtlink_rx_slicer_img, segmentation_preprocessor, {{"out_tensor", "source_video"}});
+    add_flow(openigtlink_rx_slicer_img,
+             segmentation_preprocessor, {{"out_tensor", "source_video"}});
     add_flow(segmentation_preprocessor, segmentation_inference, {{"tensor", "receivers"}});
     add_flow(segmentation_inference, segmentation_postprocessor, {{"transmitter", ""}});
     add_flow(segmentation_postprocessor, segmentation_visualizer, {{"", "receivers"}});
-    add_flow(segmentation_visualizer, openigtlink_tx_slicer_holoscan, {{"render_buffer_output", "receivers"}});
+    add_flow(segmentation_visualizer,
+             openigtlink_tx_slicer_holoscan, {{"render_buffer_output", "receivers"}});
   }
 
  private:

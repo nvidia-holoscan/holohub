@@ -27,7 +27,7 @@ from holoscan.resources import (
     BlockMemoryPool,
     CudaStreamPool,
     MemoryStorageType,
-    UnboundedAllocator
+    UnboundedAllocator,
 )
 
 from holohub.openigtlink_rx import OpenIGTLinkRxOp
@@ -36,13 +36,14 @@ from holohub.openigtlink_tx import OpenIGTLinkTxOp
 
 class OpenIGTLinkApp(Application):
     def __init__(self):
-        """Initialize the endoscopy tool tracking application
-        """
+        """Initialize the endoscopy tool tracking application"""
         super().__init__()
 
         self.name = "Endoscopy App"
 
-        self.sample_data_path = os.environ.get("HOLOSCAN_DATA_PATH", "../data/colonoscopy_segmentation")
+        self.sample_data_path = os.environ.get(
+            "HOLOSCAN_DATA_PATH", "../data/colonoscopy_segmentation"
+        )
 
         self.model_path_map = {
             "colon_seg": os.path.join(self.sample_data_path, "colon.onnx"),
@@ -69,9 +70,7 @@ class OpenIGTLinkApp(Application):
 
         # OpenIGTLinkTxOp
         openigtlink_tx_slicer_img = OpenIGTLinkTxOp(
-            self,
-            name="openigtlink_tx_slicer_img",
-            **self.kwargs("openigtlink_tx_slicer_img")
+            self, name="openigtlink_tx_slicer_img", **self.kwargs("openigtlink_tx_slicer_img")
         )
 
         # OpenIGTLinkRxOp
@@ -79,7 +78,7 @@ class OpenIGTLinkApp(Application):
             self,
             name="openigtlink_rx_slicer_img",
             allocator=UnboundedAllocator(self, name="host_allocator"),
-            **self.kwargs("openigtlink_rx_slicer_img")
+            **self.kwargs("openigtlink_rx_slicer_img"),
         )
 
         # FormatConverterOp
@@ -168,18 +167,27 @@ class OpenIGTLinkApp(Application):
         openigtlink_tx_slicer_holoscan = OpenIGTLinkTxOp(
             self,
             name="openigtlink_tx_slicer_holoscan",
-            **self.kwargs("openigtlink_tx_slicer_holoscan")
+            **self.kwargs("openigtlink_tx_slicer_holoscan"),
         )
 
         # Build flow
         self.add_flow(replayer, uint8_preprocessor, {("", "source_video")})
         self.add_flow(uint8_preprocessor, openigtlink_tx_slicer_img, {("tensor", "receivers")})
-        self.add_flow(openigtlink_rx_slicer_img, segmentation_visualizer, {("out_tensor", "receivers")})
-        self.add_flow(openigtlink_rx_slicer_img, segmentation_preprocessor, {("out_tensor", "source_video")})
+        self.add_flow(
+            openigtlink_rx_slicer_img, segmentation_visualizer, {("out_tensor", "receivers")}
+        )
+        self.add_flow(
+            openigtlink_rx_slicer_img, segmentation_preprocessor, {("out_tensor", "source_video")}
+        )
         self.add_flow(segmentation_preprocessor, segmentation_inference, {("tensor", "receivers")})
         self.add_flow(segmentation_inference, segmentation_postprocessor, {("transmitter", "")})
         self.add_flow(segmentation_postprocessor, segmentation_visualizer, {("", "receivers")})
-        self.add_flow(segmentation_visualizer, openigtlink_tx_slicer_holoscan, {("render_buffer_output", "receivers")})
+        self.add_flow(
+            segmentation_visualizer,
+            openigtlink_tx_slicer_holoscan,
+            {("render_buffer_output", "receivers")},
+        )
+
 
 if __name__ == "__main__":
     config_file = os.path.join(os.path.dirname(__file__), "openigtlink_3dslicer.yaml")
