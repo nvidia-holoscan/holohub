@@ -17,17 +17,22 @@ import os
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
     SegmentationPostprocessorOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType, UnboundedAllocator
+from holoscan.resources import (
+    BlockMemoryPool,
+    CudaStreamPool,
+    MemoryStorageType,
+    UnboundedAllocator
+)
 
 from holohub.openigtlink_rx import OpenIGTLinkRxOp
 from holohub.openigtlink_tx import OpenIGTLinkTxOp
+
 
 class OpenIGTLinkApp(Application):
     def __init__(self):
