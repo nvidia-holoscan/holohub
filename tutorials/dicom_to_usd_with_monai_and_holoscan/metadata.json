@@ -1,0 +1,81 @@
+{
+	"application": {
+		"name": "DICOM to OpenUSD mesh segmentation with MONAI Deploy and Holoscan",
+		"authors": [
+			{
+				"name": "Rahul Choudhury",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Andreas Heumann",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Cristiana Dinea",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Gregory Lee",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Jeroen Stinstra",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Ming Melvin Qi",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Tom Birdsong",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Wendell Hom",
+				"affiliation": "NVIDIA"
+			}
+		],
+	
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"DICOM",
+			"mesh",
+			"MONAI",
+			"MONAI Deploy",
+			"Omniverse",
+			"OpenUSD",
+			"STL"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"libraries": [
+				{
+					"name": "MONAI Deploy",
+					"version": "0.6.0"
+				},
+				{
+					"name": "highdicom",
+					"version": "0.22.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python tutorial.py",
+			"workdir": "tutorials/dicom_to_usd_with_monai_and_holoscan"
+		}
+	}
+}
