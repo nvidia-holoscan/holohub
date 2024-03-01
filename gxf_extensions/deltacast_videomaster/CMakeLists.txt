@@ -13,13 +13,27 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
 project(gxf_videomaster)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+FetchContent_Declare(
+    VideoMasterAPIHelper
+    GIT_TAG         feature/video_information_module
+    SOURCE_DIR      "${CMAKE_CURRENT_LIST_DIR}/api_helper"
+)
+
+FetchContent_MakeAvailable(VideoMasterAPIHelper)
+
 # Finds the VideoMaster SDK
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 find_package(VideoMaster REQUIRED)
 
 # Create library
@@ -30,15 +44,11 @@ add_library(gxf_videomaster_lib SHARED
   videomaster_source.cpp
   videomaster_transmitter.hpp
   videomaster_transmitter.cpp
-  video_information/video_information.hpp
-  video_information/sdi_video_information.hpp
-  video_information/sdi_video_information.cpp
-  video_information/dv_video_information.hpp
-  video_information/dv_video_information.cpp
 )
 
 target_link_libraries(gxf_videomaster_lib
   PUBLIC
+    VideoMasterAPIHelper
     VideoMaster::videomasterhd_core
     CUDA::cudart
     CUDA::cuda_driver

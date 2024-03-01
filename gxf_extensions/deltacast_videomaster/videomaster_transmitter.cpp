@@ -73,20 +73,24 @@ gxf_result_t VideoMasterTransmitter::start() {
   result &= open_stream();
 
   if (!_overlay) {
-    _video_information->update_stream_properties_values(VideoFormat{_width, _height,
-                                                                    _progressive, _framerate});
+    _video_information->set_video_format(stream_handle(), Deltacast::Helper::VideoFormat{_width, _height,
+                                                                                         _progressive, _framerate});
 
-    VHD_SetBoardProperty(_board_handle, VHD_SDI_BP_GENLOCK_SOURCE, VHD_GENLOCK_LOCAL);
+    auto opt_sync_source_property = _video_information->get_sync_source_properties();
+    if (opt_sync_source_property)
+      VHD_SetBoardProperty(*board_handle(), *opt_sync_source_property, VHD_GENLOCK_LOCAL);
 
-    result &= configure_stream();
-    result &= init_buffers();
-    result &= start_stream();
+      result &= configure_stream();
+      result &= init_buffers();
+      result &= start_stream();
+
   }
 
   return gxf::ToResultCode(result);
 }
 
 gxf_result_t VideoMasterTransmitter::tick() {
+  Deltacast::Helper::ApiSuccess success;
   gxf::Entity message;
   gxf::Expected<gxf::Entity> maybe_message = _source->receive();
   if (!maybe_message) {
@@ -116,47 +120,58 @@ gxf_result_t VideoMasterTransmitter::tick() {
       _has_lost_signal = false;
     }
 
-    auto input_information = get_detected_input_information(_channel_index);
-    if (input_information != _video_information->stream_properties_values) {
-      GXF_LOG_INFO("Input signal has changed, restarting stream");
+    // TODO
+    // get_video_format()
 
-      _video_information->stream_properties_values = input_information;
+    // auto input_information = get_detected_input_information(_channel_index);
+    // if (input_information != _video_information->stream_properties_values) {
+    //   GXF_LOG_INFO("Input signal has changed, restarting stream");
 
-      if (!api_call_success(VHD_StopStream(_stream_handle), "Failed to stop stream"))
-        return GXF_FAILURE;
+    //   _video_information->stream_properties_values = input_information;
 
-      gxf::Expected<void> result;
-      result &= configure_board_for_overlay();
-      result &= configure_stream();
-      result &= configure_stream_for_overlay();
-      result &= init_buffers();
-      result &= start_stream();
+    //   if (!api_call_success(VHD_StopStream(_stream_handle), "Failed to stop stream"))
+    //     return GXF_FAILURE;
 
-      if (!result)
-        return gxf::ToResultCode(result);
-    }
+    //   gxf::Expected<void> result;
+    //   result &= configure_board_for_overlay();
+    //   result &= configure_stream();
+    //   result &= configure_stream_for_overlay();
+    //   result &= init_buffers();
+    //   result &= start_stream();
+
+    //   if (!result)
+    //     return gxf::ToResultCode(result);
+    // }
   }
 
   HANDLE slot_handle;
   if (_slot_count >= _slot_handles.size()) {
-    if (!api_call_success(VHD_WaitSlotSent(_stream_handle, &slot_handle, SLOT_TIMEOUT),
-                                           "Failed to wait for slot"))
+    success = VHD_WaitSlotSent(*stream_handle(), &slot_handle, SLOT_TIMEOUT);
+    if (!success) {
+      GXF_LOG_ERROR("Failed to wait for slot to be sent");
       return GXF_FAILURE;
+    }
+
   } else {
     slot_handle = _slot_handles[_slot_count % NB_SLOTS];
   }
 
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
-  if (!api_call_success(VHD_GetSlotBuffer(slot_handle, VHD_SDI_BT_VIDEO, &buffer, &buffer_size),
-                                          "Failed to retrieve video buffer"))
+  success = VHD_GetSlotBuffer(slot_handle, VHD_SDI_BT_VIDEO, &buffer, &buffer_size);
+  if (!success) {
+    GXF_LOG_ERROR("Failed to retrieve the video buffer");
     return GXF_FAILURE;
+  }
 
   cudaMemcpy(buffer, frame->pointer(), buffer_size,
             (_use_rdma ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost));
 
-  if (!api_call_success(VHD_QueueOutSlot(slot_handle), "Failed to queue slot"))
+  success = VHD_QueueOutSlot(slot_handle);
+  if (!success) {
+    GXF_LOG_ERROR("Failed to queue out the video buffer");
     return GXF_FAILURE;
+  }
 
   _slot_count++;
 
@@ -164,51 +179,95 @@ gxf_result_t VideoMasterTransmitter::tick() {
 }
 
 gxf::Expected<void> VideoMasterTransmitter::configure_board_for_overlay() {
-  bool success = api_call_success(VHD_SetBoardProperty(_board_handle, VHD_SDI_BP_GENLOCK_SOURCE,
-                   id_to_genlock_source.at(_channel_index)), "Could not configure genlock source");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                                             VHD_SDI_BP_GENLOCK_VIDEO_STANDARD,
-                           _video_information->stream_properties_values[VHD_SDI_SP_VIDEO_STANDARD]),
-                           "Could not configure genlock video standard");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                    VHD_KEYER_BP_INPUT_A, id_to_rx_keyer_input.at(_channel_index)),
-                                    "Could not configure keyer input A");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                    VHD_KEYER_BP_INPUT_B, id_to_tx_keyer_input.at(_channel_index)),
-                                    "Could not configure keyer input B");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                     VHD_KEYER_BP_INPUT_K, id_to_tx_keyer_input.at(_channel_index)),
-                                     "Could not configure keyer input K");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                          VHD_KEYER_BP_VIDEOOUTPUT_TX0, VHD_KOUTPUT_KEYER),
-                                          "Could not configure keyer video output");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                          VHD_KEYER_BP_ANCOUTPUT_TX0,
-                                          id_to_rx_keyer_output.at(_channel_index)),
-                                          "Could not configure keyer ANC output");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                                   VHD_KEYER_BP_ALPHACLIP_MIN, 0),
-                                                   "Could not configure alphaclip min");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                                             VHD_KEYER_BP_ALPHACLIP_MAX, 1020),
-                                                             "Could not configure alphaclip max");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                                          VHD_KEYER_BP_ALPHABLEND_FACTOR, 1023),
-                                                          "Could not configure alphablend factor");
-  success = success && api_call_success(VHD_SetBoardProperty(_board_handle,
-                                                             VHD_KEYER_BP_ENABLE, TRUE),
-                                                             "Could not enable keyer");
+  Deltacast::Helper::ApiSuccess api_success;
+  bool success_b = true;
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+
+  success_b = _video_information->configure_sync(board_handle(), _channel_index);
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_INPUT_A,
+                                     id_to_rx_keyer_input.at(_channel_index));
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure keyer input A");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_INPUT_B,
+                                     id_to_tx_keyer_input.at(_channel_index));
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure keyer input B");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_INPUT_K,
+                                     id_to_tx_keyer_input.at(_channel_index));
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure keyer input K");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_VIDEOOUTPUT_TX0,
+                                     VHD_KOUTPUT_KEYER);
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure keyer video output");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ANCOUTPUT_TX0,
+                                     id_to_rx_keyer_output.at(_channel_index));
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure keyer ANC output");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ALPHACLIP_MIN, 0);
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure alphaclip min");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ALPHACLIP_MAX, 1020);
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure alphaclip max");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ALPHABLEND_FACTOR, 1023);
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not configure alphablend factor");
+  }
+  success_b = success_b && api_success;
+
+  api_success = VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ENABLE, TRUE);
+  if (!api_success) {
+    GXF_LOG_ERROR("Could not enable keyer");
+  }
+  success_b = success_b && api_success;
+
+  return success_b ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }
 
 gxf::Expected<void> VideoMasterTransmitter::configure_stream_for_overlay() {
-  bool success = api_call_success(VHD_SetStreamProperty(_stream_handle, VHD_CORE_SP_BUFFER_PACKING,
-                                        VHD_BUFPACK_VIDEO_RGBA_32), "Could not set buffer packing");
-  success = success && api_call_success(VHD_SetStreamProperty(_stream_handle,
-                              VHD_SDI_SP_TX_GENLOCK, TRUE), "Could not set genlock for TX stream");
+  Deltacast::Helper::ApiSuccess success;
+  bool success_b = true;
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  success = VHD_SetStreamProperty(*stream_handle(), VHD_CORE_SP_BUFFER_PACKING,
+                                  VHD_BUFPACK_VIDEO_RGBA_32);
+  if (!success) {
+    GXF_LOG_ERROR("Could not set buffer packing");
+  }
+  success_b = success_b && success;
+
+  auto opt_sync_tx_property = _video_information->get_sync_tx_properties();
+  if (opt_sync_tx_property) {
+    success = VHD_SetStreamProperty(*stream_handle(), *opt_sync_tx_property, TRUE);
+    if (!success) {
+      GXF_LOG_ERROR("Could not set sync tx property");
+    }
+    success_b = success_b && success;
+  }
+
+  return success_b ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }
 
 }  // namespace videomaster
