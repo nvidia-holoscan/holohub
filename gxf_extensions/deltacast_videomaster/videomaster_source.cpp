@@ -53,11 +53,22 @@ gxf_result_t VideoMasterSource::start() {
 }
 
 gxf_result_t VideoMasterSource::tick() {
+  Deltacast::Helper::ApiSuccess success;
+
   if (!signal_present()) {
     if (!_has_lost_signal)
       GXF_LOG_INFO("No signal detected, waiting for input...");
     _has_lost_signal = true;
     return GXF_SUCCESS;
+  }
+  else if (!(video_format != Deltacast::Helper::VideoFormat{})) {
+    gxf::Expected<void> result;
+    result &= configure_stream();
+    result &= init_buffers();
+    result &= start_stream();
+
+    if (!result)
+      return gxf::ToResultCode(result);
   }
 
   if (_has_lost_signal) {
@@ -65,12 +76,11 @@ gxf_result_t VideoMasterSource::tick() {
     _has_lost_signal = false;
   }
 
-  auto input_information = get_input_information();
-  if (input_information != _video_information->stream_properties_values) {
-    _video_information->stream_properties_values = input_information;
+  auto detected_video_format = _video_information->get_video_format(stream_handle());
+  if (detected_video_format && *detected_video_format != video_format) {
 
     GXF_LOG_INFO("Input signal has changed, restarting stream");
-    VHD_StopStream(_stream_handle);
+    VHD_StopStream(*stream_handle());
 
     gxf::Expected<void> result;
     result &= configure_stream();
@@ -82,7 +92,7 @@ gxf_result_t VideoMasterSource::tick() {
   }
 
   HANDLE slot_handle;
-  ULONG api_result = VHD_WaitSlotFilled(_stream_handle, &slot_handle, SLOT_TIMEOUT);
+  ULONG api_result = VHD_WaitSlotFilled(*stream_handle(), &slot_handle, SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
     GXF_LOG_ERROR("Failed to wait for incoming slot");
     return GXF_FAILURE;
@@ -94,9 +104,13 @@ gxf_result_t VideoMasterSource::tick() {
 
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
-  if (!api_call_success(VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(),
-                                          &buffer, &buffer_size), "Failed to get slot buffer"))
+
+  success = VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(), &buffer, &buffer_size);
+
+  if (!success) {
+    GXF_LOG_INFO("Failed to get slot buffer");
     return GXF_FAILURE;
+  }
 
   auto result = transmit_buffer_data(buffer, buffer_size);
 
@@ -125,7 +139,7 @@ gxf::Expected<void> VideoMasterSource::transmit_buffer_data(void *buffer, uint32
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  auto format = _video_information->get_video_format();
+  auto format = _video_information->get_video_format(stream_handle());
   if (!format)
     return gxf::Unexpected{GXF_FAILURE};
 
