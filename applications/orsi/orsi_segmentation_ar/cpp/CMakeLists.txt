@@ -27,7 +27,6 @@ target_link_libraries(orsi_segmentation_ar
    PRIVATE
    holoscan::core
    # Holoscan SDK operators
-   holoscan::ops::video_stream_replayer
    holoscan::ops::inference
    # Orsi Holohub operators
    holoscan::orsi::format_converter
@@ -40,7 +39,6 @@ target_link_libraries(orsi_segmentation_ar
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_VIDEOMASTER)
-    target_link_libraries(orsi_segmentation_ar PRIVATE holoscan::videomaster)
 endif()
 
 if(HOLOHUB_DOWNLOAD_DATASETS)

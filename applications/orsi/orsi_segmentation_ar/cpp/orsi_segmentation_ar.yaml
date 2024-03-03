@@ -17,7 +17,7 @@
 extensions:
   - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 
-source: "replayer" # Valid values "replayer"  or "videomaster"
+source: "replayer" # Valid values "replayer", "aja" or "videomaster"
 
 replayer:  # VideoStreamReplayer
   basename: "segmentation_ex1"
@@ -26,12 +26,28 @@ replayer:  # VideoStreamReplayer
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
 
+external_source:
+  rdma: true
+  enable_overlay: false
+
 videomaster:
   board: 0
   input: 0
-  rdma: true
 
-drop_alpha_channel:  # FormatConverter
+aja:
+  width: 1920
+  height: 1080
+  overlay_rdma: true
+
+
+drop_alpha_channel_videomaster:  # FormatConverter
+  in_dtype: "rgba8888"
+  in_tensor_name: source_video
+  out_tensor_name: source_video
+  out_dtype: "rgb888"
+  out_channel_order: [2,1,0]
+
+drop_alpha_channel_aja:  # FormatConverter
   in_dtype: "rgba8888"
   in_tensor_name: source_video
   out_tensor_name: source_video
@@ -44,28 +60,12 @@ format_converter:  # FormatConverter
     src_roi_rect: [ 328, 36, 1264, 1008 ]
     output_img_size : [512, 512] 
 
-format_converter_anonymization:  # FormatConverter
-    # in_tensor_name: source_video
-    out_tensor_name: source_video
-    out_dtype: "float32"
-    src_roi_rect: [ 328, 36, 1264, 1008 ]
-    output_img_size : [224, 224] 
-
-drop_alpha_channel_videomaster:  # FormatConverter
-  in_dtype: "rgba8888"
-  in_tensor_name: source_video
-  out_tensor_name: source_video
-  out_dtype: "rgb888"
-  out_channel_order: [2,1,0]
-
 segmentation_preprocessor: # Preprocessor
    in_tensor_name: source_video
    out_tensor_name: preprocess_segmentation
    data_format: hwc
    normalize_means: [0.485, 0.456, 0.406]
    normalize_stds: [0.229, 0.224, 0.225]
-
-
 
 multiai_inference:  # InferenceOp
   backend: "trt"

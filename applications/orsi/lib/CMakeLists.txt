@@ -25,12 +25,16 @@ add_library(orsi_app_lib EXCLUDE_FROM_ALL
 )
 
 target_link_libraries(orsi_app_lib
-   PUBLIC  holoscan::core
+   PUBLIC
+   holoscan::core
+   holoscan::ops::video_stream_replayer
+   holoscan::ops::aja holoscan::orsi::format_converter
 )
 
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
     target_compile_definitions(orsi_app_lib PRIVATE -DUSE_VIDEOMASTER)
+    target_link_libraries(orsi_segmentation_ar PRIVATE holoscan::videomaster)
 endif()
 
 target_include_directories(orsi_app_lib

@@ -16,13 +16,23 @@
  */
 
 #include "orsi_app.hpp"
+
+
+#ifdef USE_VIDEOMASTER
+#include <videomaster_source.hpp>
+#endif
+#include <holoscan/operators/aja_source/aja_source.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+
 #include <getopt.h>
+
 
 void OrsiApp::set_source(const std::string& source) {
 #ifdef USE_VIDEOMASTER
   if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
 #endif
   if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
+  if (source == "aja" ) { video_source_ = VideoSource::AJA; }
 }
 
 void OrsiApp::set_datapath(const std::string& path) {
@@ -48,6 +58,70 @@ bool OrsiApp::init(int argc, char** argv) {
   if (data_path != "") this->set_datapath(data_path);
 
   return true;
+}
+
+void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& cuda_stream_pool) {
+    using namespace holoscan;
+
+    const bool use_rdma = from_config("external_source.rdma").as<bool>();
+    const bool overlay_enabled = (video_source_ != VideoSource::REPLAYER) &&
+                    from_config("external_source.enable_overlay").as<bool>();
+
+    switch (video_source_) {
+#ifdef USE_VIDEOMASTER
+      case VideoSource::VIDEOMASTER:
+        source = make_operator<ops::VideoMasterSourceOp>(
+            "videomaster", from_config("videomaster"), Arg("pool") = allocator_resource);
+        break;
+#endif
+      case VideoSource::AJA:
+        width = from_config("aja.width").as<uint32_t>();
+        height = from_config("aja.height").as<uint32_t>();
+        source = make_operator<ops::AJASourceOp>("aja",
+         from_config("aja"), from_config("external_source"));
+       break;
+
+      default:
+        source = make_operator<ops::VideoStreamReplayerOp>(
+            "replayer", from_config("replayer"), Arg("directory", datapath));
+        break;
+    }
+
+    if (video_source_ == VideoSource::AJA
+#ifdef USE_VIDEOMASTER
+        || video_source_ == VideoSource::VIDEOMASTER
+#endif
+    ) {
+      video_format_converter_in_tensor_name = "source_video";
+      std::string yaml_config = "drop_alpha_channel_aja";
+#ifdef USE_VIDEOMASTER
+      if (video_source_ == VideoSource::VIDEOMASTER) {
+        yaml_config = "drop_alpha_channel_videomaster";
+      }
+#endif
+      uint64_t drop_alpha_block_size = width * height * n_channels * bpp;
+      uint64_t drop_alpha_num_blocks = 2;
+      drop_alpha_channel = make_operator<ops::orsi::FormatConverterOp>(
+          "drop_alpha_channel",
+          from_config(yaml_config),
+          Arg("allocator") = make_resource<BlockMemoryPool>(
+              "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
+          Arg("cuda_stream_pool") = cuda_stream_pool);
+    }
+
+    switch (video_source_) {
+      case VideoSource::AJA:
+        video_buffer_out = "video_buffer_output";
+        break;
+  #ifdef USE_VIDEOMASTER
+      case VideoSource::VIDEOMASTER:
+        video_buffer_out = "signal";
+        break;
+  #endif
+      case VideoSource::REPLAYER:
+      default:
+        break;
+    }
 }
 
 /** Helper function to parse the command line arguments */
