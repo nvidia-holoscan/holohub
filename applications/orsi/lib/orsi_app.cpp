@@ -60,14 +60,12 @@ bool OrsiApp::init(int argc, char** argv) {
   return true;
 }
 
-void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& cuda_stream_pool)
-{
-  
+void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& cuda_stream_pool) {
     using namespace holoscan;
 
     const bool use_rdma = from_config("external_source.rdma").as<bool>();
-    const bool overlay_enabled =
-        (video_source_ != VideoSource::REPLAYER) && from_config("external_source.enable_overlay").as<bool>();
+    const bool overlay_enabled = (video_source_ != VideoSource::REPLAYER) &&
+                    from_config("external_source.enable_overlay").as<bool>();
 
     switch (video_source_) {
 #ifdef USE_VIDEOMASTER
@@ -76,7 +74,7 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
             "videomaster", from_config("videomaster"), Arg("pool") = allocator_resource);
         break;
 #endif
-      case VideoSource::AJA: 
+      case VideoSource::AJA:
         width = from_config("aja.width").as<uint32_t>();
         height = from_config("aja.height").as<uint32_t>();
         source = make_operator<ops::AJASourceOp>("aja",
@@ -87,21 +85,17 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
         source = make_operator<ops::VideoStreamReplayerOp>(
             "replayer", from_config("replayer"), Arg("directory", datapath));
         break;
-    } 
+    }
 
-
-    if (
-        video_source_ == VideoSource::AJA
+    if (video_source_ == VideoSource::AJA
 #ifdef USE_VIDEOMASTER
         || video_source_ == VideoSource::VIDEOMASTER
 #endif
     ) {
-
       video_format_converter_in_tensor_name = "source_video";
-
       std::string yaml_config = "drop_alpha_channel_aja";
 #ifdef USE_VIDEOMASTER
-      if(video_source_ == VideoSource::VIDEOMASTER) {
+      if (video_source_ == VideoSource::VIDEOMASTER) {
         yaml_config = "drop_alpha_channel_videomaster";
       }
 #endif
@@ -115,24 +109,20 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
           Arg("cuda_stream_pool") = cuda_stream_pool);
     }
 
-    switch (video_source_)
-    {
-    case VideoSource::AJA:
-      video_buffer_out = "video_buffer_output";
-      break;
-#ifdef USE_VIDEOMASTER
-    case VideoSource::VIDEOMASTER:
-      video_buffer_out = "signal";
-      break;
-#endif
-
-    case VideoSource::REPLAYER:
-    default:
-      break;
+    switch (video_source_) {
+      case VideoSource::AJA:
+        video_buffer_out = "video_buffer_output";
+        break;
+  #ifdef USE_VIDEOMASTER
+      case VideoSource::VIDEOMASTER:
+        video_buffer_out = "signal";
+        break;
+  #endif
+      case VideoSource::REPLAYER:
+      default:
+        break;
     }
 }
-
-
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {

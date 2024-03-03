@@ -41,7 +41,6 @@ class App : public OrsiApp {
 
     initVideoSource(cuda_stream_pool);
 
-    
     // -------------------------------------------------------------------------------------
     //
     // Format conversion operators

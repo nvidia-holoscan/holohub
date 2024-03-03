@@ -16,7 +16,6 @@
  */
 
 #include <holoscan/core/resources/gxf/cuda_stream_pool.hpp>
-
 #include <holoscan/holoscan.hpp>
 // Orsi: Holoscan native operators
 #include <format_converter.hpp>
@@ -37,18 +36,12 @@ class OrsiApp : public holoscan::Application {
 
   // video source members
   VideoSource video_source_ = VideoSource::REPLAYER;
-
   std::shared_ptr<holoscan::Operator> source;
-//  bool use_rdma = false;
-//  bool overlay_enabled = false;
   uint32_t width = 1920;
   uint32_t height = 1080;
-
   const int n_channels = 4;
   const int bpp = 4;
-
   std::string video_format_converter_in_tensor_name = "";
-
   std::string video_buffer_out = "";
 
   // Alpha Channel Op needed for Videomaster and AJA video sources
@@ -56,14 +49,11 @@ class OrsiApp : public holoscan::Application {
 
   // initialize video
   void initVideoSource(const std::shared_ptr<holoscan::CudaStreamPool>& cuda_stream_pool);
-  
-
 
  public:
   void set_source(const std::string& source);
   void set_datapath(const std::string& path);
   bool init(int argc, char** argv);
-
 };
 
 /** Helper function to parse the command line arguments */
