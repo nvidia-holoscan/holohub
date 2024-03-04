@@ -1,6 +1,6 @@
 # Creating Multi Node Applications
 
-In this tutorial, we will walk through the process in two scenarios of creating a multi node application from exisitng applications. We will demonstrate the process with Python applications but it's similar for C++ applications as well.
+In this tutorial, we will walk through the process in two scenarios of creating a multi node application from existing applications. We will demonstrate the process with Python applications but it's similar for C++ applications as well.
 
 1. When we would want to divide an application that was previously running on a single node into two fragments running on two nodes. This corresponds to use cases where we want to separate the compute and visualization workloads onto two different nodes, for example in the case of surgical robotics, the visualization node should be closest to the surgeon. For this purpose we choose the example of the [`multiai_endoscopy`](../../applications/multiai_endoscopy/) application.
 
