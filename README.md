@@ -28,6 +28,8 @@ The following directories make up the core of HoloHub:
   reusable Holoscan modules.
 - Tutorials: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
 
+View a full list of available HoloHub projects in our [summary table](./PROJECTS.md) or on [GitHub Pages](https://nvidia-holoscan.github.io/holohub/).
+
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform.
 
 # Prerequisites
