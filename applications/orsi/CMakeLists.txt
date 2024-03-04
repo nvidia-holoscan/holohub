@@ -55,7 +55,10 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-add_subdirectory(lib)
+# Only configure the lib if the applications are build
+if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
+  add_subdirectory(lib)
+endif()
 
 add_holohub_application(orsi_multi_ai_ar DEPENDS
                         OPERATORS ${HOLOSCAN_OPERATORS})
