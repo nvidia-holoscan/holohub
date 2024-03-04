@@ -16,15 +16,15 @@
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application,  Fragment
+from holoscan.core import Application, Fragment
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
     HolovizOp,
+    InferenceOp,
+    InferenceProcessorOp,
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
-    InferenceOp,
-    InferenceProcessorOp
 )
 from holoscan.resources import (
     BlockMemoryPool,
@@ -188,7 +188,7 @@ class Fragment1(Fragment):
         self.add_operator(lstm_inferer)
         self.add_operator(tool_tracking_postprocessor)
         self.add_operator(visualizer)
-        
+
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
         self.add_flow(tool_tracking_postprocessor, visualizer, {("out", "receivers")})
@@ -225,7 +225,7 @@ class Fragment1(Fragment):
                 {("render_buffer_output", "source_video")},
             )
             self.add_flow(recorder_format_converter, recorder)
-        
+
 
 class Fragment2(Fragment):
     def __init__(self, app, name, source, model_path, record_type):
@@ -234,13 +234,14 @@ class Fragment2(Fragment):
         self.source = source
         self.record_type = record_type
         self.model_path = model_path
+
     def compose(self):
-        
+
         is_aja = self.source.lower() == "aja"
-        
+
         pool = UnboundedAllocator(self, name="fragment2_pool")
         in_dtype = "rgba8888" if is_aja else "rgb888"
-       
+
         out_of_body_preprocessor = FormatConverterOp(
             self,
             name="out_of_body_preprocessor",
@@ -249,7 +250,9 @@ class Fragment2(Fragment):
             **self.kwargs("out_of_body_preprocessor"),
         )
 
-        model_path_map = {"out_of_body": os.path.join(self.model_path, "out_of_body_detection.onnx")}
+        model_path_map = {
+            "out_of_body": os.path.join(self.model_path, "out_of_body_detection.onnx")
+        }
         for k, v in model_path_map.items():
             if not os.path.exists(v):
                 raise RuntimeError(f"Could not find model file: {v}")
@@ -266,21 +269,22 @@ class Fragment2(Fragment):
             name="out_of_body_postprocessor",
             allocator=pool,
             disable_transmitter=True,
-            **self.kwargs("out_of_body_postprocessor")
+            **self.kwargs("out_of_body_postprocessor"),
         )
-        
+
         self.add_operator(out_of_body_preprocessor)
         self.add_operator(out_of_body_inference)
         self.add_operator(out_of_body_postprocessor)
 
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
-        self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")})
-
+        self.add_flow(
+            out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")}
+        )
 
 
 class EndoscopyDistributedApp(Application):
     def __init__(self, data, record_type=None, source="replayer"):
-        """Initialize the endoscopy distributed application containing the 
+        """Initialize the endoscopy distributed application containing the
            endoscopy_tool_tracking and endoscopy_out_of_body apps
 
         Parameters
@@ -312,17 +316,33 @@ class EndoscopyDistributedApp(Application):
 
     def compose(self):
         is_aja = self.source.lower() == "aja"
-        
-        fragment1 = Fragment1(self, name="fragment1", source = self.source, 
-                                sample_data_path=os.path.join(self.sample_data_path, "endoscopy"), 
-                                record_type=self.record_type)
-        fragment2 = Fragment2(self, name="fragment2", source = self.source, 
-                                model_path=os.path.join(self.sample_data_path, "endoscopy_out_of_body_detection"),
-                                record_type = self.record_type)
-        
-        self.add_flow(fragment1, fragment2, {("aja.video_buffer_output" if is_aja else "replayer.output", "out_of_body_preprocessor")})
 
-        
+        fragment1 = Fragment1(
+            self,
+            name="fragment1",
+            source=self.source,
+            sample_data_path=os.path.join(self.sample_data_path, "endoscopy"),
+            record_type=self.record_type,
+        )
+        fragment2 = Fragment2(
+            self,
+            name="fragment2",
+            source=self.source,
+            model_path=os.path.join(self.sample_data_path, "endoscopy_out_of_body_detection"),
+            record_type=self.record_type,
+        )
+
+        self.add_flow(
+            fragment1,
+            fragment2,
+            {
+                (
+                    "aja.video_buffer_output" if is_aja else "replayer.output",
+                    "out_of_body_preprocessor",
+                )
+            },
+        )
+
 
 if __name__ == "__main__":
     # Parse args

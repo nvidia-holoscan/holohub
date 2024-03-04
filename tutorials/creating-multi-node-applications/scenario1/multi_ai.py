@@ -20,7 +20,7 @@ from argparse import ArgumentParser
 
 import cupy as cp
 import numpy as np
-from holoscan.core import Application, Operator, OperatorSpec, Fragment
+from holoscan.core import Application, Fragment, Operator, OperatorSpec
 from holoscan.operators import (
     AJASourceOp,
     FormatConverterOp,
@@ -197,8 +197,6 @@ class Fragment1(Fragment):
             **self.kwargs("segmentation_postprocessor"),
         )
 
-        
-       
         # add operators to Fragment
         self.add_operator(source)
         self.add_operator(detection_preprocessor)
@@ -211,11 +209,10 @@ class Fragment1(Fragment):
         if is_aja:
             self.add_flow(source, detection_preprocessor, {("video_buffer_output", "")})
             self.add_flow(source, segmentation_preprocessor, {("video_buffer_output", "")})
-            
+
         else:
             self.add_flow(source, detection_preprocessor)
             self.add_flow(source, segmentation_preprocessor)
-            
 
         # connect all pre-processor outputs to the inference operator
         for op in [detection_preprocessor, segmentation_preprocessor]:
@@ -231,7 +228,7 @@ class Fragment2(Fragment):
         super().__init__(app, name)
 
         self.label_dict = label_dict
-        
+
     def compose(self):
         # Holoviz
         holoviz_tensors = [dict(name="", type="color"), dict(name="out_tensor", type="color_lut")]
@@ -270,7 +267,7 @@ class Fragment2(Fragment):
         )
 
         # add operators
-        
+
         self.add_operator(holoviz)
 
 
@@ -293,17 +290,27 @@ class MultiAIDetectionSegmentation(Application):
         self.sample_data_path = data
 
     def compose(self):
-        fragment1 = Fragment1(self, name="fragment1", source=self.source, sample_data_path=self.sample_data_path, label_dict=self.label_dict)
+        fragment1 = Fragment1(
+            self,
+            name="fragment1",
+            source=self.source,
+            sample_data_path=self.sample_data_path,
+            label_dict=self.label_dict,
+        )
         fragment2 = Fragment2(self, name="fragment2", label_dict=self.label_dict)
 
-        # Connect the two fragments 
+        # Connect the two fragments
         # We can skip the "out" and "in" suffixes, as they are the default
-        source_output = self.source + ".video_buffer_output" if self.source.lower() == "aja" else self.source + ".output"
+        source_output = (
+            self.source + ".video_buffer_output"
+            if self.source.lower() == "aja"
+            else self.source + ".output"
+        )
         self.add_flow(fragment1, fragment2, {(source_output, "holoviz.receivers")})
-        self.add_flow(fragment1, fragment2, {("detection_postprocessor.out" , "holoviz.receivers")})
-        self.add_flow(fragment1, fragment2, {("segmentation_postprocessor.out_tensor" , "holoviz.receivers")})
-        
-
+        self.add_flow(fragment1, fragment2, {("detection_postprocessor.out", "holoviz.receivers")})
+        self.add_flow(
+            fragment1, fragment2, {("segmentation_postprocessor.out_tensor", "holoviz.receivers")}
+        )
 
     def get_label_dict(self, labelfile):
         # construct the labels dictionary if the commandline arg for labelfile isn't empty
@@ -321,7 +328,6 @@ class MultiAIDetectionSegmentation(Application):
 
 
 if __name__ == "__main__":
-    
 
     parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")
     parser.add_argument(
@@ -362,12 +368,18 @@ if __name__ == "__main__":
     apps_argv = Application().argv
     args = parser.parse_args(apps_argv[1:])
     if args.config == "none":
-        config_file = os.path.join(os.path.dirname(__file__), "../../../applications/multiai_endoscopy/python/multi_ai.yaml")
+        config_file = os.path.join(
+            os.path.dirname(__file__),
+            "../../../applications/multiai_endoscopy/python/multi_ai.yaml",
+        )
     else:
         config_file = args.config
 
     if args.labelfile == "none":
-        labelfile = os.path.join(os.path.dirname(__file__), "../../../applications/multiai_endoscopy/python/endo_ref_data_labels.csv")
+        labelfile = os.path.join(
+            os.path.dirname(__file__),
+            "../../../applications/multiai_endoscopy/python/endo_ref_data_labels.csv",
+        )
     else:
         labelfile = args.labelfile
 
