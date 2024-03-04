@@ -45,20 +45,26 @@ We recommend that new developers review GitHub's [starting documentation](https:
 
 1. Developers must first [fork](https://help.github.com/en/articles/fork-a-repo) the [upstream](https://github.com/nvidia-holoscan/holohub) HoloHub repository.
 
-2. Git clone the forked repository and push changes to the personal fork.
+2. Run the commands below to clone the forked repository and set up [developer hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) with Git.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
+git clone https://github.com/<YOUR_USERNAME>/holohub.git HoloHub
+cd HoloHub
+git config --local core.hookspath .githooks && sudo chmod u+x ./githooks/pre-commit
+```
+3. Develop, commit your changes, and push to your cloned repository.
+
+```
 # Checkout the targeted branch and commit changes
 # Push the commits to a branch on the fork (remote).
 git push -u origin <local-branch>:<remote-branch>
 ```
 
-3. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
+4. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
   * Exercise caution when selecting the source and target branches for the PR.
   * Creation of a PR creation kicks off the [code review](#preparing-your-submission) process.
 
-4. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
+5. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
 
 Thanks in advance for your patience as we review your contributions. We do appreciate them!
 
