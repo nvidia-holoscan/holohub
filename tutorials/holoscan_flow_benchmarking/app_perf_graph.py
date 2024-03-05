@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import pydot
-import argparse, os, time
+import argparse
+import os
+import time
 import queue
 from log_parser import parse_line_from_log
 
@@ -156,7 +158,7 @@ def create_graph(
 
 # add graph labels
 def add_graph_labels(graph, num_samples):
-    label = graph.set_label(
+    graph.set_label(
         "Application Performance Graph (latency in ms)\nNumber of messages at sink: {}".format(
             num_samples
         )
@@ -239,13 +241,17 @@ def main():
         # live mode
         directory = args.filenames[0]
         print(
-            "In live mode. The program will keep updating the graph with new performance data in the provided folder {}. Press Ctrl+C to stop.".format(
+            "In live mode. The program will keep updating the graph with new \
+                performance data in the provided folder {}.\
+                Press Ctrl+C to stop.".format(
                 directory
             )
         )
         if len(args.filenames) > 1:
             print(
-                "\033[91mfilenames arguments has {} values. In live mode, only one folder is acceptible. Provide one folder as filenames in live mode. Exiting.\033[0m".format(
+                "\033[91mfilenames arguments has {} values. In live mode,\
+                    only one folder is acceptable. Provide one folder as filenames\
+                    in live mode. Exiting.\033[0m".format(
                     len(args.filenames)
                 )
             )
@@ -254,7 +260,8 @@ def main():
         # check if directory is a folder
         if not os.path.isdir(directory):
             print(
-                "\033[91mThe folder {} does not exist or is not a folder. In live mode, a folder needs to be provided. Exiting.\033[0m".format(
+                "\033[91mThe folder {} does not exist or is not a folder.\
+                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(
                     directory
                 )
             )
@@ -270,7 +277,8 @@ def main():
             log_files = [f for f in os.listdir(directory) if f.endswith(".log")]
             if len(log_files) == 0:
                 print(
-                    "No log files (files ending with .log extension) is found in the folder {}.".format(
+                    "No log files (files ending with .log extension) is found\
+                        in the folder {}.".format(
                         directory
                     )
                 )

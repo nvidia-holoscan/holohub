@@ -132,7 +132,7 @@ def get_latency_difference(latencies, percentile_start, percentile_end):
 
 # This function shortens a path by taking first 3 letters of each operator name if
 # it's more than 3 letters long
-def shorten_path(path, operator_legends):
+def shorten_path(path, operator_legends, path_separator="→ "):
     operators = path.split(path_separator)
     modified_operators = []
     for operator in operators:
