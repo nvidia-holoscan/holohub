@@ -18,6 +18,7 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+from log_parser import parse_log_as_paths_latencies
 
 np.set_printoptions(precision=2)
 
@@ -25,57 +26,12 @@ linestyles = ["-", "--", ":", "-."]
 colors = ["blue", "red", "green", "purple", "orange", "pink", "brown"]
 index = 0
 
-# the separator between operators in a path
-path_separator = "→ "
-
-
-def parse_line(line):
-    operators = line.split("->")
-    # print (operators)
-    op_timestamps = []
-    for operator in operators:
-        # trim whitespaces for left and right side
-        # print ("op: ", operator)
-        op_name_timestamp = operator.strip().rstrip()[1:-1]
-        op_timestamps.append(op_name_timestamp.split(","))
-    return op_timestamps
-
-
-# return a path and latency pair where a path is a comma separate string of operators
-def get_latency(op_timestamps):
-    operators = []
-    latency = 0
-    for op_timestamp in op_timestamps:
-        operators.append(op_timestamp[0])
-    # convert the latency to ms
-    latency = float(int(op_timestamps[-1][2]) - int(op_timestamps[0][1])) / 1000
-    # join the operators with ASCII of "->" right-arrow sign
-    path = path_separator.join(operators)
-    return path, latency
-
-
 # This python function parses the data-flow-tracking log file
 # The format is the following:
 # (replayer,1685129021110968,1685129021112852) -> (format_converter,1685129021113053,1685129021159460)
 #                                   -> (lstm_inferer,1685129021159626,1685129021161404)
 #                                   -> (tool_tracking_postprocessor,1685129021161568,1685129021194271)
 #                                   -> (holoviz,1685129021194404,1685129021265517)
-
-
-# The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
-# publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
-def parse_log(log_file):
-    with open(log_file, "r") as f:
-        paths_latencies = {}
-        for line in f:
-            # print ("line: ", line)
-            if line[0] == "(":
-                path_latency = get_latency(parse_line(line))
-                if path_latency[0] in paths_latencies:
-                    paths_latencies[path_latency[0]].append(path_latency[1])
-                else:
-                    paths_latencies[path_latency[0]] = [path_latency[1]]
-        return paths_latencies
 
 
 # This function merges the latencies of the same path from different log files
@@ -91,6 +47,7 @@ def merge_path_latencies(multiple_path_latencies, skip_begin_messages=10, discar
     return merged_path_latencies
 
 
+# Creates a CDF from the provided latencies
 def get_cdf_data(latencies):
     data = sorted(latencies)
     n = len(data)
@@ -381,7 +338,7 @@ def main():
             sys.exit(1)
         parsed_latencies_per_file = []
         for log_file in current_log_files:
-            parsed_latencies_per_file.append(parse_log(log_file))
+            parsed_latencies_per_file.append(parse_log_as_paths_latencies(log_file))
         grouped_path_latenices[current_group_name] = merge_path_latencies(parsed_latencies_per_file)
         grouped_log_files[current_group_name] = current_log_files
 
