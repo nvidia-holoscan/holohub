@@ -161,7 +161,8 @@ def create_graph(
 # add graph labels
 def add_graph_labels(graph, num_samples):
     graph.set_label(
-        "Application Performance Graph (latency in ms)\nNumber of messages at sink: {}".format(
+        "Application Performance Graph (latency in ms)\n\
+        Number of messages at sink: {}".format(
             num_samples
         )
     )
