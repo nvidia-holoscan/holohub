@@ -19,7 +19,6 @@ import queue
 import time
 
 import pydot
-
 from log_parser import parse_line_from_log
 
 # independent run instruction: python3 app_perf_graph.py <filenames>
