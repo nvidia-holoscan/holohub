@@ -35,7 +35,7 @@ target_link_libraries(orsi_app_lib
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
     target_compile_definitions(orsi_app_lib PRIVATE -DUSE_VIDEOMASTER)
-    target_link_libraries(orsi_segmentation_ar PRIVATE holoscan::videomaster)
+    target_link_libraries(orsi_app_lib PRIVATE holoscan::videomaster)
 endif()
 
 target_include_directories(orsi_app_lib
