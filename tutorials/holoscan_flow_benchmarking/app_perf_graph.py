@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pydot
 import argparse
 import os
-import time
 import queue
+import time
+
+import pydot
+
 from log_parser import parse_line_from_log
 
 # independent run instruction: python3 app_perf_graph.py <filenames>
