@@ -442,6 +442,10 @@ launch() {
         mount_device_opt+=" --device $video_dev"
     done
 
+    for capture_dev in $(find /dev -regex '/dev/capture-vi-channel[0-9]+'); do
+        mount_device_opt+=" --device $capture_dev"
+    done
+
     for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
         mount_device_opt+=" --device $video_dev:$video_dev"
     done
