@@ -1,4 +1,6 @@
 numpy
 matplotlib
-nvitop 
+nvitop
 argparse
+pydot
+xdot

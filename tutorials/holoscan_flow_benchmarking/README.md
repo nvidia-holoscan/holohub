@@ -9,6 +9,12 @@ use-cases, please follow [Holoscan Flow Benchmarking Tutorial](./flow_benchmarki
 The tool supports benchmarking of any Holoscan application. Holoscan Python applications are
 supported since Holoscan v1.0.
 
+## Table of Contents
+
+- [Pre-requisites](#pre-requisites)
+- [Steps for Holoscan Flow Benchmarking](#steps-for-holoscan-flow-benchmarking)
+- [Generate Application Graph with Latency Numbers](#generate-application-graph-with-latency-numbers)
+
 ## Pre-requisites
 The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):
 
@@ -119,4 +125,30 @@ If benchmarking is not necessary anymore, an application can be restored by the 
 
 ```
 $ ./tutorials/holoscan_flow_benchmarking/restore_application.sh <application directory>
+```
+
+## Generate Application Graph with Latency Numbers
+
+The `app_perf_graph.py` script can be used to generate a graph of a Holoscan application with
+latency data from benchmarking embedded into the graph. The graph looks like the figure below, where
+graph nodes are operators along with their average and maximum execution times, and edges represent
+connection between operators along with the average and maximum data transfer latencies.
+
+![application_perf](application_perf.png)
+
+It is also possible to generate such a graph and dynamically update it, while running the
+`benchmarking.py` script to benchmark an application. For example, the following three commands can
+be run in three different terminals to monitor the live performance of an endoscopy_tool_tracking
+application.
+
+```
+# the following command initiates a benchmarking job and generates performance log files
+$ python3 tutorials/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -i 1 -d endoscopy_results --sched=greedy -r 3 -m 1000
+
+# the following command keeps updating an application graph with the latest performance numbers
+# -l means live mode
+$ python3 tutorials/holoscan_flow_benchmarking/app_perf_graph.py -o live_app_graph.dot -l endoscopy_results
+
+# use another terminal to visualize the graph with xdot. the graph will be updated as app_perf_graph.py updates the graph
+$ xdot live_app_graph.dot
 ```
