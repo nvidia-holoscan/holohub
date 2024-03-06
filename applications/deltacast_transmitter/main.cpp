@@ -33,10 +33,10 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    uint32_t width = from_config("videomaster.width").as<uint32_t>();
-    uint32_t height = from_config("videomaster.height").as<uint32_t>();
+    uint32_t width = from_config("deltacast.width").as<uint32_t>();
+    uint32_t height = from_config("deltacast.height").as<uint32_t>();
     uint64_t source_block_size = width * height * 4 * 4;
-    uint64_t source_num_blocks = from_config("videomaster.rdma").as<bool>() ? 3 : 4;
+    uint64_t source_num_blocks = from_config("deltacast.rdma").as<bool>() ? 3 : 4;
 
     auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                             Arg("directory", datapath));
@@ -48,8 +48,8 @@ class App : public holoscan::Application {
                                                   "pool", 1, source_block_size, source_num_blocks));
 
     auto visualizer = make_operator<ops::VideoMasterTransmitterOp>(
-        "videomaster",
-        from_config("videomaster"),
+        "deltacast",
+        from_config("deltacast"),
         Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 
     add_flow(source, format_converter);

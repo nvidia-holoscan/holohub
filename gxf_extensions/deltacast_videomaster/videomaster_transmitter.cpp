@@ -20,6 +20,8 @@
 
 #include <string>
 #include <utility>
+#include <thread>
+#include <chrono>
 
 #include "VideoMasterHD_ApplicationBuffers.h"
 #include "VideoMasterHD_Sdi.h"
@@ -73,19 +75,18 @@ gxf_result_t VideoMasterTransmitter::start() {
   result &= open_stream();
 
   if (!_overlay) {
-    _video_information->set_video_format(stream_handle(), Deltacast::Helper::VideoFormat{_width, _height,
-                                                                                         _progressive, _framerate});
+    video_format = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
+    _video_information->set_video_format(stream_handle(), video_format);
 
     auto opt_sync_source_property = _video_information->get_sync_source_properties();
     if (opt_sync_source_property)
       VHD_SetBoardProperty(*board_handle(), *opt_sync_source_property, VHD_GENLOCK_LOCAL);
 
-      result &= configure_stream();
-      result &= init_buffers();
-      result &= start_stream();
+    result &= configure_stream();
+    result &= init_buffers();
+    result &= start_stream();
 
   }
-
   return gxf::ToResultCode(result);
 }
 
@@ -114,34 +115,21 @@ gxf_result_t VideoMasterTransmitter::tick() {
       _has_lost_signal = true;
       return GXF_SUCCESS;
     }
+    // stream not started yet
+    else if (!(video_format != Deltacast::Helper::VideoFormat{})) {
+      gxf::Expected<void> result;
 
-    if (_has_lost_signal) {
-      GXF_LOG_INFO("Input signal detected");
-      _has_lost_signal = false;
+      result &= configure_board_for_overlay();
+      result &= configure_stream();
+      video_format = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate}; 
+      _video_information->set_video_format(stream_handle(), video_format);
+      result &= configure_stream_for_overlay();
+      result &= init_buffers();
+      result &= start_stream();
+
+      if (!result)
+        return gxf::ToResultCode(result);
     }
-
-    // TODO
-    // get_video_format()
-
-    // auto input_information = get_detected_input_information(_channel_index);
-    // if (input_information != _video_information->stream_properties_values) {
-    //   GXF_LOG_INFO("Input signal has changed, restarting stream");
-
-    //   _video_information->stream_properties_values = input_information;
-
-    //   if (!api_call_success(VHD_StopStream(_stream_handle), "Failed to stop stream"))
-    //     return GXF_FAILURE;
-
-    //   gxf::Expected<void> result;
-    //   result &= configure_board_for_overlay();
-    //   result &= configure_stream();
-    //   result &= configure_stream_for_overlay();
-    //   result &= init_buffers();
-    //   result &= start_stream();
-
-    //   if (!result)
-    //     return gxf::ToResultCode(result);
-    // }
   }
 
   HANDLE slot_handle;
@@ -181,7 +169,6 @@ gxf_result_t VideoMasterTransmitter::tick() {
 gxf::Expected<void> VideoMasterTransmitter::configure_board_for_overlay() {
   Deltacast::Helper::ApiSuccess api_success;
   bool success_b = true;
-
 
   success_b = _video_information->configure_sync(board_handle(), _channel_index);
 

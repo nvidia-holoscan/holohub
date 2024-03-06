@@ -151,7 +151,7 @@ class App : public holoscan::Application {
         Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
 
     std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-    if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
+    if (source_ == "deltacast" || (record_type_ == Record::VISUALIZER && source_ == "replayer")) {
       visualizer_allocator =
           make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
     }
@@ -160,7 +160,7 @@ class App : public holoscan::Application {
                                       from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
                                       Arg("width") = width,
                                       Arg("height") = height,
-                                      Arg("enable_render_buffer_input") = overlay_enabled,
+                                      Arg("enable_render_buffer_input") = (source_ == "deltacast") ? false : overlay_enabled,
                                       Arg("enable_render_buffer_output") =
                                           overlay_enabled || (record_type_ == Record::VISUALIZER),
                                       Arg("allocator") = visualizer_allocator,
@@ -187,7 +187,8 @@ class App : public holoscan::Application {
         // Overlay buffer flow between source and visualizer
         auto overlayer = make_operator<ops::VideoMasterTransmitterOp>(
             "videomaster_overlayer",
-            from_config("videomaster"),
+            from_config("deltacast"),
+            from_config("external_source"),
             Arg("pool") = make_resource<UnboundedAllocator>("pool"));
         auto overlay_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
             "overlay_format_converter",

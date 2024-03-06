@@ -29,6 +29,7 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
   auto& source = spec.input<gxf::Entity>("source");
 
   spec.param(_use_rdma, "rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
+  // DEV FLEX
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
   spec.param(_channel_index, "output", "Output", "Index of the output channel to use.", 0u);
   spec.param(_width, "width", "Width", "Width of the video frames to send.", 1920u);

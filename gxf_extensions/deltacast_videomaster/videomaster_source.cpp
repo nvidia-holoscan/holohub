@@ -47,6 +47,7 @@ gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
 gxf_result_t VideoMasterSource::start() {
   gxf::Expected<void> result;
   result &= configure_board();
+  set_loopback_state(true);
   result &= open_stream();
 
   return gxf::ToResultCode(result);
