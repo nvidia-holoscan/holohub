@@ -80,16 +80,9 @@ gxf_result_t VideoMasterSource::tick() {
   auto detected_video_format = _video_information->get_video_format(stream_handle());
   if (detected_video_format && *detected_video_format != video_format) {
 
-    GXF_LOG_INFO("Input signal has changed, restarting stream");
+    GXF_LOG_INFO("Input signal has changed, exitting");
     VHD_StopStream(*stream_handle());
-
-    gxf::Expected<void> result;
-    result &= configure_stream();
-    result &= init_buffers();
-    result &= start_stream();
-
-    if (!result)
-      return gxf::ToResultCode(result);
+    return GXF_FAILURE;
   }
 
   HANDLE slot_handle;
