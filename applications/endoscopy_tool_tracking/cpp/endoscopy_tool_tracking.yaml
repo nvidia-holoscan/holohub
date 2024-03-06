@@ -22,17 +22,17 @@ extensions:
   - libgxf_stream_playback.so
   - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
 # Uncomment the following extension when using deltacast as a source
-  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
+#  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
 # Uncomment the following extension when using yuan as source
 #  - gxf_extensions/yuan_qcap/libgxf_qcap_source.so
 
-source: "deltacast" # "replayer" or "aja" or "deltacast" or "yuan"
+source: "replayer" # "replayer" or "aja" or "deltacast" or "yuan"
 record_type: "none"  # or "input" if you want to record input video stream, or "visualizer" if you want
                      # to record the visualizer output.
 
 external_source:
-  rdma: false
-  enable_overlay: true
+  rdma: true
+  enable_overlay: false
 
 aja:
   width: 1920
@@ -182,7 +182,7 @@ holoviz:
         - Spec.Bag
 
 holoviz_overlay:
-  headless: false
+  headless: true
   tensors:
     - name: mask
       type: color

@@ -53,7 +53,6 @@ class VideoMasterSourceOp : public holoscan::ops::GXFOperator {
   Parameter<uint32_t> _height;
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
-
 };
 
 }  // namespace holoscan::ops

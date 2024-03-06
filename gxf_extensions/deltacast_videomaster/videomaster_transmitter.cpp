@@ -20,8 +20,6 @@
 
 #include <string>
 #include <utility>
-#include <thread>
-#include <chrono>
 
 #include "VideoMasterHD_ApplicationBuffers.h"
 #include "VideoMasterHD_Sdi.h"
