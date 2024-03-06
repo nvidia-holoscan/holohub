@@ -131,9 +131,6 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-std::cout << _channel_index << std::endl;
-  GXF_LOG_INFO("is input: %d _channel_index: %d", _is_input, (uint32_t)_channel_index);
-
   switch (_channel_type) {
     case VHD_CHNTYPE_HDSDI:
     case VHD_CHNTYPE_3GSDI:
@@ -186,17 +183,20 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
     }
   }
 
-  auto success_opt = _video_information->set_stream_properties_values(
-    stream_handle(),
-    _video_information->get_stream_properties_values(stream_handle())
-  );
+  if (_is_input) {
+    auto success_opt = _video_information->set_stream_properties_values(
+      stream_handle(),
+      _video_information->get_stream_properties_values(stream_handle())
+    );
 
-  if (!success_opt.has_value() || !success_opt.value()) {
-    GXF_LOG_ERROR("Failed to set stream properties");
-    return gxf::Unexpected{GXF_FAILURE};
+
+    if (!success_opt.has_value() || !success_opt.value()) {
+      GXF_LOG_ERROR("Failed to set stream properties");
+      return gxf::Unexpected{GXF_FAILURE};
+    }
+
+    video_format = _video_information->get_video_format(stream_handle()).value();
   }
-
-  video_format = _video_information->get_video_format(stream_handle()).value();
 
   return gxf::Success;
 }
@@ -316,31 +316,6 @@ bool VideoMasterBase::signal_present() {
   return !(status & VHD_CORE_RXSTS_UNLOCKED);
 }
 
-// std::unordered_map<ULONG, ULONG>
-// VideoMasterBase::get_detected_input_information(uint32_t channel_index) {
-//   std::unordered_map<ULONG, ULONG> input_information;
-//   auto board_properties = _video_information->get_board_properties(channel_index);
-//   auto stream_properties = _video_information->get_stream_properties();
-//   for (uint32_t i = 0; i < board_properties.size(); i++) {
-//     ULONG data;
-//     VHD_GetBoardProperty(*board_handle(), board_properties[i], (ULONG*)&data);
-//     input_information[stream_properties[i]] = data;
-//   }
-// 
-//   return input_information;
-// }
-
-// std::unordered_map<ULONG, ULONG> VideoMasterBase::get_input_information() {
-//   std::unordered_map<ULONG, ULONG> input_information;
-//   for (auto prop : _video_information->get_stream_properties()) {
-//     ULONG data;
-//     VHD_GetStreamProperty(*stream_handle(), prop, (ULONG*)&data);
-//     input_information[prop] = data;
-//   }
-// 
-//   return input_information;
-// }
-
 bool VideoMasterBase::set_loopback_state(bool state) {
   ULONG has_passive_loopback = FALSE;
   ULONG has_active_loopback = FALSE;
@@ -364,7 +339,7 @@ bool VideoMasterBase::set_loopback_state(bool state) {
   success = VHD_GetBoardCapability(*board_handle(),
                                            VHD_CORE_BOARD_CAP_FIRMWARE_LOOPBACK,
                                            &has_firmware_loopback);
-   if (!success) {
+  if (!success) {
     GXF_LOG_ERROR("failed to retrieve firmware loopback capability");
   }
 
@@ -388,7 +363,7 @@ bool VideoMasterBase::set_loopback_state(bool state) {
                                   state);
     if (!success)
       GXF_LOG_ERROR("failed to set active loopback state");
-    
+
     return static_cast<bool>(success);
   }
   else if (has_passive_loopback &&
