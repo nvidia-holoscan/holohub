@@ -40,6 +40,13 @@ gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
                                   "Index of the input channel to use.");
   result &= registrar->parameter(_signal, "signal", "Output", "Output signal.");
   result &= registrar->parameter(_pool, "pool", "Pool", "Pool to allocate the buffers.");
+  result &= registrar->parameter(_width, "width", "Width", "Width of the video frames to send.");
+  result &= registrar->parameter(_height, "height", "Height",
+                                "Height of the video frames to send.");
+  result &= registrar->parameter(_progressive, "progressive", "Progressive",
+                                 "Progressiveness of the video frames to send.");
+  result &= registrar->parameter(_framerate, "framerate", "Framerate",
+                                 "Framerate of the signal to generate.");
 
   return gxf::ToResultCode(result);
 }
@@ -47,7 +54,6 @@ gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
 gxf_result_t VideoMasterSource::start() {
   gxf::Expected<void> result;
   result &= configure_board();
-  set_loopback_state(true);
   result &= open_stream();
 
   return gxf::ToResultCode(result);
@@ -62,9 +68,18 @@ gxf_result_t VideoMasterSource::tick() {
     _has_lost_signal = true;
     return GXF_SUCCESS;
   }
+  // start stream
   else if (!(video_format != Deltacast::Helper::VideoFormat{})) {
     gxf::Expected<void> result;
     result &= configure_stream();
+
+    auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
+    if (video_format != config_video_format) {
+      GXF_LOG_INFO("Input signal does not match configuration");
+      VHD_StopStream(*stream_handle());
+      return GXF_FAILURE;
+    }
+
     result &= init_buffers();
     result &= start_stream();
 
