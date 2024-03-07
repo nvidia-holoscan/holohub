@@ -352,6 +352,7 @@ launch_desc() { c_echo 'Launch Docker container
     --init : Support tini entry point
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
+    --as_root  : Run the container with root permissions
     '
 }
 launch() {
@@ -364,6 +365,7 @@ launch() {
     local ssh_x11=0
     local use_tini=0
     local nsys_profile=false
+    local as_root=false
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
@@ -402,6 +404,10 @@ launch() {
         fi
         if [ "$arg" = "--nsys_profile" ]; then
            nsys_profile=true
+           shift
+        fi
+        if [ "$arg" = "--as_root" ]; then
+           as_root=true
            shift
         fi
         if [ "$arg" = "--add-volume" ]; then
@@ -553,6 +559,13 @@ launch() {
       use_tty="--tty"
     fi
 
+    # Allow root permissions on request
+    if [ $as_root == true ] ; then
+        user="root"
+    else
+        user="$(id -u):$(id -g)"
+    fi
+
     # DOCKER PARAMETERS
     #
     # --interactive (-i)
@@ -597,7 +610,7 @@ launch() {
 
     run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
         --interactive ${use_tty} \
-        -u $(id -u):$(id -g) \
+        -u $user \
         -v /etc/group:/etc/group:ro \
         -v /etc/passwd:/etc/passwd:ro \
         -v ${HOLOHUB_ROOT}:/workspace/holohub \
