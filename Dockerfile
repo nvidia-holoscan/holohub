@@ -56,5 +56,10 @@ RUN apt update \
         libopengl0
 
 # For benchmarking
+RUN apt update \
+    && apt install --no-install-recommends -y \
+    libcairo2-dev \
+    libgirepository1.0-dev \
+    gobject-introspection
 COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
