@@ -8,6 +8,8 @@
 
 HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan Platform to reuse and contribute components and sample applications.
 
+Visit the [HoloHub landing page](https://nvidia-holoscan.github.io/holohub/) for details on available HoloHub projects.
+
 # Table of Contents
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
