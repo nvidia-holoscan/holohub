@@ -1,0 +1,32 @@
+{
+	"operator": {
+		"name": "mesh_to_usd",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"mesh",
+			"OpenUSD",
+			"STL"
+		],
+		"ranking": 2,
+		"dependencies": {}
+	}
+}
