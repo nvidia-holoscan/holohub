@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_custom_target(endo_ref_data_labels ALL
+# Add testing
+if(BUILD_TESTING)
+
+  # Copy the data to the binary directory to testing
+  add_custom_target(endo_ref_data_labels ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/endo_ref_data_labels.csv" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "endo_ref_data_labels.csv"
   BYPRODUCTS "endo_ref_data_labels.csv"
-)
+  )
 
-# Add testing
-if(BUILD_TESTING)
   # To get the environment path
   find_package(holoscan 0.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
@@ -45,9 +47,9 @@ if(BUILD_TESTING)
   COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" multi_ai_test.py
   )
 
-  add_custom_target(multi_ai_test ALL
-    DEPENDS "multi_ai_test.py"
-  )
+  #add_custom_target(multi_ai_test ALL
+  #  DEPENDS "multi_ai_test.py"
+  #)
 
   # Add test
   add_test(NAME multiai_endoscopy_python_test

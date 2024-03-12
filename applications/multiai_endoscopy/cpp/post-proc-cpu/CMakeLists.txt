@@ -47,7 +47,7 @@ add_custom_target(app_config_yaml
     DEPENDS "app_config.yaml"
     BYPRODUCTS "app_config.yaml"
 )
-#add_dependencies(multiai_endoscopy multiai_endoscopy_yaml)
+add_dependencies(multiai_endoscopy app_config_yaml)
 
 # Add testing
 if(BUILD_TESTING)
