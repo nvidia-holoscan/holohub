@@ -29,7 +29,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup 
+# Holohub run setup
 #
 
 RUN mkdir -p /tmp/scripts
@@ -50,10 +50,13 @@ ARG CMAKE_BUILD_TYPE=Release
 # Qcap dependency
 RUN apt update \
     && apt install --no-install-recommends -y \
+        libcairo2-dev \
+        libgirepository1.0-dev \
+        libgles2 \
         libgstreamer1.0-0 \
         libgstreamer-plugins-base1.0-0 \
-        libgles2 \
-        libopengl0
+        libopengl0 \
+        pkg-config
 
 # For benchmarking
 COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
