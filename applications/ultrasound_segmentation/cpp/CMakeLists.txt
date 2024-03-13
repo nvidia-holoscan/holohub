@@ -60,20 +60,20 @@ if(BUILD_TESTING)
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.yaml" CONFIG_FILE)
   string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_test.yaml ${CONFIG_FILE})
 
     # Patch the current example to enable recording the rendering window
-    add_custom_command(OUTPUT ultrasound_segmentation_test.cpp
+    add_custom_command(OUTPUT main_test.cpp
     PRE_LINK
-    COMMAND patch -u -o ultrasound_segmentation_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    COMMAND patch -u -o main_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/cpp_ultrasound_segmentation.patch
-    COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" ultrasound_segmentation_test.cpp
-    COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" ultrasound_segmentation_test.cpp
+    COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" main_test.cpp
+    COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" main_test.cpp
   )
 
   # Create the test executable
   add_executable(ultrasound_segmentation_cpp_test
-    ultrasound_segmentation_test.cpp
+    main_test.cpp
   )
 
   target_link_libraries(ultrasound_segmentation_cpp_test
@@ -90,7 +90,7 @@ if(BUILD_TESTING)
 
   # Add the test and make sure it runs
   add_test(NAME ultrasound_segmentation_cpp_test
-    COMMAND ultrasound_segmentation_cpp_test ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml
+    COMMAND ultrasound_segmentation_cpp_test ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_test.yaml
             --data "${HOLOHUB_DATA_DIR}/ultrasound_segmentation"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(ultrasound_segmentation_cpp_test PROPERTIES

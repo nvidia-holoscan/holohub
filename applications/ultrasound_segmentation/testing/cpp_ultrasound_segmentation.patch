@@ -1,5 +1,5 @@
 --- applications/ultrasound_segmentation/cpp/main.cpp	2024-01-10 18:43:58.437526279 +0000
-+++ applications/ultrasound_segmentation/cpp/main_recorder.cpp	2024-02-28 09:02:37.697730376 +0000
++++ applications/ultrasound_segmentation/cpp/main_test.cpp	2024-02-28 09:02:37.697730376 +0000
 @@ -20,6 +20,7 @@
  #include "holoscan/holoscan.hpp"
  #include <holoscan/operators/aja_source/aja_source.hpp>

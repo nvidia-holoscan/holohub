@@ -36,7 +36,7 @@ if(BUILD_TESTING)
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/multi_ai.yaml" CONFIG_FILE)
   string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/multi_ai_testing.yaml ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/multi_ai_test.yaml ${CONFIG_FILE})
 
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT multi_ai_test.py
@@ -54,7 +54,7 @@ if(BUILD_TESTING)
   # Add test
   add_test(NAME multiai_endoscopy_python_test
   COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/multi_ai_test.py
-          --config ${CMAKE_CURRENT_BINARY_DIR}/multi_ai_testing.yaml
+          --config ${CMAKE_CURRENT_BINARY_DIR}/multi_ai_test.yaml
           --data ${HOLOHUB_DATA_DIR}/
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 

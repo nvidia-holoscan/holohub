@@ -1,5 +1,5 @@
 --- applications/multiai_endoscopy/cpp/post-proc-cpu/multi_ai.cpp	2024-01-10 18:43:58.365526539 +0000
-+++ applications/multiai_endoscopy/cpp/post-proc-cpu/multi_ai_record.cpp	2024-02-28 09:17:11.116207162 +0000
++++ applications/multiai_endoscopy/cpp/post-proc-cpu/multi_ai_test.cpp	2024-02-28 09:17:11.116207162 +0000
 @@ -20,6 +20,7 @@
  #include <holoscan/holoscan.hpp>
  #include <holoscan/operators/aja_source/aja_source.hpp>

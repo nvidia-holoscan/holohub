@@ -29,7 +29,7 @@ if(BUILD_TESTING)
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.yaml" CONFIG_FILE)
   string(REGEX REPLACE "source:[^\n]*" "source: replayer" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_test.yaml ${CONFIG_FILE})
 
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT ultrasound_segmentation_test.py
@@ -40,14 +40,14 @@ if(BUILD_TESTING)
   COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" ultrasound_segmentation_test.py
   )
 
-  add_custom_target(ultrasound_segmentation_test ALL
+  add_custom_target(ultrasound_segmentation_python_test ALL
     DEPENDS "ultrasound_segmentation_test.py"
   )
 
   # Add test
   add_test(NAME ultrasound_segmentation_python_test
            COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_test.py
-                   --config ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_testing.yaml
+                   --config ${CMAKE_CURRENT_BINARY_DIR}/ultrasound_segmentation_test.yaml
                    --data "${HOLOHUB_DATA_DIR}/ultrasound_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_property(TEST ultrasound_segmentation_python_test PROPERTY ENVIRONMENT

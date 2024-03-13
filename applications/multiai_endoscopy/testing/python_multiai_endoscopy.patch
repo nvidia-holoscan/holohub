@@ -1,14 +1,5 @@
---- ../applications/multiai_endoscopy/python/multi_ai.py	2024-03-13 19:09:20.333021544 +0000
-+++ ../applications/multiai_endoscopy/python/multi_ai_copy.py	2024-03-13 19:47:30.422716182 +0000
-@@ -19,7 +19,7 @@
- 
- import cupy as cp
- import numpy as np
--from holoscan.core import Application, Operator, OperatorSpec
-+from holoscan.core import Application, Operator, OperatorSpec, kwargs_to_arglist
- from holoscan.operators import (
-     AJASourceOp,
-     FormatConverterOp,
+--- applications/multiai_endoscopy/python/multi_ai.py	2024-03-13 19:09:20.333021544 +0000
++++ applications/multiai_endoscopy/python/multi_ai_test.py	2024-03-13 20:34:28.119366609 +0000
 @@ -27,6 +27,7 @@
      InferenceOp,
      SegmentationPostprocessorOp,
@@ -27,7 +18,7 @@
          )
  
          # connect the input each pre-processor
-@@ -275,6 +277,26 @@
+@@ -275,6 +277,23 @@
          self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
          self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
  
@@ -42,11 +33,8 @@
 +            self,
 +            name="recorder",
 +            directory="/workspace/holohub/build/applications/multiai_endoscopy/python/recording_output",
-+            basename="python_multiai_endoscopy_output",
-+            flush_on_tick=True
++            basename="python_multiai_endoscopy_output"
 +        )
-+
-+        holoviz.add_arg(kwargs_to_arglist(allocator=UnboundedAllocator(self, name="allocator")))
 +
 +        self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
 +        self.add_flow(recorder_format_converter, recorder)
