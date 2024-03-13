@@ -17,6 +17,7 @@
 
 #include "qt_video_op.hpp"
 
+#include <gxf/cuda/cuda_stream_id.hpp>
 #include <holoscan/holoscan.hpp>
 
 #include "qt_holoscan_video.hpp"
