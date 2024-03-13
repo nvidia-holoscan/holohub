@@ -47,9 +47,9 @@ if(BUILD_TESTING)
   COMMAND sed -i "s#SOURCE_VIDEO_BASENAME#${SOURCE_VIDEO_BASENAME}#g" multi_ai_test.py
   )
 
-  #add_custom_target(multi_ai_test ALL
-  #  DEPENDS "multi_ai_test.py"
-  #)
+  add_custom_target(multi_ai_test ALL
+    DEPENDS "multi_ai_test.py"
+  )
 
   # Add test
   add_test(NAME multiai_endoscopy_python_test

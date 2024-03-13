@@ -1,5 +1,5 @@
---- applications/multiai_endoscopy/python/multi_ai.py	2024-01-10 18:43:58.365526539 +0000
-+++ applications/multiai_endoscopy/python/multi_ai_record.py	2024-02-28 17:35:38.776788416 +0000
+--- ../applications/multiai_endoscopy/python/multi_ai.py	2024-03-13 19:09:20.333021544 +0000
++++ ../applications/multiai_endoscopy/python/multi_ai_copy.py	2024-03-13 19:47:30.422716182 +0000
 @@ -19,7 +19,7 @@
  
  import cupy as cp
@@ -17,7 +17,17 @@
  )
  from holoscan.resources import UnboundedAllocator
  
-@@ -275,6 +276,27 @@
+@@ -250,7 +251,8 @@
+             )
+ 
+         holoviz = HolovizOp(
+-            self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz")
++            self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"),
++            enable_render_buffer_output=True
+         )
+ 
+         # connect the input each pre-processor
+@@ -275,6 +277,26 @@
          self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
          self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
  
@@ -31,12 +41,11 @@
 +        recorder = VideoStreamRecorderOp(
 +            self,
 +            name="recorder",
-+            directory="RECORDING_DIR",
-+            basename="SOURCE_VIDEO_BASENAME",
++            directory="/workspace/holohub/build/applications/multiai_endoscopy/python/recording_output",
++            basename="python_multiai_endoscopy_output",
 +            flush_on_tick=True
 +        )
 +
-+        holoviz.add_arg(kwargs_to_arglist(enable_render_buffer_output=True))
 +        holoviz.add_arg(kwargs_to_arglist(allocator=UnboundedAllocator(self, name="allocator")))
 +
 +        self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
