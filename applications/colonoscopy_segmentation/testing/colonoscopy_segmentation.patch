@@ -33,8 +33,8 @@
 +        recorder = VideoStreamRecorderOp(
 +            self,
 +            name="recorder",
-+            directory="/workspace/holohub/build/applications/colonoscopy_segmentation/recording_output",
-+            basename="python_colonoscopy_segmentation_output"
++            directory="RECORDING_DIR",
++            basename="SOURCE_VIDEO_BASENAME"
 +        )
 +
 +        segmentation_visualizer.add_arg(allocator=UnboundedAllocator(self, name="allocator"))

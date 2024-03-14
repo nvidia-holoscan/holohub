@@ -32,8 +32,8 @@
 +        recorder = VideoStreamRecorderOp(
 +            self,
 +            name="recorder",
-+            directory="/workspace/holohub/build/applications/multiai_endoscopy/python/recording_output",
-+            basename="python_multiai_endoscopy_output"
++            directory="RECORDING_DIR",
++            basename="SOURCE_VIDEO_BASENAME"
 +        )
 +
 +        self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
