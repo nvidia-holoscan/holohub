@@ -37,8 +37,7 @@ class MatlabBeamformOp : public Operator {
   const int step_window = 40;  // how much to move the window at each update
 
   // Beamforming parameters
-  void init_params(struct0_T *p)
-  {
+  void init_params(struct0_T *p) {
       p->c = 1540;
       p->fc = 3000000;
       p->rangeRes = 0.003;
@@ -59,7 +58,8 @@ class MatlabBeamformOp : public Operator {
              "OutputTensorName",
              "Name of the output tensor.",
              std::string(""));
-    spec.param(path_data_, "path_data", "PathData", "Path to binary data on disk.", std::string(""));
+    spec.param(path_data_, "path_data", "PathData", "Path to binary data on disk.",
+               std::string(""));
     spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
     cuda_stream_handler_.define_params(spec);
   }
@@ -137,7 +137,7 @@ class MatlabBeamformOp : public Operator {
     if (!out_tensor.value()->pointer()) {
       throw std::runtime_error("Failed to allocate output tensor buffer.");
     }
-    // Get ouput data
+    // Get output data
     nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
     if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
@@ -146,19 +146,21 @@ class MatlabBeamformOp : public Operator {
       data_window_,
       data_ + refresh_counter_ * step_window * depth,
       depth * length_window * sizeof(creal32_T),
-      cudaMemcpyDeviceToDevice
-    );
+      cudaMemcpyDeviceToDevice);
+
     cudaMemcpy(
       x_axis_window_,
       x_axis_ + refresh_counter_ * step_window,
       length_window * sizeof(float),
-      cudaMemcpyDeviceToDevice
-    );
+      cudaMemcpyDeviceToDevice);
+
     refresh_counter_ += 1;
-    if ((refresh_counter_ * step_window * depth) >= (length * depth - length_window * depth))  refresh_counter_ = 0;
+    if ((refresh_counter_ * step_window * depth) >= (length * depth - length_window * depth)) {
+      refresh_counter_ = 0;}
 
     // Allocate temp output buffer on device
-    auto tmp_tensor = make_tensor(shape_, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t), allocator.value());
+    auto tmp_tensor = make_tensor(shape_, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
+                                  allocator.value());
     // Get temp data
     nvidia::gxf::Expected<uint8_t*> tmp_tensor_data = tmp_tensor->data<uint8_t>();
     if (!tmp_tensor_data) { throw std::runtime_error("Failed to get temporary tensor data!"); }
@@ -168,7 +170,8 @@ class MatlabBeamformOp : public Operator {
     cudaDeviceSynchronize();
 
     // Convert output from column- to row-major ordering
-    cuda_hard_transpose<uint8_t>(tmp_tensor_data.value(), out_tensor_data.value(), shape_, cuda_stream, Flip::Do);
+    cuda_hard_transpose<uint8_t>(tmp_tensor_data.value(), out_tensor_data.value(), shape_,
+                                 cuda_stream, Flip::Do);
     cudaStreamSynchronize(cuda_stream);
     delete tmp_tensor;
 
