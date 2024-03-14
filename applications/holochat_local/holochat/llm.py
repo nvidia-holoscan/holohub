@@ -54,7 +54,7 @@ class LLM:
     def answer_question(self, chat_history):
         question = chat_history[-1][0]
         docs = self.db.similarity_search_with_score(
-            query=question, k=NUM_HOLOSCAN_DOCS, distance_metric="cos"
+            query=question, k=NUM_HOLOSCAN_DOCS
         )
         # Filter out poor matches from vector db
         docs = list(
