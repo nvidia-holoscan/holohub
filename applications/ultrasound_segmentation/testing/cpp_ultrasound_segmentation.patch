@@ -1,0 +1,35 @@
+--- applications/ultrasound_segmentation/cpp/main.cpp	2024-01-10 18:43:58.437526279 +0000
++++ applications/ultrasound_segmentation/cpp/main_test.cpp	2024-02-28 09:02:37.697730376 +0000
+@@ -20,6 +20,7 @@
+ #include "holoscan/holoscan.hpp"
+ #include <holoscan/operators/aja_source/aja_source.hpp>
+ #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
++#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
+ #include <holoscan/operators/format_converter/format_converter.hpp>
+ #include <holoscan/operators/inference/inference.hpp>
+ #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
+@@ -123,6 +124,24 @@
+     add_flow(segmentation_preprocessor, segmentation_inference, {{"", "receivers"}});
+     add_flow(segmentation_inference, segmentation_postprocessor, {{"transmitter", ""}});
+     add_flow(segmentation_postprocessor, segmentation_visualizer, {{"", "receivers"}});
++
++    auto recorder_format_converter = make_operator<ops::FormatConverterOp>(
++        "recorder_format_converter",
++        Arg("in_dtype", std::string("rgba8888")),
++        Arg("out_dtype", std::string("rgb888")),
++        Arg("pool", make_resource<UnboundedAllocator>("pool")));
++
++    auto recorder = make_operator<ops::VideoStreamRecorderOp>(
++        "recorder",
++        Arg("directory", std::string("RECORDING_DIR")),
++        Arg("basename", std::string("SOURCE_VIDEO_BASENAME")));
++
++    add_flow(segmentation_visualizer, recorder_format_converter, {{"render_buffer_output", "source_video"}});
++    add_flow(recorder_format_converter, recorder);
++
++    segmentation_visualizer->add_arg(Arg("enable_render_buffer_output", true));
++    segmentation_visualizer->add_arg(Arg("allocator", make_resource<UnboundedAllocator>("allocator")));
++
+   }
+ 
+  private:

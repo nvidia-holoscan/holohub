@@ -63,7 +63,6 @@ if(BUILD_TESTING)
 
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" CONFIG_FILE)
-
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "record_type: \"none\"" "record_type: \"visualizer\"" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
