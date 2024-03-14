@@ -58,7 +58,8 @@ __global__ void hard_transpose_kernel_2d(T* input, T* output, Shape2 shape) {
   output[c] = input[r];
 }
 
-__global__ void populate_complex_kernel(const float* rdata, const float* idata, creal32_T* output, const int ndata) {
+__global__ void populate_complex_kernel(const float* rdata, const float* idata,
+                                        creal32_T* output, const int ndata) {
   for (int i = blockIdx.x*blockDim.x + threadIdx.x; i < ndata; i += blockDim.x * gridDim.x) {
     float2 el = make_float2(rdata[i], idata[i]);
     float2 *tmp = (float2*)&output[i];
@@ -66,11 +67,12 @@ __global__ void populate_complex_kernel(const float* rdata, const float* idata, 
   }
 }
 
-void cuda_populate_complex(const float* rdata, const float* idata, creal32_T* output, 
-                           const int ndata, const cudaStream_t cuda_stream) {  
+void cuda_populate_complex(const float* rdata, const float* idata, creal32_T* output,
+                           const int ndata, const cudaStream_t cuda_stream) {
   int threadsPerBlock = 256;
   int numBlocks = std::ceil(ndata/(float)threadsPerBlock);
-  populate_complex_kernel<<<numBlocks, threadsPerBlock, 0, cuda_stream>>>(rdata, idata, output, ndata);
+  populate_complex_kernel<<<numBlocks, threadsPerBlock, 0, cuda_stream>>>(rdata, idata,
+                                                                          output, ndata);
 }
 
 template <typename T>

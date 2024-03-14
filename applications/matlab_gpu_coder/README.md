@@ -17,7 +17,7 @@ The required MATLAB Toolboxes are:
 * To compile on Jetson devices (arm64):
     * [Embedded Coder Toolbox](https://uk.mathworks.com/products/embedded-coder.html)
     * [MATLAB Coder Support Package for NVIDIA Jetson and NVIDIA DRIVE Platforms](https://uk.mathworks.com/help/supportpkg/nvidia/)
-    * Look at [this documentation](https://uk.mathworks.com/help/coder/nvidia/ug/install-and-setup-prerequisites.html) for making CUDA accesible to the MATLAB host machine
+    * Look at [this documentation](https://uk.mathworks.com/help/coder/nvidia/ug/install-and-setup-prerequisites.html) for making CUDA accessible to the MATLAB host machine
 
 ## Folder Structure
 

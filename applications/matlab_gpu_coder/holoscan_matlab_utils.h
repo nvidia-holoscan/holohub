@@ -69,7 +69,7 @@ void cuda_hard_transpose(T* input, T* output, std::vector<int32_t> shape, cudaSt
 /**
  * @brief Populates MATLAB complex data type creal32_T from two arrays of floats
  */
-void cuda_populate_complex(const float* rdata, const float* idata, creal32_T* output, 
+void cuda_populate_complex(const float* rdata, const float* idata, creal32_T* output,
                            const int ndata, const cudaStream_t cuda_stream);
 
 /**
