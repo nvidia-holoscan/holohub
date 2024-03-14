@@ -20,6 +20,8 @@ add_holohub_application(adv_networking_bench DEPENDS
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
+add_holohub_application(body_pose_estimation)
+
 add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
 
 add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)

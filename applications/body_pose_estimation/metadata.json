@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "Body Pose Estimation",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Computer Vision",
+			"Human Body Pose Estimation"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"model": "https://docs.ultralytics.com/tasks/pose/"
+		},
+		"run": {
+			"command": "python3 ../applications/body_pose_estimation/body_pose_estimation.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
