@@ -36,7 +36,7 @@ Once inside Holohub dev container, run below command from a top level Holohub
 directory.
 
 ```bash
-./run build h264/endoscopy_tool_tracking
+./run build h264_endoscopy_tool_tracking
 ```
 
 ## Running the application
@@ -44,13 +44,13 @@ directory.
 * Running the application from the top level Holohub directory
 
 ```bash
-./run launch h264/endoscopy_tool_tracking
+./run launch h264_endoscopy_tool_tracking
 ```
 
 * Running the application `h264_endoscopy_tool_tracking` from the build directory.
 
 ```bash
-cd <build_dir>/applications/h264/endoscopy_tool_tracking/ \
+cd <build_dir>/applications/h264/h264_endoscopy_tool_tracking/ \
   && ./h264_endoscopy_tool_tracking --data <HOLOHUB_DATA_DIR>/endoscopy
 ```
 
