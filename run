@@ -754,7 +754,8 @@ autocompletion_list() {
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
     filename="${appname%/*}"
-    echo "${filename}"
+    # Deal with subdirectories of applications
+    echo "${filename##*/}"
   done
   echo "build launch clear_cache cpp python install_lint_deps lint setup"
 }
