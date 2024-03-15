@@ -353,6 +353,7 @@ launch_desc() { c_echo 'Launch Docker container
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
+    --docker_opts : Additional options to pass to the Docker launch
     '
 }
 launch() {
@@ -366,6 +367,7 @@ launch() {
     local use_tini=0
     local nsys_profile=false
     local as_root=false
+    local docker_opts=""
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
@@ -414,6 +416,11 @@ launch() {
             path="${ARGS[i+1]}"
             base=$(basename "$path")
             additional_volumes+="-v $path:/workspace/volumes/$base "
+            shift
+            shift
+        fi
+        if [ "$arg" = "--docker_opts" ]; then
+            docker_opts="${ARGS[i+1]}"
             shift
             shift
         fi
@@ -605,7 +612,9 @@ launch() {
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."
+        c_echo W "Launch (docker_opts: " G "${docker_opts}" W ")..."
         c_echo W "Launch (image: " G "${img}" W ")..."
+        c_echo W "Launch (trailing args: " G "$@" W ")..."
     fi
 
     run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
@@ -628,10 +637,10 @@ launch() {
         ${local_sdk_opt} \
         ${mount_nvoptix_bin} \
         ${ucx_opt} \
+        ${docker_opts} \
         ${img} \
         "$@"
 }
-
 
 #===============================================================================
 
