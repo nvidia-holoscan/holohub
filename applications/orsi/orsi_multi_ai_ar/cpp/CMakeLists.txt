@@ -55,7 +55,7 @@ add_custom_target(orsi_multi_ai_ar_yaml
 add_dependencies(orsi_multi_ai_ar orsi_multi_ai_ar_yaml)
 
 # Add testing
-if(BUILD_TESTING)
+if(BUILD_TESTING AND DEFINED ENV{DISPLAY})
   # Add test
   # Configure the yaml file to only play 10 frames
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/orsi_multi_ai_ar.yaml" CONFIG_FILE)
