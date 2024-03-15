@@ -72,7 +72,6 @@ def parse_ice_strings(ice_server_strings):
         else:
             ice_server = {"urls": ice_string}
         ice_server_list.append(ice_server)
-    logging.debug(f"Parsed ice strings into {ice_server_list}")
     return ice_server_list
 
 
