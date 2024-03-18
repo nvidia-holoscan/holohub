@@ -54,8 +54,8 @@ add_custom_target(orsi_in_out_body_yaml
 )
 add_dependencies(orsi_in_out_body orsi_in_out_body_yaml)
 
-# Add testing
-if(BUILD_TESTING)
+# Add testing (only if there is a display)
+if(BUILD_TESTING AND DEFINED ENV{DISPLAY})
   # Add test
   # Configure the yaml file to only play 10 frames
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/orsi_in_out_body.yaml" CONFIG_FILE)
