@@ -18,16 +18,25 @@ import os
 import sys
 
 import jsonschema
-from jsonschema import validate
+from jsonschema import Draft4Validator
+from referencing import Registry
+from referencing.jsonschema import DRAFT4
 
 
 def validate_json(json_data, directory):
+    BASE_SCHEMA = "utilities/metadata/project.schema.json"
+
     # Describe the schema.
+    with open(BASE_SCHEMA) as file:
+        base_schema = json.load(file)
+    registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
+
     with open(directory + "/metadata.schema.json", "r") as file:
         execute_api_schema = json.load(file)
+    validator = Draft4Validator(execute_api_schema, registry=registry)
 
     try:
-        validate(instance=json_data, schema=execute_api_schema)
+        validator.validate(json_data)
     except jsonschema.exceptions.ValidationError as err:
         return False, err
 

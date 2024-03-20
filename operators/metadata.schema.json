@@ -1,128 +1,37 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/operator/v1",
   "type": "object",
   "properties": {
     "operator": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "$ref": "holohub/project/v1#/$defs/name"
         },
         "authors": {
-          "type": "array",
-          "items": [
-            {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "affiliation": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "name",
-                "affiliation"
-              ]
-            }
-          ]
+          "$refs": "holohub/project/v1#/$defs/authors"
         },
         "version": {
-          "type": "string"
+          "$ref": "holohub/project/v1#/$defs/version"
         },
         "changelog": {
-          "type": "object"
+          "$ref": "holohub/project/v1#/$defs/changelog"
         },
         "platforms": {
-          "type": "array",
-          "items": [
-            {
-              "type": "string",
-              "enum": [ "amd64", "arm64" ]
-            },
-            {
-              "type": "string",
-              "enum": [ "amd64", "arm64" ]
-            }
-          ]
+          "$ref": "holohub/project/v1#/$defs/platforms"
         },
         "tags": {
-          "type": "array",
-          "items": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "string"
-            }
-          ]
+          "$ref": "holohub/project/v1#/$defs/tags"
         },
         "holoscan_sdk": {
-          "type": "object",
-          "properties": {
-            "minimum_required_version": {
-              "type": "string"
-            },
-            "tested_versions": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "required": [
-            "minimum_required_version",
-            "tested_versions"
-          ]
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
         },
         "ranking": {
-          "type": "integer"
+          "$ref": "holohub/project/v1#/$defs/ranking"
         },
         "dependencies": {
-          "type": "object",
-          "properties": {
-            "gxf_extensions": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "version": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "version"
-                  ]
-                }
-              ]
-            }
-          }
+          "$ref": "holohub/project/v1#/$defs/dependencies"
         }
       },
       "required": [

@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/project/v1",
+  "type": "object",
+  "$defs": {
+    "name": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "affiliation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "affiliation"
+          ]
+        }
+      ]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(\\.(0|[1-9].\\d*))*"
+    },
+    "changelog": {
+      "$id": "changelog",
+      "type": "object"
+    },
+    "platforms": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": [ "amd64", "arm64" ]
+        }
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "version_list": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "#/$defs/version"
+        }
+      ]
+    },
+    "sdk_version": {
+      "type": "object",
+      "properties": {
+        "minimum_required_version": {
+          "$ref": "#/$defs/version"
+        },
+        "tested_versions": {
+          "$ref": "#/$defs/version_list"
+        }
+      },
+      "required": [
+        "minimum_required_version",
+        "tested_versions"
+      ]
+    },
+    "ranking": {
+      "type": "integer"
+    },
+    "versioned_dependency": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "gxf_extensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/versioned_dependency"
+          }
+        }
+      }
+    }
+  }
+}
