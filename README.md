@@ -113,7 +113,7 @@ See also: [Advanced Launch Options](#advanced-launch-options-container)
 
 Run the following to view all build options available for the HoloHub container script:
 ```sh
-$ ./dev_container build help
+$ ./dev_container help build
 ```
 
 #### Custom Base Image
