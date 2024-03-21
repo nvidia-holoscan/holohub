@@ -6,6 +6,9 @@
     "name": {
       "type": "string"
     },
+    "description": {
+      "type": "string"
+    },
     "authors": {
       "type": "array",
       "items": [

@@ -9,6 +9,9 @@
         "name": {
           "$ref": "holohub/project/v1#/$defs/name"
         },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
         "authors": {
           "$refs": "holohub/project/v1#/$defs/authors"
         },
