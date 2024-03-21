@@ -105,6 +105,17 @@
           }
         }
       }
+    },
+    "run_command": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "workdir": {
+          "type": "string"
+        }
+      }
     }
   }
 }

@@ -35,6 +35,9 @@
         },
         "dependencies": {
           "$ref": "holohub/project/v1#/$defs/dependencies"
+        },
+        "run": {
+          "$ref": "holohub/project/v1#/$defs/run_command"
         }
       },
       "required": [
