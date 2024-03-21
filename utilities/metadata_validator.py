@@ -18,23 +18,32 @@ import os
 import sys
 
 import jsonschema
-from jsonschema import validate
+from jsonschema import Draft4Validator
+from referencing import Registry
+from referencing.jsonschema import DRAFT4
 
 
 def validate_json(json_data, directory):
+    BASE_SCHEMA = "utilities/metadata/project.schema.json"
+
     # Describe the schema.
+    with open(BASE_SCHEMA) as file:
+        base_schema = json.load(file)
+    registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
+
     with open(directory + "/metadata.schema.json", "r") as file:
         execute_api_schema = json.load(file)
+    validator = Draft4Validator(execute_api_schema, registry=registry)
 
     try:
-        validate(instance=json_data, schema=execute_api_schema)
+        validator.validate(json_data)
     except jsonschema.exceptions.ValidationError as err:
         return False, err
 
     return True, "valid"
 
 
-def validate_json_directory(directory, ignore_patterns=[]):
+def validate_json_directory(directory, ignore_patterns=[], metadata_is_required: bool = True):
     exit_code = 0
     # Convert json to python object.
     current_wdir = os.getcwd()
@@ -56,8 +65,11 @@ def validate_json_directory(directory, ignore_patterns=[]):
                 )
             )
             if count == 0:
-                print("ERROR:" + subdir + " does not contain metadata.json file")
-                exit_code = 1
+                if metadata_is_required:
+                    print("ERROR:" + subdir + " does not contain metadata.json file")
+                    exit_code = 1
+                else:
+                    print("WARNING:" + subdir + " does not contain metadata.json file")
 
     # Check if the metadata is valid
     for name in glob.glob(current_wdir + "/" + directory + "/**/metadata.json", recursive=True):
@@ -79,5 +91,6 @@ if __name__ == "__main__":
     exit_code_op = validate_json_directory("operators")
     exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
     exit_code_applications = validate_json_directory("applications")
+    exit_code_tutorials = validate_json_directory("tutorials", metadata_is_required=False)
 
-    sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications))
+    sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications, exit_code_tutorials))
