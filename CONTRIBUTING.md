@@ -86,7 +86,7 @@ We do not require that community members conduct formal Software Quality Assuran
 Every application and operator should have an associated *metadata.json* file which describes the features
 and dependencies.
 
-`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), and [operators](./operators/metadata.schema.json), but generally follow the convention below:
+`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
 
 ```json
 // Main json definition for application or operator
@@ -228,9 +228,10 @@ function. This keyword should only be used for sample applications that are main
 
 Add each tutorial in its own subdirectory under the [```tutorials```](./tutorials) directory. The subdirectory should contain:
 - A README file summarizing the application's purpose and architecture;
+- A *metadata.json* file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
 - A LICENSE file governing use (optional).
 
-There are no project-wide metadata or build requirements for tutorials.
+There are no project-wide build requirements for tutorials.
 
 ### License Guidelines
 

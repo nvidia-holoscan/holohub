@@ -1,5 +1,5 @@
 {
-	"application": {
+	"tutorial": {
 		"name": "DICOM to OpenUSD mesh segmentation with MONAI Deploy and Holoscan",
 		"authors": [
 			{

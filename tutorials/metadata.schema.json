@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/tutorial/v1",
+  "type": "object",
+  "properties": {
+    "tutorial": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "holohub/project/v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
+        "authors": {
+          "$refs": "holohub/project/v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "holohub/project/v1#/$defs/version"
+        },
+        "changelog": {
+          "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "platforms": {
+          "$ref": "holohub/project/v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "holohub/project/v1#/$defs/tags"
+        },
+        "holoscan_sdk": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "ranking": {
+          "$ref": "holohub/project/v1#/$defs/ranking"
+        },
+        "dependencies": {
+          "$ref": "holohub/project/v1#/$defs/dependencies"
+        },
+        "run": {
+          "$ref": "holohub/project/v1#/$defs/run_command"
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "tags",
+        "holoscan_sdk",
+        "dependencies"
+      ]
+    }
+  },
+  "required": [
+    "tutorial"
+  ]
+}
