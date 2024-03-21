@@ -88,9 +88,9 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
 
 # Validate the directories
 if __name__ == "__main__":
-    exit_code_op = validate_json_directory("operators")
+    exit_code_op = validate_json_directory("operators", ignore_patterns=["template"])
     exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
-    exit_code_applications = validate_json_directory("applications")
+    exit_code_applications = validate_json_directory("applications", ignore_patterns=["template"])
     exit_code_tutorials = validate_json_directory("tutorials", metadata_is_required=False)
 
     sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications, exit_code_tutorials))

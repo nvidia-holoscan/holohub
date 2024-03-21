@@ -1,0 +1,26 @@
+# My HoloHub Operator
+
+## Overview
+
+Provide a one-sentence summary of your operator's purpose and operations.
+
+## Description
+
+Provide a detailed summary of your operator. Include any necessary background
+for the average HoloHub user to understand the general purpose of your project.
+Include any diagrams that are helpful for understanding functionality.
+
+## Requirements
+
+List any platform requirements or dependencies that are required to build and run your operator.
+
+## Example Usage
+
+Provide a brief code snippet demonstrating how your operator can be used in a Holoscan
+C++ or Python application.
+
+Alternatively, link to a HoloHub application or tutorial showcasing how to use your operator.
+
+## Acknowledgements
+
+Cite any methods or collaborators here.

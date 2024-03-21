@@ -1,0 +1,36 @@
+# My HoloHub Project
+
+Provide a splash image highlighting your project.
+
+## Overview
+
+Provide a one-sentence summary of your project's purpose and operations.
+
+## Description
+
+Provide a detailed summary of your project. Include any necessary background
+for the average HoloHub user to understand the general purpose of your project.
+Include any diagrams that are helpful for understanding functionality.
+
+## Data
+
+Give an overview of any datasets that will be used in your project.
+
+## Requirements
+
+List any platform requirements that a user must have before trying to build and run
+your project. Requirements could include hardware or software.
+
+## Build and Run Instructions
+
+List the minimum list of commands the user must execute inside or outside of the HoloHub
+development container to build and run your application.
+
+In many cases a HoloHub project may be built and run with a single development container command:
+```sh
+./dev_container build_and_run my_project
+```
+
+## Acknowledgements
+
+Cite any methods or collaborators here.
