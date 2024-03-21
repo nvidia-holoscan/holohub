@@ -28,14 +28,14 @@ find_package(holoscan REQUIRED CONFIG
 FetchContent_Declare(
     VideoMasterAPIHelper
     GIT_REPOSITORY  https://github.com/deltacasttv/videomaster-api-helper.git
-    GIT_TAG         1.1.0
+    GIT_TAG         feature/find-package-videomaster
     SOURCE_DIR      "${CMAKE_CURRENT_LIST_DIR}/api_helper"
 )
 
 FetchContent_MakeAvailable(VideoMasterAPIHelper)
 
 # Finds the VideoMaster SDK
-find_package(VideoMaster REQUIRED)
+find_package(VideoMasterHD REQUIRED 6.25)
 
 # Create library
 add_library(gxf_videomaster_lib SHARED
@@ -50,7 +50,7 @@ add_library(gxf_videomaster_lib SHARED
 target_link_libraries(gxf_videomaster_lib
   PUBLIC
     VideoMasterAPIHelper
-    VideoMaster::videomasterhd_core
+    VideoMasterHD::Core
     CUDA::cudart
     CUDA::cuda_driver
     GXF::multimedia
