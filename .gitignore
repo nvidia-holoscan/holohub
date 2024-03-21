@@ -4,3 +4,6 @@ data/
 ci/
 CTestConfig.cmake
 *__pycache__
+
+# Utilities
+aggregate_metadata.json
