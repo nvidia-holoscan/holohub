@@ -463,10 +463,17 @@ launch() {
     mount_device_opt+=" --group-add $sound_group_gid"
 
     if [ -e /usr/lib/libvideomasterhd.so ]; then
-   	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
+        conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
+        conditional_opt+=" -v /usr/lib/libvideomasterhd_audio.so:/usr/lib/libvideomasterhd_audio.so"
+        conditional_opt+=" -v /usr/lib/libvideomasterhd_vbi.so:/usr/lib/libvideomasterhd_vbi.so"
+        conditional_opt+=" -v /usr/lib/libvideomasterhd_vbidata.so:/usr/lib/libvideomasterhd_vbidata.so"
     fi
-    if [ -d /opt/deltacast/videomaster/Include ]; then
-        conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
+    if [ -d /usr/include/videomaster ]; then
+        conditional_opt+=" -v /usr/include/videomaster:/usr/include/videomaster"
+    fi
+    if [ -e /usr/local/cmake/VideoMasterHDConfig.cmake ]; then
+        conditional_opt+=" -v /usr/local/cmake/VideoMasterHDConfig.cmake:/usr/local/cmake/VideoMasterHDConfig.cmake"
+        conditional_opt+=" -v /usr/local/cmake/VideoMasterHDConfigVersion.cmake:/usr/local/cmake/VideoMasterHDConfigVersion.cmake"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
         conditional_opt+=" -v /opt/yuan/qcap/include:/opt/yuan/qcap/include"
