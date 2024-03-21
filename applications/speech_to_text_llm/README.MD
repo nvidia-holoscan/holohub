@@ -48,6 +48,13 @@ Suggested Follow-up Steps:
 
 Note: To run this application you will need to [create an OpenAI account](https://platform.openai.com/signup) and obtain your own [API key](https://platform.openai.com/account/api-keys) with active credits.
 
+The following terms are used to define specific locations:
+- <HOLOHUB_SOURCE_DIR> : Path to the source directory of HoloHub
+- <HOLOHUB_BUILD_DIR> : Path to the build directory for Holohub
+- <HOLOSCAN_INSTALL_DIR> : Path to the installation directory of Holoscan SDK
+- <DATA_DIR> : Path to the top level directory containing the datasets for the Holohub applications
+- <MODEL_DIR> : Path to the directory containing the inference model(s)
+
 * (Optional) Create and use a virtual environment:
 
   ```
