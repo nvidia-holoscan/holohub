@@ -10,18 +10,27 @@ The application uses the `VolumeLoaderOp` operator to load the medical volume da
 
 You can find CT scan datasets for use with this application from [embodi3d](https://www.embodi3d.com/).
 
+
+## Build Instructions
+
+To build this application, use the ```run``` script:
+
+```bash
+  ./run build volume_rendering
+```
+
 ## Run Instructions
 
 From the build directory, run the command:
 
 ```bash
-./applications/volume_rendering/volume_rendering
+  ./run launch volume_rendering
 ```
 
-The path of the volume configuration file, volume density file and volume mask file can be passed to the application. Use
+The path of the volume configuration file, volume density file and volume mask file can be passed to the application.
+
+You can use the following command to get more information on command line parameters for this application:
 
 ```bash
-./applications/volume_rendering/volume_rendering -h
+./run launch volume_rendering --extra_args -h
 ```
-
-to get more information on command line parameters.
