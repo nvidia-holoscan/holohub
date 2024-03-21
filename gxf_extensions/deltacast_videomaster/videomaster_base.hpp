@@ -62,6 +62,7 @@ class VideoMasterBase : public gxf::Codelet {
   gxf::Expected<void> configure_stream();
   gxf::Expected<void> init_buffers();
   gxf::Expected<void> start_stream();
+  bool gxf_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message);
 
   bool signal_present();
   bool set_loopback_state(bool state);

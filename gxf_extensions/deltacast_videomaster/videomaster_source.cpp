@@ -60,7 +60,7 @@ gxf_result_t VideoMasterSource::start() {
 }
 
 gxf_result_t VideoMasterSource::tick() {
-  Deltacast::Helper::ApiSuccess success;
+  bool success_b = true;
 
   if (!signal_present()) {
     if (!_has_lost_signal)
@@ -75,7 +75,7 @@ gxf_result_t VideoMasterSource::tick() {
 
     auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
     if (video_format != config_video_format) {
-      GXF_LOG_INFO("Input signal does not match configuration");
+      GXF_LOG_ERROR("Input signal does not match configuration");
       VHD_StopStream(*stream_handle());
       return GXF_FAILURE;
     }
@@ -114,10 +114,11 @@ gxf_result_t VideoMasterSource::tick() {
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
 
-  success = VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(), &buffer, &buffer_size);
+  success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(), &buffer, &buffer_size)
+                                }, "Failed to get slot buffer");
 
-  if (!success) {
-    GXF_LOG_INFO("Failed to get slot buffer");
+  if (!success_b) {
     return GXF_FAILURE;
   }
 
