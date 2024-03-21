@@ -350,6 +350,7 @@ launch_desc() { c_echo 'Launch Docker container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
     --init : Support tini entry point
+    --persistent : Does not delete container after it is run
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
@@ -365,6 +366,7 @@ launch() {
     local local_sdk_root="undefined"
     local ssh_x11=0
     local use_tini=0
+    local persistent=0
     local nsys_profile=false
     local as_root=false
     local docker_opts=""
@@ -402,6 +404,10 @@ launch() {
         fi
         if [ "$arg" = "--init" ]; then
            use_tini=1
+           shift
+        fi
+        if [ "$arg" = "--persistent" ]; then
+           persistent=1
            shift
         fi
         if [ "$arg" = "--nsys_profile" ]; then
@@ -550,6 +556,11 @@ launch() {
         conditional_opt+=" --init"
     fi
 
+    # Persistent container
+    if [[ $persistent == 0 ]]; then
+        conditional_opt+=" --rm"
+    fi
+
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
@@ -577,9 +588,6 @@ launch() {
     #
     # --interactive (-i)
     #   The container needs to be interactive to be able to interact with the X11 windows
-    #
-    # --rm
-    #   Deletes the container after the command runs
     #
     # -u $(id -u):$(id -g)
     # -v /etc/group:/etc/group:ro
@@ -617,7 +625,7 @@ launch() {
         c_echo W "Launch (trailing args: " G "$@" W ")..."
     fi
 
-    run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
+    run_command ${HOLOSCAN_DOCKER_EXE} run --net host \
         --interactive ${use_tty} \
         -u $user \
         -v /etc/group:/etc/group:ro \
