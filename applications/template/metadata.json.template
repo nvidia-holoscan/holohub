@@ -1,0 +1,33 @@
+{
+	"application": {
+		"name": "My Project",
+		"authors": [
+			{
+				"name": "John Doe",
+				"affiliation": "My Institution"
+			}
+		],
+		"language": "C++",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Sensor",
+            "Processing",
+            "Example"
+		],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}

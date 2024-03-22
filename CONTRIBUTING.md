@@ -203,6 +203,9 @@ add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 
 Note that extensions do not have a ```DEPENDS``` option.
 
+Refer to the [HoloHub operator template folder](./operators/template/) for stub `metadata.json` and `README` files to copy
+and update for your new operator.
+
 ### Adding an Application
 
 Add each application in its own subdirectory under the ```applications``` directory. The subdirectory should contain:
@@ -223,6 +226,9 @@ add_holohub_application(my_application DEPENDS
 
 Note that some applications have the optional ```HOLOSCAN_SAMPLE_APP``` keywords at the end of the ```add_holohub_application```
 function. This keyword should only be used for sample applications that are maintained by the Holoscan team.
+
+Refer to the [HoloHub application template folder](./applications/template/) for stub `metadata.json` and `README` files to copy
+and update for your new application.
 
 ### Adding a Tutorial
 
