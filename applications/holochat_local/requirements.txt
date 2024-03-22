@@ -1,7 +1,7 @@
 langchain==0.1.11
 sentence-transformers==2.2.2
 GitPython~=3.1
-gradio~=3.0
+gradio~=4.22
 pypdf~=3.12
 requests~=2.31
 chromadb==0.4.8
