@@ -81,7 +81,7 @@ rendering with [Holoviz](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/h
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.
 
-You should refer to the [glossary](README.md#Glossary) for the terms defining specific locations within HoloHub.
+You should refer to the [glossary](../../README.md#Glossary) for the terms defining specific locations within HoloHub.
 
 If your Holoscan SDK installation type is:
 
