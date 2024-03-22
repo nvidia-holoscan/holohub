@@ -184,12 +184,7 @@ Adding a `README.md` file with clarification on the intent and usage of the appl
 
 We recommend writing README files in the Markdown format (`.md`).
 
-Please use the following terms to define specific locations:
-- <HOLOHUB_SOURCE_DIR> : Path to the source directory of HoloHub
-- <HOLOHUB_BUILD_DIR> : Path to the build directory for Holohub
-- <HOLOSCAN_INSTALL_DIR> : Path to the installation directory of Holoscan SDK
-- <DATA_DIR> : Path to the top level directory containing the datasets for the Holohub applications
-- <MODEL_DIR> : Path to the directory containing the inference model(s)
+Please use the [terms defined in the glossary](README.md#Glossary) to refer to specific location of files for HoloHub.
 
 ### Adding an Operator or GXF Extension
 

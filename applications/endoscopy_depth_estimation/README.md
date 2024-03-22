@@ -81,12 +81,7 @@ rendering with [Holoviz](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/h
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.
 
-The following terms are used to define specific locations:
-- <HOLOHUB_SOURCE_DIR> : Path to the source directory of HoloHub
-- <HOLOHUB_BUILD_DIR> : Path to the build directory for Holohub
-- <HOLOSCAN_INSTALL_DIR> : Path to the installation directory of Holoscan SDK
-- <DATA_DIR> : Path to the top level directory containing the datasets for the Holohub applications
-- <MODEL_DIR> : Path to the directory containing the inference model(s)
+You should refer to the [glossary](README.md#Glossary) for the terms defining specific locations within HoloHub.
 
 If your Holoscan SDK installation type is:
 
