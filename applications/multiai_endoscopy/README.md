@@ -37,6 +37,8 @@ To run the Python application, you can make use of the run script
 Alternatively, to run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.
 
+You should refer to the [glossary](README.md#Glossary) for the terms defining specific locations within HoloHub.
+
 If your Holoscan SDK installation type is:
 
 * python wheels:
@@ -55,7 +57,6 @@ Next, run the application:
 cd <HOLOHUB_SOURCE_DIR>/applications/multiai_endoscopy/python
 python3 multi_ai.py --data <DATA_DIR>
 ```
-
 
 ### C++ Apps
 

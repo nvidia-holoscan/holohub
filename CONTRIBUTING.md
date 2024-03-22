@@ -184,6 +184,8 @@ Adding a `README.md` file with clarification on the intent and usage of the appl
 
 We recommend writing README files in the Markdown format (`.md`).
 
+Please use the [terms defined in the glossary](README.md#Glossary) to refer to specific location of files for HoloHub.
+
 ### Adding an Operator or GXF Extension
 
 Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:

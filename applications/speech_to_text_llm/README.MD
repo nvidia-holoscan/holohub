@@ -48,6 +48,8 @@ Suggested Follow-up Steps:
 
 Note: To run this application you will need to [create an OpenAI account](https://platform.openai.com/signup) and obtain your own [API key](https://platform.openai.com/account/api-keys) with active credits.
 
+You should refer to the [glossary](README.md#Glossary) for the terms defining specific locations within HoloHub.
+
 * (Optional) Create and use a virtual environment:
 
   ```
