@@ -638,7 +638,9 @@ launch() {
    # ultrasound_segmentation (cpp) [Sample Application]
    if [ -z "${language}" ]; then
      language=$(list | grep -m 1 ${appname} | awk -F'[\\(\\)]' '{print $2}')
-     echo "Default language for ${appname} selected: ${language}"
+     if [[ "${language}" ]]; then
+       echo "Default language for ${appname} selected: ${language}"
+     fi
    fi
 
    if [[ "${language}" ]]; then
