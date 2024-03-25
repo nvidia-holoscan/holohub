@@ -452,10 +452,12 @@ launch() {
     fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    if [ -v DISPLAY ] && command -v xhost >/dev/null; then
-        run_command xhost +local:docker
+    if [ -v DISPLAY ]; then
+        if command -v xhost >/dev/null; then
+          run_command xhost +local:docker
+        fi
+        conditional_opt+=" -e DISPLAY"
     fi
-
 
     for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
         mount_device_opt+=" --device $video_dev"
@@ -606,8 +608,6 @@ launch() {
     #   Enable GPU acceleration
     #
     # -v /tmp/.X11-unix:/tmp/.X11-unix
-    # -e DISPLAY
-    #   Enable graphical applications
     #
     # ${mount_nvoptix_bin}
     #   Mount Optix denoiser weights.
@@ -638,7 +638,6 @@ launch() {
         --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
-        -e DISPLAY \
         ${additional_volumes} \
         ${mount_device_opt} \
     	${conditional_opt} \
