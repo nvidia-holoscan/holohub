@@ -650,8 +650,7 @@ launch() {
         "$@"
 }
 
-build_and_run_desc() {
-    c_echo 'Build and run a requested application in a Docker container.
+build_and_run_desc() { c_echo 'Build and run a requested application in a Docker container
     Usage: ./dev_container build_and_run <application_name> [options]
     Options:
         --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
@@ -664,6 +663,7 @@ build_and_run_desc() {
         --verbose : Print extra output to console
     '
 }
+
 build_and_run() {
     local app_name=""
     local app_language=""
@@ -742,8 +742,10 @@ parse_args() {
         esac
     done
     shift $((OPTIND-1))
-
     CMD="$1"
+    if [ -z "$CMD" ]; then
+      print_usage
+    fi
     shift
 
     ARGS=("$@")
