@@ -146,17 +146,22 @@ To list all available applications you can run the following command:
   ./run list
 ```
 
-Then you can run the application using
+Then you can run the application using the command:
 ```bash
-  ./run launch <application> <language>
+  ./run launch <application>
 ```
 
-For example, to run the tool tracking endoscopy application in C++
+For example, to run the tool tracking endoscopy application:
 ```bash
-  ./run launch endoscopy_tool_tracking cpp
+  ./run launch endoscopy_tool_tracking
 ```
 
-and to run the same application in python:
+Several applications are implemented in both C++ and Python programming languages.
+You can request a specific implementation as a trailing argument to the `./run launch` command
+or omit the argument to use the default language.
+For instance, the following command will run the Python implementation of the tool tracking
+endoscopy application:
+
 ```bash
   ./run launch endoscopy_tool_tracking python
 ```
