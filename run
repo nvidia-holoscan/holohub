@@ -571,6 +571,7 @@ launch_desc() {
   echo "Options:"
   echo "   --extra_args <args>       : additional arguments passed to the application command"
   echo "   --nsys_profile            : profile using Nsight Systems"
+  echo "   --verbose                 : output additional run command information to stdout"
   echo ""
   echo ""
   echo "Use './run list' first to list the available applications"
@@ -585,6 +586,7 @@ launch() {
    local language=""
    local extra_args=""
    local nsys_profile=false
+   local verbose=false
 
    for i in "${!ARGS[@]}"; do
      arg="${ARGS[i]}"
@@ -593,6 +595,8 @@ launch() {
        break
      elif [ "$arg" = "--nsys_profile" ]; then
        nsys_profile=true
+     elif [ "$arg" = "--verbose" ]; then
+       verbose=true
      elif [ -z "${appname}" ]; then
        appname=$arg
      elif [ -z "${language}" ]; then
@@ -627,10 +631,20 @@ launch() {
    local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
    local metadata_file="${holohub_app_source}/metadata.json"
 
+   # If a language was not provided but multiple are available, auto-select
+   # the first language matching the app name from the "./run list" command.
+   # Yields an empty string if a language folder is not specified.
+   # Example `list` string:
+   # ultrasound_segmentation (cpp) [Sample Application]
+   if [ -z "${language}" ]; then
+     language=$(list | grep -m 1 ${appname} | awk -F'[\\(\\)]' '{print $2}')
+     echo "Default language for ${appname} selected: ${language}"
+   fi
+
    if [[ "${language}" ]]; then
      metadata_file="${holohub_app_source}/${language}/metadata.json"
-     holohub_app_bin="${holohub_build_dir}/applications/${appname}/$2"
-     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
+     holohub_app_bin="${holohub_build_dir}/applications/${appname}/${language}"
+     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/${language}"
    fi
 
    # Check if the metadata file exists
@@ -694,6 +708,13 @@ for k, v in obj["application"]["run"].items():
    local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
    local reset_environment="export PYTHONPATH=${PYTHONPATH}"
 
+   if [ ${verbose} ]; then
+    echo "Run environment: $environment"
+    echo "Run workdir: $workdir"
+    echo "Run command: $command"
+    echo "Run command args: $extra_args"
+   fi
+
    # Run the command
    run_command $environment
    run_command $workdir
@@ -705,7 +726,7 @@ for k, v in obj["application"]["run"].items():
 # Other options
 
 # Build HoloHub sample apps
-_list_desc() {
+list_desc() {
   echo ""
   echo "Display the list of applications to run."
   echo "Usage: ./run list"
