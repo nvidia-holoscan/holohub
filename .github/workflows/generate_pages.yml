@@ -15,12 +15,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: 'github.io'
+          
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-      - name: Clone holohub Repository
+      - name: Clone HoloHub Repository (Latest)
         run: git clone https://github.com/nvidia-holoscan/holohub
 
       - name: Run gather.py
-        run: python gather_metadata.py
+        shell: bash
+        run: |
+          cd holohub
+          python ./utilities/gather_metadata.py --output aggregate_metadata.json
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -34,7 +41,7 @@ jobs:
         run: npm run build
 
       - name: Move aggregate_metadata.json
-        run: mv aggregate_metadata.json dist/
+        run: mv holohub/aggregate_metadata.json dist/
 
       - name: Stage dist folder
         run: git add dist -f
