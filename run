@@ -631,10 +631,20 @@ launch() {
    local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
    local metadata_file="${holohub_app_source}/metadata.json"
 
+   # If a language was not provided but multiple are available, auto-select
+   # the first language matching the app name from the "./run list" command.
+   # Yields an empty string if a language folder is not specified.
+   # Example `list` string:
+   # ultrasound_segmentation (cpp) [Sample Application]
+   if [ -z "${language}" ]; then
+     language=$(list | grep -m 1 ${appname} | awk -F'[\\(\\)]' '{print $2}')
+     echo "Default language for ${appname} selected: ${language}"
+   fi
+
    if [[ "${language}" ]]; then
      metadata_file="${holohub_app_source}/${language}/metadata.json"
-     holohub_app_bin="${holohub_build_dir}/applications/${appname}/$2"
-     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/$2"
+     holohub_app_bin="${holohub_build_dir}/applications/${appname}/${language}"
+     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/${language}"
    fi
 
    # Check if the metadata file exists
@@ -716,7 +726,7 @@ for k, v in obj["application"]["run"].items():
 # Other options
 
 # Build HoloHub sample apps
-_list_desc() {
+list_desc() {
   echo ""
   echo "Display the list of applications to run."
   echo "Usage: ./run list"
