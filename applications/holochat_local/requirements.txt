@@ -4,4 +4,4 @@ GitPython~=3.1
 gradio~=4.23
 pypdf~=3.17.4
 requests~=2.31
-chromadb==0.4.8
+chromadb~=0.4.24
