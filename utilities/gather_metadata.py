@@ -65,7 +65,7 @@ def extract_application_name(readme_path):
 
 def gather_metadata(repo_path) -> dict:
     """Collect project metadata from JSON files into a single dictionary"""
-    SCHEMA_TYPES = ["application", "operator", "gxf_extension"]
+    SCHEMA_TYPES = ["application", "operator", "gxf_extension", "tutorial"]
 
     metadata_files = find_metadata_files(repo_path)
     metadata = []
@@ -94,7 +94,7 @@ def gather_metadata(repo_path) -> dict:
 def main(args: argparse.Namespace):
     """Run the gather application"""
 
-    DEFAULT_INCLUDE_PATHS = ["applications", "operators"]
+    DEFAULT_INCLUDE_PATHS = ["applications", "operators", "tutorials"]
     DEFAULT_OUTPUT_FILEPATH = "aggregate_metadata.json"
 
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS
