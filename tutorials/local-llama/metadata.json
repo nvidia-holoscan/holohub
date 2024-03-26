@@ -1,0 +1,64 @@
+{
+	"tutorial": {
+		"name": "Deploying Llama-2 70b model on the edge with IGX Orin",
+		"description": "This tutorial will walk you through how to run a quantized version of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin.",
+		"authors": [
+			{
+				"name": "Nigel Nelson",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [
+			"Chatbot",
+			"CUDA",
+			"HuggingFace",
+			"Llama",
+			"LLM"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"data": [
+				{
+					"name": "Llama-2",
+					"url": "https://about.fb.com/news/2023/07/llama-2/"
+				}
+			],
+			"libraries": [
+				{
+					"name": "CUDA Toolkit",
+					"url": "https://developer.nvidia.com/cuda-downloads",
+					"minimum_required_version": "11.8"
+				},
+				{
+					"name": "llama.cpp",
+					"url": "https://github.com/ggerganov/llama.cpp"
+				}
+			],
+			"python-requirements": [
+				{
+					"filepath": "requirements.txt"
+				}
+			],
+			"services": [
+				{
+					"name": "HuggingFace",
+					"url": "https://huggingface.co/"
+				}
+			]
+		}
+	}
+}
