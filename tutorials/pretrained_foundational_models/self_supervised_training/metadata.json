@@ -1,0 +1,61 @@
+{
+	"tutorial": {
+		"name": "Self-Supervised Contrastive Learning for Surgical videos",
+		"description": "The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Computer Vision",
+			"Learning",
+			"Medical",
+			"Self-Supervised",
+			"Surgical",
+			"Video"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"data": [
+				{
+					"name": "Cholec80",
+					"url": "http://camma.u-strasbg.fr/datasets"
+				}
+			],
+			"libraries": [
+				{
+					"name": "monai",
+					"version": "1.0.1"
+				},
+				{
+					"name": "ipython"
+				},
+				{
+					"name": "pytorch-lightning",
+					"version": "1.4"
+				},
+				{
+					"name": "torchmetrics",
+					"version": "0.6"
+				}
+			]
+		}
+	}
+}
