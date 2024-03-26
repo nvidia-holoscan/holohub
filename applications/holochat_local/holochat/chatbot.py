@@ -114,7 +114,7 @@ def main():
             stream_response, [chatbot, llm], [chatbot, llm]
         )
 
-    demo.queue(max_size=99, concurrency_count=20).launch(
+    demo.queue(max_size=99).launch(
         server_name="0.0.0.0", debug=False, share=False, inbrowser=True
     )
 
