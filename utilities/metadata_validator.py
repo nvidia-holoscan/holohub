@@ -32,7 +32,10 @@ def validate_json(json_data, directory):
     registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
 
     with open(directory + "/metadata.schema.json", "r") as file:
-        execute_api_schema = json.load(file)
+        try:
+            execute_api_schema = json.load(file)
+        except json.decoder.JSONDecodeError as err:
+            return False, err
     validator = Draft4Validator(execute_api_schema, registry=registry)
 
     try:
@@ -74,7 +77,13 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
     # Check if the metadata is valid
     for name in glob.glob(current_wdir + "/" + directory + "/**/metadata.json", recursive=True):
         with open(name, "r") as file:
-            jsonData = json.load(file)
+            try:
+                jsonData = json.load(file)
+            except json.decoder.JSONDecodeError:
+                print("ERROR:" + name + ": invalid")
+                exit_code = 1
+                continue
+
             is_valid, msg = validate_json(jsonData, directory)
             if is_valid:
                 print(name + ": valid")
@@ -91,6 +100,8 @@ if __name__ == "__main__":
     exit_code_op = validate_json_directory("operators", ignore_patterns=["template"])
     exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
     exit_code_applications = validate_json_directory("applications", ignore_patterns=["template"])
-    exit_code_tutorials = validate_json_directory("tutorials", metadata_is_required=False)
+    exit_code_tutorials = validate_json_directory(
+        "tutorials", ignore_patterns=["template"], metadata_is_required=False
+    )
 
     sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications, exit_code_tutorials))
