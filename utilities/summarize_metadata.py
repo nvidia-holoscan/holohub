@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import argparse
-import glob
 import json
 import logging
 from collections import defaultdict
@@ -23,6 +22,7 @@ from enum import Enum
 
 import pandas as pd
 import semver
+from gather_metadata import gather_metadata
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__file__)
@@ -75,19 +75,14 @@ project_type_data = [
 
 def collect_metadata() -> pd.DataFrame:
     """Gather HoloHub project metadata into a DataFrame"""
-    frames = []
+    METADATA_DIRECTORIES = ["applications", "gxf_extensions", "operators"]
 
     # Ingest project metadata files
-    for project_type_info in project_type_data:
-        metadata_files = glob.glob(f"{project_type_info.folder_name}/**/metadata.json")
-        for filename in metadata_files:
-            with open(filename, "r") as file:
-                project_metadata = json.load(file)
-                project_metadata[project_type_info.schema_name][
-                    "project_type"
-                ] = project_type_info.schema_name
-                project_df = pd.json_normalize(project_metadata[project_type_info.schema_name])
-                frames.append(project_df)
+    metadata = gather_metadata(METADATA_DIRECTORIES)
+    for entry in metadata:
+        entry["metadata"]["project_type"] = entry["source_folder"]
+    frames = [pd.json_normalize(entry["metadata"]) for entry in metadata]
+
     return (
         pd.concat(frames, ignore_index=True)
         .sort_values(by=DEFAULT_SORT_COLUMNS)

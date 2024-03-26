@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Add testing
-if(BUILD_TESTING)
+if(BUILD_TESTING AND DEFINED ENV{DISPLAY})
   # To get the environment path
   find_package(holoscan 0.5 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 

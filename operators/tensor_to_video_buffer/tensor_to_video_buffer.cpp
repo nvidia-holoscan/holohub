@@ -82,10 +82,10 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
     }
   }
   #if GXF_HAS_DLPACK_SUPPORT
-    // Get the nvidia::gxf::Tensor from holoscan::Tensor'.
-    nvidia::gxf::Tensor in_tensor{(maybe_tensor->dl_ctx())};
+    // Get a std::shared_ptr<nvidia::gxf::Tensor> from std::shared_ptr<holoscan::Tensor>'.
+    auto in_tensor = std::make_shared<nvidia::gxf::Tensor>(maybe_tensor->dl_ctx());
   #else
-    // Get the holoscan::gxf::GXFTensor from holoscan::Tensor'.
+    // Get a std::shared_ptr<holoscan::gxf::GXFTensor> from std::shared_ptr<holoscan::Tensor>'.
     auto in_tensor = gxf::GXFTensor::from_tensor(maybe_tensor);
   #endif
 

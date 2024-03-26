@@ -29,38 +29,25 @@ ARG GPU_TYPE
 FROM ${BASE_IMAGE} as cvcuda-downloader
 
 ARG GCC_VERSION=11
-ARG CVCUDA_TAG=v0.5.0-beta
-ARG CVCUDA_RELEASE_BRANCH=feat/milesp/release_v0.5.0-beta3
+ARG CVCUDA_TAG=v0.6.0-beta
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt/nvidia
 
 # install gcc-11, g++-11
+# proper checkout of CV-CUDA stubs also requires git-lfs
 RUN apt update \
     && apt install --no-install-recommends -y \
-      software-properties-common="0.99.*"
+      software-properties-common="0.99.*" \
+      git-lfs
 
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
 RUN apt install -y gcc-${GCC_VERSION} g++-${GCC_VERSION}
 
-# download patch for building CV-CUDA with CUDA 11.6 (works for both CV-CUDA 0.4-beta and 0.5-beta)
-RUN curl -S -L -o cvcuda_cuda11_6.patch  "https://gist.githubusercontent.com/grlee77/ba5d1449ae37ff2e13c7ee93710fe482/raw/f335c08d00fb6e6efeb94e99889fd15957f01d47/cvcuda_cuda11_6.patch"
-
-# download and patch CV-CUDA
-RUN git clone https://github.com/CVCUDA/CV-CUDA \
-    && mv cvcuda_cuda11_6.patch CV-CUDA \
+# download CV-CUDA
+RUN git clone --branch ${CVCUDA_TAG} --depth 1 https://github.com/CVCUDA/CV-CUDA \
     && cd CV-CUDA \
-    && git checkout ${CVCUDA_TAG} \
-    && git submodule update --init \
-    && git apply cvcuda_cuda11_6.patch
-
-# replace broken stub binaries in the v0.3.1-beta tag
-# (https://github.com/CVCUDA/CV-CUDA/issues/26)
-RUN cd CV-CUDA/src/util/stubs \
-    && rm *.so \
-	&& curl -S -L -o libdl-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/libdl-2.17_stub.so \
-	&& curl -S -L -o libpthread-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/libpthread-2.17_stub.so \
-	&& curl -S -L -o librt-2.17_stub.so https://github.com/CVCUDA/CV-CUDA/raw/${CVCUDA_RELEASE_BRANCH}/src/util/stubs/librt-2.17_stub.so
+    && git submodule update --init
 
 ############################################################
 # CV-CUDA Builder
@@ -73,9 +60,11 @@ WORKDIR /opt/nvidia/CV-CUDA
 RUN bash ./ci/build.sh
 
 # create and install the Debian packages
+# (skip cvcuda-tests as it requires an additional python3-pytest dependency)
 RUN cd build-rel \
-	&& cpack -G DEB . \
-    && dpkg -i nvcv*.deb 
+    && cpack -G DEB . \
+    && rm cvcuda-tests*.deb \
+    && dpkg -i cvcuda*.deb
 
 ############################################################
 # Base (final)

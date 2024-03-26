@@ -1,0 +1,36 @@
+# My HoloHub Tutorial
+
+Provide a splash image highlighting your tutorial.
+
+## Overview
+
+Provide a one-sentence summary of your tutorial's purpose and operations.
+
+## Description
+
+Provide a detailed summary of your project. Include any necessary background
+for the average HoloHub user to understand the general purpose of your project.
+Include any diagrams that are helpful for understanding functionality.
+
+## Data
+
+Give an overview of any datasets that will be used in your project.
+
+## Requirements
+
+List any platform requirements that a user must have before trying to build and run
+your project. Requirements could include hardware or software.
+
+## Tutorial Instructions
+
+Provide a step-by-step walkthrough of your tutorial and link to any accompanying
+tutorial documents. If the tutorial depends on runnable commands, include them
+here.
+
+```bash
+<my-command> <my-args>
+```
+
+## Acknowledgements
+
+Cite any methods or collaborators here.

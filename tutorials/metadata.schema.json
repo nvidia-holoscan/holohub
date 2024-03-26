@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holohub/application/v1",
+  "$id": "holohub/tutorial/v1",
   "type": "object",
   "properties": {
-    "application": {
+    "tutorial": {
       "type": "object",
       "properties": {
         "name": {
@@ -45,15 +45,13 @@
         "authors",
         "version",
         "changelog",
-        "platforms",
         "tags",
         "holoscan_sdk",
-        "ranking",
         "dependencies"
       ]
     }
   },
   "required": [
-    "application"
+    "tutorial"
   ]
 }

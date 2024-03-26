@@ -86,7 +86,7 @@ We do not require that community members conduct formal Software Quality Assuran
 Every application and operator should have an associated *metadata.json* file which describes the features
 and dependencies.
 
-`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), and [operators](./operators/metadata.schema.json), but generally follow the convention below:
+`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
 
 ```json
 // Main json definition for application or operator
@@ -184,6 +184,8 @@ Adding a `README.md` file with clarification on the intent and usage of the appl
 
 We recommend writing README files in the Markdown format (`.md`).
 
+Please use the [terms defined in the glossary](README.md#Glossary) to refer to specific location of files for HoloHub.
+
 ### Adding an Operator or GXF Extension
 
 Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:
@@ -202,6 +204,9 @@ add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 ```
 
 Note that extensions do not have a ```DEPENDS``` option.
+
+Refer to the [HoloHub operator template folder](./operators/template/) for stub `metadata.json` and `README` files to copy
+and update for your new operator.
 
 ### Adding an Application
 
@@ -224,13 +229,17 @@ add_holohub_application(my_application DEPENDS
 Note that some applications have the optional ```HOLOSCAN_SAMPLE_APP``` keywords at the end of the ```add_holohub_application```
 function. This keyword should only be used for sample applications that are maintained by the Holoscan team.
 
+Refer to the [HoloHub application template folder](./applications/template/) for stub `metadata.json` and `README` files to copy
+and update for your new application.
+
 ### Adding a Tutorial
 
 Add each tutorial in its own subdirectory under the [```tutorials```](./tutorials) directory. The subdirectory should contain:
 - A README file summarizing the application's purpose and architecture;
+- A *metadata.json* file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
 - A LICENSE file governing use (optional).
 
-There are no project-wide metadata or build requirements for tutorials.
+There are no project-wide build requirements for tutorials.
 
 ### License Guidelines
 

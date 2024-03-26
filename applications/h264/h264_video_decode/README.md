@@ -33,7 +33,7 @@ Once inside Holohub dev container, run below command from a top level Holohub
 directory.
 
 ```bash
-./run build h264/video_decode
+./run build h264_video_decode
 ```
 
 ## Running the application
@@ -41,12 +41,12 @@ directory.
 * Running the application from the top level Holohub directory
 
 ```bash
-./run launch h264/video_decode
+./run launch h264_video_decode
 ```
 
 * Running the application `h264_video_decode` from the build directory.
 
 ```bash
-cd <build_dir>/applications/h264/video_decode/ \
+cd <build_dir>/applications/h264/h264_video_decode/ \
   && ./h264_video_decode --data <HOLOHUB_DATA_DIR>/endoscopy
 ```

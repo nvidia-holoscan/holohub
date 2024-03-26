@@ -61,6 +61,8 @@ The only requirement is to make sure the model and data are accessible by the ap
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.
 
+You should refer to the [glossary](../../README.md#Glossary) for the terms defining specific locations within HoloHub.
+
 If your Holoscan SDK installation type is:
 
 * python wheels:

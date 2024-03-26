@@ -350,9 +350,11 @@ launch_desc() { c_echo 'Launch Docker container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
     --init : Support tini entry point
+    --persistent : Does not delete container after it is run
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
+    --docker_opts : Additional options to pass to the Docker launch
     '
 }
 launch() {
@@ -364,8 +366,10 @@ launch() {
     local local_sdk_root="undefined"
     local ssh_x11=0
     local use_tini=0
+    local persistent=0
     local nsys_profile=false
     local as_root=false
+    local docker_opts=""
 
     # Choose NGC Holoscan SDK base image based on local platform, default is dGPU
     local gpu_type=$(get_host_gpu)
@@ -402,6 +406,10 @@ launch() {
            use_tini=1
            shift
         fi
+        if [ "$arg" = "--persistent" ]; then
+           persistent=1
+           shift
+        fi
         if [ "$arg" = "--nsys_profile" ]; then
            nsys_profile=true
            shift
@@ -414,6 +422,11 @@ launch() {
             path="${ARGS[i+1]}"
             base=$(basename "$path")
             additional_volumes+="-v $path:/workspace/volumes/$base "
+            shift
+            shift
+        fi
+        if [ "$arg" = "--docker_opts" ]; then
+            docker_opts="${ARGS[i+1]}"
             shift
             shift
         fi
@@ -439,10 +452,12 @@ launch() {
     fi
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    if [ -v DISPLAY ] && command -v xhost >/dev/null; then
-        run_command xhost +local:docker
+    if [ -v DISPLAY ]; then
+        if command -v xhost >/dev/null; then
+          run_command xhost +local:docker
+        fi
+        conditional_opt+=" -e DISPLAY"
     fi
-
 
     for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
         mount_device_opt+=" --device $video_dev"
@@ -543,6 +558,11 @@ launch() {
         conditional_opt+=" --init"
     fi
 
+    # Persistent container
+    if [[ $persistent == 0 ]]; then
+        conditional_opt+=" --rm"
+    fi
+
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
@@ -571,9 +591,6 @@ launch() {
     # --interactive (-i)
     #   The container needs to be interactive to be able to interact with the X11 windows
     #
-    # --rm
-    #   Deletes the container after the command runs
-    #
     # -u $(id -u):$(id -g)
     # -v /etc/group:/etc/group:ro
     # -v /etc/passwd:/etc/passwd:ro
@@ -591,8 +608,6 @@ launch() {
     #   Enable GPU acceleration
     #
     # -v /tmp/.X11-unix:/tmp/.X11-unix
-    # -e DISPLAY
-    #   Enable graphical applications
     #
     # ${mount_nvoptix_bin}
     #   Mount Optix denoiser weights.
@@ -605,10 +620,12 @@ launch() {
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."
+        c_echo W "Launch (docker_opts: " G "${docker_opts}" W ")..."
         c_echo W "Launch (image: " G "${img}" W ")..."
+        c_echo W "Launch (trailing args: " G "$@" W ")..."
     fi
 
-    run_command ${HOLOSCAN_DOCKER_EXE} run --rm --net host \
+    run_command ${HOLOSCAN_DOCKER_EXE} run --net host \
         --interactive ${use_tty} \
         -u $user \
         -v /etc/group:/etc/group:ro \
@@ -621,15 +638,85 @@ launch() {
         --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
-        -e DISPLAY \
         ${additional_volumes} \
         ${mount_device_opt} \
     	${conditional_opt} \
         ${local_sdk_opt} \
         ${mount_nvoptix_bin} \
         ${ucx_opt} \
+        ${docker_opts} \
         ${img} \
         "$@"
+}
+
+build_and_run_desc() { c_echo 'Build and run a requested application in a Docker container
+    Usage: ./dev_container build_and_run <application_name> [options]
+    Options:
+        --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
+        --docker_file : Path to Dockerfile to use for building container.
+            If `--img` is not specified then a custom image tag will be defined.
+        --img : Specify fully qualified output container name
+        --language : Specify the app language implementation to run.
+                     Some applications provide both `cpp` and `python` implementations.
+        --no_build : Launch the app without attempting to build it first
+        --verbose : Print extra output to console
+    '
+}
+
+build_and_run() {
+    local app_name=""
+    local app_language=""
+    local container_build_args=""
+    local container_launch_args="--docker_opts --entrypoint=bash"
+    local build_app=1
+    local image_name=""
+    local docker_file=""
+
+    # Parse CLI arguments next
+    ARGS=("$@")
+    local i
+    local arg
+    for i in "${!ARGS[@]}"; do
+        arg="${ARGS[i]}"
+        if [ "$arg" = "--base_img" ]; then
+           container_build_args+=" --base_img ${ARGS[i+1]}"
+        elif [ "$arg" = "--docker_file" ]; then
+            docker_file="${ARGS[i+1]}"
+            container_build_args+=" --docker_file $docker_file"
+        elif [ "$arg" = "--img" ]; then
+            image_name="${ARGS[i+1]}"
+        elif [ "$arg" = "--no_build" ]; then
+            build_app=0
+        elif [ "$arg" = "--verbose" ]; then
+           container_build_args+=" --verbose"
+           container_launch_args+=" --verbose"
+        elif [ "$arg" = "--language" ]; then
+            app_language="${ARGS[i+1]}"
+        elif [ -z "${app_name}" ]; then
+            app_name=$arg
+        fi
+    done
+
+    if [ -z "${app_name}" ]; then
+        fatal "Must specify a HoloHub application to build and run."
+    fi
+
+    if [ -z "$image_name" ]; then
+        if [ -n "$docker_file" ]; then
+            image_name="holohub:${app_name}";
+        else
+            image_name=$(get_default_img);
+        fi
+    fi
+
+    container_build_args+=" --img $image_name"
+    container_launch_args+=" --img $image_name"
+
+    build $container_build_args
+    if [[ $build_app == 1 ]]; then
+        launch $container_launch_args -c "./run build $app_name"
+    fi
+    launch $container_launch_args -c "./run launch $app_name $app_language"
 }
 
 
@@ -654,8 +741,10 @@ parse_args() {
         esac
     done
     shift $((OPTIND-1))
-
     CMD="$1"
+    if [ -z "$CMD" ]; then
+      print_usage
+    fi
     shift
 
     ARGS=("$@")
