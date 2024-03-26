@@ -1,0 +1,42 @@
+{
+	"tutorial": {
+		"name": "CUDA MPS Tutorial",
+		"description": "This tutorial describes the steps to enable CUDA MPS and demonstrate few performance benefits of using it.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Acceleration",
+			"Benchmarking",
+			"CUDA",
+			"MPS"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"libraries": [
+				{
+					"name": "CUDA Multi-Process Service (MPS)",
+					"version": ">=vR525",
+					"url": "https://docs.nvidia.com/deploy/mps/index.html"
+				}
+			]
+		}
+	}
+}
