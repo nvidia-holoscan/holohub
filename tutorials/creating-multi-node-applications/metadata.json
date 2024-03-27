@@ -1,0 +1,33 @@
+{
+	"tutorial": {
+		"name": "Creating Multi-Node Holoscan Applications",
+		"description": "In this tutorial, we will walk through the process in two scenarios of creating a multi node application from existing applications.",
+		"authors": [
+			{
+				"name": "Jin Li",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Distributed",
+			"Fragment"
+		],
+		"ranking": 2,
+		"dependencies": {}
+	}
+}
