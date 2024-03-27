@@ -197,14 +197,6 @@ class Fragment1(Fragment):
             **self.kwargs("segmentation_postprocessor"),
         )
 
-        # add operators to Fragment
-        self.add_operator(source)
-        self.add_operator(detection_preprocessor)
-        self.add_operator(segmentation_preprocessor)
-        self.add_operator(multi_ai_inference)
-        self.add_operator(detection_postprocessor)
-        self.add_operator(segmentation_postprocessor)
-
         # connect the input each pre-processor
         if is_aja:
             self.add_flow(source, detection_preprocessor, {("video_buffer_output", "")})
