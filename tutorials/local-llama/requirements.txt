@@ -1,0 +1,4 @@
+flask
+gradio
+openai
+requests
