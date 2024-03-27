@@ -182,13 +182,6 @@ class Fragment1(Fragment):
             **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
         )
 
-        # Add operators
-        self.add_operator(source)
-        self.add_operator(format_converter)
-        self.add_operator(lstm_inferer)
-        self.add_operator(tool_tracking_postprocessor)
-        self.add_operator(visualizer)
-
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
         self.add_flow(tool_tracking_postprocessor, visualizer, {("out", "receivers")})
@@ -271,10 +264,6 @@ class Fragment2(Fragment):
             disable_transmitter=True,
             **self.kwargs("out_of_body_postprocessor"),
         )
-
-        self.add_operator(out_of_body_preprocessor)
-        self.add_operator(out_of_body_inference)
-        self.add_operator(out_of_body_postprocessor)
 
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
         self.add_flow(
