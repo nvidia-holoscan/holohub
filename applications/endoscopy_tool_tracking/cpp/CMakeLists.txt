@@ -33,6 +33,7 @@ target_link_libraries(endoscopy_tool_tracking
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
+  vtk_renderer
 )
 
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>)
