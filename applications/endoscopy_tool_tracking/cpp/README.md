@@ -4,7 +4,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 ### Requirements
 
-The provided applications are configured to either use capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
+The provided applications are configured to either use capture cards for input stream, or a pre-recorded endoscopy video (replayer).
 
 Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
@@ -32,6 +32,18 @@ In your `build` directory, run the commands of your choice:
 * Using a pre-recorded video
     ```bash
     sed -i -e 's#^source:.*#source: replayer#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
+    ```
+
+* Using a vtk_renderer instead of holoviz
+    ```bash
+    sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
+    ```
+
+* Using a holoviz instead of vtk_renderer
+    ```bash
+    sed -i -e 's#^visualizer:.*#visualizer: "holoviz"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
     ```
 
