@@ -38,3 +38,51 @@ Acyclic Graph (DAG) for a
 fragment](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html), the cycle formed by
 the edge between the Holoviz and AJA Source operators is incompatible. The overlay feature will
 again be available in a future release of Holoscan SDK.*
+
+### Using VTK for rendering
+
+The tool tracking application can use the [VTK](https://vtk.org/) library to
+render the tool tracking results on top of the endoscopy video frames. The VTK
+library is a powerful open-source software system for 3D computer graphics,
+image processing, and visualization. The VTK library provides a wide range of
+functionalities for rendering, including 2D and 3D graphics, image processing,
+and visualization. The tool tracking application uses VTK to render the tool
+tracking results on top of the endoscopy video frames.
+
+
+### How to build the tool tracking application with VTK
+
+Build the HoloHub container as described at the root [README.md](../../README.md)
+
+You need to create a docker image which includes VTK with the provided
+`vtk.Dockerfile` in the `operator/vtk_renderer` subdirectory:
+
+```bash
+docker build -t vtk:latest -f vtk.Dockerfile .
+```
+Set vtk as the visualizer by:
+
+* Using a vtk_renderer instead of holoviz
+    ```bash
+    sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
+    ```
+Then, you can build the tool tracking application with the provided
+`Dockerfile`:
+
+```bash
+./dev_container launch --img vtk:latest
+```
+
+Inside the container you can build the holohub suite with:
+
+```bash
+./run build --with vtk_renderer
+./run build
+```
+
+Now you can run the tool tracking application with:
+
+```bash
+./run launch endoscopy_tool_tracking cpp
+```
