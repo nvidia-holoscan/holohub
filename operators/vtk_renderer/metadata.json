@@ -1,0 +1,31 @@
+{
+	"operator": {
+		"name": "vtk_renderer",
+		"authors": [
+			{
+				"name": "Kitware Team",
+				"affiliation": "Kitware Inc"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"visualization",
+			"tool tracking"
+		],
+		"ranking": 1,
+		"dependencies": { }
+	}
+}
