@@ -97,9 +97,17 @@ def main():
         "--holohub-application",
         type=str,
         required=False,
-        help="name of HoloHub application to run. It runs the cpp version of an application\n\
-To run a python application, use --run-command option.",
+        help="name of HoloHub application to run",
         default="endoscopy_tool_tracking",
+    )
+
+    parser.add_argument(
+        "--language",
+        type=str,
+        required=False,
+        help="Application language to run. Runs cpp version of an application by default. "
+        "Must also specify an application to run with an argument to '-a' or '--holohub-application'.",
+        default="cpp",
     )
 
     parser.add_argument(
@@ -204,7 +212,7 @@ assignment in Holoscan's Inference operator.",
         env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_messages)
 
     if args.run_command == "":
-        app_launch_command = "./run launch " + args.holohub_application + " cpp"
+        app_launch_command = "./run launch " + args.holohub_application + " " + args.language
     else:
         app_launch_command = args.run_command
 
