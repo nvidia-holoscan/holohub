@@ -19,8 +19,14 @@ supported since Holoscan v1.0.
 The following Python libraries need to be installed to run the benchmarking scripts (`pip install -r requirements.txt` can be used):
 
 ```
-numpy matplotlib nvitop argparse
+numpy matplotlib nvitop argparse pydot xdot
 ```
+
+The preferred way to use Flow Benchmarking is to use the provided Holohub docker image for automatic
+management of dependencies. Otherwise, bare-metal installation of the required libraries is needed.
+Extra dependencies might be needed to be installed to satisfy the requirements. For example, `xdot`
+has following [dependencies](https://github.com/jrfonseca/xdot.py?tab=readme-ov-file#requirements).
+
 ## Steps for Holoscan Flow Benchmarking
 
 1. **Patch the application for benchmarking**
