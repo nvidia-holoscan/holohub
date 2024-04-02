@@ -1,6 +1,6 @@
 ### vtk_renderer operator
 
-The `vtk_renderer` extension takes the output the source video player and the
+The `vtk_renderer` extension takes the output of the source video player and the
 output of the `tool_tracking_postprocessor` operator and renders the video
 stream with an overlay annotation of the label using VTK.
 
