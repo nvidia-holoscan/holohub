@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,21 @@ Operator performing post-processing for the endoscopy tool tracking demo.
 PYDOC(ToolTrackingPostprocessorOp_python, R"doc(
 Operator performing post-processing for the endoscopy tool tracking demo.
 
+**==Named Inputs==**
+
+    in : nvidia::gxf::Entity containing multiple nvidia::gxf::Tensor
+        Must contain input tensors named "probs", "scaled_coords" and "binary_masks" that
+        correspond to the output of the LSTMTensorRTInfereceOp as used in the endoscopy
+        tool tracking example applications.
+
+**==Named Outputs==**
+
+    out_coords : nvidia::gxf::Tensor
+        Coordinates tensor, stored on the host (CPU).
+
+    out_mask : nvidia::gxf::Tensor
+        Binary mask tensor, stored on device (GPU).
+
 Parameters
 ----------
 fragment : Fragment
@@ -43,11 +58,13 @@ device_allocator : ``holoscan.resources.Allocator``
 host_allocator : ``holoscan.resources.Allocator``
     Output allocator used on the host side.
 min_prob : float, optional
-    Minimum probability (in range [0, 1]).
+    Minimum probability (in range [0, 1]). Default value is 0.5.
 overlay_img_colors : sequence of sequence of float, optional
     Color of the image overlays, a list of RGB values with components between 0 and 1.
+    The default value is a qualitative colormap with a sequence of 12 colors.
 cuda_stream_pool : ``holoscan.resources.CudaStreamPool``, optional
-    CudaStreamPool instance to allocate CUDA streams.
+    `holoscan.resources.CudaStreamPool` instance to allocate CUDA streams.
+    Default value is ``None``.
 name : str, optional
     The name of the operator.
 )doc")

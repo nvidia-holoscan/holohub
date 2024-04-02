@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,7 +190,17 @@ class App : public holoscan::Application {
 
     // Flow definition
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
-    add_flow(tool_tracking_postprocessor, visualizer_operator, {{"out", input_annotations_signal}});
+
+    if (this->visualizer_name == "holoviz") {
+      add_flow(tool_tracking_postprocessor,
+               visualizer_operator,
+               {{"out_coords", input_annotations_signal}, {"out_mask", input_annotations_signal}});
+    } else {
+      // device tensor on the out_mask port is not used by VtkRendererOp
+      add_flow(tool_tracking_postprocessor,
+               visualizer_operator,
+               {{"out_coords", input_annotations_signal}});
+    }
 
     std::string output_signal = "output";  // replayer output signal name
     if (source_ == "deltacast") {
