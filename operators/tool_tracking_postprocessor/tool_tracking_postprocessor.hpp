@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,38 @@
 
 namespace holoscan::ops {
 
+/**
+ * @brief Post-processing operator for tool tracking inference with LSTMTensorRTInferenceOp.
+ *
+ * ==Named Inputs==
+ *
+ * - **in** : `nvidia::gxf::Entity` containing multiple `nvidia::gxf::Tensor`
+ *   - Must contain input tensors named "probs", "scaled_coords" and "binary_masks" that
+ *     correspond to the output of the LSTMTensorRTInfereceOp as used in the endoscopy
+ *     tool tracking example applications.
+ *
+ * ==Named Outputs==
+ *
+ * - **out_coords** : `nvidia::gxf::Tensor`
+ *   - Coordinates tensor, stored on the host (CPU).
+ *
+ * - **out_mask** : `nvidia::gxf::Tensor`
+ *   - Binary mask tensor, stored on device (GPU).
+ *
+ * ==Parameters==
+ *
+ * - **host_allocator**: The holoscan::Allocator class (e.g. UnboundedAllocator) use for host
+ *   memory allocation of the `out_coords` tensor.
+ * - **device_allocator**: The holoscan::Allocator class (e.g. UnboundedAllocator or
+ *   BlockMemoryPool) used for device memory allocation for the `out_mask` tensor.
+ * - **min_prob**: Minimum probability threshold used by the operator.
+ *   Optional (default: 0.5).
+ * - **overlay_img_colors**: A `vector<vector<float>>` where each inner vector is a set of three
+ *   floats corresponding to normalized RGB values in range [0, 1.0].
+ *   Optional (default: a 12-class qualitative color scheme).
+ * - **cuda_stream_pool**: `holoscan::CudaStreamPool` instance to allocate CUDA streams.
+ *   Optional (default: `nullptr`).
+ */
 class ToolTrackingPostprocessorOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(ToolTrackingPostprocessorOp)
@@ -41,7 +73,8 @@ class ToolTrackingPostprocessorOp : public holoscan::Operator {
 
  private:
   Parameter<holoscan::IOSpec*> in_;
-  Parameter<holoscan::IOSpec*> out_;
+  Parameter<holoscan::IOSpec*> out_coords_;
+  Parameter<holoscan::IOSpec*> out_mask_;
 
   Parameter<float> min_prob_;
   Parameter<std::vector<std::vector<float>>> overlay_img_colors_;
