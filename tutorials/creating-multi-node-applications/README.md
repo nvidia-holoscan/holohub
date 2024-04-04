@@ -162,8 +162,11 @@ class MultiAIDetectionSegmentation(Application):
         ...
 ```
 
-### Changes in scenario 1 - Adding `add_operator` in fragments
-When composing a non-distributed application, in the `compose()` method we need to create the operators and `add_flow` between pairs of operators. By default, `add_flow` already adds each operator to the app graph. When composing fragments, in the `compose()` method if there are operators not added to the application graph by `add_flow`, we will need to do `add_operator` to add each operator to the app graph. 
+### Changes in scenario 1 - Adding Operators to App Graph
+When composing a non-distributed application, operators are created in the `compose()` method, then added to the app graph one of two ways:
+   1. For applications with a single operator (rare), `add_operator()` should be called.
+   1. for applications with multiple operators, using `add_flow()` will take care of adding each operator to the app graph on top of connecting them.
+This applies to distributed applications as well: when composing multiple fragments, each of them are responsible for adding all their operators to the app graph in their `compose()` method. Calling `add_flow()` in the `compose()` method of the distributed application when connecting fragments together does not add the operators to the app graph. This is often relevant when breaking down a single fragment application in a multi fragments application for distributed use cases, as some fragments might end up owning a single operator, and the absence of `add_flow()` in that fragment should come with the addition of `add_operator()` instead.
 
 In the non distributed application:
 ```python
