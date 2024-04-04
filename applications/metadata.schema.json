@@ -36,6 +36,9 @@
         "dependencies": {
           "$ref": "holohub/project/v1#/$defs/dependencies"
         },
+        "dockerfile": {
+          "type": "string"
+        },
         "run": {
           "$ref": "holohub/project/v1#/$defs/run_command"
         }
