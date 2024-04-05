@@ -707,8 +707,6 @@ launch() {
    local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
    local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
 
-   local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
-
    if [[ -z "${language}" ]]; then
      language=$(get_app_default_language "${appname}")
      language=${language:-cpp}
@@ -724,11 +722,6 @@ launch() {
      exit 1
    fi
 
-   # Checks if the application is organized in a language subfolder
-   if [[ "${holohub_app_source}" =~ .*${language}$ ]]; then
-     holohub_app_bin="${holohub_build_dir}/applications/${appname}/${language}"
-   fi
-
    # Check if the metadata file exists
    local metadata_file="${holohub_app_source}/metadata.json"
    if [ ! -f "$metadata_file" ]; then
@@ -738,6 +731,7 @@ launch() {
      exit 1
    fi
 
+   holohub_app_bin="${holohub_build_dir}/${holohub_app_source#"$SCRIPT_DIR/"}"
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
