@@ -78,7 +78,6 @@ class Fragment1(Fragment):
         ...
     def compose(self):
         # define fragment1 operators
-        # add operator 
         # add flow
         ... 
 
@@ -163,8 +162,11 @@ class MultiAIDetectionSegmentation(Application):
         ...
 ```
 
-### Changes in scenario 1 - Adding `add_operator` in fragments
-When composing a non-distributed application, in the `compose()` method we need to create the operators and `add_flow` between pairs of operators. When composing fragments, in the `compose()` method there is an extra step, after creating the operators, we will need to do `add_operator` for each operator, and then `add_flow`.
+### Changes in scenario 1 - Adding Operators to App Graph
+When composing a non-distributed application, operators are created in the `compose()` method, then added to the app graph one of two ways:
+   1. For applications with a single operator (rare), `add_operator()` should be called.
+   1. for applications with multiple operators, using `add_flow()` will take care of adding each operator to the app graph on top of connecting them.
+This applies to distributed applications as well: when composing multiple fragments, each of them are responsible for adding all their operators to the app graph in their `compose()` method. Calling `add_flow()` in the `compose()` method of the distributed application when connecting fragments together does not add the operators to the app graph. This is often relevant when breaking down a single fragment application in a multi fragments application for distributed use cases, as some fragments might end up owning a single operator, and the absence of `add_flow()` in that fragment should come with the addition of `add_operator()` instead.
 
 In the non distributed application:
 ```python
@@ -177,6 +179,7 @@ class MultiAIDetectionSegmentation(Application):
         multi_ai_inference = InferenceOp(...)
         detection_postprocessor = DetectionPostprocessorOp(...)
         segmentation_postprocessor = SegmentationPostprocessorOp(...)
+        holoviz = HolovizOp(...)
 
         # add flow between operators
         ...
@@ -194,14 +197,6 @@ class Fragment1(Fragment):
         multi_ai_inference = InferenceOp(...)
         detection_postprocessor = DetectionPostprocessorOp(...)
         segmentation_postprocessor = SegmentationPostprocessorOp(...)
-
-        # add operators to Fragment
-        self.add_operator(source)
-        self.add_operator(detection_preprocessor)
-        self.add_operator(segmentation_preprocessor)
-        self.add_operator(multi_ai_inference)
-        self.add_operator(detection_postprocessor)
-        self.add_operator(segmentation_postprocessor)
 
         # add flow between operators
         ...
@@ -323,7 +318,7 @@ class EndoscopyApp(Application):
 ```
 
 
-We can define our fragment1 modified from `endoscopy_tool_tracking` app with the following structure, note again how we need to do `self.add_operator` for each operator specified in this fragment. This is different from composing a non distributed application.
+We can define our fragment1 modified from `endoscopy_tool_tracking` app with the following structure.
 
 ```python
 class Fragment1(Fragment):
@@ -340,13 +335,6 @@ class Fragment1(Fragment):
         # LSTMTensorRTInferenceOp, ToolTrackingPostprocessorOp
         # HolovizOp
         ...
-        
-        # Add operators
-        self.add_operator(source)
-        self.add_operator(format_converter)
-        self.add_operator(lstm_inferer)
-        self.add_operator(tool_tracking_postprocessor)
-        self.add_operator(visualizer)
         
         # Add flow between operators
         ...
@@ -395,10 +383,7 @@ class Fragment2(Fragment):
             disable_transmitter=True,
             **self.kwargs("out_of_body_postprocessor")
         )
-        # add operators
-        self.add_operator(out_of_body_preprocessor)
-        self.add_operator(out_of_body_inference)
-        self.add_operator(out_of_body_postprocessor)
+        
         # add flow between operators
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
         self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")})
