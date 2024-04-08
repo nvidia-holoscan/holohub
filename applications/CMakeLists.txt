@@ -26,6 +26,11 @@ add_holohub_application(colonoscopy_segmentation)
 
 add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
 
+add_holohub_application(dds_video DEPENDS
+                        OPERATORS dds_shapes_subscriber
+                                  dds_video_publisher
+                                  dds_video_subscriber)
+
 add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS deltacast_videomaster
                         )
