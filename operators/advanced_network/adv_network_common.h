@@ -423,7 +423,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       try {
         input_spec.common_.mgr_         = node["manager"].as<std::string>();
       } catch (const std::exception& e) {
-        input_spec.common_.mgr_         = "dpdk"; // Use DPDK as the default
+        input_spec.common_.mgr_         = "dpdk";  // Use DPDK as the default
       }
 
       try {
