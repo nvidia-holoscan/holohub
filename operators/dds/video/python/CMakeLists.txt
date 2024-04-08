@@ -13,7 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(shapes)
-add_subdirectory(video)
+include(pybind11_add_holohub_module)
 
-add_subdirectory(base)
+if(${OP_dds_video_publisher})
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET dds_video_publisher
+    CLASS_NAME "DDSVideoPublisherOp"
+    SOURCES publisher.cpp
+)
+endif()
+
+if(${OP_dds_video_subscriber})
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET dds_video_subscriber
+    CLASS_NAME "DDSVideoSubscriberOp"
+    SOURCES subscriber.cpp
+)
+endif()
