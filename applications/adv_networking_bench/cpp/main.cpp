@@ -56,8 +56,7 @@ class App : public holoscan::Application {
                                                                 from_config("advanced_network"));
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_ERROR("Invalid ANO manager/backend");
       exit(1);
     }

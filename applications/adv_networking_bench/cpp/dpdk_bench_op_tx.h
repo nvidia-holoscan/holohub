@@ -313,4 +313,4 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   Parameter<std::string> eth_dst_addr_;
 };
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
