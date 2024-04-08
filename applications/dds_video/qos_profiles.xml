@@ -1,0 +1,55 @@
+<!--
+    SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+    SPDX-License-Identifier: Apache-2.0
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="https://community.rti.com/schema/current/rti_dds_qos_profiles.xsd">
+
+    <qos_library name="HoloscanDDSLibrary">
+
+        <!-- Profile for the main Video Streaming components -->
+        <qos_profile name="VideoStreamingProfile"
+                     base_name="BuiltinQosLib::Pattern.Streaming"
+                     is_default_qos="true">
+            <domain_participant_qos>
+                <participant_name>
+                    <name>Holoscan DDS Video</name>
+                </participant_name>
+            </domain_participant_qos>
+            <datawriter_qos>
+                <publication_name>
+                    <name>VideoFrameWriter</name>
+                </publication_name>
+            </datawriter_qos>
+            <datareader_qos>
+                <subscription_name>
+                    <name>VideoFrameReader</name>
+                </subscription_name>
+            </datareader_qos>
+        </qos_profile>
+
+        <!-- Profile for the Shape reading components -->
+        <qos_profile name="ShapeReaderProfile"
+                     base_name="BuiltinQosLib::Generic.BestEffort">
+            <datareader_qos>
+                <subscription_name>
+                    <name>ShapeReader</name>
+                </subscription_name>
+            </datareader_qos>
+        </qos_profile>
+
+    </qos_library>
+
+</dds>
