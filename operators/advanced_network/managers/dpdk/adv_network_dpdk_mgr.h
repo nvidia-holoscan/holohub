@@ -85,7 +85,7 @@ class DpdkMgr : public ANOMgr {
     uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
     AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
     AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      char *dst_addr) override;
+                                      uint8_t *dst_addr) override;
     AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
                                       int ip_len,
                                       uint8_t proto,
@@ -105,7 +105,6 @@ class DpdkMgr : public ANOMgr {
     void free_pkts(void **pkts, int len) override;
     void free_rx_burst(AdvNetBurstParams *burst) override;
     void free_tx_burst(AdvNetBurstParams *burst) override;
-    void format_eth_addr(char *dst, std::string addr) override;
     std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
 
     AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;

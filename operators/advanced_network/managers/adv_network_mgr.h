@@ -40,7 +40,7 @@ class ANOMgr {
     virtual uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) = 0;
     virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) = 0;
     virtual AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      char *dst_addr) = 0;
+                                      uint8_t *dst_addr) = 0;
     virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst,
                                       int idx,
                                       int ip_len,
@@ -67,7 +67,6 @@ class ANOMgr {
     virtual void print_stats() = 0;
 
     /* Internal functions used by ANO operators */
-    virtual void format_eth_addr(char *dst, std::string addr) = 0;
     virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) = 0;
     virtual AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) = 0;
     virtual void free_rx_meta(AdvNetBurstParams *burst) = 0;
