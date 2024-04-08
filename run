@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,6 +108,95 @@ get_buildtype_str() {
     esac
 
     echo -n "${build_type_str}"
+}
+
+
+get_app_source_root_dir() {
+  # Get source path for a given application according to HoloHub convention.
+  # Usage: ./run get_app_source_root_dir <app_name>
+  local appname="$1"
+  if [[ -z "${appname}" ]]; then
+    echo "Missing app name argument for get_app_source_root_dir"
+    exit 1
+  fi
+
+  holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+
+  # Check if the application is in a subdirectory
+  if [ ! -d "$holohub_app_source" ]; then
+    sub_app_path=$(find ${SCRIPT_DIR}/applications -type d -name "${appname}")
+    app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
+    if [[ -n "$app_rel_path" ]]; then
+      holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
+    else
+      echo "Could not find subproject ${appname}"
+      exit 1
+    fi
+  fi
+
+  echo -n "${holohub_app_source}"
+}
+
+get_app_source_lang_dir() {
+  # Get source path for a given application language implementation according to HoloHub convention.
+  # If a project defines more than one language implementation it must define one subfolder per language,
+  # otherwise the implementation may be provided at the top level or in a subfolder at the contributor's discretion.
+  # Usage: ./run get_app_source_lang_dir <app_name> <language>
+  local appname="$1"
+  local language="$2"
+
+  local holohub_app_source=$(get_app_source_root_dir "${appname}")
+  if [[ -n "${holohub_app_source}" ]] && [[ -d "${holohub_app_source}/${language}" ]]; then
+    holohub_app_source="${holohub_app_source}/${language}"
+  fi
+
+  echo -n "${holohub_app_source}"
+}
+
+get_app_dockerfile() {
+  # Parse the path to a custom application Dockerfile, if provided.
+  # Follows the HoloHub convention:
+  # 1. Check the metadata.json file for a "dockerfile" entry.
+  # 2. Check for a Dockerfile in the application language implementation directory.
+  # 3. Check for a Dockerfile in the root application directory.
+  # 4. Use the default Dockerfile provided at the top level of the HoloHub repository.
+  # Usage: ./run get_app_dockerfile <app_name> <language>
+  local appname="$1"
+  local language="$2"
+  local dockerfile_path=""
+
+  local app_source_root_path=$(get_app_source_root_dir ${appname})
+  local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language})
+
+  local dockerfile_entry=$(cat "${app_source_lang_path}/metadata.json" | grep "dockerfile")
+  if [[ -n "${dockerfile_entry}" ]]; then
+    pattern="s#<holohub_app_source>#${app_source_lang_path}#g"
+    dockerfile_path=$(echo "${dockerfile_entry}" | awk -F'["]' '{ print $4 }' | sed -E ${pattern})
+  elif [[ -f "${app_source_lang_path}/Dockerfile" ]]; then
+    dockerfile_path="${app_source_lang_path}/Dockerfile"
+  elif [[ -f "${app_source_root_path}/Dockerfile" ]]; then
+    dockerfile_path="${app_source_root_path}/Dockerfile"
+  else
+    dockerfile_path="${SCRIPT_DIR}/Dockerfile"
+  fi
+
+  echo -n "${dockerfile_path}"
+}
+
+get_app_default_language() {
+  # If a language was not provided but multiple are available, auto-select
+  # the first language matching the app name from the "./run list" command.
+  # Yields an empty string if a language folder is not specified.
+  # Example `list` string:
+  # ultrasound_segmentation (cpp) [Sample Application]
+  # Usage: ./run get_app_default_language <app_name>
+  appname="$1"
+
+  if [ -z "${language}" ]; then
+    language=$(list | grep -m 1 ${appname} | awk -F'[\\(\\)]' '{print $2}')
+  fi
+
+  echo -e "${language}"
 }
 
 
@@ -552,7 +641,7 @@ build() {
   cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
 
   # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR=${SCRIPT_DIR}/data"
+  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
@@ -617,39 +706,24 @@ launch() {
 
    local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
    local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
 
-   # Check if the application is in a subdirectory
-   if [ ! -d "$holohub_app_source" ]; then
-     sub_app=$(find ${SCRIPT_DIR}/applications -type d -name "${appname}")
-     appname=${sub_app#"${SCRIPT_DIR}/applications/"}
-     if [[ "$appname" != "" ]]; then
-       holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
-     fi
-   fi
-
-   local holohub_app_bin="${holohub_build_dir}/applications/${appname}"
-   local metadata_file="${holohub_app_source}/metadata.json"
-
-   # If a language was not provided but multiple are available, auto-select
-   # the first language matching the app name from the "./run list" command.
-   # Yields an empty string if a language folder is not specified.
-   # Example `list` string:
-   # ultrasound_segmentation (cpp) [Sample Application]
-   if [ -z "${language}" ]; then
-     language=$(list | grep -m 1 ${appname} | awk -F'[\\(\\)]' '{print $2}')
-     if [[ "${language}" ]]; then
+   if [[ -z "${language}" ]]; then
+     language=$(get_app_default_language "${appname}")
+     language=${language:-cpp}
+     if [[ -n "${language}" ]]; then
        echo "Default language for ${appname} selected: ${language}"
      fi
    fi
 
-   if [[ "${language}" ]]; then
-     metadata_file="${holohub_app_source}/${language}/metadata.json"
-     holohub_app_bin="${holohub_build_dir}/applications/${appname}/${language}"
-     holohub_app_source="${SCRIPT_DIR}/applications/${appname}/${language}"
+   holohub_app_source=$(get_app_source_lang_dir "${appname}" "${language}")
+   if [[ -z "${holohub_app_source}" ]]; then
+     print_error "Could not find app source directory for ${appname} ${language}."
+     launch_desc
+     exit 1
    fi
 
    # Check if the metadata file exists
+   local metadata_file="${holohub_app_source}/metadata.json"
    if [ ! -f "$metadata_file" ]; then
      print_error "The metadata file for this application does not exist."
      echo "File: ${metadata_file} not found"
@@ -657,6 +731,7 @@ launch() {
      exit 1
    fi
 
+   holohub_app_bin="${holohub_build_dir}/${holohub_app_source#"$SCRIPT_DIR/"}"
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
