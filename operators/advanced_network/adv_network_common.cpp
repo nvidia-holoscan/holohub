@@ -97,8 +97,20 @@ void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst) {
   adv_net_free_cpu_pkts_and_burst(burst.get());
 }
 
-void adv_net_format_eth_addr(char *dst, std::string addr) {
-  g_ano_mgr->format_eth_addr(dst, addr);
+void adv_net_format_eth_addr(uint8_t *dst, std::string addr) {
+  std::istringstream iss(addr);
+  std::string byteString;
+
+  uint8_t byte_cnt = 0;
+  while (std::getline(iss, byteString, ':')) {
+    if (byteString.length() == 2) {
+        uint16_t byte = std::stoi(byteString, nullptr, 16);
+        dst[byte_cnt++] = static_cast<uint8_t>(byte);
+    } else {
+      HOLOSCAN_LOG_ERROR("Invalid MAC address format: {}", addr);
+      dst[0] = 0x00;
+    }
+  }
 }
 
 bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
@@ -120,13 +132,13 @@ AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst) 
 
 AdvNetStatus adv_net_set_cpu_eth_hdr(AdvNetBurstParams *burst,
                                       int idx,
-                                      char *dst_addr) {
+                                      uint8_t *dst_addr) {
   return g_ano_mgr->set_cpu_eth_hdr(burst, idx, dst_addr);
 }
 
 AdvNetStatus adv_net_set_cpu_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
                                       int idx,
-                                      char *dst_addr) {
+                                      uint8_t *dst_addr) {
   return adv_net_set_cpu_eth_hdr(burst.get(), idx, dst_addr);
 }
 

@@ -139,10 +139,10 @@ AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *    SUCCESS: Packet populated successfully
  */
 AdvNetStatus adv_net_set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      char *dst_addr);
+                                      uint8_t *dst_addr);
 AdvNetStatus adv_net_set_cpu_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
                                       int idx,
-                                      char *dst_addr);
+                                      uint8_t *dst_addr);
 
 /**
  * @brief Set IPv4 header in CPU-only packet
@@ -373,7 +373,7 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @param dst Destination buffer
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
-void adv_net_format_eth_addr(char *dst, std::string addr);
+void adv_net_format_eth_addr(uint8_t *dst, std::string addr);
 
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
 
@@ -420,6 +420,11 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
     try {
       input_spec.common_.version        = node["version"].as<int32_t>();
       input_spec.common_.master_core_   = node["master_core"].as<int32_t>();
+      try {
+        input_spec.common_.mgr_         = node["manager"].as<std::string>();
+      } catch (const std::exception& e) {
+        input_spec.common_.mgr_         = "dpdk";  // Use DPDK as the default
+      }
 
       try {
         const auto &rx = node["rx"];

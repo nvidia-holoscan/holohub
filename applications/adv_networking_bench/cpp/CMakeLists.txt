@@ -30,6 +30,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(MatX)
 
 add_executable(adv_networking_bench
+  kernels.cu
   main.cpp
 )
 
@@ -42,19 +43,11 @@ target_link_libraries(adv_networking_bench
 )
 
 # Copy config file
-add_custom_target(adv_networking_bench_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx.yaml"
-)
-add_custom_target(adv_networking_bench_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx.yaml"
-)
-add_custom_target(adv_networking_bench_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_tx_rx.yaml"
+add_custom_target(adv_networking_bench_default_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml"
 )
 
-add_dependencies(adv_networking_bench adv_networking_bench_rx_yaml adv_networking_bench_tx_yaml adv_networking_bench_tx_rx_yaml)
+add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
 

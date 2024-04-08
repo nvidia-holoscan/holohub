@@ -1367,7 +1367,7 @@ AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams *burst) {
 
 AdvNetStatus DpdkMgr::set_cpu_eth_hdr(AdvNetBurstParams *burst,
                                       int idx,
-                                      char *dst_addr) {
+                                      uint8_t *dst_addr) {
   auto mbuf = reinterpret_cast<rte_mbuf*>(burst->cpu_pkts[idx]);
   auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
   memcpy(reinterpret_cast<void*>(&mbuf_data->eth.dst_addr),
@@ -1558,10 +1558,6 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams *burst) {
   }
 
   return AdvNetStatus::SUCCESS;
-}
-
-void DpdkMgr::format_eth_addr(char *dst, std::string addr) {
-  rte_ether_unformat_addr(addr.c_str(), reinterpret_cast<struct rte_ether_addr *>(dst));
 }
 
 void DpdkMgr::shutdown() {

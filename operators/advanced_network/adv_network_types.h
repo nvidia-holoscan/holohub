@@ -164,6 +164,7 @@ struct FlowConfig {
 struct CommonConfig {
   int version;
   int master_core_;
+  std::string mgr_;
   AdvNetDirection dir;
 };
 
@@ -204,6 +205,22 @@ auto adv_net_get_rx_tx_cfg_en(const Config &config) {
   }
 
   return std::make_tuple(rx, tx);
+}
+
+template <typename Config>
+std::string adv_net_get_manager(const Config &config) {
+  auto& yaml_nodes = config.yaml_nodes();
+  for (const auto &yaml_node : yaml_nodes) {
+    try {
+      auto node = yaml_node["advanced_network"]["cfg"];
+      return node["manager"].template as<std::string>();
+    }
+    catch (const std::exception& e) {
+      return "default";
+    }
+  }
+
+  return "default";
 }
 
 };  // namespace holoscan::ops
