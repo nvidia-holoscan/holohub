@@ -16,6 +16,7 @@ We expect that an application contributed to HoloHub conforms to the following o
 
 - Each project must provide a `metadata.json` file reflecting several key components such as the application name and description, authors, dependencies, and the primary project language. 
 - Each project must provide a `README` or `README.md` file.
+  - We strongly recommend that the project `README` file provides at least the information given in the [template README](./template/README.md.template), including the project description and a splash image.
 - Each project must be organized in its own subfolder under `holohub/applications/`.
 
 See the [HoloHub application template](./template/) for example `README` and `metadata.json` documents to get started.
