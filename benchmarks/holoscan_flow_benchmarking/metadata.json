@@ -1,5 +1,5 @@
 {
-	"tutorial": {
+	"benchmark": {
 		"name": "Holoscan Flow Benchmarking",
 		"description": "This is a benchmarking tool to evaluate the performance of HoloHub and other Holoscan applications.",
 		"authors": [
