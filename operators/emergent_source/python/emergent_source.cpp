@@ -91,7 +91,13 @@ PYBIND11_MODULE(_emergent_source, m) {
 
   py::class_<EmergentSourceOp, PyEmergentSourceOp, GXFOperator, std::shared_ptr<EmergentSourceOp>>(
       m, "EmergentSourceOp", doc::EmergentSourceOp::doc_EmergentSourceOp)
-      .def(py::init<Fragment*, const py::args&, uint32_t, uint32_t, uint32_t, bool, const std::string&>(),
+      .def(py::init<Fragment*,
+                    const py::args&,
+                    uint32_t,
+                    uint32_t,
+                    uint32_t,
+                    bool,
+                    const std::string&>(),
            "fragment"_a,
            // defaults values here should match constexpr values in C++ EmergentSourceOp::Setup
            "width"_a = 4200,

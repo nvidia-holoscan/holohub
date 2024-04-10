@@ -59,8 +59,8 @@ class PyQCAPSourceOp : public QCAPSourceOp {
   PyQCAPSourceOp(Fragment* fragment, const py::args& args,
                  const std::string& device = "SC0710 PCI"s, uint32_t channel = 0,
                  uint32_t width = 3840, uint32_t height = 2160, uint32_t framerate = 60,
-                 bool rdma = true, const std::string & pixel_format = "bgr24"s,
-                 const std::string & input_type = "auto"s, uint32_t mst_mode = 0,
+                 bool rdma = true, const std::string& pixel_format = "bgr24"s,
+                 const std::string& input_type = "auto"s, uint32_t mst_mode = 0,
                  uint32_t sdi12g_mode = 0, const std::string& name = "qcap_source")
       : QCAPSourceOp(ArgList{Arg{"device", device},
                              Arg{"channel", channel},
@@ -71,8 +71,7 @@ class PyQCAPSourceOp : public QCAPSourceOp {
                              Arg{"pixel_format", pixel_format},
                              Arg{"input_type", input_type},
                              Arg{"mst_mode", mst_mode},
-                             Arg{"sdi12g_mode", sdi12g_mode}
-                             }) {
+                             Arg{"sdi12g_mode", sdi12g_mode}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

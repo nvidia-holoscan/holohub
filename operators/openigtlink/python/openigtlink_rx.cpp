@@ -46,13 +46,9 @@ class PyOpenIGTLinkRxOp : public OpenIGTLinkRxOp {
   using OpenIGTLinkRxOp::OpenIGTLinkRxOp;
 
   // Define a constructor that fully initializes the object.
-  PyOpenIGTLinkRxOp(
-      Fragment* fragment, const py::args& args,
-      std::shared_ptr<Allocator> allocator,
-      int port = 0,
-      const std::string& out_tensor_name = std::string(""),
-      bool flip_width_height = true,
-      const std::string& name = "openigtlink_rx")
+  PyOpenIGTLinkRxOp(Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> allocator,
+                    int port = 0, const std::string& out_tensor_name = std::string(""),
+                    bool flip_width_height = true, const std::string& name = "openigtlink_rx")
       : OpenIGTLinkRxOp(ArgList{Arg{"allocator", allocator},
                                 Arg{"port", port},
                                 Arg{"out_tensor_name", out_tensor_name},
@@ -64,7 +60,6 @@ class PyOpenIGTLinkRxOp : public OpenIGTLinkRxOp {
     setup(*spec_.get());
   }
 };
-
 
 PYBIND11_MODULE(_openigtlink_rx, m) {
   m.doc() = R"pbdoc(
@@ -83,13 +78,8 @@ PYBIND11_MODULE(_openigtlink_rx, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<OpenIGTLinkRxOp,
-             PyOpenIGTLinkRxOp,
-             Operator,
-             std::shared_ptr<OpenIGTLinkRxOp>>(
-      m,
-      "OpenIGTLinkRxOp",
-      doc::OpenIGTLinkRxOp::doc_OpenIGTLinkRxOp)
+  py::class_<OpenIGTLinkRxOp, PyOpenIGTLinkRxOp, Operator, std::shared_ptr<OpenIGTLinkRxOp>>(
+      m, "OpenIGTLinkRxOp", doc::OpenIGTLinkRxOp::doc_OpenIGTLinkRxOp)
       .def(py::init<Fragment*,
                     const py::args&,
                     std::shared_ptr<Allocator>,
@@ -104,10 +94,7 @@ PYBIND11_MODULE(_openigtlink_rx, m) {
            "flip_width_height"_a = true,
            "name"_a = "openigtlink_rx"s,
            doc::OpenIGTLinkRxOp::doc_OpenIGTLinkRxOp_python)
-      .def("setup",
-           &OpenIGTLinkRxOp::setup,
-           "spec"_a,
-           doc::OpenIGTLinkRxOp::doc_setup);
+      .def("setup", &OpenIGTLinkRxOp::setup, "spec"_a, doc::OpenIGTLinkRxOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 
 }  // namespace holoscan::ops
