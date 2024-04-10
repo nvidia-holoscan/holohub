@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -43,8 +44,10 @@ class PyProhawkOp : public ProhawkOp {
  public:
   using ProhawkOp::ProhawkOp;
 
-  explicit PyProhawkOp(Fragment* fragment, const std::string& name = "prohawk_video_processing")
+  explicit PyProhawkOp(Fragment* fragment, const py::args& args,
+                       const std::string& name = "prohawk_video_processing")
       : ProhawkOp() {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -71,7 +74,7 @@ PYBIND11_MODULE(_prohawk_video_processing, m) {
 
   py::class_<ProhawkOp, PyProhawkOp, Operator, std::shared_ptr<ProhawkOp>>(
       m, "ProhawkOp", doc::ProhawkOp::doc_ProhawkOp)
-      .def(py::init<Fragment*, const std::string&>(),
+      .def(py::init<Fragment*, const py::args&, const std::string&>(),
            "fragment"_a,
            "name"_a = "prohawk_video_processing"s,
            doc::ProhawkOp::doc_ProhawkOp_python)

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@
 
 #include "./pydoc.hpp"
 
+#include "../../operator_util.hpp"
 #include "holoscan/core/fragment.hpp"
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
@@ -60,7 +61,8 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
   using orsi::FormatConverterOp::FormatConverterOp;
 
   // Define a constructor that fully initializes the object.
-  PyOrsiFormatConverterOp(Fragment* fragment, std::shared_ptr<holoscan::Allocator> allocator,
+  PyOrsiFormatConverterOp(Fragment* fragment, const py::args& args,
+                          std::shared_ptr<holoscan::Allocator> allocator,
                           const std::string& out_dtype, const std::string& in_dtype = "",
                           const std::string& in_tensor_name = "",
                           const std::string& out_tensor_name = "", float scale_min = 0.f,
@@ -85,6 +87,7 @@ class PyOrsiFormatConverterOp : public orsi::FormatConverterOp {
                                         Arg{"output_img_size", output_img_size},
                                         Arg{"allocator", allocator}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -117,6 +120,7 @@ PYBIND11_MODULE(_orsi_format_converter, m) {
              std::shared_ptr<orsi::FormatConverterOp>>(
       m, "OrsiFormatConverterOp", doc::OrsiFormatConverterOp::doc_OrsiFormatConverterOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::shared_ptr<holoscan::Allocator>,
                     const std::string&,
                     const std::string&,

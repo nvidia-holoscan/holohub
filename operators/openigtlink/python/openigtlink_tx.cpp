@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -46,7 +47,7 @@ class PyOpenIGTLinkTxOp : public OpenIGTLinkTxOp {
 
   // Define a constructor that fully initializes the object.
   PyOpenIGTLinkTxOp(
-      Fragment* fragment,
+      Fragment* fragment, const py::args& args,
       std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
       const std::string& host_name = std::string(""),
       int port = 0,
@@ -58,6 +59,7 @@ class PyOpenIGTLinkTxOp : public OpenIGTLinkTxOp {
                                 Arg{"device_name", device_name},
                                 Arg{"input_names", input_names}}) {
     if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -91,6 +93,7 @@ PYBIND11_MODULE(_openigtlink_tx, m) {
       "OpenIGTLinkTxOp",
       doc::OpenIGTLinkTxOp::doc_OpenIGTLinkTxOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::vector<holoscan::IOSpec*>,
                     const std::string&,
                     int,
