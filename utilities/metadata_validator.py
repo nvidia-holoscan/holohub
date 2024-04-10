@@ -103,5 +103,14 @@ if __name__ == "__main__":
     exit_code_tutorials = validate_json_directory(
         "tutorials", ignore_patterns=["template"], metadata_is_required=False
     )
+    exit_code_benchmarks = validate_json_directory("benchmarks")
 
-    sys.exit(max(exit_code_op, exit_code_extensions, exit_code_applications, exit_code_tutorials))
+    sys.exit(
+        max(
+            exit_code_op,
+            exit_code_extensions,
+            exit_code_applications,
+            exit_code_tutorials,
+            exit_code_benchmarks,
+        )
+    )
