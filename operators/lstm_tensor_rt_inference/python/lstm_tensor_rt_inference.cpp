@@ -101,7 +101,6 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
   }
 };
 
-
 PYBIND11_MODULE(_lstm_tensor_rt_inference, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings

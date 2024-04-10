@@ -91,7 +91,6 @@ class PyToolTrackingPostprocessorOp : public ToolTrackingPostprocessorOp {
   }
 };
 
-
 PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings

@@ -31,7 +31,6 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
 
-
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
 

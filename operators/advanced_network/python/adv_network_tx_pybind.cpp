@@ -31,7 +31,6 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
 
-
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
 
@@ -86,14 +85,9 @@ PYBIND11_MODULE(_advanced_network_tx, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<AdvNetworkOpTx,
-             PyAdvNetworkOpTx,
-             Operator,
-             std::shared_ptr<AdvNetworkOpTx>>(
+  py::class_<AdvNetworkOpTx, PyAdvNetworkOpTx, Operator, std::shared_ptr<AdvNetworkOpTx>>(
       m, "AdvNetworkOpTx", doc::AdvNetworkOpTx::doc_AdvNetworkOpTx)
-      .def(py::init<Fragment*,
-                    const py::args&,
-                    const std::string&>(),
+      .def(py::init<Fragment*, const py::args&, const std::string&>(),
            "fragment"_a,
            "name"_a = "advanced_network_tx"s,
            doc::AdvNetworkOpTx::doc_AdvNetworkOpTx_python)
