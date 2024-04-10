@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -46,7 +47,7 @@ class PyOpenIGTLinkRxOp : public OpenIGTLinkRxOp {
 
   // Define a constructor that fully initializes the object.
   PyOpenIGTLinkRxOp(
-      Fragment* fragment,
+      Fragment* fragment, const py::args& args,
       std::shared_ptr<Allocator> allocator,
       int port = 0,
       const std::string& out_tensor_name = std::string(""),
@@ -56,6 +57,7 @@ class PyOpenIGTLinkRxOp : public OpenIGTLinkRxOp {
                                 Arg{"port", port},
                                 Arg{"out_tensor_name", out_tensor_name},
                                 Arg{"flip_width_height", flip_width_height}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -89,6 +91,7 @@ PYBIND11_MODULE(_openigtlink_rx, m) {
       "OpenIGTLinkRxOp",
       doc::OpenIGTLinkRxOp::doc_OpenIGTLinkRxOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::shared_ptr<Allocator>,
                     int,
                     const std::string&,

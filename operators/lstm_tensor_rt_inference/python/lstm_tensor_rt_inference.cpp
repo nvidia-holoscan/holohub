@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -58,7 +59,7 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
 
   // Define a constructor that fully initializes the object.
   PyLSTMTensorRTInferenceOp(
-      Fragment* fragment, const std::vector<std::string>& input_tensor_names,
+      Fragment* fragment, const py::args& args, const std::vector<std::string>& input_tensor_names,
       const std::vector<std::string>& output_tensor_names,
       const std::vector<std::string>& input_binding_names,
       const std::vector<std::string>& output_binding_names, const std::string& model_file_path,
@@ -92,6 +93,7 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
                                         Arg{"relaxed_dimension_check", relaxed_dimension_check},
                                         Arg{"max_workspace_size", max_workspace_size},
                                         Arg{"max_batch_size", max_batch_size}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -123,6 +125,7 @@ PYBIND11_MODULE(_lstm_tensor_rt_inference, m) {
              std::shared_ptr<LSTMTensorRTInferenceOp>>(
       m, "LSTMTensorRTInferenceOp", doc::LSTMTensorRTInferenceOp::doc_LSTMTensorRTInferenceOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     const std::vector<std::string>&,
                     const std::vector<std::string>&,
                     const std::vector<std::string>&,

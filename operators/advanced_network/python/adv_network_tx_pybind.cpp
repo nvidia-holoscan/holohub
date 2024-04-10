@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/gxf/gxf_operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -57,9 +58,10 @@ class PyAdvNetworkOpTx : public AdvNetworkOpTx {
   using AdvNetworkOpTx::AdvNetworkOpTx;
 
   // Define a constructor that fully initializes the object.
-  PyAdvNetworkOpTx(Fragment* fragment,
-                        const std::string& name = "advanced_network_tx") {
+  PyAdvNetworkOpTx(Fragment* fragment, const py::args& args,
+                   const std::string& name = "advanced_network_tx") {
     this->add_arg(fragment->from_config("advanced_network"));
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -90,6 +92,7 @@ PYBIND11_MODULE(_advanced_network_tx, m) {
              std::shared_ptr<AdvNetworkOpTx>>(
       m, "AdvNetworkOpTx", doc::AdvNetworkOpTx::doc_AdvNetworkOpTx)
       .def(py::init<Fragment*,
+                    const py::args&,
                     const std::string&>(),
            "fragment"_a,
            "name"_a = "advanced_network_tx"s,

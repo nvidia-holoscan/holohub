@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/gxf/gxf_operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -57,7 +58,8 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
   using VisualizerICardioOp::VisualizerICardioOp;
 
   // Define a constructor that fully initializes the object.
-  PyVisualizerICardioOp(Fragment* fragment, std::shared_ptr<::holoscan::Allocator> allocator,
+  PyVisualizerICardioOp(Fragment* fragment, const py::args& args,
+                        std::shared_ptr<::holoscan::Allocator> allocator,
                         const std::vector<std::string>& in_tensor_names = {std::string("")},
                         const std::vector<std::string>& out_tensor_names = {std::string("")},
                         bool input_on_cuda = false,
@@ -68,6 +70,7 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
                                     Arg{"in_tensor_names", in_tensor_names},
                                     Arg{"out_tensor_names", out_tensor_names},
                                     Arg{"input_on_cuda", input_on_cuda}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -98,6 +101,7 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
              std::shared_ptr<VisualizerICardioOp>>(
       m, "VisualizerICardioOp", doc::VisualizerICardioOp::doc_VisualizerICardioOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::shared_ptr<::holoscan::Allocator>,
                     const std::vector<std::string>&,
                     const std::vector<std::string>&,
