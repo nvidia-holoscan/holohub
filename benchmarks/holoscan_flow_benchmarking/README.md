@@ -32,13 +32,13 @@ has following [dependencies](https://github.com/jrfonseca/xdot.py?tab=readme-ov-
 1. **Patch the application for benchmarking**
 
 ```
-$ ./tutorials/holoscan_flow_benchmarking/patch_application.sh <application directory>
+$ ./benchmarks/holoscan_flow_benchmarking/patch_application.sh <application directory>
 ```
 
 For example, to patch the endoscopy tool tracking application, you would run:
 
 ```
-$ ./tutorials/holoscan_flow_benchmarking/patch_application.sh applications/endoscopy_tool_tracking
+$ ./benchmarks/holoscan_flow_benchmarking/patch_application.sh applications/endoscopy_tool_tracking
 ```
 This script saves the original `cpp` files in a `*.cpp.bak` file.
 
@@ -46,7 +46,7 @@ This script saves the original `cpp` files in a `*.cpp.bak` file.
 
 ```
 $ ./run build <application name> <other options> \
-    --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/tutorials/holoscan_flow_benchmarking
+    --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking
 ```
 
 Please make sure to test that the application runs correctly after building it, and before going to
@@ -57,14 +57,14 @@ tracking application.
 3. **Run the performance evaluation**
 
 ```
-$ python tutorials/holoscan_flow_benchmarking/benchmark.py -a <application name> <other options>
+$ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a <application name> <other options>
 ```
 
 The above command will run an application which is executed normally by 
 `./run launch <application name> cpp`. If an application is executed differently, then use the
 `--run-command` argument to specify the command to run an application.
 
-`python tutorials/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible benchmarking options.
+`python benchmarks/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible benchmarking options.
 
 All the log filenames are printed out at the end of the evaluation. The format of the filename for the data flow tracking log files is:
 `logger_<scheduler>_<run_number>_<instance-id>.log`. The format of the filename for the GPU
@@ -74,7 +74,7 @@ utilization log files is: `gpu_utilization_<scheduler>_<run_number>.csv`.
 When the endoscopy tool tracking application is evaluated for the greedy scheduler for 3 runs with 3
 instances each for 200 number of data frames, the following output is printed:
 ```
-$ python tutorials/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -r 3 -i 3 -m 200 --sched greedy -d myoutputs
+$ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -r 3 -i 3 -m 200 --sched greedy -d myoutputs
 Log directory is not found. Creating a new directory at /home/ubuntu/holoscan-sdk/holohub-internal/myoutputs
 Run 1 completed for greedy scheduler.
 Run 2 completed for greedy scheduler.
@@ -89,16 +89,16 @@ All the data flow tracking log files are: logger_greedy_1_1.log, logger_greedy_1
 4. **Get performance results and insights**
 
 ```
-$ python tutorials/holoscan_flow_benchmarking/analyze.py -g <group of log files> <options>
+$ python benchmarks/holoscan_flow_benchmarking/analyze.py -g <group of log files> <options>
 ```
-`python tutorials/holoscan_flow_benchmarking/analyze.py -h` shows all the possible options.
+`python benchmarks/holoscan_flow_benchmarking/analyze.py -h` shows all the possible options.
 
 **Example:**
 For the above example experiment with the `benchmark.py` script, we can analyze worst-case and
 average end-to-end latency by the following script:
 
 ```
-python tutorials/holoscan_flow_benchmarking/analyze.py -m -a -g myoutputs/logger_greedy_* MyCustomGroup
+python benchmarks/holoscan_flow_benchmarking/analyze.py -m -a -g myoutputs/logger_greedy_* MyCustomGroup
 ```
 The above command will produce an output like below:
 
@@ -107,7 +107,7 @@ The above command will produce an output like below:
 We can also produce CDF curve of the observed latencies for a single path by the following commands:
 
 ```
-$ python tutorials/holoscan_flow_benchmarking/analyze.py --draw-cdf single_path_cdf.png -g myoutputs/logger_greedy_* MyCustomGroup --no-display-graphs
+$ python benchmarks/holoscan_flow_benchmarking/analyze.py --draw-cdf single_path_cdf.png -g myoutputs/logger_greedy_* MyCustomGroup --no-display-graphs
 Saved the CDF curve graph of the first path of each group in: single_path_cdf.png
 ```
 
@@ -130,7 +130,7 @@ python bar_plot_avg_datewise.py avg_values_2023-10-19.csv avg_values_2023-10-20.
 If benchmarking is not necessary anymore, an application can be restored by the following command:
 
 ```
-$ ./tutorials/holoscan_flow_benchmarking/restore_application.sh <application directory>
+$ ./benchmarks/holoscan_flow_benchmarking/restore_application.sh <application directory>
 ```
 
 ## Generate Application Graph with Latency Numbers
@@ -149,11 +149,11 @@ application.
 
 ```
 # the following command initiates a benchmarking job and generates performance log files
-$ python3 tutorials/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -i 1 -d endoscopy_results --sched=greedy -r 3 -m 1000
+$ python3 benchmarks/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -i 1 -d endoscopy_results --sched=greedy -r 3 -m 1000
 
 # the following command keeps updating an application graph with the latest performance numbers
 # -l means live mode
-$ python3 tutorials/holoscan_flow_benchmarking/app_perf_graph.py -o live_app_graph.dot -l endoscopy_results
+$ python3 benchmarks/holoscan_flow_benchmarking/app_perf_graph.py -o live_app_graph.dot -l endoscopy_results
 
 # use another terminal to visualize the graph with xdot. the graph will be updated as app_perf_graph.py updates the graph
 $ xdot live_app_graph.dot

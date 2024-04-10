@@ -64,5 +64,5 @@ RUN apt update \
     libgtk-3-dev \
     libcanberra-gtk-module \
     graphviz
-COPY tutorials/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
+COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt

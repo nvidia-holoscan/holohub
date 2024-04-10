@@ -109,7 +109,7 @@ if(FLOW_BENCHMARKING)
   get_target_property(ENDOSCOPY_LINK_LIBRARIES endoscopy_tool_tracking LINK_LIBRARIES)
   target_link_libraries(endoscopy_tool_tracking_flowbenchmark PRIVATE ${ENDOSCOPY_LINK_LIBRARIES})
   target_include_directories(endoscopy_tool_tracking_flowbenchmark
-                             PRIVATE "${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking")
+                             PRIVATE "${CMAKE_SOURCE_DIR}/benchmarks/holoscan_flow_benchmarking")
 
   # Check if the machine is x86_64 or aarch64. IGX is considered to be aaarch64
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
@@ -121,14 +121,14 @@ if(FLOW_BENCHMARKING)
   # Add the test
   add_test(NAME endoscopy_tool_tracking_cpp_benchmark_test
            COMMAND bash -c "for i in {1..${INSTANCES}}; do \
-            python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/benchmark.py \
+            python3 ${CMAKE_SOURCE_DIR}/benchmarks/holoscan_flow_benchmarking/benchmark.py \
               --run-command \
               \"applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_flowbenchmark --data ${HOLOHUB_DATA_DIR}/endoscopy\" \
               -i $i -r 5 -m 1000 -u --sched greedy \
               -d ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_$i;\
            done; \
            if [ ${INSTANCES} -eq 5 ]; then \
-              python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
+              python3 ${CMAKE_SOURCE_DIR}/benchmarks/holoscan_flow_benchmarking/analyze.py \
                 --cdash --save-csv --max --avg --stddev --median --min --tail --flatness -p 90 95 99 99.9\
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_1/logger_greedy_* EndoscopyToolTracking1 \
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_2/logger_greedy_* EndoscopyToolTracking2 \
@@ -136,14 +136,14 @@ if(FLOW_BENCHMARKING)
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_4/logger_greedy_* EndoscopyToolTracking4 \
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_5/logger_greedy_* EndoscopyToolTracking5;\
           else \
-              python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/analyze.py \
+              python3 ${CMAKE_SOURCE_DIR}/benchmarks/holoscan_flow_benchmarking/analyze.py \
               --cdash --save-csv --max --avg --stddev --median --min --tail --flatness -p 90 95 99 99.9\
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_1/logger_greedy_* EndoscopyToolTracking1 \
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_2/logger_greedy_* EndoscopyToolTracking2 \
                 -g ${FLOW_BENCHMARK_DIR}/endoscopy_tool_tracking_3/logger_greedy_* EndoscopyToolTracking3;\
           fi; \
           for f in *.csv; do \
-          python3 ${CMAKE_SOURCE_DIR}/tutorials/holoscan_flow_benchmarking/generate_bar_graph.py $f;\
+          python3 ${CMAKE_SOURCE_DIR}/benchmarks/holoscan_flow_benchmarking/generate_bar_graph.py $f;\
           done
             "
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
