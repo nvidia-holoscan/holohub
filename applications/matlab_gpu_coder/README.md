@@ -66,7 +66,7 @@ Define the environment variable:
 export MATLAB_ROOT="/usr/local/MATLAB"
 export MATLAB_VERSION="R2023b"
 ```
-where you replace the path with the location of your MATLAB install.
+where you, if need be, replace `MATLAB_ROOT` with the location of your MATLAB install and `MATLAB_VERSION` with the correct version.
 
 Next, run the HoloHub Docker container:
 ```sh
