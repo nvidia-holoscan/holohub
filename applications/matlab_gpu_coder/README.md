@@ -63,18 +63,17 @@ docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu
 
 Define the environment variable:
 ```sh
-export MATLAB_ROOT=/usr/local/MATLAB/R2023b
+export MATLAB_ROOT="/usr/local/MATLAB"
+export MATLAB_VERSION="R2023b"
 ```
 where you replace the path with the location of your MATLAB install.
 
 Next, run the HoloHub Docker container:
 ```sh
-./dev_container launch --img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu --add-volume ${MATLAB_ROOT}
-```
-
-Inside the container, define the environment variable (update the MATLAB version if needed):
-```sh
-export MATLAB_ROOT=/workspace/volumes/R2023b
+./dev_container launch \
+    --img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu \
+    --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
+    --docker_opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
 
 #### arm64: Jetson
@@ -82,16 +81,16 @@ export MATLAB_ROOT=/workspace/volumes/R2023b
 The folder `MATLAB_ws`, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the `codegen` folder in the `matlab_gpu_coder/CMakeLists.txt`, in order for the build to find the required libraries. Set the variable `REL_PTH_MATLAB_CODEGEN` to the relative path where the `codegen` folder is located in the `MATLAB_ws` folder. For example, if GPU Coder created the following folder structure on the Jetson device:
 ```sh
 matlab_gpu_coder
-├── MATLAB_ws
-    ├── R2023b
-        ├── C
-            ├── Users
-                ├── Jensen
-                    ├── holohub
-                        ├── applications
-                            ├── matlab_gpu_coder
-                                ├── matlab
-                                    ├── codegen
+└── MATLAB_ws
+    └── R2023b
+        └── C
+            └── Users
+                └── Jensen
+                    └── holohub
+                        └── applications
+                            └── matlab_gpu_coder
+                                └── matlab
+                                    └── codegen
 ```
 the variable should be set as:
 ```sh
