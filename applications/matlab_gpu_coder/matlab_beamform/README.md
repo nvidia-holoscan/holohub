@@ -20,6 +20,10 @@ matlab_beamform
 
 ## Generate Simulated Data
 
+The required MATLAB Toolboxes are:
+* [Phased Array System Toolbox](https://uk.mathworks.com/products/phased-array.html)
+* [Communications Toolbox](https://uk.mathworks.com/products/communications.html)
+
 Simply run the script `matlab/generate_data.mlx` from MATLAB and a binary file `ultrasound_beamforming.bin` will be written to a top-level `data` folder. The binary file contains the simulated ultrasound data, prior to beamforming.
 
 ## Generate CUDA Code with MATLAB GPU Coder
