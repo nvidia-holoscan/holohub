@@ -97,8 +97,7 @@ PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
         .. currentmodule:: _tool_tracking_postprocessor
         .. autosummary::
            :toctree: _generate
-           add
-           subtract
+           ToolTrackingPostprocessorOp
     )pbdoc";
 
 #ifdef VERSION_INFO
@@ -113,7 +112,7 @@ PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
              std::shared_ptr<ToolTrackingPostprocessorOp>>(
       m,
       "ToolTrackingPostprocessorOp",
-      doc::ToolTrackingPostprocessorOp::doc_ToolTrackingPostprocessorOp)
+      doc::ToolTrackingPostprocessorOp::doc_ToolTrackingPostprocessorOp_python)
       .def(py::init<Fragment*,
                     const py::args&,
                     std::shared_ptr<Allocator>,

@@ -26,10 +26,6 @@ namespace holoscan::doc {
 
 namespace ToolTrackingPostprocessorOp {
 
-PYDOC(ToolTrackingPostprocessorOp, R"doc(
-Operator performing post-processing for the endoscopy tool tracking demo.
-)doc")
-
 // PyToolTrackingPostprocessorOp Constructor
 PYDOC(ToolTrackingPostprocessorOp_python, R"doc(
 Operator performing post-processing for the endoscopy tool tracking demo.
