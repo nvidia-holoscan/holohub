@@ -51,7 +51,7 @@ ARGS{1}{4} = coder.typeof(single(0),[1 6494],'Gpu',true);
 cfg.Hardware = coder.hardware('NVIDIA Jetson');
 % Specify build directory on device
 % The dll folder of this build directory is what should be pointed to in the CMakeLists.txt
-cfg.Hardware.BuildDir = '<ABSOLUTE_PATH>/holohub/applications/matlab_gpu_coder';
+cfg.Hardware.BuildDir = '<ABSOLUTE_PATH>/holohub/applications/matlab_gpu_coder/matlab_beamform';
 
 % Invoke MATLAB Coder
 codegen -config cfg matlab_beamform -args ARGS{1}
