@@ -25,25 +25,10 @@ cfg.GenerateReport = true;
 cfg.ReportPotentialDifferences = false;
 
 % Define argument types for entry-point
-ARGS = cell(1,1);
-ARGS{1} = cell(4,1);
-ARGS{1}{1} = coder.typeof(single(1i),[6494 4000],'Gpu',true);
-ARGS_1_2 = struct;
-ARGS_1_2.c = coder.typeof(0);
-ARGS_1_2.fc = coder.typeof(0);
-ARGS_1_2.rangeRes = coder.typeof(0);
-ARGS_1_2.alongTrackRes = coder.typeof(0);
-ARGS_1_2.Bw = coder.typeof(0);
-ARGS_1_2.prf = coder.typeof(0);
-ARGS_1_2.speed = coder.typeof(0);
-ARGS_1_2.aperture = coder.typeof(0);
-ARGS_1_2.Tpd = coder.typeof(0);
-ARGS_1_2.fs = coder.typeof(0);
-ARGS{1}{2} = coder.typeof(ARGS_1_2);
-ARGS{1}{3} = coder.typeof(single(0),[1 4000],'Gpu',true);
-ARGS{1}{4} = coder.typeof(single(0),[1 6494],'Gpu',true);
+in1 = coder.typeof(uint8(0),[480 854 3],'Gpu',true);
+in2 = coder.typeof(single(0));
 
 cfg.Hardware = coder.hardware('MATLAB Host Computer');
 
 % Invoke MATLAB Coder
-codegen -config cfg matlab_image_processing -args ARGS{1} -d ../codegen/dll/matlab_image_processing
+codegen -config cfg matlab_image_processing -args {in1, in2} -d ../codegen/dll/matlab_image_processing

@@ -15,7 +15,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 set(REL_PTH_MATLAB_CODEGEN "codegen")  # Needs changing if building on Jetson
@@ -26,8 +26,8 @@ add_executable(matlab_image_processing
   main.cpp
 )
 
-add_library(matlab_beamform_lib SHARED IMPORTED)
-set_target_properties(matlab_beamform_lib
+add_library(matlab_image_processing_lib SHARED IMPORTED)
+set_target_properties(matlab_image_processing_lib
   PROPERTIES IMPORTED_LOCATION
   "${CMAKE_CURRENT_SOURCE_DIR}/${REL_PTH_MATLAB_CODEGEN}/dll/matlab_image_processing/matlab_image_processing.so"
 )
@@ -43,7 +43,7 @@ target_link_libraries(matlab_image_processing
   holoscan::core
   holoscan::ops::video_stream_replayer
   holoscan::ops::holoviz
-  matlab_beamform_lib
+  matlab_image_processing_lib
   matlab_utils
 )
 

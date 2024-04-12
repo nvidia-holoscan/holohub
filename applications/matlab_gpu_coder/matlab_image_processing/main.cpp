@@ -17,11 +17,11 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include "matlab_utils.h"
 #include "matlab_image_processing.h"
 #include "matlab_image_processing_terminate.h"
-#include "matlab_image_processing_types.h"
 
 namespace holoscan::ops {
 class MatlabImageProcessingOp : public Operator {
@@ -30,110 +30,93 @@ class MatlabImageProcessingOp : public Operator {
 
   MatlabImageProcessingOp() = default;
 
-  // Image field-of-view and windowing parameters
-  const int depth = 6494;
-  const int length = 10000;
-  const int length_window = 4000;  // window size
-  const int step_window = 40;  // how much to move the window at each update
-
-  // Beamforming parameters
-  void init_params(struct0_T *p) {
-      p->c = 1540;
-      p->fc = 3000000;
-      p->rangeRes = 0.003;
-      p->alongTrackRes = 0.003;
-      p->Bw = 2.566666666666667e+05;
-      p->prf = 500;
-      p->speed = 0.100;
-      p->aperture = 0.004;
-      p->Tpd = 3.000000000000000e-06;
-      p->fs = 10000000;
-  }
-
   void setup(OperatorSpec& spec) override {
-    auto& out_tensor = spec.output<gxf::Entity>("tensor");
+    auto& in_tensor = spec.input<gxf::Entity>("in_tensor");
+    auto& out_tensor = spec.output<gxf::Entity>("out_tensor");
+
+    spec.param(in_, "in", "Input", "Input channel.", &in_tensor);
     spec.param(out_, "out", "Output", "Output channel.", &out_tensor);
-    spec.param(out_tensor_name_,
-             "out_tensor_name",
-             "OutputTensorName",
-             "Name of the output tensor.",
-             std::string(""));
-    spec.param(path_data_, "path_data", "PathData", "Path to binary data on disk.",
+    spec.param(in_tensor_name_,
+               "in_tensor_name",
+               "InputTensorName",
+               "Name of the input tensor.",
                std::string(""));
+    spec.param(out_tensor_name_,
+               "out_tensor_name",
+               "OutputTensorName",
+               "Name of the output tensor.",
+               std::string(""));
+    // MATLAB function utput specifications
+    spec.param(out_width_, "out_width", "OutWidth", "Output width.", 0U);
+    spec.param(out_height_, "out_height", "OutHeight", "Output height.", 0U);
+    spec.param(out_channels_, "out_channels", "OutChannels", "Output number of channels.", 0U);
+    // Matlab function arguments
+    spec.param(sigma_, "sigma", "Sigma", "Smoothing kernel standard deviation.", 4.0f);
+    // Allocator/CUDA
     spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
-    cuda_stream_handler_.define_params(spec);
+    cuda_stream_handler_.defineParams(spec);
   }
 
   void start() {
-    // Init beamforming parameters
-    init_params(&params_);
-
-    // Define output shape
-    shape_.push_back(depth);
-    shape_.push_back(length_window);
-    shape_.push_back(3);
-
-    // Open binary file reader
-    std::ifstream is_(path_data_.get(), std::ios::binary);
-    if (!is_) { throw std::runtime_error("Error opening binary file"); }
-
-    // Read binary data to CUDA buffers
-    cudaMalloc(&fast_time_, sizeof(float) * depth);
-    disk2cuda_fbuffer(is_, fast_time_, depth);
-    cudaMalloc(&x_axis_, sizeof(float) * length);
-    disk2cuda_fbuffer(is_, x_axis_, length);
-    cudaMalloc(&rdata_tmp_, sizeof(float) * depth * length);
-    disk2cuda_fbuffer(is_, rdata_tmp_, depth * length);
-    cudaMalloc(&idata_tmp_, sizeof(float) * depth * length);
-    disk2cuda_fbuffer(is_, idata_tmp_, depth * length);
-
-    // Allocate window buffers
-    cudaMalloc(&x_axis_window_, sizeof(float) * length_window);
-    cudaMalloc(&data_window_, sizeof(creal32_T) * depth * length_window);
-
-    // Close file reader
-    is_.close();
+    if (out_width_.get() == 0 || out_height_.get() == 0 || out_channels_.get() == 0) {
+      throw std::runtime_error(
+          "Parameters out_width and/or out_height and/or out_channels_ not specified!");
+    }
+    // Set output tensor shapes
+    out_shape_.push_back(out_height_.get());
+    out_shape_.push_back(out_width_.get());
+    out_shape_.push_back(out_channels_.get());
   }
 
   void stop() {
-    // Free CUDA memory
-    cudaFree(fast_time_);
-    cudaFree(x_axis_);
-    cudaFree(data_);
-    cudaFree(x_axis_window_);
-    cudaFree(data_window_);
-
-    // Terminate MATLAB lib
     matlab_image_processing_terminate();
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
+    // Get input message
+    auto in_message = op_input.receive<gxf::Entity>("in_tensor").value();
+
     // Get CUDA stream
+    gxf_result_t stream_handler_result =
+        cuda_stream_handler_.from_message(context.context(), in_message);
+    if (stream_handler_result != GXF_SUCCESS) {
+      throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
+    }
     auto cuda_stream = cuda_stream_handler_.get_cuda_stream(context.context());
 
-    if (complex_data_populated_ == false) {
-      // Once: Populate complex MATLAB struct and free temporary CUDA buffers
-      cudaMalloc(&data_, sizeof(creal32_T) * depth * length);
-      cuda_populate_complex(rdata_tmp_, idata_tmp_, (void*)data_, depth * length, cuda_stream);
-      cudaStreamSynchronize(cuda_stream);
-      cudaFree(rdata_tmp_);
-      cudaFree(idata_tmp_);
-      complex_data_populated_ = true;
+    // Get input tensor
+    const std::string in_tensor_name = in_tensor_name_.get();
+    auto maybe_tensor = in_message.get<Tensor>(in_tensor_name.c_str());
+    if (!maybe_tensor) {
+      maybe_tensor = in_message.get<Tensor>();
+      if (!maybe_tensor) {
+        throw std::runtime_error(fmt::format("Tensor '{}' not found in message", in_tensor_name));
+      }
     }
+    auto in_tensor = maybe_tensor;
+    auto in_tensor_shape = in_tensor->shape();
+    std::vector<int32_t> in_shape = {
+      static_cast<int32_t>(in_tensor_shape[0]),
+      static_cast<int32_t>(in_tensor_shape[1]),
+      static_cast<int32_t>(in_tensor_shape[2])
+    };
+    nvidia::gxf::Shape out_tensor_shape = {out_shape_[0], out_shape_[1], out_shape_[2]};
 
-    // Create output message
-    auto out_message = nvidia::gxf::Entity::New(context.context());
+    // Get input tensor data
+    uint8_t* in_tensor_data = static_cast<uint8_t*>(in_tensor->data());
+    if (!in_tensor_data) { throw std::runtime_error("Failed to get in tensor data!"); }
 
     // Get allocator
     auto allocator =
       nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator_->gxf_cid());
 
     // Allocate output buffer on the device.
+    auto out_message = nvidia::gxf::Entity::New(context.context());
     auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name_.get().c_str());
     if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
     out_tensor.value()->reshape<uint8_t>(
-        nvidia::gxf::Shape{shape_}, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
+        out_tensor_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
     if (!out_tensor.value()->pointer()) {
       throw std::runtime_error("Failed to allocate output tensor buffer.");
     }
@@ -141,76 +124,53 @@ class MatlabImageProcessingOp : public Operator {
     nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
     if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
-    // Get windows of data_ and x_axis_
-    cudaMemcpy(
-      data_window_,
-      data_ + refresh_counter_ * step_window * depth,
-      depth * length_window * sizeof(creal32_T),
-      cudaMemcpyDeviceToDevice);
-
-    cudaMemcpy(
-      x_axis_window_,
-      x_axis_ + refresh_counter_ * step_window,
-      length_window * sizeof(float),
-      cudaMemcpyDeviceToDevice);
-
-    refresh_counter_ += 1;
-    if ((refresh_counter_ * step_window * depth) >= (length * depth - length_window * depth)) {
-      refresh_counter_ = 0;}
-
-    // Allocate temp output buffer on device
-    auto tmp_tensor = make_tensor(shape_, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
+    // Allocate temporary input tensor (for storing row-to-column converted data)
+    auto tmp_tensor_in = make_tensor(in_shape, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
                                   allocator.value());
-    // Get temp data
-    nvidia::gxf::Expected<uint8_t*> tmp_tensor_data = tmp_tensor->data<uint8_t>();
-    if (!tmp_tensor_data) { throw std::runtime_error("Failed to get temporary tensor data!"); }
+    nvidia::gxf::Expected<uint8_t*> tmp_tensor_in_data = tmp_tensor_in->data<uint8_t>();
+    if (!tmp_tensor_in_data) { throw std::runtime_error("Failed to get temporary tensor input data!"); }
+    // Allocate temporary output tensor (for storing column-to-row converted data)
+    auto tmp_tensor_out = make_tensor(out_shape_, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
+                                  allocator.value());
+    nvidia::gxf::Expected<uint8_t*> tmp_tensor_out_data = tmp_tensor_out->data<uint8_t>();
+    if (!tmp_tensor_out_data) { throw std::runtime_error("Failed to get temporary tensor output data!"); }
 
-    // Call MATLAB CUDA function to do beamforming
-    matlab_image_processing(data_window_, &params_, x_axis_window_, fast_time_, tmp_tensor_data.value());
-    cudaDeviceSynchronize();
+    // Convert output from row- to column-major ordering
+    cuda_hard_transpose<uint8_t>(in_tensor_data, tmp_tensor_in_data.value(), in_shape,
+                                 cuda_stream, Flip::DoNot);
+
+    // Call MATLAB CUDA function to do image processing
+    matlab_image_processing(tmp_tensor_in_data.value(), sigma_.get(), tmp_tensor_out_data.value());
+    delete tmp_tensor_in;
 
     // Convert output from column- to row-major ordering
-    cuda_hard_transpose<uint8_t>(tmp_tensor_data.value(), out_tensor_data.value(), shape_,
+    cuda_hard_transpose<uint8_t>(tmp_tensor_out_data.value(), out_tensor_data.value(), out_shape_,
                                  cuda_stream, Flip::Do);
-    cudaStreamSynchronize(cuda_stream);
-    delete tmp_tensor;
+    delete tmp_tensor_out;
+
+    // Pass the CUDA stream to the output message
+    stream_handler_result = cuda_stream_handler_.to_message(out_message);
+    if (stream_handler_result != GXF_SUCCESS) {
+      throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
+    }
 
     // Create output message
     auto result = gxf::Entity(std::move(out_message.value()));
     op_output.emit(result);
   }
 
-  void disk2cuda_fbuffer(std::ifstream& is, float* dbuffer, int numel) {
-    // Read binary data from disk and copy to device buffer
-    float* temp = new float[numel];
-    is.read(reinterpret_cast<char*>(temp), sizeof(float) * numel);
-     if (is.fail()) {
-        throw std::runtime_error("Error reading binary file");
-    } else if (is.eof()) {
-      throw std::runtime_error("Reached end of file unexpectedly");
-    }
-    cudaMemcpy(dbuffer, temp, sizeof(float) * numel, cudaMemcpyHostToDevice);
-    delete[] temp;
-  }
-
  private:
+  Parameter<holoscan::IOSpec*> in_;
   Parameter<holoscan::IOSpec*> out_;
-  Parameter<std::string> path_data_;
+  Parameter<std::string> in_tensor_name_;
   Parameter<std::string> out_tensor_name_;
+  Parameter<uint32_t> out_width_;
+  Parameter<uint32_t> out_height_;
+  Parameter<uint32_t> out_channels_;
+  Parameter<float> sigma_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
   CudaStreamHandler cuda_stream_handler_;
-  float* fast_time_;
-  float* x_axis_;
-  creal32_T* data_;
-  float* x_axis_window_;
-  creal32_T* data_window_;
-  struct0_T params_;
-  bool complex_data_populated_ = false;
-  int refresh_counter_ = 0;
-  std::ifstream is_;
-  float* rdata_tmp_;
-  float* idata_tmp_;
-  std::vector<int32_t> shape_;
+  std::vector<int32_t> out_shape_;
 };
 
 }  // namespace holoscan::ops
@@ -221,23 +181,25 @@ class MatlabImageProcessingApp : public holoscan::Application {
     using namespace holoscan;
 
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
-      make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
+        make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
     // Define operators and configure using yaml configuration
+    auto replayer = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"));
     auto matlab = make_operator<ops::MatlabImageProcessingOp>(
-      "matlab",
-      from_config("matlab"),
-      Arg("allocator") = make_resource<BlockMemoryPool>(
-        "pool", 1, 3 * 6496 * 4000, 2),
-      Arg("cuda_stream_pool") = cuda_stream_pool);
-    auto holoviz = make_operator<ops::HolovizOp>(
-      "holoviz",
-      from_config("holoviz"),
-      Arg("allocator") = make_resource<UnboundedAllocator>("pool"),
-      Arg("cuda_stream_pool") = cuda_stream_pool);
+        "matlab",
+        from_config("matlab"),
+        Arg("allocator") = make_resource<BlockMemoryPool>(
+            "pool", 1, 854 * 480 * 3 * 4, 4), /* width * height * channels * bpp */
+        Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto visualizer =
+        make_operator<ops::HolovizOp>("holoviz",
+                                      from_config("holoviz"),
+                                      Arg("allocator") = make_resource<UnboundedAllocator>("pool"),
+                                      Arg("cuda_stream_pool") = cuda_stream_pool);
 
     // Define the workflow
-    add_flow(matlab, holoviz, {{"tensor", "receivers"}});
+    add_flow(replayer, matlab, {{"output", "in_tensor"}});
+    add_flow(matlab, visualizer, {{"out_tensor", "receivers"}});
   }
 };
 

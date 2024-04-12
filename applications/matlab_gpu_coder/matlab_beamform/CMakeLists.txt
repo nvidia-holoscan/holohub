@@ -15,7 +15,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 set(REL_PTH_MATLAB_CODEGEN "codegen")  # Needs changing if building on Jetson
@@ -41,7 +41,6 @@ target_include_directories(matlab_beamform
 target_link_libraries(matlab_beamform
   PRIVATE
   holoscan::core
-  holoscan::ops::video_stream_replayer
   holoscan::ops::holoviz
   matlab_beamform_lib
   matlab_utils

@@ -14,9 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+replayer:
+  directory: "../../../../data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
 matlab:
-  path_data: "../../data/ultrasound_beamforming.bin"
+  out_width: 854
+  out_height: 480
+  out_channels: 3
+  sigma: 4
 
 holoviz:
-  width: 571  # floor(4000/7)
-  height: 928  # floor(6496/7)
+  width: 854
+  height: 480

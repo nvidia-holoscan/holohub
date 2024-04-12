@@ -13,15 +13,10 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-function out = matlab_image_processing(in, sigma) %#codegen
+clear
 
-% Map computation to GPU.
-coder.gpu.kernelfun;
-in = single(in);
-out = zeros(size(in), 'like', in);
-out(:,:,1) = imgaussfilt(in(:,:,1), sigma);
-out(:,:,2) = imgaussfilt(in(:,:,2), sigma);
-out(:,:,3) = imgaussfilt(in(:,:,3), sigma);
-out = uint8(out);
+I = imread('peppers.png');
+figure(1); imagesc(I)
 
-return
+sI = matlab_image_processing(I, 4);
+figure(2); imagesc(sI);
