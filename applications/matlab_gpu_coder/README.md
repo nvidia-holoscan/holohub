@@ -11,9 +11,6 @@ The applications have been tested on MATLAB R2023b, but should work on other ver
 The required MATLAB Toolboxes are:
 
 * [GPU Coder Toolbox](https://www.mathworks.com/products/gpu-coder.html)
-* To generate simulated data:
-    * [Phased Array System Toolbox](https://uk.mathworks.com/products/phased-array.html)
-    * [Communications Toolbox](https://uk.mathworks.com/products/communications.html)
 * To compile on Jetson devices (arm64):
     * [Embedded Coder Toolbox](https://uk.mathworks.com/products/embedded-coder.html)
     * [MATLAB Coder Support Package for NVIDIA Jetson and NVIDIA DRIVE Platforms](https://uk.mathworks.com/help/supportpkg/nvidia/)
