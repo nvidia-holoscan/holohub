@@ -49,4 +49,4 @@ Inside the container you can build the holohub suite with:
 - **`height`**: height of the renderer window.
   - type: `int`
 - **`labels`**: labels to be displayed on the rendered image.
-  - type: `int`
+  - type: `std::vector<std::string>>`
