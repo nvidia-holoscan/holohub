@@ -95,6 +95,28 @@
         "version"
       ]
     },
+    "hardware_descriptor": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": "true"
+        }
+      },
+      "required": [
+        "name",
+        "description"
+      ]
+    },
     "dependencies": {
       "type": "object",
       "properties": {
@@ -105,6 +127,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/versioned_dependency"
+          }
+        },
+        "hardware": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_descriptor"
           }
         }
       }
