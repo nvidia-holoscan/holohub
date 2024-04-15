@@ -33,7 +33,13 @@
 			"onnx": "^1.15.0",
 			"onnxruntime": "^1.16.1",
 			"Pillow": "^10.1.0",
-			"data": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation"
+			"data": [
+				{
+					"name": "Hyperspectral Tissue Classification Pre-Trained Model",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation",
+					"homepage": "https://github.com/IMSY-DKFZ/htc"
+				}
+			]
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/hyperspectral_segmentation.py --output_folder <holohub_app_source>/ --data <holohub_data_dir>/hyperspectral/data --model <holohub_data_dir>/hyperspectral",
