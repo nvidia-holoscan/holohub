@@ -28,7 +28,13 @@
 		],
 		"ranking": 1,
 		"dependencies": {
-			"data": "https://ngc.nvidia.com/resources/colonoscopy_sample_app_data"
+			"data": [
+				{
+					"name": "Holoscan Sample App Data for AI Colonoscopy Segmentation of Polyps",
+					"description": "This resource contains a segmentation model for the identification of polyps during colonoscopies trained on the Kvasir-SEG dataset [1], using the ColonSegNet model architecture [2], as well as a sample surgical video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data"
+				}
+			]
 		},
 		"run": {
 			"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation",

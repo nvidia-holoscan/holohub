@@ -98,6 +98,9 @@
     "dependencies": {
       "type": "object",
       "properties": {
+        "data": {
+          "type": "array"
+        },
         "gxf_extensions": {
           "type": "array",
           "items": {
