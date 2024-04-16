@@ -19,12 +19,15 @@
 
 #include "holoscan/holoscan.hpp"
 #include <holoscan/operators/aja_source/aja_source.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
-#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
+#include <holoscan/operators/holoviz/holoviz.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
-#include <holoscan/operators/holoviz/holoviz.hpp>
+#ifdef VTK_RENDERER
+#include <vtk_renderer.hpp>
+#endif
 
 #ifdef DELTACAST_VIDEOMASTER
 #include <videomaster_source.hpp>
@@ -38,6 +41,9 @@
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) { source_ = source; }
+  void set_visualizer_name(const std::string& visualizer_name) {
+    this->visualizer_name = visualizer_name;
+  }
 
   enum class Record { NONE, INPUT, VISUALIZER };
 
@@ -57,10 +63,16 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> source;
     std::shared_ptr<Operator> recorder;
     std::shared_ptr<Operator> recorder_format_converter;
+    std::shared_ptr<Operator> visualizer_operator;
 
     const bool use_rdma = from_config("external_source.rdma").as<bool>();
-    const bool overlay_enabled =
-        (source_ != "replayer") && from_config("external_source.enable_overlay").as<bool>();
+    const bool overlay_enabled = (source_ != "replayer") && (this->visualizer_name == "holoviz") &&
+                                 from_config("external_source.enable_overlay").as<bool>();
+
+    const std::string input_video_signal =
+        this->visualizer_name == "holoviz" ? "receivers" : "videostream";
+    const std::string input_annotations_signal =
+        this->visualizer_name == "holoviz" ? "receivers" : "annotations";
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -70,8 +82,8 @@ class App : public holoscan::Application {
     if (source_ == "aja") {
       width = from_config("aja.width").as<uint32_t>();
       height = from_config("aja.height").as<uint32_t>();
-      source = make_operator<ops::AJASourceOp>("aja",
-         from_config("aja"), from_config("external_source"));
+      source = make_operator<ops::AJASourceOp>(
+          "aja", from_config("aja"), from_config("external_source"));
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
     } else if (source_ == "yuan") {
@@ -150,25 +162,35 @@ class App : public holoscan::Application {
                                            tool_tracking_postprocessor_num_blocks),
         Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
 
-    std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-    if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
-      visualizer_allocator =
-          make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
+    if (this->visualizer_name == "holoviz") {
+      std::shared_ptr<BlockMemoryPool> visualizer_allocator;
+      if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
+        visualizer_allocator =
+            make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
+      }
+      visualizer_operator = make_operator<ops::HolovizOp>(
+          "holoviz",
+          from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
+          Arg("width") = width,
+          Arg("height") = height,
+          Arg("enable_render_buffer_input") = overlay_enabled,
+          Arg("enable_render_buffer_output") =
+              overlay_enabled || (record_type_ == Record::VISUALIZER),
+          Arg("allocator") = visualizer_allocator,
+          Arg("cuda_stream_pool") = cuda_stream_pool);
     }
-    std::shared_ptr<ops::HolovizOp> visualizer =
-        make_operator<ops::HolovizOp>("holoviz",
-                                      from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
-                                      Arg("width") = width,
-                                      Arg("height") = height,
-                                      Arg("enable_render_buffer_input") = overlay_enabled,
-                                      Arg("enable_render_buffer_output") =
-                                          overlay_enabled || (record_type_ == Record::VISUALIZER),
-                                      Arg("allocator") = visualizer_allocator,
-                                      Arg("cuda_stream_pool") = cuda_stream_pool);
+#ifdef VTK_RENDERER
+    if (this->visualizer_name == "vtk") {
+      visualizer_operator = make_operator<ops::VtkRendererOp>("vtk",
+                                                      from_config("vtk_op"),
+                                                      Arg("width") = width,
+                                                      Arg("height") = height);
+    }
+#endif
 
     // Flow definition
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
-    add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
+    add_flow(tool_tracking_postprocessor, visualizer_operator, {{"out", input_annotations_signal}});
 
     std::string output_signal = "output";  // replayer output signal name
     if (source_ == "deltacast") {
@@ -194,7 +216,9 @@ class App : public holoscan::Application {
             from_config("deltacast_overlay_format_converter"),
             Arg("pool") =
                 make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
-        add_flow(visualizer, overlay_format_converter_videomaster, {{"render_buffer_output", ""}});
+        add_flow(visualizer_operator,
+                 overlay_format_converter_videomaster,
+                 {{"render_buffer_output", ""}});
         add_flow(overlay_format_converter_videomaster, overlayer);
       } else {
         auto visualizer_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
@@ -209,16 +233,16 @@ class App : public holoscan::Application {
                 make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
         add_flow(source, drop_alpha_channel_converter);
         add_flow(drop_alpha_channel_converter, visualizer_format_converter_videomaster);
-        add_flow(visualizer_format_converter_videomaster, visualizer, {{"", "receivers"}});
+        add_flow(visualizer_format_converter_videomaster, visualizer_operator, {{"", "receivers"}});
       }
 #endif
     } else {
       if (overlay_enabled) {
-        // Overlay buffer flow between source and visualizer
-        add_flow(source, visualizer, {{"overlay_buffer_output", "render_buffer_input"}});
-        add_flow(visualizer, source, {{"render_buffer_output", "overlay_buffer_input"}});
+        // Overlay buffer flow between source and visualizer_operator
+        add_flow(source, visualizer_operator, {{"overlay_buffer_output", "render_buffer_input"}});
+        add_flow(visualizer_operator, source, {{"render_buffer_output", "overlay_buffer_input"}});
       } else {
-        add_flow(source, visualizer, {{output_signal, "receivers"}});
+        add_flow(source, visualizer_operator, {{output_signal, input_video_signal}});
       }
     }
 
@@ -229,14 +253,17 @@ class App : public holoscan::Application {
       } else {
         add_flow(source, recorder);
       }
-    } else if (record_type_ == Record::VISUALIZER) {
-      add_flow(visualizer, recorder_format_converter, {{"render_buffer_output", "source_video"}});
+    } else if (record_type_ == Record::VISUALIZER && this->visualizer_name == "holoviz") {
+      add_flow(visualizer_operator,
+               recorder_format_converter,
+               {{"render_buffer_output", "source_video"}});
       add_flow(recorder_format_converter, recorder);
     }
   }
 
  private:
   std::string source_ = "replayer";
+  std::string visualizer_name = "holoviz";
   Record record_type_ = Record::NONE;
   std::string datapath = "data/endoscopy";
 };
@@ -278,10 +305,15 @@ int main(int argc, char** argv) {
     config_path += "/endoscopy_tool_tracking.yaml";
     app->config(config_path);
   }
+
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
+
   auto record_type = app->from_config("record_type").as<std::string>();
   app->set_record(record_type);
+
+  auto visualizer_name = app->from_config("visualizer").as<std::string>();
+  app->set_visualizer_name(visualizer_name);
 
   if (data_path != "") app->set_datapath(data_path);
 
