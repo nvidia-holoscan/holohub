@@ -63,6 +63,18 @@ def extract_application_name(readme_path):
     return ""
 
 
+def generate_build_and_run_command(metadata: dict) -> str:
+    """Generate the build and run command for the application"""
+    language = metadata.get("metadata", {}).get("language", "").lower()
+    if language == "python":
+        return f'./dev_container build_and_run {metadata["application_name"]} --language python'
+    elif language in ["cpp", "c++"]:
+        return f'./dev_container build_and_run {metadata["application_name"]} --language cpp'
+    else:
+        # Unknown language, use default
+        return f'./dev_container build_and_run {metadata["application_name"]}'
+
+
 def gather_metadata(repo_path) -> dict:
     """Collect project metadata from JSON files into a single dictionary"""
     SCHEMA_TYPES = ["application", "operator", "gxf_extension", "tutorial"]
@@ -86,6 +98,8 @@ def gather_metadata(repo_path) -> dict:
             data["readme"] = readme
             data["application_name"] = application_name
             data["source_folder"] = source_folder
+            if source_folder == "applications":
+                data["build_and_run"] = generate_build_and_run_command(data)
             metadata.append(data)
 
     return metadata
