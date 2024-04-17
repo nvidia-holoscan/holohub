@@ -62,19 +62,26 @@
 				"url": "https://www.magicleap.com/magic-leap-2"
 			}
 		],
-		"libraries": [{
+		"libraries": [
+			{
 			"name": "windrunner",
 			"description": "Magic Leap OpenXR native backend",
-			"version": "1.9.194"
-		},
-		{
-			"name": "monado-service",
-			"version": "21.0.0"
-		},
-		{	"name": "Magic Leap Remote Viewer apk",
-			"version": "1.9.193"
-		}
-	   ]
+			"version": "1.9.194",
+			"license": "Magic Leap 2 Software Agreement",
+			"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+			},
+			{
+				"name": "monado-service",
+				"version": "21.0.0",
+				"license": "Boost 1.0",
+				"license-url": "https://gitlab.freedesktop.org/monado/monado/-/blob/main/LICENSE"
+			},
+			{	"name": "Magic Leap Remote Viewer apk",
+				"version": "1.9.193",
+				"license": "Magic Leap 2 Software Agreement",
+				"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+			}
+		]
 	},
 	"run": {
 		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
