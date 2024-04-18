@@ -90,7 +90,6 @@ RUN apt update \
         libxrandr-dev \
         libxxf86vm-dev \
         mesa-common-dev \
-        zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy vulkan sdk
@@ -106,18 +105,5 @@ RUN rm -f ${VULKAN_SDK}/lib/libvulkan.so* \
     && ln -s /lib/$(uname -m)-linux-gnu/libvulkan.so.1 ${VULKAN_SDK}/lib/libvulkan.so
 ENV PATH="${PATH}:${VULKAN_SDK}/bin"
 ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VULKAN_SDK}"
-
-# Set JIT compilation cache paths
-#  https://developer.nvidia.com/blog/cuda-pro-tip-understand-fat-binaries-jit-caching/
-ENV CUDA_CACHE_DISABLE="0"
-ENV CUDA_CACHE_PATH="/workspace/holoscan-openxr/.cache/ComputeCache"
-#  https://raytracing-docs.nvidia.com/optix7/api/optix__host_8h.html#a59a60f5f600df0f9321b0a0b1090d76b
-ENV OPTIX_CACHE_PATH="/workspace/holoscan-openxr/.cache/OptixCache"
-#  https://download.nvidia.com/XFree86/Linux-x86_64/460.67/README/openglenvvariables.html
-ENV __GL_SHADER_DISK_CACHE_PATH="/workspace/holoscan-openxr/.cache/GLCache"
-
-# all NVIDIA devices are visible, also use all driver capabilities
-ENV NVIDIA_VISIBLE_DEVICES="all"
-ENV NVIDIA_DRIVER_CAPABILITIES="all"
 
 ENTRYPOINT ["/workspace/holohub/applications/volume_rendering_xr/scripts/dev-entrypoint.sh"]

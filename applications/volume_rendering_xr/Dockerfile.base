@@ -33,7 +33,7 @@ RUN apt update \
     && sysctl ${PREV_VALUE} \
     && apt update \
     && apt install --no-install-recommends -y \
-        libopenxr-loader1 libopenxr-dev libopenxr1-monado \
+        libopenxr-loader1 libopenxr-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Magic Leap OpenXR runtime and set it as the default active runtime
