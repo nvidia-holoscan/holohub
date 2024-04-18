@@ -15,18 +15,35 @@
 			"affiliation": "NVIDIA"
 		},
 		{
+			"name": "Tom Birdsong",
+			"affiliation": "NVIDIA"
+		},
+		{
+			"name": "Antonio Ospite",
+			"affiliation": "Magic Leap"
+		},
+		{
 			"name": "Jiwen Cai",
 			"affiliation": "Magic Leap"
 		},
 		{
 			"name": "Jochen Stier",
 			"affiliation": "Magic Leap"
+		},
+		{
+			"name": "Korcan Hussein",
+			"affiliation": "Magic Leap"
+		},
+		{
+			"name": "Robbie Bridgewater",
+			"affiliation": "Magic Leap"
 		}
 	],
 	"language": "C++",
 	"version": "0.0",
 	"changelog": {
-		"0.0": "Initial release"
+		"0.0": "Initial release",
+		"0.1": "Update for Magic Leap 2 firmware v1.5.0"
 	},
 	"holoscan_sdk": {
 		"minimum_required_version": "0.6.0",
@@ -38,18 +55,33 @@
 	"tags": ["Volume", "Rendering", "OpenXR","Mixed","Reality"],
 	"ranking": 2,
 	"dependencies": {
-		"libraries": [{
+		"hardware": [
+			{
+				"name": "Magic Leap 2",
+				"description": "Magic Leap 2 mixed reality headset",
+				"url": "https://www.magicleap.com/magic-leap-2"
+			}
+		],
+		"libraries": [
+			{
 			"name": "windrunner",
-			"version": "1.2.88"
-		},
-		{
-			"name": "monado-service",
-			"version": "21.0.0"
-		},
-		{	"name": "remote viewer apk",
-			"version": "1.2.85"
-		}
-	   ]
+			"description": "Magic Leap OpenXR native backend",
+			"version": "1.9.194",
+			"license": "Magic Leap 2 Software Agreement",
+			"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+			},
+			{
+				"name": "monado-service",
+				"version": "21.0.0",
+				"license": "Boost 1.0",
+				"license-url": "https://gitlab.freedesktop.org/monado/monado/-/blob/main/LICENSE"
+			},
+			{	"name": "Magic Leap Remote Viewer apk",
+				"version": "1.9.193",
+				"license": "Magic Leap 2 Software Agreement",
+				"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+			}
+		]
 	},
 	"run": {
 		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
