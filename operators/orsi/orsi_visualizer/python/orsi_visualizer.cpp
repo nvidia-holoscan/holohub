@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@
 
 #include "./pydoc.hpp"
 
+#include "../../operator_util.hpp"
 #include "holoscan/core/fragment.hpp"
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
@@ -58,7 +59,7 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
   using orsi::OrsiVisualizationOp::OrsiVisualizationOp;
 
   // Define a constructor that fully initializes the object.
-  PyOrsiVisualizationOp(Fragment* fragment,
+  PyOrsiVisualizationOp(Fragment* fragment, const py::args& args,
                         std::vector<holoscan::IOSpec*> receivers = std::vector<holoscan::IOSpec*>(),
                         bool swizzle_video = false, const std::string& stl_file_path = "",
                         std::vector<std::string> stl_names = {},
@@ -73,6 +74,7 @@ class PyOrsiVisualizationOp : public orsi::OrsiVisualizationOp {
                                           Arg{"stl_colors", stl_colors},
                                           Arg{"stl_keys", stl_keys}}) {
     if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -105,6 +107,7 @@ PYBIND11_MODULE(_orsi_visualizer, m) {
              std::shared_ptr<orsi::OrsiVisualizationOp>>(
       m, "OrsiVisualizationOp", doc::OrsiVisualizationOp::doc_OrsiVisualizationOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::vector<holoscan::IOSpec*>,
                     bool,
                     const std::string&,

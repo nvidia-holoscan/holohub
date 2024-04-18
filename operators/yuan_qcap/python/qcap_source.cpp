@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 YUAN High-Tech Development Co., Ltd. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 YUAN High-Tech Development Co., Ltd. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include "holoscan/core/gxf/gxf_operator.hpp"
@@ -55,13 +56,12 @@ class PyQCAPSourceOp : public QCAPSourceOp {
   using QCAPSourceOp::QCAPSourceOp;
 
   // Define a constructor that fully initializes the object.
-  PyQCAPSourceOp(Fragment* fragment, const std::string& device = "SC0710 PCI"s,
-                 uint32_t channel = 0, uint32_t width = 3840, uint32_t height = 2160,
-                 uint32_t framerate = 60, bool rdma = true,
-                 const std::string & pixel_format = "bgr24"s,
-                 const std::string & input_type = "auto"s,
-                 uint32_t mst_mode = 0, uint32_t sdi12g_mode = 0,
-                 const std::string& name = "qcap_source")
+  PyQCAPSourceOp(Fragment* fragment, const py::args& args,
+                 const std::string& device = "SC0710 PCI"s, uint32_t channel = 0,
+                 uint32_t width = 3840, uint32_t height = 2160, uint32_t framerate = 60,
+                 bool rdma = true, const std::string& pixel_format = "bgr24"s,
+                 const std::string& input_type = "auto"s, uint32_t mst_mode = 0,
+                 uint32_t sdi12g_mode = 0, const std::string& name = "qcap_source")
       : QCAPSourceOp(ArgList{Arg{"device", device},
                              Arg{"channel", channel},
                              Arg{"width", width},
@@ -71,8 +71,8 @@ class PyQCAPSourceOp : public QCAPSourceOp {
                              Arg{"pixel_format", pixel_format},
                              Arg{"input_type", input_type},
                              Arg{"mst_mode", mst_mode},
-                             Arg{"sdi12g_mode", sdi12g_mode}
-                             }) {
+                             Arg{"sdi12g_mode", sdi12g_mode}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -101,6 +101,7 @@ PYBIND11_MODULE(_qcap_source, m) {
   py::class_<QCAPSourceOp, PyQCAPSourceOp, GXFOperator, std::shared_ptr<QCAPSourceOp>>(
       m, "QCAPSourceOp", doc::QCAPSourceOp::doc_QCAPSourceOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     const std::string&,
                     uint32_t,
                     uint32_t,

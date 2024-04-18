@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -71,7 +72,7 @@ class PyToolTrackingPostprocessorOp : public ToolTrackingPostprocessorOp {
 
   // Define a constructor that fully initializes the object.
   PyToolTrackingPostprocessorOp(
-      Fragment* fragment, std::shared_ptr<Allocator> device_allocator,
+      Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
       std::shared_ptr<Allocator> host_allocator, float min_prob = 0.5f,
       std::vector<std::vector<float>> overlay_img_colors = VIZ_TOOL_DEFAULT_COLORS,
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool =
@@ -82,13 +83,13 @@ class PyToolTrackingPostprocessorOp : public ToolTrackingPostprocessorOp {
                                             Arg{"min_prob", min_prob},
                                             Arg{"overlay_img_colors", overlay_img_colors},
                                             Arg{"cuda_stream_pool", cuda_stream_pool}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
     setup(*spec_.get());
   }
 };
-
 
 PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
   m.doc() = R"pbdoc(
@@ -115,6 +116,7 @@ PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
       "ToolTrackingPostprocessorOp",
       doc::ToolTrackingPostprocessorOp::doc_ToolTrackingPostprocessorOp)
       .def(py::init<Fragment*,
+                    const py::args&,
                     std::shared_ptr<Allocator>,
                     std::shared_ptr<Allocator>,
                     float,

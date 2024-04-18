@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include <holoscan/core/operator_spec.hpp>
@@ -55,7 +56,7 @@ class PyEmergentSourceOp : public EmergentSourceOp {
   using EmergentSourceOp::EmergentSourceOp;
 
   // Define a constructor that fully initializes the object.
-  PyEmergentSourceOp(Fragment* fragment,
+  PyEmergentSourceOp(Fragment* fragment, const py::args& args,
                      // defaults here should match constexpr values in EmergentSourceOp::Setup
                      uint32_t width = 4200, uint32_t height = 2160, uint32_t framerate = 240,
                      bool rdma = false, const std::string& name = "emergent_source")
@@ -63,6 +64,7 @@ class PyEmergentSourceOp : public EmergentSourceOp {
                                  Arg{"height", height},
                                  Arg{"framerate", framerate},
                                  Arg{"rdma", rdma}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -89,7 +91,13 @@ PYBIND11_MODULE(_emergent_source, m) {
 
   py::class_<EmergentSourceOp, PyEmergentSourceOp, GXFOperator, std::shared_ptr<EmergentSourceOp>>(
       m, "EmergentSourceOp", doc::EmergentSourceOp::doc_EmergentSourceOp)
-      .def(py::init<Fragment*, uint32_t, uint32_t, uint32_t, bool, const std::string&>(),
+      .def(py::init<Fragment*,
+                    const py::args&,
+                    uint32_t,
+                    uint32_t,
+                    uint32_t,
+                    bool,
+                    const std::string&>(),
            "fragment"_a,
            // defaults values here should match constexpr values in C++ EmergentSourceOp::Setup
            "width"_a = 4200,
