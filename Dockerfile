@@ -64,5 +64,8 @@ RUN apt update \
     libgtk-3-dev \
     libcanberra-gtk-module \
     graphviz
+RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
+        pip install setuptools; \
+    fi
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
