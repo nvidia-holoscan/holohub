@@ -30,13 +30,8 @@ The segmentation and Multi AI pipelines have successfully been used in multiple 
 - Hofman, J., De Backer, P.,Manghi, I., Simoens, J., De Groote, R., Van Den Bossche, H., D’Hondt, M., Oosterlinck, T., Lippens, J.,Van Praet, C.,    Ferraguti, F., Debbaut, C., Li, Z., Kutter, O., Mottrie, A., Decaestecker, K.: First-in-human real-time AI-assisted instrument deocclusion during augmented reality robotic surgery. Healthc. Technol. Lett. 1–7 (2023). https://doi.org/10.1049/htl2.12056
 - De Backer, P., Van Praet, C., Simoens, J., et al.: Improving augmented reality through deep learning: Real-time instrument delineation in robotic renal surgery. Eur. Urol. 84(1), 86–91 (2023)
 ## Run the sample applications
-### (1) Download video and ONNX model
 
-1. Download the data from NGC.
-2. Create data folder in main holohub folder.
-3. Unzip orsi.zip to data/orsi in main holohub folder.
-
-### (2) Build Dev Container with dependencies for Orsi Sample Apps
+### (1) Build Dev Container with dependencies for Orsi Sample Apps
 
 #### Holoscan Container from NGC:
 ```bash
@@ -46,7 +41,7 @@ The segmentation and Multi AI pipelines have successfully been used in multiple 
 ```bash
 ./dev_container build --docker_file applications/orsi/Dockerfile --base_img holoscan-sdk-dev:latest --img holohub:orsi-sdk-local
 ```
-### (3) Launch Dev Container
+### (2) Launch Dev Container
 #### Holoscan Container from NGC:
 
 ```bash
@@ -56,7 +51,9 @@ The segmentation and Multi AI pipelines have successfully been used in multiple 
 ```bash
 ./dev_container launch --img holohub:orsi-sdk-local --local_sdk_root PATH_TO_LOCAL_HOLOSCAN_SDK
 ```
-### (4) Build sample apps
+### (3) Build sample apps
+
+Note that this build step will also download and prepare the required sample data. This uncompressed data requires a substantial amount of disk space (approximately 40 GB).
 
 **1. orsi_in_out_body**
 
@@ -77,7 +74,7 @@ The segmentation and Multi AI pipelines have successfully been used in multiple 
 ./run build orsi_multi_ai_ar
 ```
 
-### (5) Run sample apps
+### (4) Run sample apps
 
 **1. orsi_in_out_body**
 
