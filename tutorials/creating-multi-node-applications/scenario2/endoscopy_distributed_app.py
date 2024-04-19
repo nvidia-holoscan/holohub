@@ -184,7 +184,11 @@ class Fragment1(Fragment):
 
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
-        self.add_flow(tool_tracking_postprocessor, visualizer, {("out", "receivers")})
+        self.add_flow(
+            tool_tracking_postprocessor,
+            visualizer,
+            {("out_coords", "receivers"), ("out_mask", "receivers")},
+        )
         self.add_flow(
             source,
             format_converter,
