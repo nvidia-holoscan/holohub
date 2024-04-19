@@ -111,15 +111,15 @@ class MyVideoProcessingApp(Application):
         image_processing = ImageProcessingOp(self, name="image_processing")
 
         visualizer = HolovizOp(
-            app,
+            self,
             name="holoviz",
             width=width,
             height=height,
             tensors=[dict(name="image", type="color", opacity=1.0, priority=0)],
         )
 
-        app.add_flow(source, image_processing)
-        app.add_flow(image_processing, visualizer, {("output_tensor", "receivers")})
+        self.add_flow(source, image_processing)
+        self.add_flow(image_processing, visualizer, {("output_tensor", "receivers")})
 
 
 if __name__ == "__main__":
