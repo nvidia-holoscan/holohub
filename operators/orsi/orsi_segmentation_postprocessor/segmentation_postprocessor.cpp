@@ -84,7 +84,7 @@ void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
              "Output image size after resize",
              "Output image size [ width, height ] after resize");
 
-  cuda_stream_handler_.defineParams(spec);
+  cuda_stream_handler_.define_params(spec);
 
   // TODO (gbae): spec object holds an information about errors
   // TODO (gbae): incorporate std::expected to not throw exceptions
@@ -115,7 +115,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
   // get the CUDA stream from the input message
   gxf_result_t stream_handler_result =
-      cuda_stream_handler_.fromMessage(context.context(), in_message);
+      cuda_stream_handler_.from_message(context.context(), in_message);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }
@@ -213,7 +213,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
                    shape,
                    in_tensor_data,
                    post_process_output_buffer,
-                   cuda_stream_handler_.getCudaStream(context.context()));
+                   cuda_stream_handler_.get_cuda_stream(context.context()));
 
   if (roi_enabled) {
     // ------------------------------------------------------------------------
@@ -264,7 +264,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
   }
 
   // pass the CUDA stream to the output message
-  stream_handler_result = cuda_stream_handler_.toMessage(out_message);
+  stream_handler_result = cuda_stream_handler_.to_message(out_message);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
   }

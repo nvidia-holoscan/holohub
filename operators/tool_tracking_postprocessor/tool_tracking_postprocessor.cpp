@@ -86,7 +86,7 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
   spec.param(host_allocator_, "host_allocator", "Allocator", "Output Allocator");
   spec.param(device_allocator_, "device_allocator", "Allocator", "Output Allocator");
 
-  cuda_stream_handler_.defineParams(spec);
+  cuda_stream_handler_.define_params(spec);
 }
 
 void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -99,7 +99,7 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
   // get the CUDA stream from the input message
   gxf_result_t stream_handler_result =
-      cuda_stream_handler_.fromMessage(context.context(), in_message);
+      cuda_stream_handler_.from_message(context.context(), in_message);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }
@@ -109,7 +109,7 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
                            probs_tensor->data(),
                            probs_tensor->nbytes(),
                            cudaMemcpyDeviceToHost,
-                           cuda_stream_handler_.getCudaStream(context.context())));
+                           cuda_stream_handler_.get_cuda_stream(context.context())));
 
   maybe_tensor = in_message.get<Tensor>("scaled_coords");
   if (!maybe_tensor) { throw std::runtime_error("Tensor 'scaled_coords' not found in message."); }
@@ -120,7 +120,7 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
                            scaled_coords_tensor->data(),
                            scaled_coords_tensor->nbytes(),
                            cudaMemcpyDeviceToHost,
-                           cuda_stream_handler_.getCudaStream(context.context())));
+                           cuda_stream_handler_.get_cuda_stream(context.context())));
 
   maybe_tensor = in_message.get<Tensor>("binary_masks");
   if (!maybe_tensor) { throw std::runtime_error("Tensor 'binary_masks' not found in message."); }
@@ -133,7 +133,7 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
   std::vector<uint32_t> visible_classes;
   {
     // wait for the CUDA memory copy to finish
-    CUDA_TRY(cudaStreamSynchronize(cuda_stream_handler_.getCudaStream(context.context())));
+    CUDA_TRY(cudaStreamSynchronize(cuda_stream_handler_.get_cuda_stream(context.context())));
 
     std::vector<float> filtered_scaled_coords;
     for (size_t index = 0; index < probs.size(); ++index) {
@@ -199,13 +199,13 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
                        first,
                        static_cast<float*>(binary_masks_tensor->data()) + index * layer_size,
                        reinterpret_cast<float4*>(out_data),
-                       cuda_stream_handler_.getCudaStream(context.context()));
+                       cuda_stream_handler_.get_cuda_stream(context.context()));
       first = false;
     }
   }
 
   // pass the CUDA stream to the output message
-  stream_handler_result = cuda_stream_handler_.toMessage(out_message);
+  stream_handler_result = cuda_stream_handler_.to_message(out_message);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
   }
