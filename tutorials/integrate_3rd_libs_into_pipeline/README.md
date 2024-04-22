@@ -10,21 +10,20 @@ With Holoscan SDK, one can develop an end-to-end GPU accelerated pipeline with R
 The datatype in Holoscan SDK is defined as [Tensor](https://docs.nvidia.com/holoscan/sdk-user-guide/generated/classholoscan_1_1tensor.html) which is a multi-dimensional array of elements of a single data type. The Tensor class is a wrapper around the [DLManagedTensorCtx](https://docs.nvidia.com/holoscan/sdk-user-guide/generated/structholoscan_1_1dlmanagedtensorctx.html#structholoscan_1_1DLManagedTensorCtx) struct that holds the DLManagedTensor object. It also supports both DLPack and NumPy’s array interface (__array_interface__ and __cuda_array_interface__) so that it can be used with other Python libraries such as [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html), [PyTorch](https://github.com/pytorch/pytorch/issues/15601), [JAX](https://github.com/google/jax/issues/1100#issuecomment-580773098), [TensorFlow](https://github.com/tensorflow/community/pull/180), and [Numba](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html).
 
 In this tutorial, we will show how to integrate the libraries below into Holoscan applications in Python:
-- [Integrate RAPIDS **cuCIM** libary](#integrate-rapids-cucim-libary)
-- [Integrate RAPIDS **CV-CUDA** libary](#integrate-cv-cuda-libary)
+- [Integrate RAPIDS **cuCIM** library](#integrate-rapids-cucim-library)
+- [Integrate RAPIDS **CV-CUDA** library](#integrate-cv-cuda-library)
 - [Integrate **OpenCV with CUDA Module**](#integrate-opencv-with-cuda-module)
 
 
-## Integrate RAPIDS cuCIM libary
+## Integrate RAPIDS cuCIM library
 [RAPIDS cuCIM](https://github.com/rapidsai/cucim) (Compute Unified Device Architecture Clara IMage) is an open-source, accelerated computer vision and image processing software library for multidimensional images used in biomedical, geospatial, material and life science, and remote sensing use cases.
 
 See the supported Operators in [cuCIM documentation](https://docs.rapids.ai/api/cucim/stable/).
 
-According to the documentation, cuCIM is interoperable with CuPy. So we can using CuPy array initialized from Holoscan Tensor directly in cuCIM operators.
-
 cuCIM offers interoperability with CuPy. We can initialize CuPy arrays directly from Holoscan Tensors and use the arrays in cuCIM operators for processing without memory transfer between host and device. 
+
 ### Installation
-Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov-file#install-cucim) to install the RAPIDS cuCIM libary.
+Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov-file#install-cucim) to install the RAPIDS cuCIM library.
 
 ### Sample code 
 Sample code as below:
@@ -55,20 +54,20 @@ def CustomizedcuCIMOperator(Operator):
 
 ```
 
-## Integrate CV-CUDA libary
+## Integrate CV-CUDA library
 [CV-CUDA](https://github.com/CVCUDA/CV-CUDA) is an open-source, graphics processing unit (GPU)-accelerated library for cloud-scale image processing and computer vision developed jointly by NVIDIA and the ByteDance Applied Machine Learning teams. CV-CUDA helps developers build highly efficient pre- and post-processing pipelines that can improve throughput by more than 10x while lowering cloud computing costs.
 
 See the supported CV-CUDA Operators in the [CV-CUDA developer guide](https://github.com/CVCUDA/CV-CUDA/blob/main/DEVELOPER_GUIDE.md)
 
 ### Installation
-Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) to install the CV-CUDA libary.
+Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) to install the CV-CUDA library.
 
 Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 
 ### Sample code 
 CV-CUDA implemented with DLPack standards. So, CV-CUDA tensor can directly access Holocan Tensor. 
 
-Detial usage with CV-CUDA in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic). 
+Detail usage with CV-CUDA in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic). 
 
 ```
 import cvcuda
@@ -123,7 +122,7 @@ Also recommend to refer this [Dockerfile](https://github.com/nvidia-holoscan/hol
 ### Sample code
 The datatype of OpenCV is GpuMat which implements neither the __cuda_array_interface__ nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline / application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa. 
 
-Detial usage with OpenCV Operator in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/endoscopy_depth_estimation). 
+Detail usage with OpenCV Operator in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/endoscopy_depth_estimation). 
 
 1. Conversion from GpuMat to CuPy Array
 
@@ -177,7 +176,7 @@ Note: In this function we used the [UnownedMemory](https://docs.cupy.dev/en/stab
 
 With the release of OpenCV 4.8, the Python bindings for OpenCV now support the initialization of GpuMat objects directly from GPU memory pointers. This capability facilitates more efficient data handling and processing by allowing direct interaction with GPU-resident data, bypassing the need for data transfer between host and device memory. 
 
-Within pipeline applications based Holoscan SDK, the GPU Memory pointer can be obtained through the __cuda_array_interface__ interface provided by CuPy arrays. 
+Within pipeline applications based on Holoscan SDK, the GPU Memory pointer can be obtained through the `__cuda_array_interface__` interface provided by CuPy arrays. 
 
 Refer to the functions outlined below for creating GpuMat objects utilizing CuPy arrays. For a detailed implementation, see the source code provided in [holohub/applications/endoscopy_depth_estimation-gpumat_from_cp_array](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L28).
 

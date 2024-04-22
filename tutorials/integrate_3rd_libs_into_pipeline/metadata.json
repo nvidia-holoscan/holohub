@@ -1,7 +1,7 @@
 {
 	"tutorial": {
-		"name": "Integrate 3rd party libaries into Holoscan pipeline",
-		"description": "General tutorials on integrate 3rd party libaries into Holoscan SDK based applications / pipelines",
+		"name": "Integrate external libraries into Holoscan pipeline",
+		"description": "General tutorials on integrate external libraries into Holoscan SDK based applications and pipelines",
 		"authors": [
 			{
 				"name": "Meiran Peng",
