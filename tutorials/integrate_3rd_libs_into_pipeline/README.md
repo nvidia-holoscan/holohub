@@ -1,4 +1,4 @@
-# Best Practice to integrate 3rd party libaries into pipeline based on Holoscan SDK
+# Best Practices to integrate external libraries into Holoscan pipelines
 The Holoscan SDK is part of NVIDIA Holoscan, the AI sensor processing platform that combines hardware systems for low-latency sensor and network connectivity, optimized libraries for data processing and AI, and core microservices to run streaming, imaging, and other applications, from embedded to edge to cloud. It can be used to build streaming AI pipelines for a variety of domains, including Medical Devices, High Performance Computing at the Edge, Industrial Inspection and more.
 
 With Holoscan SDK, one can develop an end-to-end GPU accelerated pipeline with RDMA support. However, with increasing requirements on pre-processing/post-processing other than inference only pipeline, the integration with other powerful, GPU-accelerated libraries is needed. 
