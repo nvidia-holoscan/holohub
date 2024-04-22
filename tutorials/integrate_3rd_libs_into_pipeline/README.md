@@ -61,7 +61,7 @@ def CustomizedcuCIMOperator(Operator):
 See the supported Operators in [CV-CUDA developer guide](https://github.com/CVCUDA/CV-CUDA/blob/main/DEVELOPER_GUIDE.md)
 
 ### Installation
-Following the [guidance](https://cvcuda.github.io/installation.html) to install the CV-CUDA libary.
+Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) to install the CV-CUDA libary.
 
 Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 
