@@ -1,7 +1,7 @@
 {
 	"tutorial": {
-		"name": "Integrate external libraries into Holoscan pipeline",
-		"description": "General tutorials on integrate external libraries into Holoscan SDK based applications and pipelines",
+		"name": "Integrate External Libraries into a Holoscan Pipeline",
+		"description": "General tutorial on how to integrate external libraries into Holoscan SDK based applications and pipelines",
 		"authors": [
 			{
 				"name": "Meiran Peng",

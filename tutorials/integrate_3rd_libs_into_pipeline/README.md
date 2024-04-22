@@ -67,7 +67,7 @@ Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 ### Sample code 
 CV-CUDA implemented with DLPack standards. So, CV-CUDA tensor can directly access Holocan Tensor. 
 
-Detail usage with CV-CUDA in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic). 
+Refer to the [Holoscan CV-CUDA sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use CV-CUDA with Holoscan SDK.
 
 ```
 import cvcuda
@@ -114,21 +114,21 @@ class CustomizedCVCUDAOp(Operator):
 
 ### Installation
 Pre-Requisition:
-- OpenCV >= 4.8.0 (From which version, OpenCV GpuMat support to be initialized with GPU Memory pointer)
-Install OpenCV with CUDA module following the guide in [opencv/opencv_contrib](https://github.com/opencv/opencv_contrib/tree/4.x) 
+- OpenCV >= 4.8.0 (From which version, OpenCV GpuMat supports initialization with GPU Memory pointer)
+Install OpenCV with its CUDA module following the guide in [opencv/opencv_contrib](https://github.com/opencv/opencv_contrib/tree/4.x) 
 
-Also recommend to refer this [Dockerfile](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/Dockerfile) to build an image with Holoscan SDK and OpenCV CUDA. 
+We also recommend referring to the [Holoscan Endoscopy Depth Estimation application container](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/Dockerfile) as an example of how to build an image with Holoscan SDK and OpenCV CUDA.  
 
 ### Sample code
 The datatype of OpenCV is GpuMat which implements neither the __cuda_array_interface__ nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline / application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa. 
 
-Detail usage with OpenCV Operator in Holoscan application can refer this [sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/endoscopy_depth_estimation). 
+Refer to the [Holoscan Endoscopy Depth Estimation sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use the OpenCV operator with Holoscan SDK.
 
 1. Conversion from GpuMat to CuPy Array
 
 The GpuMat object of OpenCV Python bindings provides a cudaPtr method which can be used to access the GPU memory address of a GpuMat object. This memory pointer can be utilized to initialize a CuPy array directly, allowing for efficient data handling by avoiding unnecessary data transfers between the host and device. 
 
-Refer to the function below, which is used to create a CuPy array from a GpuMat. For more details, see the source code in the [holohub/applications/endoscopy_depth_estimation-gpumat_to_cupy](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L52). 
+Refer to the function below, which is used to create a CuPy array from a GpuMat. For more details, see the source code in [holohub/applications/endoscopy_depth_estimation-gpumat_to_cupy](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L52). 
 
 ```
 import cv2
