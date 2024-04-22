@@ -24,7 +24,7 @@ According to the documentation, cuCIM is interoperable with CuPy. So we can usin
 
 cuCIM offers interoperability with CuPy. We can initialize CuPy arrays directly from Holoscan Tensors and use the arrays in cuCIM operators for processing without memory transfer between host and device. 
 ### Installation
-Following the [guidance](https://github.com/rapidsai/cucim?tab=readme-ov-file#install-cucim) to install the RAPIDS cuCIM libary.
+Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov-file#install-cucim) to install the RAPIDS cuCIM libary.
 
 ### Sample code 
 Sample code as below:
