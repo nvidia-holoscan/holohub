@@ -65,7 +65,7 @@ Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) t
 Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 
 ### Sample code 
-CV-CUDA implemented with DLPack standards. So, CV-CUDA tensor can directly access Holocan Tensor. 
+CV-CUDA is implemented with DLPack standards. So, CV-CUDA tensor can directly access Holocan Tensor. 
 
 Refer to the [Holoscan CV-CUDA sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use CV-CUDA with Holoscan SDK.
 
