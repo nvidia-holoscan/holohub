@@ -58,7 +58,7 @@ def CustomizedcuCIMOperator(Operator):
 ## Integrate CV-CUDA libary
 [CV-CUDA](https://github.com/CVCUDA/CV-CUDA) is an open-source, graphics processing unit (GPU)-accelerated library for cloud-scale image processing and computer vision developed jointly by NVIDIA and the ByteDance Applied Machine Learning teams. CV-CUDA helps developers build highly efficient pre- and post-processing pipelines that can improve throughput by more than 10x while lowering cloud computing costs.
 
-See the supported Operators in [CV-CUDA developer guide](https://github.com/CVCUDA/CV-CUDA/blob/main/DEVELOPER_GUIDE.md)
+See the supported CV-CUDA Operators in the [CV-CUDA developer guide](https://github.com/CVCUDA/CV-CUDA/blob/main/DEVELOPER_GUIDE.md)
 
 ### Installation
 Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) to install the CV-CUDA libary.
