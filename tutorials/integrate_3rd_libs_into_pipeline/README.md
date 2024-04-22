@@ -9,7 +9,7 @@ With Holoscan SDK, one can develop an end-to-end GPU accelerated pipeline with R
 
 The datatype in Holoscan SDK is defined as [Tensor](https://docs.nvidia.com/holoscan/sdk-user-guide/generated/classholoscan_1_1tensor.html) which is a multi-dimensional array of elements of a single data type. The Tensor class is a wrapper around the [DLManagedTensorCtx](https://docs.nvidia.com/holoscan/sdk-user-guide/generated/structholoscan_1_1dlmanagedtensorctx.html#structholoscan_1_1DLManagedTensorCtx) struct that holds the DLManagedTensor object. It also supports both DLPack and NumPy’s array interface (__array_interface__ and __cuda_array_interface__) so that it can be used with other Python libraries such as [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html), [PyTorch](https://github.com/pytorch/pytorch/issues/15601), [JAX](https://github.com/google/jax/issues/1100#issuecomment-580773098), [TensorFlow](https://github.com/tensorflow/community/pull/180), and [Numba](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html).
 
-In this tutorials, we will show how to integrate below libaries into Holoscan applications in Python language:
+In this tutorial, we will show how to integrate the libraries below into Holoscan applications in Python:
 - [Integrate RAPIDS **cuCIM** libary](#integrate-rapids-cucim-libary)
 - [Integrate RAPIDS **CV-CUDA** libary](#integrate-cv-cuda-libary)
 - [Integrate **OpenCV with CUDA Module**](#integrate-opencv-with-cuda-module)
