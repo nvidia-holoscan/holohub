@@ -113,7 +113,7 @@ class CustomizedCVCUDAOp(Operator):
 [OpenCV also supports GPU acceleration](https://docs.opencv.org/4.8.0/d2/dbc/cuda_intro.html), includes a CUDA module which is a set of classes and functions to utilize CUDA computational capabilities. It is implemented using NVIDIA CUDA Runtime API and provides utility functions, low-level vision primitives, and high-level algorithms.
 
 ### Installation
-Pre-Requisition:
+Prerequisites:
 - OpenCV >= 4.8.0 (From which version, OpenCV GpuMat supports initialization with GPU Memory pointer)
 Install OpenCV with its CUDA module following the guide in [opencv/opencv_contrib](https://github.com/opencv/opencv_contrib/tree/4.x) 
 
