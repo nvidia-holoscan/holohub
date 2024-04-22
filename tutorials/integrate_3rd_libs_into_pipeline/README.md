@@ -171,7 +171,7 @@ def gpumat_to_cupy(gpu_mat: cv2.cuda.GpuMat) -> cp.ndarray:
 
 ```
 
-Note: In this function we used [UnownedMemory](https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.UnownedMemory.html#cupy.cuda.UnownedMemory) API to create the CuPy array. Since in some cases, the OpenCV operators will create a new device memory which needs to be handled by CuPy and the lifetime is not limited to one operator but the whole pipeline. In this case, the CuPy array initiated from the GpuMat shall know the owner and keep the reference to the object, check more detail on [CuPy interoperability](https://docs.cupy.dev/en/stable/user_guide/interoperability.html#device-memory-pointers).
+Note: In this function we used the [UnownedMemory](https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.UnownedMemory.html#cupy.cuda.UnownedMemory) API to create the CuPy array. In some cases, the OpenCV operators will allocate new device memory which needs to be handled by CuPy and the lifetime is not limited to one operator but the whole pipeline. In this case, the CuPy array initiated from the GpuMat shall know the owner and keep the reference to the object. Check the CuPy documentation for more detail on [CuPy interoperability](https://docs.cupy.dev/en/stable/user_guide/interoperability.html#device-memory-pointers).
 
 2. Conversion from Holoscan Tensor to GpuMat via CuPy array
 
