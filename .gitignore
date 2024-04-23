@@ -5,5 +5,8 @@ ci/
 CTestConfig.cmake
 *__pycache__
 
+# GXF Extensions
+*.so
+
 # Utilities
 aggregate_metadata.json
