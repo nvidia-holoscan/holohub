@@ -76,6 +76,11 @@ add_holohub_application(network_radar_pipeline DEPENDS
 
 add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
 
+add_holohub_application(velodyne_lidar_app DEPENDS
+                        OPERATORS velodyne_lidar
+                                  basic_network
+                                  )
+
 add_holohub_application(volume_rendering DEPENDS
                         OPERATORS volume_loader
                                   volume_renderer
