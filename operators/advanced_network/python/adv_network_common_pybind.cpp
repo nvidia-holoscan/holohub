@@ -30,33 +30,37 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         .value("SUCCESS", AdvNetStatus::SUCCESS)
         .value("NULL_PTR", AdvNetStatus::NULL_PTR)
         .value("NO_FREE_BURST_BUFFERS", AdvNetStatus::NO_FREE_BURST_BUFFERS)
-        .value("NO_FREE_CPU_PACKET_BUFFERS", AdvNetStatus::NO_FREE_CPU_PACKET_BUFFERS)
-        .value("NO_FREE_GPU_PACKET_BUFFERS", AdvNetStatus::NO_FREE_GPU_PACKET_BUFFERS);
+        .value("NO_FREE_PACKET_BUFFERS", AdvNetStatus::NO_FREE_PACKET_BUFFERS);
 
     m.def("adv_net_create_burst_params", &adv_net_create_burst_params,
         py::return_value_policy::reference, "Create a shared pointer burst params structure");
     m.def("adv_net_free_pkt", &adv_net_free_pkt, "Free a single packet");
-    m.def("adv_net_get_cpu_pkt_len", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_cpu_pkt_len), "Get length of the CPU portion of the packet");
-    m.def("adv_net_get_cpu_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_cpu_pkt_len), "Get length of the CPU portion of the packet");
-    m.def("adv_net_get_gpu_pkt_len", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_gpu_pkt_len), "Get length of the GPU portion of the packet");
-    m.def("adv_net_get_gpu_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_gpu_pkt_len), "Get length of the GPU portion of the packet");
-    m.def("adv_net_free_all_burst_pkts", py::overload_cast<AdvNetBurstParams *>
-        (&adv_net_free_all_burst_pkts), "Free all packets in a burst");
-    m.def("adv_net_free_all_burst_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
-        (&adv_net_free_all_burst_pkts), "Free all packets in a burst");
-    m.def("adv_net_free_all_burst_pkts_and_burst", py::overload_cast<AdvNetBurstParams *>
-        (&adv_net_free_all_burst_pkts_and_burst), "Free all packets and burst structure");
-    m.def("adv_net_free_all_burst_pkts_and_burst",
+    m.def("adv_net_get_seg_pkt_len", py::overload_cast<AdvNetBurstParams *, int, int>
+        (&adv_net_get_seg_pkt_len), "Get length of one segments of the packet");
+    m.def("adv_net_get_seg_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int, int>
+        (&adv_net_get_seg_pkt_len), "Get length of one segments of the packet");
+    m.def("adv_net_get_pkt_len", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_get_pkt_len), "Get length of the packet");
+    m.def("adv_net_get_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>
+        (&adv_net_get_pkt_len), "Get length of the packet");
+    m.def("adv_net_free_all_pkts", py::overload_cast<AdvNetBurstParams *>
+        (&adv_net_free_all_pkts), "Free all packets in a burst");
+    m.def("adv_net_free_all_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
+        (&adv_net_free_all_pkts), "Free all packets in a burst");
+    m.def("adv_net_free_all_seg_pkts", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_free_all_seg_pkts), "Free all packets in a burst for one segment");
+    m.def("adv_net_free_all_seg_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>
+        (&adv_net_free_all_seg_pkts), "Free all packets in a burst for one segment");        
+    m.def("adv_net_free_all_pkts_and_burst", py::overload_cast<AdvNetBurstParams *>
+        (&adv_net_free_all_pkts_and_burst), "Free all packets and burst structure");
+    m.def("adv_net_free_all_pkts_and_burst",
         py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
-        (&adv_net_free_all_burst_pkts_and_burst), "Free all packets and burst structure");
-    m.def("adv_net_free_cpu_pkts_and_burst", py::overload_cast<AdvNetBurstParams *>
-        (&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
-    m.def("adv_net_free_cpu_pkts_and_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
-        (&adv_net_free_cpu_pkts_and_burst), "Free CPU packets and burst structure");
+        (&adv_net_free_all_pkts_and_burst), "Free all packets and burst structure");
+    m.def("adv_net_free_seg_pkts_and_burst", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_free_seg_pkts_and_burst), "Free all packets and burst structure for one packet segment");
+    m.def("adv_net_free_seg_pkts_and_burst",
+        py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>
+        (&adv_net_free_seg_pkts_and_burst), "Free all packets and burst structure for one packet segment");
     m.def("adv_net_tx_burst_available", py::overload_cast<AdvNetBurstParams *>
         (&adv_net_tx_burst_available), "Return true if a TX burst is available for use");
     m.def("adv_net_tx_burst_available", py::overload_cast<std::shared_ptr<AdvNetBurstParams>>
@@ -90,10 +94,10 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         (&adv_net_set_num_pkts), "Set number of packets in a burst");
     m.def("adv_net_set_num_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int64_t>
         (&adv_net_set_num_pkts), "Set number of packets in a burst");
-    m.def("adv_net_set_hdr", py::overload_cast<AdvNetBurstParams *, uint16_t, uint16_t, int64_t>
+    m.def("adv_net_set_hdr", py::overload_cast<AdvNetBurstParams *, uint16_t, uint16_t, int64_t, int>
         (&adv_net_set_hdr), "Set parameters of burst header");
     m.def("adv_net_set_hdr",
-            py::overload_cast<std::shared_ptr<AdvNetBurstParams> , uint16_t, uint16_t, int64_t>
+            py::overload_cast<std::shared_ptr<AdvNetBurstParams> , uint16_t, uint16_t, int64_t, int>
         (&adv_net_set_hdr), "Set parameters of burst header");
     m.def("adv_net_free_tx_burst", py::overload_cast<AdvNetBurstParams *>
         (&adv_net_free_tx_burst), "Free TX burst");
@@ -103,19 +107,20 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         (&adv_net_free_rx_burst), "Free RX burst");
     m.def("adv_net_free_rx_burst", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
         (&adv_net_free_rx_burst), "Free RX burst");
-    m.def("adv_net_get_cpu_pkt_ptr", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_cpu_pkt_ptr), "Get CPU packet pointer");
-    m.def("adv_net_get_cpu_pkt_ptr", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_cpu_pkt_ptr), "Get CPU packet pointer");
-    m.def("adv_net_get_gpu_pkt_ptr", py::overload_cast<AdvNetBurstParams *, int>
-        (&adv_net_get_gpu_pkt_ptr), "Get GPU packet pointer");
-    m.def("adv_net_get_gpu_pkt_ptr", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
-        (&adv_net_get_gpu_pkt_ptr), "Get GPU packet pointer");
+    m.def("adv_net_get_seg_pkt_ptr", py::overload_cast<AdvNetBurstParams *, int, int>
+        (&adv_net_get_seg_pkt_ptr), "Get packet pointer for one segment");
+    m.def("adv_net_get_seg_pkt_ptr", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int, int>
+        (&adv_net_get_seg_pkt_ptr), "Get packet pointer for one segment");
+    m.def("adv_net_get_pkt_ptr", py::overload_cast<AdvNetBurstParams *, int>
+        (&adv_net_get_pkt_ptr), "Get packet pointer");
+    m.def("adv_net_get_pkt_ptr", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int>
+        (&adv_net_get_pkt_ptr), "Get packet pointer");
     m.def("adv_net_get_port_from_ifname", &adv_net_get_port_from_ifname,
         "Get port number from interface name");
-    m.def("adv_net_free_pkts", [](void *pkts, int len) {
-        adv_net_free_pkts(reinterpret_cast<void**>(pkts), len); },
-        "Frees a list of packets");
+    m.def("adv_net_free_all_pkts", py::overload_cast<AdvNetBurstParams *>
+        (&adv_net_free_all_pkts), "Frees a list of packets");
+    m.def("adv_net_free_all_pkts", py::overload_cast<std::shared_ptr<AdvNetBurstParams> >
+        (&adv_net_free_all_pkts), "Frees a list of packets");        
 
     // py::class_<AdvNetBurstHdrParams>(m, "AdvNetBurstHdrParams").def(py::init<>())
     //     .def_readwrite("num_pkts",  &AdvNetBurstHdrParams::num_pkts)

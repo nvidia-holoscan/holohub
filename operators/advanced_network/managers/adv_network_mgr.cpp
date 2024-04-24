@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cuda.h>
 #include "adv_network_mgr.h"
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
@@ -33,6 +34,76 @@ void set_ano_mgr(const AdvNetConfigYaml &cfg) {
       HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
     }
   }
+}
+
+AdvNetStatus ANOMgr::allocate_memory_regions() {
+  HOLOSCAN_LOG_INFO("Registering memory regions");
+
+  for (const auto &mr: cfg_.mrs_) {
+    void *ptr;
+    AllocRegion ar;
+    size_t buf_size = mr.second.buf_size_ * mr.second.num_bufs_;
+
+    if (buf_size & 0x3) {
+      HOLOSCAN_LOG_CRITICAL("Total buffer size must be multiple of 4 for MR {}", mr.second.name_);
+      return AdvNetStatus::NULL_PTR;
+    }
+    
+    if (mr.second.owned_) {
+      switch (mr.second.kind_) {
+        case MemoryKind::HOST:
+          ptr = malloc(buf_size);
+          break;
+        case MemoryKind::HOST_PINNED:
+          if (cudaHostAlloc(&ptr, buf_size, 0) != cudaSuccess) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate CUDA pinned host memory!");
+            return AdvNetStatus::NULL_PTR;
+          }
+          break;
+        case MemoryKind::HUGE:
+          ptr = rte_malloc_socket(nullptr, buf_size, RTE_PKTMBUF_HEADROOM, mr.second.affinity_);
+          break;            
+        case MemoryKind::DEVICE:
+        {
+          unsigned int flag = 1;
+          const auto align = RTE_ALIGN_CEIL(buf_size, GPU_PAGE_SIZE);
+          CUdeviceptr cuptr;
+        
+          cudaSetDevice(mr.second.affinity_);
+          cudaFree(0); // Create primary context if it doesn't exist            
+          const auto alloc_res = cuMemAlloc(&cuptr, align);
+          if (alloc_res != CUDA_SUCCESS) {
+            HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory: {}",
+                                align/1e6, alloc_res);
+            return AdvNetStatus::NULL_PTR;
+          }
+
+          ptr = reinterpret_cast<void*>(cuptr);
+
+          const auto attr_res  = cuPointerSetAttribute(&flag, CU_POINTER_ATTRIBUTE_SYNC_MEMOPS, cuptr);
+          if (attr_res != CUDA_SUCCESS) {
+            HOLOSCAN_LOG_CRITICAL("Could not set pointer attributes");
+            return AdvNetStatus::NULL_PTR;
+          }          
+          break;      
+        }
+        default:
+          HOLOSCAN_LOG_ERROR("Unknown memory type {}!", static_cast<int>(mr.second.kind_));
+          return AdvNetStatus::INVALID_PARAMETER;                  
+      }
+
+      if (ptr == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Fatal to allocate {} of type {} for MR", buf_size, static_cast<int>(mr.second.kind_));
+        return AdvNetStatus::NULL_PTR;
+      }
+    }
+
+    HOLOSCAN_LOG_INFO("Successfully allocated memory region {} at {} with {} bytes", mr.second.name_, ptr, buf_size);
+    ar_[mr.second.name_] = {mr.second.name_, ptr};
+  }
+
+  HOLOSCAN_LOG_INFO("Finished allocating memory regions");
+  return AdvNetStatus::SUCCESS;
 }
 
 };  // namespace holoscan::ops
