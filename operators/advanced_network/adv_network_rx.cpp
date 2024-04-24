@@ -53,10 +53,11 @@ int AdvNetworkOpRx::Init() {
 
   g_ano_mgr->set_config_and_initialize(impl->cfg);
 
-  for (const auto &rx : impl->cfg.rx_) {
-    auto port_opt = g_ano_mgr->get_port_from_ifname(rx.if_name_);
+  for (const auto &intf: impl->cfg.ifs_) {
+    const auto &rx = intf.rx_;
+    auto port_opt = g_ano_mgr->get_port_from_ifname(intf.address_);
     if (!port_opt.has_value()) {
-      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", rx.if_name_);
+      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
       return -1;
     }
 
@@ -76,7 +77,7 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
   AdvNetBurstParams *burst;
 
   const auto res = g_ano_mgr->get_rx_burst(&burst);
-
+printf("got\n");
   if (res != AdvNetStatus::SUCCESS) {
     return;
   }

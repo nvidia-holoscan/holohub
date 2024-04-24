@@ -22,6 +22,11 @@
 
 namespace holoscan::ops {
 
+struct AllocRegion {
+   std::string mr_name_;
+   void *ptr_;
+};
+
 /**
  * @brief (Almost) ABC representing an interface into an ANO backend implementation
  *
@@ -34,32 +39,33 @@ class ANOMgr {
     virtual void run() = 0;
 
     // Common free functions to override
-    virtual void *get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) = 0;
-    virtual void *get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx) = 0;
-    virtual uint16_t get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) = 0;
-    virtual uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) = 0;
+    virtual void *get_pkt_ptr(AdvNetBurstParams *burst, int idx) = 0;
+    virtual uint16_t get_pkt_len(AdvNetBurstParams *burst, int idx) = 0;    
+    virtual void *get_seg_pkt_ptr(AdvNetBurstParams *burst, int seg, int idx) = 0;
+    virtual uint16_t get_seg_pkt_len(AdvNetBurstParams *burst, int seg, int idx) = 0;
     virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) = 0;
-    virtual AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      uint8_t *dst_addr) = 0;
-    virtual AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst,
+    virtual AdvNetStatus set_eth_hdr(AdvNetBurstParams *burst, int idx,
+                                      char *dst_addr) = 0;
+    virtual AdvNetStatus set_ipv4_hdr(AdvNetBurstParams *burst,
                                       int idx,
                                       int ip_len,
                                       uint8_t proto,
                                       unsigned int src_host,
                                       unsigned int dst_host) = 0;
-    virtual AdvNetStatus set_cpu_udp_hdr(AdvNetBurstParams *burst,
+    virtual AdvNetStatus set_udp_hdr(AdvNetBurstParams *burst,
                                       int idx,
                                       int udp_len,
                                       uint16_t src_port,
                                       uint16_t dst_port) = 0;
-    virtual AdvNetStatus set_cpu_udp_payload(AdvNetBurstParams *burst, int idx,
+    virtual AdvNetStatus set_udp_payload(AdvNetBurstParams *burst, int idx,
                                       void *data, int len) = 0;
     virtual bool tx_burst_available(AdvNetBurstParams *burst) = 0;
 
-    virtual AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx,
-                                        int cpu_len, int gpu_len) = 0;
-    virtual void free_pkt(void *pkt) = 0;
-    virtual void free_pkts(void **pkts, int len) = 0;
+    virtual AdvNetStatus set_pkt_lens(AdvNetBurstParams *burst, int idx, const std::initializer_list<int> &lens) = 0;
+    virtual void free_all_seg_pkts(AdvNetBurstParams *burst, int seg) = 0;
+    virtual void free_all_pkts(AdvNetBurstParams *burst) = 0;    
+    virtual void free_pkt_seg(AdvNetBurstParams *burst, int seg, int pkt) = 0;
+    virtual void free_pkt(AdvNetBurstParams *burst, int pkt) = 0;
     virtual void free_rx_burst(AdvNetBurstParams *burst) = 0;
     virtual void free_tx_burst(AdvNetBurstParams *burst) = 0;
     virtual AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time) = 0;
@@ -77,7 +83,15 @@ class ANOMgr {
     virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) = 0;
 
  protected:
+    static constexpr uint32_t GPU_PAGE_SHIFT = 16;
+    static constexpr uint32_t GPU_PAGE_SIZE = (1UL << GPU_PAGE_SHIFT); 
     bool initialized_ = false;
+    AdvNetConfigYaml cfg_;    
+    std::unordered_map<std::string, AllocRegion> ar_;
+
+    virtual AdvNetStatus allocate_memory_regions();
+    virtual void adjust_memory_regions() {};
+
 };
 
 void set_ano_mgr(const AdvNetConfigYaml &cfg);
