@@ -50,7 +50,7 @@ docker run -it --gpus="device=1" \
     surg_video_ssl_2202 jupyter lab
 ```
 
-For environment dependencies refer to the [Dockerfile](Docker/Dockerile)
+For environment dependencies refer to the [Dockerfile](Docker/Dockerfile)
 
 ## Launch Training
 
