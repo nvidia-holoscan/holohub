@@ -28,7 +28,7 @@ scheduler:
 advanced_network:
   cfg:
     version: 1
-    manager: "rdma"
+    manager: "dpdk"
     master_core: 5
 
     memory_regions:

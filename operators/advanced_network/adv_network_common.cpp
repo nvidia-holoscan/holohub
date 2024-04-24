@@ -111,7 +111,7 @@ void adv_net_free_seg_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst, i
   adv_net_free_seg_pkts_and_burst(burst.get(), seg);
 }
 
-void adv_net_format_eth_addr(uint8_t *dst, std::string addr) {
+void adv_net_format_eth_addr(char *dst, std::string addr) {
   std::istringstream iss(addr);
   std::string byteString;
 
@@ -119,7 +119,7 @@ void adv_net_format_eth_addr(uint8_t *dst, std::string addr) {
   while (std::getline(iss, byteString, ':')) {
     if (byteString.length() == 2) {
         uint16_t byte = std::stoi(byteString, nullptr, 16);
-        dst[byte_cnt++] = static_cast<uint8_t>(byte);
+        dst[byte_cnt++] = static_cast<char>(byte);
     } else {
       HOLOSCAN_LOG_ERROR("Invalid MAC address format: {}", addr);
       dst[0] = 0x00;
