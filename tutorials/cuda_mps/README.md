@@ -75,5 +75,5 @@ without CUDA MPS. The experiment demonstrates up to 36% improvement with CUDA MP
 
 ![Alt text](image.png)
 
-Such experiments can easily be conducted with [Holoscan Flow Benchmarking](../holoscan_flow_benchmarking) to retrieve
+Such experiments can easily be conducted with [Holoscan Flow Benchmarking](../../benchmarks/holoscan_flow_benchmarking) to retrieve
 various end-to-end latency performance metrics.
