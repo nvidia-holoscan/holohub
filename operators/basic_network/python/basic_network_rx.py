@@ -45,9 +45,9 @@ class BasicNetworkOpRx(Operator):
             if self.l4_proto == L4Proto.TCP:
                 self.sock_fd.listen(1)
 
-            self.logger.error(f"Successfully listening on {self.ip_addr}:{self.dst_port}")
-        except socket.error:
-            self.logger.error("Failed to create socket")
+            self.logger.info(f"Successfully listening on {self.ip_addr}:{self.dst_port}")
+        except socket.error as err:
+            self.logger.error(f"Failed to create socket: {err}")
 
         self.logger.info("Basic RX operator initialized")
 
