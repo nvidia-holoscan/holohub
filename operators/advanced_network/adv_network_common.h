@@ -140,7 +140,7 @@ AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams *burst, int idx,
                                       char *dst_addr);
 AdvNetStatus adv_net_set_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
                                       int idx,
-                                      uint8_t *dst_addr);
+                                      char *dst_addr);
 
 /**
  * @brief Set IPv4 header in packet
@@ -374,7 +374,7 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @param dst Destination buffer
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
-void adv_net_format_eth_addr(uint8_t *dst, std::string addr);
+void adv_net_format_eth_addr(char *dst, std::string addr);
 
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
 

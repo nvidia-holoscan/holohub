@@ -101,7 +101,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       const auto first = out_q.front();
       if (cudaEventQuery(first.evt) == cudaSuccess) {
         for (auto m = 0; m < first.num_batches; m++) {
-          adv_net_free_all_burst_pkts_and_burst(first.msg[m]);
+          adv_net_free_all_pkts_and_burst(first.msg[m]);
         }
         out_q.pop();
       } else {
@@ -125,7 +125,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     if (adv_net_get_q_id(burst) == 0) {
-      adv_net_free_cpu_pkts_and_burst(burst);
+      adv_net_free_all_pkts_and_burst(burst);
       HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
       return;
     }
@@ -138,15 +138,15 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       int64_t bytes_in_batch = 0;
       if (hds_.get()) {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   = adv_net_get_gpu_pkt_ptr(burst, p);
-          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_pkt_len(burst, p) +
-                                      adv_net_get_cpu_pkt_len(burst, p);
+          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   = adv_net_get_seg_pkt_ptr(burst, 1, p);
+          ttl_bytes_in_cur_batch_  += adv_net_get_seg_pkt_len(burst, 0, p) +
+                                      adv_net_get_seg_pkt_len(burst, 1, p);
         }
       } else {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   =
-            reinterpret_cast<uint8_t *>(adv_net_get_gpu_pkt_ptr(burst, p)) + header_size_.get();
-          ttl_bytes_in_cur_batch_  += adv_net_get_gpu_pkt_len(burst, p);
+            reinterpret_cast<uint8_t *>(adv_net_get_seg_pkt_ptr(burst, 1, p)) + header_size_.get();
+          ttl_bytes_in_cur_batch_  += adv_net_get_seg_pkt_len(burst, 1, p);
         }
       }
 
@@ -154,7 +154,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     } else {
       auto batch_offset =  aggr_pkts_recv_ * nom_payload_size_;
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-        auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_cpu_pkt_ptr(burst, p));
+        auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
         auto len = ntohs(pkt->udp.len) - 8;
 
         // assert(len + sizeof(UDPIPV4Pkt) == max_packet_size_.get());
@@ -179,7 +179,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
         if (out_q.size() == num_concurrent) {
           HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-          adv_net_free_all_burst_pkts_and_burst(burst);
+          adv_net_free_all_pkts_and_burst(burst);
           return;
         }
 
@@ -202,7 +202,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         }
 
       } else {
-        adv_net_free_all_burst_pkts_and_burst(burst);
+        adv_net_free_all_pkts_and_burst(burst);
       }
 
       cur_idx = (++cur_idx % num_concurrent);
