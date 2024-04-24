@@ -84,7 +84,7 @@
 		]
 	},
 	"run": {
-		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
+		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_data_dir>/volume_rendering_xr/config.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
 		"workdir": "holohub_bin"
 	}
   }
