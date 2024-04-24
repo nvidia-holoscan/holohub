@@ -1,0 +1,50 @@
+{
+	"tutorial": {
+		"name": "Integrate External Libraries into a Holoscan Pipeline",
+		"description": "General tutorial on how to integrate external libraries into Holoscan SDK based applications and pipelines",
+		"authors": [
+			{
+				"name": "Meiran Peng",
+				"affiliation": "NVIDIA"
+			}
+		],
+        "language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"CV-CUDA",
+			"OpenCV",
+			"cuCIM",
+			"Holoscan"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"libraries": [
+				{
+					"name": "RAPIDS cuCIM",
+					"version": "23.04"
+				},
+				{
+					"name": "CV-CUDA",
+					"version": "0.2.1"
+				},
+                {
+					"name": "OpenCV",
+					"version": "4.8.0"
+				}
+			]
+		}
+	}
+}
