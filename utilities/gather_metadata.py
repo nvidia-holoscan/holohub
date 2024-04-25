@@ -49,18 +49,34 @@ def extract_readme(file_path):
             return ""
 
 
-def extract_application_name(readme_path):
-    """Extract the application name from the README file path"""
-    parts = readme_path.split(os.sep)
-    if "applications" in parts:
-        index = parts.index("applications")
-        if index + 1 < len(parts):
-            return parts[index + 1]
-    elif "operators" in parts:
-        index = parts.index("operators")
-        if index + 1 < len(parts):
-            return parts[index + 1]
-    return ""
+def extract_application_name(metadata_filepath: str) -> str:
+    """Extract the application name from the README file path.
+
+    HoloHub convention is such that an application `metadata.json` file
+    must be located at either:
+    - the named application project folder; or
+    - a language subfolder one level below the application project folder.
+
+    The following are valid examples:
+    - applications/my_application/metadata.json -> my_application
+    - applications/nested/paths/my_application/cpp/metadata.json -> my_application
+    """
+    parts = metadata_filepath.split(os.sep)
+    if parts[-2] in ["cpp", "python"]:
+        return parts[-3]
+    return parts[-2]
+
+
+def generate_build_and_run_command(metadata: dict) -> str:
+    """Generate the build and run command for the application"""
+    language = metadata.get("metadata", {}).get("language", "").lower()
+    if language == "python":
+        return f'./dev_container build_and_run {metadata["application_name"]} --language python'
+    elif language in ["cpp", "c++"]:
+        return f'./dev_container build_and_run {metadata["application_name"]} --language cpp'
+    else:
+        # Unknown language, use default
+        return f'./dev_container build_and_run {metadata["application_name"]}'
 
 
 def gather_metadata(repo_path) -> dict:
@@ -86,6 +102,8 @@ def gather_metadata(repo_path) -> dict:
             data["readme"] = readme
             data["application_name"] = application_name
             data["source_folder"] = source_folder
+            if source_folder == "applications":
+                data["build_and_run"] = generate_build_and_run_command(data)
             metadata.append(data)
 
     return metadata
