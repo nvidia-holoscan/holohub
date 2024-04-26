@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 from argparse import ArgumentParser
 
 import cupy as cp
@@ -327,7 +328,7 @@ class PostprocessorOp(Operator):
 
 
 class BodyPoseEstimationApp(Application):
-    def __init__(self, data, source="replayer"):
+    def __init__(self, data, source="v4l2"):
         """Initialize the body pose estimation application"""
 
         super().__init__()
@@ -346,12 +347,31 @@ class BodyPoseEstimationApp(Application):
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
-        source = V4L2VideoCaptureOp(
-            self,
-            name="source",
-            allocator=pool,
-            **self.kwargs("source"),
-        )
+        if self.source == "v4l2":
+            source = V4L2VideoCaptureOp(
+                self,
+                name="v4l2_source",
+                allocator=pool,
+                **self.kwargs("v4l2_source"),
+            )
+            source_output = "signal"
+        elif self.source == "dds":
+            try:
+                from holohub.dds_video_subscriber import DDSVideoSubscriberOp
+            except ImportError:
+                print(
+                    "ERROR: Can not import DDSVideoSubscriper module. Please ensure that "
+                    "the DDS operators have been built (this can be done by building the "
+                    "'dds_video' application)."
+                )
+                sys.exit(1)
+            source = DDSVideoSubscriberOp(
+                self,
+                name="dds_source",
+                allocator=pool,
+                **self.kwargs("dds_source"),
+            )
+            source_output = "output"
 
         format_input = FormatInferenceInputOp(
             self,
@@ -391,7 +411,7 @@ class BodyPoseEstimationApp(Application):
 
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", **self.kwargs("holoviz"))
 
-        self.add_flow(source, holoviz, {("signal", "receivers")})
+        self.add_flow(source, holoviz, {(source_output, "receivers")})
         self.add_flow(source, preprocessor)
         self.add_flow(preprocessor, format_input)
         self.add_flow(format_input, inference, {("", "receivers")})
@@ -405,11 +425,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "v4l2"],
-        default="replayer",
+        choices=["v4l2", "dds"],
+        default="v4l2",
         help=(
-            "If 'replayer', replay a prerecorded video. Otherwise use "
-            "the v4l2 device specified in the yaml file."
+            "If 'v4l2', uses the v4l2 device specified in the yaml file."
+            "If 'dds', uses the DDS video stream configured in the yaml file."
         ),
     )
     parser.add_argument(
