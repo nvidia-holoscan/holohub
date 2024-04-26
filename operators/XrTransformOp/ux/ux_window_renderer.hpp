@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,22 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN_OPERATORS_OPENXR_UX_UX_BOUNDINGBOX_CURSOR_HPP
-#define HOLOSCAN_OPERATORS_OPENXR_UX_UX_BOUNDINGBOX_CURSOR_HPP
+#ifndef HOLOSCAN_OPERATORS_OPENXR_UX_UX_WINDOW_RENDERER_HPP
+#define HOLOSCAN_OPERATORS_OPENXR_UX_UX_WINDOW_RENDERER_HPP
 
-#include <Eigen/Dense>
+#include <array>
+#include <vector>
 
 #include "ux_widgets.hpp"
 
 namespace holoscan::openxr {
-class UxCursorController {
+class UxWindowRenderer {
  public:
-  explicit UxCursorController(UxCursor& cursor);
-
-  void cursorMove(Eigen::Affine3f pose);
-  void cursorClick(Eigen::Affine3f pose);
-  void cursorRelease();
+  void render(UxWindow& box);
 
  private:
-  UxCursor& cursor_;
-  Eigen::Affine3f transform_;
+  void drawAxes(float length);
 };
 }  // namespace holoscan::openxr
-#endif  // HOLOSCAN_OPERATORS_OPENXR_UX_UX_BOUNDINGBOX_CURSOR_HPP
+
+#endif  // HOLOSCAN_OPERATORS_OPENXR_UX_UX_WINDOW_RENDERER_HPP
