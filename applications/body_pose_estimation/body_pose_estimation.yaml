@@ -14,8 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source:
+v4l2_source:
   device: "/dev/video0"
+
+dds_source:
+  qos_provider: "str://\"<dds>
+        <qos_library name=\"BodyPoseDDSLibrary\">
+            <qos_profile name=\"DefaultProfile\"
+                         base_name=\"BuiltinQosLib::Pattern.Streaming\"
+                         is_default_qos=\"true\">
+                <participant_qos>
+                    <participant_name>
+                        <name>Holoscan Body Pose</name>
+                    </participant_name>
+                </participant_qos>
+                <datareader_qos>
+                    <subscription_name>
+                        <name>VideoFrameReader</name>
+                    </subscription_name>
+                </datareader_qos>
+            </qos_profile>
+        </qos_library>
+    </dds>\""
 
 preprocessor:
   out_tensor_name: preprocessed
