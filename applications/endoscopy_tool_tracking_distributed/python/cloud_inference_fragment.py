@@ -15,11 +15,8 @@
 
 import os
 
-
 from holoscan.core import Fragment
-from holoscan.operators import (
-    FormatConverterOp,
-)
+from holoscan.operators import FormatConverterOp
 from holoscan.resources import (
     BlockMemoryPool,
     CudaStreamPool,

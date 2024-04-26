@@ -16,11 +16,9 @@
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application
-
-
-from video_input_fragment import VideoInputFragment
 from cloud_inference_fragment import CloudInferenceFragment
+from holoscan.core import Application
+from video_input_fragment import VideoInputFragment
 from viz_fragment import VizFragment
 
 
@@ -74,16 +72,12 @@ class EndoscopyApp(Application):
         # Flow definition
 
         if self.source == "replayer":
-            self.add_flow(
-                video_in_fragment,
-                inference_fragment,
-                {("replayer", "format_converter")}
-            )
+            self.add_flow(video_in_fragment, inference_fragment, {("replayer", "format_converter")})
         else:
             self.add_flow(
                 video_in_fragment,
                 inference_fragment,
-                {(f"{self.source}.video_buffer_output", "format_converter.source_video")}
+                {(f"{self.source}.video_buffer_output", "format_converter.source_video")},
             )
         self.add_flow(
             inference_fragment,
@@ -96,13 +90,30 @@ class EndoscopyApp(Application):
 
         if video_in_fragment.is_overlay_enabled:
             # Overlay buffer flow between AJA source and visualizer
-            self.add_flow(video_in_fragment, viz_fragment, {("replayer.overlay_buffer_output", "holoviz.render_buffer_input")})
-            self.add_flow(viz_fragment, video_in_fragment, {("holoviz.render_buffer_output", "replayer.overlay_buffer_input")})
+            self.add_flow(
+                video_in_fragment,
+                viz_fragment,
+                {("replayer.overlay_buffer_output", "holoviz.render_buffer_input")},
+            )
+            self.add_flow(
+                viz_fragment,
+                video_in_fragment,
+                {("holoviz.render_buffer_output", "replayer.overlay_buffer_input")},
+            )
         else:
             self.add_flow(
                 video_in_fragment,
                 viz_fragment,
-                {("replayer.video_buffer_output" if self.source != "replayer" else "replayer.output", "holoviz.receivers")},
+                {
+                    (
+                        (
+                            "replayer.video_buffer_output"
+                            if self.source != "replayer"
+                            else "replayer.output"
+                        ),
+                        "holoviz.receivers",
+                    )
+                },
             )
 
 
