@@ -8,7 +8,7 @@ model for inferencing. Then, the results are visualized after postprocessing.
 ## Usage
 
 As this application is, by default, set to use the 
-[ultrasound segmentation](../ultrasound_segmentation/) example, you can build and run the ultrasound
+[ultrasound segmentation](../../applications/ultrasound_segmentation/) example, you can build and run the ultrasound
 segmentation example first, and then try running this benchmarking application.
 
 Build and run the ultrasound segmentation application:
