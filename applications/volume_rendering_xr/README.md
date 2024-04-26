@@ -1,6 +1,6 @@
 # Medical Image Viewer in XR
 
-![Volume Rendering Screenshot](../volume_rendering/screenshot.png)
+![Volume Rendering Screenshot](./doc/stereo_skeleton.png)
 
 ## Description
 
@@ -24,8 +24,8 @@ The following packages and applications are required to run remote rendering wit
 |--|------|---------|--|
 | Magic Leap Hub | Windows or macOS PC | latest | [Magic Leap Website](https://ml2-developer.magicleap.com/downloads) |
 | Headset Firmware | Magic Leap 2 | v1.6.0 | Magic Leap Hub |
-| Headset Remote Rendering Viewer (.apk) | Magic Leap 2 | [1.9.192](https://thelab.magicleap.cloud/packages_mlhub/artifacts/com.magicleap.remote_render/1.9.192/ml_remote_viewer.apk) | Magic Leap Download Link |
-| Windrunner OpenXR Backend | HoloHub Container | 1.9.194 | Included in Container |
+| Headset Remote Rendering Viewer (.apk) | Magic Leap 2 | [1.11.64](https://thelab.magicleap.cloud/packages_mlhub/artifacts/com.magicleap.remote_render/1.11.64/ml_remote_viewer.apk) | Magic Leap Download Link |
+| Windrunner OpenXR Backend | HoloHub Container | 1.11.74 | Included in Container |
 | Magic Leap 2 Pro License | | | Magic Leap |
 
 Refer to the Magic Leap 2 documentation for more information:
@@ -34,22 +34,41 @@ Refer to the Magic Leap 2 documentation for more information:
 
 ## Building the Application
 
-Run the following commands to build and launch the HoloHub custom development container:
+Run the following commands to build and enter the interactive container environment:
 ```bash
-./dev_container build --img holohub:openxr-base --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu --docker_file ./applications/volume_rendering_xr/Dockerfile.base # build the base container
-./dev_container build --img holohub:openxr-dev --base_img holohub:openxr-base --docker_file ./applications/volume_rendering_xr/Dockerfile.dev # build the dev container
-./dev_container launch --as_root --img holohub:openxr-dev -c "./run build volume_rendering_xr cpp" # Build the application
-./dev_container launch --as_root --img holohub:openxr-dev # Run the container interactively
+./dev_container build --img holohub:openxr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
+./dev_container launch --docker_opts "-v $(pwd)/tmp:/home/$(whoami)" --img holohub:openxr # Launch the container
 ```
 
-When the container is launched a QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed.
+Then, inside the container environment, build the application:
+```bash
+./run build volume_rendering_xr # Build the application
+```
 
 ## Running the Application
+
+### Setting Up Your Device
+
+Inside the container environment, start the Windrunner OpenXR backend and generate a pairing code:
+```bash
+ml_start.sh <debug>
+ml_pair.sh
+```
+
+A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.
+
+### Launching the Application
 
 Run the following command inside the development container to start the XR volume rendering application:
 ```bash
 ./run launch volume_rendering_xr
 ```
+
+The application supports the following hand or controller interactions by default:
+- **Translate**: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
+- **Scale**: Grab any face of the bounding box and move your hand or controller to scale the volume.
+- **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
+- **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
 
 ## Additional Notes
 

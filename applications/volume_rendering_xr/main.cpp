@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-#include "holoscan/holoscan.hpp"
-#include "holoscan/operators/holoviz/holoviz.hpp"
 #include "convert_depth_to_screen_space_op.hpp"
+#include "holoscan/holoscan.hpp"
 #include "xr_begin_frame_op.hpp"
 #include "xr_end_frame_op.hpp"
 #include "xr_transform_control_op.hpp"
@@ -26,17 +25,102 @@
 #include "volume_loader.hpp"
 #include "volume_renderer.hpp"
 
+#include <getopt.h>
+#include <nlohmann/json.hpp>
 #include <string>
 
-#include <getopt.h>
+/**
+ * Dummy YAML convert function for shared data type
+ */
+template <>
+struct YAML::convert<std::shared_ptr<nlohmann::json>> {
+  static Node encode(const std::shared_ptr<nlohmann::json>& data) {
+    holoscan::log_error("YAML conversion not supported");
+    return Node();
+  }
+
+  static bool decode(const Node& node, std::shared_ptr<nlohmann::json>& data) {
+    holoscan::log_error("YAML conversion not supported");
+    return false;
+  }
+};
+
+template <>
+struct YAML::convert<std::shared_ptr<std::array<nvidia::gxf::Vector2f, 3>>> {
+  static Node encode(const std::shared_ptr<std::array<nvidia::gxf::Vector2f, 3>>& data) {
+    holoscan::log_error("YAML conversion not supported");
+    return Node();
+  }
+
+  static bool decode(const Node& node,
+                     std::shared_ptr<std::array<nvidia::gxf::Vector2f, 3>>& data) {
+    holoscan::log_error("YAML conversion not supported");
+    return false;
+  }
+};
+
+namespace holoscan::ops {
+
+/**
+ * Source Op for typed shared data.
+ */
+template <typename T>
+class SharedDataSourceOp : public Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(SharedDataSourceOp);
+
+  void initialize() override {
+    register_converter<std::shared_ptr<T>>();
+    Operator::initialize();
+  }
+
+  void setup(OperatorSpec& spec) override {
+    spec.param(shared_, "shared", "shared", "Shared Type");
+    spec.output<T>("out");
+  }
+
+  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
+    output.emit(*shared_.get(), "out");
+  }
+
+ private:
+  Parameter<std::shared_ptr<T>> shared_;
+};
+
+/**
+ * Sink Op for typed shared data.
+ */
+template <typename T>
+class SharedDataSinkOp : public Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(SharedDataSinkOp);
+
+  void setup(OperatorSpec& spec) override {
+    spec.param(shared_, "shared", "shared", "Shared Type");
+    spec.input<T>("in");
+  }
+
+  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
+    auto message = input.receive<T>("in");
+    *shared_.get() = message.value();
+  }
+
+ private:
+  Parameter<std::shared_ptr<T>> shared_;
+};
+
+}  // namespace holoscan::ops
 
 class App : public holoscan::Application {
  public:
-  App(const std::string& render_config_file, const std::string& density_volume_file,
-      const std::string& mask_volume_file)
+  App(const std::string& render_config_file, const std::string& write_config_file,
+      const std::string& density_volume_file, const std::string& mask_volume_file,
+      bool enable_eye_tracking)
       : render_config_file_(render_config_file),
+        write_config_file_(write_config_file),
         density_volume_file_(density_volume_file),
-        mask_volume_file_(mask_volume_file) {}
+        mask_volume_file_(mask_volume_file),
+        enable_eye_tracking_(enable_eye_tracking) {}
   App() = delete;
 
   void compose() override {
@@ -52,7 +136,9 @@ class App : public holoscan::Application {
     xr_session->initialize();
 
     auto xr_begin_frame = make_operator<holoscan::openxr::XrBeginFrameOp>(
-        "xr_begin_frame", holoscan::Arg("session") = xr_session);
+        "xr_begin_frame",
+        holoscan::Arg("session") = xr_session,
+        holoscan::Arg("enable_eye_tracking") = enable_eye_tracking_);
     auto xr_end_frame = make_operator<holoscan::openxr::XrEndFrameOp>(
         "xr_end_frame", holoscan::Arg("session") = xr_session);
 
@@ -61,7 +147,8 @@ class App : public holoscan::Application {
     auto xr_transform_renderer = make_operator<holoscan::openxr::XrTransformRenderOp>(
         "xr_transform_render",
         holoscan::Arg("display_width", xr_session->display_width()),
-        holoscan::Arg("display_height", xr_session->display_height()));
+        holoscan::Arg("display_height", xr_session->display_height()),
+        holoscan::Arg("config_file", render_config_file_));
 
     auto density_volume_loader = make_operator<holoscan::ops::VolumeLoaderOp>(
         "density_volume_loader",
@@ -81,7 +168,9 @@ class App : public holoscan::Application {
     }
 
     auto volume_renderer = make_operator<holoscan::ops::VolumeRendererOp>(
-        "volume_renderer", holoscan::Arg("config_file", render_config_file_));
+        "volume_renderer",
+        holoscan::Arg("config_file", render_config_file_),
+        holoscan::Arg("write_config_file", write_config_file_));
 
     auto convert_depth =
         make_operator<holoscan::openxr::ConvertDepthToScreenSpaceOp>("convert_depth");
@@ -141,6 +230,7 @@ class App : public holoscan::Application {
                  {"right_camera_pose", "right_camera_pose"},
                  {"left_camera_model", "left_camera_model"},
                  {"right_camera_model", "right_camera_model"},
+                 {"eye_gaze_pose", "eye_gaze_pose"},
              });
 
     add_flow(xr_transform_controller,
@@ -152,11 +242,37 @@ class App : public holoscan::Application {
 
     add_flow(xr_transform_controller,
              xr_transform_renderer,
+             {{"ux_box", "ux_box"}, {"ux_cursor", "ux_cursor"}, {"ux_window", "ux_window"}});
+
+#define SOURCE_SINK 1
+
+#ifdef SOURCE_SINK
+    auto volume_pose = std::make_shared<nlohmann::json>();
+    auto render_settings_source = make_operator<holoscan::ops::SharedDataSourceOp<nlohmann::json>>(
+        "render_settings_source", holoscan::Arg("shared", volume_pose));
+    auto render_settings_sink = make_operator<holoscan::ops::SharedDataSinkOp<nlohmann::json>>(
+        "render_settings_sink", holoscan::Arg("shared", volume_pose));
+
+    add_flow(xr_transform_renderer,
+             render_settings_sink,
              {
-                 {"ux_box", "ux_box"},
-                 {"ux_cursor", "ux_cursor"},
+                 {"render_settings", "in"},
              });
 
+    add_flow(render_settings_source,
+             volume_renderer,
+             {
+                 {"out", "merge_settings"},
+             });
+#else
+
+    add_flow(xr_transform_renderer,
+             volume_renderer,
+             {
+                 {"render_settings", "merge_settings"},
+             });
+
+#endif
     add_flow(xr_begin_frame, volume_renderer, {{"color_buffer", "color_buffer_in"}});
     add_flow(volume_renderer, xr_transform_renderer, {{"color_buffer_out", "color_buffer_in"}});
     add_flow(xr_transform_renderer, xr_end_frame, {{"color_buffer_out", "color_buffer"}});
@@ -169,56 +285,72 @@ class App : public holoscan::Application {
   }
 
   const std::string render_config_file_;
+  const std::string write_config_file_;
   const std::string density_volume_file_;
   const std::string mask_volume_file_;
+  const bool enable_eye_tracking_;
 };
 
 int main(int argc, char** argv) {
-  const std::string render_config_file_default(
-      "/workspace/holoscan-openxr/data/volume_rendering/config.json");
-  const std::string density_volume_file_default(
-      "/workspace/holoscan-openxr/data/volume_rendering/highResCT.mhd");
-  const std::string mask_volume_file_default(
-      "/workspace/holoscan-openxr/data/volume_rendering/smoothmasks.seg.mhd");
+  // TODO: Apparent issue with parsing non-default args in HoloHub
 
-  std::string render_config_file;
+  const std::string render_config_file_default("configs/ctnv_bb_er.json");
+  const std::string density_volume_file_default("data/ctnv_bb_er/highResCT.mhd");
+  const std::string mask_volume_file_default("data/ctnv_bb_er/smoothmasks.seg.mhd");
+
+  std::string render_config_file(render_config_file_default);
+  std::string write_config_file;
   std::string density_volume_file;
   std::string mask_volume_file;
+  bool enable_eye_tracking = false;
 
   struct option long_options[] = {{"help", no_argument, 0, 'h'},
                                   {"config", required_argument, 0, 'c'},
+                                  {"write_config", required_argument, 0, 'w'},
                                   {"density", required_argument, 0, 'd'},
                                   {"mask", required_argument, 0, 'm'},
+                                  {"eye-tracking", no_argument, 0, 'e'},
                                   {0, 0, 0, 0}};
 
   // parse options
   while (true) {
     int option_index = 0;
 
-    const int c = getopt_long(argc, argv, "hc:d:m:", long_options, &option_index);
+    const int c = getopt_long(argc, argv, "hc:w:d:m:e", long_options, &option_index);
 
     if (c == -1) { break; }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
-        std::cout << "Holoscan OpenXR volume renderer."
-                  << "Usage: " << argv[0] << " [options]" << std::endl
-                  << "Options:" << std::endl
-                  << "  -h, --help                            Display this information" << std::endl
-                  << "  -c <FILENAME>, --config <FILENAME>    Name of the renderer JSON "
-                     "configuration file to load (default '"
-                  << render_config_file_default << "')" << std::endl
-                  << "  -d <FILENAME>, --density <FILENAME>   Name of density volume file to load "
-                     "(default '"
-                  << density_volume_file_default << "')" << std::endl
-                  << "  -m <FILENAME>, --mask <FILENAME>      Name of mask volume file to load "
-                     "(default '"
-                  << mask_volume_file_default << "')" << std::endl;
+        std::cout
+            << "Holoscan OpenXR volume renderer."
+            << "Usage: " << argv[0] << " [options]" << std::endl
+            << "Options:" << std::endl
+            << "  -h, --help                            Display this information" << std::endl
+            << "  -c <FILENAME>, --config <FILENAME>    Name of the renderer JSON "
+               "configuration file to load (default '"
+            << render_config_file_default << "')" << std::endl
+            << "  -w <FILENAME>, --write_config <FILENAME> Name of the renderer JSON "
+               "configuration file to write to (default '')"
+            << std::endl
+            << "  -d <FILENAME>, --density <FILENAME>   Name of density volume file to load "
+               "(default '"
+            << density_volume_file_default << "')" << std::endl
+            << "  -m <FILENAME>, --mask <FILENAME>      Name of mask volume file to load "
+               "(default '"
+            << mask_volume_file_default << "')" << std::endl
+            << "  -e, --eye-tracking                    Enable eye tracking and foveated rendering."
+            << std::endl;
         return 0;
 
       case 'c':
+        HOLOSCAN_LOG_DEBUG("Config file: " + argument);
         render_config_file = argument;
+        break;
+
+      case 'w':
+        write_config_file = argument;
         break;
 
       case 'd':
@@ -229,6 +361,10 @@ int main(int argc, char** argv) {
         mask_volume_file = argument;
         break;
 
+      case 'e':
+        enable_eye_tracking = true;
+        break;
+
       case '?':
         // unknown option, error already printed by getop_long
         break;
@@ -237,16 +373,16 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (render_config_file.empty()) { render_config_file = render_config_file_default; }
   if (density_volume_file.empty()) {
     density_volume_file = density_volume_file_default;
     mask_volume_file = mask_volume_file_default;
   }
 
-  App app(render_config_file, density_volume_file, mask_volume_file);
-  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path += "/app_config.yaml";
-  app.config(config_path);
+  App app(render_config_file,
+          write_config_file,
+          density_volume_file,
+          mask_volume_file,
+          enable_eye_tracking);
   app.run();
   return 0;
 }
