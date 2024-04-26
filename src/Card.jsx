@@ -52,12 +52,28 @@ const Card = ({ data, openModal }) => {
           {readme}
         </ReactMarkdown>
       </div>
-      <button
-        onClick={() => openModal(data)}
-        className="bg-lime-500 text-white px-4 py-2 mt-2 rounded hover:bg-lime-600"
-      >
-        View Details
-      </button>
+      <div>
+        <button
+          onClick={() => openModal(data)}
+          className="bg-lime-500 text-white px-4 py-2 mt-2 rounded hover:bg-lime-600"
+        >
+          View Details
+        </button>
+        {data.build_and_run && (
+        <button
+          onClick={() => {
+            if (data.build_and_run) {
+              navigator.clipboard.writeText(data.build_and_run);
+            } else {
+              console.error('Build and run command text not found for ' + data.application_name);
+            }
+          }}
+          className="ml-3 bg-lime-500 text-white px-4 py-2 mt-2 rounded hover:bg-lime-600 active:bg-lime-700"
+        >
+          Run Locally ⧉
+        </button>
+        )}
+      </div>
     </div>
   );
 };
