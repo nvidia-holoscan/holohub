@@ -21,6 +21,9 @@
 #include <memory>
 #include <optional>
 #include <stdint.h>
+#include <linux/if_ether.h>
+#include <netinet/ip.h>
+#include <linux/udp.h>
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -59,6 +62,13 @@ struct AdvNetBurstParams {
   std::array<void **,     MAX_NUM_SEGS> pkts;
   std::array<uint32_t *,  MAX_NUM_SEGS> pkt_lens;
 };
+
+// Example IPV4 UDP packet using Linux headers
+struct UDPIPV4Pkt {
+  struct ethhdr eth;
+  struct iphdr ip;
+  struct udphdr udp;
+} __attribute__((packed));
 
 
 enum class MemoryKind {
@@ -177,7 +187,8 @@ struct CommonQueueConfig {
   int id_;
   int batch_size_;
   std::string cpu_core_;
-  std::vector<std::string> mrs_;  
+  std::vector<std::string> mrs_;
+  std::vector<std::string> offloads_;
 };
 
 struct MemoryRegion {
@@ -256,6 +267,7 @@ struct AdvNetConfigYaml {
   CommonConfig common_;
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
+  bool debug_;  
 };
 
 template <typename Config>

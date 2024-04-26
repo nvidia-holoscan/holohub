@@ -79,10 +79,14 @@ class ANOMgr {
     virtual void free_tx_meta(AdvNetBurstParams *burst) = 0;
     virtual AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) = 0;
     virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) = 0;
+    virtual AdvNetStatus get_mac(int port, char *mac) = 0;
+    virtual int address_to_port(const std::string &addr) = 0;
 
  protected:
     static constexpr uint32_t GPU_PAGE_SHIFT = 16;
     static constexpr uint32_t GPU_PAGE_SIZE = (1UL << GPU_PAGE_SHIFT); 
+    static constexpr uint32_t JUMBO_FRAME_MAX_SIZE = 0x2600;
+    static constexpr uint32_t NON_JUMBO_FRAME_MAX_SIZE = 1518;
     bool initialized_ = false;
     AdvNetConfigYaml cfg_;    
     std::unordered_map<std::string, AllocRegion> ar_;

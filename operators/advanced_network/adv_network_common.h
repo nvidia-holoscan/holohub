@@ -347,6 +347,25 @@ int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
 int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ * @param port Port ID of interface
+ * 
+ * @returns AdvNetStatus::SUCCESS on success
+ */
+AdvNetStatus adv_net_get_mac(int port, char *mac);
+
+/**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ * 
+ * @returns Port number or -1 for not found
+ */
+int adv_net_address_to_port(const std::string &addr);
+
+/**
  * @brief Set the number of packets in a burst
  *
  * @param burst Burst structure
@@ -428,6 +447,13 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       }
 
       try {
+        input_spec.debug_   = node["debug"].as<bool>();
+      }
+      catch (const std::exception& e) {
+        input_spec.debug_   = false;
+      }        
+
+      try {
         const auto &mrs = node["memory_regions"];
         for (const auto &mr: mrs) {
           holoscan::ops::MemoryRegion tmr;
@@ -468,7 +494,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
           }
           catch (const std::exception& e) {
             ifcfg.flow_isolation_   = false;
-          }
+          }        
 
           ifcfg.port_id_          = port++;
 
@@ -527,7 +553,12 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
               const auto &mrs = q_item["memory_regions"];
               for (const auto &mr: mrs) {
                 q.common_.mrs_.push_back(mr.as<std::string>());
-              }            
+              }
+
+              const auto &offload = q_item["offloads"];
+              for (const auto &off: offload) {
+                q.common_.offloads_.push_back(off.as<std::string>());
+              }                      
 
               tx_cfg.queues_.emplace_back(q);
             }

@@ -19,11 +19,6 @@
 #include "dpdk_bench_op_tx.h"
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
-#include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
-#include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 

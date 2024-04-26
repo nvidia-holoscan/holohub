@@ -19,24 +19,12 @@
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 
 
 namespace holoscan::ops {
-
-// Example IPV4 UDP packet using Linux headers
-struct UDPIPV4Pkt {
-  struct ethhdr eth;
-  struct iphdr ip;
-  struct udphdr udp;
-  uint8_t payload[];
-} __attribute__((packed));
-
 
 class AdvNetworkingBenchDefaultRxOp : public Operator {
  public:
@@ -126,7 +114,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     if (adv_net_get_q_id(burst) == 0) {
       adv_net_free_all_pkts_and_burst(burst);
-      HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
       return;
     }
 
@@ -160,7 +147,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         // assert(len + sizeof(UDPIPV4Pkt) == max_packet_size_.get());
 
         memcpy((char*)full_batch_data_h_ + batch_offset + p * nom_payload_size_,
-            pkt->payload, len);
+            (pkt + sizeof(*pkt)), len);
 
         ttl_bytes_recv_ += len + sizeof(UDPIPV4Pkt);
         ttl_bytes_in_cur_batch_ += len + sizeof(UDPIPV4Pkt);

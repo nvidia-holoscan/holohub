@@ -20,14 +20,12 @@
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 
 namespace holoscan::ops {
+
 
 /*
   The ANO benchmark app uses the Advanced Networking Operator to show how to send
@@ -55,9 +53,35 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     adv_net_shutdown();
   }
 
+  void populate_dummy_headers(UDPIPV4Pkt &pkt) {
+    adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
+    memcpy(pkt.eth.h_dest, eth_dst_, sizeof(pkt.eth.h_dest));
+    pkt.eth.h_proto = htons(0x0800);
+
+    uint16_t ip_len = payload_size_.get() + header_size_.get() - sizeof(pkt.eth);
+
+    pkt.ip.version  = 4;
+    pkt.ip.daddr    = ip_dst_;
+    pkt.ip.saddr    = ip_src_;
+    pkt.ip.ihl      = 20 / 4;
+    pkt.ip.id       = 0;
+    pkt.ip.ttl      = 2;
+    pkt.ip.protocol = IPPROTO_UDP;
+    pkt.ip.check    = 0;
+    pkt.ip.frag_off = 0;
+    pkt.ip.tot_len  = htons(ip_len);
+
+    pkt.udp.check   = 0;
+    pkt.udp.dest    = htons(udp_dst_port_.get());
+    pkt.udp.source  = htons(udp_src_port_.get());
+    pkt.udp.len     = htons(ip_len - sizeof(pkt.ip));
+  }
+
   void initialize() override {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
+
+    port_id_ = adv_net_address_to_port(address_.get());
 
     size_t buf_size = batch_size_.get() * payload_size_.get();
     if (!gpu_direct_.get()) {
@@ -98,34 +122,12 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     // real situation the header would likely be constructed on the GPU
     if (gpu_direct_.get() && hds_.get() == 0) {
       cudaMalloc(&gds_header_, header_size_.get());
+      cudaMemset(gds_header_, 0, header_size_.get());
 
-      if ((ip_dst_ & 0xff) == 2) {
-        uint8_t payload[] =
-          { 0x00, 0x00, 0x00, 0x00, 0x11, 0x22, 0x48, 0xB0,
-            0x2D, 0xD9, 0x30, 0xA1, 0x08, 0x00, 0x45, 0x00,
-            0x1F, 0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11,
-            0x00, 0x00, 0xC0, 0xA8, 0x00, 0x01, 0xC0, 0xA8,
-            0x00, 0x02, 0x10, 0x00, 0x10, 0x00, 0x1F, 0x5E,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      populate_dummy_headers(pkt);
 
-        // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(gds_header_, payload, sizeof(payload), cudaMemcpyDefault);
-      } else {
-        uint8_t payload[] = {
-            0x00, 0x00, 0x00, 0x00, 0x11, 0x33, 0x48, 0xB0,
-            0x2D, 0xD9, 0x30, 0xA1, 0x08, 0x00, 0x45, 0x00,
-            0x1F, 0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11,
-            0x00, 0x00, 0xC0, 0xA8, 0x00, 0x01, 0xC0, 0xA8,
-            0x00, 0x03, 0x10, 0x00, 0x10, 0x00, 0x1F, 0x5E,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-        // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(gds_header_, payload, sizeof(payload), cudaMemcpyDefault);
-      }
+      // Copy the pre-made header to GPU
+      cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
     }
 
 
@@ -152,36 +154,33 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         "IP destination address", "IP destination address");
     spec.param<std::string>(eth_dst_addr_,
         "eth_dst_addr", "Ethernet destination address", "Ethernet destination address");
-    spec.param<uint16_t>(port_id_, "port_id",
-        "Interface number", "Interface number");
+    spec.param<std::string>(address_, "address",
+        "Address of NIC from ANO config", "Address of NIC from ANO config");
     spec.param<uint16_t>(header_size_, "header_size",
         "Header size", "Header size on each packet from L4 and below", 42);
   }
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
     AdvNetStatus ret;
-
     /**
      * Spin waiting until a buffer is free. This can be stalled by sending faster than the NIC can handle it. We
      * expect the transmit operator to operate much faster than the receiver since it's not having to do any work
      * to construct packets, and just copying from a buffer into memory.
     */
+
     if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
       HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
       return;
     }
 
     auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_.get(), queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
+    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
 
     while (!adv_net_tx_burst_available(msg)) {}
     if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
     }
-
-    int cpu_len;
-    int gpu_len;
 
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
@@ -232,25 +231,25 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
       // Figure out the CPU and GPU length portions for ANO
       if (gpu_direct_.get() && hds_.get() > 0) {
-        cpu_len = hds_.get();
-        gpu_len = payload_size_.get();
         gpu_bufs[cur_idx][num_pkt] =
           reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 1, num_pkt));
-      } else if (!gpu_direct_.get()) {
-        cpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-        gpu_len = 0;
+        if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_.get(), payload_size_.get()})) != AdvNetStatus::SUCCESS) {
+          HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
+          adv_net_free_all_pkts_and_burst(msg);
+          return;
+        }          
       } else {
-        cpu_len = 0;
-        gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-        gpu_bufs[cur_idx][num_pkt] =
-          reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 1, num_pkt));
-      }
+        if (gpu_direct_.get()) {
+          gpu_bufs[cur_idx][num_pkt] =
+            reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 0, num_pkt));
+        }
 
-       if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {cpu_len, gpu_len})) != AdvNetStatus::SUCCESS) {
-         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-         adv_net_free_all_pkts_and_burst(msg);
-         return;
-       }
+        if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_.get() + header_size_.get()})) != AdvNetStatus::SUCCESS) {
+          HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
+          adv_net_free_all_pkts_and_burst(msg);
+          return;
+        }         
+      }
     }
 
     // In GPU-only mode copy the header
@@ -298,13 +297,15 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   uint32_t ip_src_;
   uint32_t ip_dst_;
   cudaStream_t stream;
+  UDPIPV4Pkt pkt;
   void *gds_header_;
   int cur_idx = 0;
+  int port_id_;
   Parameter<int> hds_;                       // Header-data split point
   Parameter<bool> gpu_direct_;               // GPUDirect enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;          // Header size of packet
-  Parameter<uint16_t> port_id_;
+  Parameter<std::string> address_;
   Parameter<uint16_t> payload_size_;
   Parameter<uint16_t> udp_src_port_;
   Parameter<uint16_t> udp_dst_port_;

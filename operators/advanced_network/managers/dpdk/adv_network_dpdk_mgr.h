@@ -120,6 +120,8 @@ class DpdkMgr : public ANOMgr {
     void free_tx_meta(AdvNetBurstParams *burst) override;
     AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
     AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
+    int address_to_port(const std::string &addr) override;
+    AdvNetStatus get_mac(int port, char *mac) override;
     void shutdown() override;
     void print_stats() override;
     virtual void adjust_memory_regions() override;
@@ -132,8 +134,11 @@ class DpdkMgr : public ANOMgr {
     void setup_accurate_send_scheduling_mask();
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     struct rte_flow *add_flow(int port, const FlowConfig &cfg);
-    AdvNetStatus register_and_map_mrs(const rte_eth_dev_info &dev_info);
+    AdvNetStatus register_mrs();
+    AdvNetStatus map_mrs();
     int numa_from_mem(const MemoryRegion &mr);
+    struct rte_flow* add_modify_flow_set(int port, int queue, const char *buf, int len, AdvNetDirection direction);
+    void apply_tx_offloads(int port);
 
     std::array<std::string, MAX_IFS> if_names;
     std::array<std::string, MAX_IFS> pcie_addrs;
