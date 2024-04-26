@@ -15,33 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-############################################################
-# Versions
-############################################################
+ARG DEBIAN_FRONTEND=noninteractive
 ARG VULKAN_SDK_VERSION=1.3.216.0
-ARG CUDA_TOOLKIT_VERSION=11.6
 
-ARG BASE_IMAGE=holohub:openxr-base
+ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
 
-# Install cmake, ninja, git and build-essential
-RUN apt update \
-    && apt install --no-install-recommends -y ca-certificates gpg wget curl \
-    && curl -s -L https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-        | gpg --dearmor - \
-        | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' \
-        | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-    && apt update \
-    && apt install --no-install-recommends -y \
-        kitware-archive-keyring \
-        cmake-data="3.22.2-*" \
-        cmake="3.22.2-*" \
-        ninja-build="1.10.0-*" \
-        git \
-        build-essential \
-    && rm -rf /var/lib/apt/lists/*
 ENV CMAKE_GENERATOR=Ninja
+
+# Install Vulkan dependencies
+#  libvulkan1 - Vulkan loader
+#  libegl1 - to run headless Vulkan apps
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libvulkan1 \
+        libegl1 \
+    && rm -rf /var/lib/apt/lists/*
 
 ############################################################
 # Vulkan SDK
@@ -72,10 +61,13 @@ RUN if [ $(uname -m) = "aarch64" ]; then \
     && ./vulkansdk shaderc glslang headers; \
     fi
 
+############################################################
+# OpenXR dev dependencies
+############################################################
 FROM base as dev
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG CUDA_TOOLKIT_VERSION
+ARG WINDRUNNER_VERSION=1.11.74-5b8fe25-1~20240426ubuntu2204
 
 # Install OpenXR dev dependencies, can remove when using libopenxr-dev package instead of building OpenXR from source
 RUN apt update \
@@ -91,6 +83,49 @@ RUN apt update \
         libxxf86vm-dev \
         mesa-common-dev \
     && rm -rf /var/lib/apt/lists/*
+    
+# Install Monado OpenXR runtime. See
+# https://monado.freedesktop.org/getting-started.html#monado-installation
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libopenxr-loader1 libopenxr-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Magic Leap OpenXR runtime and set it as the default active runtime
+COPY applications/volume_rendering_xr/thirdparty/magicleap/MagicLeapRemoteRendering.gpg \
+    /usr/local/share/keyrings/magicleap/MagicLeapRemoteRendering.gpg
+RUN LIST_FILE=/etc/apt/sources.list.d/MagicLeapRemoteRendering.list \
+    && chmod -R 755 "/usr/local/share/keyrings/magicleap/" \
+    && CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME") \
+    && echo "deb [signed-by=/usr/local/share/keyrings/magicleap/MagicLeapRemoteRendering.gpg] https://apt.magicleap.cloud/Stable/ $CODENAME main" \
+        | tee "$LIST_FILE" \
+    && chmod a+r "$LIST_FILE" \
+    && apt update \
+    && echo "debconf-set-selections windrunner/accept_eula boolean true" | debconf-set-selections \
+    && apt install --no-install-recommends -y \
+        net-tools \
+        windrunner-service=${WINDRUNNER_VERSION} \
+        libopenxr1-windrunner=${WINDRUNNER_VERSION} \
+        libnvidia-compute-510- \
+        libnvidia-encode-510- \
+    && printf '\
+    Package: windrunner-service\n\
+    Pin: version %s\n\
+    Pin-Priority: 1337\n\
+    \n\
+    Package: libopenxr1-windrunner\n\
+    Pin: version %s\n\
+    Pin-Priority: 1337\n' ${WINDRUNNER_VERSION} ${WINDRUNNER_VERSION} > /etc/apt/preferences.d/pin-windrunner \
+    && update-alternatives --set openxr1-active-runtime /usr/share/openxr/1/openxr_windrunner.json
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/windrunner/lib"
+ENV LR_TRANSPORT_CERT_PATH=/opt/windrunner/share/windrunner/server.crt
+ENV LR_TRANSPORT_PKEY_PATH=/opt/windrunner/share/windrunner/server.key
+ENV WINDRUNNER_ENABLE_AUDIO=0
+ENV PATH="${PATH}:/opt/windrunner/bin"
+
+# setup Magic Leap CLI
+ENV PATH="${PATH}:/workspace/holohub/applications/volume_rendering_xr/thirdparty/magicleap"
 
 # Copy vulkan sdk
 # NOTE: It's all in x86_64 even if that's not the target platform
@@ -106,4 +141,15 @@ RUN rm -f ${VULKAN_SDK}/lib/libvulkan.so* \
 ENV PATH="${PATH}:${VULKAN_SDK}/bin"
 ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VULKAN_SDK}"
 
-ENTRYPOINT ["/workspace/holohub/applications/volume_rendering_xr/scripts/dev-entrypoint.sh"]
+# Set JIT compilation cache paths
+#  https://developer.nvidia.com/blog/cuda-pro-tip-understand-fat-binaries-jit-caching/
+ENV CUDA_CACHE_DISABLE="0"
+ENV CUDA_CACHE_PATH="/workspace/holohub/.cache/ComputeCache"
+#  https://raytracing-docs.nvidia.com/optix7/api/optix__host_8h.html#a59a60f5f600df0f9321b0a0b1090d76b
+ENV OPTIX_CACHE_PATH="/workspace/holohub/.cache/OptixCache"
+#  https://download.nvidia.com/XFree86/Linux-x86_64/460.67/README/openglenvvariables.html
+ENV __GL_SHADER_DISK_CACHE_PATH="/workspace/holohub/.cache/GLCache"
+
+# all NVIDIA devices are visible, also use all driver capabilities
+ENV NVIDIA_VISIBLE_DEVICES="all"
+ENV NVIDIA_DRIVER_CAPABILITIES="all"
