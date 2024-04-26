@@ -127,12 +127,20 @@ void adv_net_format_eth_addr(char *dst, std::string addr) {
   }
 }
 
+AdvNetStatus adv_net_get_mac(int port, char *mac) {
+  return g_ano_mgr->get_mac(port, mac);
+}
+
 bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
   return g_ano_mgr->tx_burst_available(burst);
 }
 
 bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst) {
   return adv_net_tx_burst_available(burst.get());
+}
+
+int adv_net_address_to_port(const std::string &addr) {
+  return g_ano_mgr->address_to_port(addr);
 }
 
 

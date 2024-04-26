@@ -77,7 +77,7 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
   AdvNetBurstParams *burst;
 
   const auto res = g_ano_mgr->get_rx_burst(&burst);
-printf("got\n");
+
   if (res != AdvNetStatus::SUCCESS) {
     return;
   }

@@ -100,12 +100,14 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
       }
     }
 
-    HOLOSCAN_LOG_INFO("Successfully allocated memory region {} at {} with {} bytes", mr.second.name_, ptr, buf_size);
+    HOLOSCAN_LOG_INFO("Successfully allocated memory region {} at {} with {} bytes ({} elements @ {} bytes)", 
+        mr.second.name_, ptr, buf_size, mr.second.num_bufs_, mr.second.buf_size_);
     ar_[mr.second.name_] = {mr.second.name_, ptr};
   }
 
   HOLOSCAN_LOG_INFO("Finished allocating memory regions");
   return AdvNetStatus::SUCCESS;
 }
+
 
 };  // namespace holoscan::ops

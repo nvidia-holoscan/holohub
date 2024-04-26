@@ -349,6 +349,25 @@ int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
 int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ * @param port Port ID of interface
+ * 
+ * @returns AdvNetStatus::SUCCESS on success
+ */
+AdvNetStatus adv_net_get_mac(int port, char *mac);
+
+/**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ * 
+ * @returns Port number or -1 for not found
+ */
+int adv_net_address_to_port(const std::string &addr);
+
+/**
  * @brief Set the number of packets in a burst
  *
  * @param burst Burst structure
@@ -421,49 +440,21 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
     // YAML is using exceptions, catch them
     try {
-      input_spec.common_.version        = node["version"].as<int32_t>();
-      input_spec.common_.master_core_   = node["master_core"].as<int32_t>();
+      input_spec.common_.version = node["version"].as<int32_t>();
+      input_spec.common_.master_core_ = node["master_core"].as<int32_t>();
       try {
-        input_spec.common_.mgr_         = node["manager"].as<std::string>();
+        input_spec.common_.mgr_ = node["manager"].as<std::string>();
       } catch (const std::exception& e) {
-        input_spec.common_.mgr_         = "dpdk";  // Use DPDK as the default
+        input_spec.common_.mgr_ = "dpdk";  // Use DPDK as the default
       }
 
       try {
-<<<<<<< HEAD
-        const auto &rx = node["rx"];
-        for (const auto &rx_item : rx) {
-          holoscan::ops::AdvNetRxConfig rx_cfg;
-          rx_cfg.if_name_ = rx_item["if_name"].as<std::string>();
-          rx_cfg.flow_isolation_ = rx_item["flow_isolation"].as<bool>();
+        input_spec.debug_ = node["debug"].as<bool>();
+      } catch (const std::exception& e) { input_spec.debug_ = false; }
 
-          for (const auto &q_item :  rx_item["queues"]) {
-            holoscan::ops::RxQueueConfig q;
-            q.common_.name_             = q_item["name"].as<std::string>();
-            q.common_.id_               = q_item["id"].as<int>();
-
-            if (input_spec.common_.mgr_ == "doca") {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-            } else {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              if (q.common_.gpu_direct_) {
-                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-                q.common_.hds_              = q_item["split_boundary"].as<int>();
-              }
-            }
-
-            q.common_.cpu_cores_        = q_item["cpu_cores"].as<std::string>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.num_concurrent_batches_  = q_item["num_concurrent_batches"].as<int>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.batch_size_       = q_item["batch_size"].as<int>();
-            q.output_port_              = q_item["output_port"].as<std::string>();
-
-            rx_cfg.queues_.emplace_back(q);
-=======
-        const auto &mrs = node["memory_regions"];
-        for (const auto &mr: mrs) {
+      try {
+        const auto& mrs = node["memory_regions"];
+        for (const auto& mr : mrs) {
           holoscan::ops::MemoryRegion tmr;
           tmr.name_ = mr["name"].as<std::string>();
           tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
@@ -471,13 +462,9 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
           tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
           tmr.affinity_ = mr["affinity"].as<uint32_t>();
           tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
-          try { // Ownership flag is optional
+          try {  // Ownership flag is optional
             tmr.owned_ = mr["owned"].template as<bool>();
-          }
-          catch (const std::exception& e) {
-            tmr.owned_ = true;
->>>>>>> Start of memory refactoring
-          }
+          } catch (const std::exception& e) { tmr.owned_ = true; }
 
           if (input_spec.mrs_.find(tmr.name_) != input_spec.mrs_.end()) {
             HOLOSCAN_LOG_CRITICAL("Duplicate memory region names: {}", tmr.name_);
@@ -485,71 +472,50 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
           }
           input_spec.mrs_[tmr.name_] = tmr;
         }
-      }
-      catch (const std::exception& e) {
+      } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Must define at least one memory type");
-      }      
+      }
 
       try {
-        const auto &intfs = node["interfaces"];
+        const auto& intfs = node["interfaces"];
         uint16_t port = 0;
-        for (const auto &intf : intfs) {
+        for (const auto& intf : intfs) {
           holoscan::ops::AdvNetConfigInterface ifcfg;
 
-          ifcfg.name_             = intf["name"].as<std::string>();
-          ifcfg.address_          = intf["address"].as<std::string>();
+          ifcfg.name_ = intf["name"].as<std::string>();
+          ifcfg.address_ = intf["address"].as<std::string>();
           try {
-            ifcfg.flow_isolation_   = intf["flow_isolation"].as<bool>();
-          }
-          catch (const std::exception& e) {
-            ifcfg.flow_isolation_   = false;
-          }
+            ifcfg.flow_isolation_ = intf["flow_isolation"].as<bool>();
+          } catch (const std::exception& e) { ifcfg.flow_isolation_ = false; }
 
-<<<<<<< HEAD
-          input_spec.rx_.emplace_back(rx_cfg);
-        }
-      } catch (const std::exception& e) {
-        GXF_LOG_ERROR(e.what());
-        return false;
-      }
+          ifcfg.port_id_ = port++;
 
-      try {
-        const auto &tx = node["tx"];
-        for (const auto &tx_item : tx) {
-          holoscan::ops::AdvNetTxConfig tx_cfg;
-          tx_cfg.if_name_ = tx_item["if_name"].as<std::string>();
-=======
-          ifcfg.port_id_          = port++;
-
-          const auto &rx = intf["rx"];
-          for (const auto &rx_item : rx) {
+          const auto& rx = intf["rx"];
+          for (const auto& rx_item : rx) {
             holoscan::ops::AdvNetRxConfig rx_cfg;
-            
-            for (const auto &q_item :  rx_item["queues"]) {
-              holoscan::ops::RxQueueConfig q;
-              q.common_.name_             = q_item["name"].as<std::string>();
-              q.common_.id_               = q_item["id"].as<int>();
-              q.common_.cpu_core_         = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_       = q_item["batch_size"].as<int>();
-              q.output_port_              = q_item["output_port"].as<std::string>();
 
-              const auto &mrs = q_item["memory_regions"];
-              for (const auto &mr: mrs) {
-                q.common_.mrs_.push_back(mr.as<std::string>());
-              }
+            for (const auto& q_item : rx_item["queues"]) {
+              holoscan::ops::RxQueueConfig q;
+              q.common_.name_ = q_item["name"].as<std::string>();
+              q.common_.id_ = q_item["id"].as<int>();
+              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
+              q.common_.batch_size_ = q_item["batch_size"].as<int>();
+              q.output_port_ = q_item["output_port"].as<std::string>();
+
+              const auto& mrs = q_item["memory_regions"];
+              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
 
               rx_cfg.queues_.emplace_back(q);
             }
 
-            for (const auto &flow_item :  rx_item["flows"]) {
+            for (const auto& flow_item : rx_item["flows"]) {
               holoscan::ops::FlowConfig flow;
-              flow.name_          = flow_item["name"].as<std::string>();
->>>>>>> Start of memory refactoring
+              flow.name_ = flow_item["name"].as<std::string>();
 
-              flow.action_.type_     = holoscan::ops::FlowType::QUEUE;
-              flow.action_.id_       = flow_item["action"]["id"].as<int>();
-              flow.match_.udp_src_   = flow_item["match"]["udp_src"].as<uint16_t>();
-              flow.match_.udp_dst_   = flow_item["match"]["udp_dst"].as<uint16_t>();
+              flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
+              flow.action_.id_ = flow_item["action"]["id"].as<int>();
+              flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
+              flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
 
               rx_cfg.flows_.emplace_back(flow);
             }
@@ -557,44 +523,28 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             ifcfg.rx_ = rx_cfg;
           }
 
-<<<<<<< HEAD
-          for (const auto &q_item :  tx_item["queues"]) {
-            holoscan::ops::TxQueueConfig q;
-            q.common_.name_             = q_item["name"].as<std::string>();
-            q.common_.id_               = q_item["id"].as<int>();
-
-            if (input_spec.common_.mgr_ == "doca") {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-            } else {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              if (q.common_.gpu_direct_) {
-                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-                q.common_.hds_              = q_item["split_boundary"].as<int>();
-              }
-=======
-          const auto &tx = intf["tx"];
-          for (const auto &tx_item : tx) {
+          const auto& tx = intf["tx"];
+          for (const auto& tx_item : tx) {
             holoscan::ops::AdvNetTxConfig tx_cfg;
 
             try {
               tx_cfg.accurate_send_ = tx_item["accurate_send"].as<bool>();
-            } catch (const std::exception& e) {
-              tx_cfg.accurate_send_ = false;
->>>>>>> Start of memory refactoring
-            }
+            } catch (const std::exception& e) { tx_cfg.accurate_send_ = false; }
 
-            for (const auto &q_item :  tx_item["queues"]) {
+            for (const auto& q_item : tx_item["queues"]) {
               holoscan::ops::TxQueueConfig q;
-              q.common_.name_             = q_item["name"].as<std::string>();
-              q.common_.id_               = q_item["id"].as<int>();
-              q.common_.cpu_core_         = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_       = q_item["batch_size"].as<int>();
+              q.common_.name_ = q_item["name"].as<std::string>();
+              q.common_.id_ = q_item["id"].as<int>();
+              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
+              q.common_.batch_size_ = q_item["batch_size"].as<int>();
 
-              const auto &mrs = q_item["memory_regions"];
-              for (const auto &mr: mrs) {
-                q.common_.mrs_.push_back(mr.as<std::string>());
-              }            
+              const auto& mrs = q_item["memory_regions"];
+              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
+
+              const auto& offload = q_item["offloads"];
+              for (const auto& off : offload) {
+                q.common_.offloads_.push_back(off.as<std::string>());
+              }
 
               tx_cfg.queues_.emplace_back(q);
             }
@@ -602,7 +552,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             ifcfg.tx_ = tx_cfg;
           }
 
-          input_spec.ifs_.push_back(ifcfg);          
+          input_spec.ifs_.push_back(ifcfg);
         }
       } catch (const std::exception& e) {
         GXF_LOG_ERROR(e.what());

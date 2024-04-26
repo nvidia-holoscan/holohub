@@ -48,9 +48,15 @@ struct RxWorkerParams {
   int queue;
   int num_segs;
   uint32_t batch_size;
+<<<<<<< HEAD
   struct rte_ring* ring;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
+=======
+  struct rte_ring *ring;
+  struct rte_mempool *burst_pool;
+  struct rte_mempool *meta_pool;
+>>>>>>> more ano refactoring
   uint64_t rx_pkts = 0;
 };
 
@@ -86,16 +92,66 @@ void DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
   }
 }
 
+int DpdkMgr::address_to_port(const std::string &addr) {
+  for (const auto &intf: cfg_.ifs_) {
+    if (intf.address_ == addr) {
+      return intf.port_id_;
+    }
+  }
+
+  return -1;
+}
+
+AdvNetStatus DpdkMgr::get_mac(int port, char *mac) {
+  if (port > mac_addrs.size()) {
+    HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac() lookup");
+    return AdvNetStatus::INVALID_PARAMETER;
+  }
+
+  memcpy(mac, reinterpret_cast<char*>(&mac_addrs[port]), sizeof(mac_addrs[port]));
+  return AdvNetStatus::SUCCESS;
+}
+
 void DpdkMgr::adjust_memory_regions() {
   for (auto &mr: cfg_.mrs_) {
-    auto target_el_size = mr.second.buf_size_ + RTE_PKTMBUF_HEADROOM;
+    auto target_el_size = mr.second.buf_size_ + RTE_PKTMBUF_HEADROOM * 3;
     //mr.second.buf_size_ = ((target_el_size + 3) / 4) * 4;
     mr.second.buf_size_ = target_el_size;
     HOLOSCAN_LOG_INFO("Changing buffer size to {} for alignment", mr.second.buf_size_);
   }
 }
 
-AdvNetStatus DpdkMgr::register_and_map_mrs(const rte_eth_dev_info &dev_info) {
+AdvNetStatus DpdkMgr::map_mrs() {
+  // Map every MR to every device for now
+  for (const auto &intf: cfg_.ifs_) {
+    struct rte_eth_dev_info dev_info;
+    int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
+    if (ret != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
+      return AdvNetStatus::NULL_PTR;;
+    }
+
+    for (const auto &ext_mem_el: ext_pktmbufs_) { 
+      const auto &ext_mem = ext_mem_el.second;
+
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      ret = rte_dev_dma_map(dev_info.device, ext_mem->buf_ptr, ext_mem->buf_iova, ext_mem->buf_len);
+      #pragma GCC diagnostic pop
+
+      if (ret) {
+        HOLOSCAN_LOG_CRITICAL("Could not DMA map EXT memory: {} err={}", ret, rte_strerror(rte_errno));
+        return AdvNetStatus::NULL_PTR;
+      }
+
+      HOLOSCAN_LOG_INFO("Mapped external memory descriptor for {} to device {}", ext_mem->buf_ptr, intf.port_id_);
+    } 
+  }                  
+
+  return AdvNetStatus::SUCCESS;
+}
+
+AdvNetStatus DpdkMgr::register_mrs() {
   for (const auto &ar: ar_) { 
     auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
     const auto &mr = cfg_.mrs_[ar.second.mr_name_];
@@ -104,7 +160,7 @@ AdvNetStatus DpdkMgr::register_and_map_mrs(const rte_eth_dev_info &dev_info) {
       continue;
     }
 
-    ext_mem->buf_len   = mr.buf_size_ * mr.num_bufs_;
+    ext_mem->buf_len   = RTE_ALIGN_CEIL(mr.buf_size_ * mr.num_bufs_, GPU_PAGE_SIZE);
     ext_mem->buf_iova  = RTE_BAD_IOVA;
     ext_mem->buf_ptr   = ar.second.ptr_;
     ext_mem->elt_size  = mr.buf_size_;
@@ -113,12 +169,13 @@ AdvNetStatus DpdkMgr::register_and_map_mrs(const rte_eth_dev_info &dev_info) {
     int ret = rte_extmem_register(ext_mem->buf_ptr, ext_mem->buf_len, NULL, ext_mem->buf_iova,
           GPU_PAGE_SIZE);
     if (ret) {
-      HOLOSCAN_LOG_CRITICAL("Unable to register addr {}, ret {} errno {}", ext_mem->buf_ptr, ret, errno);
+      HOLOSCAN_LOG_CRITICAL("Unable to register addr {}, ret {} errno {}", ext_mem->buf_ptr, ret, rte_strerror(rte_errno));
       return AdvNetStatus::NULL_PTR;
     } else {
       HOLOSCAN_LOG_INFO("Successfully registered external memory for {}", mr.name_);
     }
 
+<<<<<<< HEAD
 
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -130,6 +187,8 @@ AdvNetStatus DpdkMgr::register_and_map_mrs(const rte_eth_dev_info &dev_info) {
     }
 
     HOLOSCAN_LOG_INFO("Mapped external memory descriptor for {} at {}", mr.name_, ar.second.ptr_);
+=======
+>>>>>>> more ano refactoring
     ext_pktmbufs_[mr.name_] = ext_mem;
   }
 
@@ -255,9 +314,18 @@ void DpdkMgr::initialize() {
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
 
+<<<<<<< HEAD
   //  strncpy(_argv[arg++], "--log-level=99", max_arg_size - 1);
   //  strncpy(_argv[arg++], "--log-level=pmd.net.mlx5:8", max_arg_size - 1);
   for (const auto& name : ifs) {
+=======
+  if (cfg_.debug_) {
+    strncpy(_argv[arg++], "--log-level=99", max_arg_size - 1);
+    strncpy(_argv[arg++], "--log-level=pmd.net.mlx5:8", max_arg_size - 1);
+  }
+
+  for (const auto &name : ifs) {
+>>>>>>> more ano refactoring
     strncpy(_argv[arg++], "-a", max_arg_size - 1);
     strncpy(_argv[arg++],
             (name + std::string(",txq_inline_max=0,dv_flow_en=1")).c_str(),
@@ -277,6 +345,24 @@ void DpdkMgr::initialize() {
   }
 
   for (int i = 0; i < num_ports; i++) { rte_eth_macaddr_get(i, &mac_addrs[i]); }
+
+  // Adjust the sizes to accomodate any padding/alignment restrictions by this library
+  adjust_memory_regions();  
+
+  if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
+    return;
+  }
+
+  if (register_mrs() != AdvNetStatus::SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
+    return;
+  }   
+
+  if (map_mrs() != AdvNetStatus::SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
+    return;
+  }         
 
   // Build name to id mapping
   int max_rx_batch_size = 0;  
@@ -301,20 +387,8 @@ void DpdkMgr::initialize() {
     HOLOSCAN_LOG_INFO("DPDK init ({}) -- RX: {} TX: {}",  intf.address_, 
                                                           intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
                                                           intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");    
-
-    // Adjust the sizes to accomodate any padding/alignment restrictions by this library
-    adjust_memory_regions();
-
-    if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
-      return;
-    }
-
-    if (register_and_map_mrs(dev_info) != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed create extmem pktmbufs");
-      return;
-    }    
     
+        
     // Queue setup
     size_t max_pkt_size = 0;
     const auto &rx = intf.rx_;
@@ -365,7 +439,7 @@ void DpdkMgr::initialize() {
         HOLOSCAN_LOG_INFO("Created mempool {} : mbufs={} elsize={} ptr={}",
             pool_name, mr.num_bufs_, mr.buf_size_, (void*)pool);
 
-        q_packet_size += mr.buf_size_ - RTE_PKTMBUF_HEADROOM;
+        q_packet_size += mr.buf_size_ - RTE_PKTMBUF_HEADROOM * 3;
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);      
@@ -384,7 +458,7 @@ void DpdkMgr::initialize() {
 
         for (int seg = 0; seg < q.common_.mrs_.size(); seg++) {
           struct rte_eth_rxseg_split *rx_seg;
-          printf("%p\n", q_backend->pools[seg]);
+          
           rx_seg = &q_backend->rx_useg[seg].split;
           rx_seg->mp = q_backend->pools[seg];
           rx_seg->length = (seg == (q.common_.mrs_.size() - 1)) ? 0 : cfg_.mrs_[q.common_.mrs_[seg]].buf_size_ - RTE_PKTMBUF_HEADROOM;
@@ -399,13 +473,15 @@ void DpdkMgr::initialize() {
       rx_q_map_[key] = q_backend;
     }
 
-    HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}", intf.port_id_, max_pkt_size);
     local_port_conf[intf.port_id_].rxmode.offloads |= RTE_ETH_RX_OFFLOAD_CHECKSUM;
 
     // Subtract eth headers since driver adds that on
-    local_port_conf[intf.port_id_].rxmode.mtu = max_pkt_size - RTE_ETHER_HDR_LEN - RTE_ETHER_CRC_LEN;
-    local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
-        max_pkt_size - RTE_ETHER_HDR_LEN - RTE_ETHER_CRC_LEN;    
+    max_pkt_size = std::max(max_pkt_size, 64UL);
+    local_port_conf[intf.port_id_].rxmode.mtu = max_pkt_size;
+    local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size = local_port_conf[intf.port_id_].rxmode.mtu;    
+
+    HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}", 
+      intf.port_id_, local_port_conf[intf.port_id_].rxmode.mtu);    
 
     // TX now
     // For now make a single queue. Support more sophisticated TX on next release
@@ -585,6 +661,7 @@ void DpdkMgr::initialize() {
     // Start flows
     int flow_num = 0;
     if (!intf.flow_isolation_) {
+      HOLOSCAN_LOG_INFO("Enabling promiscuous mode for port {}", intf.port_id_);
       rte_eth_promiscuous_enable(intf.port_id_);
     } else {
       HOLOSCAN_LOG_INFO("Not enabling promiscuous mode on port {} "
@@ -595,6 +672,8 @@ void DpdkMgr::initialize() {
       HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
       add_flow(intf.port_id_, flow);
     }
+
+    apply_tx_offloads(intf.port_id_);
   }
 
   if (setup_pools_and_rings(max_rx_batch_size, max_tx_batch_size) < 0) {
@@ -630,23 +709,6 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     return -1;
   }
 
-  auto num_pkt_len_buf = (1UL << 7) - 1;
-  HOLOSCAN_LOG_INFO("Setting up pkt len pool with {} batches",  num_pkt_len_buf);
-  pkt_len_buffer = rte_mempool_create("PKT_LEN_BUF",
-                    num_pkt_len_buf,
-                    sizeof(void *) * std::max(max_rx_batch, max_tx_batch),
-                    0,
-                    0,
-                    nullptr,
-                    nullptr,
-                    nullptr,
-                    nullptr,
-                    rte_socket_id(),
-                    0);
-  if (pkt_len_buffer == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate packet length pool!");
-    return -1;
-  }  
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_meta = rte_mempool_create("RX_META_POOL",
@@ -801,12 +863,103 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   return nullptr;
 }
 
+<<<<<<< HEAD
+=======
+struct rte_flow *DpdkMgr::add_modify_flow_set(int port, int queue, const char *buf, int len, AdvNetDirection direction) {
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow *flow = NULL;
+  struct rte_flow_action_modify_field mf;
+  struct rte_flow_error error;
+  struct rte_flow_item_eth eth;
+  struct rte_flow_field_data src;
+  struct rte_flow_field_data dst;
+
+  int res;
+
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+	memset(&eth, 0, sizeof(struct rte_flow_item_eth));
+
+
+  /* Set the rule attribute, only ingress packets will be checked. 8< */
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+  attr.ingress = (direction == AdvNetDirection::RX) ? 1 : 0;
+  attr.egress  = (direction == AdvNetDirection::TX) ? 1 : 0;
+
+  // mf.operation = RTE_FLOW_MODIFY_SET;
+
+  // mf.src.field      = RTE_FLOW_FIELD_VALUE;
+  // mf.src.level      = 0;
+  // mf.src.tag_index  = 0;
+  // mf.src.type       = 0;
+  // mf.src.class_id   = 0;
+  // mf.src.offset     = 0;
+  // memcpy(mf.src.value, buf, len / 8);
+  // printf("%02x %02x %02x %02x %02x %02x %d\n", mf.src.value[0], mf.src.value[1], mf.src.value[2], mf.src.value[3], mf.src.value[4], mf.src.value[5],len / 8);
+
+  // mf.dst.field      = RTE_FLOW_FIELD_MAC_SRC;
+  // mf.dst.level      = 0;
+  // mf.dst.tag_index  = 0;
+  // mf.src.type       = 0;
+  // mf.src.class_id   = 0;
+  // mf.src.offset     = 0;
+
+  // mf.width = len;
+
+  // action[0].type  = RTE_FLOW_ACTION_TYPE_MODIFY_FIELD;
+  // action[0].conf  = &mf;
+  // action[1].type  = RTE_FLOW_ACTION_TYPE_END;
+	// pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+	// pattern[0].spec = &eth;
+	// pattern[0].mask = &eth;
+  // attr.priority = 0;
+
+  // pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+  struct rte_flow_action_set_mac sm;
+  memcpy(&sm, buf, len / 8);
+  action[0].type  = RTE_FLOW_ACTION_TYPE_SET_MAC_SRC;
+  action[0].conf  = &sm;
+  action[1].type  = RTE_FLOW_ACTION_TYPE_END;
+	pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+	pattern[0].spec = &eth;
+	pattern[0].mask = &eth;
+  attr.priority = 0;
+
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+  res = rte_flow_validate(port, &attr, pattern, action, &error);
+  if (!res) {
+    flow = rte_flow_create(port, &attr, pattern, action, &error);
+    return flow;
+  }
+
+  return nullptr;
+}
+
+void DpdkMgr::apply_tx_offloads(int port) {
+  for (const auto &q: cfg_.ifs_[port].tx_.queues_) {
+    for (const auto &off: q.common_.offloads_) {
+      if (off == "tx_eth_src") { // Offload Ethernet source copy
+        HOLOSCAN_LOG_INFO("Applying {} offload for port {}", off, port);
+        const auto mac_bytes = mac_addrs[port];
+        add_modify_flow_set(port, q.common_.id_, reinterpret_cast<const char*>(&mac_bytes), sizeof(mac_bytes) * 8, AdvNetDirection::TX);
+      }
+    }
+  }
+}
+
+
+>>>>>>> more ano refactoring
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief
 ///
 ////////////////////////////////////////////////////////////////////////////////
 void PrintDpdkStats() {
+<<<<<<< HEAD
   struct rte_eth_stats eth_stats;
   int len, ret, i;
   for (i = 0; i < 2; i++) {
@@ -857,7 +1010,73 @@ void PrintDpdkStats() {
     fflush(stdout);
     free(xstats);
     free(xstats_names);
+=======
+    struct rte_eth_stats eth_stats;
+    int len, ret, i;
+    for (i = 0; i < 2; i++) {
+      rte_eth_stats_get(i, &eth_stats);
+      printf("\n\nPort %u:\n", i);
+
+      printf(" - Received packets:    %lu\n", eth_stats.ipackets);
+      printf(" - Transmit packets:    %lu\n", eth_stats.opackets);
+      printf(" - Received bytes:      %lu\n", eth_stats.ibytes);
+      printf(" - Transmit bytes:      %lu\n", eth_stats.obytes);
+      printf(" - Missed packets:      %lu\n", eth_stats.imissed);
+      printf(" - Errored packets:     %lu\n", eth_stats.ierrors);
+      printf(" - RX out of buffers:   %lu\n", eth_stats.rx_nombuf);
+
+      // printf("\nExtended Stats\n");
+
+      // struct rte_eth_xstat *xstats;
+      // struct rte_eth_xstat_name *xstats_names;
+      // static const char *stats_border = "_______";
+
+      // /* Clear screen and move to top left */
+      // len = rte_eth_xstats_get(i, NULL, 0);
+      // if (len < 0)
+      //     rte_exit(EXIT_FAILURE,
+      //             "rte_eth_xstats_get(%u) failed: %d", 0,
+      //             len);
+      // xstats = (struct rte_eth_xstat *)calloc(len, sizeof(*xstats));
+      // if (xstats == NULL)
+      //     rte_exit(EXIT_FAILURE,
+      //             "Failed to calloc memory for xstats");
+      // ret = rte_eth_xstats_get(i, xstats, len);
+      // if (ret < 0 || ret > len) {
+      //     free(xstats);
+      //     rte_exit(EXIT_FAILURE,
+      //             "rte_eth_xstats_get(%u) len%i failed: %d",
+      //             0, len, ret);
+      // }
+      // xstats_names = (struct rte_eth_xstat_name *)calloc(len, sizeof(*xstats_names));
+      // if (xstats_names == NULL) {
+      //     free(xstats);
+      //     rte_exit(EXIT_FAILURE,
+      //             "Failed to calloc memory for xstats_names");
+      // }
+      // ret = rte_eth_xstats_get_names(i, xstats_names, len);
+      // if (ret < 0 || ret > len) {
+      //     free(xstats);
+      //     free(xstats_names);
+      //     rte_exit(EXIT_FAILURE,
+      //             "rte_eth_xstats_get_names(%u) len%i failed: %d",
+      //             0, len, ret);
+      // }
+      // for (i = 0; i < len; i++) {
+      //     if (xstats[i].value > 0)
+      //         printf("Port %u: %s %s:\t\t%lu\n",
+      //                 0, stats_border,
+      //                 xstats_names[i].name,
+      //                 xstats[i].value);
+      // }
+  
+      // free(xstats);
+      // free(xstats_names);
+      //printf("done\n");
+>>>>>>> more ano refactoring
   }
+  
+  printf("\n");
 }
 
 DpdkMgr::~DpdkMgr() {
@@ -887,7 +1106,6 @@ void DpdkMgr::run() {
       params->ring   = rx_ring;
       params->queue  = q.common_.id_;
       params->burst_pool   = rx_burst_buffer;
-      params->pkt_len_pool = pkt_len_buffer;
       params->meta_pool  = rx_meta;
       params->batch_size = q.common_.batch_size_;
       rte_eal_remote_launch(rx_worker, (void*)params,
@@ -968,12 +1186,16 @@ int DpdkMgr::rx_core_worker(void* arg) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void **>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
         continue;
+<<<<<<< HEAD
       }
 
       if (rte_mempool_get(tparams->pkt_len_pool, reinterpret_cast<void **>(&burst->pkt_lens[seg])) < 0) {
         HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
         continue;
       }      
+=======
+      } 
+>>>>>>> more ano refactoring
     }
 
     if (nb_rx > 0) {
@@ -981,17 +1203,13 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       // Copy non-scattered buffers
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
-      for (int p = 0; p < to_copy; p++) {
-        burst->pkt_lens[0][p] = mbuf_arr[p]->data_len;
-      }
 
       if (tparams->num_segs > 1) { // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
-          struct rte_mbuf *mbuf = mbuf_arr[p]->next;          
+          struct rte_mbuf *mbuf = mbuf_arr[p];          
           for (int seg = 1; seg < tparams->num_segs; seg++) {
+            mbuf = mbuf->next;            
             burst->pkts[seg][p] = mbuf;
-            burst->pkt_lens[seg][p] = mbuf->data_len;
-            mbuf = mbuf->next;
           }
         }
       }
@@ -1015,15 +1233,27 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       if (nb_rx == 0) { continue; }
 
+    // static int blah;
+    // if (blah++ == 0) {
+    //   for (int p = 0; p < 10; p++) {
+    //     auto *mbuf = reinterpret_cast<rte_mbuf*>(mbuf_arr[p]);
+    //     auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
+    //     for (int i = 0; i < 64; i++) {
+    //       printf("%02X ", ((uint8_t*)pkt)[i]);
+    //     }
+    //     printf("\n");
+    //   }
+    //   blah = 1;
+    // }
       to_copy       = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
       if (tparams->num_segs > 1) { // Extra work when buffers are scattered
         for (int p = 0; p < to_copy; p++) {
-          struct rte_mbuf *mbuf = mbuf_arr[p]->next;          
+          struct rte_mbuf *mbuf = mbuf_arr[p];          
           for (int seg = 1; seg < tparams->num_segs; seg++) {
-            burst->pkts[seg][p] = mbuf;
             mbuf = mbuf->next;
+            burst->pkts[seg][p] = mbuf;
           }
         }
       }      
@@ -1078,18 +1308,20 @@ int DpdkMgr::tx_core_worker(void* arg) {
 
     HOLOSCAN_LOG_DEBUG("Got burst in TX");
 
-    if (msg->pkts[0] != nullptr) {
-      for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-        auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->pkts[0][p]);
-        auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-        rte_ether_addr_copy(&tparams->mac_addr, reinterpret_cast<rte_ether_addr*>(pkt + 6));
-#pragma GCC diagnostic pop
-      }
-    }
-
     auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
+
+    // static int blah;
+    // if (blah++ == 0) {
+    //   for (int p = 0; p < std::min(10UL, msg->hdr.hdr.num_pkts); p++) {
+    //     auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->pkts[0][p]);
+    //     auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
+    //     for (int i = 0; i < 64; i++) {
+    //       printf("%02X ", ((uint8_t*)pkt)[i]);
+    //     }
+    //     printf("\n");
+    //   }
+    //   blah = 1;
+    // }    
 
     size_t pkts_tx = 0;
     while (pkts_tx != msg->hdr.hdr.num_pkts && !force_quit.load()) {
@@ -1119,7 +1351,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
 
 /* ANO interface implementations */
 void *DpdkMgr::get_seg_pkt_ptr(AdvNetBurstParams *burst, int seg, int idx) {
-  printf("%d %d %p \n", seg, idx, burst->pkts[seg]);
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx]), void*);
 }
 
@@ -1132,7 +1363,7 @@ uint16_t DpdkMgr::get_seg_pkt_len(AdvNetBurstParams *burst, int seg, int idx) {
 }
 
 uint16_t DpdkMgr::get_pkt_len(AdvNetBurstParams *burst, int idx) {
-  return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->data_len;
+  return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->pkt_len;
 }
 
 AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp) {
