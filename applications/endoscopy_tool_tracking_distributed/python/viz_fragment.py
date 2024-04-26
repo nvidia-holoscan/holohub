@@ -15,18 +15,7 @@
 
 
 from holoscan.core import Fragment
-from holoscan.operators import (
-    AJASourceOp,
-    FormatConverterOp,
-    HolovizOp,
-    VideoStreamReplayerOp,
-)
-from holoscan.resources import (
-    BlockMemoryPool,
-    CudaStreamPool,
-    MemoryStorageType,
-    UnboundedAllocator,
-)
+from holoscan.operators import HolovizOp
 
 
 class VizFragment(Fragment):
@@ -37,25 +26,14 @@ class VizFragment(Fragment):
         self.is_overlay_enabled = is_overlay_enabled
 
     def compose(self):
-        cuda_stream_pool = CudaStreamPool(
-            self,
-            name="cuda_stream",
-            dev_id=0,
-            stream_flags=0,
-            stream_priority=0,
-            reserved_size=1,
-            max_size=5,
-        )
-        visualizer = HolovizOp( 
+        visualizer = HolovizOp(
             self,
             name="holoviz",
             width=self.width,
             height=self.height,
             enable_render_buffer_input=self.is_overlay_enabled,
             enable_render_buffer_output=self.is_overlay_enabled,
-            # cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("holoviz_overlay" if self.is_overlay_enabled else "holoviz"),
         )
-        
-        self.add_operator(visualizer)
 
+        self.add_operator(visualizer)

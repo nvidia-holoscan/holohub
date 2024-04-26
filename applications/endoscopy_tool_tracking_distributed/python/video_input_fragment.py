@@ -16,13 +16,11 @@
 import os
 
 from holoscan.core import Fragment
-from holoscan.operators import (
-    AJASourceOp,
-    VideoStreamReplayerOp,
-)
+from holoscan.operators import AJASourceOp, VideoStreamReplayerOp
 
 # Enable this line for Yuam capture card
 # from holohub.qcap_source import QCAPSourceOp
+
 
 class VideoInputFragment(Fragment):
     @property
