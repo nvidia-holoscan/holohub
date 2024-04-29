@@ -83,9 +83,7 @@ RUN apt update \
         libxxf86vm-dev \
         mesa-common-dev \
     && rm -rf /var/lib/apt/lists/*
-    
-# Install Monado OpenXR runtime. See
-# https://monado.freedesktop.org/getting-started.html#monado-installation
+
 RUN apt update \
     && apt install --no-install-recommends -y \
         libopenxr-loader1 libopenxr-dev \
