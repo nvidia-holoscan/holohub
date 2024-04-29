@@ -31,6 +31,8 @@ To run the application you need a live or replayer source to stream Velodyne VLP
 data to the application. That may be either:
 - A Velodyne VLP-16 lidar sensor. Review the [VLP-16 user manual](https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf) for setup instructions.
 - A VLP-16 `.pcap` recording file and a packet replayer software.
+  - Visit Kitware's VeloView [Velodyne Lidar collection](https://www.paraview.org/veloview/#download) for sample VLP-16 `.pcap` files.
+  - Visit the third party [Wireshark wiki](https://gitlab.com/wireshark/wireshark/-/wikis/Tools#traffic-generators) for a curated list of software options for generating traffic from `.pcap` files.
 
 ## Running the Application
 
@@ -89,7 +91,7 @@ There are several reasons that this could be the case:
 - The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
   The sensor typically takes approximately 30 seconds between powering on and transmitting packets.
 - The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool
-  such as Wireshark to review live packets on the network interface. Review the [VLP-16
+  such as [Wireshark](https://www.wireshark.org/) to review live packets on the network interface. Review the [VLP-16
   user manual](https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf) for troubleshooting.
 - The HoloHub application is not properly configured. Review the [`lidar.yaml`](lidar.yaml) configuration
   and confirm that the port and IP address match the VLP-16 configuration.
