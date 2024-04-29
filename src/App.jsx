@@ -349,6 +349,14 @@ const App = () => {
                               )}
                             </>
                           )}
+                          {selectedData.build_and_run && (
+                            <div>
+                              <p className="font-semibold">Build and Run Command:</p>
+                              <pre className="bg-gray-100 p-2 rounded text-sm break-words">
+                                {selectedData.build_and_run}
+                              </pre>
+                            </div>
+                          )}
                         </div>
                       </section>
                       <div className="border-t border-gray-300 my-6" />
