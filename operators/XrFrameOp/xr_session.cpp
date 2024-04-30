@@ -274,11 +274,6 @@ void XrSession::process_session_state_changed(
   const xr::SessionState oldState = session_state_;
   session_state_ = static_cast<xr::SessionState>(stateChangedEvent.state);
 
-  // HOLOSCAN_LOG_DEBUG("XrEventDataSessionStateChanged: state %d->%d session=%lld time=%lld",
-  // oldState,
-  //                                   session_state_, stateChangedEvent.session,
-  //                                   stateChangedEvent.time);
-
   if ((stateChangedEvent.session != XR_NULL_HANDLE) &&
       (stateChangedEvent.session != session_.getRawHandle())) {
     HOLOSCAN_LOG_ERROR("XrEventDataSessionStateChanged for unknown session");

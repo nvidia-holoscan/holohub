@@ -10,7 +10,7 @@
         "language": "C++",
         "version": "2.0.0",
         "changelog": {
-			"1.0": "Initial Release",
+            "1.0": "Initial Release",
             "2.0": "Updates for compatibility with XR operators"
         },
         "holoscan_sdk": {
@@ -29,6 +29,6 @@
             "ClaraViz"
         ],
         "ranking": 1,
-        "dependencies": { }
+        "dependencies": {}
     }
 }

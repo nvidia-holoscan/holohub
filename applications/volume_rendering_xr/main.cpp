@@ -292,8 +292,6 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  // TODO: Apparent issue with parsing non-default args in HoloHub
-
   const std::string render_config_file_default("configs/ctnv_bb_er.json");
   const std::string density_volume_file_default("data/ctnv_bb_er/highResCT.mhd");
   const std::string mask_volume_file_default("data/ctnv_bb_er/smoothmasks.seg.mhd");
@@ -345,7 +343,6 @@ int main(int argc, char** argv) {
         return 0;
 
       case 'c':
-        HOLOSCAN_LOG_DEBUG("Config file: " + argument);
         render_config_file = argument;
         break;
 

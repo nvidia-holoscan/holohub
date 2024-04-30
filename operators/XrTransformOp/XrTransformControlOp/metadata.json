@@ -10,7 +10,7 @@
         "language": "C++",
         "version": "1.0",
         "changelog": {
-			"0.0": "Initial Release",
+            "0.0": "Initial Release",
             "1.0": "Update for Holoscan SDK v2.0.0"
         },
         "holoscan_sdk": {
@@ -28,6 +28,6 @@
             "XRFrame"
         ],
         "ranking": 2,
-        "dependencies": { }
+        "dependencies": {}
     }
 }

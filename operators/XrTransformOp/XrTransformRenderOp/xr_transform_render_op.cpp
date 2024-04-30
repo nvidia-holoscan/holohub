@@ -80,7 +80,6 @@ void XrTransformRenderOp::start() {
   io.FontGlobalScale *= scale;
 
   // load transfer functions
-  HOLOSCAN_LOG_DEBUG("Opening config file " + config_file_.get());
   std::ifstream input_file_stream(config_file_.get());
   render_params_->settings = nlohmann::json::parse(input_file_stream);
   nlohmann::json transfer_functions = render_params_->settings["TransferFunction"];

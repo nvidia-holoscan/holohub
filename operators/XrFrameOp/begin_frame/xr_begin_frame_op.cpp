@@ -308,9 +308,10 @@ void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
   const auto pollResult = session->poll_events();
   // TODO: This can be handled more gracefully, checking pollResult.request_restart
   //       and re-creating the session/instance.
-  if (pollResult.exit_render_loop)
+  if (pollResult.exit_render_loop) {
     throw std::runtime_error(
         "XrInstance/Session is or pending to be lost, or is currently exiting");
+  }
 
   frame.state = session->handle().waitFrame({});
   xr::ViewLocateInfo view_locate_info(xr::ViewConfigurationType::PrimaryStereo,
