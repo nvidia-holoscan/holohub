@@ -19,6 +19,6 @@ if pgrep windrunner-serv >/dev/null; then
     pkill -9 windrunner-serv
     echo "stopping windrunner-service..."
     sleep 1
-    # make sure there is no stale socket file
-    rm -f /tmp/windrunner_comp_ip
 fi
+# make sure there is no stale socket file
+rm -f /tmp/windrunner_comp_ipc

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +23,17 @@
 
 namespace holoscan::openxr {
 
-#define BOX_MIN_EXTENT 0.1f  // minimum edge length in meters
+// Controls
+//
+// used to assemble widgets
+//
 
-enum UxAction { IDLE, DRAGGING };
+#define UX_ACTIVATION_THRESHOLD 0.1f  // %of length
+
+enum UxControlState { DRAGGABLE, DRAGGING, IDLE };
 
 struct UxEdge {
-  UxAction action;
+  UxControlState action;
 
   // inverse normalized distance from cursor to projection point on edge [0,1]
   float range;
@@ -38,14 +43,14 @@ struct UxEdge {
 };
 
 struct UxCorner {
-  UxAction action;
+  UxControlState action;
 
   // inverse normalized distance from cursor to action point at corner [0,1]
   float range;
 };
 
 struct UxFace {
-  UxAction action;
+  UxControlState action;
 
   // inverse normalized distance from cursor to projected cursor [0,1]
   float range;
@@ -54,9 +59,17 @@ struct UxFace {
   Eigen::Vector2f projection;
 };
 
-#define UX_ACTIVATION_THRESHOLD 0.1f  // %of length
+// Widgets
+//
+//
+//
+
+#define BOX_MIN_EXTENT 0.1f  // minimum edge length in meters
+
+enum UxWidgetState { INACTIVE, ACTIVE };
 
 struct UxBoundingBox {
+  UxWidgetState state;
   //
   //        |   -z
   //        y   /
@@ -117,13 +130,43 @@ struct UxBoundingBox {
 };
 
 struct UxCursor {
-  UxAction state;
+  UxWidgetState state;
 
   // normalized distance from cursor to activation surface [0,1]
   float range;
 
   Eigen::Affine3f transform;
 };
+
+#define HEADER_HEIGHT 0.07  // meters
+
+struct UxWindow {
+  UxWidgetState state;
+
+  //        3---XX---2
+  //        |        |
+  //        |        |
+  //        |        |
+  //        |        |
+  //        0--------1
+
+  UxFace face;
+
+  UxEdge handle;  // XX
+
+  // physical size of window content in meters { [-x,x], [-y,y], [0,z]}
+  Eigen::Vector3f content;
+  // location of window in 3d space
+  Eigen::Affine3f transform;
+
+  // Normalized uv coordinates of cursor in window content excluding header
+  Eigen::Vector2f cursor;
+  // button state
+  int button;
+  // trackpad state
+  Eigen::Vector2f trackpad;
+};
+
 }  // namespace holoscan::openxr
 
 #endif  // HOLOSCAN_OPERATORS_OPENXR_UX_UX_WIDGETS_HPP

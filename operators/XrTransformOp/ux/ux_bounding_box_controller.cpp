@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace holoscan::openxr {
 Eigen::IOFormat fmt(Eigen::StreamPrecision, 0, ",", ",");
 
 // TODO is this in Eigen ?
-float clamp(float v, float min, float max) {
+static float clamp(float v, float min, float max) {
   return (v < min) ? min : (v > max) ? max : v;
 }
 
@@ -146,12 +146,14 @@ UxBoundingBoxController::UxBoundingBoxController(UxBoundingBox& boundingBox)
 }
 
 void UxBoundingBoxController::reset() {
-  active_action_ = UNDEFINED;
-  pending_action_ = UNDEFINED;
   global_transform_ = box_.global_transform;
   local_transform_ = box_.local_transform;
   global_transform_inv_ = global_transform_.inverse();
   local_transform_inv_ = local_transform_.inverse();
+
+  pending_action_ = UNDEFINED;
+  active_action_ = UNDEFINED;
+  box_.state = holoscan::openxr::INACTIVE;
 }
 
 void UxBoundingBoxController::trackPadDown(Eigen::Vector2f trackpad) {
@@ -194,11 +196,11 @@ void UxBoundingBoxController::trackPadUp() {
   local_transform_inv_ = local_transform_.inverse();
 }
 
-#define RECORD_RANGE(widget, action)        \
-  if (widget.state.range > pending_range) { \
-    pending_range = widget.state.range;     \
-    pending_action_ = action;               \
-    widget_ = i;                            \
+#define RECORD_RANGE(widget, action) \
+  if (range > pending_range) {       \
+    pending_range = range;           \
+    pending_action_ = action;        \
+    widget_ = i;                     \
   }
 
 void UxBoundingBoxController::cursorMove(Eigen::Affine3f pose) {
@@ -220,33 +222,37 @@ void UxBoundingBoxController::cursorMove(Eigen::Affine3f pose) {
         widget_ = -1;
 
         // prescendence 1
-        for (int i = 0; i < faces_.size(); i++) {
-          test_face(current_cursor, faces_[i]);
-          RECORD_RANGE(faces_[i], DRAG_FACE)
+        for (int i = 0; i < corners_.size(); i++) {
+          float range = test_corner(current_cursor, corners_[i]);
+          RECORD_RANGE(range, DRAG_CORNER)
         }
 
         if (pending_range == 0.0f) {
           // prescendence 2
           for (int i = 0; i < edges_.size(); i++) {
-            test_edge(current_cursor, edges_[i]);
-            if (edges_[i].state.range > pending_range) {
-              pending_range = edges_[i].state.range;
-              pending_action_ = DRAG_EDGE;
-              if (widget_ != -1) {
-                // reset previously selected edge... this happens close to corners
-                edges_[widget_].state.range = 0;
-              }
-              widget_ = i;
-            }
+            float range = test_edge(current_cursor, edges_[i]);
+            RECORD_RANGE(range, DRAG_EDGE)
           }
 
           if (pending_range == 0.0f) {
             // prescendence 3
-            for (int i = 0; i < corners_.size(); i++) {
-              test_corner(current_cursor, corners_[i]);
-              RECORD_RANGE(corners_[i], DRAG_CORNER)
+            for (int i = 0; i < faces_.size(); i++) {
+              float range = test_face(current_cursor, faces_[i]);
+              RECORD_RANGE(range, DRAG_FACE)
             }
           }
+        }
+
+        switch (pending_action_) {
+          case DRAG_FACE:
+            faces_[widget_].state.range = pending_range;
+            break;
+          case DRAG_EDGE:
+            edges_[widget_].state.range = pending_range;
+            break;
+          case DRAG_CORNER:
+            corners_[widget_].state.range = pending_range;
+            break;
         }
 
       } else {
@@ -272,6 +278,10 @@ void UxBoundingBoxController::cursorMove(Eigen::Affine3f pose) {
       drag_box(current_cursor);
     } break;
   }
+
+  box_.state = pending_action_ == UNDEFINED && active_action_ == UNDEFINED
+                   ? holoscan::openxr::INACTIVE
+                   : holoscan::openxr::ACTIVE;
 }
 
 void UxBoundingBoxController::cursorClick(Eigen::Affine3f pose) {
@@ -308,59 +318,56 @@ void UxBoundingBoxController::cursorRelease() {
   switch (active_action_) {
     case DRAG_EDGE: {
       Edge& edge = edges_[widget_];
-      edge.state.action = IDLE;
     } break;
 
     case DRAG_FACE: {
       Face& face = faces_[widget_];
-      face.state.action = IDLE;
     } break;
 
     case DRAG_CORNER: {
       Corner& corner = corners_[widget_];
-      corner.state.action = IDLE;
     } break;
     case DRAG_BOX: {
     } break;
   }
 
-  active_action_ = UNDEFINED;
   local_transform_ = box_.local_transform;
   local_transform_inv_ = local_transform_.inverse();
   global_transform_ = box_.global_transform;
   global_transform_inv_ = global_transform_.inverse();
+
+  pending_action_ = UNDEFINED;
+  active_action_ = UNDEFINED;
+  box_.state = holoscan::openxr::INACTIVE;
 }
 
-void UxBoundingBoxController::test_edge(Eigen::Vector3f& cursor, Edge& edge) {
-  edge.state.range = 0;
+float UxBoundingBoxController::test_edge(Eigen::Vector3f& cursor, Edge& edge) {
+  // find distance from cursor to line
+  Eigen::Vector3f p0(edge.p0_x * box_.half_extent[0],
+                     edge.p0_y * box_.half_extent[1],
+                     edge.p0_z * box_.half_extent[2]);
+  Eigen::Vector3f p1(edge.p1_x * box_.half_extent[0],
+                     edge.p1_y * box_.half_extent[1],
+                     edge.p1_z * box_.half_extent[2]);
 
-  if (edge.enabled) {
-    // find distance from cursor to line
-    Eigen::Vector3f p0(edge.p0_x * box_.half_extent[0],
-                       edge.p0_y * box_.half_extent[1],
-                       edge.p0_z * box_.half_extent[2]);
-    Eigen::Vector3f p1(edge.p1_x * box_.half_extent[0],
-                       edge.p1_y * box_.half_extent[1],
-                       edge.p1_z * box_.half_extent[2]);
+  Eigen::Vector3f v0 = cursor - p0;
+  Eigen::Vector3f v1 = cursor - p1;
+  Eigen::Vector3f segment = p1 - p0;
+  float segment_length = segment.norm();
+  float distance = v0.cross(v1).norm() / segment_length;
 
-    Eigen::Vector3f v0 = cursor - p0;
-    Eigen::Vector3f v1 = cursor - p1;
-    Eigen::Vector3f segment = p1 - p0;
-    float segment_length = segment.norm();
-    float distance = v0.cross(v1).norm() / segment_length;
+  float activation_distance = BOX_MIN_EXTENT;  //
 
-    float activation_distance = segment_length * UX_ACTIVATION_THRESHOLD;
-
-    if (distance < activation_distance) {
-      // test if projected point is on the edge
-      Eigen::Vector3f n = segment / segment_length;
-      float d = n.dot(v0);
-      if (d > activation_distance / 2 && d < segment_length - activation_distance / 2) {
-        edge.state.projection = d / segment_length;
-        edge.state.range = 1.0f - clamp(distance / activation_distance, 0, 1);
-      }
+  if (distance < activation_distance) {
+    // test if projected point is on the edge
+    Eigen::Vector3f n = segment / segment_length;
+    float d = n.dot(v0);
+    if (d > activation_distance / 2 && d < segment_length - activation_distance / 2) {
+      edge.state.projection = d / segment_length;
+      return 1.0f - clamp(distance / activation_distance, 0, 1);
     }
   }
+  return 0;
 }
 
 void UxBoundingBoxController::drag_edge(Eigen::Vector3f& cursor, Edge& edge) {
@@ -384,25 +391,22 @@ void UxBoundingBoxController::drag_edge(Eigen::Vector3f& cursor, Edge& edge) {
   box_.global_transform = T * local_transform_inv_;
 }
 
-void UxBoundingBoxController::test_face(Eigen::Vector3f& cursor, Face& face) {
-  face.state.range = 0;
-
+float UxBoundingBoxController::test_face(Eigen::Vector3f& cursor, Face& face) {
   float du = box_.half_extent[face.u];
   float dv = box_.half_extent[face.v];
-
   // check if point is within face rectangle on plane
   if (cursor[face.u] > -du && cursor[face.u] < du && cursor[face.v] > -dv && cursor[face.v] < dv) {
     // check if point is on positive side of plane
     Eigen::Vector3f normal = face.n_sign * axes_[face.n];
     float distance = normal.dot(cursor) - fabs(box_.half_extent[face.n]);
     if (distance > 0) {
-      float activation_distance =
-          UX_ACTIVATION_THRESHOLD * (box_.half_extent[face.u] + box_.half_extent[face.u]);
-      face.state.range = 1.0f - clamp(distance / activation_distance, 0, 1);
+      float activation_distance = BOX_MIN_EXTENT;
       face.state.projection[0] = fabs(cursor[face.u] - face.u_sign * du) / (2 * du);
       face.state.projection[1] = fabs(cursor[face.v] - face.v_sign * dv) / (2 * dv);
+      return 1.0f - clamp(distance / activation_distance, 0, 1);
     }
   }
+  return 0;
 }
 
 void UxBoundingBoxController::drag_face(Eigen::Vector3f& cursor, Face& face) {
@@ -445,17 +449,15 @@ void UxBoundingBoxController::drag_face(Eigen::Vector3f& cursor, Face& face) {
   box_.global_transform.translation() = T - dT;
 }
 
-void UxBoundingBoxController::test_corner(Eigen::Vector3f& cursor, Corner& corner) {
-  corner.state.range = 0;
-
+float UxBoundingBoxController::test_corner(Eigen::Vector3f& cursor, Corner& corner) {
   // find distance from cursor to corner
   Eigen::Vector3f p0(corner.sign_x * box_.half_extent[0],
                      corner.sign_y * box_.half_extent[1],
                      corner.sign_z * box_.half_extent[2]);
   float distance = (cursor - p0).norm();
-  float activation_distance =
-      UX_ACTIVATION_THRESHOLD * (box_.half_extent[0] + box_.half_extent[1] + box_.half_extent[2]);
-  corner.state.range = 1.0f - clamp(distance / activation_distance, 0, 1);
+  float activation_distance = BOX_MIN_EXTENT;
+
+  return 1.0f - clamp(distance / activation_distance, 0, 1);
 }
 
 void UxBoundingBoxController::drag_corner(Eigen::Vector3f& cursor, Corner& corner) {

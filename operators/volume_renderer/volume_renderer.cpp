@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,8 +61,8 @@ static clara::viz::Vector2f toTangentX(const nvidia::gxf::CameraModel& camera_mo
 
 static clara::viz::Vector2f toTangentY(const nvidia::gxf::CameraModel& camera_model) {
   return clara::viz::Vector2f(
-      -camera_model.principal_point.y / camera_model.focal_length.y,
-      (camera_model.dimensions.y - camera_model.principal_point.y) / camera_model.focal_length.y);
+       camera_model.principal_point.y / camera_model.focal_length.y,
+      -(camera_model.dimensions.y - camera_model.principal_point.y) / camera_model.focal_length.y);
 }
 
 namespace holoscan::ops {
@@ -128,6 +128,7 @@ struct VolumeRendererOp::Impl {
   Parameter<std::vector<IOSpec*>> settings_;
   Parameter<std::vector<IOSpec*>> merge_settings_;
   Parameter<std::string> config_file_;
+  Parameter<std::string> write_config_file_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<uint32_t> alloc_width_;
   Parameter<uint32_t> alloc_height_;
@@ -162,6 +163,15 @@ struct VolumeRendererOp::Impl {
   Dataset dataset_;
   uint32_t current_dataset_frame_ = 0;
   std::chrono::steady_clock::time_point last_dataset_frame_start_;
+  /// If 0 then foveated rendering if off, else it's a counter initialized when a valid gaze
+  /// direction is received and counted down when no valid gaze direction is received. Foveated
+  /// rendering is wwitched off when the counter reaches 0. This is done to avoid frequent on/off
+  /// switches with the eye blink of the user.
+  uint32_t eye_gaze_counter_ = 0;
+  /// foveation defaults
+  bool default_enable_foveation_ = false;
+  float default_warp_full_resolution_size_ = 1.f;
+  float default_warp_resolution_scale_ = 1.f;
 };
 
 bool receive_volume(InputContext& input, Dataset& dataset, Dataset::Types type) {
@@ -288,15 +298,14 @@ void VolumeRendererOp::start() {
     throw std::runtime_error("cudaStreamCreate failed");
   }
 
-  // setup renderer by reading settings from the configuration file
-  {
-    const std::string config_file_name = impl_->config_file_.has_value()
-                                             ? impl_->config_file_.get()
-                                             : impl_->config_file_.default_value();
-    std::ifstream input_file_stream(config_file_name);
-    if (!input_file_stream) { throw std::runtime_error("Could not open configuration"); }
+  if (!impl_->config_file_.get().empty()) {
+    // setup renderer by reading settings from the configuration file
+    std::ifstream input_file_stream(impl_->config_file_.get());
+    if (!input_file_stream) {
+      throw std::runtime_error("Could not open configuration for reading");
+    }
 
-    nlohmann::json settings = nlohmann::json::parse(input_file_stream);
+    const nlohmann::json settings = nlohmann::json::parse(input_file_stream);
 
     // set the configuration from the settings
     impl_->json_interface_->MergeSettings(settings);
@@ -305,11 +314,6 @@ void VolumeRendererOp::start() {
       auto& dataset_settings = settings.at("dataset");
       impl_->dataset_.SetFrameDuration(std::chrono::duration<float, std::chrono::seconds::period>(
           dataset_settings.value("frameDuration", 1.f)));
-    }
-
-    {
-      clara::viz::DataCropInterface::AccessGuard access(impl_->data_crop_interface_);
-      impl_->limits_ = access->limits.Get();
     }
   }
 }
@@ -340,8 +344,15 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
   spec.param(impl_->config_file_,
              "config_file",
              "Configuration file",
-             "Configuration file",
-             std::string("./configs/ctnv_bb_er.json"));
+             "Name of the JSON renderer configuration file to load",
+             std::string(""));
+  spec.param(impl_->write_config_file_,
+             "write_config_file",
+             "Write config settings file",
+             "Deduce config settings from volume data and write to file. Sets a light in correct "
+             "distance. Sets a transfer function using the histogram of the data. Writes the "
+             "JSON configuration to the file with the given name",
+             std::string(""));
   spec.param(impl_->allocator_,
              "allocator",
              "Allocator",
@@ -365,6 +376,8 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
   spec.input<nvidia::gxf::Pose3D>("right_camera_pose").condition(ConditionType::kNone);
   spec.input<nvidia::gxf::CameraModel>("left_camera_model").condition(ConditionType::kNone);
   spec.input<nvidia::gxf::CameraModel>("right_camera_model").condition(ConditionType::kNone);
+
+  spec.input<nvidia::gxf::Pose3D>("eye_gaze_pose").condition(ConditionType::kNone);
 
   spec.input<std::array<float, 16>>("camera_matrix").condition(ConditionType::kNone);
 
@@ -399,6 +412,38 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   if (new_volume) {
     impl_->dataset_.Configure(impl_->data_config_interface_);
     impl_->dataset_.Set(*impl_->data_interface_.get());
+
+    // the volume is defined, if the config file is empty we can deduce settings now
+    if (impl_->config_file_.get().empty()) {
+      impl_->json_interface_->DeduceSettings(clara::viz::ViewMode::CINEMATIC);
+    }
+
+    if (!impl_->write_config_file_.get().empty()) {
+      // get the settings and write to file
+      const nlohmann::json settings = impl_->json_interface_->GetSettings();
+      std::ofstream output_file_stream(impl_->write_config_file_.get());
+      if (!output_file_stream) {
+        throw std::runtime_error("Could not open configuration for writing");
+      }
+      output_file_stream << settings;
+    }
+
+    {
+      clara::viz::DataCropInterface::AccessGuard access(impl_->data_crop_interface_);
+      impl_->limits_ = access->limits.Get();
+      if (impl_->limits_.empty()) {
+        impl_->limits_ = {clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f),
+                          clara::viz::Vector2f(0.f, 1.f)};
+      }
+    }
+    {
+      clara::viz::RenderSettingsInterface::AccessGuard access(impl_->render_settings_interface_);
+      impl_->default_enable_foveation_ = access->enable_foveation;
+      impl_->default_warp_resolution_scale_ = access->warp_resolution_scale.Get();
+      impl_->default_warp_full_resolution_size_ = access->warp_full_resolution_size.Get();
+    }
   }
 
   // get the input buffers
@@ -469,6 +514,45 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     if (right_model) {
       camera->right_tangent_x = toTangentX(*right_model);
       camera->right_tangent_y = toTangentY(*right_model);
+    }
+
+    auto eye_gaze_pose = input.receive<nvidia::gxf::Pose3D>("eye_gaze_pose");
+    if (eye_gaze_pose) {
+      if (!impl_->eye_gaze_counter_) {
+        // switch on
+        clara::viz::RenderSettingsInterface::AccessGuard access(impl_->render_settings_interface_);
+        access->enable_foveation = true;
+        access->warp_full_resolution_size.Set(.4f);
+        access->warp_resolution_scale.Set(.28f);
+      }
+      // initialize the counter when we have a valid gaze pose, after this number of frames
+      // without a valid gaze pose ar received foveated rendering is disabled.
+      constexpr uint32_t EYE_GAZE_SWITCH_OFF_FRAMES = 10;
+      impl_->eye_gaze_counter_ = EYE_GAZE_SWITCH_OFF_FRAMES;
+
+      // there are some unknown discrepancies between the direction ClaraViz expects and the
+      // direction OpenXR provides, needed to negate x to make it work correctly.
+      clara::viz::Vector3f direction{-eye_gaze_pose->rotation.at(6),
+                                     eye_gaze_pose->rotation.at(7),
+                                     eye_gaze_pose->rotation.at(8)};
+
+      camera->left_gaze_direction.Set(direction);
+      camera->right_gaze_direction.Set(direction);
+    }
+    if (impl_->eye_gaze_counter_ && !bool(eye_gaze_pose)) {
+      // count down
+      --impl_->eye_gaze_counter_;
+      if (!impl_->eye_gaze_counter_) {
+        // switch off;
+        clara::viz::Vector3f direction{0.f, 0.f, 1.f};
+        camera->left_gaze_direction.Set(direction);
+        camera->right_gaze_direction.Set(direction);
+
+        clara::viz::RenderSettingsInterface::AccessGuard access(impl_->render_settings_interface_);
+        access->enable_foveation = impl_->default_enable_foveation_;
+        access->warp_full_resolution_size.Set(impl_->default_warp_full_resolution_size_);
+        access->warp_resolution_scale.Set(impl_->default_warp_resolution_scale_);
+      }
     }
 
     auto camera_matrix = input.receive<std::shared_ptr<std::array<float, 16>>>("camera_matrix");
