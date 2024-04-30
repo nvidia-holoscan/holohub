@@ -249,7 +249,7 @@ struct AdvNetRxConfig {
 };
 
 struct AdvNetTxConfig {
-    bool accurate_send_;
+    bool accurate_send_ = false;
     std::vector<TxQueueConfig> queues_;
     std::vector<FlowConfig> flows_;
 };

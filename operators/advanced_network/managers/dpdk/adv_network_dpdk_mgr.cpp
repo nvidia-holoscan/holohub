@@ -230,6 +230,17 @@ int DpdkMgr::numa_from_mem(const MemoryRegion &mr) {
   } 
 }
 
+std::string DpdkMgr::generate_random_string(int len) {
+    const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
+    std::string tmp;
+
+    for (int i = 0; i < len; i++) {
+      tmp += tokens[rand() % (sizeof(tokens) - 1)];
+    }
+
+    return tmp;
+}
+
 void DpdkMgr::initialize() {
   int ret;
   uint16_t portid;
@@ -288,6 +299,8 @@ void DpdkMgr::initialize() {
   HOLOSCAN_LOG_INFO("Attempting to use {} ports for high-speed network", num_ports);
 
   strncpy(_argv[arg++], "adv_net_operator", max_arg_size - 1);
+  strncpy(_argv[arg++], (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
+                        max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
 
