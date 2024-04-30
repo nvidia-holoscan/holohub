@@ -34,7 +34,7 @@ set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 enable_language(CUDA)
 
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.0 REQUIRED CONFIG
  PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 find_package(Vulkan REQUIRED)
 find_package(CUDAToolkit REQUIRED)

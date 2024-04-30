@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 #include "xr_session.hpp"
 
 #include "holoscan/holoscan.hpp"
+#define XR_EXT_HAND_INTERACTION_EXTENSION_NAME "XR_EXT_hand_interaction"
+#include <thread>
 
 namespace holoscan::openxr {
 
@@ -65,6 +67,8 @@ void XrSession::initialize() {
   };
   const std::vector<const char*> xr_desired_extensions = {
       XR_ML_ML2_CONTROLLER_INTERACTION_EXTENSION_NAME,
+      XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME,
+      XR_EXT_HAND_INTERACTION_EXTENSION_NAME,
   };
   const std::vector<xr::ExtensionProperties> extension_properties =
       xr::enumerateInstanceExtensionPropertiesToVector(nullptr);
@@ -181,7 +185,12 @@ void XrSession::initialize() {
   view_space_ = session_->createReferenceSpaceUnique(
       {xr::ReferenceSpaceType::View, xr::Posef({0, 0, 0, 1}, {0, 0, 0})});
 
-  session_->beginSession({xr::ViewConfigurationType::PrimaryStereo});
+  using namespace std::literals::chrono_literals;
+  // transitioning to xr::SessionState::Ready will invoke beginSession.
+  if (!transition_state(xr::SessionState::Ready, 3000ms)) {
+    throw std::runtime_error(
+        "Failed to begin session, transitioning to ready session state timed out.");
+  }
 
   HOLOSCAN_LOG_DEBUG("OpenXR session begun");
 }
@@ -189,6 +198,116 @@ void XrSession::initialize() {
 XrSession::~XrSession() {
   session_->requestExitSession();
   cudaStreamDestroy(cuda_stream_);
+}
+
+// Return event if one is available, otherwise return null.
+const XrEventDataBaseHeader* XrSession::try_read_next_event(xr::EventDataBuffer& eventDataBuffer) {
+  // It is sufficient to clear the just the XrEventDataBuffer header to
+  // XR_TYPE_EVENT_DATA_BUFFER
+  XrEventDataBaseHeader* baseHeader =
+      reinterpret_cast<XrEventDataBaseHeader*>(eventDataBuffer.get());
+  *baseHeader = {XR_TYPE_EVENT_DATA_BUFFER};
+  const xr::Result xr = xr_instance_->pollEvent(eventDataBuffer);
+  if (xr == XR_SUCCESS) {
+    if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) {
+      const XrEventDataEventsLost* const eventsLost =
+          reinterpret_cast<const XrEventDataEventsLost*>(baseHeader);
+      HOLOSCAN_LOG_DEBUG("%d events lost", eventsLost->lostEventCount);
+    }
+    return baseHeader;
+  }
+  if (xr == XR_EVENT_UNAVAILABLE) { return nullptr; }
+  throw std::runtime_error(std::string("xrPollEvent Failed!, error code: ") +
+                           std::to_string((std::int32_t)xr));
+}
+
+bool XrSession::transition_state(const xr::SessionState new_state,
+                                 const std::chrono::milliseconds timeout_ms) {
+  using namespace std::literals::chrono_literals;
+  const auto start = std::chrono::steady_clock::now();
+  while (session_state_ != new_state) {
+    const auto pollResults = poll_events();
+    if (pollResults.exit_render_loop || pollResults.request_reestart) { return false; }
+    const auto end = std::chrono::steady_clock::now();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (elapsed >= timeout_ms) { break; }
+    std::this_thread::sleep_for(10ms);
+  }
+  return session_state_ == new_state;
+}
+
+XrSession::PollResult XrSession::poll_events() {
+  PollResult pollResult{};
+
+  // Process all pending messages.
+  while (const XrEventDataBaseHeader* event = try_read_next_event(eventDataBuffer_)) {
+    switch (event->type) {
+      case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: {
+        const auto& instanceLossPending =
+            *reinterpret_cast<const XrEventDataInstanceLossPending*>(event);
+        HOLOSCAN_LOG_WARN("XrEventDataInstanceLossPending by %lld", instanceLossPending.lossTime);
+        pollResult = {.exit_render_loop = true, .request_reestart = true};
+        return pollResult;
+      }
+      case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED: {
+        auto sessionStateChangedEvent =
+            *reinterpret_cast<const XrEventDataSessionStateChanged*>(event);
+        process_session_state_changed(sessionStateChangedEvent, pollResult);
+        break;
+      }
+      case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+        HOLOSCAN_LOG_DEBUG("Interaction profile changed.");
+        break;
+      case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+      default: {
+        HOLOSCAN_LOG_DEBUG("Ignoring event type %d", event->type);
+        break;
+      }
+    }
+  }
+
+  return pollResult;
+}
+
+void XrSession::process_session_state_changed(
+    const XrEventDataSessionStateChanged& stateChangedEvent, XrSession::PollResult& pollState) {
+  const xr::SessionState oldState = session_state_;
+  session_state_ = static_cast<xr::SessionState>(stateChangedEvent.state);
+
+  if ((stateChangedEvent.session != XR_NULL_HANDLE) &&
+      (stateChangedEvent.session != session_.getRawHandle())) {
+    HOLOSCAN_LOG_ERROR("XrEventDataSessionStateChanged for unknown session");
+    return;
+  }
+
+  switch (session_state_) {
+    case xr::SessionState::Ready: {
+      session_->beginSession({xr::ViewConfigurationType::PrimaryStereo});
+      break;
+    }
+    case xr::SessionState::Stopping: {
+      session_->endSession();
+      break;
+    }
+    case xr::SessionState::Exiting: {
+      pollState = {
+          .exit_render_loop = true,
+          // Do not attempt to restart because user closed this session.
+          .request_reestart = false,
+      };
+      break;
+    }
+    case xr::SessionState::LossPending: {
+      pollState = {
+          .exit_render_loop = true,
+          // Poll for a new instance.
+          .request_reestart = true,
+      };
+      break;
+    }
+    default:
+      break;
+  }
 }
 
 }  // namespace holoscan::openxr

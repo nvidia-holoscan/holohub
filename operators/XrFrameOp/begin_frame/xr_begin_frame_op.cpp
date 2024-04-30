@@ -1,7 +1,6 @@
-
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "xr_begin_frame_op.hpp"
 
 #include "Eigen/Dense"
@@ -40,14 +40,25 @@ void XrBeginFrameOp::setup(OperatorSpec& spec) {
   spec.output<bool>("shoulder_click").condition(ConditionType::kNone);
   spec.output<bool>("trackpad_touch").condition(ConditionType::kNone);
   spec.output<std::array<float, 2>>("trackpad").condition(ConditionType::kNone);
+
+  // aim pose in local space
   spec.output<nvidia::gxf::Pose3D>("aim_pose").condition(ConditionType::kNone);
+  // grip pose in local space
+  spec.output<nvidia::gxf::Pose3D>("grip_pose").condition(ConditionType::kNone);
+  // head pose in local space
   spec.output<nvidia::gxf::Pose3D>("head_pose").condition(ConditionType::kNone);
+  // eye gaze pose in view space
+  spec.output<nvidia::gxf::Pose3D>("eye_gaze_pose").condition(ConditionType::kNone);
 
   // render buffer
   spec.output<holoscan::gxf::Entity>("color_buffer");
   spec.output<holoscan::gxf::Entity>("depth_buffer");
 
   spec.param(session_, "session", "OpenXR Session", "OpenXR and Vulkan context");
+  spec.param(enable_eye_tracking_,
+             "enable_eye_tracking",
+             "Eye tracking enable switch",
+             "Enable eye tracking");
 }
 
 void XrBeginFrameOp::start() {
@@ -104,16 +115,73 @@ void XrBeginFrameOp::start() {
       {"trackpad_y", xr::ActionType::FloatInput, 0, nullptr, "trackpad y"});
   action_map_["aim_pose"] = action_set_->createActionUnique(
       {"aim_pose", xr::ActionType::PoseInput, 0, nullptr, "aim pose"});
+  action_map_["grip_pose"] = action_set_->createActionUnique(
+      {"grip_pose", xr::ActionType::PoseInput, 0, nullptr, "grip pose"});
+
+  // check if eye tracking is enabled
+  if (enable_eye_tracking_) {
+    // check if the eye gaze extension is supported
+    if (session->xr_extensions().count(XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME)) {
+      // check for eye gaze support
+      xr::SystemEyeGazeInteractionPropertiesEXT eye_gaze_properties;
+      xr::SystemProperties system_properties(&eye_gaze_properties);
+      xr::SystemId system_id = xr_instance.getSystem({xr::FormFactor::HeadMountedDisplay});
+      xr_instance.getSystemProperties(system_id, system_properties);
+      if (eye_gaze_properties.supportsEyeGazeInteraction) {
+        action_map_["eye_gaze"] = action_set_->createActionUnique(
+            {"gaze_action", xr::ActionType::PoseInput, 0, nullptr, "Gaze Action"});
+
+        std::vector<xr::ActionSuggestedBinding> bindings_eye_gaze = {
+            {*action_map_["eye_gaze"],
+             xr_instance.stringToPath("/user/eyes_ext/input/gaze_ext/pose")},
+        };
+
+        xr::InteractionProfileSuggestedBinding suggested_bindings_simple(
+            xr_instance.stringToPath("/interaction_profiles/ext/eye_gaze_interaction"),
+            bindings_eye_gaze.size(),
+            bindings_eye_gaze.data());
+        xr_instance.suggestInteractionProfileBindings(suggested_bindings_simple);
+
+        eye_gaze_space_.reset(xr_session.createActionSpace(
+            {*action_map_["eye_gaze"], xr::Path::null(), xr::Posef({0, 0, 0, 1}, {0, 0, 0})}));
+
+        holoscan::log_info("Eye tracking is active");
+      } else {
+        holoscan::log_warn(
+            "Eye tracking is enabled but the system is not supporting eye gaze interaction.");
+      }
+    } else {
+      holoscan::log_warn(
+          "Eye tracking is enabled but the extension XR_EXT_eye_gaze_interaction is not "
+          "supported.");
+    }
+  }
 
   // Suggest bindings for the simple controller profile.
   std::vector<xr::ActionSuggestedBinding> bindings_simple = {
+      {
+          *action_map_["trigger_click"],
+          xr_instance.stringToPath("/user/hand/left/input/select/click"),
+      },
       {
           *action_map_["trigger_click"],
           xr_instance.stringToPath("/user/hand/right/input/select/click"),
       },
       {
           *action_map_["aim_pose"],
+          xr_instance.stringToPath("/user/hand/left/input/aim/pose"),
+      },
+      {
+          *action_map_["aim_pose"],
           xr_instance.stringToPath("/user/hand/right/input/aim/pose"),
+      },
+      {
+          *action_map_["grip_pose"],
+          xr_instance.stringToPath("/user/hand/left/input/grip/pose"),
+      },
+      {
+          *action_map_["grip_pose"],
+          xr_instance.stringToPath("/user/hand/right/input/grip/pose"),
       },
   };
   xr::InteractionProfileSuggestedBinding suggested_bindings_simple(
@@ -127,7 +195,15 @@ void XrBeginFrameOp::start() {
     std::vector<xr::ActionSuggestedBinding> bindings_ml2 = {
         {
             *action_map_["trigger_click"],
+            xr_instance.stringToPath("/user/hand/left/input/trigger/click"),
+        },
+        {
+            *action_map_["trigger_click"],
             xr_instance.stringToPath("/user/hand/right/input/trigger/click"),
+        },
+        {
+            *action_map_["shoulder_click"],
+            xr_instance.stringToPath("/user/hand/left/input/shoulder/click"),
         },
         {
             *action_map_["shoulder_click"],
@@ -135,7 +211,15 @@ void XrBeginFrameOp::start() {
         },
         {
             *action_map_["trackpad_touch"],
+            xr_instance.stringToPath("/user/hand/left/input/trackpad/touch"),
+        },
+        {
+            *action_map_["trackpad_touch"],
             xr_instance.stringToPath("/user/hand/right/input/trackpad/touch"),
+        },
+        {
+            *action_map_["trackpad_x"],
+            xr_instance.stringToPath("/user/hand/left/input/trackpad/x"),
         },
         {
             *action_map_["trackpad_x"],
@@ -143,11 +227,27 @@ void XrBeginFrameOp::start() {
         },
         {
             *action_map_["trackpad_y"],
+            xr_instance.stringToPath("/user/hand/left/input/trackpad/y"),
+        },
+        {
+            *action_map_["trackpad_y"],
             xr_instance.stringToPath("/user/hand/right/input/trackpad/y"),
         },
         {
             *action_map_["aim_pose"],
+            xr_instance.stringToPath("/user/hand/left/input/aim/pose"),
+        },
+        {
+            *action_map_["aim_pose"],
             xr_instance.stringToPath("/user/hand/right/input/aim/pose"),
+        },
+        {
+            *action_map_["grip_pose"],
+            xr_instance.stringToPath("/user/hand/left/input/grip/pose"),
+        },
+        {
+            *action_map_["grip_pose"],
+            xr_instance.stringToPath("/user/hand/right/input/grip/pose"),
         },
     };
     xr::InteractionProfileSuggestedBinding suggested_bindings_ml2(
@@ -157,11 +257,43 @@ void XrBeginFrameOp::start() {
     xr_instance.suggestInteractionProfileBindings(suggested_bindings_ml2);
   }
 
+  // Suggest bindings for hand interaction profile
+  if (session->xr_extensions().count("XR_EXT_hand_interaction")) {
+    std::vector<xr::ActionSuggestedBinding> bindings_hands = {
+        {
+            *action_map_["trigger_click"],
+            xr_instance.stringToPath("/user/hand/right/input/aim_activate_ext/value"),
+        },
+        {
+            *action_map_["shoulder_click"],
+            xr_instance.stringToPath("/user/hand/left/input/aim_activate_ext/value"),
+        },
+        {
+            *action_map_["aim_pose"],
+            xr_instance.stringToPath("/user/hand/right/input/pinch_ext/pose"),
+        },
+    };
+    xr::InteractionProfileSuggestedBinding suggested_bindings_hands(
+        xr_instance.stringToPath("/interaction_profiles/ext/hand_interaction_ext"),
+        bindings_hands.size(),
+        bindings_hands.data());
+    xr_instance.suggestInteractionProfileBindings(suggested_bindings_hands);
+  }
+
+  std::array<xr::Path, 2> hand_paths{
+      xr_instance.stringToPath("/user/hand/left"),
+      xr_instance.stringToPath("/user/hand/right"),
+  };
+
   // Attach the action set to the session.
   xr::SessionActionSetsAttachInfo attach_info(1, &*action_set_);
   xr_session.attachSessionActionSets(attach_info);
-  aim_space_.reset(xr_session.createActionSpace(
-      {*action_map_["aim_pose"], xr::Path::null(), xr::Posef({0, 0, 0, 1}, {0, 0, 0})}));
+  for (std::size_t hand_idx = 0; hand_idx < hand_paths.size(); ++hand_idx) {
+    aim_space_[hand_idx].reset(xr_session.createActionSpace(
+        {*action_map_["aim_pose"], hand_paths[hand_idx], xr::Posef({0, 0, 0, 1}, {0, 0, 0})}));
+    grip_space_[hand_idx].reset(xr_session.createActionSpace(
+        {*action_map_["grip_pose"], hand_paths[hand_idx], xr::Posef({0, 0, 0, 1}, {0, 0, 0})}));
+  }
 }
 
 void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
@@ -172,6 +304,14 @@ void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
   };
 
   std::shared_ptr<holoscan::openxr::XrSession> session = session_.get();
+
+  const auto pollResult = session->poll_events();
+  // TODO: This can be handled more gracefully, checking pollResult.request_restart
+  //       and re-creating the session/instance.
+  if (pollResult.exit_render_loop) {
+    throw std::runtime_error(
+        "XrInstance/Session is or pending to be lost, or is currently exiting");
+  }
 
   frame.state = session->handle().waitFrame({});
   xr::ViewLocateInfo view_locate_info(xr::ViewConfigurationType::PrimaryStereo,
@@ -226,16 +366,48 @@ void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
   };
   output.emit(trackpad, "trackpad");
 
+  bool grip_pose_emitted = false;
+  bool aim_pose_emitted = false;
   xr::Space space = session->reference_space();
-  xr::Posef aim_pose = aim_space_->locateSpace(space, frame.state.predictedDisplayTime).pose;
-  auto aim_pose_message = poseAction(aim_pose);
-  output.emit(aim_pose_message, "aim_pose");
+  for (std::size_t hand_idx = 0; hand_idx < aim_space_.size(); ++hand_idx) {
+    const auto aim_location =
+        aim_space_[hand_idx]->locateSpace(space, frame.state.predictedDisplayTime);
+    if (aim_location.locationFlags != xr::SpaceLocationFlagBits::None) {
+      const xr::Posef& aim_pose = aim_location.pose;
+      auto aim_pose_message = poseAction(aim_pose);
+      output.emit(aim_pose_message, "aim_pose");
+      aim_pose_emitted = true;
+    }
+
+    const auto grip_location =
+        grip_space_[hand_idx]->locateSpace(space, frame.state.predictedDisplayTime);
+    if (grip_location.locationFlags != xr::SpaceLocationFlagBits::None) {
+      const xr::Posef& grip_pose = grip_location.pose;
+      auto grip_pose_message = poseAction(grip_pose);
+      output.emit(grip_pose_message, "grip_pose");
+      grip_pose_emitted = true;
+    }
+  }
+
+  static const xr::Posef id_pose{xr::Quaternionf{0, 0, 0, 1}, xr::Vector3f{0, 0, 0}};
+  if (!aim_pose_emitted) { output.emit(poseAction(id_pose), "aim_pose"); }
+  if (!grip_pose_emitted) { output.emit(poseAction(id_pose), "grip_pose"); }
 
   // emit device state
   xr::Posef head_pose =
       session->view_space().locateSpace(space, frame.state.predictedDisplayTime).pose;
   auto head_pose_message = poseAction(head_pose);
   output.emit(head_pose_message, "head_pose");
+
+  if (eye_gaze_space_) {
+    xr::SpaceLocation space_location =
+        eye_gaze_space_->locateSpace(session->view_space(), frame.state.predictedDisplayTime);
+    if ((space_location.locationFlags & xr::SpaceLocationFlagBits::PositionValid) &&
+        (space_location.locationFlags & xr::SpaceLocationFlagBits::OrientationValid)) {
+      auto eye_gaze_message = poseAction(space_location.pose);
+      output.emit(eye_gaze_message, "eye_gaze_pose");
+    }
+  }
 }
 
 bool XrBeginFrameOp::boolAction(const xr::Session& xr_session, const std::string& name) {
@@ -277,8 +449,8 @@ nvidia::gxf::CameraModel XrBeginFrameOp::toCameraModel(const xr::View& view, uin
                                                        uint32_t display_height) {
   float left_tan = std::tan(-view.fov.angleLeft);
   float right_tan = std::tan(view.fov.angleRight);
-  float up_tan = std::tan(-view.fov.angleUp);
-  float down_tan = std::tan(view.fov.angleDown);
+  float up_tan = std::tan(view.fov.angleUp);
+  float down_tan = std::tan(-view.fov.angleDown);
 
   nvidia::gxf::CameraModel camera;
   camera.dimensions = {display_width, display_height};

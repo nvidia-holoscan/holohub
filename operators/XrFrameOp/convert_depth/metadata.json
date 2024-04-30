@@ -1,5 +1,5 @@
 {
-"operator":{
+	"operator": {
 		"name": "Convert Depth to Screen Space",
 		"authors": [
 			{
@@ -15,11 +15,19 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6",
 			"tested_versions": [
-				"0.6"
+				"0.6",
+				"2.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Convert", "Depth" , "Screen"],
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Convert",
+			"Depth",
+			"Screen"
+		],
 		"ranking": 2,
 		"dependencies": {}
 	}

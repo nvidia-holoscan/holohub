@@ -15,7 +15,7 @@
 
 cmake_minimum_required(VERSION 3.20.1)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 find_package(Vulkan REQUIRED)
 project(xr_transform_op)
@@ -54,12 +54,16 @@ if(NOT openxr_hpp_POPULATED)
   )
 endif()
 
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_library(xr_transform_op
             XrTransformControlOp/xr_transform_control_op.cpp
             XrTransformRenderOp/xr_transform_render_op.cpp
             ux/ux_bounding_box_controller.cpp
             ux/ux_bounding_box_renderer.cpp
             ux/ux_cursor.cpp
+            ux/ux_window_controller.cpp
+            ux/ux_window_renderer.cpp
 )
 
 add_library(holoscan::ops::xr_transform_op ALIAS xr_transform_op)
@@ -70,8 +74,11 @@ target_link_libraries(xr_transform_op
     GXF::core
     GXF::multimedia
     holoscan::core
+    holoscan::viz
+    holoscan::viz::imgui
   PUBLIC
     Eigen3::Eigen
+    nlohmann_json::nlohmann_json
     openxr_loader
     openxr_hpp
     Vulkan::Vulkan

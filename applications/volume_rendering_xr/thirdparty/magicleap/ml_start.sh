@@ -14,21 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
 # check if the service is running
 if pgrep windrunner-serv >/dev/null; then
-    source ml_stop.sh
+    source "${SCRIPT_DIR}/ml_stop.sh"
 fi
 
 if [ $# -eq 0 ]; then
     XRT_SKIP_STDIN='true' windrunner-service &
-elif [ $1 == "debug" ]; then
+elif [ "$1" == "debug" ]; then
     XRT_SKIP_STDIN='true' XRT_DEBUG_GUI='true' XRT_LITE_UI='true'  windrunner-service &
 fi
 
 # check if the service is running
 if ! ps -p $! > /dev/null; then
     echo "Failed to run windrunner service"
-    exit -1
+    exit 1
 fi
 # wait for service startup
 until [ -e /tmp/windrunner_comp_ipc ]

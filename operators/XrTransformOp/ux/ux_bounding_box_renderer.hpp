@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +23,15 @@
 
 #include "ux_widgets.hpp"
 
-
 namespace holoscan::openxr {
 class UxBoundingBoxRenderer {
  public:
-  void render(UxBoundingBox& box);
+  void render(UxBoundingBox& box, Eigen::Vector3f eye_pos);
 
  private:
   void drawCorner(UxCorner& state, Eigen::Vector3f point, Eigen::Vector3f dx, Eigen::Vector3f dy,
-                  Eigen::Vector3f dz);
-  void drawEdge(UxEdge& state, Eigen::Vector3f p0, Eigen::Vector3f p1);
+                  Eigen::Vector3f dz, Eigen::Vector3f& eye_pos);
+  void drawEdge(UxEdge& state, Eigen::Vector3f p0, Eigen::Vector3f p1, Eigen::Vector3f& eye_pos);
   void drawFace(UxFace& state, Eigen::Vector3f p0, Eigen::Vector3f pu, Eigen::Vector3f pv,
                 Eigen::Affine3f& transform);
 
