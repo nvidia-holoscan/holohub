@@ -36,24 +36,29 @@ add_library(advanced_network_tx SHARED adv_network_tx.cpp)
 add_library(holoscan::advanced_network_rx ALIAS advanced_network_rx)
 add_library(holoscan::advanced_network_tx ALIAS advanced_network_tx)
 
+pkg_check_modules(DPDK QUIET libdpdk)
 
-######## DPDK Configuration ########
-# Set this to wherever your DPDK installation was built if not in a standard location. this
-# can be removed if it was installed globally.
-#set(DPDK_OUTPUT_PATH /tmp/dpdk-22.11/out)
-#set(ENV{PKG_CONFIG_PATH} "${DPDK_OUTPUT_PATH}/lib/aarch64-linux-gnu/pkgconfig")
+if(NOT DPDK_FOUND)
+  message(STATUS "Looking for DPDK in alternative directories")
+  set(ENV{PKG_CONFIG_PATH} /opt/mellanox/dpdk/lib/x86_64-linux-gnu/pkgconfig/)
+  pkg_check_modules(DPDK REQUIRED libdpdk)
 
-set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
-
-pkg_check_modules(DPDK REQUIRED libdpdk)
+  target_link_directories(advanced_network_common PUBLIC ${DPDK_LIBRARY_DIRS})
+  target_include_directories(advanced_network_common PUBLIC ${DPDK_INCLUDE_DIRS})
+  target_compile_options(advanced_network_common PUBLIC ${DPDK_CFLAGS_OTHER})
+  target_link_libraries(advanced_network_common PUBLIC ${DPDK_LDFLAGS_OTHER} ${DPDK_LIBRARIES})
+else() # Upstream DPDK
+  set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
+  target_link_libraries(advanced_network_common PUBLIC ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
+endif()
 
 target_compile_options(advanced_network_common PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_rx PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_tx PUBLIC ${DPDK_CFLAGS})
 
-target_link_libraries(advanced_network_common holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
-target_link_libraries(advanced_network_rx advanced_network_common)
-target_link_libraries(advanced_network_tx advanced_network_common)
+target_link_libraries(advanced_network_common PUBLIC holoscan::core)
+target_link_libraries(advanced_network_rx PUBLIC advanced_network_common)
+target_link_libraries(advanced_network_tx PUBLIC advanced_network_common)
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)

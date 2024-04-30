@@ -118,6 +118,7 @@ class DpdkMgr : public ANOMgr {
 
 
  private:
+    static std::string generate_random_string(int len);
     static int rx_core_worker(void *arg);
     static int tx_core_worker(void *arg);
     static void flush_packets(int port);
