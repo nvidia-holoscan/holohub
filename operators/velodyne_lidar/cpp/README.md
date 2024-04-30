@@ -29,7 +29,7 @@ Hardware requirements:
 
 ## Example Usage
 
-See the [HoloHub Lidar Sample Application](../../applications/velodyne_lidar_app) to get started.
+See the [HoloHub Lidar Sample Application](../../../applications/velodyne_lidar_app/cpp/) to get started.
 
 ## Acknowledgements
 
