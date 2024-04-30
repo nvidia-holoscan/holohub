@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-#ifndef D92B9F12_5473_4626_9218_290D07D46761
-#define D92B9F12_5473_4626_9218_290D07D46761
-
 #ifndef HOLOSCAN_OPERATORS_OPENXR_XR_TRANSFORM_CONTROL_HPP
 #define HOLOSCAN_OPERATORS_OPENXR_XR_TRANSFORM_CONTROL_HPP
 
@@ -26,6 +23,7 @@
 
 #include "ux/ux_bounding_box_controller.hpp"
 #include "ux/ux_cursor.hpp"
+#include "ux/ux_window_controller.hpp"
 
 #include "gxf/multimedia/camera.hpp"
 
@@ -50,6 +48,9 @@ class XrTransformControlOp : public Operator {
   UxCursor ui_cursor_;
   std::shared_ptr<UxCursorController> ui_cursor_controller_;
 
+  UxWindow ui_window_;
+  std::shared_ptr<UxWindowController> ui_window_controller_;
+
   bool trackpad_touched_;
   bool cursor_down_;
   std::chrono::time_point<std::chrono::system_clock> timestamp_;
@@ -58,6 +59,3 @@ class XrTransformControlOp : public Operator {
 }  // namespace holoscan::openxr
 
 #endif  // HOLOSCAN_OPERATORS_OPENXR_XR_TRANSFORM_CONTROL_HPP
-
-
-#endif /* D92B9F12_5473_4626_9218_290D07D46761 */

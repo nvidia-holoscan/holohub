@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 
 #ifndef HOLOSCAN_OPERATORS_OPENXR_XR_BEGIN_FRAME_OP_HPP
 #define HOLOSCAN_OPERATORS_OPENXR_XR_BEGIN_FRAME_OP_HPP
@@ -40,12 +38,15 @@ class XrBeginFrameOp : public Operator {
 
  private:
   Parameter<std::shared_ptr<holoscan::openxr::XrSession>> session_;
+  Parameter<bool> enable_eye_tracking_;
 
   std::unique_ptr<XrCudaInteropSwapchain> color_swapchain_;
   std::unique_ptr<XrCudaInteropSwapchain> depth_swapchain_;
 
   xr::UniqueActionSet action_set_;
-  xr::UniqueSpace aim_space_;
+  std::array<xr::UniqueSpace, 2> aim_space_;
+  std::array<xr::UniqueSpace, 2> grip_space_;
+  xr::UniqueSpace eye_gaze_space_;
 
   std::map<std::string, xr::UniqueAction> action_map_;
 

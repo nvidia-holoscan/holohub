@@ -1,0 +1,350 @@
+{
+    "CameraAperture": {
+        "autoFocus": true,
+        "focusDistance": 0.75
+    },
+    "Cameras": [
+        {
+            "enableStereo": true
+        }
+    ],
+    "Views": [
+        {
+            "mode": "CINEMATIC",
+            "stereoMode": "TOP_BOTTOM"
+        }
+    ],
+    "PostProcessDenoise": {
+        "depthWeight": 3,
+        "enableIterationLimit": false,
+        "iterationLimit": 40,
+        "method": "AI",
+        "noiseThreshold": 0.2,
+        "radius": 1,
+        "spatialWeight": 0.05
+    },
+    "PostProcessTonemap": {
+        "exposure": 0.5,
+        "enable": true
+    },
+    "RenderSettings": {
+        "enableFoveation": true,
+        "enableReproject": true,
+        "enableWarp": true,
+        "enableSeparateDepth": true,
+        "interpolationMode": "LINEAR",
+        "shadowStepSize": 1.5,
+        "stepSize": 1.0,
+        "timeSlot": 29,
+        "warpFullResolutionSize": 0.75,
+        "warpResolutionScale": 0.75
+    },
+    "BackgroundLight": {
+        "bottomColor": {
+            "x": 1.0,
+            "y": 0.7843137254901961,
+            "z": 0.39215686274509803
+        },
+        "castLight": true,
+        "enable": true,
+        "horizonColor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.39215686274509803
+        },
+        "intensity": 0.25495408738576244,
+        "show": false,
+        "topColor": {
+            "x": 0.39215686274509803,
+            "y": 0.5882352941176471,
+            "z": 1.0
+        }
+    },
+    "Camera": {
+        "eye": {
+            "x": 0.6278784570568031,
+            "y": -0.17191770365611897,
+            "z": 3.562773598823822
+        },
+        "fieldOfView": 30,
+        "lookAt": {
+            "x": 0.029770317508857495,
+            "y": 0.04457502941452745,
+            "z": 0.14167642212008974
+        },
+        "pixelAspectRatio": 1,
+        "up": {
+            "x": 0.28229528014656147,
+            "y": 0.9592604182243936,
+            "z": 0.011350102861934348
+        }
+    },
+    "Light": [
+        {
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "direction": {
+                "x": 1.1772060590738184e-16,
+                "y": -0.9612616959383188,
+                "z": -0.27563735581699916
+            },
+            "enable": true,
+            "index": 0,
+            "intensity": 2.00267992,
+            "position": {
+                "x": -0.500121788,
+                "y": 0.961337416,
+                "z": -0.276116349
+            },
+            "show": false,
+            "size": 1.0
+        }
+    ],
+    "TransferFunction": {
+        "components": [
+            {
+                "name": "Bone Outside",
+                "activeRegions": [
+                    1
+                ],
+                "diffuseEnd": {
+                    "x": 1,
+                    "y": 0.8588235294117647,
+                    "z": 0.6666666666666666
+                },
+                "diffuseStart": {
+                    "x": 1,
+                    "y": 0.8588235294117647,
+                    "z": 0.6666666666666666
+                },
+                "specularEnd": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                },
+                "specularStart": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                },
+                "emissiveEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStrength": 0,
+                "opacity": 1,
+                "opacityProfile": "SQUARE",
+                "opacityTransition": 0.21,
+                "range": {
+                    "min": 0.2834893029675638,
+                    "max": 0.403367839889579
+                },
+                "roughness": 15.7
+            },
+            {
+                "name": "Bone Inside",
+                "activeRegions": [
+                    1
+                ],
+                "diffuseEnd": {
+                    "x": 0.7490196078431373,
+                    "y": 0.24705882352941176,
+                    "z": 0.1568627450980392
+                },
+                "diffuseStart": {
+                    "x": 0.7490196078431373,
+                    "y": 0.24705882352941176,
+                    "z": 0.1568627450980392
+                },
+                "specularEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "specularStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStrength": 0,
+                "opacity": 1,
+                "opacityProfile": "SQUARE",
+                "opacityTransition": 0.2,
+                "range": {
+                    "min": 0.2813084886128364,
+                    "max": 0.29801702323441456
+                },
+                "roughness": 0
+            },
+            {
+                "name": "Lungs 1",
+                "activeRegions": [
+                    2
+                ],
+                "diffuseEnd": {
+                    "x": 0.7490196078431373,
+                    "y": 0.5058823529411765,
+                    "z": 0.13333333333333334
+                },
+                "diffuseStart": {
+                    "x": 0.7490196078431373,
+                    "y": 0.5058823529411765,
+                    "z": 0.13333333333333334
+                },
+                "specularEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "specularStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStrength": 0,
+                "opacity": 1,
+                "opacityProfile": "SQUARE",
+                "opacityTransition": 0.2,
+                "range": {
+                    "min": 0.030448585231193927,
+                    "max": 0.08496894409937889
+                },
+                "roughness": 0
+            },
+            {
+                "name": "Lungs 2",
+                "activeRegions": [
+                    2
+                ],
+                "diffuseEnd": {
+                    "x": 0.2274509803921569,
+                    "y": 0,
+                    "z": 0
+                },
+                "diffuseStart": {
+                    "x": 0.2274509803921569,
+                    "y": 0,
+                    "z": 0
+                },
+                "specularEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "specularStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStrength": 0,
+                "opacity": 0.81,
+                "opacityProfile": "SQUARE",
+                "opacityTransition": 0.2,
+                "range": {
+                    "min": 0.07188405797101449,
+                    "max": 0.09883597883597885
+                },
+                "roughness": 0
+            },
+            {
+                "name": "Lungs 3",
+                "activeRegions": [
+                    3
+                ],
+                "diffuseEnd": {
+                    "x": 0.550,
+                    "y": 0.055,
+                    "z": 0.055
+                },
+                "diffuseStart": {
+                    "x": 0.550,
+                    "y": 0.055,
+                    "z": 0.055
+                },
+                "emissiveEnd": {
+                    "x": 0.550,
+                    "y": 0.055,
+                    "z": 0.055
+                },
+                "emissiveStart": {
+                    "x": 0.550,
+                    "y": 0.055,
+                    "z": 0.055
+                },
+                "emissiveStrength": 0.4,
+                "opacity": 1,
+                "opacityProfile": "SQUARE",
+                "opacityTransition": 0.2,
+                "range": {
+                    "max": 0.1891560628742515,
+                    "min": 0.09169161676646705
+                },
+                "roughness": 29.7
+            }
+        ],
+        "densityScale": 999.9999999999998,
+        "globalOpacity": 1,
+        "gradientScale": 10,
+        "shadingProfile": "BRDF ONLY",
+        "blendingProfile": "MAXIMUM_OPACITY"
+    },
+    "DataCrop": {
+        "limits": [
+            {
+                "max": 1,
+                "min": 0
+            },
+            {
+                "max": 1,
+                "min": 0
+            },
+            {
+                "max": 1,
+                "min": 0
+            },
+            {
+                "max": 1,
+                "min": 0
+            }
+        ]
+    }
+}

@@ -15,7 +15,7 @@
 
 cmake_minimum_required(VERSION 3.20.1)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 find_package(Vulkan REQUIRED)
 project(frame_op)
