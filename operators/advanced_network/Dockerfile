@@ -4,7 +4,7 @@ ARG TARGETPLATFORM
 ARG UBUNTU_VERSION=2204
 ARG DOCA_VERSION=2.6.0
 ARG DOCA_BUILD=0.0.1.2.6.0058.1.24.01.0.3.3.1
-ARG DOCA_PACKAGES="doca-networking doca-ofed doca-gpu doca-gpu-dev openvswitch-switch=2.17.8-1  openvswitch-common=2.17.8-1"
+ARG DOCA_PACKAGES="doca-all doca-gpu doca-gpu-dev openvswitch-switch=2.17.8-1  openvswitch-common=2.17.8-1"
 
 RUN echo "Using architecture $TARGETPLATFORM"
 
