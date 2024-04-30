@@ -680,14 +680,20 @@ build_and_run() {
     ARGS=("$@")
     local i
     local arg
+    local skipnext=0
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
-        if [ "$arg" = "--base_img" ]; then
+        if [[ $skipnext == "1" ]]; then
+           skipnext=0
+        elif [ "$arg" = "--base_img" ]; then
            container_build_args+=" --base_img ${ARGS[i+1]}"
+           skipnext=1
         elif [ "$arg" = "--docker_file" ]; then
             docker_file="${ARGS[i+1]}"
+           skipnext=1
         elif [ "$arg" = "--img" ]; then
             image_name="${ARGS[i+1]}"
+           skipnext=1
         elif [ "$arg" = "--no_build" ]; then
             build_app=0
         elif [ "$arg" = "--verbose" ]; then
@@ -695,6 +701,7 @@ build_and_run() {
             container_launch_args+=" --verbose"
         elif [ "$arg" = "--language" ]; then
             app_language="${ARGS[i+1]}"
+           skipnext=1
         elif [ -z "${app_name}" ]; then
             app_name=$arg
         fi
@@ -707,11 +714,13 @@ build_and_run() {
     if [[ -z "${docker_file}" ]]; then
         docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
     fi
+    if [[ -n "${docker_file}" ]]; then
+        container_build_args+=" --docker_file ${docker_file}"
+    fi
 
     if [[ -z "$image_name" ]]; then
         if [[ -n "${docker_file}" ]] && [[ "${docker_file}" != "${SCRIPT_DIR}/Dockerfile" ]]; then
             image_name="holohub:${app_name}"
-            container_build_args+=" --docker_file $docker_file";
         else
             image_name=$(get_default_img);
         fi
