@@ -3,6 +3,9 @@
 The DDS Base Operator provides a base class which can be inherited by any
 operator class which requires access to a DDS domain.
 
+This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
+to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/)
+
 #### `holoscan::ops::DDSOperatorBase`
 
 Base class which provides the parameters and members required to access a

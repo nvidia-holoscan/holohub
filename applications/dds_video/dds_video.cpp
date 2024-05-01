@@ -137,6 +137,8 @@ class V4L2ToDDS : public holoscan::Application {
         Arg("width", 640u), Arg("height", 480u));
 
     auto dds = make_operator<ops::DDSVideoPublisherOp>("dds",
+        Arg("participant_qos", std::string("HoloscanDDSTransport::SHMEM+LAN")),
+        Arg("writer_qos", std::string("HoloscanDDSDataFlow::Video")),
         Arg("domain_id", domain_id_),
         Arg("stream_id", stream_id_));
 
@@ -163,16 +165,19 @@ class DDSToHoloviz : public holoscan::Application {
     std::shared_ptr<UnboundedAllocator> allocator = make_resource<UnboundedAllocator>("pool");
 
     //  DDS Video Subscriber
+    auto participant_qos = std::string("HoloscanDDSTransport::SHMEM+LAN");
     auto video_subscriber = make_operator<ops::DDSVideoSubscriberOp>("video_subscriber",
         Arg("allocator", allocator),
         Arg("domain_id", domain_id_),
         Arg("stream_id", stream_id_),
-        Arg("reader_qos", std::string("HoloscanDDSLibrary::VideoStreamingProfile")));
+        Arg("participant_qos", participant_qos),
+        Arg("reader_qos", std::string("HoloscanDDSDataFlow::Video")));
 
     // DDS Shapes Subscriber
     auto shapes_subscriber = make_operator<ops::DDSShapesSubscriberOp>("shapes_subscriber",
         Arg("domain_id", domain_id_),
-        Arg("reader_qos", std::string("HoloscanDDSLibrary::ShapeReaderProfile")));
+        Arg("participant_qos", participant_qos),
+        Arg("reader_qos", std::string("HoloscanDDSDataFlow::Shapes")));
 
     // DDS Shapes Renderer
     auto shapes_renderer = make_operator<ops::DDSShapesRenderer>("shapes_renderer",
@@ -187,14 +192,22 @@ class DDSToHoloviz : public holoscan::Application {
 
     add_flow(video_subscriber, holoviz, {{"output", "receivers"}});
     add_flow(shapes_subscriber, shapes_renderer, {{"output", "input"}});
-    add_flow(shapes_renderer, holoviz, {{"outputs", "receivers"}});
-    add_flow(shapes_renderer, holoviz, {{"output_specs", "input_specs"}});
+    add_flow(shapes_renderer, holoviz, {{"outputs", "receivers"}, {"output_specs", "input_specs"}});
   }
 
  private:
   uint32_t domain_id_;
   uint32_t stream_id_;
 };
+
+void usage() {
+  std::cout << "Usage: dds_video {-p | -s} [options]" << std::endl << std::endl
+            << "Options" << std::endl
+            << "  -p,    --publisher    Run as a publisher" << std::endl
+            << "  -s,    --subscriber   Run as a subscriber" << std::endl
+            << "  -d ID, --domain=ID    Use the specified DDS domain ID" << std::endl
+            << "  -i ID, --id=ID        Use the specified video stream ID" << std::endl;
+}
 
 int main(int argc, char** argv) {
   bool publisher = false;
@@ -203,6 +216,7 @@ int main(int argc, char** argv) {
   uint32_t domain_id = 0;
 
   struct option long_options[] = {
+      {"help", no_argument, 0, 'h'},
       {"publisher", no_argument, 0, 'p'},
       {"subscriber", no_argument, 0, 's'},
       {"id", required_argument, 0, 'i'},
@@ -212,18 +226,21 @@ int main(int argc, char** argv) {
   while (true) {
     int option_index = 0;
 
-    const int c = getopt_long(argc, argv, "psi:d:", long_options, &option_index);
+    const int c = getopt_long(argc, argv, "hpsi:d:", long_options, &option_index);
     if (c == -1) { break; }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {
+      case 'h':
+        usage();
+        return 0;
       case 'p':
         publisher = true;
         break;
       case 's':
         subscriber = true;
         break;
-      case 'c':
+      case 'i':
         stream_id = stoi(argument);
         break;
       case 'd':
@@ -236,6 +253,7 @@ int main(int argc, char** argv) {
 
   if (!publisher && !subscriber) {
     HOLOSCAN_LOG_ERROR("Must provide either -p or -s for publisher or subscriber, respectively");
+    usage();
     return -1;
   }
 

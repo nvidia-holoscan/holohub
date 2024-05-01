@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(RTI_CONNEXT_DDS_DIR "~/rti/rti_connext_dds-6.1.2" CACHE PATH "RTI Connext DDS Path")
+set(RTI_CONNEXT_DDS_DIR "$ENV{NDDSHOME}" CACHE PATH "RTI Connext DDS Path")
 
 list(APPEND CMAKE_MODULE_PATH ${RTI_CONNEXT_DDS_DIR}/resource/cmake)
 find_package(RTIConnextDDS REQUIRED)

@@ -4,6 +4,9 @@ The DDS Video Operators allow applications to read or write video buffers
 to a DDS databus, enabling communication with other applications via the
 [VideoFrame](VideoFrame.idl) DDS topic.
 
+This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
+to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/)
+
 #### `holoscan::ops::DDSVideoPublisherOp`
 
 Operator class for the DDS video publisher. This operator accepts `VideoBuffer` objects
