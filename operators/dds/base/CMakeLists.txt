@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(dds_operator_base)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 option("LIB_dds_operator_base" "Build the DDS Operator Base library" ${BUILD_ALL})

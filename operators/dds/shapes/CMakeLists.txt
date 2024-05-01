@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(dds_shapes_operators)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Subscriber Operator
