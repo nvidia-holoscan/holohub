@@ -27,6 +27,10 @@
 #include "VideoMasterAPIHelper/handle_manager.hpp"
 #include "VideoMasterAPIHelper/VideoInformation/core.hpp"
 
+#include <chrono>
+#include <thread>
+#define sleep_ms(value) std::this_thread::sleep_for(std::chrono::milliseconds(value))
+
 namespace nvidia {
 namespace holoscan {
 namespace videomaster {

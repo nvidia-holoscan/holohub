@@ -103,7 +103,9 @@ gxf_result_t VideoMasterBase::stop() {
     _stream_handle.reset();
   }
 
+  sleep_ms(200);
   set_loopback_state(true);
+  sleep_ms(200);
 
   if (_board_handle) {
     _board_handle.reset();

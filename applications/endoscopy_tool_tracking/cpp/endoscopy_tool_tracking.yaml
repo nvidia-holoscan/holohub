@@ -41,8 +41,8 @@ record_type: "none"   # or "input" if you want to record input video stream, or 
                       # to record the visualizer output.
 
 external_source:
-  rdma: true
-  enable_overlay: false
+  rdma: false
+  enable_overlay: true
 
 aja:
   width: 1920
@@ -60,8 +60,8 @@ deltacast:
   progressive: true
   framerate: 25
   board: 0
-  input: 0
-  output: 0
+  input: 1
+  output: 1
 
 deltacast_overlay_format_converter:
   in_dtype: "rgba8888"

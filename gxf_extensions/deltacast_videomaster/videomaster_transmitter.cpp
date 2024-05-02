@@ -96,6 +96,10 @@ gxf_result_t VideoMasterTransmitter::start() {
     result &= init_buffers();
     result &= start_stream();
 
+    sleep_ms(200);
+    set_loopback_state(false);
+    sleep_ms(200);
+
   }
   return gxf::ToResultCode(result);
 }
@@ -136,6 +140,10 @@ gxf_result_t VideoMasterTransmitter::tick() {
       result &= configure_stream_for_overlay();
       result &= init_buffers();
       result &= start_stream();
+
+      sleep_ms(200);
+      set_loopback_state(false);
+      sleep_ms(200);
 
       if (!result)
         return gxf::ToResultCode(result);
@@ -207,11 +215,6 @@ gxf::Expected<void> VideoMasterTransmitter::configure_board_for_overlay() {
                                     VHD_SetBoardProperty(*board_handle(), id_to_keyer_video_output.at(_channel_index),
                                      VHD_KOUTPUT_KEYER)
                                      }, "Could not configure keyer video output");
-
-  success_b = success_b & gxf_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*board_handle(), VHD_KEYER_BP_ANCOUTPUT_TX0,
-                                     id_to_rx_keyer_output.at(_channel_index))
-                                     }, "Could not configure keyer ANC output");
 
   success_b = success_b & gxf_log_on_error(Deltacast::Helper::ApiSuccess{
                                     VHD_SetBoardProperty(*board_handle(), keyer_props.at(VHD_KEYER_BP_ALPHACLIP_MIN), 0)
