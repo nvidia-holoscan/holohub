@@ -63,10 +63,13 @@ const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_passive_loopbac
     {2, VHD_CORE_BP_BYPASS_RELAY_2},
     {3, VHD_CORE_BP_BYPASS_RELAY_3}
 };
-const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_active_loopback_prop =
-                                                            {{0, VHD_CORE_BP_ACTIVE_LOOPBACK_0}};
-const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopback_prop =
-                                                            {{0, VHD_CORE_BP_FIRMWARE_LOOPBACK_0}};
+const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_active_loopback_prop = {
+    {0, VHD_CORE_BP_ACTIVE_LOOPBACK_0}
+};
+const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopback_prop = {
+    {0, VHD_CORE_BP_FIRMWARE_LOOPBACK_0},
+    {1, VHD_CORE_BP_FIRMWARE_LOOPBACK_1}
+};
 
 VideoMasterBase::VideoMasterBase(bool is_input)
     : _is_input(is_input),
