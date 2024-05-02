@@ -29,7 +29,7 @@ ARG GPU_TYPE
 FROM ${BASE_IMAGE} as cvcuda-downloader
 
 ARG GCC_VERSION=11
-ARG CVCUDA_TAG=v0.6.0-beta
+ARG CVCUDA_TAG=v0.7.0-beta
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt/nvidia
