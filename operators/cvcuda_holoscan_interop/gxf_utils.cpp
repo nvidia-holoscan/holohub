@@ -27,6 +27,12 @@
 #include <memory>
 #include <nvcv/Tensor.hpp>
 
+#if __has_include("gxf/std/dlpack_utils.hpp")
+  #define GXF_HAS_DLPACK_SUPPORT 1
+#else
+  #define GXF_HAS_DLPACK_SUPPORT 0
+#endif
+
 namespace holoscan {
 
 void validate_holoscan_tensor(std::shared_ptr<holoscan::Tensor> in_tensor) {
@@ -106,17 +112,22 @@ nvidia::gxf::PrimitiveType nvcvdatatype_to_gxfprimitivetype(nvcv::DataType dtype
     case nvcv::TYPE_4F64:
       type = nvidia::gxf::PrimitiveType::kFloat64;
       break;
-    // Can uncomment the complex types below for Holoscan v1.0, but they are unsupported in v0.6.
-    // case nvcv::TYPE_C64:
-    // case nvcv::TYPE_2C64:
-    // case nvcv::TYPE_3C64:
-    // case nvcv::TYPE_4C64:
-    //   type = nvidia::gxf::PrimitiveType::kComplex64;
-    //   break;
-    // case nvcv::TYPE_C128:
-    // case nvcv::TYPE_2C128:
-    //   type = nvidia::gxf::PrimitiveType::kComplex128;
-    //   break;
+#if GXF_HAS_DLPACK_SUPPORT
+    // GXF_HAS_DLPACK_SUPPORT is only true for Holoscan >=2.0 (GXF 4.0) so it is safe to define
+    // these in that case. Complex type support in GXF was previously disabled in
+    // Holoscan <= v0.6. Once Holohub drops support of Holoscan v0.6 we can enable these
+    // unconditionally.
+    case nvcv::TYPE_C64:
+    case nvcv::TYPE_2C64:
+    case nvcv::TYPE_3C64:
+    case nvcv::TYPE_4C64:
+      type = nvidia::gxf::PrimitiveType::kComplex64;
+      break;
+    case nvcv::TYPE_C128:
+    case nvcv::TYPE_2C128:
+      type = nvidia::gxf::PrimitiveType::kComplex128;
+      break;
+#endif
     default:
       throw std::runtime_error("nvcv::DataType does not have a corresponding GXF primitive type");
   }
