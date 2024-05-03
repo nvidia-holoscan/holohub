@@ -141,28 +141,4 @@ command, which will bring up a QR code that has to be scanned using the __QR Cod
 
 ### Developing with a Different OpenXR Backend
 
-The Magic Leap Remote OpenXR runtime (`windrunner`) is the default configured by
-the dev container. Other backends such as Monado are also available.
-
-Inside the container, set openxr_monado.json as the active runtime:
-
-```bash
-/workspace/holohub$ update-alternatives --config openxr1-active-runtime
-
-There are 2 choices for the alternative openxr1-active-runtime (providing /etc/xdg/openxr/1/active_runtime.json).
-
-  Selection    Path                                                   Priority   Status
-------------------------------------------------------------
-  0            /opt/windrunner/lib/windrunner/openxr_windrunner.json   60        auto mode
-  1            /opt/windrunner/lib/windrunner/openxr_windrunner.json   60        manual mode
-* 2            /usr/share/openxr/1/openxr_monado.json                  50        manual mode
-```
-
-Then start the service to run quietly in the background:
-
-```bash
-/workspace/holohub$ monado-service > /dev/null 2>&1 &
-```
-
-NOTE: If you switch back to the Magic Leap runtime, don't forget to update the
-active runtime alternative again with update-alternatives (above).
+`volume_renderer_xr` is an OpenXR compatible application. The Magic Leap Remote Rendering runtime is installed in the application container by default, but a compatible runtime can be used if appropriate to your use case. See [https://www.khronos.org/openxr/](https://www.khronos.org/openxr/) for more information on conformant OpenXR runtimes.
