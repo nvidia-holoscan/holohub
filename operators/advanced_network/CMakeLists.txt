@@ -40,7 +40,7 @@ pkg_check_modules(DPDK QUIET libdpdk)
 
 if (NOT DPDK_FOUND)
   message(STATUS "Looking for DPDK in alternative directories")
-  set(ENV{PKG_CONFIG_PATH} /opt/mellanox/dpdk/lib/x86_64-linux-gnu/pkgconfig/)
+  set(ENV{PKG_CONFIG_PATH} /opt/mellanox/dpdk/lib/x86_64-linux-gnu/pkgconfig/:/opt/mellanox/dpdk/lib/aarch64-linux-gnu/pkgconfig/) 
   pkg_check_modules(DPDK REQUIRED libdpdk)
 
   target_link_directories(advanced_network_common PUBLIC ${DPDK_LIBRARY_DIRS})
