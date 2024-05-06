@@ -81,7 +81,7 @@ The following medical dataset formats are supported:
 
 ### Launch Options
 
-Use the `--extra-args` to see all options, including how to specify a different dataset or transfer function to use.
+Use the `--extra-args` to see all options, including how to specify a different dataset or configuration file to use.
 ```bash
 ./run launch volume_rendering_xr --extra_args --help
 ...
@@ -142,3 +142,11 @@ command, which will bring up a QR code that has to be scanned using the __QR Cod
 ### Developing with a Different OpenXR Backend
 
 `volume_renderer_xr` is an OpenXR compatible application. The Magic Leap Remote Rendering runtime is installed in the application container by default, but a compatible runtime can be used if appropriate to your use case. See [https://www.khronos.org/openxr/](https://www.khronos.org/openxr/) for more information on conformant OpenXR runtimes.
+
+### Volume Rendering
+
+The application carries out volume rendering via the HoloHub [`volume_renderer`](../../operators/volume_renderer/) operator,
+which in turn wraps the NVIDIA [ClaraViz](https://github.com/NVIDIA/clara-viz) rendering project. ClaraViz JSON configurations provided in the [config folder](./configs/) are available for specifying default scene parameters.
+
+See [`volume_renderer` Configuration section](../../operators/volume_renderer/README.md#configuration) for details on
+manipulating configuration values, along with [how to create a new configuration file](../../operators/volume_renderer/README.md#creating-a-configuration-file) to fit custom data.
