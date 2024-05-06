@@ -3,9 +3,11 @@
 The `volume_loader` operator reads 3D volumes from the specified input file.
 
 The operator supports these file formats:
-* MHD https://itk.org/Wiki/ITK/MetaIO/Documentation
-* NIFTI https://nifti.nimh.nih.gov/
-* NRRD https://teem.sourceforge.net/nrrd/format.html
+* [MHD (MetaImage)](https://itk.org/Wiki/ITK/MetaIO/Documentation)
+  * Detached-header format only (`.mhd` + `.raw`)
+* [NIFTI](https://nifti.nimh.nih.gov/)
+* [NRRD (Nearly Raw Raster Data)](https://teem.sourceforge.net/nrrd/format.html)
+  * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) only
 
 #### `holoscan::ops::VolumeLoaderOp`
 
