@@ -54,7 +54,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   }
 
   void populate_dummy_headers(UDPIPV4Pkt &pkt) {
-    adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
+    //adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
     memcpy(pkt.eth.h_dest, eth_dst_, sizeof(pkt.eth.h_dest));
     pkt.eth.h_proto = htons(0x0800);
 
@@ -81,7 +81,8 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
-    port_id_ = adv_net_address_to_port(address_.get());
+    //port_id_ = adv_net_address_to_port(address_.get());
+    port_id_ = 0;
 
     size_t buf_size = batch_size_.get() * payload_size_.get();
     if (!gpu_direct_.get()) {
