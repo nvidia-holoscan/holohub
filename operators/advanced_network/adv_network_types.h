@@ -46,6 +46,12 @@ struct AdvNetBurstHdrParams {
   uint16_t      port_id;
   uint16_t      q_id;
   int           num_segs;
+  uint32_t      nbytes;
+  uintptr_t     first_pkt_addr;
+  uint32_t      max_pkt;
+  uint32_t      max_pkt_size;
+  uint32_t      gpu_pkt0_idx;
+  uintptr_t     gpu_pkt0_addr;
 };
 
 struct AdvNetBurstHdr {
@@ -61,6 +67,7 @@ struct AdvNetBurstParams {
 
   std::array<void **,     MAX_NUM_SEGS> pkts;
   std::array<uint32_t *,  MAX_NUM_SEGS> pkt_lens;
+  cudaEvent_t event;
 };
 
 // Example IPV4 UDP packet using Linux headers
@@ -140,7 +147,8 @@ enum class AdvNetStatus {
   NO_FREE_PACKET_BUFFERS,
   NOT_READY,
   INVALID_PARAMETER,
-  NO_SPACE_AVAILABLE
+  NO_SPACE_AVAILABLE,
+  NOT_SUPPORTED
 };
 
 /**
@@ -233,6 +241,7 @@ struct FlowConfig {
   std::string name_;
   FlowAction action_;
   FlowMatch  match_;
+  void *backend_config_;  // Filled in by operator
 };
 
 struct CommonConfig {

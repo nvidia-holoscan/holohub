@@ -71,6 +71,8 @@ class ANOMgr {
     virtual AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time) = 0;
     virtual void shutdown() = 0;
     virtual void print_stats() = 0;
+    virtual uint64_t get_burst_tot_byte(AdvNetBurstParams *burst) = 0;
+    virtual AdvNetBurstParams * create_burst_params() = 0;
 
     /* Internal functions used by ANO operators */
     virtual std::optional<uint16_t> get_port_from_ifname(const std::string &name) = 0;

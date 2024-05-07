@@ -78,3 +78,9 @@ Or for the receiver:
 ```bash
 ./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_tx.yaml
 ```
+
+With DOCA:
+
+```bash
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+```

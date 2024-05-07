@@ -37,7 +37,7 @@ namespace holoscan::ops {
 
 
 AdvNetBurstParams *adv_net_create_burst_params() {
-  return new AdvNetBurstParams();
+  return g_ano_mgr->create_burst_params();
 }
 
 void adv_net_free_pkt(AdvNetBurstParams *burst, int pkt) {
@@ -60,6 +60,7 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams *burst, int idx) {
   return g_ano_mgr->get_pkt_len(burst, idx);
 }
 
+
 uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   return adv_net_get_pkt_len(burst.get(), idx);
 }
@@ -80,6 +81,11 @@ void adv_net_free_all_seg_pkts(AdvNetBurstParams *burst, int seg) {
 void adv_net_free_all_seg_pkts(std::shared_ptr<AdvNetBurstParams> burst, int seg) {
   return adv_net_free_all_seg_pkts(burst.get(), seg);
 }
+
+uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst) {
+  return g_ano_mgr->get_burst_tot_byte(burst.get());
+}
+
 
 void adv_net_free_all_burst_pkts(AdvNetBurstParams *burst) {
   g_ano_mgr->free_all_pkts(burst);
@@ -141,6 +147,8 @@ int adv_net_address_to_port(const std::string &addr) {
 
 
 AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst) {
+  if (!g_ano_mgr->tx_burst_available(burst))
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
   return g_ano_mgr->get_tx_pkt_burst(burst);
 }
 
