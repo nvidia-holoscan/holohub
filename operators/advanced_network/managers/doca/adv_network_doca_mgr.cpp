@@ -402,10 +402,9 @@ int DocaMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   idx = 0;
   while (idx < (1U << 7) - 1U &&
          rte_mempool_get(tx_meta, reinterpret_cast<void**>(&bursts_tx[idx])) == 0) {
-    bursts_tx[idx]->gpu_pkts = (void**)calloc(1, sizeof(void*));
-    cudaMallocHost(&bursts_tx[idx]->gpu_pkts_len, max_tx_batch * sizeof(uint32_t));
-    memset(bursts_tx[idx]->gpu_pkts_len, 0, max_tx_batch * sizeof(uint32_t));
-    bursts_tx[idx]->cpu_pkts = nullptr;
+    bursts_tx[idx]->pkts[0] = (void**)calloc(1, sizeof(void*));
+    cudaMallocHost(&bursts_tx[idx]->pkt_lens[0], max_tx_batch * sizeof(uint32_t));
+    memset(bursts_tx[idx]->pkt_lens[0], 0, max_tx_batch * sizeof(uint32_t));
     idx++;
   }
 
@@ -462,6 +461,7 @@ void DocaMgr::initialize() {
 
   rxq_num = 0;
   txq_num = 0;
+
   /* All RX queues must be on the same port. */
   if (cfg_.rx_.size() > 0) {
     rxq_num = cfg_.rx_[0].queues_.size();
