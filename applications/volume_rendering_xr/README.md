@@ -150,3 +150,16 @@ which in turn wraps the NVIDIA [ClaraViz](https://github.com/NVIDIA/clara-viz) r
 
 See [`volume_renderer` Configuration section](../../operators/volume_renderer/README.md#configuration) for details on
 manipulating configuration values, along with [how to create a new configuration file](../../operators/volume_renderer/README.md#creating-a-configuration-file) to fit custom data.
+
+### Troubleshooting
+
+#### Libraries are missing when building the application (Vulkan, OpenXR, etc)
+
+This error may indicate that you are building inside the default HoloHub container instead of the expected `volume_rendering_xr` container.
+Review the [build steps](#building-the-application) and ensure that you have launched the container with the appropriate
+`dev_container --img` option.
+
+#### Unexpected CMake errors
+
+If you have built other HoloHub applications prior to building `volume_rendering_xr`, you may need to clear your build cache
+to avoid cross-pollution between environments. See the HoloHub [Cleaning](/README.md#cleanup) section for instructions.
