@@ -206,18 +206,15 @@ void DpdkMgr::initialize() {
   uint16_t portid;
 
   static struct rte_eth_conf conf_eth_port = {
-      .rxmode =
-          {
+      .rxmode = {
               .mq_mode = RTE_ETH_MQ_RX_RSS,
               .offloads = RTE_ETH_RX_OFFLOAD_BUFFER_SPLIT,  // Required by buffer split feature
           },
-      .txmode =
-          {
+      .txmode = {
               .mq_mode = RTE_ETH_MQ_TX_NONE,
               .offloads = RTE_ETH_TX_OFFLOAD_MULTI_SEGS,
           },
-      .rx_adv_conf =
-          {
+      .rx_adv_conf = {
               .rss_conf = {.rss_key = NULL, .rss_hf = RTE_ETH_RSS_IP},
           },
   };
@@ -1369,7 +1366,6 @@ AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
                        burst->hdr.hdr.port_id,
                        burst->hdr.hdr.q_id);
     return AdvNetStatus::NO_FREE_BURST_BUFFERS;
-    ;
   }
 
   const auto cpu_pool = tx_cpu_pkt_pools.find(key);

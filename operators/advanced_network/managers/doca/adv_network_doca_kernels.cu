@@ -315,9 +315,6 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    // printf("kernel send %d pkts gpu_pkt0_idx %d max_pkts %d last position %ld last size %d\n",
-    // 	(uint32_t)num_pkts, gpu_pkt0_idx, max_pkts, ((curr_position + num_pkts) &
-    // mask_max_position), gpu_pkts_len[num_pkts-1]); doca_gpu_dev_eth_txq_commit_strong(txq);
     doca_gpu_dev_eth_txq_commit_weak(txq, num_pkts);
     doca_gpu_dev_eth_txq_push(txq);
     __threadfence_system();

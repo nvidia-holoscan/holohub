@@ -243,8 +243,9 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   if (rxq_pipe_default != nullptr) {
     miss_fwd.type = DOCA_FLOW_FWD_PIPE;
     miss_fwd.next_pipe = rxq_pipe_default;
-  } else
+  } else {
     miss_fwd.type = DOCA_FLOW_FWD_DROP;
+  }
 
   result = doca_flow_pipe_create(pipe_cfg, &fwd, &miss_fwd, &(rxq_pipe));
   if (result != DOCA_SUCCESS) {

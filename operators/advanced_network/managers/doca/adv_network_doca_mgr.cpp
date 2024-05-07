@@ -101,25 +101,6 @@ void decrease_txq_completion_cb(struct doca_eth_txq_gpu_event_notify_send_packet
                                 union doca_data event_user_data) {
   ((std::atomic<uint32_t>*)event_user_data.u64)[0]--;
   HOLOSCAN_LOG_DEBUG("Queue cmp {}", ((std::atomic<uint32_t>*)event_user_data.u64)[0].load());
-#if 0
-    uint16_t packet_index;
-	uint64_t packet_timestamp;
-	uint64_t ts_diff = 0;
-    
-	doca_eth_txq_gpu_event_notify_send_packet_get_position(event_notify, &packet_index);
-	doca_eth_txq_gpu_event_notify_send_packet_get_timestamp(event_notify, &packet_timestamp);
-
-	if (icmp_last_ping != 0)
-		ts_diff = packet_timestamp - icmp_last_ping;
-
-	HOLOSCAN_LOG_INFO("ICMP debug event: Queue %ld packet %d sent at %ld time from last ICMP is %.6f sec",
-		      event_user_data.u64,
-		      packet_index,
-		      packet_timestamp,
-		      (double)((ts_diff > 0 ? ((double)ts_diff) / 1000000000.0 : 0)));
-
-	icmp_last_ping = packet_timestamp;
-#endif
 }
 
 /*
@@ -228,8 +209,7 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
   struct rte_eth_conf eth_conf = {
-      .rxmode =
-          {
+      .rxmode = {
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };
@@ -570,8 +550,6 @@ void DocaMgr::initialize() {
       HOLOSCAN_LOG_INFO(
           "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, rx.port_id_);
       rxq_pkts = q.common_.num_concurrent_batches_ * q.common_.batch_size_;
-      // if (!rte_is_power_of_2(q.common_.max_packet_size_))
-      // 	q.common_.max_packet_size_ = rte_align32pow2(q.common_.max_packet_size_);
 
       if (!rte_is_power_of_2(rxq_pkts)) rxq_pkts = rte_align32pow2(rxq_pkts);
 
@@ -1131,9 +1109,6 @@ int DocaMgr::rx_core(void* arg) {
           break;
         }
 
-        // HOLOSCAN_LOG_INFO("Queue {} received {} packets semdIdx {}",
-        // 	ridx, packets_stats->num_pkts, sem_idx[ridx]);
-
         if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
           HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
           force_quit_doca.store(true);
@@ -1228,12 +1203,7 @@ int DocaMgr::tx_core(void* arg) {
 #if 0
     CUdevice cuDevice;
     CUcontext cuContext;
-    /*
-     * This is needed in all Holoscan-based applications to run a persistent CUDA kernel.
-     * If a persistent CUDA kernel is launched in the default context, no other CUDA kernel
-     * is actually executed right after (even on different streams).
-    */
-    cudaSetDevice(tparams->txqw[0].gpu_id); //Need to rely on GPU 0
+    cudaSetDevice(tparams->txqw[0].gpu_id);
     cudaFree(0);
     cuDeviceGet(&cuDevice, tparams->txqw[0].gpu_id);
     cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
