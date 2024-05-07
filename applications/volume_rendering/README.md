@@ -10,6 +10,7 @@ The application uses the `VolumeLoaderOp` operator to load the medical volume da
 
 You can find CT scan datasets for use with this application from [embodi3d](https://www.embodi3d.com/).
 
+Datasets are bundled with a default ClaraViz JSON configuration file for volume rendering. See [`VolumeRendererOp` documentation](../../operators/volume_renderer/README.md#configuration) for details on configuration schema.
 
 ## Build Instructions
 
