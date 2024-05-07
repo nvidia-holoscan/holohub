@@ -26,7 +26,6 @@
 #include <assert.h>
 #include <sys/time.h>
 
-
 namespace holoscan::ops {
 
 class AdvNetworkingBenchDocaRxOp : public Operator {
@@ -36,8 +35,8 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   AdvNetworkingBenchDocaRxOp() = default;
 
   ~AdvNetworkingBenchDocaRxOp() {
-    HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
-        ttl_bytes_recv_, ttl_pkts_recv_);
+    HOLOSCAN_LOG_INFO(
+        "Finished receiver with {}/{} bytes/packets received", ttl_bytes_recv_, ttl_pkts_recv_);
 
     HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
     adv_net_shutdown();
@@ -75,16 +74,27 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     // spec.param<bool>(hds_, "split_boundary", "Header-data split boundary",
     //     "Byte boundary where header and data is split", false);
-    spec.param<bool>(gpu_direct_, "gpu_direct", "GPUDirect enabled",
-        "Byte boundary where header and data is split", false);
-    spec.param<uint32_t>(batch_size_, "batch_size", "Batch size",
-        "Batch size in packets for each processing epoch", 1000);
-    spec.param<uint16_t>(max_packet_size_, "max_packet_size",
-        "Max packet size", "Maximum packet size expected from sender", 9100);
-    spec.param<uint16_t>(header_size_, "header_size",
-        "Header size", "Header size on each packet from L4 and below", 42);
-    spec.param<bool>(gpu_comms_, "gpu_comms", "GPU Coummunications enabled",
-        "GDAKIN", false);
+    spec.param<bool>(gpu_direct_,
+                     "gpu_direct",
+                     "GPUDirect enabled",
+                     "Byte boundary where header and data is split",
+                     false);
+    spec.param<uint32_t>(batch_size_,
+                         "batch_size",
+                         "Batch size",
+                         "Batch size in packets for each processing epoch",
+                         1000);
+    spec.param<uint16_t>(max_packet_size_,
+                         "max_packet_size",
+                         "Max packet size",
+                         "Maximum packet size expected from sender",
+                         9100);
+    spec.param<uint16_t>(header_size_,
+                         "header_size",
+                         "Header size",
+                         "Header size on each packet from L4 and below",
+                         42);
+    spec.param<bool>(gpu_comms_, "gpu_comms", "GPU Coummunications enabled", "GDAKIN", false);
   }
 
   void free_bufs() {
@@ -99,7 +109,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    int64_t ttl_bytes_in_cur_batch_   = 0;
+    int64_t ttl_bytes_in_cur_batch_ = 0;
     int pkt_idx = 0;
     bool complete = true;
 
@@ -128,7 +138,8 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
           return;
         }
 
-        // HOLOSCAN_LOG_INFO("Launch order kernel, aggr_pkts_recv_ {} pkt_idx {} batch_size_.get() {} cur_idx {}",
+        // HOLOSCAN_LOG_INFO("Launch order kernel, aggr_pkts_recv_ {} pkt_idx {} batch_size_.get()
+        // {} cur_idx {}",
         //                     aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
 #if DEBUG_CUDA_TIMES == 1
         float et_ms = 0;
@@ -136,23 +147,24 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 #endif
 
         simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
-                      h_dev_ptrs_[cur_idx],
-                      nom_payload_size_,
-                      batch_size_.get(),
-                      streams_[cur_idx]);
+                              h_dev_ptrs_[cur_idx],
+                              nom_payload_size_,
+                              batch_size_.get(),
+                              streams_[cur_idx]);
 #if DEBUG_CUDA_TIMES == 1
         cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-		    cudaEventSynchronize(events_[cur_idx]);
-		    cudaEventElapsedTime(&et_ms, events_start_[cur_idx], events_[cur_idx]);
+        cudaEventSynchronize(events_[cur_idx]);
+        cudaEventElapsedTime(&et_ms, events_start_[cur_idx], events_[cur_idx]);
         HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} et_ms {}", aggr_pkts_recv_, et_ms);
 #endif
         cur_msg_.evt = events_[cur_idx];
         out_q.push(cur_msg_);
         cur_msg_.num_batches = 0;
 
-        if (cudaGetLastError() != cudaSuccess)  {
+        if (cudaGetLastError() != cudaSuccess) {
           HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                  batch_size_.get(), batch_size_.get()*nom_payload_size_);
+                             batch_size_.get(),
+                             batch_size_.get() * nom_payload_size_);
           exit(1);
         }
 
@@ -161,7 +173,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       }
 
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =
-        reinterpret_cast<uint8_t *>(adv_net_get_gpu_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
@@ -169,8 +181,8 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
  private:
-  static constexpr int num_concurrent   = 4;   // Number of concurrent batches processing
-  static constexpr int MAX_ANO_BATCHES  = 10;  // Batches from ANO for one app batch
+  static constexpr int num_concurrent = 4;    // Number of concurrent batches processing
+  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
@@ -179,27 +191,26 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     cudaEvent_t evt;
   };
 
-  RxMsg   cur_msg_{};
+  RxMsg cur_msg_{};
   std::queue<RxMsg> out_q;
-  int     burst_buf_idx_ = 0;                // Index into burst_buf_idx_ of current burst
-  int64_t ttl_bytes_recv_ = 0;               // Total bytes received in operator
-  int64_t ttl_pkts_recv_ = 0;                // Total packets received in operator
-  int64_t aggr_pkts_recv_ = 0;               // Aggregate packets received in processing batch
-  uint16_t nom_payload_size_;                // Nominal payload size (no headers)
-  std::array<void **, num_concurrent> h_dev_ptrs_;   // Host-pinned list of device pointers
-  void *full_batch_data_h_;                  // Host-pinned aggregated batch
-  std::array<void *, num_concurrent>  full_batch_data_d_;  // Device aggregated batch
-  Parameter<bool> gpu_direct_;               // GPUDirect enabled
-  Parameter<bool> gpu_comms_;                // GDAKIN GPU communications enabled
-  Parameter<uint32_t> batch_size_;           // Batch size for one processing block
-  Parameter<uint16_t> max_packet_size_;      // Maximum size of a single packet
-  Parameter<uint16_t> header_size_;          // Header size of packet
+  int burst_buf_idx_ = 0;                          // Index into burst_buf_idx_ of current burst
+  int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
+  int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
+  int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
+  uint16_t nom_payload_size_;                      // Nominal payload size (no headers)
+  std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
+  void* full_batch_data_h_;                        // Host-pinned aggregated batch
+  std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
+  Parameter<bool> gpu_direct_;                           // GPUDirect enabled
+  Parameter<bool> gpu_comms_;                            // GDAKIN GPU communications enabled
+  Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
+  Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
+  Parameter<uint16_t> header_size_;                      // Header size of packet
   static int s;
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   std::array<cudaEvent_t, num_concurrent> events_start_;
   int cur_idx = 0;
 };
-
 
 }  // namespace holoscan::ops
