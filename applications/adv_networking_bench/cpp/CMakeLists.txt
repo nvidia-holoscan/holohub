@@ -34,6 +34,13 @@ add_executable(adv_networking_bench
   main.cpp
 )
 
+# set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -ggdb")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
+# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G")
+
+set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
+
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
@@ -42,6 +49,8 @@ target_link_libraries(adv_networking_bench
   matx::matx
 )
 
+set_target_properties(adv_networking_bench PROPERTIES CUDA_ARCHITECTURES "80;90")
+
 # Copy config file
 add_custom_target(adv_networking_bench_default_tx_rx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -49,5 +58,12 @@ add_custom_target(adv_networking_bench_default_tx_rx_yaml
 )
 
 add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
+
+add_custom_target(adv_networking_bench_doca_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
 
 

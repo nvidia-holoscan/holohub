@@ -42,6 +42,12 @@ struct AdvNetBurstHdrParams {
   size_t        num_pkts;
   uint16_t      port_id;
   uint16_t      q_id;
+  uint32_t      nbytes;
+  uintptr_t     first_pkt_addr;
+  uint32_t      max_pkt;
+  uint32_t      max_pkt_size;
+  uint32_t      gpu_pkt0_idx;
+  uintptr_t     gpu_pkt0_addr;
 };
 
 struct AdvNetBurstHdr {
@@ -56,6 +62,9 @@ struct AdvNetBurstParams {
 
   void **cpu_pkts;
   void **gpu_pkts;
+
+  uint32_t *gpu_pkts_len;
+  cudaEvent_t event;
 };
 
 
@@ -72,7 +81,8 @@ enum class AdvNetStatus {
   NO_FREE_GPU_PACKET_BUFFERS,
   NOT_READY,
   INVALID_PARAMETER,
-  NO_SPACE_AVAILABLE
+  NO_SPACE_AVAILABLE,
+  NOT_SUPPORTED
 };
 
 /**
@@ -159,6 +169,7 @@ struct FlowConfig {
   std::string name_;
   FlowAction action_;
   FlowMatch  match_;
+  void *backend_config_;  // Filled in by operator
 };
 
 struct CommonConfig {

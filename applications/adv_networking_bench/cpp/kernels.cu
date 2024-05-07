@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include "matx.h"
 
-
 __global__ void populate_packets(uint8_t **gpu_bufs,
   uint16_t pkt_len,
   uint16_t offset) {
@@ -52,6 +51,9 @@ void populate_packets(uint8_t **gpu_bufs,
 // Must be divisible by 4 bytes in this kernel!
 __global__ void copy_headers(uint8_t **gpu_bufs,
   void *header, uint16_t hdr_size) {
+    if (gpu_bufs == nullptr)
+      return;
+
     int pkt = blockIdx.x;
 
     for (int samp = threadIdx.x; samp < hdr_size / 4; samp += blockDim.x) {

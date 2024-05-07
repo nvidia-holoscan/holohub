@@ -1,7 +1,8 @@
-FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu
+FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v2.0.0-dgpu
 
-ARG OFED_VERSION=5.8-3.0.7.0
-ARG UBUNTU_VERSION=20.04
+ARG UBUNTU_VERSION=22.04
+ARG OFED_VERSION=24.01-0.3.3.1
+ARG CACHEBUST=1
 ARG BUILDARCH
 RUN echo "Using build architecture ${BUILDARCH}"
 
@@ -23,18 +24,13 @@ RUN     if [ "${BUILDARCH}" = "arm64" ]; then \
                 rm -rf /var/lib/apt/lists/*; \
         fi
 
-ARG DPDK_VERSION=22.11.1
 RUN apt update && apt install -y python3-pyelftools ninja-build meson 
-
-ADD https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz /tmp/
-RUN cd /tmp && tar xf dpdk-${DPDK_VERSION}.tar.xz
-COPY ./dpdk_patches/*.patch /tmp/dpdk-stable-${DPDK_VERSION}
-WORKDIR /tmp/dpdk-stable-${DPDK_VERSION}/
-RUN patch --ignore-whitespace --fuzz 3  config/arm/meson.build /tmp/dpdk-stable-${DPDK_VERSION}/dpdk.nvidia.patch 
-RUN CFLAGS=-I/usr/local/cuda/include meson build -Dplatform=generic -Dc_args=-I/usr/local/cuda/include \
-          -Ddisable_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2,
-RUN ninja -C build install
-RUN rm /tmp/dpdk-${DPDK_VERSION}.tar.xz
-
 RUN pip3 install scipy loguru attrs
+WORKDIR /opt
 
+RUN    eval `dpkg-architecture` \
+        && wget https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-204000-24.04-ubuntu2204_${BUILDARCH}.deb -O doca-host.deb \
+        && ls -lh && apt install ./doca-host.deb \
+        && apt update \
+        && apt install -y doca-all \
+        && apt install -y doca-gpu doca-gpu-dev
