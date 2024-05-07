@@ -5,7 +5,6 @@ ARG OFED_VERSION=24.01-0.3.3.1
 ARG CACHEBUST=1
 ARG BUILDARCH
 RUN echo "Using build architecture ${BUILDARCH}"
-
 RUN echo "Using architecture $TARGETPLATFORM"
 
 RUN apt update && apt install -y python3-pyelftools ninja-build meson 

@@ -127,6 +127,8 @@ class DpdkMgr : public ANOMgr {
     uint64_t get_burst_tot_byte(AdvNetBurstParams *burst) override;
     AdvNetBurstParams * create_burst_params() override;
     virtual void adjust_memory_regions() override;
+    uint64_t get_burst_tot_byte(AdvNetBurstParams *burst) override;
+    AdvNetBurstParams * create_burst_params() override;
 
  private:
     static std::string generate_random_string(int len);

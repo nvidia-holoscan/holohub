@@ -52,6 +52,12 @@ struct AdvNetBurstHdrParams {
   uint32_t      gpu_pkt0_idx;
   uintptr_t     gpu_pkt0_addr;
   int           num_segs;
+  uint32_t      nbytes;
+  uintptr_t     first_pkt_addr;
+  uint32_t      max_pkt;
+  uint32_t      max_pkt_size;
+  uint32_t      gpu_pkt0_idx;
+  uintptr_t     gpu_pkt0_addr;
 };
 
 struct AdvNetBurstHdr {
@@ -68,6 +74,7 @@ struct AdvNetBurstParams {
   cudaEvent_t event;
   std::array<void **,     MAX_NUM_SEGS> pkts;
   std::array<uint32_t *,  MAX_NUM_SEGS> pkt_lens;
+  cudaEvent_t event;
 };
 
 // Example IPV4 UDP packet using Linux headers
