@@ -15,15 +15,19 @@
  * limitations under the License.
  */
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cuda/std/complex>
+#pragma once
+#include <doca_gpunetio_dev_eth_rxq.cuh>
+#include <doca_gpunetio_dev_eth_txq.cuh>
+#include <doca_gpunetio_dev_sem.cuh>
+#include <doca_gpunetio_dev_buf.cuh>
+#include "adv_network_doca_mgr.h"
 
-void populate_packets(uint8_t **gpu_bufs,
-  uint16_t pkt_len,
-  uint32_t num_pkts,
-  uint16_t offset,
-  cudaStream_t stream);
+#if __cplusplus
+extern "C" {
+#endif
 
-void copy_headers(uint8_t **gpu_bufs, void *header, uint16_t hdr_size,
-uint32_t num_pkts, cudaStream_t stream);
+doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_t *eth_rxq_gpu, uintptr_t *sem_gpu, uint32_t* batch_list, uint32_t *gpu_exit_condition);
+doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_txq *txq, struct doca_gpu_buf_arr *buf_arr, uint32_t gpu_pkt0_idx, const size_t num_pkts, uint32_t max_pkts, uint32_t *gpu_pkts_len, bool set_completion);
+#if __cplusplus
+}
+#endif
