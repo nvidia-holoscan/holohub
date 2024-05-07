@@ -20,6 +20,7 @@ but raw headers can also be constructed.
 - System tuning as described below
 - DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
+- DOCA 2.7 or later
 
 #### Features
 
@@ -32,6 +33,7 @@ but raw headers can also be constructed.
   - Batched GPU: Receive batches of whole packets directly into the GPU memory. This option requires the GPU kernel to inspect
     and determine how to handle packets. While performance may increase slightly over header-data split, this method
     requires more effort and should only be used for advanced users.
+- **GPUComms**: Optionally control the send or receive communications from the GPU through the GPUDirect Async Kernel-Initiated network technology (enabled with the [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html) transport layer only).
 - **Flow Configuration**: Configure the NIC's hardware flow engine for configurable patterns. Currently only UDP source
     and destination are supported.
 
@@ -43,10 +45,14 @@ The limitations below will be removed in a future release.
 
 #### Implementation
 
-Internally the advanced network operator is implemented using DPDK. DPDK is an open-source userspace packet processing
-library supported across platforms and vendors. While the DPDK interface is abstracted away from users of the
-advanced network operator, the method in which DPDK integrates with Holoscan is important for understanding
-how to achieve the highest performance and for debugging.
+Internally the advanced network operator can be implemented by different transport layers, each offering different features.
+The network transport layer must be specified at the beginning of the application using the ANO API.
+
+##### DPDK
+
+DPDK is an open-source userspace packet processing library supported across platforms and vendors.
+While the DPDK interface is abstracted away from users of the advanced network operator,
+the method in which DPDK integrates with Holoscan is important for understanding how to achieve the highest performance and for debugging.
 
 When the advanced network operator is compiled/linked against a Holoscan application, an instance of the DPDK manager
 is created, waiting to accept configuration. When either an RX or TX advanced network operator is defined in a
@@ -61,6 +67,35 @@ To achieve zero copy throughout the whole pipeline only pointers are passed betw
 receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU
 memory. This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
 Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.
+
+
+##### DOCA
+
+NVIDIA DOCA brings together a wide range of powerful APIs, libraries, and frameworks for programming and accelerating modern data center infrastructures​. The DOCA SDK composed by a variety of C/C++ API for different purposes​, exposing all the features supported by NVIDIA hardware and platforms. [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html) is one of the libraries included in the SDK and it enables the GPU to control, from a CUDA kernel, network communications directly interacting with the network card and completely removing the CPU from the critical data path.
+
+If the application wants to enable GPU communications, it must chose DOCA as transport layer. The behaviour of the DOCA transport layer is similar to the DPDK one except that the receive and send are executed by CUDA kernels. Specifically:
+- Receive: a persistent CUDA kernel is running on a dedicated stream and keeps receiving packets, providing packets' info to the application level. Due to the nature of the operator, the CUDA receiver kernel now is responsible only to receive packets but in a real-world application, it can be extended to receive and process in real-time network packets (DPI, filtering, decrypting, byte modification, etc..) before forwarding packets to the application.
+- Send: every time the application wants to send packets it launches one or more CUDA kernels to prepare data and create Ethernet packets and then (without the need of synchronizing) forward the send request to the operator. The operator then launches another CUDA kernel that in turn sends the packets (still no need to synchronize with the CPU). The whole pipeline is executed on the GPU. Due to the nature of the operator, the packets' creation and packets' send must be split in two CUDA kernels but in a real-word application, they can be merged into a single CUDA kernel responsible for both packet processing and packet sending.
+
+Please refer to the [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html) programming guide to correctly configure your system before using this transport layer.
+
+DOCA transport layer doesn't support the `split-boundary` option.
+
+To build and run the ANO Dockerfile with DOCA support, please follow the steps below:
+
+```
+# To build Docker image
+./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-27-ubuntu2204 --no-cache
+
+# Launch DOCA container
+./operators/advanced_network/run_doca.sh
+
+# To build operator + app from main dir
+./run build adv_networking_bench
+
+# Run app
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+```
 
 #### System Tuning
 

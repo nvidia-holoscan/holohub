@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include <cuda/std/complex>
 
 void populate_packets(uint8_t **gpu_bufs,

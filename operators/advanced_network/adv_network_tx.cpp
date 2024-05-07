@@ -82,7 +82,8 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
       return;
     }
 
-    delete burst;
+    if (impl->cfg.common_.mgr_ != "doca")
+      delete burst;
   }
 }
 };  // namespace holoscan::ops

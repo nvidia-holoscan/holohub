@@ -17,6 +17,8 @@
 
 #include "dpdk_bench_op_rx.h"
 #include "dpdk_bench_op_tx.h"
+#include "doca_bench_op_rx.h"
+#include "doca_bench_op_tx.h"
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
@@ -50,6 +52,23 @@ class App : public holoscan::Application {
       }
       if (tx_en) {
         auto bench_tx       = make_operator<ops::AdvNetworkingBenchDefaultTxOp>("bench_tx",
+                                                from_config("bench_tx"),
+                                                make_condition<BooleanCondition>("is_alive", true));
+        auto adv_net_tx     = make_operator<ops::AdvNetworkOpTx>("adv_network_tx",
+                                                                from_config("advanced_network"));
+        add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
+      }
+    } else if (mgr == "doca") {
+      if (rx_en) {
+        auto bench_rx     = make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx",
+                                                                        from_config("bench_rx"));
+        auto adv_net_rx   = make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
+                                                from_config("advanced_network"),
+                                                make_condition<BooleanCondition>("is_alive", true));
+        add_flow(adv_net_rx, bench_rx, {{"bench_rx_out", "burst_in"}});
+      }
+      if (tx_en) {
+        auto bench_tx       = make_operator<ops::AdvNetworkingBenchDocaTxOp>("bench_tx",
                                                 from_config("bench_tx"),
                                                 make_condition<BooleanCondition>("is_alive", true));
         auto adv_net_tx     = make_operator<ops::AdvNetworkOpTx>("adv_network_tx",

@@ -16,6 +16,7 @@
  */
 #include "adv_network_mgr.h"
 #include "adv_network_dpdk_mgr.h"
+#include "adv_network_doca_mgr.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -26,11 +27,12 @@ ANOMgr *g_ano_mgr = nullptr;
    manager is based on what we believe is the best selection based on the user's configuration. */
 void set_ano_mgr(const AdvNetConfigYaml &cfg) {
   if (g_ano_mgr == nullptr) {
-    if (1) {
+    if (cfg.common_.mgr_ == "doca") {
+        HOLOSCAN_LOG_INFO("Selecting DOCA as ANO manager");
+        g_ano_mgr = new DocaMgr{};
+    } else {
       HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
       g_ano_mgr = new DpdkMgr{};
-    } else {
-      HOLOSCAN_LOG_CRITICAL("Failed to set ANO manager");
     }
   }
 }

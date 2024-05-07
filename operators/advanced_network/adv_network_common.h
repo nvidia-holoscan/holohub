@@ -283,6 +283,7 @@ AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
  * @param pkt Pointer to packet to free
  */
 void adv_net_free_pkt(void *pkt);
+uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free all packets in a single list (CPU or GPU)
@@ -437,10 +438,16 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             holoscan::ops::RxQueueConfig q;
             q.common_.name_             = q_item["name"].as<std::string>();
             q.common_.id_               = q_item["id"].as<int>();
-            q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-            if (q.common_.gpu_direct_) {
+
+            if (input_spec.common_.mgr_ == "doca") {
+              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-              q.common_.hds_              = q_item["split_boundary"].as<int>();
+            } else {
+              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
+              if (q.common_.gpu_direct_) {
+                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
+                q.common_.hds_              = q_item["split_boundary"].as<int>();
+              }
             }
 
             q.common_.cpu_cores_        = q_item["cpu_cores"].as<std::string>();
@@ -467,7 +474,12 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
           input_spec.rx_.emplace_back(rx_cfg);
         }
+      } catch (const std::exception& e) {
+        GXF_LOG_ERROR(e.what());
+        return false;
+      }
 
+      try {
         const auto &tx = node["tx"];
         for (const auto &tx_item : tx) {
           holoscan::ops::AdvNetTxConfig tx_cfg;
@@ -483,10 +495,16 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             holoscan::ops::TxQueueConfig q;
             q.common_.name_             = q_item["name"].as<std::string>();
             q.common_.id_               = q_item["id"].as<int>();
-            q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-            if (q.common_.gpu_direct_) {
+
+            if (input_spec.common_.mgr_ == "doca") {
+              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-              q.common_.hds_              = q_item["split_boundary"].as<int>();
+            } else {
+              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
+              if (q.common_.gpu_direct_) {
+                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
+                q.common_.hds_              = q_item["split_boundary"].as<int>();
+              }
             }
 
             q.common_.cpu_cores_        = q_item["cpu_cores"].as<std::string>();
