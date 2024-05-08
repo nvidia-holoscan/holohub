@@ -809,7 +809,7 @@ void DpdkMgr::initialize() {
       add_flow(rx.port_id_, flow);
     }
   }
-}
+} // NOLINT
 
 int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   HOLOSCAN_LOG_DEBUG("Setting up RX ring");
