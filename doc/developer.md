@@ -211,9 +211,7 @@ cmake -S <path_to_holohub_source>            # Source directory
       -B build                               # Build directory
       -DPython3_EXECUTABLE=/usr/bin/python3  # Specifies the python executable for CMake to find the correct version
       -DHOLOHUB_DATA_DIR=$(pwd)/data         # Specifies the data directory
-      -DBUILD_SAMPLE_APPS=1                  # If you want to build the sample applications
-      or
-      -DAPP_<name_of_the_application>=1      # To build a specific application
+      -DAPP_<name_of_the_application>=1      # Specified the application to build
 
 
 # Build the application(s)
