@@ -170,6 +170,24 @@ endoscopy application:
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
 Make sure you build the application (if applicable) before running it.
 
+# Cleanup
+
+HoloHub applications share a build directory by default. We recommend running the command below to reset your build
+directory between building and running different HoloHub applications:
+
+```sh
+./run clear_cache
+```
+
+In some cases you may also want to clear out datasets downloaded by HoloHub apps to the `data` folder:
+```sh
+rm -rf ./data
+```
+
+Note that many HoloHub applications supply custom container environments with build and runtime dependencies.
+Failing to clean the build cache between different applications may result in unexpected behavior where build
+tools or libraries appear to be broken or missing. Clearing the build cache is a good first check to address those issues.
+
 # Contributing to HoloHub
 
 The goal of HoloHub is to allow engineering teams to easily contribute and share new functionalities
