@@ -22,7 +22,7 @@ add_holohub_application(basic_networking_ping DEPENDS
 
 add_holohub_application(body_pose_estimation)
 
-add_holohub_application(colonoscopy_segmentation HOLOSCAN_SAMPLE_APP)
+add_holohub_application(colonoscopy_segmentation)
 
 add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
 
@@ -32,14 +32,12 @@ add_holohub_application(deltacast_transmitter DEPENDS
 
 add_holohub_application(endoscopy_depth_estimation)
 
-add_holohub_application(endoscopy_out_of_body_detection HOLOSCAN_SAMPLE_APP)
+add_holohub_application(endoscopy_out_of_body_detection)
 
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer
-                        HOLOSCAN_SAMPLE_APP
-                        )
+                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
 
 add_subdirectory(h264)
 
@@ -50,17 +48,16 @@ add_holohub_application(hyperspectral_segmentation)
 
 add_holohub_application(model_benchmarking)
 
-add_holohub_application(multiai_endoscopy HOLOSCAN_SAMPLE_APP)
+add_holohub_application(multiai_endoscopy)
 
 add_holohub_application(multiai_ultrasound DEPENDS
-                        OPERATORS visualizer_icardio
-                        HOLOSCAN_SAMPLE_APP)
+                        OPERATORS visualizer_icardio)
 
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(object_detection_torch HOLOSCAN_SAMPLE_APP)
+add_holohub_application(object_detection_torch)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
@@ -74,7 +71,7 @@ add_holohub_application(network_radar_pipeline DEPENDS
                         OPERATORS basic_network
                                   advanced_network)
 
-add_holohub_application(ultrasound_segmentation HOLOSCAN_SAMPLE_APP)
+add_holohub_application(ultrasound_segmentation)
 
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar
@@ -83,8 +80,7 @@ add_holohub_application(velodyne_lidar_app DEPENDS
 
 add_holohub_application(volume_rendering DEPENDS
                         OPERATORS volume_loader
-                                  volume_renderer
-                        HOLOSCAN_SAMPLE_APP)
+                                  volume_renderer)
 
 add_holohub_application(volume_rendering_xr DEPENDS
                         OPERATORS volume_loader

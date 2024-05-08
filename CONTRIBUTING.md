@@ -226,9 +226,6 @@ add_holohub_application(my_application DEPENDS
                         )
 ```
 
-Note that some applications have the optional ```HOLOSCAN_SAMPLE_APP``` keywords at the end of the ```add_holohub_application```
-function. This keyword should only be used for sample applications that are maintained by the Holoscan team.
-
 Refer to the [HoloHub application template folder](./applications/template/) for stub `metadata.json` and `README` files to copy
 and update for your new application.
 
