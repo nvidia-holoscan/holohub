@@ -1514,5 +1514,13 @@ void DpdkMgr::print_stats() {
   PrintDpdkStats();
 }
 
+uint64_t DpdkMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
+  return 0;
+}
+
+AdvNetBurstParams* DpdkMgr::create_burst_params() {
+  return new AdvNetBurstParams();
+}
+
 
 };  // namespace holoscan::ops

@@ -19,9 +19,6 @@
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -173,7 +170,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       }
 
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);

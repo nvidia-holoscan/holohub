@@ -277,7 +277,7 @@ AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
  * @param idx Index of packet
  */
 void adv_net_free_pkt(AdvNetBurstParams *burst, int idx);
-void adv_net_free_pkt(void *pkt);
+void adv_net_free_pkt(std::shared_ptr<AdvNetBurstParams> burst, int pkt);
 
 uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 
