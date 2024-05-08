@@ -20,9 +20,6 @@
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -171,7 +168,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     }
 
     auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_.get(), queue_id, batch_size_.get());
+    adv_net_set_hdr(msg, port_id_.get(), queue_id, batch_size_.get(), num_segments);
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
@@ -185,11 +182,11 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
       gpu_bufs[cur_idx][num_pkt] =
-          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(msg, num_pkt));
+          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
 
-      if ((ret = adv_net_set_pkt_len(msg, num_pkt, cpu_len, gpu_len)) != AdvNetStatus::SUCCESS) {
+      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_burst_pkts_and_burst(msg);
+        adv_net_free_all_pkts_and_burst(msg);
         return;
       }
     }
@@ -229,12 +226,13 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   };
 
   static constexpr int num_concurrent = 4;
+  static constexpr int num_segments = 1;
   std::queue<TxMsg> out_q;
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   void* full_batch_data_h_;
   static constexpr uint16_t queue_id = 0;
-  uint8_t eth_dst_[6];
+  char eth_dst_[6];
   // uint8_t *gpu_bufs[num_concurrent] = {0};
   std::array<uint8_t**, num_concurrent> gpu_bufs;
   uint32_t ip_src_;

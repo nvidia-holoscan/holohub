@@ -34,7 +34,8 @@ PYBIND11_MODULE(_advanced_network_common, m) {
 
     m.def("adv_net_create_burst_params", &adv_net_create_burst_params,
         py::return_value_policy::reference, "Create a shared pointer burst params structure");
-    m.def("adv_net_free_pkt", &adv_net_free_pkt, "Free a single packet");
+    m.def("adv_net_free_pkt", py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>
+        (&adv_net_free_pkt), "Free a single packet");
     m.def("adv_net_get_seg_pkt_len", py::overload_cast<AdvNetBurstParams *, int, int>
         (&adv_net_get_seg_pkt_len), "Get length of one segments of the packet");
     m.def("adv_net_get_seg_pkt_len", py::overload_cast<std::shared_ptr<AdvNetBurstParams> , int, int>
