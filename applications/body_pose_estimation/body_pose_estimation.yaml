@@ -14,8 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source:
+v4l2_source:
   device: "/dev/video0"
+
+dds_source:
+  qos_provider: "../applications/dds_video/qos_profiles.xml"
+  participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
+  reader_qos: "HoloscanDDSDataFlow::Video"
 
 preprocessor:
   out_tensor_name: preprocessed
