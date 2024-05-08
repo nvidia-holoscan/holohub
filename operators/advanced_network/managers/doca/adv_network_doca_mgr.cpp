@@ -462,51 +462,46 @@ void DocaMgr::initialize() {
   rxq_num = 0;
   txq_num = 0;
 
+  assert(cfg_.ifs_.size() == 1, "DOCA GPU comms mode only supports a single interface");
+
   /* All RX queues must be on the same port. */
-  if (cfg_.rx_.size() > 0) {
-    rxq_num = cfg_.rx_[0].queues_.size();
+  if (cfg_.ifs_[0].rx_.queues_.size() > 0) {
+    rxq_num = cfg_.ifs_[0].rx_.queues_.size();
 
     doca_ret =
-        init_doca_device(argv_, arg, cfg_.rx_[0].if_name_.c_str(), &ddev_rx, &cfg_.rx_[0].port_id_);
+        init_doca_device(argv_, arg, cfg_.ifs_[0].address_.c_str(), &ddev_rx, &cfg_.ifs_[0].port_id_);
     if (doca_ret != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
       return;
     }
 
-    for (auto& rx : cfg_.rx_) rx.port_id_ = cfg_.rx_[0].port_id_;
-
-    if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), cfg_.rx_[0].queues_[0].common_.gpu_dev_) !=
+    if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), cfg_.ifs_[0].rx_.queues_[0].common_.gpu_dev_) !=
         cudaSuccess) {
       HOLOSCAN_LOG_CRITICAL("Failed get GPU PCIe addr device {}",
-                            cfg_.rx_[0].queues_[0].common_.gpu_dev_);
+                            cfg_.ifs_[0].rx_.queues_[0].common_.gpu_dev_);
       return;
     }
   }
 
   /* All TX queues must be on the same port. */
-  if (cfg_.tx_.size() > 0) {
-    txq_num = cfg_.tx_[0].queues_.size();
+  if (cfg_.ifs_[0].tx_.queues_.size() > 0) {
+    txq_num = cfg_.ifs_[0].tx_.queues_.size();
     ddev_tx = ddev_rx;
 
-    if ((cfg_.rx_.size() == 0) ||
-        (cfg_.rx_.size() > 0 && cfg_.rx_[0].if_name_.compare(cfg_.tx_[0].if_name_) != 0)) {
+    if (cfg_.ifs_[0].rx_.queues_.size() == 0) {
       doca_ret = init_doca_device(
-          argv_, arg, cfg_.tx_[0].if_name_.c_str(), &ddev_tx, &cfg_.tx_[0].port_id_);
+          argv_, arg, cfg_.ifs_[0].address_.c_str(), &ddev_tx, &cfg_.ifs_[0].port_id_);
       if (doca_ret != DOCA_SUCCESS) {
         HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
         return;
       }
-
-      for (auto& tx : cfg_.tx_) tx.port_id_ = cfg_.tx_[0].port_id_;
-    } else {
-      for (auto& tx : cfg_.tx_) tx.port_id_ = cfg_.rx_[0].port_id_;
     }
 
     // Need to create 2 GPU devices in case of RX + TX support!!!
-    if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), cfg_.tx_[0].queues_[0].common_.gpu_dev_) !=
+    if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), cfg_.ifs_[0].tx_.queues_[0].common_.gpu_dev_) !=
         cudaSuccess) {
       HOLOSCAN_LOG_CRITICAL("Failed get GPU PCIe addr device {}",
-                            cfg_.tx_[0].queues_[0].common_.gpu_dev_);
+                            cfg_.ifs_[0].tx_.queues_[0].common_.gpu_dev_);
       return;
     }
   }
@@ -520,16 +515,16 @@ void DocaMgr::initialize() {
   rte_eth_macaddr_get(dpdk_port_id, &mac_addr);
 
   HOLOSCAN_LOG_INFO("DOCA init -- RX: {} TX: {}",
-                    cfg_.rx_.size() > 0 ? "ENABLED" : "DISABLED",
-                    cfg_.tx_.size() > 0 ? "ENABLED" : "DISABLED");
+                    cfg_.ifs_[0].rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
+                    cfg_.ifs_[0].tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
   // For now make a single queue. Support more sophisticated TX on next release
-  for (auto& tx : cfg_.tx_) {
-    for (auto& q : tx.queues_) {
-      max_tx_batch_size = std::max(max_tx_batch_size, q.common_.batch_size_);
-      max_packet_size = std::max(max_packet_size, q.common_.max_packet_size_);
-    }
+  const auto &tx = cfg_.ifs_[0].tx_;
+  for (auto& q : tx.queues_) {
+    max_tx_batch_size = std::max(max_tx_batch_size, q.common_.batch_size_);
+    max_packet_size = std::max(max_packet_size, q.common_.max_packet_size_);
   }
+
 
   if (setup_pools_and_rings(0, max_tx_batch_size) < 0) {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
@@ -545,17 +540,16 @@ void DocaMgr::initialize() {
   }
 
   // Rx queues single port allowed
-  for (auto& rx : cfg_.rx_) {
-    for (auto& q : rx.queues_) {
-      HOLOSCAN_LOG_INFO(
-          "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, rx.port_id_);
-      rxq_pkts = q.common_.num_concurrent_batches_ * q.common_.batch_size_;
+  const auto &rx = cfg_.ifs_[0].rx_;
+  for (auto& q : rx.queues_) {
+    HOLOSCAN_LOG_INFO(
+        "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, rx.port_id_);
+    rxq_pkts = q.common_.num_concurrent_batches_ * q.common_.batch_size_;
 
-      if (!rte_is_power_of_2(rxq_pkts)) rxq_pkts = rte_align32pow2(rxq_pkts);
+    if (!rte_is_power_of_2(rxq_pkts)) rxq_pkts = rte_align32pow2(rxq_pkts);
 
-      q.common_.backend_config_ = new DocaRxQueue(
-          ddev_rx, gdev, df_port, q.common_.id_, rxq_pkts, q.common_.max_packet_size_);
-    }
+    q.common_.backend_config_ = new DocaRxQueue(
+        ddev_rx, gdev, df_port, q.common_.id_, rxq_pkts, q.common_.max_packet_size_);
   }
 
   // Tx queues single port allowed
