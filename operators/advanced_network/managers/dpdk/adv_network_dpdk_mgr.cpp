@@ -195,7 +195,8 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
 std::string DpdkMgr::generate_random_string(int len) {
   const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
   std::string tmp;
-
+  
+  srand(time(NULL));
   for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
 
   return tmp;
