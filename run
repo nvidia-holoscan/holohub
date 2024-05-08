@@ -519,7 +519,7 @@ lint() {
 build_desc() {
   echo ""
   echo "Build the application(s) in HoloHub"
-  echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
+  echo "Usage: ./run build <application_name> [options]"
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
   echo "   --with <list of operators>  : Optional operators that should be built"
@@ -627,15 +627,15 @@ build() {
 
   echo "Building Holohub"
 
-  # Application(s) to build
-  application="-DBUILD_SAMPLE_APPS=1"
-
-  if [[ $app == "SAMPLE_APPS" ]] ||  [[ $app == "" ]]; then
-     echo "Building sample applications."
-  else
-    echo "building $1 application"
-    application="-DAPP_$1=1"
+  # Application to build
+  if [ "$1" == "" ]; then
+    print_error "Please specify which application to build."
+    echo "You can run ./run list for a full list of applications."
+    exit 1
   fi
+
+  echo "Building $1 application"
+  application="-DAPP_$1=1"
 
   # We define the python path to make sure we grab the right one
   cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
@@ -827,23 +827,12 @@ list() {
       filename="${appname%/*}"
     fi
 
-    # Check in the CMakelists if the application is a sample application
-    appcmakelist="applications/CMakeLists.txt"
-    grepargs="\(${filename} \K[^)]+"
-    result_grep=$(grep -ozP "${grepargs}" $appcmakelist | tr -d '\0')
-    result=$(echo $result_grep | grep "HOLOSCAN_SAMPLE_APP")
-    sample_app=""
-    if [[ ${result} != "" ]]; then
-      sample_app="[Sample Application]"
-    fi
-
     application="${filename##*/}"
 
-    echo "- ${application} ${language} ${sample_app}"
+    echo "- ${application} ${language}"
   done
   echo ""
   echo "Run ./run build <app_name> to build a specific app."
-  echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually."
 }
 
 # Returns the list of words for autocompletion
