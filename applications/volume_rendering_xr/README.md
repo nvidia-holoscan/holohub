@@ -74,10 +74,7 @@ The application supports the following hand or controller interactions by defaul
 
 ### Supported Formats
 
-The following medical dataset formats are supported:
-* [MHD](https://itk.org/Wiki/ITK/MetaIO/Documentation)
-* [NIFTI](https://nifti.nimh.nih.gov/)
-* [NRRD](https://teem.sourceforge.net/nrrd/format.html)
+This application loads static volume files from the local disk. See HoloHub [`VolumeLoaderOp`](/operators/volume_loader/README.md#supported-formats) documentation for supported volume formats and file conversion tools.
 
 ### Launch Options
 
