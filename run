@@ -591,7 +591,7 @@ build() {
   local arg
   local skipnext=0
   local build_type="${CMAKE_BUILD_TYPE:-release}"
-  local build_path="${CMAKE_BUILD_PATH:-build}"
+  local build_path="${CMAKE_BUILD_PATH}"
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -632,6 +632,11 @@ build() {
     print_error "Please specify which application to build."
     echo "You can run ./run list for a full list of applications."
     exit 1
+  fi
+
+  # Assign default build path
+  if [ "$build_path" == "" ]; then
+    build_path="build/$1"
   fi
 
   echo "Building $1 application"
@@ -676,6 +681,7 @@ launch() {
    local extra_args=""
    local nsys_profile=false
    local verbose=false
+   local holohub_build_dir=""
 
    for i in "${!ARGS[@]}"; do
      arg="${ARGS[i]}"
@@ -684,6 +690,8 @@ launch() {
        break
      elif [ "$arg" = "--nsys_profile" ]; then
        nsys_profile=true
+     elif [ "$arg" = "--buildpath" ]; then
+         holohub_build_dir="${ARGS[i+1]}"
      elif [ "$arg" = "--verbose" ]; then
        verbose=true
      elif [ -z "${appname}" ]; then
@@ -694,7 +702,9 @@ launch() {
    done
 
    # Export the python path (by default use the one used to build)
-   local holohub_build_dir="${SCRIPT_DIR}/build"
+   if [ "$holohub_build_dir" == "" ]; then
+      holohub_build_dir="${SCRIPT_DIR}/build/$appname"
+   fi
 
    # Do initial sanitary check to make sure build/ is there, to avoid too many other error messages
    if [ ! -d "$holohub_build_dir" ]; then
@@ -704,8 +714,8 @@ launch() {
      exit 1
    fi
 
-   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' ${holohub_build_dir}/CMakeCache.txt)
+   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' ${holohub_build_dir}/CMakeCache.txt)
 
    if [[ -z "${language}" ]]; then
      language=$(get_app_default_language "${appname}")
