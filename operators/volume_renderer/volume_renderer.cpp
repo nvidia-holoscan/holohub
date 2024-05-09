@@ -302,7 +302,7 @@ void VolumeRendererOp::start() {
     // setup renderer by reading settings from the configuration file
     std::ifstream input_file_stream(impl_->config_file_.get());
     if (!input_file_stream) {
-      throw std::runtime_error("Could not open configuration for reading");
+      throw std::runtime_error("Could not open configuration " + impl_->config_file_.get() + " for reading");
     }
 
     const nlohmann::json settings = nlohmann::json::parse(input_file_stream);
