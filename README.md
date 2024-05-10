@@ -172,8 +172,7 @@ Make sure you build the application (if applicable) before running it.
 
 # Cleanup
 
-HoloHub applications share a build directory by default. We recommend running the command below to reset your build
-directory between building and running different HoloHub applications:
+We recommend running the command below to reset your build directory between building Holohub applications with different configurations:
 
 ```sh
 ./run clear_cache
