@@ -210,6 +210,10 @@ print_error() {
 install_cuda_dependencies_package() {
    package_name=$1
    preferred_version=$2
+   optional=false
+   if [ -n "$3" ]; then
+     optional=true
+   fi
 
    # Checking if compatible packages are already installed
    installed_version=$(apt list --installed ${package_name} 2>/dev/null | grep $package_name)
@@ -223,10 +227,14 @@ install_cuda_dependencies_package() {
    package_installed=$(echo $available_version | grep "installed")
 
    if [[ $package_version == "" ]]; then
-    print_error "$package_name $preferred_version is not installable."
-    echo "You might want to try to install a newer version manually and rerun the setup:"
-    echo "  sudo apt install $package_name"
-    exit 1
+    if [[ $optional == "true" ]]; then
+      echo "Package $package_name $preferred_version not found. Skipping."
+    else
+      print_error "$package_name $preferred_version is not installable."
+      echo "You might want to try to install a newer version manually and rerun the setup:"
+      echo "  sudo apt install $package_name"
+      exit 1
+    fi
    elif [[ $package_installed == "" ]]; then
     echo "Installing $package_name=$package_version"
     apt install --no-install-recommends -y $package_name=$package_version
@@ -325,7 +333,7 @@ setup() {
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -337,9 +345,18 @@ setup() {
   short_cuda_version=${cuda_version%.*}
   echo "Cuda version found: $short_cuda_version"
 
+  # Install cudnn9 first
+  install_cuda_dependencies_package libcudnn9-cuda-12 cuda$short_cuda_version true
+  install_cuda_dependencies_package libcudnn9-dev-cuda-12 cuda$short_cuda_version true
+
+  # Check if cudnn9 is install, if not install cudnn8
+  installed_cudnn9_version=$(apt list --installed libcudnn9-cuda-12 2>/dev/null | grep libcudnn9-cuda-12)
+  if [[ $installed_cudnn9_version == "" ]]; then
+     install_cuda_dependencies_package libcudnn8 cuda$short_cuda_version
+     install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
+  fi
+
   # Make sure we do not install any cuda12 packages
-  install_cuda_dependencies_package libcudnn8 cuda$short_cuda_version
-  install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
