@@ -196,11 +196,13 @@ void AdvConnectorOpRx::initialize() {
   // Total number of I/Q samples per array
   samples_per_arr = num_channels_.get() * num_pulses_.get() * num_samples_.get();
 
+
   // Configuration checks
-  if (!(hds_.get() && gpu_direct_.get())) {
-    HOLOSCAN_LOG_ERROR("Only configured to run with Header-Data Split and GPUDirect");
-    exit(1);
-  } else if (hds_.get() && !gpu_direct_.get()) {
+  // if (!(hds_.get() && gpu_direct_.get()) || (cfg_.get().manager == "doca" && gpu_direct_.get())) {
+  //   HOLOSCAN_LOG_ERROR("Only configured to run with Header-Data Split and GPUDirect");
+  //   exit(1);
+  // } else
+  if (hds_.get() && !gpu_direct_.get()) {
     HOLOSCAN_LOG_ERROR("If Header-Data Split mode is enabled, GPUDirect needs to be too");
     exit(1);
   }
@@ -326,12 +328,10 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   // Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
   // Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
   // entire burst buffer pointer is saved and freed once an entire batch is received.
-  if (gpu_direct_.get() && hds_.get()) {
-    for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+  if (gpu_direct_.get()) { // && hds_.get()) {
+    for (int p = 0; p < adv_net_get_num_pkts(burst); p++)
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
-      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_packet_len(burst, p)
-                               + adv_net_get_cpu_packet_len(burst, p);
-    }
+    ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
     ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
   }
 

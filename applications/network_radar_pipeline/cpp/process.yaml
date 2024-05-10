@@ -43,6 +43,7 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
+    manager: "doca"
     master_core: 16                 # Master CPU core
     rx:
       - if_name: 0000:81:00.0       # PCIe BFD of NIC

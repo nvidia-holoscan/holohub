@@ -17,6 +17,8 @@
 
 #include "adv_networking_tx.h"  // TODO: Rename networking connectors
 
+#define MAX_HDR_SIZE 64
+
 namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
@@ -97,8 +99,8 @@ void AdvConnectorOpTx::initialize() {
   batch_size_   = cfg_.get().tx_[0].queues_[0].common_.batch_size_;
   hds_          = cfg_.get().tx_[0].queues_[0].common_.hds_;
   gpu_direct_   = cfg_.get().tx_[0].queues_[0].common_.gpu_direct_;
-
-  if (gpu_direct_ && hds_ == 0) {
+  mgr_          = cfg_.get().common_.mgr_;
+  if (gpu_direct_ && hds_ == 0 && mgr_ != "doca") {
     // TODO: GPU-only mode Eth+IP+UDP headers
     HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
     return;
@@ -150,6 +152,14 @@ void AdvConnectorOpTx::initialize() {
   // ANO expects host order when setting
   ip_src_ = ntohl(ip_src_);
   ip_dst_ = ntohl(ip_dst_);
+
+  if (gpu_direct_ && (mgr_ == "doca")) {
+    cudaMalloc(&pkt_header_, MAX_HDR_SIZE); //header_size_.get());
+    uint8_t payload[MAX_HDR_SIZE];
+    adv_net_create_eth_ipv4_udp_hdr(ip_src_, ip_dst_, payload_size_, payload);
+    // At this point we have a dummy header created, so we copy it to the GPU
+    cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+  }
 
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize() complete");
 }
@@ -261,6 +271,26 @@ void AdvConnectorOpTx::populate_packets(uint8_t **out_ptr,
     offset);
 }
 
+// Must be divisible by 4 bytes in this kernel!
+__global__ void copy_headers(uint8_t **gpu_bufs,
+  void *header, uint16_t hdr_size) {
+    if (gpu_bufs == nullptr)
+      return;
+
+    int pkt = blockIdx.x;
+
+    for (int samp = threadIdx.x; samp < hdr_size / 4; samp += blockDim.x) {
+      auto p = reinterpret_cast<uint32_t *>(gpu_bufs[pkt] + samp * sizeof(uint32_t));
+      *p = *(reinterpret_cast<uint32_t*>(header) + samp);
+    }
+}
+
+void copy_headers(uint8_t **gpu_bufs,
+                  void *header, uint16_t hdr_size,
+                  uint32_t num_pkts, cudaStream_t stream) {
+  copy_headers<<<num_pkts, 32, 0, stream>>>(gpu_bufs, header, hdr_size);
+}
+
 void AdvConnectorOpTx::compute(InputContext& op_input,
                                OutputContext& op_output,
                                ExecutionContext& context) {
@@ -345,7 +375,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
   int gpu_len;
   for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(msg); pkt_idx++) {
     // For HDS mode or CPU mode populate the packet headers
-    if (!gpu_direct_ || hds_ > 0) {
+    if ((!gpu_direct_ || hds_ > 0) && mgr_ != "doca") {
       ret = set_cpu_hdr(msg, pkt_idx);  // set packet headers
       if (ret != AdvNetStatus::SUCCESS) {
         return;
@@ -368,6 +398,9 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     if (gpu_direct_ && hds_ > 0) {
       cpu_len = hds_;
       gpu_len = payload_size_;
+    } else if (gpu_direct_ && mgr_ == "doca") {
+      cpu_len = 0;
+      gpu_len = payload_size_ + header_size_.get();
     } else if (!gpu_direct_) {
       cpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
       gpu_len = 0;
@@ -390,7 +423,11 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
   // In GPU-only mode copy the header
   if (gpu_direct_ && hds_ == 0) {
-    // TODO: GPU-only mode
+    copy_headers(gpu_bufs[cur_idx],
+                 pkt_header_,
+                 MAX_HDR_SIZE, //header_size_.get(),
+                 adv_net_get_num_pkts(msg),
+                 streams_[cur_idx]);
   }
 
   // Populate packets with I/Q data
@@ -403,6 +440,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
                      offset,
                      streams_[cur_idx]);
     cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+    msg->event = events_[cur_idx];
     out_q.push(TxMsg{msg, rf_data->waveform_id, rf_data->channel_id, events_[cur_idx]});
   }
 

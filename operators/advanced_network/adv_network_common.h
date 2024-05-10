@@ -25,12 +25,46 @@
 #include "adv_network_types.h"
 #include "holoscan/holoscan.hpp"
 
-namespace holoscan::ops {
+#define ETHER_ADDR_LEN 6
 
+struct ether_hdr {
+  uint8_t d_addr_bytes[ETHER_ADDR_LEN]; /* Destination addr bytes in tx order */
+  uint8_t s_addr_bytes[ETHER_ADDR_LEN]; /* Source addr bytes in tx order */
+  uint16_t ether_type;                  /* Frame type */
+} __attribute__((__packed__));
+
+struct ipv4_hdr {
+  uint8_t version_ihl;      /* version and header length */
+  uint8_t type_of_service;  /* type of service */
+  uint16_t total_length;    /* length of packet */
+  uint16_t packet_id;       /* packet ID */
+  uint16_t fragment_offset; /* fragmentation offset */
+  uint8_t time_to_live;     /* time to live */
+  uint8_t next_proto_id;    /* protocol ID */
+  uint16_t hdr_checksum;    /* header checksum */
+  uint32_t src_addr;        /* source address */
+  uint32_t dst_addr;        /* destination address */
+} __attribute__((__packed__));
+
+struct udp_hdr {
+  uint16_t src_port;    /* UDP source port */
+  uint16_t dst_port;    /* UDP destination port */
+  uint16_t len;         /* UDP datagram length */
+  uint16_t cksum;       /* UDP datagram checksum */
+} __attribute__((__packed__));
+
+struct eth_ip_udp_hdr {
+  struct ether_hdr l2_hdr; /* Ethernet header */
+  struct ipv4_hdr l3_hdr;  /* IP header */
+  struct udp_hdr l4_hdr;   /* UDP header */
+} __attribute__((__packed__));
+
+#define BYTE_SWAP16(v) ((((uint16_t)(v)&UINT16_C(0x00ff)) << 8) | (((uint16_t)(v)&UINT16_C(0xff00)) >> 8))
+
+namespace holoscan::ops {
 
 // this part is purely optional, just a helper for the user
 AdvNetBurstParams* adv_net_create_burst_params();
-
 
 namespace detail {
   inline AdvNetDirection DirectionStringToType(const std::string &dir) {
@@ -375,6 +409,16 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
 void adv_net_format_eth_addr(uint8_t *dst, std::string addr);
+
+/**
+ * @brief Create Eth/IPv4/UDP packet header
+ *
+ * @param ip_src Source IP address buffer
+ * @param ip_dst Destination IP address buffer
+ * @param pld_len Packet payload len
+ * @param hdr Packet header buffer
+ */
+void adv_net_create_eth_ipv4_udp_hdr(uint32_t ip_src, uint32_t ip_dst, uint16_t pld_len, uint8_t *hdr);
 
 std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
 

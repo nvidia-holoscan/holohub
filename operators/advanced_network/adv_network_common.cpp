@@ -117,6 +117,43 @@ void adv_net_format_eth_addr(uint8_t *dst, std::string addr) {
   }
 }
 
+void adv_net_create_eth_ipv4_udp_hdr(uint32_t ip_src, uint32_t ip_dst, uint16_t pld_len, uint8_t *hdr) {
+    struct eth_ip_udp_hdr *hdr_cpu = (struct eth_ip_udp_hdr *)hdr;
+
+    // Ethernet hdr
+    hdr_cpu->l2_hdr.d_addr_bytes[0] = 0x0;
+    hdr_cpu->l2_hdr.d_addr_bytes[1] = 0x0;
+    hdr_cpu->l2_hdr.d_addr_bytes[2] = 0x0;
+    hdr_cpu->l2_hdr.d_addr_bytes[3] = 0x0;
+    hdr_cpu->l2_hdr.d_addr_bytes[4] = 0x0;
+    hdr_cpu->l2_hdr.d_addr_bytes[5] = 0x0;
+
+    hdr_cpu->l2_hdr.s_addr_bytes[0] = 0x0;
+    hdr_cpu->l2_hdr.s_addr_bytes[1] = 0x0;
+    hdr_cpu->l2_hdr.s_addr_bytes[2] = 0x1;
+    hdr_cpu->l2_hdr.s_addr_bytes[3] = 0x1;
+    hdr_cpu->l2_hdr.s_addr_bytes[4] = 0x3;
+    hdr_cpu->l2_hdr.s_addr_bytes[5] = 0x3;
+
+    hdr_cpu->l2_hdr.ether_type = BYTE_SWAP16(0x0800);
+
+		hdr_cpu->l3_hdr.version_ihl = 0x45;
+		hdr_cpu->l3_hdr.type_of_service = 0x0;
+		hdr_cpu->l3_hdr.total_length = BYTE_SWAP16(sizeof(struct ipv4_hdr) + sizeof(struct udp_hdr) + pld_len);
+		hdr_cpu->l3_hdr.packet_id = 0;
+		hdr_cpu->l3_hdr.fragment_offset = 0;
+		hdr_cpu->l3_hdr.time_to_live = 60;
+		hdr_cpu->l3_hdr.next_proto_id = 17;
+		hdr_cpu->l3_hdr.hdr_checksum = 0;
+		hdr_cpu->l3_hdr.src_addr = ip_src;
+		hdr_cpu->l3_hdr.dst_addr = ip_dst;
+
+		hdr_cpu->l4_hdr.src_port = 0;
+		hdr_cpu->l4_hdr.dst_port = 0;
+		hdr_cpu->l4_hdr.cksum = 0;
+}
+
+
 bool adv_net_tx_burst_available(AdvNetBurstParams *burst) {
   return g_ano_mgr->tx_burst_available(burst);
 }
