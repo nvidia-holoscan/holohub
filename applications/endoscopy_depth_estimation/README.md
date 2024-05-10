@@ -40,7 +40,7 @@ Once the `GPUMat` processing has finished, we have to convert it back to a CuPy 
 <hr/>
 
 **Important:** In order to run this application with CUDA acceleration, one must compile [OpenCV with CUDA support](https://docs.opencv.org/4.8.0/d2/dbc/cuda_intro.html).
-We provide a sample [Dockerfile](./Dockerfile) to build a container based on Holoscan v0.6.0 with the latest version of OpenCV and CUDA support.
+We provide a sample [Dockerfile](./Dockerfile) to build a container based on Holoscan v2.0.0 with the latest version of OpenCV and CUDA support.
 In case you use it, note that the variable [`CUDA_ARCH_BIN` ](./Dockerfile#L25) must be modified according to your specific GPU
 configuration. Refer to [this site](https://developer.nvidia.com/cuda-gpus) to find out your NVIDIA GPU architecture.
 
@@ -76,6 +76,8 @@ and mixed with the original video in the custom [`DepthPostProcessingOp`](./endo
 rendering with [Holoviz](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators).
 
 
+
+
 ### Run Instructions
 
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
@@ -107,3 +109,38 @@ Next, run the command to run the application:
 cd <HOLOHUB_BUILD_DIR>
 python3 <HOLOHUB_SOURCE_DIR>/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py --data=<DATA_DIR> --model=<MODEL_DIR> --clahe
 ```
+
+
+### Container Build & Rud Instructions
+
+Build container using Holoscan 2.0.0 NGC container as base image and built OpenCV with CUDA ARCH 8.6, 8.7 and 8.9 support for IGX Orin and AGX Orin iGPU and Ampere and Ada Lovelace Architecture dGPUs.
+
+#### Change directory to Holohub source directory
+
+```bash
+cd <HOLOHUB_SOURCE_DIR>
+```
+#### Build container
+
+```bash
+./dev_container build --docker_file applications/endoscopy_depth_estimation/Dockerfile  --img  holohub:depth_estimation
+```
+
+#### Launch container
+
+```bash
+./dev_container  launch  --img holohub:depth_estimation
+```
+
+#### Build app
+
+```bash
+./run build endoscopy_depth_estimation
+```
+
+#### Launch app
+
+```bash
+python3 applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py  --data=data/endoscopy --model=data/endoscopy_depth/
+```
+
