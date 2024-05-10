@@ -329,8 +329,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   if (gpu_direct_.get() && hds_.get()) {
     for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
-      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_packet_len(burst, p)
-                               + adv_net_get_cpu_packet_len(burst, p);
+      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_pkt_len(burst, p)
+                               + adv_net_get_cpu_pkt_len(burst, p);
     }
     ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
   }
