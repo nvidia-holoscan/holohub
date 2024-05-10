@@ -190,7 +190,7 @@ class AdvConnectorOpRx : public Operator {
   uint16_t pkts_per_pulse;
   uint16_t max_waveform_id;
   AdvBufferTracking buffer_track;
-  tensor_t<complex_t, 4> *rf_data = nullptr;
+  tensor_t<complex_t, 4> rf_data;
   cudaStream_t proc_stream;
 };  // AdvConnectorOpRx
 
