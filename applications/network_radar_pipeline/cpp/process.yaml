@@ -43,9 +43,10 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
+    manager: "dpdk"
     master_core: 16                 # Master CPU core
     rx:
-      - if_name: 0000:81:00.0       # PCIe BFD of NIC
+      - if_name: 0000:17:00.1       # PCIe BFD of NIC
         flow_isolation: true
         queues:
           - name: "Default"
