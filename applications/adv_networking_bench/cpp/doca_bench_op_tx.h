@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
-
+#include <rte_cycles.h>
 namespace holoscan::ops {
 
 /*
@@ -71,7 +71,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
       cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
       cudaStreamCreate(&streams_[n]);
       cudaEventCreate(&events_[n]);
-      copy_headers(nullptr, nullptr, 0, 0, streams_[n]);
+      copy_headers(nullptr, nullptr, 0, 1, streams_[n]);
       cudaStreamSynchronize(streams_[n]);
     }
 
@@ -124,7 +124,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     spec.param<bool>(gpu_direct_,
                      "gpu_direct",
                      "GPUDirect enabled",
-                     "Byte boundary where header and data is split",
+                     "GPUDirect enabled",
                      false);
     spec.param<uint16_t>(udp_src_port_, "udp_src_port", "UDP source port", "UDP source port");
     spec.param<uint16_t>(
@@ -132,11 +132,12 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(
         ip_dst_addr_, "ip_dst_addr", "IP destination address", "IP destination address");
+    spec.param<std::string>(
+        address_, "address", "Address of interface", "Address of interface");        
     spec.param<std::string>(eth_dst_addr_,
                             "eth_dst_addr",
                             "Ethernet destination address",
                             "Ethernet destination address");
-    spec.param<uint16_t>(port_id_, "port_id", "Interface number", "Interface number");
     spec.param<uint16_t>(header_size_,
                          "header_size",
                          "Header size",
@@ -168,7 +169,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     }
 
     auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_.get(), queue_id, batch_size_.get(), num_segments);
+    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), num_segments);
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
@@ -240,14 +241,15 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   cudaStream_t stream;
   void* pkt_header_;
   int cur_idx = 0;
+  uint16_t port_id_ = 0;
   Parameter<bool> gpu_direct_;  // GPUDirect enabled
   Parameter<bool> gpu_comms_;   // GDAKIN GPU communications enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
-  Parameter<uint16_t> port_id_;
   Parameter<uint16_t> payload_size_;
   Parameter<uint16_t> udp_src_port_;
   Parameter<uint16_t> udp_dst_port_;
+  Parameter<std::string> address_;
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
