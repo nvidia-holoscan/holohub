@@ -129,7 +129,7 @@ cd <HOLOHUB_SOURCE_DIR>
 #### Launch container
 
 ```bash
-./dev_container  launch   --as_root  --img holohub:depth_estimation
+./dev_container  launch  --img holohub:depth_estimation
 ```
 
 #### Build app
