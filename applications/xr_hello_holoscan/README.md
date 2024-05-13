@@ -2,6 +2,8 @@
 
 This application provides a simple scene demonstrating mixed reality viewing with Holoscan SDK.
 
+![Stereo scene view](doc/screenshot.png)
+
 ## Background
 
 We created this test application as part of a collaboration between the Magic Leap and NVIDIA Holoscan teams.
@@ -50,3 +52,5 @@ export ML_START_OPTIONS="debug"
 ```
 
 The ImGui debug application will launch. Click and slide the position entries to adjust your view of the scene.
+
+![Hello XR Debug GUI](doc/debug.png)
