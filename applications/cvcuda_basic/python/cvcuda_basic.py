@@ -86,7 +86,7 @@ class MyVideoProcessingApp(Application):
         super().__init__(*args, **kwargs)
 
         if data == "none":
-            data = os.path.join(os.environ.get("HOLOSCAN_DATA_PATH", "../data"), "endoscopy")
+            data = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "endoscopy")
 
         self.sample_data_path = data
         self.count = count
