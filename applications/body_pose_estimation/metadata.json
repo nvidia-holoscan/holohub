@@ -42,7 +42,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 ../applications/body_pose_estimation/body_pose_estimation.py",
+			"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 			"workdir": "holohub_bin"
 		}
 	}
