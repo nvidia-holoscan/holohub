@@ -353,6 +353,27 @@ ctest -V
 ctest -VV
 ```
 
+## Debugging
+
+We recommend exploring the following tools below for debugging your application:
+
+- The [Holoscan SDK User Guide Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) discusses several common debugging scenarios. Review the user guide for help on investigating application crashes and segfaults, application profiling, inspecting code coverage, and tracing with `gdb` for C++ applications or `pdb` for Python applications.
+- The [Holoscan SDK User Guide Logging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) describes how to set up for runtime logging from Holoscan SDK applications. Logging is a non-disruptive way to understand application runtime behavior.
+- [Holoscan SDK]() provides a VSCode Dev Container for development, described in the [Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html).
+- The HoloHub `dev_container` script provides several options that can be useful for debugging:
+  - The `--as_root` option launches an application container as the root user, giving you expanded permissions to install and run debugging programs like `gdb`.
+  - The `--local_sdk_root` option mounts a local SDK installation into your application container. You can build a local Holoscan SDK installation in Debug mode and then mount it into your container to inspect more complete debug information with `gdb`.
+
+Note that there is no single debugging workflow nor VSCode Dev Container in HoloHub due to the variety of methods and libraries used across HoloHub applications. If you feel that tools or workflows are missing, please open an issue on GitHub to let us know.
+
+## Performance
+
+Low latency is a key feature of many HoloHub applications. We recommend exploring the following tools to analyze and report application performance:
+- Projects in the [`benchmarks`](/benchmarks/) folder are focused on HoloHub benchmarking. The [`holoscan_flow_tracking`](/benchmarks/holoscan_flow_benchmarking/) project in particular provides common tooling for Holoscan SDK data flow analysis.
+- The [Holoscan SDK User Guide Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) discusses general tools for application profiling.
+
+We encourage contributors to provide performance insights in application README discussions for community knowledge.
+
 ## Reporting issues
 
 Please open a [HoloHub Issue Request](https://github.com/nvidia-holoscan/holohub/issues) to request an enhancement, bug fix, or other change in HoloHub.
