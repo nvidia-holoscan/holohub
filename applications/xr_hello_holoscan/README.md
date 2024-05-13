@@ -24,7 +24,29 @@ Refer to the [`volume_rendering_xr` README](/applications/volume_rendering_xr/RE
 
 To run the application, run the following command in the HoloHub folder on your host machine:
 ```bash
-dev_container build_and_run xr_hello_holoscan
+./dev_container build_and_run xr_hello_holoscan
 ```
 
 To pair your Magic Leap 2 device with the host, open the QR Reader application in the ML2 headset and scan the QR code printed in console output on the host machine.
+
+## Frequently Asked Questions
+
+### Can I test the application without a Magic Leap 2 device?
+
+Yes, a debug GUI not requiring a headset is installed inside the application container by default. Follow the steps
+below to launch the debug GUI and run the application:
+
+```bash
+# Build and launch the container
+./dev_container build --img holohub:xr_hello_holoscan --docker_file ./applications/volume_rendering_xr/Dockerfile
+./dev_container launch --img holohub:xr_hello_holoscan
+
+# Build the application
+./run build xr_hello_holoscan
+
+# Launch the debug GUI and the application
+export ML_START_OPTIONS="debug"
+./run launch xr_hello_holoscan
+```
+
+The ImGui debug application will launch. Click and slide the position entries to adjust your view of the scene.
