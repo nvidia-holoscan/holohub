@@ -17,6 +17,8 @@
 
 #include "publisher.hpp"
 
+#include <dds/topic/find.hpp>
+
 namespace holoscan::ops {
 
 void DDSVideoPublisherOp::setup(OperatorSpec& spec) {
@@ -35,7 +37,10 @@ void DDSVideoPublisherOp::initialize() {
   dds::pub::Publisher publisher(participant_);
 
   // Create the VideoFrame topic
-  dds::topic::Topic<VideoFrame> topic(participant_, VIDEO_FRAME_TOPIC);
+  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, VIDEO_FRAME_TOPIC);
+  if (topic == dds::core::null) {
+    topic = dds::topic::Topic<VideoFrame>(participant_, VIDEO_FRAME_TOPIC);
+  }
 
   // Create the writer for the VideoFrame
   writer_ = dds::pub::DataWriter<VideoFrame>(publisher, topic,
