@@ -144,7 +144,7 @@ class WebRTCServerApp(holoscan.core.Application):
         self._cmdline_args = cmdline_args
 
     def compose(self):
-        data = os.environ.get("HOLOSCAN_DATA_PATH", "../data")
+        data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
         video_replayer = holoscan.operators.VideoStreamReplayerOp(
             self,
             name="video_replayer",

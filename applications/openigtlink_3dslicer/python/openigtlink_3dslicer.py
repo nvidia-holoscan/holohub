@@ -42,7 +42,7 @@ class OpenIGTLinkApp(Application):
         self.name = "Endoscopy App"
 
         self.sample_data_path = os.environ.get(
-            "HOLOSCAN_DATA_PATH", "../data/colonoscopy_segmentation"
+            "HOLOHUB_DATA_PATH", "../data/colonoscopy_segmentation"
         )
 
         self.model_path_map = {

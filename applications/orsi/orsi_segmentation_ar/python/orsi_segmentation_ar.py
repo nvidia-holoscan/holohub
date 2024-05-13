@@ -32,7 +32,7 @@ class OrsiSegmentationARApp(Application):
     def __init__(self):
         super().__init__()
         self.name = "OrsiSegmentationAR"
-        self.data_path = os.path.abspath(os.environ.get("HOLOSCAN_DATA_PATH", "../data/orsi"))
+        self.data_path = os.path.abspath(os.environ.get("HOLOHUB_DATA_PATH", "../data/orsi"))
 
     def compose(self):
         allocator = UnboundedAllocator(self, name="allocator")

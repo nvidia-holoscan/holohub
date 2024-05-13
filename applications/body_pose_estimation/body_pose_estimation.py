@@ -339,7 +339,7 @@ class BodyPoseEstimationApp(Application):
 
         if data == "none":
             data = os.path.join(
-                os.environ.get("HOLOSCAN_DATA_PATH", "../data"), "body_pose_estimation"
+                os.environ.get("HOLOHUB_DATA_PATH", "../data"), "body_pose_estimation"
             )
 
         self.sample_data_path = data
