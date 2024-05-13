@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,37 @@
 #include "npp_filter.hpp"
 
 #include <npp.h>
+#include <gxf/multimedia/video.hpp>
 
 struct NppStreamContext_ : public NppStreamContext {};
 
 namespace holoscan::ops {
+
+/**
+ * @brief Given a mask size adjust the ROI avoiding out of bounds memory accesses.
+ *
+ * @param mask_size mask size
+ * @param size ROI size
+ * @return adjusted ROI
+ */
+static NppiSize adjust_roi(uint32_t mask_size, const NppiSize& size) {
+  return NppiSize{size.width - (int(mask_size) - 1), size.height - (int(mask_size) - 1)};
+}
+
+/**
+ * @brief Given a mask size adjust the ROI avoiding out of bounds memory accesses.
+ *
+ * @param mask_size mask size
+ * @param color_plane color plane information
+ * @param address color plane information
+ * @return adjusted address
+ */
+static void* adjust_roi_address(uint32_t mask_size, const nvidia::gxf::ColorPlane& color_plane,
+                                void* address) {
+  return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(address) +
+                                 (mask_size / 2) * color_plane.stride +
+                                 (mask_size / 2) * color_plane.bytes_per_pixel);
+}
 
 void NppFilterOp::initialize() {
   npp_stream_ctx_ = std::make_shared<NppStreamContext_>();
@@ -54,9 +81,7 @@ void NppFilterOp::setup(OperatorSpec& spec) {
 void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
                           ExecutionContext& context) {
   auto maybe_entity = op_input.receive<holoscan::gxf::Entity>("input");
-  if (!maybe_entity) {
-    throw std::runtime_error("Failed to receive input");
-  }
+  if (!maybe_entity) { throw std::runtime_error("Failed to receive input"); }
 
   auto& entity = static_cast<nvidia::gxf::Entity&>(maybe_entity.value());
 
@@ -187,55 +212,72 @@ void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
     out_pointer = tensor.value()->pointer();
   }
 
-  NppiMaskSize mask_size;
-  switch (mask_size_) {
-    case 3:
-      mask_size = NPP_MASK_SIZE_3_X_3;
-      break;
-    case 5:
-      mask_size = NPP_MASK_SIZE_5_X_5;
-      break;
-    case 7:
-      mask_size = NPP_MASK_SIZE_7_X_7;
-      break;
-    case 9:
-      mask_size = NPP_MASK_SIZE_9_X_9;
-      break;
-    case 11:
-      mask_size = NPP_MASK_SIZE_11_X_11;
-      break;
-    case 13:
-      mask_size = NPP_MASK_SIZE_13_X_13;
-      break;
-    default:
-      throw std::runtime_error("Unsupported mask size");
-  }
-
   const NppiSize src_size = {static_cast<int>(in_video_buffer_info.width),
                              static_cast<int>(in_video_buffer_info.height)};
   NppStatus status = NPP_ERROR;
+  // Execute the filter.
+  // Note: these filters execute neighborhood operations. Therefore the ROI (region of interest),
+  // needs to be adjusted to avoid accessing pixels outside of the image. This will result in a
+  // black border on the output image. See
+  // https://docs.nvidia.com/cuda/archive/11.1.0/npp/nppi_conventions_lb.html#sampling_beyond_image_boundaries
+  // for more information
   if (filter_.get() == "Gauss") {
-    status = nppiFilterGauss_8u_C4R_Ctx(static_cast<const Npp8u*>(in_pointer),
-                                        in_video_buffer_info.color_planes[0].stride,
-                                        static_cast<Npp8u*>(out_pointer),
-                                        out_video_buffer_info.color_planes[0].stride,
-                                        src_size,
-                                        mask_size,
-                                        *npp_stream_ctx_.get());
+    NppiMaskSize nppi_mask_size_enum;
+    switch (mask_size_) {
+      case 3:
+        nppi_mask_size_enum = NPP_MASK_SIZE_3_X_3;
+        break;
+      case 5:
+        nppi_mask_size_enum = NPP_MASK_SIZE_5_X_5;
+        break;
+      case 7:
+        nppi_mask_size_enum = NPP_MASK_SIZE_7_X_7;
+        break;
+      case 9:
+        nppi_mask_size_enum = NPP_MASK_SIZE_9_X_9;
+        break;
+      case 11:
+        nppi_mask_size_enum = NPP_MASK_SIZE_11_X_11;
+        break;
+      case 13:
+        nppi_mask_size_enum = NPP_MASK_SIZE_13_X_13;
+        break;
+      default:
+        throw std::runtime_error("Unsupported mask size");
+    }
+
+    status = nppiFilterGauss_8u_C4R_Ctx(
+        static_cast<const Npp8u*>(
+            adjust_roi_address(mask_size_, in_video_buffer_info.color_planes[0], in_pointer)),
+        in_video_buffer_info.color_planes[0].stride,
+        static_cast<Npp8u*>(
+            adjust_roi_address(mask_size_, out_video_buffer_info.color_planes[0], out_pointer)),
+        out_video_buffer_info.color_planes[0].stride,
+        adjust_roi(mask_size_, src_size),
+        nppi_mask_size_enum,
+        *npp_stream_ctx_.get());
   } else if (filter_.get() == "SobelHoriz") {
-    status = nppiFilterSobelHoriz_8u_C4R_Ctx(static_cast<const Npp8u*>(in_pointer),
-                                             in_video_buffer_info.color_planes[0].stride,
-                                             static_cast<Npp8u*>(out_pointer),
-                                             out_video_buffer_info.color_planes[0].stride,
-                                             src_size,
-                                             *npp_stream_ctx_.get());
+    const uint32_t mask_size = 3;
+    status = nppiFilterSobelHoriz_8u_C4R_Ctx(
+        static_cast<const Npp8u*>(
+            adjust_roi_address(mask_size, in_video_buffer_info.color_planes[0], in_pointer)),
+        in_video_buffer_info.color_planes[0].stride,
+        static_cast<Npp8u*>(
+            adjust_roi_address(mask_size, out_video_buffer_info.color_planes[0], out_pointer)),
+        out_video_buffer_info.color_planes[0].stride,
+        adjust_roi(mask_size, src_size),
+        *npp_stream_ctx_.get());
   } else if (filter_.get() == "SobelVert") {
-    status = nppiFilterSobelVert_8u_C4R_Ctx(static_cast<const Npp8u*>(in_pointer),
-                                            in_video_buffer_info.color_planes[0].stride,
-                                            static_cast<Npp8u*>(out_pointer),
-                                            out_video_buffer_info.color_planes[0].stride,
-                                            src_size,
-                                            *npp_stream_ctx_.get());
+    const uint32_t mask_size = 3;
+    status = nppiFilterSobelVert_8u_C4R_Ctx(
+        static_cast<const Npp8u*>(
+            adjust_roi_address(mask_size, in_video_buffer_info.color_planes[0], in_pointer)),
+        in_video_buffer_info.color_planes[0].stride,
+        static_cast<Npp8u*>(
+            adjust_roi_address(mask_size, out_video_buffer_info.color_planes[0], out_pointer)),
+        out_video_buffer_info.color_planes[0].stride,
+        adjust_roi(mask_size, src_size),
+        *npp_stream_ctx_.get());
   } else {
     throw std::runtime_error(fmt::format("Unknown filter {}.", filter_.get()));
   }
