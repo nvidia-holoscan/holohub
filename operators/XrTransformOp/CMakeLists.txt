@@ -54,6 +54,7 @@ if(NOT openxr_hpp_POPULATED)
   )
 endif()
 
+# Get nlohmann_json from ClaraViz
 FetchContent_MakeAvailable(nlohmann_json)
 
 add_library(xr_transform_op
