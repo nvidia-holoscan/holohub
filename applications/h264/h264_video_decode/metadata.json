@@ -8,14 +8,15 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.0",
+		"version": "2.0",
 		"changelog": {
-			"1.0": "Initial Release"
+			"1.0": "Initial Release",
+			"2.0": "Upgrade to GXF 4.0"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "1.0.0",
+			"minimum_required_version": "2.0.0",
 			"tested_versions": [
-				"1.0.0"
+				"2.0.0"
 			]
 		},
 		"platforms": [
@@ -31,11 +32,11 @@
 			"operators": [
 				{
 					"name": "videodecoder",
-					"version": "1.0"
+					"version": "1.2.0"
 				},
 				{
 					"name": "videodecoderio",
-					"version": "1.0"
+					"version": "1.2.0"
 				}
 			]
 		},
