@@ -178,7 +178,7 @@ class HSApp(Application):
     def __init__(self, data=None, model=None, output_folder=None, count=-1):
         """Hyperspectral segmentation application"""
         super().__init__()
-        data = os.environ.get("HOLOSCAN_DATA_PATH", "../data") if data is None else data
+        data = os.environ.get("HOLOHUB_DATA_PATH", "../data") if data is None else data
         model = data if model is None else model
 
         self.count = count
