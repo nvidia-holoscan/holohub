@@ -366,9 +366,8 @@ class BodyPoseEstimationApp(Application):
                 from holohub.dds_video_subscriber import DDSVideoSubscriberOp
             except ImportError:
                 print(
-                    "ERROR: Can not import DDSVideoSubscriper module. Please ensure that "
-                    "the DDS operators have been built (this can be done by building the "
-                    "'dds_video' application)."
+                    "ERROR: Can not import DDSVideoSubscriper module. Please make sure to "
+                    "build this application using the '--with dds_video_subscriber' option."
                 )
                 sys.exit(1)
             dds_source_args = dds_common_args | self.kwargs("dds_source")
@@ -427,9 +426,8 @@ class BodyPoseEstimationApp(Application):
                 from holohub.dds_video_publisher import DDSVideoPublisherOp
             except ImportError:
                 print(
-                    "ERROR: Can not import DDSVideoPublisherOp module. Please ensure that "
-                    "the DDS operators have been built (this can be done by building the "
-                    "'dds_video' application)."
+                    "ERROR: Can not import DDSVideoPublisher module. Please make sure to "
+                    "build this application using the '--with dds_video_publisher' option."
                 )
                 sys.exit(1)
             dds_publisher = DDSVideoPublisherOp(
