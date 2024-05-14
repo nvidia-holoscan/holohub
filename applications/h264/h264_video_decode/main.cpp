@@ -43,7 +43,9 @@ class App : public holoscan::Application {
         "bitstream_reader",
         from_config("bitstream_reader"),
         Arg("input_file_path", datapath + "/surgical_video.264"),
-        make_condition<CountCondition>(2000),
+        make_condition<CountCondition>(750),
+        make_condition<PeriodicCondition>("periodic-condition",
+                                          Arg("recess_period") = std::string("25hz")),
         Arg("pool") =
             make_resource<BlockMemoryPool>(
                 "pool", 0, source_block_size, source_num_blocks));

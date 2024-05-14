@@ -5,9 +5,10 @@ from the Holoscan pipeline. This application is a modified version of Endoscopy
 Tool Tracking reference application in Holoscan SDK that supports H.264
 elementary streams as the input and output.
 
-_The H.264 video decode operators do not adjust framerate as it reads the elementary
-stream input. As a result the video stream will be displayed as quickly as the decoding can be
-performed. This feature will be coming soon to a new version of the operator._
+_The H.264 video decode operators do not adjust framerate as it reads the
+elementary stream input. As a result the video stream can be displayed as
+quickly as the decoding can be performed. This application uses
+`PeriodicCondition` to play video at the same speed as the source video._
 
 ## Requirements
 

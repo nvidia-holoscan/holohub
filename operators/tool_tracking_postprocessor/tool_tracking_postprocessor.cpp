@@ -91,7 +91,7 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
   spec.param(host_allocator_, "host_allocator", "Allocator", "Output Allocator");
   spec.param(device_allocator_, "device_allocator", "Allocator", "Output Allocator");
 
-  cuda_stream_handler_.defineParams(spec);
+  cuda_stream_handler_.define_params(spec);
 }
 
 void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext& op_output,
