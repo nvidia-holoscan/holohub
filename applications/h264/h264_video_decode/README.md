@@ -5,9 +5,10 @@ decode operators. This application makes use of H.264 elementary stream reader
 operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
-_The H.264 video decode operators do not adjust framerate as it reads the elementary
-stream input. As a result the video stream will be displayed as quickly as the decoding can be
-performed. This feature will be coming soon to a new version of the operator._
+_The H.264 video decode operators do not adjust framerate as it reads the
+elementary stream input. As a result the video stream can be displayed as
+quickly as the decoding can be performed. This application uses
+`PeriodicCondition` to play video at the same speed as the source video._
 
 ## Requirements
 
