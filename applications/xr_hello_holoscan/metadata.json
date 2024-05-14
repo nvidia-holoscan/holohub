@@ -1,0 +1,96 @@
+{
+	"application": {
+		"name": "Holoscan XR Demo Application",
+		"authors": [
+			{
+				"name": "Andreas Heumann",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Cristiana Dinea",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Tom Birdsong",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Antonio Ospite",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Jiwen Cai",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Jochen Stier",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Korcan Hussein",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Robbie Bridgewater",
+				"affiliation": "Magic Leap"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"0.0": "Initial release"
+		},
+		"dockerfile": "applications/volume_rendering_xr/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Volume",
+			"Rendering",
+			"OpenXR",
+			"Mixed",
+			"Reality",
+			"XR"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"hardware": [
+				{
+					"name": "Magic Leap 2",
+					"description": "Magic Leap 2 mixed reality headset",
+					"url": "https://www.magicleap.com/magic-leap-2"
+				}
+			],
+			"libraries": [
+				{
+					"name": "windrunner",
+					"description": "Magic Leap OpenXR native backend",
+					"version": "1.11.73",
+					"license": "Magic Leap 2 Software Agreement",
+					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+				},
+				{
+					"name": "Magic Leap Remote Viewer apk",
+					"version": "1.11.64",
+					"license": "Magic Leap 2 Software Agreement",
+					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+				}
+			]
+		},
+		"run": {
+			"command": "ml_start.sh ${ML_START_OPTIONS} && ml_pair.sh && <holohub_app_bin>/xr_hello_holoscan",
+			"workdir": "<holohub_app_bin>"
+		}
+	}
+}
