@@ -82,7 +82,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
     if (gpu_direct_.get()) {
-      cudaMalloc(&pkt_header_, header_size_.get());
+      cudaMallocAsync(&pkt_header_, header_size_.get(), streams_[0]);
 
       if ((ip_dst_ & 0xff) == 2) {
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x22, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
@@ -93,7 +93,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
       } else {
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x33, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
                              0xA1, 0x08, 0x00, 0x45, 0x00, 0x1F, 0x72, 0x00, 0x00, 0x00, 0x00,
@@ -103,8 +103,10 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
       }
+
+      cudaStreamSynchronize(streams_[0]);
     }
 
     first_time = true;
@@ -158,6 +160,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
      * it's not having to do any work to construct packets, and just copying from a buffer into
      * memory.
      */
+
 
     if (!first_time) {
       ret_cuda = cudaEventQuery(events_[cur_idx]);

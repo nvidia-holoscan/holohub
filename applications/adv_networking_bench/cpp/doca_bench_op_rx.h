@@ -54,9 +54,9 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     }
 
     for (int n = 0; n < num_concurrent; n++) {
-      cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
       cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
       cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
+      cudaMallocAsync(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_, streams_[n]);      
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel
@@ -109,7 +109,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     int64_t ttl_bytes_in_cur_batch_ = 0;
     int pkt_idx = 0;
     bool complete = true;
-
+HOLOSCAN_LOG_INFO("HERE");
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
       free_bufs();

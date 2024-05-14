@@ -955,10 +955,9 @@ void DocaMgr::run() {
       params_rx->rxqw[ridx].gpu_id = 0; // FIXME once MRs are done properly
       params_rx->rxqw[ridx].rxq = qinfo;
       HOLOSCAN_LOG_INFO("Queue {} CPU core {}", ridx, lcore_rx);
+      rte_eal_remote_launch(rx_worker, (void*)params_rx, q.common_.cpu_core_);      
       ridx++;
     }
-
-    rte_eal_remote_launch(rx_worker, (void*)params_rx, lcore_rx);
   }
 
   const auto& tx = cfg_.ifs_[0].tx_;
@@ -1033,8 +1032,8 @@ int DocaMgr::rx_core(void* arg) {
   cudaSetDevice(tparams->rxqw[0].gpu_id);  // Need to rely on GPU 0
   cudaFree(0);
   cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
-  cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
-  cuCtxPushCurrent(cuContext);
+  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
+  // cuCtxPushCurrent(cuContext);
 
   cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority);
 
@@ -1103,7 +1102,8 @@ int DocaMgr::rx_core(void* arg) {
       rx_stream, tparams->rxqn, nullptr, sem_gpu_list, batch_cpu_list, gpu_exit_condition);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
-
+  
+sleep(1);
   HOLOSCAN_LOG_INFO("Launch receive kernel");
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
   doca_receiver_packet_kernel(
