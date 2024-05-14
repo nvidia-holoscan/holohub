@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,11 @@ void VideoEncoderContext::setup(ComponentSpec& spec) {
              "scheduling_term",
              "Asynchronous Scheduling Condition",
              "Asynchronous Scheduling Condition");
+  spec.param(device_id_,
+             "device_id",
+             "Cuda device id",
+             "A valid device id, range is 0 to (cudaGetDeviceCount() - 1)",
+             0);
 }
 
-}
+}  // namespace holoscan::ops

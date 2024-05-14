@@ -57,14 +57,12 @@ class App : public holoscan::Application {
     auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
         "video_decoder_request",
         from_config("video_decoder_request"),
-        request_condition,
         Arg("async_scheduling_term") = request_condition,
         Arg("videodecoder_context") = video_decoder_context);
 
     auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
         "video_decoder_response",
         from_config("video_decoder_response"),
-        response_condition,
         Arg("pool") =
             make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
         Arg("videodecoder_context") = video_decoder_context);
@@ -138,7 +136,6 @@ class App : public holoscan::Application {
       auto video_encoder_response = make_operator<ops::VideoEncoderResponseOp>(
           "video_encoder_response",
           from_config("video_encoder_response"),
-          encoder_async_condition,
           Arg("pool") =
               make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
           Arg("videoencoder_context") = video_encoder_context);
