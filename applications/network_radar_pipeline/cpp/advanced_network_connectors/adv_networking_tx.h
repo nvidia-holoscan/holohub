@@ -87,7 +87,7 @@ class AdvConnectorOpTx : public Operator {
   int hds_;
   bool gpu_direct_;
 
-  char eth_dst_[6];
+  uint8_t eth_dst_[6];
   uint32_t ip_src_;
   uint32_t ip_dst_;
 

@@ -138,9 +138,17 @@ int main(int argc, char** argv) {
     HOLOSCAN_LOG_ERROR("Usage: {} [source.yaml, process.yaml]", argv[0]);
     return -1;
   }
-
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path += "/" + std::string(argv[1]);
+
+  // Check if the file exists
+  if (!std::filesystem::exists(config_path)) {
+    HOLOSCAN_LOG_ERROR("Configuration file '{}' does not exist",
+                       static_cast<std::string>(config_path));
+    return -1;
+  }
+
+  // Run
   app->config(config_path);
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
         "multithread-scheduler", app->from_config("scheduler")));

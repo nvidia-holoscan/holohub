@@ -278,7 +278,7 @@ void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
 
     // Received End-of-Array (EOA) message, emit to downstream operators
     auto params = std::make_shared<RFArray>(
-      rf_data->Slice<3>(
+      rf_data.Slice<3>(
         {static_cast<index_t>(pos_wrap), 0, 0, 0},
         {matxDropDim, matxEnd, matxEnd, matxEnd}),
       0, proc_stream);
@@ -329,8 +329,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   if (gpu_direct_.get() && hds_.get()) {
     for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
-      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_packet_len(burst, p)
-                               + adv_net_get_cpu_packet_len(burst, p);
+      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_pkt_len(burst, p)
+                               + adv_net_get_cpu_pkt_len(burst, p);
     }
     ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
   }
@@ -350,7 +350,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
       } while (out_q.size() == num_concurrent);
 
       // Copy packet I/Q contents to appropriate location in 'rf_data'
-      place_packet_data(rf_data->Data(),
+      place_packet_data(rf_data.Data(),
                         h_dev_ptrs_[cur_idx],
                         buffer_track.sample_cnt_d,
                         buffer_track.received_end_d,

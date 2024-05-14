@@ -44,7 +44,7 @@ class TargetSimulator : public Operator {
   index_t channel_idx;
   int tsleep_us;
 
-  tensor_t<complex_t, 3> *simSignal = nullptr;
+  tensor_t<complex_t, 3> simSignal;
 };
 
 };  // namespace holoscan::ops

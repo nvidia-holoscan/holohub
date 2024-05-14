@@ -20,12 +20,12 @@
 
 // ---------- Structures ----------
 struct PulseCompressionData {
-  PulseCompressionData(tensor_t<complex_t, 1> *_waveformView,
-                       tensor_t<complex_t, 3> *_inputView,
+  PulseCompressionData(tensor_t<complex_t, 1> _waveformView,
+                       tensor_t<complex_t, 3> _inputView,
                        cudaStream_t _stream)
     : waveformView(_waveformView), inputView(_inputView), stream(_stream)  {}
-  tensor_t<complex_t, 1> *waveformView;
-  tensor_t<complex_t, 3> *inputView;
+  tensor_t<complex_t, 1> waveformView;
+  tensor_t<complex_t, 3> inputView;
   cudaStream_t stream;
 };
 
