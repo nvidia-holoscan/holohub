@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,14 +58,12 @@ class App : public holoscan::Application {
     auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
         "video_decoder_request",
         from_config("video_decoder_request"),
-        request_condition,
         Arg("async_scheduling_term") = request_condition,
         Arg("videodecoder_context") = video_decoder_context);
 
     auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
         "video_decoder_response",
         from_config("video_decoder_response"),
-        response_condition,
         Arg("pool") =
             make_resource<BlockMemoryPool>(
                 "pool", 1, source_block_size, source_num_blocks),
