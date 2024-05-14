@@ -32,37 +32,15 @@ Refer to the Magic Leap 2 documentation for more information:
 - [Updating your device with Magic Leap Hub](https://www.magicleap.care/hc/en-us/articles/5341445649805-Updating-Your-Device);
 - [Installing `.apk` packages with Magic Leap Hub](https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/)
 
-## Building the Application
+## Quick Start
 
-Run the following commands to build and enter the interactive container environment:
+Run the following command in the top-level HoloHub folder to build and run the host application:
+
 ```bash
-./dev_container build --img holohub:volume_rendering_xr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
-./dev_container launch --docker_opts "-v $(pwd)/tmp:/home/$(whoami)" --img holohub:volume_rendering_xr # Launch the container
-```
-
-Then, inside the container environment, build the application:
-```bash
-./run build volume_rendering_xr # Build the application
-```
-
-## Running the Application
-
-### Setting Up Your Device
-
-Inside the container environment, start the Windrunner OpenXR backend and generate a pairing code:
-```bash
-ml_start.sh <debug>
-ml_pair.sh
+./dev_container build_and_run volume_rendering_xr
 ```
 
 A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.
-
-### Launching the Application
-
-Run the following command inside the development container to start the XR volume rendering application:
-```bash
-./run launch volume_rendering_xr
-```
 
 The application supports the following hand or controller interactions by default:
 - **Translate**: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
@@ -70,7 +48,39 @@ The application supports the following hand or controller interactions by defaul
 - **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
 - **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
 
-## Deploying as a Standalone Application
+## Advanced Setup
+
+You can use the `--dryrun` option to see the individual commands run by the quick start option above:
+```
+./dev_container build_and_run volume_rendering_xr --dryrun
+```
+
+Alternatively, follow the steps below to set up the interactive container session.
+
+### Build the Container
+
+Run the following commands to build and enter the interactive container environment:
+```bash
+./dev_container build --img holohub:volume_rendering_xr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
+./dev_container launch --img holohub:volume_rendering_xr # Launch the container
+```
+
+### Build the Application
+
+Inside the container environment, build the application:
+```bash
+./run build volume_rendering_xr # Build the application
+```
+
+### Run the Application
+
+Inside the container environment, start the application:
+```bash
+export ML_START_OPTIONS=<""/"debug"> # Defaults to "debug" to run XR device simulator GUI
+./run launch volume_rendering_xr
+```
+
+### Deploying as a Standalone Application
 
 `volume_rendering_xr` can be packaged in a self-contained release container with datasets and binaries.
 
