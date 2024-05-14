@@ -18,7 +18,7 @@ v4l2_source:
   device: "/dev/video0"
 
 dds_common:
-  qos_provider: "../applications/dds_video/qos_profiles.xml"
+  qos_provider: "qos_profiles.xml"
   participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
 
 dds_source:
