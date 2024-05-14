@@ -29,9 +29,11 @@ Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov
 Sample code as below:
 
 ```
+import holoscan as hs
 import cucim.skimage.exposure as cu_exposure
 from cucim.skimage.util import img_as_ubyte
 from cucim.skimage.util import img_as_float
+from holoscan.gxf import Entity
 
 def CustomizedcuCIMOperator(Operator):
     ### Other implementation of __init__, setup()... etc. 
@@ -71,6 +73,8 @@ Refer to the [Holoscan CV-CUDA sample application](https://github.com/nvidia-hol
 
 ```
 import cvcuda
+import holoscan as hs
+from holoscan.gxf import Entity
 
 class CustomizedCVCUDAOp(Operator):
     def __init__(self, *args, **kwargs):
@@ -184,6 +188,8 @@ Refer to the functions outlined below for creating GpuMat objects utilizing CuPy
 ```
 import cv2
 import cupy as cp
+import holoscan as hs
+from holoscan.gxf import Entity
 
 def gpumat_from_cp_array(arr: cp.ndarray) -> cv2.cuda.GpuMat:
     assert len(arr.shape) in (2, 3), "CuPy array must have 2 or 3 dimensions to be a valid GpuMat"
@@ -202,8 +208,8 @@ def gpumat_from_cp_array(arr: cp.ndarray) -> cv2.cuda.GpuMat:
     mat_type = depth + ((channels - 1) << 3)
     
      mat = cv2.cuda.createGpuMatFromCudaMemory(
-      arr.__cuda_array_interface__['shape'][1::-1], 
-      mat_type, 
+      arr.__cuda_array_interface__['shape'][1::-1],
+      mat_type,
       arr.__cuda_array_interface__['data'][0]
   )
     return mat
