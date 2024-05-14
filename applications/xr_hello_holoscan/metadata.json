@@ -1,5 +1,5 @@
-{ 
- "application": {
+{
+	"application": {
 		"name": "Holoscan XR Demo Application",
 		"authors": [
 			{
@@ -51,8 +51,18 @@
 				"2.0.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Volume", "Rendering", "OpenXR","Mixed","Reality","XR"],
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Volume",
+			"Rendering",
+			"OpenXR",
+			"Mixed",
+			"Reality",
+			"XR"
+		],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [
@@ -64,13 +74,14 @@
 			],
 			"libraries": [
 				{
-				"name": "windrunner",
-				"description": "Magic Leap OpenXR native backend",
-				"version": "1.11.73",
-				"license": "Magic Leap 2 Software Agreement",
-				"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+					"name": "windrunner",
+					"description": "Magic Leap OpenXR native backend",
+					"version": "1.11.73",
+					"license": "Magic Leap 2 Software Agreement",
+					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
 				},
-				{	"name": "Magic Leap Remote Viewer apk",
+				{
+					"name": "Magic Leap Remote Viewer apk",
 					"version": "1.11.64",
 					"license": "Magic Leap 2 Software Agreement",
 					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
@@ -81,5 +92,5 @@
 			"command": "ml_start.sh ${ML_START_OPTIONS} && ml_pair.sh && <holohub_app_bin>/xr_hello_holoscan",
 			"workdir": "<holohub_app_bin>"
 		}
-  }
+	}
 }
