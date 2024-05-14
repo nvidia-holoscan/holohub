@@ -73,7 +73,7 @@ void TargetSimulator::initialize() {
 
   // Initialize tensor
   make_tensor(simSignal, {num_channels.get(), num_pulses.get(), num_samples.get()});
-  simSignal->PrefetchDevice(stream);
+  simSignal.PrefetchDevice(stream);
   HOLOSCAN_LOG_INFO("TargetSimulator::initialize() done");
 }
 
@@ -92,8 +92,8 @@ void TargetSimulator::compute(InputContext&,
 
   if (channel_idx == 0) {
     // todo Simulate targets
-    auto sig_real = simSignal->RealView();
-    auto sig_imag = simSignal->ImagView();
+    auto sig_real = simSignal.RealView();
+    auto sig_imag = simSignal.ImagView();
     (sig_real = sig_real + ones(sig_real.Shape())).run(stream);
     (sig_imag = sig_imag + 2 * ones(sig_imag.Shape())).run(stream);
   }
@@ -105,8 +105,8 @@ void TargetSimulator::compute(InputContext&,
     usleep(tsleep_us - sim_dt);
   }
 
-  auto channel_data = simSignal->Slice<2>({channel_idx, 0, 0},
-                                          {matxDropDim, matxEnd, matxEnd});
+  auto channel_data = simSignal.Slice<2>({channel_idx, 0, 0},
+                                         {matxDropDim, matxEnd, matxEnd});
   auto params = std::make_shared<RFChannel>(channel_data, transmit_count, channel_idx, stream);
   op_output.emit(params, "rf_out");
 

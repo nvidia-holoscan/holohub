@@ -31,9 +31,9 @@ tx_params:
   header_size: 42
   udp_src_port: 4096               # UDP source port
   udp_dst_port: 4096               # UDP destination port
-  ip_src_addr: 192.168.200.15      # Source IP send from
-  ip_dst_addr: 192.168.200.17      # Destination IP to send to
-  eth_dst_addr: a0:88:c2:67:75:cc  # Destination MAC to populate
+  ip_src_addr: 192.168.1.1      # Source IP send from
+  ip_dst_addr: 192.168.1.2      # Destination IP to send to
+  eth_dst_addr: 10:70:fd:fa:77:e9  # Destination MAC to populate
   port_id: 0
 
 basic_network:
@@ -48,9 +48,10 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
+    manager: "dpdk"
     master_core: 16             # Master CPU core
     tx:
-      - if_name: 0000:81:00.0   # PCIe BFD of NIC
+      - if_name: 0000:17:00.1   # PCIe BFD of NIC
         queues:
           - name: "ADC Samples"
             id: 0
