@@ -25,8 +25,9 @@ Holoviz output.
 
 This application requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
 be installed and configured with a valid RTI Connext license prior to use.
-Support is currently limited to x86 platforms using a bare-metal installation
-(i.e. the use of containers is not yet supported).
+To build on an IGX devkit (using the `armv8` architecture), follow the
+[instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
+up to step 5 (Installing Java and setting JREHOME).
 
 To build the application, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
 the installation path for RTI Connext. This can be done automatically by setting
@@ -37,6 +38,18 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 $ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-6.1.2
 ```
 
+### Building with a Container
+
+Due to the license requirements of RTI Connext it is not currently supported to
+install RTI Connext into a development container. Instead, Connext should be
+installed onto the host as above and then the development container can be
+launched with the RTI Connext folder mounted at runtime. To do so, ensure that
+the `NDDSHOME` environment variable is set and use the following:
+
+```sh
+./dev_container launch --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds"
+```
+
 ## Running the Application
 
 Both a publisher and subscriber process must be launched to see the result of
@@ -45,13 +58,13 @@ writing to and reading the video stream from DDS, respectively.
 To run the publisher process, use the `-p` option:
 
 ```sh
-$ ./dds_video -p
+$ ./run launch dds_video --extra_args "-p"
 ```
 
 To run the subscriber process, use the `-s` option:
 
 ```sh
-$ ./dds_video -s
+$ ./run launch dds_video --extra_args "-s"
 ```
 
 If running the application generates an error about `RTI Connext DDS No Source
