@@ -13,28 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import io
 import os
 import time
 from argparse import ArgumentParser
-import cupy as cp
-import base64
-from PIL import Image
-import io
 from threading import Event, Thread
 
+import cupy as cp
+from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
+from holoscan.resources import CudaStreamPool, UnboundedAllocator
+from PIL import Image
 from vlm import VLM
 from webserver import Webserver
-
-from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.operators import (
-    FormatConverterOp,
-    HolovizOp,
-    V4L2VideoCaptureOp,
-)
-from holoscan.resources import (
-    CudaStreamPool,
-    UnboundedAllocator,
-)
 
 
 class VLMWebAppOp(Operator):

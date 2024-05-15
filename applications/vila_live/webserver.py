@@ -20,10 +20,11 @@ import copy
 import json
 import pprint
 import queue
+import ssl
 import struct
 import threading
 import time
-import ssl
+
 import flask
 from websockets.sync.server import serve as websocket_serve
 

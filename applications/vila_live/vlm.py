@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
 import json
-import urllib
 import logging
 import time
+import urllib
+
+import requests
 
 
 class VLM:
