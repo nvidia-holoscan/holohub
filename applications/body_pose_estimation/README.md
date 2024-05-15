@@ -41,7 +41,8 @@ streams, respectively, but to enable both use the following:
 
 Note that building these operators requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
 be installed. See the [DDS Operator Documentation](../../operators/dds/README.md)
-for more information on how to build the operators.
+for more information on how to build the operators. If using a development
+container, see the [additional instructions below](#using-a-development-container-with-dds-support).
 
 To use a DDS video stream as the input to the application, use the `-s=dds`
 argument when running the application:
@@ -80,4 +81,17 @@ the output published by this application:
 
 ```sh
 ./run launch dds_video --extra_args "-s -i 1"
+```
+
+### Using a Development Container with DDS Support
+
+Installing RTI Connext into the development container is not currently
+supported, so enabling DDS support with this application requires RTI Connext
+be installed onto the host and then mounted into the container at runtime.
+To mount RTI Connext into the container, ensure that the `NDDSHOME` environment
+variable is set to the path of the RTI Connext installation on the host and
+then use the following:
+
+```sh
+./dev_container launch --img holohub:bpe --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds"
 ```
