@@ -1,5 +1,5 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ static clara::viz::Vector2f toTangentX(const nvidia::gxf::CameraModel& camera_mo
 
 static clara::viz::Vector2f toTangentY(const nvidia::gxf::CameraModel& camera_model) {
   return clara::viz::Vector2f(
-       camera_model.principal_point.y / camera_model.focal_length.y,
+      camera_model.principal_point.y / camera_model.focal_length.y,
       -(camera_model.dimensions.y - camera_model.principal_point.y) / camera_model.focal_length.y);
 }
 
@@ -302,7 +302,8 @@ void VolumeRendererOp::start() {
     // setup renderer by reading settings from the configuration file
     std::ifstream input_file_stream(impl_->config_file_.get());
     if (!input_file_stream) {
-      throw std::runtime_error("Could not open configuration for reading");
+      throw std::runtime_error("Could not open configuration " + impl_->config_file_.get() +
+                               " for reading");
     }
 
     const nlohmann::json settings = nlohmann::json::parse(input_file_stream);

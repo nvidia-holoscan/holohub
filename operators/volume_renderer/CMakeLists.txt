@@ -64,6 +64,9 @@ set(FETCHCONTENT_QUIET ON)
 set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
 
 find_package(clara_viz_renderer REQUIRED HINTS ${claraviz_SOURCE_DIR}/cmake)
+install(IMPORTED_RUNTIME_ARTIFACTS clara::viz::renderer
+  COMPONENT "volume_renderer"
+)
 
 add_library(volume_renderer SHARED
   dataset.cpp
@@ -86,3 +89,8 @@ target_link_libraries(volume_renderer
 target_include_directories(volume_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(volume_renderer PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
 target_compile_definitions(volume_renderer PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
+
+install(
+  TARGETS volume_renderer
+  EXPORT holoscan-ops
+)

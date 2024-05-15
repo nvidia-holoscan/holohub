@@ -10,3 +10,5 @@ CTestConfig.cmake
 
 # Utilities
 aggregate_metadata.json
+/dist/
+/install/

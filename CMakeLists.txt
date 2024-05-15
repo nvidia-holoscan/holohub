@@ -40,6 +40,7 @@ endif()
 
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
+set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:/opt/nvidia/holoscan/lib/")
 
 # Build the applications
 add_subdirectory(applications)
