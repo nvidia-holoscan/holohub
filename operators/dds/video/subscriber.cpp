@@ -17,6 +17,8 @@
 
 #include "subscriber.hpp"
 
+#include "dds/topic/find.hpp"
+
 namespace holoscan::ops {
 
 void DDSVideoSubscriberOp::setup(OperatorSpec& spec) {
@@ -36,7 +38,10 @@ void DDSVideoSubscriberOp::initialize() {
   dds::sub::Subscriber subscriber(participant_);
 
   // Create the VideoFrame topic
-  dds::topic::Topic<VideoFrame> topic(participant_, VIDEO_FRAME_TOPIC);
+  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, VIDEO_FRAME_TOPIC);
+  if (topic == dds::core::null) {
+    topic = dds::topic::Topic<VideoFrame>(participant_, VIDEO_FRAME_TOPIC);
+  }
 
   // Create the filtered topic for the requested stream id.
   dds::topic::ContentFilteredTopic<VideoFrame> filtered_topic(topic,

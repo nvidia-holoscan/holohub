@@ -22,3 +22,12 @@ add_custom_target(yolov8_onnx ALL
   COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
   BYPRODUCTS "yolov8l-pose.onnx"
 )
+
+# Copy qos_profiles.xml from the dds_video application to the binary directory
+if(dds_video_subscriber IN_LIST HOLOHUB_BUILD_OPERATORS OR
+   dds_video_publisher IN_LIST HOLOHUB_BUILD_OPERATORS)
+  add_custom_target(body_pose_estimation_qos_profiles_xml ALL
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../dds_video/qos_profiles.xml" ${CMAKE_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../dds_video/qos_profiles.xml"
+  )
+endif()

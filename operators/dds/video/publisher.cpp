@@ -17,6 +17,8 @@
 
 #include "publisher.hpp"
 
+#include <dds/topic/find.hpp>
+
 namespace holoscan::ops {
 
 void DDSVideoPublisherOp::setup(OperatorSpec& spec) {
@@ -35,7 +37,10 @@ void DDSVideoPublisherOp::initialize() {
   dds::pub::Publisher publisher(participant_);
 
   // Create the VideoFrame topic
-  dds::topic::Topic<VideoFrame> topic(participant_, VIDEO_FRAME_TOPIC);
+  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, VIDEO_FRAME_TOPIC);
+  if (topic == dds::core::null) {
+    topic = dds::topic::Topic<VideoFrame>(participant_, VIDEO_FRAME_TOPIC);
+  }
 
   // Create the writer for the VideoFrame
   writer_ = dds::pub::DataWriter<VideoFrame>(publisher, topic,
@@ -55,10 +60,6 @@ void DDSVideoPublisherOp::compute(InputContext& op_input,
     throw std::runtime_error("No video buffer attached to input");
   }
 
-  if (buffer.value()->storage_type() != nvidia::gxf::MemoryStorageType::kHost) {
-    throw std::runtime_error("Only host buffers are supported");
-  }
-
   const auto& info = buffer.value()->video_frame_info();
   if (info.color_format != nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA) {
     throw std::runtime_error("Invalid buffer format; Only RGBA is supported");
@@ -66,7 +67,11 @@ void DDSVideoPublisherOp::compute(InputContext& op_input,
 
   // Create the VideoFrame sample from the input buffer
   std::vector<uint8_t> data(buffer.value()->size());
-  memcpy(data.data(), buffer.value()->pointer(), data.size());
+  if (buffer.value()->storage_type() == nvidia::gxf::MemoryStorageType::kHost) {
+    memcpy(data.data(), buffer.value()->pointer(), data.size());
+  } else {
+    cudaMemcpy(data.data(), buffer.value()->pointer(), data.size(), cudaMemcpyDeviceToHost);
+  }
   VideoFrame frame(stream_id_.get(), frame_num_++, info.width, info.height, data);
 
   // Write the VideoFrame to the writer

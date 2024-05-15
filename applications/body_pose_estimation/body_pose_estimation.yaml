@@ -17,10 +17,18 @@
 v4l2_source:
   device: "/dev/video0"
 
-dds_source:
-  qos_provider: "../applications/dds_video/qos_profiles.xml"
+dds_common:
+  qos_provider: "qos_profiles.xml"
   participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
+
+dds_source:
   reader_qos: "HoloscanDDSDataFlow::Video"
+  stream_id: 0
+
+dds_publisher:
+  enable: false
+  writer_qos: "HoloscanDDSDataFlow::Video"
+  stream_id: 1
 
 preprocessor:
   out_tensor_name: preprocessed
