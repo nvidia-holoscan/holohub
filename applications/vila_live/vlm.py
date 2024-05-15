@@ -18,10 +18,9 @@ import json
 import urllib
 import logging
 import time
-import sys
 
 
-class VLM():
+class VLM:
     def __init__(self):
         self.llm_url = "http://0.0.0.0:40000"
         self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
@@ -31,10 +30,10 @@ class VLM():
         Stream a response from the LLM and optionally write to the output queue.
         This method will attempt to connect to the LLM server for up to 30 seconds.
         """
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are a helpful visual AI assistant.\n"
-        prompt += f"<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\n"
+        prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are a helpful visual AI assistant.\n"
+        prompt += "<|eot_id|>\n<|start_header_id|>user<|end_header_id|>\n"
         prompt += f"Observe the following image: <image>\nRespond according to the following prompt: {user_prompt}<|eot_id|>\n"
-        prompt += f"<|start_header_id|>assistant<|end_header_id|>\n"
+        prompt += "<|start_header_id|>assistant<|end_header_id|>\n"
         start_time = time.time()
         # Attempt making the request for up to 60 seconds
         while time.time() - start_time < 60:
@@ -62,7 +61,7 @@ class VLM():
                             output = data["text"][len(prompt) :].strip()
                             yield output
                 return response
-            except:
+            except Exception:
                 self._logger.debug("Failed connection to VLM server, retrying in 5 seconds...")
                 time.sleep(5)
         raise ConnectionError("VILA server unavailable after 60 seconds")

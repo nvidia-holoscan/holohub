@@ -61,7 +61,6 @@ class Webserver(threading.Thread):
         self.ssl_context = None
 
         if self.ssl_cert and self.ssl_key:
-            #self.ssl_context = (self.ssl_cert, self.ssl_key)
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.ssl_context.load_cert_chain(certfile=self.ssl_cert, keyfile=self.ssl_key)
 
@@ -86,7 +85,7 @@ class Webserver(threading.Thread):
 
     def on_websocket_msg(self, msg, type, timestamp):
         """
-        Recieve websocket message from client
+        Receive websocket message from client
         """
         if type == 0:  # JSON not used
             pass
@@ -149,7 +148,7 @@ class Webserver(threading.Thread):
 
             if msg_id != self.msg_count_rx:
                 print(
-                    f"-- warning:  recieved websocket message from {websocket.remote_address} with out-of-order ID {msg_id}  (last={self.msg_count_rx})"
+                    f"-- warning:  received websocket message from {websocket.remote_address} with out-of-order ID {msg_id}  (last={self.msg_count_rx})"
                 )
                 self.msg_count_rx = msg_id
 
@@ -158,7 +157,7 @@ class Webserver(threading.Thread):
 
             if payload_size != msgPayloadSize:
                 print(
-                    f"-- warning:  recieved invalid websocket message from {websocket.remote_address} (payload_size={payload_size} actual={msgPayloadSize}"
+                    f"-- warning:  received invalid websocket message from {websocket.remote_address} (payload_size={payload_size} actual={msgPayloadSize}"
                 )
 
             payload = msg[header_size:]
@@ -170,7 +169,7 @@ class Webserver(threading.Thread):
 
             if self.log_level > 1 or (self.log_level > 0 and msg_type <= 1):
                 print(
-                    f"-- recieved {Webserver.msg_type_str(msg_type)} websocket message from {websocket.remote_address} (type={msg_type} size={payload_size})"
+                    f"-- received {Webserver.msg_type_str(msg_type)} websocket message from {websocket.remote_address} (type={msg_type} size={payload_size})"
                 )
                 if msg_type <= 1:
                     pprint.pprint(payload)

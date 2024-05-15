@@ -63,17 +63,14 @@ function sendWebsocket(payload, type=0) {
 	
 	header.setUint32(20, payloadSize);
 	
-	//console.log(`sending ${typeof payload} websocket message (type=${type} timestamp=${timestamp} payload_size=${payloadSize})`);
 	websocket.send(new Blob([header, payload]));
 }
 
 function onWebsocket(event) {
-
-	//console.log('recieved websocket msg', event);
 	const msg = event.data;
 	
 	if( msg.size <= 32 ) {
-		console.log(`recieved invalid websocket msg (size=${msg.size})`);
+		console.log(`received invalid websocket msg (size=${msg.size})`);
 		return;
 	}
 	
@@ -89,15 +86,12 @@ function onWebsocket(event) {
 		const msg_type = view.getUint16(18);
 		const payload_size = view.getUint32(20);
 		
-		//const latency = BigInt(Date.now()) - timestamp;  // this is negative?  sub-second client/server time sync needed
-		//console.log(`recieved websocket message:  id=${msg_id}  type=${msg_type}  timestamp=${timestamp}  latency=${latency}  payload_size=${payload_size}`);
-		
 		if( magic_number != 42 ) {
-			console.log(`recieved invalid websocket msg (magic_number=${magic_number}  size=${msg.size}`);
+			console.log(`received invalid websocket msg (magic_number=${magic_number}  size=${msg.size}`);
 		}
 		
 		if( payload_size != payload.size ) {
-			console.log(`recieved invalid websocket msg (payload_size=${payload_size} actual=${payload.size}`);
+			console.log(`received invalid websocket msg (payload_size=${payload_size} actual=${payload.size}`);
 		}
 		
 		if( msg_count_rx != undefined && msg_id != (msg_count_rx + 1) )
@@ -108,7 +102,6 @@ function onWebsocket(event) {
 		if( msg_type == 0 ) { // JSON message
 			payload.text().then((text) => {
 				json = JSON.parse(text);
-				//console.log('json message:', json);
 				
 				if( 'chat_history' in json ) {
 					const chat_history = json['chat_history'];

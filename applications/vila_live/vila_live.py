@@ -36,6 +36,7 @@ from holoscan.resources import (
     UnboundedAllocator,
 )
 
+
 class VLMWebAppOp(Operator):
     """
     VLMWebApp that using a local VLM model and a Flask web-app to display the results
@@ -60,13 +61,12 @@ class VLMWebAppOp(Operator):
 
     def annotate_image(self, image_b64):
         self.is_busy.set()
-        prompt = self.server.user_input.replace('"', '')
+        prompt = self.server.user_input.replace('"', "")
         for response in self.vlm.generate_response(prompt, image_b64):
             chat_history = [[prompt, response]]
             self.server.send_chat_history(chat_history)
         # time.sleep(3) # May be needed depending on the speed of the model
         self.is_busy.clear()
-
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("video_stream").get("")
@@ -100,11 +100,11 @@ class V4L2toVLM(Application):
     def compose(self):
         # V4L2 to capture usb camera input
         source = V4L2VideoCaptureOp(
-                    self,
-                    name="source",
-                    allocator=UnboundedAllocator(self, name="pool"),
-                    **self.kwargs("source"),
-                )
+            self,
+            name="source",
+            allocator=UnboundedAllocator(self, name="pool"),
+            **self.kwargs("source"),
+        )
 
         formatter_cuda_stream_pool = CudaStreamPool(
             self,
@@ -122,7 +122,7 @@ class V4L2toVLM(Application):
             in_dtype="rgba8888",
             out_dtype="rgb888",
             cuda_stream_pool=formatter_cuda_stream_pool,
-            pool= UnboundedAllocator(self, name="FormatConverter allocator"),
+            pool=UnboundedAllocator(self, name="FormatConverter allocator"),
         )
 
         holoviz_cuda_stream_pool = CudaStreamPool(
