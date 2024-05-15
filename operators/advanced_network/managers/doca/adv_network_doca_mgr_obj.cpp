@@ -357,12 +357,6 @@ DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_
   uint32_t tx_buffer_size = max_pkt_size * max_pkt_num;
   union doca_data event_user_data[1] = {0};
 
-  fprintf(stderr,
-          "tx_buffer_size %d max_pkt_size %d max_pkt_num %d\n",
-          tx_buffer_size,
-          max_pkt_size,
-          max_pkt_num);
-
   result = doca_eth_txq_create(ddev, MAX_SQ_DESCR_NUM, &(eth_txq_cpu));
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed doca_eth_txq_create: {}", doca_error_get_descr(result));

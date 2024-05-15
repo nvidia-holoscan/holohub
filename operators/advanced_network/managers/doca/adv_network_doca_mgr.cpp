@@ -566,6 +566,12 @@ void DocaMgr::initialize() {
     //rxq_pkts = q.common_.num_concurrent_batches_ * q.common_.batch_size_;
 
     if (!rte_is_power_of_2(rxq_pkts)) rxq_pkts = rte_align32pow2(rxq_pkts);
+    if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
+      HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
+      rxq_pkts = THRESHOLD_BUF_NUM;
+    } else 
+      if (!rte_is_power_of_2(q_max_packet_size))
+        q_max_packet_size = rte_align32pow2(q_max_packet_size);
 
     uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
     rx_q_map_[key] = new DocaRxQueue(
@@ -666,8 +672,8 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
   }
 
   if (cnt_defq == 0) {
-    HOLOSCAN_LOG_CRITICAL("No need for a default queue");
-    return DOCA_ERROR_INVALID_VALUE;
+    HOLOSCAN_LOG_WARN("No need for a default queue");
+    return DOCA_SUCCESS;
   }
 
   match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
@@ -909,12 +915,12 @@ doca_error_t DocaMgr::create_root_pipe() {
 }
 
 DocaMgr::~DocaMgr() {
-  const auto& rx = cfg_.ifs_[0].rx_;
-  for (auto& q : rx.queues_) {
-    uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-    auto q_backend = rx_q_map_[key];        
-    q_backend->destroy_semaphore();
-  }
+  // const auto& rx = cfg_.ifs_[0].rx_;
+  // for (auto& q : rx.queues_) {
+  //   uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+  //   auto q_backend = rx_q_map_[key];
+  //   q_backend->destroy_semaphore();
+  // }
 
   /* Tx burst preallocate */
   for (int idx = 0; idx < MAX_TX_BURST; idx++) cudaFree(burst[idx].pkt_lens[0]);
@@ -949,16 +955,17 @@ void DocaMgr::run() {
   if (rx.queues_.size() > 0) {
     for (auto& q : rx.queues_) {
       uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-      auto qinfo = rx_q_map_[key];        
+      auto qinfo = rx_q_map_[key];
       params_rx->rxqw[ridx].queue = q.common_.id_;
       params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
       params_rx->rxqw[ridx].gpu_id = 0; // FIXME once MRs are done properly
       params_rx->rxqw[ridx].rxq = qinfo;
-      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", ridx, lcore_rx);
-      rte_eal_remote_launch(rx_worker, (void*)params_rx, q.common_.cpu_core_);      
+      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", ridx, stoi(rx.queues_[0].common_.cpu_core_));
       ridx++;
     }
   }
+
+  rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
 
   const auto& tx = cfg_.ifs_[0].tx_;
   params_tx = new TxDocaWorkerParams;
@@ -972,17 +979,17 @@ void DocaMgr::run() {
   if (tx.queues_.size() > 0) {
     for (auto& q : tx.queues_) {
       uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-      auto qinfo = tx_q_map_[key];        
+      auto qinfo = tx_q_map_[key];
       params_tx->txqw[tidx].ring = tx_rings[key];
       params_tx->txqw[tidx].queue = q.common_.id_;
       params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
       params_tx->txqw[tidx].gpu_id = 0; // FIXME once MRs are done properly
       params_tx->txqw[tidx].txq = qinfo;
-      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", tidx, lcore_tx);
+      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", tidx, stoi(tx.queues_[0].common_.cpu_core_));
       tidx++;
     }
 
-    rte_eal_remote_launch(tx_worker, (void*)params_tx, lcore_tx);
+    rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
   }
 
 
@@ -1031,7 +1038,7 @@ int DocaMgr::rx_core(void* arg) {
    */
   cudaSetDevice(tparams->rxqw[0].gpu_id);  // Need to rely on GPU 0
   cudaFree(0);
-  cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
+  // cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
   // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
   // cuCtxPushCurrent(cuContext);
 
@@ -1102,16 +1109,18 @@ int DocaMgr::rx_core(void* arg) {
       rx_stream, tparams->rxqn, nullptr, sem_gpu_list, batch_cpu_list, gpu_exit_condition);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
-  
-sleep(1);
-  HOLOSCAN_LOG_INFO("Launch receive kernel");
+  // WAR for Holoscan management of threads.
+  // Be sure application thread finished before launching other CUDA tasks  
+  sleep(2);
+ 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
   doca_receiver_packet_kernel(
       rx_stream, tparams->rxqn, eth_rxq_gpu_list, sem_gpu_list, batch_cpu_list, gpu_exit_condition);
+  
+  HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
   while (!force_quit_doca.load()) {
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      // HOLOSCAN_LOG_INFO("Check queue {} sem {}", ridx, sem_idx[ridx]);
       result =
           doca_gpu_semaphore_get_status(tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], &status);
       if (result != DOCA_SUCCESS) {
@@ -1144,8 +1153,10 @@ sleep(1);
         burst->hdr.hdr.nbytes = packets_stats->nbytes;
         burst->hdr.hdr.gpu_pkt0_idx = packets_stats->gpu_pkt0_idx;
         burst->hdr.hdr.gpu_pkt0_addr = packets_stats->gpu_pkt0_addr;
-        // HOLOSCAN_LOG_DEBUG("sem {} queue {} num_pkts {}", sem_idx[ridx], ridx,
-        // burst->hdr.hdr.num_pkts); Assuming each batch is accumulated by the kernel
+        HOLOSCAN_LOG_DEBUG("sem {} queue {} num_pkts {}",
+                          sem_idx[ridx], ridx,
+                          burst->hdr.hdr.num_pkts);
+                          // Assuming each batch is accumulated by the kernel
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
 
         result = doca_gpu_semaphore_set_status(
@@ -1196,7 +1207,7 @@ sleep(1);
       total_pkts + last_batch,
       last_batch);
 
-  cuCtxPopCurrent(&cuContext);
+  // cuCtxPopCurrent(&cuContext);
 
   return 0;
 }
