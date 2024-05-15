@@ -17,6 +17,8 @@
 
 #include "adv_networking_tx.h"  // TODO: Rename networking connectors
 
+#define MAX_HDR_SIZE 64
+
 namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
@@ -49,6 +51,10 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
     "Number of samples per channel", {});
 
   // Networking parameters
+  spec.param<bool>(split_boundary_,
+    "split_boundary",
+    "Header-data split boundary",
+    "Byte boundary where header and data is split", true);
   spec.param<uint16_t>(samples_per_packet_,
     "samples_per_packet",
     "Number of complex I/Q samples to send per packet",
@@ -97,12 +103,7 @@ void AdvConnectorOpTx::initialize() {
   batch_size_   = cfg_.get().tx_[0].queues_[0].common_.batch_size_;
   hds_          = cfg_.get().tx_[0].queues_[0].common_.hds_;
   gpu_direct_   = cfg_.get().tx_[0].queues_[0].common_.gpu_direct_;
-
-  if (gpu_direct_ && hds_ == 0) {
-    // TODO: GPU-only mode Eth+IP+UDP headers
-    HOLOSCAN_LOG_ERROR("Not configured for GPU-only, GPUDirect requires HDS mode for now");
-    return;
-  }
+  mgr_          = cfg_.get().common_.mgr_;
 
   // Compute how many packets sent per array
   samples_per_pkt = (payload_size_ - RFPacket::header_size()) / sizeof(complex_t);
@@ -150,6 +151,36 @@ void AdvConnectorOpTx::initialize() {
   // ANO expects host order when setting
   ip_src_ = ntohl(ip_src_);
   ip_dst_ = ntohl(ip_dst_);
+
+  if (gpu_direct_ && hds_ == 0) {
+    cudaMalloc(&pkt_header_, MAX_HDR_SIZE); //header_size_.get());
+    uint16_t ip_len = payload_size_ + header_size_.get() - (14 + 20) + (MAX_HDR_SIZE - header_size_.get());
+    // printf("ip_len = %d payload_size_ = %d\n", ip_len, payload_size_);
+    uint8_t payload[] = {
+                        0x00, 0x00, 0x00, 0x00, 0x11, 0x33, // Eth dst
+                        0xB8, 0x3F, 0x2D, 0xE1, 0xC5, 0xD0, // Eth src
+                        0x08, 0x00, //Ethertype
+                        0x45, 0x00, //version_ihl + type_of_service
+                        0x2E, 0x20, // len 16-17 B
+                        0x00, 0x00, //packet id 18-19
+                        0x00, 0x00, //fragment_offset 20-21
+                        0x00, // TTL 22
+                        0x11, // next_proto_id = 17
+                        0x00, 0x00, //checksum 24-25
+                        0xC0, 0xA8, 0x02, 0x1B, //src IP address
+                        0xC0, 0xA8, 0x02, 0x1C, //dst IP address
+                        0x10, 0x00, //UDP src port
+                        0x10, 0x00, //UDP dst port
+                        0x08, 0x82, //dgram_len
+                        0x00, 0x00, //dgram_checkum
+                        0x00, 0x00, 0x00, 0x00, 0x00, //Padding
+                        0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00};
+    // At this point we have a dummy header created, so we copy it to the GPU
+    cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+  }
 
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize() complete");
 }
@@ -259,6 +290,26 @@ void AdvConnectorOpTx::populate_packets(uint8_t **out_ptr,
     num_channels_.get(),
     num_samples_.get(),
     offset);
+}
+
+// Header must be divisible by 4 bytes in this kernel!
+__global__ void copy_headers(uint8_t **gpu_bufs,
+  void *header, uint16_t hdr_size) {
+    if (gpu_bufs == nullptr)
+      return;
+
+    int pkt = blockIdx.x;
+
+    for (int samp = threadIdx.x; samp < hdr_size / 4; samp += blockDim.x) {
+      auto p = reinterpret_cast<uint32_t *>(gpu_bufs[pkt] + samp * sizeof(uint32_t));
+      *p = *(reinterpret_cast<uint32_t*>(header) + samp);
+    }
+}
+
+void copy_headers(uint8_t **gpu_bufs,
+                  void *header, uint16_t hdr_size,
+                  uint32_t num_pkts, cudaStream_t stream) {
+  copy_headers<<<num_pkts, 32, 0, stream>>>(gpu_bufs, header, hdr_size);
 }
 
 void AdvConnectorOpTx::compute(InputContext& op_input,
@@ -371,6 +422,9 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     } else if (!gpu_direct_) {
       cpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
       gpu_len = 0;
+    } else if (gpu_direct_ && mgr_ == "doca") {
+      cpu_len = 0;
+      gpu_len = payload_size_ + header_size_.get();
     } else {
       cpu_len = 0;
       gpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
@@ -390,12 +444,19 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
 
   // In GPU-only mode copy the header
   if (gpu_direct_ && hds_ == 0) {
-    // TODO: GPU-only mode
+    HOLOSCAN_LOG_INFO("AdvConnectorOpTx Copy headers {}", cur_idx);
+    copy_headers(gpu_bufs[cur_idx],
+              pkt_header_,
+              MAX_HDR_SIZE,
+              adv_net_get_num_pkts(msg),
+              streams_[cur_idx]);
   }
 
   // Populate packets with I/Q data
   if (gpu_direct_) {
     const auto offset = (hds_ > 0) ? 0 : header_size_.get();
+    HOLOSCAN_LOG_INFO("AdvConnectorOpTx populate_packets {} offset {} hds_ {}",
+                      cur_idx, offset, hds_);
     populate_packets(gpu_bufs[cur_idx],
                      rf_data->data.Data(),
                      rf_data->waveform_id,
@@ -403,6 +464,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
                      offset,
                      streams_[cur_idx]);
     cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+    msg->event = events_[cur_idx];
     out_q.push(TxMsg{msg, rf_data->waveform_id, rf_data->channel_id, events_[cur_idx]});
   }
 

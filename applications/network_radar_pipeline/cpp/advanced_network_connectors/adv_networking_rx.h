@@ -152,7 +152,7 @@ class AdvConnectorOpRx : public Operator {
   Parameter<uint16_t> num_samples_;
 
   // Networking settings
-  Parameter<bool> hds_;                  // Header-data split enabled
+  Parameter<bool> split_boundary_;       // Header-data split enabled
   Parameter<bool> gpu_direct_;           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet

@@ -25,17 +25,11 @@ scheduler:
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
-tx_params:
+rx_params:
   use_ano: true
-  split_boundary: true
-  samples_per_packet: 1024
-  header_size: 42
-  udp_src_port: 4096               # UDP source port
-  udp_dst_port: 4096               # UDP destination port
-  ip_src_addr: 192.168.1.1      # Source IP send from
-  ip_dst_addr: 192.168.1.2      # Destination IP to send to
-  eth_dst_addr: 10:70:fd:fa:77:e9  # Destination MAC to populate
-  port_id: 0
+  split_boundary: false
+  batch_size: 5120
+  max_packet_size: 9000
 
 basic_network:
   batch_size: 100            # RX message batch size
@@ -50,25 +44,43 @@ advanced_network:
   cfg:
     version: 1
     manager: "dpdk"
-    master_core: 16             # Master CPU core
-    tx:
-      - if_name: 0000:ca:00.0   # PCIe BFD of NIC
+    master_core: 16                 # Master CPU core
+    rx:
+      - if_name: 0000:ca:00.0       # PCIe BFD of NIC
+        flow_isolation: true
         queues:
-          - name: "ADC Samples"
+          - name: "Default"
             id: 0
-            gpu_direct: true
+            gpu_direct: false
+            cpu_cores: "18"
+            max_packet_size: 9000          # Maximum payload size
+            num_concurrent_batches: 32767  # Number of batches that can be used at any time
+            batch_size: 1                  # Number of packets in a batch
+            output_port: "bench_rx_out"
+          - name: "ADC Samples"
+            id: 1
             gpu_device: 0
+            gpu_direct: true
             split_boundary: 42
-            max_packet_size: 9000      # Maximum payload size
-            num_concurrent_batches: 5  # Number of batches that can be used at any time
-            batch_size: 10240          # Number of packets in a batch
-            cpu_cores: "17"            # CPU cores for transmitting
+            cpu_cores: "17"
+            max_packet_size: 9000       # Maximum payload size
+            num_concurrent_batches: 15  # Number of batches that can be used at any time
+            batch_size: 5120            # Number of packets in a batch
+            output_port: "bench_rx_out"
+        flows:
+          - name: "ADC Samples"
+            action:
+              type: queue
+              id: 1
+            match:
+              udp_src: 4096
+              udp_dst: 4096
 
 radar_pipeline:
-  is_source: true      # Defines app type (source, process)
-  data_rate: 95        # (Gbps)
-  num_transmits: 1000  # Use N-1 of num_transmits in source
+  is_source: false         # Defines app type (source, process)
+  num_transmits: 1000      # Use N-1 of num_transmits in source
   num_pulses: 128
   num_samples: 9000
   num_channels: 16
   waveform_length: 1000
+  buffer_size: 10          # Number of RF arrays to store in rx buffer

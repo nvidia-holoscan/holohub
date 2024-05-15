@@ -74,6 +74,7 @@ class AdvConnectorOpTx : public Operator {
   Parameter<uint16_t> num_channels_;
 
   // Networking settings
+  Parameter<bool> split_boundary_;
   Parameter<uint16_t> samples_per_packet_;
   Parameter<uint16_t> header_size_;
   Parameter<uint16_t> udp_src_port_;
@@ -86,10 +87,12 @@ class AdvConnectorOpTx : public Operator {
   uint32_t batch_size_;
   int hds_;
   bool gpu_direct_;
+  std::string mgr_;
 
   uint8_t eth_dst_[6];
   uint32_t ip_src_;
   uint32_t ip_dst_;
+  void* pkt_header_;
 
   // Concurrent batch structures
   std::array<cudaStream_t, num_concurrent> streams_;

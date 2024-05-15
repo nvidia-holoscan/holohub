@@ -27,9 +27,9 @@ scheduler:
 
 tx_params:
   use_ano: true
-  split_boundary: true
+  split_boundary: false
   samples_per_packet: 1024
-  header_size: 42
+  header_size: 64 #42
   udp_src_port: 4096               # UDP source port
   udp_dst_port: 4096               # UDP destination port
   ip_src_addr: 192.168.1.1      # Source IP send from
@@ -49,7 +49,7 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
-    manager: "dpdk"
+    manager: "doca"
     master_core: 16             # Master CPU core
     tx:
       - if_name: 0000:ca:00.0   # PCIe BFD of NIC
@@ -58,7 +58,7 @@ advanced_network:
             id: 0
             gpu_direct: true
             gpu_device: 0
-            split_boundary: 42
+            split_boundary: 0
             max_packet_size: 9000      # Maximum payload size
             num_concurrent_batches: 5  # Number of batches that can be used at any time
             batch_size: 10240          # Number of packets in a batch

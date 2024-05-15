@@ -442,6 +442,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             if (input_spec.common_.mgr_ == "doca") {
               q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
+              q.common_.hds_              = 0;
             } else {
               q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               if (q.common_.gpu_direct_) {
@@ -499,6 +500,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             if (input_spec.common_.mgr_ == "doca") {
               q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
+              q.common_.hds_              = 0;
             } else {
               q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
               if (q.common_.gpu_direct_) {

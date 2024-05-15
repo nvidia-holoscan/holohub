@@ -162,7 +162,7 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
     "Number of samples per pulse", {});
 
   // Networking settings
-  spec.param<bool>(hds_,
+  spec.param<bool>(split_boundary_,
     "split_boundary",
     "Header-data split boundary",
     "Byte boundary where header and data is split", true);
@@ -197,10 +197,7 @@ void AdvConnectorOpRx::initialize() {
   samples_per_arr = num_channels_.get() * num_pulses_.get() * num_samples_.get();
 
   // Configuration checks
-  if (!(hds_.get() && gpu_direct_.get())) {
-    HOLOSCAN_LOG_ERROR("Only configured to run with Header-Data Split and GPUDirect");
-    exit(1);
-  } else if (hds_.get() && !gpu_direct_.get()) {
+  if (split_boundary_.get() && !gpu_direct_.get()) {
     HOLOSCAN_LOG_ERROR("If Header-Data Split mode is enabled, GPUDirect needs to be too");
     exit(1);
   }
@@ -326,14 +323,19 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   // Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
   // Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
   // entire burst buffer pointer is saved and freed once an entire batch is received.
-  if (gpu_direct_.get() && hds_.get()) {
+  if (gpu_direct_.get() && split_boundary_.get()) {
     for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
       ttl_bytes_in_cur_batch_ += adv_net_get_gpu_pkt_len(burst, p)
                                + adv_net_get_cpu_pkt_len(burst, p);
     }
-    ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
+  } else if (gpu_direct_.get() && !split_boundary_.get()) {
+    for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+      h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
+      ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
+    }
   }
+  ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
   aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
   cur_msg_.msg[cur_msg_.num_batches++] = burst;
