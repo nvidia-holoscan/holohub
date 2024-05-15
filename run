@@ -469,7 +469,7 @@ lint() {
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
-                            --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
+                            --skip=*.onnx,*.min.js,Contrastive_learning_Notebook.ipynb || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -512,7 +512,7 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,Contrastive_learning_Notebook.ipynb" \
                           -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
                           --exclude-file codespell.txt || exit_code=1
 
