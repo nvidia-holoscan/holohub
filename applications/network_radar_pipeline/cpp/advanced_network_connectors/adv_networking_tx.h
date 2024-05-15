@@ -76,7 +76,6 @@ class AdvConnectorOpTx : public Operator {
   // Networking settings
   Parameter<bool> split_boundary_;
   Parameter<uint16_t> samples_per_packet_;
-  Parameter<uint16_t> header_size_;
   Parameter<uint16_t> udp_src_port_;
   Parameter<uint16_t> udp_dst_port_;
   Parameter<std::string> ip_src_addr_;

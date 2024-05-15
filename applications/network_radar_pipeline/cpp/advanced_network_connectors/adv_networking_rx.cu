@@ -178,10 +178,6 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
     "max_packet_size",
     "Max packet size",
     "Maximum packet size expected from sender", 9100);
-  spec.param<uint16_t>(header_size_,
-    "header_size",
-    "Header size",
-    "Header size on each packet from L4 and below", 42);
 }
 
 void AdvConnectorOpRx::initialize() {
@@ -191,7 +187,7 @@ void AdvConnectorOpRx::initialize() {
   cudaStreamCreate(&proc_stream);
 
   // Assume all packets are the same size, specified in the config
-  nom_payload_size_ = max_packet_size_.get() - header_size_.get();
+  nom_payload_size_ = max_packet_size_.get() - PADDED_HDR_SIZE;
 
   // Total number of I/Q samples per array
   samples_per_arr = num_channels_.get() * num_pulses_.get() * num_samples_.get();
@@ -331,7 +327,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
     }
   } else if (gpu_direct_.get() && !split_boundary_.get()) {
     for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-      h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
+      h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = (void *)((uint8_t *)adv_net_get_gpu_pkt_ptr(burst, p) + PADDED_HDR_SIZE);
       ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
     }
   }

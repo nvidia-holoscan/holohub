@@ -156,7 +156,6 @@ class AdvConnectorOpRx : public Operator {
   Parameter<bool> gpu_direct_;           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet
-  Parameter<uint16_t> header_size_;      // Header size of packet
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {

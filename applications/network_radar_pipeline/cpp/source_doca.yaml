@@ -29,7 +29,6 @@ tx_params:
   use_ano: true
   split_boundary: false
   samples_per_packet: 1024
-  header_size: 64 #42
   udp_src_port: 4096               # UDP source port
   udp_dst_port: 4096               # UDP destination port
   ip_src_addr: 192.168.1.1      # Source IP send from

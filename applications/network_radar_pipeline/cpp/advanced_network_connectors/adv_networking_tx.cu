@@ -17,8 +17,6 @@
 
 #include "adv_networking_tx.h"  // TODO: Rename networking connectors
 
-#define MAX_HDR_SIZE 64
-
 namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
@@ -59,10 +57,6 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
     "samples_per_packet",
     "Number of complex I/Q samples to send per packet",
     "Payload size computed based on samples/packet, not including <= L4 headers", 128);
-  spec.param<uint16_t>(header_size_,
-    "header_size",
-    "Header size",
-    "Header size on each packet from L4 and below", 42);
   spec.param<uint16_t>(udp_src_port_,
     "udp_src_port",
     "UDP source port",
@@ -153,9 +147,9 @@ void AdvConnectorOpTx::initialize() {
   ip_dst_ = ntohl(ip_dst_);
 
   if (gpu_direct_ && hds_ == 0) {
-    cudaMalloc(&pkt_header_, MAX_HDR_SIZE); //header_size_.get());
-    uint16_t ip_len = payload_size_ + header_size_.get() - (14 + 20) + (MAX_HDR_SIZE - header_size_.get());
-    // printf("ip_len = %d payload_size_ = %d\n", ip_len, payload_size_);
+    cudaMalloc(&pkt_header_, PADDED_HDR_SIZE);
+    uint16_t ip_len = payload_size_ + PADDED_HDR_SIZE - (14 + 20);
+    HOLOSCAN_LOG_INFO("ip_len = {} payload_size_ = {}", ip_len, payload_size_);
     uint8_t payload[] = {
                         0x00, 0x00, 0x00, 0x00, 0x11, 0x33, // Eth dst
                         0xB8, 0x3F, 0x2D, 0xE1, 0xC5, 0xD0, // Eth src
@@ -201,7 +195,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
   }
 
   // Remove Eth + IP size
-  const auto ip_len = payload_size_ + header_size_.get() - (14 + 20);
+  const auto ip_len = payload_size_ + PADDED_HDR_SIZE - (14 + 20);
   if ((ret = adv_net_set_cpu_ipv4_hdr(msg,
                                       pkt_idx,
                                       ip_len,
@@ -217,7 +211,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams *msg, const int pkt
   if ((ret = adv_net_set_cpu_udp_hdr(msg,
                                      pkt_idx,
                                      // Remove Eth + IP + UDP headers
-                                     payload_size_ + header_size_.get() - (14 + 20 + 8),
+                                     payload_size_ + PADDED_HDR_SIZE - (14 + 20 + 8),
                                      udp_src_port_.get(),
                                      udp_dst_port_.get())) != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
@@ -420,14 +414,14 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
       cpu_len = hds_;
       gpu_len = payload_size_;
     } else if (!gpu_direct_) {
-      cpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
+      cpu_len = payload_size_ + PADDED_HDR_SIZE;  // sizeof UDP header
       gpu_len = 0;
     } else if (gpu_direct_ && mgr_ == "doca") {
       cpu_len = 0;
-      gpu_len = payload_size_ + header_size_.get();
+      gpu_len = payload_size_ + PADDED_HDR_SIZE;
     } else {
       cpu_len = 0;
-      gpu_len = payload_size_ + header_size_.get();  // sizeof UDP header
+      gpu_len = payload_size_ + PADDED_HDR_SIZE;  // sizeof UDP header
     }
 
     if (gpu_direct_) {
@@ -447,14 +441,14 @@ void AdvConnectorOpTx::compute(InputContext& op_input,
     HOLOSCAN_LOG_INFO("AdvConnectorOpTx Copy headers {}", cur_idx);
     copy_headers(gpu_bufs[cur_idx],
               pkt_header_,
-              MAX_HDR_SIZE,
+              PADDED_HDR_SIZE,
               adv_net_get_num_pkts(msg),
               streams_[cur_idx]);
   }
 
   // Populate packets with I/Q data
   if (gpu_direct_) {
-    const auto offset = (hds_ > 0) ? 0 : header_size_.get();
+    const auto offset = (hds_ > 0) ? 0 : PADDED_HDR_SIZE;
     HOLOSCAN_LOG_INFO("AdvConnectorOpTx populate_packets {} offset {} hds_ {}",
                       cur_idx, offset, hds_);
     populate_packets(gpu_bufs[cur_idx],
