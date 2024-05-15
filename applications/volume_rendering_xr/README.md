@@ -36,8 +36,8 @@ Refer to the Magic Leap 2 documentation for more information:
 
 Run the following commands to build and enter the interactive container environment:
 ```bash
-./dev_container build --img holohub:openxr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
-./dev_container launch --docker_opts "-v $(pwd)/tmp:/home/$(whoami)" --img holohub:openxr # Launch the container
+./dev_container build --img holohub:volume_rendering_xr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
+./dev_container launch --docker_opts "-v $(pwd)/tmp:/home/$(whoami)" --img holohub:volume_rendering_xr # Launch the container
 ```
 
 Then, inside the container environment, build the application:
@@ -69,6 +69,38 @@ The application supports the following hand or controller interactions by defaul
 - **Scale**: Grab any face of the bounding box and move your hand or controller to scale the volume.
 - **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
 - **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
+
+## Deploying as a Standalone Application
+
+`volume_rendering_xr` can be packaged in a self-contained release container with datasets and binaries.
+
+To build the release container:
+```bash
+# Generate HoloHub `volume_rendering_xr` installation in the "holohub/install" folder
+./dev_container launch --img holohub:volume_rendering_xr -c ./run build volume_rendering_xr --configure-args "-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install"
+./dev_container launch --img holohub:volume_rendering_xr -c cmake --build ./build --target install
+
+# Copy files into a release container
+./dev_container build --img holohub:volume_rendering_xr_rel --docker_file ./applications/volume_rendering_xr/scripts/Dockerfile.rel --base_img nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
+```
+
+To run the release container, first create the container startup script:
+```bash
+docker run --rm holohub:volume_rendering_xr_rel > ./render-volume-xr
+chmod +x ./render-volume-xr
+```
+
+Then execute the script to start the Windrunner service and the app:
+```bash
+./render-volume-xr
+```
+
+For more options, e.g. list available datasets or to select a different dataset, type
+```bash
+./render-volume-xr --help
+```
+
+Options not recognized by the render-volume-xr script are forwarded to the application.
 
 ## Additional Notes
 
