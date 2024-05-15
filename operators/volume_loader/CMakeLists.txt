@@ -64,3 +64,7 @@ target_link_libraries(volume_loader
 target_include_directories(volume_loader INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(volume_loader PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
 target_compile_definitions(volume_loader PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
+
+install(TARGETS volume_loader
+  COMPONENT holoscan-ops
+)

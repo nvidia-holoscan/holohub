@@ -292,9 +292,13 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  const std::string render_config_file_default("configs/ctnv_bb_er.json");
-  const std::string density_volume_file_default("data/ctnv_bb_er/highResCT.mhd");
-  const std::string mask_volume_file_default("data/ctnv_bb_er/smoothmasks.seg.mhd");
+  // Default paths in the HoloHub development container
+  const std::string render_config_file_default(
+      "/workspace/holohub/applications/volume_rendering_xr/configs/ctnv_bb_er.json");
+  const std::string density_volume_file_default(
+      "/workspace/holohub/data/volume_rendering_xr/highResCT.mhd");
+  const std::string mask_volume_file_default(
+      "/workspace/holohub/data/volume_rendering_xr/smoothmasks.seg.mhd");
 
   std::string render_config_file(render_config_file_default);
   std::string write_config_file;
@@ -322,8 +326,8 @@ int main(int argc, char** argv) {
     switch (c) {
       case 'h':
         std::cout
-            << "Holoscan OpenXR volume renderer."
-            << "Usage: " << argv[0] << " [options]" << std::endl
+            << "Holoscan OpenXR volume renderer." << "Usage: " << argv[0] << " [options]"
+            << std::endl
             << "Options:" << std::endl
             << "  -h, --help                            Display this information" << std::endl
             << "  -c <FILENAME>, --config <FILENAME>    Name of the renderer JSON "

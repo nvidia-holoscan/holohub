@@ -59,6 +59,11 @@ target_link_libraries(volume_rendering_xr
   holoscan::ops::holoviz
 )
 
+set_target_properties(volume_rendering_xr
+  PROPERTIES
+  INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:/opt/nvidia/holoscan/lib/"
+)
+
 # Copy config file to the build tree
 add_custom_target(volume_rendering_xr_config_yaml
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/app_config.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -77,8 +82,14 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   add_dependencies(volume_rendering_xr volume_rendering_xr_data)
 endif()
 
-add_subdirectory(testing)
+# install binaries
+install(TARGETS volume_rendering_xr
+  COMPONENT holoscan-apps
+)
+
+
 #if(BUILD_TESTING)
+# add_subdirectory(testing)
   # Add test
 #  add_test(NAME xr_volume_rendering_test
 #           COMMAND xr_volume_rendering --count=100
