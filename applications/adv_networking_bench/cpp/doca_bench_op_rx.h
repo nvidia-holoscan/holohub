@@ -109,7 +109,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     int64_t ttl_bytes_in_cur_batch_ = 0;
     int pkt_idx = 0;
     bool complete = true;
-HOLOSCAN_LOG_INFO("HERE");
+
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
       free_bufs();

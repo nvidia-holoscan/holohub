@@ -55,6 +55,8 @@
 #define MAX_DEFAULT_QUEUES 64
 #define MAX_DEFAULT_SEM_X_QUEUE 512
 #define MAX_TX_BURST 1024
+#define THRESHOLD_PKT_SIZE 8192
+#define THRESHOLD_BUF_NUM 32768
 
 struct adv_doca_rx_gpu_info {
   uint32_t num_pkts;
