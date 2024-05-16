@@ -164,7 +164,9 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
           hdr->l4_hdr.src_port,
           hdr->l4_hdr.dst_port);
 #endif
-      /* Add packet processing function here. */
+
+      /* Add packet processing/filtering function here. */
+
       if (threadIdx.x == 0 && buf_idx == 0 && tot_pkts_batch == 0) {
         DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_addr) = buf_addr;
         DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_idx) = rx_buf_idx;

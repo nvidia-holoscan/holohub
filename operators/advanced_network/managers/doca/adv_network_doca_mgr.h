@@ -101,7 +101,7 @@ static constexpr int TX_COMP_THRS = 2;
 class DocaRxQueue {
  public:
   DocaRxQueue(struct doca_dev* dev, struct doca_gpu* gdev, struct doca_flow_port* df_port,
-              uint16_t qid, int max_pkt_num, int max_pkt_size);
+              uint16_t qid, int max_pkt_num, int max_pkt_size, enum doca_gpu_mem_type mtype);
   ~DocaRxQueue();
   doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default);
   doca_error_t create_semaphore();
@@ -115,6 +115,7 @@ class DocaRxQueue {
   struct doca_gpu_eth_rxq* eth_rxq_gpu; /* DOCA Ethernet receive queue GPU handler */
   struct doca_mmap* pkt_buff_mmap;      /* DOCA mmap to receive packet with DOCA Ethernet queue */
   void* gpu_pkt_addr;                   /* DOCA mmap GPU memory address */
+  void* cpu_pkt_addr;                   /* DOCA mmap CPU pinned memory address */
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
@@ -124,12 +125,13 @@ class DocaRxQueue {
 
   struct doca_gpu_semaphore* sem_cpu;     /* One semaphore per queue to report stats, CPU handler*/
   struct doca_gpu_semaphore_gpu* sem_gpu; /* One semaphore per queue to report stats, GPU handler*/
+  enum doca_gpu_mem_type mtype;
 };
 
 class DocaTxQueue {
  public:
   DocaTxQueue(struct doca_dev* dev, struct doca_gpu* gdev, uint16_t qid, int max_pkt_num,
-              int max_pkt_size,
+              int max_pkt_size, enum doca_gpu_mem_type mtype,
               doca_eth_txq_gpu_event_notify_send_packet_cb_t event_notify_send_packet_cb);
   ~DocaTxQueue();
 
@@ -141,6 +143,7 @@ class DocaTxQueue {
   struct doca_gpu_eth_txq* eth_txq_gpu; /* DOCA Ethernet send queue GPU handler */
   struct doca_mmap* pkt_buff_mmap;      /* DOCA mmap to receive packet with DOCA Ethernet queue */
   void* gpu_pkt_addr;                   /* DOCA mmap GPU memory address */
+  void* cpu_pkt_addr;                   /* DOCA mmap CPU pinned memory address */
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
@@ -149,6 +152,7 @@ class DocaTxQueue {
   std::atomic<uint32_t> buff_arr_idx;
   struct doca_pe* pe;
   std::atomic<uint32_t> tx_cmp_posted;
+  enum doca_gpu_mem_type mtype;
 };
 
 class DocaMgr : public ANOMgr {

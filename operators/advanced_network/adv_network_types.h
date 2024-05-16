@@ -90,7 +90,6 @@ enum class MemoryKind {
   HOST_PINNED,
   HUGE,
   DEVICE,
-
   INVALID
 };
 
