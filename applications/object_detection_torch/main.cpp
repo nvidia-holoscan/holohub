@@ -38,6 +38,7 @@ class App : public holoscan::Application {
     datapath = path;
   }
 
+  // Specifies if the output of the visualizer should be recorded.
   enum class Record { NONE, VISUALIZER };
 
   void set_record(const std::string& record) {
