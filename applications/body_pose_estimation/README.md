@@ -19,12 +19,9 @@ This application uses a v4l2 compatible device as input.  Please plug in your in
 
 ## Run Instructions
 
-Run the following commands to start the body pose estimation application:
+Run the following command to start the application:
 ```sh
-./dev_container build --docker_file applications/body_pose_estimation/Dockerfile --img holohub:bpe
-./dev_container launch --img holohub:bpe                                                         
-./run build body_pose_estimation
-./run launch body_pose_estimation
+./dev_container build_and_run body_pose_estimation
 ```
 
 ## DDS Support
