@@ -275,6 +275,12 @@ get_default_img() {
     echo -n "holohub:ngc-v2.0.0-"$(get_host_gpu)
 }
 
+# This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
+# Compute capacity is a version number that represents the GPU's features & specs
+get_compute_capacity() {
+    echo -n $(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1)
+}
+
 build_desc() { c_echo 'Build dev image
     --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container.
@@ -290,6 +296,7 @@ build() {
     local gpu_type=$(get_host_gpu)
     local base_img=$(get_default_base_img)
     local img=$(get_default_img)
+    local compute_capacity=$(get_compute_capacity)
     local print_verbose=0
 
     # Check if buildx exists
@@ -332,8 +339,9 @@ build() {
     run_command export DOCKER_BUILDKIT=1
     run_command docker build \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
-        --build-arg BASE_IMAGE=${base_img}\
-        --build-arg GPU_TYPE=${gpu_type}\
+        --build-arg BASE_IMAGE=${base_img} \
+        --build-arg GPU_TYPE=${gpu_type} \
+        --build-arg COMPUTE_CAPACITY=${compute_capacity} \
         --network=host \
         -f ${docker_file_path} \
         -t ${img} \
