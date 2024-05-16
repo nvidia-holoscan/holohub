@@ -24,6 +24,7 @@
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/inference_processor/inference_processor.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 
 class App : public holoscan::Application {
  public:
@@ -37,10 +38,24 @@ class App : public holoscan::Application {
     datapath = path;
   }
 
+  // Specifies if the output of the visualizer should be recorded.
+  enum class Record { NONE, VISUALIZER };
+
+  void set_record(const std::string& record) {
+    if (record == "visualizer") {
+      record_type_ = Record::VISUALIZER;
+    } else {
+      record_type_ = Record::NONE;
+    }
+  }
+
   void compose() override {
     using namespace holoscan;
 
     std::shared_ptr<Operator> source;
+    std::shared_ptr<Operator> recorder;
+    std::shared_ptr<Operator> recorder_format_converter;
+
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
     if (is_aja_source_) {
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
@@ -171,10 +186,20 @@ class App : public holoscan::Application {
     auto holoviz = make_operator<ops::HolovizOp>("holoviz",
                                                  from_config("holoviz"),
                                                  Arg("allocator") = pool_resource,
+                                                 Arg("enable_render_buffer_output")
+                                                    = (record_type_ == Record::VISUALIZER),
                                                  Arg("tensors") = input_object_specs);
 
-    // Flow definition
+    if (record_type_ == Record::VISUALIZER) {
+      recorder_format_converter = make_operator<ops::FormatConverterOp>(
+           "recorder_format_converter",
+           from_config("recorder_format_converter"),
+           Arg("pool") = pool_resource);
 
+      recorder = make_operator<ops::VideoStreamRecorderOp>("recorder", from_config("recorder"));
+    }
+
+    // Flow definition
     if (is_aja_source_) {
       const std::set<std::pair<std::string, std::string>> aja_ports =
                                           {{"video_buffer_output", ""}};
@@ -184,6 +209,13 @@ class App : public holoscan::Application {
       add_flow(source, holoviz, {{"", "receivers"}});
     }
 
+    if (record_type_ == Record::VISUALIZER) {
+      add_flow(holoviz,
+               recorder_format_converter,
+               {{"render_buffer_output", "source_video"}});
+      add_flow(recorder_format_converter, recorder);
+    }
+
     add_flow(detect_preprocessor, detect_inference, {{"", "receivers"}});
     add_flow(detect_inference, detect_postprocessor, {{"transmitter", "receivers"}});
     add_flow(detect_postprocessor, holoviz, {{"", "receivers"}});
@@ -191,6 +223,7 @@ class App : public holoscan::Application {
 
  private:
   bool is_aja_source_ = false;
+  Record record_type_ = Record::NONE;
   std::string datapath = "data/object_detection_torch";
 };
 
@@ -238,6 +271,9 @@ int main(int argc, char **argv) {
     config_path += "/object_detection_torch.yaml";
     app->config(config_path);
   }
+
+  auto record_type = app->from_config("record_type").as<std::string>();
+  app->set_record(record_type);
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);

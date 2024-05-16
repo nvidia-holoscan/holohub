@@ -17,7 +17,7 @@
 extensions:
 
 source: "replayer" # or "aja"
-do_record: false   # or 'true' if you want to record input video stream.
+record_type: "none"   # or "visualizer" if you want to record the visualizer output.
 
 replayer:
   basename: "cars"
@@ -56,3 +56,11 @@ detect_postprocessor:
 holoviz:  # Holoviz
   width: 1920
   height: 1080
+
+recorder_format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+recorder:
+  directory: "/tmp"
+  basename: "tensor"
