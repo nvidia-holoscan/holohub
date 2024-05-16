@@ -35,7 +35,7 @@ class ANOMgr {
  public:
     virtual void initialize() = 0;
     virtual bool is_initialized() const { return initialized_; }
-    virtual void set_config_and_initialize(const AdvNetConfigYaml &cfg) = 0;
+    virtual bool set_config_and_initialize(const AdvNetConfigYaml &cfg) = 0;
     virtual void run() = 0;
 
     // Common free functions to override
@@ -83,6 +83,7 @@ class ANOMgr {
     virtual AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) = 0;
     virtual AdvNetStatus get_mac(int port, char *mac) = 0;
     virtual int address_to_port(const std::string &addr) = 0;
+    virtual bool validate_config() const;
 
  protected:
     static constexpr uint32_t GPU_PAGE_SHIFT = 16;

@@ -64,7 +64,7 @@ class DpdkMgr : public ANOMgr {
 
     DpdkMgr() = default;
     ~DpdkMgr();
-    void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
+    bool set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
     void initialize() override;
     void run() override;
     static constexpr int JUMBFRAME_SIZE = 9100;
@@ -124,9 +124,10 @@ class DpdkMgr : public ANOMgr {
     AdvNetStatus get_mac(int port, char *mac) override;
     void shutdown() override;
     void print_stats() override;
-    virtual void adjust_memory_regions() override;
+    void adjust_memory_regions() override;
     uint64_t get_burst_tot_byte(AdvNetBurstParams *burst) override;
     AdvNetBurstParams * create_burst_params() override;
+    bool validate_config() const override;
 
 
  private:

@@ -109,5 +109,46 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
   return AdvNetStatus::SUCCESS;
 }
 
+bool ANOMgr::validate_config() const {
+  bool pass = true;
+  std::set<std::string> mr_names;
+  std::set<std::string> q_mr_names;
+
+  // Verify all memory regions are used in queues and all queue MRs are listed in the MR section
+  for (const auto &mr: cfg_.mrs_) {
+    mr_names.emplace(mr.second.name_);
+  }
+
+  for (const auto &intf: cfg_.ifs_) {
+    for (const auto &rxq: intf.rx_.queues_) {
+      for (const auto &mr: rxq.common_.mrs_) {
+        q_mr_names.emplace(mr);
+      }
+    }
+    for (const auto &txq: intf.tx_.queues_) {
+      for (const auto &mr: txq.common_.mrs_) {
+        q_mr_names.emplace(mr);
+      }
+    }
+  }
+
+  // All MRs are in queues
+  for (const auto &mr: mr_names) {
+    if (q_mr_names.find(mr) == q_mr_names.end()) {
+      HOLOSCAN_LOG_WARN("Extra MR section with name {} unused in queues section", mr);
+    }
+  }
+
+  // All queue MRs are in MR list
+  for (const auto &mr: q_mr_names) {
+    if (mr_names.find(mr) == mr_names.end()) {
+      HOLOSCAN_LOG_ERROR("Queue found using MR {}, but that MR doesn't exist in the memory_region config", mr);
+      pass = false;
+    }    
+  }
+
+  return pass;
+}
+
 
 };  // namespace holoscan::ops

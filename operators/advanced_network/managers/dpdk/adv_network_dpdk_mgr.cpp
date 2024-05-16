@@ -73,7 +73,7 @@ struct UDPPkt {
 ///  \brief Init
 ///
 ////////////////////////////////////////////////////////////////////////////////
-void DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
+bool DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
@@ -85,8 +85,15 @@ void DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
     t.join();
 
     this->initialized_ = true;
+    if (!validate_config()) {
+      HOLOSCAN_LOG_CRITICAL("Config validation failed");
+      return false;
+    }
+
     run();
   }
+
+  return true;
 }
 
 int DpdkMgr::address_to_port(const std::string &addr) {
@@ -1012,6 +1019,15 @@ void PrintDpdkStats() {
 
 DpdkMgr::~DpdkMgr() {
   PrintDpdkStats();
+}
+
+bool DpdkMgr::validate_config() const {
+  if (!ANOMgr::validate_config()) {
+    return false;
+  }
+
+  HOLOSCAN_LOG_INFO("Config validated successfully");
+  return true;
 }
 
 

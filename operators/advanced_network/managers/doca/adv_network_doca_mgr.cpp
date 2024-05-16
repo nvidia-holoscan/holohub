@@ -412,7 +412,7 @@ int DocaMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   return 0;
 }
 
-void DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
@@ -423,8 +423,25 @@ void DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
     t.join();
 
     this->initialized_ = true;
+
+    if (!validate_config()) {
+      HOLOSCAN_LOG_CRITICAL("Config validation failed");
+      return false;
+    }
+
     run();
   }
+
+  return true;
+}
+
+bool DocaMgr::validate_config() const {
+  if (!ANOMgr::validate_config()) {
+    return false;
+  }
+
+  HOLOSCAN_LOG_INFO("Config validated successfully");
+  return true;
 }
 
 void DocaMgr::initialize() {
