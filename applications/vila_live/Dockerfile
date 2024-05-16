@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
         exit 1; \
     fi
 
-# Install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
+# Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
 # MAX_JOBS is set to 4 to avoid running out of memory
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn
 
