@@ -435,6 +435,7 @@ void DocaMgr::initialize() {
   constexpr int max_arg_size = 64;
   int max_tx_batch_size = 0;
   size_t max_packet_size = 0;
+  enum doca_gpu_mem_type mtype;
   char** argv_;
   int arg = 0;
   argv_ = (char**)malloc(sizeof(char*) * max_nargs);
@@ -559,6 +560,16 @@ void DocaMgr::initialize() {
       if (mr.first == mr_name) {
         rxq_pkts = mr.second.num_bufs_;
         q_max_packet_size = mr.second.buf_size_;
+
+        if (mr.second.kind_ == MemoryKind::DEVICE)
+          mtype = DOCA_GPU_MEM_TYPE_GPU;
+        else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+          mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
+        else {
+          HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+          return;
+        }
+
         break;
       }
     }        
@@ -574,22 +585,35 @@ void DocaMgr::initialize() {
         q_max_packet_size = rte_align32pow2(q_max_packet_size);
 
     uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+
+    HOLOSCAN_LOG_INFO(
+        "Configuring RX queue: {} ({}) on port {} memory type {} rxq_pkts {} q_max_packet_size {}",
+        q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_, mtype, rxq_pkts, q_max_packet_size);
+
     rx_q_map_[key] = new DocaRxQueue(
-        ddev_rx, gdev, df_port, q.common_.id_, rxq_pkts, q_max_packet_size);
+        ddev_rx, gdev, df_port, q.common_.id_, rxq_pkts, q_max_packet_size, mtype);
   }
 
   // Tx queues single port allowed
   for (auto& q : cfg_.ifs_[0].tx_.queues_) {
-    HOLOSCAN_LOG_INFO(
-        "Configuring TX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_);
-
     for (const auto &mr: cfg_.mrs_) {
       if (mr.first == q.common_.mrs_[0]) {
         txq_pkts = next_power_of_two(mr.second.num_bufs_);
+        if (mr.second.kind_ == MemoryKind::DEVICE)
+          mtype = DOCA_GPU_MEM_TYPE_GPU;
+        else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+          mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
+        else {
+          HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+          return;
+        }
         break;
       }
-    }        
+    }
 
+    HOLOSCAN_LOG_INFO(
+        "Configuring TX queue: {} ({}) on port {} memory type {}",
+        q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_, mtype);
 
     uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
     tx_q_map_[key] = new DocaTxQueue(ddev_tx,
@@ -597,6 +621,7 @@ void DocaMgr::initialize() {
                                       q.common_.id_,
                                       txq_pkts,
                                       max_packet_size,
+                                      mtype,
                                       &decrease_txq_completion_cb);                                              
   }
 
@@ -631,7 +656,6 @@ void DocaMgr::initialize() {
   }
 
   /* Tx burst preallocate */
-  HOLOSCAN_LOG_INFO("max_tx_batch_size {} max_packet_size {}", max_tx_batch_size, max_packet_size);
   for (int idx = 0; idx < MAX_TX_BURST; idx++) {
     cudaMallocHost(&(burst[idx].pkt_lens[0]), max_tx_batch_size * sizeof(uint32_t));
     burst[idx].hdr.hdr.max_pkt_size = max_packet_size;
@@ -960,7 +984,6 @@ void DocaMgr::run() {
       params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
       params_rx->rxqw[ridx].gpu_id = 0; // FIXME once MRs are done properly
       params_rx->rxqw[ridx].rxq = qinfo;
-      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", ridx, stoi(rx.queues_[0].common_.cpu_core_));
       ridx++;
     }
   }
@@ -985,7 +1008,6 @@ void DocaMgr::run() {
       params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
       params_tx->txqw[tidx].gpu_id = 0; // FIXME once MRs are done properly
       params_tx->txqw[tidx].txq = qinfo;
-      HOLOSCAN_LOG_INFO("Queue {} CPU core {}", tidx, stoi(tx.queues_[0].common_.cpu_core_));
       tidx++;
     }
 
