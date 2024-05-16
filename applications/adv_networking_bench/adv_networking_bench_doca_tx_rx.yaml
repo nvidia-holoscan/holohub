@@ -55,7 +55,7 @@ advanced_network:
 
     interfaces:
     - name: data1
-      address: ca:00.0
+      address: 0005:03:00.0
 
       tx:
         - queues:

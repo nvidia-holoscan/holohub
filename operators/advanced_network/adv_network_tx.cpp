@@ -45,7 +45,7 @@ void AdvNetworkOpTx::initialize() {
 
   holoscan::Operator::initialize();
   if (Init() < 0) {
-    HOLOSCAN_LOG_ERROR("Failed to initialize ANO TX");
+    throw std::runtime_error("ANO initialization failed");
   }
 }
 
@@ -54,7 +54,9 @@ int AdvNetworkOpTx::Init() {
   impl->cfg = cfg_.get();
   set_ano_mgr(impl->cfg);
 
-  g_ano_mgr->set_config_and_initialize(impl->cfg);
+  if (!g_ano_mgr->set_config_and_initialize(impl->cfg)) {
+    return -1;
+  }
 
   return 0;
 }

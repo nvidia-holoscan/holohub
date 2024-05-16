@@ -43,7 +43,9 @@ void AdvNetworkOpRx::initialize() {
   register_converter<holoscan::ops::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
-  Init();
+  if (Init() < 0) {
+    throw std::runtime_error("ANO initialization failed");
+  }
 }
 
 int AdvNetworkOpRx::Init() {
@@ -51,7 +53,9 @@ int AdvNetworkOpRx::Init() {
   impl->cfg = cfg_.get();
   set_ano_mgr(impl->cfg);
 
-  g_ano_mgr->set_config_and_initialize(impl->cfg);
+  if (!g_ano_mgr->set_config_and_initialize(impl->cfg)) {
+    return -1;
+  }
 
   for (const auto &intf: impl->cfg.ifs_) {
     const auto &rx = intf.rx_;

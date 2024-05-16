@@ -160,7 +160,7 @@ class DocaMgr : public ANOMgr {
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
   DocaMgr() = default;
   ~DocaMgr();
-  void set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
+  bool set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
   void initialize() override;
   void run() override;
   // int SetupPoolsAndRings();
@@ -202,6 +202,7 @@ class DocaMgr : public ANOMgr {
   int address_to_port(const std::string &addr) override;
   void shutdown() override;
   void print_stats() override;
+  bool validate_config() const override;
 
   uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
   AdvNetBurstParams* create_burst_params() override;
@@ -212,7 +213,6 @@ class DocaMgr : public ANOMgr {
   struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   std::string GetQueueName(int port, int q, AdvNetDirection dir);
-  AdvNetConfigYaml cfg_;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   struct rte_ring* rx_ring;
   struct rte_mempool* rx_meta;
