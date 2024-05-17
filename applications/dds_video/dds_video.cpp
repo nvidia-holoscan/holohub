@@ -19,9 +19,9 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
 
-#include "dds/shapes/subscriber.hpp"
-#include "dds/video/publisher.hpp"
-#include "dds/video/subscriber.hpp"
+#include "dds_shapes_subscriber.hpp"
+#include "dds_video_publisher.hpp"
+#include "dds_video_subscriber.hpp"
 
 #include <getopt.h>
 

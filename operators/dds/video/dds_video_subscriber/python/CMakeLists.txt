@@ -18,5 +18,5 @@ include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET dds_video_subscriber
     CLASS_NAME "DDSVideoSubscriberOp"
-    SOURCES subscriber.cpp
+    SOURCES dds_video_subscriber.cpp
 )

@@ -23,7 +23,7 @@ find_package(holoscan 2.0 REQUIRED CONFIG
 set("BUILD_dds_operator_base" ON CACHE BOOL "Build dds_operator_base" FORCE)
 
 # Publisher Operator
-add_library(dds_video_publisher SHARED publisher.cpp publisher.hpp)
+add_library(dds_video_publisher SHARED dds_video_publisher.cpp dds_video_publisher.hpp)
 add_library(holoscan::ops::dds_video_publisher ALIAS dds_video_publisher)
 target_link_libraries(dds_video_publisher PUBLIC
   dds_operator_base

@@ -27,7 +27,7 @@ include(RTIConnextDDS)
 add_rti_type_library(dds_shapetype ${RTI_CONNEXT_DDS_DIR}/resource/idl/ShapeType.idl)
 
 # Subscriber Operator
-add_library(dds_shapes_subscriber SHARED subscriber.cpp subscriber.hpp)
+add_library(dds_shapes_subscriber SHARED dds_shapes_subscriber.cpp dds_shapes_subscriber.hpp)
 add_library(holoscan::ops::dds_shapes_subscriber ALIAS dds_shapes_subscriber)
 target_link_libraries(dds_shapes_subscriber PUBLIC
   dds_operator_base

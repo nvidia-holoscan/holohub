@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-#include "../publisher.hpp"
+#include "../dds_video_publisher.hpp"
 #include "./publisher_pydoc.hpp"
 
 #include "../../../../operator_util.hpp"
