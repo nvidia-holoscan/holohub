@@ -14,14 +14,14 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(dds_video_operators)
-
-find_package(holoscan 2.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Publisher Operator
 option("OP_dds_video_publisher" "Build the DDS Video Publisher operator" ${BUILD_ALL})
 if(${OP_dds_video_publisher})
+  project(dds_video_operators)
+
+  find_package(holoscan 2.0 REQUIRED CONFIG
+              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
   add_library(dds_video_publisher SHARED publisher.cpp publisher.hpp)
   add_library(holoscan::ops::dds_video_publisher ALIAS dds_video_publisher)
   target_link_libraries(dds_video_publisher PUBLIC

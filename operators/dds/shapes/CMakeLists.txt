@@ -14,14 +14,14 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(dds_shapes_operators)
-
-find_package(holoscan 2.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Subscriber Operator
 option("OP_dds_shapes_subscriber" "Build the DDS Shapes Subscriber operator" ${BUILD_ALL})
 if(${OP_dds_shapes_subscriber})
+  project(dds_shapes_operators)
+
+  find_package(holoscan 2.0 REQUIRED CONFIG
+              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
   add_library(dds_shapes_subscriber SHARED subscriber.cpp subscriber.hpp)
   add_library(holoscan::ops::dds_shapes_subscriber ALIAS dds_shapes_subscriber)
   target_link_libraries(dds_shapes_subscriber PUBLIC

@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.24)
-project(dds_operator_base)
-
-find_package(holoscan 2.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
 option("LIB_dds_operator_base" "Build the DDS Operator Base library" ${BUILD_ALL})
 if(${LIB_dds_operator_base})
+  cmake_minimum_required(VERSION 3.24)
+  project(dds_operator_base)
+
+  find_package(holoscan 2.0 REQUIRED CONFIG
+              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
   include(RTIConnextDDS)
   add_library(dds_operator_base SHARED dds_operator_base.cpp dds_operator_base.hpp)
   target_include_directories(dds_operator_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
