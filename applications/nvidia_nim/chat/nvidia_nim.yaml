@@ -1,0 +1,86 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+extensions:
+
+nim:
+  base_url: https://integrate.api.nvidia.com/v1
+  api_key:
+
+models:
+  llama3-70b-instruct:
+    model: meta/llama3-70b-instruct
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  llama3-8b-instruct:
+    model: meta/llama3-8b-instruct
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  phi-3-mini-128k-instruct:
+    model: microsoft/phi-3-mini-128k-instruct
+    temperature: 0.2
+    top_p: 0.7
+    max_tokens: 1024
+    stream: True
+  google-gemma-7b:
+    model: google/gemma-7b
+    temperature: 0.2
+    top_p: 0.7
+    max_tokens: 1024
+    stream: True
+  google-recurrentgemma-2b:
+    model: google/recurrentgemma-2b
+    temperature: 0.2
+    top_p: 0.7
+    max_tokens: 1024
+    stream: True
+  google-codegemma-7b:
+    model: google/codegemma-7b
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  mixtral-8x22b-instruct-0.1:
+    model: mistralai/mixtral-8x22b-instruct-v0.1
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  seallm-7b-v2.5:
+    model: seallms/seallm-7b-v2.5
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  snowflake-arctic:
+    model: snowflake/arctic
+    temperature: 0.5
+    top_p: 1
+    max_tokens: 1024
+    stream: True
+  aisingapore-sea-lion-7b-instruct:
+    model: aisingapore/sea-lion-7b-instruct
+    temperature: 0.1
+    top_p: 0.9
+    max_tokens: 1024
+    stream: True
+
+

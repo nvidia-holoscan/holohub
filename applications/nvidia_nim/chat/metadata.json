@@ -1,0 +1,36 @@
+{
+	"application": {
+		"name": "Chat with NVIDIA Inference Microservice (NIM)",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.0",
+			"tested_versions": [
+				"1.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"OpenAI API",
+			"NIM"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/app.py",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}
