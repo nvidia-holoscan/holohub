@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "publisher.hpp"
+#include "dds_video_publisher.hpp"
 
 #include <dds/topic/find.hpp>
 

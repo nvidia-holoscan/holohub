@@ -14,27 +14,25 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(dds_shapes_operators)
+project(dds_video_subscriber)
 
 find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Subscriber Operator
-option("OP_dds_shapes_subscriber" "Build the DDS Shapes Subscriber operator" ${BUILD_ALL})
-if(${OP_dds_shapes_subscriber})
-  add_library(dds_shapes_subscriber SHARED subscriber.cpp subscriber.hpp)
-  add_library(holoscan::ops::dds_shapes_subscriber ALIAS dds_shapes_subscriber)
-  target_link_libraries(dds_shapes_subscriber PUBLIC
-    dds_operator_base
-    dds_shapetype
-  )
-  set("LIB_dds_operator_base" ON CACHE BOOL "Build LIB_dds_operator_base" FORCE)
-  set("LIB_dds_shapetype" ON CACHE BOOL "Build LIB_dds_shapetype" FORCE)
-endif()
+# Build the dds operator base
+set("BUILD_dds_operator_base" ON CACHE BOOL "Build dds_operator_base" FORCE)
 
-# DDS generated type library
-option("LIB_dds_shapetype" "Build the DDS shape type library" ${BUILD_ALL})
-if(${LIB_dds_shapetype})
-  include(RTIConnextDDS)
-  add_rti_type_library(dds_shapetype ${RTI_CONNEXT_DDS_DIR}/resource/idl/ShapeType.idl)
+# Subscriber Operator
+add_library(dds_video_subscriber SHARED dds_video_subscriber.cpp)
+add_library(holoscan::ops::dds_video_subscriber ALIAS dds_video_subscriber)
+target_link_libraries(dds_video_subscriber PUBLIC
+  dds_operator_base
+  dds_video_frame
+)
+target_include_directories(dds_video_subscriber PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
 endif()

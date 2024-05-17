@@ -1,6 +1,7 @@
 {
 	"operator": {
-		"name": "dds_video",
+		"name": "dds_base",
+		"description": "A base DDS operator that can be derived to create custom DDS operators.",
 		"authors": [
 			{
 				"name": "Ian Stewart",
@@ -18,7 +19,7 @@
 			]
 		},
 		"platforms": ["amd64", "arm64"],
-		"tags": ["DDS", "RTI Connext", "Video"],
+		"tags": ["DDS", "RTI Connext", "Shapes"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

@@ -1,6 +1,7 @@
 {
 	"operator": {
 		"name": "dds_shapes",
+		"description": "This operator subscribes to DDS topics published by the RTI Connext shapes demo.",
 		"authors": [
 			{
 				"name": "Ian Stewart",

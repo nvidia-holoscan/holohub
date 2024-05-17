@@ -21,10 +21,10 @@
 #include <memory>
 #include <string>
 
-#include "../subscriber.hpp"
-#include "./subscriber_pydoc.hpp"
+#include "../dds_video_subscriber.hpp"
+#include "./dds_video_subscriber_pydoc.hpp"
 
-#include "../../../operator_util.hpp"
+#include "../../../../operator_util.hpp"
 #include "holoscan/core/fragment.hpp"
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
