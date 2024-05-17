@@ -29,8 +29,8 @@ from holoscan.resources import UnboundedAllocator
 class FormatInferenceInputOp(Operator):
     """Operator to format input image for inference"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
@@ -41,16 +41,13 @@ class FormatInferenceInputOp(Operator):
         in_message = op_input.receive("in")
 
         # Transpose
-        tensor = cp.asarray(in_message.get("preprocessed")).get()
-        # OBS: Numpy conversion and moveaxis is needed to avoid strange
-        # strides issue when doing inference
-        tensor = np.moveaxis(tensor, 2, 0)[None]
-        tensor = cp.asarray(tensor)
+        tensor = cp.asarray(in_message.get("preprocessed"))
+        tensor = cp.moveaxis(tensor, 2, 0)[cp.newaxis]
+        # Copy as a contiguous array to avoid issue with strides
+        tensor = cp.ascontiguousarray(tensor)
 
         # Create output message
-        out_message = Entity(context)
-        out_message.add(hs.as_tensor(tensor), "preprocessed")
-        op_output.emit(out_message, "out")
+        op_output.emit(dict(preprocessed=tensor), "out")
 
 
 class PostprocessorOp(Operator):
