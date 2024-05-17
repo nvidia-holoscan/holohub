@@ -24,7 +24,7 @@
 #include "../publisher.hpp"
 #include "./publisher_pydoc.hpp"
 
-#include "../../../operator_util.hpp"
+#include "../../../../operator_util.hpp"
 #include "holoscan/core/fragment.hpp"
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
