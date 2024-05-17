@@ -1,6 +1,7 @@
 {
 	"operator": {
-		"name": "dds_video",
+		"name": "dds_video_publisher",
+		"description": "Publishes video frames as a DDS topic",
 		"authors": [
 			{
 				"name": "Ian Stewart",
