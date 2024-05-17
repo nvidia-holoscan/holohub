@@ -211,7 +211,7 @@ class DocaMgr : public ANOMgr {
   doca_error_t create_root_pipe();
   doca_error_t create_default_pipe(uint32_t cnt_defq);
   struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
-  int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
+  int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, AdvNetDirection dir);
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   struct rte_ring* rx_ring;
@@ -220,14 +220,12 @@ class DocaMgr : public ANOMgr {
   std::unordered_map<uint32_t, DocaRxQueue*> rx_q_map_;
   std::unordered_map<uint32_t, DocaTxQueue*> tx_q_map_;  
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
+  std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
 
   uint16_t dpdk_port_id;
-  struct rte_ether_addr mac_addr;
   std::string net_bdf;
-  char gpu_bdf[MAX_PCIE_STR_LEN];
-  struct doca_dev* ddev_rx;
-  struct doca_dev* ddev_tx;
-  struct doca_gpu* gdev;
+  std::array<struct doca_dev*, MAX_IFS> ddev{nullptr};
+  std::array<struct doca_gpu*, MAX_GPUS> gdev{nullptr};
   struct doca_flow_port* df_port;
   struct doca_flow_pipe* root_pipe;
   struct doca_flow_pipe_entry* root_udp_entry;

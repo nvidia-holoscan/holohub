@@ -328,7 +328,7 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   return df_port;
 }
 
-int DocaMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
+int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
   AdvNetBurstParams* bursts_rx[(1U << 6) - 1U];
   AdvNetBurstParams* bursts_tx[(1U << 7) - 1U];
   int idx = 0;
@@ -481,64 +481,50 @@ void DocaMgr::initialize() {
   rxq_num = 0;
   txq_num = 0;
 
-  // Add this to verification later
-  assert(cfg_.ifs_.size() == 1);
-
   int gpu_dev = 0; // Fix this to use the MR device  
 
   /* All RX queues must be on the same port. */
-  if (cfg_.ifs_[0].rx_.queues_.size() > 0) {
-    rxq_num = cfg_.ifs_[0].rx_.queues_.size();
+  for (int intf_id = 0; intf_id < cfg_.ifs_.size(); intf_id++) {
+    rxq_num = cfg_.ifs_[intf_id].rx_.queues_.size();
 
     doca_ret =
-        init_doca_device(argv_, arg, cfg_.ifs_[0].address_.c_str(), &ddev_rx, &cfg_.ifs_[0].port_id_);
+        init_doca_device(argv_, arg, cfg_.ifs_[intf_id].address_.c_str(), &ddev[intf_id], &cfg_.ifs_[intf_id].port_id_);
     if (doca_ret != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
       return;
     }
 
+    rte_eth_macaddr_get(cfg_.ifs_[intf_id].port_id_, &mac_addrs[intf_id]);
+    HOLOSCAN_LOG_INFO("DOCA init Port {} -- RX: {} TX: {}", cfg_.ifs_[intf_id].port_id_,
+                      cfg_.ifs_[intf_id].rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
+                      cfg_.ifs_[intf_id].tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");    
+  }
+
+  std::set<int> gpu_mr_devs;
+  // Find all GPUs used in the MRs
+  for (const auto &mr: cfg_.mrs_) {
+    if (mr.second.kind_ == MemoryKind::DEVICE) {
+      gpu_mr_devs.emplace(mr.second.affinity_);
+    }
+  }
+
+  // Populate all GPU device structures
+  for (const auto gpu_dev: gpu_mr_devs) {
+    char gpu_bdf[MAX_PCIE_STR_LEN];
     if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), gpu_dev) !=
         cudaSuccess) {
       HOLOSCAN_LOG_CRITICAL("Failed get GPU PCIe addr device {}",
                             gpu_dev);
       return;
     }
-  }
 
-  /* All TX queues must be on the same port. */
-  if (cfg_.ifs_[0].tx_.queues_.size() > 0) {
-    txq_num = cfg_.ifs_[0].tx_.queues_.size();
-    ddev_tx = ddev_rx;
-
-    if (cfg_.ifs_[0].rx_.queues_.size() == 0) {
-      doca_ret = init_doca_device(
-          argv_, arg, cfg_.ifs_[0].address_.c_str(), &ddev_tx, &cfg_.ifs_[0].port_id_);
-      if (doca_ret != DOCA_SUCCESS) {
-        HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
-        return;
-      }
-    }
-
-    // Need to create 2 GPU devices in case of RX + TX support!!!
-    if (cudaDeviceGetPCIBusId(gpu_bdf, sizeof(gpu_bdf), gpu_dev) !=
-        cudaSuccess) {
-      HOLOSCAN_LOG_CRITICAL("Failed get GPU PCIe addr device {}",
-                            gpu_dev);
+    doca_ret = doca_gpu_create(gpu_bdf, &gdev[gpu_dev]);
+    if (doca_ret != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed get DOCA GPU device {}", gpu_mr_devs);
       return;
     }
   }
 
-  doca_ret = doca_gpu_create(gpu_bdf, &gdev);
-  if (doca_ret != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed get DOCA GPU device {}", gpu_bdf);
-    return;
-  }
-
-  rte_eth_macaddr_get(dpdk_port_id, &mac_addr);
-
-  HOLOSCAN_LOG_INFO("DOCA init -- RX: {} TX: {}",
-                    cfg_.ifs_[0].rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
-                    cfg_.ifs_[0].tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
   // For now make a single queue. Support more sophisticated TX on next release
   const auto &tx = cfg_.ifs_[0].tx_;
@@ -554,7 +540,7 @@ void DocaMgr::initialize() {
   }
 
 
-  if (setup_pools_and_rings(0, max_tx_batch_size) < 0) {
+  if (setup_pools_and_rings( max_tx_batch_size) < 0) {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
     return;
   }
