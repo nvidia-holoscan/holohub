@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "subscriber.hpp"
+#include "dds_video_subscriber.hpp"
 
 #include "dds/topic/find.hpp"
 

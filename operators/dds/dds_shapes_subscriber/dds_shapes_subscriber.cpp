@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "subscriber.hpp"
+#include "dds_shapes_subscriber.hpp"
 
 namespace holoscan::ops {
 
