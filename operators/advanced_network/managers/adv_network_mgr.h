@@ -86,6 +86,8 @@ class ANOMgr {
     virtual bool validate_config() const;
 
  protected:
+    static constexpr int MAX_IFS = 4; 
+    static constexpr int MAX_GPUS = 8; 
     static constexpr uint32_t GPU_PAGE_SHIFT = 16;
     static constexpr uint32_t GPU_PAGE_SIZE = (1UL << GPU_PAGE_SHIFT); 
     static constexpr uint32_t JUMBO_FRAME_MAX_SIZE = 0x2600;

@@ -73,7 +73,6 @@ class DpdkMgr : public ANOMgr {
     uint16_t default_num_rx_desc = 8192;
     uint16_t default_num_tx_desc = 8192;
     int num_ports = 0;
-    static constexpr int MAX_IFS = 4;
     static constexpr int num_lcores = 2;
     static constexpr int MEMPOOL_CACHE_SIZE = 32;
     static constexpr int MAX_PKT_BURST = 64;
