@@ -128,7 +128,7 @@ class OpenAIOperator(Operator):
                 yield cursor
 
 
-class UseInputOp(Operator):
+class UserInputOp(Operator):
     def __init__(self, fragment, *args, models, selected_model, spinner, **kwargs):
         self.models = models
         self.model_names = [k for k in models.keys()]
@@ -199,7 +199,7 @@ class LetsChatWithNIM(Application):
         models = app.kwargs("models")
         selected_model = next(iter(models))
 
-        input_op = UseInputOp(
+        input_op = UserInputOp(
             self, name="input", models=models, selected_model=selected_model, spinner=spinner
         )
         chat_op = OpenAIOperator(

@@ -16,13 +16,6 @@ source.venv/bin/activate
 pip install -r requirements.
 ```
 
-## Run the sample application
-
-```bash
-cd applications/nvidia_nim/chat
-python3 app.py
-```
-
 
 ## Configuring the sample application
 
@@ -45,5 +38,19 @@ nim:
 The `models` section int the YAML file is configured with multiple NVIDIA hosted models by default. This allows you to switch between different models easily within the application by sending `/m` to the application.
 
 Model parameters may be added or adjusted in the `models` section as well per model.
+
+
+## Run the sample application
+
+To use the NIMs on [build.nvidia.com/](https://build.nvidia.com/), configure your API key in the `nvidia_nim.yaml` configuration file and run the sample app as follows:
+
+note: you may also configure your api key using an environment variable. 
+E.g.,  `export OPENAI_API_KEY=...`
+
+```bash 
+cd applications/nvidia_nim/chat
+python3 app.py
+```
+
 
 Have fun!
