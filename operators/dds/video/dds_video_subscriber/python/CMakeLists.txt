@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_operator(dds_video_publisher)
-add_holohub_operator(dds_video_subscriber)
+include(pybind11_add_holohub_module)
 
-# Build the DDS generated type library
-if(OP_dds_video_publisher OR OP_dds_video_subscriber)
-  include(RTIConnextDDS)
-  add_rti_type_library(dds_video_frame ${CMAKE_CURRENT_SOURCE_DIR}/VideoFrame.idl UNBOUNDED)
-endif()
-
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET dds_video_subscriber
+    CLASS_NAME "DDSVideoSubscriberOp"
+    SOURCES subscriber.cpp
+)

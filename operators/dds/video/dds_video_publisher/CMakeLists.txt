@@ -13,12 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_operator(dds_video_publisher)
-add_holohub_operator(dds_video_subscriber)
+cmake_minimum_required(VERSION 3.24)
+project(dds_video_publisher)
 
-# Build the DDS generated type library
-if(OP_dds_video_publisher OR OP_dds_video_subscriber)
-  include(RTIConnextDDS)
-  add_rti_type_library(dds_video_frame ${CMAKE_CURRENT_SOURCE_DIR}/VideoFrame.idl UNBOUNDED)
+find_package(holoscan 2.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Build the dds operator base
+set("BUILD_dds_operator_base" ON CACHE BOOL "Build dds_operator_base" FORCE)
+
+# Publisher Operator
+add_library(dds_video_publisher SHARED publisher.cpp publisher.hpp)
+add_library(holoscan::ops::dds_video_publisher ALIAS dds_video_publisher)
+target_link_libraries(dds_video_publisher PUBLIC
+  dds_operator_base
+  dds_video_frame
+)
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
 endif()
-

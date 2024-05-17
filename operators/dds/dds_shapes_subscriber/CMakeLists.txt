@@ -12,17 +12,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 cmake_minimum_required(VERSION 3.24)
-project(dds_operator_base)
+project(dds_shapes_operators)
 
 find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Build the dds operator base
+set("BUILD_dds_operator_base" ON CACHE BOOL "Build dds_operator_base" FORCE)
+
+# DDS generated type library
 include(RTIConnextDDS)
+add_rti_type_library(dds_shapetype ${RTI_CONNEXT_DDS_DIR}/resource/idl/ShapeType.idl)
 
-add_library(dds_operator_base SHARED dds_operator_base.cpp dds_operator_base.hpp)
-
-target_include_directories(dds_operator_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(dds_operator_base PUBLIC
-  holoscan::core
-  RTIConnextDDS::cpp2_api
-  )
+# Subscriber Operator
+add_library(dds_shapes_subscriber SHARED subscriber.cpp subscriber.hpp)
+add_library(holoscan::ops::dds_shapes_subscriber ALIAS dds_shapes_subscriber)
+target_link_libraries(dds_shapes_subscriber PUBLIC
+  dds_operator_base
+  dds_shapetype
+)
