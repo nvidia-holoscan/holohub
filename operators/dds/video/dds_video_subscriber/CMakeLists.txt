@@ -23,11 +23,14 @@ find_package(holoscan 2.0 REQUIRED CONFIG
 set("BUILD_dds_operator_base" ON CACHE BOOL "Build dds_operator_base" FORCE)
 
 # Subscriber Operator
-add_library(dds_video_subscriber SHARED dds_video_subscriber.cpp dds_video_subscriber.hpp)
+add_library(dds_video_subscriber SHARED dds_video_subscriber.cpp)
 add_library(holoscan::ops::dds_video_subscriber ALIAS dds_video_subscriber)
 target_link_libraries(dds_video_subscriber PUBLIC
   dds_operator_base
   dds_video_frame
+)
+target_include_directories(dds_video_subscriber PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
 if(HOLOHUB_BUILD_PYTHON)

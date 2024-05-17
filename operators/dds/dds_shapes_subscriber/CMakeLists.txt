@@ -33,3 +33,6 @@ target_link_libraries(dds_shapes_subscriber PUBLIC
   dds_operator_base
   dds_shapetype
 )
+target_include_directories(dds_shapes_subscriber PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)

@@ -26,3 +26,6 @@ target_link_libraries(dds_operator_base PUBLIC
   holoscan::core
   RTIConnextDDS::cpp2_api
   )
+target_include_directories(dds_operator_base PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
