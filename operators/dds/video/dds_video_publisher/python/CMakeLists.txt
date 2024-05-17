@@ -18,5 +18,5 @@ include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET dds_video_publisher
     CLASS_NAME "DDSVideoPublisherOp"
-    SOURCES publisher.cpp
+    SOURCES dds_video_publisher.cpp
 )

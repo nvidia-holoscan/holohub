@@ -22,7 +22,7 @@
 #include <string>
 
 #include "../dds_video_publisher.hpp"
-#include "./publisher_pydoc.hpp"
+#include "./dds_video_publisher_pydoc.hpp"
 
 #include "../../../../operator_util.hpp"
 #include "holoscan/core/fragment.hpp"
