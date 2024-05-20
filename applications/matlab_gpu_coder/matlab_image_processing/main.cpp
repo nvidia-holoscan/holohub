@@ -108,12 +108,15 @@ class MatlabImageProcessingOp : public Operator {
     if (!in_tensor_data) { throw std::runtime_error("Failed to get in tensor data!"); }
 
     // Get allocator
-    auto allocator =
-      nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator_->gxf_cid());
+    auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), allocator_->gxf_cid()
+    );
 
     // Allocate output buffer on the device.
     auto out_message = nvidia::gxf::Entity::New(context.context());
-    auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name_.get().c_str());
+    auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(
+      out_tensor_name_.get().c_str()
+    );
     if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
     out_tensor.value()->reshape<uint8_t>(
         out_tensor_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
@@ -125,22 +128,28 @@ class MatlabImageProcessingOp : public Operator {
     if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
 
     // Allocate temporary input tensor (for storing row-to-column converted data)
-    auto tmp_tensor_in = make_tensor(in_shape, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
-                                  allocator.value());
+    auto tmp_tensor_in = make_tensor(in_shape, nvidia::gxf::PrimitiveType::kUnsigned8,
+                                     sizeof(uint8_t), allocator.value());
     nvidia::gxf::Expected<uint8_t*> tmp_tensor_in_data = tmp_tensor_in->data<uint8_t>();
-    if (!tmp_tensor_in_data) { throw std::runtime_error("Failed to get temporary tensor input data!"); }
+    if (!tmp_tensor_in_data) {
+      throw std::runtime_error("Failed to get temporary tensor input data!");
+    }
     // Allocate temporary output tensor (for storing column-to-row converted data)
-    auto tmp_tensor_out = make_tensor(out_shape_, nvidia::gxf::PrimitiveType::kUnsigned8, sizeof(uint8_t),
-                                  allocator.value());
+    auto tmp_tensor_out = make_tensor(out_shape_, nvidia::gxf::PrimitiveType::kUnsigned8,
+                                      sizeof(uint8_t), allocator.value());
     nvidia::gxf::Expected<uint8_t*> tmp_tensor_out_data = tmp_tensor_out->data<uint8_t>();
-    if (!tmp_tensor_out_data) { throw std::runtime_error("Failed to get temporary tensor output data!"); }
+    if (!tmp_tensor_out_data) {
+      throw std::runtime_error("Failed to get temporary tensor output data!");
+    }
 
     // Convert output from row- to column-major ordering
     cuda_hard_transpose<uint8_t>(in_tensor_data, tmp_tensor_in_data.value(), in_shape,
                                  cuda_stream, Flip::DoNot);
 
     // Call MATLAB CUDA function to do image processing
-    matlab_image_processing(tmp_tensor_in_data.value(), sigma_.get(), tmp_tensor_out_data.value());
+    matlab_image_processing(
+      tmp_tensor_in_data.value(), sigma_.get(), tmp_tensor_out_data.value()
+    );
     delete tmp_tensor_in;
 
     // Convert output from column- to row-major ordering
