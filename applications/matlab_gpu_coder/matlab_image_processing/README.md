@@ -18,7 +18,7 @@ matlab_image_processing
 
 ## Generate CUDA Code with MATLAB GPU Coder
 
-### x86: Ubuntu >= 20.04
+### x86: Ubuntu
 
 In order to generate the CUDA Code, start MATLAB and `cd` to the `matlab` folder and open the `generate_image_processing_x86.m` script. Run the script and a folder `codegen/dll/matlab_image_processing` will be generated in the `matlab_image_processing` folder.
 
@@ -30,7 +30,7 @@ On an x86 computer with MATLAB installed, `cd` to the `matlab` folder and open t
 
 ### Configure Holoscan for MATLAB
 
-#### x86: Ubuntu >= 20.04
+#### x86: Ubuntu
 
 Define the environment variable:
 ```sh
