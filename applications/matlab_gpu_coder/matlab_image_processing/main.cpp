@@ -109,14 +109,12 @@ class MatlabImageProcessingOp : public Operator {
 
     // Get allocator
     auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
-      context.context(), allocator_->gxf_cid()
-    );
+      context.context(), allocator_->gxf_cid());
 
     // Allocate output buffer on the device.
     auto out_message = nvidia::gxf::Entity::New(context.context());
     auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(
-      out_tensor_name_.get().c_str()
-    );
+      out_tensor_name_.get().c_str());
     if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
     out_tensor.value()->reshape<uint8_t>(
         out_tensor_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
@@ -148,8 +146,7 @@ class MatlabImageProcessingOp : public Operator {
 
     // Call MATLAB CUDA function to do image processing
     matlab_image_processing(
-      tmp_tensor_in_data.value(), sigma_.get(), tmp_tensor_out_data.value()
-    );
+      tmp_tensor_in_data.value(), sigma_.get(), tmp_tensor_out_data.value());
     delete tmp_tensor_in;
 
     // Convert output from column- to row-major ordering

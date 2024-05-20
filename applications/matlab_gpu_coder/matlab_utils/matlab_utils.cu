@@ -71,8 +71,8 @@ void cuda_populate_complex(const float* rdata, const float* idata, void* output,
                            const int ndata, const cudaStream_t cuda_stream) {
   int threadsPerBlock = 256;
   int numBlocks = std::ceil(ndata/(float)threadsPerBlock);
-  populate_complex_kernel<<<numBlocks, threadsPerBlock, 0, cuda_stream>>>(rdata, idata,
-                                                                          static_cast<complex*>(output), ndata);
+  populate_complex_kernel<<<numBlocks, threadsPerBlock, 0, cuda_stream>>>(
+    rdata, idata, static_cast<complex*>(output), ndata);
 }
 
 template <typename T>
