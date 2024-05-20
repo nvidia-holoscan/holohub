@@ -42,7 +42,7 @@ Next, `cd` to this folder and create the `build` directory:
 cd applications/matlab_gpu_coder
 mkdir -p build
 ```
-Next, configure the CMake project changing the `-D*` parameter from `OFF` to `ON` depending on what application you want to build:
+Next, configure the CMake project changing the `-D*` parameter from `OFF` to `ON` depending on what application you want to build (and have configured):
 ```sh
 cmake -DBUILD_IMAGE_PROCESSING=OFF -DBUILD_BEAMFORM=OFF -S . -B build
 ```
