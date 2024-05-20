@@ -46,7 +46,7 @@ class MatlabImageProcessingOp : public Operator {
                "OutputTensorName",
                "Name of the output tensor.",
                std::string(""));
-    // MATLAB function utput specifications
+    // MATLAB function output specifications
     spec.param(out_width_, "out_width", "OutWidth", "Output width.", 0U);
     spec.param(out_height_, "out_height", "OutHeight", "Output height.", 0U);
     spec.param(out_channels_, "out_channels", "OutChannels", "Output number of channels.", 0U);
