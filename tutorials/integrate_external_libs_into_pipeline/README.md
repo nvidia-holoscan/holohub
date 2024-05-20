@@ -28,12 +28,11 @@ Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov
 ### Sample code 
 Sample code as below:
 
-```
-import holoscan as hs
+```py
+import cupy as cp
 import cucim.skimage.exposure as cu_exposure
 from cucim.skimage.util import img_as_ubyte
 from cucim.skimage.util import img_as_float
-from holoscan.gxf import Entity
 
 def CustomizedcuCIMOperator(Operator):
     ### Other implementation of __init__, setup()... etc. 
@@ -41,18 +40,15 @@ def CustomizedcuCIMOperator(Operator):
     def compute(self, op_input, op_output, context):
         message = op_input.receive("input_tensor")
         input_tensor = message.get()
-        # Directly use Holoscan tensor to initialize cupy array
+        # Directly use Holoscan tensor to initialize CuPy array
         cp_array = cp.asarray(input_tensor)
 
         cp_array = img_as_float(cp_array)
         cp_res=cu_exposure.equalize_adapthist(cp_array)
         cp_array = img_as_ubyte(cp_res)
 
-        # Use cupy array memory as holoscan tensor for following operations
-        hs_output = hs.as_tensor(cp_array)
-        out_message = Entity(context)
-        out_message.add(hs_output)
-        op_output.emit(out_message, "output_tensor")
+        # Emit CuPy array memory as an item in a `holoscan.TensorMap`
+        op_output.emit(dict(out_tensor=cp_array), "out")
 
 ```
 
@@ -71,10 +67,8 @@ CV-CUDA is implemented with DLPack standards. So, CV-CUDA tensor can directly ac
 
 Refer to the [Holoscan CV-CUDA sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use CV-CUDA with Holoscan SDK.
 
-```
+```py
 import cvcuda
-import holoscan as hs
-from holoscan.gxf import Entity
 
 class CustomizedCVCUDAOp(Operator):
     def __init__(self, *args, **kwargs):
@@ -104,10 +98,8 @@ class CustomizedCVCUDAOp(Operator):
        
         buffer = cvcuda_resize_tensor.cuda()
 
-        hs_output = hs.as_tensor(buffer)
-        out_message = Entity(context)
-        out_message.add(hs_output)
-        op_output.emit(out_message, "output_tensor")
+        # Emits an `holoscan.TensorMap` with a single entry `out_tensor`
+        op_output.emit(dict(out_tensor=buffer), "output_tensor")
 
 ```
 
@@ -135,7 +127,7 @@ The GpuMat object of OpenCV Python bindings provides a cudaPtr method which can 
 
 Refer to the function below, which is used to create a CuPy array from a GpuMat. For more details, see the source code in [holohub/applications/endoscopy_depth_estimation-gpumat_to_cupy](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L52). 
 
-```
+```py
 import cv2
 import cupy as cp
 
@@ -185,7 +177,7 @@ Within pipeline applications based on Holoscan SDK, the GPU Memory pointer can b
 
 Refer to the functions outlined below for creating GpuMat objects utilizing CuPy arrays. For a detailed implementation, see the source code provided in [holohub/applications/endoscopy_depth_estimation-gpumat_from_cp_array](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L28).
 
-```
+```py
 import cv2
 import cupy as cp
 import holoscan as hs
@@ -219,7 +211,7 @@ def gpumat_from_cp_array(arr: cp.ndarray) -> cv2.cuda.GpuMat:
 
 The demonstration code is provided below. For the complete source code, please refer to the [holohub/applications/endoscopy_depth_estimation-customized Operator](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L161).
 
-```
+```py
    def compute(self, op_input, op_output, context):
         stream = cv2.cuda_Stream()
         message = op_input.receive("in")
@@ -233,9 +225,6 @@ The demonstration code is provided below. For the complete source code, please r
         cp_frame = gpumat_to_cupy(cv_frame)
         cp_frame = cp.ascontiguousarray(cp_frame)
 
-        out_message = Entity(context)
-        out_message.add(hs.as_tensor(cp_frame), "")
-        op_output.emit(out_message, "out")
-
+        op_output.emit(dict(out_tensor=cp_frame), "out")
 ```
 
