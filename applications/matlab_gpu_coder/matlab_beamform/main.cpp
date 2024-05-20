@@ -18,7 +18,7 @@
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "holoscan_matlab_utils.h"
+#include "matlab_utils.h"
 #include "matlab_beamform.h"
 #include "matlab_beamform_terminate.h"
 #include "matlab_beamform_types.h"
@@ -115,7 +115,7 @@ class MatlabBeamformOp : public Operator {
     if (complex_data_populated_ == false) {
       // Once: Populate complex MATLAB struct and free temporary CUDA buffers
       cudaMalloc(&data_, sizeof(creal32_T) * depth * length);
-      cuda_populate_complex(rdata_tmp_, idata_tmp_, data_, depth * length, cuda_stream);
+      cuda_populate_complex(rdata_tmp_, idata_tmp_, (void*)data_, depth * length, cuda_stream);
       cudaStreamSynchronize(cuda_stream);
       cudaFree(rdata_tmp_);
       cudaFree(idata_tmp_);

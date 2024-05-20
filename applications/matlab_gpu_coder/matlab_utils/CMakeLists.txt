@@ -1,4 +1,3 @@
-%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,10 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-matlab:
-  path_data: "../data/ultrasound_beamforming.bin"
 
-holoviz:
-  width: 571  # floor(4000/7)
-  height: 928  # floor(6496/7)
+cmake_minimum_required(VERSION 3.20)
+
+find_package(holoscan 0.6 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+add_library(matlab_utils
+  "${CMAKE_CURRENT_SOURCE_DIR}/matlab_utils.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/matlab_utils.cu"
+)
+
+target_link_libraries(matlab_utils
+  PRIVATE
+  holoscan::core
+)
