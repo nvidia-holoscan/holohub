@@ -18,7 +18,7 @@ cmake_minimum_required(VERSION 3.20)
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-set(REL_PTH_MATLAB_CODEGEN "codegen")  # Needs changing if building on Jetson
+set(REL_PTH_MATLAB_CODEGEN "MATLAB_ws/R2023b/C/Users/mbrudfors/Code/nvidia/holohub-fork/applications/matlab_gpu_coder/matlab_image_processing/matlab/codegen")  # Needs changing if building on Jetson
 
 set(EXECUTABLES matlab_image_processing)
 

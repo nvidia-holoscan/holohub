@@ -16,6 +16,13 @@
 cmake_minimum_required(VERSION 3.20)
 project(matlab_gpu_coder CXX CUDA)
 
-add_subdirectory(matlab_beamform)
-add_subdirectory(matlab_image_processing)
+option(BUILD_IMAGE_PROCESSING "Build image processing" OFF)
+option(BUILD_BEAMFORM "Build beamforming application" OFF)
+
 add_subdirectory(matlab_utils)
+if(BUILD_IMAGE_PROCESSING)
+    add_subdirectory(matlab_image_processing)
+endif()
+if(BUILD_BEAMFORM)
+    add_subdirectory(matlab_beamform)
+endif()

@@ -30,7 +30,7 @@ cfg.ReportPotentialDifferences = false;
 cfg.GpuConfig.ComputeCapability = '7.2';
 
 % Define argument types for entry-point
-in1 = coder.typeof(single(0),[480 854 3],'Gpu',true);
+in1 = coder.typeof(uint8(0),[480 854 3],'Gpu',true);
 in2 = coder.typeof(single(0));
 
 cfg.Hardware = coder.hardware('NVIDIA Jetson');

@@ -26,12 +26,7 @@ In order to generate the CUDA Code, start MATLAB and `cd` to the `matlab` folder
 
 On an x86 computer with MATLAB installed, `cd` to the `matlab` folder and open the `generate_image_processing_jetson.m` script. Having an `ssh` connection to the Jetson device you want to build the CUDA DLLs on, specify the parameters of that connection in the `hwobj` on line 7, also replace `<ABSOLUTE_PATH>` of `cfg.Hardware.BuildDir` on line 39, as the absolute path (on the Jetson device) to `holohub` folder. Run the script and a folder `MATLAB_ws` will be created in the `matlab_image_processing` folder.
 
-## Configure/Build/Run Application
-
-Start by pulling the Holoscan image from NVIDIA NGC:
-```sh
-docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu
-```
+## Configure Application
 
 ### Configure Holoscan for MATLAB
 
@@ -47,7 +42,6 @@ where you, if need be, replace `MATLAB_ROOT` with the location of your MATLAB in
 Next, run the HoloHub Docker container:
 ```sh
 ./dev_container launch \
-    --img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu \
     --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
     --docker_opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
@@ -72,30 +66,4 @@ matlab_gpu_coder
 the variable should be set as:
 ```sh
 REL_PTH_MATLAB_CODEGEN=MATLAB_ws/R2023b/C/Users/Jensen/holohub/applications/matlab_gpu_coder/matlab_image_processing/matlab/codegen
-```
-
-Next, run the HoloHub Docker container:
-```sh
-./dev_container launch --img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu
-```
-
-### Build and Run
-
-First build HoloHub to ensure the endoscopy sample video data is downloaded:
-```sh
-./dev_container build
-```
-
-then run the below commands to build the application:
-```sh
-cd applications/matlab_gpu_coder/matlab_image_processing
-mkdir -p build
-cmake -S . -B build
-cmake --build build
-```
-
-The application can then be run with:
-```sh
-cd build
-./matlab_image_processing
 ```
