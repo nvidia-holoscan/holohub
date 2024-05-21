@@ -208,8 +208,8 @@ class DocaMgr : public ANOMgr {
   AdvNetBurstParams* create_burst_params() override;
 
  private:
-  doca_error_t create_root_pipe();
-  doca_error_t create_default_pipe(uint32_t cnt_defq);
+  doca_error_t create_root_pipe(int port_id);
+  doca_error_t create_default_pipe(int port_id, uint32_t cnt_defq);
   struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
   int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, AdvNetDirection dir);
@@ -226,13 +226,11 @@ class DocaMgr : public ANOMgr {
   std::string net_bdf;
   std::array<struct doca_dev*, MAX_IFS> ddev{nullptr};
   std::array<struct doca_gpu*, MAX_GPUS> gdev{nullptr};
-  struct doca_flow_port* df_port;
-  struct doca_flow_pipe* root_pipe;
+  std::array<struct doca_flow_port*, MAX_IFS> df_port;
+  std::array<struct doca_flow_pipe*, MAX_IFS> root_pipe;
   struct doca_flow_pipe_entry* root_udp_entry;
   uint16_t rxq_num;
   uint16_t txq_num;
-  int rxq_pkts;
-  int txq_pkts;
 
   bool initialized = false;
   int num_init = 0;

@@ -46,7 +46,6 @@ uint64_t stats_tx_tot_batch;
 
 struct TxDocaWorkerQueue {
   int queue;
-  int gpu_id;
   uint64_t tx_pkts = 0;
   uint32_t batch_size;
   struct rte_ring* ring;
@@ -57,15 +56,15 @@ struct TxDocaWorkerParams {
   int port;
   int txqn;
   uint32_t batch_size;
+  int gpu_id;
+  struct doca_gpu* gdev; 
   struct rte_mempool* meta_pool;
   struct rte_ether_addr mac_addr;
-  struct doca_gpu* gdev;
   struct TxDocaWorkerQueue txqw[MAX_NUM_TX_QUEUES];
 };
 
 struct RxDocaWorkerQueue {
   int queue;
-  int gpu_id;
   uint64_t rx_pkts = 0;
   uint32_t batch_size;
   DocaRxQueue* rxq;
@@ -74,9 +73,10 @@ struct RxDocaWorkerQueue {
 struct RxDocaWorkerParams {
   int port;
   int rxqn;
+  int gpu_id;  
+  struct doca_gpu* gdev;    
   struct rte_ring* ring;
   struct rte_mempool* meta_pool;
-  struct doca_gpu* gdev;
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
@@ -413,6 +413,7 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 }
 
 bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+  printf("%d\n", this->initialized_);
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
@@ -438,6 +439,46 @@ bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
 bool DocaMgr::validate_config() const {
   if (!ANOMgr::validate_config()) {
     return false;
+  }
+
+  // Don't allow buffer splitting
+  for (const auto &intf: cfg_.ifs_) {
+    int gpu_id = -1;
+
+    for (const auto &rxq: intf.rx_.queues_) {
+      if (gpu_id == -1) {
+        gpu_id = cfg_.mrs_.at(rxq.common_.mrs_[0]).affinity_;
+      }
+      else {
+        if (gpu_id != cfg_.mrs_.at(rxq.common_.mrs_[0]).affinity_) {
+          HOLOSCAN_LOG_ERROR("GPU comms requires all queue MRs to point to same GPU device");
+          return false;
+        }
+      }
+
+      if (rxq.common_.mrs_.size() > 1) {
+        HOLOSCAN_LOG_ERROR("RX buffer split not supported in GPU comms mode yet");
+        return false;
+      }
+    }
+
+    gpu_id = -1;
+    for (const auto &txq: intf.rx_.queues_) {
+      if (gpu_id == -1) {
+        gpu_id = cfg_.mrs_.at(txq.common_.mrs_[0]).affinity_;
+      }
+      else {
+        if (gpu_id != cfg_.mrs_.at(txq.common_.mrs_[0]).affinity_) {
+          HOLOSCAN_LOG_ERROR("GPU comms requires all queue MRs to point to same GPU device");
+          return false;
+        }
+      }
+
+      if (txq.common_.mrs_.size() > 1) {
+        HOLOSCAN_LOG_ERROR("Tx buffer split not supported in GPU comms mode yet");
+        return false;
+      }
+    }    
   }
 
   HOLOSCAN_LOG_INFO("Config validated successfully");
@@ -487,6 +528,7 @@ void DocaMgr::initialize() {
   for (int intf_id = 0; intf_id < cfg_.ifs_.size(); intf_id++) {
     rxq_num = cfg_.ifs_[intf_id].rx_.queues_.size();
 
+    HOLOSCAN_LOG_INFO("Initializing interface {} port {}", cfg_.ifs_[intf_id].address_, cfg_.ifs_[intf_id].port_id_);
     doca_ret =
         init_doca_device(argv_, arg, cfg_.ifs_[intf_id].address_.c_str(), &ddev[intf_id], &cfg_.ifs_[intf_id].port_id_);
     if (doca_ret != DOCA_SUCCESS) {
@@ -527,134 +569,152 @@ void DocaMgr::initialize() {
 
 
   // For now make a single queue. Support more sophisticated TX on next release
-  const auto &tx = cfg_.ifs_[0].tx_;
-  for (auto& q : tx.queues_) {
-    max_tx_batch_size = std::max(max_tx_batch_size, q.common_.batch_size_);
+  for (auto &intf: cfg_.ifs_) {
+    const auto &tx = intf.tx_;
+    for (auto& q : tx.queues_) {
+      max_tx_batch_size = std::max(max_tx_batch_size, q.common_.batch_size_);
 
-    const auto mr_name = q.common_.mrs_[0]; // Only use the first MR (no splitting)
-    for (const auto &mr: cfg_.mrs_) {
-      if (mr.first == mr_name) {
-        max_packet_size = std::max(max_packet_size, mr.second.buf_size_);
+      const auto mr_name = q.common_.mrs_[0]; // Only use the first MR (no splitting)
+      for (const auto &mr: cfg_.mrs_) {
+        if (mr.first == mr_name) {
+          max_packet_size = std::max(max_packet_size, mr.second.buf_size_);
+        }
       }
     }
   }
-
-
-  if (setup_pools_and_rings( max_tx_batch_size) < 0) {
+  
+  if (setup_pools_and_rings(max_tx_batch_size) < 0) {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
     return;
   }
 
-  if (rxq_num > 0) {
-    df_port = init_doca_flow(dpdk_port_id, rxq_num);
-    if (df_port == nullptr) {
-      HOLOSCAN_LOG_CRITICAL("FAILED: init_doca_flow");
+  for (const auto &intf: cfg_.ifs_) {
+    df_port[intf.port_id_] = init_doca_flow(intf.port_id_, intf.rx_.queues_.size());
+    if (df_port[intf.port_id_] == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("FAILED: init_doca_flow for port {}", intf.port_id_);
       return;
     }
   }
 
-  // Rx queues single port allowed
-  for (auto& q : cfg_.ifs_[0].rx_.queues_) {
-    HOLOSCAN_LOG_INFO(
-        "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_);
-    const auto mr_name = q.common_.mrs_[0]; // Only use the first MR (no splitting)
-    size_t q_max_packet_size;
-    for (const auto &mr: cfg_.mrs_) {
-      if (mr.first == mr_name) {
-        rxq_pkts = mr.second.num_bufs_;
-        q_max_packet_size = mr.second.buf_size_;
+  uint32_t key;
+  int gpu_id = -1;
 
-        if (mr.second.kind_ == MemoryKind::DEVICE)
-          mtype = DOCA_GPU_MEM_TYPE_GPU;
-        else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
-          mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
-        else {
-          HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
-          return;
+  // Create DOCA queues
+  for (auto &intf: cfg_.ifs_) {
+    for (auto& q : intf.rx_.queues_) {
+      HOLOSCAN_LOG_INFO(
+          "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, intf.port_id_);
+      const auto mr_name = q.common_.mrs_[0]; // Only use the first MR (no splitting)
+      size_t q_max_packet_size = 0;
+      int rxq_pkts = -1;
+
+      for (const auto &mr: cfg_.mrs_) {
+        if (mr.first == mr_name) {
+          rxq_pkts = mr.second.num_bufs_;
+          q_max_packet_size = mr.second.buf_size_;
+          gpu_id = mr.second.affinity_;
+
+          if (mr.second.kind_ == MemoryKind::DEVICE)
+            mtype = DOCA_GPU_MEM_TYPE_GPU;
+          else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+            mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
+          else {
+            HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+            return;
+          }
+
+          break;
         }
+      } 
 
-        break;
+      if (!rte_is_power_of_2(rxq_pkts)) {
+        rxq_pkts = rte_align32pow2(rxq_pkts);
       }
-    }        
-
-    //rxq_pkts = q.common_.num_concurrent_batches_ * q.common_.batch_size_;
-
-    if (!rte_is_power_of_2(rxq_pkts)) rxq_pkts = rte_align32pow2(rxq_pkts);
-    if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
-      HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
-      rxq_pkts = THRESHOLD_BUF_NUM;
-    } else 
-      if (!rte_is_power_of_2(q_max_packet_size))
-        q_max_packet_size = rte_align32pow2(q_max_packet_size);
-
-    uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-
-    HOLOSCAN_LOG_INFO(
-        "Configuring RX queue: {} ({}) on port {} memory type {} rxq_pkts {} q_max_packet_size {}",
-        q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_, mtype, rxq_pkts, q_max_packet_size);
-
-    rx_q_map_[key] = new DocaRxQueue(
-        ddev_rx, gdev, df_port, q.common_.id_, rxq_pkts, q_max_packet_size, mtype);
-  }
-
-  // Tx queues single port allowed
-  for (auto& q : cfg_.ifs_[0].tx_.queues_) {
-    for (const auto &mr: cfg_.mrs_) {
-      if (mr.first == q.common_.mrs_[0]) {
-        txq_pkts = next_power_of_two(mr.second.num_bufs_);
-        if (mr.second.kind_ == MemoryKind::DEVICE)
-          mtype = DOCA_GPU_MEM_TYPE_GPU;
-        else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
-          mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
-        else {
-          HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
-          return;
+      
+      if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
+        HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
+        rxq_pkts = THRESHOLD_BUF_NUM;
+      } else {
+        if (!rte_is_power_of_2(q_max_packet_size)) {
+          q_max_packet_size = rte_align32pow2(q_max_packet_size);
         }
-        break;
       }
+
+      key = (intf.port_id_ << 16) | q.common_.id_;
+
+      HOLOSCAN_LOG_INFO(
+          "Configuring RX queue: {} ({}) on port {} memory type {} rxq_pkts {} q_max_packet_size {}",
+          q.common_.name_, q.common_.id_, intf.port_id_, mtype, rxq_pkts, q_max_packet_size);
+
+      rx_q_map_[key] = new DocaRxQueue(
+          ddev[intf.port_id_], gdev[gpu_id], df_port[intf.port_id_], q.common_.id_, rxq_pkts, q_max_packet_size, mtype);
     }
 
-    HOLOSCAN_LOG_INFO(
-        "Configuring TX queue: {} ({}) on port {} memory type {}",
-        q.common_.name_, q.common_.id_, cfg_.ifs_[0].port_id_, mtype);
 
-    uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-    tx_q_map_[key] = new DocaTxQueue(ddev_tx,
-                                      gdev,
-                                      q.common_.id_,
-                                      txq_pkts,
-                                      max_packet_size,
-                                      mtype,
-                                      &decrease_txq_completion_cb);                                              
-  }
+    for (auto& q : intf.tx_.queues_) {
+      int txq_pkts = -1;      
+      key = (intf.port_id_ << 16) | q.common_.id_;
 
-  if (cfg_.ifs_[0].rx_.queues_.size() > 0) {
-    create_default_pipe(cfg_.ifs_[0].rx_.queues_.size() - cfg_.ifs_[0].rx_.flows_.size());
+      for (const auto &mr: cfg_.mrs_) {
+        if (mr.first == q.common_.mrs_[0]) {
+          gpu_id = mr.second.affinity_;
 
-    int flow_num = 0;
-    for (auto& flow : cfg_.ifs_[0].rx_.flows_) {
-      HOLOSCAN_LOG_INFO("Create RX flow {} to queue {}", flow.name_, flow.action_.id_);
-      for (auto& q : cfg_.ifs_[0].rx_.queues_) {
-        uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+          txq_pkts = next_power_of_two(mr.second.num_bufs_);
+          if (mr.second.kind_ == MemoryKind::DEVICE)
+            mtype = DOCA_GPU_MEM_TYPE_GPU;
+          else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+            mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
+          else {
+            HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+            return;
+          }
+          break;
+        }
+      }
+
+      HOLOSCAN_LOG_INFO(
+          "Configuring TX queue: {} ({}) on port {} memory type {}",
+          q.common_.name_, q.common_.id_, intf.port_id_, mtype);
+
+      tx_q_map_[key] = new DocaTxQueue(ddev[intf.port_id_],
+                                        gdev[gpu_id],
+                                        q.common_.id_,
+                                        txq_pkts,
+                                        max_packet_size,
+                                        mtype,
+                                        &decrease_txq_completion_cb);                                              
+    }
+
+    if (intf.rx_.queues_.size() > 0) {
+      create_default_pipe(intf.port_id_, intf.rx_.queues_.size() - intf.rx_.flows_.size());
+
+      int flow_num = 0;
+      for (auto& flow : intf.rx_.flows_) {
+        HOLOSCAN_LOG_INFO("Create RX flow {} to queue {}", flow.name_, flow.action_.id_);
+        for (auto& q : intf.rx_.queues_) {
+          key = (intf.port_id_ << 16) | q.common_.id_;
+          auto q_backend = rx_q_map_[key];
+          if (q_backend->qid == flow.action_.id_) {
+            q_backend->create_udp_pipe(flow, rxq_pipe_default);
+            flow.backend_config_ = q_backend;
+          }
+        }
+      }
+
+      if (intf.rx_.queues_.size() > 0) {
+        doca_ret = create_root_pipe(intf.port_id_);
+        if (doca_ret != DOCA_SUCCESS) {
+          HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe");
+        }
+      }
+
+      /* Create semaphore for GPU - CPU communication per rxq*/
+      for (auto& q : cfg_.ifs_[intf.port_id_].rx_.queues_) {
+        HOLOSCAN_LOG_INFO("Create RX semaphore");
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto q_backend = rx_q_map_[key];
-        if (q_backend->qid == flow.action_.id_) {
-          q_backend->create_udp_pipe(flow, rxq_pipe_default);
-          flow.backend_config_ = q_backend;
-        }
+        q_backend->create_semaphore();
       }
-    }
-
-    if (rxq_num > 0) {
-      doca_ret = create_root_pipe();
-      if (doca_ret != DOCA_SUCCESS) HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe");
-    }
-
-    /* Create semaphore for GPU - CPU communication per rxq*/
-    for (auto& q : cfg_.ifs_[0].rx_.queues_) {
-      HOLOSCAN_LOG_INFO("Create RX semaphore");
-      uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-      auto q_backend = rx_q_map_[key];
-      q_backend->create_semaphore();
     }
   }
 
@@ -677,7 +737,7 @@ void DocaMgr::initialize() {
   // cudaProfilerStart();
 }
 
-doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
+doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
   uint16_t flow_queue_id;
   uint16_t rss_queues[MAX_DEFAULT_QUEUES];
   int idxq = 0;
@@ -691,7 +751,8 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
   struct doca_flow_monitor monitor = {
       .counter_type = DOCA_FLOW_RESOURCE_TYPE_NON_SHARED,
   };
-  const char* pipe_name = "GPU_RXQ_UDP_DEF_PIPE";
+
+  std::string pipe_name = std::string("GPU_RXQ_UDP_DEF_PIPE_P") + std::to_string(port_id);
 
   if (cnt_defq >= MAX_DEFAULT_QUEUES) {
     HOLOSCAN_LOG_CRITICAL("Too many default queues {}", cnt_defq);
@@ -706,13 +767,13 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
   match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
   // match.outer.l4_type_ext = DOCA_FLOW_L4_TYPE_EXT_UDP;
 
-  result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port);
+  result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port[port_id]);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: %s", doca_error_get_descr(result));
     return result;
   }
 
-  result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name);
+  result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name.c_str());
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: %s", doca_error_get_descr(result));
     return result;
@@ -747,10 +808,10 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
   }
 
   bool create_pipe;
-  const auto &rx = cfg_.ifs_[0].rx_;
+  const auto &rx = cfg_.ifs_[port_id].rx_;
   for (auto& q : rx.queues_) {
     create_pipe = true;
-    uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+    uint32_t key = (cfg_.ifs_[port_id].port_id_ << 16) | q.common_.id_;
     auto q_backend = rx_q_map_[key];    
 
     for (auto& flow : rx.flows_) {
@@ -787,7 +848,7 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
     return result;
   }
 
-  result = doca_flow_entries_process(df_port, 0, default_flow_timeout_usec, 0);
+  result = doca_flow_entries_process(df_port[port_id], 0, default_flow_timeout_usec, 0);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("RxQ pipe entry process failed with: {}", doca_error_get_descr(result));
     return result;
@@ -798,9 +859,9 @@ doca_error_t DocaMgr::create_default_pipe(uint32_t cnt_defq) {
   return DOCA_SUCCESS;
 }
 
-doca_error_t DocaMgr::create_root_pipe() {
+doca_error_t DocaMgr::create_root_pipe(int port_id) {
   doca_error_t result;
-  uint32_t cnt_defq = cfg_.ifs_[0].rx_.queues_.size() - cfg_.ifs_[0].rx_.flows_.size();
+  uint32_t cnt_defq = cfg_.ifs_[port_id].rx_.queues_.size() - cfg_.ifs_[port_id].rx_.flows_.size();
 
   struct doca_flow_match match_mask = {0};
   struct doca_flow_match udp_match = {0};
@@ -808,16 +869,16 @@ doca_error_t DocaMgr::create_root_pipe() {
       .counter_type = DOCA_FLOW_RESOURCE_TYPE_NON_SHARED,
   };
   struct doca_flow_pipe_cfg* pipe_cfg;
-  const char* pipe_name = "ROOT_PIPE";
+  std::string pipe_name = std::string("ROOT_PIPE_P") + std::to_string(port_id);
   memset(&match_mask, 0, sizeof(match_mask));
 
-  result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port);
+  result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port[port_id]);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: %s", doca_error_get_descr(result));
     return result;
   }
 
-  result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name);
+  result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name.c_str());
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: %s", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
@@ -857,7 +918,7 @@ doca_error_t DocaMgr::create_root_pipe() {
     return result;
   }
 
-  result = doca_flow_pipe_create(pipe_cfg, nullptr, nullptr, &root_pipe);
+  result = doca_flow_pipe_create(pipe_cfg, nullptr, nullptr, &root_pipe[port_id]);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Root pipe creation failed with: %s", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
@@ -868,7 +929,7 @@ doca_error_t DocaMgr::create_root_pipe() {
   udp_match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
   udp_match.outer.l4_type_ext = DOCA_FLOW_L4_TYPE_EXT_UDP;
 
-  const auto& rx = cfg_.ifs_[0].rx_;
+  const auto& rx = cfg_.ifs_[port_id].rx_;
   for (const auto& flow : rx.flows_) {
     HOLOSCAN_LOG_INFO("Adding RX flow {} from {} to control pipe", flow.name_, flow.action_.id_);
     auto q_backend = static_cast<DocaRxQueue*>(flow.backend_config_);
@@ -881,7 +942,7 @@ doca_error_t DocaMgr::create_root_pipe() {
     // Reqork priority if you have multiple queues!!!
     result = doca_flow_pipe_control_add_entry(0,
                                               0,
-                                              root_pipe,
+                                              root_pipe[port_id],
                                               &udp_match,
                                               nullptr,
                                               nullptr,
@@ -911,7 +972,7 @@ doca_error_t DocaMgr::create_root_pipe() {
     HOLOSCAN_LOG_INFO("Adding RX default pipeline");
     result = doca_flow_pipe_control_add_entry(0,
                                               1,
-                                              root_pipe,
+                                              root_pipe[port_id],
                                               &udp_match,
                                               nullptr,
                                               nullptr,
@@ -928,7 +989,7 @@ doca_error_t DocaMgr::create_root_pipe() {
       return result;
     }
 
-    result = doca_flow_entries_process(df_port, 0, default_flow_timeout_usec, 0);
+    result = doca_flow_entries_process(df_port[port_id], 0, default_flow_timeout_usec, 0);
     if (result != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Root pipe entry process failed with: {}",
                             doca_error_get_descr(result));
@@ -950,7 +1011,9 @@ DocaMgr::~DocaMgr() {
   // }
 
   /* Tx burst preallocate */
-  for (int idx = 0; idx < MAX_TX_BURST; idx++) cudaFree(burst[idx].pkt_lens[0]);
+  for (int idx = 0; idx < MAX_TX_BURST; idx++) {
+    cudaFreeHost(burst[idx].pkt_lens[0]);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -970,53 +1033,57 @@ void DocaMgr::run() {
   int (*rx_worker)(void*) = rx_core;
   int (*tx_worker)(void*) = tx_core;
 
-  const auto& rx = cfg_.ifs_[0].rx_;
+  for (const auto &intf: cfg_.ifs_) {
+    const auto& rx = intf.rx_;
 
-  params_rx = new RxDocaWorkerParams;
-  params_rx->port = cfg_.ifs_[0].port_id_;
-  params_rx->rxqn = rx.queues_.size();
-  params_rx->ring = rx_ring;
-  params_rx->meta_pool = rx_meta;
-  params_rx->gdev = gdev;
-  int ridx = 0;
-  if (rx.queues_.size() > 0) {
-    for (auto& q : rx.queues_) {
-      uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-      auto qinfo = rx_q_map_[key];
-      params_rx->rxqw[ridx].queue = q.common_.id_;
-      params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
-      params_rx->rxqw[ridx].gpu_id = 0; // FIXME once MRs are done properly
-      params_rx->rxqw[ridx].rxq = qinfo;
-      ridx++;
+    params_rx = new RxDocaWorkerParams;
+    params_rx->port = intf.port_id_;
+    params_rx->rxqn = rx.queues_.size();
+    params_rx->ring = rx_ring;
+    params_rx->meta_pool = rx_meta;
+    params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
+    params_rx->gdev = gdev[params_rx->gpu_id];    
+    
+    int ridx = 0;
+    if (rx.queues_.size() > 0) {
+      for (auto& q : rx.queues_) {
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        auto qinfo = rx_q_map_[key];
+        params_rx->rxqw[ridx].queue = q.common_.id_;
+        params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
+        params_rx->rxqw[ridx].rxq = qinfo;
+
+        ridx++;
+      }
     }
-  }
 
-  rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
+    rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
 
-  const auto& tx = cfg_.ifs_[0].tx_;
-  params_tx = new TxDocaWorkerParams;
-  params_tx->port = cfg_.ifs_[0].port_id_;
-  params_tx->txqn = tx.queues_.size();
-  params_tx->meta_pool = tx_meta;
-  params_tx->gdev = gdev;
-  rte_eth_macaddr_get(cfg_.ifs_[0].port_id_, &params_tx->mac_addr);
-  int tidx = 0;
+    const auto& tx = intf.tx_;
+    params_tx = new TxDocaWorkerParams;
+    params_tx->port = intf.port_id_;
+    params_tx->txqn = tx.queues_.size();
+    params_tx->meta_pool = tx_meta;
+    rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
+    int tidx = 0;
+    // Get the MR to assign the GPU ID to
+    params_tx->gpu_id = cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
+    params_tx->gdev   = gdev[params_tx->gpu_id];      
 
-  if (tx.queues_.size() > 0) {
-    for (auto& q : tx.queues_) {
-      uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-      auto qinfo = tx_q_map_[key];
-      params_tx->txqw[tidx].ring = tx_rings[key];
-      params_tx->txqw[tidx].queue = q.common_.id_;
-      params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
-      params_tx->txqw[tidx].gpu_id = 0; // FIXME once MRs are done properly
-      params_tx->txqw[tidx].txq = qinfo;
-      tidx++;
+    if (tx.queues_.size() > 0) {
+      for (auto& q : tx.queues_) {
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        auto qinfo = tx_q_map_[key];
+        params_tx->txqw[tidx].ring = tx_rings[key];
+        params_tx->txqw[tidx].queue = q.common_.id_;
+        params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
+        params_tx->txqw[tidx].txq = qinfo;    
+        tidx++;
+      }
     }
 
     rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
   }
-
 
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
@@ -1057,15 +1124,12 @@ int DocaMgr::rx_core(void* arg) {
                     rte_socket_id());
 
   /*
-   * This is needed in all Holoscan-based applications to run a persistent CUDA kernel.
-   * If a persistent CUDA kernel is launched in the default context, no other CUDA kernel
-   * is actually executed right after (even on different streams).
-   */
-  cudaSetDevice(tparams->rxqw[0].gpu_id);  // Need to rely on GPU 0
+  * This is needed in all Holoscan-based applications to run a persistent CUDA kernel.
+  * If a persistent CUDA kernel is launched in the default context, no other CUDA kernel
+  * is actually executed right after (even on different streams).
+  */
+  cudaSetDevice(tparams->gpu_id);  // Need to rely on GPU 0
   cudaFree(0);
-  // cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
-  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
-  // cuCtxPushCurrent(cuContext);
 
   cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority);
 
@@ -1077,7 +1141,7 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&eth_rxq_cpu_list);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
-                       doca_error_get_descr(result));
+                      doca_error_get_descr(result));
     exit(1);
   }
 
@@ -1089,7 +1153,7 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&sem_cpu_list);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
-                       doca_error_get_descr(result));
+                      doca_error_get_descr(result));
     exit(1);
   }
 
@@ -1101,14 +1165,19 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&batch_cpu_list);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
-                       doca_error_get_descr(result));
+                      doca_error_get_descr(result));
     exit(1);
-  }
+  }                      
+
+  // cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
+  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
+  // cuCtxPushCurrent(cuContext);
+
 
   for (int idx = 0; idx < tparams->rxqn; idx++) {
     eth_rxq_cpu_list[idx] = (uintptr_t)tparams->rxqw[idx].rxq->eth_rxq_gpu;
     sem_cpu_list[idx] = (uintptr_t)tparams->rxqw[idx].rxq->sem_gpu;
-    batch_cpu_list[idx] = tparams->rxqw[idx].batch_size;
+    batch_cpu_list[idx] = tparams->rxqw[idx].batch_size;  
   }
 
   res_cuda = cudaStreamCreateWithPriority(&rx_stream, cudaStreamNonBlocking, greatestPriority);
@@ -1388,7 +1457,7 @@ AdvNetStatus DocaMgr::get_mac(int port, char *mac) {
     return AdvNetStatus::INVALID_PARAMETER;
   }
 
-  memcpy(mac, reinterpret_cast<char*>(&mac_addr), sizeof(mac_addr));
+  memcpy(mac, reinterpret_cast<char*>(&mac_addrs[port]), sizeof(mac_addrs[port]));
   return AdvNetStatus::SUCCESS;
 }
 
@@ -1502,19 +1571,15 @@ void DocaMgr::free_tx_burst(AdvNetBurstParams* burst) {
 }
 
 std::optional<uint16_t> DocaMgr::get_port_from_ifname(const std::string& name) {
-  uint16_t port;
-  doca_error_t result;
 
   HOLOSCAN_LOG_INFO("Port name {}", name);
-  result = doca_dpdk_get_first_port_id(ddev_rx, &port);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Function doca_dpdk_get_first_port_id returned %s",
-                          doca_error_get_descr(result));
-    return {};
+  for (const auto &intf: cfg_.ifs_) {
+    if (name == intf.address_) {
+      return intf.port_id_;
+    }
   }
-  // auto ret = rte_eth_dev_get_port_by_name(name.c_str(), &port);
 
-  return port;
+  return -1;
 }
 
 AdvNetStatus DocaMgr::get_rx_burst(AdvNetBurstParams** burst) {

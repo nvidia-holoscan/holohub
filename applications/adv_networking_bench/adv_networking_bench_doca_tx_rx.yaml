@@ -68,6 +68,8 @@ advanced_network:
               - "Data_TX_GPU"
             offloads:
               - "tx_eth_src"
+    - name: data2
+      address: 0005:03:00.1           
       rx:
         - queues:
           - name: "Default"
