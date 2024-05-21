@@ -146,42 +146,65 @@ static doca_error_t open_doca_device_with_pci(const char* pcie_value, struct doc
   return res;
 }
 
-static doca_error_t init_doca_device(char** argv, int argc, const char* nic_pcie_addr,
-                                     struct doca_dev** ddev, uint16_t* dpdk_port_id) {
+doca_error_t DocaMgr::init_doca_devices() {
   doca_error_t result;
+  constexpr int max_nargs = 32;
+  constexpr int max_arg_size = 64;  
   int ret;
-  // char *eal_param[3] = {"", "-a", "00:00.0"};
+  char** argv_;
+  int arg = 0;
+  argv_ = (char**)malloc(sizeof(char*) * max_nargs);
+  for (int i = 0; i < max_nargs; i++) { argv_[i] = (char*)malloc(max_arg_size); }
 
-  if (nic_pcie_addr == nullptr || ddev == nullptr || dpdk_port_id == nullptr)
-    return DOCA_ERROR_INVALID_VALUE;
+  std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
 
-  if (strlen(nic_pcie_addr) >= DOCA_DEVINFO_PCI_ADDR_SIZE) return DOCA_ERROR_INVALID_VALUE;
+  for (const auto &intf : cfg_.ifs_) {
+    for (const auto &q : intf.rx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }
 
-  result = open_doca_device_with_pci(nic_pcie_addr, ddev);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
-    return result;
+    for (const auto &q : intf.tx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }    
   }
 
-  ret = rte_eal_init(argc, argv);
+  cores = cores.substr(0, cores.size() - 1);
+  std::cout << cores;
+
+  strncpy(argv_[arg++], "-l", max_arg_size - 1);
+  strncpy(argv_[arg++], cores.c_str(), max_arg_size - 1);
+  strncpy(argv_[arg++], "-a", max_arg_size - 1);
+  strncpy(argv_[arg++], std::string("00:00.0").c_str(), max_arg_size - 1);
+
+  for (const auto &intf: cfg_.ifs_) {
+    HOLOSCAN_LOG_INFO("Initializing interface {} port {}", intf.address_, intf.port_id_);
+
+    result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
+      return result;
+    }
+  }
+
+  ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
     HOLOSCAN_LOG_CRITICAL("DPDK init failed: %d", ret);
     return DOCA_ERROR_DRIVER;
   }
 
-  /* Enable DOCA Flow HWS mode */
-  result = doca_dpdk_port_probe(*ddev, "dv_flow_en=2");
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Function doca_dpdk_port_probe returned %s",
-                          doca_error_get_descr(result));
-    return result;
-  }
+  for (const auto &intf: cfg_.ifs_) {
+    /* Enable DOCA Flow HWS mode */
+    result = doca_dpdk_port_probe(ddev[intf.port_id_], "dv_flow_en=2");
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Function doca_dpdk_port_probe returned {}",
+                            doca_error_get_descr(result));
+      return result;
+    }
 
-  result = doca_dpdk_get_first_port_id(*ddev, dpdk_port_id);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Function doca_dpdk_get_first_port_id returned %s",
-                          doca_error_get_descr(result));
-    return result;
+    rte_eth_macaddr_get(intf.port_id_, &mac_addrs[intf.port_id_]);
+    HOLOSCAN_LOG_INFO("DOCA init Port {} -- RX: {} TX: {}", intf.port_id_,
+                      intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
+                      intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");        
   }
 
 #if 0
@@ -205,6 +228,7 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   struct doca_flow_port_cfg* port_cfg;
   struct doca_flow_port* df_port;
   struct doca_flow_cfg* rxq_flow_cfg;
+  static bool flow_init = false;
   doca_error_t ret = DOCA_SUCCESS;
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
@@ -213,9 +237,9 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };
-  struct rte_mempool* mp = nullptr;
   struct rte_flow_error error;
 
+  HOLOSCAN_LOG_INFO("Initializing DOCA flow on port {} with {} queues", port_id, rxq_num);
   /*
    * DPDK should be initialized and started before DOCA Flow.
    * DPDK doesn't start the device without, at least, one DPDK Rx queue.
@@ -226,104 +250,113 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
 
   ret_dpdk = rte_eth_dev_info_get(port_id, &dev_info);
   if (ret) {
-    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_info_get with: %s", rte_strerror(-ret));
+    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_info_get with: {}", rte_strerror(-ret));
     return nullptr;
   }
 
   ret_dpdk = rte_eth_dev_configure(port_id, rxq_num, rxq_num, &eth_conf);
   if (ret) {
-    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_configure with: %s", rte_strerror(-ret));
+    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_configure with: {}", rte_strerror(-ret));
     return nullptr;
   }
 
-  mp = rte_pktmbuf_pool_create("TEST", 8192, 0, 0, 8192, rte_eth_dev_socket_id(port_id));
-  if (mp == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed rte_pktmbuf_pool_create with: %s", rte_strerror(-ret));
-    return nullptr;
-  }
 
   for (int idx = 0; idx < rxq_num; idx++) {
+    struct rte_mempool* mp = nullptr;
+    std::string name = std::string("RX_POOL_P") + std::to_string(port_id) + "_Q" + std::to_string(idx);
+    mp = rte_pktmbuf_pool_create(name.c_str(), 8192, 0, 0, 8192, rte_eth_dev_socket_id(port_id));
+    if (mp == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed rte_pktmbuf_pool_create with: {}", rte_strerror(-ret));
+      return nullptr;
+    }    
+
     ret_dpdk =
         rte_eth_rx_queue_setup(port_id, idx, 2048, rte_eth_dev_socket_id(port_id), nullptr, mp);
     if (ret) {
-      HOLOSCAN_LOG_CRITICAL("Failed rte_eth_rx_queue_setup with: %s", rte_strerror(-ret));
+      HOLOSCAN_LOG_CRITICAL("Failed rte_eth_rx_queue_setup with: {}", rte_strerror(-ret));
       return nullptr;
     }
   }
 
   ret_dpdk = rte_flow_isolate(port_id, 1, &error);
   if (ret) {
-    HOLOSCAN_LOG_CRITICAL("Failed rte_flow_isolate with: %s", error.message);
+    HOLOSCAN_LOG_CRITICAL("Failed rte_flow_isolate with: {}", error.message);
     return nullptr;
   }
 
   ret_dpdk = rte_eth_dev_start(port_id);
   if (ret) {
-    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_start with: %s", rte_strerror(-ret));
+    HOLOSCAN_LOG_CRITICAL("Failed rte_eth_dev_start with: {}", rte_strerror(-ret));
     return nullptr;
   }
 
-  /* Initialize doca flow framework */
-  ret = doca_flow_cfg_create(&rxq_flow_cfg);
-  if (ret != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to create doca_flow_cfg: %s", doca_error_get_descr(ret));
-    return nullptr;
-  }
+  if (!flow_init) {
+    /* Initialize doca flow framework */
+    ret = doca_flow_cfg_create(&rxq_flow_cfg);
+    if (ret != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create doca_flow_cfg: {}", doca_error_get_descr(ret));
+      return nullptr;
+    }
 
-  ret = doca_flow_cfg_set_pipe_queues(rxq_flow_cfg, rxq_num);
-  if (ret != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg pipe_queues: %s", doca_error_get_descr(ret));
+    ret = doca_flow_cfg_set_pipe_queues(rxq_flow_cfg, rxq_num);
+    if (ret != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg pipe_queues: {}", doca_error_get_descr(ret));
+      doca_flow_cfg_destroy(rxq_flow_cfg);
+      return nullptr;
+    }
+
+    /*
+    * HWS: Hardware steering
+    * Isolated: don't create RSS rule for DPDK created RX queues
+    */
+    ret = doca_flow_cfg_set_mode_args(rxq_flow_cfg, "vnf,hws,isolated");
+    if (ret != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg mode_args: {}", doca_error_get_descr(ret));
+      doca_flow_cfg_destroy(rxq_flow_cfg);
+      return nullptr;
+    }
+
+    ret = doca_flow_cfg_set_nr_counters(rxq_flow_cfg, FLOW_NB_COUNTERS);
+    if (ret != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg nr_counters: {}", doca_error_get_descr(ret));
+      doca_flow_cfg_destroy(rxq_flow_cfg);
+      return nullptr;
+    }
+
+    result = doca_flow_init(rxq_flow_cfg);
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to init doca flow with: {}:{}", (int)result, doca_error_get_descr(result));
+      return nullptr;
+    }
+
     doca_flow_cfg_destroy(rxq_flow_cfg);
-    return nullptr;
-  }
 
-  /*
-   * HWS: Hardware steering
-   * Isolated: don't create RSS rule for DPDK created RX queues
-   */
-  ret = doca_flow_cfg_set_mode_args(rxq_flow_cfg, "vnf,hws,isolated");
-  if (ret != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg mode_args: %s", doca_error_get_descr(ret));
-    doca_flow_cfg_destroy(rxq_flow_cfg);
-    return nullptr;
+    flow_init = true;
   }
-
-  ret = doca_flow_cfg_set_nr_counters(rxq_flow_cfg, FLOW_NB_COUNTERS);
-  if (ret != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_cfg nr_counters: %s", doca_error_get_descr(ret));
-    doca_flow_cfg_destroy(rxq_flow_cfg);
-    return nullptr;
-  }
-
-  result = doca_flow_init(rxq_flow_cfg);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to init doca flow with: %s", doca_error_get_descr(result));
-    return nullptr;
-  }
-
-  doca_flow_cfg_destroy(rxq_flow_cfg);
 
   /* Start doca flow port */
   result = doca_flow_port_cfg_create(&port_cfg);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to create doca_flow_port_cfg: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_CRITICAL("Failed to create doca_flow_port_cfg: {}", doca_error_get_descr(result));
     return nullptr;
   }
   snprintf(port_id_str, MAX_PORT_STR_LEN, "%d", port_id);
   result = doca_flow_port_cfg_set_devargs(port_cfg, port_id_str);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_port_cfg devargs: %s",
+    HOLOSCAN_LOG_CRITICAL("Failed to set doca_flow_port_cfg devargs: {}",
                           doca_error_get_descr(result));
     doca_flow_port_cfg_destroy(port_cfg);
     return nullptr;
   }
   result = doca_flow_port_start(port_cfg, &df_port);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to start doca flow port with: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_CRITICAL("Failed to start doca flow port with: {}", doca_error_get_descr(result));
     doca_flow_port_cfg_destroy(port_cfg);
     return nullptr;
   }
   doca_flow_port_cfg_destroy(port_cfg);
+
+  HOLOSCAN_LOG_INFO("Successfully started DOCA flow for port {}", port_id);
 
   return df_port;
 }
@@ -418,17 +451,19 @@ bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
     cfg_ = cfg;
     cpu_set_t mask;
     long nproc, i;
+
+
+    if (!validate_config()) {
+      HOLOSCAN_LOG_CRITICAL("Config validation failed");
+      return false;
+    }
+        
     // Start Initialize in a separate thread so it doesn't set the affinity for the
     // whole application
     std::thread t(&DocaMgr::initialize, this);
     t.join();
 
     this->initialized_ = true;
-
-    if (!validate_config()) {
-      HOLOSCAN_LOG_CRITICAL("Config validation failed");
-      return false;
-    }
 
     run();
   }
@@ -489,57 +524,14 @@ void DocaMgr::initialize() {
   int ret;
   doca_error_t doca_ret;
   /* Initialize DPDK params */
-  constexpr int max_nargs = 32;
-  constexpr int max_arg_size = 64;
   int max_tx_batch_size = 0;
   size_t max_packet_size = 0;
   enum doca_gpu_mem_type mtype;
-  char** argv_;
-  int arg = 0;
-  argv_ = (char**)malloc(sizeof(char*) * max_nargs);
-  for (int i = 0; i < max_nargs; i++) { argv_[i] = (char*)malloc(max_arg_size); }
 
-  std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
-
-  for (const auto &intf : cfg_.ifs_) {
-    for (const auto &q : intf.rx_.queues_) {
-      cores += q.common_.cpu_core_ + ",";
-    }
-
-    for (const auto &q : intf.tx_.queues_) {
-      cores += q.common_.cpu_core_ + ",";
-    }    
-  }
-
-  cores = cores.substr(0, cores.size() - 1);
-  std::cout << cores;
-
-  strncpy(argv_[arg++], "-l", max_arg_size - 1);
-  strncpy(argv_[arg++], cores.c_str(), max_arg_size - 1);
-  strncpy(argv_[arg++], "-a", max_arg_size - 1);
-  strncpy(argv_[arg++], std::string("00:00.0").c_str(), max_arg_size - 1);
-
-  rxq_num = 0;
-  txq_num = 0;
-
-  int gpu_dev = 0; // Fix this to use the MR device  
-
-  /* All RX queues must be on the same port. */
-  for (int intf_id = 0; intf_id < cfg_.ifs_.size(); intf_id++) {
-    rxq_num = cfg_.ifs_[intf_id].rx_.queues_.size();
-
-    HOLOSCAN_LOG_INFO("Initializing interface {} port {}", cfg_.ifs_[intf_id].address_, cfg_.ifs_[intf_id].port_id_);
-    doca_ret =
-        init_doca_device(argv_, arg, cfg_.ifs_[intf_id].address_.c_str(), &ddev[intf_id], &cfg_.ifs_[intf_id].port_id_);
-    if (doca_ret != DOCA_SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
-      return;
-    }
-
-    rte_eth_macaddr_get(cfg_.ifs_[intf_id].port_id_, &mac_addrs[intf_id]);
-    HOLOSCAN_LOG_INFO("DOCA init Port {} -- RX: {} TX: {}", cfg_.ifs_[intf_id].port_id_,
-                      cfg_.ifs_[intf_id].rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
-                      cfg_.ifs_[intf_id].tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");    
+  doca_ret = init_doca_devices();
+  if (doca_ret != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_CRITICAL("Failed init DOCA device {}", net_bdf);
+    return;
   }
 
   std::set<int> gpu_mr_devs;
@@ -769,40 +761,40 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
 
   result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port[port_id]);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: {}", doca_error_get_descr(result));
     return result;
   }
 
   result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name.c_str());
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: {}", doca_error_get_descr(result));
     return result;
   }
   result = doca_flow_pipe_cfg_set_enable_strict_matching(pipe_cfg, true);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg enable_strict_matching: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg enable_strict_matching: {}",
                        doca_error_get_descr(result));
     return result;
   }
   result = doca_flow_pipe_cfg_set_type(pipe_cfg, DOCA_FLOW_PIPE_BASIC);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg type: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg type: {}", doca_error_get_descr(result));
     return result;
   }
   result = doca_flow_pipe_cfg_set_is_root(pipe_cfg, false);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: {}",
                        doca_error_get_descr(result));
     return result;
   }
   result = doca_flow_pipe_cfg_set_match(pipe_cfg, &match, &match_mask);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg match: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg match: {}", doca_error_get_descr(result));
     return result;
   }
   result = doca_flow_pipe_cfg_set_monitor(pipe_cfg, &monitor);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: {}",
                        doca_error_get_descr(result));
     return result;
   }
@@ -874,45 +866,45 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
 
   result = doca_flow_pipe_cfg_create(&pipe_cfg, df_port[port_id]);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to create doca_flow_pipe_cfg: {}", doca_error_get_descr(result));
     return result;
   }
 
   result = doca_flow_pipe_cfg_set_name(pipe_cfg, pipe_name.c_str());
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg name: {}", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
   result = doca_flow_pipe_cfg_set_enable_strict_matching(pipe_cfg, true);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg enable_strict_matching: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg enable_strict_matching: {}",
                        doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
   result = doca_flow_pipe_cfg_set_type(pipe_cfg, DOCA_FLOW_PIPE_CONTROL);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg type: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg type: {}", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
   result = doca_flow_pipe_cfg_set_is_root(pipe_cfg, true);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: {}",
                        doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
   result = doca_flow_pipe_cfg_set_match(pipe_cfg, nullptr, &match_mask);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg match: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg match: {}", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
   result = doca_flow_pipe_cfg_set_monitor(pipe_cfg, &monitor);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: {}",
                        doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
@@ -920,7 +912,7 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
 
   result = doca_flow_pipe_create(pipe_cfg, nullptr, nullptr, &root_pipe[port_id]);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Root pipe creation failed with: %s", doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Root pipe creation failed with: {}", doca_error_get_descr(result));
     doca_flow_pipe_cfg_destroy(pipe_cfg);
     return result;
   }
