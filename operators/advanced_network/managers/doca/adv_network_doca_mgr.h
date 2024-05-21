@@ -208,6 +208,7 @@ class DocaMgr : public ANOMgr {
   AdvNetBurstParams* create_burst_params() override;
 
  private:
+  doca_error_t init_doca_devices();
   doca_error_t create_root_pipe(int port_id);
   doca_error_t create_default_pipe(int port_id, uint32_t cnt_defq);
   struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
