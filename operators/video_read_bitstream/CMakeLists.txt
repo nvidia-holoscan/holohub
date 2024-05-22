@@ -27,3 +27,7 @@ add_library(holoscan::ops::video_read_bitstream ALIAS video_read_bitstream)
 target_include_directories(video_read_bitstream INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(video_read_bitstream holoscan::core)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

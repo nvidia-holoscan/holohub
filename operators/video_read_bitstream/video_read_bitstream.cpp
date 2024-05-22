@@ -24,8 +24,7 @@
 namespace holoscan::ops {
 void VideoReadBitstreamOp::setup(OperatorSpec& spec) {
   auto& output =
-    spec.output<gxf::Entity>("output_transmitter")
-    .condition(ConditionType::kDownstreamMessageAffordable);
+    spec.output<gxf::Entity>("output_transmitter");
 
   spec.param(output_transmitter_,
              "output_transmitter",
