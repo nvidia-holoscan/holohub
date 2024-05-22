@@ -51,7 +51,7 @@
 			]
 		},
 		"run": {
-			"command": "./h264_endoscopy_tool_tracking h264_endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy",
+			"command": "<holohub_app_bin>/h264_endoscopy_tool_tracking h264_endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_app_bin"
 		}
 	}

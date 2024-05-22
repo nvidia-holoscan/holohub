@@ -16,7 +16,7 @@ limitations under the License.
 """  # noqa: E501
 
 import holoscan.core  # noqa: F401
-import holoscan.gxf
+import holoscan.gxf  # noqa: F401
 
 from ._tensor_to_video_buffer import TensorToVideoBufferOp, VideoFormat
 

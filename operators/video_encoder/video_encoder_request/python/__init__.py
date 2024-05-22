@@ -16,8 +16,8 @@ limitations under the License.
 """  # noqa: E501
 
 import holoscan.core  # noqa: F401
-import holoscan.gxf
+import holoscan.gxf  # noqa: F401
 
-from ._video_encoder_request import EncoderInputFormat, EncoderConfig, VideoEncoderRequestOp
+from ._video_encoder_request import EncoderConfig, EncoderInputFormat, VideoEncoderRequestOp
 
 __all__ = ["EncoderInputFormat", "EncoderConfig", "VideoEncoderRequestOp"]
