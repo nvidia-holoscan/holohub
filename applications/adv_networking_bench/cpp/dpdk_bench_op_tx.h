@@ -26,7 +26,6 @@
 
 namespace holoscan::ops {
 
-
 /*
   The ANO benchmark app uses the Advanced Networking Operator to show how to send
   and receive packets at very high rates. The application is highly configurable
