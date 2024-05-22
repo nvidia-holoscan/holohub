@@ -22,6 +22,7 @@
 #include <atomic>
 #include <tuple>
 #include <unordered_map>
+#include <thread>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -239,6 +240,10 @@ class DocaMgr : public ANOMgr {
   struct doca_flow_pipe_entry* root_udp_entry_default; /* DOCA Flow root entry */
   AdvNetBurstParams burst[MAX_TX_BURST];
   std::atomic<uint32_t> burst_tx_idx;
+
+  std::thread worker_th[16];
+  int worker_th_idx;
+  std::set<int> gpu_mr_devs;
 };
 
 extern DocaMgr doca_mgr;
