@@ -176,11 +176,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
-    while (!adv_net_tx_burst_available(msg)) {}
-    if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
-      return;
-    }
+    while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
 
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {

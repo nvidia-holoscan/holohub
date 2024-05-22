@@ -1243,8 +1243,10 @@ int DocaMgr::rx_core(void* arg) {
 
   // WAR for Holoscan management of threads.
   // Be sure application thread finished before launching other CUDA tasks
-  sleep(2);
-
+  // cuDeviceGet(&cuDevice, tparams->gpu_id);
+  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
+  // cuCtxPushCurrent(cuContext);
+sleep(2);
   HOLOSCAN_LOG_INFO("Starting Rx Core {}, queues {}, GPU {}",
                     tparams->core_id,
                     tparams->rxqn,
