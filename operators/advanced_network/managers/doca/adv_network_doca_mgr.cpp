@@ -457,7 +457,6 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 }
 
 bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
-  printf("%d\n", this->initialized_);
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
@@ -1071,7 +1070,6 @@ void DocaMgr::run() {
         for (auto& q : rx.queues_) {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_rx->rxqn++;
-            printf("GPU %d rxqn %d ridx %d\n", gpu_idx, params_rx->rxqn, ridx);
 
             if (ridx == 0)
               params_rx->core_id = stoi(q.common_.cpu_core_);
@@ -1108,7 +1106,6 @@ void DocaMgr::run() {
         for (auto& q : tx.queues_) {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_tx->txqn++;
-            printf("GPU %d txqn %d tidx %d\n", gpu_idx, params_tx->txqn, tidx);
             if (tidx == 0) {
               params_tx->core_id = stoi(q.common_.cpu_core_);
               rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
@@ -1243,10 +1240,7 @@ int DocaMgr::rx_core(void* arg) {
 
   // WAR for Holoscan management of threads.
   // Be sure application thread finished before launching other CUDA tasks
-  // cuDeviceGet(&cuDevice, tparams->gpu_id);
-  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
-  // cuCtxPushCurrent(cuContext);
-sleep(2);
+  sleep(2);
   HOLOSCAN_LOG_INFO("Starting Rx Core {}, queues {}, GPU {}",
                     tparams->core_id,
                     tparams->rxqn,
