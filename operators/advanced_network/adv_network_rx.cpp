@@ -21,21 +21,19 @@
 
 namespace holoscan::ops {
 
-extern ANOMgr *g_ano_mgr;
+extern ANOMgr* g_ano_mgr;
 struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
   AdvNetConfigYaml cfg;
 };
 
-
 void AdvNetworkOpRx::setup(OperatorSpec& spec) {
   spec.output<std::shared_ptr<AdvNetBurstParams>>("bench_rx_out");
 
-  spec.param(
-      cfg_,
-      "cfg",
-      "Configuration",
-      "Configuration for the advanced network operator",
-      AdvNetConfigYaml());
+  spec.param(cfg_,
+             "cfg",
+             "Configuration",
+             "Configuration for the advanced network operator",
+             AdvNetConfigYaml());
 }
 
 void AdvNetworkOpRx::initialize() {
@@ -43,7 +41,7 @@ void AdvNetworkOpRx::initialize() {
   register_converter<holoscan::ops::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
-  Init();
+  if (Init() < 0) { throw std::runtime_error("ANO initialization failed"); }
 }
 
 int AdvNetworkOpRx::Init() {
@@ -51,16 +49,17 @@ int AdvNetworkOpRx::Init() {
   impl->cfg = cfg_.get();
   set_ano_mgr(impl->cfg);
 
-  g_ano_mgr->set_config_and_initialize(impl->cfg);
+  if (!g_ano_mgr->set_config_and_initialize(impl->cfg)) { return -1; }
 
-  for (const auto &rx : impl->cfg.rx_) {
-    auto port_opt = g_ano_mgr->get_port_from_ifname(rx.if_name_);
+  for (const auto& intf : impl->cfg.ifs_) {
+    const auto& rx = intf.rx_;
+    auto port_opt = g_ano_mgr->get_port_from_ifname(intf.address_);
     if (!port_opt.has_value()) {
-      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", rx.if_name_);
+      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
       return -1;
     }
 
-    for (const auto &q : rx.queues_) {
+    for (const auto& q : rx.queues_) {
       pq_map_[(port_opt.value() << 16) | q.common_.id_] = q.output_port_;
     }
   }
@@ -68,18 +67,14 @@ int AdvNetworkOpRx::Init() {
   return 0;
 }
 
-
-
 void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_output,
-      [[maybe_unused]] ExecutionContext&) {
+                             [[maybe_unused]] ExecutionContext&) {
   int n;
-  AdvNetBurstParams *burst;
+  AdvNetBurstParams* burst;
 
   const auto res = g_ano_mgr->get_rx_burst(&burst);
 
-  if (res != AdvNetStatus::SUCCESS) {
-    return;
-  }
+  if (res != AdvNetStatus::SUCCESS) { return; }
 
   auto adv_burst = std::make_shared<AdvNetBurstParams>();
   memcpy(adv_burst.get(), burst, sizeof(*burst));

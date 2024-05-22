@@ -27,23 +27,20 @@
 
 namespace holoscan::ops {
 
-
 // this part is purely optional, just a helper for the user
 AdvNetBurstParams* adv_net_create_burst_params();
 
-
 namespace detail {
-  inline AdvNetDirection DirectionStringToType(const std::string &dir) {
-    if (dir == "rx") {
-      return AdvNetDirection::RX;
-    } else if (dir == "tx") {
-      return AdvNetDirection::TX;
-    }
-
-    return AdvNetDirection::TX_RX;
+inline AdvNetDirection DirectionStringToType(const std::string& dir) {
+  if (dir == "rx") {
+    return AdvNetDirection::RX;
+  } else if (dir == "tx") {
+    return AdvNetDirection::TX;
   }
-};  // namespace detail
 
+  return AdvNetDirection::TX_RX;
+}
+};  // namespace detail
 
 /**
  * @brief Determine which directions are enabled
@@ -51,31 +48,29 @@ namespace detail {
  * @param dir Direction from config. Either "rx", "tx", or "tx/rx"
  * @return int Number of directions enabled
  */
-inline int EnabledDirections(const std::string &dir) {
-  if (dir == "rx" || dir == "tx") {
-    return 1;
-  }
+inline int EnabledDirections(const std::string& dir) {
+  if (dir == "rx" || dir == "tx") { return 1; }
 
   return 0;
 }
 
-
 /**
- * @brief Returns a raw CPU packet pointer from a pointer in AdvNetBurstParams
+ * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams for one segment
  *
  * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the CPU packet pointer at index idx
  * from the burst.
  *
  * @param burst Burst structure containing packets
+ * @param seg Segment of packet
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void *adv_net_get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx);
-void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
+void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx);
+void* adv_net_get_seg_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int seg, int idx);
 
 /**
- * @brief Returns a raw GPU packet pointer from a pointer in AdvNetBurstParams
+ * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
  *
  * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the GPU packet pointer at index idx
@@ -85,33 +80,29 @@ void *adv_net_get_cpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx)
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void *adv_net_get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx);
-void *adv_net_get_gpu_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
-
+void* adv_net_get_pkt_ptr(AdvNetBurstParams* burst, int idx);
+void* adv_net_get_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
- * @brief Get packet length of a CPU packet
+ * @brief Get packet length of a segment of a packet
  *
- * Returns the length of an individual CPU packet
+ * @param burst Burst structure containing packets
+ * @param seg Segment of packet
+ * @param idx Index of packet
+ * @return uint16_t Length of packet
+ */
+uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx);
+uint16_t adv_net_get_seg_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int seg, int idx);
+
+/**
+ * @brief Get packet length of an entire packet
  *
  * @param burst Burst structure containing packets
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t adv_net_get_cpu_pkt_len(AdvNetBurstParams *burst, int idx);
-uint16_t adv_net_get_cpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
-
-/**
- * @brief Get packet length of a GPU packet
- *
- * Returns the length of an individual GPU packet
- *
- * @param burst Burst structure containing packets
- * @param idx Index of packet
- * @return uint16_t Length of packet
- */
-uint16_t adv_net_get_gpu_pkt_len(AdvNetBurstParams *burst, int idx);
-uint16_t adv_net_get_gpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
+uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
+uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Populate a TX packet burst buffer
@@ -126,11 +117,11 @@ uint16_t adv_net_get_gpu_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int i
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst);
+AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams* burst);
 AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
- * @brief Set IPv4 header in CPU-only packet
+ * @brief Set IPv4 header in packet
  *
  * @param burst Burst structure to populate
  * @param idx Index of packet
@@ -138,14 +129,11 @@ AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      uint8_t *dst_addr);
-AdvNetStatus adv_net_set_cpu_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                                      int idx,
-                                      uint8_t *dst_addr);
+AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr);
+AdvNetStatus adv_net_set_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, char* dst_addr);
 
 /**
- * @brief Set IPv4 header in CPU-only packet
+ * @brief Set IPv4 header in packet
  *
  * @param burst Burst structure to populate
  * @param idx Index of packet
@@ -156,20 +144,13 @@ AdvNetStatus adv_net_set_cpu_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
-                                      int ip_len,
-                                      uint8_t proto,
-                                      unsigned int src_host,
-                                      unsigned int dst_host);
-AdvNetStatus adv_net_set_cpu_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx,
-                int ip_len,
-                uint8_t proto,
-                unsigned int src_host,
-                unsigned int dst_host);
+AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+                                  unsigned int src_host, unsigned int dst_host);
+AdvNetStatus adv_net_set_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, int ip_len,
+                                  uint8_t proto, unsigned int src_host, unsigned int dst_host);
 
 /**
- * @brief Set UDP header in CPU-only packet
+ * @brief Set UDP header in packet
  *
  * @param burst Burst structure to populate
  * @param idx Index of packet
@@ -179,16 +160,13 @@ AdvNetStatus adv_net_set_cpu_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_cpu_udp_hdr(AdvNetBurstParams *burst,
-                                      int idx,
-                                      int udp_len,
-                                      uint16_t src_port,
-                                      uint16_t dst_port);
-AdvNetStatus adv_net_set_cpu_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx, int udp_len, uint16_t src_port, uint16_t dst_port);
+AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                                 uint16_t dst_port);
+AdvNetStatus adv_net_set_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, int udp_len,
+                                 uint16_t src_port, uint16_t dst_port);
 
 /**
- * @brief Set UDP payload in CPU-only packet
+ * @brief Set UDP payload in packet
  *
  * @param burst Burst structure to populate
  * @param idx Index of packet
@@ -197,9 +175,9 @@ AdvNetStatus adv_net_set_cpu_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_cpu_udp_payload(AdvNetBurstParams *burst, int idx, void *data, int len);
-AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx, void *data, int len);
+AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len);
+AdvNetStatus adv_net_set_udp_payload(std::shared_ptr<AdvNetBurstParams> burst, int idx, void* data,
+                                     int len);
 
 /**
  * @brief Test if a TX burst is available
@@ -213,19 +191,19 @@ AdvNetStatus adv_net_set_cpu_udp_payload(std::shared_ptr<AdvNetBurstParams> burs
  * @return true Burst is available
  * @return false Burst is not available
  */
-bool adv_net_tx_burst_available(AdvNetBurstParams *burst);
+bool adv_net_tx_burst_available(AdvNetBurstParams* burst);
 bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
- * @brief Free all CPU packets and burst
+ * @brief Free all packets and burst from one segment
  *
- * Frees every allocated CPU packets in the burst and the burst metadata. After this
- * call completes the CPU pointers are no longer valid.
+ * Frees every allocated packets in the burst and the burst metadata for one segment.
+ * After this call completes the segment's pointers are no longer valid.
  *
  * @param burst Burst to free
  */
-void adv_net_free_cpu_pkts_and_burst(AdvNetBurstParams *burst);
-void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
+void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg);
+void adv_net_free_seg_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst, int seg);
 
 /**
  * @brief Free all packets and a burst
@@ -234,26 +212,24 @@ void adv_net_free_cpu_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_burst_pkts_and_burst(AdvNetBurstParams *burst);
-void adv_net_free_all_burst_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
+void adv_net_free_all_pkts_and_burst(AdvNetBurstParams* burst);
+void adv_net_free_all_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
- * @brief Set packet length in metadata
+ * @brief Set packet lengths in metadata
  *
- * Sets metadata packet length. This is needed in addition to L3+L4 lengths for hardware
+ * Sets metadata packet lengths. This is needed in addition to L3+L4 lengths for hardware
  *
  * @param burst Burst structure containing packet lists
  * @param idx Index of packet
- * @param cpu_len Length of CPU portion
- * @param gpu_len Length of GPU portion
+ * @param lens Lengths of each segment
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len);
-AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
-                                    int idx,
-                                    int cpu_len,
-                                    int gpu_len);
+AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams* burst, int idx,
+                                  const std::initializer_list<int>& lens);
+AdvNetStatus adv_net_set_pkt_lens(std::shared_ptr<AdvNetBurstParams> burst, int idx,
+                                  const std::initializer_list<int>& lens);
 
 /**
  * @brief Set packet TX time
@@ -269,34 +245,31 @@ AdvNetStatus adv_net_set_pkt_len(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Time set successfully
  */
-AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time);
-AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
-                                    int idx,
-                                    uint64_t time);
+AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t time);
+AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst, int idx,
+                                     uint64_t time);
 
-/**
- * @brief Frees a single packet
- *
- * Frees a single packet from either the CPU or GPU buffer list. This function is extremely
- * inefficient since it frees a single packet, and bulk methods should be preferred instead.
- *
- * @param pkt Pointer to packet to free
- */
-void adv_net_free_pkt(void *pkt);
 uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
- * @brief Free all packets in a single list (CPU or GPU)
+ * @brief Frees all segments of a single packet
  *
- * Frees all packets in a single list. This function can be used when one type of packet
- * should be freed while the other is used for a longer period of time. For example, the
- * GPU buffers may be needed for pipeline processing, but the CPU buffers can be freed immediately
- * after sorting the packets in header-data spit mode.
- *
- * @param pkts List of packets
- * @param len Number of packets to free
+ * @param burst Burst structure containing packet lists
+ * @param idx Index of packet
  */
-void adv_net_free_pkts(void **pkts, int len);
+void adv_net_free_pkt(AdvNetBurstParams* burst, int idx);
+void adv_net_free_pkt(std::shared_ptr<AdvNetBurstParams> burst, int pkt);
+
+uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
+
+/**
+ * @brief Frees a single segment from a single packet
+ *
+ * @param burst Burst structure containing packet lists
+ * @param seg Segment of packet in scatter list
+ * @param idx Index of packet
+ */
+void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
 
 /**
  * @brief Free all packets in a burst
@@ -306,8 +279,18 @@ void adv_net_free_pkts(void **pkts, int len);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_burst_pkts(AdvNetBurstParams *burst);
-void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> burst);
+void adv_net_free_all_pkts(AdvNetBurstParams* burst);
+void adv_net_free_all_pkts(std::shared_ptr<AdvNetBurstParams> burst);
+
+/**
+ * @brief Free all packets for a single segment in a burst
+ *
+ * Frees all packets in a single segment in a burst of packets.
+ *
+ * @param burst Burst structure containing packet lists
+ */
+void adv_net_free_all_seg_pkts(AdvNetBurstParams* burst, int seg);
+void adv_net_free_all_seg_pkts(std::shared_ptr<AdvNetBurstParams> burst, int seg);
 
 /**
  * @brief Free a receive burst
@@ -317,7 +300,7 @@ void adv_net_free_all_burst_pkts(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst
  */
-void adv_net_free_rx_burst(AdvNetBurstParams *burst);
+void adv_net_free_rx_burst(AdvNetBurstParams* burst);
 void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -328,7 +311,7 @@ void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure to free
  */
-void adv_net_free_tx_burst(AdvNetBurstParams *burst);
+void adv_net_free_tx_burst(AdvNetBurstParams* burst);
 void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -336,7 +319,7 @@ void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst);
+int64_t adv_net_get_num_pkts(AdvNetBurstParams* burst);
 int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -344,8 +327,27 @@ int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
+int64_t adv_net_get_q_id(AdvNetBurstParams* burst);
 int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
+
+/**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ * @param port Port ID of interface
+ *
+ * @returns AdvNetStatus::SUCCESS on success
+ */
+AdvNetStatus adv_net_get_mac(int port, char* mac);
+
+/**
+ * @brief Get mac address of an interface
+ *
+ * @param addr Address of interface from config file
+ *
+ * @returns Port number or -1 for not found
+ */
+int adv_net_address_to_port(const std::string& addr);
 
 /**
  * @brief Set the number of packets in a burst
@@ -353,7 +355,7 @@ int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
  * @param burst Burst structure
  * @param num Number of packets
  */
-void adv_net_set_num_pkts(AdvNetBurstParams *burst, int64_t num);
+void adv_net_set_num_pkts(AdvNetBurstParams* burst, int64_t num);
 void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num);
 
 /**
@@ -363,10 +365,11 @@ void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num)
  * @param port Port ID of interface
  * @param q Queue ID of interface
  * @param num Number of packets
+ * @param segs Number of segments
  */
-void adv_net_set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num);
-void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-          uint16_t port, uint16_t q, int64_t num);
+void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs);
+void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst, uint16_t port, uint16_t q,
+                     int64_t num, int segs);
 
 /**
  * @brief First MAC address string to char buffer
@@ -374,25 +377,24 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @param dst Destination buffer
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
-void adv_net_format_eth_addr(uint8_t *dst, std::string addr);
+void adv_net_format_eth_addr(char* dst, std::string addr);
 
-std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
+std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string& name);
 
 /**
  * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
  * in the manager's destructor.
- * 
+ *
  */
 void adv_net_shutdown();
 
 /**
  * @brief Print port statistics
- * 
+ *
  */
 void adv_net_print_stats();
 
 };  // namespace holoscan::ops
-
 
 template <>
 struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
@@ -419,104 +421,119 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
     // YAML is using exceptions, catch them
     try {
-      input_spec.common_.version        = node["version"].as<int32_t>();
-      input_spec.common_.master_core_   = node["master_core"].as<int32_t>();
+      input_spec.common_.version = node["version"].as<int32_t>();
+      input_spec.common_.master_core_ = node["master_core"].as<int32_t>();
       try {
-        input_spec.common_.mgr_         = node["manager"].as<std::string>();
+        input_spec.common_.mgr_ = node["manager"].as<std::string>();
       } catch (const std::exception& e) {
-        input_spec.common_.mgr_         = "dpdk";  // Use DPDK as the default
+        input_spec.common_.mgr_ = "dpdk";  // Use DPDK as the default
       }
 
       try {
-        const auto &rx = node["rx"];
-        for (const auto &rx_item : rx) {
-          holoscan::ops::AdvNetRxConfig rx_cfg;
-          rx_cfg.if_name_ = rx_item["if_name"].as<std::string>();
-          rx_cfg.flow_isolation_ = rx_item["flow_isolation"].as<bool>();
+        input_spec.debug_ = node["debug"].as<bool>();
+      } catch (const std::exception& e) { input_spec.debug_ = false; }
 
-          for (const auto &q_item :  rx_item["queues"]) {
-            holoscan::ops::RxQueueConfig q;
-            q.common_.name_             = q_item["name"].as<std::string>();
-            q.common_.id_               = q_item["id"].as<int>();
+      try {
+        const auto& mrs = node["memory_regions"];
+        for (const auto& mr : mrs) {
+          holoscan::ops::MemoryRegion tmr;
+          tmr.name_ = mr["name"].as<std::string>();
+          tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
+          tmr.buf_size_ = mr["buf_size"].as<size_t>();
+          tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
+          tmr.affinity_ = mr["affinity"].as<uint32_t>();
+          tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+          try {  // Ownership flag is optional
+            tmr.owned_ = mr["owned"].template as<bool>();
+          } catch (const std::exception& e) { tmr.owned_ = true; }
 
-            if (input_spec.common_.mgr_ == "doca") {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-            } else {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              if (q.common_.gpu_direct_) {
-                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-                q.common_.hds_              = q_item["split_boundary"].as<int>();
-              }
-            }
-
-            q.common_.cpu_cores_        = q_item["cpu_cores"].as<std::string>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.num_concurrent_batches_  = q_item["num_concurrent_batches"].as<int>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.batch_size_       = q_item["batch_size"].as<int>();
-            q.output_port_              = q_item["output_port"].as<std::string>();
-
-            rx_cfg.queues_.emplace_back(q);
+          if (input_spec.mrs_.find(tmr.name_) != input_spec.mrs_.end()) {
+            HOLOSCAN_LOG_CRITICAL("Duplicate memory region names: {}", tmr.name_);
+            return false;
           }
-
-          for (const auto &flow_item :  rx_item["flows"]) {
-            holoscan::ops::FlowConfig flow;
-            flow.name_          = flow_item["name"].as<std::string>();
-
-            flow.action_.type_     = holoscan::ops::FlowType::QUEUE;
-            flow.action_.id_       = flow_item["action"]["id"].as<int>();
-            flow.match_.udp_src_   = flow_item["match"]["udp_src"].as<uint16_t>();
-            flow.match_.udp_dst_   = flow_item["match"]["udp_dst"].as<uint16_t>();
-
-            rx_cfg.flows_.emplace_back(flow);
-          }
-
-          input_spec.rx_.emplace_back(rx_cfg);
+          input_spec.mrs_[tmr.name_] = tmr;
         }
       } catch (const std::exception& e) {
-        GXF_LOG_ERROR(e.what());
-        return false;
+        HOLOSCAN_LOG_ERROR("Must define at least one memory type");
       }
 
       try {
-        const auto &tx = node["tx"];
-        for (const auto &tx_item : tx) {
-          holoscan::ops::AdvNetTxConfig tx_cfg;
-          tx_cfg.if_name_ = tx_item["if_name"].as<std::string>();
+        const auto& intfs = node["interfaces"];
+        uint16_t port = 0;
+        for (const auto& intf : intfs) {
+          holoscan::ops::AdvNetConfigInterface ifcfg;
 
+          ifcfg.name_ = intf["name"].as<std::string>();
+          ifcfg.address_ = intf["address"].as<std::string>();
           try {
-            tx_cfg.accurate_send_ = tx_item["accurate_send"].as<bool>();
-          } catch (const std::exception& e) {
-            tx_cfg.accurate_send_ = false;
-          }
+            ifcfg.flow_isolation_ = intf["flow_isolation"].as<bool>();
+          } catch (const std::exception& e) { ifcfg.flow_isolation_ = false; }
 
-          for (const auto &q_item :  tx_item["queues"]) {
-            holoscan::ops::TxQueueConfig q;
-            q.common_.name_             = q_item["name"].as<std::string>();
-            q.common_.id_               = q_item["id"].as<int>();
+          ifcfg.port_id_ = port++;
 
-            if (input_spec.common_.mgr_ == "doca") {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-            } else {
-              q.common_.gpu_direct_       = q_item["gpu_direct"].as<bool>();
-              if (q.common_.gpu_direct_) {
-                q.common_.gpu_dev_          = q_item["gpu_device"].as<int>();
-                q.common_.hds_              = q_item["split_boundary"].as<int>();
-              }
+          const auto& rx = intf["rx"];
+          for (const auto& rx_item : rx) {
+            holoscan::ops::AdvNetRxConfig rx_cfg;
+
+            for (const auto& q_item : rx_item["queues"]) {
+              holoscan::ops::RxQueueConfig q;
+              q.common_.name_ = q_item["name"].as<std::string>();
+              q.common_.id_ = q_item["id"].as<int>();
+              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
+              q.common_.batch_size_ = q_item["batch_size"].as<int>();
+              q.output_port_ = q_item["output_port"].as<std::string>();
+
+              const auto& mrs = q_item["memory_regions"];
+              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
+
+              rx_cfg.queues_.emplace_back(q);
             }
 
-            q.common_.cpu_cores_        = q_item["cpu_cores"].as<std::string>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.num_concurrent_batches_  = q_item["num_concurrent_batches"].as<int>();
-            q.common_.max_packet_size_  = q_item["max_packet_size"].as<int>();
-            q.common_.batch_size_       = q_item["batch_size"].as<int>();
+            for (const auto& flow_item : rx_item["flows"]) {
+              holoscan::ops::FlowConfig flow;
+              flow.name_ = flow_item["name"].as<std::string>();
 
-            tx_cfg.queues_.emplace_back(q);
+              flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
+              flow.action_.id_ = flow_item["action"]["id"].as<int>();
+              flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
+              flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
+
+              rx_cfg.flows_.emplace_back(flow);
+            }
+
+            ifcfg.rx_ = rx_cfg;
           }
 
-          input_spec.tx_.emplace_back(tx_cfg);
+          const auto& tx = intf["tx"];
+          for (const auto& tx_item : tx) {
+            holoscan::ops::AdvNetTxConfig tx_cfg;
+
+            try {
+              tx_cfg.accurate_send_ = tx_item["accurate_send"].as<bool>();
+            } catch (const std::exception& e) { tx_cfg.accurate_send_ = false; }
+
+            for (const auto& q_item : tx_item["queues"]) {
+              holoscan::ops::TxQueueConfig q;
+              q.common_.name_ = q_item["name"].as<std::string>();
+              q.common_.id_ = q_item["id"].as<int>();
+              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
+              q.common_.batch_size_ = q_item["batch_size"].as<int>();
+
+              const auto& mrs = q_item["memory_regions"];
+              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
+
+              const auto& offload = q_item["offloads"];
+              for (const auto& off : offload) {
+                q.common_.offloads_.push_back(off.as<std::string>());
+              }
+
+              tx_cfg.queues_.emplace_back(q);
+            }
+
+            ifcfg.tx_ = tx_cfg;
+          }
+
+          input_spec.ifs_.push_back(ifcfg);
         }
       } catch (const std::exception& e) {
         GXF_LOG_ERROR(e.what());

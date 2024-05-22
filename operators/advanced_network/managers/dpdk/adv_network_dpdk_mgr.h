@@ -52,103 +52,109 @@
 
 namespace holoscan::ops {
 
+struct DPDKQueueConfig {
+  std::vector<struct rte_mempool*> pools;
+  struct rte_eth_rxconf rxconf_qsplit;
+  std::vector<union rte_eth_rxseg> rx_useg;
+};
+
 class DpdkMgr : public ANOMgr {
  public:
-    static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
+  static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
 
-    DpdkMgr() = default;
-    ~DpdkMgr();
-    void set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
-    void initialize() override;
-    void run() override;
-    static constexpr int JUMBFRAME_SIZE = 9100;
-    static constexpr int DEFAULT_NUM_TX_BURST = 256;
-    static constexpr int DEFAULT_NUM_RX_BURST = 64;
-    uint16_t default_num_rx_desc = 8192;
-    uint16_t default_num_tx_desc = 8192;
-    int num_ports = 0;
-    static constexpr int MAX_IFS = 4;
-    static constexpr int num_lcores = 2;
-    static constexpr int MEMPOOL_CACHE_SIZE = 32;
-    static constexpr int MAX_PKT_BURST = 64;
-    static constexpr uint32_t GPU_PAGE_SHIFT = 16;
-    static constexpr uint32_t GPU_PAGE_SIZE = (1UL << GPU_PAGE_SHIFT);
-    static constexpr uint32_t GPU_PAGE_OFFSET = (GPU_PAGE_SIZE - 1);
-    static constexpr uint32_t GPU_PAGE_MASK = (~GPU_PAGE_OFFSET);
-    static constexpr uint32_t CPU_PAGE_SIZE = 4096;
-    static constexpr int BUFFER_SPLIT_SEGS = 2;
-    static constexpr int MAX_ETH_HDR_SIZE = 18;
+  DpdkMgr() = default;
+  ~DpdkMgr();
+  bool set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
+  void initialize() override;
+  void run() override;
+  static constexpr int JUMBFRAME_SIZE = 9100;
+  static constexpr int DEFAULT_NUM_TX_BURST = 256;
+  static constexpr int DEFAULT_NUM_RX_BURST = 64;
+  uint16_t default_num_rx_desc = 8192;
+  uint16_t default_num_tx_desc = 8192;
+  int num_ports = 0;
+  static constexpr int num_lcores = 2;
+  static constexpr int MEMPOOL_CACHE_SIZE = 32;
+  static constexpr int MAX_PKT_BURST = 64;
 
-    void *get_cpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
-    void *get_gpu_pkt_ptr(AdvNetBurstParams *burst, int idx) override;
-    uint16_t get_cpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
-    uint16_t get_gpu_pkt_len(AdvNetBurstParams *burst, int idx) override;
-    AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
-    AdvNetStatus set_cpu_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      uint8_t *dst_addr) override;
-    AdvNetStatus set_cpu_ipv4_hdr(AdvNetBurstParams *burst, int idx,
-                                      int ip_len,
-                                      uint8_t proto,
-                                      unsigned int src_host,
-                                      unsigned int dst_host) override;
-    AdvNetStatus set_cpu_udp_hdr(AdvNetBurstParams *burst,
-                                      int idx,
-                                      int udp_len,
-                                      uint16_t src_port,
-                                      uint16_t dst_port) override;
-    AdvNetStatus set_cpu_udp_payload(AdvNetBurstParams *burst, int idx,
-                                      void *data, int len) override;
-    bool tx_burst_available(AdvNetBurstParams *burst) override;
+  static constexpr uint32_t GPU_PAGE_OFFSET = (GPU_PAGE_SIZE - 1);
+  static constexpr uint32_t GPU_PAGE_MASK = (~GPU_PAGE_OFFSET);
+  static constexpr uint32_t CPU_PAGE_SIZE = 4096;
+  static constexpr int BUFFER_SPLIT_SEGS = 2;
+  static constexpr int MAX_ETH_HDR_SIZE = 18;
 
-    AdvNetStatus set_pkt_len(AdvNetBurstParams *burst, int idx, int cpu_len, int gpu_len) override;
-    void free_pkt(void *pkt) override;
-    void free_pkts(void **pkts, int len) override;
-    void free_rx_burst(AdvNetBurstParams *burst) override;
-    void free_tx_burst(AdvNetBurstParams *burst) override;
-    std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
+  void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) override;
+  void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
+  uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
+  uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
+  AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
+  AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
+  AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+                            unsigned int src_host, unsigned int dst_host) override;
+  AdvNetStatus set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                           uint16_t dst_port) override;
+  AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) override;
+  bool tx_burst_available(AdvNetBurstParams* burst) override;
 
-    AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
-    AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp);
-    void free_rx_meta(AdvNetBurstParams *burst) override;
-    void free_tx_meta(AdvNetBurstParams *burst) override;
-    AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
-    AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
-    void shutdown() override;
-    void print_stats() override;
-    uint64_t get_burst_tot_byte(AdvNetBurstParams *burst) override;
-    AdvNetBurstParams * create_burst_params() override;
+  AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
+                            const std::initializer_list<int>& lens) override;
+  void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override;
+  void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override;
+  void free_pkt(AdvNetBurstParams* burst, int pkt) override;
+  void free_all_pkts(AdvNetBurstParams* burst) override;
+  void free_rx_burst(AdvNetBurstParams* burst) override;
+  void free_tx_burst(AdvNetBurstParams* burst) override;
+  std::optional<uint16_t> get_port_from_ifname(const std::string& name) override;
+
+  AdvNetStatus get_rx_burst(AdvNetBurstParams** burst) override;
+  AdvNetStatus set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp);
+  void free_rx_meta(AdvNetBurstParams* burst) override;
+  void free_tx_meta(AdvNetBurstParams* burst) override;
+  AdvNetStatus get_tx_meta_buf(AdvNetBurstParams** burst) override;
+  AdvNetStatus send_tx_burst(AdvNetBurstParams* burst) override;
+  int address_to_port(const std::string& addr) override;
+  AdvNetStatus get_mac(int port, char* mac) override;
+  void shutdown() override;
+  void print_stats() override;
+  void adjust_memory_regions() override;
+  uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
+  AdvNetBurstParams* create_burst_params() override;
+  bool validate_config() const override;
 
  private:
-    static std::string generate_random_string(int len);
-    static int rx_core_worker(void *arg);
-    static int tx_core_worker(void *arg);
-    static void flush_packets(int port);
-    void setup_accurate_send_scheduling_mask();
-    int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
-    struct rte_flow *add_flow(int port, const FlowConfig &cfg);
-    std::optional<struct rte_pktmbuf_extmem> allocate_gpu_pktmbuf(int port_id, uint16_t pkt_size,
-                                                                int num_mbufs, int gpu_dev);
+  static std::string generate_random_string(int len);
+  static int rx_core_worker(void* arg);
+  static int tx_core_worker(void* arg);
+  static void flush_packets(int port);
+  void setup_accurate_send_scheduling_mask();
+  int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
+  struct rte_flow* add_flow(int port, const FlowConfig& cfg);
+  AdvNetStatus register_mrs();
+  AdvNetStatus map_mrs();
+  int numa_from_mem(const MemoryRegion& mr);
+  struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
+                                       AdvNetDirection direction);
+  void apply_tx_offloads(int port);
 
-    AdvNetConfigYaml cfg_;
-    std::array<std::string, MAX_IFS> if_names;
-    std::array<std::string, MAX_IFS> pcie_addrs;
-    std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
-    struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
-    struct rte_ring *rx_ring;
-    std::unordered_map<uint32_t, struct rte_ring *> tx_rings;
-    std::unordered_map<uint32_t, struct rte_mempool *> tx_burst_buffers;
-    std::unordered_map<uint32_t, struct rte_mempool *> tx_cpu_pkt_pools;
-    std::unordered_map<uint32_t, struct rte_mempool *> tx_gpu_pkt_pools;
-    std::unordered_map<uint32_t, struct rte_mempool *> rx_cpu_pkt_pools;
-    std::unordered_map<uint32_t, struct rte_mempool *> rx_gpu_pkt_pools;
-    struct rte_mempool *rx_burst_buffer;
-    struct rte_mempool *rx_meta;
-    struct rte_mempool *tx_meta;
-    uint64_t timestamp_mask_{0};
-    uint64_t timestamp_offset_{0};
-    std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
+  std::array<std::string, MAX_IFS> if_names;
+  std::array<std::string, MAX_IFS> pcie_addrs;
+  std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
+  struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
+  struct rte_ring* rx_ring;
+  std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
+  std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
+  std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
+  std::unordered_map<uint32_t, DPDKQueueConfig*> rx_q_map_;
+  std::unordered_map<uint32_t, DPDKQueueConfig*> tx_q_map_;
+  struct rte_mempool* pkt_len_buffer;
+  struct rte_mempool* rx_burst_buffer;
+  struct rte_mempool* rx_meta;
+  struct rte_mempool* tx_meta;
+  uint64_t timestamp_mask_{0};
+  uint64_t timestamp_offset_{0};
+  std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
-    int num_init = 0;
+  int num_init = 0;
 };
 
 };  // namespace holoscan::ops

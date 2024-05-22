@@ -19,9 +19,6 @@
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -57,9 +54,9 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     }
 
     for (int n = 0; n < num_concurrent; n++) {
-      cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
       cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
       cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
+      cudaMallocAsync(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_, streams_[n]);
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel
@@ -173,7 +170,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       }
 
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
