@@ -637,10 +637,10 @@ void DocaMgr::initialize() {
       if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
         HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
         rxq_pkts = THRESHOLD_BUF_NUM;
-      } else {
-        if (!rte_is_power_of_2(q_max_packet_size)) {
+      }
+
+      if (!rte_is_power_of_2(q_max_packet_size)) {
           q_max_packet_size = rte_align32pow2(q_max_packet_size);
-        }
       }
 
       key = (intf.port_id_ << 16) | q.common_.id_;
@@ -1071,7 +1071,6 @@ void DocaMgr::run() {
         for (auto& q : rx.queues_) {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_rx->rxqn++;
-            printf("GPU %d rxqn %d ridx %d\n", gpu_idx, params_rx->rxqn, ridx);
 
             if (ridx == 0)
               params_rx->core_id = stoi(q.common_.cpu_core_);
@@ -1108,7 +1107,7 @@ void DocaMgr::run() {
         for (auto& q : tx.queues_) {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_tx->txqn++;
-            printf("GPU %d txqn %d tidx %d\n", gpu_idx, params_tx->txqn, tidx);
+
             if (tidx == 0) {
               params_tx->core_id = stoi(q.common_.cpu_core_);
               rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
@@ -1240,6 +1239,8 @@ int DocaMgr::rx_core(void* arg) {
       printf("Failed to pin core: %s\n", strerror(errno));
       exit(1);
   }
+  pthread_setname_np(self, "RX_WORKER");
+
 
   // WAR for Holoscan management of threads.
   // Be sure application thread finished before launching other CUDA tasks
@@ -1251,8 +1252,12 @@ int DocaMgr::rx_core(void* arg) {
                     tparams->gpu_id);
 
   cudaSetDevice(tparams->gpu_id);
-  cudaFree(0);
-
+  // cudaFree(0);
+#if MPS_ENABLED == 1
+  cuDeviceGet(&cuDevice, tparams->gpu_id);
+  cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
+  cuCtxPushCurrent(cuContext);
+#endif
   cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority);
 
   result = doca_gpu_mem_alloc(tparams->gdev,
@@ -1411,6 +1416,10 @@ int DocaMgr::rx_core(void* arg) {
   cudaStreamDestroy(rx_stream);
   doca_gpu_mem_free(tparams->gdev, (void*)gpu_exit_condition);
 
+#if MPS_ENABLED == 1
+  cuCtxPopCurrent(&cuContext);
+#endif
+
   HOLOSCAN_LOG_INFO(
       "Total packets received by application (port/queue {}/{}): {}, last partial batch packets "
       "{}\n",
@@ -1434,21 +1443,34 @@ int DocaMgr::tx_core(void* arg) {
   AdvNetBurstParams* burst;
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
-
+  CUdevice cuDevice;
+  CUcontext cuContext;
   pthread_t self = pthread_self();
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   CPU_SET(tparams->core_id, &cpuset);
 
-  HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, socket {} GPU {}",
+  int rc = pthread_setaffinity_np(self, sizeof(cpu_set_t), &cpuset);
+  if (rc != 0) {
+      printf("Failed to pin core: %s\n", strerror(errno));
+      exit(1);
+  }
+  pthread_setname_np(self, "TX_WORKER");
+
+  HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, GPU {}",
                     tparams->core_id,
                     tparams->port,
                     tparams->txqn,
-                    rte_socket_id(),
                     tparams->gpu_id);
 
+
   cudaSetDevice(tparams->gpu_id);
-  cudaFree(0);
+  // cudaFree(0);
+#if MPS_ENABLED == 1
+  cuDeviceGet(&cuDevice, tparams->gpu_id);
+  cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
+  cuCtxPushCurrent(cuContext);
+#endif
 
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamCreateWithFlags(&tx_stream[idxq], cudaStreamNonBlocking);
@@ -1522,6 +1544,10 @@ int DocaMgr::tx_core(void* arg) {
       HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", res_cuda);
     }
   }
+
+#if MPS_ENABLED == 1
+  cuCtxPopCurrent(&cuContext);
+#endif
 
   return 0;
 }
@@ -1753,14 +1779,15 @@ void DocaMgr::shutdown() {
 
   HOLOSCAN_LOG_INFO("ANO DOCA manager shutting down");
 
-  force_quit_doca.store(true);
-
-  HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
-
-  for (int i = 0; i < worker_th_idx; i++) {
-    HOLOSCAN_LOG_INFO("Waiting on thread {}", i);
-    worker_th[i].join();
+  if (force_quit_doca.load() == false) {
+    HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
+    force_quit_doca.store(true);
+    for (int i = 0; i < worker_th_idx; i++) {
+      HOLOSCAN_LOG_INFO("Waiting on thread {}", i);
+      worker_th[i].join();
+    }
   }
+
   // RTE_LCORE_FOREACH_WORKER(icore) {
   //   if (rte_eal_wait_lcore(icore) < 0) {
   //     fprintf(stderr, "bad exit for coreid: %d\n", icore);
