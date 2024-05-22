@@ -83,10 +83,6 @@ void adv_net_free_all_seg_pkts(std::shared_ptr<AdvNetBurstParams> burst, int seg
   return adv_net_free_all_seg_pkts(burst.get(), seg);
 }
 
-uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst) {
-  return g_ano_mgr->get_burst_tot_byte(burst.get());
-}
-
 void adv_net_free_all_burst_pkts(AdvNetBurstParams* burst) {
   g_ano_mgr->free_all_pkts(burst);
 }
