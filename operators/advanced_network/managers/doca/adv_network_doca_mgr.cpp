@@ -45,6 +45,7 @@ uint64_t stats_tx_tot_bytes;
 uint64_t stats_tx_tot_batch;
 
 struct TxDocaWorkerQueue {
+  int port;
   int queue;
   uint64_t tx_pkts = 0;
   uint32_t batch_size;
@@ -53,6 +54,7 @@ struct TxDocaWorkerQueue {
 };
 
 struct TxDocaWorkerParams {
+  int core_id;
   int port;
   int txqn;
   uint32_t batch_size;
@@ -64,6 +66,7 @@ struct TxDocaWorkerParams {
 };
 
 struct RxDocaWorkerQueue {
+  int port;
   int queue;
   uint64_t rx_pkts = 0;
   uint32_t batch_size;
@@ -71,6 +74,7 @@ struct RxDocaWorkerQueue {
 };
 
 struct RxDocaWorkerParams {
+  int core_id;
   int port;
   int rxqn;
   int gpu_id;  
@@ -154,7 +158,8 @@ doca_error_t DocaMgr::init_doca_devices() {
   char** argv_;
   int arg = 0;
   argv_ = (char**)malloc(sizeof(char*) * max_nargs);
-  for (int i = 0; i < max_nargs; i++) { argv_[i] = (char*)malloc(max_arg_size); }
+  for (int i = 0; i < max_nargs; i++)
+    argv_[i] = (char *)calloc(max_arg_size, sizeof(char));
 
   std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
 
@@ -171,12 +176,14 @@ doca_error_t DocaMgr::init_doca_devices() {
   cores = cores.substr(0, cores.size() - 1);
   std::cout << cores;
 
-  strncpy(argv_[arg++], "-l", max_arg_size - 1);
-  strncpy(argv_[arg++], cores.c_str(), max_arg_size - 1);
+  // strncpy(argv_[arg++], "", max_arg_size - 1);
+  // strncpy(argv_[arg++], "-l", max_arg_size - 1);
+  // strncpy(argv_[arg++], cores.c_str(), max_arg_size - 1);
+  strncpy(argv_[arg++], "", max_arg_size - 1);
   strncpy(argv_[arg++], "-a", max_arg_size - 1);
   strncpy(argv_[arg++], std::string("00:00.0").c_str(), max_arg_size - 1);
 
-  HOLOSCAN_LOG_INFO("Initializing DPDK on cores {} max_nargs {} arg {} argv0 {} argv1 {} argv2 {} argv3 {}",
+  HOLOSCAN_LOG_INFO("Initializing DPDK on cores {} max_nargs {} arg {} : {} {} {} {}",
                   cores.c_str(), max_nargs,
                   arg, argv_[0], argv_[1], argv_[2], argv_[3]);
 
@@ -190,8 +197,6 @@ doca_error_t DocaMgr::init_doca_devices() {
     }
   }
 
-  // char *eal_param[3] = {"", "-a", "00:00.0"};
-  // ret = rte_eal_init(3, eal_param);
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
     HOLOSCAN_LOG_CRITICAL("DPDK init failed: %d", ret);
@@ -542,13 +547,10 @@ void DocaMgr::initialize() {
     return;
   }
 
-  std::set<int> gpu_mr_devs;
   // Find all GPUs used in the MRs
   for (const auto &mr: cfg_.mrs_) {
     if (mr.second.kind_ == MemoryKind::DEVICE) {
       gpu_mr_devs.emplace(mr.second.affinity_);
-      cudaSetDevice(mr.second.affinity_);
-      cudaFree(0);
     }
   }
 
@@ -653,7 +655,7 @@ void DocaMgr::initialize() {
 
 
     for (auto& q : intf.tx_.queues_) {
-      int txq_pkts = -1;      
+      int txq_pkts = -1;
       key = (intf.port_id_ << 16) | q.common_.id_;
 
       for (const auto &mr: cfg_.mrs_) {
@@ -1028,40 +1030,150 @@ void DocaMgr::run() {
   TxDocaWorkerParams* params_tx;
   uint32_t lcore_rx = rte_get_next_lcore(-1, 1, 0);
   uint32_t lcore_tx = rte_get_next_lcore(lcore_rx, 1, 0);
+  cpu_set_t cpuset;
+
+  worker_th_idx = 0;
 
   HOLOSCAN_LOG_INFO("Starting advanced network GPU workers");  // rx.empty {}", rx.empty);
   // determine the correct process types for input/output
   int (*rx_worker)(void*) = rx_core;
   int (*tx_worker)(void*) = tx_core;
+  int ridx = 0, tidx = 0;
+  bool rx_enabled = false;
+  bool tx_enabled = false;
 
   for (const auto &intf: cfg_.ifs_) {
-    const auto& rx = intf.rx_;
-    if (rx.queues_.size() > 0) {
+    if (intf.rx_.queues_.size() > 0) {
+      rx_enabled = true;
+      break;
+    }
+  }
+
+  for (const auto &intf: cfg_.ifs_) {
+    if (intf.tx_.queues_.size() > 0) {
+      tx_enabled = true;
+      break;
+    }
+  }
+
+  if (rx_enabled) {
+    for (const auto gpu_idx : gpu_mr_devs) {
       params_rx = new RxDocaWorkerParams;
-      params_rx->port = intf.port_id_;
-      params_rx->rxqn = rx.queues_.size();
+
       params_rx->ring = rx_ring;
       params_rx->meta_pool = rx_meta;
-      params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
+      params_rx->gpu_id = gpu_idx; //cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
       params_rx->gdev = gdev[params_rx->gpu_id];
+      params_rx->rxqn = 0;
 
-      int ridx = 0;
-      for (auto& q : rx.queues_) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-        auto qinfo = rx_q_map_[key];
-        params_rx->rxqw[ridx].queue = q.common_.id_;
-        params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
-        params_rx->rxqw[ridx].rxq = qinfo;
+      for (const auto &intf: cfg_.ifs_) {
+        const auto& rx = intf.rx_;
+        for (auto& q : rx.queues_) {
+          if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
+            params_rx->rxqn++;
+            printf("GPU %d rxqn %d ridx %d\n", gpu_idx, params_rx->rxqn, ridx);
 
-        ridx++;
+            if (ridx == 0)
+              params_rx->core_id = stoi(q.common_.cpu_core_);
+            uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+            auto qinfo = rx_q_map_[key];
+            params_rx->rxqw[ridx].queue = q.common_.id_;
+            params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
+            params_rx->rxqw[ridx].rxq = qinfo;
+            params_rx->rxqw[ridx].port = intf.port_id_;
+
+            ridx++;
+          }
+        }
       }
 
-      rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
+      if (ridx > 0) {
+        worker_th[worker_th_idx++] = std::thread(rx_worker, (void*)params_rx);
+        ridx = 0;
+      }
+    }
+  }
+
+  if (tx_enabled) {
+    for (const auto gpu_idx : gpu_mr_devs) {
+      params_tx = new TxDocaWorkerParams;
+
+      params_tx->meta_pool = tx_meta;
+      params_tx->gpu_id = gpu_idx; //cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
+      params_tx->gdev = gdev[params_tx->gpu_id];
+      params_tx->txqn = 0;
+      for (const auto &intf: cfg_.ifs_) {
+        const auto& tx = intf.tx_;
+
+        for (auto& q : tx.queues_) {
+          if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
+            params_tx->txqn++;
+            printf("GPU %d txqn %d tidx %d\n", gpu_idx, params_tx->txqn, tidx);
+            if (tidx == 0) {
+              params_tx->core_id = stoi(q.common_.cpu_core_);
+              rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
+            }
+
+            uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+            auto qinfo = tx_q_map_[key];
+            params_tx->txqw[tidx].queue = q.common_.id_;
+            params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
+            params_tx->txqw[tidx].txq = qinfo;
+            params_tx->txqw[tidx].port = intf.port_id_;
+            params_tx->txqw[tidx].ring = tx_rings[key];
+            tidx++;
+          }
+        }
+      }
+
+      if (tidx > 0) {
+        worker_th[worker_th_idx++] = std::thread(tx_worker, (void*)params_tx);
+        tidx = 0;
+      }
+    }
+  }
+
+#if 0
+
+    for (const auto &intf: cfg_.ifs_) {
+      const auto& rx = intf.rx_;
+      if (rx.queues_.size() > 0) {
+        
+        params_rx->core_id = stoi(rx.queues_[0].common_.cpu_core_);
+        params_rx->port = intf.port_id_;
+        params_rx->rxqn = rx.queues_.size();
+        params_rx->ring = rx_ring;
+        params_rx->meta_pool = rx_meta;
+        params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
+        params_rx->gdev = gdev[params_rx->gpu_id];
+
+        int ridx = 0;
+        for (auto& q : rx.queues_) {
+          uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+          auto qinfo = rx_q_map_[key];
+          params_rx->rxqw[ridx].queue = q.common_.id_;
+          params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
+          params_rx->rxqw[ridx].rxq = qinfo;
+
+          ridx++;
+        }
+
+      // CPU_ZERO(&cpuset);
+      // CPU_SET(stoi(q.common_.cpu_core_), &cpuset);
+      // s = pthread_create(&thread_id, NULL, &thread_start, &tinfo[tnum]);
+      // int retp = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
+      // if (retp != 0)
+      //   fprintf(stderr, "pthread_setaffinity_np error %d\n", retp);
+      // rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
+
+      worker_th[worker_th_idx++] = std::thread(rx_worker, (void*)params_rx);
+      
     }
   
     const auto& tx = intf.tx_;
     if (tx.queues_.size() > 0) {
       params_tx = new TxDocaWorkerParams;
+      params_tx->core_id = stoi(tx.queues_[0].common_.cpu_core_);
       params_tx->port = intf.port_id_;
       params_tx->txqn = tx.queues_.size();
       params_tx->meta_pool = tx_meta;
@@ -1080,9 +1192,11 @@ void DocaMgr::run() {
         tidx++;
       }
 
-      rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
+      worker_th[worker_th_idx++] = std::thread(tx_worker, (void*)params_tx);
+      // rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
     }
   }
+#endif
 
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
@@ -1116,15 +1230,24 @@ int DocaMgr::rx_core(void* arg) {
   int leastPriority;
   int greatestPriority;
 
+  pthread_t self = pthread_self();
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(tparams->core_id, &cpuset);
+  
+  int rc = pthread_setaffinity_np(self, sizeof(cpu_set_t), &cpuset);
+  if (rc != 0) {
+      printf("Failed to pin core: %s\n", strerror(errno));
+      exit(1);
+  }
+
   // WAR for Holoscan management of threads.
   // Be sure application thread finished before launching other CUDA tasks
   sleep(2);
 
-  HOLOSCAN_LOG_INFO("Starting Rx Core {}, port {}, queues {}, socket {} GPU {}",
-                    rte_lcore_id(),
-                    tparams->port,
+  HOLOSCAN_LOG_INFO("Starting Rx Core {}, queues {}, GPU {}",
+                    tparams->core_id,
                     tparams->rxqn,
-                    rte_socket_id(),
                     tparams->gpu_id);
 
   cudaSetDevice(tparams->gpu_id);
@@ -1141,7 +1264,7 @@ int DocaMgr::rx_core(void* arg) {
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory eth_rxq_gpu_list before launching kernel {} Core {}, port {}, queues {}, socket {}",
                       doca_error_get_descr(result),
-                      rte_lcore_id(),
+                      tparams->core_id,
                       tparams->port,
                       tparams->rxqn,
                       rte_socket_id());
@@ -1185,8 +1308,8 @@ int DocaMgr::rx_core(void* arg) {
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
-                              sizeof(uint32_t),
-                              4096,
+                              GPU_PAGE_SIZE, //sizeof(uint32_t),
+                              GPU_PAGE_SIZE,
                               DOCA_GPU_MEM_TYPE_GPU_CPU,
                               (void**)&gpu_exit_condition,
                               (void**)&cpu_exit_condition);
@@ -1237,7 +1360,7 @@ int DocaMgr::rx_core(void* arg) {
         burst->hdr.hdr.first_pkt_addr = (uintptr_t)tparams->rxqw[ridx].rxq->gpu_pkt_addr;
         burst->hdr.hdr.max_pkt = tparams->rxqw[ridx].rxq->max_pkt_num;
         burst->hdr.hdr.max_pkt_size = tparams->rxqw[ridx].rxq->max_pkt_size;
-        burst->hdr.hdr.port_id = tparams->port;
+        burst->hdr.hdr.port_id = tparams->rxqw[ridx].port;
         burst->hdr.hdr.num_pkts = packets_stats->num_pkts;
         burst->hdr.hdr.nbytes = packets_stats->nbytes;
         burst->hdr.hdr.gpu_pkt0_idx = packets_stats->gpu_pkt0_idx;
@@ -1312,8 +1435,13 @@ int DocaMgr::tx_core(void* arg) {
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
 
+  pthread_t self = pthread_self();
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(tparams->core_id, &cpuset);
+
   HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, socket {} GPU {}",
-                    rte_lcore_id(),
+                    tparams->core_id,
                     tparams->port,
                     tparams->txqn,
                     rte_socket_id(),
@@ -1629,12 +1757,16 @@ void DocaMgr::shutdown() {
 
   HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
 
-  RTE_LCORE_FOREACH_WORKER(icore) {
-    if (rte_eal_wait_lcore(icore) < 0) {
-      fprintf(stderr, "bad exit for coreid: %d\n", icore);
-      break;
-    }
+  for (int i = 0; i < worker_th_idx; i++) {
+    HOLOSCAN_LOG_INFO("Waiting on thread {}", i);
+    worker_th[i].join();
   }
+  // RTE_LCORE_FOREACH_WORKER(icore) {
+  //   if (rte_eal_wait_lcore(icore) < 0) {
+  //     fprintf(stderr, "bad exit for coreid: %d\n", icore);
+  //     break;
+  //   }
+  // }
 }
 
 void DocaMgr::print_stats() {
