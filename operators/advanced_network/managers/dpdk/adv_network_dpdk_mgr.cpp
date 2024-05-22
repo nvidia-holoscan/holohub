@@ -245,15 +245,18 @@ void DpdkMgr::initialize() {
   uint16_t portid;
 
   static struct rte_eth_conf conf_eth_port = {
-      .rxmode = {
+      .rxmode =
+          {
               .mq_mode = RTE_ETH_MQ_RX_RSS,
               .offloads = 0,
           },
-      .txmode = {
+      .txmode =
+          {
               .mq_mode = RTE_ETH_MQ_TX_NONE,
               .offloads = 0,
           },
-      .rx_adv_conf = {
+      .rx_adv_conf =
+          {
               .rss_conf = {.rss_key = NULL, .rss_hf = RTE_ETH_RSS_IP},
           },
   };
@@ -319,7 +322,7 @@ void DpdkMgr::initialize() {
 
   for (int i = 0; i < num_ports; i++) { rte_eth_macaddr_get(i, &mac_addrs[i]); }
 
-  // Adjust the sizes to accomodate any padding/alignment restrictions by this library
+  // Adjust the sizes to accommodate any padding/alignment restrictions by this library
   adjust_memory_regions();
 
   if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
@@ -337,8 +340,8 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  // Adjust the sizes to accomodate any padding/alignment restrictions by this library
-  adjust_memory_regions();  
+  // Adjust the sizes to accommodate any padding/alignment restrictions by this library
+  adjust_memory_regions();
 
   if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
@@ -348,12 +351,12 @@ void DpdkMgr::initialize() {
   if (register_mrs() != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
     return;
-  }   
+  }
 
   if (map_mrs() != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
     return;
-  }         
+  }
 
   // Build name to id mapping
   int max_rx_batch_size = 0;
@@ -723,7 +726,6 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX burst pool!");
     return -1;
   }
-
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_meta = rte_mempool_create("RX_META_POOL",
@@ -1439,7 +1441,7 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
     reinterpret_cast<rte_mbuf**>(burst->pkts[seg])[idx]->data_len = *(lens.begin() + seg);
     ttl_len += *(lens.begin() + seg);
   }
-  
+
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;

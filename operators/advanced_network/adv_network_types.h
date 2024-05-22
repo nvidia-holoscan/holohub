@@ -231,7 +231,6 @@ struct CommonConfig {
   AdvNetDirection dir;
 };
 
-
 struct AdvNetRxConfig {
   std::vector<RxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
@@ -241,15 +240,6 @@ struct AdvNetTxConfig {
   bool accurate_send_ = false;
   std::vector<TxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
-};
-
-struct AdvNetConfigInterface {
-  std::string name_;
-  std::string address_;
-  uint16_t port_id_;
-  bool flow_isolation_;
-  AdvNetRxConfig rx_;
-  AdvNetTxConfig tx_;
 };
 
 struct AdvNetConfigInterface {
