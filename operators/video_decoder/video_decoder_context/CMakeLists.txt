@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(tensor_to_video_buffer)
-
-find_package(holoscan 0.5 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-add_library(tensor_to_video_buffer SHARED
-  tensor_to_video_buffer.hpp
-  tensor_to_video_buffer.cpp
-  )
-add_library(holoscan::ops::tensor_to_video_buffer ALIAS tensor_to_video_buffer)
-
-target_include_directories(tensor_to_video_buffer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(
-  tensor_to_video_buffer
-  holoscan::core
-)
+project(video_decoder LANGUAGES CXX CUDA)
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
