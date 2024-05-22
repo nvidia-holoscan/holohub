@@ -245,8 +245,7 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
   struct rte_eth_conf eth_conf = {
-      .rxmode =
-          {
+      .rxmode = {
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };
@@ -1136,71 +1135,6 @@ void DocaMgr::run() {
       }
     }
   }
-
-#if 0
-
-    for (const auto &intf: cfg_.ifs_) {
-      const auto& rx = intf.rx_;
-      if (rx.queues_.size() > 0) {
-        
-        params_rx->core_id = stoi(rx.queues_[0].common_.cpu_core_);
-        params_rx->port = intf.port_id_;
-        params_rx->rxqn = rx.queues_.size();
-        params_rx->ring = rx_ring;
-        params_rx->meta_pool = rx_meta;
-        params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
-        params_rx->gdev = gdev[params_rx->gpu_id];
-
-        int ridx = 0;
-        for (auto& q : rx.queues_) {
-          uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-          auto qinfo = rx_q_map_[key];
-          params_rx->rxqw[ridx].queue = q.common_.id_;
-          params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
-          params_rx->rxqw[ridx].rxq = qinfo;
-
-          ridx++;
-        }
-
-      // CPU_ZERO(&cpuset);
-      // CPU_SET(stoi(q.common_.cpu_core_), &cpuset);
-      // s = pthread_create(&thread_id, NULL, &thread_start, &tinfo[tnum]);
-      // int retp = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
-      // if (retp != 0)
-      //   fprintf(stderr, "pthread_setaffinity_np error %d\n", retp);
-      // rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
-
-      worker_th[worker_th_idx++] = std::thread(rx_worker, (void*)params_rx);
-      
-    }
-  
-    const auto& tx = intf.tx_;
-    if (tx.queues_.size() > 0) {
-      params_tx = new TxDocaWorkerParams;
-      params_tx->core_id = stoi(tx.queues_[0].common_.cpu_core_);
-      params_tx->port = intf.port_id_;
-      params_tx->txqn = tx.queues_.size();
-      params_tx->meta_pool = tx_meta;
-      rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
-      int tidx = 0;
-      // Get the MR to assign the GPU ID to
-      params_tx->gpu_id = cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
-      params_tx->gdev   = gdev[params_tx->gpu_id];
-      for (auto& q : tx.queues_) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-        auto qinfo = tx_q_map_[key];
-        params_tx->txqw[tidx].ring = tx_rings[key];
-        params_tx->txqw[tidx].queue = q.common_.id_;
-        params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
-        params_tx->txqw[tidx].txq = qinfo;    
-        tidx++;
-      }
-
-      worker_th[worker_th_idx++] = std::thread(tx_worker, (void*)params_tx);
-      // rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
-    }
-  }
-#endif
 
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
