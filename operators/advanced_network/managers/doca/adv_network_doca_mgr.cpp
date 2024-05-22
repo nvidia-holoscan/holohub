@@ -176,6 +176,10 @@ doca_error_t DocaMgr::init_doca_devices() {
   strncpy(argv_[arg++], "-a", max_arg_size - 1);
   strncpy(argv_[arg++], std::string("00:00.0").c_str(), max_arg_size - 1);
 
+  HOLOSCAN_LOG_INFO("Initializing DPDK on cores {} max_nargs {} arg {} argv0 {} argv1 {} argv2 {} argv3 {}",
+                  cores.c_str(), max_nargs,
+                  arg, argv_[0], argv_[1], argv_[2], argv_[3]);
+
   for (const auto &intf: cfg_.ifs_) {
     HOLOSCAN_LOG_INFO("Initializing interface {} port {}", intf.address_, intf.port_id_);
 
@@ -186,6 +190,8 @@ doca_error_t DocaMgr::init_doca_devices() {
     }
   }
 
+  // char *eal_param[3] = {"", "-a", "00:00.0"};
+  // ret = rte_eal_init(3, eal_param);
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
     HOLOSCAN_LOG_CRITICAL("DPDK init failed: %d", ret);
@@ -527,6 +533,8 @@ void DocaMgr::initialize() {
   int max_tx_batch_size = 0;
   size_t max_packet_size = 0;
   enum doca_gpu_mem_type mtype;
+  uint32_t key;
+  int gpu_id = -1;
 
   doca_ret = init_doca_devices();
   if (doca_ret != DOCA_SUCCESS) {
@@ -539,6 +547,8 @@ void DocaMgr::initialize() {
   for (const auto &mr: cfg_.mrs_) {
     if (mr.second.kind_ == MemoryKind::DEVICE) {
       gpu_mr_devs.emplace(mr.second.affinity_);
+      cudaSetDevice(mr.second.affinity_);
+      cudaFree(0);
     }
   }
 
@@ -581,15 +591,14 @@ void DocaMgr::initialize() {
   }
 
   for (const auto &intf: cfg_.ifs_) {
-    df_port[intf.port_id_] = init_doca_flow(intf.port_id_, intf.rx_.queues_.size());
-    if (df_port[intf.port_id_] == nullptr) {
-      HOLOSCAN_LOG_CRITICAL("FAILED: init_doca_flow for port {}", intf.port_id_);
-      return;
+    if (intf.rx_.queues_.size() > 0) {
+      df_port[intf.port_id_] = init_doca_flow(intf.port_id_, intf.rx_.queues_.size());
+      if (df_port[intf.port_id_] == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("FAILED: init_doca_flow for port {}", intf.port_id_);
+        return;
+      }
     }
   }
-
-  uint32_t key;
-  int gpu_id = -1;
 
   // Create DOCA queues
   for (auto &intf: cfg_.ifs_) {
@@ -1027,17 +1036,16 @@ void DocaMgr::run() {
 
   for (const auto &intf: cfg_.ifs_) {
     const auto& rx = intf.rx_;
-
-    params_rx = new RxDocaWorkerParams;
-    params_rx->port = intf.port_id_;
-    params_rx->rxqn = rx.queues_.size();
-    params_rx->ring = rx_ring;
-    params_rx->meta_pool = rx_meta;
-    params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
-    params_rx->gdev = gdev[params_rx->gpu_id];    
-    
-    int ridx = 0;
     if (rx.queues_.size() > 0) {
+      params_rx = new RxDocaWorkerParams;
+      params_rx->port = intf.port_id_;
+      params_rx->rxqn = rx.queues_.size();
+      params_rx->ring = rx_ring;
+      params_rx->meta_pool = rx_meta;
+      params_rx->gpu_id = cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
+      params_rx->gdev = gdev[params_rx->gpu_id];
+
+      int ridx = 0;
       for (auto& q : rx.queues_) {
         uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto qinfo = rx_q_map_[key];
@@ -1047,22 +1055,21 @@ void DocaMgr::run() {
 
         ridx++;
       }
+
+      rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
     }
-
-    rte_eal_remote_launch(rx_worker, (void*)params_rx, stoi(rx.queues_[0].common_.cpu_core_));
-
+  
     const auto& tx = intf.tx_;
-    params_tx = new TxDocaWorkerParams;
-    params_tx->port = intf.port_id_;
-    params_tx->txqn = tx.queues_.size();
-    params_tx->meta_pool = tx_meta;
-    rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
-    int tidx = 0;
-    // Get the MR to assign the GPU ID to
-    params_tx->gpu_id = cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
-    params_tx->gdev   = gdev[params_tx->gpu_id];      
-
     if (tx.queues_.size() > 0) {
+      params_tx = new TxDocaWorkerParams;
+      params_tx->port = intf.port_id_;
+      params_tx->txqn = tx.queues_.size();
+      params_tx->meta_pool = tx_meta;
+      rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
+      int tidx = 0;
+      // Get the MR to assign the GPU ID to
+      params_tx->gpu_id = cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
+      params_tx->gdev   = gdev[params_tx->gpu_id];
       for (auto& q : tx.queues_) {
         uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto qinfo = tx_q_map_[key];
@@ -1072,9 +1079,9 @@ void DocaMgr::run() {
         params_tx->txqw[tidx].txq = qinfo;    
         tidx++;
       }
-    }
 
-    rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
+      rte_eal_remote_launch(tx_worker, (void*)params_tx, stoi(tx.queues_[0].common_.cpu_core_));
+    }
   }
 
   HOLOSCAN_LOG_INFO("Done starting workers");
@@ -1109,18 +1116,18 @@ int DocaMgr::rx_core(void* arg) {
   int leastPriority;
   int greatestPriority;
 
-  HOLOSCAN_LOG_INFO("Starting RX Core {}, port {}, queues {}, socket {}",
+  // WAR for Holoscan management of threads.
+  // Be sure application thread finished before launching other CUDA tasks
+  sleep(2);
+
+  HOLOSCAN_LOG_INFO("Starting Rx Core {}, port {}, queues {}, socket {} GPU {}",
                     rte_lcore_id(),
                     tparams->port,
                     tparams->rxqn,
-                    rte_socket_id());
+                    rte_socket_id(),
+                    tparams->gpu_id);
 
-  /*
-  * This is needed in all Holoscan-based applications to run a persistent CUDA kernel.
-  * If a persistent CUDA kernel is launched in the default context, no other CUDA kernel
-  * is actually executed right after (even on different streams).
-  */
-  cudaSetDevice(tparams->gpu_id);  // Need to rely on GPU 0
+  cudaSetDevice(tparams->gpu_id);
   cudaFree(0);
 
   cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority);
@@ -1132,8 +1139,12 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&eth_rxq_gpu_list,
                               (void**)&eth_rxq_cpu_list);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
-                      doca_error_get_descr(result));
+    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory eth_rxq_gpu_list before launching kernel {} Core {}, port {}, queues {}, socket {}",
+                      doca_error_get_descr(result),
+                      rte_lcore_id(),
+                      tparams->port,
+                      tparams->rxqn,
+                      rte_socket_id());
     exit(1);
   }
 
@@ -1144,7 +1155,7 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&sem_gpu_list,
                               (void**)&sem_cpu_list);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
+    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory sem_gpu_list before launching kernel {}",
                       doca_error_get_descr(result));
     exit(1);
   }
@@ -1156,15 +1167,10 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&batch_gpu_list,
                               (void**)&batch_cpu_list);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory before launching kernel {}",
+    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory batch_gpu_list before launching kernel {}",
                       doca_error_get_descr(result));
     exit(1);
   }                      
-
-  // cuDeviceGet(&cuDevice, tparams->rxqw[0].gpu_id);
-  // cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
-  // cuCtxPushCurrent(cuContext);
-
 
   for (int idx = 0; idx < tparams->rxqn; idx++) {
     eth_rxq_cpu_list[idx] = (uintptr_t)tparams->rxqw[idx].rxq->eth_rxq_gpu;
@@ -1192,16 +1198,13 @@ int DocaMgr::rx_core(void* arg) {
 
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(
-      rx_stream, tparams->rxqn, nullptr, sem_gpu_list, batch_cpu_list, gpu_exit_condition);
+      rx_stream, tparams->rxqn, nullptr, sem_gpu_list, batch_gpu_list, gpu_exit_condition);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
-  // WAR for Holoscan management of threads.
-  // Be sure application thread finished before launching other CUDA tasks  
-  sleep(2);
  
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
   doca_receiver_packet_kernel(
-      rx_stream, tparams->rxqn, eth_rxq_gpu_list, sem_gpu_list, batch_cpu_list, gpu_exit_condition);
+      rx_stream, tparams->rxqn, eth_rxq_gpu_list, sem_gpu_list, batch_gpu_list, gpu_exit_condition);
   
   HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
@@ -1293,8 +1296,6 @@ int DocaMgr::rx_core(void* arg) {
       total_pkts + last_batch,
       last_batch);
 
-  // cuCtxPopCurrent(&cuContext);
-
   return 0;
 }
 
@@ -1311,21 +1312,16 @@ int DocaMgr::tx_core(void* arg) {
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
 
-  HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, socket {}",
+  HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, socket {} GPU {}",
                     rte_lcore_id(),
                     tparams->port,
                     tparams->txqn,
-                    rte_socket_id());
+                    rte_socket_id(),
+                    tparams->gpu_id);
 
-#if 0
-    CUdevice cuDevice;
-    CUcontext cuContext;
-    cudaSetDevice(tparams->txqw[0].gpu_id);
-    cudaFree(0);
-    cuDeviceGet(&cuDevice, tparams->txqw[0].gpu_id);
-    cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
-    cuCtxPushCurrent(cuContext);
-#endif
+  cudaSetDevice(tparams->gpu_id);
+  cudaFree(0);
+
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamCreateWithFlags(&tx_stream[idxq], cudaStreamNonBlocking);
     if (res_cuda != cudaSuccess) {
@@ -1398,10 +1394,6 @@ int DocaMgr::tx_core(void* arg) {
       HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", res_cuda);
     }
   }
-
-#if 0
-    cuCtxPopCurrent(&cuContext);
-#endif
 
   return 0;
 }
