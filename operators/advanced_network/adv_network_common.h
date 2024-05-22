@@ -27,23 +27,20 @@
 
 namespace holoscan::ops {
 
-
 // this part is purely optional, just a helper for the user
 AdvNetBurstParams* adv_net_create_burst_params();
 
-
 namespace detail {
-  inline AdvNetDirection DirectionStringToType(const std::string &dir) {
-    if (dir == "rx") {
-      return AdvNetDirection::RX;
-    } else if (dir == "tx") {
-      return AdvNetDirection::TX;
-    }
-
-    return AdvNetDirection::TX_RX;
+inline AdvNetDirection DirectionStringToType(const std::string& dir) {
+  if (dir == "rx") {
+    return AdvNetDirection::RX;
+  } else if (dir == "tx") {
+    return AdvNetDirection::TX;
   }
-};  // namespace detail
 
+  return AdvNetDirection::TX_RX;
+}
+};  // namespace detail
 
 /**
  * @brief Determine which directions are enabled
@@ -51,14 +48,11 @@ namespace detail {
  * @param dir Direction from config. Either "rx", "tx", or "tx/rx"
  * @return int Number of directions enabled
  */
-inline int EnabledDirections(const std::string &dir) {
-  if (dir == "rx" || dir == "tx") {
-    return 1;
-  }
+inline int EnabledDirections(const std::string& dir) {
+  if (dir == "rx" || dir == "tx") { return 1; }
 
   return 0;
 }
-
 
 /**
  * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams for one segment
@@ -72,8 +66,8 @@ inline int EnabledDirections(const std::string &dir) {
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void *adv_net_get_seg_pkt_ptr(AdvNetBurstParams *burst, int seg, int idx);
-void *adv_net_get_seg_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int seg, int idx);
+void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx);
+void* adv_net_get_seg_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int seg, int idx);
 
 /**
  * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
@@ -86,9 +80,8 @@ void *adv_net_get_seg_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int seg,
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void *adv_net_get_pkt_ptr(AdvNetBurstParams *burst, int idx);
-void *adv_net_get_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
-
+void* adv_net_get_pkt_ptr(AdvNetBurstParams* burst, int idx);
+void* adv_net_get_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Get packet length of a segment of a packet
@@ -98,7 +91,7 @@ void *adv_net_get_pkt_ptr(std::shared_ptr<AdvNetBurstParams> burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams *burst, int seg, int idx);
+uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx);
 uint16_t adv_net_get_seg_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int seg, int idx);
 
 /**
@@ -108,7 +101,7 @@ uint16_t adv_net_get_seg_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int s
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t adv_net_get_pkt_len(AdvNetBurstParams *burst, int idx);
+uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
 uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
@@ -124,7 +117,7 @@ uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams *burst);
+AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams* burst);
 AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -136,11 +129,8 @@ AdvNetStatus adv_net_get_tx_pkt_burst(std::shared_ptr<AdvNetBurstParams> burst);
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams *burst, int idx,
-                                      char *dst_addr);
-AdvNetStatus adv_net_set_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                                      int idx,
-                                      char *dst_addr);
+AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr);
+AdvNetStatus adv_net_set_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, char* dst_addr);
 
 /**
  * @brief Set IPv4 header in packet
@@ -154,17 +144,10 @@ AdvNetStatus adv_net_set_eth_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams *burst, int idx,
-                                      int ip_len,
-                                      uint8_t proto,
-                                      unsigned int src_host,
-                                      unsigned int dst_host);
-AdvNetStatus adv_net_set_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx,
-                int ip_len,
-                uint8_t proto,
-                unsigned int src_host,
-                unsigned int dst_host);
+AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+                                  unsigned int src_host, unsigned int dst_host);
+AdvNetStatus adv_net_set_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, int ip_len,
+                                  uint8_t proto, unsigned int src_host, unsigned int dst_host);
 
 /**
  * @brief Set UDP header in packet
@@ -177,13 +160,10 @@ AdvNetStatus adv_net_set_ipv4_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams *burst,
-                                      int idx,
-                                      int udp_len,
-                                      uint16_t src_port,
-                                      uint16_t dst_port);
-AdvNetStatus adv_net_set_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx, int udp_len, uint16_t src_port, uint16_t dst_port);
+AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                                 uint16_t dst_port);
+AdvNetStatus adv_net_set_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst, int idx, int udp_len,
+                                 uint16_t src_port, uint16_t dst_port);
 
 /**
  * @brief Set UDP payload in packet
@@ -195,9 +175,9 @@ AdvNetStatus adv_net_set_udp_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams *burst, int idx, void *data, int len);
-AdvNetStatus adv_net_set_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
-                int idx, void *data, int len);
+AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len);
+AdvNetStatus adv_net_set_udp_payload(std::shared_ptr<AdvNetBurstParams> burst, int idx, void* data,
+                                     int len);
 
 /**
  * @brief Test if a TX burst is available
@@ -211,18 +191,18 @@ AdvNetStatus adv_net_set_udp_payload(std::shared_ptr<AdvNetBurstParams> burst,
  * @return true Burst is available
  * @return false Burst is not available
  */
-bool adv_net_tx_burst_available(AdvNetBurstParams *burst);
+bool adv_net_tx_burst_available(AdvNetBurstParams* burst);
 bool adv_net_tx_burst_available(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
  * @brief Free all packets and burst from one segment
  *
- * Frees every allocated packets in the burst and the burst metadata for one segment. 
+ * Frees every allocated packets in the burst and the burst metadata for one segment.
  * After this call completes the segment's pointers are no longer valid.
  *
  * @param burst Burst to free
  */
-void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams *burst, int seg);
+void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg);
 void adv_net_free_seg_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst, int seg);
 
 /**
@@ -232,7 +212,7 @@ void adv_net_free_seg_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst, i
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_pkts_and_burst(AdvNetBurstParams *burst);
+void adv_net_free_all_pkts_and_burst(AdvNetBurstParams* burst);
 void adv_net_free_all_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -246,10 +226,10 @@ void adv_net_free_all_pkts_and_burst(std::shared_ptr<AdvNetBurstParams> burst);
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams *burst, int idx, const std::initializer_list<int> &lens);
-AdvNetStatus adv_net_set_pkt_lens(std::shared_ptr<AdvNetBurstParams> burst,
-                                    int idx, const std::initializer_list<int> &lens);
-                             
+AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams* burst, int idx,
+                                  const std::initializer_list<int>& lens);
+AdvNetStatus adv_net_set_pkt_lens(std::shared_ptr<AdvNetBurstParams> burst, int idx,
+                                  const std::initializer_list<int>& lens);
 
 /**
  * @brief Set packet TX time
@@ -265,10 +245,9 @@ AdvNetStatus adv_net_set_pkt_lens(std::shared_ptr<AdvNetBurstParams> burst,
  * @return AdvNetStatus indicating status. Valid values are:
  *    SUCCESS: Time set successfully
  */
-AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t time);
-AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst,
-                                    int idx,
-                                    uint64_t time);
+AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t time);
+AdvNetStatus adv_net_set_pkt_tx_time(std::shared_ptr<AdvNetBurstParams> burst, int idx,
+                                     uint64_t time);
 
 uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 
@@ -278,7 +257,7 @@ uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
  * @param burst Burst structure containing packet lists
  * @param idx Index of packet
  */
-void adv_net_free_pkt(AdvNetBurstParams *burst, int idx);
+void adv_net_free_pkt(AdvNetBurstParams* burst, int idx);
 void adv_net_free_pkt(std::shared_ptr<AdvNetBurstParams> burst, int pkt);
 
 uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
@@ -290,7 +269,7 @@ uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
  * @param seg Segment of packet in scatter list
  * @param idx Index of packet
  */
-void adv_net_free_pkt_seg(AdvNetBurstParams *burst, int seg, int idx);
+void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
 
 /**
  * @brief Free all packets in a burst
@@ -300,7 +279,7 @@ void adv_net_free_pkt_seg(AdvNetBurstParams *burst, int seg, int idx);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_pkts(AdvNetBurstParams *burst);
+void adv_net_free_all_pkts(AdvNetBurstParams* burst);
 void adv_net_free_all_pkts(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -310,7 +289,7 @@ void adv_net_free_all_pkts(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_seg_pkts(AdvNetBurstParams *burst, int seg);
+void adv_net_free_all_seg_pkts(AdvNetBurstParams* burst, int seg);
 void adv_net_free_all_seg_pkts(std::shared_ptr<AdvNetBurstParams> burst, int seg);
 
 /**
@@ -321,7 +300,7 @@ void adv_net_free_all_seg_pkts(std::shared_ptr<AdvNetBurstParams> burst, int seg
  *
  * @param burst
  */
-void adv_net_free_rx_burst(AdvNetBurstParams *burst);
+void adv_net_free_rx_burst(AdvNetBurstParams* burst);
 void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -332,7 +311,7 @@ void adv_net_free_rx_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure to free
  */
-void adv_net_free_tx_burst(AdvNetBurstParams *burst);
+void adv_net_free_tx_burst(AdvNetBurstParams* burst);
 void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -340,7 +319,7 @@ void adv_net_free_tx_burst(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_num_pkts(AdvNetBurstParams *burst);
+int64_t adv_net_get_num_pkts(AdvNetBurstParams* burst);
 int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -348,7 +327,7 @@ int64_t adv_net_get_num_pkts(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_q_id(AdvNetBurstParams *burst);
+int64_t adv_net_get_q_id(AdvNetBurstParams* burst);
 int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
 
 /**
@@ -356,19 +335,19 @@ int64_t adv_net_get_q_id(std::shared_ptr<AdvNetBurstParams> burst);
  *
  * @param addr Address of interface from config file
  * @param port Port ID of interface
- * 
+ *
  * @returns AdvNetStatus::SUCCESS on success
  */
-AdvNetStatus adv_net_get_mac(int port, char *mac);
+AdvNetStatus adv_net_get_mac(int port, char* mac);
 
 /**
  * @brief Get mac address of an interface
  *
  * @param addr Address of interface from config file
- * 
+ *
  * @returns Port number or -1 for not found
  */
-int adv_net_address_to_port(const std::string &addr);
+int adv_net_address_to_port(const std::string& addr);
 
 /**
  * @brief Set the number of packets in a burst
@@ -376,7 +355,7 @@ int adv_net_address_to_port(const std::string &addr);
  * @param burst Burst structure
  * @param num Number of packets
  */
-void adv_net_set_num_pkts(AdvNetBurstParams *burst, int64_t num);
+void adv_net_set_num_pkts(AdvNetBurstParams* burst, int64_t num);
 void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num);
 
 /**
@@ -388,9 +367,9 @@ void adv_net_set_num_pkts(std::shared_ptr<AdvNetBurstParams> burst, int64_t num)
  * @param num Number of packets
  * @param segs Number of segments
  */
-void adv_net_set_hdr(AdvNetBurstParams *burst, uint16_t port, uint16_t q, int64_t num, int segs);
-void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
-          uint16_t port, uint16_t q, int64_t num, int segs);
+void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs);
+void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst, uint16_t port, uint16_t q,
+                     int64_t num, int segs);
 
 /**
  * @brief First MAC address string to char buffer
@@ -398,25 +377,24 @@ void adv_net_set_hdr(std::shared_ptr<AdvNetBurstParams> burst,
  * @param dst Destination buffer
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
-void adv_net_format_eth_addr(char *dst, std::string addr);
+void adv_net_format_eth_addr(char* dst, std::string addr);
 
-std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string &name);
+std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string& name);
 
 /**
  * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
  * in the manager's destructor.
- * 
+ *
  */
 void adv_net_shutdown();
 
 /**
  * @brief Print port statistics
- * 
+ *
  */
 void adv_net_print_stats();
 
 };  // namespace holoscan::ops
-
 
 template <>
 struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
