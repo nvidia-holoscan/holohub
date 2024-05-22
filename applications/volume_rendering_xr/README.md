@@ -32,8 +32,11 @@ Refer to the Magic Leap 2 documentation for more information:
 - [Updating your device with Magic Leap Hub](https://www.magicleap.care/hc/en-us/articles/5341445649805-Updating-Your-Device);
 - [Installing `.apk` packages with Magic Leap Hub](https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/)
 
-## Building the Application
+## Quick Start
 
+Run the following command in the top-level HoloHub folder to build and run the host application:
+
+<<<<<<< HEAD
 Run the following commands to build and enter the interactive container environment:
 ```bash
 ./dev_container build --img holohub:openxr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
@@ -44,9 +47,21 @@ Then, inside the container environment, build the application:
 ```bash
 ./run build volume_rendering_xr # Build the application
 ```
+=======
+```bash
+./dev_container build_and_run volume_rendering_xr
+```
 
-## Running the Application
+A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 
+The application supports the following hand or controller interactions by default:
+- **Translate**: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
+- **Scale**: Grab any face of the bounding box and move your hand or controller to scale the volume.
+- **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
+- **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
+
+<<<<<<< HEAD
 ### Setting Up Your Device
 
 Inside the container environment, start the Windrunner OpenXR backend and generate a pairing code:
@@ -60,24 +75,85 @@ A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rend
 ### Launching the Application
 
 Run the following command inside the development container to start the XR volume rendering application:
+=======
+## Advanced Setup
+
+You can use the `--dryrun` option to see the individual commands run by the quick start option above:
+```
+./dev_container build_and_run volume_rendering_xr --dryrun
+```
+
+Alternatively, follow the steps below to set up the interactive container session.
+
+### Build the Container
+
+Run the following commands to build and enter the interactive container environment:
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 ```bash
+./dev_container build --img holohub:volume_rendering_xr --docker_file ./applications/volume_rendering_xr/Dockerfile # Build the dev container
+./dev_container launch --img holohub:volume_rendering_xr # Launch the container
+```
+
+### Build the Application
+
+Inside the container environment, build the application:
+```bash
+./run build volume_rendering_xr # Build the application
+```
+
+### Run the Application
+
+Inside the container environment, start the application:
+```bash
+export ML_START_OPTIONS=<""/"debug"> # Defaults to "debug" to run XR device simulator GUI
 ./run launch volume_rendering_xr
 ```
 
+<<<<<<< HEAD
 The application supports the following hand or controller interactions by default:
 - **Translate**: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
 - **Scale**: Grab any face of the bounding box and move your hand or controller to scale the volume.
 - **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
 - **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
+=======
+### Deploying as a Standalone Application
+
+`volume_rendering_xr` can be packaged in a self-contained release container with datasets and binaries.
+
+To build the release container:
+```bash
+# Generate HoloHub `volume_rendering_xr` installation in the "holohub/install" folder
+./dev_container launch --img holohub:volume_rendering_xr -c ./run build volume_rendering_xr --configure-args "-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install"
+./dev_container launch --img holohub:volume_rendering_xr -c cmake --build ./build --target install
+
+# Copy files into a release container
+./dev_container build --img holohub:volume_rendering_xr_rel --docker_file ./applications/volume_rendering_xr/scripts/Dockerfile.rel --base_img nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
+```
+
+To run the release container, first create the container startup script:
+```bash
+docker run --rm holohub:volume_rendering_xr_rel > ./render-volume-xr
+chmod +x ./render-volume-xr
+```
+
+Then execute the script to start the Windrunner service and the app:
+```bash
+./render-volume-xr
+```
+
+For more options, e.g. list available datasets or to select a different dataset, type
+```bash
+./render-volume-xr --help
+```
+
+Options not recognized by the render-volume-xr script are forwarded to the application.
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 
 ## Additional Notes
 
 ### Supported Formats
 
-The following medical dataset formats are supported:
-* [MHD](https://itk.org/Wiki/ITK/MetaIO/Documentation)
-* [NIFTI](https://nifti.nimh.nih.gov/)
-* [NRRD](https://teem.sourceforge.net/nrrd/format.html)
+This application loads static volume files from the local disk. See HoloHub [`VolumeLoaderOp`](/operators/volume_loader/README.md#supported-formats) documentation for supported volume formats and file conversion tools.
 
 ### Launch Options
 
@@ -150,3 +226,19 @@ which in turn wraps the NVIDIA [ClaraViz](https://github.com/NVIDIA/clara-viz) r
 
 See [`volume_renderer` Configuration section](../../operators/volume_renderer/README.md#configuration) for details on
 manipulating configuration values, along with [how to create a new configuration file](../../operators/volume_renderer/README.md#creating-a-configuration-file) to fit custom data.
+<<<<<<< HEAD
+=======
+
+### Troubleshooting
+
+#### Libraries are missing when building the application (Vulkan, OpenXR, etc)
+
+This error may indicate that you are building inside the default HoloHub container instead of the expected `volume_rendering_xr` container.
+Review the [build steps](#building-the-application) and ensure that you have launched the container with the appropriate
+`dev_container --img` option.
+
+#### Unexpected CMake errors
+
+If you have built other HoloHub applications prior to building `volume_rendering_xr`, you may need to clear your build cache
+to avoid cross-pollution between environments. See the HoloHub [Cleaning](/README.md#cleanup) section for instructions.
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c

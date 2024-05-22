@@ -123,19 +123,14 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                          "Payload size",
                          "Payload size to send including HDS portion",
                          1400);
-    spec.param<bool>(gpu_direct_,
-                     "gpu_direct",
-                     "GPUDirect enabled",
-                     "GPUDirect enabled",
-                     false);
+    spec.param<bool>(gpu_direct_, "gpu_direct", "GPUDirect enabled", "GPUDirect enabled", false);
     spec.param<uint16_t>(udp_src_port_, "udp_src_port", "UDP source port", "UDP source port");
     spec.param<uint16_t>(
         udp_dst_port_, "udp_dst_port", "UDP destination port", "UDP destination port");
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(
         ip_dst_addr_, "ip_dst_addr", "IP destination address", "IP destination address");
-    spec.param<std::string>(
-        address_, "address", "Address of interface", "Address of interface");        
+    spec.param<std::string>(address_, "address", "Address of interface", "Address of interface");
     spec.param<std::string>(eth_dst_addr_,
                             "eth_dst_addr",
                             "Ethernet destination address",
@@ -161,7 +156,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
      * memory.
      */
 
-
     if (!first_time) {
       ret_cuda = cudaEventQuery(events_[cur_idx]);
       if ((ret_cuda != cudaSuccess)) {
@@ -176,17 +170,12 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
-    while (!adv_net_tx_burst_available(msg)) {}
-    if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
-      return;
-    }
+    while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
 
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-      gpu_bufs[cur_idx][num_pkt] =
-          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
+      gpu_bufs[cur_idx][num_pkt] = reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
 
       if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);

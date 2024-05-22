@@ -22,3 +22,17 @@ add_custom_target(yolov8_onnx ALL
   COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
   BYPRODUCTS "yolov8l-pose.onnx"
 )
+
+# Copy qos_profiles.xml from the dds_video application to the binary directory.
+# While this application could define its own QoS profiles, they would need to
+# be compatible with the other publishers or subscribers that are reading or
+# writing the video stream. Since the primary use case for this application is
+# to share video frames with the dds_video application, it's easiest to just
+# take the QoS profiles directly from dds_video to guarantee compatibility.
+if(dds_video_subscriber IN_LIST HOLOHUB_BUILD_OPERATORS OR
+   dds_video_publisher IN_LIST HOLOHUB_BUILD_OPERATORS)
+  add_custom_target(body_pose_estimation_qos_profiles_xml ALL
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../dds_video/qos_profiles.xml" ${CMAKE_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../dds_video/qos_profiles.xml"
+  )
+endif()

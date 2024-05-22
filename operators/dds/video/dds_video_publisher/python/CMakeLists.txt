@@ -1,4 +1,3 @@
-%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-matlab:
-  path_data: "../data/ultrasound_beamforming.bin"
 
-holoviz:
-  width: 571  # floor(4000/7)
-  height: 928  # floor(6496/7)
+include(pybind11_add_holohub_module)
+
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET dds_video_publisher
+    CLASS_NAME "DDSVideoPublisherOp"
+    SOURCES dds_video_publisher.cpp
+)

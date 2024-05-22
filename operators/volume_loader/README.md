@@ -1,13 +1,35 @@
-### Volume Loader
+# Volume Loader
 
 The `volume_loader` operator reads 3D volumes from the specified input file.
 
+<<<<<<< HEAD
 The operator supports these file formats:
+=======
+## Supported Formats
+
+The operator supports these medical volume file formats:
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 * [MHD (MetaImage)](https://itk.org/Wiki/ITK/MetaIO/Documentation)
   * Detached-header format only (`.mhd` + `.raw`)
 * [NIFTI](https://nifti.nimh.nih.gov/)
 * [NRRD (Nearly Raw Raster Data)](https://teem.sourceforge.net/nrrd/format.html)
+<<<<<<< HEAD
   * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) only
+=======
+  * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) only (`.nhdr` + `.raw`)
+
+You must convert your data to one of these formats to load it with `VolumeLoaderOp`. Some third party open source
+tools for volume file format conversion include:
+- Command Line Tools
+  - the [Insight Toolkit (ITK)](https://itk.org/) ([PyPI](https://pypi.org/project/itk/), [Image IO Examples](https://examples.itk.org/src/io/imagebase/))
+  - [SimpleITK](https://simpleitk.org/) ([PyPI](https://pypi.org/project/SimpleITK/))
+  - [Utah NRRD Utilities (unu)](https://teem.sourceforge.net/unrrdu/)
+- GUI Applications
+  - [3D Slicer](https://www.slicer.org/)
+  - [ImageJ](https://imagej.net/)
+
+## API
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 
 #### `holoscan::ops::VolumeLoaderOp`
 

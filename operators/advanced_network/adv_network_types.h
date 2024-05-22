@@ -42,31 +42,31 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
  *
  */
 struct AdvNetBurstHdrParams {
-  size_t        num_pkts;
-  uint16_t      port_id;
-  uint16_t      q_id;
-  int           num_segs;
-  uint32_t      nbytes;
-  uintptr_t     first_pkt_addr;
-  uint32_t      max_pkt;
-  uint32_t      max_pkt_size;
-  uint32_t      gpu_pkt0_idx;
-  uintptr_t     gpu_pkt0_addr;
+  size_t num_pkts;
+  uint16_t port_id;
+  uint16_t q_id;
+  int num_segs;
+  uint32_t nbytes;
+  uintptr_t first_pkt_addr;
+  uint32_t max_pkt;
+  uint32_t max_pkt_size;
+  uint32_t gpu_pkt0_idx;
+  uintptr_t gpu_pkt0_addr;
 };
 
 struct AdvNetBurstHdr {
-    AdvNetBurstHdrParams hdr;
+  AdvNetBurstHdrParams hdr;
 
-    // Pad without union to make bindings readable
-    uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+  // Pad without union to make bindings readable
+  uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
 struct AdvNetBurstParams {
   AdvNetBurstHdr hdr;
 
-  std::array<void **,     MAX_NUM_SEGS> pkts;
-  std::array<uint32_t *,  MAX_NUM_SEGS> pkt_lens;
+  std::array<void**, MAX_NUM_SEGS> pkts;
+  std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
   cudaEvent_t event;
 };
 
@@ -77,14 +77,7 @@ struct UDPIPV4Pkt {
   struct udphdr udp;
 } __attribute__((packed));
 
-
-enum class MemoryKind {
-  HOST,
-  HOST_PINNED,
-  HUGE,
-  DEVICE,
-  INVALID
-};
+enum class MemoryKind { HOST, HOST_PINNED, HUGE, DEVICE, INVALID };
 
 enum MemoryAccess {
   MEM_ACCESS_LOCAL = 1U,
@@ -92,18 +85,14 @@ enum MemoryAccess {
   MEM_ACCESS_RDMA_READ = 1U << 2
 };
 
-
-inline MemoryKind GetMemoryKindFromString(const std::string &mode_str) {
+inline MemoryKind GetMemoryKindFromString(const std::string& mode_str) {
   if (mode_str == "host") {
     return MemoryKind::HOST;
-  }
-  else if (mode_str == "host_pinned") {
+  } else if (mode_str == "host_pinned") {
     return MemoryKind::HOST_PINNED;
-  }
-  else if (mode_str == "huge") {
+  } else if (mode_str == "huge") {
     return MemoryKind::HUGE;
-  }  
-  else if (mode_str == "device") {
+  } else if (mode_str == "device") {
     return MemoryKind::DEVICE;
   }
 
@@ -113,18 +102,15 @@ inline MemoryKind GetMemoryKindFromString(const std::string &mode_str) {
 template <typename T>
 uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
   uint32_t access;
-  for (const auto &it: list) {
+  for (const auto& it : list) {
     const auto str = it.template as<std::string>();
     if (str == "local") {
       access |= MEM_ACCESS_LOCAL;
-    }
-    else if (str == "rdma_write") {
+    } else if (str == "rdma_write") {
       access |= MEM_ACCESS_RDMA_WRITE;
-    }
-    else if (str == "rdma_read") {
+    } else if (str == "rdma_read") {
       access |= MEM_ACCESS_RDMA_WRITE;
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_ERROR("Invalid access property for memory: {}", str);
       return 0;
     }
@@ -132,8 +118,6 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
 
   return access;
 }
-
-
 
 /**
  * @brief Return status codes from advanced network operators
@@ -188,7 +172,6 @@ struct AdvNetConfig {
   bool enabled = false;
 };
 
-
 struct CommonQueueConfig {
   std::string name_;
   int id_;
@@ -223,9 +206,7 @@ struct TxQueueConfig {
 //   std::string pattern_;
 // };
 
-enum class FlowType {
-  QUEUE
-};
+enum class FlowType { QUEUE };
 
 struct FlowAction {
   FlowType type_;
@@ -239,8 +220,8 @@ struct FlowMatch {
 struct FlowConfig {
   std::string name_;
   FlowAction action_;
-  FlowMatch  match_;
-  void *backend_config_;  // Filled in by operator
+  FlowMatch match_;
+  void* backend_config_;  // Filled in by operator
 };
 
 struct CommonConfig {
@@ -252,14 +233,23 @@ struct CommonConfig {
 
 
 struct AdvNetRxConfig {
-    std::vector<RxQueueConfig> queues_;
-    std::vector<FlowConfig> flows_;
+  std::vector<RxQueueConfig> queues_;
+  std::vector<FlowConfig> flows_;
 };
 
 struct AdvNetTxConfig {
-    bool accurate_send_ = false;
-    std::vector<TxQueueConfig> queues_;
-    std::vector<FlowConfig> flows_;
+  bool accurate_send_ = false;
+  std::vector<TxQueueConfig> queues_;
+  std::vector<FlowConfig> flows_;
+};
+
+struct AdvNetConfigInterface {
+  std::string name_;
+  std::string address_;
+  uint16_t port_id_;
+  bool flow_isolation_;
+  AdvNetRxConfig rx_;
+  AdvNetTxConfig tx_;
 };
 
 struct AdvNetConfigInterface {
@@ -275,24 +265,20 @@ struct AdvNetConfigYaml {
   CommonConfig common_;
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
-  bool debug_;  
+  bool debug_;
 };
 
 template <typename Config>
-auto adv_net_get_rx_tx_cfg_en(const Config &config) {
+auto adv_net_get_rx_tx_cfg_en(const Config& config) {
   bool rx = false;
   bool tx = false;
 
   auto& yaml_nodes = config.yaml_nodes();
-  for (const auto &yaml_node : yaml_nodes) {
+  for (const auto& yaml_node : yaml_nodes) {
     auto node = yaml_node["advanced_network"]["cfg"]["interfaces"];
-    for (const auto &intf: node) {
-      if (intf["rx"]) {
-        rx = true;
-      }
-      if (intf["tx"]) {
-        tx = true;
-      }      
+    for (const auto& intf : node) {
+      if (intf["rx"]) { rx = true; }
+      if (intf["tx"]) { tx = true; }
     }
   }
 
@@ -300,16 +286,13 @@ auto adv_net_get_rx_tx_cfg_en(const Config &config) {
 }
 
 template <typename Config>
-std::string adv_net_get_manager(const Config &config) {
+std::string adv_net_get_manager(const Config& config) {
   auto& yaml_nodes = config.yaml_nodes();
-  for (const auto &yaml_node : yaml_nodes) {
+  for (const auto& yaml_node : yaml_nodes) {
     try {
       auto node = yaml_node["advanced_network"]["cfg"];
       return node["manager"].template as<std::string>();
-    }
-    catch (const std::exception& e) {
-      return "default";
-    }
+    } catch (const std::exception& e) { return "default"; }
   }
 
   return "default";

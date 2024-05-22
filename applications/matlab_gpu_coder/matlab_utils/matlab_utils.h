@@ -26,7 +26,13 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/utils/cuda_stream_handler.hpp>
-#include "rtwtypes.h"
+
+/**
+ * @brief Equal to MATLAB's complex data type.
+ */
+typedef struct {
+    float re, im;
+} complex;
 
 /**
  * @brief A 2D shape for use with hard_transpose_kernel_2d.
@@ -67,9 +73,9 @@ void cuda_hard_transpose(T* input, T* output, std::vector<int32_t> shape, cudaSt
                          Flip flip);
 
 /**
- * @brief Populates MATLAB complex data type creal32_T from two arrays of floats
+ * @brief Populates MATLAB complex data type complex from two arrays of floats
  */
-void cuda_populate_complex(const float* rdata, const float* idata, creal32_T* output,
+void cuda_populate_complex(const float* rdata, const float* idata, void* output,
                            const int ndata, const cudaStream_t cuda_stream);
 
 /**

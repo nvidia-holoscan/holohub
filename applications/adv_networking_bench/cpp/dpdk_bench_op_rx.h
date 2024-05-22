@@ -132,8 +132,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       } else {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p]   =
-            reinterpret_cast<uint8_t *>(adv_net_get_seg_pkt_ptr(burst, 1, p)) + header_size_.get();
-          ttl_bytes_in_cur_batch_  += adv_net_get_seg_pkt_len(burst, 1, p);
+            reinterpret_cast<uint8_t *>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
+          ttl_bytes_in_cur_batch_  += adv_net_get_seg_pkt_len(burst, 0, p);
         }
       }
 

@@ -200,7 +200,7 @@ class DepthApp(Application):
         # set name
         self.name = "Depth App"
 
-        data = os.environ.get("HOLOSCAN_DATA_PATH", "../data") if data is None else data
+        data = os.environ.get("HOLOHUB_DATA_PATH", "../data") if data is None else data
         model = data if model is None else model
 
         self.data_path = data

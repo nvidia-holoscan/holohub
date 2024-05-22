@@ -171,24 +171,25 @@ class DocaMgr : public ANOMgr {
   uint16_t default_num_tx_desc = 8192;
   int num_ports = 0;
 
-  void *get_seg_pkt_ptr(AdvNetBurstParams *burst, int seg, int idx) override;
+  void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) override;
   void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
   uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
-  uint16_t get_seg_pkt_len(AdvNetBurstParams *burst, int seg, int idx) override;
+  uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
   AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
   AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
   AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                unsigned int src_host, unsigned int dst_host) override;
+                            unsigned int src_host, unsigned int dst_host) override;
   AdvNetStatus set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                               uint16_t dst_port) override;
+                           uint16_t dst_port) override;
   AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) override;
   bool tx_burst_available(AdvNetBurstParams* burst) override;
 
-  AdvNetStatus set_pkt_lens(AdvNetBurstParams *burst, int idx, const std::initializer_list<int> &lens) override;
-  void free_all_seg_pkts(AdvNetBurstParams *burst, int seg) override {};
-  void free_pkt_seg(AdvNetBurstParams *burst, int seg, int pkt) override {};
-  void free_pkt(AdvNetBurstParams *burst, int pkt) override {};
-  void free_all_pkts(AdvNetBurstParams *burst) override {};
+  AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
+                            const std::initializer_list<int>& lens) override;
+  void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override{};
+  void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override{};
+  void free_pkt(AdvNetBurstParams* burst, int pkt) override{};
+  void free_all_pkts(AdvNetBurstParams* burst) override{};
   void free_rx_burst(AdvNetBurstParams* burst) override;
   void free_tx_burst(AdvNetBurstParams* burst) override;
   std::optional<uint16_t> get_port_from_ifname(const std::string& name) override;
@@ -199,8 +200,8 @@ class DocaMgr : public ANOMgr {
   void free_tx_meta(AdvNetBurstParams* burst) override;
   AdvNetStatus get_tx_meta_buf(AdvNetBurstParams** burst) override;
   AdvNetStatus send_tx_burst(AdvNetBurstParams* burst) override;
-  AdvNetStatus get_mac(int port, char *mac) override;
-  int address_to_port(const std::string &addr) override;
+  AdvNetStatus get_mac(int port, char* mac) override;
+  int address_to_port(const std::string& addr) override;
   void shutdown() override;
   void print_stats() override;
   bool validate_config() const override;
@@ -220,7 +221,7 @@ class DocaMgr : public ANOMgr {
   struct rte_mempool* rx_meta;
   struct rte_mempool* tx_meta;
   std::unordered_map<uint32_t, DocaRxQueue*> rx_q_map_;
-  std::unordered_map<uint32_t, DocaTxQueue*> tx_q_map_;  
+  std::unordered_map<uint32_t, DocaTxQueue*> tx_q_map_;
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
 

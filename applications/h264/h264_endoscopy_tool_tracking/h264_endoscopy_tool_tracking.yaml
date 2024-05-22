@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,7 +139,6 @@ holoviz_output_format_converter:
 encoder_input_format_converter:
   in_dtype: "rgb888"
   out_dtype: "yuv420"
-  output_video_buffer:  true
 
 tensor_to_video_buffer:
   video_format: "yuv420"

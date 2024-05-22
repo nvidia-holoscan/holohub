@@ -30,7 +30,6 @@ include(CTest)
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
-option(BUILD_SAMPLE_APPS "Build Holoscan SDK sample applications" OFF)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
@@ -41,6 +40,7 @@ endif()
 
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
+set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:/opt/nvidia/holoscan/lib/")
 
 # Build the applications
 add_subdirectory(applications)

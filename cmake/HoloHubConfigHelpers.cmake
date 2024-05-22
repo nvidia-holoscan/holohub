@@ -16,16 +16,10 @@
 # Helper function to build application and dependencies
 function(add_holohub_application NAME)
 
-  cmake_parse_arguments(APP "HOLOSCAN_SAMPLE_APP" "" "DEPENDS" ${ARGN})
+  cmake_parse_arguments(APP "" "" "DEPENDS" ${ARGN})
 
   set(appname "APP_${NAME}")
   option(${appname} "Build the ${NAME} application" ${BUILD_ALL})
-
-  # If the application is a holoscan sample application and
-  # the variable BUILD_SAMPLE_APPS is set we build this app
-  if(BUILD_SAMPLE_APPS AND APP_HOLOSCAN_SAMPLE_APP)
-    set(${appname} ON CACHE BOOL "Build the ${NAME} application" FORCE)
-  endif()
 
   if(${appname})
     add_subdirectory(${NAME})

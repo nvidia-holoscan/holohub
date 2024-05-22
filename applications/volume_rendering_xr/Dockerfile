@@ -21,7 +21,15 @@ ARG VULKAN_SDK_VERSION=1.3.216.0
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
 
+<<<<<<< HEAD
 ENV CMAKE_GENERATOR=Ninja
+=======
+COPY /applications/volume_rendering_xr/scripts/base-setup.sh \
+    /tmp/base-setup.sh
+COPY applications/volume_rendering_xr/thirdparty/magicleap/MagicLeapRemoteRendering.gpg \
+    /usr/local/share/keyrings/magicleap/MagicLeapRemoteRendering.gpg
+RUN /tmp/base-setup.sh
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 
 # Install Vulkan dependencies
 #  libvulkan1 - Vulkan loader
@@ -44,6 +52,7 @@ FROM base as vulkansdk-builder
 ARG VULKAN_SDK_VERSION
 
 WORKDIR /opt/vulkansdk
+ENV CMAKE_GENERATOR=Ninja
 
 # Note there is no aarch64 binary version to download, therefore for aarch64 we also download the x86_64 version which
 # includes the source. Then remove the binaries and build the aarch64 version from source.
@@ -67,7 +76,10 @@ RUN if [ $(uname -m) = "aarch64" ]; then \
 FROM base as dev
 
 ARG DEBIAN_FRONTEND=noninteractive
+<<<<<<< HEAD
 ARG WINDRUNNER_VERSION=1.11.74-5b8fe25-1~20240426ubuntu2204
+=======
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 
 # Install OpenXR dev dependencies, can remove when using libopenxr-dev package instead of building OpenXR from source
 RUN apt update \
@@ -131,6 +143,7 @@ ENV PATH="${PATH}:/workspace/holohub/applications/volume_rendering_xr/thirdparty
 ARG VULKAN_SDK_VERSION
 ENV VULKAN_SDK=/opt/vulkansdk/${VULKAN_SDK_VERSION}
 COPY --from=vulkansdk-builder ${VULKAN_SDK}/x86_64/ ${VULKAN_SDK}
+
 # We need to use the headers and shader compiler of the SDK but want to link against the
 # Vulkan loader provided by the Ubuntu package. Therefore create a link in the SDK directory
 # pointing to the system Vulkan loader library.
@@ -139,6 +152,22 @@ RUN rm -f ${VULKAN_SDK}/lib/libvulkan.so* \
 ENV PATH="${PATH}:${VULKAN_SDK}/bin"
 ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VULKAN_SDK}"
 
+<<<<<<< HEAD
+=======
+############################################################
+# Environment variables
+############################################################
+# Magic Leap Windrunner environment variables
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/windrunner/lib"
+ENV LR_TRANSPORT_CERT_PATH=/opt/windrunner/share/windrunner/server.crt
+ENV LR_TRANSPORT_PKEY_PATH=/opt/windrunner/share/windrunner/server.key
+ENV WINDRUNNER_ENABLE_AUDIO=0
+ENV PATH="${PATH}:/opt/windrunner/bin"
+
+# Setup Magic Leap CLI
+ENV PATH="${PATH}:/workspace/holohub/applications/volume_rendering_xr/thirdparty/magicleap"
+
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c
 # Set JIT compilation cache paths
 #  https://developer.nvidia.com/blog/cuda-pro-tip-understand-fat-binaries-jit-caching/
 ENV CUDA_CACHE_DISABLE="0"
@@ -147,7 +176,10 @@ ENV CUDA_CACHE_PATH="/workspace/holohub/.cache/ComputeCache"
 ENV OPTIX_CACHE_PATH="/workspace/holohub/.cache/OptixCache"
 #  https://download.nvidia.com/XFree86/Linux-x86_64/460.67/README/openglenvvariables.html
 ENV __GL_SHADER_DISK_CACHE_PATH="/workspace/holohub/.cache/GLCache"
+<<<<<<< HEAD
 
 # all NVIDIA devices are visible, also use all driver capabilities
 ENV NVIDIA_VISIBLE_DEVICES="all"
 ENV NVIDIA_DRIVER_CAPABILITIES="all"
+=======
+>>>>>>> bd116304b8f21536ca5418430eeeede824886e6c

@@ -6,8 +6,8 @@
 )
 [![Pages](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/generate_pages.yml?branch=main&label=Pages)](https://nvidia-holoscan.github.io/holohub/)
 
-[![Applications](https://img.shields.io/badge/Applications-60-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
-[![Operators](https://img.shields.io/badge/Operators-40-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
+[![Applications](https://img.shields.io/badge/Applications-64-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
+[![Operators](https://img.shields.io/badge/Operators-45-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
 [![Tutorials](https://img.shields.io/badge/Tutorials-7-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
 
 HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan Platform to reuse and contribute components and sample applications.
@@ -169,6 +169,23 @@ endoscopy application:
 
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
 Make sure you build the application (if applicable) before running it.
+
+# Cleanup
+
+We recommend running the command below to reset your build directory between building Holohub applications with different configurations:
+
+```sh
+./run clear_cache
+```
+
+In some cases you may also want to clear out datasets downloaded by HoloHub apps to the `data` folder:
+```sh
+rm -rf ./data
+```
+
+Note that many HoloHub applications supply custom container environments with build and runtime dependencies.
+Failing to clean the build cache between different applications may result in unexpected behavior where build
+tools or libraries appear to be broken or missing. Clearing the build cache is a good first check to address those issues.
 
 # Contributing to HoloHub
 

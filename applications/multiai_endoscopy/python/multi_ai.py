@@ -127,7 +127,7 @@ class MultiAIDetectionSegmentation(Application):
         super().__init__()
 
         if data == "none":
-            data = os.environ.get("HOLOSCAN_DATA_PATH", "../data")
+            data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
         # set name
         self.name = "Multi AI App"

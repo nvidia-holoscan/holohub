@@ -210,6 +210,10 @@ print_error() {
 install_cuda_dependencies_package() {
    package_name=$1
    preferred_version=$2
+   optional=false
+   if [ -n "$3" ]; then
+     optional=true
+   fi
 
    # Checking if compatible packages are already installed
    installed_version=$(apt list --installed ${package_name} 2>/dev/null | grep $package_name)
@@ -223,10 +227,14 @@ install_cuda_dependencies_package() {
    package_installed=$(echo $available_version | grep "installed")
 
    if [[ $package_version == "" ]]; then
-    print_error "$package_name $preferred_version is not installable."
-    echo "You might want to try to install a newer version manually and rerun the setup:"
-    echo "  sudo apt install $package_name"
-    exit 1
+    if [[ $optional == "true" ]]; then
+      echo "Package $package_name $preferred_version not found. Skipping."
+    else
+      print_error "$package_name $preferred_version is not installable."
+      echo "You might want to try to install a newer version manually and rerun the setup:"
+      echo "  sudo apt install $package_name"
+      exit 1
+    fi
    elif [[ $package_installed == "" ]]; then
     echo "Installing $package_name=$package_version"
     apt install --no-install-recommends -y $package_name=$package_version
@@ -325,7 +333,7 @@ setup() {
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -337,9 +345,18 @@ setup() {
   short_cuda_version=${cuda_version%.*}
   echo "Cuda version found: $short_cuda_version"
 
+  # Install cudnn9 first
+  install_cuda_dependencies_package libcudnn9-cuda-12 cuda$short_cuda_version true
+  install_cuda_dependencies_package libcudnn9-dev-cuda-12 cuda$short_cuda_version true
+
+  # Check if cudnn9 is install, if not install cudnn8
+  installed_cudnn9_version=$(apt list --installed libcudnn9-cuda-12 2>/dev/null | grep libcudnn9-cuda-12)
+  if [[ $installed_cudnn9_version == "" ]]; then
+     install_cuda_dependencies_package libcudnn8 cuda$short_cuda_version
+     install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
+  fi
+
   # Make sure we do not install any cuda12 packages
-  install_cuda_dependencies_package libcudnn8 cuda$short_cuda_version
-  install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
   install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
@@ -452,7 +469,7 @@ lint() {
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
-                            --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
+                            --skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -495,7 +512,7 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb" \
                           -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
                           --exclude-file codespell.txt || exit_code=1
 
@@ -519,10 +536,12 @@ lint() {
 build_desc() {
   echo ""
   echo "Build the application(s) in HoloHub"
-  echo "Usage: ./run build <application_name | SAMPLE_APPS : default SAMPLE_APPS> [options]"
+  echo "Usage: ./run build <application_name> [options]"
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
   echo "   --with <list of operators>  : Optional operators that should be built"
+  echo "                                 If multiple operators are to be built, list must be"
+  echo "                                 in quotes with operators separated by semicolons (;)"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
@@ -591,7 +610,7 @@ build() {
   local arg
   local skipnext=0
   local build_type="${CMAKE_BUILD_TYPE:-release}"
-  local build_path="${CMAKE_BUILD_PATH:-build}"
+  local build_path="${CMAKE_BUILD_PATH}"
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -603,9 +622,9 @@ build() {
          echo "Setting Holoscan SDK install path to ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--with" ]; then
-         operator="${ARGS[i+1]}"
-         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=${operator}"
-         echo "Building with operator ${operator}"
+         operators="${ARGS[i+1]}"
+         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
+         echo "Building with operator(s) ${operators}"
          skipnext=1
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${configure_args} ${ARGS[i+1]}"
@@ -627,15 +646,20 @@ build() {
 
   echo "Building Holohub"
 
-  # Application(s) to build
-  application="-DBUILD_SAMPLE_APPS=1"
-
-  if [[ $app == "SAMPLE_APPS" ]] ||  [[ $app == "" ]]; then
-     echo "Building sample applications."
-  else
-    echo "building $1 application"
-    application="-DAPP_$1=1"
+  # Application to build
+  if [ "$1" == "" ]; then
+    print_error "Please specify which application to build."
+    echo "You can run ./run list for a full list of applications."
+    exit 1
   fi
+
+  # Assign default build path
+  if [ "$build_path" == "" ]; then
+    build_path="build/$1"
+  fi
+
+  echo "Building $1 application"
+  application="-DAPP_$1=1"
 
   # We define the python path to make sure we grab the right one
   cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
@@ -676,14 +700,21 @@ launch() {
    local extra_args=""
    local nsys_profile=false
    local verbose=false
+   local holohub_build_dir=""
+   local skipnext=0
 
    for i in "${!ARGS[@]}"; do
      arg="${ARGS[i]}"
-     if [ "$arg" = "--extra_args" ]; then
+     if [[ $skipnext == "1" ]]; then
+       skipnext=0
+     elif [ "$arg" = "--extra_args" ]; then
        extra_args="${ARGS[i+1]}"
-       break
+       skipnext=1
      elif [ "$arg" = "--nsys_profile" ]; then
        nsys_profile=true
+     elif [ "$arg" = "--buildpath" ]; then
+       holohub_build_dir="${ARGS[i+1]}"
+       skipnext=1
      elif [ "$arg" = "--verbose" ]; then
        verbose=true
      elif [ -z "${appname}" ]; then
@@ -694,18 +725,22 @@ launch() {
    done
 
    # Export the python path (by default use the one used to build)
-   local holohub_build_dir="${SCRIPT_DIR}/build"
+   if [ "$holohub_build_dir" == "" ]; then
+      holohub_build_dir="${SCRIPT_DIR}/build/$appname"
+   else
+     holohub_build_dir=$(readlink --canonicalize $holohub_build_dir)
+   fi
 
    # Do initial sanitary check to make sure build/ is there, to avoid too many other error messages
    if [ ! -d "$holohub_build_dir" ]; then
-     print_error "${holohub_build_dir} does not exist."
+     print_error "The build directory ${holohub_build_dir} does not exist."
      echo "Did you forget to build your application using './run build $appname' ?"
      build_desc
      exit 1
    fi
 
-   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
-   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
+   local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' ${holohub_build_dir}/CMakeCache.txt)
+   local holohub_data_dir=$(grep -Po '^HOLOHUB_DATA_DIR:PATH=\K[^ ]*' ${holohub_build_dir}/CMakeCache.txt)
 
    if [[ -z "${language}" ]]; then
      language=$(get_app_default_language "${appname}")
@@ -782,8 +817,8 @@ for k, v in obj["application"]["run"].items():
       workdir="cd ${holohub_build_dir}"
    fi
 
-   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
-   local reset_environment="export PYTHONPATH=${PYTHONPATH}"
+   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR} && export HOLOHUB_DATA_PATH=${holohub_data_dir}"
+   local reset_environment="export PYTHONPATH=${PYTHONPATH} && export HOLOHUB_DATA_PATH=\"${HOLOHUB_DATA_PATH}\""
 
    if [ ${verbose} ]; then
     echo "Run environment: $environment"
@@ -827,23 +862,12 @@ list() {
       filename="${appname%/*}"
     fi
 
-    # Check in the CMakelists if the application is a sample application
-    appcmakelist="applications/CMakeLists.txt"
-    grepargs="\(${filename} \K[^)]+"
-    result_grep=$(grep -ozP "${grepargs}" $appcmakelist | tr -d '\0')
-    result=$(echo $result_grep | grep "HOLOSCAN_SAMPLE_APP")
-    sample_app=""
-    if [[ ${result} != "" ]]; then
-      sample_app="[Sample Application]"
-    fi
-
     application="${filename##*/}"
 
-    echo "- ${application} ${language} ${sample_app}"
+    echo "- ${application} ${language}"
   done
   echo ""
   echo "Run ./run build <app_name> to build a specific app."
-  echo "or ./run build SAMPLE_APPS to build the sample applications (noted [Sample Application]), other applications should be built individually."
 }
 
 # Returns the list of words for autocompletion

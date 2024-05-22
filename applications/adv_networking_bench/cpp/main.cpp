@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <sys/time.h>
 
-
 class App : public holoscan::Application {
  public:
   void compose() override {
@@ -38,36 +37,40 @@ class App : public holoscan::Application {
     // DPDK is the default manager backend
     if (mgr == "default" || mgr == "dpdk") {
       if (rx_en) {
-        auto adv_net_rx   = make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
-                                                from_config("advanced_network"),
-                                                make_condition<BooleanCondition>("is_alive", true));        
-        auto bench_rx     = make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx",
-                                                                        from_config("bench_rx"));
+        auto adv_net_rx =
+            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
+                                               from_config("advanced_network"),
+                                               make_condition<BooleanCondition>("is_alive", true));
+        auto bench_rx =
+            make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx", from_config("bench_rx"));
         add_flow(adv_net_rx, bench_rx, {{"bench_rx_out", "burst_in"}});
       }
       if (tx_en) {
-        auto adv_net_tx     = make_operator<ops::AdvNetworkOpTx>("adv_network_tx",
-                                                                from_config("advanced_network"));
-        auto bench_tx       = make_operator<ops::AdvNetworkingBenchDefaultTxOp>("bench_tx",
-                                                from_config("bench_tx"),
-                                                make_condition<BooleanCondition>("is_alive", true));                                                                
+        auto adv_net_tx =
+            make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
+        auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
+            "bench_tx",
+            from_config("bench_tx"),
+            make_condition<BooleanCondition>("is_alive", true));
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
     } else if (mgr == "doca") {
       if (rx_en) {
-        auto bench_rx     = make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx",
-                                                                        from_config("bench_rx"));
-        auto adv_net_rx   = make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
-                                                from_config("advanced_network"),
-                                                make_condition<BooleanCondition>("is_alive", true));
+        auto bench_rx =
+            make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));
+        auto adv_net_rx =
+            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
+                                               from_config("advanced_network"),
+                                               make_condition<BooleanCondition>("is_alive", true));
         add_flow(adv_net_rx, bench_rx, {{"bench_rx_out", "burst_in"}});
       }
       if (tx_en) {
-        auto bench_tx       = make_operator<ops::AdvNetworkingBenchDocaTxOp>("bench_tx",
-                                                from_config("bench_tx"),
-                                                make_condition<BooleanCondition>("is_alive", true));
-        auto adv_net_tx     = make_operator<ops::AdvNetworkOpTx>("adv_network_tx",
-                                                                from_config("advanced_network"));
+        auto bench_tx = make_operator<ops::AdvNetworkingBenchDocaTxOp>(
+            "bench_tx",
+            from_config("bench_tx"),
+            make_condition<BooleanCondition>("is_alive", true));
+        auto adv_net_tx =
+            make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
     } else {
@@ -90,7 +93,7 @@ int main(int argc, char** argv) {
   config_path += "/" + std::string(argv[1]);
   app->config(config_path);
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
-        "multithread-scheduler", app->from_config("scheduler")));
+      "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
   return 0;

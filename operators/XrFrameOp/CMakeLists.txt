@@ -84,5 +84,8 @@ target_include_directories(frame_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/conver
 target_include_directories(frame_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/begin_frame)
 target_include_directories(frame_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/end_frame)
 
-
+install(
+  TARGETS frame_op
+  EXPORT holoscan-ops
+)
 

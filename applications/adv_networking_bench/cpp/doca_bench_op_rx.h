@@ -56,7 +56,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     for (int n = 0; n < num_concurrent; n++) {
       cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
       cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
-      cudaMallocAsync(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_, streams_[n]);      
+      cudaMallocAsync(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_, streams_[n]);
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel

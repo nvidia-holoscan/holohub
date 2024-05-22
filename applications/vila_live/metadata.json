@@ -1,0 +1,41 @@
+{
+	"application": {
+		"name": "VILA Live",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Large Multimodal Model",
+			"Large Vision Model"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"Bootstrap": {
+				"source": "https://getbootstrap.com/docs/4.0/getting-started/contents/",
+				"version": "5.3.1"
+			}
+		},
+		"run": {
+			"command": "bash -c '<holohub_app_source>/run_vila_live.sh'",
+			"workdir": "holohub_bin"
+		}
+	}
+}

@@ -28,6 +28,7 @@ target_link_libraries(object_detection_torch
     holoscan::core
     holoscan::ops::aja
     holoscan::ops::video_stream_replayer
+    holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
@@ -50,6 +51,13 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_FRAMERATE 30
   )
   add_dependencies(object_detection_torch object_detection_torch_data)
+
+  # Download the model
+  add_custom_target(download_model
+    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+  )
+  add_dependencies(object_detection_torch download_model)
 endif()
 
 # Copy config file
@@ -66,3 +74,47 @@ add_custom_target(object_detection_torch_yaml
     BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
 )
 add_dependencies(object_detection_torch object_detection_torch_yaml)
+
+# Add testing
+if(BUILD_TESTING)
+
+  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
+  set(SOURCE_VIDEO_BASENAME object_detection_torch_output)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/object_detection_torch/testing/)
+
+  file(MAKE_DIRECTORY ${RECORDING_DIR})
+
+  # Configure the yaml file for testing
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/object_detection_torch.yaml" CONFIG_FILE)
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "record_type: \"none\"" "record_type: \"visualizer\"" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "basename: \"tensor\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
+
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch_testing.yaml" ${CONFIG_FILE})
+
+  # Add test
+  add_test(NAME object_detection_torch_test
+           COMMAND object_detection_torch ${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch_testing.yaml
+                   --data "${HOLOHUB_DATA_DIR}/object_detection_torch"
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  set_tests_properties(object_detection_torch_test PROPERTIES
+                PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # Add a test to check the validity of the frames
+  add_test(NAME object_detection_torch_render_test
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+    --source_video_dir ${RECORDING_DIR}
+    --source_video_basename ${SOURCE_VIDEO_BASENAME}
+    --output_dir ${RECORDING_DIR}
+    --validation_frames_dir ${VALIDATION_FRAMES_DIR}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+
+  set_tests_properties(object_detection_torch_render_test PROPERTIES
+    DEPENDS object_detection_torch_test
+    PASS_REGULAR_EXPRESSION "Valid video output!"
+  )
+endif()

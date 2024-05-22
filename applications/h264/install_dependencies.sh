@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 # required for H264 Encode / Decode applications.
 
 # URL of the DeepStream dependencies required for gxf-mm extensions above
-DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/3.1.0/files?redirect=true&path=nvv4l2_x86_ds-6.4.deb"
+DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/4.0.0/files?redirect=true&path=nvv4l2_x86_ds-7.0.deb"
 
 ARCH=$(arch)
 HOLOSCAN_LIBS_DIR=/opt/nvidia/holoscan/lib/
@@ -41,9 +41,9 @@ mkdir -p ${HOLOSCAN_LIBS_DIR}
 CUDA_VERSION=12.2
 for extension in "${!gxf_mm_extensions[@]}"; do
   if [[ $extension == "decoderio" ]] || [[ $extension == "encoderio" ]]; then
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.1.0-linux-${ARCH}-ubuntu_22.04/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.2.0-linux-${ARCH}-ubuntu_22.04/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   else
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.1.0-linux-${ARCH}-ubuntu_22.04-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.2.0-linux-${ARCH}-ubuntu_22.04-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   fi
   extension_tar=${gxf_mm_extensions[$extension]}.tar.gz
   wget --content-disposition ${extension_url} -O ${extension_tar}

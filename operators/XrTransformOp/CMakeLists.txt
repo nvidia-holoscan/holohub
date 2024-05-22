@@ -54,6 +54,7 @@ if(NOT openxr_hpp_POPULATED)
   )
 endif()
 
+# Get nlohmann_json from ClaraViz
 FetchContent_MakeAvailable(nlohmann_json)
 
 add_library(xr_transform_op
@@ -88,3 +89,8 @@ target_include_directories(xr_transform_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 target_include_directories(xr_transform_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/XrTransformRenderOp)
 target_include_directories(xr_transform_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/XrTransformControlOp)
 target_include_directories(xr_transform_op INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/ux)
+
+install(
+  TARGETS xr_transform_op
+  EXPORT holoscan-ops
+)

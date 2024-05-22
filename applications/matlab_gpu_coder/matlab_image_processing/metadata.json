@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "matlab_gpu_coder",
+		"name": "matlab_image_processing",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -28,8 +28,9 @@
 		],
 		"tags": [
 			"MATLAB",
-			"Ultrasound",
-			"Beamforming",
+			"Image Processing",
+			"Signal Processing",
+			"Computer Vision",
 			"CUDA"
 		],
 		"ranking": 4,

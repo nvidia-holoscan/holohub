@@ -457,12 +457,10 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 }
 
 bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
-  printf("%d\n", this->initialized_);
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
     long nproc, i;
-
 
     if (!validate_config()) {
       HOLOSCAN_LOG_CRITICAL("Config validation failed");
@@ -483,19 +481,16 @@ bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
 }
 
 bool DocaMgr::validate_config() const {
-  if (!ANOMgr::validate_config()) {
-    return false;
-  }
+  if (!ANOMgr::validate_config()) { return false; }
 
   // Don't allow buffer splitting
-  for (const auto &intf: cfg_.ifs_) {
+  for (const auto& intf : cfg_.ifs_) {
     int gpu_id = -1;
 
-    for (const auto &rxq: intf.rx_.queues_) {
+    for (const auto& rxq : intf.rx_.queues_) {
       if (gpu_id == -1) {
         gpu_id = cfg_.mrs_.at(rxq.common_.mrs_[0]).affinity_;
-      }
-      else {
+      } else {
         if (gpu_id != cfg_.mrs_.at(rxq.common_.mrs_[0]).affinity_) {
           HOLOSCAN_LOG_ERROR("GPU comms requires all queue MRs to point to same GPU device");
           return false;
@@ -509,11 +504,10 @@ bool DocaMgr::validate_config() const {
     }
 
     gpu_id = -1;
-    for (const auto &txq: intf.rx_.queues_) {
+    for (const auto& txq : intf.rx_.queues_) {
       if (gpu_id == -1) {
         gpu_id = cfg_.mrs_.at(txq.common_.mrs_[0]).affinity_;
-      }
-      else {
+      } else {
         if (gpu_id != cfg_.mrs_.at(txq.common_.mrs_[0]).affinity_) {
           HOLOSCAN_LOG_ERROR("GPU comms requires all queue MRs to point to same GPU device");
           return false;
@@ -524,7 +518,7 @@ bool DocaMgr::validate_config() const {
         HOLOSCAN_LOG_ERROR("Tx buffer split not supported in GPU comms mode yet");
         return false;
       }
-    }    
+    }
   }
 
   HOLOSCAN_LOG_INFO("Config validated successfully");
@@ -617,12 +611,14 @@ void DocaMgr::initialize() {
           q_max_packet_size = mr.second.buf_size_;
           gpu_id = mr.second.affinity_;
 
-          if (mr.second.kind_ == MemoryKind::DEVICE)
+          if (mr.second.kind_ == MemoryKind::DEVICE) {
             mtype = DOCA_GPU_MEM_TYPE_GPU;
-          else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+          } else if (mr.second.kind_ == MemoryKind::HOST_PINNED) {
             mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
-          else {
-            HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+          } else {
+            HOLOSCAN_LOG_CRITICAL(
+                "FAILED: DOCA mgr doesn't support memory kind different from DEVICE or "
+                "HOST_PINNED");
             return;
           }
 
@@ -663,29 +659,33 @@ void DocaMgr::initialize() {
           gpu_id = mr.second.affinity_;
 
           txq_pkts = next_power_of_two(mr.second.num_bufs_);
-          if (mr.second.kind_ == MemoryKind::DEVICE)
+          if (mr.second.kind_ == MemoryKind::DEVICE) {
             mtype = DOCA_GPU_MEM_TYPE_GPU;
-          else if (mr.second.kind_ == MemoryKind::HOST_PINNED)
+          } else if (mr.second.kind_ == MemoryKind::HOST_PINNED) {
             mtype = DOCA_GPU_MEM_TYPE_CPU_GPU;
-          else {
-            HOLOSCAN_LOG_CRITICAL("FAILED: DOCA mgr doesn't support memory kind different from DEVICE or HOST_PINNED");
+          } else {
+            HOLOSCAN_LOG_CRITICAL(
+                "FAILED: DOCA mgr doesn't support memory kind different from DEVICE or "
+                "HOST_PINNED");
             return;
           }
           break;
         }
       }
 
-      HOLOSCAN_LOG_INFO(
-          "Configuring TX queue: {} ({}) on port {} memory type {}",
-          q.common_.name_, q.common_.id_, intf.port_id_, mtype);
+      HOLOSCAN_LOG_INFO("Configuring TX queue: {} ({}) on port {} memory type {}",
+                        q.common_.name_,
+                        q.common_.id_,
+                        intf.port_id_,
+                        mtype);
 
       tx_q_map_[key] = new DocaTxQueue(ddev[intf.port_id_],
-                                        gdev[gpu_id],
-                                        q.common_.id_,
-                                        txq_pkts,
-                                        max_packet_size,
-                                        mtype,
-                                        &decrease_txq_completion_cb);                                              
+                                       gdev[gpu_id],
+                                       q.common_.id_,
+                                       txq_pkts,
+                                       max_packet_size,
+                                       mtype,
+                                       &decrease_txq_completion_cb);
     }
 
     if (intf.rx_.queues_.size() > 0) {
@@ -706,9 +706,7 @@ void DocaMgr::initialize() {
 
       if (intf.rx_.queues_.size() > 0) {
         doca_ret = create_root_pipe(intf.port_id_);
-        if (doca_ret != DOCA_SUCCESS) {
-          HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe");
-        }
+        if (doca_ret != DOCA_SUCCESS) { HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe"); }
       }
 
       /* Create semaphore for GPU - CPU communication per rxq*/
@@ -1107,7 +1105,6 @@ void DocaMgr::run() {
         for (auto& q : tx.queues_) {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_tx->txqn++;
-
             if (tidx == 0) {
               params_tx->core_id = stoi(q.common_.cpu_core_);
               rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
@@ -1698,7 +1695,6 @@ AdvNetStatus DocaMgr::set_pkt_lens(AdvNetBurstParams *burst, int idx, const std:
   burst->pkt_lens[0][idx] = *(lens.begin());
   return AdvNetStatus::SUCCESS;
 }
-
 
 void DocaMgr::free_rx_burst(AdvNetBurstParams* burst) {
   return;
