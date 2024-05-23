@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "adv_network_doca_kernels.h"
 #define ETHER_ADDR_LEN 6
+#define DOCA_DEBUG_KERNEL 0
 
 struct ether_hdr {
   uint8_t d_addr_bytes[ETHER_ADDR_LEN]; /* Destination addr bytes in tx order */
@@ -77,7 +78,7 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
   struct doca_gpu_semaphore_gpu* sem = (struct doca_gpu_semaphore_gpu*)sem_gpu[blockIdx.x];
   int sem_idx = 0;
   __shared__ struct adv_doca_rx_gpu_info* stats_global;
-#if DOCA_DEBUG_KERNEL
+#if DOCA_DEBUG_KERNEL == 1
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
 #endif
@@ -104,23 +105,9 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
   }
   __syncthreads();
 
-  if (threadIdx.x == 0) {
-    DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
-    /* Get next semaphore item to pass packets info to the CPU */
-    ret = doca_gpu_dev_semaphore_get_custom_info_addr(sem, sem_idx, (void**)&stats_global);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
-             ret,
-             blockIdx.x,
-             threadIdx.x);
-      DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-    }
-  }
-  __syncthreads();
-
   while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0) {
     ret = doca_gpu_dev_eth_rxq_receive_block(
-        rxq, CUDA_MAX_RX_NUM_PKTS, CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
+        rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
     /* If any thread returns receive error, the whole execution stops */
     if (ret != DOCA_SUCCESS) {
       if (threadIdx.x == 0) {
@@ -138,7 +125,7 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
     if (rx_pkt_num == 0) continue;
 
     buf_idx = threadIdx.x;
-    while (buf_idx < rx_pkt_num && buf_idx < CUDA_MAX_RX_NUM_PKTS) {
+    while (buf_idx < rx_pkt_num) {
       ret = doca_gpu_dev_eth_rxq_get_buf(rxq, rx_buf_idx + buf_idx, &buf_ptr);
       if (ret != DOCA_SUCCESS) {
         printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
@@ -152,11 +139,14 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
         DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
         break;
       }
-#if DOCA_DEBUG_KERNEL
+#if DOCA_DEBUG_KERNEL == 1
       raw_to_udp(buf_addr, &hdr, &payload);
+      __threadfence();
       printf(
-          "Queue %d Thread %d received UDP packet with Eth src %02x:%02x:%02x:%02x:%02x:%02x - Eth "
-          "dst %02x:%02x:%02x:%02x:%02x:%02x - Src port %d - Dst port %d\n",
+          "Queue %d Thread %d received UDP packet with "
+          "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Src port %d - Dst port %d\n",
           blockIdx.x,
           threadIdx.x,
           ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
@@ -174,7 +164,9 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
           hdr->l4_hdr.src_port,
           hdr->l4_hdr.dst_port);
 #endif
-      /* Add packet processing function here. */
+
+      /* Add packet processing/filtering function here. */
+
       if (threadIdx.x == 0 && buf_idx == 0 && tot_pkts_batch == 0) {
         DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_addr) = buf_addr;
         DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_idx) = rx_buf_idx;
@@ -189,6 +181,9 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
 
     if (threadIdx.x == 0 && rx_pkt_num > 0) {
       tot_pkts_batch += rx_pkt_num;
+#if DOCA_DEBUG_KERNEL == 1
+      printf("Queue %d tot pkts %d/%d\n", blockIdx.x, tot_pkts_batch, batch_list[blockIdx.x]);
+#endif
       if (tot_pkts_batch >= batch_list[blockIdx.x]) {
         DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
         DOCA_GPUNETIO_VOLATILE(stats_global->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
@@ -247,7 +242,7 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
   uint32_t pkt_idx = threadIdx.x;
   struct doca_gpu_buf* buf = NULL;
   doca_error_t ret = DOCA_SUCCESS;
-#if DOCA_DEBUG_KERNEL
+#if DOCA_DEBUG_KERNEL == 2
   uintptr_t buf_addr;
 #endif
   uint32_t curr_position;
@@ -270,7 +265,7 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
       break;
     }
 
-#if DOCA_DEBUG_KERNEL
+#if DOCA_DEBUG_KERNEL == 2
     ret = doca_gpu_dev_buf_get_addr(buf, &buf_addr);
     if (ret != DOCA_SUCCESS) {
       printf("UDP Error %d doca_gpu_dev_buf_get_addr thread %d\n", ret, threadIdx.x);

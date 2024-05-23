@@ -66,4 +66,3 @@ add_custom_target(adv_networking_bench_doca_tx_rx_yaml
 
 add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
 
-

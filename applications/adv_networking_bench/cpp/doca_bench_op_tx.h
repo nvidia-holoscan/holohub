@@ -20,14 +20,11 @@
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
-
+#include <rte_cycles.h>
 namespace holoscan::ops {
 
 /*
@@ -74,7 +71,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
       cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
       cudaStreamCreate(&streams_[n]);
       cudaEventCreate(&events_[n]);
-      copy_headers(nullptr, nullptr, 0, 0, streams_[n]);
+      copy_headers(nullptr, nullptr, 0, 1, streams_[n]);
       cudaStreamSynchronize(streams_[n]);
     }
 
@@ -85,7 +82,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
     if (gpu_direct_.get()) {
-      cudaMalloc(&pkt_header_, header_size_.get());
+      cudaMallocAsync(&pkt_header_, header_size_.get(), streams_[0]);
 
       if ((ip_dst_ & 0xff) == 2) {
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x22, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
@@ -96,7 +93,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
       } else {
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x33, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
                              0xA1, 0x08, 0x00, 0x45, 0x00, 0x1F, 0x72, 0x00, 0x00, 0x00, 0x00,
@@ -106,8 +103,10 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpy(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault);
+        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
       }
+
+      cudaStreamSynchronize(streams_[0]);
     }
 
     first_time = true;
@@ -124,22 +123,18 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                          "Payload size",
                          "Payload size to send including HDS portion",
                          1400);
-    spec.param<bool>(gpu_direct_,
-                     "gpu_direct",
-                     "GPUDirect enabled",
-                     "Byte boundary where header and data is split",
-                     false);
+    spec.param<bool>(gpu_direct_, "gpu_direct", "GPUDirect enabled", "GPUDirect enabled", false);
     spec.param<uint16_t>(udp_src_port_, "udp_src_port", "UDP source port", "UDP source port");
     spec.param<uint16_t>(
         udp_dst_port_, "udp_dst_port", "UDP destination port", "UDP destination port");
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(
         ip_dst_addr_, "ip_dst_addr", "IP destination address", "IP destination address");
+    spec.param<std::string>(address_, "address", "Address of interface", "Address of interface");
     spec.param<std::string>(eth_dst_addr_,
                             "eth_dst_addr",
                             "Ethernet destination address",
                             "Ethernet destination address");
-    spec.param<uint16_t>(port_id_, "port_id", "Interface number", "Interface number");
     spec.param<uint16_t>(header_size_,
                          "header_size",
                          "Header size",
@@ -171,25 +166,20 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     }
 
     auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_.get(), queue_id, batch_size_.get());
+    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), num_segments);
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
-    while (!adv_net_tx_burst_available(msg)) {}
-    if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
-      return;
-    }
+    while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
 
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-      gpu_bufs[cur_idx][num_pkt] =
-          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(msg, num_pkt));
+      gpu_bufs[cur_idx][num_pkt] = reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
 
-      if ((ret = adv_net_set_pkt_len(msg, num_pkt, cpu_len, gpu_len)) != AdvNetStatus::SUCCESS) {
+      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_burst_pkts_and_burst(msg);
+        adv_net_free_all_pkts_and_burst(msg);
         return;
       }
     }
@@ -229,12 +219,13 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   };
 
   static constexpr int num_concurrent = 4;
+  static constexpr int num_segments = 1;
   std::queue<TxMsg> out_q;
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   void* full_batch_data_h_;
   static constexpr uint16_t queue_id = 0;
-  uint8_t eth_dst_[6];
+  char eth_dst_[6];
   // uint8_t *gpu_bufs[num_concurrent] = {0};
   std::array<uint8_t**, num_concurrent> gpu_bufs;
   uint32_t ip_src_;
@@ -242,14 +233,15 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   cudaStream_t stream;
   void* pkt_header_;
   int cur_idx = 0;
+  uint16_t port_id_ = 0;
   Parameter<bool> gpu_direct_;  // GPUDirect enabled
   Parameter<bool> gpu_comms_;   // GDAKIN GPU communications enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
-  Parameter<uint16_t> port_id_;
   Parameter<uint16_t> payload_size_;
   Parameter<uint16_t> udp_src_port_;
   Parameter<uint16_t> udp_dst_port_;
+  Parameter<std::string> address_;
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;

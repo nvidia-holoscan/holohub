@@ -32,13 +32,14 @@ namespace holoscan::ops {
 
 DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
                          struct doca_flow_port* df_port_, uint16_t qid_, int max_pkt_num_,
-                         int max_pkt_size_)
+                         int max_pkt_size_, enum doca_gpu_mem_type mtype_)
     : ddev(dev_),
       gdev(gdev_),
       df_port(df_port_),
       qid(qid_),
       max_pkt_num(max_pkt_num_),
-      max_pkt_size(max_pkt_size_) {
+      max_pkt_size(max_pkt_size_),
+      mtype(mtype_) {
   HOLOSCAN_LOG_INFO(
       "Creating UDP Eth Rxq {} max_pkt_size {} max_pkt_num {}", qid, max_pkt_size, max_pkt_num);
 
@@ -73,7 +74,7 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
   }
 
   result = doca_gpu_mem_alloc(
-      gdev, cyclic_buffer_size, GPU_PAGE_SIZE, DOCA_GPU_MEM_TYPE_GPU, &gpu_pkt_addr, nullptr);
+      gdev, cyclic_buffer_size, GPU_PAGE_SIZE, mtype, &gpu_pkt_addr, &cpu_pkt_addr);
   if (result != DOCA_SUCCESS || gpu_pkt_addr == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate gpu memory {}", doca_error_get_descr(result));
   }
@@ -350,18 +351,12 @@ doca_error_t DocaRxQueue::destroy_semaphore() {
 }
 
 DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_t qid_,
-                         int max_pkt_num_, int max_pkt_size_,
+                         int max_pkt_num_, int max_pkt_size_, enum doca_gpu_mem_type mtype,
                          doca_eth_txq_gpu_event_notify_send_packet_cb_t event_notify_send_packet_cb)
     : ddev(ddev_), gdev(gdev_), qid(qid_), max_pkt_num(max_pkt_num_), max_pkt_size(max_pkt_size_) {
   doca_error_t result;
   uint32_t tx_buffer_size = max_pkt_size * max_pkt_num;
   union doca_data event_user_data[1] = {0};
-
-  fprintf(stderr,
-          "tx_buffer_size %d max_pkt_size %d max_pkt_num %d\n",
-          tx_buffer_size,
-          max_pkt_size,
-          max_pkt_num);
 
   result = doca_eth_txq_create(ddev, MAX_SQ_DESCR_NUM, &(eth_txq_cpu));
   if (result != DOCA_SUCCESS) {
@@ -429,7 +424,7 @@ DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_
   }
 
   result = doca_gpu_mem_alloc(
-      gdev, tx_buffer_size, GPU_PAGE_SIZE, DOCA_GPU_MEM_TYPE_GPU, &gpu_pkt_addr, nullptr);
+      gdev, tx_buffer_size, GPU_PAGE_SIZE, mtype, &gpu_pkt_addr, &cpu_pkt_addr);
   if (result != DOCA_SUCCESS || gpu_pkt_addr == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory {}", doca_error_get_descr(result));
   }
