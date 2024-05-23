@@ -19,7 +19,6 @@
 #include "./tensor_to_video_buffer_pydoc.hpp"
 #include "../../operator_util.hpp"
 
-#include <pybind11/chrono.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>  // for unordered_map -> dict, etc.
 
@@ -75,20 +74,10 @@ class PyTensorToVideoBufferOp : public TensorToVideoBufferOp {
 
 PYBIND11_MODULE(_tensor_to_video_buffer, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        TensorToVideoBufferOp Python Bindings
+        -------------------------------------
         .. currentmodule:: _tensor_to_video_buffer
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
   py::class_<TensorToVideoBufferOp,
              PyTensorToVideoBufferOp,
              Operator,
@@ -103,10 +92,6 @@ PYBIND11_MODULE(_tensor_to_video_buffer, m) {
            "video_format"_a,
            "in_tensor_name"_a = std::string(),
            "name"_a = "tensor_to_video_buffer"s,
-           doc::TensorToVideoBufferOp::doc_TensorToVideoBufferOp)
-      .def("initialize",
-           &TensorToVideoBufferOp::initialize,
-           doc::TensorToVideoBufferOp::doc_initialize)
-      .def("setup", &TensorToVideoBufferOp::setup, "spec"_a, doc::TensorToVideoBufferOp::doc_setup);
+           doc::TensorToVideoBufferOp::doc_TensorToVideoBufferOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

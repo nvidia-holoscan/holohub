@@ -79,20 +79,10 @@ class PyVideoWriteBitstreamOp : public VideoWriteBitstreamOp {
 
 PYBIND11_MODULE(_video_write_bitstream, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoWriteBitstreamOp Python Bindings
+        -------------------------------------
         .. currentmodule:: _video_write_bitstream
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
 
   py::class_<VideoWriteBitstreamOp,
              PyVideoWriteBitstreamOp,
@@ -114,13 +104,6 @@ PYBIND11_MODULE(_video_write_bitstream, m) {
            "inbuf_storage_type"_a,
            "input_crc_file_path"_a = std::string(),
            "name"_a = "video_write_bitstream"s,
-           doc::VideoWriteBitstreamOp::doc_VideoWriteBitstreamOp)
-      .def_property_readonly("gxf_typename",
-                             &VideoWriteBitstreamOp::gxf_typename,
-                             doc::VideoWriteBitstreamOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoWriteBitstreamOp::initialize,
-           doc::VideoWriteBitstreamOp::doc_initialize)
-      .def("setup", &VideoWriteBitstreamOp::setup, "spec"_a, doc::VideoWriteBitstreamOp::doc_setup);
+           doc::VideoWriteBitstreamOp::doc_VideoWriteBitstreamOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

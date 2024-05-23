@@ -58,20 +58,11 @@ class PyVideoDecoderContext : public VideoDecoderContext {
 
 PYBIND11_MODULE(_video_decoder_context, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoDecoderContext Python Bindings
+        -----------------------------------
         .. currentmodule:: _video_decoder_context
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
 
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
   py::class_<VideoDecoderContext,
              PyVideoDecoderContext,
              gxf::GXFResource,
@@ -85,13 +76,6 @@ PYBIND11_MODULE(_video_decoder_context, m) {
            "async_scheduling_term"_a,
            "device_id"_a = 0,
            "name"_a = "video_decoder_context"s,
-           doc::VideoDecoderContext::doc_VideoDecoderContext)
-      .def_property_readonly("gxf_typename",
-                             &VideoDecoderContext::gxf_typename,
-                             doc::VideoDecoderContext::doc_gxf_typename)
-      .def_property_readonly("gxf_typename",
-                             &VideoDecoderContext::gxf_typename,
-                             doc::VideoDecoderContext::doc_gxf_typename)
-      .def("setup", &VideoDecoderContext::setup, "spec"_a, doc::VideoDecoderContext::doc_setup);
+           doc::VideoDecoderContext::doc_VideoDecoderContext);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

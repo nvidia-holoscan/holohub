@@ -26,12 +26,8 @@ namespace holoscan::doc {
 
 namespace VideoDecoderRequestOp {
 
-PYDOC(VideoDecoderRequestOp, R"doc(
-Operator class to perform inference using an LSTM model.
-)doc")
-
 // PyVideoDecoderRequestOp Constructor
-PYDOC(VideoDecoderRequestOp_python, R"doc(
+PYDOC(VideoDecoderRequestOp, R"doc(
 Operator class to perform inference using an LSTM model.
 
 Parameters
@@ -54,31 +50,6 @@ output_format: str
     Output format.
 name : str, optional
     The name of the operator.
-)doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
-
-PYDOC(initialize, R"doc(
-Initialize the operator.
-
-This method is called only once when the operator is created for the first time,
-and uses a light-weight initialization.
-)doc")
-
-PYDOC(setup, R"doc(
-Define the operator specification.
-
-Parameters
-----------
-spec : ``holoscan.core.OperatorSpec``
-    The operator specification.
 )doc")
 
 }  // namespace VideoDecoderRequestOp

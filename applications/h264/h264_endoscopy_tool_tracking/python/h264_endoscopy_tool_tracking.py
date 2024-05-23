@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,7 +16,12 @@
 import os
 from argparse import ArgumentParser
 
-from holoscan.conditions import AsynchronousCondition, CountCondition, PeriodicCondition
+try:
+    from holoscan.conditions import AsynchronousCondition, CountCondition, PeriodicCondition
+except ImportError as e:
+    raise ImportError(
+        "This example requires Holoscan SDK >= 2.1.0 so AsynchronousCondition is available."
+    ) from e
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, HolovizOp
 from holoscan.resources import (
