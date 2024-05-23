@@ -41,7 +41,7 @@ Operator class to convert Tensor to VideoBuffer.
 Parameters
 ----------
 fragment : Fragment
-    The fragment that the operator be   longs to.
+    The fragment that the operator belongs to.
 in_tensor_name: str
     Input tensor name.
 video_format_: str
@@ -49,22 +49,6 @@ video_format_: str
 name : str, optional
     The name of the operator.
 
-)doc")
-
-PYDOC(initialize, R"doc(
-Initialize the operator.
-
-This method is called only once when the operator is created for the first time,
-and uses a light-weight initialization.
-)doc")
-
-PYDOC(setup, R"doc(
-Define the operator specification.
-
-Parameters
-----------
-spec : holoscan.core.OperatorSpec
-    The operator specification.
 )doc")
 
 }  // namespace TensorToVideoBufferOp

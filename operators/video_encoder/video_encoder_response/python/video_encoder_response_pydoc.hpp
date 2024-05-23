@@ -26,12 +26,8 @@ namespace holoscan::doc {
 
 namespace VideoEncoderResponseOp {
 
-PYDOC(VideoEncoderResponseOp, R"doc(
-Operator class to perform inference using an LSTM model.
-)doc")
-
 // PyVideoEncoderResponseOp Constructor
-PYDOC(VideoEncoderResponseOp_python, R"doc(
+PYDOC(VideoEncoderResponseOp, R"doc(
 Operator class to perform inference using an LSTM model.
 
 Parameters
@@ -48,31 +44,6 @@ outbuf_storage_type : int
     Output buffer storage type.
 name : str, optional
     The name of the operator.
-)doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
-
-PYDOC(initialize, R"doc(
-Initialize the operator.
-
-This method is called only once when the operator is created for the first time,
-and uses a light-weight initialization.
-)doc")
-
-PYDOC(setup, R"doc(
-Define the operator specification.
-
-Parameters
-----------
-spec : ``holoscan.core.OperatorSpec``
-    The operator specification.
 )doc")
 
 }  // namespace VideoEncoderResponseOp

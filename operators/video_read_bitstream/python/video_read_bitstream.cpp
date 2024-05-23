@@ -76,20 +76,10 @@ class PyVideoReadBitstreamOp : public VideoReadBitstreamOp {
 
 PYBIND11_MODULE(_video_read_bitstream, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoReadBitstreamOp Python Bindings
+        ------------------------------------
         .. currentmodule:: _video_read_bitstream
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
 
   py::class_<VideoReadBitstreamOp,
              PyVideoReadBitstreamOp,
@@ -109,13 +99,6 @@ PYBIND11_MODULE(_video_read_bitstream, m) {
            "outbuf_storage_type"_a,
            "aud_nal_present"_a,
            "name"_a = "video_read_bitstream"s,
-           doc::VideoReadBitstreamOp::doc_VideoReadBitstreamOp)
-      .def_property_readonly("gxf_typename",
-                             &VideoReadBitstreamOp::gxf_typename,
-                             doc::VideoReadBitstreamOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoReadBitstreamOp::initialize,
-           doc::VideoReadBitstreamOp::doc_initialize)
-      .def("setup", &VideoReadBitstreamOp::setup, "spec"_a, doc::VideoReadBitstreamOp::doc_setup);
+           doc::VideoReadBitstreamOp::doc_VideoReadBitstreamOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

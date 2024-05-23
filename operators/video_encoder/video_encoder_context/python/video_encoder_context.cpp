@@ -58,20 +58,11 @@ class PyVideoEncoderContext : public VideoEncoderContext {
 
 PYBIND11_MODULE(_video_encoder_context, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoEncoderContext Python Bindings
+        -----------------------------------
         .. currentmodule:: _video_encoder_context
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
 
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
   py::class_<VideoEncoderContext,
              PyVideoEncoderContext,
              gxf::GXFResource,
@@ -85,13 +76,6 @@ PYBIND11_MODULE(_video_encoder_context, m) {
            "scheduling_term"_a,
            "device_id"_a = 0,
            "name"_a = "video_encoder_context"s,
-           doc::VideoEncoderContext::doc_VideoEncoderContext)
-      .def_property_readonly("gxf_typename",
-                             &VideoEncoderContext::gxf_typename,
-                             doc::VideoEncoderContext::doc_gxf_typename)
-      .def_property_readonly("gxf_typename",
-                             &VideoEncoderContext::gxf_typename,
-                             doc::VideoEncoderContext::doc_gxf_typename)
-      .def("setup", &VideoEncoderContext::setup, "spec"_a, doc::VideoEncoderContext::doc_setup);
+           doc::VideoEncoderContext::doc_VideoEncoderContext);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

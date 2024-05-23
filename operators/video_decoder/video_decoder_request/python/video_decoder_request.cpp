@@ -81,20 +81,10 @@ class PyVideoDecoderRequestOp : public VideoDecoderRequestOp {
 
 PYBIND11_MODULE(_video_decoder_request, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoDecoderRequestOp Python Bindings
+        -------------------------------------
         .. currentmodule:: _video_decoder_request
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
 
   py::class_<VideoDecoderRequestOp,
              PyVideoDecoderRequestOp,
@@ -118,13 +108,6 @@ PYBIND11_MODULE(_video_decoder_request, m) {
            "disableDPB"_a = 0u,
            "output_format"_a = "nv12pl",
            "name"_a = "video_decoder_request"s,
-           doc::VideoDecoderRequestOp::doc_VideoDecoderRequestOp_python)
-      .def_property_readonly("gxf_typename",
-                             &VideoDecoderRequestOp::gxf_typename,
-                             doc::VideoDecoderRequestOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoDecoderRequestOp::initialize,
-           doc::VideoDecoderRequestOp::doc_initialize)
-      .def("setup", &VideoDecoderRequestOp::setup, "spec"_a, doc::VideoDecoderRequestOp::doc_setup);
+           doc::VideoDecoderRequestOp::doc_VideoDecoderRequestOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

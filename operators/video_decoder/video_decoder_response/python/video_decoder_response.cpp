@@ -76,13 +76,9 @@ class PyVideoDecoderResponseOp : public VideoDecoderResponseOp {
 
 PYBIND11_MODULE(_video_decoder_response, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoDecoderResponseOp Python Bindings
+        --------------------------------------
         .. currentmodule:: _video_decoder_response
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
 
 #ifdef VERSION_INFO
@@ -107,16 +103,6 @@ PYBIND11_MODULE(_video_decoder_response, m) {
            "outbuf_storage_type"_a,
            "videodecoder_context"_a,
            "name"_a = "video_decoder_response"s,
-           doc::VideoDecoderResponseOp::doc_VideoDecoderResponseOp_python)
-      .def_property_readonly("gxf_typename",
-                             &VideoDecoderResponseOp::gxf_typename,
-                             doc::VideoDecoderResponseOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoDecoderResponseOp::initialize,
-           doc::VideoDecoderResponseOp::doc_initialize)
-      .def("setup",
-           &VideoDecoderResponseOp::setup,
-           "spec"_a,
-           doc::VideoDecoderResponseOp::doc_setup);
+           doc::VideoDecoderResponseOp::doc_VideoDecoderResponseOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

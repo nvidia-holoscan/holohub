@@ -20,9 +20,6 @@
 #include "../video_encoder_utils.hpp"
 #include "./video_encoder_request_pydoc.hpp"
 
-#include <pybind11/chrono.h>
-#include <pybind11/complex.h>
-#include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>  // for unordered_map -> dict, etc.
 
@@ -113,20 +110,11 @@ class PyVideoEncoderRequestOp : public VideoEncoderRequestOp {
 
 PYBIND11_MODULE(_video_encoder_request, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoEncoderRequestOp Python Bindings
+        -------------------------------------
         .. currentmodule:: _video_encoder_request
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
 
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
   py::enum_<EncoderInputFormat>(m, "EncoderInputFormat")
       .value("nv12", EncoderInputFormat::kNV12)
       .value("nv24", EncoderInputFormat::kNV24)
@@ -179,13 +167,6 @@ PYBIND11_MODULE(_video_encoder_request, m) {
            "rate_control_mode"_a = 1,
            "config"_a = EncoderConfig::kCustom,
            "name"_a = "video_decoder_request"s,
-           doc::VideoEncoderRequestOp::doc_VideoEncoderRequestOp_python)
-      .def_property_readonly("gxf_typename",
-                             &VideoEncoderRequestOp::gxf_typename,
-                             doc::VideoEncoderRequestOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoEncoderRequestOp::initialize,
-           doc::VideoEncoderRequestOp::doc_initialize)
-      .def("setup", &VideoEncoderRequestOp::setup, "spec"_a, doc::VideoEncoderRequestOp::doc_setup);
+           doc::VideoEncoderRequestOp::doc_VideoEncoderRequestOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

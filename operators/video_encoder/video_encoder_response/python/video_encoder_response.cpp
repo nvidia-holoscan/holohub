@@ -75,20 +75,10 @@ class PyVideoEncoderResponseOp : public VideoEncoderResponseOp {
 
 PYBIND11_MODULE(_video_encoder_response, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK Python Bindings
-        ---------------------------------------
+        VideoEncoderResponseOp Python Bindings
+        --------------------------------------
         .. currentmodule:: _video_encoder_response
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-  m.attr("__version__") = "dev";
-#endif
 
   py::class_<VideoEncoderResponseOp,
              PyVideoEncoderResponseOp,
@@ -106,16 +96,6 @@ PYBIND11_MODULE(_video_encoder_response, m) {
            "videoencoder_context"_a,
            "outbuf_storage_type"_a,
            "name"_a = "video_encoder_response"s,
-           doc::VideoEncoderResponseOp::doc_VideoEncoderResponseOp_python)
-      .def_property_readonly("gxf_typename",
-                             &VideoEncoderResponseOp::gxf_typename,
-                             doc::VideoEncoderResponseOp::doc_gxf_typename)
-      .def("initialize",
-           &VideoEncoderResponseOp::initialize,
-           doc::VideoEncoderResponseOp::doc_initialize)
-      .def("setup",
-           &VideoEncoderResponseOp::setup,
-           "spec"_a,
-           doc::VideoEncoderResponseOp::doc_setup);
+           doc::VideoEncoderResponseOp::doc_VideoEncoderResponseOp);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops
