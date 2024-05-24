@@ -468,8 +468,8 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
-                            --skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+                            --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -512,13 +512,13 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb" \
-                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
+                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
                           --exclude-file codespell.txt || exit_code=1
 
     echo "Linting CMake"
     cmakelint --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs \
-              $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*") || exit_code=1 
+              $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*" -not -path "*install/*" -not -path "*tmp/*") || exit_code=1
 
     popd > /dev/null
 
