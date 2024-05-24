@@ -23,7 +23,7 @@ This app currently supports three different input options:
 
 1. pre-recorded video via video stream replayer (default)
 2. v4l2 compatible input device (see V4L2 Support below)
-3. DDS video stream (see DDS Suport below)
+3. DDS video stream (see DDS Support below)
 
 ## Run Instructions
 
