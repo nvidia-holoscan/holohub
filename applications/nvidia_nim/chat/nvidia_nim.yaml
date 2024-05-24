@@ -17,6 +17,21 @@
 ---
 extensions:
 
+# For a self-hosted NIM instance, uncomment the following lines and replace the base_url
+# with the URL of your NIM instance.
+# nim:
+#   base_url: http://0.0.0.0:8000/v1/
+
+# models:
+#   llama3-8b-instruct:
+#     model: meta-llama3-8b-instruct
+#     top_p: 1
+#     n: 1
+#     max_tokens: 1024
+#     frequency_penalty: 1.0
+#     stream: True
+
+# The following configuration is for the NVIDIA hosted NIMs running on build.nvidia.com.
 nim:
   base_url: https://integrate.api.nvidia.com/v1
   api_key:

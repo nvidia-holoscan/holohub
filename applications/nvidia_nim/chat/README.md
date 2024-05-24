@@ -76,3 +76,25 @@ python3 app.py
 ```
 
 Have fun!
+
+
+## Connecting with Locally Hosted NIMs
+
+To use a locally hosted NIM, first download and start the NIM.
+Then configure the `host` parameter in the `nvidia_nim.yaml` configuration file to point to your local NIM instance.
+
+For example:
+
+```bash
+nim:
+  base_url: http://0.0.0.0:8000/v1/
+
+models:
+  llama3-8b-instruct:
+    model: meta-llama3-8b-instruct
+    top_p: 1
+    n: 1
+    max_tokens: 1024
+    frequency_penalty: 1.0
+    stream: True
+```
