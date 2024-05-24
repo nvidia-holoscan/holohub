@@ -39,7 +39,7 @@ This application supports v4l2 compatible devices as input.  Please plug in your
 
 To use your v4l2 compatible device as input, run:
 ```sh
-./dev_container build_and_run body_pose_estimation --extra_args -s=v4l2
+./dev_container build_and_run body_pose_estimation --run_args -s=v4l2
 ```
 
 ## DDS Support
