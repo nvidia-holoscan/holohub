@@ -13,15 +13,33 @@ A model is used to infer the locations of keypoints from the source video which 
 This application uses YOLOv8 pose model from [Ultralytics](https://docs.ultralytics.com/tasks/pose/) for body pose estimation.
 The model is downloaded when building the application.
 
-## Requirements
+## Data
 
-This application uses a v4l2 compatible device as input.  Please plug in your input device (e.g., webcam) and ensure that `applications/body_pose_estimation/body_pose_estimation.yaml` is set to the corresponding device.  The default input device is set to `/dev/video0`.
+This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/) when the application is built.
+
+## Input
+
+This app currently supports three different input options:
+
+1. pre-recorded video via video stream replayer (default)
+2. v4l2 compatible input device (see V4L2 Support below)
+3. DDS video stream (see DDS Suport below)
 
 ## Run Instructions
 
-Run the following command to start the application:
+Run the following command to start the application.  This will run the app with a pre-recorded video as input:
 ```sh
 ./dev_container build_and_run body_pose_estimation
+```
+
+## V4L2 Support
+
+This application supports v4l2 compatible devices as input.  Please plug in your input device (e.g., webcam) and ensure that 
+`applications/body_pose_estimation/body_pose_estimation.yaml` is set to the corresponding device.  The default input device is set to `/dev/video0`.
+
+To use your v4l2 compatible device as input, run:
+```sh
+./dev_container build_and_run body_pose_estimation --extra_args -s=v4l2
 ```
 
 ## DDS Support

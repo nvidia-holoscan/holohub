@@ -22,7 +22,13 @@ import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, V4L2VideoCaptureOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    V4L2VideoCaptureOp,
+    VideoStreamReplayerOp
+)
 from holoscan.resources import UnboundedAllocator
 
 
@@ -358,6 +364,14 @@ class BodyPoseEstimationApp(Application):
                 **self.kwargs("v4l2_source"),
             )
             source_output = "signal"
+        elif self.source == "replayer":
+            source = VideoStreamReplayerOp(
+                self,
+                name="replayer_source",
+                directory=self.sample_data_path,
+                **self.kwargs("replayer_source")
+            )
+            source_output = "output"
         elif self.source == "dds":
             try:
                 from holohub.dds_video_subscriber import DDSVideoSubscriberOp
@@ -449,11 +463,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["v4l2", "dds"],
-        default="v4l2",
+        choices=["v4l2", "dds", "replayer"],
+        default="replayer",
         help=(
             "If 'v4l2', uses the v4l2 device specified in the yaml file."
             "If 'dds', uses the DDS video stream configured in the yaml file."
+            "If 'replayer', uses video stream replayer."
         ),
     )
     parser.add_argument(

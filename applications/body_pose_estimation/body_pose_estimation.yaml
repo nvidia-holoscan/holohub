@@ -17,6 +17,12 @@
 v4l2_source:
   device: "/dev/video0"
 
+replayer_source:
+  basename: "twirl"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  count: 0        # default: 0 (no frame count restriction)
+
 dds_common:
   qos_provider: "qos_profiles.xml"
   participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
