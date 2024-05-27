@@ -29,7 +29,7 @@ rx_params:
   use_ano: true
   split_boundary: false
   batch_size: 5120
-  max_packet_size: 9000
+  max_packet_size: 16384
 
 basic_network:
   batch_size: 100            # RX message batch size
@@ -43,7 +43,7 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
-    manager: "dpdk"
+    manager: "doca"
     master_core: 16                 # Master CPU core
     rx:
       - if_name: 0000:ca:00.0       # PCIe BFD of NIC
@@ -51,21 +51,21 @@ advanced_network:
         queues:
           - name: "Default"
             id: 0
-            gpu_direct: false
+            gpu_device: 0
+            gpu_direct: true
             cpu_cores: "18"
-            max_packet_size: 9000          # Maximum payload size
-            num_concurrent_batches: 32767  # Number of batches that can be used at any time
+            max_packet_size: 16384          # Maximum payload size
+            num_concurrent_batches: 32768  # Number of batches that can be used at any time
             batch_size: 1                  # Number of packets in a batch
             output_port: "bench_rx_out"
           - name: "ADC Samples"
             id: 1
             gpu_device: 0
             gpu_direct: true
-            split_boundary: 42
             cpu_cores: "17"
-            max_packet_size: 9000       # Maximum payload size
-            num_concurrent_batches: 15  # Number of batches that can be used at any time
-            batch_size: 5120            # Number of packets in a batch
+            max_packet_size: 16384       # Maximum payload size
+            num_concurrent_batches: 4  # Number of batches that can be used at any time
+            batch_size: 8192            # Number of packets in a batch
             output_port: "bench_rx_out"
         flows:
           - name: "ADC Samples"
