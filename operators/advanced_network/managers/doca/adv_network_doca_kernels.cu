@@ -141,7 +141,6 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
       }
 #if DOCA_DEBUG_KERNEL == 1
       raw_to_udp(buf_addr, &hdr, &payload);
-      __threadfence();
       printf(
           "Queue %d Thread %d received UDP packet with "
           "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
@@ -243,6 +242,8 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
   struct doca_gpu_buf* buf = NULL;
   doca_error_t ret = DOCA_SUCCESS;
 #if DOCA_DEBUG_KERNEL == 2
+  struct eth_ip_udp_hdr* hdr;
+  uint8_t* payload;
   uintptr_t buf_addr;
 #endif
   uint32_t curr_position;
@@ -272,23 +273,29 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
       break;
     }
 
-    printf("num_pkts %ld pkt %d addr %lx %x%x%x%x%x%x %x%x%x%x%x%x - len %d\n",
-           num_pkts,
-           pkt_idx + gpu_pkt0_idx,
-           buf_addr,
-           ((uint8_t*)buf_addr)[0],
-           ((uint8_t*)buf_addr)[1],
-           ((uint8_t*)buf_addr)[2],
-           ((uint8_t*)buf_addr)[3],
-           ((uint8_t*)buf_addr)[4],
-           ((uint8_t*)buf_addr)[5],
-           ((uint8_t*)buf_addr)[6],
-           ((uint8_t*)buf_addr)[7],
-           ((uint8_t*)buf_addr)[8],
-           ((uint8_t*)buf_addr)[9],
-           ((uint8_t*)buf_addr)[10],
-           ((uint8_t*)buf_addr)[11],
-           gpu_pkts_len[pkt_idx]);
+    raw_to_udp(buf_addr, &hdr, &payload);
+      printf(
+          "Queue %d Thread %d received UDP packet len %d with "
+          "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Src port %d - Dst port %d\n",
+          blockIdx.x,
+          threadIdx.x,
+          gpu_pkts_len[pkt_idx],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
+          hdr->l4_hdr.src_port,
+          hdr->l4_hdr.dst_port);
 #endif
     if (set_completion && pkt_idx == (num_pkts - 1))
       ret = doca_gpu_dev_eth_txq_send_enqueue_weak(txq,

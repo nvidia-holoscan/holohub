@@ -1425,7 +1425,7 @@ int DocaMgr::tx_core(void* arg) {
       /* Guardrail to prevent issues caused on ARM by the communication between application and
        * operator */
       if (tparams->txqw[idxq].txq->tx_cmp_posted.load() > TX_COMP_THRS) {
-        HOLOSCAN_LOG_DEBUG("Queue {} pkts {} too many cmp {}",
+        HOLOSCAN_LOG_ERROR("Queue {} pkts {} too many cmp {}",
                            idxq,
                            cnt_pkts[idxq],
                            tparams->txqw[idxq].txq->tx_cmp_posted.load());
@@ -1439,8 +1439,6 @@ int DocaMgr::tx_core(void* arg) {
         HOLOSCAN_LOG_ERROR("Burst queue {} is different from queue id {}. It should not happen!",
                            burst->hdr.hdr.q_id,
                            idxq);
-
-      // cudaStreamWaitEvent(tx_stream[idxq], burst->event, 0);
 
       /* Only necessary checks to prioritize the launch of the kernel */
       cnt_pkts[idxq] += burst->hdr.hdr.num_pkts;
