@@ -672,7 +672,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
-        --extra_args : Launch the app with extra args
+        --run_args : Run the app with additional args
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
     '
@@ -686,7 +686,7 @@ build_and_run() {
     local build_app=1
     local image_name=""
     local docker_file=""
-    local extra_args=""
+    local extra_run_args=""
 
     # Parse CLI arguments next
     ARGS=("$@")
@@ -696,27 +696,27 @@ build_and_run() {
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
         if [[ $skipnext == "1" ]]; then
-           skipnext=0
+            skipnext=0
         elif [ "$arg" = "--base_img" ]; then
-           container_build_args+=" --base_img ${ARGS[i+1]}"
-           skipnext=1
+            container_build_args+=" --base_img ${ARGS[i+1]}"
+            skipnext=1
         elif [ "$arg" = "--docker_file" ]; then
             docker_file="${ARGS[i+1]}"
-           skipnext=1
+            skipnext=1
         elif [ "$arg" = "--img" ]; then
             image_name="${ARGS[i+1]}"
-           skipnext=1
+            skipnext=1
         elif [ "$arg" = "--no_build" ]; then
             build_app=0
-        elif [ "$arg" = "--extra_args" ]; then
-            extra_args="--extra_args ${ARGS[i+1]}"
+        elif [ "$arg" = "--run_args" ]; then
+            extra_run_args="--extra_args '${ARGS[i+1]}'"
             skipnext=1
         elif [ "$arg" = "--verbose" ]; then
             container_build_args+=" --verbose"
             container_launch_args+=" --verbose"
         elif [ "$arg" = "--language" ]; then
             app_language="${ARGS[i+1]}"
-           skipnext=1
+            skipnext=1
         elif [ -z "${app_name}" ]; then
             app_name=$arg
         fi
@@ -748,7 +748,7 @@ build_and_run() {
     if [[ $build_app == 1 ]]; then
         run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -c "./run build $app_name"
     fi
-    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -c "./run launch $app_name $app_language $extra_args"
+    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -c "./run launch $app_name $app_language $extra_run_args"
 }
 
 
