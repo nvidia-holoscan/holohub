@@ -1297,8 +1297,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
     //   blah = 1;
     // }
 
-    HOLOSCAN_LOG_DEBUG("Got burst in TX num_segs {} pkts_to_transmit {}", msg->hdr.hdr.num_segs, pkts_to_transmit);
-
     size_t pkts_tx = 0;
     while (pkts_tx != msg->hdr.hdr.num_pkts && !force_quit.load()) {
       auto to_send = static_cast<uint16_t>(

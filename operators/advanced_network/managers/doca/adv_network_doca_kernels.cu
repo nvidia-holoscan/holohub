@@ -20,6 +20,9 @@
 #define ETHER_ADDR_LEN 6
 #define DOCA_DEBUG_KERNEL 0
 
+#define BYTE_SWAP16(v) \
+  ((((uint16_t)(v)&UINT16_C(0x00ff)) << 8) | (((uint16_t)(v)&UINT16_C(0xff00)) >> 8))
+
 struct ether_hdr {
   uint8_t d_addr_bytes[ETHER_ADDR_LEN]; /* Destination addr bytes in tx order */
   uint8_t s_addr_bytes[ETHER_ADDR_LEN]; /* Source addr bytes in tx order */
@@ -160,8 +163,8 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
           ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
           ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
           ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
-          hdr->l4_hdr.src_port,
-          hdr->l4_hdr.dst_port);
+          BYTE_SWAP16(hdr->l4_hdr.src_port),
+          BYTE_SWAP16(hdr->l4_hdr.dst_port));
 #endif
 
       /* Add packet processing/filtering function here. */

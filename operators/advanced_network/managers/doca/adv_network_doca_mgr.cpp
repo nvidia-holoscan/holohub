@@ -28,6 +28,7 @@
 #include "adv_network_doca_kernels.h"
 #include "holoscan/holoscan.hpp"
 // #include <cudaProfiler.h>
+#define MPS_ENABLED 0
 
 using namespace std::chrono;
 
@@ -1162,8 +1163,10 @@ int DocaMgr::rx_core(void* arg) {
   int sem_idx[MAX_NUM_RX_QUEUES] = {0};
   struct adv_doca_rx_gpu_info* packets_stats;
   AdvNetBurstParams* burst;
+#if MPS_ENABLED == 1
   CUdevice cuDevice;
   CUcontext cuContext;
+#endif
   uint64_t last_batch = 0;
   int leastPriority;
   int greatestPriority;
@@ -1380,8 +1383,10 @@ int DocaMgr::tx_core(void* arg) {
   AdvNetBurstParams* burst;
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
+#if MPS_ENABLED == 1
   CUdevice cuDevice;
   CUcontext cuContext;
+#endif
   pthread_t self = pthread_self();
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
@@ -1425,7 +1430,7 @@ int DocaMgr::tx_core(void* arg) {
       /* Guardrail to prevent issues caused on ARM by the communication between application and
        * operator */
       if (tparams->txqw[idxq].txq->tx_cmp_posted.load() > TX_COMP_THRS) {
-        HOLOSCAN_LOG_ERROR("Queue {} pkts {} too many cmp {}",
+        HOLOSCAN_LOG_DEBUG("Queue {} pkts {} too many cmp {}",
                            idxq,
                            cnt_pkts[idxq],
                            tparams->txqw[idxq].txq->tx_cmp_posted.load());
@@ -1471,6 +1476,8 @@ int DocaMgr::tx_core(void* arg) {
       }
     }
   }
+
+  HOLOSCAN_LOG_DEBUG("DOCA RX must exit");
 
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamDestroy(tx_stream[idxq]);

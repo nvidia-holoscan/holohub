@@ -44,7 +44,7 @@ advanced_network:
   cfg:
     version: 1
     manager: "doca"
-    master_core: 16                 # Master CPU core
+    master_core: 0                 # Master CPU core
     memory_regions:
     - name: "Default_RX_GPU"
       kind: "device"
@@ -68,30 +68,28 @@ advanced_network:
         - queues:
           - name: "Default"
             id: 0
-            cpu_core: 1
+            cpu_core: 10
             max_packet_size: 16384          # Maximum payload size
-            num_concurrent_batches: 32768  # Number of batches that can be used at any time
-            batch_size: 1                  # Number of packets in a batch
+            batch_size: 1                   # Number of packets in a batch
             output_port: "bench_rx_out"
             memory_regions: 
               - "Default_RX_GPU"
           - name: "ADC Samples"
             id: 1
-            cpu_core: 2
+            cpu_core: 11
             max_packet_size: 16384       # Maximum payload size
-            num_concurrent_batches: 5  # Number of batches that can be used at any time
             batch_size: 8192            # Number of packets in a batch
             output_port: "bench_rx_out"
             memory_regions: 
               - "Data_RX_GPU"
-      flows:
-        - name: "ADC Samples"
-          action:
-            type: queue
-            id: 1
-          match:
-            udp_src: 4096
-            udp_dst: 4096
+          flows:
+            - name: "ADC Samples"
+              action:
+                type: queue
+                id: 1
+              match:
+                udp_src: 4096
+                udp_dst: 4096
 
 radar_pipeline:
   is_source: false         # Defines app type (source, process)

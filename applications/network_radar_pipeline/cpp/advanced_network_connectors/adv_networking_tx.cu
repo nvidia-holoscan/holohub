@@ -324,9 +324,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
   auto msg = adv_net_create_burst_params();
   adv_net_set_hdr(msg, port_id_, queue_id, /* batch_size_ */ num_packets_buf, hds_ > 0 ? 2 : 1);
 
-  while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
-    // HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
-  }
+  while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
 
   if (!gpu_direct_) {
     // Generate packets from RF data //todo Optimize this process
@@ -379,10 +377,10 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
 
     // Figure out the CPU and GPU length portions for ANO
     if (gpu_direct_ && hds_ == 0) {
-      // HOLOSCAN_LOG_INFO("Len pkts for packet {} is {}", num_pkt, payload_size_ + PADDED_HDR_SIZE);
       gpu_bufs[cur_idx][num_pkt] = reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
 
-      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE})) != AdvNetStatus::SUCCESS) {
+      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE}))
+              != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
         adv_net_free_all_pkts_and_burst(msg);
         return;
@@ -390,13 +388,15 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
     } else if (gpu_direct_ && hds_ > 0) {
         gpu_bufs[cur_idx][num_pkt] =
             reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 1, num_pkt));
-        if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_, payload_size_})) != AdvNetStatus::SUCCESS) {
+        if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_, payload_size_}))
+              != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
           adv_net_free_all_pkts_and_burst(msg);
           return;
         }
-    } else { //CPU only
-      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE})) != AdvNetStatus::SUCCESS) {
+    } else {
+      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE}))
+              != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
         adv_net_free_all_pkts_and_burst(msg);
         return;

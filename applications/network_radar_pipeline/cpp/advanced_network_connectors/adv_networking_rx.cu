@@ -51,6 +51,9 @@ __global__ void place_packet_data_kernel(complex_t* out, const void* const* cons
   const uint32_t buffer_stride = num_channels * channel_stride;
   const uint32_t pkt_idx = blockIdx.x;
 
+  // Warmup
+  if (out == nullptr)
+    return;
 #if SPOOF_PACKET_DATA
   // Generate fake packet meta-data from the packet count
   RfMetaData meta_obj;
@@ -184,6 +187,23 @@ void AdvConnectorOpRx::initialize() {
 
     cudaStreamCreate(&streams_[n]);
     cudaEventCreate(&events_[n]);
+    // Warmup
+    place_packet_data(nullptr,
+                        nullptr,
+                        0,
+                        0,
+                        0,
+                        0,
+                        16,
+                        16,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        streams_[n]);
+    cudaStreamSynchronize(streams_[n]);
   }
 
 #if SPOOF_PACKET_DATA
@@ -299,8 +319,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
     } else {
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
         h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
-            (void*)((uint8_t*)adv_net_get_seg_pkt_ptr(burst, 0, p) + PADDED_HDR_SIZE);
-        ttl_bytes_in_cur_batch_ += adv_net_get_seg_pkt_len(burst, 0, p);
+            reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, p)) + PADDED_HDR_SIZE;
+        ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
       }
     }
   }
@@ -308,6 +328,9 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
 
   aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
   cur_msg_.msg[cur_msg_.num_batches++] = burst;
+
+  HOLOSCAN_LOG_DEBUG("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
+      aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
 
   // Once we've aggregated enough packets, do some work
   if (aggr_pkts_recv_ >= batch_size_.get()) {
@@ -320,6 +343,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
         }
       } while (out_q.size() == num_concurrent);
 
+      HOLOSCAN_LOG_DEBUG("place_packet_data cur_idx {}", cur_idx);
       // Copy packet I/Q contents to appropriate location in 'rf_data'
       place_packet_data(rf_data.Data(),
                         h_dev_ptrs_[cur_idx],

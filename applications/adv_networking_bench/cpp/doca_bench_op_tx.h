@@ -105,7 +105,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
-    
     cudaMallocAsync(&pkt_header_, header_size_.get(), streams_[0]);
     populate_dummy_headers(pkt);
     // Copy the pre-made header to GPU
