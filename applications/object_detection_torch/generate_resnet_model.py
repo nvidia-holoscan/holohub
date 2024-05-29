@@ -17,7 +17,7 @@ import os
 import sys
 
 import torch
-from torchvision.models import detection,ResNet50_Weights
+from torchvision.models import detection, ResNet50_Weights
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
 
 os.environ["TORCH_HOME"] = os.getcwd()
@@ -29,8 +29,9 @@ if len(sys.argv) > 1:
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 det_model = detection.fasterrcnn_resnet50_fpn(
-    weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT, progress=True,
-    weights_backbone=ResNet50_Weights.DEFAULT
+    weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT,
+    progress=True,
+    weights_backbone=ResNet50_Weights.DEFAULT,
 ).to(DEVICE)
 
 det_model.eval()
