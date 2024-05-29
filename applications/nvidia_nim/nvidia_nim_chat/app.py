@@ -122,11 +122,6 @@ class OpenAIOperator(Operator):
                 logger.error("Oops! Wanna try another model? %s", repr(e))
             print(" ")
 
-    def _spinning_cursor(self):
-        while True:
-            for cursor in "|/-\\":
-                yield cursor
-
 
 class UserInputOp(Operator):
     def __init__(self, fragment, *args, models, selected_model, spinner, **kwargs):

@@ -16,4 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(nvidia_nim LANGUAGES NONE)
 
-add_subdirectory(chat)
+# Enable the operators
+# set(OP_volume_loader ON CACHE BOOL "Build volume loader" FORCE)
+# set(OP_volume_renderer ON CACHE BOOL "Build volume render" FORCE)
+
+add_holohub_application(nvidia_nim_chat)
