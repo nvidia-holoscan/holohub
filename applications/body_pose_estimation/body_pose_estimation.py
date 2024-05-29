@@ -331,7 +331,7 @@ class PostprocessorOp(Operator):
 
 
 class BodyPoseEstimationApp(Application):
-    def __init__(self, data, source="v4l2"):
+    def __init__(self, data, source="v4l2", video_device="none"):
         """Initialize the body pose estimation application"""
 
         super().__init__()
@@ -346,6 +346,7 @@ class BodyPoseEstimationApp(Application):
             )
 
         self.sample_data_path = data
+        self.video_device = video_device
 
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
@@ -357,11 +358,14 @@ class BodyPoseEstimationApp(Application):
         del dds_publisher_args["enable"]
 
         if self.source == "v4l2":
+            v4l2_args = self.kwargs("v4l2_source")
+            if self.video_device != "none":
+                v4l2_args["device"] = self.video_device
             source = V4L2VideoCaptureOp(
                 self,
                 name="v4l2_source",
                 allocator=pool,
-                **self.kwargs("v4l2_source"),
+                **v4l2_args,
             )
             source_output = "signal"
         elif self.source == "replayer":
@@ -483,6 +487,13 @@ if __name__ == "__main__":
         default="none",
         help=("Set the data path"),
     )
+    parser.add_argument(
+        "-v",
+        "--video_device",
+        default="none",
+        help=("The video device to use.  By default the application will use /dev/video0"),
+    )
+
     args = parser.parse_args()
 
     if args.config == "none":
@@ -490,6 +501,6 @@ if __name__ == "__main__":
     else:
         config_file = args.config
 
-    app = BodyPoseEstimationApp(args.data, args.source)
+    app = BodyPoseEstimationApp(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()
