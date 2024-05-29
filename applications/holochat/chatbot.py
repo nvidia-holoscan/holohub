@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,31 @@
 # Simple Gradio Chatbot app, for details visit:
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 
+import argparse
+import os
+
 import gradio as gr
-import sklearn
 from llm import LLM
 
-sklearn.__version__
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="HoloChat: A chatbot for Holoscan SDK",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        conflict_handler="resolve",
+    )
+
+    parser.add_argument(
+        "--local",
+        help="Will run the LLM using a local Llama.cpp server, otherwise it will use the NVIDIA NIM API",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    return args
+
 
 initial_prompt = "Welcome to HoloChat! How can I assist you today?"
+args = parse_args()
 
 
 def ask_question(message, chat_history):
@@ -37,7 +55,7 @@ def ask_question(message, chat_history):
 
 def stream_response(chat_history, llm):
     if llm is None:
-        llm = LLM()
+        llm = LLM(args.local)
     response = llm.answer_question(chat_history)
     for chunk in response:
         yield chunk, llm
@@ -56,8 +74,6 @@ def set_visible_true():
 
 
 def main():
-    logo_size = 92
-
     title = "HoloChat"
     theme = gr.themes.Soft(text_size=gr.themes.sizes.text_md).set(
         button_primary_background_fill="#76b900",
@@ -66,13 +82,17 @@ def main():
 
     with gr.Blocks(
         css="""#col_container { margin-left: auto; margin-right: auto;} 
-        #chatbot {height: 740px; overflow: auto;}""",
+        #chatbot {height: 740px; overflow: auto;}
+        .gr-image { display: block; margin-left: auto; margin-right: auto; max-width: 50px }""",
         theme=theme,
         title=title,
+        fill_height=True,
     ) as demo:
         llm = gr.State()
         with gr.Row(variant="compact"):
-            gr.Image("holoscan.png", show_label=False, height=logo_size, width=logo_size)
+            current_dir = os.path.dirname(__file__)
+            img_path = os.path.join(current_dir, "holoscan.png")
+            gr.Image(img_path, show_label=False, elem_classes="gr-image")
 
         with gr.Group(visible=True):
             with gr.Row():
@@ -115,9 +135,7 @@ def main():
             stream_response, [chatbot, llm], [chatbot, llm]
         )
 
-    demo.queue(max_size=99, concurrency_count=20).launch(
-        server_name="0.0.0.0", debug=False, share=False, inbrowser=True
-    )
+    demo.queue(max_size=99).launch(server_name="0.0.0.0", debug=False, share=False, inbrowser=True)
 
 
 if __name__ == "__main__":

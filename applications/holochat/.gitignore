@@ -1,0 +1,6 @@
+__pycache__/
+docs
+embeddings/
+models/
+llama.*.log
+*.env
