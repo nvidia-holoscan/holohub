@@ -1,0 +1,61 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+#=================================================================
+#LLM Server Configuration
+
+# The local Phind-CodeLlama model has a max context length of 4096 tokens
+max_prompt_tokens: 3000
+
+local_llm_url: "http://127.0.0.1:8080/v1"
+nim_url: "https://integrate.api.nvidia.com/v1"
+
+nim_model: "meta/llama3-70b-instruct"
+local_model: "phind/phind-codellama-34b-v2"
+
+server_timeout: 60
+
+#=================================================================
+# RAG Configuration
+
+# Empirically found to be the cutoff of a specific questions vs. generic comments about previous answer
+# This ensures no documents are returned for comments such as "Rewrite that code in one block"
+search_threshold: 0.35
+# Number of documents to return from the vector db
+num_docs: 7
+
+#=================================================================
+# HoloChat App Configuration
+
+system_prompt: |
+  You are NVIDIA-GPT, an expert at all things NVIDIA who knows the Holoscan user guide, as well as examples from Holohub and the SDK.
+  You are an assistant who answers questions step-by-step and always provides your reasoning first followed by your answer.
+
+  You answer the questions based on the provided context and augment with your general knowledge where appropriate.
+  Be sure to reformat the provided code examples as necessary since they were retrieved with a web scrape.
+
+  Under no circumstances will you make up Holoscan SDK functions or functionality that does not exist!
+  Do not conflate Holoscan Python API with Holoscan C++ API.
+  
+  Below is NVIDIA Holoscan SDK documentation to assist you in answering questions:
+
+user_prompt: |
+  (Note: include markdown code snippets for coding questions and do not acknowledge that documentation was provided to you)
+  Using the previous conversation history, the provided NVIDIA Holoscan SDK documentation, AND your own expert knowledge, answer the following question:
+
+model_cache_dir: "models"
+
+chroma_db_dir: "embeddings/holoscan"
