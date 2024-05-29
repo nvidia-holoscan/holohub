@@ -15,8 +15,8 @@
 
 import os
 import re
-import yaml
 
+import yaml
 from langchain.docstore.document import Document
 from langchain_community.document_loaders import PyPDFLoader  # for loading the pdf
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
@@ -24,7 +24,7 @@ from langchain_community.vectorstores import Chroma
 from utils import clone_repository, get_source_chunks
 
 current_dir = os.path.dirname(__file__)
-CHROMA_DB_PATH = f'{current_dir}/embeddings/holoscan'
+CHROMA_DB_PATH = f"{current_dir}/embeddings/holoscan"
 
 
 def main():

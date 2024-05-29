@@ -13,21 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from time import sleep
-import tiktoken
-import openai
-import os
-from dotenv import load_dotenv
 import logging
-import yaml
+import os
+from time import sleep
 from types import SimpleNamespace
 
+import openai
 import requests
+import tiktoken
+import yaml
+from dotenv import load_dotenv
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import Chroma
 
 # Format logging
-logging.basicConfig(level=logging.INFO, format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s")
 
 
 class LLM:
@@ -52,15 +52,16 @@ class LLM:
             base_url = self.config.local_llm_url
         else:
             self._logger.info("Using NVIDIA NIM API")
-            assert api_key != "N/A", "NVIDIA_API_KEY environment variable not set, please set it in .env file"
+            assert (
+                api_key != "N/A"
+            ), "NVIDIA_API_KEY environment variable not set, please set it in .env file"
 
         # Create OpenAI client
-        self.llm_client = openai.OpenAI(
-                base_url=base_url,
-                api_key=api_key
-            )
+        self.llm_client = openai.OpenAI(base_url=base_url, api_key=api_key)
         # Calculate the base prompt length for the system and user prompts
-        self._base_prompt_length = self.calculate_token_usage(self.config.system_prompt + self.config.user_prompt)
+        self._base_prompt_length = self.calculate_token_usage(
+            self.config.system_prompt + self.config.user_prompt
+        )
         self.prev_docs = []
 
     def answer_question(self, chat_history):
@@ -72,7 +73,10 @@ class LLM:
         docs = self.db.similarity_search_with_score(query=question, k=self.config.num_docs)
         # Filter out poor matches from vector db
         docs = list(
-            map(lambda lc_doc: lc_doc[0], filter(lambda lc_doc: lc_doc[1] < self.config.search_threshold, docs))
+            map(
+                lambda lc_doc: lc_doc[0],
+                filter(lambda lc_doc: lc_doc[1] < self.config.search_threshold, docs),
+            )
         )
         # If filter removes documents, add previous documents
         if len(docs) < self.config.num_docs:
@@ -93,11 +97,7 @@ class LLM:
         Function that streams the response from the LLM using OpenAI's API
         """
         completion = self.llm_client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=0,
-            max_tokens=1024,
-            stream=True
+            model=self.model, messages=messages, temperature=0, max_tokens=1024, stream=True
         )
 
         chat_history[-1][1] = ""
@@ -107,7 +107,6 @@ class LLM:
                 if next_token:
                     chat_history[-1][1] += next_token
                 yield chat_history
-
 
     def calculate_token_usage(self, text):
         """
@@ -130,13 +129,12 @@ class LLM:
             model_name=model_name,
             model_kwargs=model_kwargs,
             encode_kwargs=encode_kwargs,
-            cache_folder=model_cache_path
+            cache_folder=model_cache_path,
         )
         chroma_db_path = os.path.join(current_dir, self.config.chroma_db_dir)
         chroma_db = Chroma(persist_directory=chroma_db_path, embedding_function=embedding_model)
 
         return chroma_db
-
 
     def get_chat_messages(self, history, question, docs):
         """
@@ -162,9 +160,7 @@ class LLM:
 
         # Create the system prompt
         system_prompt = f"{self.config.system_prompt}\n{doc_str}"
-        messages = [
-            {"role": "system", "content": system_prompt}
-        ]
+        messages = [{"role": "system", "content": system_prompt}]
 
         # Add the chat history to the prompt until max_prompt_tokens is reached
         for msg_pair in history[::-1]:
@@ -185,16 +181,15 @@ class LLM:
 
         # Remove the last user prompt if it is the last message (need alternating ChatML roles)
         if len(messages) > 1:
-            if messages[-1]['role'] == "user":
+            if messages[-1]["role"] == "user":
                 messages.pop()
-        
+
         # Add the current user prompt to the prompt
         complete_user_prompt = f"{self.config.user_prompt}\n{question}"
         messages.append({"role": "user", "content": complete_user_prompt})
 
         self._logger.info(f"Num tokens in prompt: {prompt_length}")
         return messages
-
 
     def _wait_for_server(self):
         """

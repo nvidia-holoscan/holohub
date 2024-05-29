@@ -16,25 +16,28 @@
 # Simple Gradio Chatbot app, for details visit:
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 
-import gradio as gr
-from llm import LLM
 import argparse
 import os
+
+import gradio as gr
+from llm import LLM
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="HoloChat: A chatbot for Holoscan SDK",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        conflict_handler='resolve'
+        conflict_handler="resolve",
     )
-    
+
     parser.add_argument(
         "--local",
         help="Will run the LLM using a local Llama.cpp server, otherwise it will use the NVIDIA NIM API",
-        action='store_true'
+        action="store_true",
     )
     args = parser.parse_args()
     return args
+
 
 initial_prompt = "Welcome to HoloChat! How can I assist you today?"
 args = parse_args()
@@ -69,6 +72,7 @@ def set_visible_false():
 def set_visible_true():
     return gr.update(visible=True)
 
+
 def main():
     title = "HoloChat"
     theme = gr.themes.Soft(text_size=gr.themes.sizes.text_md).set(
@@ -82,7 +86,7 @@ def main():
         .gr-image { display: block; margin-left: auto; margin-right: auto; max-width: 50px }""",
         theme=theme,
         title=title,
-        fill_height=True
+        fill_height=True,
     ) as demo:
         llm = gr.State()
         with gr.Row(variant="compact"):
