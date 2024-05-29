@@ -17,7 +17,7 @@ import os
 import sys
 
 import torch
-from torchvision.models import detection, ResNet50_Weights
+from torchvision.models import ResNet50_Weights, detection
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
 
 os.environ["TORCH_HOME"] = os.getcwd()
