@@ -703,6 +703,7 @@ launch() {
         --cap-add CAP_SYS_PTRACE \
         --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
+        -e HOME=/workspace/holohub \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         ${additional_volumes} \
         ${mount_device_opt} \
