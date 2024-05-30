@@ -16,12 +16,30 @@
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_custom_target(yolov8_onnx ALL
-  COMMAND yolo export model=yolov8l-pose.pt format=onnx
-  COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
-  COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
-  BYPRODUCTS "yolov8l-pose.onnx"
-)
+# Download the yolov8 pose model if it doesn't exist
+if(NOT EXISTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx")
+    add_custom_target(yolov8_onnx ALL
+      COMMAND yolo export model=yolov8l-pose.pt format=onnx
+      COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
+      COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
+      BYPRODUCTS "yolov8l-pose.onnx"
+    )
+endif()
+
+# Convert video to gxf entities if needed
+if(NOT EXISTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_entities" OR
+   NOT EXISTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_index")
+    # Download video file from Pexels
+    execute_process(
+        COMMAND curl -L -o "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
+            "https://www.pexels.com/download/video/5385885/?fps=25.0&h=1920&w=1080"
+    )
+    add_custom_target(convert_video_file ALL
+        COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
+            python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
+            --directory "${HOLOHUB_DATA_DIR}/body_pose_estimation" --basename twirl --width 1080 --height 1920 --framerate 25
+    )
+endif()
 
 # Copy qos_profiles.xml from the dds_video application to the binary directory.
 # While this application could define its own QoS profiles, they would need to

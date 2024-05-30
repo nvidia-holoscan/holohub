@@ -15,7 +15,9 @@ The model is downloaded when building the application.
 
 ## Data
 
-This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/) when the application is built.
+This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/) when the application is built for use with this application.  Please review the [license terms](https://www.pexels.com/license/) from Pexels.
+
+> **_NOTE:_** The user is responsible for checking if the dataset license is fit for the intended purpose.
 
 ## Input
 
@@ -34,12 +36,17 @@ Run the following command to start the application.  This will run the app with 
 
 ## V4L2 Support
 
-This application supports v4l2 compatible devices as input.  Please plug in your input device (e.g., webcam) and ensure that 
-`applications/body_pose_estimation/body_pose_estimation.yaml` is set to the corresponding device.  The default input device is set to `/dev/video0`.
-
-To use your v4l2 compatible device as input, run:
+This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
+please plug in your input device and run:
 ```sh
-./dev_container build_and_run body_pose_estimation --extra_args -s=v4l2
+./dev_container build_and_run body_pose_estimation --run_args "--source v4l2"
+```
+
+By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
+`applications/body_pose_estimation/body_pose_estimation.yaml` and set it to use the corresponding input device before
+running the application.  You can also override the default input device on the command line by running:
+```sh
+./dev_container build_and_run body_pose_estimation --run_args "--source v4l2 --video_device /dev/video0"
 ```
 
 ## DDS Support
