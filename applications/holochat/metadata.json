@@ -34,7 +34,7 @@
 			   ]
 			},
 			"run": {
-				"command": "<holohub_app_source>/holochat.sh --local",
+				"command": "<holohub_app_source>/holochat.sh",
 				"workdir": "holohub_app_source"
 			}
 		}
