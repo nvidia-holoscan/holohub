@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace holoscan::ops {
 
@@ -27,7 +28,6 @@ class Volume;
 bool is_nrrd(const std::string& file_name);
 
 bool load_nrrd(const std::string& file_name, Volume& volume);
-
 }  // namespace holoscan::ops
 
 #endif /* VOLUME_LOADER_NRRD_LOADER */

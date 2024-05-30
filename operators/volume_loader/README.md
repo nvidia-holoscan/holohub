@@ -9,7 +9,8 @@ The operator supports these medical volume file formats:
   * Detached-header format only (`.mhd` + `.raw`)
 * [NIFTI](https://nifti.nimh.nih.gov/)
 * [NRRD (Nearly Raw Raster Data)](https://teem.sourceforge.net/nrrd/format.html)
-  * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) only (`.nhdr` + `.raw`)
+  * [Attached-header format](https://teem.sourceforge.net/nrrd/format.html) (`.nrrd`)
+  * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) (`.nhdr` + `.raw`)
 
 You must convert your data to one of these formats to load it with `VolumeLoaderOp`. Some third party open source
 tools for volume file format conversion include:
