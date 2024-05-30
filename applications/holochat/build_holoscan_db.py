@@ -15,6 +15,7 @@
 
 import os
 import re
+from types import SimpleNamespace
 
 import yaml
 from langchain.docstore.document import Document
