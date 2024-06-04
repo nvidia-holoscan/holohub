@@ -48,6 +48,10 @@ Next, run the HoloHub Docker container:
     --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
     --docker_opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
+and build the endoscopy tool tracking application to download the necessary data:
+```sh
+./run build endoscopy_tool_tracking
+```
 
 ### arm64: Jetson
 
@@ -73,4 +77,8 @@ REL_PTH_MATLAB_CODEGEN=MATLAB_ws/R2023b/C/Users/Jensen/holohub/applications/matl
 Next, run the HoloHub Docker container:
 ```sh
 ./dev_container launch
+```
+and build the endoscopy tool tracking application to download the necessary data:
+```sh
+./run build endoscopy_tool_tracking
 ```
