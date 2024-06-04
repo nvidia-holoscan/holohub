@@ -40,7 +40,7 @@ Once the `GPUMat` processing has finished, we have to convert it back to a CuPy 
 <hr/>
 
 **Important:** In order to run this application with CUDA acceleration, one must compile [OpenCV with CUDA support](https://docs.opencv.org/4.8.0/d2/dbc/cuda_intro.html).
-We provide a sample [Dockerfile](./Dockerfile) to build a container based on Holoscan v2.0.0 with the latest version of OpenCV and CUDA support.
+We provide a sample [Dockerfile](./Dockerfile) to build a container based on Holoscan v2.1.0 with the latest version of OpenCV and CUDA support.
 In case you use it, note that the variable [`CUDA_ARCH_BIN` ](./Dockerfile#L25) must be modified according to your specific GPU
 configuration. Refer to [this site](https://developer.nvidia.com/cuda-gpus) to find out your NVIDIA GPU architecture.
 
