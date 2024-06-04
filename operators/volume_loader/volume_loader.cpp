@@ -46,6 +46,9 @@ void VolumeLoaderOp::setup(OperatorSpec& spec) {
   spec.output<std::array<uint32_t, 3>>("permute_axis").condition(ConditionType::kNone);
   spec.output<std::array<bool, 3>>("flip_axes").condition(ConditionType::kNone);
   spec.output<std::array<float, 3>>("extent").condition(ConditionType::kNone);
+  spec.output<std::array<double, 3>>("space_origin").condition(ConditionType::kNone);
+  spec.output<std::vector<std::array<double, 3>>>("space_directions")
+      .condition(ConditionType::kNone);
 }
 
 void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
@@ -57,8 +60,7 @@ void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
   // if no file name had been set by a parameter use the file name received at the input
   if (file_name.empty()) {
     auto value = input.receive<std::string>("file_name");
-    if (value)
-      file_name = value.value();
+    if (value) file_name = value.value();
   }
 
   if (file_name.empty()) {
@@ -98,6 +100,8 @@ void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
   output.emit(volume.spacing_, "spacing");
   output.emit(volume.permute_axis_, "permute_axis");
   output.emit(volume.flip_axes_, "flip_axes");
+  output.emit(volume.space_origin_, "space_origin");
+  output.emit(volume.space_directions_, "space_directions");
 
   std::array<float, 3> extent;
   nvidia::gxf::Shape shape = volume.tensor_->shape();

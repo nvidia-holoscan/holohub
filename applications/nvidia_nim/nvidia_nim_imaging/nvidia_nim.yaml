@@ -29,6 +29,8 @@ nim:
   api_key:
 
 holoviz:
+  window_title: NVIDIA NIM Vista 3D
+  enable_camera_pose_output: true
   tensors:
     - name: ""
       type: color

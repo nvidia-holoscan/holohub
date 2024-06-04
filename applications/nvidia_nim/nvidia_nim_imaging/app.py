@@ -14,16 +14,12 @@
 # limitations under the License.
 
 import argparse
-import gzip
 import hashlib
 import io
 import json
 import logging
 import os
 import pathlib
-import shutil
-import tempfile
-import zipfile
 from typing import Dict
 
 import requests
@@ -35,6 +31,7 @@ from holoscan.resources import UnboundedAllocator
 
 from holohub.volume_loader import VolumeLoaderOp
 from holohub.volume_renderer import VolumeRendererOp
+from operators.unzip.unzip_op import UnzipOp
 
 logger = logging.getLogger("httpx")
 logger.setLevel(logging.WARN)
@@ -111,19 +108,7 @@ class NIMOperator(Operator):
         response = session.post(self.base_url, headers=headers, json=payload)
 
         response.raise_for_status()
-        seg_filename = os.path.abspath(f"{sample}_seg.nrrd")
-        with tempfile.TemporaryDirectory() as temp_dir:
-            z = zipfile.ZipFile(io.BytesIO(response.content))
-            z.extractall(temp_dir)
-
-            shutil.move(os.path.join(temp_dir, os.listdir(temp_dir)[0]), seg_filename)
-
-        assert os.path.isfile(seg_filename) and os.access(
-            seg_filename, os.R_OK
-        ), f"File {seg_filename} doesn't exist or isn't readable"
-
-        logger.info(f"Segfile saved to {seg_filename}")
-        op_output.emit(seg_filename, "file_name", "std::string")
+        op_output.emit(response.content, "file_name")
 
 
 class NimImaging(Application):
@@ -135,24 +120,28 @@ class NimImaging(Application):
 
         nim_op = NIMOperator(
             self,
-            CountCondition(self, count=1),
+            # CountCondition(self, count=1),
             name="nim",
             spinner=spinner,
             **self.kwargs("nim"),
         )
 
+        unzip_op = UnzipOp(self, name="unzip", filter="*.nrrd", output_path=".")
+
         volume_allocator = UnboundedAllocator(self, name="allocator")
-        logger.info(f"NIFTI file: {self._nifti_file_path}")
-        nifti_volume_loader = VolumeLoaderOp(
+
+        density_volume_loader = VolumeLoaderOp(
             self,
-            name="nifti_volume_loader",
-            file_name=self._nifti_file_path,
+            # CountCondition(self, count=1),
+            name="density_volume_loader",
+            file_name="/home/vicchang/sc/github/holohub/data/volume_rendering/highResCT.mhd",
             allocator=volume_allocator,
         )
 
         mask_volume_loader = VolumeLoaderOp(
             self,
-            CountCondition(self, count=1),
+            # CountCondition(self, count=1),
+            file_name="/home/vicchang/sc/github/holohub/data/volume_rendering/smoothmasks.seg.mhd",
             name="mask_volume_loader",
             allocator=volume_allocator,
         )
@@ -160,10 +149,10 @@ class NimImaging(Application):
         volume_renderer = VolumeRendererOp(
             self,
             name="volume_renderer",
-            config_file=self._rendering_config,
+            config_file='/home/vicchang/sc/github/holohub/data/volume_rendering/config.json',
             allocator=volume_allocator,
-            alloc_width=512,
-            alloc_height=512,
+            alloc_width=1024,
+            alloc_height=768,
         )
 
         # Python is not supporting gxf::VideoBuffer, need to convert the video buffer received
@@ -175,11 +164,12 @@ class NimImaging(Application):
             in_dtype="rgba8888",
             out_dtype="rgba8888",
         )
-        visualizer = HolovizOp(self, name="viz", **self.kwargs("holoviz"))
+        visualizer = HolovizOp(self,  name="viz", **self.kwargs("holoviz"))
 
-        self.add_flow(nim_op, mask_volume_loader, {("file_name", "file_name")})
+        # self.add_flow(nim_op, unzip_op, {("file_name", "zip_file_bytes")})
+        # self.add_flow(unzip_op, mask_volume_loader, {("matching_files", "file_name")})
         self.add_flow(
-            nifti_volume_loader,
+            density_volume_loader,
             volume_renderer,
             {
                 ("volume", "density_volume"),
@@ -206,12 +196,16 @@ class NimImaging(Application):
         )
 
         self.add_flow(volume_renderer_format_converter, visualizer, {("tensor", "receivers")})
+        self.add_flow(visualizer, volume_renderer, {("camera_pose_output", "camera_matrix")})
+        # self.add_flow(volume_renderer, visualizer, {("color_buffer_out", "receivers")})
 
     def set_nifti_file_path(self, file):
         self._nifti_file_path = file
+        logger.info(f"NIFTI file: {self._nifti_file_path}")
 
     def set_rendering_config(self, file):
         self._rendering_config = file
+        logger.info(f"Rendering Config: {self._rendering_config}")
 
 
 def _download_dataset(api_key):
@@ -222,7 +216,6 @@ def _download_dataset(api_key):
     response = requests.get(payload["image"], headers=headers)
     response.raise_for_status()
     nifti_filename = os.path.abspath("sample.nii.gz")
-    buffer = io.BytesIO(response.content)
     with open(nifti_filename, "wb") as f:
         f.write(response.content)
     if (
@@ -233,6 +226,7 @@ def _download_dataset(api_key):
 
     logger.info(f"NIFTI file saved to {nifti_filename}")
     return nifti_filename
+
 
 def valid_existing_path(path: str) -> pathlib.Path:
     """Helper type checking and type converting method for ArgumentParser.add_argument
@@ -252,6 +246,7 @@ def valid_existing_path(path: str) -> pathlib.Path:
         return file_path
     raise argparse.ArgumentTypeError(f"No such file/folder: '{file_path}'")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NVIDIA Inference Microservice (NIM) - Vista-3D ")
     parser.add_argument(
@@ -267,7 +262,7 @@ if __name__ == "__main__":
         "-r",
         "--render-config",
         action="store",
-        default="../../../../../data/nvidia_nim_imaging/config.json",
+        default="/home/vicchang/sc/github/holohub/data/nvidia_nim_imaging/config.json",
         type=valid_existing_path,
         dest="render_config",
         help="Transfer function config file",
