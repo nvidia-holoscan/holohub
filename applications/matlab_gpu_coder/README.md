@@ -29,15 +29,7 @@ Prior to building the Holoscan application the CUDA code needs to be generated a
 
 ## Build
 
-Start by building HoloHub:
-```sh
-./dev_container build
-```
-and running the HoloHub Docker container:
-```sh
-./dev_container launch
-```
-Next, `cd` to this folder and create the `build` directory:
+Having followed the instructions in the previous section you will be inside the running HoloHub container. Next, `cd` to the `matlab_gpu_coder` folder and create the `build` directory:
 ```sh
 cd applications/matlab_gpu_coder
 mkdir -p build
