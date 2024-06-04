@@ -45,6 +45,21 @@ add_custom_target(h264_endoscopy_tool_tracking_yaml
 )
 add_dependencies(h264_endoscopy_tool_tracking h264_endoscopy_tool_tracking_yaml)
 
+# Default to download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# Download the endoscopy sample data
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(endoscopy
+    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_endoscopy_sample_data/versions/20230222/zip
+    DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
+    URL_MD5 d54f84a562d29ed560a87d2607eba973
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+  )
+  add_dependencies(h264_endoscopy_tool_tracking endoscopy_data)
+endif()
+
 # Add testing
 if(BUILD_TESTING)
   add_test(NAME h264_endoscopy_tool_tracking_cpp_test
