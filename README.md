@@ -21,7 +21,7 @@ Visit the [HoloHub landing page](https://nvidia-holoscan.github.io/holohub/) for
 - [Running Applications](#running-applications)
 - [Contributing to HoloHub](#contributing-to-holohub)
 - [Glossary](#glossary)
-- [Useful Links](#useful-links)
+- [More Information](#more-information)
 
 # Overview
 
@@ -202,7 +202,13 @@ Many applications use the following keyword definitions in their README descript
 - `<DATA_DIR>` : Path to the top level directory containing the datasets for the Holohub applications
 - `<MODEL_DIR>` : Path to the directory containing the inference model(s)
 
-# Useful Links
+# More Information
 
+Refer to additional HoloHub documentation:
+- [Contributing Guide](/CONTRIBUTING.md)
+- [Developer Guide](/doc/developer.md)
+- [Release Discussion](/doc/release.md)
+
+You can find additional information on Holoscan SDK at:
 - [Holoscan GitHub organization](https://github.com/nvidia-holoscan)
 - [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk)
