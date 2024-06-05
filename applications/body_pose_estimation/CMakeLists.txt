@@ -31,6 +31,7 @@ if(NOT EXISTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_entities" OR
    NOT EXISTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_index")
     # Download video file from Pexels
     execute_process(
+        COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
         COMMAND curl -L -o "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
             "https://www.pexels.com/download/video/5385885/?fps=25.0&h=1920&w=1080"
     )
