@@ -54,8 +54,9 @@ if(BUILD_TESTING)
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
 
   set_tests_properties(ultrasound_segmentation_python_test
-                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
-                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"
+                 TIMEOUT 1500)
 
   # Add a test to check the validity of the frames
   add_test(NAME ultrasound_segmentation_python_render_test

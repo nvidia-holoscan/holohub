@@ -65,6 +65,6 @@ if(BUILD_TESTING)
   # For aarch64 LD_LIBRARY_PATH needs to be set
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL arm64)
     set_tests_properties(h264_video_decode_cpp_test PROPERTIES ENVIRONMENT
-                    "LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra/")
+                    "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra/")
   endif()
 endif()
