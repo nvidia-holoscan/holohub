@@ -34,7 +34,7 @@ extensions:
 # The following configuration is for the NVIDIA hosted NIMs running on build.nvidia.com.
 nim:
   base_url: https://integrate.api.nvidia.com/v1
-  api_key:
+  api_key: 
 
 models:
   llama3-70b-instruct:

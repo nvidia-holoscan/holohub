@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "1.0.0",
+			"minimum_required_version": "1.0.3",
 			"tested_versions": [
-				"1.0.0"
+				"1.0.3"
 			]
 		},
 		"platforms": [
@@ -30,7 +30,7 @@
 		"dependencies": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
-			"workdir": "holohub_app_bin"
+			"workdir": "holohub_app_source"
 		}
 	}
 }

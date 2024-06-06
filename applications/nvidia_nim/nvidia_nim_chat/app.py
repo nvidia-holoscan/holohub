@@ -63,11 +63,11 @@ class OpenAIOperator(Operator):
         self._reset_chat_history()
 
         if not self.api_key:
-            self.api_key = os.getenv("OPENAI_API_KEY", None)
+            self.api_key = os.getenv("API_KEY", None)
         if not self.api_key:
             logger.warning(f"Setting up connection to {base_url} without an API key.")
             logger.warning(
-                "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'OPENAI_API_KEY'."
+                "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'API_KEY'."
             )
             print("")
         self.client = OpenAI(base_url=base_url, api_key=self.api_key)
