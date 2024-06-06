@@ -20,7 +20,7 @@ nim:
 
 ### Model Information
 
-The `models` section int the YAML file is configured with multiple NVIDIA hosted models by default. This allows you to switch between different models easily within the application by sending `/m` to the application.
+The `models` section in the YAML file is configured with multiple NVIDIA hosted models by default. This allows you to switch between different models easily within the application by sending the prompt `/m` to the application.
 
 Model parameters may be added or adjusted in the `models` section as well per model.
 
@@ -52,12 +52,10 @@ Install all dependencies from the `requirements.txt` file:
 ```bash
 # optionally create a virtual environment and activate it
 python3 -m venv .venv
-source.venv/bin/activate
+source .venv/bin/activate
 
 # install the required packages
-pushd applications/nvidia_nim/chat
-pip install -r requirements.txt
-popd
+pip install -r applications/nvidia_nim/chat/requirements.txt
 ```
 
 ### Start the Application
@@ -71,8 +69,7 @@ E.g., `export OPENAI_API_KEY=...`
 # To use NVIDIA hosted NIMs available on build.nvidia.com, export your API key first
 export OPENAI_API_KEY=[enter your api key here]
 
-cd applications/nvidia_nim/chat
-python3 app.py
+./run launch nvidia_nim_chat
 ```
 
 Have fun!
