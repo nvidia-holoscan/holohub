@@ -41,12 +41,12 @@ if(POLICY CMP0146)
   set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
 endif()
 
-set(_clara_viz_version "0.3.1")
+set(_clara_viz_version "0.4.0")
 include(FetchContent)
 FetchContent_Declare(
     ClaraViz
-    URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/v${_clara_viz_version}.tar.gz
-    URL_MD5 8cc1a29481df378a9413bfe1c3083de4
+    URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/${_clara_viz_version}.tar.gz
+    URL_MD5 de6fe03b13384fd3c0921db0f2aa17a4
     )
 
 # enable CMP0077 to allow overwriting option() statements in FetchContent sub-projects
