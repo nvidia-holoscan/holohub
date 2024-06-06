@@ -658,6 +658,9 @@ build() {
     build_path="build/$1"
   fi
 
+  # Create data path outside build directory
+  data_path="${build_path}/../data"
+
   echo "Building $1 application"
   application="-DAPP_$1=1"
 
@@ -665,7 +668,7 @@ build() {
   cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
 
   # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR:PATH=${data_path}"
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
