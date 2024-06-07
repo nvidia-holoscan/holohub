@@ -144,15 +144,15 @@ def create_graph(
     highlight,
 ):
     # Go through all of the operator's average latencies and find the average
-    if len(operator_avg_latencies) > 0:
+    if highlight and len(operator_avg_latencies) > 0:
         values = operator_avg_latencies.values()
         total_sum = sum(values)
-        avg_val = total_sum / len(values)
+        avg_op_latency = total_sum / len(values)
 
     graph = pydot.Dot(graph_type="digraph")
     for op, latency in operator_avg_latencies.items():
-        color = "red" if highlight and (latency > avg_val) else "black"
-        penwidth = "2.0" if highlight and (latency > avg_val) else "1.0"
+        color = "red" if highlight and (latency > avg_op_latency) else "black"
+        penwidth = "2.0" if highlight and (latency > avg_op_latency) else "1.0"
         node = pydot.Node(
             op,
             color=color,
@@ -194,7 +194,7 @@ def parse_arguments():
         "-h",
         "--highlight",
         action="store_true",
-        help="highlight nodes in the graph whose avg. latency is higher than the average",
+        help="highlight nodes in the graph whose average latency is higher than the average of all the operators",
     )
     parser.add_argument(
         "-l", "--live", action="store_true", help="live mode: keep updating the graph with new data"
@@ -259,13 +259,7 @@ def parse_arguments():
     return args
 
 
-def print_message(message, silent):
-    if silent:
-        return
-    print(message)
-
-
-def create_dot_file(filenames, output_filename, live_graph, verbose, highlight, silent=False):
+def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
     if not live_graph:
         filenames = filenames
         operator_avg_latencies = {}
@@ -300,10 +294,10 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight, 
         )
         graph = add_graph_labels(graph, num_samples)
         graph.write(output_filename)
-        print_message(
-            "The graph with performance numbers is written to file {}".format(output_filename),
-            silent,
-        )
+        if verbose:
+            print(
+                "The graph with performance numbers is written to file {}".format(output_filename)
+            )
     else:
         # live mode
         directory = filenames[0]
@@ -316,14 +310,13 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight, 
         while True:
             log_files = [f for f in os.listdir(directory) if f.endswith(".log")]
             if len(log_files) == 0:
-                print_message(
-                    "No log files (files ending with .log extension) is found in the folder {}.".format(
-                        directory
-                    ),
-                    silent,
-                )
                 if verbose:
-                    print_message("sleeping for 1 seconds", silent)
+                    print(
+                        "No log files (files ending with .log extension) is found in the folder {}.".format(
+                            directory
+                        )
+                    )
+                    print("sleeping for 1 seconds")
                 time.sleep(1)
                 continue
             # sort the files in ascending order of their creation time
@@ -362,20 +355,20 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight, 
                         highlight,
                     )
                     if verbose:
-                        print_message(
-                            "Read file {} - Line number: {}".format(filename, read_files[filename]),
-                            silent,
+                        print(
+                            "Read file {} - Line number: {}".format(filename, read_files[filename])
                         )
                     graph = add_graph_labels(graph, num_samples)
                     graph.write(output_filename)
-                    print_message(
-                        "The graph with performance numbers is updated in file {}".format(
-                            output_filename
-                        ),
-                        silent,
-                    )
+                    if verbose:
+                        print(
+                            "The graph with performance numbers is updated in file {}".format(
+                                output_filename
+                            )
+                        )
+
             if verbose:
-                print_message("sleeping for 1 seconds", silent)
+                print("sleeping for 1 seconds")
             time.sleep(1)
 
 

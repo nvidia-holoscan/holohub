@@ -537,16 +537,18 @@ launch() {
     # to map Holoscan SDK into the container for building Holohub
     local local_sdk_opt="";
 
+    local pythonpath="/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
     if [ -d  "$local_sdk_root" ] ; then
         local_sdk_opt+=" -v $local_sdk_root:/workspace/holoscan-sdk"
          #   Define paths needed by the python applications
-        local_sdk_opt+=" -e PYTHONPATH=/workspace/holoscan-sdk/build/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
         local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
         local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
+        pythonpath="/workspace/holoscan-sdk/build/python/lib:${pythonpath}"
     else
-        local_sdk_opt+=" -e PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        pythonpath="/opt/nvidia/holoscan/python/lib:${pythonpath}"
     fi
+    local_sdk_opt+=" -e PYTHONPATH=${pythonpath}"
 
     # Find the nvoptix.bin file
     if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
