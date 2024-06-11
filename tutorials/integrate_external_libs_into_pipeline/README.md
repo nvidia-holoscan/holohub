@@ -11,7 +11,7 @@ The datatype in Holoscan SDK is defined as [Tensor](https://docs.nvidia.com/holo
 
 In this tutorial, we will show how to integrate the libraries below into Holoscan applications in Python:
 - [Integrate RAPIDS **cuCIM** library](#integrate-rapids-cucim-library)
-- [Integrate RAPIDS **CV-CUDA** library](#integrate-cv-cuda-library)
+- [Integrate **CV-CUDA** library](#integrate-cv-cuda-library)
 - [Integrate **OpenCV with CUDA Module**](#integrate-opencv-with-cuda-module)
 
 
