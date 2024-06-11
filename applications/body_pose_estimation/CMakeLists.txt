@@ -64,3 +64,30 @@ if(dds_video_subscriber IN_LIST HOLOHUB_BUILD_OPERATORS OR
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../dds_video/qos_profiles.xml"
   )
 endif()
+
+# Add testing
+if(BUILD_TESTING)
+  # Configure the yaml file for testing
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/body_pose_estimation.yaml" CONFIG_FILE)
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/body_pose_estimation_testing.yaml ${CONFIG_FILE})
+
+  add_custom_target(body_pose_estimation_test ALL
+    DEPENDS "body_pose_estimation.py"
+  )
+
+  # Add test
+  add_test(NAME body_pose_estimation_python_test
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/body_pose_estimation.py
+                   --config ${CMAKE_CURRENT_BINARY_DIR}/body_pose_estimation_testing.yaml
+                   --data "${HOLOHUB_DATA_DIR}/body_pose_estimation"
+                   --source replayer
+           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_property(TEST body_pose_estimation_python_test PROPERTY ENVIRONMENT
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
+
+  set_tests_properties(body_pose_estimation_python_test
+                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+endif()
