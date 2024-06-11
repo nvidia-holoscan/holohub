@@ -468,10 +468,11 @@ if __name__ == "__main__":
         "-s",
         "--source",
         choices=["v4l2", "dds", "replayer"],
-        default="replayer",
+        default="v4l2",
         help=(
-            "If 'v4l2', uses the v4l2 device specified in the yaml file."
-            "If 'dds', uses the DDS video stream configured in the yaml file."
+            "If 'v4l2', uses the v4l2 device specified in the yaml file or "
+            " --video_device if specified. "
+            "If 'dds', uses the DDS video stream configured in the yaml file. "
             "If 'replayer', uses video stream replayer."
         ),
     )
