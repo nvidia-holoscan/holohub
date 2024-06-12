@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+project(body_pose_estimation NONE)
+project(tao_peoplenet NONE)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Download the model
+add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
+    COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/tao_peoplenet"
+    COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
+              -L "https://api.ngc.nvidia.com/v2/models/org/nvidia/team/tao/peoplenet/pruned_quantized_decrypted_v2.3.3/files?redirect=true&path=resnet34_peoplenet_int8.onnx"
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
+    VERBATIM
+)
+
+add_custom_target(body_pose_estimation_data ALL
+    DEPENDS
+    "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
+)
