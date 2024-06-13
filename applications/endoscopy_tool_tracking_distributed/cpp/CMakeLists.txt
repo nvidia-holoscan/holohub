@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(endoscopy_tool_tracking_distributed CXX)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.1 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 find_package(PkgConfig REQUIRED)
@@ -29,7 +29,6 @@ add_executable(endoscopy_tool_tracking_distributed
 target_link_libraries(endoscopy_tool_tracking_distributed
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::video_stream_recorder
   holoscan::ops::format_converter
@@ -75,16 +74,16 @@ if(BUILD_TESTING)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml" ${CONFIG_FILE})
 
   # Add test
-  add_test(NAME endoscopy_tool_tracking_cpp_test
+  add_test(NAME endoscopy_tool_tracking_distributed_cpp_test
            COMMAND endoscopy_tool_tracking_distributed ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  set_tests_properties(endoscopy_tool_tracking_cpp_test PROPERTIES
+  set_tests_properties(endoscopy_tool_tracking_distributed_cpp_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
   # Add a test to check the validity of the frames
-  add_test(NAME endoscopy_tool_tracking_cpp_render_test
+  add_test(NAME endoscopy_tool_tracking_distributed_cpp_render_test
       COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
       --source_video_dir ${RECORDING_DIR}
       --source_video_basename ${SOURCE_VIDEO_BASENAME}
@@ -93,8 +92,8 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 
-  set_tests_properties(endoscopy_tool_tracking_cpp_render_test PROPERTIES
-  DEPENDS endoscopy_tool_tracking_cpp_test
+  set_tests_properties(endoscopy_tool_tracking_distributed_cpp_render_test PROPERTIES
+  DEPENDS endoscopy_tool_tracking_distributed_cpp_test
   PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 
