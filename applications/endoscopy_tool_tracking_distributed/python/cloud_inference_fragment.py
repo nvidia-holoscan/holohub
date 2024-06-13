@@ -25,9 +25,6 @@ from holoscan.resources import (
 )
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
-
-# Enable this line for Yuam capture card
-# from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 
@@ -36,7 +33,6 @@ class CloudInferenceFragment(Fragment):
         self,
         app,
         name,
-        config_key_name,
         model_dir,
         width,
         height,
@@ -44,7 +40,6 @@ class CloudInferenceFragment(Fragment):
         source_num_blocks,
     ):
         super().__init__(app, name)
-        self.config_key_name = config_key_name
         self.model_dir = model_dir
         self.width = width
         self.height = height
@@ -73,7 +68,7 @@ class CloudInferenceFragment(Fragment):
             name="format_converter",
             pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
             cuda_stream_pool=cuda_stream_pool,
-            **self.kwargs(self.config_key_name),
+            **self.kwargs("format_converter"),
         )
 
         lstm_inferer_block_size = 107 * 60 * 7 * 4
@@ -96,8 +91,6 @@ class CloudInferenceFragment(Fragment):
             **self.kwargs("lstm_inference"),
         )
 
-        # tool_tracking_postprocessor_block_size = 107 * 60 * 7 * 4
-        # tool_tracking_postprocessor_num_blocks = 2
         tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
             self,
             name="tool_tracking_postprocessor",
@@ -105,13 +98,6 @@ class CloudInferenceFragment(Fragment):
                 self,
                 name="device_allocator",
             ),
-            # device_allocator=BlockMemoryPool(
-            #     self,
-            #     name="device_allocator",
-            #     storage_type=MemoryStorageType.DEVICE,
-            #     block_size=tool_tracking_postprocessor_block_size,
-            #     num_blocks=tool_tracking_postprocessor_num_blocks,
-            # ),
             host_allocator=UnboundedAllocator(self, name="host_allocator"),
         )
 

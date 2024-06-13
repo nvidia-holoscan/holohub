@@ -1,8 +1,8 @@
 # Distributed Endoscopy Tool Tracking
 
-Similar to the Endoscopy Tool Tracking application, the distributed version divides the application into three fragments:
+This application is similar to the Endoscopy Tool Tracking application, but the distributed version divides the application into three fragments:
 
-1. Video Input: get video input from an AJA card, a Yuan card or a pre-recorded video file.
+1. Video Input: get video input from a pre-recorded video file.
 2. Inference: run the inference using LSTM and run the post-processing script.
 3. Visualization: display input video and inference results.
 
@@ -10,11 +10,7 @@ Based on an LSTM (long-short term memory) stateful model, these applications dem
 
 ### Requirements
 
-The provided applications are configured to either use capture cards for an input stream, or a pre-recorded endoscopy video (replayer).
-
-Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
-
-Refer to the Yuan documentation to use the Yuan QCap capture card.
+The provided applications are configured to use a pre-recorded endoscopy video (replayer).
 
 ### Data
 
@@ -23,30 +19,10 @@ Refer to the Yuan documentation to use the Yuan QCap capture card.
 The data is automatically downloaded and converted to the correct format when building the application.
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
-
-### Build Instructions
-
-Please refer to the top-level Holohub README.md file for information on how to build this application.
-
 ### Run Instructions
 
-In your `build` directory, run the commands of your choice:
+Run the following command to start the application.  This will run the app with a pre-recorded video as input:
 
-* Using a pre-recorded video
-    ```bash
-    sed -i -e 's#^source:.*#source: replayer#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
-    ```
-
-* Using an AJA card
-    ```bash
-    sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
-    ```
-
-* Using a Yuan card
-    ```bash
-    sed -i -e '/^#.*yuan_qcap/s/^#//' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    sed -i -e 's#^source:.*#source: yuan#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
-    ```
+```sh
+./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp
+```

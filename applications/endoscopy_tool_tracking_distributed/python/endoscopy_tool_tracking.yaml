@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,7 @@
 ---
 extensions:
 - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
-- gxf_extensions/yuan_qcap/libgxf_qcap_source.so
 
-aja:
-  width: 1920
-  height: 1080
-  overlay_rdma: false
-  rdma: true
-  enable_overlay: false
-
-yuan:
-  width: 3840
-  height: 2160
-  rdma: true
 
 replayer:
   basename: "surgical_video"
@@ -45,28 +33,11 @@ recorder:
   directory: "/tmp"
   basename: "tensor"
 
-format_converter_replayer:
+format_converter:
   out_tensor_name: source_video
   out_dtype: "float32"
   scale_min: 0.0
   scale_max: 255.0
-
-format_converter_aja:
-  in_dtype: "rgba8888"
-  out_tensor_name: source_video
-  out_dtype: "float32"
-  scale_min: 0.0
-  scale_max: 255.0
-  resize_width: 854
-  resize_height: 480
-
-format_converter_yuan:
-  out_tensor_name: source_video
-  out_dtype: "float32"
-  scale_min: 0.0
-  scale_max: 255.0
-  resize_width: 854
-  resize_height: 480
 
 lstm_inference:
   input_tensor_names:
@@ -106,33 +77,6 @@ holoviz:
       type: color
       opacity: 1.0
       priority: 0
-    - name: mask
-      type: color
-      opacity: 1.0
-      priority: 1
-    - name: scaled_coords
-      type: crosses
-      opacity: 1.0
-      line_width: 4
-      color: [1.0, 0.0, 0.0, 1.0]
-      priority: 2
-    - name: scaled_coords
-      type: text
-      opacity: 1.0
-      priority: 3
-      color: [1.0, 1.0, 1.0, 0.9]
-      text:
-        - Grasper
-        - Bipolar
-        - Hook
-        - Scissors
-        - Clipper
-        - Irrigator
-        - Spec.Bag
-
-holoviz_overlay:
-  headless: true
-  tensors:
     - name: mask
       type: color
       opacity: 1.0

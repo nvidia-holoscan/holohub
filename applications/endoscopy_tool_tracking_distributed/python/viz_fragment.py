@@ -19,11 +19,10 @@ from holoscan.operators import HolovizOp
 
 
 class VizFragment(Fragment):
-    def __init__(self, app, name, width, height, is_overlay_enabled):
+    def __init__(self, app, name, width, height):
         super().__init__(app, name)
         self.width = width
         self.height = height
-        self.is_overlay_enabled = is_overlay_enabled
 
     def compose(self):
         visualizer = HolovizOp(
@@ -31,9 +30,7 @@ class VizFragment(Fragment):
             name="holoviz",
             width=self.width,
             height=self.height,
-            enable_render_buffer_input=self.is_overlay_enabled,
-            enable_render_buffer_output=self.is_overlay_enabled,
-            **self.kwargs("holoviz_overlay" if self.is_overlay_enabled else "holoviz"),
+            **self.kwargs("holoviz"),
         )
 
         self.add_operator(visualizer)
