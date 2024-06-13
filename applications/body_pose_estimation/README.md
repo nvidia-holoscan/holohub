@@ -23,30 +23,34 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 
 This app currently supports three different input options:
 
-1. pre-recorded video via video stream replayer (default)
-2. v4l2 compatible input device (see V4L2 Support below)
+1. v4l2 compatible input device (default, see V4L2 Support below)
+2. pre-recorded video (see Video Replayer Support below)
 3. DDS video stream (see DDS Support below)
 
 ## Run Instructions
-
-Run the following command to start the application.  This will run the app with a pre-recorded video as input:
-```sh
-./dev_container build_and_run body_pose_estimation
-```
 
 ## V4L2 Support
 
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run body_pose_estimation --run_args "--source v4l2"
+./dev_container build_and_run body_pose_estimation
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/body_pose_estimation/body_pose_estimation.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run body_pose_estimation --run_args "--source v4l2 --video_device /dev/video0"
+./dev_container build_and_run body_pose_estimation --run_args "--video_device /dev/video0"
+```
+
+## Video Replayer Support
+
+If you don't have a v4l2 compatible device plugged in, you may also run this application on a pre-recorded video.
+To launch the application using the Video Stream Replayer as the input source, run:
+
+```sh
+./dev_container build_and_run body_pose_estimation --run_args "--source replayer"
 ```
 
 ## DDS Support
