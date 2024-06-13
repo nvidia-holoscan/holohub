@@ -14,7 +14,7 @@
 # limitations under the License.
 project(tao_peoplenet NONE)
 
-find_package(holoscan 1.0 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Download the model
