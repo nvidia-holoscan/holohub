@@ -61,4 +61,10 @@ if(BUILD_TESTING)
   set_tests_properties(h264_video_decode_cpp_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Waiting for completion"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # For aarch64 LD_LIBRARY_PATH needs to be set
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL arm64)
+    set_tests_properties(h264_video_decode_cpp_test PROPERTIES ENVIRONMENT
+                    "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra/")
+  endif()
 endif()

@@ -95,6 +95,7 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(ultrasound_segmentation_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}/gxf_extensions"
+                       TIMEOUT 1500
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 

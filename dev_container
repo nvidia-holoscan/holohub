@@ -268,11 +268,11 @@ get_host_gpu() {
 
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.0.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.0.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.1.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -282,6 +282,7 @@ get_compute_capacity() {
 }
 
 build_desc() { c_echo 'Build dev image
+Usage: ./dev_container build [options]
     --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container.
     --img : Specify fully qualified container name
@@ -308,23 +309,48 @@ build() {
     fi
 
     # Parse CLI arguments next
-    ARGS=("$@")
-    local i
-    local arg
-    for i in "${!ARGS[@]}"; do
-        arg="${ARGS[i]}"
-        if [ "$arg" = "--base_img" ]; then
-           base_img="${ARGS[i+1]}"
-        fi
-        if [ "$arg" = "--docker_file" ]; then
-           docker_file_path="${ARGS[i+1]}"
-        fi
-        if [ "$arg" = "--img" ]; then
-           img="${ARGS[i+1]}"
-        fi
-        if [ "$arg" = "--verbose" ]; then
-           print_verbose=1
-        fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --base_img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    base_img="$2"
+                    shift 2
+                else
+                    echo "Error: --base_img requires a value"
+                    build_desc
+                    exit 1
+                fi
+                ;;
+            --docker_file)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    docker_file_path="$2"
+                    shift 2
+                else
+                    echo "Error: --docker_file requires a value"
+                    build_desc
+                    exit 1
+                fi
+                ;;
+            --img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    img="$2"
+                    shift 2
+                else
+                    echo "Error: --img requires a value"
+                    build_desc
+                    exit 1
+                fi
+                ;;
+            --verbose)
+                print_verbose=1
+                shift
+                ;;
+            *)
+                echo "Error: Invalid argument '$1'"
+                build_desc
+                exit 1
+                ;;
+        esac
     done
 
     if [[ $print_verbose -gt 0 ]]; then
@@ -353,6 +379,7 @@ build() {
 #===============================================================================
 
 launch_desc() { c_echo 'Launch Docker container
+Usage: ./dev_container launch [options]
     --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
@@ -363,6 +390,7 @@ launch_desc() { c_echo 'Launch Docker container
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
     --docker_opts : Additional options to pass to the Docker launch
+    -- : Any trailing arguments after "--" are forwarded to `docker run`
     '
 }
 launch() {
@@ -387,57 +415,85 @@ launch() {
     additional_volumes=""
 
     # Parse CLI arguments
-    ARGS=("$@")
-    local i
-    local arg
-    for i in "${!ARGS[@]}"; do
-        arg="${ARGS[i]}"
-        if [ "$arg" = "--img" ]; then
-           img="${ARGS[i+1]}"
-           shift
-           shift
-        fi
-        if [ "$arg" = "--verbose" ]; then
-           print_verbose=1
-           shift
-        fi
-        if [ "$arg" = "--local_sdk_root" ]; then
-           local_sdk_root="${ARGS[i+1]}"
-           shift
-           shift
-        fi
-        if [ "$arg" = "--ssh_x11" ]; then
-           ssh_x11=1
-           shift
-        fi
-        if [ "$arg" = "--init" ]; then
-           use_tini=1
-           shift
-        fi
-        if [ "$arg" = "--persistent" ]; then
-           persistent=1
-           shift
-        fi
-        if [ "$arg" = "--nsys_profile" ]; then
-           nsys_profile=true
-           shift
-        fi
-        if [ "$arg" = "--as_root" ]; then
-           as_root=true
-           shift
-        fi
-        if [ "$arg" = "--add-volume" ]; then
-            path="${ARGS[i+1]}"
-            base=$(basename "$path")
-            additional_volumes+="-v $path:/workspace/volumes/$base "
-            shift
-            shift
-        fi
-        if [ "$arg" = "--docker_opts" ]; then
-            docker_opts="${ARGS[i+1]}"
-            shift
-            shift
-        fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    img="$2"
+                    shift 2
+                else
+                    echo "Error: --img requires a value"
+                    launch_desc
+                    exit 1
+                fi
+                ;;
+            --verbose)
+                print_verbose=1
+                shift
+                ;;
+            --local_sdk_root)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    local_sdk_root="$2"
+                    shift 2
+                else
+                    echo "Error: --local_sdk_root requires a value"
+                    launch_desc
+                    exit 1
+                fi
+                ;;
+            --ssh_x11)
+                ssh_x11=1
+                shift
+                ;;
+            --init)
+                use_tini=1
+                shift
+                ;;
+            --persistent)
+                persistent=1
+                shift
+                ;;
+            --nsys_profile)
+                nsys_profile=true
+                shift
+                ;;
+            --as_root)
+                as_root=true
+                shift
+                ;;
+            --add-volume)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    path="$2"
+                    base=$(basename "$path")
+                    additional_volumes+="-v $path:/workspace/volumes/$base "
+                    shift 2
+                else
+                    echo "Error: --add-volume requires a value"
+                    launch_desc
+                    exit 1
+                fi
+                ;;
+            --docker_opts)
+                if [[ -n "$2" ]]; then
+                    docker_opts="$2"
+                    shift 2
+                else
+                    echo "Error: --docker_opts requires a value"
+                    launch_desc
+                    exit 1
+                fi
+                ;;
+            --)
+                # Any trailing arguments after "--" are forwarded to `docker run`
+                shift
+                break
+                ;;
+            *)
+                echo "Error: Invalid argument '$1'"
+                launch_desc
+                exit 1
+                ;;
+        esac
     done
 
     # Check NVIDIA CTK version
@@ -491,13 +547,15 @@ launch() {
         fi
     done
 
-    # Find all audio devices
-    audio_devices=$(find /dev/snd -type c)
+    if [ -d /dev/snd ]; then
+        # Find all audio devices
+        audio_devices=$(find /dev/snd -type c)
 
-    # Mount all found audio devices
-    for audio_dev in $audio_devices; do
-        mount_device_opt+=" --device $audio_dev"
-    done
+        # Mount all found audio devices
+        for audio_dev in $audio_devices; do
+            mount_device_opt+=" --device $audio_dev"
+        done
+    fi
 
     # mounts the ALSA configuration for the user running the script
     mount_device_opt+=" -v /etc/asound.conf:/etc/asound.conf"
@@ -537,14 +595,18 @@ launch() {
     # to map Holoscan SDK into the container for building Holohub
     local local_sdk_opt="";
 
+    local pythonpath="/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
     if [ -d  "$local_sdk_root" ] ; then
         local_sdk_opt+=" -v $local_sdk_root:/workspace/holoscan-sdk"
          #   Define paths needed by the python applications
-        local_sdk_opt+=" -e PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"
         local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
         local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
         local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
+        pythonpath="/workspace/holoscan-sdk/build/python/lib:${pythonpath}"
+    else
+        pythonpath="/opt/nvidia/holoscan/python/lib:${pythonpath}"
     fi
+    local_sdk_opt+=" -e PYTHONPATH=${pythonpath}"
 
     # Find the nvoptix.bin file
     if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
@@ -645,6 +707,7 @@ launch() {
         --cap-add CAP_SYS_PTRACE \
         --ipc=host \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
+        -e HOME=/workspace/holohub \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         ${additional_volumes} \
         ${mount_device_opt} \
@@ -670,7 +733,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
-        --extra_args : Launch the app with extra args
+        --run_args : Run the app with additional args
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
     '
@@ -684,40 +747,81 @@ build_and_run() {
     local build_app=1
     local image_name=""
     local docker_file=""
-    local extra_args=""
+    local extra_run_args=""
 
     # Parse CLI arguments next
-    ARGS=("$@")
-    local i
-    local arg
-    local skipnext=0
-    for i in "${!ARGS[@]}"; do
-        arg="${ARGS[i]}"
-        if [[ $skipnext == "1" ]]; then
-           skipnext=0
-        elif [ "$arg" = "--base_img" ]; then
-           container_build_args+=" --base_img ${ARGS[i+1]}"
-           skipnext=1
-        elif [ "$arg" = "--docker_file" ]; then
-            docker_file="${ARGS[i+1]}"
-           skipnext=1
-        elif [ "$arg" = "--img" ]; then
-            image_name="${ARGS[i+1]}"
-           skipnext=1
-        elif [ "$arg" = "--no_build" ]; then
-            build_app=0
-        elif [ "$arg" = "--extra_args" ]; then
-            extra_args="--extra_args ${ARGS[i+1]}"
-            skipnext=1
-        elif [ "$arg" = "--verbose" ]; then
-            container_build_args+=" --verbose"
-            container_launch_args+=" --verbose"
-        elif [ "$arg" = "--language" ]; then
-            app_language="${ARGS[i+1]}"
-           skipnext=1
-        elif [ -z "${app_name}" ]; then
-            app_name=$arg
-        fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --base_img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    container_build_args+=" --base_img $2"
+                    shift 2
+                else
+                    echo "Error: --base_img requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            --docker_file)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    docker_file="$2"
+                    shift 2
+                else
+                    echo "Error: --docker_file requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            --img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    image_name="$2"
+                    shift 2
+                else
+                    echo "Error: --img requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            --no_build)
+                build_app=0
+                shift
+                ;;
+            --run_args)
+                if [[ -n "$2" ]]; then
+                    extra_run_args="--extra_args '$2'"
+                    shift 2
+                else
+                    echo "Error: --run_args requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            --verbose)
+                container_build_args+=" --verbose"
+                container_launch_args+=" --verbose"
+                shift
+                ;;
+            --language)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    app_language="$2"
+                    shift 2
+                else
+                    echo "Error: --language requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            *)
+                if [[ -z "$app_name" ]]; then
+                    app_name="$1"
+                    shift
+                else
+                    echo "Error: Invalid argument '$1'"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+        esac
     done
 
     if [ -z "${app_name}" ]; then
@@ -744,9 +848,9 @@ build_and_run() {
 
     run_command ${SCRIPT_DIR}/dev_container build $container_build_args
     if [[ $build_app == 1 ]]; then
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -c "./run build $app_name"
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run build $app_name"
     fi
-    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -c "./run launch $app_name $app_language $extra_args"
+    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
 }
 
 

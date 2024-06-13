@@ -36,9 +36,12 @@ In order to generate the CUDA Code, start MATLAB and `cd` to the `matlab` folder
 
 On an x86 computer with MATLAB installed, `cd` to the `matlab` folder and open the `generate_beamform_jetson.m` script. Having an `ssh` connection to the Jetson device you want to build the CUDA DLLs on, specify the parameters of that connection in the `hwobj` on line 7, also replace `<ABSOLUTE_PATH>` of `cfg.Hardware.BuildDir` on line 39, as the absolute path (on the Jetson device) to `holohub` folder. Run the script and a folder `MATLAB_ws` will be created in the `matlab_beamform` folder.
 
-## Configure Application
+## Configure Holoscan for MATLAB
 
-### Configure Holoscan for MATLAB
+If you have not already, start by building HoloHub:
+```sh
+./dev_container build
+```
 
 #### x86: Ubuntu
 
@@ -52,7 +55,6 @@ where you, if need be, replace `MATLAB_ROOT` with the location of your MATLAB in
 Next, run the HoloHub Docker container:
 ```sh
 ./dev_container launch \
-    --img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu \
     --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
     --docker_opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
@@ -77,4 +79,9 @@ matlab_beamform
 the variable should be set as:
 ```sh
 REL_PTH_MATLAB_CODEGEN=MATLAB_ws/R2023b/C/Users/Jensen/holohub/applications/matlab_gpu_coder/matlab_beamform/matlab/codegen
+```
+
+Next, run the HoloHub Docker container:
+```sh
+./dev_container launch
 ```

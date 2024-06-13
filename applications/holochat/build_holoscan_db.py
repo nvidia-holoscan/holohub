@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +15,29 @@
 
 import os
 import re
+from types import SimpleNamespace
 
-import chromadb
-import sklearn
+import yaml
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyPDFLoader  # for loading the pdf
-from langchain.embeddings import HuggingFaceBgeEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.document_loaders import PyPDFLoader  # for loading the pdf
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.vectorstores import Chroma
 from utils import clone_repository, get_source_chunks
 
-repos = ["holoscan-sdk", "holohub"]
-docs = ["/holochat/docs/Holoscan_SDK_User_Guide_v0.6.0.pdf"]
-
-file_types = [".md", ".py", ".cpp", ".yaml"]
-
-CHROMA_DB_PATH = f'/holochat/embeddings/{os.path.basename("holoscan")}'
+current_dir = os.path.dirname(__file__)
+CHROMA_DB_PATH = f"{current_dir}/embeddings/holoscan"
 
 
 def main():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, "config.yaml")
+    yaml_config = yaml.safe_load(open(config_path))
+    config = SimpleNamespace(**yaml_config)
+    # Define the repos, docs, and file types to store
+    repos = ["holoscan-sdk", "holohub"]
+    docs = [f"/{current_dir}/docs/Holoscan_SDK_User_Guide_2.0.0.pdf"]
+    file_types = [".md", ".py", ".cpp", ".yaml"]
+
     content_lists = {file_type: [] for file_type in file_types}
     total_files = 0
 
@@ -104,16 +109,16 @@ def main():
         model_name=model_name,
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs,
-        cache_folder="./models",
+        cache_folder=os.path.join(current_dir, config.model_cache_dir),
     )
-
+    chroma_db_path = os.path.join(current_dir, config.chroma_db_dir)
     print(f"Length of content: {content_len}")
     print(f"Total number of files to process: {total_files}")
     print(f"Number of source chunks: {len(source_chunks)}")
-    print(f"Building Holoscan Embeddings Chroma DB at {CHROMA_DB_PATH}...")
+    print(f"Building Holoscan Embeddings Chroma DB at {chroma_db_path}...")
     print("Building Chroma DB (This may take a few minutes)...")
     chroma_db = Chroma.from_documents(
-        source_chunks, embedding_model, persist_directory=CHROMA_DB_PATH
+        source_chunks, embedding_model, persist_directory=chroma_db_path
     )
     print("Done!")
     chroma_db.persist()

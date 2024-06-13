@@ -1,6 +1,6 @@
 {
 	"application": {
-			"name": "HoloChat-local",
+			"name": "HoloChat",
 			"authors": [
 				{
 					"name": "Nigel Nelson",
@@ -8,14 +8,14 @@
 				}
 			],
 			"language": "Python",
-			"version": "0.1.0",
+			"version": "0.2.0",
 			"changelog": {
 				"0.1.0": "Beta release"
 			},
 			"holoscan_sdk": {
-				"minimum_required_version": "0.6.0",
+				"minimum_required_version": "2.0.0",
 				"tested_versions": [
-					"0.6.0"
+					"2.0.0"
 				]
 			},
 			"platforms": ["amd64", "arm64"],
@@ -29,13 +29,13 @@
 					},
 					{
 						"name": "LangChain",
-						"version": "0.0.277"
+						"version": "0.1.11"
 					}
 			   ]
 			},
 			"run": {
-				"command": "make -C ./applications/holochat_local run_holochat",
-				"workdir": "holohub_bin"
+				"command": "<holohub_app_source>/holochat.sh",
+				"workdir": "holohub_app_source"
 			}
 		}
 	}
