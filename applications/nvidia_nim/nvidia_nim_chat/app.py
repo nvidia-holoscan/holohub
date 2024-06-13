@@ -23,10 +23,9 @@ from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
 from openai import APIConnectionError, AuthenticationError, OpenAI
 
-logger = logging.getLogger("httpx")
-logger.setLevel(logging.WARN)
-logger = logging.getLogger("openai")
-logger.setLevel(logging.WARN)
+logging.getLogger("httpx").setLevel(logging.WARN)
+logging.getLogger("openai").setLevel(logging.WARN)
+
 logger = logging.getLogger("NVIDIA_NIM_CHAT")
 logging.basicConfig(level=logging.INFO)
 
@@ -61,6 +60,8 @@ class OpenAIOperator(Operator):
         self.model_params = dict(kwargs)
 
         self._reset_chat_history()
+        
+        print(f"======================self.api_key={self.api_key}")
 
         if not self.api_key:
             self.api_key = os.getenv("API_KEY", None)
