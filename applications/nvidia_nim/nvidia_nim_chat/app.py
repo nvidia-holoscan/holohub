@@ -60,7 +60,7 @@ class OpenAIOperator(Operator):
         self.model_params = dict(kwargs)
 
         self._reset_chat_history()
-        
+
         print(f"======================self.api_key={self.api_key}")
 
         if not self.api_key:
