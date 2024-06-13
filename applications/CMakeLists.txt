@@ -103,3 +103,4 @@ add_holohub_application(xr_hello_holoscan DEPENDS
 add_holohub_application(webrtc_video_server)
 
 add_subdirectory(orsi)
+add_subdirectory(nvidia_nim)
