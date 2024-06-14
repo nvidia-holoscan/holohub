@@ -351,6 +351,9 @@ class BodyPoseEstimationApp(Application):
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
+        # Input data type of preprocessor
+        in_dtype = "rgb888"
+
         # Determine if the DDS Publisher is enabled.
         dds_common_args = self.kwargs("dds_common")
         dds_publisher_args = dds_common_args | self.kwargs("dds_publisher")
@@ -368,6 +371,8 @@ class BodyPoseEstimationApp(Application):
                 **v4l2_args,
             )
             source_output = "signal"
+            # v4l2 operator outputs RGBA8888
+            in_dtype = "rgba8888"
         elif self.source == "replayer":
             source = VideoStreamReplayerOp(
                 self,
@@ -405,6 +410,7 @@ class BodyPoseEstimationApp(Application):
             self,
             name="preprocessor",
             pool=pool,
+            in_dtype=in_dtype,
             **preprocessor_args,
         )
 
