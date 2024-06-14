@@ -26,7 +26,7 @@
 #include "holoscan/holoscan.hpp"
 
 using namespace holoscan;
-class VideInputFragment : public holoscan::Fragment {
+class VideoInputFragment : public holoscan::Fragment {
  private:
   std::shared_ptr<holoscan::Operator> input_op_;
   std::string input_dir_;
@@ -41,7 +41,7 @@ class VideInputFragment : public holoscan::Fragment {
   const uint64_t source_block_size() { return source_block_size_; }
   const uint64_t source_num_blocks() { return source_num_blocks_; }
 
-  explicit VideInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
+  explicit VideoInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
 
   void init() {
     width_ = 854;
@@ -138,8 +138,8 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    auto video_in = make_fragment<VideInputFragment>("video_in", datapath_);
-    auto video_in_fragment = std::dynamic_pointer_cast<VideInputFragment>(video_in);
+    auto video_in = make_fragment<VideoInputFragment>("video_in", datapath_);
+    auto video_in_fragment = std::dynamic_pointer_cast<VideoInputFragment>(video_in);
     video_in_fragment->init();
     auto cloud_inference =
         make_fragment<CloudInferenceFragment>("inference",
