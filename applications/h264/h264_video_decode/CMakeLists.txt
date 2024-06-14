@@ -25,10 +25,9 @@ add_executable(h264_video_decode
 target_link_libraries(h264_video_decode
   PRIVATE
   holoscan::core
+  holoscan::ops::gxf_codelet
   holoscan::ops::format_converter
   holoscan::ops::holoviz
-  holoscan::ops::video_decoder
-  holoscan::ops::video_read_bitstream
 )
 
 # Copy config file

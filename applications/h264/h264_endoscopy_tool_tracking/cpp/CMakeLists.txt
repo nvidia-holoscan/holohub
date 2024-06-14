@@ -25,12 +25,10 @@ add_executable(h264_endoscopy_tool_tracking
 target_link_libraries(h264_endoscopy_tool_tracking
   PRIVATE
   holoscan::core
+  holoscan::ops::gxf_codelet
   holoscan::ops::format_converter
   holoscan::ops::holoviz
-  holoscan::ops::video_decoder
   holoscan::ops::video_encoder
-  holoscan::ops::video_read_bitstream
-  holoscan::ops::video_write_bitstream
   holoscan::ops::tensor_to_video_buffer
   lstm_tensor_rt_inference
   tool_tracking_postprocessor

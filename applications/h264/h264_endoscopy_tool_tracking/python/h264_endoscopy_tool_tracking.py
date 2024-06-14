@@ -23,10 +23,11 @@ except ImportError as e:
         "This example requires Holoscan SDK >= 2.1.0 so AsynchronousCondition is available."
     ) from e
 from holoscan.core import Application
-from holoscan.operators import FormatConverterOp, HolovizOp
+from holoscan.operators import FormatConverterOp, GXFCodeletOp, HolovizOp
 from holoscan.resources import (
     BlockMemoryPool,
     CudaStreamPool,
+    GXFComponentResource,
     MemoryStorageType,
     UnboundedAllocator,
 )
@@ -37,14 +38,46 @@ from holohub.tensor_to_video_buffer import TensorToVideoBufferOp
 # Enable this line for Yuam capture card
 # from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
-from holohub.video_decoder_context import VideoDecoderContext
-from holohub.video_decoder_request import VideoDecoderRequestOp
-from holohub.video_decoder_response import VideoDecoderResponseOp
-from holohub.video_encoder_context import VideoEncoderContext
-from holohub.video_encoder_request import VideoEncoderRequestOp
-from holohub.video_encoder_response import VideoEncoderResponseOp
-from holohub.video_read_bitstream import VideoReadBitstreamOp
-from holohub.video_write_bitstream import VideoWriteBitstreamOp
+
+
+class VideoDecoderResponseOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoDecoderResponse", *args, **kwargs)
+
+
+class VideoDecoderRequestOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoDecoderRequest", *args, **kwargs)
+
+
+class VideoDecoderContext(GXFComponentResource):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoDecoderContext", *args, **kwargs)
+
+
+class VideoReadBitstreamOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoReadBitStream", *args, **kwargs)
+
+
+class VideoWriteBitstreamOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoWriteBitstream", *args, **kwargs)
+
+
+class VideoEncoderResponseOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoEncoderResponse", *args, **kwargs)
+
+
+class VideoEncoderContext(GXFComponentResource):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoEncoderContext", *args, **kwargs)
+
+
+class VideoEncoderRequestOp(GXFCodeletOp):
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, "nvidia::gxf::VideoEncoderRequest", *args, **kwargs)
 
 
 class EndoscopyApp(Application):
