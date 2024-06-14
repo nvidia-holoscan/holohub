@@ -22,8 +22,14 @@
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "video_decoder.hpp"
-#include "video_read_bitstream.hpp"
+#include <holoscan/core/resources/gxf/gxf_component_resource.hpp>
+#include <holoscan/operators/gxf_codelet/gxf_codelet.hpp>
+
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderResponseOp, "nvidia::gxf::VideoDecoderResponse")
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderRequestOp, "nvidia::gxf::VideoDecoderRequest")
+HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE(VideoDecoderContext, "nvidia::gxf::VideoDecoderContext")
+
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoReadBitstreamOp, "nvidia::gxf::VideoReadBitStream")
 
 class App : public holoscan::Application {
  public:
@@ -39,7 +45,7 @@ class App : public holoscan::Application {
     int64_t source_block_size = width * height * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto bitstream_reader = make_operator<ops::VideoReadBitstreamOp>(
+    auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
         "bitstream_reader",
         from_config("bitstream_reader"),
         Arg("input_file_path", datapath + "/surgical_video.264"),
@@ -52,18 +58,18 @@ class App : public holoscan::Application {
 
     auto response_condition =
         make_condition<AsynchronousCondition>("response_condition");
-    auto video_decoder_context = make_resource<ops::VideoDecoderContext>(
+    auto video_decoder_context = make_resource<VideoDecoderContext>(
         "decoder-context", Arg("async_scheduling_term") = response_condition);
 
     auto request_condition =
         make_condition<AsynchronousCondition>("request_condition");
-    auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
+    auto video_decoder_request = make_operator<VideoDecoderRequestOp>(
         "video_decoder_request",
         from_config("video_decoder_request"),
         Arg("async_scheduling_term") = request_condition,
         Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
+    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
         "video_decoder_response",
         from_config("video_decoder_response"),
         Arg("pool") =

@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,29 +19,50 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
+#include <holoscan/operators/holoviz/holoviz.hpp>
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
-#include <holoscan/operators/holoviz/holoviz.hpp>
+
+#include "holoscan/core/resources/gxf/gxf_component_resource.hpp"
+#include "holoscan/operators/gxf_codelet/gxf_codelet.hpp"
 
 #include "tensor_to_video_buffer.hpp"
-#include "video_decoder.hpp"
 #include "video_encoder.hpp"
-#include "video_read_bitstream.hpp"
-#include "video_write_bitstream.hpp"
+
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderResponseOp, "nvidia::gxf::VideoDecoderResponse")
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderRequestOp, "nvidia::gxf::VideoDecoderRequest")
+HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE(VideoDecoderContext, "nvidia::gxf::VideoDecoderContext")
+
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoReadBitstreamOp, "nvidia::gxf::VideoReadBitStream")
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoWriteBitstreamOp, "nvidia::gxf::VideoWriteBitstream")
+
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoEncoderResponseOp, "nvidia::gxf::VideoEncoderResponse")
+HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE(VideoEncoderContext, "nvidia::gxf::VideoEncoderContext")
 
 class App : public holoscan::Application {
  public:
   void set_datapath(const std::string& path) { datapath = path; }
 
+  /// @brief As of Holoscan SDK 2.1.0, the extension manager must be used to register any external
+  /// GXF extensions in replace of the use of YAML configuration file.
+  void configure_extension() {
+    auto extension_manager = executor().extension_manager();
+    extension_manager->load_extension("libgxf_videodecoder.so");
+    extension_manager->load_extension("libgxf_videodecoderio.so");
+    extension_manager->load_extension("libgxf_videoencoder.so");
+    extension_manager->load_extension("libgxf_videoencoderio.so");
+  }
   void compose() override {
     using namespace holoscan;
+
+    configure_extension();
 
     uint32_t width = 854;
     uint32_t height = 480;
     int64_t source_block_size = width * height * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto bitstream_reader = make_operator<ops::VideoReadBitstreamOp>(
+    auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
         "bitstream_reader",
         from_config("bitstream_reader"),
         Arg("input_file_path", datapath + "/surgical_video.264"),
@@ -53,21 +74,21 @@ class App : public holoscan::Application {
 
     auto response_condition = make_condition<AsynchronousCondition>("response_condition");
     auto video_decoder_context =
-        make_resource<ops::VideoDecoderContext>(Arg("async_scheduling_term") = response_condition);
+        make_resource<VideoDecoderContext>(Arg("async_scheduling_term") = response_condition);
 
     auto request_condition = make_condition<AsynchronousCondition>("request_condition");
-    auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
-        "video_decoder_request",
-        from_config("video_decoder_request"),
-        Arg("async_scheduling_term") = request_condition,
-        Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_request =
+        make_operator<VideoDecoderRequestOp>("video_decoder_request",
+                                             from_config("video_decoder_request"),
+                                             Arg("async_scheduling_term") = request_condition,
+                                             Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
-        "video_decoder_response",
-        from_config("video_decoder_response"),
-        Arg("pool") =
-            make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
-        Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_response =
+        make_operator<VideoDecoderResponseOp>("video_decoder_response",
+                                              from_config("video_decoder_response"),
+                                              Arg("pool") = make_resource<BlockMemoryPool>(
+                                                  "pool", 1, source_block_size, source_num_blocks),
+                                              Arg("videodecoder_context") = video_decoder_context);
 
     auto decoder_output_format_converter =
         make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
@@ -128,14 +149,14 @@ class App : public holoscan::Application {
       auto encoder_async_condition =
           make_condition<AsynchronousCondition>("encoder_async_condition");
       auto video_encoder_context =
-          make_resource<ops::VideoEncoderContext>(Arg("scheduling_term") = encoder_async_condition);
+          make_resource<VideoEncoderContext>(Arg("scheduling_term") = encoder_async_condition);
 
       auto video_encoder_request = make_operator<ops::VideoEncoderRequestOp>(
           "video_encoder_request",
           from_config("video_encoder_request"),
           Arg("videoencoder_context") = video_encoder_context);
 
-      auto video_encoder_response = make_operator<ops::VideoEncoderResponseOp>(
+      auto video_encoder_response = make_operator<VideoEncoderResponseOp>(
           "video_encoder_response",
           from_config("video_encoder_response"),
           Arg("pool") =
@@ -157,7 +178,7 @@ class App : public holoscan::Application {
       auto tensor_to_video_buffer = make_operator<ops::TensorToVideoBufferOp>(
           "tensor_to_video_buffer", from_config("tensor_to_video_buffer"));
 
-      auto bitstream_writer = make_operator<ops::VideoWriteBitstreamOp>(
+      auto bitstream_writer = make_operator<VideoWriteBitstreamOp>(
           "bitstream_writer",
           from_config("bitstream_writer"),
           Arg("output_video_path", datapath + "/surgical_video_output.264"),
