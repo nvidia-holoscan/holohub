@@ -246,6 +246,9 @@ class FaceDetectApp(Application):
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
+        # Input data type of preprocessor
+        in_dtype = "rgb888"
+
         if self.source == "v4l2":
             v4l2_args = self.kwargs("v4l2_source")
             if self.video_device != "none":
@@ -257,6 +260,8 @@ class FaceDetectApp(Application):
                 **v4l2_args,
             )
             source_output = "signal"
+            # v4l2 operator outputs RGBA8888
+            in_dtype = "rgba8888"
         elif self.source == "replayer":
             source = VideoStreamReplayerOp(
                 self,
@@ -277,6 +282,7 @@ class FaceDetectApp(Application):
             self,
             name="preprocessor",
             pool=pool,
+            in_dtype=in_dtype,
             **preprocessor_args,
         )
 
