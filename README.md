@@ -73,6 +73,7 @@ You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](htt
 Clone the HoloHub repository to your local system:
 ```sh
 $ git clone https://www.github.com/nvidia-holoscan/holohub.git
+$ cd holohub
 ```
 
 Alternatively, download HoloHub sources as a ZIP archive from the HoloHub GitHub homepage.
@@ -82,16 +83,16 @@ Alternatively, download HoloHub sources as a ZIP archive from the HoloHub GitHub
 Simply run the following commands to build the development container. The build may take a few minutes.
 
 ```sh
-$ cd holohub
-holohub$ ./dev_container build
+$ ./dev_container build
 ```
 
 Check to verify that the image is created:
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ docker images
-REPOSITORY                               TAG           IMAGE ID       CREATED         SIZE
-holohub                                  ngc-v0.6.0-dgpu   b6d86bccdcac   9 seconds ago   8.47GB
-nvcr.io/nvidia/clara-holoscan/holoscan   v0.6.0-dgpu       1b4df7733d5b   5 weeks ago     8.04GB
+$ docker images
+REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
+...
+holohub         ngc-v2.1.0-dgpu   17e3aa51f129   13 days ago     13.2GB
+...
 ```
 
 ***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.1`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
@@ -103,7 +104,7 @@ See also: [Advanced Build Options](./doc/developer.md#advanced-build-options-con
 Launch the HoloHub Docker container environment:
 
 ```
-holohub$ ./dev_container launch
+$ ./dev_container launch
 ```
 
 You are now ready to run HoloHub applications! You may jump to the [Running Applications](#running-applications) section to get started.
