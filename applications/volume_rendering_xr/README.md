@@ -16,6 +16,8 @@ You can use this viewer to visualize a segmented medical volume with a mixed rea
 
 Review the [HoloHub README document](/README.md#prerequisites) for supported platforms and software requirements.
 
+The application supports x86_64 or IGX dGPU platforms. IGX iGPU, AGX, and RHEL platforms are not fully tested at this time.
+
 #### Magic Leap 2 Device
 
 The following packages and applications are required to run remote rendering with a Magic Leap 2 device:
