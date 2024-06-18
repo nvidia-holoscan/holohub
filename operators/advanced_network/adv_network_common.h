@@ -430,6 +430,15 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
     return node;
   }
 
+  static holoscan::ops::FlowConfig parse_flow_config(const YAML::Node &flow_item);
+  static holoscan::ops::MemoryRegion parse_memory_region_config(const YAML::Node &mr);
+  // Function to parse RX queue configuration
+  static holoscan::ops::RxQueueConfig parse_rx_queue_config(const YAML::Node &q_item, const holoscan::ops::AnoMgrType &manager_type);
+  static holoscan::ops::RxQueueConfig parse_rx_queue_common_config(const YAML::Node &q_item);
+  // Function to parse TX queue configuration
+  static holoscan::ops::TxQueueConfig parse_tx_queue_config(const YAML::Node &q_item, const holoscan::ops::AnoMgrType &manager_type);
+  static holoscan::ops::TxQueueConfig parse_tx_queue_common_config(const YAML::Node &q_item);
+  
   static bool decode(const Node& node, holoscan::ops::AdvNetConfigYaml& input_spec) {
     if (!node.IsMap()) {
       GXF_LOG_ERROR("InputSpec: expected a map");
@@ -454,17 +463,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       try {
         const auto& mrs = node["memory_regions"];
         for (const auto& mr : mrs) {
-          holoscan::ops::MemoryRegion tmr;
-          tmr.name_ = mr["name"].as<std::string>();
-          tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
-          tmr.buf_size_ = mr["buf_size"].as<size_t>();
-          tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
-          tmr.affinity_ = mr["affinity"].as<uint32_t>();
-          tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
-          try {  // Ownership flag is optional
-            tmr.owned_ = mr["owned"].template as<bool>();
-          } catch (const std::exception& e) { tmr.owned_ = true; }
-
+          holoscan::ops::MemoryRegion tmr  = parse_memory_region_config(mr);
           if (input_spec.mrs_.find(tmr.name_) != input_spec.mrs_.end()) {
             HOLOSCAN_LOG_CRITICAL("Duplicate memory region names: {}", tmr.name_);
             return false;
@@ -494,28 +493,12 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             holoscan::ops::AdvNetRxConfig rx_cfg;
 
             for (const auto& q_item : rx_item["queues"]) {
-              holoscan::ops::RxQueueConfig q;
-              q.common_.name_ = q_item["name"].as<std::string>();
-              q.common_.id_ = q_item["id"].as<int>();
-              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_ = q_item["batch_size"].as<int>();
-              q.output_port_ = q_item["output_port"].as<std::string>();
-
-              const auto& mrs = q_item["memory_regions"];
-              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
-
+              holoscan::ops::RxQueueConfig q = parse_rx_queue_config(q_item, input_spec.common_.manager_type);
               rx_cfg.queues_.emplace_back(q);
             }
 
             for (const auto& flow_item : rx_item["flows"]) {
-              holoscan::ops::FlowConfig flow;
-              flow.name_ = flow_item["name"].as<std::string>();
-
-              flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
-              flow.action_.id_ = flow_item["action"]["id"].as<int>();
-              flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-              flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
-
+              holoscan::ops::FlowConfig flow = parse_flow_config(flow_item);
               rx_cfg.flows_.emplace_back(flow);
             }
 
@@ -531,21 +514,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             } catch (const std::exception& e) { tx_cfg.accurate_send_ = false; }
 
             for (const auto& q_item : tx_item["queues"]) {
-              holoscan::ops::TxQueueConfig q;
-              q.common_.name_ = q_item["name"].as<std::string>();
-              q.common_.id_ = q_item["id"].as<int>();
-              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_ = q_item["batch_size"].as<int>();
-              q.common_.split_boundary_ = q_item["split_boundary"].as<int>();
-
-              const auto& mrs = q_item["memory_regions"];
-              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
-
-              const auto& offload = q_item["offloads"];
-              for (const auto& off : offload) {
-                q.common_.offloads_.push_back(off.as<std::string>());
-              }
-
+              holoscan::ops::TxQueueConfig q = parse_tx_queue_config(q_item, input_spec.common_.manager_type);
               tx_cfg.queues_.emplace_back(q);
             }
 
