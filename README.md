@@ -6,7 +6,7 @@
 )
 [![Pages](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/generate_pages.yml?branch=main&label=Pages)](https://nvidia-holoscan.github.io/holohub/)
 
-[![Applications](https://img.shields.io/badge/Applications-64-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
+[![Applications](https://img.shields.io/badge/Applications-65-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
 [![Operators](https://img.shields.io/badge/Operators-45-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
 [![Tutorials](https://img.shields.io/badge/Tutorials-7-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
 
