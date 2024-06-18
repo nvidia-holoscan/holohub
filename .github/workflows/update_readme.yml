@@ -27,10 +27,15 @@ jobs:
           sed -i -E "s/Operators-([0-9]+)/Operators-$ops_count/" README.md
           tutorial_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"tutorials\"" | wc -l)
           sed -i -E "s/Tutorials-([0-9]+)/Tutorials-$tutorial_count/" README.md
-      
-      - name: Auto-Commit README Changes
-        uses: EndBug/add-and-commit@v9
+          git diff HEAD -- README.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6.0.5
         with:
-          add: 'README.md'
-          commit: '--signoff'
-          message: Update README Project Statistics
+          add-paths: 'README.md'
+          commit-message: '[auto] Update README Project Statistics'
+          signoff: true
+          branch: readme-auto-update/patch
+          title: Update README Project Statistics
+          body: 'Automated update to reflect HoloHub project counts in the HoloHub README file.'
+          reviewers: tbirdso,jjomier
