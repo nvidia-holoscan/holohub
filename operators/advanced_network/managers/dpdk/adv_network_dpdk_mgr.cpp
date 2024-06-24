@@ -1068,34 +1068,38 @@ void DpdkMgr::run() {
   int (*tx_worker)(void*) = tx_core_worker;
 
   for (const auto& intf : cfg_.ifs_) {
-    const auto& rx = intf.rx_;
-    for (auto& q : rx.queues_) {
-      auto params = new RxWorkerParams;
-      params->port = intf.port_id_;
-      params->num_segs = q.common_.mrs_.size();
-      params->ring = rx_ring;
-      params->queue = q.common_.id_;
-      params->burst_pool = rx_burst_buffer;
-      params->meta_pool = rx_meta;
-      params->batch_size = q.common_.batch_size_;
-      rte_eal_remote_launch(
-          rx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
+    if (intf.rx_.queues_.size() > 0) {
+      const auto& rx = intf.rx_;
+      for (auto& q : rx.queues_) {
+        auto params = new RxWorkerParams;
+        params->port = intf.port_id_;
+        params->num_segs = q.common_.mrs_.size();
+        params->ring = rx_ring;
+        params->queue = q.common_.id_;
+        params->burst_pool = rx_burst_buffer;
+        params->meta_pool = rx_meta;
+        params->batch_size = q.common_.batch_size_;
+        rte_eal_remote_launch(
+            rx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
+      }
     }
 
-    const auto& tx = intf.tx_;
-    for (auto& q : tx.queues_) {
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-      auto params = new TxWorkerParams;
-      //  params->hds    = q.common_.hds_ > 0;
-      params->port = intf.port_id_;
-      params->ring = tx_rings[key];
-      params->queue = q.common_.id_;
-      params->burst_pool = tx_burst_buffers[key];
-      params->meta_pool = tx_meta;
-      params->batch_size = q.common_.batch_size_;
-      rte_eth_macaddr_get(intf.port_id_, &params->mac_addr);
-      rte_eal_remote_launch(
-          tx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
+    if (intf.tx_.queues_.size() > 0) {
+      const auto& tx = intf.tx_;
+      for (auto& q : tx.queues_) {
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        auto params = new TxWorkerParams;
+        //  params->hds    = q.common_.hds_ > 0;
+        params->port = intf.port_id_;
+        params->ring = tx_rings[key];
+        params->queue = q.common_.id_;
+        params->burst_pool = tx_burst_buffers[key];
+        params->meta_pool = tx_meta;
+        params->batch_size = q.common_.batch_size_;
+        rte_eth_macaddr_get(intf.port_id_, &params->mac_addr);
+        rte_eal_remote_launch(
+            tx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
+      }
     }
   }
 
@@ -1266,8 +1270,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
         reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
       }
     }
-
-    HOLOSCAN_LOG_DEBUG("Got burst in TX");
 
     //     if (msg->pkts[0] != nullptr) {
     //       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {

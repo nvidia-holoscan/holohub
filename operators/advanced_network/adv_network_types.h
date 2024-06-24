@@ -176,6 +176,7 @@ struct CommonQueueConfig {
   std::string name_;
   int id_;
   int batch_size_;
+  int split_boundary_;
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;

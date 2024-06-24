@@ -19,9 +19,6 @@
 #include "common.h"
 #include "adv_network_rx.h"
 
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 
 // Compiler option that allows us to spoof packet metadata. This functionality
@@ -29,14 +26,6 @@
 // transmitting data that isn't generating packets that use our data format.
 #define SPOOF_PACKET_DATA      true
 #define SPOOF_SAMPLES_PER_PKT  1024  // byte count must be less than 'max_packet_size' config
-
-// Example IPV4 UDP packet using Linux headers
-struct UDPIPV4Pkt {
-  struct ethhdr eth;
-  struct iphdr ip;
-  struct udphdr udp;
-  uint8_t payload[];
-} __attribute__((packed));
 
 // Tracks the status of filling an RF array
 struct AdvBufferTracking {
@@ -132,6 +121,8 @@ class AdvConnectorOpRx : public Operator {
   ~AdvConnectorOpRx() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
       ttl_bytes_recv_, ttl_pkts_recv_);
+    adv_net_shutdown();
+    adv_net_print_stats();
   }
 
   void setup(OperatorSpec& spec) override;
@@ -152,11 +143,10 @@ class AdvConnectorOpRx : public Operator {
   Parameter<uint16_t> num_samples_;
 
   // Networking settings
-  Parameter<bool> hds_;                  // Header-data split enabled
+  Parameter<bool> split_boundary_;       // Header-data split enabled
   Parameter<bool> gpu_direct_;           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet
-  Parameter<uint16_t> header_size_;      // Header size of packet
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {

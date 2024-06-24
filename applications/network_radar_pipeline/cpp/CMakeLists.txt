@@ -18,6 +18,7 @@ project(network_radar_pipeline CXX CUDA)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# set(CMAKE_BUILD_TYPE Debug)
 # Enable cuda language
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
@@ -73,4 +74,13 @@ add_custom_target(process_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/process.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/process.yaml"
 )
-add_dependencies(network_radar_pipeline source_yaml process_yaml)
+
+add_custom_target(source_doca_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/source_doca.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source_doca.yaml"
+)
+add_custom_target(process_doca_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/process_doca.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/process_doca.yaml"
+)
+add_dependencies(network_radar_pipeline source_yaml process_yaml source_doca_yaml process_doca_yaml)

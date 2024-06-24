@@ -50,7 +50,7 @@ void TargetSimulator::initialize() {
   HOLOSCAN_LOG_INFO("TargetSimulator::initialize()");
   holoscan::Operator::initialize();
 
-  cudaStreamCreate(&stream);
+  cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
   transmit_count = 0;
   channel_idx = 0;
 
