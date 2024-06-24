@@ -63,17 +63,17 @@ advanced_network:
     interfaces:
     - name: data1
       address: 0000:ca:00.0
-      # tx:
-      #   - queues:
-      #     - name: "ADC Samples"
-      #       id: 0
-      #       batch_size: 10240
-      #       split_boundary: 0
-      #       cpu_core: 8
-      #       memory_regions:
-      #         - "Data_TX_GPU"
-      #       offloads:
-      #         - "tx_eth_src"
+      tx:
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            batch_size: 10240
+            split_boundary: 0
+            cpu_core: 8
+            memory_regions:
+              - "Data_TX_GPU"
+            offloads:
+              - "tx_eth_src"
       rx:
         - queues:
           - name: "Default"
