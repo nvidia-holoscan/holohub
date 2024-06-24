@@ -65,14 +65,16 @@ __device__ __inline__ int raw_to_udp(const uintptr_t buf_addr, struct eth_ip_udp
 
 /**
  * @brief Receiver packet kernel to where each CUDA Block receives on a different queue.
+ * Works in persistent mode.
  *
  * @param out Output buffer
  * @param in Pointer to list of input packet pointers
  * @param pkt_len Length of each packet. All packets must be same length for this example
  * @param num_pkts Number of packets
  */
-__global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr_t* sem_gpu,
-                                       const uint32_t* batch_list, uint32_t* exit_cond) {
+__global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_gpu,
+                                                  uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                                  const uint32_t* batch_list, uint32_t* exit_cond) {
   doca_error_t ret;
   struct doca_gpu_buf* buf_ptr = NULL;
   uintptr_t buf_addr;
@@ -108,7 +110,7 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
   }
   __syncthreads();
 
-  while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0) {
+  do {
     ret = doca_gpu_dev_eth_rxq_receive_block(
         rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
     /* If any thread returns receive error, the whole execution stops */
@@ -184,7 +186,11 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
     if (threadIdx.x == 0 && rx_pkt_num > 0) {
       tot_pkts_batch += rx_pkt_num;
 #if DOCA_DEBUG_KERNEL == 1
-      printf("Queue %d tot pkts %d/%d\n", blockIdx.x, tot_pkts_batch, batch_list[blockIdx.x]);
+      printf("Queue %d tot pkts %d/%d sem_idx %d\n",
+             blockIdx.x,
+             tot_pkts_batch,
+             batch_list[blockIdx.x],
+             sem_idx);
 #endif
       if (tot_pkts_batch >= batch_list[blockIdx.x]) {
         DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
@@ -207,7 +213,7 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
         tot_pkts_batch = 0;
       }
     }
-  }
+  } while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0);
 
   __syncthreads();
 
@@ -227,6 +233,131 @@ __global__ void receive_packets_kernel(int rxqn, uintptr_t* eth_rxq_gpu, uintptr
              threadIdx.x);
       DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
     }
+  }
+}
+
+/**
+ * @brief Receiver packet kernel to where each CUDA Block receives on a different queue.
+ * Works in non-persistent mode.
+ *
+ * @param out Output buffer
+ * @param in Pointer to list of input packet pointers
+ * @param pkt_len Length of each packet. All packets must be same length for this example
+ * @param num_pkts Number of packets
+ */
+__global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_rxq_gpu,
+                                                      uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                                      const uint32_t* batch_list) {
+  doca_error_t ret;
+  struct doca_gpu_buf* buf_ptr = NULL;
+  uintptr_t buf_addr;
+  uint64_t buf_idx;
+  struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
+  struct doca_gpu_semaphore_gpu* sem = (struct doca_gpu_semaphore_gpu*)sem_gpu[blockIdx.x];
+  __shared__ struct adv_doca_rx_gpu_info* stats_global;
+#if DOCA_DEBUG_KERNEL == 1
+  struct eth_ip_udp_hdr* hdr;
+  uint8_t* payload;
+#endif
+  __shared__ uint32_t rx_pkt_num;
+  __shared__ uint32_t rx_pkt_bytes;
+  __shared__ uint64_t rx_buf_idx;
+  uint32_t pktb = 0;
+
+  // Warmup
+  if (eth_rxq_gpu == NULL) return;
+
+  if (threadIdx.x == 0) DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
+  __syncthreads();
+
+  ret = doca_gpu_dev_eth_rxq_receive_block(
+      rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
+  /* If any thread returns receive error, the whole execution stops */
+  if (ret != DOCA_SUCCESS) {
+    rx_pkt_num = 0;
+    if (threadIdx.x == 0) {
+      /*
+       * printf in CUDA kernel may be a good idea only to report critical errors or debugging.
+       * If application prints this message on the console, something bad happened and
+       * applications needs to exit
+       */
+      printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, rx_pkt_num, ret);
+    }
+  }
+
+  buf_idx = threadIdx.x;
+  while (buf_idx < rx_pkt_num) {
+    ret = doca_gpu_dev_eth_rxq_get_buf(rxq, rx_buf_idx + buf_idx, &buf_ptr);
+    if (ret != DOCA_SUCCESS) {
+      printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
+    }
+
+    ret = doca_gpu_dev_buf_get_addr(buf_ptr, &buf_addr);
+    if (ret != DOCA_SUCCESS) {
+      printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
+    }
+#if DOCA_DEBUG_KERNEL == 1
+    raw_to_udp(buf_addr, &hdr, &payload);
+    printf(
+        "Queue %d Thread %d received UDP packet with "
+        "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
+        "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
+        "Src port %d - Dst port %d\n",
+        blockIdx.x,
+        threadIdx.x,
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
+        BYTE_SWAP16(hdr->l4_hdr.src_port),
+        BYTE_SWAP16(hdr->l4_hdr.dst_port));
+#endif
+
+    /* Add custom packet processing/filtering function here. */
+
+    if (threadIdx.x == 0 && buf_idx == 0) {
+      /* Get next semaphore item to pass packets info to the CPU */
+      ret = doca_gpu_dev_semaphore_get_custom_info_addr(
+          sem, sem_idx_list[blockIdx.x], (void**)&stats_global);
+      if (ret != DOCA_SUCCESS) {
+        printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
+               ret,
+               blockIdx.x,
+               threadIdx.x);
+      }
+
+      DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_addr) = buf_addr;
+      DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_idx) = rx_buf_idx;
+    }
+
+    doca_gpu_dev_eth_rxq_get_buf_bytes(rxq, buf_idx, &pktb);
+    atomicAdd_block(&rx_pkt_bytes, pktb);
+
+    buf_idx += blockDim.x;
+  }
+  __syncthreads();
+
+  if (threadIdx.x == 0 && rx_pkt_num > 0) {
+#if DOCA_DEBUG_KERNEL == 1
+    printf("Queue %d tot pkts %d/%d sem_idx_list[blockIdx.x] %d\n",
+           blockIdx.x,
+           rx_pkt_num,
+           batch_list[blockIdx.x],
+           sem_idx_list[blockIdx.x]);
+#endif
+    DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(rx_pkt_num);
+    DOCA_GPUNETIO_VOLATILE(stats_global->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    __threadfence_system();
+    doca_gpu_dev_semaphore_set_status(
+        sem, sem_idx_list[blockIdx.x], DOCA_GPU_SEMAPHORE_STATUS_READY);
   }
 }
 
@@ -277,28 +408,28 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
     }
 
     raw_to_udp(buf_addr, &hdr, &payload);
-      printf(
-          "Queue %d Thread %d received UDP packet len %d with "
-          "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
-          "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
-          "Src port %d - Dst port %d\n",
-          blockIdx.x,
-          threadIdx.x,
-          gpu_pkts_len[pkt_idx],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
-          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
-          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
-          hdr->l4_hdr.src_port,
-          hdr->l4_hdr.dst_port);
+    printf(
+        "Queue %d Thread %d received UDP packet len %d with "
+        "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
+        "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
+        "Src port %d - Dst port %d\n",
+        blockIdx.x,
+        threadIdx.x,
+        gpu_pkts_len[pkt_idx],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
+        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
+        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
+        hdr->l4_hdr.src_port,
+        hdr->l4_hdr.dst_port);
 #endif
     if (set_completion && pkt_idx == (num_pkts - 1))
       ret = doca_gpu_dev_eth_txq_send_enqueue_weak(txq,
@@ -331,8 +462,9 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
 extern "C" {
 
 doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_t* eth_rxq_gpu,
-                                         uintptr_t* sem_gpu, uint32_t* batch_list,
-                                         uint32_t* gpu_exit_condition) {
+                                         uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                         uint32_t* batch_list, uint32_t* gpu_exit_condition,
+                                         bool persistent) {
   cudaError_t result = cudaSuccess;
 
   if (rxqn == 0 || gpu_exit_condition == NULL) {
@@ -349,8 +481,13 @@ doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_
   }
 
   /* For simplicity launch 1 CUDA block with 32 CUDA threads */
-  receive_packets_kernel<<<rxqn, CUDA_BLOCK_THREADS, 0, stream>>>(
-      rxqn, eth_rxq_gpu, sem_gpu, batch_list, gpu_exit_condition);
+  if (persistent)
+    receive_packets_kernel_persistent<<<rxqn, CUDA_BLOCK_THREADS, 0, stream>>>(
+        rxqn, eth_rxq_gpu, sem_gpu, sem_idx_list, batch_list, gpu_exit_condition);
+  else
+    receive_packets_kernel_non_persistent<<<rxqn, CUDA_BLOCK_THREADS, 0, stream>>>(
+        rxqn, eth_rxq_gpu, sem_gpu, sem_idx_list, batch_list);
+
   result = cudaGetLastError();
   if (cudaSuccess != result) {
     HOLOSCAN_LOG_ERROR(

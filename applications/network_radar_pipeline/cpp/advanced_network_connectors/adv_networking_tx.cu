@@ -150,7 +150,7 @@ void AdvConnectorOpTx::initialize() {
     // On GPU
     for (int n = 0; n < num_concurrent; n++) {
       cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_);
-      cudaStreamCreate(&streams_[n]);
+      cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
       cudaEventCreate(&events_[n]);
     }
     HOLOSCAN_LOG_INFO("Initialized {} streams and events", num_concurrent);

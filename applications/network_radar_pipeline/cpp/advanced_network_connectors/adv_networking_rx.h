@@ -121,6 +121,8 @@ class AdvConnectorOpRx : public Operator {
   ~AdvConnectorOpRx() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
       ttl_bytes_recv_, ttl_pkts_recv_);
+    adv_net_shutdown();
+    adv_net_print_stats();
   }
 
   void setup(OperatorSpec& spec) override;

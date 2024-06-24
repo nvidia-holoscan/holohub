@@ -161,7 +161,7 @@ void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize()");
   holoscan::Operator::initialize();
 
-  cudaStreamCreate(&proc_stream);
+  cudaStreamCreateWithFlags(&proc_stream, cudaStreamNonBlocking);
 
   // Assume all packets are the same size, specified in the config
   nom_payload_size_ = max_packet_size_.get() - PADDED_HDR_SIZE;
@@ -178,7 +178,7 @@ void AdvConnectorOpRx::initialize() {
   // Allocate memory and create CUDA streams for each concurrent batch
   for (int n = 0; n < num_concurrent; n++) {
     if (gpu_direct_.get()) {
-      cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
+      cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get() * 2);
     }
 
     buffer_track = AdvBufferTracking(buffer_size_.get());
@@ -327,9 +327,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
   aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
-  cur_msg_.msg[cur_msg_.num_batches++] = burst;
 
-  HOLOSCAN_LOG_DEBUG("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
+  HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
       aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
 
   // Once we've aggregated enough packets, do some work
@@ -388,8 +387,8 @@ void AdvConnectorOpRx::stop() {
       "\n"
       "AdvConnectorOpRx exit report:\n"
       "--------------------------------\n"
-      " - Received bytes:     {}\n"
-      " - Received packets:   {}\n",
+      " - Processed bytes:     {}\n"
+      " - Processed packets:   {}\n",
       ttl_bytes_recv_,
       ttl_pkts_recv_);
 }

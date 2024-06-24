@@ -112,7 +112,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
     // In config file, queue 0 is for all other non-UDP packets so we don't care
     if (adv_net_get_q_id(burst) == 0) {
-      HOLOSCAN_LOG_INFO("Ignoring packets on queue 0");
+      // HOLOSCAN_LOG_INFO("Ignoring packets on queue 0");
       return;
     }
 
@@ -126,8 +126,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
         }
 
         // HOLOSCAN_LOG_INFO("Launch order kernel, aggr_pkts_recv_ {} pkt_idx {} batch_size_.get()
-        // {} cur_idx {}",
-        //                     aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
+        // {} cur_idx {}", aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
 #if DEBUG_CUDA_TIMES == 1
         float et_ms = 0;
         cudaEventRecord(events_start_[cur_idx], streams_[cur_idx]);
