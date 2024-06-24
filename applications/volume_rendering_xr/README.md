@@ -16,6 +16,8 @@ You can use this viewer to visualize a segmented medical volume with a mixed rea
 
 Review the [HoloHub README document](/README.md#prerequisites) for supported platforms and software requirements.
 
+The application supports x86_64 or IGX dGPU platforms. IGX iGPU, AGX, and RHEL platforms are not fully tested at this time.
+
 #### Magic Leap 2 Device
 
 The following packages and applications are required to run remote rendering with a Magic Leap 2 device:
@@ -192,6 +194,12 @@ manipulating configuration values, along with [how to create a new configuration
 
 ### Troubleshooting
 
+Please verify that you are building from the latest HoloHub `main` branch before reviewing troubleshooting steps.
+
+```sh
+git checkout main
+```
+
 #### Libraries are missing when building the application (Vulkan, OpenXR, etc)
 
 This error may indicate that you are building inside the default HoloHub container instead of the expected `volume_rendering_xr` container.
@@ -200,5 +208,31 @@ Review the [build steps](#building-the-application) and ensure that you have lau
 
 #### Unexpected CMake errors
 
-If you have built other HoloHub applications prior to building `volume_rendering_xr`, you may need to clear your build cache
-to avoid cross-pollution between environments. See the HoloHub [Cleaning](/README.md#cleanup) section for instructions.
+You may need to clear your CMake build cache. See the HoloHub [Cleaning](/README.md#cleanup) section for instructions.
+
+#### "Seccomp" Errors
+
+The Magic Leap Windrunner OpenXR backend and remote rendering host application use seccomp to limit syscalls on Linux platforms.
+You can exempt individual syscalls for local development by adding them to the [application syscall whitelist](thirdparty/magicleap/seccomp_whitelist.cfg).
+
+#### Debug GUI does not appear
+
+The `./run launch volume_rendering_xr` command initializes the Magic Leap Windrunner debug GUI by default. If you do not see
+the debug GUI appear in your application, or if the application appears to stall with no further output after the pairing QR
+code appears, try any of the following:
+
+1. Manually set the `ML_START_OPTIONS` environment variable so that `run launch` initializes with the debug view:
+```sh
+export ML_START_OPTIONS="debug"
+```
+
+2. Follow [Advanced Setup Instructions](#advanced-setup) and add the `--as_root` option to launch the container with root permissions.
+```sh
+./dev_container launch --img holohub:volume_rendering_xr --as_root
+```
+
+3. Clear the build cache and any home cache folders in the HoloHub workspace.
+```sh
+./run clear_cache
+rm -rf .cache/ .cmake/ .config/ .local/
+```

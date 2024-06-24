@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,20 @@
 # limitations under the License.
 
 import os
+from argparse import ArgumentParser
 
 import cupy as cp
 import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, V4L2VideoCaptureOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    V4L2VideoCaptureOp,
+    VideoStreamReplayerOp,
+)
 from holoscan.resources import UnboundedAllocator
 
 
@@ -221,23 +228,48 @@ class PostprocessorOp(Operator):
 
 
 class FaceDetectApp(Application):
-    def __init__(self):
+    def __init__(self, data, source="v4l2", video_device="none"):
         """Initialize the face detection application"""
 
         super().__init__()
 
         # set name
         self.name = "Face Detection App"
+        self.source = source
+
+        if data == "none":
+            data = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "tao_peoplenet")
+
+        self.sample_data_path = data
+        self.video_device = video_device
 
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
-        source = V4L2VideoCaptureOp(
-            self,
-            name="source",
-            allocator=pool,
-            **self.kwargs("source"),
-        )
+        # Input data type of preprocessor
+        in_dtype = "rgb888"
+
+        if self.source == "v4l2":
+            v4l2_args = self.kwargs("v4l2_source")
+            if self.video_device != "none":
+                v4l2_args["device"] = self.video_device
+            source = V4L2VideoCaptureOp(
+                self,
+                name="v4l2_source",
+                allocator=pool,
+                **v4l2_args,
+            )
+            source_output = "signal"
+            # v4l2 operator outputs RGBA8888
+            in_dtype = "rgba8888"
+        elif self.source == "replayer":
+            source = VideoStreamReplayerOp(
+                self,
+                name="replayer_source",
+                directory=self.sample_data_path,
+                **self.kwargs("replayer_source"),
+            )
+            source_output = "output"
 
         format_input = FormatInferenceInputOp(
             self,
@@ -250,12 +282,13 @@ class FaceDetectApp(Application):
             self,
             name="preprocessor",
             pool=pool,
+            in_dtype=in_dtype,
             **preprocessor_args,
         )
 
         inference_args = self.kwargs("inference")
         inference_args["model_path_map"] = {
-            "face_detect": os.path.join(os.path.dirname(__file__), "resnet34_peoplenet_int8.onnx")
+            "face_detect": os.path.join(self.sample_data_path, "resnet34_peoplenet_int8.onnx")
         }
 
         device_map = dict()
@@ -284,7 +317,7 @@ class FaceDetectApp(Application):
 
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", **self.kwargs("holoviz"))
 
-        self.add_flow(source, holoviz, {("signal", "receivers")})
+        self.add_flow(source, holoviz, {(source_output, "receivers")})
         self.add_flow(source, preprocessor)
         self.add_flow(preprocessor, format_input)
         self.add_flow(format_input, inference, {("", "receivers")})
@@ -293,8 +326,45 @@ class FaceDetectApp(Application):
 
 
 if __name__ == "__main__":
-    config_file = os.path.join(os.path.dirname(__file__), "tao_peoplenet.yaml")
+    # Parse args
+    parser = ArgumentParser(description="Face Detection Application.")
+    parser.add_argument(
+        "-s",
+        "--source",
+        choices=["v4l2", "replayer"],
+        default="v4l2",
+        help=(
+            "If 'v4l2', uses the v4l2 device specified in the yaml file or "
+            " --video_device if specified. "
+            "If 'replayer', uses video stream replayer."
+        ),
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="none",
+        help=("Set config path to override the default config file location"),
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="none",
+        help=("Set the data path"),
+    )
+    parser.add_argument(
+        "-v",
+        "--video_device",
+        default="none",
+        help=("The video device to use.  By default the application will use /dev/video0"),
+    )
 
-    app = FaceDetectApp()
+    args = parser.parse_args()
+
+    if args.config == "none":
+        config_file = os.path.join(os.path.dirname(__file__), "tao_peoplenet.yaml")
+    else:
+        config_file = args.config
+
+    app = FaceDetectApp(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()
