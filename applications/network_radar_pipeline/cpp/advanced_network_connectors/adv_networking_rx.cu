@@ -185,7 +185,7 @@ void AdvConnectorOpRx::initialize() {
     make_tensor(rf_data,
                 {buffer_size_.get(), num_channels_.get(), num_pulses_.get(), num_samples_.get()});
 
-    cudaStreamCreate(&streams_[n]);
+    cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
     cudaEventCreate(&events_[n]);
     // Warmup
     place_packet_data(nullptr,
