@@ -5,6 +5,8 @@ Using the GPUDirect capabilities afforded by the Advanced Network Operator, this
 
 The motivation for building this application is to demonstrate how data arrays can be assembled from packet data in real-time for low-latency, high-throughput sensor processing applications. The main components of this work are defining a message format and writing code connecting the network operators to the signal processing operators.
 
+This application supports the Advanced Network Operator DPDK and DOCA GPUNetIO transport layers.
+
 ## Prerequisites
 See the README for the Advanced Network Operator for requirements and system tuning needed to enable high-throughput GPUDirect capabilities.
 
@@ -15,9 +17,15 @@ Note: Dockerfile should be cross-compatible, but has only been tested on x86. Ne
 Please refer to the top level Holohub README.md file for information on how to build this application: `./run build network_radar_pipeline`.
 
 ## Run
-Note: must properly configure YAML files before running.
+Note: must properly configure YAML files before running. To run with DPDK as ANO transport layer:
 - On Tx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source.yaml`
 - On Rx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process.yaml`
+
+To run with DOCA GPUNetIO as ANO transport layer:
+- On Tx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml`
+- On Rx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml`
+
+<mark>For Holoscan internal reasons (not related to the DOCA library), build the Advanced Network Operator with `RX_PERSISTENT_ENABLED` set to 1 MAY cause problems to this application on the receive (process) side (receive hangs in process.cu file). If you experience any issue on the receive side, please read carefully in the Advanced Network Operator README about how to solve this problem.</mark>
 
 ## Network Operator Connectors
 See each operators' README before using / for more detailed information.

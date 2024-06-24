@@ -52,7 +52,7 @@ advanced_network:
           - name: "Default"
             id: 0
             gpu_direct: false
-            cpu_cores: "18"
+            cpu_core: 1
             max_packet_size: 9000          # Maximum payload size
             num_concurrent_batches: 32767  # Number of batches that can be used at any time
             batch_size: 1                  # Number of packets in a batch
@@ -62,19 +62,19 @@ advanced_network:
             gpu_device: 0
             gpu_direct: true
             split_boundary: 42
-            cpu_cores: "17"
+            cpu_core: 2
             max_packet_size: 9000       # Maximum payload size
             num_concurrent_batches: 15  # Number of batches that can be used at any time
             batch_size: 5120            # Number of packets in a batch
             output_port: "bench_rx_out"
-        flows:
-          - name: "ADC Samples"
-            action:
-              type: queue
-              id: 1
-            match:
-              udp_src: 4096
-              udp_dst: 4096
+          flows:
+            - name: "ADC Samples"
+              action:
+                type: queue
+                id: 1
+              match:
+                udp_src: 4096
+                udp_dst: 4096
 
 radar_pipeline:
   is_source: false         # Defines app type (source, process)

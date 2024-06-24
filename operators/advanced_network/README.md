@@ -97,6 +97,22 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 ./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
 ```
 
+<mark>Receiver side, CUDA Persistent kernel note</mark>
+To get the best performance on the receive side, the Advanced Network Operator must be built with with `RX_PERSISTENT_ENABLED` set to 1 which enables the CUDA receiver kernel to run persistently for the whole execution. For Holoscan internal reasons (not related to the DOCA library), a persistent CUDA kernel may cause issues on some applications on the receive side. This issue is still under investigation.
+If this happens, there are two options:
+- build the Advanced Network Operator with `RX_PERSISTENT_ENABLED` set to 0
+- keep the `RX_PERSISTENT_ENABLED` set to 1 and enable also MPS setting `MPS_ENABLED` to 1. Then, MPS should be enabled on the system:
+```
+export CUDA_MPS_PIPE_DIRECTORY=/var
+export CUDA_MPS_LOG_DIRECTORY=/var
+sudo -E nvidia-cuda-mps-control -d
+sudo -E echo start_server -uid 0 | sudo -E nvidia-cuda-mps-control
+```
+
+This should solve all problems. Both `RX_PERSISTENT_ENABLED` and `MPS_ENABLED` are defined in `operators/advanced_network/managers/doca/adv_network_doca_mgr.h`.
+
+
+
 #### System Tuning
 
 From a high level, tuning the system for a low latency workload prevents latency spikes large enough to cause anomalies

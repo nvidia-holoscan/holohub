@@ -84,3 +84,5 @@ With DOCA:
 ```bash
 ./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
 ```
+
+<mark>For Holoscan internal reasons (not related to the DOCA library), build the Advanced Network Operator with `RX_PERSISTENT_ENABLED` set to 1 MAY cause problems to this application on the receive (process) side (receive hangs). If you experience any issue on the receive side, please read carefully in the Advanced Network Operator README how to solve this problem.</mark>

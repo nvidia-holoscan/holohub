@@ -6,7 +6,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 - Python 3.8+
 - The provided applications are configured to either use the AJA or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
-Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
 

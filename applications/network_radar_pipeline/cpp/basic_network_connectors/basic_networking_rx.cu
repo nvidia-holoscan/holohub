@@ -65,8 +65,7 @@ void BasicConnectorOpRx::initialize() {
                                     num_channels.get(),
                                     num_samples.get());
 
-  cudaStreamCreate(&stream);
-
+  cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
   HOLOSCAN_LOG_INFO("Expecting to receive {} packets", num_transmits.get() * pkts_per_arr);
 }
 

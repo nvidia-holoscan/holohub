@@ -95,6 +95,15 @@ ENV PATH="${PATH}:${VULKAN_SDK}/bin"
 ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VULKAN_SDK}"
 
 ############################################################
+# Windrunner configuration
+# 
+# Add known IGX dGPU syscall requirements to the Windrunner
+# seccomp whitelist
+############################################################
+COPY /applications/volume_rendering_xr/thirdparty/magicleap/seccomp_whitelist.cfg \
+     /usr/share/windrunner/seccomp_whitelist.cfg
+
+############################################################
 # Environment variables
 ############################################################
 # Magic Leap Windrunner environment variables

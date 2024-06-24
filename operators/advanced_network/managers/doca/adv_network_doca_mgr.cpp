@@ -27,7 +27,6 @@
 #include "adv_network_doca_mgr.h"
 #include "adv_network_doca_kernels.h"
 #include "holoscan/holoscan.hpp"
-// #include <cudaProfiler.h>
 
 using namespace std::chrono;
 
@@ -1157,13 +1156,16 @@ int DocaMgr::rx_core(void* arg) {
   cudaError_t res_cuda = cudaSuccess;
   uintptr_t *eth_rxq_cpu_list, *eth_rxq_gpu_list;
   uintptr_t *sem_cpu_list, *sem_gpu_list;
+  uint32_t *sem_idx_cpu_list, *sem_idx_gpu_list;
   uint32_t *batch_cpu_list, *batch_gpu_list;
   uint32_t *cpu_exit_condition, *gpu_exit_condition;
-  int sem_idx[MAX_NUM_RX_QUEUES] = {0};
+  // int sem_idx[MAX_NUM_RX_QUEUES] = {0};
   struct adv_doca_rx_gpu_info* packets_stats;
   AdvNetBurstParams* burst;
+#if MPS_ENABLED == 1
   CUdevice cuDevice;
   CUcontext cuContext;
+#endif
   uint64_t last_batch = 0;
   int leastPriority;
   int greatestPriority;
@@ -1180,9 +1182,11 @@ int DocaMgr::rx_core(void* arg) {
   }
   pthread_setname_np(self, "RX_WORKER");
 
-  // WAR for Holoscan management of threads.
-  // Be sure application thread finished before launching other CUDA tasks
-  sleep(2);
+// WAR for Holoscan management of threads.
+// Be sure application thread finished before launching other CUDA tasks
+#if RX_PERSISTENT_ENABLED == 1
+  sleep(5);
+#endif
 
   HOLOSCAN_LOG_INFO(
       "Starting Rx Core {}, queues {}, GPU {}", tparams->core_id, tparams->rxqn, tparams->gpu_id);
@@ -1227,6 +1231,18 @@ int DocaMgr::rx_core(void* arg) {
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
+                              tparams->rxqn * sizeof(uint32_t),
+                              GPU_PAGE_SIZE,
+                              DOCA_GPU_MEM_TYPE_CPU_GPU,
+                              (void**)&sem_idx_gpu_list,
+                              (void**)&sem_idx_cpu_list);
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory sem_gpu_list before launching kernel {}",
+                       doca_error_get_descr(result));
+    exit(1);
+  }
+
+  result = doca_gpu_mem_alloc(tparams->gdev,
                               tparams->rxqn * sizeof(uintptr_t),
                               GPU_PAGE_SIZE,
                               DOCA_GPU_MEM_TYPE_CPU_GPU,
@@ -1241,6 +1257,7 @@ int DocaMgr::rx_core(void* arg) {
   for (int idx = 0; idx < tparams->rxqn; idx++) {
     eth_rxq_cpu_list[idx] = (uintptr_t)tparams->rxqw[idx].rxq->eth_rxq_gpu;
     sem_cpu_list[idx] = (uintptr_t)tparams->rxqw[idx].rxq->sem_gpu;
+    sem_idx_cpu_list[idx] = 0;
     batch_cpu_list[idx] = tparams->rxqw[idx].batch_size;
   }
 
@@ -1263,21 +1280,57 @@ int DocaMgr::rx_core(void* arg) {
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
-  doca_receiver_packet_kernel(
-      rx_stream, tparams->rxqn, nullptr, sem_gpu_list, batch_gpu_list, gpu_exit_condition);
+  doca_receiver_packet_kernel(rx_stream,
+                              tparams->rxqn,
+                              nullptr,
+                              sem_gpu_list,
+                              sem_idx_gpu_list,
+                              batch_gpu_list,
+                              gpu_exit_condition,
+                              false);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
-  doca_receiver_packet_kernel(
-      rx_stream, tparams->rxqn, eth_rxq_gpu_list, sem_gpu_list, batch_gpu_list, gpu_exit_condition);
+
+  /*
+   * Something in the Holoscan/GXF lower layer imposes a GPU device synchronization
+   * which represent an issue when running CUDA persistent kernels.
+   * Still trying to root-cause the issue.
+   *
+   * For this reason, by default the ANO DOCA Rx CUDA kernel is set as non-persistent.
+   * Depending on the application, it worths to test if persistency can be used or not.
+   * Best for performance is to have it persistent.
+   */
+#if RX_PERSISTENT_ENABLED == 1
+  doca_receiver_packet_kernel(rx_stream,
+                              tparams->rxqn,
+                              eth_rxq_gpu_list,
+                              sem_gpu_list,
+                              sem_idx_gpu_list,
+                              batch_gpu_list,
+                              gpu_exit_condition,
+                              true);
+#endif
 
   HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
   while (!force_quit_doca.load()) {
+#if RX_PERSISTENT_ENABLED == 0
+    doca_receiver_packet_kernel(rx_stream,
+                                tparams->rxqn,
+                                eth_rxq_gpu_list,
+                                sem_gpu_list,
+                                sem_idx_gpu_list,
+                                batch_gpu_list,
+                                gpu_exit_condition,
+                                false);
+    cudaStreamSynchronize(rx_stream);
+#endif
+
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      result =
-          doca_gpu_semaphore_get_status(tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], &status);
+      result = doca_gpu_semaphore_get_status(
+          tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], &status);
       if (result != DOCA_SUCCESS) {
         HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
         force_quit_doca.store(true);
@@ -1286,7 +1339,7 @@ int DocaMgr::rx_core(void* arg) {
 
       if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
         result = doca_gpu_semaphore_get_custom_info_addr(
-            tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], (void**)&(packets_stats));
+            tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], (void**)&(packets_stats));
         if (result != DOCA_SUCCESS) {
           HOLOSCAN_LOG_ERROR("UDP semaphore get address error");
           force_quit_doca.store(true);
@@ -1309,19 +1362,20 @@ int DocaMgr::rx_core(void* arg) {
         burst->hdr.hdr.gpu_pkt0_idx = packets_stats->gpu_pkt0_idx;
         burst->hdr.hdr.gpu_pkt0_addr = packets_stats->gpu_pkt0_addr;
         HOLOSCAN_LOG_DEBUG(
-            "sem {} queue {} num_pkts {}", sem_idx[ridx], ridx, burst->hdr.hdr.num_pkts);
+            "sem {} queue {} num_pkts {}", sem_idx_cpu_list[ridx], ridx, burst->hdr.hdr.num_pkts);
         // Assuming each batch is accumulated by the kernel
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
 
-        result = doca_gpu_semaphore_set_status(
-            tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], DOCA_GPU_SEMAPHORE_STATUS_FREE);
+        result = doca_gpu_semaphore_set_status(tparams->rxqw[ridx].rxq->sem_cpu,
+                                               sem_idx_cpu_list[ridx],
+                                               DOCA_GPU_SEMAPHORE_STATUS_FREE);
         if (result != DOCA_SUCCESS) {
           HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
           force_quit_doca.store(true);
           break;
         }
 
-        sem_idx[ridx] = (sem_idx[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
+        sem_idx_cpu_list[ridx] = (sem_idx_cpu_list[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
 
         total_pkts += burst->hdr.hdr.num_pkts;
         stats_rx_tot_pkts += burst->hdr.hdr.num_pkts;
@@ -1337,10 +1391,11 @@ int DocaMgr::rx_core(void* arg) {
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
     // HOLOSCAN_LOG_INFO("Check queue {} sem {}", ridx, sem_idx[ridx]);
-    doca_gpu_semaphore_get_status(tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], &status);
+    doca_gpu_semaphore_get_status(
+        tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], &status);
     if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
       doca_gpu_semaphore_get_custom_info_addr(
-          tparams->rxqw[ridx].rxq->sem_cpu, sem_idx[ridx], (void**)&(packets_stats));
+          tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], (void**)&(packets_stats));
       last_batch += packets_stats->num_pkts;
       stats_rx_tot_pkts += packets_stats->num_pkts;
       stats_rx_tot_bytes += packets_stats->nbytes;
@@ -1350,6 +1405,7 @@ int DocaMgr::rx_core(void* arg) {
 
   doca_gpu_mem_free(tparams->gdev, (void*)eth_rxq_gpu_list);
   doca_gpu_mem_free(tparams->gdev, (void*)sem_gpu_list);
+  doca_gpu_mem_free(tparams->gdev, (void*)sem_idx_gpu_list);
   cudaStreamDestroy(rx_stream);
   doca_gpu_mem_free(tparams->gdev, (void*)gpu_exit_condition);
 
@@ -1380,8 +1436,10 @@ int DocaMgr::tx_core(void* arg) {
   AdvNetBurstParams* burst;
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
+#if MPS_ENABLED == 1
   CUdevice cuDevice;
   CUcontext cuContext;
+#endif
   pthread_t self = pthread_self();
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
@@ -1440,8 +1498,6 @@ int DocaMgr::tx_core(void* arg) {
                            burst->hdr.hdr.q_id,
                            idxq);
 
-      // cudaStreamWaitEvent(tx_stream[idxq], burst->event, 0);
-
       /* Only necessary checks to prioritize the launch of the kernel */
       cnt_pkts[idxq] += burst->hdr.hdr.num_pkts;
       if (cnt_pkts[idxq] > MAX_SQ_DESCR_NUM / 4) set_completion[idxq] = true;
@@ -1473,6 +1529,8 @@ int DocaMgr::tx_core(void* arg) {
       }
     }
   }
+
+  HOLOSCAN_LOG_DEBUG("DOCA RX must exit");
 
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamDestroy(tx_stream[idxq]);
