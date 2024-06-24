@@ -71,7 +71,7 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
 #ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
         source = make_operator<ops::VideoMasterSourceOp>(
-            "videomaster", from_config("videomaster"), Arg("pool") = allocator_resource);
+            "videomaster", from_config("videomaster"));
         break;
 #endif
       case VideoSource::AJA:

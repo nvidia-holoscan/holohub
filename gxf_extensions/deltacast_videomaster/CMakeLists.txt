@@ -44,6 +44,7 @@ target_link_libraries(gxf_videomaster_lib
     CUDA::cuda_driver
     GXF::multimedia
     GXF::std
+    holoscan::core
     yaml-cpp
 )
 
