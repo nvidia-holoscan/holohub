@@ -59,6 +59,9 @@
 #define THRESHOLD_PKT_SIZE 8192
 #define THRESHOLD_BUF_NUM 32768
 
+#define MPS_ENABLED 0
+#define RX_PERSISTENT_ENABLED 1
+
 struct adv_doca_rx_gpu_info {
   uint32_t num_pkts;
   uint32_t nbytes;

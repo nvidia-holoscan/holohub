@@ -35,17 +35,17 @@ Config file: [`ssd_endo_model.yaml`](../ssd_endo_model.yaml)
 
 Here are some important SDK documentation for understanding the Python API:
 
- - [Holoscan Core Concepts](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_core.html) for the definition of application, operator and more.
+ - [Holoscan Core Concepts](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html) for the definition of application, operator and more.
 
- - [Native Python Operator](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#native-python-operator) for understanding and creating a native Python API operator. This is for creating the `DetectionPostprocessorOp` in [`ssd_step1.py`](../ssd_step1.py).
+ - [Native Python Operator](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#native-python-operator) for understanding and creating a native Python API operator. This is for creating the `DetectionPostprocessorOp` in [`ssd_step1.py`](../ssd_step1.py).
 
- - [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) for how the `DetectionPostprocessorOp` can connect to other ops.
+ - [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) for how the `DetectionPostprocessorOp` can connect to other ops.
  
- - [Creating an Application](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_app.html#) for creating a Python application. This is for creating the application in [`ssd_step1.py`](../ssd_step1.py).
+ - [Creating an Application](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#) for creating a Python application. This is for creating the application in [`ssd_step1.py`](../ssd_step1.py).
 
 We will create this app with Python postprocessing code borrowed from the model training repo and dropped into the Holoscan SDK. 
 
-To start our application development process, we can first take a look at the [Ultrasound Reference Application](https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_segmentation/python/ultrasound_segmentation.py) for inspiration on app creation, noting that each of the operators is a wrapped C++ operator. As the documentation on [Python Operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#python-operators) states, two types of operators exist in Holoscan: Native Python operators and Python wrappings of C++ Operators. In our step 1 application, we will utilize the [interoperability between wrapped and native Python operators](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) to create postprocessing logic in a native Python operator, and connect that native Python operator the the upstream model inference operator and downstream visualization operator, both of which are Python wrappings of C++ operators. 
+To start our application development process, we can first take a look at the [Ultrasound Reference Application](https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_segmentation/python/ultrasound_segmentation.py) for inspiration on app creation, noting that each of the operators is a wrapped C++ operator. As the documentation on [Python Operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#python-operators) states, two types of operators exist in Holoscan: Native Python operators and Python wrappings of C++ Operators. In our step 1 application, we will utilize the [interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators) to create postprocessing logic in a native Python operator, and connect that native Python operator the the upstream model inference operator and downstream visualization operator, both of which are Python wrappings of C++ operators. 
 
 Deep learning model training repos usually include a script or a python notebook for running inference on sample images with the saved model checkpoint. In the SSD repo, there is [examples/inference.ipynb](https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Detection/SSD/examples/inference.ipynb). From the notebook, we can see that to to inference on an image:
 
@@ -87,7 +87,7 @@ app = SSDDetectionApp(source=args.source)
 app.config(config_file)
 ```
 
-For detailed explanations see [Configuring an Application](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_create_app.html#configuring-an-application) in the Documentation.
+For detailed explanations see [Configuring an Application](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#configuring-an-application) in the Documentation.
 
 Let's take a look at the replayer configurations:
 

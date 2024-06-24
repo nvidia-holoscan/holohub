@@ -53,6 +53,30 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     adv_net_shutdown();
   }
 
+  void populate_dummy_headers(UDPIPV4Pkt& pkt) {
+    // adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
+    memcpy(pkt.eth.h_dest, eth_dst_, sizeof(pkt.eth.h_dest));
+    pkt.eth.h_proto = htons(0x0800);
+
+    uint16_t ip_len = payload_size_.get() + header_size_.get() - sizeof(pkt.eth);
+
+    pkt.ip.version = 4;
+    pkt.ip.daddr = ip_dst_;
+    pkt.ip.saddr = ip_src_;
+    pkt.ip.ihl = 20 / 4;
+    pkt.ip.id = 0;
+    pkt.ip.ttl = 2;
+    pkt.ip.protocol = IPPROTO_UDP;
+    pkt.ip.check = 0;
+    pkt.ip.frag_off = 0;
+    pkt.ip.tot_len = htons(ip_len);
+
+    pkt.udp.check = 0;
+    pkt.udp.dest = htons(udp_dst_port_.get());
+    pkt.udp.source = htons(udp_src_port_.get());
+    pkt.udp.len = htons(ip_len - sizeof(pkt.ip));
+  }
+
   void initialize() override {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDocaTxOp::initialize()");
     holoscan::Operator::initialize();
@@ -81,33 +105,12 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
-    if (gpu_direct_.get()) {
-      cudaMallocAsync(&pkt_header_, header_size_.get(), streams_[0]);
-
-      if ((ip_dst_ & 0xff) == 2) {
-        uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x22, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
-                             0xA1, 0x08, 0x00, 0x45, 0x00, 0x1F, 0x72, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x11, 0x00, 0x00, 0xC0, 0xA8, 0x00, 0x01, 0xC0, 0xA8, 0x00,
-                             0x02, 0x10, 0x00, 0x10, 0x00, 0x1F, 0x5E, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-        // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
-      } else {
-        uint8_t payload[] = {0x00, 0x00, 0x00, 0x00, 0x11, 0x33, 0x48, 0xB0, 0x2D, 0xD9, 0x30,
-                             0xA1, 0x08, 0x00, 0x45, 0x00, 0x1F, 0x72, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x11, 0x00, 0x00, 0xC0, 0xA8, 0x02, 0x1B, 0xC0, 0xA8, 0x02,
-                             0x1C, 0x10, 0x00, 0x10, 0x00, 0x1F, 0x8E, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-        // At this point we have a dummy header created, so we copy it to the GPU
-        cudaMemcpyAsync(pkt_header_, payload, sizeof(payload), cudaMemcpyDefault, streams_[0]);
-      }
-
-      cudaStreamSynchronize(streams_[0]);
-    }
+    cudaMallocAsync(&pkt_header_, header_size_.get(), streams_[0]);
+    populate_dummy_headers(pkt);
+    // Copy the pre-made header to GPU
+    cudaMemcpyAsync(
+        pkt_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault, streams_[0]);
+    cudaStreamSynchronize(streams_[0]);
 
     first_time = true;
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchTxOp::initialize() complete");
@@ -123,7 +126,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                          "Payload size",
                          "Payload size to send including HDS portion",
                          1400);
-    spec.param<bool>(gpu_direct_, "gpu_direct", "GPUDirect enabled", "GPUDirect enabled", false);
     spec.param<uint16_t>(udp_src_port_, "udp_src_port", "UDP source port", "UDP source port");
     spec.param<uint16_t>(
         udp_dst_port_, "udp_dst_port", "UDP destination port", "UDP destination port");
@@ -140,8 +142,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                          "Header size",
                          "Header size on each packet from L4 and below",
                          42);
-    spec.param<bool>(
-        gpu_comms_, "gpu_comms", "GPU Communications enabled", "Enable GPU communications", false);
   }
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
@@ -198,7 +198,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
                      header_size_.get(),
                      streams_[cur_idx]);
     cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-    msg->event = events_[cur_idx];
     out_q.push(TxMsg{msg, events_[cur_idx]});
 
     // HOLOSCAN_LOG_INFO("cur_idx {}", cur_idx);
@@ -231,11 +230,10 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   uint32_t ip_src_;
   uint32_t ip_dst_;
   cudaStream_t stream;
+  UDPIPV4Pkt pkt;
   void* pkt_header_;
   int cur_idx = 0;
   uint16_t port_id_ = 0;
-  Parameter<bool> gpu_direct_;  // GPUDirect enabled
-  Parameter<bool> gpu_comms_;   // GDAKIN GPU communications enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
   Parameter<uint16_t> payload_size_;

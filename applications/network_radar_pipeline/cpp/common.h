@@ -20,6 +20,8 @@
 #include "holoscan/holoscan.hpp"
 #include "matx.h"
 
+#define PADDED_HDR_SIZE 64
+
 using namespace matx;
 using float_t = float;
 using complex_t = cuda::std::complex<float_t>;

@@ -6,7 +6,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 The provided applications are configured to either use capture cards for input stream, or a pre-recorded endoscopy video (replayer).
 
-Follow the [setup instructions from the user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 Refer to the Deltacast documentation to use the Deltacast VideoMaster capture card.
 

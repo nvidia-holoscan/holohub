@@ -23,47 +23,41 @@
  * metadata accordingly. This functionalitycan be useful when testing, where we
  * have a packet generator that isn't generating packets that use our data format.
  */
-__device__ __forceinline__
-void gen_meta_from_pkt_cnt(RfMetaData *meta,
-                           const uint64_t pkt_cnt,
-                           const uint16_t num_channels,
-                           const uint16_t num_pulses,
-                           const uint16_t num_samples,
-                           const uint16_t pkts_per_pulse,
-                           const uint16_t max_waveform_id) {
-  const uint64_t pkts_per_channel  = pkts_per_pulse * num_pulses;
+__device__ __forceinline__ void gen_meta_from_pkt_cnt(RfMetaData* meta, const uint64_t pkt_cnt,
+                                                      const uint16_t num_channels,
+                                                      const uint16_t num_pulses,
+                                                      const uint16_t num_samples,
+                                                      const uint16_t pkts_per_pulse,
+                                                      const uint16_t max_waveform_id) {
+  const uint64_t pkts_per_channel = pkts_per_pulse * num_pulses;
   const uint64_t pkts_per_transmit = pkts_per_channel * num_channels;
   meta->waveform_id = static_cast<uint16_t>((pkt_cnt / pkts_per_transmit) % max_waveform_id);
   meta->channel_idx = static_cast<uint16_t>((pkt_cnt % pkts_per_transmit) / pkts_per_channel);
-  meta->pulse_idx   = static_cast<uint16_t>((pkt_cnt % pkts_per_channel) / pkts_per_pulse);
-  meta->sample_idx  = static_cast<uint16_t>(SPOOF_SAMPLES_PER_PKT * (pkt_cnt % pkts_per_pulse));
+  meta->pulse_idx = static_cast<uint16_t>((pkt_cnt % pkts_per_channel) / pkts_per_pulse);
+  meta->sample_idx = static_cast<uint16_t>(SPOOF_SAMPLES_PER_PKT * (pkt_cnt % pkts_per_pulse));
   meta->pkt_samples = min(num_samples - meta->sample_idx, SPOOF_SAMPLES_PER_PKT);
-  meta->end_array   = (pkt_cnt + 1) % pkts_per_transmit == 0;
+  meta->end_array = (pkt_cnt + 1) % pkts_per_transmit == 0;
 }
 #endif
 
-__global__
-void place_packet_data_kernel(complex_t *out,
-                              const void *const *const __restrict__ in,
-                              int *sample_cnt,
-                              bool *received_end,
-                              const size_t buffer_pos,
-                              const uint16_t pkt_len,
-                              const uint16_t buffer_size,
-                              const uint16_t num_channels,
-                              const uint16_t num_pulses,
-                              const uint16_t num_samples,
-                              const uint64_t total_pkts,
-                              const uint16_t pkts_per_pulse,
-                              const uint16_t max_waveform_id) {
+__global__ void place_packet_data_kernel(complex_t* out, const void* const* const __restrict__ in,
+                                         int* sample_cnt, bool* received_end,
+                                         const size_t buffer_pos, const uint16_t pkt_len,
+                                         const uint16_t buffer_size, const uint16_t num_channels,
+                                         const uint16_t num_pulses, const uint16_t num_samples,
+                                         const uint64_t total_pkts, const uint16_t pkts_per_pulse,
+                                         const uint16_t max_waveform_id) {
   const uint32_t channel_stride = static_cast<uint32_t>(num_samples) * num_pulses;
-  const uint32_t buffer_stride  = num_channels * channel_stride;
+  const uint32_t buffer_stride = num_channels * channel_stride;
   const uint32_t pkt_idx = blockIdx.x;
 
+  // Warmup
+  if (out == nullptr)
+    return;
 #if SPOOF_PACKET_DATA
   // Generate fake packet meta-data from the packet count
   RfMetaData meta_obj;
-  RfMetaData *meta = &meta_obj;
+  RfMetaData* meta = &meta_obj;
   gen_meta_from_pkt_cnt(meta,
                         total_pkts + pkt_idx,
                         num_channels,
@@ -71,28 +65,21 @@ void place_packet_data_kernel(complex_t *out,
                         num_samples,
                         pkts_per_pulse,
                         max_waveform_id);
-  const complex_t *samples = reinterpret_cast<const complex_t *>(in[pkt_idx]);
+  const complex_t* samples = reinterpret_cast<const complex_t*>(in[pkt_idx]);
 #else
-  const RfMetaData *meta   = reinterpret_cast<const RfMetaData *>(in[pkt_idx]);
-  const complex_t *samples = reinterpret_cast<const complex_t *>(in[pkt_idx]) + 2;
+  const RfMetaData* meta = reinterpret_cast<const RfMetaData*>(in[pkt_idx]);
+  const complex_t* samples = reinterpret_cast<const complex_t*>(in[pkt_idx]) + 2;
 #endif
 
   // Make sure this isn't wrapping the buffer - drop if it is
-  if (meta->waveform_id >= buffer_pos + buffer_size ||
-      meta->waveform_id < buffer_pos) {
-    return;
-  }
+  if (meta->waveform_id >= buffer_pos + buffer_size || meta->waveform_id < buffer_pos) { return; }
 
   const uint16_t buffer_idx = meta->waveform_id % buffer_size;
-  if (meta->end_array && threadIdx.x == 0) {
-    received_end[buffer_idx] = true;
-  }
+  if (meta->end_array && threadIdx.x == 0) { received_end[buffer_idx] = true; }
 
   // Compute pointer in buffer memory
-  const uint32_t idx_offset = meta->sample_idx
-                            + meta->pulse_idx   * num_samples
-                            + meta->channel_idx * channel_stride
-                            + buffer_idx        * buffer_stride;
+  const uint32_t idx_offset = meta->sample_idx + meta->pulse_idx * num_samples +
+                              meta->channel_idx * channel_stride + buffer_idx * buffer_stride;
 
   // Copy data
   for (uint16_t i = threadIdx.x; i < meta->pkt_samples; i += blockDim.x) {
@@ -105,36 +92,27 @@ void place_packet_data_kernel(complex_t *out,
   }
 }
 
-void place_packet_data(complex_t *out,
-                       const void *const *const in,
-                       int *sample_cnt,
-                       bool *received_end,
-                       const size_t buffer_pos,
-                       const uint16_t pkt_len,
-                       const uint32_t num_pkts,
-                       const uint16_t buffer_size,
-                       const uint16_t num_channels,
-                       const uint16_t num_pulses,
-                       const uint16_t num_samples,
-                       const uint64_t total_pkts,
-                       const uint16_t pkts_per_pulse,
-                       const uint16_t max_waveform_id,
+void place_packet_data(complex_t* out, const void* const* const in, int* sample_cnt,
+                       bool* received_end, const size_t buffer_pos, const uint16_t pkt_len,
+                       const uint32_t num_pkts, const uint16_t buffer_size,
+                       const uint16_t num_channels, const uint16_t num_pulses,
+                       const uint16_t num_samples, const uint64_t total_pkts,
+                       const uint16_t pkts_per_pulse, const uint16_t max_waveform_id,
                        cudaStream_t stream) {
   // Each thread processes an individual packet
-  place_packet_data_kernel<<<num_pkts, 128, buffer_size*sizeof(int), stream>>>(
-    out,
-    in,
-    sample_cnt,
-    received_end,
-    buffer_pos,
-    pkt_len,
-    buffer_size,
-    num_channels,
-    num_pulses,
-    num_samples,
-    total_pkts,
-    pkts_per_pulse,
-    max_waveform_id);
+  place_packet_data_kernel<<<num_pkts, 128, buffer_size * sizeof(int), stream>>>(out,
+                                                                                 in,
+                                                                                 sample_cnt,
+                                                                                 received_end,
+                                                                                 buffer_pos,
+                                                                                 pkt_len,
+                                                                                 buffer_size,
+                                                                                 num_channels,
+                                                                                 num_pulses,
+                                                                                 num_samples,
+                                                                                 total_pkts,
+                                                                                 pkts_per_pulse,
+                                                                                 max_waveform_id);
 }
 
 namespace holoscan::ops {
@@ -145,62 +123,54 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
 
   // Radar settings
   spec.param<uint16_t>(buffer_size_,
-    "buffer_size",
-    "Size of RF buffer",
-    "Max number of transmits that can be held at once", {});
-  spec.param<uint16_t>(num_channels_,
-    "num_channels",
-    "Number of channels",
-    "Number of channels", {});
-  spec.param<uint16_t>(num_pulses_,
-    "num_pulses",
-    "Number of pulses",
-    "Number of pulses per channel", {});
-  spec.param<uint16_t>(num_samples_,
-    "num_samples",
-    "Number of samples",
-    "Number of samples per pulse", {});
+                       "buffer_size",
+                       "Size of RF buffer",
+                       "Max number of transmits that can be held at once",
+                       {});
+  spec.param<uint16_t>(
+      num_channels_, "num_channels", "Number of channels", "Number of channels", {});
+  spec.param<uint16_t>(
+      num_pulses_, "num_pulses", "Number of pulses", "Number of pulses per channel", {});
+  spec.param<uint16_t>(
+      num_samples_, "num_samples", "Number of samples", "Number of samples per pulse", {});
 
   // Networking settings
-  spec.param<bool>(hds_,
-    "split_boundary",
-    "Header-data split boundary",
-    "Byte boundary where header and data is split", true);
+  spec.param<bool>(split_boundary_,
+                   "split_boundary",
+                   "Header-data split boundary",
+                   "Byte boundary where header and data is split",
+                   true);
   spec.param<bool>(gpu_direct_,
-    "gpu_direct",
-    "GPUDirect enabled",
-    "GPUDirect is enabled for incoming packets", true);
+                   "gpu_direct",
+                   "GPUDirect enabled",
+                   "GPUDirect is enabled for incoming packets",
+                   true);
   spec.param<uint32_t>(batch_size_,
-    "batch_size",
-    "Batch size",
-    "Batch size in packets for each processing epoch", 1000);
+                       "batch_size",
+                       "Batch size",
+                       "Batch size in packets for each processing epoch",
+                       1000);
   spec.param<uint16_t>(max_packet_size_,
-    "max_packet_size",
-    "Max packet size",
-    "Maximum packet size expected from sender", 9100);
-  spec.param<uint16_t>(header_size_,
-    "header_size",
-    "Header size",
-    "Header size on each packet from L4 and below", 42);
+                       "max_packet_size",
+                       "Max packet size",
+                       "Maximum packet size expected from sender",
+                       9100);
 }
 
 void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize()");
   holoscan::Operator::initialize();
 
-  cudaStreamCreate(&proc_stream);
+  cudaStreamCreateWithFlags(&proc_stream, cudaStreamNonBlocking);
 
   // Assume all packets are the same size, specified in the config
-  nom_payload_size_ = max_packet_size_.get() - header_size_.get();
+  nom_payload_size_ = max_packet_size_.get() - PADDED_HDR_SIZE;
 
   // Total number of I/Q samples per array
   samples_per_arr = num_channels_.get() * num_pulses_.get() * num_samples_.get();
 
   // Configuration checks
-  if (!(hds_.get() && gpu_direct_.get())) {
-    HOLOSCAN_LOG_ERROR("Only configured to run with Header-Data Split and GPUDirect");
-    exit(1);
-  } else if (hds_.get() && !gpu_direct_.get()) {
+  if (split_boundary_.get() && !gpu_direct_.get()) {
     HOLOSCAN_LOG_ERROR("If Header-Data Split mode is enabled, GPUDirect needs to be too");
     exit(1);
   }
@@ -208,33 +178,51 @@ void AdvConnectorOpRx::initialize() {
   // Allocate memory and create CUDA streams for each concurrent batch
   for (int n = 0; n < num_concurrent; n++) {
     if (gpu_direct_.get()) {
-      cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
+      cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get() * 2);
     }
 
     buffer_track = AdvBufferTracking(buffer_size_.get());
     make_tensor(rf_data,
-      {buffer_size_.get(), num_channels_.get(), num_pulses_.get(), num_samples_.get()});
+                {buffer_size_.get(), num_channels_.get(), num_pulses_.get(), num_samples_.get()});
 
-    cudaStreamCreate(&streams_[n]);
+    cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
     cudaEventCreate(&events_[n]);
+    // Warmup
+    place_packet_data(nullptr,
+                        nullptr,
+                        0,
+                        0,
+                        0,
+                        0,
+                        16,
+                        16,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        streams_[n]);
+    cudaStreamSynchronize(streams_[n]);
   }
 
 #if SPOOF_PACKET_DATA
   // Compute packets delivered per pulse and max waveform ID based on parameters
   const size_t spoof_pkt_size = sizeof(complex_t) * SPOOF_SAMPLES_PER_PKT + RFPacket::header_size();
-  pkts_per_pulse  = static_cast<uint16_t>(packets_per_pulse(spoof_pkt_size, num_samples_.get()));
-  max_waveform_id = static_cast<uint16_t>(
-    buffer_size_.get() * (65535 / buffer_size_.get()));  // Max of uint16_t
+  pkts_per_pulse = static_cast<uint16_t>(packets_per_pulse(spoof_pkt_size, num_samples_.get()));
+  max_waveform_id =
+      static_cast<uint16_t>(buffer_size_.get() * (65535 / buffer_size_.get()));  // Max of uint16_t
   HOLOSCAN_LOG_WARN("Spoofing packet metadata, ignoring packet header. Pkts / pulse: {}",
-    pkts_per_pulse);
+                    pkts_per_pulse);
   if (spoof_pkt_size >= max_packet_size_.get()) {
     HOLOSCAN_LOG_ERROR("Max packets size ({}) can't fit the expected samples ({})",
-      max_packet_size_.get(), SPOOF_SAMPLES_PER_PKT);
+                       max_packet_size_.get(),
+                       SPOOF_SAMPLES_PER_PKT);
     exit(1);
   }
 #else
   // These are only used when spoofing packet metadata
-  pkts_per_pulse  = 0;
+  pkts_per_pulse = 0;
   max_waveform_id = 0;
 #endif
 
@@ -250,7 +238,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_burst_pkts_and_burst(first.msg[m]);
+        adv_net_free_all_pkts_and_burst(first.msg[m]);
       }
       out_q.pop();
     } else {
@@ -262,9 +250,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
 
 void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
   std::vector<AdvConnectorOpRx::RxMsg> completed_msgs = free_bufs();
-  if (completed_msgs.empty()) {
-    return;
-  }
+  if (completed_msgs.empty()) { return; }
   cudaStream_t stream = completed_msgs[0].stream;
 
   buffer_track.transfer(cudaMemcpyDeviceToHost, stream);
@@ -272,22 +258,20 @@ void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
 
   for (size_t i = 0; i < buffer_track.buffer_size; i++) {
     const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
-    if (!buffer_track.received_end_h[pos_wrap]) {
-      continue;
-    }
+    if (!buffer_track.received_end_h[pos_wrap]) { continue; }
 
     // Received End-of-Array (EOA) message, emit to downstream operators
-    auto params = std::make_shared<RFArray>(
-      rf_data.Slice<3>(
-        {static_cast<index_t>(pos_wrap), 0, 0, 0},
-        {matxDropDim, matxEnd, matxEnd, matxEnd}),
-      0, proc_stream);
+    auto params =
+        std::make_shared<RFArray>(rf_data.Slice<3>({static_cast<index_t>(pos_wrap), 0, 0, 0},
+                                                   {matxDropDim, matxEnd, matxEnd, matxEnd}),
+                                  0,
+                                  proc_stream);
 
     op_output.emit(params, "rf_out");
     HOLOSCAN_LOG_INFO("Emitting {} with {}/{} samples",
-      buffer_track.pos + i,
-      buffer_track.sample_cnt_h[pos_wrap],
-      samples_per_arr);
+                      buffer_track.pos + i,
+                      buffer_track.sample_cnt_h[pos_wrap],
+                      samples_per_arr);
 
     // Increment the tracker 'i' number of times. This allows us to not get hung on arrays
     // where the EOA was either dropped or missed. Ex: if the EOA for array 11 was dropped,
@@ -303,8 +287,7 @@ void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
   }
 }
 
-void AdvConnectorOpRx::compute(InputContext& op_input,
-                               OutputContext& op_output,
+void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
                                ExecutionContext& context) {
   // todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
@@ -318,7 +301,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
   if (adv_net_get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
-    adv_net_free_cpu_pkts_and_burst(burst);
+    adv_net_free_all_pkts_and_burst(burst);
     HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
     return;
   }
@@ -326,17 +309,27 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
   // Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
   // Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
   // entire burst buffer pointer is saved and freed once an entire batch is received.
-  if (gpu_direct_.get() && hds_.get()) {
-    for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-      h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_gpu_pkt_ptr(burst, p);
-      ttl_bytes_in_cur_batch_ += adv_net_get_gpu_pkt_len(burst, p)
-                               + adv_net_get_cpu_pkt_len(burst, p);
+  if (gpu_direct_.get()) {
+    if (split_boundary_.get()) {
+      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+        ttl_bytes_in_cur_batch_ +=
+            adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+      }
+    } else {
+      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
+            reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, p)) + PADDED_HDR_SIZE;
+        ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
+      }
     }
-    ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
   }
+  ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
   aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
-  cur_msg_.msg[cur_msg_.num_batches++] = burst;
+
+  HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
+      aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
 
   // Once we've aggregated enough packets, do some work
   if (aggr_pkts_recv_ >= batch_size_.get()) {
@@ -349,6 +342,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
         }
       } while (out_q.size() == num_concurrent);
 
+      HOLOSCAN_LOG_DEBUG("place_packet_data cur_idx {}", cur_idx);
       // Copy packet I/Q contents to appropriate location in 'rf_data'
       place_packet_data(rf_data.Data(),
                         h_dev_ptrs_[cur_idx],
@@ -368,19 +362,20 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
 
       cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
       cur_msg_.stream = streams_[cur_idx];
-      cur_msg_.evt    = events_[cur_idx];
+      cur_msg_.evt = events_[cur_idx];
       out_q.push(cur_msg_);
       cur_msg_.num_batches = 0;
 
       ttl_pkts_recv_ += aggr_pkts_recv_;
 
-      if (cudaGetLastError() != cudaSuccess)  {
+      if (cudaGetLastError() != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                batch_size_.get(), batch_size_.get()*nom_payload_size_);
+                           batch_size_.get(),
+                           batch_size_.get() * nom_payload_size_);
         exit(1);
       }
     } else {
-      adv_net_free_all_burst_pkts_and_burst(burst);
+      adv_net_free_all_pkts_and_burst(burst);
     }
     aggr_pkts_recv_ = 0;
     cur_idx = (++cur_idx % num_concurrent);
@@ -389,13 +384,13 @@ void AdvConnectorOpRx::compute(InputContext& op_input,
 
 void AdvConnectorOpRx::stop() {
   HOLOSCAN_LOG_INFO(
-    "\n"
-    "AdvConnectorOpRx exit report:\n"
-    "--------------------------------\n"
-    " - Received bytes:     {}\n"
-    " - Received packets:   {}\n",
-    ttl_bytes_recv_,
-    ttl_pkts_recv_);
+      "\n"
+      "AdvConnectorOpRx exit report:\n"
+      "--------------------------------\n"
+      " - Processed bytes:     {}\n"
+      " - Processed packets:   {}\n",
+      ttl_bytes_recv_,
+      ttl_pkts_recv_);
 }
 
 }  // namespace holoscan::ops
