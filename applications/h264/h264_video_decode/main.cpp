@@ -72,8 +72,20 @@ class App : public holoscan::Application {
       datapath = path;
   }
 
+  /// @brief As of Holoscan SDK 2.1.0, the extension manager must be used to register any external
+  /// GXF extensions in replace of the use of YAML configuration file.
+  void configure_extension() {
+    auto extension_manager = executor().extension_manager();
+    extension_manager->load_extension("libgxf_videodecoder.so");
+    extension_manager->load_extension("libgxf_videodecoderio.so");
+    extension_manager->load_extension("libgxf_videoencoder.so");
+    extension_manager->load_extension("libgxf_videoencoderio.so");
+  }
+
   void compose() override {
     using namespace holoscan;
+
+    configure_extension();
 
     uint32_t width = 854;
     uint32_t height = 480;
