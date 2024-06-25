@@ -37,6 +37,17 @@ The data is automatically downloaded when building the application.
 ./dev_container build_and_run h264_endoscopy_tool_tracking --docker_file applications/h264/Dockerfile --language python
 ```
 
+Important: on aarch64, applications also need tegra folder mounted inside the container and
+the `LD_LIBRARY_PATH` environment variable should be updated to include
+tegra folder path.
+
+Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
+
+```bash
+# Uncomment the following line for aarch64 support
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
+```
+
 
 ## Enable recording of the output
 
