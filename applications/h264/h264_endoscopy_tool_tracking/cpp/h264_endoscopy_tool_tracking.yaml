@@ -15,8 +15,6 @@
 # limitations under the License.
 ---
 extensions:
-  - libgxf_cuda.so
-  - libgxf_multimedia.so
   - libgxf_videodecoder.so
   - libgxf_videodecoderio.so
   - libgxf_videoencoder.so
