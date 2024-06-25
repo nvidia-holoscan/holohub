@@ -90,7 +90,7 @@ class EndoscopyApp(Application):
         # set name
         self.name = "Endoscopy App"
 
-        if data == "none":
+        if (data is None) or (data == "none"):
             data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
         self.sample_data_path = data
@@ -198,7 +198,7 @@ class EndoscopyApp(Application):
             **self.kwargs("tool_tracking_postprocessor"),
         )
 
-        record_output = self.from_config("record_output").__bool__
+        record_output = bool(self.from_config("record_output"))
 
         visualizer_allocator = BlockMemoryPool(
             self,
