@@ -23,6 +23,7 @@ except ImportError as e:
         "This example requires Holoscan SDK >= 2.1.0 so AsynchronousCondition is available."
     ) from e
 from holoscan.core import Application
+from holoscan.gxf import load_extensions
 from holoscan.operators import FormatConverterOp, GXFCodeletOp, HolovizOp
 from holoscan.resources import (
     BlockMemoryPool,
@@ -347,5 +348,15 @@ if __name__ == "__main__":
         config_file = args.config
 
     app = EndoscopyApp(data=args.data)
+
+    context = app.executor.context_uint64
+    exts = [
+        "libgxf_videodecoder.so",
+        "libgxf_videodecoderio.so",
+        "libgxf_videoencoder.so",
+        "libgxf_videoencoderio.so",
+    ]
+    load_extensions(context, exts)
+
     app.config(config_file)
     app.run()

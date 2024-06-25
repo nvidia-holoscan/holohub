@@ -23,7 +23,7 @@ add_library(video_encoder_request SHARED
   video_encoder_request/video_encoder_request.hpp
 )
 set_target_properties(video_encoder_request PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(video_encoder_request PUBLIC holoscan::core )
+target_link_libraries(video_encoder_request PUBLIC holoscan::core)
 
 add_library(video_encoder INTERFACE)
 target_link_libraries(video_encoder INTERFACE video_encoder_request
