@@ -45,7 +45,7 @@ struct YAML::convert<nvidia::gxf::EncoderInputFormat> {
     if (!node.IsScalar()) return false;
 
     auto value = node.Scalar();
-    auto format = nvidia::gxf::ToEncoderInputFormat(value);
+    auto format = nvidia::gxf::get_encoder_input_format(value);
     return format != nvidia::gxf::EncoderInputFormat::kUnsupported;
   }
 };
@@ -72,7 +72,7 @@ struct YAML::convert<nvidia::gxf::EncoderConfig> {
     if (!node.IsScalar()) return false;
 
     auto value = node.Scalar();
-    auto config = nvidia::gxf::ToEncoderConfig(value);
+    auto config = nvidia::gxf::get_encoder_config(value);
     return config != nvidia::gxf::EncoderConfig::kUnsupported;
   }
 };

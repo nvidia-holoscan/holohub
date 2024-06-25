@@ -36,37 +36,34 @@ enum struct EncoderConfig {
   kUnsupported = 3  // Unsupported parameter
 };
 
-static std::unordered_map<std::string, nvidia::gxf::EncoderInputFormat> const
-    EncoderInputFormatMapping = {
+constexpr std::array<std::pair<std::string_view, nvidia::gxf::EncoderInputFormat>, 4>
+    EncoderInputFormatMapping = {{
         {"nv12", nvidia::gxf::EncoderInputFormat::kNV12},
         {"nv24", nvidia::gxf::EncoderInputFormat::kNV24},
         {"yuv420planar", nvidia::gxf::EncoderInputFormat::kYUV420PLANAR},
         {"unsupported", nvidia::gxf::EncoderInputFormat::kUnsupported},
-};
+    }};
 
-static std::unordered_map<std::string, nvidia::gxf::EncoderConfig> const EncoderConfigMapping = {
-    {"iframe_cqp", nvidia::gxf::EncoderConfig::kIFrameCQP},
-    {"pframe_cqp", nvidia::gxf::EncoderConfig::kPFrameCQP},
-    {"custom", nvidia::gxf::EncoderConfig::kCustom},
-    {"unsupported", nvidia::gxf::EncoderConfig::kUnsupported},
-};
+constexpr std::array<std::pair<std::string_view, nvidia::gxf::EncoderConfig>, 4>
+    EncoderConfigMapping = {{
+        {"iframe_cqp", nvidia::gxf::EncoderConfig::kIFrameCQP},
+        {"pframe_cqp", nvidia::gxf::EncoderConfig::kPFrameCQP},
+        {"custom", nvidia::gxf::EncoderConfig::kCustom},
+        {"unsupported", nvidia::gxf::EncoderConfig::kUnsupported},
+    }};
 
-static const nvidia::gxf::EncoderInputFormat ToEncoderInputFormat(const std::string& value) {
-  auto it = EncoderInputFormatMapping.find(value);
-  if (it != EncoderInputFormatMapping.end()) {
-    return it->second;
-  } else {
-    return nvidia::gxf::EncoderInputFormat::kUnsupported;
+constexpr EncoderInputFormat get_encoder_input_format(std::string_view format) {
+  for (const auto& [key, value] : EncoderInputFormatMapping) {
+    if (key == format) { return value; }
   }
+  return nvidia::gxf::EncoderInputFormat::kUnsupported;
 }
 
-static const nvidia::gxf::EncoderConfig ToEncoderConfig(const std::string& value) {
-  auto it = EncoderConfigMapping.find(value);
-  if (it != EncoderConfigMapping.end()) {
-    return it->second;
-  } else {
-    return nvidia::gxf::EncoderConfig::kUnsupported;
+constexpr EncoderConfig get_encoder_config(std::string_view config) {
+  for (const auto& [key, value] : EncoderConfigMapping) {
+    if (key == config) { return value; }
   }
+  return nvidia::gxf::EncoderConfig::kUnsupported;
 }
 
 }  // namespace nvidia::gxf
