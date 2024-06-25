@@ -133,10 +133,11 @@ _Make sure you have installed the [prerequisites](#prerequisites) before attempt
 
 Sample applications based on the Holoscan platform may be found under the [applications](./applications/) directory. Sample applications are a subset of the HoloHub applications and are maintained by Holoscan SDK developers to provide a demonstration of the SDK capabilities.
 
-HoloHub provides a convenient `run` script to build and run applications in your development environment. To build all sample applications in your development environment:
+HoloHub provides a convenient `run` script to build and run applications in your development environment.
+To build an application in your development environment:
 
 ```bash
-  ./run build
+  ./run build <application>
 ```
 
 When the build is successful you can [run HoloHub applications](#running-applications).
