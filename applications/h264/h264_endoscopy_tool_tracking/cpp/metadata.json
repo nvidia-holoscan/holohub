@@ -12,7 +12,7 @@
     "changelog": {
       "1.0": "Initial Release",
       "2.0": "Upgrade to GXF 4.0",
-      "2.1": "Import GXF Codelets/Components as Holoscan Operators/Resources"
+      "2.1": "Import h.264 GXF Codelets/Components as Holoscan Operators/Resources"
     },
     "holoscan_sdk": {
       "minimum_required_version": "2.1.0",

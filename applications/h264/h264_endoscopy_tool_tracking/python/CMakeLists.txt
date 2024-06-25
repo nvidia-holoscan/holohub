@@ -37,8 +37,7 @@ if(BUILD_TESTING)
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
                    --data ${HOLOHUB_DATA_DIR}/endoscopy
-                   --record_type visualizer
-           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   set_property(TEST endoscopy_tool_tracking_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
