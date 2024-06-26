@@ -62,4 +62,7 @@ COPY applications/h264/install_dependencies.sh /
 
 WORKDIR /
 
+# Uncomment the following line for aarch64 support
+#ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
+
 RUN /install_dependencies.sh

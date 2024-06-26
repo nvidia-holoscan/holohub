@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "H.264 Video Decode Reference Application",
+    "name": "H264 Endoscopy Tool Tracking",
     "authors": [
       {
         "name": "Holoscan Team",
@@ -8,7 +8,7 @@
       }
     ],
     "language": "C++",
-    "version": "2.0",
+    "version": "2.1",
     "changelog": {
       "1.0": "Initial Release",
       "2.0": "Upgrade to GXF 4.0",
@@ -19,7 +19,7 @@
       "tested_versions": ["2.1.0"]
     },
     "platforms": ["amd64", "arm64"],
-    "tags": ["H.264", "Video Decoding"],
+    "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
     "ranking": 1,
     "dependencies": {
       "operators": [
@@ -30,11 +30,19 @@
         {
           "name": "videodecoderio",
           "version": "1.2.0"
+        },
+        {
+          "name": "videoencoder",
+          "version": "1.2.0"
+        },
+        {
+          "name": "videoencoderio",
+          "version": "1.2.0"
         }
       ]
     },
     "run": {
-      "command": "./h264_video_decode h264_video_decode.yaml --data <holohub_data_dir>/endoscopy",
+      "command": "<holohub_app_bin>/h264_endoscopy_tool_tracking h264_endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy",
       "workdir": "holohub_app_bin"
     }
   }
