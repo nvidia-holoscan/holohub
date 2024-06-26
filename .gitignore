@@ -12,3 +12,7 @@ CTestConfig.cmake
 aggregate_metadata.json
 /dist/
 /install/
+
+# Dev Environment
+.venv/
+.vscode/

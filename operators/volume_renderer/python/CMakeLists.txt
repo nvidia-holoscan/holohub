@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(nvidia_nim LANGUAGES NONE)
-
-add_holohub_application(nvidia_nim_chat)
-add_holohub_application(nvidia_nim_imaging DEPENDS
-                        OPERATORS volume_renderer
-                                  volume_loader)
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET volume_renderer
+    CLASS_NAME "VolumeRendererOp"
+    SOURCES volume_renderer.cpp
+)

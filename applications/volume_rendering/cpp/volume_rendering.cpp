@@ -190,9 +190,9 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  const std::string render_config_file_default("../data/volume_rendering/config.json");
-  const std::string density_volume_file_default("../data/volume_rendering/highResCT.mhd");
-  const std::string mask_volume_file_default("../data/volume_rendering/smoothmasks.seg.mhd");
+  const std::string render_config_file_default("../../../data/volume_rendering/config.json");
+  const std::string density_volume_file_default("../../../data/volume_rendering/highResCT.mhd");
+  const std::string mask_volume_file_default("../../../data/volume_rendering/smoothmasks.seg.mhd");
 
   std::string render_config_file;
   std::string density_volume_file;
