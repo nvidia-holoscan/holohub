@@ -23,7 +23,6 @@ import pathlib
 from typing import Dict
 
 import requests
-from halo import Halo
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import FormatConverterOp, HolovizOp
@@ -80,12 +79,10 @@ class NIMOperator(Operator):
         fragment,
         *args,
         name,
-        spinner,
         base_url=None,
         api_key=None,
         **kwargs,
     ):
-        self.spinner = spinner
         self.base_url = base_url
         self.api_key = api_key
         self.model_params = dict(kwargs)
@@ -116,13 +113,10 @@ class NimImaging(Application):
         super().__init__()
 
     def compose(self):
-        spinner = Halo(text="thinking...", spinner="dots")
-
         nim_op = NIMOperator(
             self,
-            # CountCondition(self, count=1),
+            CountCondition(self, count=1),
             name="nim",
-            spinner=spinner,
             **self.kwargs("nim"),
         )
 
@@ -132,19 +126,19 @@ class NimImaging(Application):
 
         density_volume_loader = VolumeLoaderOp(
             self,
-            # CountCondition(self, count=1),
+            CountCondition(self, count=1),
             name="density_volume_loader",
-            file_name="/home/vicchang/sc/github/holohub/data/volume_rendering/highResCT.mhd",
+            file_name=self._nifti_file_path,
             allocator=volume_allocator,
         )
 
-        mask_volume_loader = VolumeLoaderOp(
-            self,
-            # CountCondition(self, count=1),
-            file_name="/home/vicchang/sc/github/holohub/data/volume_rendering/smoothmasks.seg.mhd",
-            name="mask_volume_loader",
-            allocator=volume_allocator,
-        )
+        # mask_volume_loader = VolumeLoaderOp(
+        #     self,
+        #     CountCondition(self, count=1),
+        #     file_name="/home/vicchang/sc/github/holohub/data/volume_rendering/smoothmasks.seg.mhd",
+        #     name="mask_volume_loader",
+        #     allocator=volume_allocator,
+        # )
 
         volume_renderer = VolumeRendererOp(
             self,
@@ -178,16 +172,16 @@ class NimImaging(Application):
                 ("flip_axes", "density_flip_axes"),
             },
         )
-        self.add_flow(
-            mask_volume_loader,
-            volume_renderer,
-            {
-                ("volume", "mask_volume"),
-                ("spacing", "mask_spacing"),
-                ("permute_axis", "mask_permute_axis"),
-                ("flip_axes", "mask_flip_axes"),
-            },
-        )
+        # self.add_flow(
+        #     mask_volume_loader,
+        #     volume_renderer,
+        #     {
+        #         ("volume", "mask_volume"),
+        #         ("spacing", "mask_spacing"),
+        #         ("permute_axis", "mask_permute_axis"),
+        #         ("flip_axes", "mask_flip_axes"),
+        #     },
+        # )
 
         self.add_flow(
             volume_renderer,
@@ -207,8 +201,7 @@ class NimImaging(Application):
         self._rendering_config = file
         logger.info(f"Rendering Config: {self._rendering_config}")
 
-
-def _download_dataset(api_key):
+def _download_dataset(api_key, validate_file_checksum):
     logger.info("Downloading sample image data from NVIDIA NGC...")
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -216,9 +209,11 @@ def _download_dataset(api_key):
     response = requests.get(payload["image"], headers=headers)
     response.raise_for_status()
     nifti_filename = os.path.abspath("sample.nii.gz")
+    
     with open(nifti_filename, "wb") as f:
         f.write(response.content)
-    if (
+
+    if (validate_file_checksum and 
         hashlib.md5(open(nifti_filename, "rb").read()).hexdigest()
         != "56bed2308a195b4cdbb3a875bcf113a2"
     ):
@@ -267,13 +262,22 @@ if __name__ == "__main__":
         dest="render_config",
         help="Transfer function config file",
     )
+    parser.add_argument(
+        "-v",
+        "--validate-file-checksum",
+        action="store",
+        default=True,
+        type=bool,
+        dest="validate_file_checksum",
+        help="Validate the checksum of the downloaded file",
+    )
 
     args = parser.parse_args()
     app = NimImaging()
     app.config(str(args.config))
 
     api_key = get_api_key(app)
-    nifti_file = _download_dataset(api_key)
+    nifti_file = _download_dataset(api_key, args.validate_file_checksum)
     app.set_nifti_file_path(nifti_file)
     app.set_rendering_config(str(args.render_config))
 

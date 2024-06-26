@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include "../../operator_util.hpp"
+
 #include "../volume_loader.hpp"
 #include "./volume_loader_pydoc.hpp"
 
@@ -60,6 +62,7 @@ class PyVolumeLoaderOp : public VolumeLoaderOp {
                    const std::shared_ptr<Allocator>& allocator, const std::string& file_name,
                    const std::string& name = "volume_loader")
       : VolumeLoaderOp(ArgList{Arg{"allocator", allocator}, Arg{"file_name", file_name}}) {
+    add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);

@@ -1,3 +1,2 @@
-halo==0.0.31
 holoscan==2.1.0
 requests==2.31.0
