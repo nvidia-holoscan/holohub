@@ -35,6 +35,9 @@
 // HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE macros. This new feature allows using GXF codelets
 // and components in Holoscan applications without writing custom class wrappers (for C++) and
 // Python wrappers (for Python) for each GXF codelet and component.
+// For the VideoEncoderRequestOp class, since it needs to override the setup() to provide custom
+// parameters and override the initialize() to register custom converters, it requires a custom
+// class that extends the holoscan::ops::GXFCodeletOp class.
 
 // The VideoDecoderResponseOp implements nvidia::gxf::VideoDecoderResponse and handles the output
 // of the decoded H264 bit stream.
