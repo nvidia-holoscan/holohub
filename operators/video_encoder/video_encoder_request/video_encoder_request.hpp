@@ -21,52 +21,47 @@
 #include <memory>
 #include <string>
 
-#include "holoscan/core/gxf/gxf_operator.hpp"
-#include "video_encoder_utils.hpp"
-#include "../video_encoder_context/video_encoder_context.hpp"
+#include "holoscan/operators/gxf_codelet/gxf_codelet.hpp"
+#include "video_encoder_custom_params.hpp"
 
 namespace holoscan::ops {
 
-/**
- * @brief Operator class to handle the input for encoding YUV frames to H264
- * bit stream.
- *
- * This wraps a GXF Codelet(`nvidia::gxf::VideoEncoderRequest`).
- */
-class VideoEncoderRequestOp: public holoscan::ops::GXFOperator {
+class VideoEncoderRequestOp : public ::holoscan::ops::GXFCodeletOp {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoEncoderRequestOp,
-      holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_TEMPLATE()
+  explicit VideoEncoderRequestOp(ArgT&& arg, ArgsT&&... args)
+      : ::holoscan::ops::GXFCodeletOp("nvidia::gxf::VideoEncoderRequest", std::forward<ArgT>(arg),
+                                      std::forward<ArgsT>(args)...) {}
+  VideoEncoderRequestOp() : ::holoscan::ops::GXFCodeletOp("nvidia::gxf::VideoEncoderRequest") {}
 
-  VideoEncoderRequestOp() = default;
+  void setup(holoscan::OperatorSpec& spec) override {
+    using namespace holoscan;
+    // Ensure the parent class setup() is called before any additional setup code.
+    ops::GXFCodeletOp::setup(spec);
 
-  const char* gxf_typename() const override {
-    return "nvidia::gxf::VideoEncoderRequest";
+    spec.param(input_format_,
+               "input_format",
+               "Input color format, nv12,nv24,yuv420planar",
+               "Default: nv12",
+               nvidia::gxf::EncoderInputFormat::kNV12);
+    spec.param(config_,
+               "config",
+               "Preset of parameters, select from pframe_cqp, iframe_cqp, custom",
+               "Preset of config",
+               nvidia::gxf::EncoderConfig::kCustom);
   }
 
-  void initialize() override;
-  void setup(OperatorSpec& spec) override;
+  void initialize() override {
+    register_converter<nvidia::gxf::EncoderInputFormat>();
+    register_converter<nvidia::gxf::EncoderConfig>();
+
+    holoscan::ops::GXFCodeletOp::initialize();
+  }
 
  private:
-  Parameter<holoscan::IOSpec*> input_frame_;
-  Parameter<uint32_t> inbuf_storage_type_;
-  Parameter<std::shared_ptr<holoscan::ops::VideoEncoderContext>>
-      videoencoder_context_;
-  Parameter<int32_t> codec_;
-  Parameter<uint32_t> input_height_;
-  Parameter<uint32_t> input_width_;
   Parameter<nvidia::gxf::EncoderInputFormat> input_format_;
-  Parameter<int32_t> profile_;
-  Parameter<int32_t> bitrate_;
-  Parameter<int32_t> framerate_;
-  Parameter<uint32_t> qp_;
-  Parameter<int32_t> hw_preset_type_;
-  Parameter<int32_t> level_;
-  Parameter<int32_t> iframe_interval_;
-  Parameter<int32_t> rate_control_mode_;
   Parameter<nvidia::gxf::EncoderConfig> config_;
 };
 
 }  // namespace holoscan::ops
-
 #endif  // HOLOSCAN_OPERATORS_VIDEO_ENCODER_REQUEST_VIDEO_ENCODER_REQUEST

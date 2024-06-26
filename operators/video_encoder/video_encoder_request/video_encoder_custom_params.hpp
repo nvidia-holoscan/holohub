@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +26,15 @@ template <>
 struct YAML::convert<nvidia::gxf::EncoderInputFormat> {
   static Node encode(const nvidia::gxf::EncoderInputFormat& rhs) {
     Node node;
+
     std::string ss;
-    switch (rhs) {
-        case nvidia::gxf::EncoderInputFormat::kNV12:
-          ss = "nv12";
-          break;
-        case nvidia::gxf::EncoderInputFormat::kNV24:
-          ss = "nv24";
-          break;
-        case nvidia::gxf::EncoderInputFormat::kYUV420PLANAR:
-          ss = "yuv420planar";
-          break;
-        default:
-            ss = "unsupported";
-            break;
+    auto it = std::find_if(std::begin(nvidia::gxf::EncoderInputFormatMapping),
+                           std::end(nvidia::gxf::EncoderInputFormatMapping),
+                           [&rhs](auto&& p) { return p.second == rhs; });
+    if (it != nvidia::gxf::EncoderInputFormatMapping.end()) {
+      ss = it->first;
+    } else {
+      ss = "unsupported";
     }
     node.push_back(ss);
     YAML::Node value_node = node[0];
@@ -50,17 +45,8 @@ struct YAML::convert<nvidia::gxf::EncoderInputFormat> {
     if (!node.IsScalar()) return false;
 
     auto value = node.Scalar();
-    if (value == "nv12") {
-        rhs = nvidia::gxf::EncoderInputFormat::kNV12;
-    } else if (value == "nv24") {
-      rhs = nvidia::gxf::EncoderInputFormat::kNV24;
-    } else if (value == "yuv420planar") {
-        rhs = nvidia::gxf::EncoderInputFormat::kYUV420PLANAR;
-    } else {
-        rhs = nvidia::gxf::EncoderInputFormat::kUnsupported;
-        return false;
-    }
-    return true;
+    auto format = nvidia::gxf::get_encoder_input_format(value);
+    return format != nvidia::gxf::EncoderInputFormat::kUnsupported;
   }
 };
 
@@ -69,19 +55,13 @@ struct YAML::convert<nvidia::gxf::EncoderConfig> {
   static Node encode(const nvidia::gxf::EncoderConfig& rhs) {
     Node node;
     std::string ss;
-    switch (rhs) {
-        case nvidia::gxf::EncoderConfig::kIFrameCQP :
-          ss = "iframe_cqp";
-          break;
-        case nvidia::gxf::EncoderConfig::kPFrameCQP:
-          ss = "pframe_cqp";
-          break;
-        case nvidia::gxf::EncoderConfig::kCustom:
-          ss = "custom";
-          break;
-        default:
-            ss = "unsupported";
-            break;
+    auto it = std::find_if(std::begin(nvidia::gxf::EncoderConfigMapping),
+                           std::end(nvidia::gxf::EncoderConfigMapping),
+                           [&rhs](auto&& p) { return p.second == rhs; });
+    if (it != nvidia::gxf::EncoderConfigMapping.end()) {
+      ss = it->first;
+    } else {
+      ss = "unsupported";
     }
     node.push_back(ss);
     YAML::Node value_node = node[0];
@@ -92,17 +72,8 @@ struct YAML::convert<nvidia::gxf::EncoderConfig> {
     if (!node.IsScalar()) return false;
 
     auto value = node.Scalar();
-    if (value == "iframe_cqp") {
-        rhs = nvidia::gxf::EncoderConfig::kIFrameCQP;
-    } else if (value == "pframe_cqp") {
-      rhs = nvidia::gxf::EncoderConfig::kPFrameCQP;
-    } else if (value == "custom") {
-        rhs = nvidia::gxf::EncoderConfig::kCustom;
-    } else {
-        rhs = nvidia::gxf::EncoderConfig::kUnsupported;
-        return false;
-    }
-    return true;
+    auto config = nvidia::gxf::get_encoder_config(value);
+    return config != nvidia::gxf::EncoderConfig::kUnsupported;
   }
 };
 
