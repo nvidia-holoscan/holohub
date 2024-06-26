@@ -11,7 +11,7 @@ from the Holoscan pipeline. This application is a modified version of Endoscopy
 Tool Tracking reference application in Holoscan SDK that supports H.264
 elementary streams as the input and output.
 
-[Running and build the H.264 Endoscopy Tool Tracking Application](./h264_endoscopy_tool_tracking/README.md)
+[Building and Running the H.264 Endoscopy Tool Tracking Application](./h264_endoscopy_tool_tracking/README.md)
 
 ## H.264 Video Decode Application
 
@@ -20,4 +20,4 @@ decode operators. This application makes use of H.264 elementary stream reader
 operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
-[Running and build the H.264 Video Decode Application](./h264_video_decode//README.md)
+[Building and Running the H.264 Video Decode Application](./h264_video_decode//README.md)

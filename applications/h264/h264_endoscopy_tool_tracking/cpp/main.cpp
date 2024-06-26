@@ -30,6 +30,11 @@
 #include "video_encoder.hpp"
 
 // Import h.264 GXF codelets and components as Holoscan operators and resources
+// Starting with Holoscan SDK v2.1.0, importing GXF codelets/components as Holoscan operators/
+// resources can be done using the HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR and
+// HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE macros. This new feature allows using GXF codelets
+// and components in Holoscan applications without writing custom class wrappers (for C++) and
+// Python wrappers (for Python) for each GXF codelet and component.
 
 // The VideoDecoderResponseOp implements nvidia::gxf::VideoDecoderResponse and handles the output
 // of the decoded H264 bit stream.

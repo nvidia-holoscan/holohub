@@ -41,7 +41,10 @@ from holohub.tensor_to_video_buffer import TensorToVideoBufferOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 # Import h.264 GXF codelets and components as Holoscan operators and resources
-
+# Starting with Holoscan SDK v2.1.0, importing GXF codelets/components as Holoscan operators/
+# resources can be done by extending the GXFCodeletOp class and the GXFComponentResource class.
+# This new feature allows GXF codelets and components in Holoscan applications without writing
+# custom class wrappers in C++ and Python wrappers for each GXF codelet and component.
 
 # The VideoDecoderResponseOp implements nvidia::gxf::VideoDecoderResponse and handles the output
 # of the decoded H264 bit stream.
