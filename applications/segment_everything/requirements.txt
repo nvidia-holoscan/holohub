@@ -1,0 +1,10 @@
+
+torch
+torchvision
+torchaudio
+opencv-python
+matplotlib
+onnxruntime
+onnx
+wget
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
