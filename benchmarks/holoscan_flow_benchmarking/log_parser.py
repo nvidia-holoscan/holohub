@@ -58,6 +58,7 @@ def is_same_path(line1, line2):
     # if none of the above is true, then they are same path
     return True
 
+
 # parse the log file and return all the latencies for each path
 # The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
 # publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
@@ -68,8 +69,8 @@ def parse_log_as_paths_latencies(log_file):
         for line in f:
             if line[0] == "(":
                 path_latency = get_path_latency(parse_line_from_log(line))
-                if is_same_path(last_line, line): #
-                    continue;
+                if is_same_path(last_line, line):
+                    continue
                 if path_latency[0] in paths_latencies:
                     paths_latencies[path_latency[0]].append(path_latency[1])
                 else:
