@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source: "replayer" # Valid values "replayer"  
+source: "replayer" # Valid values "replayer"
 
 replayer:  # VideoStreamReplayer
   basename: "anonymization"
