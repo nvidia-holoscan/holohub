@@ -69,7 +69,7 @@ def parse_log_as_paths_latencies(log_file):
             if line[0] == "(":
                 path_latency = get_path_latency(parse_line_from_log(line))
                 if is_same_path(last_line, line): #
-                    continue;
+                    continue
                 if path_latency[0] in paths_latencies:
                     paths_latencies[path_latency[0]].append(path_latency[1])
                 else:
