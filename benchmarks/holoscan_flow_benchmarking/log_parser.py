@@ -38,18 +38,42 @@ def get_path_latency(op_timestamps, path_separator="→ "):
     return path, latency
 
 
+def is_same_path(line1, line2):
+    if line1 == line2:
+        return True
+    if line1 == "" or line2 == "":
+        return False
+    op_timestamps1 = parse_line_from_log(line1)
+    op_timestamps2 = parse_line_from_log(line2)
+    path1, latency1 = get_path_latency(op_timestamps1)
+    path2, latency2 = get_path_latency(op_timestamps2)
+    if path1 != path2:
+        return False
+    # if receive or publish timestamps of the source are not same, then they are different paths
+    if op_timestamps1[0][1] != op_timestamps2[0][1] or op_timestamps1[0][2] != op_timestamps2[0][2]:
+        return False
+    # if the publish timestamps of the sinks are within 20 nanoseconds, then they are considered same path
+    if abs(int(op_timestamps1[-1][2]) - int(op_timestamps2[-1][2])) > 20:
+        return False
+    # if none of the above is true, then they are same path
+    return True
+
+
 # parse the log file and return all the latencies for each path
 # The format is (Operator1, receive timestamp, publish timestsamp) -> (Operator2, receive timestamp,
 # publish timestsamp) -> ... -> (OperatorN, receive timestamp, publish timestsamp)
 def parse_log_as_paths_latencies(log_file):
     with open(log_file, "r") as f:
         paths_latencies = {}
+        last_line = ""
         for line in f:
-            # print ("line: ", line)
             if line[0] == "(":
                 path_latency = get_path_latency(parse_line_from_log(line))
+                if is_same_path(last_line, line):
+                    continue
                 if path_latency[0] in paths_latencies:
                     paths_latencies[path_latency[0]].append(path_latency[1])
                 else:
                     paths_latencies[path_latency[0]] = [path_latency[1]]
+                last_line = line
         return paths_latencies
