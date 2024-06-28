@@ -1,6 +1,6 @@
 # Endoscopy Out of Body Detection Application
 
-This application performs endoscopy out of body detection. The application classifies if the input frame is inside the body or out of the body. If the input frame is inside the body, application prints `Likely in-body`, otherwise `Likely out-of-body`. Each likelihood is accompanied with a confidence score. 
+This application performs endoscopy out of body detection. The application classifies if the input frame is inside the body or out of the body. If the input frame is inside the body, application prints `Likely in-body`, otherwise `Likely out-of-body`. Each likelihood is accompanied with a confidence score. If the analytics is enabled, the output for each input frame is instead exported to the given csv file.
 
 __Note: there is no visualization component in the application.__
 
@@ -60,3 +60,9 @@ In your `build` directory, run
 ```bash
 applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection --data ../data/endoscopy_out_of_body_detection
 ```
+
+## Enable analytics
+
+The endoscopy out of body detetction application supports exporting output to the comma separated value (CSV) files. This data can later be used by analytics applications. The analytics data generation can be enabled by setting `enable_analytics` flag in the config file `<build_dir>/applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection.yaml` to `true`.
+
+The data root directory can be specified using the environment variable `HOLOSCAN_ANALYTICS_DATA_DIRECTORY`. If not specified, it defaults to the current directory. The CSV data file name can be specified using the environment variable `HOLOSCAN_ANALYTICS_DATA_FILE_NAME`. If not specified, it defaults to the name `data.csv`. All the generated data will be stored inside a directory with the same name as the application name that is passed in the configuration file. On each run, a new directory inside the data directory will be created and a new data file will be created inside it. Each new data directory will be named with the current timestamp.
