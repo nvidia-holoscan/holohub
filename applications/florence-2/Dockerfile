@@ -35,11 +35,15 @@ COPY run /tmp/scripts/
 RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
+# Install the QT dependencies
+RUN apt-get install qtbase5-dev -y
+
 # Copy over app-specific requirements
 COPY applications/florence-2/requirements.txt /tmp/requirements.txt
 
 # Install setuptools prior to all other requirements to avoid install errors
 RUN python3 -m pip install --no-cache-dir setuptools && \
+    # On Arm64, PyQT5 will be built from source, which will take ~1 hour
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Copy the Torch wheel from the PyTorch image. This is necessary because the PyTorch wheel is not available for ARM64 on PyPI.
@@ -63,12 +67,8 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
 RUN huggingface-cli download microsoft/Florence-2-large-ft \
     --local-dir /workspace/volumes/models/microsoft/Florence-2-large-ft --cache-dir /workspace/volumes/models/microsoft/Florence-2-large-ft
 
-# Install the QT dependencies
-RUN apt-get install qtbase5-dev -y
-
 # Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
 # MAX_JOBS is set to 4 to avoid running out of memory
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn
-
 
 WORKDIR /workspace/holohub
