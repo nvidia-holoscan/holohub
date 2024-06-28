@@ -1,0 +1,37 @@
+{
+	"application": {
+		"name": "Florence-2",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Multimodal Model",
+			"Vision Model"
+		],
+		"ranking": 1,
+		"dependencies": {
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/QTApp.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
