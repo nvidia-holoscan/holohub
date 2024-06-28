@@ -22,8 +22,54 @@
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-#include "video_decoder.hpp"
-#include "video_read_bitstream.hpp"
+#include <holoscan/core/resources/gxf/gxf_component_resource.hpp>
+#include <holoscan/operators/gxf_codelet/gxf_codelet.hpp>
+
+// Import h.264 GXF codelets and components as Holoscan operators and resources
+// Starting with Holoscan SDK v2.1.0, importing GXF codelets/components as Holoscan operators/
+// resources can be done using the HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR and
+// HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE macros. This new feature allows using GXF codelets
+// and components in Holoscan applications without writing custom class wrappers (for C++) and
+// Python wrappers (for Python) for each GXF codelet and component.
+
+// The VideoDecoderResponseOp implements nvidia::gxf::VideoDecoderResponse and handles the output
+// of the decoded H264 bit stream.
+// Parameters:
+// - pool (std::shared_ptr<Allocator>): Memory pool for allocating output data.
+// - outbuf_storage_type (uint32_t): Output Buffer Storage(memory) type used by this allocator.
+//   Can be 0: kHost, 1: kDevice.
+// - videodecoder_context (std::shared_ptr<holoscan::ops::VideoDecoderContext>): Decoder context
+//   Handle.
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderResponseOp, "nvidia::gxf::VideoDecoderResponse")
+
+// The VideoDecoderRequestOp implements nvidia::gxf::VideoDecoderRequest and handles the input
+// for the H264 bit stream decode.
+// Parameters:
+// - inbuf_storage_type (uint32_t): Input Buffer storage type, 0:kHost, 1:kDevice.
+// - async_scheduling_term (std::shared_ptr<holoscan::AsynchronousCondition>): Asynchronous
+//   scheduling condition.
+// - videodecoder_context (std::shared_ptr<holoscan::ops::VideoDecoderContext>): Decoder
+//   context Handle.
+// - codec (uint32_t): Video codec to use, 0:H264, only H264 supported. Default:0.
+// - disableDPB (uint32_t): Enable low latency decode, works only for IPPP case.
+// - output_format (std::string): VidOutput frame video format, nv12pl and yuv420planar are
+//   supported.
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoDecoderRequestOp, "nvidia::gxf::VideoDecoderRequest")
+
+// The VideoDecoderContext implements nvidia::gxf::VideoDecoderContext and holds common variables
+// and underlying context.
+// Parameters:
+// - async_scheduling_term (std::shared_ptr<holoscan::AsynchronousCondition>): Asynchronous
+//   scheduling condition required to get/set event state.
+HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE(VideoDecoderContext, "nvidia::gxf::VideoDecoderContext")
+
+// The VideoReadBitstreamOp implements nvidia::gxf::VideoReadBitStream and reads h.264 video files
+// from the disk at the specified input file path.
+// Parameters:
+// - input_file_path (std::string): Path to image file
+// - pool (std::shared_ptr<Allocator>): Memory pool for allocating output data
+// - outbuf_storage_type (int32_t): Output Buffer storage type, 0:kHost, 1:kDevice
+HOLOSCAN_WRAP_GXF_CODELET_AS_OPERATOR(VideoReadBitstreamOp, "nvidia::gxf::VideoReadBitStream")
 
 class App : public holoscan::Application {
  public:
@@ -31,15 +77,27 @@ class App : public holoscan::Application {
       datapath = path;
   }
 
+  /// @brief As of Holoscan SDK 2.1.0, the extension manager must be used to register any external
+  /// GXF extensions in replace of the use of YAML configuration file.
+  void configure_extension() {
+    auto extension_manager = executor().extension_manager();
+    extension_manager->load_extension("libgxf_videodecoder.so");
+    extension_manager->load_extension("libgxf_videodecoderio.so");
+    extension_manager->load_extension("libgxf_videoencoder.so");
+    extension_manager->load_extension("libgxf_videoencoderio.so");
+  }
+
   void compose() override {
     using namespace holoscan;
+
+    configure_extension();
 
     uint32_t width = 854;
     uint32_t height = 480;
     int64_t source_block_size = width * height * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto bitstream_reader = make_operator<ops::VideoReadBitstreamOp>(
+    auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
         "bitstream_reader",
         from_config("bitstream_reader"),
         Arg("input_file_path", datapath + "/surgical_video.264"),
@@ -52,18 +110,18 @@ class App : public holoscan::Application {
 
     auto response_condition =
         make_condition<AsynchronousCondition>("response_condition");
-    auto video_decoder_context = make_resource<ops::VideoDecoderContext>(
+    auto video_decoder_context = make_resource<VideoDecoderContext>(
         "decoder-context", Arg("async_scheduling_term") = response_condition);
 
     auto request_condition =
         make_condition<AsynchronousCondition>("request_condition");
-    auto video_decoder_request = make_operator<ops::VideoDecoderRequestOp>(
+    auto video_decoder_request = make_operator<VideoDecoderRequestOp>(
         "video_decoder_request",
         from_config("video_decoder_request"),
         Arg("async_scheduling_term") = request_condition,
         Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response = make_operator<ops::VideoDecoderResponseOp>(
+    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
         "video_decoder_response",
         from_config("video_decoder_response"),
         Arg("pool") =

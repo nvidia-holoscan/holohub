@@ -13,3 +13,7 @@ aggregate_metadata.json
 /dist/
 /install/
 
+
+# Dev
+.venv/
+ngc-cli/

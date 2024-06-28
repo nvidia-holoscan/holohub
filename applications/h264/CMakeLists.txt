@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,7 @@
 # limitations under the License.
 
 add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
-                        OPERATORS video_encoder video_decoder
-                                  video_read_bitstream video_write_bitstream
+                        OPERATORS video_encoder
                                   tensor_to_video_buffer
                                   lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
