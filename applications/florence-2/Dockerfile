@@ -37,6 +37,8 @@ RUN /tmp/scripts/run setup
 
 # Install the QT dependencies
 RUN apt-get install qtbase5-dev -y
+# Install pyqt5 and accept the GPL license
+RUN python3 -m pip install pyqt5 --config-settings --confirm-license= --verbose
 
 # Copy over app-specific requirements
 COPY applications/florence-2/requirements.txt /tmp/requirements.txt
