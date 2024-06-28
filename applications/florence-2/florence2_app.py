@@ -67,7 +67,7 @@ class FlorenceApp(Application):
 
         # Florence2 operator for inference
         florence_op = Florence2Operator(
-            self, 
+            self,
             name="florence_op",
             **self.kwargs("florence_op"),
         )
@@ -82,20 +82,25 @@ class FlorenceApp(Application):
             allocator=UnboundedAllocator(self, name="pool"),
             name="holoviz",
             cuda_stream_pool=holoviz_cuda_stream_pool,
-            **self.kwargs("holoviz")
+            **self.kwargs("holoviz"),
         )
 
         # Connect Standard Operators
         self.add_flow(source, format_converter_vlm, {("signal", "source_video")})
         self.add_flow(format_converter_vlm, florence_op, {("tensor", "video_stream")})
-        
+
         # Connect Florence2 output to the detection postprocessor
-        self.add_flow(florence_op, detection_postprocessor, {("output", "input"), ("video_frame", "video_frame")})
+        self.add_flow(
+            florence_op,
+            detection_postprocessor,
+            {("output", "input"), ("video_frame", "video_frame")},
+        )
 
         # Connect the postprocessed output to Holoviz
         self.add_flow(florence_op, holoviz, {("video_frame", "receivers")})
         self.add_flow(detection_postprocessor, holoviz, {("outputs", "receivers")})
         self.add_flow(detection_postprocessor, holoviz, {("output_specs", "input_specs")})
+
 
 if __name__ == "__main__":
     # Load the configuration file and run the application

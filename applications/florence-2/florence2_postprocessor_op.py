@@ -15,18 +15,14 @@ class DetectionPostprocessorOp(Operator):
         """
         self.label_text_size = label_text_size
         self.label_color_map = {}  # Map to store unique colors for labels
-        self.caption_tasks = {
-            "<CAPTION>",
-            "<DETAILED_CAPTION>",
-            "<MORE_DETAILED_CAPTION>"
-        }
+        self.caption_tasks = {"<CAPTION>", "<DETAILED_CAPTION>", "<MORE_DETAILED_CAPTION>"}
         self.bbox_tasks = {
             "<OD>",
             "<OPEN_VOCABULARY_DETECTION>",
             "<REGION_PROPOSAL>",
             "<DENSE_REGION_CAPTION>",
             "<CAPTION_TO_PHRASE_GROUNDING>",
-            "<OCR_WITH_REGION>"
+            "<OCR_WITH_REGION>",
         }
         self.bbox_map = {
             "<OD>": "bboxes",
@@ -34,21 +30,19 @@ class DetectionPostprocessorOp(Operator):
             "<REGION_PROPOSAL>": "bboxes",
             "<DENSE_REGION_CAPTION>": "bboxes",
             "<CAPTION_TO_PHRASE_GROUNDING>": "bboxes",
-            "<OCR_WITH_REGION>": "quad_boxes"
+            "<OCR_WITH_REGION>": "quad_boxes",
         }
-        self.segmentation_task = {
-            "<REFERRING_EXPRESSION_SEGMENTATION>"
-        }
+        self.segmentation_task = {"<REFERRING_EXPRESSION_SEGMENTATION>"}
         self.labeling_tasks = {
             "<OD>",
             "<OPEN_VOCABULARY_DETECTION>",
             "<DENSE_REGION_CAPTION>",
             "<CAPTION_TO_PHRASE_GROUNDING>",
-            "<OCR_WITH_REGION>"
+            "<OCR_WITH_REGION>",
         }
         self.labeling_map = {
             "<OD>": "labels",
-            "<OPEN_VOCABULARY_DETECTION>": 'bboxes_labels',
+            "<OPEN_VOCABULARY_DETECTION>": "bboxes_labels",
             "<DENSE_REGION_CAPTION>": "labels",
             "<CAPTION_TO_PHRASE_GROUNDING>": "labels",
             "<REGION_PROPOSAL>": "labels",
@@ -81,7 +75,7 @@ class DetectionPostprocessorOp(Operator):
             color = self.hsv_to_rgb(hue, 0.75, 0.75)
             self.label_color_map[label] = color
         return self.label_color_map[label]
-    
+
     def create_multiline_text(self, text, max_line_length=100):
         """
         Convert a single line of text to multiple lines to fit within a specified length.
@@ -148,7 +142,7 @@ class DetectionPostprocessorOp(Operator):
             bboxes = data[task][self.bbox_map[task]]
             labels = data[task][self.labeling_map[task]]
         if task in self.segmentation_task:
-            polygons = data[task]['polygons']
+            polygons = data[task]["polygons"]
         if task == "<OCR>":
             caption = data[task]
 
@@ -237,7 +231,7 @@ class DetectionPostprocessorOp(Operator):
             for i, polygon in enumerate(polygon_array):
                 _polygon = np.array(polygon).reshape(-1, 2)
                 if len(_polygon) < 3:
-                    print('Invalid polygon:', _polygon)
+                    print("Invalid polygon:", _polygon)
                     continue
                 root_x = _polygon[0][0] / width
                 root_y = _polygon[0][1] / height

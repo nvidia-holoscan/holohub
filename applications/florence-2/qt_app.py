@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 # Global variable to hold the Holoscan application instance
 gApp = None
 
+
 # Worker class to run the Holoscan application in a separate thread
 class FlorenceWorker(QObject):
     finished = Signal()  # Signal to indicate the worker has finished
@@ -29,6 +30,7 @@ class FlorenceWorker(QObject):
         gApp = app = FlorenceApp()
         app.config(config_file)
         app.run()
+
 
 # Main window class for the PySide2 UI
 class Window(QMainWindow):
@@ -48,13 +50,21 @@ class Window(QMainWindow):
 
         # Create and add dropdown for task selection
         self.dropdown = QComboBox()
-        self.dropdown.addItems([
-            'Object Detection', 'Caption', 'Detailed Caption', 'More Detailed Caption',
-            'Dense Region Caption', 'Region Proposal', 'Caption to Phrase Grounding',
-            'Referring Expression Segmentation',
-            'Open Vocabulary Detection',
-            'OCR', 'OCR with Region'
-        ])
+        self.dropdown.addItems(
+            [
+                "Object Detection",
+                "Caption",
+                "Detailed Caption",
+                "More Detailed Caption",
+                "Dense Region Caption",
+                "Region Proposal",
+                "Caption to Phrase Grounding",
+                "Referring Expression Segmentation",
+                "Open Vocabulary Detection",
+                "OCR",
+                "OCR with Region",
+            ]
+        )
         layout.addWidget(QLabel("Select an option:"))
         layout.addWidget(self.dropdown)
 
@@ -95,6 +105,7 @@ class Window(QMainWindow):
         """Handle key press events."""
         if event.key() == Qt.Key_Escape:
             self.close()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
