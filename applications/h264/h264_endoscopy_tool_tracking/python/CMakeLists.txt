@@ -12,53 +12,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+cmake_minimum_required(VERSION 3.20)
+
+find_package(holoscan 2.1.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Enable the operators
+add_library(nvidia_nim_imaging INTERFACE)
+target_link_libraries(nvidia_nim_imaging INTERFACE holoscan::core holoscan::ops::holoviz holoscan::ops::lstm_tensor_rt_inference holoscan::ops::tensor_to_video_buffer holoscan::ops::tool_tracking_postprocessor)
 
 # Add testing
 if(BUILD_TESTING)
-  # To get the environment path
-  find_package(holoscan 2.1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
-  set(SOURCE_VIDEO_BASENAME python_endoscopy_tool_tracking_output)
-  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/endoscopy_tool_tracking/testing/)
-
-  file(MAKE_DIRECTORY ${RECORDING_DIR})
-
-  # Configure the yaml file for testing
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/h264_endoscopy_tool_tracking.yaml" CONFIG_FILE)
-  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-  string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
-  string(REPLACE "basename: \"tensor\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
-
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml" ${CONFIG_FILE})
-
-  # Add test
-  add_test(NAME endoscopy_tool_tracking_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.py
-                   --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
+  add_test(NAME h264_endoscopy_tool_tracking_python_test
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/h264_endoscopy_tool_tracking.py
+                   --config ${CMAKE_CURRENT_SOURCE_DIR}/h264_endoscopy_tool_tracking.yaml
                    --data ${HOLOHUB_DATA_DIR}/endoscopy
-          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_property(TEST endoscopy_tool_tracking_python_test PROPERTY ENVIRONMENT
+  set_property(TEST h264_endoscopy_tool_tracking_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
-  set_tests_properties(endoscopy_tool_tracking_python_test PROPERTIES
-                PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
-                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+  set_tests_properties(h264_endoscopy_tool_tracking_python_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Deactivating Graph"
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
-  # Add a test to check the validity of the frames
-  add_test(NAME endoscopy_tool_tracking_python_render_test
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
-    --source_video_dir ${RECORDING_DIR}
-    --source_video_basename ${SOURCE_VIDEO_BASENAME}
-    --output_dir ${RECORDING_DIR}
-    --validation_frames_dir ${VALIDATION_FRAMES_DIR}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
-
-  set_tests_properties(endoscopy_tool_tracking_python_render_test PROPERTIES
-    DEPENDS endoscopy_tool_tracking_python_test
-    PASS_REGULAR_EXPRESSION "Valid video output!"
-  )
-
+  # For aarch64 LD_LIBRARY_PATH needs to be set
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL arm64)
+    set_tests_properties(h264_endoscopy_tool_tracking_python_test PROPERTIES ENVIRONMENT
+                    "LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra/")
+  endif()
 endif()

@@ -463,7 +463,7 @@ lint() {
     # If we call with --fix
     if [ $FIX == true ]; then
       # Fix python
-      run_command ruff --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      run_command ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
       # Fix python isort issues, run:
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
@@ -493,7 +493,7 @@ lint() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
-    run_command ruff $DIR_TO_RUN --ignore E712 || exit_code=1
+    run_command ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m isort -c $DIR_TO_RUN || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m black --check $DIR_TO_RUN || exit_code=1
 
