@@ -23,6 +23,7 @@ extensions:
 
 source: "replayer" # or "aja"
 do_record: false   # or 'true' if you want to record input video stream.
+enable_analytics: false # Export results to CSV file for analytics
 
 replayer:
   basename: "sample_clip_out_of_body_detection"
@@ -30,6 +31,13 @@ replayer:
   repeat: true    # default: false
   realtime: true  # default: true
   count: 0        # default: 0 (no frame count restriction)
+
+analytics_replayer:
+  basename: "sample_clip_out_of_body_detection"
+  frame_rate: 0   # as specified in timestamps
+  repeat: false   # default: false
+  realtime: true  # default: true
+  count: 2000     # default: 0 (no frame count restriction)
 
 aja:  # AJASourceOp
   width: 1920
@@ -66,6 +74,14 @@ out_of_body_postprocessor:
     "out_of_body_inferred": ["print_custom_binary_classification,
                               Likely in-body,
                               Likely out-of-body"]
+  in_tensor_names: ["out_of_body_inferred"]
+  input_on_cuda: false
+  output_on_cuda: false
+  transmit_on_cuda: false
+
+analytics_out_of_body_postprocessor:
+  process_operations:
+    "out_of_body_inferred": ["export_binary_classification_to_csv,out_of_body_detection,In-body,Out-of-body,Confidence Score"]
   in_tensor_names: ["out_of_body_inferred"]
   input_on_cuda: false
   output_on_cuda: false
