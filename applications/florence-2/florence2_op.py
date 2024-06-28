@@ -1,34 +1,17 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+from threading import Event, Thread
 
-from holoscan.core import Operator, OperatorSpec
-from transformers import AutoProcessor, AutoModelForCausalLM
-from threading import Thread, Event
-from PIL import Image
 import cupy as cp
+from holoscan.core import Operator, OperatorSpec
+from PIL import Image
+from transformers import AutoModelForCausalLM, AutoProcessor
+
 
 class Florence2Operator(Operator):
-    def __init__(self, fragment, *args, **kwargs):
+    def __init__(self, fragment, model_path, *args, **kwargs):
         """
         Initialize the Florence2Operator.
-        
-        Args:
-            fragment: The application fragment.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
         """
+        self.model_path = model_path
         self.task = "Object Detection"
         self.prompt = ""
         self.task_map = {
@@ -77,12 +60,11 @@ class Florence2Operator(Operator):
         """
         Initialize the model and processor from the local model path.
         """
-        local_model_path = "/workspace/volumes/models/microsoft/Florence-2-large-ft"
         self.model = AutoModelForCausalLM.from_pretrained(
-            local_model_path, local_files_only=True, trust_remote_code=True
+            self.model_path, local_files_only=True, trust_remote_code=True
         ).eval().cuda()
         self.processor = AutoProcessor.from_pretrained(
-            local_model_path, local_files_only=True, trust_remote_code=True
+            self.model_path, local_files_only=True, trust_remote_code=True
         )
 
     def run_inference(self, task_prompt, text_input, image_tensor):

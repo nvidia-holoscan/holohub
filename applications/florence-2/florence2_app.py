@@ -1,24 +1,11 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
+
+from florence2_op import Florence2Operator
+from florence2_postprocessor_op import DetectionPostprocessorOp
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
-from Florence2Op import Florence2Operator
-from Florence2PostProcessorOp import DetectionPostprocessorOp
+
 
 class FlorenceApp(Application):
     def set_parameters(self, task, prompt):
@@ -76,13 +63,12 @@ class FlorenceApp(Application):
             self,
             name="detection_postprocessor",
             allocator=UnboundedAllocator(self, name="allocator"),
-            **self.kwargs("detection_postprocessor"),
         )
 
         # Florence2 operator for inference
         florence_op = Florence2Operator(
             self, 
-            name="florence_op", 
+            name="florence_op",
             **self.kwargs("florence_op"),
         )
         self.florence_op = florence_op
@@ -94,12 +80,9 @@ class FlorenceApp(Application):
             height=480,
             window_title="Florence-2 Output",
             allocator=UnboundedAllocator(self, name="pool"),
-            tensors=[
-                dict(name="", type="color", opacity=1.0, priority=-1),
-            ],
-            name="final_holoviz",
+            name="holoviz",
             cuda_stream_pool=holoviz_cuda_stream_pool,
-            **self.kwargs("final_holoviz")
+            **self.kwargs("holoviz")
         )
 
         # Connect Standard Operators

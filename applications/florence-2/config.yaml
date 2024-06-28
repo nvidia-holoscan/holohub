@@ -24,16 +24,5 @@ holoviz:
       opacity: 1.0
       priority: 0
 
-final_holoviz:
-  color_lut: [
-    [0.65, 0.81, 0.89, 0.1],
-    [0.2, 0.63, 0.17, 0.7],
-    [0.98, 0.6, 0.6, 0.7],
-    [0.89, 0.1, 0.11, 0.7],
-    [0.99, 0.75, 0.44, 0.7],
-    [1.0, 0.5, 0.0, 0.7],
-    [0.0, 0.0, 0.0, 0.1]
-    ]
-
-detection_postprocessor:
 florence_op:
+  model_path: "/workspace/volumes/models/microsoft/Florence-2-large-ft"

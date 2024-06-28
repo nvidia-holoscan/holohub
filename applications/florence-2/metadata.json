@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "2.0.0",
+			"minimum_required_version": "2.1.0",
 			"tested_versions": [
-				"2.0.0"
+				"2.1.0"
 			]
 		},
 		"platforms": [
@@ -28,9 +28,15 @@
 		],
 		"ranking": 1,
 		"dependencies": {
+			"PySide6": {
+				"version": "6.7.2"
+			},
+			"flash-attn": {
+				"version": "2.5.9"
+			}
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/QTApp.py",
+			"command": "python3 <holohub_app_source>/qt_app.py",
 			"workdir": "holohub_bin"
 		}
 	}
