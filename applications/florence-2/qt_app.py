@@ -1,9 +1,18 @@
 import os
 import sys
-from PySide6.QtCore import QObject, QThread, Signal, Qt
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QLineEdit
 
-from Florence2App import FlorenceApp  # Import the FlorenceApp class
+from florence2_app import FlorenceApp  # Import the FlorenceApp class
+from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Global variable to hold the Holoscan application instance
 gApp = None
@@ -21,7 +30,7 @@ class FlorenceWorker(QObject):
         app.config(config_file)
         app.run()
 
-# Main window class for the PySide6 UI
+# Main window class for the PySide2 UI
 class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -30,7 +39,7 @@ class Window(QMainWindow):
 
     def setupUi(self):
         """Setup the UI components."""
-        self.setWindowTitle("Florence-2 UI")
+        self.setWindowTitle("Florence-2")
         self.resize(400, 150)
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
