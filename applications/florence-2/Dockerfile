@@ -35,11 +35,6 @@ COPY run /tmp/scripts/
 RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
-# Install the QT dependencies
-RUN apt-get install qtbase5-dev -y
-# Install pyqt5 and accept the GPL license
-RUN python3 -m pip install pyqt5 --config-settings --confirm-license= --verbose
-
 # Copy over app-specific requirements
 COPY applications/florence-2/requirements.txt /tmp/requirements.txt
 
@@ -72,5 +67,10 @@ RUN huggingface-cli download microsoft/Florence-2-large-ft \
 # Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
 # MAX_JOBS is set to 4 to avoid running out of memory
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn
+
+# Install QT dependencies
+RUN apt-get install -y \
+    qt6-base-dev \
+    libxcb-cursor0
 
 WORKDIR /workspace/holohub

@@ -1,7 +1,7 @@
 import os
 import sys
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QLineEdit
+from PySide6.QtCore import QObject, QThread, Signal, Qt
+from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QLineEdit
 
 from Florence2App import FlorenceApp  # Import the FlorenceApp class
 
@@ -10,8 +10,8 @@ gApp = None
 
 # Worker class to run the Holoscan application in a separate thread
 class FlorenceWorker(QObject):
-    finished = pyqtSignal()  # Signal to indicate the worker has finished
-    progress = pyqtSignal(int)  # Signal to indicate progress (if needed)
+    finished = Signal()  # Signal to indicate the worker has finished
+    progress = Signal(int)  # Signal to indicate progress (if needed)
 
     def run(self):
         """Run the Holoscan application."""
@@ -21,7 +21,7 @@ class FlorenceWorker(QObject):
         app.config(config_file)
         app.run()
 
-# Main window class for the PyQt5 UI
+# Main window class for the PySide6 UI
 class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
