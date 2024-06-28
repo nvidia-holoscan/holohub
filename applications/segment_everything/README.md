@@ -116,11 +116,11 @@ This application uses a v4l2 compatible device as input.  Please plug in your in
 Build a holohub container in a new terminal to launch the segment_anything app.
 ```
 cd <HOLOHUB_SOURCE_DIR>
-./dev_container build --docker_file applications/segment_everything/Dockerfile --img holohub:sam2.1
+./dev_container build
 ```
 launch the dev container and mount the folder that contains holohub and sam_trt_light
 ```
-./dev_container launch --img holohub:sam2.1 --add-volume <MODEL_DIR>
+./dev_container launch --add-volume <MODEL_DIR>
 ```
 Adjust the segment_one_thing.yaml file to point to the trt engine files, for example for the encoder inference block, adjust: 
 ```yaml
@@ -130,5 +130,10 @@ Adjust the segment_one_thing.yaml file to point to the trt engine files, for exa
 ```sh
 cd /workspace/holohub
 python applications/segment_everything/segment_one_thing.py
+```
+or use 
+```bash 
+./run build segment_everything
+./run launch segment_everything
 ```
 
