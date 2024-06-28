@@ -15,20 +15,20 @@ class Florence2Operator(Operator):
         self.task = "Object Detection"
         self.prompt = ""
         self.task_map = {
-            'Caption': '<CAPTION>',
-            'Detailed Caption': '<DETAILED_CAPTION>',
-            'More Detailed Caption': '<MORE_DETAILED_CAPTION>',
-            'Object Detection': '<OD>',
-            'Dense Region Caption': '<DENSE_REGION_CAPTION>',
-            'Region Proposal': '<REGION_PROPOSAL>',
-            'Caption to Phrase Grounding': '<CAPTION_TO_PHRASE_GROUNDING>',
-            'Referring Expression Segmentation': '<REFERRING_EXPRESSION_SEGMENTATION>',
-            'Open Vocabulary Detection': '<OPEN_VOCABULARY_DETECTION>',
-            'OCR': '<OCR>',
-            'OCR with Region': '<OCR_WITH_REGION>'
+            "Caption": "<CAPTION>",
+            "Detailed Caption": "<DETAILED_CAPTION>",
+            "More Detailed Caption": "<MORE_DETAILED_CAPTION>",
+            "Object Detection": "<OD>",
+            "Dense Region Caption": "<DENSE_REGION_CAPTION>",
+            "Region Proposal": "<REGION_PROPOSAL>",
+            "Caption to Phrase Grounding": "<CAPTION_TO_PHRASE_GROUNDING>",
+            "Referring Expression Segmentation": "<REFERRING_EXPRESSION_SEGMENTATION>",
+            "Open Vocabulary Detection": "<OPEN_VOCABULARY_DETECTION>",
+            "OCR": "<OCR>",
+            "OCR with Region": "<OCR_WITH_REGION>",
         }
         self.task_only = {
-            '<OD>',
+            "<OD>",
             "<REGION_PROPOSAL>",
             "<CAPTION>",
             "<DETAILED_CAPTION>",
@@ -37,10 +37,7 @@ class Florence2Operator(Operator):
             "<OCR>",
             "<OCR_WITH_REGION>",
         }
-        self.output = {
-            "output": None,
-            "task": None
-        }
+        self.output = {"output": None, "task": None}
         self.image_tensor = None
         self.is_running = Event()
         super().__init__(fragment, *args, **kwargs)
@@ -48,7 +45,7 @@ class Florence2Operator(Operator):
     def setup(self, spec: OperatorSpec):
         """
         Define the operator's inputs and outputs.
-        
+
         Args:
             spec: The operator specification.
         """
@@ -60,9 +57,13 @@ class Florence2Operator(Operator):
         """
         Initialize the model and processor from the local model path.
         """
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_path, local_files_only=True, trust_remote_code=True
-        ).eval().cuda()
+        self.model = (
+            AutoModelForCausalLM.from_pretrained(
+                self.model_path, local_files_only=True, trust_remote_code=True
+            )
+            .eval()
+            .cuda()
+        )
         self.processor = AutoProcessor.from_pretrained(
             self.model_path, local_files_only=True, trust_remote_code=True
         )
@@ -70,7 +71,7 @@ class Florence2Operator(Operator):
     def run_inference(self, task_prompt, text_input, image_tensor):
         """
         Run inference on the input image using the specified task and prompt.
-        
+
         Args:
             task_prompt: The task prompt for the model.
             text_input: The additional text input for the model.
@@ -96,14 +97,9 @@ class Florence2Operator(Operator):
         )
         generated_text = self.processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
         parsed_answer = self.processor.post_process_generation(
-            generated_text,
-            task=task_prompt,
-            image_size=(image.width, image.height)
+            generated_text, task=task_prompt, image_size=(image.width, image.height)
         )
-        self.output = {
-            "output": parsed_answer,
-            "task": task_prompt
-        }
+        self.output = {"output": parsed_answer, "task": task_prompt}
         self.image_tensor = image_tensor
         self.is_running.clear()
 
@@ -122,7 +118,14 @@ class Florence2Operator(Operator):
         # Start the inference thread if not already running
         if not self.is_running.is_set():
             self.is_running.set()
-            run_inference_thread = Thread(target=self.run_inference, args=(task_prompt, text_input, image,))
+            run_inference_thread = Thread(
+                target=self.run_inference,
+                args=(
+                    task_prompt,
+                    text_input,
+                    image,
+                ),
+            )
             run_inference_thread.start()
 
         # Emit the output and the latest video frame
