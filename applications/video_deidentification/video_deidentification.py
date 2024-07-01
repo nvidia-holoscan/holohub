@@ -410,18 +410,20 @@ class ImageClipOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class PrivacyApp(Application):
+class VideoDeidentificationApp(Application):
     def __init__(self, data, source="v4l2", video_device="none"):
-        """Initialize the privacy application"""
+        """Initialize the video deidentification application"""
 
         super().__init__()
 
         # set name
-        self.name = "Privacy App"
+        self.name = "Video Deidentification App"
         self.source = source
 
         if data == "none":
-            data = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "privacy")
+            data = os.path.join(
+                os.environ.get("HOLOHUB_DATA_PATH", "../data"), "video_deidentification"
+            )
 
         self.sample_data_path = data
         self.video_device = video_device
@@ -558,10 +560,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.config == "none":
-        config_file = os.path.join(os.path.dirname(__file__), "privacy.yaml")
+        config_file = os.path.join(os.path.dirname(__file__), "video_deidentification.yaml")
     else:
         config_file = args.config
 
-    app = PrivacyApp(args.data, args.source, args.video_device)
+    app = VideoDeidentificationApp(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()

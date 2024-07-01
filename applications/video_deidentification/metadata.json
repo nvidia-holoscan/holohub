@@ -39,7 +39,7 @@
 			}]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/privacy.py",
+			"command": "python3 <holohub_app_source>/video_deidentification.py",
 			"workdir": "holohub_bin"
 		}
 	}
