@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+bitstream_reader:
+  outbuf_storage_type: 0
+  aud_nal_present: 0
 
-cmake_minimum_required(VERSION 3.20)
-project(h264_video_decode_apps LANGUAGES NONE)
+video_decoder_request:
+  inbuf_storage_type: 1
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+video_decoder_response:
+  outbuf_storage_type: 1
+
+decoder_output_format_converter:
+  in_dtype: "nv12"
+  out_dtype: "rgb888"
+
+holoviz:
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
