@@ -36,7 +36,7 @@ RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
 # Copy over app-specific requirements
-COPY applications/florence-2/requirements.txt /tmp/requirements.txt
+COPY applications/florence-2-vison/requirements.txt /tmp/requirements.txt
 
 # Install setuptools prior to all other requirements to avoid install errors
 RUN python3 -m pip install --no-cache-dir setuptools && \
