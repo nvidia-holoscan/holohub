@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This scripts installs gxf multimedia libraies and corresponding dependecies
+# This scripts installs gxf multimedia libraries and corresponding dependencies
 # required for H264 Encode / Decode applications.
 
 # URL of the DeepStream dependencies required for gxf-mm extensions above
