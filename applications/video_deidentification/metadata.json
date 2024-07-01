@@ -1,0 +1,46 @@
+{
+	"application": {
+		"name": "Real-Time Face and Text Deidentification App",
+		"authors": [
+			{
+				"name": "Wendell Hom",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Jonathan McLeod",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.1.0",
+			"tested_versions": [
+				"2.1.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Computer Vision",
+			"Detection"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet",
+			"libraries": [{
+				"name": "easyocr",
+				"version": "1.7.1"
+			}]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/video_deidentification.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}

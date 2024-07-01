@@ -102,6 +102,8 @@ add_holohub_application(xr_hello_holoscan DEPENDS
                                   XrTransformOp
                                   xr_basic_render)
 
+add_holohub_application(video_deidentification)
+
 add_holohub_application(webrtc_video_server)
 
 add_subdirectory(orsi)
