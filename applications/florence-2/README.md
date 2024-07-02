@@ -49,5 +49,5 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
 
 ## 💻 Supported Hardware
 - IGX w/ dGPU
-- IGX w/ iGPU
 - x86 w/ dGPU
+> Note: iGPU is not yet supported. This app can be built on iGPU devices and the florence2_app.py will run, however, the full QT UI app is not yet supported for iGPU.
