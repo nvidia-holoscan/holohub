@@ -1,0 +1,30 @@
+{
+	"application": {
+		"name": "Segment Anything",
+		"authors": [
+			{
+				"name": "Maximilian Ofir",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.1.0",
+			"tested_versions": [
+				"2.1.0"
+			]
+		},
+		"platforms": ["amd64", "arm64"],
+		"tags": ["SAM", "foundational model", "segmentation"],
+		"ranking": 3,
+		"dependencies": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/segment_one_thing.py",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}
