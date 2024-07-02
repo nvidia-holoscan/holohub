@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE=holohub:ngc-v1.0.3-dgpu
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive

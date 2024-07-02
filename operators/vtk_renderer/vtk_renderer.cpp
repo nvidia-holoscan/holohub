@@ -160,7 +160,7 @@ void VtkRendererOp::compute(InputContext& op_input, OutputContext&, ExecutionCon
   auto videostream = op_input.receive<gxf::Entity>("videostream").value();
   const auto videostream_tensor = videostream.get<Tensor>("");
   if (videostream_tensor) {
-    holoscan::gxf::GXFTensor in_tensor_gxf{videostream_tensor->dl_ctx()};
+    nvidia::gxf::Tensor in_tensor_gxf{videostream_tensor->dl_ctx()};
     auto& shape = in_tensor_gxf.shape();
     const int y = shape.dimension(0);
     const int x = shape.dimension(1);

@@ -50,38 +50,18 @@ and visualization. The tool tracking application uses VTK to render the tool
 tracking results on top of the endoscopy video frames.
 
 
-### How to build the tool tracking application with VTK
+### How to build and run the Endoscopy Tool Tracking application with VTK
 
-Build the HoloHub container as described at the root [README.md](../../README.md)
+The following command builds and runs the Endoscopy Tool Tracking application with VTK:
 
-You need to create a docker image which includes VTK with the provided
-`vtk.Dockerfile` in the `operator/vtk_renderer` subdirectory:
-
-```bash
-docker build -t vtk:latest -f vtk.Dockerfile .
 ```
-Set vtk as the visualizer by:
+# change the configuration to use VTK (vtk_renderer) as the default renderer
+sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 
-* Using a vtk_renderer instead of holoviz
-    ```bash
-    sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
-    ```
-Then, you can build the tool tracking application with the provided
-`Dockerfile`:
-
-```bash
-./dev_container launch --img vtk:latest
+# build and launch the application
+./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile
 ```
 
-Inside the container you can build the application with:
-
-```bash
-./run build endoscopy_tool_tracking --with vtk_renderer
-```
-
-Now you can run the tool tracking application with:
-
-```bash
-./run launch endoscopy_tool_tracking cpp
-```
+Arguments:
+- `--build_with` : instructs the script to build the application with the `vtk_renderer` operator
+- `--docker_file`: instructs the script to use the `operators/vtk_renderer/vtk.Dockerfile` that includes VTK libraries
