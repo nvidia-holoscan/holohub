@@ -37,6 +37,9 @@ from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 # from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
+# Enable this line for vtk rendering
+# from holohub.vtk_renderer import VtkRendererOp
+
 
 class EndoscopyApp(Application):
     def __init__(self, data, record_type=None, source="replayer"):
@@ -73,6 +76,9 @@ class EndoscopyApp(Application):
         rdma = False
         record_type = self.record_type
         is_overlay_enabled = False
+        renderer = self.kwargs("visualizer")["visualizer"]
+        input_video_signal = "receivers" if renderer == "holoviz" else "videostream"
+        input_annotations_signal = "receivers" if renderer == "holoviz" else "annotations"
 
         if self.source.lower() == "aja":
             aja_kwargs = self.kwargs("aja")
@@ -191,25 +197,43 @@ class EndoscopyApp(Application):
         else:
             visualizer_allocator = None
 
-        visualizer = HolovizOp(
-            self,
-            name="holoviz",
-            width=width,
-            height=height,
-            enable_render_buffer_input=is_overlay_enabled,
-            enable_render_buffer_output=is_overlay_enabled or record_type == "visualizer",
-            allocator=visualizer_allocator,
-            cuda_stream_pool=cuda_stream_pool,
-            **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
-        )
+        if renderer == "holoviz":
+            visualizer = HolovizOp(
+                self,
+                name="holoviz",
+                width=width,
+                height=height,
+                enable_render_buffer_input=is_overlay_enabled,
+                enable_render_buffer_output=is_overlay_enabled or record_type == "visualizer",
+                allocator=visualizer_allocator,
+                cuda_stream_pool=cuda_stream_pool,
+                **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
+            )
+        # Uncomment the following lines to use VTK renderer
+        # else:
+        #     visualizer = VtkRendererOp(
+        #         self,
+        #         name="vtk",
+        #         width=width,
+        #         height=height,
+        #         window_name="VTK (Kitware) Python",
+        #         **self.kwargs("vtk_op"),
+        #     )
 
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
-        self.add_flow(
-            tool_tracking_postprocessor,
-            visualizer,
-            {("out_coords", "receivers"), ("out_mask", "receivers")},
-        )
+
+        if renderer == "holoviz":
+            self.add_flow(
+                tool_tracking_postprocessor,
+                visualizer,
+                {("out_coords", input_annotations_signal), ("out_mask", input_annotations_signal)},
+            )
+        else:
+            self.add_flow(
+                tool_tracking_postprocessor, visualizer, {("out_coords", input_annotations_signal)}
+            )
+
         self.add_flow(
             source,
             format_converter,
@@ -224,7 +248,12 @@ class EndoscopyApp(Application):
             self.add_flow(
                 source,
                 visualizer,
-                {("video_buffer_output" if self.source != "replayer" else "output", "receivers")},
+                {
+                    (
+                        "video_buffer_output" if self.source != "replayer" else "output",
+                        input_video_signal,
+                    )
+                },
             )
         if record_type == "input":
             if self.source != "replayer":

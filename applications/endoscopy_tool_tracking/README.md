@@ -56,10 +56,13 @@ The following command builds and runs the Endoscopy Tool Tracking application wi
 
 ```
 # change the configuration to use VTK (vtk_renderer) as the default renderer
-sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
 
 # build and launch the application
-./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile
+# C++
+./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language cpp
+# Python
+./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language python
 ```
 
 Arguments:
