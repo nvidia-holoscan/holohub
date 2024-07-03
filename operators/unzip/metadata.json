@@ -1,0 +1,30 @@
+{
+	"operator": {
+		"name": "unzip",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.1",
+			"tested_versions": [
+				"2.0.1"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"unzip"
+		],
+		"ranking": 2,
+		"dependencies": {}
+	}
+}
