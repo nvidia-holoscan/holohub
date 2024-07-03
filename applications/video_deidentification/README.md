@@ -1,7 +1,8 @@
 # Real-Time Face and Text Deidentification
+<center> <img src="./docs/video_deid.gif" ></center>
 
-This sample application demonstrates the use of a face and text detection models to do real-time video face and text deidentification.
-Regions that the models have identified to be face or text are be blurred out from the final image.
+This sample application demonstrates the use of face and text detection models to do real-time video deidentification.
+Regions identified to be face or text are blurred out from the final image.
 
 > **_NOTE:_** This application is a demonstration of real-time face and text deidentification and is not meant to be used in critical applications
 that has zero error tolerance.  The models used in this sample application have limitations, e.g., in detecting faces and text that are
