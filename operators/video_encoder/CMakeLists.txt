@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(video_encoder)
+project(video_encoder CXX)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+find_package(holoscan 2.1 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(video_encoder SHARED
-  video_encoder_context/video_encoder_context.hpp
-  video_encoder_context/video_encoder_context.cpp
+
+add_library(video_encoder_request SHARED
   video_encoder_request/video_encoder_request.hpp
-  video_encoder_request/video_encoder_request.cpp
-  video_encoder_response/video_encoder_response.hpp
-  video_encoder_response/video_encoder_response.cpp
 )
+set_target_properties(video_encoder_request PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(video_encoder_request PUBLIC holoscan::core)
+
+add_library(video_encoder INTERFACE)
+target_link_libraries(video_encoder INTERFACE video_encoder_request
+)
+
 add_library(holoscan::ops::video_encoder ALIAS video_encoder)
 
 target_include_directories(video_encoder INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(video_encoder holoscan::core)

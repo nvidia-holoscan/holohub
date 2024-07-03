@@ -55,7 +55,13 @@ Towards realtime segmentation, AR overlay and anonymization, a binary segmentati
 ## Launch app
 
 ```bash
-./run launch orsi/orsi_multi_ai_ar cpp
+./run launch orsi_multi_ai_ar cpp
+```
+
+or
+
+```bash
+./run launch orsi_multi_ai_ar python
 ```
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

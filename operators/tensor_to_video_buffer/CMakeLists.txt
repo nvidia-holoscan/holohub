@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,3 +30,7 @@ target_link_libraries(
   tensor_to_video_buffer
   holoscan::core
 )
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

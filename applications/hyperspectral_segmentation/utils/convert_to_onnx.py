@@ -72,7 +72,7 @@ def decompress_file(path):
 
     with path.open("rb") as f:
         meta = pickle.load(f)
-        if type(meta) == tuple:
+        if isinstance(meta, tuple):
             shape, dtype = meta
             data = f.read()
             array = np.empty(shape=shape, dtype=dtype)
