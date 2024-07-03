@@ -59,6 +59,7 @@ target_link_libraries(volume_loader
   PRIVATE
     holoscan::core
     NIFTI::nifti2
+    pybind11::embed
   )
 
 target_include_directories(volume_loader INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -68,3 +69,7 @@ target_compile_definitions(volume_loader PRIVATE HOLOSCAN_MINOR_VERSION=${holosc
 install(TARGETS volume_loader
   COMPONENT holoscan-ops
 )
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
