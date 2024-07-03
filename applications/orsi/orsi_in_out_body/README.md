@@ -32,13 +32,13 @@ Towards realtime anonymization, a binary out-of-body classifier was trained and 
 **C++** 
 
 ```bash
-./run launch orsi/orsi_in_out_body cpp
+./run launch orsi_in_out_body cpp
 ```
 
 **Python**
 
 ```bash
-./run launch orsi/orsi_in_out_body python
+./run launch orsi_in_out_body python
 ```
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

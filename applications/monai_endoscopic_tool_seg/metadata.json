@@ -30,6 +30,10 @@
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/tool_segmentation.py --data <holohub_data_dir>",
+			"workdir": "holohub_bin"
 		}
 	}
 }

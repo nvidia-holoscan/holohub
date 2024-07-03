@@ -706,6 +706,9 @@ launch() {
         --gpus all \
         --cap-add CAP_SYS_PTRACE \
         --ipc=host \
+        -v /dev:/dev \
+        --device-cgroup-rule "c 81:* rmw" \
+        --device-cgroup-rule "c 189:* rmw" \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -e HOME=/workspace/holohub \
         -v /tmp/.X11-unix:/tmp/.X11-unix \

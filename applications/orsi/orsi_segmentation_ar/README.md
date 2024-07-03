@@ -51,7 +51,13 @@ Towards realtime segmentation and AR overlay, a binary segmentation model for no
 ## Launch app
 
 ```bash
-./run launch orsi/orsi_segmentation_ar cpp
+./run launch orsi_segmentation_ar cpp
+```
+
+or
+
+```bash
+./run launch orsi_segmentation_ar python
 ```
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

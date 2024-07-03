@@ -67,6 +67,9 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
     const bool overlay_enabled = (video_source_ != VideoSource::REPLAYER) &&
                     from_config("external_source.enable_overlay").as<bool>();
 
+    std::shared_ptr<Resource> allocator_resource =
+          make_resource<UnboundedAllocator>("unbounded_allocator");
+
     switch (video_source_) {
 #ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:

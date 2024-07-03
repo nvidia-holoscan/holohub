@@ -74,11 +74,10 @@ Then, you can build the tool tracking application with the provided
 ./dev_container launch --img vtk:latest
 ```
 
-Inside the container you can build the holohub suite with:
+Inside the container you can build the application with:
 
 ```bash
-./run build --with vtk_renderer
-./run build
+./run build endoscopy_tool_tracking --with vtk_renderer
 ```
 
 Now you can run the tool tracking application with:

@@ -1,0 +1,41 @@
+{
+  "application": {
+    "name": "H.264 Video Decode Reference Application",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "C++",
+    "version": "2.0",
+    "changelog": {
+      "1.0": "Initial Release",
+      "2.0": "Upgrade to GXF 4.0",
+      "2.1": "Import h.264 GXF Codelets/Components as Holoscan Operators/Resources"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "2.1.0",
+      "tested_versions": ["2.1.0"]
+    },
+    "platforms": ["amd64", "arm64"],
+    "tags": ["H.264", "Video Decoding"],
+    "ranking": 1,
+    "dependencies": {
+      "operators": [
+        {
+          "name": "videodecoder",
+          "version": "1.2.0"
+        },
+        {
+          "name": "videodecoderio",
+          "version": "1.2.0"
+        }
+      ]
+    },
+    "run": {
+      "command": "./h264_video_decode h264_video_decode.yaml --data <holohub_data_dir>/endoscopy",
+      "workdir": "holohub_app_bin"
+    }
+  }
+}
