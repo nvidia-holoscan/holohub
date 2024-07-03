@@ -175,18 +175,10 @@ if __name__ == "__main__":
         help=f"Name of mask volume file to load (default {mask_volume_file_default})",
     )
     parser.add_argument(
-        "-h",
-        "--help",
-        action="help",
-        default=argparse.SUPPRESS,
-        help="Help message"
+        "-h", "--help", action="help", default=argparse.SUPPRESS, help="Help message"
     )
     parser.add_argument(
-        "-u",
-        "--usages",
-        action="help",
-        default=argparse.SUPPRESS,
-        help="Help message"
+        "-u", "--usages", action="help", default=argparse.SUPPRESS, help="Help message"
     )
 
     args = parser.parse_args()
