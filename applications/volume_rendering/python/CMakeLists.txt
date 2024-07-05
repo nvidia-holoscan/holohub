@@ -16,6 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(volume_rendering_python LANGUAGES NONE)
 
+find_package(holoscan 2.1 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable the operators
 add_library(volume_rendering_python INTERFACE)
