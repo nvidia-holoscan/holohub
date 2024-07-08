@@ -83,7 +83,6 @@ run_command() {
         eval "$@"
         status=$?
     fi
-
     return $status
 }
 
@@ -202,6 +201,17 @@ get_app_default_language() {
 
 print_error() {
     echo -e "${RED}ERROR${NOCOLOR}:" $*
+}
+
+
+check_exit_code() {
+  local exit_code=$1
+  local message=$2
+
+  if [ $exit_code -ne 0 ]; then
+      print_error "$message (Exit code: $ret)"
+      exit $exit_code
+  fi
 }
 
 #===========================================================================================
@@ -670,7 +680,11 @@ build() {
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
   run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  ret=$?
+  check_exit_code $ret "Error building application."
   run_command cmake --build ${build_path} -j
+  ret=$?
+  check_exit_code $ret "Error building application."
 
   echo "Holohub build done."
 }

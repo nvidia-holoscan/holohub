@@ -190,9 +190,9 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  const std::string render_config_file_default("../data/volume_rendering/config.json");
-  const std::string density_volume_file_default("../data/volume_rendering/highResCT.mhd");
-  const std::string mask_volume_file_default("../data/volume_rendering/smoothmasks.seg.mhd");
+  const std::string render_config_file_default("../../../data/volume_rendering/config.json");
+  const std::string density_volume_file_default("../../../data/volume_rendering/highResCT.mhd");
+  const std::string mask_volume_file_default("../../../data/volume_rendering/smoothmasks.seg.mhd");
 
   std::string render_config_file;
   std::string density_volume_file;
@@ -200,6 +200,7 @@ int main(int argc, char** argv) {
   int count = -1;
 
   struct option long_options[] = {{"help", no_argument, 0, 'h'},
+                                  {"usages", no_argument, 0, 'u'},
                                   {"config", required_argument, 0, 'c'},
                                   {"density", required_argument, 0, 'd'},
                                   {"mask", required_argument, 0, 'm'},
@@ -210,17 +211,18 @@ int main(int argc, char** argv) {
   while (true) {
     int option_index = 0;
 
-    const int c = getopt_long(argc, argv, "hc:d:m:n:", long_options, &option_index);
+    const int c = getopt_long(argc, argv, "huc:d:m:n:", long_options, &option_index);
 
     if (c == -1) { break; }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
+      case 'u':
         std::cout << "Holoscan ClaraViz volume renderer."
                   << "Usage: " << argv[0] << " [options]" << std::endl
                   << "Options:" << std::endl
-                  << "  -h, --help                            Display this information" << std::endl
+                  << "  -h,-u, --help, --usages               Display this information" << std::endl
                   << "  -c <FILENAME>, --config <FILENAME>    Name of the renderer JSON "
                      "configuration file to load (default '"
                   << render_config_file_default << "')" << std::endl
