@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(cpp)
-add_subdirectory(python)
-
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET volume_loader
+    CLASS_NAME "VolumeLoaderOp"
+    SOURCES volume_loader.cpp
+)

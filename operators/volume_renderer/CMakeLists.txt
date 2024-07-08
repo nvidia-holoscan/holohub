@@ -94,3 +94,7 @@ install(
   TARGETS volume_renderer
   EXPORT holoscan-ops
 )
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
