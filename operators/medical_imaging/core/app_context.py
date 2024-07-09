@@ -63,7 +63,9 @@ class AppContext(object):
         )
 
 
-def init_app_context(argv: Optional[List[str]] = None, runtime_env: Optional[RuntimeEnv] = None) -> AppContext:
+def init_app_context(
+    argv: Optional[List[str]] = None, runtime_env: Optional[RuntimeEnv] = None
+) -> AppContext:
     """Initializes the app context with arguments and well-known environment variables.
 
     The arguments, if passed in, override the attributes set with environment variables.

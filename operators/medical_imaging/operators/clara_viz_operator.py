@@ -133,7 +133,11 @@ class ClaraVizOperator(Operator):
         widget_view_mode = interactive(
             set_view_mode,
             view_mode=Dropdown(
-                options=[("Cinematic", "CINEMATIC"), ("Slice", "SLICE"), ("Slice Segmentation", "SLICE_SEGMENTATION")],
+                options=[
+                    ("Cinematic", "CINEMATIC"),
+                    ("Slice", "SLICE"),
+                    ("Slice Segmentation", "SLICE_SEGMENTATION"),
+                ],
                 value="SLICE_SEGMENTATION",
                 description="View mode",
             ),
@@ -145,7 +149,8 @@ class ClaraVizOperator(Operator):
                 widget.set_settings()
 
         widget_camera = interactive(
-            set_camera, camera=Dropdown(options=["Top", "Right", "Front"], value="Top", description="Camera")
+            set_camera,
+            camera=Dropdown(options=["Top", "Right", "Front"], value="Top", description="Camera"),
         )
 
         display(Box([widget, VBox([widget_view_mode, widget_camera])]))

@@ -55,13 +55,22 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="Set the logging level (default: INFO)",
     )
     parser.add_argument(
-        "--input", "-i", type=argparse_types.valid_existing_path, help="Path to input folder/file (default: input)"
+        "--input",
+        "-i",
+        type=argparse_types.valid_existing_path,
+        help="Path to input folder/file (default: input)",
     )
     parser.add_argument(
-        "--output", "-o", type=argparse_types.valid_dir_path, help="Path to output folder (default: output)"
+        "--output",
+        "-o",
+        type=argparse_types.valid_dir_path,
+        help="Path to output folder (default: output)",
     )
     parser.add_argument(
-        "--model", "-m", type=argparse_types.valid_existing_path, help="Path to model(s) folder/file (default: models)"
+        "--model",
+        "-m",
+        type=argparse_types.valid_existing_path,
+        help="Path to model(s) folder/file (default: models)",
     )
     parser.add_argument(
         "--workdir",

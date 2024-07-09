@@ -25,11 +25,14 @@ from monai.utils import StrEnum  # Will use the built-in StrEnum when SDK requir
 
 from operators.medical_imaging.core import AppContext, Image
 from operators.medical_imaging.utils.importutil import optional_import
+
 from .inference_operator import InferenceOperator
 
 MONAI_UTILS = "monai.utils"
 torch, _ = optional_import("torch", "1.5")
-np_str_obj_array_pattern, _ = optional_import("torch.utils.data._utils.collate", name="np_str_obj_array_pattern")
+np_str_obj_array_pattern, _ = optional_import(
+    "torch.utils.data._utils.collate", name="np_str_obj_array_pattern"
+)
 Dataset, _ = optional_import("monai.data", name="Dataset")
 DataLoader, _ = optional_import("monai.data", name="DataLoader")
 ImageReader_, image_reader_ok_ = optional_import("monai.data", name="ImageReader")
@@ -163,7 +166,9 @@ class MonaiSegInferenceOperator(InferenceOperator):
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_image)
-        spec.output(self.output_name_seg).condition(ConditionType.NONE)  # Downstream receiver optional.
+        spec.output(self.output_name_seg).condition(
+            ConditionType.NONE
+        )  # Downstream receiver optional.
 
     @property
     def roi_size(self):
@@ -304,8 +309,12 @@ class MonaiSegInferenceOperator(InferenceOperator):
         post_transforms: Compose = self._post_transforms
         self._reader = InMemImageReader(input_image)
 
-        pre_transforms = self._pre_transform if self._pre_transform else self.pre_process(self._reader)
-        post_transforms = self._post_transforms if self._post_transforms else self.post_process(pre_transforms)
+        pre_transforms = (
+            self._pre_transform if self._pre_transform else self.pre_process(self._reader)
+        )
+        post_transforms = (
+            self._post_transforms if self._post_transforms else self.post_process(pre_transforms)
+        )
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dataset = Dataset(data=[{self._input_dataset_key: img_name}], transform=pre_transforms)
@@ -326,7 +335,9 @@ class MonaiSegInferenceOperator(InferenceOperator):
                     )
                 elif self._inferer == InfererType.SIMPLE:
                     # Instantiates the SimpleInferer and directly uses its __call__ function
-                    d[self._pred_dataset_key] = simple_inference()(inputs=images, network=self.model)
+                    d[self._pred_dataset_key] = simple_inference()(
+                        inputs=images, network=self.model
+                    )
                 else:
                     raise ValueError(
                         f"Unknown inferer: {self._inferer!r}. Available options are "
@@ -351,7 +362,9 @@ class MonaiSegInferenceOperator(InferenceOperator):
 
                 return Image(out_ndarray, input_img_metadata)
 
-    def pre_process(self, data: Any, *args, **kwargs) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
+    def pre_process(
+        self, data: Any, *args, **kwargs
+    ) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
         """Transforms input before being used for predicting on a model.
 
         This method must be overridden by a derived class.
@@ -368,7 +381,9 @@ class MonaiSegInferenceOperator(InferenceOperator):
         """
         raise NotImplementedError(f"Subclass {self.__class__.__name__} must implement this method.")
 
-    def post_process(self, data: Any, *args, **kwargs) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
+    def post_process(
+        self, data: Any, *args, **kwargs
+    ) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
         """Transforms the prediction results from the model(s).
 
         This method must be overridden by a derived class.
@@ -385,7 +400,9 @@ class MonaiSegInferenceOperator(InferenceOperator):
         """
         raise NotImplementedError(f"Subclass {self.__class__.__name__} must implement this method.")
 
-    def predict(self, data: Any, *args, **kwargs) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    def predict(
+        self, data: Any, *args, **kwargs
+    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
         """Predicts results using the models(s) with input tensors.
 
         This method is currently not used in this class, instead monai.inferers.sliding_window_inference is used.
@@ -490,7 +507,9 @@ class InMemImageReader(ImageReader):
         )
 
         # Use define metadata kyes directly
-        meta_dict[MetaKeys.ORIGINAL_AFFINE] = np.asarray(img_meta_dict.get("nifti_affine_transform", None))
+        meta_dict[MetaKeys.ORIGINAL_AFFINE] = np.asarray(
+            img_meta_dict.get("nifti_affine_transform", None)
+        )
         meta_dict[MetaKeys.AFFINE] = meta_dict[MetaKeys.ORIGINAL_AFFINE].copy()
         meta_dict[MetaKeys.SPACE] = SpaceKeys.LPS  # not using SpaceKeys.RAS or affine_lps_to_ras
         # The spatial shape, again, referring to ITKReader, it is the WHD
@@ -508,7 +527,10 @@ def _copy_compatible_dict(from_dict: Dict, to_dict: Dict):
     if not to_dict:
         for key in from_dict:
             datum = from_dict[key]
-            if isinstance(datum, np.ndarray) and np_str_obj_array_pattern.search(datum.dtype.str) is not None:
+            if (
+                isinstance(datum, np.ndarray)
+                and np_str_obj_array_pattern.search(datum.dtype.str) is not None
+            ):
                 continue
             to_dict[key] = datum
     else:

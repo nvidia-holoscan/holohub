@@ -216,10 +216,16 @@ class DICOMSegmentationWriterOperator(Operator):
                 Whether to omit frames that contain no segmented pixels from the output segmentation.
         """
 
-        self._seg_descs = [sd.to_segment_description(n) for n, sd in enumerate(segment_descriptions, 1)]
+        self._seg_descs = [
+            sd.to_segment_description(n) for n, sd in enumerate(segment_descriptions, 1)
+        ]
         self._custom_tags = custom_tags
         self._omit_empty_frames = omit_empty_frames
-        self.output_folder = output_folder if output_folder else DICOMSegmentationWriterOperator.DEFAULT_OUTPUT_FOLDER
+        self.output_folder = (
+            output_folder
+            if output_folder
+            else DICOMSegmentationWriterOperator.DEFAULT_OUTPUT_FOLDER
+        )
 
         self.input_name_seg = "seg_image"
         self.input_name_series = "study_selected_series_list"
@@ -235,7 +241,9 @@ class DICOMSegmentationWriterOperator(Operator):
         """
         spec.input(self.input_name_seg)
         spec.input(self.input_name_series)
-        spec.input(self.input_name_output_folder).condition(ConditionType.NONE)  # Optional input not requiring sender.
+        spec.input(self.input_name_output_folder).condition(
+            ConditionType.NONE
+        )  # Optional input not requiring sender.
 
     def compute(self, op_input, op_output, context):
         """Performs computation for this operator and handles I/O.
@@ -283,7 +291,10 @@ class DICOMSegmentationWriterOperator(Operator):
         self.process_images(seg_image, study_selected_series_list, output_folder)
 
     def process_images(
-        self, image: Union[Image, Path], study_selected_series_list: List[StudySelectedSeries], output_dir: Path
+        self,
+        image: Union[Image, Path],
+        study_selected_series_list: List[StudySelectedSeries],
+        output_dir: Path,
     ):
         """ """
 
@@ -309,7 +320,9 @@ class DICOMSegmentationWriterOperator(Operator):
         seg_sop_instance_uid = hd.UID()  # generate_uid() can be used too.
 
         output_dir.mkdir(parents=True, exist_ok=True)  # Bubble up the exception if fails.
-        output_path = output_dir / f"{seg_sop_instance_uid}{DICOMSegmentationWriterOperator.DCM_EXTENSION}"
+        output_path = (
+            output_dir / f"{seg_sop_instance_uid}{DICOMSegmentationWriterOperator.DCM_EXTENSION}"
+        )
 
         dicom_dataset_list = [i.get_native_sop_instance() for i in dicom_series.get_sop_instances()]
 
@@ -455,7 +468,10 @@ def test():
     series_selector = DICOMSeriesSelectorOperator(fragment, name="series_selector")
     dcm_to_volume_op = DICOMSeriesToVolumeOperator(fragment, name="series_to_vol")
     seg_writer = DICOMSegmentationWriterOperator(
-        fragment, segment_descriptions=segment_descriptions, output_folder=out_dir, name="seg_writer"
+        fragment,
+        segment_descriptions=segment_descriptions,
+        output_folder=out_dir,
+        name="seg_writer",
     )
 
     # Testing with more granular functions

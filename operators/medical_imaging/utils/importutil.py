@@ -61,7 +61,11 @@ def is_subclass(cls: Type, class_or_tuple: Union[str, Tuple[str]]) -> bool:
         class_or_tuple = (class_or_tuple,)
 
     if hasattr(cls, "_class_id") and cls._class_id in class_or_tuple:
-        if inspect.isclass(cls) and hasattr(cls, "__abstractmethods__") and len(cls.__abstractmethods__) != 0:
+        if (
+            inspect.isclass(cls)
+            and hasattr(cls, "__abstractmethods__")
+            and len(cls.__abstractmethods__) != 0
+        ):
             return False
         return True
     return False
@@ -159,7 +163,9 @@ def exact_version(the_module, version_str: str = "") -> bool:
     Returns True if the module's __version__ matches version_str
     """
     if not hasattr(the_module, "__version__"):
-        warnings.warn(f"{the_module} has no attribute __version__ in exact_version check.", stacklevel=2)
+        warnings.warn(
+            f"{the_module} has no attribute __version__ in exact_version check.", stacklevel=2
+        )
         return False
     return bool(the_module.__version__ == version_str)
 
@@ -230,7 +236,9 @@ def optional_import(
         pkg = __import__(module)  # top level module
         the_module = import_module(module)
         if not allow_namespace_pkg:
-            is_namespace = getattr(the_module, "__file__", None) is None and hasattr(the_module, "__path__")
+            is_namespace = getattr(the_module, "__file__", None) is None and hasattr(
+                the_module, "__path__"
+            )
             if is_namespace:
                 raise AssertionError
         if name:  # user specified to load class/function/... from the module

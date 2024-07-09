@@ -64,7 +64,9 @@ class DICOMSeriesToVolumeOperator(Operator):
         image = self.convert_to_image(study_selected_series_list)
         op_output.emit(image, self.output_name_image)
 
-    def convert_to_image(self, study_selected_series_list: List[StudySelectedSeries]) -> Union[Image, None]:
+    def convert_to_image(
+        self, study_selected_series_list: List[StudySelectedSeries]
+    ) -> Union[Image, None]:
         """Extracts the pixel data from a DICOM Series and other attributes to create an Image object"""
         # For now, only supports the one and only one selected series.
         if not study_selected_series_list or len(study_selected_series_list) < 1:
@@ -133,7 +135,9 @@ class DICOMSeriesToVolumeOperator(Operator):
         photometric_interpretation = (
             slices[0].get_native_sop_instance().get("PhotometricInterpretation", "").strip().upper()
         )
-        presentation_lut_shape = slices[0].get_native_sop_instance().get("PresentationLUTShape", "").strip().upper()
+        presentation_lut_shape = (
+            slices[0].get_native_sop_instance().get("PresentationLUTShape", "").strip().upper()
+        )
 
         if not photometric_interpretation:
             logging.warning("Cannot get value of attribute Photometric Interpretation.")
@@ -189,7 +193,9 @@ class DICOMSeriesToVolumeOperator(Operator):
         """
 
         if len(series._sop_instances) <= 1:
-            series.depth_pixel_spacing = 1.0  # Default to 1, e.g. for CR image, similar to (Simple) ITK
+            series.depth_pixel_spacing = (
+                1.0  # Default to 1, e.g. for CR image, similar to (Simple) ITK
+            )
             return
 
         slice_indices_to_be_removed = []
@@ -400,7 +406,9 @@ class DICOMSeriesToVolumeOperator(Operator):
     def _get_instance_properties(obj: object, not_none: bool = True) -> Dict:
         prop_dict = {}
         if obj:
-            for attribute in [x for x in type(obj).__dict__ if isinstance(type(obj).__dict__[x], property)]:
+            for attribute in [
+                x for x in type(obj).__dict__ if isinstance(type(obj).__dict__[x], property)
+            ]:
                 attr_val = getattr(obj, attribute, None)
                 if not_none:
                     if attr_val is not None:

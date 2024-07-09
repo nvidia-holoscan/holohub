@@ -40,7 +40,9 @@ def valid_dir_path(path: str) -> Path:
         if dir_path.is_dir():
             return dir_path
         else:
-            raise argparse.ArgumentTypeError(f"Expected directory path: {dir_path!r} is not a directory")
+            raise argparse.ArgumentTypeError(
+                f"Expected directory path: {dir_path!r} is not a directory"
+            )
 
     # create directory
     dir_path.mkdir(parents=True)

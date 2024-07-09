@@ -77,7 +77,9 @@ class DICOMSeriesSelectorOperator(Operator):
     }
     """
 
-    def __init__(self, fragment: Fragment, *args, rules: str = "", all_matched: bool = False, **kwargs) -> None:
+    def __init__(
+        self, fragment: Fragment, *args, rules: str = "", all_matched: bool = False, **kwargs
+    ) -> None:
         """Instantiate an instance.
 
         Args:
@@ -98,7 +100,9 @@ class DICOMSeriesSelectorOperator(Operator):
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_study_list)
-        spec.output(self.output_name_selected_series).condition(ConditionType.NONE)  # Receiver optional
+        spec.output(self.output_name_selected_series).condition(
+            ConditionType.NONE
+        )  # Receiver optional
 
         # Can use the config file to alter the selection rules per app run
         # spec.param("selection_rules")
@@ -111,7 +115,9 @@ class DICOMSeriesSelectorOperator(Operator):
         study_selected_series = self.filter(selection_rules, dicom_study_list, self._all_matched)
         op_output.emit(study_selected_series, self.output_name_selected_series)
 
-    def filter(self, selection_rules, dicom_study_list, all_matched: bool = False) -> List[StudySelectedSeries]:
+    def filter(
+        self, selection_rules, dicom_study_list, all_matched: bool = False
+    ) -> List[StudySelectedSeries]:
         """Selects the series with the given matching rules.
 
         If rules object is None, all series will be returned with series instance UID as the selection name.
@@ -164,7 +170,9 @@ class DICOMSeriesSelectorOperator(Operator):
                 series_list = self._select_series(conditions, study, all_matched)
                 if series_list and len(series_list) > 0:
                     for series in series_list:
-                        selected_series = SelectedSeries(selection_name, series, None)  # No Image obj yet.
+                        selected_series = SelectedSeries(
+                            selection_name, series, None
+                        )  # No Image obj yet.
                         study_selected_series.add_selected_series(selected_series)
 
             if len(study_selected_series.selected_series) > 0:
@@ -188,12 +196,16 @@ class DICOMSeriesSelectorOperator(Operator):
             study_selected_series = StudySelectedSeries(study)
             for series in study.get_all_series():
                 logging.info(f"Working on series, instance UID: {str(series.SeriesInstanceUID)}")
-                selected_series = SelectedSeries("", series, None)  # No selection name or Image obj.
+                selected_series = SelectedSeries(
+                    "", series, None
+                )  # No selection name or Image obj.
                 study_selected_series.add_selected_series(selected_series)
             study_selected_series_list.append(study_selected_series)
         return study_selected_series_list
 
-    def _select_series(self, attributes: dict, study: DICOMStudy, all_matched=False) -> List[DICOMSeries]:
+    def _select_series(
+        self, attributes: dict, study: DICOMStudy, all_matched=False
+    ) -> List[DICOMSeries]:
         """Finds series whose attributes match the given attributes.
 
         Args:
@@ -205,7 +217,9 @@ class DICOMSeriesSelectorOperator(Operator):
         """
         assert isinstance(attributes, dict), '"attributes" must be a dict.'
 
-        logging.info(f"Searching study, : {study.StudyInstanceUID}\n  # of series: {len(study.get_all_series())}")
+        logging.info(
+            f"Searching study, : {study.StudyInstanceUID}\n  # of series: {len(study.get_all_series())}"
+        )
         study_attr = self._get_instance_properties(study)
 
         found_series = []
@@ -234,7 +248,9 @@ class DICOMSeriesSelectorOperator(Operator):
                         # Can use some enhancements, especially multi-value where VM > 1
                         elem = series.get_sop_instances()[0].get_native_sop_instance()[key]
                         if elem.VM > 1:
-                            attr_value = [elem.repval]  # repval: str representation of the element’s value
+                            attr_value = [
+                                elem.repval
+                            ]  # repval: str representation of the element’s value
                         else:
                             attr_value = elem.value  # element's value
 
@@ -263,7 +279,9 @@ class DICOMSeriesSelectorOperator(Operator):
                     elif isinstance(value_to_match, (str, numbers.Number)):
                         matched = str(value_to_match).lower() in meta_data_list
                 else:
-                    raise NotImplementedError(f"Not support for matching on this type: {type(value_to_match)}")
+                    raise NotImplementedError(
+                        f"Not support for matching on this type: {type(value_to_match)}"
+                    )
 
                 if not matched:
                     logging.info("This series does not match the selection conditions.")
@@ -283,7 +301,11 @@ class DICOMSeriesSelectorOperator(Operator):
         if not obj:
             return {}
         else:
-            return {x: getattr(obj, x, None) for x in type(obj).__dict__ if isinstance(type(obj).__dict__[x], property)}
+            return {
+                x: getattr(obj, x, None)
+                for x in type(obj).__dict__
+                if isinstance(type(obj).__dict__[x], property)
+            }
 
 
 # Module functions
@@ -341,7 +363,9 @@ def test():
                 _print_instance_properties(ss_obj, pre_fix)
                 print(f"{pre_fix}===============================")
 
-        print(f"  A total of {len(sss_obj.selected_series)} series selected for study {study.StudyInstanceUID}")
+        print(
+            f"  A total of {len(sss_obj.selected_series)} series selected for study {study.StudyInstanceUID}"
+        )
 
 
 # Sample rule used for testing

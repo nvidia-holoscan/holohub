@@ -52,11 +52,15 @@ class PublisherOperator(Operator):
         self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
 
         # Need to get the input folder in init until the execution context supports input path.
-        self.input_folder = Path(input_folder) if input_folder else PublisherOperator.DEFAULT_INPUT_FOLDER
+        self.input_folder = (
+            Path(input_folder) if input_folder else PublisherOperator.DEFAULT_INPUT_FOLDER
+        )
 
         # Need to get the output folder in init until the execution context supports output path.
         # Not trying to create the folder to avoid exception on init
-        self.output_dir = Path(output_folder) if output_folder else PublisherOperator.DEFAULT_OUTPUT_FOLDER
+        self.output_dir = (
+            Path(output_folder) if output_folder else PublisherOperator.DEFAULT_OUTPUT_FOLDER
+        )
 
         super().__init__(*args, **kwargs)
 

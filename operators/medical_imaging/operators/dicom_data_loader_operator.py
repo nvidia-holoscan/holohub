@@ -88,7 +88,9 @@ class DICOMDataLoaderOperator(Operator):
         super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
-        spec.input(self.input_name).condition(ConditionType.NONE)  # Optional input, not requiring upstream emitter.
+        spec.input(self.input_name).condition(
+            ConditionType.NONE
+        )  # Optional input, not requiring upstream emitter.
         spec.output(self.output_name)
 
     def compute(self, op_input, op_output, context):
@@ -102,12 +104,16 @@ class DICOMDataLoaderOperator(Operator):
             pass
 
         if not input_path or not Path(input_path).is_dir():
-            self._logger.info(f"No or invalid input path from the optional input port: {input_path}")
+            self._logger.info(
+                f"No or invalid input path from the optional input port: {input_path}"
+            )
             # Use the object attribute if it is valid
             if self.input_path and self.input_path.is_dir():
                 input_path = self.input_path
             else:
-                raise ValueError(f"No valid input path from input port or obj attribute: {self.input_path}")
+                raise ValueError(
+                    f"No valid input path from input port or obj attribute: {self.input_path}"
+                )
 
         dicom_study_list = self.load_data_to_studies(input_path)
         op_output.emit(dicom_study_list, self.output_name)
@@ -183,10 +189,14 @@ class DICOMDataLoaderOperator(Operator):
                 continue
             sop_instance_uid = sop_instance["SOPInstanceUID"].value
             if "SOPClassUID" not in sop_instance:
-                self._logger.warn(f"Instance ignored due to missing SOP Class UID tag, {sop_instance_uid}")
+                self._logger.warn(
+                    f"Instance ignored due to missing SOP Class UID tag, {sop_instance_uid}"
+                )
                 continue
             if sop_instance["SOPClassUID"].value in DICOMDataLoaderOperator.SOP_CLASSES_TO_IGNORE:
-                self._logger.warn(f"Instance ignored for being in the ignored class, {sop_instance_uid}")
+                self._logger.warn(
+                    f"Instance ignored for being in the ignored class, {sop_instance_uid}"
+                )
                 continue
 
             if study_instance_uid not in study_dict:
@@ -322,7 +332,9 @@ class DICOMDataLoaderOperator(Operator):
             elif tag_imager_pixel_spacing in sop_instance:
                 pixel_spacing_de = sop_instance[tag_imager_pixel_spacing]
             else:
-                raise KeyError("Neither {tag_pixel_spacing} nor {tag_imager_pixel_spacing} in dataset header.")
+                raise KeyError(
+                    "Neither {tag_pixel_spacing} nor {tag_imager_pixel_spacing} in dataset header."
+                )
             if pixel_spacing_de is not None:
                 series.row_pixel_spacing = pixel_spacing_de.value[0]
                 series.col_pixel_spacing = pixel_spacing_de.value[1]
@@ -374,14 +386,20 @@ def test():
                     pass
                 # Need to get pydicom dataset to use properties and get method of a dict.
                 ds = sop.get_native_sop_instance()
-                print(f"   'StudyInstanceUID': {ds.StudyInstanceUID if ds.StudyInstanceUID else ''}")
-                print(f"   'SeriesDescription': {ds.SeriesDescription if ds.SeriesDescription else ''}")
+                print(
+                    f"   'StudyInstanceUID': {ds.StudyInstanceUID if ds.StudyInstanceUID else ''}"
+                )
+                print(
+                    f"   'SeriesDescription': {ds.SeriesDescription if ds.SeriesDescription else ''}"
+                )
                 print(
                     "   'IssuerOfPatientID':"
                     f" {ds.get('IssuerOfPatientID', '').repval if ds.get('IssuerOfPatientID', '') else '' }"
                 )
                 try:
-                    print(f"   'IssuerOfPatientID': {ds.IssuerOfPatientID if ds.IssuerOfPatientID else '' }")
+                    print(
+                        f"   'IssuerOfPatientID': {ds.IssuerOfPatientID if ds.IssuerOfPatientID else '' }"
+                    )
                 except AttributeError:
                     print(
                         "    If the IssuerOfPatientID does not exist, ds.IssuerOfPatientID would throw AttributeError."

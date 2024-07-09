@@ -18,7 +18,9 @@ from .domain import Domain
 
 
 class DataPath(Domain):
-    def __init__(self, path: Union[str, Path], read_only: bool = False, metadata: Optional[Dict] = None):
+    def __init__(
+        self, path: Union[str, Path], read_only: bool = False, metadata: Optional[Dict] = None
+    ):
         """Initializes a DataPath object.
 
         Args:

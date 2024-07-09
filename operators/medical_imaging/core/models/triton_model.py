@@ -105,7 +105,11 @@ class TritonModel(Model):
             found_model = False
             for version_folder in model_folder.iterdir():
                 version_folder_name = version_folder.name
-                if version_folder.is_dir() and version_folder_name.isnumeric() and int(version_folder_name) > 0:
+                if (
+                    version_folder.is_dir()
+                    and version_folder_name.isnumeric()
+                    and int(version_folder_name) > 0
+                ):
                     # 4-1) Each such folder must contain a folder or file whose file name (without extension)
                     #      is 'model'.
                     # TODO(gigony): check config.pbtxt file to see actual model file if specified.

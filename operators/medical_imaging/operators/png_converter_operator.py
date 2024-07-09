@@ -63,7 +63,9 @@ class PNGConverterOperator(Operator):
             output_folder (str or Path): The folder for saving the generated DICOM instance file.
         """
 
-        self.output_folder = output_folder if output_folder else PNGConverterOperator.DEFAULT_OUTPUT_FOLDER
+        self.output_folder = (
+            output_folder if output_folder else PNGConverterOperator.DEFAULT_OUTPUT_FOLDER
+        )
         self.input_name_image = "image"
         # Need to call the base class constructor last
         super().__init__(fragment, *args, **kwargs)

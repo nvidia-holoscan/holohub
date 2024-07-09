@@ -18,7 +18,9 @@ from pathlib import Path
 from typing import Callable, Union
 
 
-def checksum(path: Union[str, Path], hash_fn: str = "sha256", chunk_num_blocks=8192, **kwargs) -> str:
+def checksum(
+    path: Union[str, Path], hash_fn: str = "sha256", chunk_num_blocks=8192, **kwargs
+) -> str:
     """Return checksum of file or directory.
 
     Args:

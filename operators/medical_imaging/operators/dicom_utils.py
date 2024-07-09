@@ -168,7 +168,9 @@ def write_common_modules(
     dt_now = datetime.datetime.now()
     date_now_dcm = dt_now.strftime("%Y%m%d")
     time_now_dcm = dt_now.strftime("%H%M%S")
-    offset_from_utc = dt_now.astimezone().isoformat()[-6:].replace(":", "")  # '2022-09-27T22:36:20.143857-07:00'
+    offset_from_utc = (
+        dt_now.astimezone().isoformat()[-6:].replace(":", "")
+    )  # '2022-09-27T22:36:20.143857-07:00'
 
     # Generate UIDs and descriptions
     my_sop_instance_uid = generate_uid()
@@ -184,9 +186,13 @@ def write_common_modules(
 
     file_meta.MediaStorageSOPClassUID = sop_class_uid
     file_meta.MediaStorageSOPInstanceUID = my_sop_instance_uid
-    file_meta.TransferSyntaxUID = ImplicitVRLittleEndian  # 1.2.840.10008.1.2, Little Endian Implicit VR
+    file_meta.TransferSyntaxUID = (
+        ImplicitVRLittleEndian  # 1.2.840.10008.1.2, Little Endian Implicit VR
+    )
     file_meta.ImplementationClassUID = "1.2.40.0.13.1.1.1"  # Made up. Not registered.
-    file_meta.ImplementationVersionName = equipment_info.software_version_number if equipment_info else ""
+    file_meta.ImplementationVersionName = (
+        equipment_info.software_version_number if equipment_info else ""
+    )
 
     # Write modules to data set
     ds = Dataset()
@@ -277,7 +283,9 @@ def write_common_modules(
         ds_contributing_equipment.ManufacturerModelName = model_info.name
         # u'(111003, DCM, “Algorithm Version")'
         ds_contributing_equipment.SoftwareVersions = model_info.version
-        ds_contributing_equipment.DeviceUID = model_info.uid  # u'(121012, DCM, “Device Observer UID")'
+        ds_contributing_equipment.DeviceUID = (
+            model_info.uid
+        )  # u'(121012, DCM, “Device Observer UID")'
         seq_contributing_equipment.append(ds_contributing_equipment)
         ds.ContributingEquipmentSequence = seq_contributing_equipment
 

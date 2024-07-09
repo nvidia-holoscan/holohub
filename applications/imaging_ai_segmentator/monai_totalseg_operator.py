@@ -44,7 +44,7 @@ from monai.transforms import (
 )
 
 from monai.config import KeysCollection, NdarrayTensor
-from typing import Hashable, Sequence, Union, Dict
+from typing import Sequence, Union, Dict
 from collections.abc import Hashable, Mapping
 from monai.networks.layers import GaussianFilter
 
@@ -153,10 +153,8 @@ class MonaiTotalSegOperator(Operator):
         pre_transforms = self.pre_process(_reader, str(self.output_folder))
         post_transforms = self.post_process(pre_transforms, str(self.output_folder))
 
-        # Load the model directly as this one is the PyTorch model and the MONAI Deploy App SDK model loader
-        # limits the support to TorchScript only
+        # Load the PyTorch model directly as the model factory limits the support to TorchScript as of now
 
-        model_path = self.model_path  # "/home/mqin/src/holoscrub/models_zoo/model.pt"
         _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         _blocks_down: tuple = (1, 2, 2, 4)
         _blocks_up: tuple = (1, 1, 1)
