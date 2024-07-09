@@ -55,8 +55,6 @@ add_holohub_application(high_speed_endoscopy DEPENDS
 
 add_holohub_application(hyperspectral_segmentation)
 
-add_holohub_application(model_benchmarking)
-
 add_holohub_application(multiai_endoscopy)
 
 add_holohub_application(multiai_ultrasound DEPENDS
