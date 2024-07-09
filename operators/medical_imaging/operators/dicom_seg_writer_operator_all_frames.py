@@ -21,9 +21,9 @@ from random import randint
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
 
 import numpy as np
+from holoscan.core import ConditionType, Fragment, Image, Operator, OperatorSpec
 from typeguard import typechecked
 
-from holoscan.core import ConditionType, Fragment, Image, Operator, OperatorSpec
 from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
 from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
 from operators.medical_imaging.utils.importutil import optional_import

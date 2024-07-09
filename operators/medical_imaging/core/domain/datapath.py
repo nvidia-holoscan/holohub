@@ -12,7 +12,8 @@
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-from operators.medical_imaging.exceptions import IOMappingError as IOMappingError, ItemNotExistsError as ItemNotExistsError
+from operators.medical_imaging.exceptions import IOMappingError as IOMappingError
+from operators.medical_imaging.exceptions import ItemNotExistsError as ItemNotExistsError
 
 from .domain import Domain as Domain
 
