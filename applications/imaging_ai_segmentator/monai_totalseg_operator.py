@@ -14,19 +14,15 @@
 # limitations under the License.
 
 import logging
-from numpy import uint8
+from collections.abc import Hashable, Mapping
 from pathlib import Path
-import torch
+from typing import Dict, Sequence, Union
 
 import monai
+import torch
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
-from operators.medical_imaging.core.app_context import AppContext
-from operators.medical_imaging.core.models.model import Model
-from operators.medical_imaging.operators.monai_seg_inference_operator import (
-    InfererType,
-    InMemImageReader,
-    MonaiSegInferenceOperator,
-)
+from monai.config import KeysCollection, NdarrayTensor
+from monai.networks.layers import GaussianFilter
 from monai.transforms import (
     Activationsd,
     AsDiscreted,
@@ -35,18 +31,22 @@ from monai.transforms import (
     EnsureTyped,
     Invertd,
     LoadImaged,
+    MapTransform,
     NormalizeIntensityd,
     Orientationd,
     SaveImaged,
     ScaleIntensityd,
     Spacingd,
-    MapTransform,
 )
+from numpy import uint8
 
-from monai.config import KeysCollection, NdarrayTensor
-from typing import Sequence, Union, Dict
-from collections.abc import Hashable, Mapping
-from monai.networks.layers import GaussianFilter
+from operators.medical_imaging.core.app_context import AppContext
+from operators.medical_imaging.core.models.model import Model
+from operators.medical_imaging.operators.monai_seg_inference_operator import (
+    InfererType,
+    InMemImageReader,
+    MonaiSegInferenceOperator,
+)
 
 
 # from https://github.com/Project-MONAI/MONAI/issues/3178
