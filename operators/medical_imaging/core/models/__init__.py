@@ -24,10 +24,10 @@
     TritonModel
 """
 
-from .factory import ModelFactory
-from .model import Model
-from .named_model import NamedModel
-from .torch_model import TorchScriptModel
-from .triton_model import TritonModel
+from .factory import ModelFactory as ModelFactory
+from .model import Model as Model
+from .named_model import NamedModel as NamedModel
+from .torch_model import TorchScriptModel as TorchScriptModel
+from .triton_model import TritonModel as TritonModel
 
 Model.register([TritonModel, NamedModel, TorchScriptModel, Model])
