@@ -23,6 +23,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
 import numpy as np
 from typeguard import typechecked
 
+from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
+from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
+from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
+from operators.medical_imaging.core.domain.image import Image
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
 
@@ -39,12 +43,6 @@ if TYPE_CHECKING:
 else:
     Code, _ = optional_import("pydicom.sr.coding", name="Code")
     hd, _ = optional_import("highdicom")
-
-from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
-
-from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
-from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
-from operators.medical_imaging.core.domain.image import Image
 
 
 class SegmentDescription:

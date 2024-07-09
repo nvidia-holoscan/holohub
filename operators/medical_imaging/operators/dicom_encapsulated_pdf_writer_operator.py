@@ -19,17 +19,6 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-from operators.medical_imaging.utils.importutil import optional_import
-
-dcmread, _ = optional_import("pydicom", name="dcmread")
-dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
-generate_uid, _ = optional_import("pydicom.uid", name="generate_uid")
-ImplicitVRLittleEndian, _ = optional_import("pydicom.uid", name="ImplicitVRLittleEndian")
-Dataset, _ = optional_import("pydicom.dataset", name="Dataset")
-FileDataset, _ = optional_import("pydicom.dataset", name="FileDataset")
-Sequence, _ = optional_import("pydicom.sequence", name="Sequence")
-PdfReader, _ = optional_import("PyPDF2", name="PdfReader")
-
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
@@ -41,6 +30,15 @@ from operators.medical_imaging.operators.dicom_utils import (
     write_common_modules,
 )
 from operators.medical_imaging.utils.version import get_sdk_semver
+from operators.medical_imaging.utils.importutil import optional_import
+dcmread, _ = optional_import("pydicom", name="dcmread")
+dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
+generate_uid, _ = optional_import("pydicom.uid", name="generate_uid")
+ImplicitVRLittleEndian, _ = optional_import("pydicom.uid", name="ImplicitVRLittleEndian")
+Dataset, _ = optional_import("pydicom.dataset", name="Dataset")
+FileDataset, _ = optional_import("pydicom.dataset", name="FileDataset")
+Sequence, _ = optional_import("pydicom.sequence", name="Sequence")
+PdfReader, _ = optional_import("PyPDF2", name="PdfReader")
 
 
 class DICOMEncapsulatedPDFWriterOperator(Operator):
