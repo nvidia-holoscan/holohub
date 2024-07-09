@@ -22,6 +22,8 @@
     exceptions
 """
 
-from . import _version, exceptions, utils
+from . import _version
+from . import exceptions as exceptions
+from . import utils as utils
 
 __version__ = _version.get_versions()["version"]

@@ -23,10 +23,10 @@
     StudySelectedSeries
 """
 
-from .datapath import DataPath, NamedDataPath
-from .dicom_series import DICOMSeries
-from .dicom_series_selection import SelectedSeries, StudySelectedSeries
-from .dicom_sop_instance import DICOMSOPInstance
-from .dicom_study import DICOMStudy
-from .domain import Domain
-from .image import Image
+from .datapath import DataPath as DataPath, NamedDataPath as NamedDataPath
+from .dicom_series import DICOMSeries as DICOMSeries
+from .dicom_series_selection import SelectedSeries as SelectedSeries, StudySelectedSeries as StudySelectedSeries
+from .dicom_sop_instance import DICOMSOPInstance as DICOMSOPInstance
+from .dicom_study import DICOMStudy as DICOMStudy
+from .domain import Domain as Domain
+from .image import Image as Image
