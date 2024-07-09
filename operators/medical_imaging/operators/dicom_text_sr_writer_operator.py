@@ -27,8 +27,8 @@ from operators.medical_imaging.operators.dicom_utils import (
     save_dcm_file,
     write_common_modules,
 )
-from operators.medical_imaging.utils.version import get_sdk_semver
 from operators.medical_imaging.utils.importutil import optional_import
+from operators.medical_imaging.utils.version import get_sdk_semver
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
