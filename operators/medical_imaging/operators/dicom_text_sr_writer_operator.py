@@ -91,7 +91,11 @@ class DICOMTextSRWriterOperator(Operator):
 
         # Need to init the output folder until the execution context supports dynamic FS path
         # Not trying to create the folder to avoid exception on init
-        self.output_folder = Path(output_folder) if output_folder else DICOMTextSRWriterOperator.DEFAULT_OUTPUT_FOLDER
+        self.output_folder = (
+            Path(output_folder)
+            if output_folder
+            else DICOMTextSRWriterOperator.DEFAULT_OUTPUT_FOLDER
+        )
         self.copy_tags = copy_tags
         self.model_info = model_info if model_info else ModelInfo()
         self.equipment_info = equipment_info if equipment_info else EquipmentInfo()
@@ -165,7 +169,9 @@ class DICOMTextSRWriterOperator(Operator):
                 raise ValueError("Missing input, list of 'StudySelectedSeries'.")
             for study_selected_series in study_selected_series_list:
                 if not isinstance(study_selected_series, StudySelectedSeries):
-                    raise ValueError("Element in input is not expected type, 'StudySelectedSeries'.")
+                    raise ValueError(
+                        "Element in input is not expected type, 'StudySelectedSeries'."
+                    )
                 for selected_series in study_selected_series.selected_series:
                     dicom_series = selected_series.series
                     break
@@ -197,7 +203,12 @@ class DICOMTextSRWriterOperator(Operator):
         output_dir.mkdir(parents=True, exist_ok=True)  # Just in case
 
         ds = write_common_modules(
-            dicom_series, self.copy_tags, self.modality_type, self.sop_class_uid, self.model_info, self.equipment_info
+            dicom_series,
+            self.copy_tags,
+            self.modality_type,
+            self.sop_class_uid,
+            self.model_info,
+            self.equipment_info,
         )
 
         # SR specific
@@ -263,7 +274,9 @@ class DICOMTextSRWriterOperator(Operator):
                         logging.warning(f"Tag {k} was not written, due to {ex}")
 
         # Instance file name is the same as the new SOP instance UID
-        file_path = output_dir.joinpath(f"{ds.SOPInstanceUID}{DICOMTextSRWriterOperator.DCM_EXTENSION}")
+        file_path = output_dir.joinpath(
+            f"{ds.SOPInstanceUID}{DICOMTextSRWriterOperator.DCM_EXTENSION}"
+        )
         save_dcm_file(ds, file_path)
         self._logger.info(f"DICOM SOP instance saved in {file_path}")
 

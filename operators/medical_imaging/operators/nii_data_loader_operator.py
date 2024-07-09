@@ -53,7 +53,9 @@ class NiftiDataLoader(Operator):
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_path).condition(ConditionType.NONE)
-        spec.output(self.output_name_image).condition(ConditionType.NONE)  # Fine for no or not-ready receiver ports.
+        spec.output(self.output_name_image).condition(
+            ConditionType.NONE
+        )  # Fine for no or not-ready receiver ports.
 
     def compute(self, op_input, op_output, context):
         """Performs computation with the provided context."""
@@ -71,7 +73,9 @@ class NiftiDataLoader(Operator):
             if self.input_path and self.input_path.is_file():
                 input_path = self.input_path
             else:
-                raise ValueError(f"No valid file path from input port or obj attribute: {self.input_path}")
+                raise ValueError(
+                    f"No valid file path from input port or obj attribute: {self.input_path}"
+                )
 
         image_np = self.convert_and_save(input_path)
         op_output.emit(image_np, self.output_name_image)
@@ -89,7 +93,10 @@ class NiftiDataLoader(Operator):
 
 def test():
     # Make sure the file path is correct.
-    filepath = Path(__file__).parent.resolve() / "../../../inputs/lung_seg_ct/nii/volume-covid19-A-0001.nii"
+    filepath = (
+        Path(__file__).parent.resolve()
+        / "../../../inputs/lung_seg_ct/nii/volume-covid19-A-0001.nii"
+    )
     fragment = Fragment()
     nii_operator = NiftiDataLoader(fragment, input_path=filepath)
     _ = nii_operator.convert_and_save(filepath)

@@ -227,27 +227,39 @@ class DICOMSeries(Domain):
             result += col_pixel_spacing_attr
 
         if self.depth_pixel_spacing is not None:
-            depth_pixel_spacing_attr = "Depth Pixel Spacing: " + str(self.depth_pixel_spacing) + "\n"
+            depth_pixel_spacing_attr = (
+                "Depth Pixel Spacing: " + str(self.depth_pixel_spacing) + "\n"
+            )
             result += depth_pixel_spacing_attr
 
         if self.row_direction_cosine is not None:
-            row_direction_cosine_attr = "Row Direction Cosine: " + str(self.row_direction_cosine) + "\n"
+            row_direction_cosine_attr = (
+                "Row Direction Cosine: " + str(self.row_direction_cosine) + "\n"
+            )
             result += row_direction_cosine_attr
 
         if self.col_direction_cosine is not None:
-            col_direction_cosine_attr = "Column Direction Cosine: " + str(self.col_direction_cosine) + "\n"
+            col_direction_cosine_attr = (
+                "Column Direction Cosine: " + str(self.col_direction_cosine) + "\n"
+            )
             result += col_direction_cosine_attr
 
         if self.depth_direction_cosine is not None:
-            depth_direction_cosine_attr = "Depth Direction Cosine: " + str(self.depth_direction_cosine) + "\n"
+            depth_direction_cosine_attr = (
+                "Depth Direction Cosine: " + str(self.depth_direction_cosine) + "\n"
+            )
             result += depth_direction_cosine_attr
 
         if self.dicom_affine_transform is not None:
-            dicom_affine_transform_attr = "DICOM affine transform: " + "\n" + str(self.dicom_affine_transform) + "\n"
+            dicom_affine_transform_attr = (
+                "DICOM affine transform: " + "\n" + str(self.dicom_affine_transform) + "\n"
+            )
             result += dicom_affine_transform_attr
 
         if self.nifti_affine_transform is not None:
-            nifti_affine_transform_attr = "NIFTI affine transform: " + "\n" + str(self.nifti_affine_transform) + "\n"
+            nifti_affine_transform_attr = (
+                "NIFTI affine transform: " + "\n" + str(self.nifti_affine_transform) + "\n"
+            )
             result += nifti_affine_transform_attr
 
         result += "---------------" + "\n"

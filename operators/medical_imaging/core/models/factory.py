@@ -39,7 +39,9 @@ class ModelFactory:
             return None
 
     @staticmethod
-    def detect_model_type(path: Union[str, Path], model_type: str = "") -> Tuple[str, Optional[Type[Model]]]:
+    def detect_model_type(
+        path: Union[str, Path], model_type: str = ""
+    ) -> Tuple[str, Optional[Type[Model]]]:
         """Detects the model type based on a model path.
 
         Args:

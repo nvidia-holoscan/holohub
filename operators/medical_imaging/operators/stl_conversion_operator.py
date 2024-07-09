@@ -89,8 +89,12 @@ class STLConversionOperator(Operator):
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_image)
-        spec.input(self.input_name_output_file).condition(ConditionType.NONE)  # Optional, set as needed.
-        spec.output(self.output_name_stl_bytes).condition(ConditionType.NONE)  # No receivers required.
+        spec.input(self.input_name_output_file).condition(
+            ConditionType.NONE
+        )  # Optional, set as needed.
+        spec.output(self.output_name_stl_bytes).condition(
+            ConditionType.NONE
+        )  # No receivers required.
 
     def compute(self, op_input, op_output, context):
         """Gets the input (image), processes it and sets results in the output.
@@ -193,7 +197,9 @@ class STLConverter:
             and s_image.affine is not None
             and np.sum(np.abs(s_image.original_affine - s_image.affine)) > 1e-7
         ):
-            codes = nib.orientations.axcodes2ornt(nib.orientations.aff2axcodes(np.linalg.inv(affine)))
+            codes = nib.orientations.axcodes2ornt(
+                nib.orientations.aff2axcodes(np.linalg.inv(affine))
+            )
             nda = nib.orientations.apply_orientation(np.squeeze(nda), codes)
 
         new_nda = np.zeros(shape=nda.shape, dtype=np.uint8)
@@ -222,7 +228,9 @@ class STLConverter:
         verts, faces, _, _ = measure.marching_cubes(new_nda, level=0.5, step_size=5)
 
         for _j in range(3):
-            verts[:, _j] = (verts[:, _j] + 0.5) * float(nda.shape[_j]) / float(new_nda.shape[_j]) - 0.5
+            verts[:, _j] = (verts[:, _j] + 0.5) * float(nda.shape[_j]) / float(
+                new_nda.shape[_j]
+            ) - 0.5
 
         itk_image = s_image.itk_image
         for _j in range(verts.shape[0]):
@@ -240,7 +248,9 @@ class STLConverter:
             if is_smooth:
                 trimesh.smoothing.filter_taubin(mesh_data, iterations=20)
 
-            final_file_path = output_file if output_file else os.path.join(temp_folder, "surface_mesh.stl")
+            final_file_path = (
+                output_file if output_file else os.path.join(temp_folder, "surface_mesh.stl")
+            )
             mesh_data.export(final_file_path)
             with open(str(final_file_path), "rb") as r_file:
                 stl_bytes = r_file.read()
@@ -264,7 +274,12 @@ class STLConverter:
     @staticmethod
     def resize_volume(nda, output_shape, order=1, preserve_range=True, anti_aliasing=False):
         return resize(
-            nda, output_shape, order=order, mode="constant", preserve_range=preserve_range, anti_aliasing=anti_aliasing
+            nda,
+            output_shape,
+            order=order,
+            mode="constant",
+            preserve_range=preserve_range,
+            anti_aliasing=anti_aliasing,
         )
 
     @staticmethod
@@ -418,14 +433,18 @@ class STLConverter:
                 if num_dims == 5:
                     img_array = np.squeeze(img_array)
                     if len(img_array.shape) != 4:
-                        raise ValueError("Cannot squeeze 5D image to 4D; object doesn't support time based data.")
+                        raise ValueError(
+                            "Cannot squeeze 5D image to 4D; object doesn't support time based data."
+                        )
 
                 if self.is_channels_first:
                     self._logger.info("4D image, channel first")
                 else:
                     self._logger.info("4D image, channel last")
             else:
-                raise NotImplementedError("Object does not support image of dims {}".format(num_dims))
+                raise NotImplementedError(
+                    "Object does not support image of dims {}".format(num_dims)
+                )
 
             self._props["original_affine"] = original_affine
             self._props["affine"] = affine

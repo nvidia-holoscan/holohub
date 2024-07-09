@@ -102,7 +102,11 @@ class TorchScriptModel(Model):
                     prefix_code = True
                 if pivot != -1 and not prefix_data and file_name[pivot:].startswith("/data/"):
                     prefix_data = True
-                if pivot != -1 and not prefix_constants_pkl and file_name[pivot:] == "/constants.pkl":
+                if (
+                    pivot != -1
+                    and not prefix_constants_pkl
+                    and file_name[pivot:] == "/constants.pkl"
+                ):
                     prefix_constants_pkl = True
                 if pivot != -1 and not prefix_data_pkl and file_name[pivot:] == "/data.pkl":
                     prefix_data_pkl = True

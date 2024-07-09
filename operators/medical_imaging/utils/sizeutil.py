@@ -68,7 +68,9 @@ def get_bytes(size: Union[str, int]) -> int:
     if not isinstance(size, str):
         raise TypeError("Size must be a string or integer.")
 
-    m = re.match(r"^\s*(?P<size>(([1-9]\d+)|\d)(\.\d+)?)\s*(?P<unit>[a-z]{1,3})?\s*$", size, re.IGNORECASE)
+    m = re.match(
+        r"^\s*(?P<size>(([1-9]\d+)|\d)(\.\d+)?)\s*(?P<unit>[a-z]{1,3})?\s*$", size, re.IGNORECASE
+    )
     if not m:
         raise ValueError(f"Invalid size string ({size!r}).")
 
