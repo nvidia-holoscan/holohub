@@ -127,10 +127,17 @@ get_app_source_root_dir() {
     app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
     if [[ -n "$app_rel_path" ]]; then
       holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
-    else
-      echo "Could not find subproject ${appname}"
-      exit 1
     fi
+  fi
+
+  # Check if the application is in the benchmarks folder
+  if [ ! -d "$holohub_app_source" ] && [ -d "${SCRIPT_DIR}/benchmarks/${appname}" ]; then
+    holohub_app_source="${SCRIPT_DIR}/benchmarks/${appname}"
+  fi
+
+  if [ ! -d "$holohub_app_source" ]; then
+    echo "Could not find project ${appname}"
+    exit 1
   fi
 
   echo -n "${holohub_app_source}"
@@ -793,7 +800,8 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-for k, v in obj["application"]["run"].items():
+project_type = "benchmark" if "benchmark" in obj.keys() else "application"
+for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')
 
@@ -864,8 +872,9 @@ list() {
   echo "***** HoloHub applications ******"
 
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
+  apps+=$(find ${SCRIPT_DIR}/benchmarks -name 'metadata.json' | sort -d)
   for d in ${apps}; do
-    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}'/(applications|benchmarks)/\K[^ ]*')
 
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
