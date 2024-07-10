@@ -35,7 +35,7 @@ class DICOMStudy(Domain):
         return list(self._series_dict.values())
 
     # Properties named after DICOM Study module attribute keywords
-    # There is only one required (Type 1) attrbute for a study:
+    # There is only one required (Type 1) attribute for a study:
     #     Keyword: StudyInstanceUID, Tag: (0020,000D)
     #
     @property

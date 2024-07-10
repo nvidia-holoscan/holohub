@@ -209,7 +209,7 @@ class DICOMSegmentationWriterOperator(Operator):
                 Object encapsulating the description of each segment present in the segmentation.
             output_folder: Folder for file output, overridden by named input on compute.
                            Defaults to current working dir's child folder, output.
-            custom_tags: Optonal[Dict[str, str]], optional
+            custom_tags: Optional[Dict[str, str]], optional
                 Dictionary for setting custom DICOM tags using Keywords and str values only
             omit_empty_frames: bool, optional
                 Whether to omit frames that contain no segmented pixels from the output segmentation.

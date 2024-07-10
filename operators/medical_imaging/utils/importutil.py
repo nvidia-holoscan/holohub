@@ -31,7 +31,7 @@ def get_docstring(cls: Type) -> str:
     """Get docstring of a class.
 
     Tries to get docstring from class itself, from its __doc__.
-    It trims the preceeding whitespace from docstring.
+    It trims the preceding whitespace from docstring.
     If __doc__ is not available, it returns empty string.
 
     Args:

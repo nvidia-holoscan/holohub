@@ -42,7 +42,7 @@ class STLConversionOperator(Operator):
     """Converts volumetric image to surface mesh in STL format.
 
     If a file path is provided, the STL binary will be saved in the said output folder.
-    This operator also save the STL file as bytes in memory, idenfied by the named output. Being optional,
+    This operator also save the STL file as bytes in memory, identified by the named output. Being optional,
     this output does not require any downstream receiver.
 
     Named inputs:

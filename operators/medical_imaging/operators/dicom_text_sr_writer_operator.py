@@ -50,12 +50,12 @@ class DICOMTextSRWriterOperator(Operator):
         None
 
     File output:
-        Generaed DICOM instance file in the provided output folder.
+        Generated DICOM instance file in the provided output folder.
     """
 
     # File extension for the generated DICOM Part 10 file.
     DCM_EXTENSION = ".dcm"
-    # The default output folder for saveing the generated DICOM instance file.
+    # The default output folder for saving the generated DICOM instance file.
     # DEFAULT_OUTPUT_FOLDER = Path(os.path.join(os.path.dirname(__file__))) / "output"
     DEFAULT_OUTPUT_FOLDER = Path.cwd() / "output"
 
@@ -102,11 +102,9 @@ class DICOMTextSRWriterOperator(Operator):
         self.input_name_text = "text"
         self.input_name_dcm_series = "study_selected_series_list"
 
-        # Set own Modality and SOP Class UID
-        # Modality, e.g.,
+        # Set own Modality and SOP Class UID e.g.,
         #   "OT" for PDF
-        #   "SR" for Structured Report.
-        # Media Storage SOP Class UID, e.g.,
+-       #   "SR" for Structured Report
         #   "1.2.840.10008.5.1.4.1.1.88.11" for Basic Text SR Storage
         #   "1.2.840.10008.5.1.4.1.1.104.1" for Encapsulated PDF Storage,
         #   "1.2.840.10008.5.1.4.1.1.88.34" for Comprehensive 3D SR IOD
@@ -280,7 +278,7 @@ class DICOMTextSRWriterOperator(Operator):
         self._logger.info(f"DICOM SOP instance saved in {file_path}")
 
 
-# Commenting out the following as pttype complains about the contructor for no reason
+# Commenting out the following as pttype complains about the constructor for no reason
 # def test(test_copy_tags: bool = True):
 #     from operators.medical_imaging.operators.dicom_data_loader_operator import DICOMDataLoaderOperator
 #     from operators.medical_imaging.operators.dicom_series_selector_operator import DICOMSeriesSelectorOperator
