@@ -103,8 +103,7 @@ class DICOMTextSRWriterOperator(Operator):
         self.input_name_dcm_series = "study_selected_series_list"
 
         # Set own Modality and SOP Class UID e.g.,
-        #   "OT" for PDF
--       #   "SR" for Structured Report
+        #   "SR" for Structured Report
         #   "1.2.840.10008.5.1.4.1.1.88.11" for Basic Text SR Storage
         #   "1.2.840.10008.5.1.4.1.1.104.1" for Encapsulated PDF Storage,
         #   "1.2.840.10008.5.1.4.1.1.88.34" for Comprehensive 3D SR IOD
