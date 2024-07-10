@@ -107,14 +107,14 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         self.input_name_dcm_series = "study_selected_series_list"
 
         # Set own Modality and Media Storage SOP Class UID, e.g.,
-        #   "OT" for PDF
--       #   "SR" for Structured Report
+        #   "DOC" for PDF
+        #   "SR" for Structured Report
         #   "1.2.840.10008.5.1.4.1.1.88.11" for Basic Text SR Storage
         #   "1.2.840.10008.5.1.4.1.1.104.1" for Encapsulated PDF Storage,
         #   "1.2.840.10008.5.1.4.1.1.88.34" for Comprehensive 3D SR IOD
         #   "1.2.840.10008.5.1.4.1.1.66.4" for Segmentation Storage
         #   '1.2.840.10008.5.1.4.1.1.104.1' for Encapsulated PDF Storage
-        self.modality_type = "OT"
+        self.modality_type = "DOC"
         self.sop_class_uid = "1.2.840.10008.5.1.4.1.1.104.1"
 
         # Equipment version may be different from contributing equipment version
