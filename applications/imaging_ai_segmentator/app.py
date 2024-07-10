@@ -198,7 +198,7 @@ class AISegApp(Application):
         _algorithm_family = codes.DCM.ArtificialIntelligence
         _algorithm_version = "0.1.0"
 
-        # Too simplify, only use Organ as the dummy catergory and type, though the body part
+        # Too simplify, only use Organ as the dummy category and type, though the body part
         # names will be correct.
         segment_descriptions = []
         for i in range(1, 105):  # seg 1 to 104
