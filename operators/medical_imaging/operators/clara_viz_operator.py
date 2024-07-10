@@ -36,7 +36,7 @@ class ClaraVizOperator(Operator):
         seg_image: Image object of the segmentation image derived from the input image.
     """
 
-    def __init__(self, fragement: Fragment, *args, **kwargs):
+    def __init__(self, fragment: Fragment, *args, **kwargs):
         """Constructor of the operator.
 
         Args:
@@ -46,7 +46,7 @@ class ClaraVizOperator(Operator):
         self.input_name_image = "image"
         self.input_name_seg_image = "seg_image"
 
-        super().__init__(fragement, *args, **kwargs)
+        super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_image)

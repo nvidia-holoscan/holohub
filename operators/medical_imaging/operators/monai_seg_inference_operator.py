@@ -64,7 +64,7 @@ class InfererType(StrEnum):
 class MonaiSegInferenceOperator(InferenceOperator):
     """This segmentation operator uses MONAI transforms and Sliding Window Inference.
 
-    This operator preforms pre-transforms on a input image, inference
+    This operator performs pre-transforms on a input image, inference
     using a given model, and post-transforms. The segmentation image is saved
     as a named Image object in memory.
 
@@ -249,7 +249,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
         if not metadata:
             return metadata
 
-        # Try to convert data type for the well knowned attributes. Add more as needed.
+        # Try to convert data type for the well known attributes. Add more as needed.
         if metadata.get("SeriesInstanceUID", None):
             try:
                 metadata["SeriesInstanceUID"] = str(metadata["SeriesInstanceUID"])

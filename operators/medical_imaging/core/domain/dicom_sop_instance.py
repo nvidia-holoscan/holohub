@@ -27,7 +27,7 @@ Tag: Any = Tag_ if tag_ok_ else Any
 
 
 class DICOMSOPInstance(Domain):
-    """This class representes a SOP Instance.
+    """This class represents a SOP Instance.
 
     An attribute can be looked up with a slice ([group_number, element number]).
     """

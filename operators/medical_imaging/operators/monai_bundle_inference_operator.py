@@ -500,7 +500,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         )
 
     def _get_compose(self, obj_name, disallowed_prefixes):
-        """Gets a Compose object containing a sequence fo transforms from item `obj_name` in `self._parser`."""
+        """Gets a Compose object containing a sequence of transforms from item `obj_name` in `self._parser`."""
 
         if self._parser.get(obj_name) is not None:
             compose = self._parser.get_parsed_content(obj_name)
@@ -586,7 +586,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         # `context.models.get(model_name)` returns a model instance if exists.
         # If model_name is not specified and only one model exists, it returns that model.
 
-        # The models are loaded on contruction via the AppContext object in turn the model factory.
+        # The models are loaded on construction via the AppContext object in turn the model factory.
         self._model_network = (
             self.app_context.models.get(self._model_name) if self.app_context.models else None
         )

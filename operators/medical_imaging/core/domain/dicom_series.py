@@ -51,7 +51,7 @@ class DICOMSeries(Domain):
         return self._sop_instances
 
     # Properties named after DICOM Series module attribute keywords
-    # There are two required (Type 1) attrbutes for a series:
+    # There are two required (Type 1) attributes for a series:
     #     Keyword: SeriesInstanceUID, Tag: (0020,000E)
     #     Keyword: Modality, Tag: (0008,0060)
     #

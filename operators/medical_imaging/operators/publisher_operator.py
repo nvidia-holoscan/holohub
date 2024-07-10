@@ -29,10 +29,10 @@ class PublisherOperator(Operator):
     generates the render config file and the meta data file, then save all in the `publish` folder of the app.
     """
 
-    # The default input folder for saveing the generated DICOM instance file.
+    # The default input folder for saving the generated DICOM instance file.
     DEFAULT_INPUT_FOLDER = Path(getcwd()) / "input"
 
-    # The default output folder for saveing the generated DICOM instance file.
+    # The default output folder for saving the generated DICOM instance file.
     DEFAULT_OUTPUT_FOLDER = Path(getcwd()) / "output"
 
     def __init__(
