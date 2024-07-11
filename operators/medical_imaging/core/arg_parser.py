@@ -19,7 +19,7 @@ import logging.config
 from pathlib import Path
 from typing import List, Optional, Union
 
-from monai.deploy.utils import argparse_types
+from operators.medical_imaging.utils import argparse_types
 
 LOG_CONFIG_FILENAME = "logging.json"
 
