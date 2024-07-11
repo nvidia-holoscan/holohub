@@ -78,7 +78,7 @@ class PyVtkRendererOp : public VtkRendererOp {
 
 PYBIND11_MODULE(_vtk_renderer, m) {
   m.doc() = R"pbdoc(
-        TensorToVideoBufferOp Python Bindings
+        VtkRendererOp Python Bindings
         -------------------------------------
         .. currentmodule:: _vtk_renderer
     )pbdoc";
