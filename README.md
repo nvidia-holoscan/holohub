@@ -80,7 +80,7 @@ Alternatively, download HoloHub sources as a ZIP archive from the HoloHub GitHub
 
 ### Build HoloHub (Container)
 
-Simply run the following commands to build the development container. The build may take a few minutes.
+Run the following command to build the default development container. The build may take a few minutes.
 
 ```sh
 $ ./dev_container build
@@ -95,9 +95,9 @@ holohub         ngc-v2.1.0-dgpu   17e3aa51f129   13 days ago     13.2GB
 ...
 ```
 
-***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.1`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
+***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.1`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](/doc/developer.md#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
 
-See also: [Advanced Build Options](./doc/developer.md#advanced-build-options-container)
+See the [HoloHub Developer Reference document](/doc/developer.md) for additional options.
 
 ### Launch HoloHub (Container)
 
@@ -111,7 +111,7 @@ You are now ready to run HoloHub applications! You may jump to the [Running Appl
 
 ***Note***  The `launch` option will use the default development container built using Holoscan SDK's container from NGC for the local GPU. The script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
 
-See also: [Advanced Launch Options](#advanced-launch-options-container)
+See also: [Advanced Launch Options](/doc/developer.md#advanced-launch-options-container)
 
 ### Platform Notes (Container)
 
@@ -174,7 +174,7 @@ Make sure you build the application (if applicable) before running it.
 
 # Cleanup
 
-We recommend running the command below to reset your build directory between building Holohub applications with different configurations:
+You can run the command below to reset your HoloHub `build` directory:
 
 ```sh
 ./run clear_cache
