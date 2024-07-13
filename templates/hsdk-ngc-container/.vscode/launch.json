@@ -1,0 +1,99 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    // https://code.visualstudio.com/docs/editor/variables-reference
+    "configurations": [
+        {
+            "name": "Python: Debug Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "autoReload": {
+                "enable": true
+            },
+            "cwd": "/workspace/build",
+            "env": {
+                "PYTHONPATH": "/opt/nvidia/holoscan/python/lib",
+                "HOLOSCAN_LOG_LEVEL": "DEBUG",
+                "HOLOSCAN_EXECUTOR_LOG_LEVEL": "INFO",
+                "HOLOSCAN_TESTS_DATA_PATH": "/opt/nvidia/holoscan/tests/data",
+                "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
+            },
+        },
+        {
+            "name": "Python C++ Debug",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "Python: Debug Current File",
+            "cppConfig": "default (gdb) Attach",
+        },
+        {
+            "name": "(gdb) Python: Debug Current File",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/bash",
+            "args": [
+                "/workspace/.vscode/debug_python",
+                "${file}",
+            ],
+            "stopAtEntry": false,
+            "cwd": "/workspace/build",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
+                {
+                    "name": "HOLOSCAN_EXECUTOR_LOG_LEVEL",
+                    "value": "INFO"
+                },
+                {
+                    "name": "PYTHONPATH",
+                    "value": "/opt/nvidia/holoscan/python/lib"
+                }
+            ],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) examples/hello_world/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${env:BUILD_DIR}/hello_world/cpp/hello_world",
+            "preLaunchTask": "CMake: Build",
+            "stopAtEntry": false,
+            "cwd": "/workspace/build",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
+            ],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) examples/hello_world/python",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "python.hello_world",
+            "cwd":  "/home/holoscan/examples/hello_world"
+        },
+    ],
+    "inputs": [],
+}
