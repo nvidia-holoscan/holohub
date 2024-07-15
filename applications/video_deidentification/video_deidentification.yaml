@@ -45,7 +45,7 @@ inference:
 
 postprocessor:
   iou_threshold: 0.15
-  score_threshold: 0.1  # detections w/ a score > score_threshold will be considered a positive
+  score_threshold: 0.035  # detections w/ a score > score_threshold will be considered a positive
   box_scale: 35.0
   box_offset: 0.5
   grid_height: 34
