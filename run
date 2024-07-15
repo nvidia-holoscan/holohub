@@ -83,7 +83,6 @@ run_command() {
         eval "$@"
         status=$?
     fi
-
     return $status
 }
 
@@ -128,10 +127,17 @@ get_app_source_root_dir() {
     app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
     if [[ -n "$app_rel_path" ]]; then
       holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
-    else
-      echo "Could not find subproject ${appname}"
-      exit 1
     fi
+  fi
+
+  # Check if the application is in the benchmarks folder
+  if [ ! -d "$holohub_app_source" ] && [ -d "${SCRIPT_DIR}/benchmarks/${appname}" ]; then
+    holohub_app_source="${SCRIPT_DIR}/benchmarks/${appname}"
+  fi
+
+  if [ ! -d "$holohub_app_source" ]; then
+    echo "Could not find project ${appname}"
+    exit 1
   fi
 
   echo -n "${holohub_app_source}"
@@ -202,6 +208,17 @@ get_app_default_language() {
 
 print_error() {
     echo -e "${RED}ERROR${NOCOLOR}:" $*
+}
+
+
+check_exit_code() {
+  local exit_code=$1
+  local message=$2
+
+  if [ $exit_code -ne 0 ]; then
+      print_error "$message (Exit code: $ret)"
+      exit $exit_code
+  fi
 }
 
 #===========================================================================================
@@ -463,13 +480,13 @@ lint() {
     # If we call with --fix
     if [ $FIX == true ]; then
       # Fix python
-      run_command ruff --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      run_command ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
       # Fix python isort issues, run:
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
-                            --skip=*.onnx,Contrastive_learning_Notebook.ipynb || exit_code=1
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+                            --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -493,7 +510,7 @@ lint() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
-    run_command ruff $DIR_TO_RUN --ignore E712 || exit_code=1
+    run_command ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m isort -c $DIR_TO_RUN || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m black --check $DIR_TO_RUN || exit_code=1
 
@@ -512,13 +529,13 @@ lint() {
 
 
     echo "Code spelling"
-    run_command codespell $DIR_TO_RUN --skip="*.onnx,Contrastive_learning_Notebook.ipynb" \
-                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot \
+    run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
+                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
                           --exclude-file codespell.txt || exit_code=1
 
     echo "Linting CMake"
     cmakelint --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs \
-              $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*") || exit_code=1 
+              $(find $DIR_TO_RUN '(' -name CMakeLists.txt -o -name *.cmake ')' -not -path "*build/*" -not -path "*./.*" -not -path "*install/*" -not -path "*tmp/*") || exit_code=1
 
     popd > /dev/null
 
@@ -540,6 +557,8 @@ build_desc() {
   echo "Options:"
   echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
   echo "   --with <list of operators>  : Optional operators that should be built"
+  echo "                                 If multiple operators are to be built, list must be"
+  echo "                                 in quotes with operators separated by semicolons (;)"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
@@ -620,9 +639,9 @@ build() {
          echo "Setting Holoscan SDK install path to ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--with" ]; then
-         operator="${ARGS[i+1]}"
-         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=${operator}"
-         echo "Building with operator ${operator}"
+         operators="${ARGS[i+1]}"
+         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
+         echo "Building with operator(s) ${operators}"
          skipnext=1
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${configure_args} ${ARGS[i+1]}"
@@ -668,7 +687,11 @@ build() {
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
   run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  ret=$?
+  check_exit_code $ret "Error building application."
   run_command cmake --build ${build_path} -j
+  ret=$?
+  check_exit_code $ret "Error building application."
 
   echo "Holohub build done."
 }
@@ -777,7 +800,8 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-for k, v in obj["application"]["run"].items():
+project_type = "benchmark" if "benchmark" in obj.keys() else "application"
+for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')
 
@@ -815,8 +839,8 @@ for k, v in obj["application"]["run"].items():
       workdir="cd ${holohub_build_dir}"
    fi
 
-   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
-   local reset_environment="export PYTHONPATH=${PYTHONPATH}"
+   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR} && export HOLOHUB_DATA_PATH=${holohub_data_dir}"
+   local reset_environment="export PYTHONPATH=${PYTHONPATH} && export HOLOHUB_DATA_PATH=\"${HOLOHUB_DATA_PATH}\""
 
    if [ ${verbose} ]; then
     echo "Run environment: $environment"
@@ -848,8 +872,9 @@ list() {
   echo "***** HoloHub applications ******"
 
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
+  apps+=$(find ${SCRIPT_DIR}/benchmarks -name 'metadata.json' | sort -d)
   for d in ${apps}; do
-    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}'/(applications|benchmarks)/\K[^ ]*')
 
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then

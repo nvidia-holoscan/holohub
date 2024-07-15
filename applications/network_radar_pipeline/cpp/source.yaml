@@ -28,12 +28,11 @@ scheduler:
 tx_params:
   use_ano: true
   samples_per_packet: 1024
-  header_size: 42
   udp_src_port: 4096               # UDP source port
   udp_dst_port: 4096               # UDP destination port
-  ip_src_addr: 192.168.200.15      # Source IP send from
-  ip_dst_addr: 192.168.200.17      # Destination IP to send to
-  eth_dst_addr: a0:88:c2:67:75:cc  # Destination MAC to populate
+  ip_src_addr: 192.168.1.1      # Source IP send from
+  ip_dst_addr: 192.168.1.2      # Destination IP to send to
+  eth_dst_addr: 10:70:fd:fa:77:e9  # Destination MAC to populate
   port_id: 0
 
 basic_network:
@@ -48,19 +47,30 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
-    master_core: 16             # Master CPU core
-    tx:
-      - if_name: 0000:81:00.0   # PCIe BFD of NIC
-        queues:
+    manager: "dpdk"
+    master_core: 0             # Master CPU core
+    memory_regions:
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000
+    interfaces:
+    - name: tx0
+      address: 0000:ca:00.0
+      tx:
+        - queues:
           - name: "ADC Samples"
             id: 0
-            gpu_direct: true
-            gpu_device: 0
-            split_boundary: 42
+            split_boundary: 0
             max_packet_size: 9000      # Maximum payload size
             num_concurrent_batches: 5  # Number of batches that can be used at any time
             batch_size: 10240          # Number of packets in a batch
-            cpu_cores: "17"            # CPU cores for transmitting
+            cpu_core: 1            # CPU cores for transmitting
+            memory_regions:
+              - "Data_TX_GPU"
 
 radar_pipeline:
   is_source: true      # Defines app type (source, process)

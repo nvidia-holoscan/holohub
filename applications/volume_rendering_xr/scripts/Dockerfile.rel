@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG BASE_IMAGE=nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
+FROM ${BASE_IMAGE} as base
+
+# Perform base setup shared with build container
+COPY /applications/volume_rendering_xr/scripts/base-setup.sh \
+    /tmp/base-setup.sh
+COPY applications/volume_rendering_xr/thirdparty/magicleap/MagicLeapRemoteRendering.gpg \
+    /usr/local/share/keyrings/magicleap/MagicLeapRemoteRendering.gpg
+RUN /tmp/base-setup.sh
+
+# Install runtime container packages
+RUN apt update && \
+    apt install --no-install-recommends -y pulseaudio
+RUN if [ -z "$(find /opt/nvidia/holoscan -name 'libholoscan_core*' -print -quit)" ]; then \
+        apt update && \
+        apt install --no-install-recommends -y holoscan; \
+    fi
+
+# copy binaries and data
+WORKDIR /workspace/holohub
+COPY /install install
+COPY /data/volume_rendering_xr data/volume_rendering_xr
+COPY /applications/volume_rendering_xr/configs configs
+COPY /applications/volume_rendering_xr/scripts/docker-entrypoint.sh /scripts/docker-entrypoint.sh
+COPY /applications/volume_rendering_xr/scripts/docker-run-release.sh /scripts/docker-run-release.sh
+COPY /applications/volume_rendering_xr/thirdparty/magicleap /scripts
+
+ENV PATH=${PATH}:/scripts
+
+ENTRYPOINT ["/scripts/docker-entrypoint.sh"]

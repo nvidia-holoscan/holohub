@@ -22,15 +22,21 @@ import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, V4L2VideoCaptureOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    V4L2VideoCaptureOp,
+    VideoStreamReplayerOp,
+)
 from holoscan.resources import UnboundedAllocator
 
 
 class FormatInferenceInputOp(Operator):
     """Operator to format input image for inference"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
@@ -41,16 +47,13 @@ class FormatInferenceInputOp(Operator):
         in_message = op_input.receive("in")
 
         # Transpose
-        tensor = cp.asarray(in_message.get("preprocessed")).get()
-        # OBS: Numpy conversion and moveaxis is needed to avoid strange
-        # strides issue when doing inference
-        tensor = np.moveaxis(tensor, 2, 0)[None]
-        tensor = cp.asarray(tensor)
+        tensor = cp.asarray(in_message.get("preprocessed"))
+        tensor = cp.moveaxis(tensor, 2, 0)[cp.newaxis]
+        # Copy as a contiguous array to avoid issue with strides
+        tensor = cp.ascontiguousarray(tensor)
 
         # Create output message
-        out_message = Entity(context)
-        out_message.add(hs.as_tensor(tensor), "preprocessed")
-        op_output.emit(out_message, "out")
+        op_output.emit(dict(preprocessed=tensor), "out")
 
 
 class PostprocessorOp(Operator):
@@ -328,7 +331,7 @@ class PostprocessorOp(Operator):
 
 
 class BodyPoseEstimationApp(Application):
-    def __init__(self, data, source="v4l2"):
+    def __init__(self, data, source="v4l2", video_device="none"):
         """Initialize the body pose estimation application"""
 
         super().__init__()
@@ -339,37 +342,60 @@ class BodyPoseEstimationApp(Application):
 
         if data == "none":
             data = os.path.join(
-                os.environ.get("HOLOSCAN_DATA_PATH", "../data"), "body_pose_estimation"
+                os.environ.get("HOLOHUB_DATA_PATH", "../data"), "body_pose_estimation"
             )
 
         self.sample_data_path = data
+        self.video_device = video_device
 
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
+        # Input data type of preprocessor
+        in_dtype = "rgb888"
+
+        # Determine if the DDS Publisher is enabled.
+        dds_common_args = self.kwargs("dds_common")
+        dds_publisher_args = dds_common_args | self.kwargs("dds_publisher")
+        enable_dds_publisher = dds_publisher_args["enable"]
+        del dds_publisher_args["enable"]
+
         if self.source == "v4l2":
+            v4l2_args = self.kwargs("v4l2_source")
+            if self.video_device != "none":
+                v4l2_args["device"] = self.video_device
             source = V4L2VideoCaptureOp(
                 self,
                 name="v4l2_source",
                 allocator=pool,
-                **self.kwargs("v4l2_source"),
+                **v4l2_args,
             )
             source_output = "signal"
+            # v4l2 operator outputs RGBA8888
+            in_dtype = "rgba8888"
+        elif self.source == "replayer":
+            source = VideoStreamReplayerOp(
+                self,
+                name="replayer_source",
+                directory=self.sample_data_path,
+                **self.kwargs("replayer_source"),
+            )
+            source_output = "output"
         elif self.source == "dds":
             try:
                 from holohub.dds_video_subscriber import DDSVideoSubscriberOp
             except ImportError:
                 print(
-                    "ERROR: Can not import DDSVideoSubscriper module. Please ensure that "
-                    "the DDS operators have been built (this can be done by building the "
-                    "'dds_video' application)."
+                    "ERROR: Can not import DDSVideoSubscriper module. Please make sure to "
+                    "build this application using the '--with dds_video_subscriber' option."
                 )
                 sys.exit(1)
+            dds_source_args = dds_common_args | self.kwargs("dds_source")
             source = DDSVideoSubscriberOp(
                 self,
                 name="dds_source",
                 allocator=pool,
-                **self.kwargs("dds_source"),
+                **dds_source_args,
             )
             source_output = "output"
 
@@ -384,6 +410,7 @@ class BodyPoseEstimationApp(Application):
             self,
             name="preprocessor",
             pool=pool,
+            in_dtype=in_dtype,
             **preprocessor_args,
         )
 
@@ -409,7 +436,26 @@ class BodyPoseEstimationApp(Application):
             **postprocessor_args,
         )
 
-        holoviz = HolovizOp(self, allocator=pool, name="holoviz", **self.kwargs("holoviz"))
+        holoviz_args = self.kwargs("holoviz")
+        if enable_dds_publisher:
+            holoviz_args["headless"] = True
+            holoviz_args["enable_render_buffer_output"] = True
+        holoviz = HolovizOp(self, allocator=pool, name="holoviz", **holoviz_args)
+
+        if enable_dds_publisher:
+            try:
+                from holohub.dds_video_publisher import DDSVideoPublisherOp
+            except ImportError:
+                print(
+                    "ERROR: Can not import DDSVideoPublisher module. Please make sure to "
+                    "build this application using the '--with dds_video_publisher' option."
+                )
+                sys.exit(1)
+            dds_publisher = DDSVideoPublisherOp(
+                self,
+                name="dds_publisher",
+                **dds_publisher_args,
+            )
 
         self.add_flow(source, holoviz, {(source_output, "receivers")})
         self.add_flow(source, preprocessor)
@@ -417,6 +463,8 @@ class BodyPoseEstimationApp(Application):
         self.add_flow(format_input, inference, {("", "receivers")})
         self.add_flow(inference, postprocessor, {("transmitter", "in")})
         self.add_flow(postprocessor, holoviz, {("out", "receivers")})
+        if enable_dds_publisher:
+            self.add_flow(holoviz, dds_publisher, {("render_buffer_output", "input")})
 
 
 if __name__ == "__main__":
@@ -425,11 +473,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["v4l2", "dds"],
+        choices=["v4l2", "dds", "replayer"],
         default="v4l2",
         help=(
-            "If 'v4l2', uses the v4l2 device specified in the yaml file."
-            "If 'dds', uses the DDS video stream configured in the yaml file."
+            "If 'v4l2', uses the v4l2 device specified in the yaml file or "
+            " --video_device if specified. "
+            "If 'dds', uses the DDS video stream configured in the yaml file. "
+            "If 'replayer', uses video stream replayer."
         ),
     )
     parser.add_argument(
@@ -444,6 +494,13 @@ if __name__ == "__main__":
         default="none",
         help=("Set the data path"),
     )
+    parser.add_argument(
+        "-v",
+        "--video_device",
+        default="none",
+        help=("The video device to use.  By default the application will use /dev/video0"),
+    )
+
     args = parser.parse_args()
 
     if args.config == "none":
@@ -451,6 +508,6 @@ if __name__ == "__main__":
     else:
         config_file = args.config
 
-    app = BodyPoseEstimationApp(args.data, args.source)
+    app = BodyPoseEstimationApp(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()

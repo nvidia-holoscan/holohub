@@ -5,9 +5,10 @@ decode operators. This application makes use of H.264 elementary stream reader
 operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
-_The H.264 video decode operators do not adjust framerate as it reads the elementary
-stream input. As a result the video stream will be displayed as quickly as the decoding can be
-performed. This feature will be coming soon to a new version of the operator._
+_The H.264 video decode operators do not adjust framerate as it reads the
+elementary stream input. As a result the video stream can be displayed as
+quickly as the decoding can be performed. This application uses
+`PeriodicCondition` to play video at the same speed as the source video._
 
 ## Requirements
 
@@ -21,32 +22,26 @@ input file can be specified in the 'h264_video_decode.yaml' file.
 
 The data is automatically downloaded when building the application.
 
-## Building And Running H.264 Endoscopy Tool Tracking Application
+## Building and Running H.264 Endoscopy Tool Tracking Application
 
-Follow steps in README.md from parents directory to build and run the Holohub
-dev container. Once inside the Holohub dev container, follow steps mentioned
-below to build and run H.264 Endoscopy Tool Tracking application.
-
-## Building the application
-
-Once inside Holohub dev container, run below command from a top level Holohub
-directory.
+* Building and running the application from the top level Holohub directory:
 
 ```bash
-./run build h264_video_decode
+# C++ version
+./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language cpp
+
+# Python version
+./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language python
+
 ```
 
-## Running the application
+Important: on aarch64, applications also need tegra folder mounted inside the container and
+the `LD_LIBRARY_PATH` environment variable should be updated to include
+tegra folder path.
 
-* Running the application from the top level Holohub directory
-
-```bash
-./run launch h264_video_decode
-```
-
-* Running the application `h264_video_decode` from the build directory.
+Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
 
 ```bash
-cd <build_dir>/applications/h264/h264_video_decode/ \
-  && ./h264_video_decode --data <HOLOHUB_DATA_DIR>/endoscopy
+# Uncomment the following line for aarch64 support
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```

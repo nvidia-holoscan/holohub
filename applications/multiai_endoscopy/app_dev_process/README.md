@@ -94,7 +94,7 @@ This section uses the Holoscan SDK C++ API to convert the Python application fro
 There are three versions of C++ apps, with the only difference being that they implement the inference post-processing operator `DetectionPostprocessorOp` in different ways:
 
 - `post-proc-cpu`: Multi-AI app running the inference post-processing operator on the CPU using `std` features only.
-- `post-proc-matx-cpu`: Multi-AI app running the inference post-processing operator on the CPU using the [MatX library]([GitHub - NVIDIA/MatX: An efficient C++17 GPU numerical computing library with Python-like syntax](https://github.com/NVIDIA/MatX)).
+- `post-proc-matx-cpu`: Multi-AI app running the inference post-processing operator on the CPU using the [MatX library](https://github.com/NVIDIA/MatX).
 - `post-proc-matx-gpu`: Multi-AI app running  the inference post-processing operator on the GPU using MatX (CUDA).
 
 Each app is defined by the files:

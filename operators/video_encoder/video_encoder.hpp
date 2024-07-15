@@ -18,9 +18,7 @@
 #ifndef HOLOSCAN_OPERATORS_VIDEO_ENCODER_VIDEO_ENCODER
 #define HOLOSCAN_OPERATORS_VIDEO_ENCODER_VIDEO_ENCODER
 
-#include "video_encoder_context/video_encoder_context.hpp"
 #include "video_encoder_request/video_encoder_request.hpp"
-#include "video_encoder_response/video_encoder_response.hpp"
 
 
 #endif  // HOLOSCAN_OPERATORS_VIDEO_ENCODER_VIDEO_ENCODER

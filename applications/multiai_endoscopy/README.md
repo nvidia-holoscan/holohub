@@ -15,7 +15,7 @@ We combine two models from the single model applications [SSD Tool Detection](ht
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
 
 ## Requirements
-Ensure you have installed the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/clara-holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
+Ensure you have installed the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
 
 The directory specified by `--data` at app runtime is assumed to contain three subdirectories, corresponding to the three NGC resources specified in [Model](#model) and [Data](#data): `endoscopy`, `monai_tool_seg_model` and `ssd_model`.  These resources will be automatically downloaded to the holohub data directory when building the application.
 

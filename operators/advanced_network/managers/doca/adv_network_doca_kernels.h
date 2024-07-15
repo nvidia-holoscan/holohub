@@ -27,8 +27,9 @@ extern "C" {
 #endif
 
 doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_t* eth_rxq_gpu,
-                                         uintptr_t* sem_gpu, uint32_t* batch_list,
-                                         uint32_t* gpu_exit_condition);
+                                         uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                         uint32_t* batch_list, uint32_t* gpu_exit_condition,
+                                         bool persistent);
 doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_txq* txq,
                                        struct doca_gpu_buf_arr* buf_arr, uint32_t gpu_pkt0_idx,
                                        const size_t num_pkts, uint32_t max_pkts,

@@ -41,12 +41,12 @@ if(POLICY CMP0146)
   set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
 endif()
 
-set(_clara_viz_version "0.3.1")
+set(_clara_viz_version "0.4.0")
 include(FetchContent)
 FetchContent_Declare(
     ClaraViz
-    URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/v${_clara_viz_version}.tar.gz
-    URL_MD5 8cc1a29481df378a9413bfe1c3083de4
+    URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/${_clara_viz_version}.tar.gz
+    URL_MD5 de6fe03b13384fd3c0921db0f2aa17a4
     )
 
 # enable CMP0077 to allow overwriting option() statements in FetchContent sub-projects
@@ -56,7 +56,7 @@ FetchContent_GetProperties(ClaraViz)
 if(NOT claraviz_POPULATED)
     FetchContent_Populate(ClaraViz)
     set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
-    add_subdirectory(${claraviz_SOURCE_DIR}/thirdparty ${claraviz_BINARY_DIR}/thirdpary)
+    add_subdirectory(${claraviz_SOURCE_DIR}/thirdparty ${claraviz_BINARY_DIR}/thirdparty)
     add_subdirectory(${claraviz_SOURCE_DIR}/src ${claraviz_BINARY_DIR}/src)
 endif()
 set(FETCHCONTENT_QUIET ON)
@@ -64,6 +64,9 @@ set(FETCHCONTENT_QUIET ON)
 set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
 
 find_package(clara_viz_renderer REQUIRED HINTS ${claraviz_SOURCE_DIR}/cmake)
+install(IMPORTED_RUNTIME_ARTIFACTS clara::viz::renderer
+  COMPONENT "volume_renderer"
+)
 
 add_library(volume_renderer SHARED
   dataset.cpp
@@ -86,3 +89,12 @@ target_link_libraries(volume_renderer
 target_include_directories(volume_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(volume_renderer PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
 target_compile_definitions(volume_renderer PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
+
+install(
+  TARGETS volume_renderer
+  EXPORT holoscan-ops
+)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

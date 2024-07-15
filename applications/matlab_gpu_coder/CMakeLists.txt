@@ -16,56 +16,13 @@
 cmake_minimum_required(VERSION 3.20)
 project(matlab_gpu_coder CXX CUDA)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+option(BUILD_IMAGE_PROCESSING "Build image processing" OFF)
+option(BUILD_BEAMFORM "Build beamforming application" OFF)
 
-set(REL_PTH_MATLAB_CODEGEN "codegen")  # Needs changing if building on Jetson
-
-add_library(holoscan_matlab_utils
-  "${CMAKE_CURRENT_SOURCE_DIR}/holoscan_matlab_utils.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/holoscan_matlab_utils.cu"
-)
-# OBS: Including $ENV{MATLAB_ROOT}/extern/include is only needed
-# for x86, however, not setting MATLAB_ROOT does not impact the build process
-target_include_directories(holoscan_matlab_utils
-  PUBLIC
-  "${CMAKE_CURRENT_SOURCE_DIR}/${REL_PTH_MATLAB_CODEGEN}/dll/matlab_beamform"
-  "$ENV{MATLAB_ROOT}/extern/include"
-)
-target_link_libraries(holoscan_matlab_utils
-  PRIVATE
-  holoscan::core
-)
-
-set(EXECUTABLES matlab_beamform)
-
-add_executable(matlab_beamform
-  main.cpp
-)
-
-add_library(matlab_beamform_lib SHARED IMPORTED)
-set_target_properties(matlab_beamform_lib
-  PROPERTIES IMPORTED_LOCATION
-  "${CMAKE_CURRENT_SOURCE_DIR}/${REL_PTH_MATLAB_CODEGEN}/dll/matlab_beamform/matlab_beamform.so"
-)
-
-target_include_directories(matlab_beamform
-  PRIVATE
-  "${CMAKE_CURRENT_SOURCE_DIR}/${REL_PTH_MATLAB_CODEGEN}/dll/matlab_beamform"
-)
-
-target_link_libraries(matlab_beamform
-  PRIVATE
-  holoscan::core
-  holoscan::ops::video_stream_replayer
-  holoscan::ops::holoviz
-  matlab_beamform_lib
-  holoscan_matlab_utils
-)
-
-add_custom_target("matlab_beamform_deps"
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/matlab_beamform.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "matlab_beamform.yaml"
-  BYPRODUCTS "matlab_beamform.yaml"
-)
-add_dependencies(matlab_beamform "matlab_beamform_deps")
+add_subdirectory(matlab_utils)
+if(BUILD_IMAGE_PROCESSING)
+    add_subdirectory(matlab_image_processing)
+endif()
+if(BUILD_BEAMFORM)
+    add_subdirectory(matlab_beamform)
+endif()

@@ -15,7 +15,10 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
-				"0.6.0"
+				"0.6.0",
+				"1.0.3",
+				"2.0.0",
+				"2.1.0"
 			]
 		},
 		"platforms": [
@@ -31,7 +34,7 @@
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
 		},
 		"run": {
-			"command": "python3 ../applications/tao_peoplenet/tao_peoplenet.py",
+			"command": "python3 <holohub_app_source>/tao_peoplenet.py",
 			"workdir": "holohub_bin"
 		}
 	}

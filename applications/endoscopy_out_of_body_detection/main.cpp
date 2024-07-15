@@ -26,26 +26,24 @@
 
 class App : public holoscan::Application {
  public:
-  void set_source(const std::string &source) {
-    if (source == "aja") {
-      is_aja_source_ = true;
-    }
+  void set_source(const std::string& source) {
+    if (source == "aja") { is_aja_source_ = true; }
   }
 
-  void set_datapath(const std::string& path) {
-    datapath = path;
-  }
+  void set_datapath(const std::string& path) { datapath = path; }
 
   void compose() override {
     using namespace holoscan;
+    const bool enable_analytics = from_config("enable_analytics").as<bool>();
 
     std::shared_ptr<Operator> source;
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
     if (is_aja_source_) {
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
     } else {
-      source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
-                                                                     Arg("directory", datapath));
+      const std::string replayer_config = enable_analytics ? "analytics_replayer" : "replayer";
+      source = make_operator<ops::VideoStreamReplayerOp>(
+          "replayer", from_config(replayer_config), Arg("directory", datapath));
     }
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");
@@ -59,16 +57,19 @@ class App : public holoscan::Application {
     ops::InferenceOp::DataMap model_path_map;
     model_path_map.insert("out_of_body", datapath + "/out_of_body_detection.onnx");
 
-    auto out_of_body_inference = make_operator<ops::InferenceOp>(
-        "out_of_body_inference", from_config("out_of_body_inference"),
-        Arg("model_path_map", model_path_map),
-        Arg("allocator") = pool_resource);
+    auto out_of_body_inference =
+        make_operator<ops::InferenceOp>("out_of_body_inference",
+                                        from_config("out_of_body_inference"),
+                                        Arg("model_path_map", model_path_map),
+                                        Arg("allocator") = pool_resource);
 
+    const std::string out_of_body_postprocessor_config =
+        enable_analytics ? "analytics_out_of_body_postprocessor" : "out_of_body_postprocessor";
     auto out_of_body_postprocessor =
         make_operator<ops::InferenceProcessorOp>("out_of_body_postprocessor",
-                                                   from_config("out_of_body_postprocessor"),
-                                                   Arg("allocator") = pool_resource,
-                                                   Arg("disable_transmitter") = true);
+                                                 from_config(out_of_body_postprocessor_config),
+                                                 Arg("allocator") = pool_resource,
+                                                 Arg("disable_transmitter") = true);
 
     // Flow definition
     if (is_aja_source_) {
@@ -89,13 +90,9 @@ class App : public holoscan::Application {
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {
-      {"data",    required_argument, 0,  'd' },
-      {0,         0,                 0,  0 }
-  };
+  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "d",
-                   long_options, NULL))  {
+  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
@@ -108,21 +105,17 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) {
-    config_name = argv[optind++];
-  }
+  if (optind < argc) { config_name = argv[optind++]; }
   return true;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) {
-    return 1;
-  }
+  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
 
   if (config_name != "") {
     app->config(config_name);

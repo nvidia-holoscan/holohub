@@ -16,6 +16,7 @@
 import argparse
 import os
 import queue
+import sys
 import time
 
 import pydot
@@ -140,11 +141,23 @@ def create_graph(
     edge_avg_latencies,
     edge_max_latencies,
     num_samples,
+    highlight,
 ):
+    # Go through all of the operator's average latencies and find the average
+    if highlight and len(operator_avg_latencies) > 0:
+        values = operator_avg_latencies.values()
+        total_sum = sum(values)
+        avg_op_latency = total_sum / len(values)
+
     graph = pydot.Dot(graph_type="digraph")
     for op, latency in operator_avg_latencies.items():
+        color = "red" if highlight and (latency > avg_op_latency) else "black"
+        penwidth = "2.0" if highlight and (latency > avg_op_latency) else "1.0"
         node = pydot.Node(
-            op, label="{}\navg: {:.2f}\nmax: {:.2f}".format(op, latency, operator_max_latencies[op])
+            op,
+            color=color,
+            penwidth=penwidth,
+            label="{}\navg: {:.2f}\nmax: {:.2f}".format(op, latency, operator_max_latencies[op]),
         )
         graph.add_node(node)
     for edge, latency in edge_avg_latencies.items():
@@ -172,10 +185,16 @@ def add_graph_labels(graph, num_samples):
     return graph
 
 
-def main():
+def parse_arguments():
     parser = argparse.ArgumentParser(description="Show the application graph with latency data.")
     parser.add_argument(
         "filenames", nargs="+", help="The files to plot. In live mode, provide a folder."
+    )
+    parser.add_argument(
+        "-h",
+        "--highlight",
+        action="store_true",
+        help="highlight nodes in the graph whose average latency is higher than the average of all the operators",
     )
     parser.add_argument(
         "-l", "--live", action="store_true", help="live mode: keep updating the graph with new data"
@@ -199,14 +218,50 @@ def main():
     if not args.live:
         filenames = args.filenames
         if len(filenames) == 0:
-            print("No filenames provided")
+            print("Error: No filenames provided")
             parser.print_help()
-            return
+            sys.exit()
         # check if the files exist
         for filename in filenames:
             if not os.path.isfile(filename):
-                print("File {} does not exist or is not a file.".format(filename))
-                return
+                print("Error: File {} does not exist or is not a file.".format(filename))
+                sys.exit()
+    else:
+        directory = args.filenames[0]
+        print(
+            "In live mode. The program will keep updating the graph with new \
+                performance data in the provided folder {}.\
+                Press Ctrl+C to stop.".format(
+                directory
+            )
+        )
+        if len(args.filenames) > 1:
+            print(
+                "\033[91mfilenames arguments has {} values. In live mode,\
+                    only one folder is acceptable. Provide one folder as filenames\
+                    in live mode. Exiting.\033[0m".format(
+                    len(args.filenames)
+                )
+            )
+            parser.print_help()
+            sys.exit()
+        # check if directory is a folder
+        if not os.path.isdir(directory):
+            print(
+                "\033[91mThe folder {} does not exist or is not a folder.\
+                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(
+                    directory
+                )
+            )
+            parser.print_help()
+            sys.exit()
+
+    return args
+
+
+def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
+    if not live_graph:
+        filenames = filenames
         operator_avg_latencies = {}
         operator_max_latencies = {}
         edge_avg_latencies = {}
@@ -235,40 +290,17 @@ def main():
             edge_avg_latencies,
             edge_max_latencies,
             num_samples,
+            highlight,
         )
         graph = add_graph_labels(graph, num_samples)
-        graph.write(args.output)
-        print("The graph with performance numbers is written to file {}".format(args.output))
+        graph.write(output_filename)
+        if verbose:
+            print(
+                "The graph with performance numbers is written to file {}".format(output_filename)
+            )
     else:
         # live mode
-        directory = args.filenames[0]
-        print(
-            "In live mode. The program will keep updating the graph with new \
-                performance data in the provided folder {}.\
-                Press Ctrl+C to stop.".format(
-                directory
-            )
-        )
-        if len(args.filenames) > 1:
-            print(
-                "\033[91mfilenames arguments has {} values. In live mode,\
-                    only one folder is acceptable. Provide one folder as filenames\
-                    in live mode. Exiting.\033[0m".format(
-                    len(args.filenames)
-                )
-            )
-            parser.print_help()
-            return
-        # check if directory is a folder
-        if not os.path.isdir(directory):
-            print(
-                "\033[91mThe folder {} does not exist or is not a folder.\
-                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(
-                    directory
-                )
-            )
-            parser.print_help()
-            return
+        directory = filenames[0]
         operator_avg_latencies = {}
         operator_max_latencies = {}
         edge_avg_latencies = {}
@@ -278,13 +310,12 @@ def main():
         while True:
             log_files = [f for f in os.listdir(directory) if f.endswith(".log")]
             if len(log_files) == 0:
-                print(
-                    "No log files (files ending with .log extension) is found\
-                        in the folder {}.".format(
-                        directory
+                if verbose:
+                    print(
+                        "No log files (files ending with .log extension) is found in the folder {}.".format(
+                            directory
+                        )
                     )
-                )
-                if args.verbose:
                     print("sleeping for 1 seconds")
                 time.sleep(1)
                 continue
@@ -321,22 +352,26 @@ def main():
                         edge_avg_latencies,
                         edge_max_latencies,
                         num_samples,
+                        highlight,
                     )
-                    if args.verbose:
+                    if verbose:
                         print(
                             "Read file {} - Line number: {}".format(filename, read_files[filename])
                         )
                     graph = add_graph_labels(graph, num_samples)
-                    graph.write(args.output)
-                    print(
-                        "The graph with performance numbers is updated in file {}".format(
-                            args.output
+                    graph.write(output_filename)
+                    if verbose:
+                        print(
+                            "The graph with performance numbers is updated in file {}".format(
+                                output_filename
+                            )
                         )
-                    )
-            if args.verbose:
+
+            if verbose:
                 print("sleeping for 1 seconds")
             time.sleep(1)
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_arguments()
+    create_dot_file(args.filenames, args.output, args.live, args.verbose, args.highlight)

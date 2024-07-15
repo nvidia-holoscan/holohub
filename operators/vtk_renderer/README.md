@@ -29,11 +29,10 @@ Then, you can build the tool tracking application with the provided
 ./dev_container launch --img vtk:latest
 ```
 
-Inside the container you can build the holohub suite with:
+Inside the container you can build the holohub application with:
 
 ```bash
-./run build --with vtk_renderer
-./run build
+./run build <application> --with vtk_renderer
 ```
 
 ##### Parameters

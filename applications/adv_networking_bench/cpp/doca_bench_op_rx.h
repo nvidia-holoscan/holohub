@@ -19,9 +19,6 @@
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -52,14 +49,10 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     // For this example assume all packets are the same size, specified in the config
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
 
-    if (!gpu_direct_.get()) {
-      cudaMallocHost(&full_batch_data_h_, batch_size_.get() * nom_payload_size_);
-    }
-
     for (int n = 0; n < num_concurrent; n++) {
-      cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
       cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
       cudaStreamCreateWithFlags(&streams_[n], cudaStreamNonBlocking);
+      cudaMallocAsync(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_, streams_[n]);
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel
@@ -74,11 +67,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     // spec.param<bool>(hds_, "split_boundary", "Header-data split boundary",
     //     "Byte boundary where header and data is split", false);
-    spec.param<bool>(gpu_direct_,
-                     "gpu_direct",
-                     "GPUDirect enabled",
-                     "Byte boundary where header and data is split",
-                     false);
     spec.param<uint32_t>(batch_size_,
                          "batch_size",
                          "Batch size",
@@ -94,7 +82,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
                          "Header size",
                          "Header size on each packet from L4 and below",
                          42);
-    spec.param<bool>(gpu_comms_, "gpu_comms", "GPU Coummunications enabled", "GDAKIN", false);
   }
 
   void free_bufs() {
@@ -125,7 +112,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
     // In config file, queue 0 is for all other non-UDP packets so we don't care
     if (adv_net_get_q_id(burst) == 0) {
-      HOLOSCAN_LOG_INFO("Ignoring packets on queue 0");
+      // HOLOSCAN_LOG_INFO("Ignoring packets on queue 0");
       return;
     }
 
@@ -139,8 +126,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
         }
 
         // HOLOSCAN_LOG_INFO("Launch order kernel, aggr_pkts_recv_ {} pkt_idx {} batch_size_.get()
-        // {} cur_idx {}",
-        //                     aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
+        // {} cur_idx {}", aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
 #if DEBUG_CUDA_TIMES == 1
         float et_ms = 0;
         cudaEventRecord(events_start_[cur_idx], streams_[cur_idx]);
@@ -173,7 +159,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       }
 
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_gpu_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
@@ -201,8 +187,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
   void* full_batch_data_h_;                        // Host-pinned aggregated batch
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
-  Parameter<bool> gpu_direct_;                           // GPUDirect enabled
-  Parameter<bool> gpu_comms_;                            // GDAKIN GPU communications enabled
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet

@@ -2,32 +2,46 @@
 
 Use the TAO PeopleNet available on [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet) to detect faces and people in a V4L2 supported video stream. HoloViz is used to draw bounding boxes around the detections.
 
-**Prerequisite**: Download the PeopleNet ONNX model from the NGC website:
-```sh
-wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/tao/peoplenet/pruned_quantized_decrypted_v2.3.3/files?redirect=true&path=resnet34_peoplenet_int8.onnx' -O applications/tao_peoplenet/resnet34_peoplenet_int8.onnx
-```
+## Model
 
-## Requirements
+This application uses the TAO PeopleNet model from [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet) for face and person classification.
+The model is downloaded when building the application.
 
-### Containerized Development
+## Data
 
-If using a container outside the Holoscan SDK `run` script, add `--group-add video` and `--device /dev/video0:/dev/video0` (or the ID of whatever device you'd like to use) to the `docker run` command to make your camera device available in the container.
+This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/) when the application is built for use with this application.  Please review the [license terms](https://www.pexels.com/license/) from Pexels.
 
-### Local Development
+> **_NOTE:_** The user is responsible for checking if the dataset license is fit for the intended purpose.
 
-Install the following dependency:
-```sh
-sudo apt-get install libv4l-dev=1.18.0-2build1
-```
+## Input
 
-If you do not have permissions to open the video device, do:
-```sh
- sudo usermod -aG video $USER
-```
+This app currently supports three different input options:
+
+1. v4l2 compatible input device (default, see V4L2 Support below)
+2. pre-recorded video (see Video Replayer Support below)
 
 ## Run Instructions
 
-Run with:
+## V4L2 Support
+
+This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
+please plug in your input device and run:
 ```sh
-./run launch tao_peoplenet
+./dev_container build_and_run tao_peoplenet
+```
+
+By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
+`applications/tao_peoplenet/tao_peoplenet.yaml` and set it to use the corresponding input device before
+running the application.  You can also override the default input device on the command line by running:
+```sh
+./dev_container build_and_run tao_peoplenet --run_args "--video_device /dev/video0"
+```
+
+## Video Replayer Support
+
+If you don't have a v4l2 compatible device plugged in, you may also run this application on a pre-recorded video.
+To launch the application using the Video Stream Replayer as the input source, run:
+
+```sh
+./dev_container build_and_run tao_peopelnet --run_args "--source replayer"
 ```

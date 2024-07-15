@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(shapes)
+add_holohub_operator(dds_shapes_subscriber)
 add_subdirectory(video)
 
-add_subdirectory(base)
+# Needs to be last
+if(BUILD_dds_operator_base)
+  add_subdirectory(base)
+endif()

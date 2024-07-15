@@ -11,6 +11,8 @@ from the Holoscan pipeline. This application is a modified version of Endoscopy
 Tool Tracking reference application in Holoscan SDK that supports H.264
 elementary streams as the input and output.
 
+[Building and Running the H.264 Endoscopy Tool Tracking Application](./h264_endoscopy_tool_tracking/README.md)
+
 ## H.264 Video Decode Application
 
 This is a minimal reference application demonstrating usage of H.264 video
@@ -18,40 +20,4 @@ decode operators. This application makes use of H.264 elementary stream reader
 operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
-## Building And Running Applications from Holohub Dev Container
-
-### Building Holohub Dev Container
-
-Use the following command from the Holohub root dir to builds the Holohub dev container with
-h264 support.
-
-```bash
-./dev_container build --docker_file ./applications/h264/Dockerfile \
-                      --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu \
-                      --img holohub:h264
-```
-
-### Starting Holohub Dev Container 
-
-Start Holohub dev container from current directory using below command:
-
-On x86:
-
-```bash
-./dev_container launch --img holohub:h264
-```
-
-On aarch64, applications also need tegra folder mounted inside the container and
-the `LD_LIBRARY_PATH` environment variable should be updated to include
-tegra folder path.
-
-Once inside the container on aarch64, run:
-
-```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
-```
-
-### Building And Running H.264 Applications
-
-Once inside Holohub dev container, follow steps mentioned in README.md from
-each application directory to build and run that reference application.
+[Building and Running the H.264 Video Decode Application](./h264_video_decode//README.md)

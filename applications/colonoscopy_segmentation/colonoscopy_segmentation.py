@@ -49,7 +49,7 @@ class ColonoscopyApp(Application):
         self.source = source
 
         if data == "none":
-            data = os.environ.get("HOLOSCAN_DATA_PATH", "../data")
+            data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
         self.sample_data_path = data
 

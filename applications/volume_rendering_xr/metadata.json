@@ -1,87 +1,98 @@
-{ 
- "application": {
-	"name": "Medical Image viewer in XR",
-	"authors": [
-		{
-			"name": "Andreas Heumann",
-			"affiliation": "NVIDIA"
-		},
-		{
-			"name": "Connor Smith",
-			"affiliation": "NVIDIA"
-		},
-		{
-			"name": "Cristiana Dinea",
-			"affiliation": "NVIDIA"
-		},
-		{
-			"name": "Tom Birdsong",
-			"affiliation": "NVIDIA"
-		},
-		{
-			"name": "Antonio Ospite",
-			"affiliation": "Magic Leap"
-		},
-		{
-			"name": "Jiwen Cai",
-			"affiliation": "Magic Leap"
-		},
-		{
-			"name": "Jochen Stier",
-			"affiliation": "Magic Leap"
-		},
-		{
-			"name": "Korcan Hussein",
-			"affiliation": "Magic Leap"
-		},
-		{
-			"name": "Robbie Bridgewater",
-			"affiliation": "Magic Leap"
-		}
-	],
-	"language": "C++",
-	"version": "1.0",
-	"changelog": {
-		"0.0": "Initial release",
-		"0.1": "Update for Magic Leap 2 firmware v1.5.0",
-		"0.2": "Update for Magic Leap 2 firmware v1.6.0",
-		"1.0": "Enhance interactivity and update for Holoscan SDK v2.0.0 deployment stack"
-	},
-	"holoscan_sdk": {
-		"minimum_required_version": "2.0.0",
-		"tested_versions": [
-			"2.0.0"
-		]
-	},
-	"platforms": ["amd64", "arm64"],
-	"tags": ["Volume", "Rendering", "OpenXR","Mixed","Reality","XR"],
-	"ranking": 2,
-	"dependencies": {
-		"hardware": [
+{
+	"application": {
+		"name": "Medical Image viewer in XR",
+		"authors": [
 			{
-				"name": "Magic Leap 2",
-				"description": "Magic Leap 2 mixed reality headset",
-				"url": "https://www.magicleap.com/magic-leap-2"
+				"name": "Andreas Heumann",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Cristiana Dinea",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Tom Birdsong",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Antonio Ospite",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Jiwen Cai",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Jochen Stier",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Korcan Hussein",
+				"affiliation": "Magic Leap"
+			},
+			{
+				"name": "Robbie Bridgewater",
+				"affiliation": "Magic Leap"
 			}
 		],
-		"libraries": [
-			{
-			"name": "windrunner",
-			"description": "Magic Leap OpenXR native backend",
-			"version": "1.11.73",
-			"license": "Magic Leap 2 Software Agreement",
-			"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
-			},
-			{	"name": "Magic Leap Remote Viewer apk",
-				"version": "1.11.64",
-				"license": "Magic Leap 2 Software Agreement",
-				"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
-			}
-		]
-	},
-	"run": {
-		"command": "<holohub_app_bin>/volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
-		"workdir": "<holohub_app_bin>"
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"0.0": "Initial release",
+			"0.1": "Update for Magic Leap 2 firmware v1.5.0",
+			"0.2": "Update for Magic Leap 2 firmware v1.6.0",
+			"1.0": "Enhance interactivity and update for Holoscan SDK v2.0.0 deployment stack"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Volume",
+			"Rendering",
+			"OpenXR",
+			"Mixed",
+			"Reality",
+			"XR"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"hardware": [
+				{
+					"name": "Magic Leap 2",
+					"description": "Magic Leap 2 mixed reality headset",
+					"url": "https://www.magicleap.com/magic-leap-2"
+				}
+			],
+			"libraries": [
+				{
+					"name": "windrunner",
+					"description": "Magic Leap OpenXR native backend",
+					"version": "1.11.73",
+					"license": "Magic Leap 2 Software Agreement",
+					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+				},
+				{
+					"name": "Magic Leap Remote Viewer apk",
+					"version": "1.11.64",
+					"license": "Magic Leap 2 Software Agreement",
+					"license-url": "https://www.magicleap.com/software-license-agreement-ml2"
+				}
+			]
+		},
+		"run": {
+			"command": "if [ -v ML_START_OPTIONS ]; then ml_start.sh ${ML_START_OPTIONS}; else ml_start.sh debug; fi && ml_pair.sh && <holohub_app_bin>/volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
+			"workdir": "<holohub_app_bin>"
+		}
 	}
-  }
 }

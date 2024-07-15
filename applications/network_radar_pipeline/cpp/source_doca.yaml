@@ -1,0 +1,82 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 8
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+tx_params:
+  use_ano: true
+  samples_per_packet: 1024
+  udp_src_port: 4096               # UDP source port
+  udp_dst_port: 4096               # UDP destination port
+  ip_src_addr: 192.168.1.1      # Source IP send from
+  ip_dst_addr: 192.168.1.2      # Destination IP to send to
+  eth_dst_addr: 10:70:fd:fa:77:e9  # Destination MAC to populate
+  port_id: 0
+
+basic_network:
+  batch_size: 100            # RX message batch size
+  max_payload_size: 8208     # Max bytes of single packet (stride)
+  dst_port: 4096             # Destination port
+  l4_proto: "udp"            # Protocol ('udp' or "tcp")
+  ip_addr: "192.168.200.17"  # Destination IP address
+  min_ipg_ns: 0              # Minimum inter-packet gap (nano-seconds)
+  retry_connect: 1
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "doca"
+    master_core: 16             # Master CPU core
+    memory_regions:
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000
+    interfaces:
+    - name: tx0
+      address: 0000:ca:00.0
+      tx:
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            split_boundary: 0
+            max_packet_size: 9000      # Maximum payload size
+            num_concurrent_batches: 5  # Number of batches that can be used at any time
+            batch_size: 10240          # Number of packets in a batch
+            cpu_core: 1            # CPU cores for transmitting
+            memory_regions:
+              - "Data_TX_GPU"
+
+radar_pipeline:
+  is_source: true      # Defines app type (source, process)
+  data_rate: 95        # (Gbps)
+  num_transmits: 1000  # Use N-1 of num_transmits in source
+  num_pulses: 128
+  num_samples: 9000
+  num_channels: 16
+  waveform_length: 1000

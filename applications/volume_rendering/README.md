@@ -14,20 +14,16 @@ Datasets are bundled with a default ClaraViz JSON configuration file for volume 
 
 See [`VolumeLoaderOp` documentation](/operators/volume_loader/README.md#supported-formats) for supported volume formats.
 
-## Build Instructions
+## Build and Run Instructions
 
-To build this application, use the ```run``` script:
-
-```bash
-  ./run build volume_rendering
-```
-
-## Run Instructions
-
-From the build directory, run the command:
+To build and run this application, use the ```dev_container``` script:
 
 ```bash
-  ./run launch volume_rendering
+# C++
+ ./dev_container build_and_run volume_rendering --language cpp
+
+ # Python
+  ./dev_container build_and_run volume_rendering --language python
 ```
 
 The path of the volume configuration file, volume density file and volume mask file can be passed to the application.
@@ -35,5 +31,5 @@ The path of the volume configuration file, volume density file and volume mask f
 You can use the following command to get more information on command line parameters for this application:
 
 ```bash
-./run launch volume_rendering --extra_args -h
+./dev_container build_and_run volume_rendering --language [cpp|python] --run_args --usages
 ```

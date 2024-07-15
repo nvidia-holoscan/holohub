@@ -1,5 +1,0 @@
-__pycache__/
-holochat/docs
-holochat/embeddings/
-holochat/models/
-holochat/llama.*.log

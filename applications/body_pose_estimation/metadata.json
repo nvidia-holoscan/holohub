@@ -30,7 +30,8 @@
 		"dependencies": {
 			"data": [
 				{
-					"model": "https://docs.ultralytics.com/tasks/pose/"
+					"model": "https://docs.ultralytics.com/tasks/pose/",
+					"video": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
 				}
 			],
 			"hardware": [
@@ -42,7 +43,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 ../applications/body_pose_estimation/body_pose_estimation.py",
+			"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 			"workdir": "holohub_bin"
 		}
 	}
