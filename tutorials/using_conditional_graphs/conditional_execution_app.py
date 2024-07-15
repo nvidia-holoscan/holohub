@@ -2,6 +2,7 @@ from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import PingRxOp, PingTxOp
 
+
 class PingMxOp(Operator):
     """Example of an operator modifying data.
 
@@ -26,6 +27,7 @@ class PingMxOp(Operator):
         value *= self.multiplier
 
         op_output.emit(value, "out")
+
 
 class ConditionGate(Operator):
     def setup(self, spec: OperatorSpec):
@@ -62,6 +64,7 @@ class MyPingApp(Application):
 def main():
     app = MyPingApp()
     app.run()
+
 
 if __name__ == "__main__":
     main()
