@@ -21,16 +21,17 @@ printf "# started.                                                              
 printf "#                                                                           #\n"
 printf "#############################################################################\n"
 
+# Create directories and set permissions for the holoscan user
+sudo mkdir -p /home/holoscan/.config/fish
 
 echo Copying Holoscan SDK example applications to ~/examples...
-sudo mkdir -p /home/holoscan/.config/fish
 sudo cp -r /opt/nvidia/holoscan/examples /home/holoscan/examples
 
 echo Configuring /home/holoscan for $USER...
 sudo chown -R $USER:$USER /home/holoscan
 
-echo Configuring shell...
-fish -c "set -g fish_greeting Welcome to Holoscan SDK NGC container!\n\n \
+# Set shell welcome message
+fish -c "set -U fish_greeting Welcome to Holoscan SDK NGC container!\n\n \
        Here\'s a list of useful locations:\n\n \
         \t- Workspace: (set_color yellow)/workspace(set_color normal) \n \
         \t- Holoscan SDK: (set_color yellow)/opt/nvidia/holoscan(set_color normal) \n \

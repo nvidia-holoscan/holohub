@@ -65,11 +65,25 @@
             ]
         },
         {
+            "name": "(debugpy) examples/aja_capture/python",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "python.aja_capture",
+            "cwd":  "/home/holoscan/examples/aja_capture"
+        },
+        {
+            "name": "(debugpy) examples/bring_your_own_model/python",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "python.byom",
+            "cwd":  "/home/holoscan/examples/bring_your_own_model"
+        },
+        {
             "name": "(gdb) examples/hello_world/cpp",
             "type": "cppdbg",
             "request": "launch",
             "program": "${env:BUILD_DIR}/hello_world/cpp/hello_world",
-            "preLaunchTask": "CMake: Build",
+            "preLaunchTask": "CMake: Build Hello World",
             "stopAtEntry": false,
             "cwd": "/workspace/build",
             "environment": [

@@ -45,7 +45,61 @@
             }
         },
         {
-            "label": "CMake: Build",
+            "label": "CMake: Build Hello World",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "$BUILD_DIR",
+                "--target",
+                "hello_world",
+                "-j"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
+            "dependsOn": [
+                "CMake: Configure"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "CMake: Rebuild Hello World",
+            "type": "shell",
+            "command": "cmake",
+            "dependsOn": [
+                "CMake: Clean",
+                "CMake: Configure",
+                "CMake: Build Hello World"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "CMake: Build All",
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -73,7 +127,7 @@
             }
         },
         {
-            "label": "CMake: Rebuild",
+            "label": "CMake: Rebuild All",
             "type": "shell",
             "command": "cmake",
             "dependsOn": [
@@ -81,6 +135,9 @@
                 "CMake: Configure",
                 "CMake: Build"
             ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
             "group": {
                 "kind": "build"
             },
