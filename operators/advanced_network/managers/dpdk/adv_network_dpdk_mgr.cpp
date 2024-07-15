@@ -1328,6 +1328,10 @@ AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_
   return AdvNetStatus::SUCCESS;
 }
 
+void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+  return nullptr;
+}
+
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto& q = tx_q_map_[key];
