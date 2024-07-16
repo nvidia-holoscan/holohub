@@ -18,6 +18,8 @@
 ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu
 FROM ${HOLOSCAN_SDK_IMAGE}
 
+ARG WORKSPACE_DIR=/workspace
+
 # Options for setup script
 ARG INSTALL_ZSH="false"
 ARG UPGRADE_PACKAGES="true"
@@ -40,6 +42,22 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 # Install Holoscan CLI dependencies
 RUN pip install $(sed -n '/done <<EOF/,/EOF/{/done <<EOF/b;/EOF/b;p}' /opt/nvidia/holoscan/bin/holoscan)
+
+# Install additional packages
+RUN apt-get update \
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends  \
+        build-essential gdb \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy VS Code launch profiles and rename README.md
+RUN mkdir -p $WORKSPACE_DIR/.vscode \
+    && cp /opt/nvidia/holoscan/.vscode/launch.json $WORKSPACE_DIR/.vscode \
+    && chown -R $USERNAME $WORKSPACE_DIR/.vscode \
+    && sed -i 's|/opt/nvidia/holoscan/.vscode|/workspace/.vscode|g' $WORKSPACE_DIR/.vscode/* \
+    && mv $WORKSPACE_DIR/README.md $WORKSPACE_DIR/TensorRT-README.md 
 
 # Set the default user.
 # (See https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user)

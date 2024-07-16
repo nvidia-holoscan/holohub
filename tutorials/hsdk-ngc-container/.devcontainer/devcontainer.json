@@ -3,9 +3,13 @@
 {
     "name": "Holoscan NGC Container",
     "initializeCommand": ".devcontainer/initialize-command.sh",
-    "postStartCommand": ".devcontainer/post-start-command.sh",
+    "postStartCommand": "my/.devcontainer/post-start-command.sh",
     "build": {
         "dockerfile": "Dockerfile",
+        "args": {
+            "HOLOSCAN_SDK_IMAGE": "hsdk-dev-container:latest",
+            "WORKSPACE_DIR": "${containerWorkspaceFolder}"
+        },
         "options": [
             "--progress=plain"
         ]
@@ -13,7 +17,8 @@
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
-            "installZsh": false,
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
             "userUid": 1000,
             "userGid": 1000
         },
@@ -22,8 +27,7 @@
             "installDockerBuildx": true,
             "version": "latest",
             "dockerDashComposeVersion": "v2"
-        },
-        "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {}
+        }
     },
     "runArgs": [
         "--runtime=nvidia",
@@ -41,14 +45,14 @@
         "--security-opt=seccomp=unconfined",
     ],
     "containerEnv": {
-        // https://github.com/devcontainers/features/issues/919
-        "LOCAL_WORKSPACE_FOLDER": "\\\\wsl.localhost\\${localEnv:WSL_DISTRO_NAME}\\${localWorkspaceFolder}",
         // X11 support
         "DISPLAY": "${localEnv:DISPLAY}",
         // Wayland support
         "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
         "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
         "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
+        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan"
     },
     "mounts": [
         // X11 support
@@ -58,17 +62,17 @@
         // Persist home directory to a volume
         "source=holoscan-sdk-vscode-profile,target=/home/holoscan/,type=volume"
     ],
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/,type=bind,consistency=cached",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/my,type=bind,consistency=cached",
     "workspaceFolder": "/workspace",
     "customizations": {
         // Configure properties specific to VS Code.
         "vscode": {
             // Set *default* container specific settings.json values on container create.
             "settings": {
-                "terminal.integrated.defaultProfile.linux": "fish",
+                "terminal.integrated.defaultProfile.linux": "zsh",
                 "terminal.integrated.profiles.linux": {
                     "fish": {
-                        "path": "/usr/bin/fish"
+                        "path": "/usr/bin/zsh"
                     }
                 }
             },
@@ -77,8 +81,6 @@
                 "akiramiyakoda.cppincludeguard",
                 "benjamin-simmonds.pythoncpp-debug", // Python/C++ debugging
                 "charliermarsh.ruff",
-                "cschlosser.doxdocgen",
-                "eamodio.gitlens",
                 "matepek.vscode-catch2-test-adapter",
                 "mine.cpplint",
                 "ms-azuretools.vscode-docker",
@@ -98,13 +100,12 @@
     // "postCreateCommand": "gcc -v",
     // Configure tool-specific properties.
     // "customizations": {},
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    "privileged": true,
+    // "privileged": true,
+    // Comment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     "remoteUser": "holoscan",
     "remoteEnv": {
-        "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
-        "SOURCE_DIR": "~/examples/",
-        "BUILD_DIR": "/workspace/build/",
-        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan"
+        "SOURCE_DIR": "${containerEnv:HOME}/examples/",
+        "BUILD_DIR": "${containerEnv:HOME}/build/",
+        "WORKSPACE_DIR": "${containerWorkspaceFolder}"
     }
 }

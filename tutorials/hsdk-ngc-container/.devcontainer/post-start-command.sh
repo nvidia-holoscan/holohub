@@ -22,7 +22,7 @@ printf "#                                                                       
 printf "#############################################################################\n"
 
 # Create directories and set permissions for the holoscan user
-sudo mkdir -p /home/holoscan/.config/fish
+sudo mkdir -p /home/holoscan/
 
 echo Copying Holoscan SDK example applications to ~/examples...
 sudo cp -r /opt/nvidia/holoscan/examples /home/holoscan/examples
@@ -31,12 +31,13 @@ echo Configuring /home/holoscan for $USER...
 sudo chown -R $USER:$USER /home/holoscan
 
 # Set shell welcome message
-fish -c "set -U fish_greeting Welcome to Holoscan SDK NGC container!\n\n \
-       Here\'s a list of useful locations:\n\n \
-        \t- Workspace: (set_color yellow)/workspace(set_color normal) \n \
-        \t- Holoscan SDK: (set_color yellow)/opt/nvidia/holoscan(set_color normal) \n \
-        \t- Sample data (set_color yellow)HOLOSCAN_INPUT_PATH(set_color normal): (set_color yellow)/opt/nvidia/holoscan/data(set_color normal).\n \
-        \t- Sample applications: (set_color yellow)~/examples(set_color normal).\n\n \
-        You are using (set_color yellow)fish(set_color normal) shell, for more information, visit https://fishshell.com/.\n\n  \
-        Checkout the (set_color yellow)/workspace/README.md(set_color normal) file for more information on the Holoscan SDK DevContainer.\n\n"
-
+if ! grep -q "Welcome" ~/.zshrc 2>/dev/null ; then
+   echo "echo \"Welcome to Holoscan SDK NGC container!\n\n\
+Here's a list of useful locations:\n\n\
+       - Workspace: /workspace \n\
+       - Holoscan SDK Installation: /opt/nvidia/holoscan \n\
+       - Holoscan SDK Source Code: /workspace/holoscan-sdk \n\
+       - Sample applications: /workspace/holoscan-sdk/examples\n\n\
+       - Sample data: /opt/nvidia/holoscan/data\n\n\
+Checkout the /workspace/my/README.md file for more information on the Holoscan SDK DevContainer.\n\n\"" >> ~/.zshrc
+fi
