@@ -32,7 +32,7 @@ NVIDIA maintains a curated subset of first-party applications in HoloHub that re
 - [`body_pose_estimation`](/applications/body_pose_estimation/README.md)
 - [`endoscopy_tool_tracking`](/applications/endoscopy_tool_tracking/README.md)
 - [`multiai_ultrasound`](/applications/multiai_ultrasound/README.md)
-- [`volume_rendering`](/applications/volume_rendering/README.md)
+- [`volume_rendering` (C++)](/applications/volume_rendering/README.md)
 
 ### Short Term Support
 
