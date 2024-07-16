@@ -14,8 +14,10 @@
 			"2.0": "Update to Holoscan SDK 2.1"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "2.1.0",
+			"minimum_required_version": "1.0.3",
 			"tested_versions": [
+				"1.0.3",
+				"2.0.0",
 				"2.1.0"
 			]
 		},
