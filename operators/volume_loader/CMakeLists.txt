@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(volume_loader)
 
-find_package(holoscan 2.1 REQUIRED CONFIG
+find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Set CMP0135 policy to NEW to use time of extraction for files extracted by
