@@ -191,7 +191,6 @@ def parse_arguments():
         "filenames", nargs="+", help="The files to plot. In live mode, provide a folder."
     )
     parser.add_argument(
-        "-h",
         "--highlight",
         action="store_true",
         help="highlight nodes in the graph whose average latency is higher than the average of all the operators",
