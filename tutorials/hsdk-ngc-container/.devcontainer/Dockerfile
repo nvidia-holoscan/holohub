@@ -20,9 +20,6 @@ FROM ${HOLOSCAN_SDK_IMAGE}
 
 ARG WORKSPACE_DIR=/workspace
 
-# Options for setup script
-ARG INSTALL_ZSH="false"
-ARG UPGRADE_PACKAGES="true"
 ARG USERNAME=holoscan
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
@@ -55,6 +52,7 @@ RUN apt-get update \
 # Copy VS Code launch profiles and rename README.md
 RUN mkdir -p $WORKSPACE_DIR/.vscode \
     && cp /opt/nvidia/holoscan/.vscode/launch.json $WORKSPACE_DIR/.vscode \
+    && cp /opt/nvidia/holoscan/.vscode/debug_python $WORKSPACE_DIR/.vscode \
     && chown -R $USERNAME $WORKSPACE_DIR/.vscode \
     && sed -i 's|/opt/nvidia/holoscan/.vscode|/workspace/.vscode|g' $WORKSPACE_DIR/.vscode/* \
     && mv $WORKSPACE_DIR/README.md $WORKSPACE_DIR/TensorRT-README.md 

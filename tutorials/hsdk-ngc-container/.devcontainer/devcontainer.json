@@ -52,7 +52,8 @@
         "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
         "NVIDIA_DRIVER_CAPABILITIES": "all",
         "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
-        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan"
+        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan",
+        "WORKSPACE_DIR": "${containerWorkspaceFolder}"
     },
     "mounts": [
         // X11 support
@@ -102,10 +103,5 @@
     // "customizations": {},
     // "privileged": true,
     // Comment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    "remoteUser": "holoscan",
-    "remoteEnv": {
-        "SOURCE_DIR": "${containerEnv:HOME}/examples/",
-        "BUILD_DIR": "${containerEnv:HOME}/build/",
-        "WORKSPACE_DIR": "${containerWorkspaceFolder}"
-    }
+    "remoteUser": "holoscan"
 }
