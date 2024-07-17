@@ -78,7 +78,7 @@ RUN git clone https://github.com/mit-han-lab/llm-awq \
     && cd ../.. \
     && git clone https://github.com/Efficient-Large-Model/VILA.git \
     && cd VILA \
-    && git checkout d7d54bc4ca1e582f59516ba2f94a0217ad2430a0 \
+    && git checkout 0085724ca3363dc62eaa0d7ef1a30ad20df5c8da \
     # Remove torch from pyproject.toml to avoid conflicts with the installed torch version
     && sed -i '/torch/d' pyproject.toml \
     && python3 -m pip install --no-cache-dir --no-deps -e .
