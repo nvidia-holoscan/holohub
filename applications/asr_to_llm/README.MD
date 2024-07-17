@@ -118,3 +118,19 @@ The LLM currently used in this application is [Mistral-7B-OpenOrca-GGUF](https:/
 The inference engine used to run the LLM is [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which is a Python binding for [llama.cpp](https://github.com/ggerganov/llama.cpp). The reason for this is that the underlying llama.cpp library is hardware agnostic, dependency free, and it runs **quantized** LLMs with very high throughput.
 
 The RivaStreamingOp is a Holoscan SDK adaptation of the [transcribe_mic.py](https://github.com/nvidia-riva/python-clients/blob/main/scripts/asr/transcribe_mic.py) script that is part of the [Riva python-clients](https://github.com/nvidia-riva/python-clients/tree/main) repository.
+
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode asr_to_llm
+```
+
+### VS Code Launch Profiles
+
+There are two launch profiles configured for this application:
+
+1. **(debugpy) asr_to_llm/python**: Launch asr_to_llm using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) asr_to_llm/python**: Launch asr_to_llm using a launch profile that enables debugging of Python and C++ code.

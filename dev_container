@@ -250,6 +250,26 @@ run_docker() {
     $(./run docker_cmd "-u $(id -u):$(id -g)") "$@"
 }
 
+check_nvidia_ctk() {
+    # Check NVIDIA CTK version
+    min_ctk_version="1.12.0"
+    recommended_ctk_version="1.14.1"
+    if ! command -v nvidia-ctk > /dev/null; then
+        fatal G "nvidia-ctk" W " not found. Please install the NVIDIA Container Toolkit."
+    fi
+    ctk_version_output=$(nvidia-ctk --version | grep version)
+    ctk_version_pattern="([0-9]+\.[0-9]+\.[0-9]+)"
+    if [[ "$ctk_version_output" =~ $ctk_version_pattern ]]; then
+        ctk_version="${BASH_REMATCH[1]}"
+        if [[ "$(echo -e "$ctk_version\n$min_ctk_version" | sort -V | head -n1)" == "$ctk_version" ]]; then
+            fatal "Found nvidia-ctk Version $ctk_version. Version $min_ctk_version+ is required ($recommended_ctk_version+ recommended)."
+        fi
+    else
+        c_echo_err R "Could not extract nvidia-ctk version number."
+        c_echo_err "  Version $min_ctk_version+ required."
+        c_echo_err "  Version $recommended_ctk_version+ recommended."
+    fi
+}
 
 #===============================================================================
 # Section: Build
@@ -496,24 +516,7 @@ launch() {
         esac
     done
 
-    # Check NVIDIA CTK version
-    min_ctk_version="1.12.0"
-    recommended_ctk_version="1.14.1"
-    if ! command -v nvidia-ctk > /dev/null; then
-        fatal G "nvidia-ctk" W " not found. Please install the NVIDIA Container Toolkit."
-    fi
-    ctk_version_output=$(nvidia-ctk --version | grep version)
-    ctk_version_pattern="([0-9]+\.[0-9]+\.[0-9]+)"
-    if [[ "$ctk_version_output" =~ $ctk_version_pattern ]]; then
-        ctk_version="${BASH_REMATCH[1]}"
-        if [[ "$(echo -e "$ctk_version\n$min_ctk_version" | sort -V | head -n1)" == "$ctk_version" ]]; then
-            fatal "Found nvidia-ctk Version $ctk_version. Version $min_ctk_version+ is required ($recommended_ctk_version+ recommended)."
-        fi
-    else
-        c_echo_err R "Could not extract nvidia-ctk version number."
-        c_echo_err "  Version $min_ctk_version+ required."
-        c_echo_err "  Version $recommended_ctk_version+ recommended."
-    fi
+    check_nvidia_ctk
 
     # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
     if [ -v DISPLAY ]; then
@@ -880,6 +883,273 @@ build_and_run() {
     run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
 }
 
+
+vscode_desc() { c_echo 'Launch VSCode in DevContainer
+
+Launch a VSCode instance in a Docker container with the development environment.
+    Usage: ./dev_container vscode <application_name> [options]
+
+Options:
+  application_name: Name of an existing Holohub application found in the applications folder.
+      If specified and exists: the application-provided DevContainer configuration is used.
+      Otherwise, the top-level DevContainer configuration.
+  --base_img: Fully qualified base image name, e.g. holoscan-sdk-dev:latest
+  --docker_file: Path to Dockerfile to use for building container.
+      Defaults to:
+      - Application-provided "Dockerfile", if it exists;
+      - Otherwise the top-level HoloHub "Dockerfile"
+  --docker_opts : Additional options to pass to the Docker launch
+'
+}
+vscode() {
+    check_nvidia_ctk
+
+    local app_name=""
+    local base_img=$(get_default_base_img)
+    local docker_file=""
+    local dev_container_tag="holohub-dev-container"
+    local docker_opts=""
+
+    if ! command -v code > /dev/null; then
+        fatal R "Please install " W "VSCode" R " to use VSCode DevContainer. Follow the instructions in https://code.visualstudio.com/Download"
+    fi
+
+    # Parse CLI arguments next
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --base_img)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    base_img=$2
+                    shift 2
+                else
+                    echo "Error: --base_img requires a value"
+                    vscode_desc
+                    exit 1
+                fi
+                ;;
+            --docker_file)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    docker_file="$2"
+                    shift 2
+                else
+                    echo "Error: --docker_file requires a value"
+                    vscode_desc
+                    exit 1
+                fi
+                ;;
+            --docker_opts)
+                if [[ -n "$2" ]]; then
+                    docker_opts="$2"
+                    shift 2
+                else
+                    echo "Error: --docker_opts requires a value"
+                    launch_desc
+                    exit 1
+                fi
+                ;;
+            *)
+                if [[ -z "$app_name" ]]; then
+                    app_name="$1"
+                    shift
+                else
+                    echo "Error: Invalid argument '$1'"
+                    vscode_desc
+                    exit 1
+                fi
+                ;;
+        esac
+    done
+
+    if [[ -z "${docker_file}" ]]; then
+        docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
+        c_echo W "Using Dockerfile: " G "${docker_file}"
+    fi
+    if [[ -n "${docker_file}" ]]; then
+        container_build_args+=" --docker_file ${docker_file}"
+    fi
+
+    if [ -n "${app_name}" ]; then
+        dev_container_tag+="-${app_name}"
+    fi
+    dev_container_tag+=":dev"
+    container_build_args+=" --base_img ${base_img} --img ${dev_container_tag}"
+
+    c_echo W "Building base Dev Container ${dev_container_tag}..."
+    run_command ${SCRIPT_DIR}/dev_container build $container_build_args
+
+    # Prepare for the DevContainer with an environment file to be passed into runArgs
+    local devcontainer_env_file=
+
+    for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
+        devcontainer_env_file+="\"--device=${video_dev}\","
+    done
+
+    for capture_dev in $(find /dev -regex '/dev/capture-vi-channel[0-9]+'); do
+        devcontainer_env_file+="\"--device=${capture_dev}\","
+    done
+
+    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
+        echo "\"--\"," >> $devcontainer_env_file
+        devcontainer_env_file+="\"--device=${video_dev}:${video_dev}\","
+    done
+
+    for i in 0 1 2 3; do
+        # Deltacast capture boards and Videomaster SDK
+        # Deltacast SDI capture board
+	    if [ -e /dev/delta-x380${i} ]; then
+            devcontainer_env_file+="\"--device=/dev/delta-x380${i}:/dev/delta-x380${i}\","
+        fi
+	    # Deltacast HDMI capture board
+	    if [ -e /dev/delta-x350${i} ]; then
+            devcontainer_env_file+="\"--device=/dev/delta-x350${i}:/dev/delta-x350${i}\","
+        fi
+    done
+
+    if [ -d /dev/snd ]; then
+        # Find all audio devices
+        audio_devices=$(find /dev/snd -type c)
+
+        # Mount all found audio devices
+        for audio_dev in $audio_devices; do
+            devcontainer_env_file+="\"--device=${audio_dev}\","
+        done
+    fi
+
+    # grants access to the sound group
+    sound_group_gid=$(getent group audio | cut -d: -f3)
+    devcontainer_env_file+="\"--group-add=${sound_group_gid}\","
+
+    if [ -e /usr/lib/libvideomasterhd.so ]; then
+        devcontainer_env_file+="\"--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so\","
+    fi
+    if [ -d /opt/deltacast/videomaster/Include ]; then
+        devcontainer_env_file+="\"--volume=/opt/deltacast/videomaster/Include:/usr/local/deltacast/Include\","
+    fi
+    if [ -d /opt/yuan/qcap/include ]; then
+        devcontainer_env_file+="\"--volume=/opt/yuan/qcap/include:/opt/yuan/qcap/include\","
+    fi
+    if [ -d /opt/yuan/qcap/lib ]; then
+        devcontainer_env_file+="\"--volume=/opt/yuan/qcap/lib:/opt/yuan/qcap/lib\","
+    fi
+
+    if [ -e /etc/asound.conf ]; then
+        # ALSA configuration for the user running the script
+        devcontainer_env_file+="\"--mount=source=/etc/asound.conf,target=/etc/asound.conf,readonly,type=bind\","
+    fi
+
+    # add tegra directory
+    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
+        devcontainer_env_file+="\"--volume=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra\","
+    fi
+
+    # add user in container to group video to access video devices, e.g. /dev/video0
+    devcontainer_env_file+="\"--group-add=video\","
+
+    if [[ $nsys_profile == true ]] ; then
+        # enable usage of the the perf_event_open call, see
+        # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#docker-profiling
+        devcontainer_env_file+="\"--cap-add=SYS_ADMIN\","
+    fi
+
+    # Find the nvoptix.bin file
+    if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
+        devcontainer_env_file+="\"--volume=/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro\","
+    fi
+
+    # Allow X11 forwarding over SSH
+    if [[ $ssh_x11 -gt 0 ]]; then
+        XAUTH=/tmp/.docker.xauth
+        xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+        chmod 777 $XAUTH
+
+        devcontainer_env_file+="\"--volume=$XAUTH:$XAUTH\","
+        devcontainer_env_file+="\"--env=XAUTHORITY=$XAUTH\","
+    fi
+
+    # Use init
+    if [[ $use_tini -gt 0 ]]; then
+        devcontainer_env_file+="\"--init\","
+    fi
+
+    # User provided Docker options
+    if [ -n "${docker_opts}" ]; then
+        devcontainer_env_file+="\"$docker_opts\","
+    fi
+
+    # Options needed for UCX
+    devcontainer_env_file+="\"--ipc=host\","
+    devcontainer_env_file+="\"--cap-add=SYS_PTRACE\","
+    devcontainer_env_file+="\"--ulimit=memlock=-1\","
+    devcontainer_env_file+="\"--ulimit=stack=67108864\","
+
+    devcontainer_env_file+="\"--device-cgroup-rule=c 81:* rmw\","
+    devcontainer_env_file+="\"--device-cgroup-rule=c 189:* rmw\","
+    devcontainer_env_file+="\"--runtime=nvidia\","
+    devcontainer_env_file+="\"--gpus=all\","
+
+    if [[ -n "${app_name}" ]]; then
+        devcontainer_env_file+="\"--hostname=holohub-${app_name}\""
+    else
+        devcontainer_env_file+="\"--hostname=holohub\""
+    fi
+
+    export HOLOHUB_BASE_IMAGE=$dev_container_tag
+    export HOLOHUB_APP_NAME=$app_name
+
+    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
+    run_command xhost +local:docker
+
+    # Install the VSCode Remote Development extension.
+    # Checking if the extension is already installed is slow, so we always install it so that
+    # the installation can be skipped if the extension is already installed.
+    run_command code --force --install-extension ms-vscode-remote.vscode-remote-extensionpack
+
+    # Top-level Dev Container template
+    local dev_container_path="$SCRIPT_DIR/.devcontainer/"
+
+    # If an application name is provided, use the application-specific DevContainer configuration when available.
+    # Otherwise, fall back to the top-level DevContainer configuration.
+    if [ -n "${app_name}" ] && [ -f "$SCRIPT_DIR/.devcontainer/${app_name}/devcontainer.json" ]; then
+        dev_container_path="$SCRIPT_DIR/.devcontainer/${app_name}"
+        c_echo "Using application-specific DevContainer configuration: ${dev_container_path}"
+    else
+        c_echo "Using top-level DevContainer configuration: ${dev_container_path}"
+    fi
+
+    # Since Visual Studio Code allows only one instance per `devcontainer.json`,
+    # this code prepares a unique temporary directory structure for each launch of a devcontainer.
+    # By doing so, it ensures that multiple instances of the same environment can be run
+    # simultaneously. The script replicates the `devcontainer.json` from the desired application
+    # into this temporary directory, adjusting paths to ensure the correct workspace is loaded. 
+    # A special URL is then generated to instruct VSCode to launch the development container 
+    # using this temporary configuration.
+    local workspace="$(basename "$(pwd)")"
+    local tmpdir="$(mktemp -d)/${workspace}"
+    mkdir -p "${tmpdir}"
+    mkdir -p "${tmpdir}/.devcontainer"
+    cp -arL "${dev_container_path}/devcontainer.json" "${tmpdir}/.devcontainer"
+    sed -i -e "s|\${localWorkspaceFolder}|$(pwd)|g" "${tmpdir}/.devcontainer/devcontainer.json" \
+           -e "s|\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
+
+    local hash="$(echo -n "${tmpdir}" | xxd -pu - | tr -d '[:space:]')"
+    local url="vscode://vscode-remote/dev-container+${hash}/workspace/holohub"
+
+    local launch=""
+    if type open >/dev/null 2>&1; then
+        launch="open"
+    elif type xdg-open >/dev/null 2>&1; then
+        launch="xdg-open"
+    fi
+
+    if [ -n "${launch}" ]; then
+        echo "Launching VSCode Dev Container from : ${tmpdir}"
+        code --new-window "$tmpdir"
+        echo "Connecting to ${url}..."
+        exec "${launch}" "${url}" >/dev/null 2>&1
+    else
+        fatal "Error launching VSCode Dev Container. Please ensure that `open` or `xdg-open` is installed."
+    fi
+}
 
 #===============================================================================
 

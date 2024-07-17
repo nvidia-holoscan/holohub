@@ -1,0 +1,558 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        //#region basic_networking_ping
+        {
+            "name": "(gdb) basic_networking_ping/cpp TX",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build basic_networking_ping",
+            "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
+            "args": [
+                "./applications/basic_networking_ping/cpp/basic_networking_ping_tx.yaml",
+            ],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/basic_networking_ping",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) basic_networking_ping/cpp RX",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build basic_networking_ping",
+            "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
+            "args": [
+                "./applications/basic_networking_ping/cpp/basic_networking_ping_rx.yaml",
+            ],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/basic_networking_ping",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) basic_networking_ping/python TX",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build basic_networking_ping",
+            "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
+            "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+                "./basic_networking_ping_tx.yaml",
+            ]
+        },
+        {
+            "name": "(pythoncpp) basic_networking_ping/python TX",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) basic_networking_ping/python TX",
+            "cppConfig": "default (gdb) Attach",
+        },
+        {
+            "name": "(debugpy) basic_networking_ping/python RX",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build basic_networking_ping",
+            "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
+            "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+                "./basic_networking_ping_rx.yaml",
+            ]
+        },
+        {
+            "name": "(pythoncpp) basic_networking_ping/python RX",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) basic_networking_ping/python RX",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion basic_networking_ping
+        //#region asr_to_llm
+        {
+            "name": "(debugpy) asr_to_llm/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build asr_to_llm",
+            "program": "${workspaceFolder}/applications/asr_to_llm/asr_to_llm.py",
+            "cwd": "${workspaceFolder}/applications/asr_to_llm/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/asr_to_llm/python/lib:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) asr_to_llm/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) asr_to_llm/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion asr_to_llm
+        //#region colonoscopy_segmentation
+        {
+            "name": "(debugpy) colonoscopy_segmentation/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build colonoscopy_segmentation",
+            "program": "${workspaceFolder}/applications/colonoscopy_segmentation/colonoscopy_segmentation.py",
+            "cwd": "${workspaceFolder}/applications/colonoscopy_segmentation/",
+            "args": [
+                "--source",
+                "replayer",
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/colonoscopy_segmentation/python/lib:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) colonoscopy_segmentation/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) colonoscopy_segmentation/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion colonoscopy_segmentation
+        //#region cuda_quantum
+        {
+            "name": "(debugpy) cuda_quantum/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build cuda_quantum",
+            "program": "${workspaceFolder}/applications/cuda_quantum/cuda_quantum.py",
+            "cwd": "${workspaceFolder}/applications/cuda_quantum/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/cuda_quantum/python/lib:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) cuda_quantum/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) cuda_quantum/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion cuda_quantum
+        //#region cvcuda_basic
+        {
+            "name": "(gdb) cvcuda_basic/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build cvcuda_basic",
+            "program": "${workspaceFolder}/build/cvcuda_basic/applications/cvcuda_basic/cpp/cvcuda_basic",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/cvcuda_basic",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) cvcuda_basic/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build cvcuda_basic",
+            "program": "${workspaceFolder}/applications/cvcuda_basic/python/cvcuda_basic.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "cwd": "${workspaceFolder}/applications/cvcuda_basic/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/cvcuda_basic/python/lib:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) cvcuda_basic/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) cvcuda_basic/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion cvcuda_basic
+        //#region endoscopy_depth_estimation
+        {
+            "name": "(debugpy) endoscopy_depth_estimation/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_depth_estimation",
+            "program": "${workspaceFolder}/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy",
+                "--model",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy_depth"
+            ],
+            "cwd": "${workspaceFolder}/applications/endoscopy_depth_estimation/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_depth_estimation/python/lib:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) endoscopy_depth_estimation/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_depth_estimation/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion endoscopy_depth_estimation
+        //#region endoscopy_tool_tracking
+        {
+            "name": "(gdb) endoscopy_tool_tracking/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) endoscopy_tool_tracking/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            }
+        },
+        {
+            "name": "(pythoncpp) endoscopy_tool_tracking/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion endoscopy_tool_tracking
+        //#region endoscopy_tool_tracking_distributed
+        //#region C++
+        {
+            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp (all fragments)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "args": [
+                "--driver",
+                "--worker",
+                "--fragments",
+                "video_in",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ],
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 1s)",
+            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "args": [
+                "--worker",
+                "--fragments",
+                "inference",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ],
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
+            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "args": [
+                "--worker",
+                "--fragments",
+                "viz",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ],
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        //#endregion C++
+        //#region Python
+        {
+            "name": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ]
+        },
+        {
+            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "cppConfig": "default (gdb) Attach",
+        },
+        {
+            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "args": [
+                "--driver",
+                "--worker",
+                "--fragments",
+                "video_in",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ]
+        },
+        {
+            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - video_in fragment",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "cppConfig": "default (gdb) Attach",
+        },
+        {
+            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 1s)",
+            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "args": [
+                "--worker",
+                "--fragments",
+                "inference",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ]
+        },
+        {
+            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - inference fragment",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "cppConfig": "default (gdb) Attach",
+        },
+        {
+            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
+            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "args": [
+                "--worker",
+                "--fragments",
+                "viz",
+                "--address",
+                "127.0.0.1:10000",
+                "--nic",
+                "lo",
+            ]
+        },
+        {
+            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - viz fragment",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion endoscopy_tool_tracking_distributed
+    ],
+    "compounds": [
+        {
+            "name": "(compound) basic_networking_ping/cpp TX & RX",
+            "configurations": [
+                "(gdb) basic_networking_ping/cpp RX",
+                "(gdb) basic_networking_ping/cpp TX"
+            ],
+            "preLaunchTask": "Build basic_networking_ping",
+            "stopAll": true
+        },
+        {
+            "name": "(compound) basic_networking_ping/python TX & RX",
+            "configurations": [
+                "(debugpy) basic_networking_ping/python RX",
+                "(debugpy) basic_networking_ping/python TX"
+            ],
+            "preLaunchTask": "Build basic_networking_ping",
+            "stopAll": true
+        },
+        {
+            "name": "(compound) endoscopy_tool_tracking_distributed/cpp",
+            "configurations": [
+                "(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment",
+                "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
+                "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
+            ],
+            "preLaunchTask": "Build basic_networking_ping",
+            "stopAll": true
+        },
+        {
+            "name": "(compound) endoscopy_tool_tracking_distributed/python",
+            "configurations": [
+                "(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment",
+                "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
+                "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
+            ],
+            "preLaunchTask": "Build basic_networking_ping",
+            "stopAll": true
+        },
+    ]
+}
