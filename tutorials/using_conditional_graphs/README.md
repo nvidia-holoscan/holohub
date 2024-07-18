@@ -1,4 +1,4 @@
-# Using a conditional gate
+# Using a Conditional Gate
 
 ![image](graph_with_condition_gate.png)
 
@@ -9,16 +9,6 @@ Use a condition in an operator as a gate for a downstream operator
 ## Description
 Basic example with tx and rx operators. Once a condition is met, 
 the mx operator is used to multiply the value from the tx operator, before it is received by a new rx operator.
-
-
-
-## Data
-
-
-## Requirements
-
-
-
 ## Tutorial Instructions
 
 
@@ -37,6 +27,4 @@ python benchmarks/holoscan_flow_benchmarking/app_perf_graph.py -o log_directory_
 xdot log_directory_20240513-121809/live_app_graph.dot
 ```
 
-
-## Acknowledgements
 
