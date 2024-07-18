@@ -1,3 +1,18 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import PingRxOp, PingTxOp
@@ -30,6 +45,12 @@ class PingMxOp(Operator):
 
 
 class ConditionGate(Operator):
+    """
+    An operator that performs a conditional check on the input data. 
+    When the condition criteria is met, the data is passed to the next operator.
+    Else, no data is passed to the next operator, effectively blocking the execution of the next operators
+    in the directed acyclic graph.
+    """
     def setup(self, spec: OperatorSpec):
         spec.input("in")
         spec.output("out")
