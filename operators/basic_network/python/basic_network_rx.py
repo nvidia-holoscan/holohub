@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,7 @@ class BasicNetworkOpRx(Operator):
     connected: bool = False
     send_burst: NetworkOpBurstParams = NetworkOpBurstParams()
 
-    def initialize(self):
-        Operator.initialize(self)
+    def _initialize(self):
         try:
             if self.l4_proto == "udp":
                 self.l4_proto = L4Proto.UDP
@@ -50,10 +49,12 @@ class BasicNetworkOpRx(Operator):
             self.logger.error(f"Failed to create socket: {err}")
 
         self.logger.info("Basic RX operator initialized")
+        self._initialized = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger("BasicNetworkOpRx")
+        self._initialized = False
         logging.basicConfig(level=logging.INFO)
 
     def setup(self, spec: OperatorSpec):
@@ -65,6 +66,9 @@ class BasicNetworkOpRx(Operator):
         spec.output("burst_out")
 
     def compute(self, op_input, op_output, context):
+        if not self._initialized:
+            self._initialize()
+
         if self.l4_proto == L4Proto.TCP and not self.connected:
             try:
                 self.sock_fd.settimeout(1)
