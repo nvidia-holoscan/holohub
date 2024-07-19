@@ -18,7 +18,7 @@ This directory contains the necessary files and configurations to start developi
 
 1. Download everything in this directory to a folder of your choice.
 2. Open [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json#L10), find and change the value of `HOLOSCAN_SDK_IMAGE` to a version of [Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) image you want to use.
-  :bulb: **Important**: Holoscan SDK container v2.3 or later is required.
+  💡  **Important**: Holoscan SDK container v2.3 or later is required to step into Holoscan SDK source code in debug mode.
 3. Start VS Code, open the *Command Palette* by pressing `F1`, `Ctrl+Shift+P`, or navigating to `View > Command Palette`, type to select `Dev Containers: Open Folder in Container...` and select the folder where you stored step 1.
 4. Wait for the Dev Container to start up. Building the container and installing all the required extensions will take a while. (Switch to the `Output` view and select the `Server` option from the dropdown to check the status of extension installations.)
 
@@ -77,7 +77,17 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 
 * **(debugpy) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](../holoscan-sdk/src/core/application.cpp#L209) file.
 
-> 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug with the first two launch profiles.*
+> 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug when using the first two launch profiles.*
+
+#### Creating VS Code Launch Profiles
+
+In this section, you may find some templates that you can use to debug your C++ and Python applications.
+
+##### C++ Applications
+
+
+##### Python Application
+
 
 ## Troubleshooting
 
