@@ -39,7 +39,7 @@
 		},
 		"run": {
 			"command": "<holohub_app_bin>/basic_networking_ping",
-			"workdir": "holohub_bin"
+			"workdir": "holohub_app_bin"
 		}
 	}
 }
