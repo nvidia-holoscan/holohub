@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,10 +36,10 @@ class BasicNetworkOpTx(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger("BasicNetworkOpTx")
+        self._initialized = False
         logging.basicConfig(level=logging.INFO)
 
-    def initialize(self):
-        Operator.initialize(self)
+    def _initialize(self):
         try:
             if self.l4_proto == "udp":
                 self.l4_proto = L4Proto.UDP
@@ -51,6 +51,7 @@ class BasicNetworkOpTx(Operator):
             self.logger.error("Failed to create socket")
 
         self.logger.info("Basic TX operator initialized")
+        self._initialized = True
 
     def setup(self, spec: OperatorSpec):
         spec.param("ip_addr")
@@ -62,6 +63,9 @@ class BasicNetworkOpTx(Operator):
         spec.input("burst_in")
 
     def compute(self, op_input, op_output, context):
+        if not self._initialized:
+            self._initialize()
+
         burst: bytearray = op_input.receive("burst_in")
         if self.l4_proto == L4Proto.TCP:
             if not self.connected:

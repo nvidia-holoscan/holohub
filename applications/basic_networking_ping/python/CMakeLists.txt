@@ -18,3 +18,17 @@
 add_custom_target(basic_networking_ping_python ALL
   DEPENDS basic_network_python
 )
+
+# Copy config file
+message(STATUS "Copying configuration files to ${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_target(basic_networking_ping_rx_yaml_python
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml"
+)
+add_custom_target(basic_networking_ping_tx_yaml_python
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml"
+)
+
+add_dependencies(basic_networking_ping_python basic_networking_ping_rx_yaml_python)
+add_dependencies(basic_networking_ping_python basic_networking_ping_tx_yaml_python)

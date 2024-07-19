@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 
 import logging
 import sys
+from pathlib import Path
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
@@ -65,8 +66,8 @@ class App(Application):
     def compose(self):
         # Define the tx and rx operators, allowing the tx operator to execute 10 times
         if len(self.kwargs("network_tx")) > 0:
-            tx = BasicNetworkPingTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
             basic_net_tx = BasicNetworkOpTx(self, name="basic_net_tx", **self.kwargs("network_tx"))
+            tx = BasicNetworkPingTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
             self.add_flow(tx, basic_net_tx, {("msg_out", "burst_in")})
         else:
             logger.info("No TX config found")
@@ -88,6 +89,10 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     config_path = sys.argv[1]
+    if not Path(config_path).is_file():
+        logger.error(f"Configuration file {config_path} not found")
+        sys.exit(-2)
+
     app = App()
     app.config(config_path)
     app.run()
