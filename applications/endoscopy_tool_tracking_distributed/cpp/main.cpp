@@ -151,27 +151,6 @@ class App : public holoscan::Application {
   std::string datapath_ = "data/endoscopy";
 };
 
-/** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
-
-  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
-    if (c == -1 || c == '?') break;
-
-    switch (c) {
-      case 'd':
-        data_path = optarg;
-        break;
-      default:
-        std::cout << "Unknown arguments returned: " << c << std::endl;
-        return false;
-    }
-  }
-
-  if (optind < argc) { config_name = argv[optind++]; }
-  return true;
-}
-
 /** Main function */
 int main(int argc, char** argv) {
   // Get the yaml configuration file
