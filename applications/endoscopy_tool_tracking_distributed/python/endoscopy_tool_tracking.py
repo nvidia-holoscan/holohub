@@ -41,21 +41,27 @@ class EndoscopyApp(Application):
         self.input_path = data
 
     def compose(self):
+        width = 854
+        height = 480
+        # 4 bytes/channel, 3 channels
+        source_block_size = width * height * 3 * 4
+        source_num_blocks = 2
+        
         video_in_fragment = VideoInputFragment(self, "video_in", self.input_path)
         inference_fragment = CloudInferenceFragment(
             self,
             "inference",
             self.input_path,
-            video_in_fragment.width,
-            video_in_fragment.height,
-            video_in_fragment.source_block_size,
-            video_in_fragment.source_num_blocks,
+            width,
+            height,
+            source_block_size,
+            source_num_blocks,
         )
         viz_fragment = VizFragment(
             self,
             "viz",
-            video_in_fragment.width,
-            video_in_fragment.height,
+            width,
+            height,
         )
 
         # Flow definition
