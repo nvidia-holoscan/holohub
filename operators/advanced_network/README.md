@@ -271,24 +271,24 @@ any item above that layer (IP, UDP, etc...). Valid values are `raw`, `ethernet`,
 - **`cpu_cores`**: List of CPU cores for transmitting
   - type: `string`
 
-  #### API Structures
+#### API Structures
 
-  Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators.
-  `AdvNetBurstParams` provides pointers to all packets on the CPU and GPU, and contains metadata needed by the operator to track
-  allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network
-  card library, interacting with the `AdvNetBurstParams` is mostly done with the helper functions described below. A user should
-  never modify any members of `AdvNetBurstParams` directly as this may break in future versions. The `AdvNetBurstParams` is described
-  below:
+Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators.
+`AdvNetBurstParams` provides pointers to all packets on the CPU and GPU, and contains metadata needed by the operator to track
+allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network
+card library, interacting with the `AdvNetBurstParams` is mostly done with the helper functions described below. A user should
+never modify any members of `AdvNetBurstParams` directly as this may break in future versions. The `AdvNetBurstParams` is described
+below:
 
-  ```
-  struct AdvNetBurstParams {
-    union {
-        AdvNetBurstParamsHdr hdr;
-        uint8_t buf[HS_NETWORK_HEADER_SIZE_BYTES];
-    };
+```
+struct AdvNetBurstParams {
+  union {
+      AdvNetBurstParamsHdr hdr;
+      uint8_t buf[HS_NETWORK_HEADER_SIZE_BYTES];
+  };
 
-    void **cpu_pkts;
-    void **gpu_pkts;
+  void **cpu_pkts;
+  void **gpu_pkts;
 };
 ```
 
