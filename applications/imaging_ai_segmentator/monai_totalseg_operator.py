@@ -116,7 +116,7 @@ class MonaiTotalSegOperator(Operator):
         self._input_dataset_key = "image"
         self._pred_dataset_key = "pred"
 
-        self.model_path = model_path
+        self.model_path = self._find_model_file_path(model_path)
         self.output_folder = output_folder
         self.output_folder.mkdir(parents=True, exist_ok=True)
         self.app_context = app_context
@@ -127,6 +127,19 @@ class MonaiTotalSegOperator(Operator):
         # Call the base class __init__() last.
         # Also, the base class has an attribute called fragment for storing the fragment object
         super().__init__(fragment, *args, **kwargs)
+
+    def _find_model_file_path(self, model_path: Path):
+        # We'd just have to find the first file and return it for now,
+        # because it is known that in Holoscan App Package, the path is the root models folder
+        if model_path:
+            if model_path.is_file():
+                return model_path
+            elif model_path.is_dir():
+                for file in model_path.rglob("*"):
+                    if file.is_file():
+                        return file
+
+        raise ValueError(f"Model file not found in the provided path: {model_path}")
 
     def setup(self, spec: OperatorSpec):
         spec.input(self.input_name_image)
