@@ -28,31 +28,21 @@
 using namespace holoscan;
 class VideoInputFragment : public holoscan::Fragment {
  private:
-  std::shared_ptr<holoscan::Operator> input_op_;
   std::string input_dir_;
-  uint32_t height_ = 0;
-  uint32_t width_ = 0;
-  uint64_t source_block_size_ = 0;
-  uint64_t source_num_blocks_ = 0;
 
  public:
-  const uint32_t width() { return width_; }
-  const uint32_t height() { return height_; }
-  const uint64_t source_block_size() { return source_block_size_; }
-  const uint64_t source_num_blocks() { return source_num_blocks_; }
-
   explicit VideoInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
 
-  void init() {
-    width_ = 854;
-    height_ = 480;
-    input_op_ = make_operator<ops::VideoStreamReplayerOp>(
-        "replayer", from_config("replayer"), Arg("directory", input_dir_));
-    source_block_size_ = width_ * height_ * 3 * 4;
-    source_num_blocks_ = 2;
-  }
+  void compose() override {
+    ArgList args;
+    args.add(Arg("directory", input_dir_));
+    HOLOSCAN_LOG_INFO("Using video from {}", input_dir_);
 
-  void compose() override { add_operator(input_op_); }
+    auto replayer =
+        make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), args);
+
+    add_operator(replayer);
+  }
 };
 
 class CloudInferenceFragment : public holoscan::Fragment {
@@ -134,25 +124,20 @@ class VizFragment : public holoscan::Fragment {
 class App : public holoscan::Application {
  public:
   void set_datapath(const std::string& path) { datapath_ = path; }
-
   void compose() override {
     using namespace holoscan;
 
+    auto width = 854;
+    auto height = 480;
+    auto source_block_size = width * height * 3 * 4;
+    auto source_num_blocks = 2;
+
     auto video_in = make_fragment<VideoInputFragment>("video_in", datapath_);
-    auto video_in_fragment = std::dynamic_pointer_cast<VideoInputFragment>(video_in);
-    video_in_fragment->init();
-    auto cloud_inference =
-        make_fragment<CloudInferenceFragment>("inference",
-                                              datapath_,
-                                              video_in_fragment->width(),
-                                              video_in_fragment->height(),
-                                              video_in_fragment->source_block_size(),
-                                              video_in_fragment->source_num_blocks());
-    auto viz =
-        make_fragment<VizFragment>("viz", video_in_fragment->width(), video_in_fragment->height());
+    auto cloud_inference = make_fragment<CloudInferenceFragment>(
+        "inference", datapath_, width, height, source_block_size, source_num_blocks);
+    auto viz = make_fragment<VizFragment>("viz", width, height);
 
     // Flow definition
-
     add_flow(video_in, cloud_inference, {{"replayer", "format_converter"}});
     add_flow(cloud_inference,
              viz,
@@ -189,32 +174,20 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
 
 /** Main function */
 int main(int argc, char** argv) {
+  // Get the yaml configuration file
+  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
+  config_path /= std::filesystem::path("endoscopy_tool_tracking.yaml");
+
+  // Get the input data environment variable
+  auto data_directory = std::getenv("HOLOSCAN_INPUT_PATH");
+  if (data_directory == nullptr || data_directory[0] == '\0') {
+    HOLOSCAN_LOG_ERROR("HOLOSCAN_INPUT_PATH environment variable is not set.");
+    exit(-1);
+  }
+
   auto app = holoscan::make_application<App>();
-
-  // Parse the arguments
-  std::string data_path = "";
-  std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
-
-  if (config_name != "") {
-    app->config(config_name);
-  } else {
-    auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/endoscopy_tool_tracking.yaml";
-    app->config(config_path);
-    HOLOSCAN_LOG_INFO("Using config file from {}", config_path.string());
-  }
-
-  if (data_path != "") {
-    app->set_datapath(data_path);
-    HOLOSCAN_LOG_INFO("Using video from {}", data_path);
-  } else {
-    auto data_directory = std::getenv("HOLOSCAN_INPUT_PATH");
-    if (data_directory != nullptr && data_directory[0] != '\0') {
-      app->set_datapath(data_directory);
-      HOLOSCAN_LOG_INFO("Using video from {}", data_directory);
-    }
-  }
+  app->config(config_path);
+  app->set_datapath(data_directory);
   app->run();
 
   return 0;

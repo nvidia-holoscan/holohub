@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
-from argparse import ArgumentParser
+import sys
 
 from cloud_inference_fragment import CloudInferenceFragment
 from holoscan.core import Application
 from video_input_fragment import VideoInputFragment
 from viz_fragment import VizFragment
+
+logger = logging.getLogger("endoscopy_tool_tracking_distributed")
 
 
 class EndoscopyApp(Application):
@@ -76,31 +79,13 @@ class EndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-    # get the Application's arguments
-    app_argv = Application().argv
+    config_file = os.path.join(os.path.dirname(__file__), "endoscopy_tool_tracking.yaml")
+    data_path = os.environ.get("HOLOSCAN_INPUT_PATH", None)
 
-    # Parse args
-    parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
+    if data_path is None:
+        logger.error("HOLOSCAN_INPUT_PATH is not set. Please set it to the path of the video data.")
+        sys.exit(-1)
 
-    parser.add_argument(
-        "-c",
-        "--config",
-        default="none",
-        help=("Set config path to override the default config file location"),
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="none",
-        help=("Set the data path"),
-    )
-    args = parser.parse_args(app_argv[1:])
-
-    if args.config == "none":
-        config_file = os.path.join(os.path.dirname(__file__), "endoscopy_tool_tracking.yaml")
-    else:
-        config_file = args.config
-
-    app = EndoscopyApp(data=args.data)
+    app = EndoscopyApp(data_path)
     app.config(config_file)
     app.run()
