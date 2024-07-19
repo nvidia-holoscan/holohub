@@ -23,7 +23,8 @@ import numpy as np
 from holoscan.core import ConditionType, Fragment, OperatorSpec
 from monai.utils import StrEnum  # Will use the built-in StrEnum when SDK requires Python 3.11.
 
-from operators.medical_imaging.core import AppContext, Image
+from operators.medical_imaging.core import AppContext
+from operators.medical_imaging.core import Image
 from operators.medical_imaging.utils.importutil import optional_import
 
 from .inference_operator import InferenceOperator

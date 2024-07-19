@@ -12,7 +12,7 @@
 import logging
 from pathlib import Path
 
-from operators.medical_imaging.core.models import ModelFactory
+from .factory import ModelFactory
 
 from .model import Model
 

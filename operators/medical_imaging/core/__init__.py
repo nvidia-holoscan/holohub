@@ -35,11 +35,11 @@ from .arg_parser import parse_args as parse_args
 from .domain.datapath import DataPath as DataPath
 from .domain.image import Image as Image
 from .io_type import IOType as IOType
-from .models import Model as Model
-from .models import ModelFactory as ModelFactory
-from .models import NamedModel as NamedModel
-from .models import TorchScriptModel as TorchScriptModel
-from .models import TritonModel as TritonModel
+from .models.model import Model as Model
+from .models.factory import ModelFactory as ModelFactory
+from .models.named_model import NamedModel as NamedModel
+from .models.torch_model import TorchScriptModel as TorchScriptModel
+from .models.triton_model import TritonModel as TritonModel
 from .runtime_env import RuntimeEnv as RuntimeEnv
 
 # Add the function to the existing Application class, which could've been used as helper func too.
