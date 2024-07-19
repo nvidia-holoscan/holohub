@@ -46,7 +46,7 @@ class EndoscopyApp(Application):
         # 4 bytes/channel, 3 channels
         source_block_size = width * height * 3 * 4
         source_num_blocks = 2
-        
+
         video_in_fragment = VideoInputFragment(self, "video_in", self.input_path)
         inference_fragment = CloudInferenceFragment(
             self,
