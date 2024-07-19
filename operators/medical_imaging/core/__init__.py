@@ -35,8 +35,8 @@ from .arg_parser import parse_args as parse_args
 from .domain.datapath import DataPath as DataPath
 from .domain.image import Image as Image
 from .io_type import IOType as IOType
-from .models.model import Model as Model
 from .models.factory import ModelFactory as ModelFactory
+from .models.model import Model as Model
 from .models.named_model import NamedModel as NamedModel
 from .models.torch_model import TorchScriptModel as TorchScriptModel
 from .models.triton_model import TritonModel as TritonModel

@@ -13,7 +13,6 @@ import logging
 from pathlib import Path
 
 from .factory import ModelFactory
-
 from .model import Model
 
 logger = logging.getLogger(__name__)
