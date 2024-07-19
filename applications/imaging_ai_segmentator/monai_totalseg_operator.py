@@ -40,7 +40,7 @@ from monai.transforms import (
 )
 from numpy import uint8
 
-from operators.medical_imaging.core.app_context import AppContext
+from operators.medical_imaging.core import AppContext
 from operators.medical_imaging.core.models.model import Model
 from operators.medical_imaging.operators.monai_seg_inference_operator import (
     InfererType,

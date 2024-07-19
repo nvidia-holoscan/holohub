@@ -28,7 +28,10 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 import numpy as np
 from holoscan.core import Fragment, OperatorSpec
 
-from operators.medical_imaging.core import AppContext, Image, IOType
+from operators.medical_imaging.core import AppContext
+from operators.medical_imaging.core import Image
+from operators.medical_imaging.core import IOType
+
 from operators.medical_imaging.utils.importutil import optional_import
 
 from .inference_operator import InferenceOperator
