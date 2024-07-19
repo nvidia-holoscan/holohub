@@ -31,11 +31,11 @@ target_link_libraries(basic_networking_ping
 
 # Copy config file
 add_custom_target(basic_networking_ping_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml" ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml"
 )
 add_custom_target(basic_networking_ping_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml" ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml"
 )
 
