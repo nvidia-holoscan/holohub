@@ -1,6 +1,12 @@
-# Holoscan SDK VS Code DevContainer Template
+# Holoscan SDK Visual Studio Code Dev Container Template
 
-This directory contains the necessary files and configurations to start developing Holoscan applications in the [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) using a [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) for [VS Code](https://code.visualstudio.com/).
+## Overview
+
+A [Dev Container](https://containers.dev/) (short for Development Container) is a lightweight, isolated environment for developing software. It's a self-contained directory that contains all the dependencies and tools needed to develop a software project without polluting the host machine or interfering with other projects.
+
+This directory contains a pre-configured Dev Container designed for [Holoscan SDK](https://developer.nvidia.com/holoscan-sdk) using the [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) with [Visual Studio Code](https://code.visualstudio.com/). This Dev Container comes with the complete Holoscan SDK and source code, sample applications, and all the tools needed to build your next application using Holoscan SDK.
+
+Follow this step-by-step guide to get started!
 
 ## Prerequisites
 
@@ -14,7 +20,7 @@ This directory contains the necessary files and configurations to start developi
 - [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
 - [Holoscan SDK container 2.3 or later](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan)
 
-## DevContainer Setup
+## Dev Container Setup
 
 1. Download everything in this directory to a folder of your choice. This folder can also be used to store your project(s) later. See [Directory Structure](#directory-structure).
 2. Open [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json#L10), find and change the value of `HOLOSCAN_SDK_IMAGE` to a version of [Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) image you want to use.
