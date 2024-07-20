@@ -16,7 +16,7 @@ This directory contains the necessary files and configurations to start developi
 
 ## DevContainer Setup
 
-1. Download everything in this directory to a folder of your choice.
+1. Download everything in this directory to a folder of your choice. This folder can also be used to store your project(s) later. See [Directory Structure](#directory-structure).
 2. Open [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json#L10), find and change the value of `HOLOSCAN_SDK_IMAGE` to a version of [Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) image you want to use.
   💡  **Important**: Holoscan SDK container v2.3 or later is required to step into Holoscan SDK source code in debug mode.
 3. Start VS Code, open the *Command Palette* by pressing `F1`, `Ctrl+Shift+P`, or navigating to `View > Command Palette`, type to select `Dev Containers: Open Folder in Container...` and select the folder where you stored step 1.
@@ -32,14 +32,20 @@ The `My Workspace` section contains all the files that you've copied. The `Holos
 
 ```bash
 /workspace
-   ├── .vscode         # Visual Studio Code debugging configuration files
-   ├── holoscan-sdk    # Holoscan SDK source code
-   ├── my              # Your workspace directory
-   └── README.md       # This file
+   ├── .vscode/            # Visual Studio Code debugging configuration files
+   ├── holoscan-sdk/       # Holoscan SDK source code
+   └── my/                 # Your workspace directory - this is the directory created and mounted from step 1 above.
+       ├── .devcontainer/  # Dev Container configurations
+       ├── src/            # A folder set up to store your project(s)
+       └── README.md       # This file
 ```
 
-## Debugging Applications
+> 💡 Note: The Dev Container is configured with a default user account `holoscan` using user ID `1000` and group ID `1000` in the [devcontainer.json](./.devcontainer/devcontainer.json) file. <br />
+>  - To change the user name, find and replace `USERNAME` and `remoteUser`.<br />
+>  - To change the user ID, find and replace `USER_UID` and `userUid`.<br />
+>  - To change the group ID, find and replace `USER_GID` and `userGid`.<br />
 
+## Debugging Applications
 
 ### Debugging a C++ Application
 
@@ -78,15 +84,6 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 * **(debugpy) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](../holoscan-sdk/src/core/application.cpp#L209) file.
 
 > 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug when using the first two launch profiles.*
-
-#### Creating VS Code Launch Profiles
-
-In this section, you may find some templates that you can use to debug your C++ and Python applications.
-
-##### C++ Applications
-
-
-##### Python Application
 
 
 ## Troubleshooting

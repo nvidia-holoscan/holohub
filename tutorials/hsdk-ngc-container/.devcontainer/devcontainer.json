@@ -7,8 +7,11 @@
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
-            "HOLOSCAN_SDK_IMAGE": "hsdk-dev-container:latest",
-            "WORKSPACE_DIR": "${containerWorkspaceFolder}"
+            "HOLOSCAN_SDK_IMAGE": "nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu",
+            "WORKSPACE_DIR": "${containerWorkspaceFolder}",
+            "USERNAME": "holoscan",
+            "USER_UID": 1000,
+            "USER_GID": 1000
         },
         "options": [
             "--progress=plain"
