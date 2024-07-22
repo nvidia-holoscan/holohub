@@ -38,7 +38,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
+			"command": "HOLOSCAN_INPUT_PATH=<holohub_data_dir>/endoscopy python3 <holohub_app_source>/endoscopy_tool_tracking.py",
 			"workdir": "holohub_bin"
 		}
 	}
