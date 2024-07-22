@@ -2,19 +2,19 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Dely Task (1s)",
+            "label": "Delay Task (1s)",
             "command": "sleep 1",
             "detail": "Delay task start for 1 second"
         },
         {
             "type": "shell",
-            "label": "Dely Task (2s)",
+            "label": "Delay Task (2s)",
             "command": "sleep 2",
             "detail": "Delay task start for 2 seconds"
         },
         {
             "type": "shell",
-            "label": "Dely Task (3s)",
+            "label": "Delay Task (3s)",
             "command": "sleep 3",
             "detail": "Delay task start for 3 seconds"
         },

@@ -95,7 +95,7 @@ Arguments:
 
 #### C++
 
-Use the `(gdb) endoscopy_tool_tracking/cpp RX` launch profile to start and debug the application.
+Use the `(gdb) endoscopy_tool_tracking/cpp` launch profile to start and debug the application.
 
 #### Python
 

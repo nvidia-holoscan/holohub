@@ -66,7 +66,7 @@ There are three launch profiles configured for this application:
 
 #### Python
 
-There are a few launch profiles configured for this application:
+There are several launch profiles configured for this application:
 
 1. **(debugpy) basic_networking_ping/python RX**: Launch Basic Networking Ping with the [RX configurations](basic_networking_ping_rx.yaml).
    This launch profile enables debugging of Python code.

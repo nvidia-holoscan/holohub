@@ -25,11 +25,11 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 
 3. Launch a Dev Container with the `./dev_container` script:
 
-The following command starts a new Dev Container for Holohub using the base [Dockerfile](../Dockerfile).
+   The following command starts a new Dev Container for Holohub using the base [Dockerfile](../Dockerfile).
 
-```bash
-./dev_container vscode
-```
+   ```bash
+   ./dev_container vscode
+   ```
 
 4. VS Code will build and initialize the selected Dev Container. This can take a few minutes the first time.
 
@@ -38,21 +38,135 @@ The following command starts a new Dev Container for Holohub using the base [Doc
 6. When ready, the Holohub directory is mirrored into the container under `/workspace/holohub` to ensure any changes are persistent.
 
 
-### Debugging Holohub Application
+### Debugging Holohub Applications
 
-Most of the Holohub application are pre-configured with one or more launch profiles. Click the **Run & Debug** tab and find the application that you want to run and debug from the dropdown.
+Most of the Holohub applications are pre-configured with one or more launch profiles. Click the **Run & Debug** tab and find the application that you want to run and debug from the dropdown.
 
+#### Debugging Multi-Fragment Applications
 
+To debug multi-fragment applications, find and locate launch profiles that are prefixed with `(compound)`.
+
+For example, the [Distributed Endoscopy Tool Tracking](../applications/endoscopy_tool_tracking_distributed/) application is configured with `(compound) endoscopy_tool_tracking_distributed/cpp` and `(compound) endoscopy_tool_tracking_distributed/python` launch profiles.
+These launch profiles starts three debugging sessions, one for each fragment (`video_in`, `inference`, and `viz), and enables debugging of all three processes at once.
 
 ## Advanced Options
 
+### Application-Specific Dockerfile
 
 For Holohub applications that bundles with a Dockerfile with additional dependencies and tools, pass the name of the application to the `./dev_container` script.
-Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation) application as an example, the command will launch a Dev Container using the [Dockerfile](../applications/endoscopy_depth_estimation/Dockerfile) as the base image that builds `OpenCV` 
+Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation) application as an example, the command will launch a Dev Container using the [Dockerfile](../applications/endoscopy_depth_estimation/Dockerfile) as the base image that builds `OpenCV`:
 
 ```bash
 ./dev_container vscode endoscopy_depth_estimation
 ```
 
-# Get help on the available vscode command:
-./dev_container vscode -h
+**Usage:**
+
+```bash
+./dev_container vscode <application_name> [--language [cpp|python]]
+```
+
+The `languge` argument is optional with `cpp` as default. This allows you to use a language-specific Dockerfile when available.
+
+
+### Custom Base Image/Dockerfile
+
+The `./dev_container vscode` script can also launch a Dev Container using a custom base image and Dockerfile.
+
+For example, if an application is designed for Holoscan 1.0 on NVIDIA IGX Orin with integrated GPU, you may want to use Holsocan 1.0.3 as the base image with iGPU support:
+
+```bash
+./devcontainer vscode --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu
+```
+
+In addition, if you have a custom Dockerfile that you would like to use on top of the base image, you may pass it to the `./dev_container` script as follows:
+
+
+```bash
+./devcontainer vscode --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu --docker_file /path/to/my/Dockerfile
+```
+
+To use a custom Dockerfile, include the following lines at the top of your Dockerfile:
+
+```Dockerfile
+ARG BASE_IMAGE
+
+FROM ${BASE_IMAGE} AS base
+```
+
+**Usage:**
+
+```bash
+./dev_container vscode --base_img <image>
+```
+
+### Additional Options:
+
+```bash
+$ ./dev_container vscode -h
+
+Launch VSCode in DevContainer
+
+Launch a VSCode instance in a Docker container with the development environment.
+    Usage: ./dev_container vscode <application_name> [options]
+
+Options:
+  application_name: Name of an existing Holohub application found in the applications folder.
+      If specified and exists: the application-provided DevContainer configuration is used.
+      Otherwise, the top-level DevContainer configuration.
+  --base_img: Fully qualified base image name, e.g. holoscan-sdk-dev:latest
+  --docker_file: Path to Dockerfile to use for building container.
+      Defaults to:
+      - Application-provided "Dockerfile", if it exists;
+      - Otherwise the top-level HoloHub "Dockerfile"
+  --language : Specify the app language implementation to run.
+      Some applications provide both `cpp` and `python` implementations.
+  --docker_opts : Additional options to pass to the Docker launch
+```
+
+## Contributing
+
+> 💡: Note: see [CONTRIBUTING.md](../CONTRIBUTING.md) for details on how to contribute to Holohub. This section describes how to add a custom Dockerfile and Dev Container for a Holohub application.
+
+### Add a Custom Dockerfile
+
+The following steps allows the `./devcontainer vscode` script to find your custom `Dockerfile`:
+
+- Create a new `Dockerfile` in your application's root directory or a language specific directory:
+
+```bash
+applications/my_application/
+├── Dockerfile   # option 1: put the Dockefile in the root of the application's directory
+├── cpp
+│   └── Dockerfile # option 2: put the Dockerfile in a language specific directory
+└── python
+    └── Dockerfile # option 2: same as above
+```
+- Include the following in the top of your custom `Dockerfile`:
+
+```Dockerfile
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} as base
+```
+
+### Add a Custom Dev Container
+
+Using the following steps enables the `./devcontainer vscode` script to find your custom Dev Container:
+
+- Create a new directory in the `.devcontainer/` directory (same directory as this README.md file) with a name that matches the name of your application.
+- Create `devcontainer.json` and `Dockerfile` in the new directory:
+
+```bash
+.devcontainer/
+│   └── my_application/
+│       ├── devcontainer.json
+│       └── Dockerfile
+└── applications/
+    └── my_application/
+
+```
+
+## Resources
+
+- [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
+- [containers.dev](https://containers.dev/)

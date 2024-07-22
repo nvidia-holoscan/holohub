@@ -884,34 +884,43 @@ build_and_run() {
 }
 
 
-vscode_desc() { c_echo 'Launch VSCode in DevContainer
+vscode_desc() { c_echo 'Launch VS Code in Dev Container
 
-Launch a VSCode instance in a Docker container with the development environment.
+Launch a VS Code instance in a Docker container with the development environment.
     Usage: ./dev_container vscode <application_name> [options]
 
 Options:
   application_name: Name of an existing Holohub application found in the applications folder.
-      If specified and exists: the application-provided DevContainer configuration is used.
-      Otherwise, the top-level DevContainer configuration.
+      If specified and exists: the application-provided Dev Container configuration is used.
+      Otherwise, the top-level Dev Container configuration.
   --base_img: Fully qualified base image name, e.g. holoscan-sdk-dev:latest
   --docker_file: Path to Dockerfile to use for building container.
       Defaults to:
       - Application-provided "Dockerfile", if it exists;
       - Otherwise the top-level HoloHub "Dockerfile"
+  --language : Specify the app language implementation to run.
+      Some applications provide both `cpp` and `python` implementations.
   --docker_opts : Additional options to pass to the Docker launch
 '
 }
+
+# The vscode() function builds a Dev Container in the following stages:
+# 1. builds a container image using the default (or user-provided) base image and Dockerfile.
+# 2. prepares the devcontainer.json by adding the necessary devices and volumes and injects
+#    the list into the devcontainer.json file.
+# 3. launches a new VS Code instance using the devcontainer.json file from step 2 which builds
+#    the actual dev container using the image from step 1 as the base iamge.
 vscode() {
     check_nvidia_ctk
-
     local app_name=""
+    local app_language=""
     local base_img=$(get_default_base_img)
     local docker_file=""
     local dev_container_tag="holohub-dev-container"
     local docker_opts=""
 
     if ! command -v code > /dev/null; then
-        fatal R "Please install " W "VSCode" R " to use VSCode DevContainer. Follow the instructions in https://code.visualstudio.com/Download"
+        fatal R "Please install " W "VS Code" R " to use VS Code Dev Container. Follow the instructions in https://code.visualstudio.com/Download"
     fi
 
     # Parse CLI arguments next
@@ -944,6 +953,16 @@ vscode() {
                 else
                     echo "Error: --docker_opts requires a value"
                     launch_desc
+                    exit 1
+                fi
+                ;;
+            --language)
+                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                    app_language="$2"
+                    shift 2
+                else
+                    echo "Error: --language requires a value"
+                    build_and_run_desc
                     exit 1
                 fi
                 ;;
