@@ -51,3 +51,21 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
 - IGX w/ dGPU
 - x86 w/ dGPU
 > Note: iGPU is not yet supported. This app can be built on iGPU devices and the florence2_app.py will run, however, the full QT UI app is not yet supported for iGPU.
+
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode florence-2-vision
+```
+
+This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.
+
+### VS Code Launch Profiles
+
+There are two launch profiles configured for this application:
+
+1. **(debugpy) florence-2-vision/python**: Launch florence-2-vision using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) florence-2-vision/python**: Launch florence-2-vision using a launch profile that enables debugging of Python and C++ code.

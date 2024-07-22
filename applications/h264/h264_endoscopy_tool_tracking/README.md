@@ -56,3 +56,24 @@ the config file
 `<build_dir>/applications/h264/endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
 to `true`.
 
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode h264
+```
+
+### VS Code Launch Profiles
+
+#### C++
+
+Use the **(gdb) h264_endoscopy_tool_tracking/cpp** launch profile to run and debug the C++ application.
+
+#### Python
+
+There are a couple of launch profiles configured for this application:
+
+1. **(debugpy) h264_endoscopy_tool_tracking/python**: Launch the h.264 Endoscopy Tool Tracking application with the ability to debug Python code.
+2. **(pythoncpp) h264_endoscopy_tool_tracking/python**: Launch the h.264 Endoscopy Tool Tracking application with the ability to debug both Python and C++ code.

@@ -909,7 +909,7 @@ Options:
 # 2. prepares the devcontainer.json by adding the necessary devices and volumes and injects
 #    the list into the devcontainer.json file.
 # 3. launches a new VS Code instance using the devcontainer.json file from step 2 which builds
-#    the actual dev container using the image from step 1 as the base iamge.
+#    the actual dev container using the image from step 1 as the base image.
 vscode() {
     check_nvidia_ctk
     local app_name=""

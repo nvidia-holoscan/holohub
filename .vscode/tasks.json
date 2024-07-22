@@ -20,6 +20,17 @@
         },
         {
             "type": "shell",
+            "label": "Clear Build Cache",
+            "command": "./run",
+            "args": ["clear_cache"],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "detail": "Clean the build cache"
+        },
+        {
+            "type": "shell",
             "label": "Build basic_networking_ping",
             "command": "./run",
             "args": ["build", "basic_networking_ping", "--type", "debug"],
@@ -148,6 +159,42 @@
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "dependsOn": "Dely Task (2s)",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build h264_endoscopy_tool_tracking",
+            "command": "./run",
+            "args": ["build", "h264_endoscopy_tool_tracking", "--type", "debug"],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build h264_video_decode",
+            "command": "./run",
+            "args": ["build", "h264_video_decode", "--type", "debug"],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build volume_rendering",
+            "command": "./run",
+            "args": ["build", "volume_rendering", "--type", "debug"],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"

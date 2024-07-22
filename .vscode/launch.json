@@ -514,6 +514,184 @@
             "cppConfig": "default (gdb) Attach",
         },
         //#endregion endoscopy_tool_tracking_distributed
+        //#endregion endoscopy_tool_tracking_distributed
+        //#region florence-2-vision
+        {
+            "name": "(debugpy) florence-2-vision/python",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/applications/florence-2-vision/florence2_app.py",
+            "cwd": "${workspaceFolder}/applications/florence-2-vision/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/florence-2-vision/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            }
+        },
+        {
+            "name": "(pythoncpp) florence-2-vision/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion florence-2-vision
+        //#region h264_endoscopy_tool_tracking
+        {
+            "name": "(gdb) h264_endoscopy_tool_tracking/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build h264_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/h264_endoscopy_tool_tracking/applications/h264/h264_endoscopy_tool_tracking/cpp/h264_endoscopy_tool_tracking",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${env:LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra/"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/h264_endoscopy_tool_tracking/applications/h264/h264_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) h264_endoscopy_tool_tracking/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build h264_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/h264/h264_endoscopy_tool_tracking/python/h264_endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/h264_endoscopy_tool_tracking/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/h264_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ]
+        },
+        {
+            "name": "(pythoncpp) h264_endoscopy_tool_tracking/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) h264_endoscopy_tool_tracking/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion h264_endoscopy_tool_tracking
+        //#region h264_video_decode
+        {
+            "name": "(gdb) h264_video_decode/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build h264_video_decode",
+            "program": "${workspaceFolder}/build/h264_video_decode/applications/h264/h264_video_decode/cpp/h264_video_decode",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${env:LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra/"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/h264_video_decode/applications/h264/h264_video_decode/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) h264_video_decode/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build h264_video_decode",
+            "program": "${workspaceFolder}/applications/h264/h264_video_decode/python/h264_video_decode.py",
+            "cwd": "${workspaceFolder}/build/h264_video_decode/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/h264_video_decode/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ]
+        },
+        {
+            "name": "(pythoncpp) h264_video_decode/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) h264_video_decode/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion h264_video_decode
+        //#region volume_rendering
+        {
+            "name": "(gdb) volume_rendering/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build volume_rendering",
+            "program": "${workspaceFolder}/build/volume_rendering/applications/volume_rendering/cpp/volume_rendering",
+            "args": [
+                "--config",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/config.json",
+                "--density",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd",
+                "--mask",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/smoothmasks.seg.mhd"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/volume_rendering/applications/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(debugpy) volume_rendering/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build volume_rendering",
+            "program": "${workspaceFolder}/applications/volume_rendering/python/volume_rendering.py",
+            "cwd": "${workspaceFolder}/build/volume_rendering/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/volume_rendering/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+                "--config",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/config.json",
+                "--density",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd",
+                "--mask",
+                "${env:HOLOHUB_DATA_DIR}/volume_rendering/smoothmasks.seg.mhd"
+            ]
+        },
+        {
+            "name": "(pythoncpp) volume_rendering/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) volume_rendering/python",
+            "cppConfig": "default (gdb) Attach",
+        },
+        //#endregion volume_rendering
     ],
     "compounds": [
         {
