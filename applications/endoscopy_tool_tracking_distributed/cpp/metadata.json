@@ -32,7 +32,7 @@
 			]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/endoscopy_tool_tracking_distributed --data <holohub_data_dir>/endoscopy",
+			"command": "HOLOSCAN_INPUT_PATH=<holohub_data_dir>/endoscopy <holohub_app_bin>/endoscopy_tool_tracking_distributed",
 			"workdir": "holohub_bin"
 		}
 	}

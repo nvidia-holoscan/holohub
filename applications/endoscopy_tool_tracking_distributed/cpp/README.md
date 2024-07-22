@@ -24,5 +24,14 @@ If you want to manually convert the video data, please refer to the instructions
 Run the following command to start the application.  This will run the app with a pre-recorded video as input:
 
 ```sh
+# Start the application with all three fragments
 ./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp
+
+# Use the following commands to run the same application three processes:
+# Start the application with the video_in fragment
+./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp --run_args "--driver --worker --fragments video_in --address :10000"
+# Start the application with the inference fragment
+./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp --run_args "--worker --fragments inference --address :10000"
+# Start the application with the visualization fragment
+./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp --run_args "--worker --fragments viz --address :10000"
 ```
