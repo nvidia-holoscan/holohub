@@ -20,41 +20,18 @@ from holoscan.operators import VideoStreamReplayerOp
 
 
 class VideoInputFragment(Fragment):
-    @property
-    def source_block_size(self):
-        print("Getting value")
-        return self._source_block_size
-
-    @property
-    def source_num_blocks(self):
-        return self._source_num_blocks
-
-    @property
-    def width(self):
-        return self._width
-
-    @property
-    def height(self):
-        return self._height
-
     def __init__(self, app, name, video_dir):
         super().__init__(app, name)
         self.video_dir = video_dir
 
-        self._width = 854
-        self._height = 480
-        video_dir = self.video_dir
-        if not os.path.exists(video_dir):
+        if not os.path.exists(self.video_dir):
             raise ValueError(f"Could not find video data: {video_dir=}")
-        self.input_op = VideoStreamReplayerOp(
-            self,
-            name="replayer",
-            directory=video_dir,
-            **self.kwargs("replayer"),
-        )
-        # 4 bytes/channel, 3 channels
-        self._source_block_size = self._width * self._height * 3 * 4
-        self._source_num_blocks = 2
 
     def compose(self):
-        self.add_operator(self.input_op)
+        input_op = VideoStreamReplayerOp(
+            self,
+            name="replayer",
+            directory=self.video_dir,
+            **self.kwargs("replayer"),
+        )
+        self.add_operator(input_op)
