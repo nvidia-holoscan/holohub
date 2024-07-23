@@ -15,11 +15,9 @@
 
 import argparse
 import hashlib
-import json
 import logging
 import os
 import pathlib
-from typing import Dict
 
 import requests
 from holoscan.conditions import CountCondition
@@ -50,7 +48,6 @@ class PrintMessageOp(Operator):
 
         if data:
             print(f"File saved in: {data}")
-
 
 
 def get_api_key(app):
