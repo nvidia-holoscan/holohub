@@ -61,9 +61,26 @@ sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_trac
 # build and launch the application
 # C++
 ./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language cpp
-# Python
+
+# Python (see below for additional steps)
 ./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language python
 ```
+
+> 💡 Note: To enable VTK renderer in the Python version of the application, open [endoscopy_tool_tracking.py](./python/endoscopy_tool_tracking.py#L41) and uncomment the following line:
+> ```
+>  # Line 41
+>  from holohub.vtk_renderer import VtkRendererOp
+>  # Lines 213-221
+>  else:
+>       visualizer = VtkRendererOp(
+>           self,
+>           name="vtk",
+>           width=width,
+>           height=height,
+>           window_name="VTK (Kitware) Python",
+>           **self.kwargs("vtk_op"),
+>       )
+> ```
 
 Arguments:
 - `--build_with` : instructs the script to build the application with the `vtk_renderer` operator
