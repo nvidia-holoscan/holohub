@@ -16,7 +16,6 @@
 # limitations under the License.
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG VULKAN_SDK_VERSION=1.3.216.0
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
@@ -48,7 +47,6 @@ RUN apt update \
         libxxf86vm-dev \
         mesa-common-dev \
         libvulkan-dev="1.3.204.1-*" \
-        glslang-tools="11.8.0+1.3.204.0-*" \
     && rm -rf /var/lib/apt/lists/*
 
 ############################################################
