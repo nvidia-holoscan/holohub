@@ -1,3 +1,4 @@
+%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,8 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(nvidia_nim LANGUAGES NONE)
+---
+extensions:
 
-add_holohub_application(nvidia_nim_chat)
-add_holohub_application(nvidia_nim_imaging)
+# For a self-hosted NIM instance, uncomment the following lines and replace the base_url
+# with the URL of your NIM instance.
+# nim:
+#   base_url: http://0.0.0.0:8000/v1/medicalimaging/nvidia/vista-3d
+
+
+# The following configuration is for the NVIDIA hosted NIMs running on build.nvidia.com.
+nim:
+  base_url: https://health.api.nvidia.com/v1/medicalimaging/nvidia/vista-3d
+  api_key: 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
+
+
+holoviz:
+  window_title: NVIDIA NIM Vista 3D
+  enable_camera_pose_output: true
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
