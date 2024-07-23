@@ -736,7 +736,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
-        --build_args : Build the app with additional args
+        --build_args : Build the app with additional CMake configuration arguments
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
