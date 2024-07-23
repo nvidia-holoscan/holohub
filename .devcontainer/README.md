@@ -2,7 +2,7 @@
 
 Holohub uses [Development Containers](https://containers.dev/) to provide consistent and convenient development environments for Holoscan & Holohub. This guide covers the usage of Holohub Dev Container using [Visual Studio Code](https://code.visualstudio.com/).
 
-> 💡: Note: this guide is specific to the Linux development environment and is tested on Ubuntu 22.04 LTS.
+> 💡 Note: this guide is specific to the Linux development environment and is tested on Ubuntu 22.04 LTS.
 
 ## Prerequisites
 
@@ -48,6 +48,23 @@ To debug multi-fragment applications, find and locate launch profiles that are p
 
 For example, the [Distributed Endoscopy Tool Tracking](../applications/endoscopy_tool_tracking_distributed/) application is configured with `(compound) endoscopy_tool_tracking_distributed/cpp` and `(compound) endoscopy_tool_tracking_distributed/python` launch profiles.
 These launch profiles starts three debugging sessions, one for each fragment (`video_in`, `inference`, and `viz), and enables debugging of all three processes at once.
+
+
+#### Step into Holoscan Source Code
+
+The Holohub Dev Container is built on top of  the [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) which supports debugging of Holoscan source code in C++ and Python. To simplify the process, add the Holoscan source code to the workspace by clicking the **Add Folder to Workspace** item from the **File** menu. Enter `/workspace/holoscan-sdk/` in the **Add Folder to Workspace** dialog box. If VS Code prompts to reload the window, please do so. Expect to see both *holohub* and *holoscan-sdk* folders appear under the Explorer tab.
+
+![alt text](static/vscode-explorer.png)
+
+**Let's give it a try:**
+
+Expand the *holoscan-sdk* folder and open `application.cpp` file from `src/core/` directory.
+Scroll down and find the `void Application::run()` function, and set a breakpoint inside the function.
+
+With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a new debugging session. Expect the debugger to hit the breakpoint in the `Application::run()` function.
+
+> 💡 Important: [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) version 2.3.0 or later version is required to enable debugging of Holoscan source code.
+
 
 ## Advanced Options
 
@@ -126,7 +143,7 @@ Options:
 
 ## Contributing
 
-> 💡: Note: see [CONTRIBUTING.md](../CONTRIBUTING.md) for details on how to contribute to Holohub. This section describes how to add a custom Dockerfile and Dev Container for a Holohub application.
+> 💡 Note: see [CONTRIBUTING.md](../CONTRIBUTING.md) for details on how to contribute to Holohub. This section describes how to add a custom Dockerfile and Dev Container for a Holohub application.
 
 ### Add a Custom Dockerfile
 
