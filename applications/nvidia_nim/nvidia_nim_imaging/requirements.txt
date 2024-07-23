@@ -1,2 +1,1 @@
-holoscan==2.1.0
-requests==2.31.0
+holoscan==1.0.3

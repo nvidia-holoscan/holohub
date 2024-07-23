@@ -52,18 +52,6 @@ class PrintMessageOp(Operator):
             print(f"File saved in: {data}")
 
 
-class MessageBody:
-    def __init__(self, model_params: Dict, user_input: str):
-        self.model_params = model_params
-        self.user_input = user_input
-
-    def to_json(self):
-        return json.dumps(self.__dict__)
-
-    @classmethod
-    def from_json(cls, json_text):
-        return MessageBody(**json.loads(json_text))
-
 
 def get_api_key(app):
     api_key = app.kwargs("nim")["api_key"]
@@ -127,7 +115,7 @@ class NimImaging(Application):
         )
 
         unzip_op = UnzipOp(
-            self, CountCondition(self, count=1), name="unzip", filter="*.response", output_path="."
+            self, CountCondition(self, count=1), name="unzip", filter="*.nrrd", output_path="."
         )
         print_files_op = PrintMessageOp(self, CountCondition(self, count=1), name="print_files")
 

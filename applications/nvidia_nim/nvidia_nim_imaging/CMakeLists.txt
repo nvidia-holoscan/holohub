@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(nvidia_nim_imaging LANGUAGES NONE)
 
-find_package(holoscan 2.1 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 

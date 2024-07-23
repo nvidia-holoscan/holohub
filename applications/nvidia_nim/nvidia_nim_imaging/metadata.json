@@ -15,7 +15,8 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.0",
 			"tested_versions": [
-				"1.0.0"
+				"1.0.0",
+				"2.0.2"
 			]
 		},
 		"platforms": [
