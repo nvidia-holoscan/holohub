@@ -276,21 +276,21 @@ get_conditional_options() {
 
 
     if [ -e /usr/lib/libvideomasterhd.so ]; then
-        conditional_opt+="${prefix}-v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
     fi
     if [ -d /opt/deltacast/videomaster/Include ]; then
-        conditional_opt+="${prefix}-v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include${postfix}"
+        conditional_opt+="${prefix}--volume=/opt/deltacast/videomaster/Include:/usr/local/deltacast/Include${postfix}"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
-        conditional_opt+="${prefix}-v /opt/yuan/qcap/include:/opt/yuan/qcap/include${postfix}"
+        conditional_opt+="${prefix}--volume=/opt/yuan/qcap/include:/opt/yuan/qcap/include${postfix}"
     fi
     if [ -d /opt/yuan/qcap/lib ]; then
-        conditional_opt+="${prefix}-v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib${postfix}"
+        conditional_opt+="${prefix}--volume=/opt/yuan/qcap/lib:/opt/yuan/qcap/lib${postfix}"
     fi
 
     # add tegra directory
     if [ -d /usr/lib/aarch64-linux-gnu/tegra ]; then
-        conditional_opt+="${prefix}-v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra${postfix}"
     fi
 
     # add user in container to group video to access video devices, e.g. /dev/video0
@@ -308,7 +308,7 @@ get_conditional_options() {
         xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
         chmod 777 $XAUTH
 
-        conditional_opt+="${prefix}-v $XAUTH:$XAUTH${postfix}"
+        conditional_opt+="${prefix}--volume=$XAUTH:$XAUTH${postfix}"
         conditional_opt+="${prefix}-e XAUTHORITY=$XAUTH${postfix}"
     fi
 

@@ -71,7 +71,7 @@ To start the the Dev Container, run the following command from the root director
 Use the `**(gdb) cvcuda_basic/cpp**` launch profile configured for this application to debug the application.
 
 
-#### Pyuthon
+#### Python
 
 There are two launch profiles configured for this Python application:
 
