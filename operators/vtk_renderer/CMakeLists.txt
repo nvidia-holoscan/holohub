@@ -41,3 +41,7 @@ vtk_module_autoinit(
 
 target_include_directories(vtk_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(vtk_renderer INTERFACE VTK_RENDERER)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
