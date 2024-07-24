@@ -36,11 +36,12 @@ ${HOLOHUB_ROOT}/dev_container launch \
     --img holohub:debugging \
     -- ./run build endoscopy_tool_tracking python --type ${build_type}
 
-# Launch PDB with the Endoscopy Tool Tracking application
+# # Launch PDB with the Endoscopy Tool Tracking application
 ${HOLOHUB_ROOT}/dev_container launch \
     --img holohub:debugging \
     --  bash -c '\
             export PYTHONPATH=${PYTHONPATH}:/opt/nvidia/holoscan/lib/cmake/holoscan/../../../python/lib:/workspace/holohub/build/endoscopy_tool_tracking/python/lib:/workspace/holohub && \
+            cd /workspace/holohub/build/endoscopy_tool_tracking && \
             python -m pdb \
                 /workspace/holohub/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py \
                 --data /workspace/holohub/data/endoscopy'

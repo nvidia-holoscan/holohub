@@ -59,7 +59,8 @@ ${HOLOHUB_ROOT}/dev_container launch \
     --docker_opts "-v ${INSTALL_DIR}:/opt/nvidia/holoscan --security-opt seccomp=unconfined" \
     --img holohub:debugging \
     --  bash -c \
-            'gdb -q \
+            'cd /workspace/holohub/build/endoscopy_tool_tracking && \
+            gdb -q \
                 -ex "break main" \
                 -ex "run --data /workspace/holohub/data/endoscopy" \
                 -ex "break /workspace/holoscan-sdk/src/core/application.cpp:add_flow" \

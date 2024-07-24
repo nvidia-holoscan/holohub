@@ -16,9 +16,10 @@
 set -e
 
 # This script runs the Endsocopy Tool Tracking application for interactive debugging with GDB.
-# Usage: ./debug_gdb.sh [build_type:debug,rel-debug,release]
+# Usage: ./debug_gdb.sh [build_type:debug,rel-debug,release] [language:cpp,python]
 
 build_type=${1:-debug}
+language=${2:-cpp}
 
 SCRIPT_DIR=$(dirname $(realpath $0))
 HOLOHUB_ROOT=$(realpath "${SCRIPT_DIR}/../..")
@@ -34,16 +35,32 @@ ${HOLOHUB_ROOT}/dev_container build \
 # Build the Endoscopy Tool Tracking application with debugging symbols
 ${HOLOHUB_ROOT}/dev_container launch \
     --img holohub:debugging \
-    -- ./run build endoscopy_tool_tracking --type ${build_type}
+    -- ./run build endoscopy_tool_tracking ${language} --type ${build_type}
 
 # Launch GDB with the Endoscopy Tool Tracking application
-${HOLOHUB_ROOT}/dev_container launch \
-    --img holohub:debugging \
-    --docker_opts "--security-opt seccomp=unconfined" \
-    --  bash -c '\
-            export PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking:/usr/share/gdb/python && \
-            gdb \
-                -ex "break main" \
-                -ex "run --data /workspace/holohub/data/endoscopy" \
-                -ex "break /workspace/holoscan-sdk/src/core/application.cpp:add_flow" \
-                /workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking'
+if [[ "${language}" == "cpp" ]]; then
+    ${HOLOHUB_ROOT}/dev_container launch \
+        --img holohub:debugging \
+        --docker_opts "--security-opt seccomp=unconfined" \
+        --  bash -c '\
+                export PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking:/usr/share/gdb/python && \
+                cd /workspace/holohub/build/endoscopy_tool_tracking && \
+                gdb \
+                    -ex "break main" \
+                    -ex "run --data /workspace/holohub/data/endoscopy" \
+                    -ex "break /workspace/holoscan-sdk/src/core/fragment.cpp:add_flow" \
+                    /workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking';
+
+else
+    ${HOLOHUB_ROOT}/dev_container launch \
+        --img holohub:debugging \
+        --docker_opts "--security-opt seccomp=unconfined" \
+        --  bash -c '\
+                export PYTHONPATH=${PYTHONPATH}:/opt/nvidia/holoscan/lib/cmake/holoscan/../../../python/lib:/workspace/holohub/build/endoscopy_tool_tracking/python/lib:/workspace/holohub:/usr/share/gdb/python && \
+                cd /workspace/holohub/build/endoscopy_tool_tracking && \
+                gdb -ex "break /workspace/holoscan-sdk/src/core/fragment.cpp:add_flow" \
+                    -ex "run" \
+                    --args python3 \
+                        /workspace/holohub/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py \
+                        --data /workspace/holohub/data/endoscopy';
+fi

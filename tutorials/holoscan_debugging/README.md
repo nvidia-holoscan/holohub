@@ -1,10 +1,10 @@
 # Interactively Debugging a Holoscan Application
 
 Holoscan SDK is a platform for rapidly developing low-latency AI pipelines. As part of software development we often find it useful to inspect pipeline operations and data contexts during execution. This tutorial walks
-through a few common scenarios to illustrate how common software tools can be used in debugging an application based on Holoscan SDK.
+through a few common scenarios to illustrate how common command line interface tools can be used in debugging an application based on Holoscan SDK.
 
 ## Tutorial Sections
-1. [Debugging a C++ application with `gdb`](#debugging-a-c-application-with-gdb)
+1. [Debugging a C++ or Python application with `gdb`](#debugging-a-c-application-with-gdb)
 2. [Debugging a Python application with `pdb`](#debugging-a-python-application-with-pdb)
 3. [Debugging Symbols for Legacy Holoscan SDK](#debugging-symbols-for-legacy-holoscan-sdk-versions)
 4. [Logging](#logging)
@@ -48,7 +48,9 @@ There are a wide variety of free and/or open source software tools available for
 - The built-in [Python Debugger (pdb)](https://docs.python.org/3/library/pdb.html) module;
 - [Microsoft Visual Studio Code](https://code.visualstudio.com/), with a wide variety of community extensions.
 
-In this tutorial we will focus on the headless `GDB` and `pdb` tools.
+In this tutorial we will focus on the "headless" `GDB` and `pdb` tools. These require minimal setup and can be run via a simple
+terminal without a dedicated display. For advanced development we recommend reviewing Visual Studio Code Development Containers
+and debug profiles as used in several HoloHub applications.
 
 ### References
 
@@ -76,12 +78,13 @@ The steps for getting started with `gdb` depend on how you are consuming Holosca
 - If you are using an older Holoscan SDK container from NGC, or if you are consuming Holoscan SDK through another means such as Debian packages, Python wheels, or custom installation, you will need to build
 Holoscan SDK with debugging symbols in order to step through Holoscan SDK code during debugging. Jump to the [Legacy Holoscan SDK](#debugging-symbols-for-legacy-holoscan-sdk-versions) section to get started.
 
-Review the [HoloHub Prerequisites](/README.md#prerequisites) before continuing.
+Review the [HoloHub Prerequisites](/README.md#prerequisites) along with the Endoscopy Tool Tracking requirements [C++](/applications/endoscopy_tool_tracking/cpp/README.md#requirements),
+[Python](/applications/endoscopy_tool_tracking/python/README.md#requirements) to get started. before continuing.
 
 ### Getting Started
 
 For this tutorial we will debug the Endoscopy Tool Tracking application. The tutorial [`debug_gdb.sh`](./debug_gdb.sh) script
-is a self-contained example that will build the application and launch into a `gdb` debugging session.
+is a self-contained example that will build the C++ application and launch into a `gdb` debugging session.
 
 Run the script to get started:
 ```sh
@@ -101,6 +104,17 @@ The script runs through the following steps:
     - Sets a breakpoint in Holoscan SDK's `add_flow` function.
 
 At this point `gdb` enters an interactive session where we can inspect the Endoscopy Tool Tracking program state and advance execution.
+
+GDB can also be used to interactively debug C++ symbols underlying a Holoscan Python pipeline. Run the tutorial
+[`debug_gdb.sh`](./debug_gdb.sh) script to inspect the Endoscopy Tool Tracking Python application:
+
+```sh
+./tutorials/holoscan_debugging/debug_gdb.sh debug python
+```
+
+When the `python` argument is provided, the script builds the Endoscopy Tool Tracking application with Python bindings
+and initiates debugging with GDB from the Python script entrypoint. Once symbols are loaded in GDB, we can set breakpoints
+and inspect the underlying state of Holoscan SDK C++ operator implementations at runtime.
 
 From this point we recommend referring to the [GDB Manual](https://sourceware.org/gdb/current/onlinedocs/gdb.html/) or
 online tutorials to get started with interactive debugging commands.
@@ -122,7 +136,7 @@ We can use `info sources` to inspect that Holoscan SDK symbols are available.
 
 #### How can I attach to a running Holoscan SDK session?
 
-Do the following to attach to a HoloHub application:
+Do the following to attach to a HoloHub application (C++ or Python):
 
 1. Launch the container with root permissions and start the process in the background:
 ```bash
@@ -162,8 +176,9 @@ PYTHONPATH=${PYTHONPATH}:/usr/share/gdb/python
 The [Python Debugger](https://docs.python.org/3/library/pdb.html) module is a built-in interactive debugging tool for Python programs. Similar to `gdb`, it supports setting breakpoints for interactive, headless, just-in-time debugging. You can use
 `pdb` to debug Holoscan SDK Python programs on any platform supported by Holoscan SDK.
 
-Holoscan SDK Python libraries serve as wrappers around Holoscan SDK C++ libraries. When debugging symbols are provided for
-C++ libraries, `pdb` can step into both core C++ libraries and Python wrapper code.
+Holoscan SDK Python libraries serve as wrappers around Holoscan SDK C++ libraries. While `pdb` may load C++ symbols, it is
+not well suited for setting breakpoints or stepping into underlying C++ code. `pdb` is best suited for debugging Holoscan
+SDK operators whose implementation lies in a Python-native `compute` method.
 
 ### Prerequisites
 
@@ -184,7 +199,7 @@ Run the script to get started:
 
 The script runs through the following steps:
 1. Builds the HoloHub container environment based on the Holoscan SDK NGC container.
-2. Builds the Endoscopy Tool Tracking __Python__ application in the container environment. By default we use the
+2. Builds the Endoscopy Tool Tracking Python application in the container environment. By default we use the
   `debug` build mode to generate detailed C++ debugging symbols for the Endoscopy Tool Tracking application.
 3. Launches the Endoscopy Tool Tracking application with `pdb`, which is invoked via the Python interpreter:
 ```bash
@@ -195,17 +210,18 @@ This command launches the Python version of the Endoscopy Tool Tracking applicat
 very first line. From this point you can set additional breakpoints, inspect application state, and control program
 execution.
 
-Although launched from Python, calls to `import holoscan` will load Python-wrapped C++ Holoscan SDK libraries
-along with their debugging symbols. You can set breakpoints in the corresponding Holoscan SDK C++ source code after each
-breakpoint launches. For instance:
+For instance, the following snippet sets a breakpoint and then inspects the value of `self.source.lower()` during
+pipeline setup in the app `compose` method:
 ```py
-# Load the Holoscan core module in Python
--> from holoscan.core import Application
-(Pdb) n
-> /workspace/holohub/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py(20)<module>()
-# Core debugging symbols are now available we can set breakpoints in C++ code.
-(Pdb) break /workspace/holoscan-sdk/src/core/application.cpp:172
-Breakpoint 1 at /workspace/holoscan-sdk/src/core/application.cpp:172
+(Pdb) break endoscopy_tool_tracking.py:77
+Breakpoint 1 at /workspace/holohub/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py:77
+(Pdb) continue
+...
+> /workspace/holohub/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py(77)compose()
+-> if self.source.lower() == "aja":
+(Pdb) p self.source.lower()
+'replayer'
+(Pdb)
 ...
 ```
 
