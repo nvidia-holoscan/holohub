@@ -72,7 +72,7 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
   // Because coords is on host and mask is on device, emit them on separate ports for
   // compatibility with use of this operator in distributed applications.
   auto& out_coords = spec.output<gxf::Entity>("out_coords");
-  auto& out_mask = spec.output<gxf::Entity>("out_mask");
+  auto& out_mask = spec.output<gxf::Entity>("out_mask").condition(ConditionType::kNone);
 
   spec.param(in_, "in", "Input", "Input port.", &in_tensor);
   spec.param(
