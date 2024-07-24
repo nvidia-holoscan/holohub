@@ -34,6 +34,10 @@ if [ ! -d holoscan-sdk ]; then
 fi
 cd holoscan-sdk
 git checkout ${holoscan_sdk_tag}
+# Apply patch to fix broken Vulkan SDK source
+# https://github.com/nvidia-holoscan/holoscan-sdk/issues/30
+git reset --hard HEAD
+git apply ${SCRIPT_DIR}/holoscan_sdk_20240723_1.diff
 ./run build --type $build_type
 INSTALL_DIR=$(realpath $(find . -type d -name "install-*"))
 popd
