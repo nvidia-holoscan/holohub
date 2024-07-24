@@ -46,7 +46,6 @@ class VtkRendererOp : public holoscan::Operator {
   struct Internals;
   std::shared_ptr<Internals> internals;
 };
-
 }  // namespace holoscan::ops
 
 #endif /* HOLOSCAN_OPERATORS_TOOL_TRACKING_POSTPROCESSOR_TOOL_TRACKING_POSTPROCESSOR_HPP */

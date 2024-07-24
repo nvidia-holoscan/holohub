@@ -18,6 +18,8 @@ extensions:
 - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
 - gxf_extensions/yuan_qcap/libgxf_qcap_source.so
 
+visualizer: "holoviz" # "holoviz" or "vtk"
+
 aja:
   width: 1920
   height: 1080
@@ -156,3 +158,13 @@ holoviz_overlay:
         - Clipper
         - Irrigator
         - Spec.Bag
+
+vtk_op:
+  labels:
+    - Grasper
+    - Bipolar
+    - Hook
+    - Scissors
+    - Clipper
+    - Irrigator
+    - Spec.Bag
