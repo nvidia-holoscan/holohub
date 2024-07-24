@@ -57,7 +57,7 @@
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}"
+                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}:/usr/local/lib/python3.10/dist-packages"
             },
             "args": [
                 "./basic_networking_ping_tx.yaml",
@@ -78,7 +78,7 @@
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}"
+                "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}:/usr/local/lib/python3.10/dist-packages"
             },
             "args": [
                 "./basic_networking_ping_rx.yaml",
@@ -374,7 +374,7 @@
             "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 3s)",
             "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
             "args": [
                 "--worker",
@@ -489,7 +489,7 @@
             "name": "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 3s)",
             "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
             "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
             "env": {
@@ -700,7 +700,6 @@
                 "(gdb) basic_networking_ping/cpp RX",
                 "(gdb) basic_networking_ping/cpp TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
         {
@@ -709,7 +708,6 @@
                 "(debugpy) basic_networking_ping/python RX",
                 "(debugpy) basic_networking_ping/python TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
         {
@@ -719,7 +717,6 @@
                 "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
                 "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
             ],
-            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
         {
@@ -729,7 +726,6 @@
                 "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
                 "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
             ],
-            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
     ]

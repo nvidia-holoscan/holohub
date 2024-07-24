@@ -25,6 +25,9 @@ ARG USERNAME=holoscan
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+# Remove existing home directory if exists
+RUN [ -d "/home/$USERNAME" ] && rm -rf /home/$USERNAME
+
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
@@ -53,3 +56,5 @@ RUN apt-get update \
 # Set the default user.
 # (See https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user)
 USER $USERNAME
+
+ENV PYTHONPATH=/usr/local/lib/python3.10/dist-packages:$PYTHONPATH
