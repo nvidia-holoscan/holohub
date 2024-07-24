@@ -16,6 +16,7 @@
  */
 
 #include "vtk_renderer.hpp"
+#include "../version_helper_macros.hpp"
 
 #include "holoscan/core/execution_context.hpp"
 #include "holoscan/core/gxf/entity.hpp"
@@ -160,7 +161,11 @@ void VtkRendererOp::compute(InputContext& op_input, OutputContext&, ExecutionCon
   auto videostream = op_input.receive<gxf::Entity>("videostream").value();
   const auto videostream_tensor = videostream.get<Tensor>("");
   if (videostream_tensor) {
+  #if GXF_HAS_DLPACK_SUPPORT
+    nvidia::gxf::Tensor in_tensor_gxf{videostream_tensor->dl_ctx()};
+  #else
     holoscan::gxf::GXFTensor in_tensor_gxf{videostream_tensor->dl_ctx()};
+  #endif
     auto& shape = in_tensor_gxf.shape();
     const int y = shape.dimension(0);
     const int x = shape.dimension(1);
