@@ -1068,6 +1068,10 @@ vscode() {
         devcontainer_env_file+="\"--volume=/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro\","
     fi
 
+    # Run in privileged mode on IGX
+    if [ -d /usr/lib/aarch64-linux-gnu/tegra ]; then
+        devcontainer_env_file+="\"--privileged\","
+    fi
 
     # User provided Docker options
     if [ -n "${docker_opts}" ]; then

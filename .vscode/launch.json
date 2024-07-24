@@ -700,6 +700,7 @@
                 "(gdb) basic_networking_ping/cpp RX",
                 "(gdb) basic_networking_ping/cpp TX"
             ],
+            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
         {
@@ -708,6 +709,7 @@
                 "(debugpy) basic_networking_ping/python RX",
                 "(debugpy) basic_networking_ping/python TX"
             ],
+            "preLaunchTask": "Build basic_networking_ping",
             "stopAll": true
         },
         {
@@ -717,6 +719,7 @@
                 "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
                 "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
             ],
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
             "stopAll": true
         },
         {
@@ -726,6 +729,7 @@
                 "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
                 "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
             ],
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
             "stopAll": true
         },
     ]
