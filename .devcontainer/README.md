@@ -70,6 +70,11 @@ With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a ne
 
 > 💡 Important: [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) version 2.3.0 or later version is required to enable debugging of Holoscan source code.
 
+> ⚠️ Warning: Build error may occur when switching between building inside and outside the Dev Container. When this happens, execute the following command to clear the build cache:
+>
+> ```bash
+> ./run clear_cache
+> ```
 
 ## Advanced Options
 
