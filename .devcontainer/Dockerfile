@@ -26,7 +26,7 @@ ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
 # Remove existing home directory if exists
-RUN [ -d "/home/$USERNAME" ] && rm -rf /home/$USERNAME
+RUN if [ -d "/home/$USERNAME" ] ; then ls -l /home/$USERNAME && rm -rf /home/$USERNAME ; fi
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
