@@ -53,6 +53,8 @@ add_subdirectory(h264)
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
+add_subdirectory(holoviz)
+
 add_holohub_application(hyperspectral_segmentation)
 
 add_holohub_application(multiai_endoscopy)
