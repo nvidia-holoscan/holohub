@@ -76,6 +76,8 @@ With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a ne
 > ./run clear_cache
 > ```
 
+> ⚠️ Warning: Build error may occur if an application provides its own Dockerfile with additional dependencies. In this case, refer to the [Application-Specific Dockerfile](#application-specific-dockerfile) section to launch a new Dev Container session with the appropriate Docker image.
+
 ## Advanced Options
 
 ### Application-Specific Dockerfile
