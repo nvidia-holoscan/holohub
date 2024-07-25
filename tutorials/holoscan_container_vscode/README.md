@@ -87,7 +87,7 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 
   You may answer `Y` or `y` to continue the debug session. The debugger shall now stop at the breakpoint you've set in the `application.cpp` file.
 
-* **(debugpy) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](../holoscan-sdk/src/core/application.cpp#L209) file.
+* **(gdb) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](../holoscan-sdk/src/core/application.cpp#L209) file.
 
 > 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug when using the first two launch profiles.*
 
