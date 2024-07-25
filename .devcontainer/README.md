@@ -33,7 +33,10 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 
 4. VS Code will build and initialize the selected Dev Container. This can take a few minutes the first time.
 
-5. Once initialized, a new VS Code window will open with a prompt. Click **Trust Folder & Continue** to continue the Dev Container build process.
+5. Once initialized, a new VS Code window will open with the following prompts. Click **Yes** and **Trust Folder & Continue** to continue the Dev Container build process.
+
+![VS Code External Application](./static/vscode-prompt-ext-app.png)
+![VS Code Trust Directory](./static/vscode-prompt-trust.png)
 
 6. When ready, the Holohub directory is mirrored into the container under `/workspace/holohub` to preserve any changes.
 

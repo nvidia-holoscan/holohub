@@ -249,6 +249,11 @@ run_docker() {
     $(./run docker_cmd "-u $(id -u):$(id -g)") "$@"
 }
 
+get_group_id() {
+    local group=$1
+    cat /etc/group | grep $group | cut -d: -f3
+}
+
 get_ucx_options() {
     local prefix="${1:- }"
     local postfix="${2:- }"
@@ -294,7 +299,17 @@ get_conditional_options() {
     fi
 
     # add user in container to group video to access video devices, e.g. /dev/video0
-    conditional_opt+="${prefix}--group-add=video${postfix}"
+    video_id=$(get_group_id video)
+    if [ -n "$video_id" ]; then
+        conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
+    fi
+    render_id=$(get_group_id rnder)
+    if [ -n "$render_id" ]; then
+        conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
+    fi
+
+    # Add docker group to enable DooD
+    conditional_opt+="${prefix}--group-add=$(get_group_id docker)${postfix}"
 
     if [[ $nsys_profile == true ]]; then
         # enable usage of the the perf_event_open call, see
@@ -322,6 +337,31 @@ get_conditional_options() {
         conditional_opt+="${prefix}--rm${postfix}"
     fi
 
+    # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
+    if lsmod | grep -q nvgpu ; then
+        if [ -e /dev/nvgpu/igpu0/nvsched ]; then
+            conditional_opt+="${prefix}--device=/dev/nvgpu/igpu0/nvsched${postfix}"
+        fi
+        if [ -e /dev/nvhost-ctrl-nvdec ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-ctrl-nvdec${postfix}"
+        fi
+        if [ -e /dev/nvhost-ctxsw-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-ctxsw-gpu${postfix}"
+        fi
+        if [ -e /dev/nvhost-nvsched-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-nvsched-gpu${postfix}"
+        fi
+        if [ -e /dev/nvhost-sched-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-sched-gpu${postfix}"
+        fi
+        if [ -e /dev/nvidia0 ]; then
+            conditional_opt+="${prefix}--device=/dev/nvidia0${postfix}"
+        fi
+        if [ -e /dev/nvidia-modeset ]; then
+            conditional_opt+="${prefix}--device=/dev/nvidia-modeset${postfix}"
+        fi
+    fi
+
     # Define path for cupy's kernel cache, needed since $HOME does
     # not exist when running with `-u id:group`
     conditional_opt+="${prefix}-e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache" # last item doesn't need postfix
@@ -346,8 +386,8 @@ get_mount_device_options() {
         mount_device_opt+="${prefix}--device=$video_dev:$video_dev${postfix}"
     done
 
+    # Deltacast capture boards and Videomaster SDK
     for i in 0 1 2 3; do
-        # Deltacast capture boards and Videomaster SDK
         # Deltacast SDI capture board
         if [ -e /dev/delta-x380${i} ]; then
             mount_device_opt+="${prefix}--device=/dev/delta-x380${i}:/dev/delta-x380${i}${postfix}"
@@ -358,8 +398,8 @@ get_mount_device_options() {
         fi
     done
 
+    # Find all audio devices
     if [ -d /dev/snd ]; then
-        # Find all audio devices
         audio_devices=$(find /dev/snd -type c)
 
         # Mount all found audio devices
@@ -368,11 +408,18 @@ get_mount_device_options() {
         done
     fi
 
-
+    # mounts the ALSA configuration for the user running the script
     if [ -e /etc/asound.conf ]; then
-        # mounts the ALSA configuration for the user running the script
         mount_device_opt+="${prefix}--mount=source=/etc/asound.conf,target=/etc/asound.conf,readonly,type=bind${postfix}"
     fi
+
+    # Mount ConnectX device nodes
+    if [ -e /dev/infiniband/rdma_cm ]; then
+        mount_device_opt+="${prefix}--device=/dev/infiniband/rdma_cm${postfix}"
+    fi
+    for uverbs_dev in $(find /dev -regex '/dev/infiniband/uverbs[0-9]+'); do
+        mount_device_opt+="${prefix}--device=${uverbs_dev}${postfix}"
+    done
 
     # grants access to the sound group
     sound_group_gid=$(getent group audio | cut -d: -f3)
@@ -1066,11 +1113,6 @@ vscode() {
     # Find the nvoptix.bin file
     if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
         devcontainer_env_file+="\"--volume=/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro\","
-    fi
-
-    # Run in privileged mode on IGX
-    if [ -d /usr/lib/aarch64-linux-gnu/tegra ]; then
-        devcontainer_env_file+="\"--privileged\","
     fi
 
     # User provided Docker options
