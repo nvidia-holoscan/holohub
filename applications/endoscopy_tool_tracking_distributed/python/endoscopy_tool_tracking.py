@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import logging
 import os
 import sys
@@ -84,14 +85,41 @@ class EndoscopyApp(Application):
         )
 
 
-if __name__ == "__main__":
-    config_file = os.path.join(os.path.dirname(__file__), "endoscopy_tool_tracking.yaml")
-    data_path = os.environ.get("HOLOSCAN_INPUT_PATH", None)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Distributed Endoscopy Tool Tracking Application")
+    parser.add_argument(
+        "--data",
+        type=str,
+        required=False,
+        default=os.environ.get("HOLOSCAN_INPUT_PATH", None),
+        help="Input dataset.",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=False,
+        default=os.environ.get(
+            "HOLOSCAN_CONFIG_PATH",
+            os.path.join(os.path.dirname(__file__), "endoscopy_tool_tracking.yaml"),
+        ),
+        help="Input dataset.",
+    )
 
-    if data_path is None:
-        logger.error("HOLOSCAN_INPUT_PATH is not set. Please set it to the path of the video data.")
+    args, _ = parser.parse_known_args()
+
+    return args
+
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    print(f"==========================> data={args.data}")
+    if args.data is None:
+        logger.error(
+            "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable."
+        )
         sys.exit(-1)
 
-    app = EndoscopyApp(data_path)
-    app.config(config_file)
+    app = EndoscopyApp(args.data)
+    app.config(args.config)
     app.run()
