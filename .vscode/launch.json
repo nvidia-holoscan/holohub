@@ -25,7 +25,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 1
+            }
         },
         {
             "name": "(gdb) basic_networking_ping/cpp RX",
@@ -47,7 +52,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 2
+            }
         },
         {
             "name": "(debugpy) basic_networking_ping/python TX",
@@ -61,7 +71,12 @@
             },
             "args": [
                 "./basic_networking_ping_tx.yaml",
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+                "group": "basic_networking_ping",
+                "order": 3
+            }
         },
         {
             "name": "(pythoncpp) basic_networking_ping/python TX",
@@ -69,6 +84,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) basic_networking_ping/python TX",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 4
+            }
         },
         {
             "name": "(debugpy) basic_networking_ping/python RX",
@@ -82,7 +102,11 @@
             },
             "args": [
                 "./basic_networking_ping_rx.yaml",
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+                "group": "basic_networking_ping",
+            }
         },
         {
             "name": "(pythoncpp) basic_networking_ping/python RX",
@@ -90,6 +114,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) basic_networking_ping/python RX",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 5
+            }
         },
         //#endregion basic_networking_ping
         //#region asr_to_llm
@@ -102,6 +131,9 @@
             "cwd": "${workspaceFolder}/applications/asr_to_llm/",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/asr_to_llm/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -110,6 +142,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) asr_to_llm/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "asr_to_llm",
+                "order": 1
+            }
         },
         //#endregion asr_to_llm
         //#region colonoscopy_segmentation
@@ -128,6 +165,9 @@
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/colonoscopy_segmentation/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -136,6 +176,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) colonoscopy_segmentation/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "colonoscopy_segmentation",
+                "order": 1
+            }
         },
         //#endregion colonoscopy_segmentation
         //#region cuda_quantum
@@ -148,6 +193,9 @@
             "cwd": "${workspaceFolder}/applications/cuda_quantum/",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/cuda_quantum/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -156,6 +204,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) cuda_quantum/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "cuda_quantum",
+                "order": 1
+            }
         },
         //#endregion cuda_quantum
         //#region cvcuda_basic
@@ -179,7 +232,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "cvcuda_basic",
+                "order": 1
+            }
         },
         {
             "name": "(debugpy) cvcuda_basic/python",
@@ -194,6 +252,9 @@
             "cwd": "${workspaceFolder}/applications/cvcuda_basic/",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/cvcuda_basic/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -202,6 +263,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) cvcuda_basic/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "cvcuda_basic",
+                "order": 2
+            }
         },
         //#endregion cvcuda_basic
         //#region endoscopy_depth_estimation
@@ -220,6 +286,9 @@
             "cwd": "${workspaceFolder}/applications/endoscopy_depth_estimation/",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/endoscopy_depth_estimation/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -228,6 +297,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_depth_estimation/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_depth_estimation",
+                "order": 1
+            }
         },
         //#endregion endoscopy_depth_estimation
         //#region endoscopy_tool_tracking
@@ -252,7 +326,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking",
+                "order": 1
+            }
         },
         {
             "name": "(debugpy) endoscopy_tool_tracking/python",
@@ -267,6 +346,9 @@
             "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking/",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -275,6 +357,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_tool_tracking/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking",
+                "order": 2
+            }
         },
         //#endregion endoscopy_tool_tracking
         //#region endoscopy_tool_tracking_distributed
@@ -301,7 +388,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 1
+            }
         },
         {
             "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment",
@@ -335,13 +427,18 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 3
+            }
         },
         {
             "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 1s)",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
             "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
             "args": [
                 "--worker",
@@ -368,7 +465,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 4
+            }
         },
         {
             "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
@@ -401,7 +503,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 5
+            }
         },
         //#endregion C++
         //#region Python
@@ -419,7 +526,10 @@
             "args": [
                 "--data",
                 "${env:HOLOHUB_DATA_DIR}/endoscopy"
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python (all fragments)",
@@ -427,6 +537,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 2
+            }
         },
         {
             "name": "(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment",
@@ -448,7 +563,10 @@
                 "127.0.0.1:10000",
                 "--nic",
                 "lo",
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - video_in fragment",
@@ -456,12 +574,17 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 6
+            }
         },
         {
             "name": "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 1s)",
+            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 2s)",
             "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
             "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
             "env": {
@@ -476,7 +599,10 @@
                 "127.0.0.1:10000",
                 "--nic",
                 "lo",
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - inference fragment",
@@ -484,6 +610,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 7
+            }
         },
         {
             "name": "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
@@ -504,7 +635,10 @@
                 "127.0.0.1:10000",
                 "--nic",
                 "lo",
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - viz fragment",
@@ -512,6 +646,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 8
+            }
         },
         //#endregion endoscopy_tool_tracking_distributed
         //#endregion endoscopy_tool_tracking_distributed
@@ -525,6 +664,9 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/build/florence-2-vision/lib:${env:PYTHONPATH}",
                 "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "presentation": {
+                "hidden": true,
             }
         },
         {
@@ -532,6 +674,11 @@
             "type": "pythoncpp",
             "request": "launch",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "florence-2-vision",
+                "order": 1
+            }
         },
         //#endregion florence-2-vision
         //#region h264_endoscopy_tool_tracking
@@ -561,7 +708,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "h264_endoscopy_tool_tracking",
+                "order": 1
+            }
         },
         {
             "name": "(debugpy) h264_endoscopy_tool_tracking/python",
@@ -576,7 +728,10 @@
             "args": [
                 "--data",
                 "${env:HOLOHUB_DATA_DIR}/endoscopy"
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) h264_endoscopy_tool_tracking/python",
@@ -584,6 +739,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) h264_endoscopy_tool_tracking/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "h264_endoscopy_tool_tracking",
+                "order": 2
+            }
         },
         //#endregion h264_endoscopy_tool_tracking
         //#region h264_video_decode
@@ -613,7 +773,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "h264_video_decode",
+                "order": 1
+            }
         },
         {
             "name": "(debugpy) h264_video_decode/python",
@@ -628,7 +793,10 @@
             "args": [
                 "--data",
                 "${env:HOLOHUB_DATA_DIR}/endoscopy"
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) h264_video_decode/python",
@@ -636,6 +804,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) h264_video_decode/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "h264_video_decode",
+                "order": 2
+            }
         },
         //#endregion h264_video_decode
         //#region volume_rendering
@@ -663,7 +836,12 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "volume_rendering",
+                "order": 1
+            }
         },
         {
             "name": "(debugpy) volume_rendering/python",
@@ -682,7 +860,10 @@
                 "${env:HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd",
                 "--mask",
                 "${env:HOLOHUB_DATA_DIR}/volume_rendering/smoothmasks.seg.mhd"
-            ]
+            ],
+            "presentation": {
+                "hidden": true,
+            }
         },
         {
             "name": "(pythoncpp) volume_rendering/python",
@@ -690,6 +871,11 @@
             "request": "launch",
             "pythonLaunchName": "(debugpy) volume_rendering/python",
             "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "volume_rendering",
+                "order": 2
+            }
         },
         //#endregion volume_rendering
     ],
@@ -701,7 +887,12 @@
                 "(gdb) basic_networking_ping/cpp TX"
             ],
             "preLaunchTask": "Build basic_networking_ping",
-            "stopAll": true
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 10
+            }
         },
         {
             "name": "(compound) basic_networking_ping/python TX & RX",
@@ -710,7 +901,12 @@
                 "(debugpy) basic_networking_ping/python TX"
             ],
             "preLaunchTask": "Build basic_networking_ping",
-            "stopAll": true
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "basic_networking_ping",
+                "order": 11
+            }
         },
         {
             "name": "(compound) endoscopy_tool_tracking_distributed/cpp",
@@ -720,7 +916,12 @@
                 "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
             ],
             "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "stopAll": true
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 10
+            }
         },
         {
             "name": "(compound) endoscopy_tool_tracking_distributed/python",
@@ -730,7 +931,12 @@
                 "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
             ],
             "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "stopAll": true
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "endoscopy_tool_tracking_distributed",
+                "order": 11
+            }
         },
     ]
 }

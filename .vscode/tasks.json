@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Delay Task (1s)",
+            "label": "Delay Task (2s)",
             "command": "sleep 1",
             "detail": "Delay task start for 1 second"
         },
@@ -133,13 +133,13 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed (delay 1s)",
+            "label": "Build endoscopy_tool_tracking_distributed (delay 2s)",
             "command": "./run",
             "args": ["build", "endoscopy_tool_tracking_distributed", "--type", "debug"],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Delay Task (1s)",
+            "dependsOn": "Delay Task (2s)",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"
