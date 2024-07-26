@@ -16,11 +16,11 @@
 set -e
 
 # This script builds Holoscan SDK with debug symbols and runs the Endoscopy Tool Tracking application with GDB.
-# Usage: ./debug_legacy.sh [build_type:debug,rel-debug,release] [holoscan_sdk_tag:v2.2.0] [holoscan_image:nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu]
+# Usage: ./debug_legacy.sh [build_type:debug,rel-debug,release]
 
 build_type=${1:-rel-debug}
-holoscan_sdk_tag=${2:-v2.2.0}
-holoscan_image=${3:-nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu}
+holoscan_sdk_tag="v2.2.0"
+holoscan_image="nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu"
 
 SCRIPT_DIR=$(dirname $(realpath $0))
 HOLOHUB_ROOT=$(realpath "${SCRIPT_DIR}/../..")
