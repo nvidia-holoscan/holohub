@@ -24,7 +24,7 @@ holoscan_image="nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu"
 
 SCRIPT_DIR=$(dirname $(realpath $0))
 HOLOHUB_ROOT=$(realpath "${SCRIPT_DIR}/../..")
-tmp_dir=${SCRIPT_DIR}/tmp/holoscan_debugging
+tmp_dir=${SCRIPT_DIR}/tmp/cli_debugging
 mkdir -p ${tmp_dir}
 
 # Download and build Holoscan SDK

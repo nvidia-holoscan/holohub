@@ -88,7 +88,7 @@ is a self-contained example that will build the C++ application and launch into 
 
 Run the script to get started:
 ```sh
-./tutorials/holoscan_debugging/debug_gdb.sh
+./tutorials/cli_debugging/debug_gdb.sh
 ```
 
 The script runs through the following steps:
@@ -109,7 +109,7 @@ GDB can also be used to interactively debug C++ symbols underlying a Holoscan Py
 [`debug_gdb.sh`](./debug_gdb.sh) script to inspect the Endoscopy Tool Tracking Python application:
 
 ```sh
-./tutorials/holoscan_debugging/debug_gdb.sh debug python
+./tutorials/cli_debugging/debug_gdb.sh debug python
 ```
 
 When the `python` argument is provided, the script builds the Endoscopy Tool Tracking application with Python bindings
@@ -196,7 +196,7 @@ is a self-contained example that will build the application and launch into a `p
 
 Run the script to get started:
 ```sh
-./tutorials/holoscan_debugging/debug_pdb.sh
+./tutorials/cli_debugging/debug_pdb.sh
 ```
 
 The script runs through the following steps:
@@ -248,7 +248,7 @@ The following script provides the necessary steps to rebuild Holoscan SDK versio
 set up for debugging with `gdb`:
 
 ```bash
-./tutorials/holoscan_debugging/debug_legacy.sh
+./tutorials/cli_debugging/debug_legacy.sh
 ```
 
 The script does the following:

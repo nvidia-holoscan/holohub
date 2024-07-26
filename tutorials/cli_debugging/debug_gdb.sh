@@ -23,7 +23,7 @@ language=${2:-cpp}
 
 SCRIPT_DIR=$(dirname $(realpath $0))
 HOLOHUB_ROOT=$(realpath "${SCRIPT_DIR}/../..")
-tmp_dir=$(pwd)/tmp/holoscan_debugging
+tmp_dir=$(pwd)/tmp/cli_debugging
 mkdir -p ${tmp_dir}
 
 # Build the tutorial container with GDB
