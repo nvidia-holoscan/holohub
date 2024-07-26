@@ -26,7 +26,7 @@ extensions:
 # The following configuration is for the NVIDIA hosted NIMs running on build.nvidia.com.
 nim:
   base_url: https://health.api.nvidia.com/v1/medicalimaging/nvidia/vista-3d
-  api_key: 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
+  api_key: 
 
 
 holoviz:
