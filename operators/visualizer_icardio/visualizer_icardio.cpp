@@ -49,7 +49,8 @@ namespace holoscan::ops {
                "Output Tensors",
                "Output tensors",
                {std::string("")});
-    spec.param(data_dir_, "data_dir", "Data Directory", "Data directory",{std::string("../data/multiai_ultrasound")});
+    spec.param(data_dir_, "data_dir", "Data Directory", "Data directory",
+                                    {std::string("../data/multiai_ultrasound")});
     spec.param(input_on_cuda_, "input_on_cuda", "Input buffer on CUDA", "", false);
     spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
     spec.param(receivers_, "receivers", "Receivers", "List of receivers", {});
@@ -81,7 +82,7 @@ namespace holoscan::ops {
     std::ifstream file_logo(path_to_logo_file);
 
     if (!file_logo) {
-      HOLOSCAN_LOG_WARN("Logo file not found, Ignored.");
+      HOLOSCAN_LOG_WARN("Logo file "+path_to_logo_file+" not found, Ignored.");
     } else {
       std::istream_iterator<int> start(file_logo), end;
       std::vector<int> data_logo(start, end);

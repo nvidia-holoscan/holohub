@@ -62,13 +62,15 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
                         const std::vector<std::string>& in_tensor_names = {std::string("")},
                         const std::vector<std::string>& out_tensor_names = {std::string("")},
                         bool input_on_cuda = false,
+                        std::string data_dir = "../data/multiai_ultrasound",
                         // TODO(grelee): handle receivers similarly to HolovizOp?  (default: {})
                         // TODO(grelee): handle transmitter similarly to HolovizOp?
                         const std::string& name = "visualizer_icardio")
       : VisualizerICardioOp(ArgList{Arg{"allocator", allocator},
                                     Arg{"in_tensor_names", in_tensor_names},
                                     Arg{"out_tensor_names", out_tensor_names},
-                                    Arg{"input_on_cuda", input_on_cuda}}) {
+                                    Arg{"input_on_cuda", input_on_cuda},
+                                    Arg{"data_dir", data_dir}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -105,12 +107,14 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
                     const std::vector<std::string>&,
                     const std::vector<std::string>&,
                     bool,
+                    std::string,
                     const std::string&>(),
            "fragment"_a,
            "allocator"_a,
            "in_tensor_names"_a,   // = {std::string("")},
            "out_tensor_names"_a,  // = {std::string("")},
            "input_on_cuda"_a = false,
+           "data_dir"_a,
            "name"_a = "visualizer_icardio"s,
            doc::VisualizerICardioOp::doc_VisualizerICardioOp_python)
       .def("initialize", &VisualizerICardioOp::initialize, doc::VisualizerICardioOp::doc_initialize)
