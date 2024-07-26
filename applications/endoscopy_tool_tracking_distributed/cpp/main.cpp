@@ -151,17 +151,57 @@ class App : public holoscan::Application {
   std::string datapath_ = "data/endoscopy";
 };
 
+/** Helper function to parse the command line arguments */
+bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path) {
+  static struct option long_options[] = {
+      {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
+
+  while (int c = getopt_long(argc, argv, "d:c:", long_options, NULL)) {
+    if (c == -1 || c == '?') break;
+
+    switch (c) {
+      case 'c':
+        config_path = optarg;
+        break;
+      case 'd':
+        data_path = optarg;
+        break;
+      default:
+        holoscan::log_error("Unhandled option '{}'", static_cast<char>(c));
+        return false;
+    }
+  }
+
+  return true;
+}
+
 /** Main function */
 int main(int argc, char** argv) {
-  // Get the yaml configuration file
-  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path /= std::filesystem::path("endoscopy_tool_tracking.yaml");
+  std::string config_path = "";
+  std::string data_directory = "";
+  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (data_directory.empty()) {
+    // Get the input data environment variable
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+    if (input_path == nullptr || input_path[0] == '\0') {
+      HOLOSCAN_LOG_ERROR(
+          "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
+      exit(-1);
+    }
+    data_directory = std::string(input_path);
+    HOLOSCAN_LOG_INFO("Using input data from {}", data_directory);
+  }
 
-  // Get the input data environment variable
-  auto data_directory = std::getenv("HOLOSCAN_INPUT_PATH");
-  if (data_directory == nullptr || data_directory[0] == '\0') {
-    HOLOSCAN_LOG_ERROR("HOLOSCAN_INPUT_PATH environment variable is not set.");
-    exit(-1);
+  if (config_path.empty()) {
+    // Get the input data environment variable
+    auto config_file_path = std::getenv("HOLOSCAN_CONFIG_PATH");
+    if (config_file_path == nullptr || config_file_path[0] == '\0') {
+      auto config_file = std::filesystem::canonical(argv[0]).parent_path();
+      config_path = config_file / std::filesystem::path("endoscopy_tool_tracking.yaml");
+    } else {
+      HOLOSCAN_LOG_INFO("Using configuration file from {}", data_directory);
+      config_path = config_file_path;
+    }
   }
 
   auto app = holoscan::make_application<App>();
