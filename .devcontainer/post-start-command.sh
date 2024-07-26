@@ -34,4 +34,8 @@ fi
 echo Updating permissions...
 sudo chown -R $USER ~/
 
+# Start dbus for pythoncpp
+echo Starting dbus...
+sudo service dbus start
+
 echo Done!
