@@ -49,6 +49,7 @@ namespace holoscan::ops {
                "Output Tensors",
                "Output tensors",
                {std::string("")});
+    spec.param(data_dir_, "data_dir", "Data Directory", "Data directory",{std::string("../data/multiai_ultrasound")});
     spec.param(input_on_cuda_, "input_on_cuda", "Input buffer on CUDA", "", false);
     spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
     spec.param(receivers_, "receivers", "Receivers", "List of receivers", {});
@@ -76,7 +77,8 @@ namespace holoscan::ops {
         std::accumulate(logo_dim.begin(), logo_dim.end(), 1, std::multiplies<size_t>());
     logo_image_.assign(logo_size, 0);
 
-    std::ifstream file_logo(path_to_logo_file_);
+    std::string path_to_logo_file = data_dir_.get()+"/"+logo_file_;
+    std::ifstream file_logo(path_to_logo_file);
 
     if (!file_logo) {
       HOLOSCAN_LOG_WARN("Logo file not found, Ignored.");

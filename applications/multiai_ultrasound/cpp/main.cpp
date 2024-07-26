@@ -85,7 +85,9 @@ class App : public holoscan::Application {
                                                    Arg("allocator") = pool_resource);
 
     auto visualizer_icardio = make_operator<ops::VisualizerICardioOp>(
-        "visualizer_icardio", from_config("visualizer_icardio"), Arg("allocator") = pool_resource);
+        "visualizer_icardio", from_config("visualizer_icardio"),
+        Arg("data_dir") = datapath,
+        Arg("allocator") = pool_resource);
 
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz", from_config("holoviz"), Arg("allocator") = pool_resource);
