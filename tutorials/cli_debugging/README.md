@@ -4,10 +4,11 @@ Holoscan SDK is a platform for rapidly developing low-latency AI pipelines. As p
 through a few common scenarios to illustrate how common command line interface tools can be used in debugging an application based on Holoscan SDK.
 
 ## Tutorial Sections
-1. [Debugging a C++ or Python application with `gdb`](#debugging-a-c-application-with-gdb)
-2. [Debugging a Python application with `pdb`](#debugging-a-python-application-with-pdb)
-3. [Debugging Symbols for Legacy Holoscan SDK](#debugging-symbols-for-legacy-holoscan-sdk-versions)
-4. [Logging](#logging)
+1. [Prerequisites](#prerequisites)
+2. [Debugging a C++ or Python application with `gdb`](#debugging-a-c-application-with-gdb)
+3. [Debugging a Python application with `pdb`](#debugging-a-python-application-with-pdb)
+4. [Debugging Symbols for Legacy Holoscan SDK](#debugging-symbols-for-legacy-holoscan-sdk-versions)
+5. [Logging](#logging)
 
 ## Background
 
@@ -48,9 +49,9 @@ There are a wide variety of free and/or open source software tools available for
 - The built-in [Python Debugger (pdb)](https://docs.python.org/3/library/pdb.html) module;
 - [Microsoft Visual Studio Code](https://code.visualstudio.com/), with a wide variety of community extensions.
 
-In this tutorial we will focus on the "headless" `GDB` and `pdb` tools. These require minimal setup and can be run via a simple
-terminal without a dedicated display. For advanced development we recommend reviewing Visual Studio Code Development Containers
-and debug profiles as used in several HoloHub applications.
+In this tutorial we will focus on the `GDB` and `pdb` command line tools. These require minimal setup and can be run via a simple
+terminal without a dedicated display ("headless"). For advanced development we recommend reviewing Visual Studio Code Development Containers
+with custom launch profiles, with HoloHub support coming soon.
 
 ### References
 
@@ -63,14 +64,7 @@ To get started with debugging your Holoscan SDK application, visit the [Debuggin
 Visit the [Logging](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) user guide
 section for a thorough overview on how to set up Holoscan SDK logging in your C++ or Python application.
 
-## Debugging a C++ Application with `gdb`
-
-### Background
-
-[GDB](https://sourceware.org/gdb/) (the GNU project DeBugger) is a widely used tool for headless just-in-time debugging of C++ applications. GDB distributions are available for most Holoscan SDK supported platforms and do not require a display to set up. Refer to the [GDB User Manual](https://sourceware.org/gdb/current/onlinedocs/gdb.html/)
-to get started.
-
-### Prerequisites
+## Prerequisites
 
 The steps for getting started with `gdb` depend on how you are consuming Holoscan SDK.
 - We encourage using Holoscan SDK containers from NGC for development and we take this approach for most of the tutorial. If you are using an NGC container for __Holoscan SDK v2.3.0 or later__, you already have access
@@ -79,7 +73,19 @@ The steps for getting started with `gdb` depend on how you are consuming Holosca
 Holoscan SDK with debugging symbols in order to step through Holoscan SDK code during debugging. Jump to the [Legacy Holoscan SDK](#debugging-symbols-for-legacy-holoscan-sdk-versions) section to get started.
 
 Review the [HoloHub Prerequisites](/README.md#prerequisites) along with the Endoscopy Tool Tracking requirements [C++](/applications/endoscopy_tool_tracking/cpp/README.md#requirements),
-[Python](/applications/endoscopy_tool_tracking/python/README.md#requirements) to get started. before continuing.
+[Python](/applications/endoscopy_tool_tracking/python/README.md#requirements) to get started before continuing.
+
+If you have previously built the Endoscopy Tool Tracking application, you should clear your build directory before proceeding.
+```bash
+./run clear-cache
+```
+
+## Debugging a C++ Application with `gdb`
+
+### Background
+
+[GDB](https://sourceware.org/gdb/) (the GNU project DeBugger) is a widely used tool for headless just-in-time debugging of C++ applications. GDB distributions are available for most Holoscan SDK supported platforms and do not require a display to set up. Refer to the [GDB User Manual](https://sourceware.org/gdb/current/onlinedocs/gdb.html/)
+to get started.
 
 ### Getting Started
 
@@ -121,7 +127,7 @@ online tutorials to get started with interactive debugging commands.
 
 ### Frequently Asked Questions and Troubleshooting
 
-#### How can I verify that Holoscan SDK debugging symbols have loaded in `gdb`?
+#### How can I verify that Holoscan SDK debugging symbols have been loaded in `gdb`?
 
 `gdb` loads debugging symbols for Holoscan SDK only when the application loads Holoscan SDK binaries. Before that time, we can set breakpoints in Holoscan SDK files, but `gdb` will not understand them yet.
 We can use `info sources` to inspect that Holoscan SDK symbols are available.
@@ -234,7 +240,7 @@ commands and debugging strategies.
 
 ## Debugging Symbols for Legacy Holoscan SDK Versions
 
-In Holoscan SDK v2.3 we began packaging debugging symbols as part of the libraries distributed in
+Starting from Holoscan SDK v2.3, we package debugging symbols as part of the libraries distributed in
 [NGC Holoscan Containers](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan), with the goal
 of improving ease of development and debugging. This change comes at a small cost to size and performance of the Holoscan SDK
 binary distribution. But what about older versions of Holoscan SDK containers?
@@ -252,7 +258,8 @@ set up for debugging with `gdb`:
 ```
 
 The script does the following:
-1. Builds the specified Holoscan SDK version with the specified build type in a temporary tutorial folder.
+1. Builds the specified Holoscan SDK version with the specified build type in a temporary tutorial folder. Refer to
+  [background discussion](#what-are-debugging-symbols) for an overview of the different build types.
 2. Builds the Endoscopy Tool Tracking application against the custom Holoscan SDK debug build.
 3. Runs the Endoscopy Tool Tracking application with `gdb` for interactive debugging.
 
