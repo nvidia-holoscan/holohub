@@ -46,6 +46,8 @@ out_tensor_names : sequence of str, optional
     Names of output tensors in the order to be fed into the operator.
 input_on_cuda : bool, optional
     Boolean indicating whether the input tensors are on the GPU.
+data_dir: string
+    Path to the data for the iCardio logo.
 name : str, optional
     The name of the operator.
 )doc")

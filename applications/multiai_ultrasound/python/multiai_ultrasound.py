@@ -120,9 +120,10 @@ class MultiAIICardio(Application):
             allocator=pool,
             **self.kwargs("multiai_postprocessor"),
         )
-        visualizer_icardio = VisualizerICardioOp(
-            self, allocator=pool, **self.kwargs("visualizer_icardio")
-        )
+
+        visualizer_kwargs = self.kwargs("visualizer_icardio")
+        visualizer_kwargs["data_dir"] = self.sample_data_path
+        visualizer_icardio = VisualizerICardioOp(self, allocator=pool, **visualizer_kwargs)
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", **self.kwargs("holoviz"))
 
         # connect the input to the resizer and each pre-processor
