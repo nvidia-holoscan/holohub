@@ -33,7 +33,7 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
  The above command starts a new Dev Container for Holohub using the default [Dockerfile](../Dockerfile).
 
 
-4. VS Code will build and initialize the selected Dev Container. This can take a few minutes the first time.
+4. VS Code will build and initialize the selected Dev Container. This can take a few minutes for the first time.
 
 5. Once initialized, a new VS Code window will open with the following prompts. Click **Yes** and **Trust Folder & Continue** to continue the Dev Container build process.
 
@@ -52,9 +52,26 @@ Most Holohub applications are pre-configured with one or more launch profiles. C
 To debug multi-fragment applications, find and locate launch profiles prefixed with `(compound)`.
 
 For example, the [Distributed Endoscopy Tool Tracking](../applications/endoscopy_tool_tracking_distributed/) application is configured with `(compound) endoscopy_tool_tracking_distributed/cpp` and `(compound) endoscopy_tool_tracking_distributed/python` launch profiles.
-These launch profiles start three debugging sessions, one for each fragment (`video_in`, `inference`, and `viz`), and enable debugging of all three processes at once.
 
-> 💡 Note: Launch profiles prefixed with `(compound)` for Python applications default to `debugpy` debgguer which only allows debugging of Python code.  To debug both Python and C++ code, modify the  compound launch profile in the [launch.json](../.vscode/launch.json) and change `(debugpy)` to `(pythoncpp)`.
+Each of these compound launch profiles links to three pre-configured launch profiles, one for each fragment (`video_in`, `inference`, and `viz`):
+
+- `(compound) endoscopy_tool_tracking_distributed/cpp`
+  - `(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment`
+  - `(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment`
+  - `(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment`
+- `(compound) endoscopy_tool_tracking_distributed/python`
+  - `(gdb) endoscopy_tool_tracking_distributed/python - video_in fragment`
+  - `(gdb) endoscopy_tool_tracking_distributed/python - inference fragment`
+  - `(gdb) endoscopy_tool_tracking_distributed/python - viz fragment`
+
+When you start debugging with one of these compound launch profiles, VS Code starts three terminals to build the application, one terminal per fragment. After each terminal completes the build process, VS Code launches another terminal to start the fragment. This compound task feature lets us launch and debug all three fragments simultaneously.
+
+> 💡 Tip: If VS Code does not launch all three debugger terminals, close all terminals first, then start the compound launch profile again. If the problem persists, try adjusting the start-up delays in the [tasks.json](../.vscode/tasks.json) file. Refer to the [troubleshooting](#troubleshooting) section for more information.
+
+
+> 💡 Note: Launch profiles prefixed with `(compound)` for Python applications default to `debugpy` debugguer, which only allows debugging of Python code. To debug both Python and C++ code, modify the  compound launch profile in the [launch.json](../.vscode/launch.json) and change `(debugpy)` to `(pythoncpp)`.
+
+
 
 
 #### Step into Holoscan Source Code
@@ -66,7 +83,7 @@ The Holohub Dev Container derives from the [Holoscan NGC Container](https://cata
 **Let's give it a try:**
 
 Expand the **holoscan-sdk** folder and open `application.cpp` file from `src/core/` directory.
-Scroll down to find the `void Application::run()` function, and set a breakpoint inside the function.
+Scroll down to find the `void Application::run()` function and set a breakpoint inside it.
 
 With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a new debugging session. Expect the debugger to hit the breakpoint in the `Application::run()` function.
 
@@ -85,7 +102,7 @@ With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a ne
 ### Application-Specific Dockerfile
 
 For Holohub applications that bundle with a Dockerfile with additional dependencies and tools, pass the application's name to the `./dev_container` script.
-Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation) application as an example, the command will launch a Dev Container using [applications/endoscopy_depth_estimation/Dockerfile](../applications/endoscopy_depth_estimation/Dockerfile) as the base image that builds `OpenCV`:
+Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation) application as an example. The command will launch a Dev Container using [applications/endoscopy_depth_estimation/Dockerfile](../applications/endoscopy_depth_estimation/Dockerfile) as the base image that builds `OpenCV`:
 
 ```bash
 ./dev_container vscode endoscopy_depth_estimation
@@ -97,7 +114,7 @@ Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation
 ./dev_container vscode <application_name> [--language [cpp|python]]
 ```
 
-The `languge` argument is optional with `cpp` as default. This argument allows you to use a language-specific Dockerfile when available.
+The `language` argument is optional with `cpp` as default. This argument allows you to use a language-specific Dockerfile when available.
 
 
 ### Custom Base Image/Dockerfile
@@ -161,19 +178,19 @@ Options:
 
 ### Add a Custom Dockerfile
 
-The following steps allows the `./devcontainer vscode` script to find your custom `Dockerfile`:
+The following steps allow the `./devcontainer vscode` script to find your custom `Dockerfile`:
 
-- Create a new `Dockerfile` in your application's root directory or a language specific directory:
+- Create a new `Dockerfile` in your application's root directory or a language-specific directory:
 
 ```bash
 applications/my_application/
 ├── Dockerfile   # option 1: put the Dockefile in the root of the application's directory
 ├── cpp
-│   └── Dockerfile # option 2: put the Dockerfile in a language specific directory
+│   └── Dockerfile # option 2: put the Dockerfile in a language-specific directory
 └── python
     └── Dockerfile # option 2: same as above
 ```
-- Include the following in the top of your custom `Dockerfile`:
+- Include the following at the top of your custom `Dockerfile`:
 
 ```Dockerfile
 ARG BASE_IMAGE
@@ -197,8 +214,37 @@ Using the following steps enables the `./devcontainer vscode` script to find you
 
 ```
 
+## Troubleshooting
+
+### Compound Launch Profile Issues
+
+A compound launch profile may not launch all the linked launch profiles. For an example, take a look at the `(compound) endoscopy_tool_tracking_distributed/python` launch profile.
+
+This profile links to three launch profiles, one for each fragment: `inference`, `inference`, and `viz`.
+
+1. `(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment`
+2. `(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment`
+3. `(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment`
+
+The second launch profile, the `inference` fragment, has a `preLaunchTask` configured with the `Build endoscopy_tool_tracking_distributed (delay 3s)` task, which is configured in the [tasks.json](../.vscode/tasks.json) file. This task depends on another task called `Delay Task (3s)` with a bash command `sleep 3` via the `dependsOn` property. This delay task allows the `Build endoscopy_tool_tracking_distributed (delay 3s)` task to put a delay before building the application and enable VS Code to start a terminal session properly. Similarly, the `viz` fragment has a delay of 5 seconds configured. These default values may not work in all scenarios; adjust the sleep value to match your needs.
+
+### Build Errors
+
+When switching between Dev Container and other build environments, the build may fail with the following error:
+
+```bash
+CMake Error: The current CMakeCache.txt directory /workspace/holohub/build/endoscopy_tool_tracking_distributed/CMakeCache.txt is different than the directory /home/host/github/holohub/build/endoscopy_tool_tracking_distributed where CMakeCache.txt was created.
+```
+
+When this error occurs, run the clear cache command in the terminal or from VS Code Command Palette:
+
+Terminal: `./run clear_cache`
+VS Code Command Pallette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
+
+
 ## Resources
 
 - [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
 - [containers.dev](https://containers.dev/)
 - [NVIDIA Holoscan Containers](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan)
+- [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging)
