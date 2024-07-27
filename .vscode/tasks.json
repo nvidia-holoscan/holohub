@@ -4,19 +4,33 @@
             "type": "shell",
             "label": "Delay Task (3s)",
             "command": "sleep 3",
-            "detail": "Delay task start for 3 second"
+            "detail": "Delay task start for 3 second",
+            "presentation": {
+                "close": true,
+                "reveal": "silent",
+                "panel": "shared",
+                "group": "delay"
+            }
         },
         {
             "type": "shell",
             "label": "Delay Task (5s)",
             "command": "sleep 5",
-            "detail": "Delay task start for 5 seconds"
+            "detail": "Delay task start for 5 seconds",
+            "presentation": {
+                "close": true,
+                "reveal": "silent",
+                "panel": "shared",
+                "group": "delay"
+            }
         },
         {
             "type": "shell",
             "label": "Clear Build Cache",
             "command": "./run",
-            "args": ["clear_cache"],
+            "args": [
+                "clear_cache"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -27,32 +41,65 @@
             "type": "shell",
             "label": "Build basic_networking_ping",
             "command": "./run",
-            "args": ["build", "basic_networking_ping", "--type", "debug"],
+            "args": [
+                "build",
+                "basic_networking_ping",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template build task"
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
         },
         {
             "type": "shell",
             "label": "Build basic_networking_ping (delay 3s)",
             "command": "./run",
-            "args": ["build", "basic_networking_ping", "--type", "debug"],
+            "args": [
+                "build",
+                "basic_networking_ping",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "dependsOn": "Delay Task (3s)",
             "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template build task"
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
         },
         {
             "type": "shell",
             "label": "Build asr_to_llm",
             "command": "./run",
-            "args": ["build", "asr_to_llm", "--type", "debug"],
+            "args": [
+                "build",
+                "asr_to_llm",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -64,7 +111,12 @@
             "type": "shell",
             "label": "Build endoscopy_tool_tracking",
             "command": "./run",
-            "args": ["build", "endoscopy_tool_tracking", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -76,7 +128,12 @@
             "type": "shell",
             "label": "Build colonoscopy_segmentation",
             "command": "./run",
-            "args": ["build", "colonoscopy_segmentation", "--type", "debug"],
+            "args": [
+                "build",
+                "colonoscopy_segmentation",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -88,7 +145,12 @@
             "type": "shell",
             "label": "Build cuda_quantum",
             "command": "./run",
-            "args": ["build", "cuda_quantum", "--type", "debug"],
+            "args": [
+                "build",
+                "cuda_quantum",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -100,7 +162,12 @@
             "type": "shell",
             "label": "Build cvcuda_basic",
             "command": "./run",
-            "args": ["build", "cvcuda_basic", "--type", "debug"],
+            "args": [
+                "build",
+                "cvcuda_basic",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -112,7 +179,12 @@
             "type": "shell",
             "label": "Build endoscopy_depth_estimation",
             "command": "./run",
-            "args": ["build", "endoscopy_depth_estimation", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_depth_estimation",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -124,7 +196,12 @@
             "type": "shell",
             "label": "Build endoscopy_tool_tracking",
             "command": "./run",
-            "args": ["build", "endoscopy_tool_tracking", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -136,45 +213,92 @@
             "type": "shell",
             "label": "Build endoscopy_tool_tracking_distributed",
             "command": "./run",
-            "args": ["build", "endoscopy_tool_tracking_distributed", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_tool_tracking_distributed",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template build task"
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "endoscopy_tool_tracking_distributed"
+            }
         },
         {
             "type": "shell",
             "label": "Build endoscopy_tool_tracking_distributed (delay 3s)",
             "command": "./run",
-            "args": ["build", "endoscopy_tool_tracking_distributed", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_tool_tracking_distributed",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "dependsOn": "Delay Task (3s)",
             "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template build task"
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "endoscopy_tool_tracking_distributed"
+            }
         },
         {
             "type": "shell",
             "label": "Build endoscopy_tool_tracking_distributed (delay 5s)",
             "command": "./run",
-            "args": ["build", "endoscopy_tool_tracking_distributed", "--type", "debug"],
+            "args": [
+                "build",
+                "endoscopy_tool_tracking_distributed",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "dependsOn": "Delay Task (5s)",
             "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template build task"
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "endoscopy_tool_tracking_distributed"
+            }
         },
         {
             "type": "shell",
             "label": "Build h264_endoscopy_tool_tracking",
             "command": "./run",
-            "args": ["build", "h264_endoscopy_tool_tracking", "--type", "debug"],
+            "args": [
+                "build",
+                "h264_endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -186,7 +310,12 @@
             "type": "shell",
             "label": "Build h264_video_decode",
             "command": "./run",
-            "args": ["build", "h264_video_decode", "--type", "debug"],
+            "args": [
+                "build",
+                "h264_video_decode",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
@@ -198,13 +327,18 @@
             "type": "shell",
             "label": "Build volume_rendering",
             "command": "./run",
-            "args": ["build", "volume_rendering", "--type", "debug"],
+            "args": [
+                "build",
+                "volume_rendering",
+                "--type",
+                "debug"
+            ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"
-        },
+        }
     ]
 }
