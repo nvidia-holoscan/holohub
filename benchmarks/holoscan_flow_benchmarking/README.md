@@ -45,8 +45,7 @@ This script saves the original `cpp` files in a `*.cpp.bak` file.
 2. **Build the application**
 
 ```
-$ ./run build <application name> <other options> \
-    --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking
+$ ./run build <application name> <other options> --benchmark
 ```
 
 Please make sure to test that the application runs correctly after building it, and before going to

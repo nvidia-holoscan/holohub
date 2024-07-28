@@ -565,6 +565,7 @@ build_desc() {
   echo "   --buildpath <build_directory>        : Change the build path."
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
+  echo "   --benchmark                          : Build for Holoscan Flow Benchmarking."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo "                                          multiple arguments can be passed between quotes"
   echo "                                          or using several --configure-args in the command line"
@@ -628,6 +629,7 @@ build() {
   local skipnext=0
   local build_type="${CMAKE_BUILD_TYPE:-release}"
   local build_path="${CMAKE_BUILD_PATH}"
+  local benchmark=false
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -643,6 +645,10 @@ build() {
          configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
          echo "Building with operator(s) ${operators}"
          skipnext=1
+      elif [ "$arg" = "--benchmark" ]; then
+          benchmark=true
+          configure_args="${configure_args} -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
+          echo "Building for Holoscan Flow Benchmarking"
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${configure_args} ${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
@@ -675,6 +681,12 @@ build() {
     build_path="build/$1"
   fi
 
+  local app_source_root_path
+  if [ $benchmark == true ]; then
+    app_source_root_path=$(get_app_source_root_dir $1)
+    run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+  fi
+
   echo "Building $1 application"
   application="-DAPP_$1=1"
 
@@ -692,6 +704,11 @@ build() {
   run_command cmake --build ${build_path} -j
   ret=$?
   check_exit_code $ret "Error building application."
+
+  if [ $benchmark == true ]; then
+    app_source_root_path=$(get_app_source_root_dir $1)
+    run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
+  fi
 
   echo "Holohub build done."
 }
