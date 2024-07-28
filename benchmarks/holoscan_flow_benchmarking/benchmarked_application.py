@@ -2,7 +2,7 @@ import os
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from holoscan.schedulers import GreedyScheduler, MultiThreadScheduler, EventBasedScheduler
+from holoscan.schedulers import EventBasedScheduler, GreedyScheduler, MultiThreadScheduler
 
 
 class BenchmarkedApplication(Application):
