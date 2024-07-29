@@ -34,8 +34,12 @@ fi
 echo Updating permissions...
 sudo chown -R $USER ~/
 
-# Start dbus for pythoncpp
-echo Starting dbus...
-sudo service dbus start
+# Hide pkexec as pythoncpp debugger does not work correctly with it
+# WHen the pythoncpp debugger finds pkexec, it tries to execute the gdb debugger as another user
+# using pkexec instead of sudo. This causes the debugger to fail to attach to the process.
+if [ -f /usr/bin/pkexec ]; then
+    echo "Hiding pkexec..."
+   sudo mv /usr/bin/pkexec /usr/bin/pkexec.old
+fi
 
 echo Done!
