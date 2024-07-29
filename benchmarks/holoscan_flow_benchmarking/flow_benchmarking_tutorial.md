@@ -319,15 +319,20 @@ your metrics options> -g endoscopy_outputs_<GPU Name>/logger* "GPU1" -g endoscop
 It is also possible to compare different schedulers using Holoscan flow
 benchmarking. The following commands can be used to evaluate performance
 of the endoscopy tool tracking sample application under the [Greedy
-scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#greedy-scheduler)
-and the [Multithread scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#multithreadscheduler):
+scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#greedy-scheduler),
+the [Multithread
+scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#multithreadscheduler)
+and the [Event-based Scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#event-based-scheduler):
 
 ```
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
 endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched greedy -d endoscopy_greedy_outputs
 
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
-endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched multithread -w 5 -d ndoscopy_multithread_outputs
+endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched multithread -w 5 -d endoscopy_multithread_outputs
+
+$ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
+endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched eventbased -w 5 -d endoscopy_eventbased_outputs
 ```
 
 Then, the results can be analyzed and compared using the following
@@ -335,7 +340,7 @@ command:
 
 ```
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py <insert
-your metrics options> -g endoscopy_greedy_outputs/logger* "Endoscopy (Greedy)" -g endoscopy_multithread_outputs/logger* "Endoscopy (Multithread)"
+your metrics options> -g endoscopy_greedy_outputs/logger* "Endoscopy (Greedy)" -g endoscopy_multithread_outputs/logger* "Endoscopy (Multithread)" -g endoscopy_eventbased_outputs/logger* "Endoscopy (Event-based)"
 ```
 
 ## Tail and Flatness of the CDF Curve

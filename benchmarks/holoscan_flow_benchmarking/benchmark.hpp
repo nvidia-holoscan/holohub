@@ -77,6 +77,15 @@ class BenchmarkedApplication : public holoscan::Application {
       scheduler->add_arg(holoscan::Arg("stop_on_deadlock", true));
       scheduler->add_arg(holoscan::Arg("check_recession_period_ms", (double)0));
       scheduler->add_arg(holoscan::Arg("max_duration_ms", (int64_t)100000));
+    } else if (scheduler_str && std::string(scheduler_str) == "eventbased") {
+      holoscan::Fragment::scheduler(
+          holoscan::Fragment::make_scheduler<holoscan::EventBasedScheduler>(
+              "event-based-scheduler"));
+      auto scheduler = holoscan::Fragment::scheduler();
+
+      const char* num_threads_str = std::getenv("HOLOSCAN_EVENTBASED_WORKER_THREADS");
+      if (num_threads_str)
+        scheduler->add_arg(holoscan::Arg("worker_thread_number", std::stoi(num_threads_str)));
     } else {
       holoscan::Fragment::scheduler(
           holoscan::Fragment::make_scheduler<holoscan::GreedyScheduler>("greedy-scheduler"));
