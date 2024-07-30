@@ -52,7 +52,7 @@ ${HOLOHUB_ROOT}/dev_container build \
 ${HOLOHUB_ROOT}/dev_container launch \
     --docker_opts "-v ${INSTALL_DIR}:/opt/nvidia/holoscan" \
     --img holohub:debugging \
-    -- bash -c './run build endoscopy_tool_tracking --type ${build_type}'
+    -- bash -c "./run build endoscopy_tool_tracking --type ${build_type}"
 
 # Launch GDB with the Endoscopy Tool Tracking application
 ${HOLOHUB_ROOT}/dev_container launch \

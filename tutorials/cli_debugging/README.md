@@ -45,7 +45,7 @@ developers generate their own `debug` builds on demand.
 
 There are a wide variety of free and/or open source software tools available for general C++ and Python debugging, including:
 - [NVIDIA's debugging solutions](https://developer.nvidia.com/debugging-solutions), including NVIDIA NSight and CUDA-GDB;
-- The [GNU project DeBugger (GDB)]([GDB](https://sourceware.org/gdb/));
+- The [GNU project DeBugger (GDB)](https://sourceware.org/gdb/);
 - The built-in [Python Debugger (pdb)](https://docs.python.org/3/library/pdb.html) module;
 - [Microsoft Visual Studio Code](https://code.visualstudio.com/), with a wide variety of community extensions.
 
@@ -130,7 +130,22 @@ online tutorials to get started with interactive debugging commands.
 #### How can I verify that Holoscan SDK debugging symbols have been loaded in `gdb`?
 
 `gdb` loads debugging symbols for Holoscan SDK only when the application loads Holoscan SDK binaries. Before that time, we can set breakpoints in Holoscan SDK files, but `gdb` will not understand them yet.
-We can use `info sources` to inspect that Holoscan SDK symbols are available.
+
+We can use `info sharedlibrary` to inspect the shared libraries that have been dynamically loaded for execution.
+
+```bash
+(gdb) info sharedlibrary
+From                To                  Syms Read   Shared Object Library
+0x00007ffff7fc5090  0x00007ffff7fee315  Yes         /lib64/ld-linux-x86-64.so.2
+0x00007ffff7ca3ba0  0x00007ffff7ec655d  Yes         /opt/nvidia/holoscan/lib/libholoscan_op_aja.so.2
+0x00007ffff7f90ac0  0x00007ffff7faee1f  Yes         /opt/nvidia/holoscan/lib/libholoscan_op_video_stream_replayer.so.2
+0x00007ffff7bd9810  0x00007ffff7bf4e3f  Yes         /opt/nvidia/holoscan/lib/libholoscan_op_video_stream_recorder.so.2
+...
+```
+
+We can use `info sources` to inspect the Holoscan SDK symbols are available. **Note**: Source paths are loaded from
+Holoscan SDK binaries and respect source file locations at the time the Holoscan SDK distribution was built. These paths
+may not reflect your filesystem if you have mounted `holoscan-sdk` somewhere other than `/workspace/holoscan-sdk`.
 
 ```bash
 (gdb) info sources /workspace/holoscan-sdk/src/core
@@ -140,6 +155,34 @@ We can use `info sources` to inspect that Holoscan SDK symbols are available.
 ...
 ```
 
+#### How can I pause a running Holoscan SDK application for debugging?
+
+After launching the application with `gdb` as done in [`debug_gdb.sh`](./debug_gdb.sh), use `continue` to allow the application to run. Then, press `Ctrl+C` to force the application to pause when you want to enter interactive debugging.
+Use `backtrace` to view stack frames at the point where the application paused.
+
+#### How can I manage breakpoints to pause the application sometime in the future?
+
+1. To add a breakpoint `in holoscan/operators/format_converter/format_converter`:
+```sh
+(gdb) break /workspace/holoscan-sdk/src/operators/format_converter/format_converter.cpp:compute"
+```
+2. To list all current breakpoints:
+```sh
+(gdb) info breakpoints
+```
+3. To remove breakpoints:
+```sh
+(gdb) delete <number(s) of breakpoint(s)>
+```
+
+## How can I inspect local variables?
+
+Use the `info` command to inspect the values of local variables.
+
+```sh
+(gdb) info locals
+```
+
 #### How can I attach to a running Holoscan SDK session?
 
 Do the following to attach to a HoloHub application (C++ or Python):
@@ -147,6 +190,7 @@ Do the following to attach to a HoloHub application (C++ or Python):
 1. Launch the container with root permissions and start the process in the background:
 ```bash
 ./dev_container launch --img holohub:debugging --as_root
+
 # Run inside the container
 >>> ./run launch endoscopy_tool_tracking &
 ```
@@ -154,12 +198,14 @@ Do the following to attach to a HoloHub application (C++ or Python):
 2. Press `Ctrl+C` to return to your interactive shell
 3. Find the process ID (PID) of the running application:
 ```bash
+# Inside the container
 >>> ps -ef | grep endoscopy_tool_tracking
 user+     292     203 28 13:17 pts/9    00:00:04 /workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data /workspace/holohub/data/endoscopy
 ```
 
 4. Attach to the running process with `gdb -p`:
 ```bash
+# Inside the container
 >>> gdb -p 292
 ```
 
@@ -283,6 +329,32 @@ details when building and debugging:
 - `RPATH` or `RUNPATH` is an [ELF header field](https://man7.org/linux/man-pages/man5/elf.5.html) that embeds shared library lookup locations in an executable.
   HoloHub applications set `RPATH` to include `/opt/nvidia/holoscan` by default. Edit the value of `CMAKE_INSTALL_RPATH` in
  `CMakeLists.txt` to remove the reference to `/opt/nvidia/holoscan` or reference your preferred mount path.
+
+#### How can I launch the tutorial application?
+
+You can simply re-run the tutorial script to rebuild and relaunch the application:
+
+```bash
+./tutorials/cli_debugging/debug_legacy.sh
+```
+
+Alternatively, run the following to relaunch the application in the debugging container without rebuilding:
+```bash
+# Find the custom Holoscan SDK debugging build
+INSTALL_DIR=$(realpath $(find ./tutorials/cli_debugging/tmp -type d -name "install-*"))
+
+# Launch the debugging container
+./dev_container launch --docker_opts "-v $INSTALL_DIR:/opt/nvidia/holoscan --security-opt seccomp=unconfined" --img holohub:debugging
+
+# Inside the container
+>>> gdb -q \
+    -ex "break main" \
+    -ex "run --data /workspace/holohub/data/endoscopy" \
+    -ex "break /workspace/holoscan-sdk/src/core/application.cpp:add_flow" \
+    /workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+```
+
+Refer to the [`debug_legacy.sh`](./debug_legacy.sh) script for more details.
 
 ## Logging
 

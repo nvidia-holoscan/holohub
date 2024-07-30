@@ -18,7 +18,14 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
 
+# Install Debian packages
+# Note: ffmpeg is not required for debugging and is not used in the tutorial.
+#   However, some configurations of the Endoscopy Tool Tracking app rely on ffmpeg.
+#   This avoids a build error in the case that the Endoscopy Tool Tracking build directory
+#   is not clean before the tutorial runs.
 RUN apt update && \
-    apt install -y gdb
+    apt install --no-install-recommends -y \
+        gdb \
+        ffmpeg
 
 ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking:/usr/share/gdb/python
