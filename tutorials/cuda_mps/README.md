@@ -5,6 +5,18 @@ applications. It allows multiple CUDA applications to share a single GPU, which 
 running more than one Holoscan application on a single machine featuring one or more GPUs. This
 tutorial describes the steps to enable CUDA MPS and demonstrate few performance benefits of using it.
 
+## Table of Contents
+
+1. [Steps to enable CUDA MPS](#steps-to-enable-cuda-mps)
+2. [Customization](#customization)
+3. [x86 System Performance](#performance-benefits-on-x86-system)
+4. [IGX Orin](#igx-orin)
+    1. [Model Benchmarking Application Setup](#model-benchmarking-application-setup)
+    1. [Performance Benchmark Setup](#performance-benchmark-setup)
+    1. [Performance Benefits on IGX Orin w/ dGPU](#performance-benefits-on-igx-orin-w-dgpu)
+        1. [Varying Number of Instances](#varying-number-of-instances)
+        1. [Varying Number of Parallel Inferences](#varying-number-of-parallel-inferences)
+
 ## Steps to enable CUDA MPS
 
 Before enabling CUDA MPS, please [check](https://docs.nvidia.com/deploy/mps/index.html#topic_3_3)
@@ -52,11 +64,11 @@ Please note that concurrently running Holoscan applications may increase the GPU
 footprint. Therefore, one needs to be careful about hitting the GPU memory size and [potential
 delay due to page faults](https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/).
 
-## Performance Benefits
-
 CUDA MPS improves the performance for concurrently running Holoscan applications. 
 Since multiple applications can simultaneously execute more than one CUDA compute tasks with CUDA
 MPS, it can also improve the overall GPU utilization.
+
+## Performance Benefits on x86 System 
 
 Suppose, we want to run the endoscopy tool tracking and ultrasound segmentation applications
 concurrently on an x86 workstation with RTX A6000 GPU. The below table shows the maximum end-to-end latency performance
@@ -77,3 +89,102 @@ without CUDA MPS. The experiment demonstrates up to 36% improvement with CUDA MP
 
 Such experiments can easily be conducted with [Holoscan Flow Benchmarking](../../benchmarks/holoscan_flow_benchmarking) to retrieve
 various end-to-end latency performance metrics.
+
+## IGX Orin
+
+CUDA MPS is available on IGX Orin since CUDA 12.5. Please check you CUDA version and upgrade to CUDA 12.5+ to test CUDA MPS. We evaluate the benefits of MPS on IGX Orin with discrete and integrated GPUs. Please follow the steps outlined in [Steps to enable CUDA MPS](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/cuda_mps#steps-to-enable-cuda-mps) to start running the MPS server on IGX Orin. 
+
+We use the [model benchmarking](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking) application to demonstrate the benefits of CUDA MPS. In general, MPS improves performance by enabling multiple concurrent processes to share a CUDA context and scheduling resources. We show the benefits of using CUDA MPS along two dimensions: (a) increasing the workload per application instance (varying the number of parallel inferences for the same model) and (b) increasing the total number of instances. 
+
+### Model Benchmarking Application Setup
+
+Please follow the steps outlined in [model benchmarking](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking) to ensure that the application builds and runs properly. 
+> Note that you need to run the video using [v4l2loopback](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices) in a separate terminal _while_ running the model benchmarking application.
+
+> Make sure to change the device path in the `model_benchmarking/python/model_benchmarking.yaml` file to match the values you provided in the `modprobe` command when following the [v4l2loopback](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices) instructions.
+
+### Performance Benchmark Setup 
+
+To gather performance metrics for the model benchmarking application, follow the steps outlined in [Holoscan Flow Benchmarking](../../benchmarks/holoscan_flow_benchmarking). 
+> If you are running within a container, please complete Step-3 before launching the container
+
+We use the following steps:
+
+**1. Patch Application:**
+
+`./benchmarks/holoscan_flow_benchmarking/patch_application.sh model_benchmarking`
+
+**2. Build Application for Benchmarking:**
+
+`./run build model_benchmarking python --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking`
+
+**3. Set Up V4l2Loopback Devices:**
+
+i. Install `v4l2loopback` and `v4l2loopback`:
+
+`sudo apt-get install v4l2loopback-dkms ffmpeg`
+
+ii. Determine the number of instances you would like to benchmark and set that as the value of `devices`. Then, load the `v4l2loopback` kernel module on virtual devices `/dev/video[*]`. This enables each instance to get its input from a separate virtual device.
+
+**Example:** For 3 instances, the `v4l2loopback` kernel module can be loaded on `/dev/video1`, `/dev/video2` and `/dev/video3`:
+
+`sudo modprobe v4l2loopback devices=3 video_nr=1 max_buffers=4`
+
+Now open 3 separate terminals. 
+
+In terminal-1, run: 
+`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video1`
+
+In terminal-2, run: 
+`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video2`
+
+In terminal-3, run: 
+`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video3`
+
+**4. Benchmark Application:**
+
+```python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l <number of parallel inferences> -i"  --language python -i <number of instances> -r <number of runs> -m <number of messages> --sched greedy -d <outputs folder> -u```
+
+The command executes `<number of runs>` runs of `<number of instances>` instances of the model benchmarking application with `<number of messages>` messages. Each instance runs `<number of parallel inferences>` parallel model benchmarking inferences with no post-processing and visualization (`-i`). 
+
+Please refer to [Model benchmarking options](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities) and [Holoscan flow benchmarking options](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities) for more information on the various command options.
+
+**Example**: After Step-3, to benchmark 3 instances for 10 runs with 1000 messages, run:
+
+`python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l 7 -i"  --language python -i 3 -r 10 -m 1000 --sched greedy -d myoutputs -u`
+
+
+### Performance Benefits on IGX Orin w/ Discrete GPU
+
+We look at the performance benefits of MPS by varying the number of instances and number of inferences. We use the RTX A6000 GPU for our experiments. From our experiments, we observe that enabling MPS results in upto 12% improvement in maximum latency compared to the default setting.
+
+#### Varying Number of Instances
+
+We fix the number of parallel inferences to 7, number of runs to 10 and number of messages to 1000 and vary the number of instances from 3 to 7 using the `-i` parameter. Please refer to [Performance Benchmark Setup](#performance-benchmark-setup) for benchmarking commands.
+
+The graph below shows the maximum end-to-end latency of model benchmarking application with and without CUDA MPS, where the active thread percentage was set to `80/(number of instances)`. For example, for 5 instances, we set the active thread percentage to `80/5 = 16`. By provisioning resources this way, we leave some resources idle in case a client should require to use it. Please refer to [CUDA MPS Resource Provisioning](https://docs.nvidia.com/deploy/mps/#volta-mps-execution-resource-provisioning) for more details regarding this.  
+
+The graph is missing a bar for the case of 7 instances and 7 parallel inferences as we were unable to get the baseline to execute. However, we were able to run when MPS was enabled, highlighting the advantage of using MPS for large workloads. We see that the maximum end-to-end latency improves when MPS is enabled and the improvement is more pronounced as the number of instances increases. This is because, as the number of concurrent processes increases, MPS confines CUDA workloads to a certain predefined set of SMs. MPS combines multiple CUDA contexts from multiple processes into one, while simultaneously running them together. 
+It reduces the number of context switches and related inferences, resulting in improved GPU utilization. 
+
+
+| Maximum end-to-end Latency |
+| :-------------------------:|
+![max e2e latency](images/multiple_inference_7/Maximum%20Latency%20(ms).png)
+
+We also notice minor improvements in the 99.9<sup>th</sup> percentile latency and similar improvements in the 99<sup>th</sup> percentile latency.  
+ 
+| 99.9<sup>th</sup> Percentile Latency|   99<sup>th</sup> Percentile Latency |
+| :-------------------------:|:-------------------------: |
+![ 99.9<sup>th</sup> percentile latency](images/multiple_inference_7/99.9th%20Percentile%20Latency%20(ms).png)  |   ![ 99<sup>th</sup> percentile latency](images/multiple_inference_7/99th%20Percentile%20Latency%20(ms).png) |
+
+
+#### Varying Number of Parallel Inferences
+
+We vary the number of parallel inferences to show that MPS may not be beneficial if the workload is insufficient to offset the overhead of running the MPS server. The graph below shows the result of increasing the number of parallel inferences from 3 to 7 while the number of instances is constant. 
+
+As the number of parallel inferences increases, so does the workload, and the benefit of MPS is more evident. However, when the workload is low, CUDA MPS may not be beneficial. 
+
+| Maximum Latency for 5 Instances | 
+| :-------------------------:|
+![max latency for 5 parallel inf](images/Maximum%20Latency%20(ms).png)  |  
