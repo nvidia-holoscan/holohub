@@ -22,7 +22,7 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 (such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
-$ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-6.1.2
+$ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0
 ```
 
 ##### Using a Development Container
@@ -31,9 +31,10 @@ Due to the license requirements of RTI Connext it is not currently supported to
 install RTI Connext into a development container. Instead, if a development
 container is to be used, Connext should be installed onto the host as above and
 then the container can be launched with the RTI Connext folder mounted at
-runtime. To do so, ensure that the `NDDSHOME` environment variable is set and
-use the following:
+runtime. To do so, ensure that the `NDDSHOME` and `CONNEXTDDS_ARCH` environment
+variables are set (which can be done using the RTI `setenv` script) and use the
+following:
 
 ```sh
-./dev_container launch --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds"
+./dev_container launch --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
 ```
