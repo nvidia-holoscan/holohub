@@ -114,10 +114,10 @@ the output published by this application:
 Installing RTI Connext into the development container is not currently
 supported, so enabling DDS support with this application requires RTI Connext
 be installed onto the host and then mounted into the container at runtime.
-To mount RTI Connext into the container, ensure that the `NDDSHOME` environment
-variable is set to the path of the RTI Connext installation on the host and
-then use the following:
+To mount RTI Connext into the container, ensure that the `NDDSHOME` and
+`CONNEXTDDS_ARCH` environment variables are set (which can be done using the RTI
+`setenv` script) then use the following:
 
 ```sh
-./dev_container launch --img holohub:bpe --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds"
+./dev_container launch --img holohub:bpe --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
 ```
