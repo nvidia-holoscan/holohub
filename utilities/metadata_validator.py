@@ -76,6 +76,14 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
 
     # Check if the metadata is valid
     for name in glob.glob(current_wdir + "/" + directory + "/**/metadata.json", recursive=True):
+        ignore = False
+        # check if we should ignore the pattern
+        for ignore_pattern in ignore_patterns:
+            if ignore_pattern in name:
+                ignore = True
+        if ignore:
+            continue
+
         with open(name, "r") as file:
             try:
                 jsonData = json.load(file)

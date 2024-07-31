@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Holoviz sRGB",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.3",
+			"tested_versions": [
+				"2.3"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Holoviz sRGB"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/holoviz/holoviz_srgb",
+			"workdir": "holohub_bin"
+		}
+	}
+}
