@@ -7,7 +7,7 @@ The Holoviz operator can convert sRGB input images to linear color space before 
 
 sRGB color space can be enabled for input images and for the frame buffer independently. By default, the sRGB color space is disabled for both.
 
-by default, the Holoviz operator is auto detecting the input image format. Auto detection always assumes liner color space for input images. To change this to sRGB color space explicitly set the `image_format_` member of the input spec for that input image to a format ending with `SRGB`:
+By default, the Holoviz operator is auto detecting the input image format. Auto detection always assumes linear color space for input images. To change this to sRGB color space explicitly set the `image_format_` member of the input spec for that input image to a format ending with `SRGB`:
 
 ```cpp
     // By default the image format is auto detected. Auto detection assumes linear color space,
