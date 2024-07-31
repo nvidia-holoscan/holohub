@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "{{ cookiecutter.project_name }}",
+		"authors": [
+			{
+				"name": "{{ cookiecutter.full_name }}",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+			"tested_versions": [
+				"{{ cookiecutter.holoscan_version }}"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"{{ cookiecutter.project_name }}"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/holoviz/{{ cookiecutter.project_slug }}",
+			"workdir": "holohub_bin"
+		}
+	}
+}
