@@ -15,24 +15,32 @@
 # limitations under the License.
 ---
 extensions:
-    - /home/clara/anisha/holohub-internal/build/laser_detection/gxf_extensions/emergent_source/libgxf_emergent_source.so
+    - ../../../gxf_extensions/emergent_source/libgxf_emergent_source.so
 
 emergent:
   width: 4200
   height: 2160
   framerate: 30
   rdma: true
-  exposure: 10000
+  exposure: 25000
+  gain: 1500
 
 demosaic:
   generate_alpha: false
   bayer_grid_pos: 2
   interpolation_mode: 0 # this is the only interpolation mode supported by NPP currently
 
+apriltag:
+  width: 4200
+  height: 2160
+  number_of_tags: 4
+
+back_view:
+  width: 4200
+  height: 2160
+
 holoviz:
-  # display_name: DP-2
   width: 2560
   height: 1440
-  # use_exclusive_display: true
   fullscreen: true
 
