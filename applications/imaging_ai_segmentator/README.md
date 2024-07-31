@@ -24,7 +24,7 @@ One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, is copi
 
 This application only has Python implementation depending on a set of Python packages from [Pypi](https://pypi.org).
 
-The `PYTHONPATH` environment variable must be set to locate the necessary Holohub medical imaging operators. Furthermore, the AI model as well as input DICOM files must be located via application specific environment variables, namely `HOLOSCAN_MODEL_PATH` and `HOLOSCAN_INPUT_PATH` respectively.
+The `PYTHONPATH` environment variable must be set to locate the necessary Holohub medical imaging operators. Furthermore, the AI model as well as input DICOM files need be located via application specific environment variables, namely `HOLOSCAN_MODEL_PATH` and `HOLOSCAN_INPUT_PATH` respectively, otherwise defaults are used.
 
 The application output folder can be defined by the environment variable `HOLOSCAN_OUTPUT_PATH`, which defaults to `output`.
 
@@ -89,4 +89,3 @@ applications/imaging_ai_segmentator/output
         ├── 1.3.6.1.4.1.14519.5.2.1.7085.2626.nii
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
 ```
-
