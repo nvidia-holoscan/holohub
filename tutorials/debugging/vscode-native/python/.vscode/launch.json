@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Python C++ Debugger",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "Python Debugger",
+            "cppConfig": "default (gdb) Attach"
+        },
+        {
+            "name": "Python Debugger",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "hello_world",
+            "cwd": "${workspaceFolder}/src",
+            "env": {
+                "HOLOSCAN_LOG_LEVEL": "DEBUG",
+                "PYTHONPATH": "/home/user/holoscan-sdk/install-x86_64/python/lib:",
+                "LD_LIBRARY_PATH": "/home/user/holoscan-sdk/install-x86_64/lib"
+            }
+        }
+    ]
+}
