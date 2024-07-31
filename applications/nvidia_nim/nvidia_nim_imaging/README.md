@@ -5,7 +5,7 @@ This sample application demonstrates using the Vista-3D NVIDIA Inference Microse
 
 The application instructs the Vista-3D NIM API to process the given dataset and downloads and extracts the results of a segmentation NRRD file onto a local directory.
 
-Visit [build.nvidia.com](build.nvidia.com) to learn more about Vista-3D and generate an API key to use with this application.
+Visit [build.nvidia.com](https://build.nvidia.com) to learn more about Vista-3D and generate an API key to use with this application.
 
 ### Quick Start
 
