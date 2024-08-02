@@ -478,8 +478,7 @@ get_compute_capacity() {
     echo -n $(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1)
 }
 
-build_desc() {
-    c_echo 'Build dev image
+build_desc() { c_echo 'Build dev image
 Usage: ./dev_container build [options]
     --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
     --docker_file :  path to Dockerfile to use for building container.
@@ -576,8 +575,7 @@ build() {
 # Section: Launch
 #===============================================================================
 
-launch_desc() {
-    c_echo 'Launch Docker container
+launch_desc() { c_echo 'Launch Docker container
 Usage: ./dev_container launch [options]
     --img   : Fully qualified image name, e.g.  holohub:sdk-local-latest-dgpu
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
@@ -811,8 +809,7 @@ launch() {
         "$@"
 }
 
-build_and_run_desc() {
-    c_echo 'Build and run a requested application in a Docker container
+build_and_run_desc() { c_echo 'Build and run a requested application in a Docker container
     Usage: ./dev_container build_and_run <application_name> [options]
     Options:
         --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
@@ -979,8 +976,7 @@ build_and_run() {
     run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
 }
 
-vscode_desc() {
-    c_echo 'Launch VS Code in Dev Container
+vscode_desc() { c_echo 'Launch VS Code in Dev Container
 
 Launch a VS Code instance in a Docker container with the development environment.
     Usage: ./dev_container vscode <application_name> [options]
