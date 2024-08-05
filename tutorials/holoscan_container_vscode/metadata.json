@@ -1,0 +1,33 @@
+{
+	"tutorial": {
+		"name": "Holoscan SDK NGC Container Dev Container",
+		"description": "Dev Container template with VS Code launch profiles to debug applications based on the Holoscan SDK NGC Container.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.3.0",
+			"tested_versions": [
+				"2.3.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"VS Code",
+            "Dev Container",
+            "Tutorial"
+		],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}

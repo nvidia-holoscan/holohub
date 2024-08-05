@@ -1,0 +1,110 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
+{
+    "name": "Holoscan NGC Container",
+    "initializeCommand": ".devcontainer/initialize-command.sh",
+    "postStartCommand": "my/.devcontainer/post-start-command.sh",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "HOLOSCAN_SDK_IMAGE": "nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu",
+            "WORKSPACE_DIR": "${containerWorkspaceFolder}",
+            "USERNAME": "holoscan",
+            "USER_UID": 1000,
+            "USER_GID": 1000
+        },
+        "options": [
+            "--progress=plain"
+        ]
+    },
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "userUid": 1000,
+            "userGid": 1000
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "installZsh": false,
+            "installDockerBuildx": true,
+            "version": "latest",
+            "dockerDashComposeVersion": "v2"
+        }
+    },
+    "runArgs": [
+        "--runtime=nvidia",
+        "--net=host",
+        // Current VSCode DevContainer doesn't support dynamic 'runArgs' for docker
+        // (see https://github.com/microsoft/vscode-remote-release/issues/3972).
+        // So, we need to comment out the following lines when we don't use AJA Capture Card or video device.
+        //
+        // Uncomment the following line to use AJA Capture Card
+        // "--device=/dev/ajantv20:/dev/ajantv20",
+        // Uncomment the following 2 lines to use /dev/video0.
+        // "--group-add=video",
+        // "--device=/dev/video0:/dev/video0",
+        "--cap-add=SYS_PTRACE",
+        "--security-opt=seccomp=unconfined",
+    ],
+    "containerEnv": {
+        // X11 support
+        "DISPLAY": "${localEnv:DISPLAY}",
+        // Wayland support
+        "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
+        "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
+        "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
+        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan",
+        "WORKSPACE_DIR": "${containerWorkspaceFolder}"
+    },
+    "mounts": [
+        // X11 support
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+        // Wayland support
+        "source=${localEnv:XDG_RUNTIME_DIR},target=${localEnv:XDG_RUNTIME_DIR},type=bind,consistency=cached",
+        // Persist home directory to a volume
+        "source=holoscan-sdk-vscode-profile,target=/home/holoscan/,type=volume"
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/my,type=bind,consistency=cached",
+    "workspaceFolder": "/workspace",
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "/usr/bin/zsh"
+                    }
+                }
+            },
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "akiramiyakoda.cppincludeguard",
+                "benjamin-simmonds.pythoncpp-debug", // Python/C++ debugging
+                "charliermarsh.ruff",
+                "matepek.vscode-catch2-test-adapter",
+                "mine.cpplint",
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-vscode.cpptools-extension-pack",
+                "redhat.vscode-yaml",
+                "shardulm94.trailing-spaces",
+                "shd101wyy.markdown-preview-enhanced",
+                "stkb.rewrap"
+            ]
+        }
+    },
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // "forwardPorts": [],
+    // Use 'postCreateCommand' to run commands after the container is created.
+    // "postCreateCommand": "gcc -v",
+    // Configure tool-specific properties.
+    // "customizations": {},
+    // "privileged": true,
+    // Comment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    "remoteUser": "holoscan"
+}
