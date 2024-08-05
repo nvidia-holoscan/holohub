@@ -56,3 +56,20 @@ flowchart LR
 ```
 
 `ClassicalComputeOp` sends the quantum kernel and Hamiltonian to `QuantumComputeOp`, which computes the energy and parameter and sends the result to `PrintOp`.
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode cuda_quantum
+```
+
+### VS Code Launch Profiles
+
+There are two launch profiles configured for this application:
+
+1. **(debugpy) cuda_quantum/python**: Launch cuda_quantum using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) cuda_quantum/python**: Launch cuda_quantum using a launch profile that enables debugging of Python and C++ code.
+
+Note: to adjust the arguments of the application, open [launch.json](../../.vscode/launch.json), find the launch profile named `(debugpy) cuda_quantum/python`, and adjust the `args` field as needed.

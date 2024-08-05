@@ -19,4 +19,5 @@ aggregate_metadata.json
 ngc-cli/
 .bash_history
 .wget-hsts
-
+.cache/
+.cupy/

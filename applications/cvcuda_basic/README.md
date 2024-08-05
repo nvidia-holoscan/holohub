@@ -54,3 +54,26 @@ or using the run script
 ```bash
 ./run launch cvcuda_basic cpp
 ```
+
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode cvcuda_basic
+```
+
+### VS Code Launch Profiles
+
+#### C++
+
+Use the `**(gdb) cvcuda_basic/cpp**` launch profile configured for this application to debug the application.
+
+
+#### Python
+
+There are two launch profiles configured for this Python application:
+
+1. **(debugpy) cvcuda_basic/python**: Launch cvcuda_basic using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) cvcuda_basic/python**: Launch cvcuda_basic using a launch profile that enables debugging of Python and C++ code.

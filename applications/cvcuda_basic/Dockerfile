@@ -64,7 +64,8 @@ RUN bash ./ci/build.sh
 RUN cd build-rel \
     && cpack -G DEB . \
     && rm cvcuda-tests*.deb \
-    && dpkg -i cvcuda*.deb
+    && dpkg -i cvcuda*.deb \
+    && find . -name "*.whl" -exec pip install {} \;
 
 ############################################################
 # Base (final)

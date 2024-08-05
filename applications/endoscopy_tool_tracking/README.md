@@ -87,3 +87,25 @@ sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_trac
 Arguments:
 - `--build_with` : instructs the script to build the application with the `vtk_renderer` operator
 - `--docker_file`: instructs the script to use the `operators/vtk_renderer/vtk.Dockerfile` that includes VTK libraries
+
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode
+```
+
+### VS Code Launch Profiles
+
+#### C++
+
+Use the `(gdb) endoscopy_tool_tracking/cpp` launch profile to start and debug the application.
+
+#### Python
+
+There are a two launch profiles configured for this application:
+
+1. **(debugpy) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python code.
+2. **(pythoncpp) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python and C++ code.
