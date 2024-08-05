@@ -42,6 +42,11 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 
 6. When ready, the Holohub directory is mirrored into the container under `/workspace/holohub` to preserve any changes.
 
+> 💡 Note: VS Code creates a new container image for each Dev Container instance. To clean up the container images, run the following command in the terminal:
+> ```bash
+> docker images --format '{{.Repository}}:{{.Tag}}' | grep '^vsc-holohub' | xargs -r docker rmi
+> ```
+
 
 ### Debugging Holohub Applications
 
