@@ -1,0 +1,103 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
+{
+    "name": "Holohub Base DevContainer",
+    "initializeCommand": "${localWorkspaceFolder}/.devcontainer/initialize-command.sh",
+    "postStartCommand": ".devcontainer/post-start-command.sh",
+    "build": {
+        "dockerfile": "${localWorkspaceFolder}/.devcontainer/Dockerfile",
+        "args": {
+            "HOLOHUB_BASE_IMAGE": "${localEnv:HOLOHUB_BASE_IMAGE}",
+            "WORKSPACE_DIR": "${containerWorkspaceFolder}"
+        },
+        "options": [
+            "--progress=plain"
+        ]
+    },
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installOhMyZsh": true,
+            "installOhMyZshConfig": true,
+            "userUid": 1000,
+            "userGid": 1000
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "installZsh": false,
+            "installDockerBuildx": true,
+            "version": "latest",
+            "dockerDashComposeVersion": "v2"
+        }
+    },
+    "runArgs": [
+        "<env>"
+    ],
+    "containerEnv": {
+        // X11 support
+        "DISPLAY": "${localEnv:DISPLAY}",
+        // Wayland support
+        "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
+        "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
+        "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
+        "HOLOSCAN_ROOT": "/opt/nvidia/holoscan",
+        "WORKSPACE_DIR": "${containerWorkspaceFolder}",
+        "CUPY_CACHE_DIR": "/workspace/holohub/.cupy/kernel_cache"
+    },
+    "mounts": [
+        "source=/dev,target=/dev,type=bind",
+        // X11 support
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+        // Wayland support
+        "source=${localEnv:XDG_RUNTIME_DIR},target=${localEnv:XDG_RUNTIME_DIR},type=bind,consistency=cached",
+        // Persist home directory to a volume
+        "source=holohub-vscode-profile,target=/home/holohub/,type=volume",
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/holohub,type=bind,consistency=cached",
+    "workspaceFolder": "/workspace/holohub",
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "/usr/bin/zsh"
+                    }
+                }
+            },
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "akiramiyakoda.cppincludeguard",
+                "benjamin-simmonds.pythoncpp-debug", // Python/C++ debugging
+                "charliermarsh.ruff",
+                "matepek.vscode-catch2-test-adapter",
+                "mine.cpplint",
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-vscode.cpptools-extension-pack",
+                "redhat.vscode-yaml",
+                "shardulm94.trailing-spaces",
+                "shd101wyy.markdown-preview-enhanced",
+                "stkb.rewrap"
+            ]
+        }
+    },
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // "forwardPorts": [],
+    // Use 'postCreateCommand' to run commands after the container is created.
+    // "postCreateCommand": "gcc -v",
+    // Configure tool-specific properties.
+    // "customizations": {},
+    // "privileged": true,
+    // Comment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    "remoteEnv": {
+        "PYTHONPATH": "/opt/nvidia/holoscan/python/lib:${containerEnv:PYTHONPATH}",
+        "HOLOHUB_DATA_DIR": "${containerWorkspaceFolder}/data"
+    },
+    "remoteUser": "holoscan"
+}

@@ -56,3 +56,20 @@ If the Holoscan SDK version is 0.5 or lower, following code changes must be made
 
 * In python/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
 * In python/multiai_ultrasound.py: `InferenceOp` is replaced with `MultiAIInferenceOp`
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
+
+```bash
+./dev_container vscode
+```
+
+### VS Code Launch Profiles
+
+There are two launch profiles configured for this application:
+
+1. **(debugpy) colonoscopy_segmentation/python**: Launch colonoscopy_segmentation using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) colonoscopy_segmentation/python**: Launch colonoscopy_segmentation using a launch profile that enables debugging of Python and C++ code.
+
+Note: the launch profile starts the application with Video Replayer. To adjust the arguments of the application, open [launch.json](../../.vscode/launch.json), find the launch profile named `(debugpy) colonoscopy_segmentation/python`, and adjust the `args` field as needed.

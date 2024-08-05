@@ -1,0 +1,31 @@
+{
+    "env": {
+        "myIncludePath": [
+            "/workspace/holoscan-sdk/include",
+            "${workspaceFolder}/operators",
+            "${fileWorkspaceFolder}",
+            "${workspaceFolder}"
+        ],
+        "myDefines": [
+            "DEBUG",
+            "MY_FEATURE=1"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${myIncludePath}"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
