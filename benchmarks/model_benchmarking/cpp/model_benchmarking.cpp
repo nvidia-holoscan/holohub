@@ -50,12 +50,13 @@ class App : public holoscan::Application {
  public:
   App() = default;
   App(const std::string& datapath, const std::string& model_name, int num_inferences,
-      bool only_inference, bool inference_postprocessing)
+      bool only_inference, bool inference_postprocessing, bool headless)
       : datapath(datapath),
         model_name(model_name),
         num_inferences(num_inferences),
         only_inference(only_inference),
-        inference_postprocessing(inference_postprocessing) {
+        inference_postprocessing(inference_postprocessing),
+        headless(headless) {
     holoscan::Application();
     if (!std::filesystem::exists(datapath)) {
       std::cerr << "Data path " << datapath << " does not exist." << std::endl;
@@ -109,7 +110,8 @@ class App : public holoscan::Application {
     if (!only_inference && !inference_postprocessing) {
       for (int i = 0; i < num_inferences; i++) {
         std::string holoviz_name = "holoviz" + std::to_string(i);
-        auto holoviz = make_operator<ops::HolovizOp, std::string>(holoviz_name, from_config("viz"));
+        auto holoviz = make_operator<ops::HolovizOp, std::string>(
+            holoviz_name, from_config("viz"), Arg("headless") = headless);
         holovizs.push_back(holoviz);
         // Passthrough to Visualization
         add_flow(source, holoviz, {{"signal", "receivers"}});
@@ -159,7 +161,7 @@ class App : public holoscan::Application {
 
  private:
   int num_inferences = 1;
-  bool only_inference = false, inference_postprocessing = false;
+  bool only_inference = false, inference_postprocessing = false, headless = false;
   std::string datapath, model_name;
 };
 
@@ -185,22 +187,24 @@ void print_help() {
   std::cout
       << "  -l, --multi-inference <num>     Number of inferences to run in parallel (default: 1)"
       << std::endl;
+  std::cout << "  -e, --headless                  Run holoviz in headless mode." << std::endl;
   std::cout << "  -h, --help                      Print this help" << std::endl;
 }
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path,
                      std::string& model_name, bool& only_inference, bool& inference_postprocessing,
-                     int& num_inferences) {
+                     int& num_inferences, bool& headless) {
   static struct option long_options[] = {{"help", required_argument, 0, 'h'},
                                          {"data", required_argument, 0, 'd'},
                                          {"model-name", required_argument, 0, 'm'},
                                          {"only-inference", optional_argument, 0, 'i'},
                                          {"inference-postprocessing", optional_argument, 0, 'p'},
                                          {"multi-inference", required_argument, 0, 'l'},
+                                         {"headless", required_argument, 0, 'e'},
                                          {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "hd:m:v:ipl:", long_options, NULL)) {
+  while (int c = getopt_long(argc, argv, "hd:m:v:ipel:", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
@@ -218,6 +222,9 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
         break;
       case 'p':
         inference_postprocessing = true;
+        break;
+      case 'e':
+        headless = true;
         break;
       case 'l':
         num_inferences = std::stoi(optarg);
@@ -238,7 +245,7 @@ int main(int argc, char** argv) {
   std::string config_name = "";
   std::string data_path = "/workspace/holohub/data/ultrasound_segmentation";
   std::string model_name = "us_unet_256x256_nhwc.onnx";
-  bool only_inference = false, inference_postprocessing = false;
+  bool only_inference = false, inference_postprocessing = false, headless = false;
   int num_inferences = 1;
   if (!parse_arguments(argc,
                        argv,
@@ -247,12 +254,13 @@ int main(int argc, char** argv) {
                        model_name,
                        only_inference,
                        inference_postprocessing,
-                       num_inferences)) {
+                       num_inferences,
+                       headless)) {
     return 1;
   }
 
   auto app = holoscan::make_application<App>(
-      data_path, model_name, num_inferences, only_inference, inference_postprocessing);
+      data_path, model_name, num_inferences, only_inference, inference_postprocessing, headless);
   if (config_name != "") {
     // Check if config_name is a valid path
     if (!std::filesystem::exists(config_name)) {
