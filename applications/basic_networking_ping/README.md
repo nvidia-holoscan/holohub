@@ -20,6 +20,18 @@ Please refer to the basic network operator documentation for more configuration 
 This application requires:
 1. Linux
 
+### Quick Start
+
+Use the following to build and run the application:
+
+```bash
+# Start the receiver
+./dev_container build_and_run basic_networking_ping --base_img holoscan-dev-container:main --language <cpp|python> --run_args basic_networking_ping_rx.yaml
+# Start the transmitter
+./dev_container build_and_run basic_networking_ping --base_img holoscan-dev-container:main --language <cpp|python> --run_args basic_networking_ping_tx.yaml
+```
+
+
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
@@ -30,7 +42,10 @@ Running the sample uses the standard HoloHub `run` script:
 
 
 ```bash
-./run launch basic_networking_ping <language> --configure-args config_file.yaml
+# Start the receiver
+./run launch basic_networking_ping <language> --extra_args basic_networking_ping_rx.yaml
+# Start the transmitter
+./run launch basic_networking_ping <language> --extra_args basic_networking_ping_tx.yaml
 ```
 
-Language can be either C++ or Python.
+Note: `language`  can be either C++ or Python.

@@ -84,6 +84,7 @@ target_link_libraries(volume_renderer
     clara::viz::renderer
     clara::viz::core
     clara::viz::core::hw
+    GXF::multimedia
 )
 
 target_include_directories(volume_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -94,3 +95,7 @@ install(
   TARGETS volume_renderer
   EXPORT holoscan-ops
 )
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

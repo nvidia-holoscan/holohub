@@ -1,5 +1,6 @@
+
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,135 +28,63 @@
 
 namespace holoscan::ops {
 
+std::string remove_all_spaces(const std::string& str) {
+  std::string result(str);
+  result.erase(
+      std::remove_if(result.begin(), result.end(), [](unsigned char x) { return std::isspace(x); }),
+      result.end());
+  return result;
+}
+
+std::string trim(const std::string& str) {
+  std::string result(str);
+  // remove leading spaces
+  auto it = result.begin();
+  while ((it != result.end()) && (std::isspace(*it))) { it = result.erase(it); }
+  // remove trailing spaces
+  it = --result.end();
+  while ((it != result.begin()) && (std::isspace(*it))) { it = result.erase(it); }
+  return result;
+}
+
+std::vector<double> parse_vector(std::string str) {
+  std::vector<double> result;
+  // ensures the string is surround by parenthesis and then remove them
+  if ((str[0] != '(') || (str[str.length() - 1] != ')')) {
+    throw std::runtime_error("parse_vector: string is not surrounded by (matching) parenthesis");
+  }
+
+  str = str.substr(1, str.length() - 2);
+
+  std::stringstream ss(str);
+  std::string token;
+  while (std::getline(ss, token, ',')) { result.push_back(std::stod(token)); }
+  return result;
+}
+
+std::vector<std::string> split_string_by_space(std::string str) {
+  std::vector<std::string> result;
+  size_t start_index = 0;
+  while (true) {
+    while ((start_index < str.length()) && isspace(str[start_index])) { start_index++; }
+    if (start_index >= str.length()) return result;
+    size_t end_index = start_index;
+    while ((end_index < str.length()) && !isspace(str[end_index])) { end_index++; }
+    result.push_back(str.substr(start_index, end_index - start_index));
+    start_index = end_index;
+  }
+}
+
 bool is_nrrd(const std::string& file_name) {
   std::filesystem::path path(file_name);
 
-  if (path.extension() == ".nhdr") { return true; }
+  if (path.extension() == ".nhdr" || path.extension() == ".nrrd") { return true; }
 
   return false;
 }
 
-bool load_nrrd(const std::string& file_name, Volume& volume) {
-  bool compressed = false;
-  std::string data_file_name;
-  nvidia::gxf::PrimitiveType primitive_type;
-  std::array<int32_t, 3> dims;
-
-  {
-    std::stringstream meta_header;
-    {
-      std::ifstream file;
-      file.open(file_name, std::ios::in);
-      if (!file.is_open()) {
-        holoscan::log_error("NRRD could not open {}", file_name);
-        return false;
-      }
-      meta_header << file.rdbuf();
-    }
-    // get the parameters
-    std::string parameter;
-    while (std::getline(meta_header, parameter, ':')) {
-      // remove spaces
-      parameter.erase(
-          std::remove_if(
-              parameter.begin(), parameter.end(), [](unsigned char x) { return std::isspace(x); }),
-          parameter.end());
-
-      // get the value
-      std::string value;
-      std::getline(meta_header, value);
-      // remove leading spaces
-      auto it = value.begin();
-      while ((it != value.end()) && (std::isspace(*it))) { it = value.erase(it); }
-      // remove trailing spaces
-      it = --value.end();
-      while ((it != value.begin()) && (std::isspace(*it))) { it = value.erase(it); }
-
-      if (parameter == "dimension") {
-        int dims = std::stoi(value);
-        if (dims != 3) {
-          holoscan::log_error("NRRD expected a three dimensional input, instead NDims is {}", dims);
-          return false;
-        }
-      } else if (parameter == "encoding") {
-        if (value == "gz") {
-          compressed = true;
-        } else if (value == "raw") {
-          compressed = false;
-        } else {
-          holoscan::log_error("NRRD unexpected value for {}: {}", parameter, value);
-          return false;
-        }
-      } else if (parameter == "sizes") {
-        std::stringstream value_stream(value);
-        std::string value;
-        for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
-          dims[2 - index] = std::stoi(value);
-        }
-      } else if (parameter == "spacings") {
-        std::stringstream value_stream(value);
-        std::string value;
-        for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
-          volume.spacing_[index] = std::stof(value);
-        }
-      } else if (parameter == "type") {
-        if ((value == "signed char") || (value == "int8") || (value == "int8_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kInt8;
-        } else if ((value == "uchar") || (value == "unsigned char") || (value == "uint8") ||
-                   (value == "uint8_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
-        } else if ((value == "short") || (value == "short int") || (value == "signed short") ||
-                   (value == "signed short int") || (value == "int16") || (value == "int16_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kInt16;
-        } else if ((value == "ushort") || (value == "unsigned short") ||
-                   (value == "unsigned short int") || (value == "uint16") ||
-                   (value == "uint16_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kUnsigned16;
-        } else if ((value == "int") || (value == "signed int") || (value == "int32") ||
-                   (value == "int32_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kInt32;
-        } else if ((value == "uint") || (value == "unsigned int") || (value == "uint32") ||
-                   (value == "uint32_t")) {
-          primitive_type = nvidia::gxf::PrimitiveType::kUnsigned32;
-        } else if (value == "float") {
-          primitive_type = nvidia::gxf::PrimitiveType::kFloat32;
-        } else {
-          holoscan::log_error("NRRD unexpected value for {}: {}", parameter, value);
-          return false;
-        }
-      } else if (parameter == "datafile") {
-        const std::string path = file_name.substr(0, file_name.find_last_of("/\\") + 1);
-        data_file_name = path + value;
-      } else if (parameter == "space") {
-        std::stringstream values(value);
-        std::string orientation, space;
-        while (std::getline(values, space, '-')) {
-          if (space == "left") {
-            orientation += "L";
-          } else if (space == "right") {
-            orientation += "R";
-          } else if (space == "anterior") {
-            orientation += "A";
-          } else if (space == "posterior") {
-            orientation += "P";
-          } else if (space == "superior") {
-            orientation += "S";
-          } else if (space == "inferior") {
-            orientation += "I";
-          } else {
-            holoscan::log_error("NRRD unexpected space string {}", space);
-            return false;
-          }
-        }
-        volume.SetOrientation(orientation);
-      }
-    }
-  }
-
-  const size_t data_size =
-      dims[0] * dims[1] * dims[2] * nvidia::gxf::PrimitiveTypeSize(primitive_type);
-  std::unique_ptr<uint8_t> data(new uint8_t[data_size]);
-
+bool load_nrrd_data_file(const bool compressed, const std::string& data_file_name,
+                         const size_t& data_size, std::unique_ptr<uint8_t>& data) {
   std::ifstream file;
 
   file.open(data_file_name, std::ios::in | std::ios::binary | std::ios::ate);
@@ -165,7 +94,6 @@ bool load_nrrd(const std::string& file_name, Volume& volume) {
   }
   const std::streampos file_size = file.tellg();
   file.seekg(0, std::ios_base::beg);
-
   if (compressed) {
     // need to uncompress, first read to 'compressed_data' vector and then uncompress to 'data'
     std::vector<uint8_t> compressed_data(file_size);
@@ -196,8 +124,165 @@ bool load_nrrd(const std::string& file_name, Volume& volume) {
                           result);
       return false;
     }
+
   } else {
     file.read(reinterpret_cast<char*>(data.get()), data_size);
+  }
+
+  return true;
+}
+
+bool parse_headers(const std::string& file_name, const std::string& key, const std::string& value,
+                   bool& compressed, std::array<int32_t, 3>& dims, Volume& volume,
+                   nvidia::gxf::PrimitiveType& primitive_type, std::string& data_file_name) {
+  if (key == "dimension") {
+    int dims = std::stoi(value);
+    if (dims != 3) {
+      holoscan::log_error("NRRD expected a three dimensional input, instead NDims is {}", dims);
+      return false;
+    }
+  } else if (key == "encoding") {
+    if (value == "gz") {
+      compressed = true;
+    } else if (value == "raw") {
+      compressed = false;
+    } else {
+      holoscan::log_error("NRRD unexpected value for {}: {}", key, value);
+      return false;
+    }
+  } else if (key == "sizes") {
+    std::stringstream value_stream(value);
+    std::string value;
+    for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
+      dims[2 - index] = std::stoi(value);
+    }
+  } else if (key == "spacings") {
+    std::stringstream value_stream(value);
+    std::string value;
+    for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
+      volume.spacing_[index] = std::stof(value);
+    }
+  } else if (key == "type") {
+    if ((value == "signed char") || (value == "int8") || (value == "int8_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kInt8;
+    } else if ((value == "uchar") || (value == "unsigned char") || (value == "uint8") ||
+               (value == "uint8_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
+    } else if ((value == "short") || (value == "short int") || (value == "signed short") ||
+               (value == "signed short int") || (value == "int16") || (value == "int16_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kInt16;
+    } else if ((value == "ushort") || (value == "unsigned short") ||
+               (value == "unsigned short int") || (value == "uint16") || (value == "uint16_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kUnsigned16;
+    } else if ((value == "int") || (value == "signed int") || (value == "int32") ||
+               (value == "int32_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kInt32;
+    } else if ((value == "uint") || (value == "unsigned int") || (value == "uint32") ||
+               (value == "uint32_t")) {
+      primitive_type = nvidia::gxf::PrimitiveType::kUnsigned32;
+    } else if (value == "float") {
+      primitive_type = nvidia::gxf::PrimitiveType::kFloat32;
+    } else {
+      holoscan::log_error("NRRD unexpected value for {}: {}", key, value);
+      return false;
+    }
+  } else if (key == "datafile") {
+    const std::string path = file_name.substr(0, file_name.find_last_of("/\\") + 1);
+    data_file_name = path + value;
+  } else if (key == "space") {
+    std::stringstream values(value);
+    std::string orientation, space;
+    while (std::getline(values, space, '-')) {
+      if (space == "left") {
+        orientation += "L";
+      } else if (space == "right") {
+        orientation += "R";
+      } else if (space == "anterior") {
+        orientation += "A";
+      } else if (space == "posterior") {
+        orientation += "P";
+      } else if (space == "superior") {
+        orientation += "S";
+      } else if (space == "inferior") {
+        orientation += "I";
+      } else {
+        holoscan::log_error("NRRD unexpected space string {}", space);
+        return false;
+      }
+    }
+    volume.SetOrientation(orientation);
+  } else if (key == "spaceorigin") {
+    auto space_origin = parse_vector(value);
+    std::copy_n(space_origin.begin(), 3, volume.space_origin_.begin());
+  } else if (key == "spacedirections") {
+    auto values = split_string_by_space(value);
+    for (const auto& value : values) {
+      auto space_directions = parse_vector(value);
+      std::array<double, 3> space_direction = {0.0, 0.0, 0.0};
+      std::copy_n(space_directions.begin(), 3, space_direction.begin());
+      volume.space_directions_.push_back(space_direction);
+    }
+  }
+  return true;
+}
+
+bool load_nrrd(const std::string& file_name, Volume& volume) {
+  bool compressed = false;
+  std::string data_file_name;
+  nvidia::gxf::PrimitiveType primitive_type;
+  std::array<int32_t, 3> dims;
+  int byte_skip = 0;
+
+  std::ifstream file;
+  file.open(file_name, std::ios::in);
+  if (!file.is_open()) {
+    holoscan::log_error("NRRD could not open {}", file_name);
+    return false;
+  }
+  // get the parameters
+  std::string line;
+  while (std::getline(file, line)) {
+    if (file.tellg() != -1) { byte_skip = file.tellg(); }
+
+    size_t delimiterPos = line.find(':');
+    if (delimiterPos == std::string::npos) { continue; }
+    std::string key = remove_all_spaces(line.substr(0, delimiterPos));
+    std::string value = trim(line.substr(delimiterPos + 1));
+
+    if (!parse_headers(
+            file_name, key, value, compressed, dims, volume, primitive_type, data_file_name)) {
+      // error already logged in the function
+      return false;
+    }
+  }
+
+  const size_t data_size =
+      dims[0] * dims[1] * dims[2] * nvidia::gxf::PrimitiveTypeSize(primitive_type);
+  std::unique_ptr<uint8_t> data(new uint8_t[data_size]);
+  if (is_nrrd(file_name) && data_file_name.size() == 0) {
+    if (compressed) {
+      holoscan::log_error("NRRD attached-header with compressed data is not supported.");
+      return false;
+    }
+    std::ifstream file;
+    file.open(file_name, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+      holoscan::log_error("NRRD could not open {}", data_file_name);
+      return false;
+    }
+
+    file.seekg(byte_skip, std::ios_base::beg);
+
+    file.read(reinterpret_cast<char*>(data.get()), data_size);
+    file.close();
+  } else if (data_file_name.size() != 0) {
+    if (!load_nrrd_data_file(compressed, data_file_name, data_size, data)) {
+      holoscan::log_error("NRRD failed to process detached data file {}", data_file_name);
+      return false;
+    }
+  } else {
+    holoscan::log_error("NRRD unsupported file format");
+    return false;
   }
 
   // allocate the tensor

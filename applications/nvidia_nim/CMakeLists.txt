@@ -17,3 +17,4 @@ cmake_minimum_required(VERSION 3.20)
 project(nvidia_nim LANGUAGES NONE)
 
 add_holohub_application(nvidia_nim_chat)
+add_holohub_application(nvidia_nim_imaging)

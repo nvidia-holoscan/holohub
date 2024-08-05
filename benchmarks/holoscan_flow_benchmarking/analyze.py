@@ -488,8 +488,9 @@ def main():
     if args.percentile:
         for percentile in args.percentile:
             percentile_file = f"percentile_{percentile}_values.csv"
-            with open(percentile_file, "w") as f:
-                f.truncate(0)
+            if args.save_csv:
+                with open(percentile_file, "w") as f:
+                    f.truncate(0)
             print_metric_title(f"Latency Percentile ({percentile})")
             for group_name, paths_latencies in grouped_path_latenices.items():
                 print_group_name_with_log_files(group_name, grouped_log_files[group_name])

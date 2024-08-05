@@ -48,8 +48,8 @@ def monitor_gpu(gpu_uuids, filename):
             sum(device.gpu_utilization() for device in devices) / len(devices)
         )
         time.sleep(2)
-        # write average gpu utilization to a file and a new line
 
+    # write average gpu utilization to a file and a new line
     with open(filename, "w") as f:
         # discard first 2 and last 2 values
         average_text = ",".join(map(str, average_gpu_utilizations[2:-2]))
@@ -87,7 +87,7 @@ def main():
     requiredArgument.add_argument(
         "--sched",
         nargs="+",
-        choices=["greedy", "multithread"],
+        choices=["greedy", "multithread", "eventbased"],
         required=True,
         help="scheduler(s) to use",
     )
@@ -171,7 +171,7 @@ assignment in Holoscan's Inference operator.",
         "--num_worker_threads",
         type=int,
         default=1,
-        help="number of worker threads for multithread scheduler (default: 1)",
+        help="number of worker threads for multithread or eventbased scheduler (default: 1)",
         required=False,
     )
 
@@ -181,8 +181,14 @@ assignment in Holoscan's Inference operator.",
 
     args = parser.parse_args()
 
-    if "multithread" not in args.sched and args.num_worker_threads != 1:
-        print("Warning: num_worker_threads is ignored as multithread scheduler is not used")
+    if (
+        "multithread" not in args.sched
+        and "eventbased" not in args.sched
+        and args.num_worker_threads != 1
+    ):
+        print(
+            "Warning: num_worker_threads is ignored as multithread or eventbased scheduler is not used"
+        )
 
     log_directory = None
     if args.log_directory is None:
@@ -199,10 +205,6 @@ assignment in Holoscan's Inference operator.",
                 os.path.abspath(log_directory),
             )
             os.mkdir(os.path.abspath(log_directory))
-
-    # if args.not_holohub or args.binary_path is not None:
-    #     print ("Currently non-HoloHub applications are not supported")
-    #     sys.exit(1)
 
     env = os.environ.copy()
     if args.gpu != "all":
@@ -222,12 +224,16 @@ assignment in Holoscan's Inference operator.",
         if scheduler == "multithread":
             env["HOLOSCAN_SCHEDULER"] = scheduler
             env["HOLOSCAN_MULTITHREAD_WORKER_THREADS"] = str(args.num_worker_threads)
+        elif scheduler == "eventbased":
+            env["HOLOSCAN_SCHEDULER"] = scheduler
+            env["HOLOSCAN_EVENTBASED_WORKER_THREADS"] = str(args.num_worker_threads)
         elif scheduler != "greedy":
             print("Unsupported scheduler ", scheduler)
             sys.exit(1)
         # No need to set the scheduler for greedy scheduler
 
         for i in range(1, args.runs + 1):
+            print(f"Run {i} started for {scheduler} scheduler.")
             instance_threads = []
             if args.monitor_gpu:
                 gpu_utilization_logfile_name = (

@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
 
-
+ARG OPEN_CV_VERSION=4.10.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set default shell to /bin/bash
@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y build-essential cmake git \
 RUN chmod +rwx /usr/bin/python3.10
 
 # Install OpenCV
-RUN git clone https://github.com/opencv/opencv.git && git clone https://github.com/opencv/opencv_contrib.git && \
+RUN git clone --depth 1 --branch $OPEN_CV_VERSION https://github.com/opencv/opencv.git && \
+    git clone --depth 1 --branch $OPEN_CV_VERSION https://github.com/opencv/opencv_contrib.git && \
     cd opencv && mkdir -p build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \

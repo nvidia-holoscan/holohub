@@ -15,10 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE=holohub:ngc-v1.0.3-dgpu
+ARG BASE_IMAGE=
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+# --------------------------------------------------------------------------
+#
+# Holohub run setup 
+#
+
+RUN mkdir -p /tmp/scripts
+COPY run /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/run
+RUN /tmp/scripts/run setup
+
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
 
 # Install dependencies
 RUN apt update && \

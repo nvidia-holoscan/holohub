@@ -2,7 +2,7 @@ import os
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from holoscan.schedulers import GreedyScheduler, MultiThreadScheduler
+from holoscan.schedulers import EventBasedScheduler, GreedyScheduler, MultiThreadScheduler
 
 
 class BenchmarkedApplication(Application):
@@ -42,6 +42,13 @@ class BenchmarkedApplication(Application):
                 stop_on_deadlock=True,
                 check_recession_period_ms=0,
                 max_duration_ms=100000,
+            )
+        elif scheduler_str and scheduler_str == "multithread":
+            num_threads = os.environ.get("HOLOSCAN_EVENTBASED_WORKER_THREADS", None)
+            scheduler = EventBasedScheduler(
+                self,
+                name="event-based-scheduler",
+                worker_thread_number=int(num_threads) if num_threads is not None else 1,
             )
         else:
             scheduler = GreedyScheduler(self, name="greedy-scheduler")

@@ -55,6 +55,7 @@ class VisualizerICardioOp: public holoscan::Operator {
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<std::vector<IOSpec *>> receivers_;
   Parameter<std::vector<IOSpec *>> transmitters_;
+  Parameter<std::string> data_dir_;
   Parameter<bool> input_on_cuda_;
 
   // Internal state
@@ -75,7 +76,7 @@ class VisualizerICardioOp: public holoscan::Operator {
   const std::map<std::string, int> tensor_to_index_ = {
       {"keyarea_1", 1}, {"keyarea_2", 2}, {"keyarea_3", 3}, {"keyarea_4", 4}, {"keyarea_5", 5}};
 
-  const std::string path_to_logo_file_ = "../data/multiai_ultrasound/logo.txt";
+  const std::string logo_file_ = "logo.txt";
   std::vector<int> logo_image_;
   CudaStreamHandler cuda_stream_handler_;
 };

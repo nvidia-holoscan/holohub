@@ -268,11 +268,11 @@ get_host_gpu() {
 
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.1.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.2.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -706,6 +706,9 @@ launch() {
         --gpus all \
         --cap-add CAP_SYS_PTRACE \
         --ipc=host \
+        -v /dev:/dev \
+        --device-cgroup-rule "c 81:* rmw" \
+        --device-cgroup-rule "c 189:* rmw" \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -e HOME=/workspace/holohub \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
@@ -733,6 +736,8 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
+        --build_args : Build the app with additional CMake configuration arguments
+        --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
@@ -747,6 +752,8 @@ build_and_run() {
     local build_app=1
     local image_name=""
     local docker_file=""
+    local extra_build_args=""
+    local extra_build_with=""
     local extra_run_args=""
 
     # Parse CLI arguments next
@@ -785,6 +792,26 @@ build_and_run() {
             --no_build)
                 build_app=0
                 shift
+                ;;
+            --build_with)
+                if [[ -n "$2" ]]; then
+                    extra_build_with="--with '$2'"
+                    shift 2
+                else
+                    echo "Error: --build_with requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
+                ;;
+            --build_args)
+                if [[ -n "$2" ]]; then
+                    extra_build_args="--configure-args '$2'"
+                    shift 2
+                else
+                    echo "Error: --build_args requires a value"
+                    build_and_run_desc
+                    exit 1
+                fi
                 ;;
             --run_args)
                 if [[ -n "$2" ]]; then
@@ -848,7 +875,7 @@ build_and_run() {
 
     run_command ${SCRIPT_DIR}/dev_container build $container_build_args
     if [[ $build_app == 1 ]]; then
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run build $app_name"
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run build $app_name $extra_build_with $extra_build_args"
     fi
     run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
 }

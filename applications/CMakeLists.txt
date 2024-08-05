@@ -45,14 +45,17 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                                   tool_tracking_postprocessor
                                   OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
 
+add_holohub_application(endoscopy_tool_tracking_distributed DEPENDS
+                        OPERATORS lstm_tensor_rt_inference
+                                  tool_tracking_postprocessor)
 add_subdirectory(h264)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
-add_holohub_application(hyperspectral_segmentation)
+add_subdirectory(holoviz)
 
-add_holohub_application(model_benchmarking)
+add_holohub_application(hyperspectral_segmentation)
 
 add_holohub_application(multiai_endoscopy)
 
@@ -67,9 +70,13 @@ add_holohub_application(object_detection_torch)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
+add_holohub_application(pva_video_filter)
+
 add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_processing)
 
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
+
+add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
 add_holohub_application(tao_peoplenet)
 
@@ -99,6 +106,8 @@ add_holohub_application(xr_hello_holoscan DEPENDS
                                   XrFrameOp
                                   XrTransformOp
                                   xr_basic_render)
+
+add_holohub_application(video_deidentification)
 
 add_holohub_application(webrtc_video_server)
 

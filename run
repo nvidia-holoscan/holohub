@@ -83,7 +83,6 @@ run_command() {
         eval "$@"
         status=$?
     fi
-
     return $status
 }
 
@@ -128,10 +127,17 @@ get_app_source_root_dir() {
     app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
     if [[ -n "$app_rel_path" ]]; then
       holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
-    else
-      echo "Could not find subproject ${appname}"
-      exit 1
     fi
+  fi
+
+  # Check if the application is in the benchmarks folder
+  if [ ! -d "$holohub_app_source" ] && [ -d "${SCRIPT_DIR}/benchmarks/${appname}" ]; then
+    holohub_app_source="${SCRIPT_DIR}/benchmarks/${appname}"
+  fi
+
+  if [ ! -d "$holohub_app_source" ]; then
+    echo "Could not find project ${appname}"
+    exit 1
   fi
 
   echo -n "${holohub_app_source}"
@@ -202,6 +208,17 @@ get_app_default_language() {
 
 print_error() {
     echo -e "${RED}ERROR${NOCOLOR}:" $*
+}
+
+
+check_exit_code() {
+  local exit_code=$1
+  local message=$2
+
+  if [ $exit_code -ne 0 ]; then
+      print_error "$message (Exit code: $ret)"
+      exit $exit_code
+  fi
 }
 
 #===========================================================================================
@@ -548,6 +565,7 @@ build_desc() {
   echo "   --buildpath <build_directory>        : Change the build path."
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
+  echo "   --benchmark                          : Build for Holoscan Flow Benchmarking."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo "                                          multiple arguments can be passed between quotes"
   echo "                                          or using several --configure-args in the command line"
@@ -611,6 +629,7 @@ build() {
   local skipnext=0
   local build_type="${CMAKE_BUILD_TYPE:-release}"
   local build_path="${CMAKE_BUILD_PATH}"
+  local benchmark=false
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -626,6 +645,10 @@ build() {
          configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
          echo "Building with operator(s) ${operators}"
          skipnext=1
+      elif [ "$arg" = "--benchmark" ]; then
+          benchmark=true
+          configure_args="${configure_args} -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
+          echo "Building for Holoscan Flow Benchmarking"
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${configure_args} ${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
@@ -658,6 +681,12 @@ build() {
     build_path="build/$1"
   fi
 
+  local app_source_root_path
+  if [ $benchmark == true ]; then
+    app_source_root_path=$(get_app_source_root_dir $1)
+    run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+  fi
+
   echo "Building $1 application"
   application="-DAPP_$1=1"
 
@@ -670,7 +699,16 @@ build() {
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
   run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  ret=$?
+  check_exit_code $ret "Error building application."
   run_command cmake --build ${build_path} -j
+  ret=$?
+  check_exit_code $ret "Error building application."
+
+  if [ $benchmark == true ]; then
+    app_source_root_path=$(get_app_source_root_dir $1)
+    run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
+  fi
 
   echo "Holohub build done."
 }
@@ -779,7 +817,8 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-for k, v in obj["application"]["run"].items():
+project_type = "benchmark" if "benchmark" in obj.keys() else "application"
+for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')
 
@@ -850,8 +889,9 @@ list() {
   echo "***** HoloHub applications ******"
 
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
+  apps+=$(find ${SCRIPT_DIR}/benchmarks -name 'metadata.json' | sort -d)
   for d in ${apps}; do
-    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
+    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}'/(applications|benchmarks)/\K[^ ]*')
 
     local language="${appname##*/}"
     if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then

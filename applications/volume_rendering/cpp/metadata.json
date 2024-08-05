@@ -1,0 +1,40 @@
+{
+	"application": {
+		"name": "Volume Rendering",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release",
+			"2.0": "Update to Holoscan SDK 2.1"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3",
+				"2.0.0",
+				"2.1.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Volume",
+			"Render",
+			"ClaraViz"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/volume_rendering --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
+			"workdir": "holohub_bin"
+		}
+	}
+}

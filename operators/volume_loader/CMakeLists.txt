@@ -68,3 +68,7 @@ target_compile_definitions(volume_loader PRIVATE HOLOSCAN_MINOR_VERSION=${holosc
 install(TARGETS volume_loader
   COMPONENT holoscan-ops
 )
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

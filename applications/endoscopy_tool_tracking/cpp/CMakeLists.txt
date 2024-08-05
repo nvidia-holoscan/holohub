@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(endoscopy_tool_tracking CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(endoscopy_tool_tracking

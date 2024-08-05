@@ -23,7 +23,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -69,3 +69,9 @@ RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
     fi
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
+
+# For RTI Connext DDS
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        openjdk-21-jre
+RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/java//")' >> /etc/bash.bashrc

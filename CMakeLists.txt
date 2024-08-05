@@ -45,6 +45,9 @@ set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:/opt/nvidia/holoscan/lib/")
 # Build the applications
 add_subdirectory(applications)
 
+# Build the benchmarks
+add_subdirectory(benchmarks)
+
 # Build the operators
 add_subdirectory(operators)
 
