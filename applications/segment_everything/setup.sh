@@ -74,8 +74,7 @@ cd /workspace/data/segment_everything/sam_trt_light && \
 pip install -e . && \
 pip install onnxruntime onnx_graphsurgeon colored polygraphy --upgrade && \
 cd data/segment_everything/sam_trt_light/
-
+python scripts/trt_inference.py --checkpoint=downloads/sam_vit_b_01ec64.pth --input-image=images/apples.jpg --mode point --visualize --output-image=output.png --model-type vit_b --onnx-dir onnx --engine-dir engine
 cd /workspace && \
-python scripts/trt_inference.py --checkpoint=downloads/sam_vit_b_01ec64.pth --input-image=images/apples.jpg --mode point --visualize --output-image=output.png --model-type vit_b --onnx-dir onnx --engine-dir engine && \
 exec /bin/bash
 "
