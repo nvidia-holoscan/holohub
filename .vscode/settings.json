@@ -132,4 +132,8 @@
     "C/C++ Include Guard.Path Skip": 2,
     "C/C++ Include Guard.Path Depth": 0,
     "C/C++ Include Guard.Remove Extension": false,
+    "python.analysis.extraPaths": [
+        "/workspace/holoscan-sdk/python/",
+        "/workspace/holohub/operators",
+    ],
 }
