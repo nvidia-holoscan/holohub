@@ -591,7 +591,7 @@ launch() {
         conditional_opt+=" --cap-add=SYS_ADMIN"
     fi
 
-    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holsocan SDK
+    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holoscan SDK
     # to map Holoscan SDK into the container for building Holohub
     local local_sdk_opt="";
 

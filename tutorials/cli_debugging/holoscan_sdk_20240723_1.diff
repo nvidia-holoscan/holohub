@@ -1,0 +1,161 @@
+diff --git a/Dockerfile b/Dockerfile
+index 5366c8ab7..4f32f0213 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -23,7 +23,6 @@
+ ARG ONNX_RUNTIME_VERSION=1.15.1_23.08
+ ARG LIBTORCH_VERSION=2.1.0_23.08
+ ARG TORCHVISION_VERSION=0.16.0_23.08
+-ARG VULKAN_SDK_VERSION=1.3.216.0
+ ARG GRPC_VERSION=1.54.2
+ ARG UCX_VERSION=1.15.0
+ ARG GXF_VERSION=4.0_20240409_bc03d9d
+@@ -123,29 +122,6 @@ RUN ARCH=$(uname -m) && if [ "$ARCH" = "aarch64" ]; then ARCH="${ARCH}-${GPU_TYP
+ RUN mkdir -p ${TORCHVISION_VERSION}
+ RUN tar -xf torchvision.tgz -C ${TORCHVISION_VERSION} --strip-components 1
+ 
+-############################################################
+-# Vulkan SDK
+-#
+-# Use the SDK because we need the newer Vulkan headers and the newer shader compiler than provided
+-# by the Ubuntu deb packages. These are compile time dependencies, we still use the Vulkan loaded
+-# and the Vulkan validation layer as runtime components provided by Ubuntu packages because that's
+-# what the user will have on their installations.
+-############################################################
+-FROM build-tools as vulkansdk-builder
+-ARG VULKAN_SDK_VERSION
+-
+-WORKDIR /opt/vulkansdk
+-
+-# Note there is no aarch64 binary version to download, therefore for aarch64 we also download the x86_64 version which
+-# includes the source. Then remove the binaries and e7ab9314build the aarch64 version from source.
+-RUN curl -S -# -O -L https://sdk.lunarg.com/sdk/download/${VULKAN_SDK_VERSION}/linux/vulkansdk-linux-x86_64-${VULKAN_SDK_VERSION}.tar.gz
+-RUN tar -xzf vulkansdk-linux-x86_64-${VULKAN_SDK_VERSION}.tar.gz
+-RUN if [ $(uname -m) = "aarch64" ]; then \
+-    cd ${VULKAN_SDK_VERSION} \
+-    && rm -rf x86_64 \
+-    && ./vulkansdk shaderc glslang headers; \
+-    fi
+-
+ ############################################################
+ # gRPC libraries and binaries
+ ############################################################
+@@ -275,18 +251,6 @@ ENV TORCHVISION=/opt/torchvision/${TORCHVISION_VERSION}
+ COPY --from=torchvision-downloader ${TORCHVISION} ${TORCHVISION}
+ ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${TORCHVISION}"
+ 
+-# Copy Vulkan SDK
+-ARG VULKAN_SDK_VERSION
+-ENV VULKAN_SDK=/opt/vulkansdk/${VULKAN_SDK_VERSION}
+-COPY --from=vulkansdk-builder ${VULKAN_SDK}/x86_64/ ${VULKAN_SDK}
+-# We need to use the headers and shader compiler of the SDK but want to link against the
+-# Vulkan loader provided by the Ubuntu package. Therefore create a link in the SDK directory
+-# pointing to the system Vulkan loader library.
+-RUN rm -f ${VULKAN_SDK}/lib/libvulkan.so* \
+-    && ln -s /lib/$(uname -m)-linux-gnu/libvulkan.so.1 ${VULKAN_SDK}/lib/libvulkan.so
+-ENV PATH="${PATH}:${VULKAN_SDK}/bin"
+-ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VULKAN_SDK}"
+-
+ # Copy gRPC
+ ARG GRPC_VERSION
+ ENV GRPC=/opt/grpc/${GRPC_VERSION}
+@@ -327,8 +291,8 @@ RUN install -m 0755 -d /etc/apt/keyrings \
+ #  valgrind - static analysis
+ #  xvfb - testing on headless systems
+ #  libx* - X packages
+-#  libvulkan1 - for Vulkan apps (Holoviz)
+-#  vulkan-validationlayers, spirv-tools - for Vulkan validation layer (enabled for Holoviz in debug mode)
++#  libvulkan-dev, glslang-tools - for Vulkan apps (Holoviz)
++#  vulkan-validationlayers - for Vulkan validation layer (enabled for Holoviz in debug mode)
+ #  libwayland-dev, libxkbcommon-dev, pkg-config - GLFW compile dependency for Wayland support
+ #  libdecor-0-plugin-1-cairo - GLFW runtime dependency for Wayland window decorations
+ #  libegl1 - to run headless Vulkan apps
+@@ -349,9 +313,9 @@ RUN apt-get update \
+         libxi-dev="2:1.8-*" \
+         libxinerama-dev="2:1.1.4-*" \
+         libxrandr-dev="2:1.5.2-*" \
+-        libvulkan1="1.3.204.1-*" \
++        libvulkan-dev="1.3.204.1-*" \
++        glslang-tools="11.8.0+1.3.204.0-*" \
+         vulkan-validationlayers="1.3.204.1-*" \
+-        spirv-tools="2022.1+1.3.204.0-*" \
+         libwayland-dev="1.20.0-*" \
+         libxkbcommon-dev="1.4.0-*" \
+         pkg-config="0.29.2-*" \
+diff --git a/modules/holoviz/src/glfw_window.cpp b/modules/holoviz/src/glfw_window.cpp
+index a2eaec0c1..6d40e5a5b 100644
+--- a/modules/holoviz/src/glfw_window.cpp
++++ b/modules/holoviz/src/glfw_window.cpp
+@@ -261,7 +261,9 @@ vk::SurfaceKHR GLFWWindow::create_surface(vk::PhysicalDevice physical_device,
+   VkSurfaceKHR surface;
+   const vk::Result result =
+       vk::Result(glfwCreateWindowSurface(instance, impl_->window_, nullptr, &surface));
+-  vk::resultCheck(result, "Failed to create glfw window surface");
++  if (result != vk::Result::eSuccess) {
++    vk::throwResultException(result, "Failed to create glfw window surface");
++  }
+   return surface;
+ }
+ 
+diff --git a/modules/holoviz/src/vulkan/vulkan_app.cpp b/modules/holoviz/src/vulkan/vulkan_app.cpp
+index b398cf97c..d91db9da9 100644
+--- a/modules/holoviz/src/vulkan/vulkan_app.cpp
++++ b/modules/holoviz/src/vulkan/vulkan_app.cpp
+@@ -1333,7 +1333,7 @@ void Vulkan::Impl::cleanup_transfer_jobs() {
+ 
+         it->fence_triggered_ = true;
+       } else if (result != vk::Result::eNotReady) {
+-        vk::resultCheck(result, "Failed to get upload fence status");
++        vk::throwResultException(result, "Failed to get upload fence status");
+       }
+     }
+ 
+@@ -1351,7 +1351,7 @@ void Vulkan::Impl::cleanup_transfer_jobs() {
+           it = next;
+           continue;
+         } else if (result != vk::Result::eNotReady) {
+-          vk::resultCheck(result, "Failed to get frame fence status");
++          vk::throwResultException(result, "Failed to get frame fence status");
+         }
+       } else {
+         // this is a stale transfer buffer (no end_transfer_pass()?), remove it
+@@ -1382,7 +1382,7 @@ void Vulkan::Impl::prepare_frame() {
+   if (result != vk::Result::eSuccess) {
+     // This allows Aftermath to do things and exit below
+     usleep(1000);
+-    vk::resultCheck(result, "Failed to wait for frame fences");
++    vk::throwResultException(result, "Failed to wait for frame fences");
+     exit(-1);
+   }
+ 
+@@ -1414,7 +1414,9 @@ void Vulkan::Impl::submit_frame() {
+ 
+   const vk::Result result =
+       vk::Result(nvvk_.batch_submission_.execute(wait_fences_[image_index].get(), 0b0000'0001));
+-  vk::resultCheck(result, "Failed to execute bach submission");
++  if (result != vk::Result::eSuccess) {
++    vk::throwResultException(result, "Failed to execute bach submission");
++  }
+ 
+   // Presenting frame
+   fb_sequence_.present(queue_gct_);
+@@ -2514,7 +2516,7 @@ void Vulkan::Impl::read_framebuffer(ImageFormat fmt, uint32_t width, uint32_t he
+     if (result != vk::Result::eSuccess) {
+       // This allows Aftermath to do things and exit below
+       usleep(1000);
+-      vk::resultCheck(result, "Failed to wait for frame fences");
++      vk::throwResultException(result, "Failed to wait for frame fences");
+       exit(-1);
+     }
+ 
+@@ -2569,7 +2571,9 @@ void Vulkan::Impl::read_framebuffer(ImageFormat fmt, uint32_t width, uint32_t he
+   // submit the command buffer
+   const vk::Result result =
+       vk::Result(nvvk_.batch_submission_.execute(read_job.fence_.get(), 0b0000'0001));
+-  vk::resultCheck(result, "Failed to execute bach submission");
++  if (result != vk::Result::eSuccess) {
++    vk::throwResultException(result, "Failed to execute bach submission");
++  }
+ 
+   // copy the buffer to CUDA memory
+   {
