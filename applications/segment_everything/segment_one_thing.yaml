@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 v4l2_source:
-  device: "/dev/video1"
+  device: "/dev/video0"
 
 
 preprocessor:
@@ -30,7 +30,7 @@ preprocessor:
 inference:
   backend: "trt"
   model_path_map:
-    "encoder": "/workspace/volumes/engine/encoder.engine"
+    "encoder": "/workspace/holohub/data/segment_everything/sam_trt_light/engine/encoder.engine"
   pre_processor_map:
     "encoder": ["encoder_tensor"]
   inference_map:
@@ -53,7 +53,7 @@ point_publisher:
 inference_decoder:
   backend: "trt"
   model_path_map:
-    "decoder": "/workspace/volumes/engine/decoder.engine"
+    "decoder": "/workspace/holohub/data/segment_everything/sam_trt_light/engine/decoder.engine"
   pre_processor_map:
     "decoder": [
       "image_embeddings",
