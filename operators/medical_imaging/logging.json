@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "single": {
+      "format": "%(message)s"
+    },
+    "simple": {
+      "format": "[%(asctime)s] [%(levelname)s] (%(name)s) - %(message)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "formatter": "simple"
+    },
+    "runner_console": {
+      "class": "logging.StreamHandler",
+      "formatter": "single"
+    }
+  },
+  "root": {
+    "level": "INFO",
+    "propagate": false,
+    "handlers": [
+      "console"
+    ]
+  },
+  "loggers": {
+    "app_runner": {
+      "propagate": false,
+      "handlers": [
+        "runner_console"
+      ]
+    }
+  }
+}
