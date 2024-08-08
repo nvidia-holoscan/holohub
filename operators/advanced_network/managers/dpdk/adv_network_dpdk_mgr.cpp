@@ -337,24 +337,6 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  // Adjust the sizes to accommodate any padding/alignment restrictions by this library
-  adjust_memory_regions();
-
-  if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
-    return;
-  }
-
-  if (register_mrs() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
-    return;
-  }
-
-  if (map_mrs() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
-    return;
-  }
-
   // Build name to id mapping
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
