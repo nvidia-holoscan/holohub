@@ -1,0 +1,9 @@
+downloads/
+engine*/
+onnx/
+profiling/
+*.onnx
+*.engine
+*.bak
+
+.cache/
