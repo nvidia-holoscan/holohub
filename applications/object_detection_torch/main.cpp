@@ -264,6 +264,18 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  if (data_path.empty()) {
+    // Get the input data environment variable
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+    if (input_path == nullptr || input_path[0] == '\0') {
+      HOLOSCAN_LOG_ERROR(
+          "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
+      exit(-1);
+    }
+    data_path = std::string(input_path);
+  }
+  HOLOSCAN_LOG_INFO("Using input data from {}", data_path);
+
   if (config_name != "") {
     app->config(config_name);
   } else {
@@ -277,8 +289,7 @@ int main(int argc, char **argv) {
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
-  if (data_path != "")
-    app->set_datapath(data_path);
+  app->set_datapath(data_path);
   app->run();
 
   return 0;

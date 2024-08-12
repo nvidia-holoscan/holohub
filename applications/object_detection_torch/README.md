@@ -71,3 +71,7 @@ On aarch64, if application is executed from within the holoscan sdk container an
 ```bash
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/hpcx/ompi/lib"
 ```
+
+## Containerize the application
+
+To containerize the application, first build the application and then run the `package-app.sh` script and follow the generated output to package and run the application.

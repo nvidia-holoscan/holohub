@@ -14,6 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+application:
+  title: Holohub - Object Detection Torch
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 1Gi
+  gpuMemory: 2Gi
+
 extensions:
 
 source: "replayer" # or "aja"

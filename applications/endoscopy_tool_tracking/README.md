@@ -109,3 +109,7 @@ There are a two launch profiles configured for this application:
 
 1. **(debugpy) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python code.
 2. **(pythoncpp) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python and C++ code.
+
+## Containerize the application
+
+To containerize the application, first build the application, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
