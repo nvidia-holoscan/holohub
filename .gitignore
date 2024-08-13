@@ -18,6 +18,14 @@ aggregate_metadata.json
 .venv/
 ngc-cli/
 .bash_history
+.python_history
 .wget-hsts
+
 .cache/
 .cupy/
+.cmake/
+.docker/
+.config/
+.local/
+tmp/
+
