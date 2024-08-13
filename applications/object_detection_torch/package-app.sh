@@ -53,6 +53,7 @@ echo Creating application directory $APP_PATH...
 mkdir -p $APP_PATH
 echo Copying application files to $APP_PATH...
 cp -f $GIT_ROOT/build/object_detection_torch/applications/object_detection_torch/object_detection_torch $APP_PATH
+cp -f $GIT_ROOT/build/object_detection_torch/applications/object_detection_torch/object_detection_torch.yaml $APP_PATH
 
 PLATFORM=x64-workstation
 GPU=$(get_host_gpu)
