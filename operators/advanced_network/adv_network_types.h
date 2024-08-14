@@ -188,6 +188,8 @@ struct MemoryRegion {
   uint16_t affinity_;
   uint32_t access_;
   size_t buf_size_;
+  size_t adj_size_;  // Populated by driver
+  size_t ttl_size_;  // Populated by driver
   size_t num_bufs_;
   bool owned_;
 };
