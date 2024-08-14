@@ -21,7 +21,7 @@ Whether you are a C++ or Python developer, you can use the tutorial as a referen
 To build and debug your C++ applications natively, we must first install the redistribution of the Holoscan SDK. To install Holoscan SDK using a Debian package, refer to the Debian package installation section in the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#instructions).
 
 - [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) extension for VS Code
-- [CMake](https://cmake.org/cmake/help/latest/command/install.html) 3.20 or higher
+- [CMake](https://cmake.org/cmake/help/latest/command/install.html) 3.24.0 or higher
 - Ninja 1.10 or higher
   ```bash
   sudo apt update && sudo apt install ninja-build
@@ -31,7 +31,7 @@ To build and debug your C++ applications natively, we must first install the red
   sudo apt update && sudo apt install build-essential
   ```
 
-### Python Preriquisites
+### Python Prerequisites
 
 - [Python C++ Debugger](https://marketplace.visualstudio.com/items?itemName=benjamin-simmonds.pythoncpp-debug) extension for VS Code
 - [Python 3.10](https://www.python.org/) or higher
@@ -41,7 +41,7 @@ To build and debug your C++ applications natively, we must first install the red
   ```
 - (Optional) Python virtual environment of your choice
 
-## Environment Set up
+## Environment Setup
 
 In this section, we walk through setting up a development environment using VS Code with some templates that we have included in this directory. A Hello World Holoscan application in C++ and Python is also included in the `cpp/` and the `python/`, respectively.
 
@@ -151,11 +151,15 @@ The C++ Hello World sample application includes a test case in the [CMakeLists.t
 
 ### Python
 
-The Python example resides in `tutorials/debugging/vscode-native/python`. Open it with VS Code with the following command and install the dependencies:
+The Python example resides in `tutorials/debugging/vscode-native/python`. Open it with VS Code with the following command:
 
 ```bash
 code tutorials/debugging/vscode-native/python
+```
 
+Inside VS Code, open the integrated terminal (select **Terminal** from the **View** menu) to set up a virtual environment and install the dependencies:
+
+```bash
 # Configure a Python virtual environment if desired, e.g.,
 python3 -m venv .venv
 
