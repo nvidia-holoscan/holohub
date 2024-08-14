@@ -51,7 +51,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
       if (!gpu_direct_.get()) {
         cudaMallocHost(&full_batch_data_h_[n], batch_size_.get() * nom_payload_size_);
-      }      
+      }
 
       if (gpu_direct_.get()) {
         cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
@@ -178,7 +178,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
         adv_net_free_all_pkts_and_burst(burst);
         return;
-      }      
+      }
 
       if (gpu_direct_.get()) {
         simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
@@ -187,17 +187,17 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                               batch_size_.get(),
                               streams_[cur_idx]);
 
-      } else { 
+      } else {
           if (out_q.size() == num_concurrent) {
             HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
             adv_net_free_all_pkts_and_burst(burst);
             return;
           }
 
-          cudaMemcpyAsync(full_batch_data_d_[cur_idx], 
-                          full_batch_data_h_[cur_idx], 
-                          batch_size_.get() * nom_payload_size_, 
-                          cudaMemcpyDefault, 
+          cudaMemcpyAsync(full_batch_data_d_[cur_idx],
+                          full_batch_data_h_[cur_idx],
+                          batch_size_.get() * nom_payload_size_,
+                          cudaMemcpyDefault,
                           streams_[cur_idx]);
       }
 
@@ -212,10 +212,10 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                             batch_size_.get(),
                             batch_size_.get() * nom_payload_size_);
         exit(1);
-      }      
+      }
 
       cur_idx = (++cur_idx % num_concurrent);
-    } 
+    }
   }
 
  private:

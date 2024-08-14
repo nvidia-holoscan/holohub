@@ -294,7 +294,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     } else {
       op_output.emit(msg, "burst_out");
     }
-
   };
 
  private:

@@ -519,7 +519,7 @@ void DpdkMgr::initialize() {
 
     HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}",
                       intf.port_id_,
-                      local_port_conf[intf.port_id_].rxmode.mtu);    
+                      local_port_conf[intf.port_id_].rxmode.mtu);
 
     if (tx.accurate_send_) {
       setup_accurate_send_scheduling_mask();
@@ -690,7 +690,8 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   }
 
   auto num_rx_ptrs_bufs = (1UL << 13) - 1;
-  HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}", num_rx_ptrs_bufs, sizeof(void*) * max_rx_batch);
+  HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
+                      num_rx_ptrs_bufs, sizeof(void*) * max_rx_batch);
   rx_burst_buffer = rte_mempool_create("RX_BURST_POOL",
                                        num_rx_ptrs_bufs,
                                        sizeof(void*) * max_rx_batch,
@@ -1155,7 +1156,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
-          struct rte_mbuf* mbuf = mbuf_arr[p];     
+          struct rte_mbuf* mbuf = mbuf_arr[p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
             burst->pkts[seg][p] = mbuf;
@@ -1189,7 +1190,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < to_copy; p++) {
-          struct rte_mbuf* mbuf = mbuf_arr[p];       
+          struct rte_mbuf* mbuf = mbuf_arr[p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
             burst->pkts[seg][cur_pkt_in_batch + p] = mbuf;
