@@ -91,13 +91,15 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
 
       if (ptr == nullptr) {
         HOLOSCAN_LOG_CRITICAL(
-            "Fatal to allocate {} of type {} for MR", mr.second.ttl_size_, static_cast<int>(mr.second.kind_));
+            "Fatal to allocate {} of type {} for MR",
+                  mr.second.ttl_size_, static_cast<int>(mr.second.kind_));
         return AdvNetStatus::NULL_PTR;
       }
     }
 
     HOLOSCAN_LOG_INFO(
-        "Successfully allocated memory region {} at {} type {} with {} bytes ({} elements @ {} bytes total {})",
+        "Successfully allocated memory region {} at {} type {} with {} bytes "
+        "({} elements @ {} bytes total {})",
         mr.second.name_,
         ptr,
         (int)mr.second.kind_,
