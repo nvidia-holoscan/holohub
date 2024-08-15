@@ -76,7 +76,7 @@ void QtVideoOp::setup(holoscan::OperatorSpec& spec) {
              "Pointer to the QtHoloscanVideo object.",
              (QtHoloscanVideo*)nullptr);
 
-  cuda_stream_handler_.defineParams(spec);
+  cuda_stream_handler_.define_params(spec);
 }
 
 void QtVideoOp::start() {
@@ -98,13 +98,13 @@ void QtVideoOp::compute(holoscan::InputContext& op_input, holoscan::OutputContex
   auto& entity = static_cast<nvidia::gxf::Entity&>(maybe_entity.value());
 
   // get the CUDA stream from the input message
-  gxf_result_t stream_handler_result = cuda_stream_handler_.fromMessage(context.context(), entity);
+  gxf_result_t stream_handler_result = cuda_stream_handler_.from_message(context.context(), entity);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }
 
   // record a CUDA event, the render later will synchronize the rendering using that event
-  CUDA_TRY(cudaEventRecord(cuda_event_, cuda_stream_handler_.getCudaStream(context.context())));
+  CUDA_TRY(cudaEventRecord(cuda_event_, cuda_stream_handler_.get_cuda_stream(context.context())));
 
   // Get the input data, both VideoBuffer and Tensor is supported. We collect the buffer info
   // in the `video_buffer_info` structure
@@ -182,7 +182,8 @@ void QtVideoOp::compute(holoscan::InputContext& op_input, holoscan::OutputContex
   qt_holoscan_video_->processBuffer(pointer, video_buffer_info, cuda_event_);
 
   // Synchronize with the event recorded by the renderer
-  CUDA_TRY(cudaStreamWaitEvent(cuda_stream_handler_.getCudaStream(context.context()), cuda_event_));
+  CUDA_TRY(
+      cudaStreamWaitEvent(cuda_stream_handler_.get_cuda_stream(context.context()), cuda_event_));
 
   // Add the CUDA stream we used to the event to allow synchrinization when freeing the memory
   const auto maybe_stream_id = entity.add<nvidia::gxf::CudaStreamId>();
@@ -190,7 +191,7 @@ void QtVideoOp::compute(holoscan::InputContext& op_input, holoscan::OutputContex
     throw std::runtime_error("Failed to add CUDA stream id to output message.");
   }
   maybe_stream_id.value()->stream_cid =
-      cuda_stream_handler_.getStreamHandle(context.context()).cid();
+      cuda_stream_handler_.get_stream_handle(context.context()).cid();
 }
 
 }  // namespace holoscan::ops
