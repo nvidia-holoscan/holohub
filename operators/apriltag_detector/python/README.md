@@ -1,6 +1,6 @@
 ### AprilTagDetection
 
-The `apriltag_detection` extension provides a way to detect April tags of different family. The
+The `apriltag_detection` extension provides a way to detect [April tags](https://github.com/AprilRobotics/apriltag) of different family. The
 detection and processing is done in CUDA.
 
 #### `nvidia::holoscan::ApriltagDetection`

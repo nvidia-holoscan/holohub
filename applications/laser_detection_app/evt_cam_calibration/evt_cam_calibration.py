@@ -29,7 +29,7 @@ from skimage.io import imread
 from holohub.apriltag_detector import ApriltagDetectorOp
 
 
-def perspective_transform_usb(corners, width, height):
+def perspective_transform_evt(corners, width, height):
     top_l, top_r, bottom_r, bottom_l = corners
     dimensions = np.array(
         [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype="float32"
@@ -76,7 +76,8 @@ class AddBackgroundViewOperator(holoscan.core.Operator):
             corners_list[tag.id][1] = tag.corners[tag.id][1]
 
         if not np.all(corners_list == 0) and self.is_done != 1:
-            perspective_transform_usb(corners_list, self.width, self.height)
+            # perspective_transform_evt will write the calibration file to disk.
+            perspective_transform_evt(corners_list, self.width, self.height)
             self.is_done = 1
 
         self.frame_count += 1

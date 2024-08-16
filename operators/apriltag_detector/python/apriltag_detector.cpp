@@ -34,9 +34,6 @@
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
 
-#define STRINGIFY(x) #x
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
-
 namespace py = pybind11;
 
 namespace holoscan::ops {
@@ -73,7 +70,7 @@ public:
 };
 
 // Custom function to convert the array of `float2` to a Python list
-py::list corners_to_list(const output_corners& oc) {
+py::list corners_to_list(const ApriltagDetectorOp::output_corners& oc) {
     py::list corners_list;
     for (const auto& corner : oc.corners) {
         corners_list.append(py::make_tuple(corner.x, corner.y));
@@ -82,7 +79,7 @@ py::list corners_to_list(const output_corners& oc) {
 }
 
 // Custom function to set the array of `float2` from a Python list
-void list_to_corners(py::list list, output_corners& oc) {
+void list_to_corners(py::list list, ApriltagDetectorOp::output_corners& oc) {
     for (size_t i = 0; i < 4; ++i) {
         py::tuple item = list[i].cast<py::tuple>();
         oc.corners[i].x = item[0].cast<float>();
@@ -96,17 +93,7 @@ PYBIND11_MODULE(_apriltag_detector, m)
         Holoscan SDK ApriltagDetectionOp Python Bindings
         ----------------------------------------------
         .. currentmodule:: _apriltag_detection
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
     )pbdoc";
-
-#ifdef VERSION_INFO
-    m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-    m.attr("__version__") = "dev";
-#endif
 
     auto op = py::class_<ApriltagDetectorOp, PyApriltagDetectorOp, holoscan::Operator, std::shared_ptr<ApriltagDetectorOp>>(m,
         "ApriltagDetectorOp")
@@ -133,13 +120,13 @@ PYBIND11_MODULE(_apriltag_detector, m)
            [](const float2& f) { return fmt::format("({}, {})", f.x, f.y); },
            R"doc(Return repr(self).)doc");
 
-    py::class_<output_corners>(m, "output_corners")
+    py::class_<ApriltagDetectorOp::output_corners>(m, "output_corners")
         .def(py::init<>())  // Default constructor
         .def_property("corners",
-            [](const output_corners &oc) { return corners_to_list(oc); },
-            [](output_corners &oc, py::list list) { list_to_corners(list, oc); })
-        .def_readwrite("id", &output_corners::id)  // Expose the 'id' member
-        .def("__repr__", [](const output_corners &o) {
+            [](const ApriltagDetectorOp::output_corners &oc) { return corners_to_list(oc); },
+            [](ApriltagDetectorOp::output_corners &oc, py::list list) { list_to_corners(list, oc); })
+        .def_readwrite("id", &ApriltagDetectorOp::output_corners::id)  // Expose the 'id' member
+        .def("__repr__", [](const ApriltagDetectorOp::output_corners &o) {
             std::string repr = "<example.output_corners corners=[";
             for (size_t i = 0; i < 4; ++i) {
                 repr += "(" + std::to_string(o.corners[i].x) + ", " + std::to_string(o.corners[i].y) + ")";
@@ -152,7 +139,7 @@ PYBIND11_MODULE(_apriltag_detector, m)
     // Import the emitter/receiver registry from holoscan.core and pass it to this function to
     // register this new C++ type with the SDK.
     m.def("register_types", [](holoscan::EmitterReceiverRegistry& registry) {
-      registry.add_emitter_receiver<std::vector<output_corners>>("std::vector<output_corners>"s);
+      registry.add_emitter_receiver<std::vector<ApriltagDetectorOp::output_corners>>("std::vector<ApriltagDetectorOp::output_corners>"s);
     });
 } // PYBIND11_MODULE
 

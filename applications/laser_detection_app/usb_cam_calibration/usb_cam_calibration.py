@@ -44,9 +44,6 @@ def perspective_transform_usb(corners, width, height):
     np.save("usb-cali.npy", matrix)
     print(f"matrix: {matrix}")
 
-    # Return
-    return
-
 
 class AddBackgroundViewOperator(holoscan.core.Operator):
     def __init__(self, *args, width=1920, height=1080, **kwargs):
@@ -75,7 +72,10 @@ class AddBackgroundViewOperator(holoscan.core.Operator):
             corners_list[tag.id][0] = tag.corners[tag.id][0]
             corners_list[tag.id][1] = tag.corners[tag.id][1]
 
+        # Wait for 200 frames before calibration as Auto Focus might take
+        # time to adjust the focus.
         if self.frame_count == 200:
+            # perspective_transform_usb will write the calibration file to disk.
             perspective_transform_usb(corners_list, self.width, self.height)
         self.frame_count += 1
         out_message = {
@@ -122,7 +122,7 @@ class UsbCamCalibrationApplication(holoscan.core.Application):
             self,
             name="source",
             allocator=allocator,
-            device="/dev/video1",
+            device="/dev/video0",
             width=width,
             height=height,
             gain=2,

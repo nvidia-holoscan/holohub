@@ -57,7 +57,7 @@ add_subdirectory(holoviz)
 
 add_holohub_application(hyperspectral_segmentation)
 
-add_subdirectory(laser_detection)
+add_subdirectory(laser_detection_app)
 
 add_holohub_application(multiai_endoscopy)
 

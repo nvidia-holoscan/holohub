@@ -16,13 +16,13 @@
 import logging
 import os
 from argparse import ArgumentParser
+from enum import Enum
 
 import cupy as cp
 import cvcuda
 import holoscan
 import numpy as np
 import nvcv
-import nvtx
 from holoscan.core import Application, ConditionType
 from holoscan.operators import BayerDemosaicOp, FormatConverterOp, HolovizOp
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
@@ -30,14 +30,22 @@ from holoscan.schedulers import MultiThreadScheduler
 from skimage.io import imread
 
 
-class CalEvtCoordsOperator(holoscan.core.Operator):
-    def __init__(self, *args, width=1920, height=1080, threshold=8, **kwargs):
+class CameraSource(Enum):
+    EVT = 1
+    USB = 2
+
+
+class CalCoordsOperator(holoscan.core.Operator):
+    def __init__(
+        self, *args, width=1920, height=1080, threshold=24, mode=CameraSource.USB, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.travel_x = 0
         self.travel_y = 0
         self.width = width
         self.height = height
         self.threshold = threshold
+        self.mode = mode
 
     def setup(self, spec):
         logging.info("setup")
@@ -56,7 +64,19 @@ class CalEvtCoordsOperator(holoscan.core.Operator):
         self.frameCount = 0
 
         current_path = os.getcwd()
-        target_path = "evt_cam_calibration/applications/laser_detection/evt_cam_calibration"
+        if self.mode == CameraSource.EVT:
+            target_path = "evt_cam_calibration/applications/laser_detection_app/evt_cam_calibration"
+            calibration_fn = "evt-cali.npy"
+            self.dead_zone = 1
+        elif self.mode == CameraSource.USB:
+            target_path = "usb_cam_calibration/applications/laser_detection_app/usb_cam_calibration"
+            calibration_fn = "usb-cali.npy"
+            self.dead_zone = 4
+        else:
+            target_path = " "
+            calibration_fn = ""
+            self.dead_zone = 1
+
         target_directory = "build"
         path_parts = current_path.split(os.sep)
         if target_directory in path_parts:
@@ -64,12 +84,10 @@ class CalEvtCoordsOperator(holoscan.core.Operator):
             truncated_path = os.sep.join(path_parts[: index + 1])
         else:
             truncated_path = current_path
-        new_path = os.path.join(truncated_path, target_path, "evt-cali.npy")
-
+        new_path = os.path.join(truncated_path, target_path, calibration_fn)
         self.matrix = np.load(new_path)
 
         self.persp_border_value = np.array([0]).astype(np.float32)
-
         self.stream = cvcuda.Stream()
         with self.stream:
             self.thresh_val = cvcuda.as_tensor(
@@ -81,209 +99,81 @@ class CalEvtCoordsOperator(holoscan.core.Operator):
     def stop(self):
         pass
 
-    @nvtx.annotate("detect_laser_cvcuda_cupy")
     def detect_laser_cvcuda_cupy(self, input_tensor):
-        with nvtx.annotate("as array"):
-            cp_frame = cp.asarray(input_tensor, cp.uint8)
+        cp_frame = cp.asarray(input_tensor, cp.uint8)
+        gpu_tensor = cvcuda.as_tensor(cp_frame, "HWC")
 
-        with nvtx.annotate("gpumat"):
-            gpu_tensor = cvcuda.as_tensor(cp_frame, "HWC")
-
-        # RGB -> Gray
-        with nvtx.annotate("cvt color"):
+        # RGB(A) to Gray
+        if self.mode == CameraSource.EVT:
             gray = cvcuda.cvtcolor(gpu_tensor, cvcuda.ColorConversion.RGB2GRAY)
-
-        # threshold
-        with nvtx.annotate("threshold"):
-            max_val = cp.asnumpy(cp.asarray(self.max_val.cuda(), cp.float32))
-            threshold = cvcuda.threshold(
-                gray, self.thresh_val, self.max_val, cvcuda.ThresholdType.TOZERO
-            )
-
-        # warp perspective
-        with nvtx.annotate("warp"):
-            persp = cvcuda.warp_perspective(
-                threshold,
-                self.matrix,
-                cvcuda.Interp.LINEAR,
-                border_mode=cvcuda.Border.CONSTANT,
-                border_value=self.persp_border_value,
-            )
-
-        # what should be the number of min/max locs?
-        with nvtx.annotate("min max"):
-            outs = cvcuda.max_loc(persp, 1)
-            max_val, max_loc, num_max = outs
-
-            # CPU code
-            max_val = cp.asnumpy(cp.asarray(max_val.cuda(), cp.float32))
-            max_loc = cp.asnumpy(cp.asarray(max_loc.cuda(), cp.int32))
-
-        # CPU code
-        with nvtx.annotate("post"):
-            val = max_val[0][0]
-            pt = max_loc[0][0]
-            pt = np.array([pt[0], pt[1]])
-            if val == 0:
-                pt = self.previous_point
-
-            dead_zone = 1
-            if not np.array_equal(pt, self.constant_zero):
-                self.detected_circles = pt
-            if np.linalg.norm(self.detected_circles - self.previous_point) < dead_zone:
-                self.detected_circles = self.previous_point
-            if np.linalg.norm(self.detected_circles - self.travel) > dead_zone:
-                curr_coord = self.detected_circles
-                self.previous_point = self.detected_circles
-                self.travel = curr_coord
-            else:
-                curr_coord = self.travel
-        return curr_coord
-
-    @nvtx.annotate("Laser detection for evt cam")
-    def compute(self, op_input, op_output, context):
-        in_message = op_input.receive("input")
-
-        if in_message is None:
-            self.travel_x = self.travel_x
-            self.travel_y = self.travel_y
-        elif in_message is not None:
-            input_tensor = in_message.get("")
-            with self.stream:
-                curr_coord = self.detect_laser_cvcuda_cupy(input_tensor)
-            self.travel_x = curr_coord[0]
-            self.travel_y = curr_coord[1]
-
-        # Send out_message
-        out_message = {"coords_1": (self.travel_x / self.width, self.travel_y / self.height)}
-        op_output.emit(out_message, "output")
-
-
-class CalUsbCoordsOperator(holoscan.core.Operator):
-    def __init__(self, *args, width=1920, height=1080, threshold=24, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.travel_x = 0
-        self.travel_y = 0
-        self.width = width
-        self.height = height
-        self.threshold = threshold
-
-    def setup(self, spec):
-        logging.info("setup")
-        spec.input("input").condition(ConditionType.NONE)
-        spec.output("output")
-
-    def start(self):
-        self.travel_x = 0
-        self.travel_y = 0
-        # CPU
-        self.travel = np.array([0, 0])
-        self.detected_circles = self.previous_point = np.array([0, 0])
-        self.constant_zero = np.array([0, 0])
-
-        self.frameCount = 0
-
-        current_path = os.getcwd()
-        target_path = "usb_cam_calibration/applications/laser_detection/usb_cam_calibration"
-        target_directory = "build"
-        path_parts = current_path.split(os.sep)
-        if target_directory in path_parts:
-            index = path_parts.index(target_directory)
-            truncated_path = os.sep.join(path_parts[: index + 1])
-        else:
-            truncated_path = current_path
-        new_path = os.path.join(truncated_path, target_path, "usb-cali.npy")
-
-        self.matrix = np.load(new_path)
-
-        self.persp_border_value = np.array([0]).astype(np.float32)
-        self.stream = cvcuda.Stream()
-        with self.stream:
-            self.thresh_val = cvcuda.as_tensor(
-                cp.asarray(np.array([255 * (self.threshold / 100)], dtype=np.float64), cp.float64),
-                "N",
-            )
-            self.max_val = cvcuda.as_tensor(
-                cp.asarray(np.array([255], dtype=np.float64), cp.float64), "N"
-            )
-
-    def stop(self):
-        pass
-
-    @nvtx.annotate("detect_laser_cvcuda_cupy")
-    def detect_laser_cvcuda_cupy(self, input_tensor):
-        with nvtx.annotate("as array"):
-            cp_frame = cp.asarray(input_tensor, cp.uint8)
-
-        with nvtx.annotate("gpumat"):
-            gpu_tensor = cvcuda.as_tensor(cp_frame, "HWC")
-
-        # RGBA -> Gray
-        with nvtx.annotate("cvt color"):
+        elif self.mode == CameraSource.USB:
             rgb = cvcuda.cvtcolor(gpu_tensor, cvcuda.ColorConversion.RGBA2RGB)
             gray = cvcuda.cvtcolor(rgb, cvcuda.ColorConversion.RGB2GRAY)
 
         # threshold
-        with nvtx.annotate("threshold"):
-            threshold = cvcuda.threshold(
-                gray, self.thresh_val, self.max_val, cvcuda.ThresholdType.TOZERO
-            )
+        threshold = cvcuda.threshold(
+            gray, self.thresh_val, self.max_val, cvcuda.ThresholdType.TOZERO
+        )
 
-        with nvtx.annotate("pers"):
-            persp = cvcuda.warp_perspective(
-                threshold,
-                self.matrix,
-                cvcuda.Interp.LINEAR,
-                border_mode=cvcuda.Border.CONSTANT,
-                border_value=self.persp_border_value,
-            )
+        # warp perspective
+        persp = cvcuda.warp_perspective(
+            threshold,
+            self.matrix,
+            cvcuda.Interp.LINEAR,
+            border_mode=cvcuda.Border.CONSTANT,
+            border_value=self.persp_border_value,
+        )
 
-        # what should be the number of min/max locs?
-        with nvtx.annotate("min max"):
-            outs = cvcuda.max_loc(persp, 1)
-            max_val, max_loc, num_max = outs
-
-            # CPU code
-            max_val = cp.asnumpy(cp.asarray(max_val.cuda(), cp.float32))
-            max_loc = cp.asnumpy(cp.asarray(max_loc.cuda(), cp.int32))
+        # Find the min/max locs
+        outs = cvcuda.max_loc(persp, 1)
+        max_val, max_loc, num_max = outs
 
         # CPU code
-        with nvtx.annotate("post"):
-            val = max_val[0][0]
-            pt = max_loc[0][0]
-            pt = np.array([pt[0], pt[1]])
-            if val == 0:
-                pt = self.previous_point
+        max_val = cp.asnumpy(cp.asarray(max_val.cuda(), cp.float32))
+        max_loc = cp.asnumpy(cp.asarray(max_loc.cuda(), cp.int32))
 
-            dead_zone = 4
-            if not np.array_equal(pt, self.constant_zero):
-                self.detected_circles = pt
-            if np.linalg.norm(self.detected_circles - self.previous_point) < dead_zone:
-                self.detected_circles = self.previous_point
-            if np.linalg.norm(self.detected_circles - self.travel) > dead_zone:
-                curr_coord = self.detected_circles
-                self.previous_point = self.detected_circles
-                self.travel = curr_coord
-            else:
-                curr_coord = self.travel
+        # CPU code
+        val = max_val[0][0]
+        pt = max_loc[0][0]
+        pt = np.array([pt[0], pt[1]])
+        if val == 0:
+            pt = self.previous_point
+
+        if not np.array_equal(pt, self.constant_zero):
+            self.detected_circles = pt
+        if np.linalg.norm(self.detected_circles - self.previous_point) < self.dead_zone:
+            self.detected_circles = self.previous_point
+        if np.linalg.norm(self.detected_circles - self.travel) > self.dead_zone:
+            curr_coord = self.detected_circles
+            self.previous_point = self.detected_circles
+            self.travel = curr_coord
+        else:
+            curr_coord = self.travel
         return curr_coord
 
-    @nvtx.annotate("USB laser detection")
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("input")
+
         if in_message is None:
             # do nothing
             self.travel_x = self.travel_x
             self.travel_y = self.travel_y
         elif in_message is not None:
-            input_tensor = in_message.get("preprocessed")
+            if self.mode == CameraSource.USB:
+                input_tensor = in_message.get("preprocessed")
+            else:
+                input_tensor = in_message.get("")
+
             with self.stream:
                 curr_coord = self.detect_laser_cvcuda_cupy(input_tensor)
             self.travel_x = curr_coord[0]
             self.travel_y = curr_coord[1]
 
         # Send out_message
-        out_message = {"coords_2": (self.travel_x / self.width, self.travel_y / self.height)}
+        if self.mode == CameraSource.EVT:
+            out_message = {"coords_1": (self.travel_x / self.width, self.travel_y / self.height)}
+        elif self.mode == CameraSource.USB:
+            out_message = {"coords_2": (self.travel_x / self.width, self.travel_y / self.height)}
         op_output.emit(out_message, "output")
 
 
@@ -301,11 +191,11 @@ class AddViewOperator(holoscan.core.Operator):
         spec.output("output_specs")
 
     def start(self):
-        image = imread("laser_detection/left-asset.png")
+        image = imread("left-asset.png")
         self.left = cp.asarray(image)
         self.left_h, self.left_w, c = self.left.shape
 
-        image = imread("laser_detection/right-asset.png")
+        image = imread("right-asset.png")
         self.right = cp.asarray(image)
         self.right_h, self.right_w, c = self.right.shape
         number_of_components = 3
@@ -407,17 +297,24 @@ class LaserDetectionApp(Application):
             cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("demosaic"),
         )
-        cal_evt_coords = CalEvtCoordsOperator(
+        cal_evt_coords = CalCoordsOperator(
             self,
             name="cal_evt_coords",
             threshold=self._threshold_evt,
+            mode=CameraSource.EVT,
             **self.kwargs("cal_evt_coords"),
         )
 
         # USB pipeline
+        u_source_args = self.kwargs("usb_source")
+        if "width" in u_source_args and "height" in u_source_args:
+            # width and height given, use BlockMemoryPool (better latency)
+            width = u_source_args["width"]
+            height = u_source_args["height"]
+        else:
+            width = 1920
+            height = 1080
 
-        width = 1920
-        height = 1080
         n_channels = 4
         block_size = width * height * n_channels
         allocator = holoscan.resources.BlockMemoryPool(
@@ -429,14 +326,9 @@ class LaserDetectionApp(Application):
 
         u_source = holoscan.operators.V4L2VideoCaptureOp(
             self,
-            name="source",
+            name="u_source",
             allocator=allocator,
-            device="/dev/video1",
-            width=width,
-            height=height,
-            exposure_time=30,
-            gain=0,
-            # **source_args,
+            **u_source_args,
         )
         preprocessor = FormatConverterOp(
             self,
@@ -446,13 +338,12 @@ class LaserDetectionApp(Application):
             pool=allocator2,
             # **preprocessor_args,
         )
-        cal_usb_coords = CalUsbCoordsOperator(
+        cal_usb_coords = CalCoordsOperator(
             self,
             name="cal_usb_coords",
             threshold=self._threshold_usb,
-            width=width,
-            height=height,
-            # **self.kwargs("cal_usb_coords"),
+            mode=CameraSource.USB,
+            **self.kwargs("cal_usb_coords"),
         )
 
         # common pipeline

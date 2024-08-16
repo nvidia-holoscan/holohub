@@ -1,4 +1,3 @@
-nvtx
 scikit-image
 opencv-python
 cupy

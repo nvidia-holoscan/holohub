@@ -113,19 +113,19 @@ void ApriltagDetectorOp::compute(holoscan::InputContext& input,
 
     DLDevice input_device = input_tensor->device();
 
-    if (input_device.device_type == kDLCUDAHost) {
-        throw std::runtime_error("The tensor is on the host");
+    if (input_device.device_type != kDLCUDA) {
+        throw std::runtime_error("The tensor is not device");
     }
 
     if (input_tensor->ndim() != 3) {
-        throw std::runtime_error("Tensor must be an image");
+        throw std::runtime_error("Tensor must be an RGB image");
     }
 
     DLDataType dtype = input_tensor->dtype();
-    if (dtype.code != kDLUInt || dtype.bits != 8) {
-        throw std::runtime_error(fmt::format("Unexpected image data type '(code: {}, bits: {})',"
-                                             "expected '(code: {}, bits: {})'",
-            dtype.code, dtype.bits, kDLUInt, 8));
+    if (dtype.code != kDLUInt || dtype.bits != 8 || dtype.lanes != 1) {
+        throw std::runtime_error(fmt::format("Unexpected image data type '(code: {}, bits: {}, lanes: {})',"
+                                             "expected '(code: {}, bits: {}, lanes: {})'",
+            dtype.code, dtype.bits, dtype.lanes, kDLUInt, 8, 1));
     }
 
     const auto input_shape = input_tensor->shape();

@@ -14,21 +14,16 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(laser_detection_apps LANGUAGES NONE)
+project(evt_cam_calibration)
 
 find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-set(HOLOSCAN_OPERATORS
-	apriltag_detector
-	emergent_source
+add_custom_target(evt_cam_calibration_deps ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../data/apriltag-calibration.png" "${CMAKE_CURRENT_BINARY_DIR}/apriltag-calibration.png"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../data/apriltag-calibration.png"
+  BYPRODUCTS "apriltag-calibration.png"
 )
 
-add_holohub_application(evt_cam_calibration DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
-
-add_holohub_application(laser_detection DEPENDS
-			OPERATORS ${HOLOSCAN_OPERATORS})
-
-add_holohub_application(usb_cam_calibration DEPENDS
-			OPERATORS ${HOLOSCAN_OPERATORS})
+add_library(evt_cam_calibration INTERFACE)
+add_dependencies(evt_cam_calibration evt_cam_calibration_deps)

@@ -2,20 +2,20 @@
 
 ## Introduction
 
-Laser detection app is an attempt to demonstrate the latency differences between two different cameras visually.
+The laser detection app demonstrates the latency differences between two different cameras visually.
 
 <center> <img src="./data/demo.png"></center>
 
 This folder contains three applications, please refer to the respective application folder for application and configuration file.
 
 1. **[USB Camera Calibration app](./usb_cam_calibration/README.md):**
-    This app is designed to do monitor registration by the USB camera. It uses a gray image which has April tags on all the four corners and is as shown below.
+    This app is designed to do monitor registration by the USB camera. It uses a gray image which has [April tags](https://github.com/AprilRobotics/apriltag) on all the four corners and is as shown below.
 
 <center> <img src="./data/apriltag-calibration.png" width="400" height="300"></center>
 
 The detection of these four April tags are done using `ApriltagDetectionOp`. For proper and correct monitor registration, the camera should be able to completely see all the four corners of the monitor. If it does not, the app will not output correct corners for the monitor. It is also important to make sure that the scene is well lit with no light sources in the back of the monitor.
 
-This app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). If a camera is being used, please change the camera settings in the python app or yaml configuration file.
+This app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). If a different camera is being used, please change the camera settings in the python app or yaml configuration file.
 
 2. **[EVT Camera Calibration app](./evt_cam_calibration/README.md):** 
     This app is designed to do monitor registration by the [Emergent Vision Technologies (EVT)](https://emergentvisiontec.com/) camera. It uses the same gray image which has April tags on all the four corners as shown above. 
@@ -30,18 +30,18 @@ This app is designed using [EVT HB-9000-G 25GE](https://emergentvisiontec.com/pr
 ## Hardware requirements
 
 ### 1. USB camera
-The app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB).
+The app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). A different webcam can also be used, but if resolution settings are different the application code and yaml file will need to be updated accordingly.
 
 ### 2. EVT camera
 Visit [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) to check the hardware requirements for EVT camera.
 
 ### 3. Monitor
-Any matte screen monitor with refreshrate at least 120fps is required to see the performance differences betweent the two camera sources.
+Any matte screen monitor with a refresh rate of at least 120fps is required to see the performance differences between the two camera sources.
 
 ### 4. Laser pointer
 Please make sure to only buy laser pointers that are safe to use for viewing purposes.
 
-## Setting up IGX development box
+## Setting up IGX Development Kit
 
 ### 1. Setup the EVT camera
 
@@ -49,7 +49,7 @@ To setup the EVT camera, refer to [Holoscan SDK user guide](https://docs.nvidia.
 
 ### 2. Build Holohub app natively
 
-Currently EVT camera based apps are only available for native enviornment. To build the setup natively download the Holohub repo and run following.
+Currently EVT camera based apps are only available for native environment. To build the setup natively, download the Holohub repo and run following.
 
 ```bash
 sudo ./run setup
@@ -57,16 +57,16 @@ sudo ./run setup
 
 ### 3. Install Python3 requirements
 ```bash
-sudo pip3 install -r applications/laser_detection/requirements.txt
+sudo pip3 install -r applications/laser_detection_app/requirements.txt
 ```
 
 ### 4. Install CVCUDA
 Download and install the latest [CVCUDA package](https://github.com/CVCUDA/CV-CUDA/releases). Replace the latest version in the below commands.
 ```bash
-wget -O cvcuda-python3.10-0.8.0_beta-cuda12-aarch64-linux.deb https://github.com/CVCUDA/CV-CUDA/releases/download/v0.8.0-beta/cvcuda-python3.10-0.8.0_beta-cuda12-aarch64-linux.deb
-wget -O cvcuda-lib-0.8.0_beta-cuda12-aarch64-linux.deb https://github.com/CVCUDA/CV-CUDA/releases/download/v0.8.0-beta/cvcuda-lib-0.8.0_beta-cuda12-aarch64-linux.deb
-sudo dpkg -i cvcuda-lib-0.8.0_beta-cuda12-aarch64-linux.deb
-sudo dpkg -i cvcuda-python3.10-0.8.0_beta-cuda12-aarch64-linux.deb
+wget -O cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb https://github.com/CVCUDA/CV-CUDA/releases/download/v0.10.1-beta/cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb
+wget -O cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb https://github.com/CVCUDA/CV-CUDA/releases/download/v0.10.1-beta/cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb
+sudo dpkg -i cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb
+sudo dpkg -i cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb
 ```
 
 ### 5. Setup cuApriltags

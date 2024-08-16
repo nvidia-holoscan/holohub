@@ -167,6 +167,8 @@ void EmergentSource::SetDefaultConfiguration() {
   EVT_CameraSetUInt32Param(&camera_, "Exposure", 3072);
 
   EVT_CameraSetUInt32Param(&camera_, "Gain", 4095);
+
+  // Optical black correction is set to 10
   EVT_CameraSetUInt32Param(&camera_, "Offset", 10);
 
   EVT_CameraSetBoolParam(&camera_, "LUTEnable", false);

@@ -27,13 +27,17 @@
 
 namespace holoscan::ops {
 
-struct output_corners {
-    float2 corners[4];
-    uint16_t id;
-};
+// The ApriltagDetectorOp operator detects number_of_tags_ of
+// NVAT_TAG36H11 family only in an RGB image of resolution
+// width_xheight_.
 
 class ApriltagDetectorOp : public holoscan::Operator {
 public:
+    struct output_corners {
+        float2 corners[4];
+        uint16_t id;
+    };
+
     HOLOSCAN_OPERATOR_FORWARD_ARGS(ApriltagDetectorOp)
 
     void setup(holoscan::OperatorSpec& spec) override;
@@ -46,6 +50,8 @@ public:
 private:
     holoscan::Parameter<int> width_;
     holoscan::Parameter<int> height_;
+    // number_of_tags_ will let the operator know, how many
+    // apriltags the user is expecting.
     holoscan::Parameter<int> number_of_tags_;
 
     cuAprilTagsHandle apriltag_handle_;

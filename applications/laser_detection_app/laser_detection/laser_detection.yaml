@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 extensions:
-    - ../../gxf_extensions/emergent_source/libgxf_emergent_source.so
+    - ../../../gxf_extensions/emergent_source/libgxf_emergent_source.so
 
 emergent:
   width: 4200
@@ -33,6 +33,17 @@ demosaic:
 cal_evt_coords:
   width: 4200
   height: 2160
+
+usb_source:
+  device: "/dev/video0"
+  width: 1920
+  height: 1080
+  exposure_time: 30
+  gain: 0
+
+cal_usb_coords:
+  width: 1920
+  height: 1080
 
 add_view:
   display_width: 1920
