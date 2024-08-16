@@ -1,0 +1,5 @@
+nvtx
+scikit-image
+opencv-python
+cupy
+numpy==1.23.5

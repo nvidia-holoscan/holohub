@@ -13,3 +13,5 @@ Apriltag Detection codelet
   - type: `int`
 - **`height`**: Height of the stream (default: None)
   - type: `int`
+- **`number_of_tags`**: Number of Apriltags to be detected (default: None)
+  - type: `int`
