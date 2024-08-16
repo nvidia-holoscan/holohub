@@ -41,14 +41,12 @@ init_globals() {
     HOLOHUB_CONTAINER_BASE_NAME=holohub
     export HOLOHUB_CONTAINER_BASE_NAME
 
-
-    DO_DRY_RUN="false"  # print commands but do not execute them. Used by run_command
+    DO_DRY_RUN="false" # print commands but do not execute them. Used by run_command
 }
 
 ################################################################################
 # Utility functions
 ################################################################################
-
 
 #######################################
 # Get list of available commands from a given input file.
@@ -94,8 +92,8 @@ get_list_of_available_commands() {
             c_echo ${mode} B "${desc}"
         else
             # there is no substring operation in 'sh' so use 'cut'
-            local dash_line="$(echo "${line_str}" | cut -c ${#cmd}-)"  #  = "${line_str:${#cmd}}"
-             c_echo ${mode} Y "   ${cmd}" w " ${dash_line} ${desc}"
+            local dash_line="$(echo "${line_str}" | cut -c ${#cmd}-)" #  = "${line_str:${#cmd}}"
+            c_echo ${mode} Y "   ${cmd}" w " ${dash_line} ${desc}"
         fi
         # use <<EOF, not '<<<"$cmd_lines"' to be executable in sh
     done <<EOF
@@ -129,44 +127,45 @@ c_str() {
 
     for i in "$@"; do
         case "$i" in
-            r|R)
-                color=31
-                ;;
-            g|G)
-                color=32
-                ;;
-            y|Y)
-                color=33
-                ;;
-            b|B)
-                color=34
-                ;;
-            p|P)
-                color=35
-                ;;
-            c|C)
-                color=36
-                ;;
-            w|W)
-                color=37
-                ;;
+        r | R)
+            color=31
+            ;;
+        g | G)
+            color=32
+            ;;
+        y | Y)
+            color=33
+            ;;
+        b | B)
+            color=34
+            ;;
+        p | P)
+            color=35
+            ;;
+        c | C)
+            color=36
+            ;;
+        w | W)
+            color=37
+            ;;
 
-            z|Z)
-                color=0
-                ;;
+        z | Z)
+            color=0
+            ;;
         esac
         case "$i" in
-            l|L|R|G|Y|B|P|C|W)
-                attr=1
-                ;;
-            n|N|r|g|y|b|p|c|w)
-                attr=0
-                ;;
-            z|Z)
-                attr=0
-                ;;
-            *)
-                text="${text}$i"
+        l | L | R | G | Y | B | P | C | W)
+            attr=1
+            ;;
+        n | N | r | g | y | b | p | c | w)
+            attr=0
+            ;;
+        z | Z)
+            attr=0
+            ;;
+        *)
+            text="${text}$i"
+            ;;
         esac
         if [ "${mode}" = "color" ]; then
             if [ ${old_color} -ne ${color} ] || [ ${old_attr} -ne ${attr} ]; then
@@ -195,7 +194,7 @@ c_echo() {
     fi
 
     local old_opt="$(shopt -op xtrace)" # save old xtrace option
-    set +x # unset xtrace
+    set +x                              # unset xtrace
 
     if [ "${mode}" = "color" ]; then
         local text="$(c_str color "$@")"
@@ -208,11 +207,11 @@ c_echo() {
 }
 
 echo_err() {
-    >&2 echo "$@"
+    echo >&2 "$@"
 }
 
 c_echo_err() {
-    >&2 c_echo "$@"
+    c_echo >&2 "$@"
 }
 
 fatal() {
@@ -222,7 +221,7 @@ fatal() {
     if [ -n "${SCRIPT_DIR}" ]; then
         exit 1
     else
-        kill -INT $$  # kill the current process instead of exit in shell environment.
+        kill -INT $$ # kill the current process instead of exit in shell environment.
     fi
 }
 
@@ -250,15 +249,214 @@ run_docker() {
     $(./run docker_cmd "-u $(id -u):$(id -g)") "$@"
 }
 
+get_group_id() {
+    local group=$1
+    cat /etc/group | grep $group | cut -d: -f3
+}
+
+get_ucx_options() {
+    local prefix="${1:- }"
+    local postfix="${2:- }"
+
+    local ucx_opt="${prefix}--ipc=host${postfix}"
+    ucx_opt+="${prefix}--cap-add=CAP_SYS_PTRACE${postfix}"
+    ucx_opt+="${prefix}--ulimit=memlock=-1${postfix}"
+    ucx_opt+="${prefix}--ulimit=stack=67108864" # last item doesn't need postfix
+
+    echo "${ucx_opt}"
+}
+
+get_conditional_options() {
+    local use_tini=$1
+    local persistent=$2
+    local prefix="${3:- }"
+    local postfix="${4:- }"
+    local conditional_opt=""
+
+
+    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
+    if [ -v DISPLAY ]; then
+        conditional_opt+="${prefix}-e DISPLAY${postfix}"
+    fi
+
+
+    if [ -e /usr/lib/libvideomasterhd.so ]; then
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
+    fi
+    if [ -d /opt/deltacast/videomaster/Include ]; then
+        conditional_opt+="${prefix}--volume=/opt/deltacast/videomaster/Include:/usr/local/deltacast/Include${postfix}"
+    fi
+    if [ -d /opt/yuan/qcap/include ]; then
+        conditional_opt+="${prefix}--volume=/opt/yuan/qcap/include:/opt/yuan/qcap/include${postfix}"
+    fi
+    if [ -d /opt/yuan/qcap/lib ]; then
+        conditional_opt+="${prefix}--volume=/opt/yuan/qcap/lib:/opt/yuan/qcap/lib${postfix}"
+    fi
+
+    # add tegra directory
+    if [ -d /usr/lib/aarch64-linux-gnu/tegra ]; then
+        conditional_opt+="${prefix}--volume=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra${postfix}"
+    fi
+
+    # add user in container to group video to access video devices, e.g. /dev/video0
+    video_id=$(get_group_id video)
+    if [ -n "$video_id" ]; then
+        conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
+    fi
+    render_id=$(get_group_id rnder)
+    if [ -n "$render_id" ]; then
+        conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
+    fi
+
+    # Add docker group to enable DooD
+    conditional_opt+="${prefix}--group-add=$(get_group_id docker)${postfix}"
+
+    if [[ $nsys_profile == true ]]; then
+        # enable usage of the the perf_event_open call, see
+        # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#docker-profiling
+        conditional_opt+="${prefix}--cap-add=SYS_ADMIN${postfix}"
+    fi
+
+    # Allow X11 forwarding over SSH
+    if [[ $ssh_x11 -gt 0 ]]; then
+        XAUTH=/tmp/.docker.xauth
+        xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+        chmod 777 $XAUTH
+
+        conditional_opt+="${prefix}--volume=$XAUTH:$XAUTH${postfix}"
+        conditional_opt+="${prefix}-e XAUTHORITY=$XAUTH${postfix}"
+    fi
+
+    # Use tini
+    if [[ $use_tini -gt 0 ]]; then
+        conditional_opt+="${prefix}--init${postfix}"
+    fi
+
+    # Persistent container
+    if [[ $persistent == 0 ]]; then
+        conditional_opt+="${prefix}--rm${postfix}"
+    fi
+
+    # if running on AGX Orin (iGPU only) or on IGX Orin in iGPU mode
+    if lsmod | grep -q nvgpu ; then
+        if [ -e /dev/nvgpu/igpu0/nvsched ]; then
+            conditional_opt+="${prefix}--device=/dev/nvgpu/igpu0/nvsched${postfix}"
+        fi
+        if [ -e /dev/nvhost-ctrl-nvdec ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-ctrl-nvdec${postfix}"
+        fi
+        if [ -e /dev/nvhost-ctxsw-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-ctxsw-gpu${postfix}"
+        fi
+        if [ -e /dev/nvhost-nvsched-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-nvsched-gpu${postfix}"
+        fi
+        if [ -e /dev/nvhost-sched-gpu ]; then
+            conditional_opt+="${prefix}--device=/dev/nvhost-sched-gpu${postfix}"
+        fi
+        if [ -e /dev/nvidia0 ]; then
+            conditional_opt+="${prefix}--device=/dev/nvidia0${postfix}"
+        fi
+        if [ -e /dev/nvidia-modeset ]; then
+            conditional_opt+="${prefix}--device=/dev/nvidia-modeset${postfix}"
+        fi
+    fi
+
+    # Define path for cupy's kernel cache, needed since $HOME does
+    # not exist when running with `-u id:group`
+    conditional_opt+="${prefix}-e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache" # last item doesn't need postfix
+
+    echo "${conditional_opt}"
+}
+
+get_mount_device_options() {
+    local prefix="${1:- }"
+    local postfix="${2:- }"
+
+    local mount_device_opt=""
+    for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
+        mount_device_opt+="${prefix}--device=$video_dev${postfix}"
+    done
+
+    for capture_dev in $(find /dev -regex '/dev/capture-vi-channel[0-9]+'); do
+        mount_device_opt+="${prefix}--device=$capture_dev${postfix}"
+    done
+
+    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
+        mount_device_opt+="${prefix}--device=$video_dev:$video_dev${postfix}"
+    done
+
+    # Deltacast capture boards and Videomaster SDK
+    for i in 0 1 2 3; do
+        # Deltacast SDI capture board
+        if [ -e /dev/delta-x380${i} ]; then
+            mount_device_opt+="${prefix}--device=/dev/delta-x380${i}:/dev/delta-x380${i}${postfix}"
+        fi
+        # Deltacast HDMI capture board
+        if [ -e /dev/delta-x350${i} ]; then
+            mount_device_opt+="${prefix}--device=/dev/delta-x350${i}:/dev/delta-x350${i}${postfix}"
+        fi
+    done
+
+    # Find all audio devices
+    if [ -d /dev/snd ]; then
+        audio_devices=$(find /dev/snd -type c)
+
+        # Mount all found audio devices
+        for audio_dev in $audio_devices; do
+            mount_device_opt+="${prefix}--device=$audio_dev${postfix}"
+        done
+    fi
+
+    # mounts the ALSA configuration for the user running the script
+    if [ -e /etc/asound.conf ]; then
+        mount_device_opt+="${prefix}--mount=source=/etc/asound.conf,target=/etc/asound.conf,readonly,type=bind${postfix}"
+    fi
+
+    # Mount ConnectX device nodes
+    if [ -e /dev/infiniband/rdma_cm ]; then
+        mount_device_opt+="${prefix}--device=/dev/infiniband/rdma_cm${postfix}"
+    fi
+    for uverbs_dev in $(find /dev -regex '/dev/infiniband/uverbs[0-9]+'); do
+        mount_device_opt+="${prefix}--device=${uverbs_dev}${postfix}"
+    done
+
+    # grants access to the sound group
+    sound_group_gid=$(getent group audio | cut -d: -f3)
+    mount_device_opt+="${prefix}--group-add=$sound_group_gid" # last item does not need postfix
+
+    echo "${mount_device_opt}"
+}
+
+check_nvidia_ctk() {
+    # Check NVIDIA CTK version
+    min_ctk_version="1.12.0"
+    recommended_ctk_version="1.14.1"
+    if ! command -v nvidia-ctk >/dev/null; then
+        fatal G "nvidia-ctk" W " not found. Please install the NVIDIA Container Toolkit."
+    fi
+    ctk_version_output=$(nvidia-ctk --version | grep version)
+    ctk_version_pattern="([0-9]+\.[0-9]+\.[0-9]+)"
+    if [[ "$ctk_version_output" =~ $ctk_version_pattern ]]; then
+        ctk_version="${BASH_REMATCH[1]}"
+        if [[ "$(echo -e "$ctk_version\n$min_ctk_version" | sort -V | head -n1)" == "$ctk_version" ]]; then
+            fatal "Found nvidia-ctk Version $ctk_version. Version $min_ctk_version+ is required ($recommended_ctk_version+ recommended)."
+        fi
+    else
+        c_echo_err R "Could not extract nvidia-ctk version number."
+        c_echo_err "  Version $min_ctk_version+ required."
+        c_echo_err "  Version $recommended_ctk_version+ recommended."
+    fi
+}
 
 #===============================================================================
 # Section: Build
 #===============================================================================
 
 get_host_gpu() {
-    if lsmod | grep -q nvidia_drm && command -v nvidia-smi > /dev/null; then
+    if lsmod | grep -q nvidia_drm && command -v nvidia-smi >/dev/null; then
         echo -n "dgpu"
-    elif lsmod | grep -q nvgpu ; then
+    elif lsmod | grep -q nvgpu; then
         echo -n "igpu"
     else
         c_echo_err Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
@@ -266,13 +464,12 @@ get_host_gpu() {
     fi
 }
 
-
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.2.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.3.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -301,7 +498,7 @@ build() {
     local print_verbose=0
 
     # Check if buildx exists
-    if ! $(docker buildx version &> /dev/null) ; then
+    if ! $(docker buildx version &>/dev/null); then
         c_echo_err G "docker buildx plugin" W " is missing. Please install " G "docker-buildx-plugin" W ":
 
         https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository"
@@ -311,45 +508,45 @@ build() {
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --base_img)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    base_img="$2"
-                    shift 2
-                else
-                    echo "Error: --base_img requires a value"
-                    build_desc
-                    exit 1
-                fi
-                ;;
-            --docker_file)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    docker_file_path="$2"
-                    shift 2
-                else
-                    echo "Error: --docker_file requires a value"
-                    build_desc
-                    exit 1
-                fi
-                ;;
-            --img)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    img="$2"
-                    shift 2
-                else
-                    echo "Error: --img requires a value"
-                    build_desc
-                    exit 1
-                fi
-                ;;
-            --verbose)
-                print_verbose=1
-                shift
-                ;;
-            *)
-                echo "Error: Invalid argument '$1'"
+        --base_img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                base_img="$2"
+                shift 2
+            else
+                echo "Error: --base_img requires a value"
                 build_desc
                 exit 1
-                ;;
+            fi
+            ;;
+        --docker_file)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                docker_file_path="$2"
+                shift 2
+            else
+                echo "Error: --docker_file requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
+        --img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                img="$2"
+                shift 2
+            else
+                echo "Error: --img requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
+        --verbose)
+            print_verbose=1
+            shift
+            ;;
+        *)
+            echo "Error: Invalid argument '$1'"
+            build_desc
+            exit 1
+            ;;
         esac
     done
 
@@ -417,188 +614,105 @@ launch() {
     # Parse CLI arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --img)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    img="$2"
-                    shift 2
-                else
-                    echo "Error: --img requires a value"
-                    launch_desc
-                    exit 1
-                fi
-                ;;
-            --verbose)
-                print_verbose=1
-                shift
-                ;;
-            --local_sdk_root)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    local_sdk_root="$2"
-                    shift 2
-                else
-                    echo "Error: --local_sdk_root requires a value"
-                    launch_desc
-                    exit 1
-                fi
-                ;;
-            --ssh_x11)
-                ssh_x11=1
-                shift
-                ;;
-            --init)
-                use_tini=1
-                shift
-                ;;
-            --persistent)
-                persistent=1
-                shift
-                ;;
-            --nsys_profile)
-                nsys_profile=true
-                shift
-                ;;
-            --as_root)
-                as_root=true
-                shift
-                ;;
-            --add-volume)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    path="$2"
-                    base=$(basename "$path")
-                    additional_volumes+="-v $path:/workspace/volumes/$base "
-                    shift 2
-                else
-                    echo "Error: --add-volume requires a value"
-                    launch_desc
-                    exit 1
-                fi
-                ;;
-            --docker_opts)
-                if [[ -n "$2" ]]; then
-                    docker_opts="$2"
-                    shift 2
-                else
-                    echo "Error: --docker_opts requires a value"
-                    launch_desc
-                    exit 1
-                fi
-                ;;
-            --)
-                # Any trailing arguments after "--" are forwarded to `docker run`
-                shift
-                break
-                ;;
-            *)
-                echo "Error: Invalid argument '$1'"
+        --img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                img="$2"
+                shift 2
+            else
+                echo "Error: --img requires a value"
                 launch_desc
                 exit 1
-                ;;
+            fi
+            ;;
+        --verbose)
+            print_verbose=1
+            shift
+            ;;
+        --local_sdk_root)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                local_sdk_root="$2"
+                shift 2
+            else
+                echo "Error: --local_sdk_root requires a value"
+                launch_desc
+                exit 1
+            fi
+            ;;
+        --ssh_x11)
+            ssh_x11=1
+            shift
+            ;;
+        --init)
+            use_tini=1
+            shift
+            ;;
+        --persistent)
+            persistent=1
+            shift
+            ;;
+        --nsys_profile)
+            nsys_profile=true
+            shift
+            ;;
+        --as_root)
+            as_root=true
+            shift
+            ;;
+        --add-volume)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                path="$2"
+                base=$(basename "$path")
+                additional_volumes+="-v $path:/workspace/volumes/$base "
+                shift 2
+            else
+                echo "Error: --add-volume requires a value"
+                launch_desc
+                exit 1
+            fi
+            ;;
+        --docker_opts)
+            if [[ -n "$2" ]]; then
+                docker_opts="$2"
+                shift 2
+            else
+                echo "Error: --docker_opts requires a value"
+                launch_desc
+                exit 1
+            fi
+            ;;
+        --)
+            # Any trailing arguments after "--" are forwarded to `docker run`
+            shift
+            break
+            ;;
+        *)
+            echo "Error: Invalid argument '$1'"
+            launch_desc
+            exit 1
+            ;;
         esac
     done
 
-    # Check NVIDIA CTK version
-    min_ctk_version="1.12.0"
-    recommended_ctk_version="1.14.1"
-    if ! command -v nvidia-ctk > /dev/null; then
-        fatal G "nvidia-ctk" W " not found. Please install the NVIDIA Container Toolkit."
-    fi
-    ctk_version_output=$(nvidia-ctk --version | grep version)
-    ctk_version_pattern="([0-9]+\.[0-9]+\.[0-9]+)"
-    if [[ "$ctk_version_output" =~ $ctk_version_pattern ]]; then
-        ctk_version="${BASH_REMATCH[1]}"
-        if [[ "$(echo -e "$ctk_version\n$min_ctk_version" | sort -V | head -n1)" == "$ctk_version" ]]; then
-            fatal "Found nvidia-ctk Version $ctk_version. Version $min_ctk_version+ is required ($recommended_ctk_version+ recommended)."
-        fi
-    else
-        c_echo_err R "Could not extract nvidia-ctk version number."
-        c_echo_err "  Version $min_ctk_version+ required."
-        c_echo_err "  Version $recommended_ctk_version+ recommended."
-    fi
+    check_nvidia_ctk
 
-    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
     if [ -v DISPLAY ]; then
         if command -v xhost >/dev/null; then
-          run_command xhost +local:docker
+            run_command xhost +local:docker
         fi
-        conditional_opt+=" -e DISPLAY"
     fi
 
-    for video_dev in $(find /dev -regex '/dev/video[0-9]+'); do
-        mount_device_opt+=" --device $video_dev"
-    done
+    mount_device_opt="$(get_mount_device_options)"
+    conditional_opt="$(get_conditional_options $use_tini $persistent)"
 
-    for capture_dev in $(find /dev -regex '/dev/capture-vi-channel[0-9]+'); do
-        mount_device_opt+=" --device $capture_dev"
-    done
 
-    for video_dev in $(find /dev -regex '/dev/ajantv2[0-9]+'); do
-        mount_device_opt+=" --device $video_dev:$video_dev"
-    done
-
-    for i in 0 1 2 3; do
-        # Deltacast capture boards and Videomaster SDK
-        # Deltacast SDI capture board
-	    if [ -e /dev/delta-x380${i} ]; then
-            mount_device_opt+=" --device /dev/delta-x380${i}:/dev/delta-x380${i}"
-        fi
-	    # Deltacast HDMI capture board
-	    if [ -e /dev/delta-x350${i} ]; then
-            mount_device_opt+=" --device /dev/delta-x350${i}:/dev/delta-x350${i}"
-        fi
-    done
-
-    if [ -d /dev/snd ]; then
-        # Find all audio devices
-        audio_devices=$(find /dev/snd -type c)
-
-        # Mount all found audio devices
-        for audio_dev in $audio_devices; do
-            mount_device_opt+=" --device $audio_dev"
-        done
-    fi
-
-    # mounts the ALSA configuration for the user running the script
-    mount_device_opt+=" -v /etc/asound.conf:/etc/asound.conf"
-
-    # grants access to the sound group
-    sound_group_gid=$(getent group audio | cut -d: -f3)
-    mount_device_opt+=" --group-add $sound_group_gid"
-
-    if [ -e /usr/lib/libvideomasterhd.so ]; then
-   	    conditional_opt+=" -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so"
-    fi
-    if [ -d /opt/deltacast/videomaster/Include ]; then
-        conditional_opt+=" -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include"
-    fi
-    if [ -d /opt/yuan/qcap/include ]; then
-        conditional_opt+=" -v /opt/yuan/qcap/include:/opt/yuan/qcap/include"
-    fi
-    if [ -d /opt/yuan/qcap/lib ]; then
-        conditional_opt+=" -v /opt/yuan/qcap/lib:/opt/yuan/qcap/lib"
-    fi
-
-    # add tegra directory
-    if [ -d  /usr/lib/aarch64-linux-gnu/tegra ]; then
-        conditional_opt+=" -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra"
-    fi
-
-    # add user in container to group video to access video devices, e.g. /dev/video0
-    conditional_opt+=" --group-add video"
-
-    if [[ $nsys_profile == true ]] ; then
-        # enable usage of the the perf_event_open call, see
-        # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#docker-profiling
-        conditional_opt+=" --cap-add=SYS_ADMIN"
-    fi
-
-    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holsocan SDK
+    # when using a locally built Holoscan SDK container it is necessary to provide the path to Holoscan SDK
     # to map Holoscan SDK into the container for building Holohub
-    local local_sdk_opt="";
+    local local_sdk_opt=""
 
     local pythonpath="/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
-    if [ -d  "$local_sdk_root" ] ; then
+    if [ -d "$local_sdk_root" ]; then
         local_sdk_opt+=" -v $local_sdk_root:/workspace/holoscan-sdk"
-         #   Define paths needed by the python applications
+        #   Define paths needed by the python applications
         local_sdk_opt+=" -e HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib"
         local_sdk_opt+=" -e HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data"
         local_sdk_opt+=" -e HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data"
@@ -613,44 +727,17 @@ launch() {
         mount_nvoptix_bin="-v /usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro"
     fi
 
-    # Allow X11 forwarding over SSH
-    if [[ $ssh_x11 -gt 0 ]]; then
-        XAUTH=/tmp/.docker.xauth
-        xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-        chmod 777 $XAUTH
-
-        conditional_opt+=" -v $XAUTH:$XAUTH"
-        conditional_opt+=" -e XAUTHORITY=$XAUTH"
-    fi
-
-    # Use tini
-    if [[ $use_tini -gt 0 ]]; then
-        conditional_opt+=" --init"
-    fi
-
-    # Persistent container
-    if [[ $persistent == 0 ]]; then
-        conditional_opt+=" --rm"
-    fi
-
-    # Define path for cupy's kernel cache, needed since $HOME does
-    # not exist when running with `-u id:group`
-    conditional_opt+=" -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache"
-
     # Options needed for UCX
-    ucx_opt=" --ipc=host"
-    ucx_opt+=" --cap-add=CAP_SYS_PTRACE"
-    ucx_opt+=" --ulimit memlock=-1"
-    ucx_opt+=" --ulimit stack=67108864"
+    local ucx_opt="$(get_ucx_options)"
 
     # Only enable TTY if supported
     local use_tty=""
     if [ -t 1 ]; then
-      use_tty="--tty"
+        use_tty="--tty"
     fi
 
     # Allow root permissions on request
-    if [ $as_root == true ] ; then
+    if [ $as_root == true ]; then
         user="root"
     else
         user="$(id -u):$(id -g)"
@@ -681,7 +768,6 @@ launch() {
     #
     # ${mount_nvoptix_bin}
     #   Mount Optix denoiser weights.
-
 
     if [[ $print_verbose -gt 0 ]]; then
         c_echo W "Launch (HOLOHUB_ROOT: " G "${HOLOHUB_ROOT}" W ")..."
@@ -714,7 +800,7 @@ launch() {
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         ${additional_volumes} \
         ${mount_device_opt} \
-    	${conditional_opt} \
+        ${conditional_opt} \
         ${local_sdk_opt} \
         ${mount_nvoptix_bin} \
         ${ucx_opt} \
@@ -759,95 +845,105 @@ build_and_run() {
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --base_img)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    container_build_args+=" --base_img $2"
-                    shift 2
-                else
-                    echo "Error: --base_img requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --docker_file)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    docker_file="$2"
-                    shift 2
-                else
-                    echo "Error: --docker_file requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --img)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    image_name="$2"
-                    shift 2
-                else
-                    echo "Error: --img requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --no_build)
-                build_app=0
+        --base_img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                container_build_args+=" --base_img $2"
+                shift 2
+            else
+                echo "Error: --base_img requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --docker_file)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                docker_file="$2"
+                shift 2
+            else
+                echo "Error: --docker_file requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                image_name="$2"
+                shift 2
+            else
+                echo "Error: --img requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --no_build)
+            build_app=0
+            shift
+            ;;
+        --run_args)
+            if [[ -n "$2" ]]; then
+                extra_run_args="--extra_args '$2'"
+                shift 2
+            else
+                echo "Error: --run_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --build_with)
+            if [[ -n "$2" ]]; then
+                extra_build_with="--with '$2'"
+                shift 2
+            else
+                echo "Error: --build_with requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --build_args)
+            if [[ -n "$2" ]]; then
+                extra_build_args="--configure-args '$2'"
+                shift 2
+            else
+                echo "Error: --build_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --run_args)
+            if [[ -n "$2" ]]; then
+                extra_run_args="--extra_args '$2'"
+                shift 2
+            else
+                echo "Error: --run_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --verbose)
+            container_build_args+=" --verbose"
+            container_launch_args+=" --verbose"
+            shift
+            ;;
+        --language)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                app_language="$2"
+                shift 2
+            else
+                echo "Error: --language requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        *)
+            if [[ -z "$app_name" ]]; then
+                app_name="$1"
                 shift
-                ;;
-            --build_with)
-                if [[ -n "$2" ]]; then
-                    extra_build_with="--with '$2'"
-                    shift 2
-                else
-                    echo "Error: --build_with requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --build_args)
-                if [[ -n "$2" ]]; then
-                    extra_build_args="--configure-args '$2'"
-                    shift 2
-                else
-                    echo "Error: --build_args requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --run_args)
-                if [[ -n "$2" ]]; then
-                    extra_run_args="--extra_args '$2'"
-                    shift 2
-                else
-                    echo "Error: --run_args requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            --verbose)
-                container_build_args+=" --verbose"
-                container_launch_args+=" --verbose"
-                shift
-                ;;
-            --language)
-                if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                    app_language="$2"
-                    shift 2
-                else
-                    echo "Error: --language requires a value"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
-            *)
-                if [[ -z "$app_name" ]]; then
-                    app_name="$1"
-                    shift
-                else
-                    echo "Error: Invalid argument '$1'"
-                    build_and_run_desc
-                    exit 1
-                fi
-                ;;
+            else
+                echo "Error: Invalid argument '$1'"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
         esac
     done
 
@@ -866,7 +962,7 @@ build_and_run() {
         if [[ -n "${docker_file}" ]] && [[ "${docker_file}" != "${SCRIPT_DIR}/Dockerfile" ]]; then
             image_name="holohub:${app_name}"
         else
-            image_name=$(get_default_img);
+            image_name=$(get_default_img)
         fi
     fi
 
@@ -880,31 +976,247 @@ build_and_run() {
     run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
 }
 
+vscode_desc() { c_echo 'Launch VS Code in Dev Container
+
+Launch a VS Code instance in a Docker container with the development environment.
+    Usage: ./dev_container vscode <application_name> [options]
+
+Options:
+  application_name: Name of an existing Holohub application found in the applications folder.
+      If specified and exists: the application-provided Dev Container configuration is used.
+      Otherwise, the top-level Dev Container configuration.
+  --base_img: Fully qualified base image name, e.g. holoscan-sdk-dev:latest
+  --docker_file: Path to Dockerfile to use for building container.
+      Defaults to:
+      - Application-provided "Dockerfile", if it exists;
+      - Otherwise the top-level HoloHub "Dockerfile"
+  --language : Specify the app language implementation to run.
+      Some applications provide both `cpp` and `python` implementations.
+  --docker_opts : Additional options to pass to the Docker launch
+  --verbose : Print variables passed to docker run command
+'
+}
+
+# The vscode() function builds a Dev Container in the following stages:
+# 1. builds a container image using the default (or user-provided) base image and Dockerfile.
+# 2. prepares the devcontainer.json by adding the necessary devices and volumes and injects
+#    the list into the devcontainer.json file.
+# 3. launches a new VS Code instance using the devcontainer.json file from step 2 which builds
+#    the actual dev container using the image from step 1 as the base image.
+vscode() {
+    check_nvidia_ctk
+    local app_name=""
+    local app_language=""
+    local base_img=$(get_default_base_img)
+    local docker_file=""
+    local dev_container_tag="holohub-dev-container"
+    local docker_opts=""
+    local print_verbose=0
+
+    if ! command -v code >/dev/null; then
+        fatal R "Please install " W "VS Code" R " to use VS Code Dev Container. Follow the instructions in https://code.visualstudio.com/Download"
+    fi
+
+    # Parse CLI arguments next
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        --base_img)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                base_img=$2
+                shift 2
+            else
+                echo "Error: --base_img requires a value"
+                vscode_desc
+                exit 1
+            fi
+            ;;
+        --docker_file)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                docker_file="$2"
+                shift 2
+            else
+                echo "Error: --docker_file requires a value"
+                vscode_desc
+                exit 1
+            fi
+            ;;
+        --docker_opts)
+            if [[ -n "$2" ]]; then
+                docker_opts="$2"
+                shift 2
+            else
+                echo "Error: --docker_opts requires a value"
+                launch_desc
+                exit 1
+            fi
+            ;;
+        --language)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                app_language="$2"
+                shift 2
+            else
+                echo "Error: --language requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --verbose)
+            print_verbose=1
+            shift
+            ;;
+        *)
+            if [[ -z "$app_name" ]]; then
+                app_name="$1"
+                shift
+            else
+                echo "Error: Invalid argument '$1'"
+                vscode_desc
+                exit 1
+            fi
+            ;;
+        esac
+    done
+
+    if [[ -z "${docker_file}" ]]; then
+        docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
+        c_echo W "Using Dockerfile: " G "${docker_file}"
+    fi
+    if [[ -n "${docker_file}" ]]; then
+        container_build_args+=" --docker_file ${docker_file}"
+    fi
+
+    if [ -n "${app_name}" ]; then
+        dev_container_tag+="-${app_name}"
+    fi
+    dev_container_tag+=":dev"
+    container_build_args+=" --base_img ${base_img} --img ${dev_container_tag}"
+
+
+    if [[ $print_verbose -gt 0 ]]; then
+        c_echo W "Base container build parameters (container_build_args: " G "${container_build_args}" W ")..."
+    fi
+
+    c_echo W "Building base Dev Container ${dev_container_tag}..."
+    run_command ${SCRIPT_DIR}/dev_container build $container_build_args
+
+    # Prepare for the DevContainer with an environment file to be passed into runArgs
+    local devcontainer_env_file=""
+    devcontainer_env_file+="$(get_mount_device_options "\"" "\",")"
+    devcontainer_env_file+="\","
+    devcontainer_env_file+="$(get_conditional_options 0 0 "\"" "\",")"
+    devcontainer_env_file+="\","
+
+    # Find the nvoptix.bin file
+    if [ -f "/usr/share/nvidia/nvoptix.bin" ]; then
+        devcontainer_env_file+="\"--volume=/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro\","
+    fi
+
+    # User provided Docker options
+    if [ -n "${docker_opts}" ]; then
+        devcontainer_env_file+="\"$docker_opts\","
+    fi
+
+    # Options needed for UCX
+    devcontainer_env_file+="$(get_ucx_options "\"" "\",")"
+    devcontainer_env_file+="\","
+
+    devcontainer_env_file+="\"--device-cgroup-rule=c 81:* rmw\","
+    devcontainer_env_file+="\"--device-cgroup-rule=c 189:* rmw\","
+    devcontainer_env_file+="\"--runtime=nvidia\","
+    devcontainer_env_file+="\"--gpus=all\","
+
+    if [[ -n "${app_name}" ]]; then
+        devcontainer_env_file+="\"--hostname=holohub-${app_name}\""
+    else
+        devcontainer_env_file+="\"--hostname=holohub\""
+    fi
+
+    export HOLOHUB_BASE_IMAGE=$dev_container_tag
+    export HOLOHUB_APP_NAME=$app_name
+
+    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
+    run_command xhost +local:docker
+
+    # Install the VSCode Remote Development extension.
+    # Checking if the extension is already installed is slow, so we always install it so that
+    # the installation can be skipped if the extension is already installed.
+    run_command code --force --install-extension ms-vscode-remote.vscode-remote-extensionpack
+
+    # Top-level Dev Container template
+    local dev_container_path="$SCRIPT_DIR/.devcontainer/"
+
+    # If an application name is provided, use the application-specific DevContainer configuration when available.
+    # Otherwise, fall back to the top-level DevContainer configuration.
+    if [ -n "${app_name}" ] && [ -f "$SCRIPT_DIR/.devcontainer/${app_name}/devcontainer.json" ]; then
+        dev_container_path="$SCRIPT_DIR/.devcontainer/${app_name}"
+        c_echo "Using application-specific DevContainer configuration: ${dev_container_path}"
+    else
+        c_echo "Using top-level DevContainer configuration: ${dev_container_path}"
+    fi
+
+
+    if [[ $print_verbose -gt 0 ]]; then
+        c_echo W "Dev Container run args (devcontainer_env_file: " G "${devcontainer_env_file}" W ")..."
+        c_echo W "Dev Container base image (HOLOHUB_BASE_IMAGE: " G "${HOLOHUB_BASE_IMAGE}" W ")..."
+    fi
+
+    # Since Visual Studio Code allows only one instance per `devcontainer.json`,
+    # this code prepares a unique temporary directory structure for each launch of a devcontainer.
+    # By doing so, it ensures that multiple instances of the same environment can be run
+    # simultaneously. The script replicates the `devcontainer.json` from the desired application
+    # into this temporary directory, adjusting paths to ensure the correct workspace is loaded.
+    # A special URL is then generated to instruct VSCode to launch the development container
+    # using this temporary configuration.
+    local workspace="$(basename "$(pwd)")"
+    local tmpdir="$(mktemp -d)/${workspace}"
+    mkdir -p "${tmpdir}"
+    mkdir -p "${tmpdir}/.devcontainer"
+    cp -arL "${dev_container_path}/devcontainer.json" "${tmpdir}/.devcontainer"
+    sed -i -e "s|\${localWorkspaceFolder}|$(pwd)|g" "${tmpdir}/.devcontainer/devcontainer.json" \
+        -e "s|\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
+
+    local hash="$(echo -n "${tmpdir}" | xxd -pu - | tr -d '[:space:]')"
+    local url="vscode://vscode-remote/dev-container+${hash}/workspace/holohub"
+
+    local launch=""
+    if type open >/dev/null 2>&1; then
+        launch="open"
+    elif type xdg-open >/dev/null 2>&1; then
+        launch="xdg-open"
+    fi
+
+    if [ -n "${launch}" ]; then
+        c_echo "Launching VSCode Dev Container from : ${tmpdir}"
+        code --new-window "$tmpdir"
+        c_echo "Connecting to ${url}..."
+        exec "${launch}" "${url}" >/dev/null 2>&1
+    else
+        fatal "Error launching VSCode Dev Container. Please ensure that $(open) or $(xdg-open) is installed."
+    fi
+}
 
 #===============================================================================
 
 parse_args() {
     local OPTIND
-    while getopts 'yh' option;
-    do
+    while getopts 'yh' option; do
         case "${option}" in
-            y)
-                ALWAYS_YES="true"
-                ;;
-            h)
-                print_usage
-                if [ -n "${SCRIPT_DIR}" ]; then
-                    exit 1
-                fi
-                ;;
-            *)
-                ;;
+        y)
+            ALWAYS_YES="true"
+            ;;
+        h)
+            print_usage
+            if [ -n "${SCRIPT_DIR}" ]; then
+                exit 1
+            fi
+            ;;
+        *) ;;
         esac
     done
-    shift $((OPTIND-1))
+    shift $((OPTIND - 1))
     CMD="$1"
     if [ -z "$CMD" ]; then
-      print_usage
+        print_usage
     fi
     shift
 
@@ -922,7 +1234,7 @@ parse_args() {
         fi
         if [ "$arg" = "--dryrun" ]; then
             unset_pos=$i
-            DO_DRY_RUN="true"  # set to true to print commands to screen without running
+            DO_DRY_RUN="true" # set to true to print commands to screen without running
         fi
     done
     if [ "${unset_pos}" ]; then
@@ -948,7 +1260,7 @@ print_usage() {
 print_cmd_help_messages() {
     local cmd="$1"
     if [ -n "${cmd}" ]; then
-        if type ${cmd}_desc > /dev/null 2>&1; then
+        if type ${cmd}_desc >/dev/null 2>&1; then
             ${cmd}_desc
             exit 0
         else
@@ -965,21 +1277,21 @@ main() {
     parse_args "$@"
 
     case "$CMD" in
-        help)
-            print_cmd_help_messages "${ARGS[@]}"
-            exit 0
-            ;;
-        ''|main)
+    help)
+        print_cmd_help_messages "${ARGS[@]}"
+        exit 0
+        ;;
+    '' | main)
+        print_usage
+        ;;
+    *)
+        if type ${CMD} >/dev/null 2>&1; then
+            "$CMD" "${ARGS[@]}"
+        else
             print_usage
-            ;;
-        *)
-            if type ${CMD} > /dev/null 2>&1; then
-                "$CMD" "${ARGS[@]}"
-            else
-                print_usage
-                exit 1
-            fi
-            ;;
+            exit 1
+        fi
+        ;;
     esac
     ret=$?
     if [ -n "${SCRIPT_DIR}" ]; then

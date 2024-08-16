@@ -1,0 +1,42 @@
+{
+    "application": {
+        "name": "PVA Video Filter (Unsharp Mask) Example",
+        "authors": [
+            {
+                "name": "Soham Sinha",
+                "affiliation": "NVIDIA"
+            },
+            {
+                "name": "Mehmet Umut Demircin",
+                "affiliation": "NVIDIA"
+            },
+            {
+				"name": "Wendell Hom",
+				"affiliation": "NVIDIA"
+			}
+        ],
+        "language": "C++",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.1.0",
+            "tested_versions": [
+                "2.1.0"
+            ]
+        },
+        "platforms": [
+            "arm64"
+        ],
+        "tags": [
+            "PVA"
+        ],
+        "ranking": 1,
+        "dependencies": {},
+        "run": {
+            "command": "<holohub_app_bin>/pva_video_filter",
+            "workdir": "holohub_bin"
+        }
+    }
+}

@@ -1,0 +1,71 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "dpdk"
+    master_core: 3
+    debug: false    
+
+    memory_regions:
+    - name: "Data_TX_GPU"
+      kind: "huge"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 1064
+
+    interfaces:
+    - name: data1
+      address: 0005:03:00.0
+      tx:
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            batch_size: 10240
+            split_boundary: 0
+            cpu_core: 4
+            memory_regions:
+              - "Data_TX_GPU"
+            offloads:
+              - "tx_eth_src"         
+                     
+
+bench_tx:
+  eth_dst_addr: 48:b0:2d:ed:d0:20   # Destination MAC
+  udp_dst_port: 4096                  # UDP destination port
+  udp_src_port: 4096                  # UDP source port
+  gpu_direct: false
+  split_boundary: 0
+  batch_size: 10000
+  payload_size: 1000
+  header_size: 64
+  ip_src_addr: 192.168.100.5          # Source IP send from
+  ip_dst_addr: 10.10.100.4          # Destination IP to send to
+  address: 0005:03:00.0

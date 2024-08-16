@@ -1,0 +1,39 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+extensions:
+  - libgxf_std.so
+  - libgxf_cuda.so
+  - libgxf_multimedia.so
+  - libgxf_serialization.so
+
+replayer:
+  directory: /workspace/holohub/data/endoscopy
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+recorder:
+  directory: "/tmp"
+  basename: "surgical_video_sharpened"
+
+holoviz:
+  width: 854
+  height: 480
+
+

@@ -46,10 +46,10 @@ In this section, we will show how to view the sample data and segmentation resul
    ```
 3. Locate the sample data volume and the segmentation results in `build/nvidia_nim_imaging/applications/nvidia_nim/nvidia_nim_imaging`
    ```
-   drwxr-xr-x 3 vicchang domain-users     4096 Jul  3 11:41 ./
-   drwxr-xr-x 4 vicchang domain-users     4096 Jul  3 11:40 ../
-   -rw-r--r-- 1 vicchang vicchang     27263336 Jul 23 14:22 example-1_seg.nrrd
-   -rw-r--r-- 1 vicchang vicchang     33037057 Jul 23 14:21 sample.nii.gz
+   drwxr-xr-x 3 user domain-users     4096 Jul  3 11:41 ./
+   drwxr-xr-x 4 user domain-users     4096 Jul  3 11:40 ../
+   -rw-r--r-- 1 user user         27263336 Jul 23 14:22 example-1_seg.nrrd
+   -rw-r--r-- 1 user user         33037057 Jul 23 14:21 sample.nii.gz
    ```
 5. In 3D Slicer, click *File*, *Add Data* and click *Choose File(s) to Add*.
    From the *Add Data into the scene* dialog, find and add the `sample.nii.gz` file and the `example-1_seg.nrrd` file.

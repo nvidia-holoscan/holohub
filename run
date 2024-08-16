@@ -174,7 +174,7 @@ get_app_dockerfile() {
   local app_source_root_path=$(get_app_source_root_dir ${appname})
   local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language})
 
-  local dockerfile_entry=$(cat "${app_source_lang_path}/metadata.json" | grep "dockerfile")
+  local dockerfile_entry=$(cat "${app_source_lang_path}/metadata.json" 2>/dev/null | grep "dockerfile" )
   if [[ -n "${dockerfile_entry}" ]]; then
     pattern="s#<holohub_app_source>#${app_source_lang_path}#g"
     dockerfile_path=$(echo "${dockerfile_entry}" | awk -F'["]' '{ print $4 }' | sed -E ${pattern})

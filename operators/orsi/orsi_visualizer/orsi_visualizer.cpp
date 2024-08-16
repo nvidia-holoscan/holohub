@@ -146,7 +146,7 @@ void OrsiVisualizationOp::setup(OperatorSpec& spec) {
 
   pimpl_->setup(spec);
 
-  cuda_stream_handler_.defineParams(spec);
+  cuda_stream_handler_.define_params(spec);
 }
 
 void OrsiVisualizationOp::initialize() {
@@ -251,7 +251,7 @@ void OrsiVisualizationOp::compute(InputContext& op_input, OutputContext& op_outp
   }
 
      // get the CUDA stream from the input message
-  const gxf_result_t result = cuda_stream_handler_.fromMessages(context.context(), messages);
+  const gxf_result_t result = cuda_stream_handler_.from_messages(context.context(), messages);
   if (result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }

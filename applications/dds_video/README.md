@@ -35,7 +35,7 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 (such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
-$ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-6.1.2
+$ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0
 ```
 
 ### Building with a Container
@@ -44,10 +44,11 @@ Due to the license requirements of RTI Connext it is not currently supported to
 install RTI Connext into a development container. Instead, Connext should be
 installed onto the host as above and then the development container can be
 launched with the RTI Connext folder mounted at runtime. To do so, ensure that
-the `NDDSHOME` environment variable is set and use the following:
+the `NDDSHOME` and `CONNEXTDDS_ARCH` environment variables are set (which can be
+done using the RTI `setenv` script) and use the following:
 
 ```sh
-./dev_container launch --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds"
+./dev_container launch --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
 ```
 
 ## Running the Application
@@ -89,8 +90,8 @@ For more details, see the [RTI Connext Guide to Improve DDS Network Performance 
 
 The QoS profiles used by the application can also be modified by editing the
 `qos_profiles.xml` file in the application directory. For more information about modifying
-the QoS profiles, see the [RTI Connext Basic QoS](https://community.rti.com/static/documentation/connext-dds/6.1.2/doc/manuals/connext_dds_professional/getting_started_guide/cpp11/intro_qos.html)
-tutorial or the [RTI Connext QoS Reference Guide](https://community.rti.com/static/documentation/connext-dds/6.1.2/doc/manuals/connext_dds_professional/qos_reference/index.htm).
+the QoS profiles, see the [RTI Connext Basic QoS](https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/manuals/connext_dds_professional/getting_started_guide/cpp11/intro_qos.html)
+tutorial or the [RTI Connext QoS Reference Guide](https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/manuals/connext_dds_professional/qos_reference/index.htm).
 
 ### Publishing Shapes from the RTI Shapes Demo
 

@@ -75,9 +75,6 @@ Then, the preprocessed frames are fed to the [`InferenceOp`](https://docs.nvidia
 and mixed with the original video in the custom [`DepthPostProcessingOp`](./endoscopy_depth_estimation.py#L87) for
 rendering with [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators).
 
-
-
-
 ### Run Instructions
 
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
@@ -109,38 +106,35 @@ Next, run the command to run the application:
 cd <HOLOHUB_BUILD_DIR>
 python3 <HOLOHUB_SOURCE_DIR>/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py --data=<DATA_DIR> --model=<MODEL_DIR> --clahe
 ```
+### Container Build & Run Instructions
 
-
-### Container Build & Rud Instructions
-
-Build container using Holoscan 2.0.0 NGC container as base image and built OpenCV with CUDA ARCH 8.6, 8.7 and 8.9 support for IGX Orin and AGX Orin iGPU and Ampere and Ada Lovelace Architecture dGPUs.
+Build container using Holoscan 2.0.0 NGC container as base image and built OpenCV with CUDA ARCH 8.6, 8.7 and 8.9 support for IGX Orin and Ampere and Ada Lovelace Architecture dGPUs. This application is currently not supported on iGPU.
 
 #### Change directory to Holohub source directory
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
 ```
-#### Build container
+#### Build and run the application using the development container
 
 ```bash
-./dev_container build --docker_file applications/endoscopy_depth_estimation/Dockerfile  --img  holohub:depth_estimation
+./dev_container build_and_run endoscopy_depth_estimation
 ```
 
-#### Launch container
+
+## Dev Container
+
+To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container  launch  --img holohub:depth_estimation
+./dev_container vscode endoscopy_depth_estimation
 ```
 
-#### Build app
+This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.
 
-```bash
-./run build endoscopy_depth_estimation
-```
+### VS Code Launch Profiles
 
-#### Launch app
+There are two launch profiles configured for this application:
 
-```bash
-python3 applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py  --data=data/endoscopy --model=data/endoscopy_depth/
-```
-
+1. **(debugpy) endoscopy_depth_estimation/python**: Launch endoscopy_depth_estimation using a launch profile that enables debugging of Python code.
+2. **(pythoncpp) endoscopy_depth_estimation/python**: Launch endoscopy_depth_estimation using a launch profile that enables debugging of Python and C++ code.

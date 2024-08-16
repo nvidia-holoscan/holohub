@@ -113,10 +113,9 @@ AdvNetStatus DpdkMgr::get_mac(int port, char* mac) {
 
 void DpdkMgr::adjust_memory_regions() {
   for (auto& mr : cfg_.mrs_) {
-    auto target_el_size = mr.second.buf_size_ + RTE_PKTMBUF_HEADROOM * 3;
     // mr.second.buf_size_ = ((target_el_size + 3) / 4) * 4;
-    mr.second.buf_size_ = target_el_size;
-    HOLOSCAN_LOG_INFO("Changing buffer size to {} for alignment", mr.second.buf_size_);
+    mr.second.adj_size_ = mr.second.buf_size_ + RTE_PKTMBUF_HEADROOM;
+    HOLOSCAN_LOG_INFO("Adjusting buffer size to {} for headroom", mr.second.adj_size_);
   }
 }
 
@@ -159,10 +158,10 @@ AdvNetStatus DpdkMgr::register_mrs() {
 
     if (mr.kind_ == MemoryKind::HUGE) { continue; }
 
-    ext_mem->buf_len = RTE_ALIGN_CEIL(mr.buf_size_ * mr.num_bufs_, GPU_PAGE_SIZE);
+    ext_mem->buf_len = mr.ttl_size_;
     ext_mem->buf_iova = RTE_BAD_IOVA;
     ext_mem->buf_ptr = ar.second.ptr_;
-    ext_mem->elt_size = mr.buf_size_;
+    ext_mem->elt_size = mr.adj_size_;
 
     // GPUs have the largest page size vs CPUs, so just use that
     int ret = rte_extmem_register(
@@ -337,24 +336,6 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  // Adjust the sizes to accommodate any padding/alignment restrictions by this library
-  adjust_memory_regions();
-
-  if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
-    return;
-  }
-
-  if (register_mrs() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
-    return;
-  }
-
-  if (map_mrs() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
-    return;
-  }
-
   // Build name to id mapping
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
@@ -404,14 +385,14 @@ void DpdkMgr::initialize() {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         if (mr.kind_ == MemoryKind::HUGE) {
           pool = rte_pktmbuf_pool_create(
-              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.buf_size_, numa_from_mem(mr));
+              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
         } else {
           auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
           pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
                                                 mr.num_bufs_,
                                                 0,
                                                 0,
-                                                mr.buf_size_,
+                                                mr.adj_size_,
                                                 numa_from_mem(mr),
                                                 pktmbuf.get(),
                                                 1);
@@ -427,13 +408,14 @@ void DpdkMgr::initialize() {
         HOLOSCAN_LOG_INFO("Created mempool {} : mbufs={} elsize={} ptr={}",
                           pool_name,
                           mr.num_bufs_,
-                          mr.buf_size_,
+                          mr.adj_size_,
                           (void*)pool);
 
-        q_packet_size += mr.buf_size_ - RTE_PKTMBUF_HEADROOM * 3;
+        q_packet_size += mr.buf_size_;
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
+      HOLOSCAN_LOG_INFO("Max packet size needed for RX: {}", max_pkt_size);
 
       // Multiple segments
       if (q.common_.mrs_.size() > 1) {
@@ -454,7 +436,7 @@ void DpdkMgr::initialize() {
           rx_seg->mp = q_backend->pools[seg];
           rx_seg->length = (seg == (q.common_.mrs_.size() - 1))
                                ? 0
-                               : cfg_.mrs_[q.common_.mrs_[seg]].buf_size_ - RTE_PKTMBUF_HEADROOM;
+                               : cfg_.mrs_[q.common_.mrs_[seg]].adj_size_ - RTE_PKTMBUF_HEADROOM;
           rx_seg->offset = 0;
         }
 
@@ -467,16 +449,6 @@ void DpdkMgr::initialize() {
     }
 
     local_port_conf[intf.port_id_].rxmode.offloads |= RTE_ETH_RX_OFFLOAD_CHECKSUM;
-
-    // Subtract eth headers since driver adds that on
-    max_pkt_size = std::max(max_pkt_size, 64UL);
-    local_port_conf[intf.port_id_].rxmode.mtu = max_pkt_size;
-    local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
-        local_port_conf[intf.port_id_].rxmode.mtu;
-
-    HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}",
-                      intf.port_id_,
-                      local_port_conf[intf.port_id_].rxmode.mtu);
 
     // TX now
     // For now make a single queue. Support more sophisticated TX on next release
@@ -527,16 +499,27 @@ void DpdkMgr::initialize() {
                           mr.buf_size_,
                           (void*)pool);
 
-        q_packet_size += mr.buf_size_ - RTE_PKTMBUF_HEADROOM;
+        q_packet_size += mr.buf_size_;
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
-
       uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
       tx_q_map_[key] = q_backend;
     }
 
+    HOLOSCAN_LOG_INFO("Max packet size needed with TX: {}", max_pkt_size);
+
     local_port_conf[intf.port_id_].txmode.offloads = 0;
+
+    // Subtract eth headers since driver adds that on
+    max_pkt_size = std::max(max_pkt_size, 64UL);
+    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBFRAME_SIZE);
+    local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
+        local_port_conf[intf.port_id_].rxmode.mtu;
+
+    HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}",
+                      intf.port_id_,
+                      local_port_conf[intf.port_id_].rxmode.mtu);
 
     if (tx.accurate_send_) {
       setup_accurate_send_scheduling_mask();
@@ -707,7 +690,8 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   }
 
   auto num_rx_ptrs_bufs = (1UL << 13) - 1;
-  HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches", num_rx_ptrs_bufs);
+  HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
+                      num_rx_ptrs_bufs, sizeof(void*) * max_rx_batch);
   rx_burst_buffer = rte_mempool_create("RX_BURST_POOL",
                                        num_rx_ptrs_bufs,
                                        sizeof(void*) * max_rx_batch,
@@ -1141,6 +1125,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
                     rte_socket_id());
   int nb_rx = 0;
   int to_copy = 0;
+  int cur_pkt_in_batch = 0;
   //
   //  run loop
   //
@@ -1177,6 +1162,8 @@ int DpdkMgr::rx_core_worker(void* arg) {
             burst->pkts[seg][p] = mbuf;
           }
         }
+
+        cur_pkt_in_batch += nb_rx;
       }
 
       nb_rx = 0;
@@ -1198,18 +1185,6 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       if (nb_rx == 0) { continue; }
 
-      // static int blah;
-      // if (blah++ == 0) {
-      //   for (int p = 0; p < 10; p++) {
-      //     auto *mbuf = reinterpret_cast<rte_mbuf*>(mbuf_arr[p]);
-      //     auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-      //     for (int i = 0; i < 64; i++) {
-      //       printf("%02X ", ((uint8_t*)pkt)[i]);
-      //     }
-      //     printf("\n");
-      //   }
-      //   blah = 1;
-      // }
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
@@ -1218,9 +1193,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
           struct rte_mbuf* mbuf = mbuf_arr[p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
-            burst->pkts[seg][p] = mbuf;
+            burst->pkts[seg][cur_pkt_in_batch + p] = mbuf;
           }
         }
+
+        cur_pkt_in_batch += to_copy;
       }
 
       burst->hdr.hdr.num_pkts += to_copy;
@@ -1228,6 +1205,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
       nb_rx -= to_copy;
 
       if (burst->hdr.hdr.num_pkts == tparams->batch_size) {
+        cur_pkt_in_batch = 0;
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
         break;
       }
