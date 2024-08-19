@@ -406,36 +406,10 @@ install_lint_deps() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Install Lint Dependencies for Python"
-    if ! command -v ruff &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install ruff || exit_code=1
-    fi
-    if ! command -v isort &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install isort || exit_code=1
-    fi
-    if ! command -v black &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install black || exit_code=1
-    fi
-    if ! command -v mypy &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install mypy || exit_code=1
-    fi
-
-    echo "Install Lint Dependencies for C++"
-    if ! command -v cpplint &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install cpplint || exit_code=1
-    fi
-    if ! command -v clang-format &> /dev/null; then
-        run_command apt-get install --no-install-recommends -y clang-format || exit_code=1
-    fi
-
-    echo "Install Lint Dependencies for Code Spelling"
-    if ! command -v codespell &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install codespell || exit_code=1
-    fi
-
-    echo "Install Lint Dependencies for CMake"
-    if ! command -v cmakelint &> /dev/null; then
-        run_command ${HOLOHUB_PY_EXE} -m pip install cmakelint || exit_code=1
-    fi
+    run_command ${HOLOHUB_PY_EXE} -m \
+      pip install -r ${SCRIPT_DIR}/utilities/requirements.lint.txt || exit_code = 1
+    run_command apt install --no-install-recommends -y \
+      clang-format="1:14.0*" || exit_code=1
 
     popd > /dev/null
 
