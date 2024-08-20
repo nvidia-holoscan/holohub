@@ -540,6 +540,8 @@ build_desc() {
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --benchmark                          : Build for Holoscan Flow Benchmarking."
+  echo "   --install                            : Install applications and its dependencies to"
+  echo "                                          install/<app> if supported."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo "                                          multiple arguments can be passed between quotes"
   echo "                                          or using several --configure-args in the command line"
@@ -604,6 +606,7 @@ build() {
   local build_type="${CMAKE_BUILD_TYPE:-release}"
   local build_path="${CMAKE_BUILD_PATH}"
   local benchmark=false
+  local install=false
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -623,6 +626,8 @@ build() {
           benchmark=true
           configure_args="${configure_args} -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
           echo "Building for Holoscan Flow Benchmarking"
+      elif [ "$arg" = "--install" ]; then
+          install=true
       elif [ "$arg" = "--configure-args" ]; then
          configure_args="${configure_args} ${ARGS[i+1]}"
          echo "Adding configuration arguments: ${ARGS[i+1]}"
@@ -678,9 +683,12 @@ build() {
   run_command cmake --build ${build_path} -j
   ret=$?
   check_exit_code $ret "Error building application."
-  run_command cmake --install ${build_path}
-  ret=$?
-  check_exit_code $ret "Error installing application."
+
+  if [ $install == true ]; then
+    run_command cmake --install ${build_path}
+    ret=$?
+    check_exit_code $ret "Error installing application."
+  fi
 
   if [ $benchmark == true ]; then
     app_source_root_path=$(get_app_source_root_dir $1)
@@ -903,6 +911,7 @@ clear_cache() {
   echo "Clearing cache..."
   run_command rm -rf ${SCRIPT_DIR}/build
   run_command rm -rf ${SCRIPT_DIR}/build-*
+  run_command rm -rf ${SCRIPT_DIR}/install
 }
 
 clear_cache_desc() {

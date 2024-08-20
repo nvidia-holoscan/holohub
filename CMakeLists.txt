@@ -25,7 +25,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/deps)
 include(HoloHubConfigHelpers)
 
 # Set install directory
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "${CMAKE_SOURCE_DIR}/install")
+endif()
 
 # Enable Testing
 include(CTest)
