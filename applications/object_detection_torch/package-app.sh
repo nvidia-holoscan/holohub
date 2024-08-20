@@ -33,10 +33,11 @@ if [ $(get_host_arch) == "aarch64" ]; then
 fi
 
 echo -e "done\n"
-echo -e Use the following commands to package and run the Object Detection Torch application:
+echo -e Install Holoscan CLI and then use the following commands to package and run the Object Detection Torch application:
 echo -e "Package the application:"
 echo -e "${YELLOW}holoscan package -c $APP_PATH/object_detection_torch.yaml --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t holohub-object-detection-torch $APP_PATH/object_detection_torch --include onnx holoviz torch${NOCOLOR}"
 echo -e "\nFor example:"
 echo -e "${YELLOW}holoscan package -c $APP_PATH/object_detection_torch.yaml --platform ${PLATFORM} --platform-config ${GPU} -t holohub-object-detection-torch $APP_PATH/object_detection_torch --include onnx holoviz torch${NOCOLOR}"
 echo -e "\nRun the application:"
 echo -e "${YELLOW}holoscan run -r \$(docker images | grep "holohub-object-detection-torch" | awk '{print \$1\":\"\$2}') -i $GIT_ROOT/data/object_detection_torch${NOCOLOR}"
+echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."
