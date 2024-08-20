@@ -303,7 +303,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--data",
-        default="none",
+        default=os.environ.get("HOLOSCAN_INPUT_PATH", None),
         help=("Set the data path"),
     )
     args = parser.parse_args()
