@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Holoviz vsync",
+		"name": "Holoviz YUV",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "2.3",
+			"minimum_required_version": "2.4",
 			"tested_versions": [
-				"2.3"
+				"2.4"
 			]
 		},
 		"platforms": [
@@ -23,12 +23,12 @@
 			"arm64"
 		],
 		"tags": [
-			"Holoviz vsync"
+			"Holoviz YUV"
 		],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/holoviz_vsync",
+			"command": "<holohub_app_bin>/holoviz_yuv",
 			"workdir": "holohub_bin"
 		}
 	}
