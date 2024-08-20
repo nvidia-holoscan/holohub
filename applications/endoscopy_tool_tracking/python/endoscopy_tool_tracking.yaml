@@ -14,6 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+# Required fields for packaging the application
+# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+application:
+  title: Holohub - Endoscopy Tool Tracking
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 1Gi
+  gpuMemory: 1Gi
+
 extensions:
 - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
 - gxf_extensions/yuan_qcap/libgxf_qcap_source.so

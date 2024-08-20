@@ -17,7 +17,6 @@
 
 #include <getopt.h>
 
-#include "holoscan/holoscan.hpp"
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -25,6 +24,7 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
+#include "holoscan/holoscan.hpp"
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
 #endif
@@ -181,10 +181,8 @@ class App : public holoscan::Application {
     }
 #ifdef VTK_RENDERER
     if (this->visualizer_name == "vtk") {
-      visualizer_operator = make_operator<ops::VtkRendererOp>("vtk",
-                                                      from_config("vtk_op"),
-                                                      Arg("width") = width,
-                                                      Arg("height") = height);
+      visualizer_operator = make_operator<ops::VtkRendererOp>(
+          "vtk", from_config("vtk_op"), Arg("width") = width, Arg("height") = height);
     }
 #endif
 
@@ -279,42 +277,61 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
+bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path) {
+  static struct option long_options[] = {
+      {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
+  while (int c = getopt_long(argc, argv, "d:c:", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
+      case 'c':
+        config_path = optarg;
+        break;
       case 'd':
         data_path = optarg;
         break;
       default:
-        std::cout << "Unknown arguments returned: " << c << std::endl;
+        holoscan::log_error("Unhandled option '{}'", static_cast<char>(c));
         return false;
     }
   }
 
-  if (optind < argc) { config_name = argv[optind++]; }
   return true;
 }
 
 /** Main function */
 int main(int argc, char** argv) {
+  // Parse the arguments
+  std::string config_path = "";
+  std::string data_directory = "";
+  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (data_directory.empty()) {
+    // Get the input data environment variable
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+    if (input_path == nullptr || input_path[0] == '\0') {
+      HOLOSCAN_LOG_ERROR(
+          "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
+      exit(-1);
+    }
+    data_directory = std::string(input_path);
+  }
+
+  if (config_path.empty()) {
+    // Get the input data environment variable
+    auto config_file_path = std::getenv("HOLOSCAN_CONFIG_PATH");
+    if (config_file_path == nullptr || config_file_path[0] == '\0') {
+      auto config_file = std::filesystem::canonical(argv[0]).parent_path();
+      config_path = config_file / std::filesystem::path("endoscopy_tool_tracking.yaml");
+    } else {
+      config_path = config_file_path;
+    }
+  }
+
   auto app = holoscan::make_application<App>();
 
-  // Parse the arguments
-  std::string data_path = "";
-  std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
-
-  if (config_name != "") {
-    app->config(config_name);
-  } else {
-    auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-    config_path += "/endoscopy_tool_tracking.yaml";
-    app->config(config_path);
-  }
+  HOLOSCAN_LOG_INFO("Using configuration file from {}", data_directory);
+  app->config(config_path);
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
@@ -325,7 +342,8 @@ int main(int argc, char** argv) {
   auto visualizer_name = app->from_config("visualizer").as<std::string>();
   app->set_visualizer_name(visualizer_name);
 
-  if (data_path != "") app->set_datapath(data_path);
+  HOLOSCAN_LOG_INFO("Using input data from {}", data_directory);
+  app->set_datapath(data_directory);
 
   app->run();
 
