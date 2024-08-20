@@ -1,0 +1,5 @@
+# Ignore data files in git history
+output/
+processed/
+release/
+tmp/
