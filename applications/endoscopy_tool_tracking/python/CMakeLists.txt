@@ -67,7 +67,7 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   FILES endoscopy_tool_tracking.py
-  DESTINATION "endoscopy_tool_tracking_python"
+  DESTINATION endoscopy_tool_tracking_python
   COMPONENT "holohub-apps"
 )
 
@@ -82,7 +82,7 @@ install(
 )
 
 install(
-  DIRECTORY ${gxf_lstm_tensor_rt_inference_BINARY_DIR}/
+  DIRECTORY ${CMAKE_BINARY_DIR}/gxf_extensions/lstm_tensor_rt_inference/
   DESTINATION endoscopy_tool_tracking_python
   FILES_MATCHING PATTERN "*.so"
   PATTERN "CMakeFiles" EXCLUDE
@@ -90,12 +90,12 @@ install(
 
 install(
   FILES
-    ${lstm_tensor_rt_inference_BINARY_DIR}/liblstm_tensor_rt_inference.so
-    ${tool_tracking_postprocessor_BINARY_DIR}/libtool_tracking_postprocessor.so
-  DESTINATION "endoscopy_tool_tracking_python"
+    ${CMAKE_BINARY_DIR}/operators/lstm_tensor_rt_inference/liblstm_tensor_rt_inference.so
+    ${CMAKE_BINARY_DIR}/operators/tool_tracking_postprocessor/libtool_tracking_postprocessor.so
+  DESTINATION endoscopy_tool_tracking_python
   COMPONENT "holohub-apps"
 )
 
 install(
-  DIRECTORY ${Holohub-internal_BINARY_DIR}/python/lib/holohub
+  DIRECTORY ${CMAKE_BINARY_DIR}/python/lib/holohub
   DESTINATION endoscopy_tool_tracking_python)
