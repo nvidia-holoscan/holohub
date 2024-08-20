@@ -119,13 +119,6 @@ if(BUILD_TESTING)
   )
 endif()
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
-
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS object_detection_torch
