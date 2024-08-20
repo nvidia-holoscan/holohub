@@ -118,3 +118,24 @@ if(BUILD_TESTING)
     PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 endif()
+
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
+
+# Install application and dependencies into the install/ directory for packaging
+install(
+  TARGETS object_detection_torch
+  DESTINATION "${CMAKE_SOURCE_DIR}/install/object_detection_torch"
+  COMPONENT "holohub-apps"
+)
+
+install(
+  FILES
+    "${object_detection_torch_BINARY_DIR}/object_detection_torch.yaml"
+  DESTINATION "${CMAKE_SOURCE_DIR}/install/object_detection_torch"
+  COMPONENT "holohub-apps"
+)

@@ -24,6 +24,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/deps)
 # To configure which apps/operators to build
 include(HoloHubConfigHelpers)
 
+# Set install directory
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+
 # Enable Testing
 include(CTest)
 

@@ -151,3 +151,28 @@ if(FLOW_BENCHMARKING)
   # Set test timeout to 25 minutes
   set_tests_properties(endoscopy_tool_tracking_cpp_benchmark_test PROPERTIES TIMEOUT 1500)
 endif()
+
+# Install application and dependencies into the install/ directory for packaging
+install(
+  TARGETS endoscopy_tool_tracking
+  DESTINATION "${CMAKE_SOURCE_DIR}/install/endoscopy_tool_tracking_cpp"
+  COMPONENT "holohub-apps"
+)
+
+file(READ "${endoscopy_tool_tracking_BINARY_DIR}/endoscopy_tool_tracking.yaml" APP_YAML_FILE)
+string(REPLACE "gxf_extensions/lstm_tensor_rt_inference/" "" APP_YAML_FILE "${APP_YAML_FILE}")
+file(WRITE "${CMAKE_SOURCE_DIR}/install/endoscopy_tool_tracking_cpp/endoscopy_tool_tracking.yaml" "${APP_YAML_FILE}")
+
+install(
+  DIRECTORY ${gxf_lstm_tensor_rt_inference_BINARY_DIR}/
+  DESTINATION "${CMAKE_SOURCE_DIR}/install/endoscopy_tool_tracking_cpp"
+  FILES_MATCHING PATTERN "*.so"
+  PATTERN "CMakeFiles" EXCLUDE)
+
+install(
+  FILES
+    ${lstm_tensor_rt_inference_BINARY_DIR}/liblstm_tensor_rt_inference.so
+    ${tool_tracking_postprocessor_BINARY_DIR}/libtool_tracking_postprocessor.so
+  DESTINATION "${CMAKE_SOURCE_DIR}/install/endoscopy_tool_tracking_cpp"
+  COMPONENT "holohub-apps"
+)

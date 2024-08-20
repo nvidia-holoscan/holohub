@@ -678,6 +678,9 @@ build() {
   run_command cmake --build ${build_path} -j
   ret=$?
   check_exit_code $ret "Error building application."
+  run_command cmake --install ${build_path}
+  ret=$?
+  check_exit_code $ret "Error installing application."
 
   if [ $benchmark == true ]; then
     app_source_root_path=$(get_app_source_root_dir $1)

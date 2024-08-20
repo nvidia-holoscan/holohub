@@ -16,50 +16,15 @@
 set -e
 
 GIT_ROOT=$(readlink -f ./$(git rev-parse --show-cdup))
+APP_PATH="$GIT_ROOT/install/endoscopy_tool_tracking_python"
 
-# Utilities
+. $GIT_ROOT/utilities/bash_utils.sh
 
-YELLOW="\e[1;33m"
-RED="\e[1;31m"
-NOCOLOR="\e[0m"
-
-print_error() {
-    echo -e "${RED}ERROR${NOCOLOR}:" $*
-}
-
-get_host_gpu() {
-    if ! command -v nvidia-smi >/dev/null; then
-        print_error Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
-        echo -n "dgpu"
-    elif nvidia-smi  2>/dev/null | grep nvgpu -q; then
-        echo -n "igpu"
-    else
-        echo -n "dgpu"
-    fi
-}
-
-get_host_arch() {
-    echo -n "$(uname -m)"
-}
-
-if [ ! -d $GIT_ROOT/build/endoscopy_tool_tracking ]; then
+if [ ! -d $APP_PATH ]; then
     print_error "Please build the Endoscopy Tool Tracking application first with the following command:"
     print_error "./dev_container build_and_run endoscopy_tool_tracking"
     exit -1
 fi
-
-APP_PATH="$GIT_ROOT/endoscopy_tool_tracking_python"
-echo Creating application directory $APP_PATH...
-mkdir -p $APP_PATH
-echo Copying application files to $APP_PATH...
-cp -f $GIT_ROOT/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py $APP_PATH
-cp -f $GIT_ROOT/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml $APP_PATH
-cp -f $GIT_ROOT/build/endoscopy_tool_tracking/gxf_extensions/lstm_tensor_rt_inference/*.so $APP_PATH
-cp -f $GIT_ROOT/build/endoscopy_tool_tracking/operators/lstm_tensor_rt_inference/liblstm_tensor_rt_inference.so $APP_PATH
-cp -f $GIT_ROOT/build/endoscopy_tool_tracking/operators/tool_tracking_postprocessor/libtool_tracking_postprocessor.so $APP_PATH
-cp -rf $GIT_ROOT/build/endoscopy_tool_tracking/python/lib/holohub $APP_PATH
-echo Updating application configuration...
-sed -e s!gxf_extensions/lstm_tensor_rt_inference/!!g -i $APP_PATH/endoscopy_tool_tracking.yaml
 
 PLATFORM=x64-workstation
 GPU=$(get_host_gpu)

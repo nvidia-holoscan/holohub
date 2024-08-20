@@ -16,44 +16,15 @@
 set -e
 
 GIT_ROOT=$(readlink -f ./$(git rev-parse --show-cdup))
+APP_PATH="$GIT_ROOT/install/object_detection_torch"
 
-# Utilities
+. $GIT_ROOT/utilities/bash_utils.sh
 
-YELLOW="\e[1;33m"
-RED="\e[1;31m"
-NOCOLOR="\e[0m"
-
-print_error() {
-    echo -e "${RED}ERROR${NOCOLOR}:" $*
-}
-
-get_host_gpu() {
-    if ! command -v nvidia-smi >/dev/null; then
-        print_error Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
-        echo -n "dgpu"
-    elif nvidia-smi  2>/dev/null | grep nvgpu -q; then
-        echo -n "igpu"
-    else
-        echo -n "dgpu"
-    fi
-}
-
-get_host_arch() {
-    echo -n "$(uname -m)"
-}
-
-if [ ! -d $GIT_ROOT/build/object_detection_torch ]; then
+if [ ! -d $APP_PATH ]; then
     print_error "Please build the Object Detection Torch application first with the following command:"
     print_error "./dev_container build_and_run object_detection_torch"
     exit -1
 fi
-
-APP_PATH="$GIT_ROOT/object_detection_torch"
-echo Creating application directory $APP_PATH...
-mkdir -p $APP_PATH
-echo Copying application files to $APP_PATH...
-cp -f $GIT_ROOT/build/object_detection_torch/applications/object_detection_torch/object_detection_torch $APP_PATH
-cp -f $GIT_ROOT/build/object_detection_torch/applications/object_detection_torch/object_detection_torch.yaml $APP_PATH
 
 PLATFORM=x64-workstation
 GPU=$(get_host_gpu)
