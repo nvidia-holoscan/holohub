@@ -121,7 +121,7 @@ run_benchmark() {
     if [[ "${realtime}" = "true" ]]; then
         realtime_str="realtime"
     fi
-    output=${output:-"${SCRIPT_DIR}/output/${app}_${runs}_${instances}_${messages}_${scheduler}_${headless}_${realtime}"}
+    output=${output:-"${SCRIPT_DIR}/output/${app}_${runs}_${instances}_${messages}_${scheduler}_${headless_str}_${realtime_str}"}
     mkdir -p $(dirname ${output})
 
     sed -i "s/^  headless: .*/  headless: ${headless}/" ${APP_CONFIG_PATH}
@@ -313,15 +313,13 @@ main() {
     fi
     
     for data_dir in ${data_dirs[@]}; do
-        # for pattern_suffix in "display_realtime" "display_offline" "headless_offline"; do
-        for pattern_suffix in "false_true" "false_false" "true_false"; do
+        for pattern_suffix in "display_realtime" "display_offline" "headless_offline"; do
             plot_benchmark \
                 --log_pattern "endoscopy_tool_tracking_3_[0-9]_1000_greedy_$pattern_suffix" \
                 --log_dir ${data_dir}
         done
 
-        # for pattern_suffix in "display_realtime" "headless_offline"; do
-        for pattern_suffix in "false_true" "true_false"; do
+        for pattern_suffix in "display_realtime" "headless_offline"; do
             plot_benchmark \
                 --log_pattern "multiai_ultrasound_3_[0-9]_1000_greedy_$pattern_suffix" \
                 --log_dir ${data_dir}
