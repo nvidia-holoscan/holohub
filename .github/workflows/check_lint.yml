@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Dependencies
-        run: ./run install_lint_deps
+        run: sudo ./run install_lint_deps
 
       - name: Run linter
         run: ./run lint

@@ -14,6 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+# Required fields for packaging the application
+# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+application:
+  title: Holohub - Object Detection Torch
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 1Gi
+  gpuMemory: 2Gi
+
 extensions:
 
 source: "replayer" # or "aja"

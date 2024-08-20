@@ -1,5 +1,6 @@
 build/
 build-*/
+install/
 data/
 ci/
 CTestConfig.cmake
