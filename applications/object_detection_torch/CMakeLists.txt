@@ -122,13 +122,13 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS object_detection_torch
-  DESTINATION "${CMAKE_SOURCE_DIR}/install/object_detection_torch"
+  DESTINATION object_detection_torch
   COMPONENT "holohub-apps"
 )
 
 install(
   FILES
     "${object_detection_torch_BINARY_DIR}/object_detection_torch.yaml"
-  DESTINATION "${CMAKE_SOURCE_DIR}/install/object_detection_torch"
+  DESTINATION object_detection_torch
   COMPONENT "holohub-apps"
 )
