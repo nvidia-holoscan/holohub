@@ -330,7 +330,7 @@ int main(int argc, char** argv) {
 
   auto app = holoscan::make_application<App>();
 
-  HOLOSCAN_LOG_INFO("Using configuration file from {}", data_directory);
+  HOLOSCAN_LOG_INFO("Using configuration file from {}", config_path);
   app->config(config_path);
 
   auto source = app->from_config("source").as<std::string>();
