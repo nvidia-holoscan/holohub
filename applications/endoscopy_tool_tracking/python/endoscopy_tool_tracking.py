@@ -322,7 +322,9 @@ if __name__ == "__main__":
         args.data = default_data_path
 
     if not os.path.isdir(args.data):
-        raise ValueError(f"Data path '{args.data}' does not exist. Use --data or set HOLOSCAN_INPUT_PATH environment variable.")
+        raise ValueError(
+            f"Data path '{args.data}' does not exist. Use --data or set HOLOSCAN_INPUT_PATH environment variable."
+        )
 
     app = EndoscopyApp(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
