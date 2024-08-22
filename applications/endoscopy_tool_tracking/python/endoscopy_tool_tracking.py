@@ -275,6 +275,7 @@ class EndoscopyApp(Application):
 
 
 if __name__ == "__main__":
+    default_data_path = f"{os.getcwd()}/data/endoscopy"
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
     parser.add_argument(
@@ -303,8 +304,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--data",
-        default=os.environ.get("HOLOSCAN_INPUT_PATH", None),
-        help=("Set the data path"),
+        default=os.environ.get("HOLOSCAN_INPUT_PATH", default_data_path),
+        help=("Set the data path (default: %(default)s)."),
     )
     args = parser.parse_args()
     record_type = args.record_type
@@ -315,6 +316,13 @@ if __name__ == "__main__":
         config_file = os.path.join(os.path.dirname(__file__), "endoscopy_tool_tracking.yaml")
     else:
         config_file = args.config
+
+    # handle case where HOLOSCAN_INPUT_PATH is set with no value
+    if len(args.data) == 0:
+        args.data = default_data_path
+
+    if not os.path.isdir(args.data):
+        raise ValueError(f"Data path '{args.data}' does not exist. Use --data or set HOLOSCAN_INPUT_PATH environment variable.")
 
     app = EndoscopyApp(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
