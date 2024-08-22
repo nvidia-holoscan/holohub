@@ -992,9 +992,13 @@ class EntityRecorder:
         return entity
 
 
-def iter_input_frames(f, width, height, channels):
+def iter_input_frames(f, width, height, channels, max_frames=-1):
     frame_byte_count = width * height * channels
+    counter = 0
     while True:
+        if (max_frames > 0) and (counter >= max_frames):
+            break
+        counter += 1
         frame_bytes = f.read(frame_byte_count)
         if len(frame_bytes) != frame_byte_count:
             break
@@ -1015,6 +1019,7 @@ def main():
     parser.add_argument("--width", required=True, type=int, help="Input width in pixels")
     parser.add_argument("--height", required=True, type=int, help="Input height in pixels")
     parser.add_argument("--channels", default=3, type=int, help="Channel count")
+    parser.add_argument("--duration", default=-1, type=int, help="process only the first <duration> seconds of the video. Setting to -1 processes the entire video")
     parser.add_argument("--framerate", default=30, type=int, help="Output frame rate")
     parser.add_argument("--basename", default="tensor", help="Basename for gxf entities")
     parser.add_argument("--directory", default="./", help="Directory for gxf entities")
@@ -1023,11 +1028,16 @@ def main():
     with EntityRecorder(
         directory=args.directory, basename=args.basename, framerate=args.framerate
     ) as recorder:
+        if args.duration == -1:
+            max_frames = -1
+        else:
+            max_frames = args.duration * args.framerate
         for frame in iter_input_frames(
             sys.stdin.buffer,
             width=args.width,
             height=args.height,
             channels=args.channels,
+            max_frames=max_frames,
         ):
             recorder.add(frame)
 
