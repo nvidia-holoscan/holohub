@@ -273,7 +273,7 @@ class App : public holoscan::Application {
   std::string source_ = "replayer";
   std::string visualizer_name = "holoviz";
   Record record_type_ = Record::NONE;
-  std::string datapath = "data/endoscopy";
+  std::string datapath = "";
 };
 
 /** Helper function to parse the command line arguments */
@@ -309,12 +309,15 @@ int main(int argc, char** argv) {
   if (data_directory.empty()) {
     // Get the input data environment variable
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
-    if (input_path == nullptr || input_path[0] == '\0') {
+    if (input_path != nullptr && input_path[0] != '\0') {
+      data_directory = std::string(input_path);
+    } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/endoscopy")) {
+      data_directory = std::string((std::filesystem::current_path() / "data/endoscopy").c_str());
+    } else {
       HOLOSCAN_LOG_ERROR(
           "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
       exit(-1);
     }
-    data_directory = std::string(input_path);
   }
 
   if (config_path.empty()) {
