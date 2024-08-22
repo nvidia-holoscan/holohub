@@ -841,7 +841,7 @@ for k, v in obj[project_type]["run"].items():
       workdir="cd ${holohub_build_dir}"
    fi
 
-   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR} && export HOLOHUB_DATA_PATH=${holohub_data_dir} && export HOLOSCAN_INPUT_PATH=${holohub_data_dir}"
+   local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR} && export HOLOHUB_DATA_PATH=${holohub_data_dir} && export HOLOSCAN_INPUT_PATH=${HOLOSCAN_INPUT_PATH:=$holohub_data_dir}"
    local reset_environment="export PYTHONPATH=${PYTHONPATH} && export HOLOHUB_DATA_PATH=\"${HOLOHUB_DATA_PATH}\" && export HOLOSCAN_INPUT_PATH=\"${HOLOSCAN_INPUT_PATH}\""
 
    if [ ${verbose} ]; then
