@@ -920,6 +920,35 @@
             }
         },
         //#endregion volume_rendering
+        //#region gRPC Hello World
+        {
+            "name": "(gdb) grpc_hello_world/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_hello_world",
+            "program": "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_hello_world",
+            "args": [
+                "--config",
+                "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_hello_world.yaml",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_hello_world/applications/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_hello_world",
+                "order": 1
+            }
+        }
+        //#endregion gRPC Hello World
     ],
     "compounds": [
         {

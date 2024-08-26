@@ -2,6 +2,7 @@
     "env": {
         "myIncludePath": [
             "/workspace/holoscan-sdk/include",
+            "/opt/nvidia/holoscan/include",
             "${workspaceFolder}/operators",
             "${fileWorkspaceFolder}",
             "${workspaceFolder}"

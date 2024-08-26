@@ -54,6 +54,8 @@
         "source=${localEnv:XDG_RUNTIME_DIR},target=${localEnv:XDG_RUNTIME_DIR},type=bind,consistency=cached",
         // Persist home directory to a volume
         "source=holohub-vscode-profile,target=/home/holohub/,type=volume",
+        "source=/home/vicchang/sc/gitlab/holoscan-sdk/public/install-x86_64,target=/opt/nvidia/holoscan,type=bind,consistency=cached",
+        "source=/home/vicchang/sc/gitlab/holoscan-sdk/public,target=/workspace/holoscan-sdk,type=bind,consistency=cached",
     ],
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/holohub,type=bind,consistency=cached",
     "workspaceFolder": "/workspace/holohub",
