@@ -484,6 +484,7 @@ Usage: ./dev_container build [options]
     --docker_file :  path to Dockerfile to use for building container.
     --img : Specify fully qualified container name
     --verbose : Print variables passed to docker build command
+    --no-cache : Do not use cache when building the image
     '
 }
 
@@ -496,6 +497,7 @@ build() {
     local img=$(get_default_img)
     local compute_capacity=$(get_compute_capacity)
     local print_verbose=0
+    local no_cache=
 
     # Check if buildx exists
     if ! $(docker buildx version &>/dev/null); then
@@ -538,6 +540,10 @@ build() {
                 exit 1
             fi
             ;;
+        --no-cache)
+            no_cache="--no-cache"
+            shift
+            ;;
         --verbose)
             print_verbose=1
             shift
@@ -566,6 +572,7 @@ build() {
         --build-arg GPU_TYPE=${gpu_type} \
         --build-arg COMPUTE_CAPACITY=${compute_capacity} \
         --network=host \
+        ${no_cache} \
         -f ${docker_file_path} \
         -t ${img} \
         ${HOLOHUB_ROOT}
