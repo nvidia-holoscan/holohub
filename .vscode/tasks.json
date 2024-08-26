@@ -324,6 +324,40 @@
         },
         {
             "type": "shell",
+            "label": "Build holoviz_hdr",
+            "command": "./run",
+            "args": [
+                "build",
+                "holoviz_hdr",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build holoviz_srgb",
+            "command": "./run",
+            "args": [
+                "build",
+                "holoviz_srgb",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build holoviz_vsync",
             "command": "./run",
             "args": [
@@ -346,23 +380,6 @@
             "args": [
                 "build",
                 "holoviz_yuv",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
-            "label": "Build holoviz_srgb",
-            "command": "./run",
-            "args": [
-                "build",
-                "holoviz_srgb",
                 "--type",
                 "debug"
             ],
