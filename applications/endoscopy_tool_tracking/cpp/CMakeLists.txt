@@ -73,7 +73,8 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME endoscopy_tool_tracking_cpp_test
-           COMMAND endoscopy_tool_tracking ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
+           COMMAND endoscopy_tool_tracking
+                   --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(endoscopy_tool_tracking_cpp_test PROPERTIES
