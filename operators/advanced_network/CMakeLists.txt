@@ -83,8 +83,8 @@ target_compile_options(advanced_network_rx PUBLIC ${DPDK_CFLAGS})
 target_compile_options(advanced_network_tx PUBLIC ${DPDK_CFLAGS})
 
 target_link_libraries(advanced_network_common PUBLIC holoscan::core)
-target_link_libraries(advanced_network_common PUBLIC -L${DPDK_LIBRARY_DIRS} ${DPDK_LIBRARIES} ${DPDK_EXTRA_LIBS})
-target_link_libraries(advanced_network_common PUBLIC -L${DOCA_LIBRARY_DIRS} -ldoca_gpunetio libdoca_gpunetio_device.a -ldoca_common -ldoca_argp -ldoca_eth -ldoca_flow)
+target_link_directories(advanced_network_common PUBLIC ${DPDK_LIBRARY_DIRS} ${DOCA_LIBRARY_DIRS})
+target_link_libraries(advanced_network_common PUBLIC ${DPDK_LIBRARIES} ${DPDK_EXTRA_LIBS} -ldoca_gpunetio libdoca_gpunetio_device.a -ldoca_common -ldoca_argp -ldoca_eth -ldoca_flow)
 target_link_libraries(advanced_network_rx PUBLIC advanced_network_common)
 target_link_libraries(advanced_network_tx PUBLIC advanced_network_common)
 
