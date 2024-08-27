@@ -94,7 +94,7 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 ./run build adv_networking_bench
 
 # Run app
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
 ```
 
 <mark>Receiver side, CUDA Persistent kernel note</mark>
