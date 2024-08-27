@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include "adv_network_common.h"
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
@@ -36,6 +37,12 @@ class AdvNetworkOpRx : public Operator {
 
  public:
     HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkOpRx);
+
+    // Constructor with output ports initialization
+    HOLOSCAN_OPERATOR_FORWARD_TEMPLATE()
+    AdvNetworkOpRx(std::unordered_set<std::string> output_ports_list, ArgT&& arg, ArgsT&&... args)
+        : Operator(std::forward<ArgT>(arg), std::forward<ArgsT>(args)...), output_ports(std::move(output_ports_list)) {}
+    
     AdvNetworkOpRx() = default;
     ~AdvNetworkOpRx() = default;
 
@@ -52,6 +59,8 @@ class AdvNetworkOpRx : public Operator {
     static constexpr int RX_BURST_SIZE = 128;
     AdvNetworkOpRxImpl *impl;
     std::unordered_map<uint32_t, std::string> pq_map_;
+    std::unordered_set<std::string> output_ports;
+
     Parameter<std::string> if_name_;
     Parameter<std::string> cpu_cores_;
     Parameter<std::string> master_core_;
