@@ -836,121 +836,7 @@ build_and_install_desc() { c_echo 'Build the application and install the binarie
 }
 
 build_and_install() {
-    local app_name=""
-    local app_language=""
-    local container_build_args=""
-    local container_launch_args=""
-    local docker_opts="--entrypoint=bash"
-    local image_name=""
-    local docker_file=""
-    local extra_build_args=""
-    local extra_build_with=""
-
-    # Parse CLI arguments next
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-        --base_img)
-            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                container_build_args+=" --base_img $2"
-                shift 2
-            else
-                echo "Error: --base_img requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --docker_file)
-            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                docker_file="$2"
-                shift 2
-            else
-                echo "Error: --docker_file requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --container_args)
-            if [[ -n "$2" ]]; then
-                docker_opts+=" $2"
-                shift 2
-            else
-                echo "Error: --container_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --build_args)
-            if [[ -n "$2" ]]; then
-                extra_build_args="--configure-args '$2'"
-                shift 2
-            else
-                echo "Error: --build_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --build_with)
-            if [[ -n "$2" ]]; then
-                extra_build_with="--with '$2'"
-                shift 2
-            else
-                echo "Error: --build_with requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --verbose)
-            container_build_args+=" --verbose"
-            container_launch_args+=" --verbose"
-            shift
-            ;;
-        --language)
-            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                app_language="$2"
-                shift 2
-            else
-                echo "Error: --language requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        *)
-            if [[ -z "$app_name" ]]; then
-                app_name="$1"
-                shift
-            else
-                echo "Error: Invalid argument '$1'"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        esac
-    done
-    if [ -z "${app_name}" ]; then
-        fatal "Must specify a HoloHub application to build and run."
-    fi
-
-    if [[ -z "${docker_file}" ]]; then
-        docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
-    fi
-    if [[ -n "${docker_file}" ]]; then
-        container_build_args+=" --docker_file ${docker_file}"
-    fi
-
-    if [[ -z "$image_name" ]]; then
-        if [[ -n "${docker_file}" ]] && [[ "${docker_file}" != "${SCRIPT_DIR}/Dockerfile" ]]; then
-            image_name="holohub:${app_name}"
-        else
-            image_name=$(get_default_img)
-        fi
-    fi
-
-    container_build_args+=" --img $image_name"
-    container_launch_args+=" --img $image_name"
-
-    run_command ${SCRIPT_DIR}/dev_container build $container_build_args
-    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name --install $extra_build_with $extra_build_args"
-
+    build_and_run --install --no_run "$@"
 }
 
 build_and_run_desc() { c_echo 'Build and run a requested application in a Docker container
@@ -967,6 +853,8 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
+        --no_run : Skip launching the application.
+        --install: Install the application into install/<app> if supported.
         --build_args : Build the app with additional CMake configuration arguments
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
@@ -987,6 +875,8 @@ build_and_run() {
     local extra_build_args=""
     local extra_build_with=""
     local extra_run_args=""
+    local run_app=1
+    local install=""
 
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
@@ -1065,6 +955,26 @@ build_and_run() {
                 exit 1
             fi
             ;;
+        --no_run)
+            if [[ -n "$2" ]]; then
+                run_app=0
+                shift 1
+            else
+                echo "Error: --run_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --install)
+            if [[ -n "$2" ]]; then
+                install="--install"
+                shift 1
+            else
+                echo "Error: --run_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
         --verbose)
             container_build_args+=" --verbose"
             container_launch_args+=" --verbose"
@@ -1125,11 +1035,17 @@ build_and_run() {
     container_build_args+=" --img $image_name"
     container_launch_args+=" --img $image_name"
 
+    c_echo "Building application container..."
     run_command ${SCRIPT_DIR}/dev_container build $container_build_args
     if [[ $build_app == 1 ]]; then
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $extra_build_with $extra_build_args"
+        c_echo "Building application..."
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $extra_build_with $extra_build_args"
     fi
-    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run launch $app_name $app_language $extra_run_args"
+
+    if [[ $run_app == 1 ]]; then
+        c_echo "Launching application..."
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run launch $app_name $app_language $extra_run_args"
+    fi
 }
 
 vscode_desc() { c_echo 'Launch VS Code in Dev Container
