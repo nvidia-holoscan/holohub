@@ -817,21 +817,8 @@ launch() {
 }
 
 build_and_install_desc() { c_echo 'Build the application and install the binaries into install/<app> if supported
-    Usage: ./dev_container install <application_name>
-    Options:
-        --base_img : Fully qualified base image name, e.g. holoscan-sdk-dev:latest
-        --docker_file : Path to Dockerfile to use for building container.
-            Defaults to:
-            - Application-provided "Dockerfile", if it exists;
-            - Otherwise the top-level HoloHub "Dockerfile"
-            If `--img` is not specified then a custom image tag will be defined.
-        --language : Specify the app language implementation to run.
-                     Some applications provide both `cpp` and `python` implementations.
-        --container_args: Additional Docker run args.
-        --build_args : Build the app with additional CMake configuration arguments
-        --build_with : List of optional operators that should be built separated by semicolons (;)
-        --verbose : Print extra output to console
-        --dryrun : View build and run commands without doing anything
+    Usage: ./dev_container build_and_install <application_name>
+    View options with `./dev_container build_and_run_desc`
     '
 }
 
