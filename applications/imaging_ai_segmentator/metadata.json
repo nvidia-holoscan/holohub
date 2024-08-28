@@ -82,7 +82,7 @@
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
-			"workdir": "holohub_app_bin"
+			"workdir": "holohub_bin"
 		}
 	}
 }

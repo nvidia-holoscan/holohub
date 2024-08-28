@@ -57,6 +57,8 @@ add_subdirectory(holoviz)
 
 add_holohub_application(hyperspectral_segmentation)
 
+add_holohub_application(imaging_ai_segmentator)
+
 add_holohub_application(multiai_endoscopy)
 
 add_holohub_application(multiai_ultrasound DEPENDS
