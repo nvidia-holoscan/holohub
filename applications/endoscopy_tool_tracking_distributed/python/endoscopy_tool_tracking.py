@@ -113,7 +113,6 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
 
-    print(f"==========================> data={args.data}")
     if args.data is None:
         logger.error(
             "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable."

@@ -437,11 +437,15 @@
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -475,11 +479,15 @@
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -513,11 +521,15 @@
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -590,9 +602,9 @@
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "presentation": {
                 "hidden": true,
@@ -626,9 +638,9 @@
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "presentation": {
                 "hidden": true,
@@ -662,9 +674,9 @@
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "presentation": {
                 "hidden": true,
