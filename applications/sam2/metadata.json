@@ -1,0 +1,42 @@
+{
+	"application": {
+		"name": "sam2",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"SAM2 Model"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"SAM2": {
+				"source": "https://github.com/facebookresearch/segment-anything-2",
+				"version": "1.0",
+				"license": "Apache-2.0"
+			}
+		},
+	
+		"run": {
+			"command": "python  '<holohub_app_source>/segment_one_thing.py'",
+			"workdir": "holohub_bin"
+		}
+	}
+}
