@@ -13,28 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch
 import datetime
-import numpy as np
-from PIL import Image
+
 import cupy as cp
 import cupyx.scipy.ndimage
-
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-
 import holoscan as hs
+import numpy as np
+import torch
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
+from PIL import Image
+from sam2.build_sam import build_sam2
+from sam2.sam2_image_predictor import SAM2ImagePredictor
 from utils import CupyArrayPainter, DecoderInputData, PointMover, save_cupy_tensor
-
-
-
 
 
 class SAM2Operator(Operator):
     """Operator to perform inference using the SAM2 SAM2ImagePredictor model"""
+
     def __init__(self, *args, checkpoint_path, model_cfg, **kwargs):
         super().__init__(*args, **kwargs)
         self.processor = ImagePredictorProcessor(checkpoint_path, model_cfg)
@@ -56,7 +52,7 @@ class SAM2Operator(Operator):
         # transpose the image tensor from (C, H, W) to (H, W, C)
         image = image.transpose(1, 2, 0)
 
-        # Set input point and label 
+        # Set input point and label
         input_point = cp.asarray(op_input.receive("point_coords").get("point_coords"))
         # input_point = np.array([[500, 375]])
         input_label = np.array([1])
@@ -80,10 +76,14 @@ class SAM2Operator(Operator):
             out_message.add(hs.as_tensor(value), key)
         op_output.emit(out_message, "out")
 
+
 class ImagePredictorProcessor:
-    """ Wrapper around the SAM2ImagePredictor class"""
+    """Wrapper around the SAM2ImagePredictor class"""
+
     def __init__(self, checkpoint_path, model_cfg, device="cuda"):
-        self.model = build_sam2(model_cfg, checkpoint_path, device=device, apply_postprocessing=False)
+        self.model = build_sam2(
+            model_cfg, checkpoint_path, device=device, apply_postprocessing=False
+        )
         self.predictor = SAM2ImagePredictor(self.model)
 
         # use bfloat16 for the entire notebook
@@ -103,10 +103,19 @@ class ImagePredictorProcessor:
         )
         return masks, scores, logits
 
+
 class SamPostprocessorOp(Operator):
     """Operator to post-process inference output:"""
 
-    def __init__(self, *args, out_tensor, save_intermediate=False, verbose=False, slice_dim:int=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        out_tensor,
+        save_intermediate=False,
+        verbose=False,
+        slice_dim: int = None,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         # Output tensor names
         self.outputs = out_tensor
@@ -203,7 +212,7 @@ class SamPostprocessorOp(Operator):
         unpadded_tensor = cp.expand_dims(unpadded_tensor, 1).astype(cp.float32)
         unpadded_logits = unpadded_logits[:, self.slice_dim, :, :]
         unpadded_logits = cp.expand_dims(unpadded_logits, 1).astype(cp.float32)
-            
+
         if self.save_intermediate:
             save_cupy_tensor(
                 folder_path="applications/segment_everything/downloads/numpy",
@@ -276,9 +285,7 @@ class SamPostprocessorOp(Operator):
         # make array ccontiguous
         unpadded_tensor = cp.ascontiguousarray(unpadded_tensor)
         unpadded_logits = cp.ascontiguousarray(unpadded_logits)
-        output_dict = {
-            "masks": unpadded_tensor,
-            "logits": unpadded_logits}
+        output_dict = {"masks": unpadded_tensor, "logits": unpadded_logits}
 
         out_message = Entity(context)
         for output in self.outputs:
@@ -319,6 +326,7 @@ class SamPostprocessorOp(Operator):
         else:
             raise ValueError("Invalid tensor dimension")
         return unpadded_tensor
+
 
 class FormatInferenceInputOp(Operator):
     """Operator to format input image for inference"""

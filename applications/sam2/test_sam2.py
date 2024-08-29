@@ -1,4 +1,3 @@
-
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sam2operator import ImagePredictorProcessor
-from utils import show_masks
+import filecmp
 import unittest
+
 import numpy as np
 from PIL import Image
-import filecmp
+from sam2operator import ImagePredictorProcessor
+from utils import show_masks
 
 
 class TestSam2(unittest.TestCase):
     def test_sam2(self):
         sam2_checkpoint = "/workspace/segment-anything-2/checkpoints/sam2_hiera_large.pt"
         model_cfg = "sam2_hiera_l.yaml"
-        image_path = '/workspace/segment-anything-2/notebooks/images/cars.jpg'
+        image_path = "/workspace/segment-anything-2/notebooks/images/cars.jpg"
         save_dir = "/workspace/holohub/applications/sam2/tests"
 
         # Load image
@@ -48,7 +48,15 @@ class TestSam2(unittest.TestCase):
         logits = logits[sorted_ind]
 
         # Show masks and save the result
-        show_masks(image, masks, scores, point_coords=input_point, input_labels=input_label, borders=True, save_dir=save_dir)
+        show_masks(
+            image,
+            masks,
+            scores,
+            point_coords=input_point,
+            input_labels=input_label,
+            borders=True,
+            save_dir=save_dir,
+        )
 
         # compare the saved image with the expected image
         expected_image_path = "/workspace/holohub/applications/sam2/tests/expected/mask_0.png"
@@ -59,7 +67,7 @@ class TestImagePredictorProcessor(unittest.TestCase):
     def setUp(self):
         sam2_checkpoint = "/workspace/segment-anything-2/checkpoints/sam2_hiera_large.pt"
         model_cfg = "sam2_hiera_l.yaml"
-        image_path = '/workspace/segment-anything-2/notebooks/images/cars.jpg'
+        image_path = "/workspace/segment-anything-2/notebooks/images/cars.jpg"
 
         # Load image
         image = Image.open(image_path)
@@ -94,9 +102,10 @@ class TestImagePredictorProcessor(unittest.TestCase):
         # check the shape of the outputs
         # the output has transposed shape compared to the input image
         # e.g. source is (C, H, W) and target is (H, W, C)
-        self.assertEqual(masks.shape,  self.image.transpose(2, 0, 1).shape)
+        self.assertEqual(masks.shape, self.image.transpose(2, 0, 1).shape)
         self.assertEqual(scores.shape, (3,))
         self.assertEqual(logits.shape, (3, 256, 256))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

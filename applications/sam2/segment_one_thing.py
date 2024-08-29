@@ -14,19 +14,18 @@
 # limitations under the License.
 
 import os
-import torch
 from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
 from holoscan.resources import UnboundedAllocator
-
-from sam2operator import SAM2Operator, SamPostprocessorOp, FormatInferenceInputOp, PointPublisher
+from sam2operator import FormatInferenceInputOp, PointPublisher, SAM2Operator, SamPostprocessorOp
 
 
 class SegmentOneThingApp(Application):
-    """ Segment one thing application segments one object in the current frame of a video stream, 
-    based on the position of the point query. """
+    """Segment one thing application segments one object in the current frame of a video stream,
+    based on the position of the point query."""
+
     def __init__(self, source="v4l2", save_intermediate=False, verbose=False):
         super().__init__()
         self.name = "Segment one thing App"
@@ -82,7 +81,7 @@ class SegmentOneThingApp(Application):
             allocator=pool,
             **sam2_args,
         )
-        # create postprocessor operator. 
+        # create postprocessor operator.
         # The posrprocessor operator scales the output of the model to the input image size
         # and applies a colormap to the output.
         postprocessor_args = self.kwargs("postprocessor")
