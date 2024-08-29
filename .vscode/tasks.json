@@ -109,6 +109,23 @@
         },
         {
             "type": "shell",
+            "label": "Build sam2",
+            "command": "./run",
+            "args": [
+                "build",
+                "sam2",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build endoscopy_tool_tracking",
             "command": "./run",
             "args": [
