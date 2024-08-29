@@ -20,7 +20,19 @@ The input for this application is a folder of DICOM image files from a CT series
 
 One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, is copied and made available [here](https://urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/)
 
+
 ## Run Instructions
+
+### Quick Start Using dev_container
+
+Use the following to build and run the application:
+
+```bash
+mkdir output
+./dev_container build_and_run imaging_ai_segmentator --container_args "-v $PWD/output:/var/holoscan/output"
+```
+
+### Dev Environment
 
 This application only has Python implementation depending on a set of Python packages from [Pypi](https://pypi.org).
 
