@@ -3,10 +3,32 @@
 This tutorial provides a simplified interface to evaluate Holoscan SDK performance on two
 commonly visited HoloHub applications.
 
+## Background
+
+Holoscan SDK emphasizes low end-to-end latency in application pipelines. In addition to other
+benchmarks, we can use HoloHub applications to evaluate Holoscan SDK performance over releases.
+
+In this tutorial we provide a reusable workflow to evaluate end-to-end latency performance on
+the Endoscopy Tool Tracking and Multi-AI Ultrasound HoloHub projects. These projects are generally
+maintained by the NVIDIA Holoscan team and demonstrate baseline Holoscan SDK inference pipelines
+with video replay and Holoviz rendering output.
+
+Benchmark scenarios include:
+- Running multiple Holoscan SDK pipelines concurrently on a single machine
+- Running video replay input at real-time speeds or as fast as possible
+- Running Holoviz output with either visual rendering or in headless mode
+
+We plan to release HoloHub benchmarks in the [release subfolder](release) following Holoscan SDK general
+releases. You can follow the tutorial below to similarly evaluate performance on your own machine.
+
+Refer to related documents for more information:
+- the [results report template file](template/results.md.tmpl) provides additional background on
+definitions and background
+- versioned releases are available for review in the [release subfolder](release)
+
 ## Getting Started
 
-Both the Endoscopy Tool Tracking and the Multi-AI Ultrasound applications use the
-HoloHub base container.
+Data collection can be run in the HoloHub base container for both the Endoscopy Tool Tracking and the Multi-AI Ultrasound applications. We've provided a custom Dockerfile with tools to process collected data into a benchmark report.
 
 ```bash
 # Build the container
@@ -42,17 +64,19 @@ Alternatively, collect results across platforms. On each machine:
 ```bash
 ./run launch release_benchmarking
 ```
-2. Include platform configuration information:
+2. Add platform configuration information:
 ```bash
 ./run launch release_benchmarking --extra_args "--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
-2. Compress output contents:
+3. Transfer output contents from each platform to a single machine:
 ```bash
+# Compress information for transfer
 pushd benchmarks/release_benchmarking
 tar cvf benchmarks-<platform-name>.tar.gz output/*
-```
-3. Copy and extract contents to a platform subfolder on a single machine:
-```bash
+
+# Migrate the results archive with your transfer tool of choice, such as SCP
+
+# Extract results to a subfolder on the target machine
 mkdir -p output/<release>/<platform-name>/
 pushd output/<release>/<platform-name>
 tar xvf benchmarks-<platform-name>
@@ -67,10 +91,10 @@ tar xvf benchmarks-<platform-name>
 
 ## Presenting Data
 
-You can use the template markdown file in the [`template`](./template/) folder to generate a PDF
-report with benchmark data with `pandoc` and `Jinja2`.
+You can use the template markdown file in the [`template`](./template/) folder to generate a markdown
+or PDF report with benchmark data with `pandoc` and `Jinja2`.
 
-1. Edit `template/release.json` with information about the benchmarking configuration, including
+1. Copy and edit `template/release.json` with information about the benchmarking configuration, including
 the release version, platform configurations, and local paths to processed data. Run
 `./run launch` to print JSON-formatted platform details to the console about the current system:
 ```bash
@@ -80,17 +104,20 @@ the release version, platform configurations, and local paths to processed data.
 2. Render the document with the Jinja CLI tool:
 ```bash
 pushd benchmarks/release_benchmarking
-jinja2 template/results.md.tmpl template/release.json --format=json > output/<release-version>.md
+jinja2 template/results.md.tmpl template/<release-version>.json --format=json > output/<release-version>.md
 ```
-3. Embed images as a PDF document:
+
+### (Optional) Generating a PDF report document
+
+You can convert the report to PDF format as an easy way to share your report as a single file
+with embedded plots.
+
+1. In your copy of `template/release.json`, update the `"format"` string to `"pdf"`.
+2. Follow the instructions above to generate your markdown report with Jinja2.
+3. Use `pandoc` to convert the markdown file to PDF:
 ```bash
 pushd output
 pandoc <release-version>.md -o <release-version>.pdf --toc
-```
-4. (Optional) Add the PDF document to the release folder:
-```bash
-pushd /workspace/holohub/benchmarks/release_benchmarking
-mv output/<release-version>.pdf release/
 ```
 
 ## Cleanup
