@@ -13,10 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "1.0.0",
+			"minimum_required_version": "2.3.0",
 			"tested_versions": [
-				"1.0.0",
-				"2.0.0"
+				"2.3.0"
 			]
 		},
 		"platforms": [
@@ -35,7 +34,7 @@
 		"dependencies": {
             "python-packages": {
                 "holoscan": {
-                    "version": "1.0.3",
+                    "version": "2.3.0",
                     "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
                 },
 				"highdicom": {

@@ -28,7 +28,7 @@ FROM ${BASE_IMAGE} AS base
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Holohub Environment Variables
-ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator
+ENV HOLOSCAN_INPUT_PATH=/var/holoscan/input
 ENV HOLOSCAN_OUTPUT_PATH=/var/holoscan/output
 ENV HOLOSCAN_MODEL_PATH=/opt/holoscan/models
 # --------------------------------------------------------------------------
@@ -71,5 +71,4 @@ RUN pip install gdown && \
     mkdir -p ${HOLOSCAN_MODEL_PATH} && \
     python -m gdown https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O ${HOLOSCAN_MODEL_PATH}/model.pt
 
-RUN mkdir -p ${HOLOSCAN_OUTPUT_PATH}/saved_images_folder && \
-    mkdir -p ${HOLOSCAN_MODEL_PATH}
+RUN mkdir -p ${HOLOSCAN_OUTPUT_PATH}
