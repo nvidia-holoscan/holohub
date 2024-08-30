@@ -27,7 +27,7 @@ The following is the screenshot of a slice of the segmentation saved in DICOM se
 
 ## Model
 
-This application uses the [MOMAI whole-body segmentation model](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation).
+This application uses the [MONAI whole-body segmentation model](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation).
 
 ## Data
 
