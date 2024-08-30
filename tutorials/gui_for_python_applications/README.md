@@ -62,7 +62,7 @@ class Window(QMainWindow):
 ```
 
 At a high level, this is all we need to launch a Python Holoscan application with a GUI.
-The `setupUi()` method defines the GUI widgets and layout, while `runHoloscanApp()` runs the Florence-2 application in a separate thread.
+The `setupUi()` method defines the GUI widgets and layout, while `runHoloscanApp()` runs the Florence-2 application in a separate thread within the process.
 Details of these methods are explored in the following sections.
 
 ## Creating the GUI Widgets and Layout
