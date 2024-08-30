@@ -198,7 +198,7 @@ class AISegApp(Application):
         _algorithm_family = codes.DCM.ArtificialIntelligence
         _algorithm_version = "0.1.0"
 
-        # Too simplify, only use Organ as the dummy category and type, though the body part
+        # To simplify, only use Organ as the dummy category and type, though the body part
         # names will be correct.
         segment_descriptions = []
         for i in range(1, 105):  # seg 1 to 104
@@ -223,27 +223,6 @@ class AISegApp(Application):
             name="dcm_seg_writer_op",
         )
 
-        # # The 3D volumes pre and post inference need to be saved and made available to the renderer,
-        # # along with a default transfer function config file, done by the following operator.
-        # # Note: Publishing a data available message is NOT done by this operator.
-        # volume_image_collector = VolumeImageCollectorOperator(
-        #     self,
-        #     output_folder=app_output_path / "volume_images",
-        #     name="volume_image_collector_op",
-        # )
-
-        # volume_image_publisher = VolumeImagePublisherOperator(
-        #     self,
-        #     topic="volume",
-        #     pub_endpoint=self._volumes_ready_pub_endpoint,
-        #     name="volume_image_publisher_op",
-        # )
-
-        # # Create the processing pipeline, by specifying the source and destination operators, and
-        # # ensuring the output from the former matches the input of the latter, in both name and type.
-        # self.add_flow(sub_op, qido_op)
-        # self.add_flow(qido_op, wado_op)
-        # self.add_flow(wado_op, study_loader_op, {("dicom", "input_data")})
         self.add_flow(
             study_loader_op, series_selector_op, {("dicom_study_list", "dicom_study_list")}
         )
@@ -262,27 +241,6 @@ class AISegApp(Application):
             {("study_selected_series_list", "study_selected_series_list")},
         )
         self.add_flow(seg_op, dicom_seg_writer, {("seg_image", "seg_image")})
-        # self.add_flow(
-        #     seg_op,
-        #     volume_image_collector,
-        #     {
-        #         (
-        #             seg_op.output_name_saved_images_folder,
-        #             volume_image_collector.input_name_saved_image_folder
-        #         )
-        #     },
-        # )
-
-        # self.add_flow(
-        #     volume_image_collector,
-        #     volume_image_publisher,
-        #     {
-        #         (
-        #             volume_image_collector.output_name_collected_image_folder,
-        #             volume_image_publisher.input_name_image_folder
-        #         )
-        #     },
-        # )
 
         self._logger.debug(f"End {self.compose.__name__}")
 

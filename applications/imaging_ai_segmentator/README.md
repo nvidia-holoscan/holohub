@@ -76,7 +76,7 @@ It takes quite a few minutes when this command is run the first time.
 
 ### Run the Application in Dev Environment
 
-It is strongly recommended a Python virtual environment is used for running the application in dev enviornment.
+It is strongly recommended a Python virtual environment is used for running the application in dev environment.
 
 This application only has Python implementation depending on a set of Python packages from [Pypi](https://pypi.org), however, a `build_and_install` step is needed to automate organizing Python code and downloading the model.
 
@@ -207,7 +207,7 @@ This example application provides all the necessary contents for HAP packaging, 
 
 **_Note_**
 
-The prerequsite is that the application `build_and_install` has been performed to stage the source and AI model files for packaging.
+The prerequisite is that the application `build_and_install` has been performed to stage the source and AI model files for packaging.
 
 ```
 source applications/imaging_ai_segmentator/packageHAP.sh
