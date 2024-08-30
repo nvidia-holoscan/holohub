@@ -30,5 +30,6 @@
       "os": ""
     },
     "processed_path": "dgpu/processed"
-  }
+  },
+  "format": "markdown"
 }
