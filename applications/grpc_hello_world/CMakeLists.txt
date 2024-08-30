@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ find_package(holoscan 2.0 REQUIRED CONFIG
 include(protos/common.cmake)
 
 set(CORE_PROTO_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/protos/helloworld.proto
+  ${CMAKE_CURRENT_LIST_DIR}/protos/holoscan.proto
 )
 grpc_generate_cpp(CORE_GRPC_SRCS CORE_GRPC_HDRS INCLUDE_DIRS ${CORE_PROTO_FILES})
 

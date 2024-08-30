@@ -15,32 +15,38 @@
  * limitations under the License.
  */
 
-#ifndef GRPC_SERVER_FRAGMENT
-#define GRPC_SERVER_FRAGMENT
+/*
+ * ┌────────────────────────────────┐
+ * │ gRPC Server Fragment (local)   │
+ * │                                │
+ * │   ┌─────────────────────┐      │
+ * │   │                     │      │
+ * │   │ GrpcServer Operator │      │
+ * │   │                     │      │
+ * │   └─────────────────────┘      │
+ * │                                │
+ * └────────────────────────────────┘
+ */
 
-#include <grpcpp/ext/proto_server_reflection_plugin.h>
+#ifndef SERVER_FRAGMENT_CC
+#define SERVER_FRAGMENT_CC
+
+#include <fmt/format.h>
 #include <holoscan/holoscan.hpp>
+#include "entity_server.cc"
 
-#include "helloworld.grpc.pb.h"
-#include "helloworld.pb.h"
-
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::Status;
-using helloworld::Greeter;
-using helloworld::HelloReply;
-using helloworld::HelloRequest;
 
 using namespace holoscan;
 
 namespace holoscan {
 namespace grpc_hello_world {
 
-class SayHelloOperator : public holoscan::Operator {
+template <typename GrpcServiceImplT>
+class GrpcServerOperator : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(SayHelloOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(GrpcServerOperator)
 
-  SayHelloOperator() = default;
+  GrpcServerOperator() = default;
 
   void setup(OperatorSpec& spec) override {
     spec.param<std::string>(
@@ -51,16 +57,13 @@ class SayHelloOperator : public holoscan::Operator {
 
   void start() override {
     HOLOSCAN_LOG_INFO("Starting gRPC server...");
-    server_thread_ = std::thread(&SayHelloOperator::StartInternal, this);
-    // SayHelloOperator::StartInternal();
+    server_thread_ = std::thread(&GrpcServerOperator::StartInternal, this);
   }
 
   void stop() override {
     HOLOSCAN_LOG_INFO("Stopping gRPC server...");
     server_->Shutdown();
-    if (server_thread_.joinable()) {
-      server_thread_.join();
-    }
+    if (server_thread_.joinable()) { server_thread_.join(); }
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
@@ -72,21 +75,14 @@ class SayHelloOperator : public holoscan::Operator {
   std::unique_ptr<Server> server_;
 
   void StartInternal() {
-    // pthread_create(&server_thread_, NULL, )
-    GreeterServiceImpl service;
+    GrpcServiceImplT service;
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     ServerBuilder builder;
-    // Listen on the given address without any authentication mechanism.
     builder.AddListeningPort(server_address_.get(), grpc::InsecureServerCredentials());
-    // Register "service" as the instance through which we'll communicate with
-    // clients. In this case it corresponds to an *synchronous* service.
     builder.RegisterService(&service);
-    // Finally assemble the server.
     std::unique_ptr<Server> server(builder.BuildAndStart());
     HOLOSCAN_LOG_INFO("Server listening on {}", server_address_.get());
-    // Wait for the server to shutdown. Note that some other thread must be
-    // responsible for shutting down the server for this call to ever return.
     server->Wait();
   }
 };
@@ -95,8 +91,8 @@ class GrpcServerFragment : public holoscan::Fragment {
  public:
   GrpcServerFragment(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
-    auto say_hello =
-        make_operator<SayHelloOperator>("say_hello", make_condition<CountCondition>(1), Arg("server_address", server_address_));
+    auto say_hello = make_operator<GrpcServerOperator<HoloscanEntityServiceImpl>>(
+        "say_hello", Arg("server_address", server_address_));
     add_operator(say_hello);
   }
 
@@ -105,4 +101,4 @@ class GrpcServerFragment : public holoscan::Fragment {
 };
 }  // namespace grpc_hello_world
 }  // namespace holoscan
-#endif
+#endif /* SERVER_FRAGMENT_CC */

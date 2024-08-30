@@ -39,26 +39,10 @@ namespace grpc_hello_world {
 class App : public holoscan::Application {
  public:
   void compose() override {
-    // IPCServer::Service service_sample_action = {
-    //     "hello_world_service",
-    //     IPCServer::kAction,
-    //     {.action = std::bind(
-    //          &App::hello_world_service, this, std::placeholders::_1, std::placeholders::_2)}};
-
-    // auto gxf_executor = dynamic_cast<holoscan::gxf::GXFExecutor&>(executor());
-    // gxf_executor.register_ipc_service(service_sample_action);
     auto grpc_server = make_fragment<GrpcServerFragment>("server", "0.0.0.0:50051");
-
     auto grpc_client = make_fragment<GrpcClientFragment>("client", "localhost:50051");
-
     add_flow(grpc_client, grpc_server, {{"say_my_name", "say_hello"}});
   }
-
-  //  private:
-  //   Expected<void> hello_world_service(const std::string& resource, const std::string& data) {
-  //     std::cout << "Hello World" << std::endl;
-  //     return nvidia::gxf::Success;
-  //   }
 };
 
 }  // namespace grpc_hello_world

@@ -16,23 +16,24 @@
  */
 
 /*
- * ┌──────────────────────────────────────────────────────────────────────┐
- * │ gRPC Client Fragment (local)                                         │
- * │                                                                      │
- * │ ┌───────────────────┐   ┌─────────────────────┐   ┌────────────────┐ │
- * │ │                   │   │                     │   │                │ │
- * │ │ SayHello Operator ┼───► gRPC─Client Operator┼───► Print Operator │ │
- * │ │                   │   │                     │   │                │ │
- * │ └───────────────────┘   └─────────────────────┘   └────────────────┘ │
- * │                                                                      │
- * └──────────────────────────────────────────────────────────────────────┘
+ * ┌───────────────────────────────────────────────────────────────────────┐
+ * │ gRPC Client Fragment (local)                                          │
+ * │                                                                       │
+ * │ ┌────────────────────┐   ┌─────────────────────┐   ┌────────────────┐ │
+ * │ │                    │   │                     │   │                │ │
+ * │ │ SayMyName Operator ┼───► gRPC Client Operator┼───► Print Operator │ │
+ * │ │                    │   │                     │   │                │ │
+ * │ └────────────────────┘   └─────────────────────┘   └────────────────┘ │
+ * │                                                                       │
+ * └───────────────────────────────────────────────────────────────────────┘
  */
 
 #ifndef CLIENT_FRAGMENT_CC
 #define CLIENT_FRAGMENT_CC
 
+#include <fmt/format.h>
 #include <holoscan/holoscan.hpp>
-#include "greeter_client.cc"
+#include "entity_client.cc"
 
 using namespace holoscan;
 
@@ -47,7 +48,6 @@ class PrintOperator : public holoscan::Operator {
   void setup(OperatorSpec& spec) override { spec.input<std::string>("greeting"); }
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
     auto reply = op_input.receive<std::string>("greeting");
-
     if (reply) { HOLOSCAN_LOG_INFO("Greeter received: {}", reply.value()); }
   }
 };
@@ -69,6 +69,7 @@ class SayMyNameOperator : public holoscan::Operator {
   }
 };
 
+template <typename GrpClientT>
 class GrpcClientOperator : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(GrpcClientOperator);
@@ -77,8 +78,8 @@ class GrpcClientOperator : public holoscan::Operator {
 
   void start() override {
     HOLOSCAN_LOG_INFO("Starting gRPC client...");
-    greeter_client_ = std::make_shared<GreeterClient>(GreeterClient(
-        grpc::CreateChannel(server_address_.get(), grpc::InsecureChannelCredentials())));
+    grpc_client_ = std::make_shared<GrpClientT>(
+        GrpClientT(grpc::CreateChannel(server_address_.get(), grpc::InsecureChannelCredentials())));
   }
 
   void setup(OperatorSpec& spec) override {
@@ -94,14 +95,14 @@ class GrpcClientOperator : public holoscan::Operator {
     auto name = op_input.receive<std::string>("name");
 
     if (name) {
-      std::string reply = greeter_client_->SayHello(name.value());
+      std::string reply = grpc_client_->HelloWorld(name.value());
       op_output.emit(reply, "greeting");
     }
   }
 
  private:
   Parameter<std::string> server_address_;
-  std::shared_ptr<GreeterClient> greeter_client_;
+  std::shared_ptr<GrpClientT> grpc_client_;
 };
 
 //
@@ -112,8 +113,8 @@ class GrpcClientFragment : public holoscan::Fragment {
   void compose() override {
     auto say_my_name =
         make_operator<SayMyNameOperator>("say_my_name", make_condition<CountCondition>(1));
-    auto grpc_client =
-        make_operator<GrpcClientOperator>("grpc_client", Arg("server_address", server_address_));
+    auto grpc_client = make_operator<GrpcClientOperator<EntityClient>>(
+        "grpc_client", Arg("server_address", server_address_));
     auto print_name = make_operator<PrintOperator>("print_name");
 
     add_flow(say_my_name, grpc_client);
