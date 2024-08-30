@@ -35,7 +35,7 @@ The Florence-2 application code is organized across several files:
 * `florence2_postprocessor_op.py`: Post-processing code to send overlays (e.g., bounding boxes, labels, segmentation masks) to Holoviz.
 * `config.yaml`: Default application parameters.
 
-The Florence-2 application operates independently of the GUI code. You can run it with `python application/florence-2-vision/florence2_app.py` inside the Florence-2 Docker container. For GUI integration, the `set_parameters()` method was added to the `FlorenceApp` class. This method updates two fields in the Florence-2 operator:
+The Florence-2 application can be run independently of the GUI code. E.g., the application can be run with `python application/florence-2-vision/florence2_app.py` inside the Florence-2 Docker container. This will run the application without the GUI controls.  The only code needed for GUI integration in the application code is the `set_parameters()` method in the `FlorenceApp` class. This method updates two fields in the Florence-2 operator:
 
 ```python
 class FlorenceApp(Application):
@@ -179,7 +179,7 @@ To try out the application, follow the instructions provided [here](https://gith
 
 To integrate a GUI into your Python application using PySide6, follow these steps:
 
-1. Ensure Qt and PySide6 dependencies are included in your Dockerfile.
+1. Ensure Qt and PySide6 dependencies are included in your Dockerfile. Verify that Qt and PySide6 package licenses meet your project requirements.
 2. Copy the `qt_app.py` file to your application directory.  Rename and modify the `FlorenceWorker` class to create an instance of your application.
 Update the import statement `from florence2_app import FlorenceApp` as necessary.
 3. Customize the `setupUi()` method to include the controls relevant to your application.
