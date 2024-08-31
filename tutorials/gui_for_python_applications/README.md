@@ -8,6 +8,17 @@ This tutorial demonstrates how GUI controls were integrated into the [Florence-2
   <img src="./demo.gif" alt="Holoscan VILA Live">
 </p>
 
+## Table of Contents
+
+1. [Overview](#overview)
+    1. [Dockerfile](#dockerfile)
+    1. [Application Code](#application-code)
+    1. [GUI Code](#gui-code)
+2. [Creating the GUI Widgets and Layout](#creating-the-gui-widgets-and-layout)
+3. [Starting the Holoscan Application Thread](#starting-the-holoscan-application-thread)
+4. [Adding a GUI to Your Own Application](#adding-a-gui-to-your-own-application)
+
+
 ## Overview
 
 The Florence-2 application includes the typical components of a Holohub application, with the addition of a GUI component. 
