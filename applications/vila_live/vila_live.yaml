@@ -14,8 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source:
+v4l2_source:
   device: "/dev/video0"
+
+replayer_source:  # VideoStreamReplayer
+  # directory: "../data/ultrasound/video"
+  basename: ""
+  frame_rate: 0 # as specified in timestamps
+  repeat: true # default: false
+  realtime: true # default: true
+  count: 0 # default: 0 (no frame count restriction)
 
 holoviz:
   tensors:
