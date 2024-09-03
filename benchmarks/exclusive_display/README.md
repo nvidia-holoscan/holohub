@@ -50,16 +50,18 @@ The maximum end-to-end latency results are given below:
 ![Maximum Latency](exclusive_max_latency.png)
 
 In the above graph, the maximum end-to-end latency for the default mode increases from 15 ms to 23
-ms when the number of headless applications rises from 0 to 3. For more than 3 headless
-applications, the maximum end-to-end latency in default mode is more than 200 ms.
+ms when the number of background headless applications rises from 0 to 3. For more than 3 background
+headless applications, the maximum end-to-end latency in default mode is more than 200 ms.
 
 The exclusive display mode performs much better than the default mode because of no overhead of the
-compositor. The maximum end-to-end latency is 20 to 30% lower for up to 3 headless applications. The
-benefits are more pronounced when the number of headless applications is more than 3. 
+compositor. The maximum end-to-end latency is 20 to 30% lower in presence of up to 3 headless
+applications. The benefits are more pronounced when the number of background headless applications
+is more than 3.
 
-It is also true that the maximum end-to-end latency in exclusive display mode increases to 51 ms
-when the number of headless is 11. Therefore, exclusive display mode alone cannot guarantee an upper
-bound on the latency if the number of other applications using the GPU increases.
+Despite better performance with exclusive display, the maximum end-to-end latency increases to 51 ms
+when the number of background headless applications is 11. Therefore, exclusive display mode alone
+cannot guarantee an upper bound on the latency if the number of applications using the GPU
+increases.
 
 ### Average End-to-end Latency
 
@@ -73,16 +75,16 @@ applications, the average end-to-end latency in default mode is more than 200 ms
 
 The exclusive display mode performs much better than the default mode in average latency as well.
 Average end-to-end latency is up to 80% lower in exclusive display mode compared to the default
-mode, for up to 9 headless applications. The average latency increases from 8 ms to 29 ms in
-exclusive mode when the
+mode, for up to 9 simultaneous headless applications.
+The average latency increases from 8 ms to 29 ms in exclusive mode when the
 number of headless applications increases from 0 to 11.
 
 ### Conclusions
 
-- The exclusive display mode can provide better average latency and deterministic performance
+- The exclusive display mode provides better average latency and deterministic performance
   (maximum latency) than the default mode.
-- Headless applications using the GPU impact the performance both in default and exclusive display
-  modes. However, exclusive display mode is more resilient than the default mode.
+- Headless applications using the GPU which are running in the background, impact the performance both in default and exclusive display
+  modes. However, exclusive display mode is more resilient than the default mode to the background
+  applications using the GPU.
 - Even in the exclusive display mode, the maximum latency, capturing the performance predictability,
-  increases 4-5x while the headless applications increase from 0 to 11. Therefore, the exclusive
-  mode does not provide a guarantee on the upper bound of the latency in presence of other GPU workloads.
+  increases 4-5x while the background headless applications increase from 0 to 11. Therefore, the exclusive mode does not provide a guarantee on the upper bound of the latency in presence of other GPU workloads.
