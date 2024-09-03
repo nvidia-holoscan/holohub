@@ -149,6 +149,36 @@
             }
         },
         //#endregion asr_to_llm
+
+        //#region sam2
+        {
+            "name": "(debugpy) sam2/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build sam2",
+            "program": "${workspaceFolder}/applications/sam2/segment_one_thing.py",
+            "cwd": "${workspaceFolder}/applications/sam2/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/sam2/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) sam2/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) sam2/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "sam2",
+                "order": 1
+            }
+        },
+        //#endregion sam2
+
         //#region colonoscopy_segmentation
         {
             "name": "(debugpy) colonoscopy_segmentation/python",
@@ -407,11 +437,15 @@
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -445,11 +479,15 @@
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -483,11 +521,15 @@
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
@@ -560,9 +602,9 @@
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "presentation": {
                 "hidden": true,
@@ -596,9 +638,9 @@
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "presentation": {
                 "hidden": true,
@@ -632,9 +674,9 @@
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "presentation": {
                 "hidden": true,
