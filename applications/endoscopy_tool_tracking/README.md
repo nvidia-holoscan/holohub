@@ -109,3 +109,9 @@ There are a two launch profiles configured for this application:
 
 1. **(debugpy) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python code.
 2. **(pythoncpp) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python and C++ code.
+
+## Containerize the application
+
+To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./dev_container build_and_install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
+
+Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.

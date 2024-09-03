@@ -47,12 +47,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     // For this example assume all packets are the same size, specified in the config
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
 
-    if (!gpu_direct_.get()) {
-      cudaMallocHost(&full_batch_data_h_, batch_size_.get() * nom_payload_size_);
-    }
-
     for (int n = 0; n < num_concurrent; n++) {
       cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
+      if (!gpu_direct_.get()) {
+        cudaMallocHost(&full_batch_data_h_[n], batch_size_.get() * nom_payload_size_);
+      }
 
       if (gpu_direct_.get()) {
         cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
@@ -154,12 +153,10 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       auto batch_offset = aggr_pkts_recv_ * nom_payload_size_;
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
         auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
-        auto len = ntohs(pkt->udp.len) - 8;
+        auto len = adv_net_get_seg_pkt_len(burst, 0, p) - header_size_.get();
 
-        // assert(len + sizeof(UDPIPV4Pkt) == max_packet_size_.get());
-
-        memcpy((char*)full_batch_data_h_ + batch_offset + p * nom_payload_size_,
-               (pkt + sizeof(*pkt)),
+        memcpy((char*)full_batch_data_h_[cur_idx] + batch_offset + p * nom_payload_size_,
+               pkt + 1,
                len);
 
         ttl_bytes_recv_ += len + sizeof(UDPIPV4Pkt);
@@ -169,41 +166,52 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
     cur_msg_.msg[cur_msg_.num_batches++] = burst;
-
     if (aggr_pkts_recv_ >= batch_size_.get()) {
       // Do some work on full_batch_data_h_ or full_batch_data_d_
       aggr_pkts_recv_ = 0;
 
+      // In CPU-only mode we can free earlier, but to keep it simple we free at the same point
+      // as we do in GPU-only mode
+      free_bufs();
+
+      if (out_q.size() == num_concurrent) {
+        HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
+        adv_net_free_all_pkts_and_burst(burst);
+        return;
+      }
+
       if (gpu_direct_.get()) {
-        free_bufs();
-
-        if (out_q.size() == num_concurrent) {
-          HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-          adv_net_free_all_pkts_and_burst(burst);
-          return;
-        }
-
         simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
                               h_dev_ptrs_[cur_idx],
                               nom_payload_size_,
                               batch_size_.get(),
                               streams_[cur_idx]);
 
-        cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-
-        cur_msg_.evt = events_[cur_idx];
-        out_q.push(cur_msg_);
-        cur_msg_.num_batches = 0;
-
-        if (cudaGetLastError() != cudaSuccess) {
-          HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                             batch_size_.get(),
-                             batch_size_.get() * nom_payload_size_);
-          exit(1);
-        }
-
       } else {
-        adv_net_free_all_pkts_and_burst(burst);
+          if (out_q.size() == num_concurrent) {
+            HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
+            adv_net_free_all_pkts_and_burst(burst);
+            return;
+          }
+
+          cudaMemcpyAsync(full_batch_data_d_[cur_idx],
+                          full_batch_data_h_[cur_idx],
+                          batch_size_.get() * nom_payload_size_,
+                          cudaMemcpyDefault,
+                          streams_[cur_idx]);
+      }
+
+      cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+
+      cur_msg_.evt = events_[cur_idx];
+      out_q.push(cur_msg_);
+      cur_msg_.num_batches = 0;
+
+      if (cudaGetLastError() != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
+                            batch_size_.get(),
+                            batch_size_.get() * nom_payload_size_);
+        exit(1);
       }
 
       cur_idx = (++cur_idx % num_concurrent);
@@ -218,6 +226,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   struct RxMsg {
     std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
     int num_batches;
+    void* full_batch_data_h_;
     cudaEvent_t evt;
   };
 
@@ -229,8 +238,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
   uint16_t nom_payload_size_;                      // Nominal payload size (no headers)
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
-  void* full_batch_data_h_;                        // Host-pinned aggregated batch
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
+  std::array<void*, num_concurrent> full_batch_data_h_;  // Host aggregated batch
   Parameter<bool> hds_;                                  // Header-data split enabled
   Parameter<bool> gpu_direct_;                           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block

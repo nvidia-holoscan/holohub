@@ -71,3 +71,9 @@ On aarch64, if application is executed from within the holoscan sdk container an
 ```bash
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/hpcx/ompi/lib"
 ```
+
+## Containerize the application
+
+To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./dev_container build_and_install object_detection_torch`, run the `package-app.sh` script and then follow the generated output to package and run the application.
+
+Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.

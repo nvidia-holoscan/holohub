@@ -41,32 +41,28 @@ void set_ano_mgr(const AdvNetConfigYaml& cfg) {
 AdvNetStatus ANOMgr::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
 
-  for (const auto& mr : cfg_.mrs_) {
+  for (auto& mr : cfg_.mrs_) {
     void* ptr;
     AllocRegion ar;
-    size_t buf_size = mr.second.buf_size_ * mr.second.num_bufs_;
+    mr.second.ttl_size_ = RTE_ALIGN_CEIL(mr.second.adj_size_ * mr.second.num_bufs_, GPU_PAGE_SIZE);
 
-    if (buf_size & 0x3) {
-      HOLOSCAN_LOG_CRITICAL("Total buffer size must be multiple of 4 for MR {}", mr.second.name_);
-      return AdvNetStatus::NULL_PTR;
-    }
     if (mr.second.owned_) {
       switch (mr.second.kind_) {
         case MemoryKind::HOST:
-          ptr = malloc(buf_size);
+          ptr = malloc(mr.second.ttl_size_);
           break;
         case MemoryKind::HOST_PINNED:
-          if (cudaHostAlloc(&ptr, buf_size, 0) != cudaSuccess) {
+          if (cudaHostAlloc(&ptr, mr.second.ttl_size_, 0) != cudaSuccess) {
             HOLOSCAN_LOG_CRITICAL("Failed to allocate CUDA pinned host memory!");
             return AdvNetStatus::NULL_PTR;
           }
           break;
         case MemoryKind::HUGE:
-          ptr = rte_malloc_socket(nullptr, buf_size, RTE_PKTMBUF_HEADROOM, mr.second.affinity_);
+          ptr = rte_malloc_socket(nullptr, mr.second.ttl_size_, 0, mr.second.affinity_);
           break;
         case MemoryKind::DEVICE: {
           unsigned int flag = 1;
-          const auto align = RTE_ALIGN_CEIL(buf_size, GPU_PAGE_SIZE);
+          const auto align = RTE_ALIGN_CEIL(mr.second.ttl_size_, GPU_PAGE_SIZE);
           CUdeviceptr cuptr;
 
           cudaSetDevice(mr.second.affinity_);
@@ -95,18 +91,22 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
 
       if (ptr == nullptr) {
         HOLOSCAN_LOG_CRITICAL(
-            "Fatal to allocate {} of type {} for MR", buf_size, static_cast<int>(mr.second.kind_));
+            "Fatal to allocate {} of type {} for MR",
+                  mr.second.ttl_size_, static_cast<int>(mr.second.kind_));
         return AdvNetStatus::NULL_PTR;
       }
     }
 
     HOLOSCAN_LOG_INFO(
-        "Successfully allocated memory region {} at {} with {} bytes ({} elements @ {} bytes)",
+        "Successfully allocated memory region {} at {} type {} with {} bytes "
+        "({} elements @ {} bytes total {})",
         mr.second.name_,
         ptr,
-        buf_size,
+        (int)mr.second.kind_,
+        mr.second.buf_size_,
         mr.second.num_bufs_,
-        mr.second.buf_size_);
+        mr.second.adj_size_,
+        mr.second.ttl_size_);
     ar_[mr.second.name_] = {mr.second.name_, ptr};
   }
 
