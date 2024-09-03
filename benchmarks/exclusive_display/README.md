@@ -18,8 +18,9 @@ with the default mode that uses `X11`. We execute the [endoscopy tool tracking](
 modes and measure its maximum and average end-to-end latency. In addition, we also run a number of
 "headless" applications simultaneously. These headless applications are executing both AI workloads
 and graphics processing but do not utilize the screen to display any output. They are representative
-of workloads that run alongside a primary display application which is the endoscopy
-tool tracking application using display in this experiment.
+of background workloads. Usually, these background workloads run alongside a primary display
+application which, in this case, is the endoscopy tool tracking application using display in either
+`exclusive` or `default` mode.
 
 ## Platform
 
