@@ -1019,7 +1019,12 @@ def main():
     parser.add_argument("--width", required=True, type=int, help="Input width in pixels")
     parser.add_argument("--height", required=True, type=int, help="Input height in pixels")
     parser.add_argument("--channels", default=3, type=int, help="Channel count")
-    parser.add_argument("--duration", default=-1, type=int, help="process only the first <duration> seconds of the video. Setting to -1 processes the entire video")
+    parser.add_argument(
+        "--duration",
+        default=-1,
+        type=int,
+        help="process only the first <duration> seconds of the video. Setting to -1 processes the entire video",
+    )
     parser.add_argument("--framerate", default=30, type=int, help="Output frame rate")
     parser.add_argument("--basename", default="tensor", help="Basename for gxf entities")
     parser.add_argument("--directory", default="./", help="Directory for gxf entities")
