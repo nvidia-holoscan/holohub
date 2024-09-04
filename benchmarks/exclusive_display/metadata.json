@@ -26,6 +26,8 @@
             "Exclusive Display"
         ],
         "ranking": 1,
-        "dependencies": "none"
+        "dependencies": {
+            "holoscan_sdk": "^2.1.0"
+        }
     }
 }
