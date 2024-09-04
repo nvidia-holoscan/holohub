@@ -28,14 +28,15 @@
  * └────────────────────────────────┘
  */
 
-#ifndef SERVER_FRAGMENT_CC
-#define SERVER_FRAGMENT_CC
+#ifndef GRPC_SERVER_CPP
+#define GRPC_SERVER_CPP
 
+#include <fmt/format.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
-#include <fmt/format.h>
 #include <holoscan/holoscan.hpp>
+
 
 #include "entity_server.cc"
 
@@ -108,7 +109,8 @@ class ServerApp : public holoscan::Application {
   ServerApp(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_hello = make_operator<GrpcServerOperator<HoloscanEntityServiceImpl>>(
-        "say_hello", Arg("server_address", server_address_));
+        "say_hello",
+        Arg("server_address", server_address_));
     add_operator(say_hello);
   }
 
@@ -118,11 +120,12 @@ class ServerApp : public holoscan::Application {
 }  // namespace grpc_hello_world
 }  // namespace holoscan
 
-
-
 int main(int argc, char** argv) {
+  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
+  config_path += "/grpc_hello_world.yaml";
   auto app = holoscan::make_application<holoscan::grpc_hello_world::ServerApp>("0.0.0.0:50051");
+  app->config(config_path);
   app->run();
   return 0;
 }
-#endif /* SERVER_FRAGMENT_CC */
+#endif /* GRPC_SERVER_CPP */

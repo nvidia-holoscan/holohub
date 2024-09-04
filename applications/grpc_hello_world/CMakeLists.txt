@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.24)
 project(grpc_hello_world LANGUAGES CXX)
 
 find_package(PkgConfig REQUIRED)
-find_package(holoscan 2.0 REQUIRED CONFIG
+find_package(holoscan 2.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/" "/workspace/holoscan-sdk/install")
 
 include(protos/common.cmake)

@@ -128,7 +128,10 @@ class ClientApp : public holoscan::Application {
 }  // namespace holoscan
 
 int main(int argc, char** argv) {
+  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
+  config_path += "/grpc_hello_world.yaml";
   auto app = holoscan::make_application<holoscan::grpc_hello_world::ClientApp>("localhost:50051");
+  app->config(config_path);
   app->run();
   return 0;
 }

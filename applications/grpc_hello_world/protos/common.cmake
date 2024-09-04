@@ -78,40 +78,27 @@ function(grpc_generate_cpp SRCS HDRS INCLUDE_DIRS)
     set(${INCLUDE_DIRS} "${${INCLUDE_DIRS}}" PARENT_SCOPE)
 endfunction()
 
-# This branch assumes that gRPC and all its dependencies are already installed
-# on this system, so they can be located by find_package().
+include(FetchContent)
+FetchContent_Declare(
+  grpc
+  GIT_REPOSITORY https://github.com/grpc/grpc.git
+  # when using gRPC, you will actually set this to an existing tag, such as
+  # v1.25.0, v1.26.0 etc..
+  # For the purpose of testing, we override the tag used to the commit
+  # that's currently under test.
+  GIT_TAG        v1.54.2)
+set(FETCHCONTENT_QUIET OFF)
+FetchContent_MakeAvailable(grpc)
 
-# Find Protobuf installation
-# Looks for protobuf-config.cmake file installed by Protobuf's cmake installation.
-option(protobuf_MODULE_COMPATIBLE TRUE)
-include(FindProtobuf)
-find_package(Protobuf CONFIG REQUIRED PATHS "/opt/nvidia/holoscan/3rdparty/grpc/1.54.2/lib/cmake/protobuf/")
-message(STATUS "Using protobuf ${Protobuf_VERSION}")
-
-set(PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
-set(GRPCPP_REFLECTION gRPC::grpc++_reflection)
-if(CMAKE_CROSSCOMPILING)
-  find_program(PROTOC_EXECUTABLE protoc)
-  message(STATUS "A Using protoc ${PROTOC_EXECUTABLE}")
-else()
-  set(PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
-  # get_target_property(PROTOC_EXECUTABLE protobuf::protoc LOCATION)
-  message(STATUS "B Using protoc ${PROTOC_EXECUTABLE}")
-  endif()
-
-# Find gRPC installation
-# Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
-find_package(absl CONFIG REQUIRED PATHS "/opt/nvidia/holoscan/3rdparty/grpc/1.54.2/lib/cmake/absl/")
-find_package(gRPC CONFIG REQUIRED PATHS "/opt/nvidia/holoscan/3rdparty/grpc/1.54.2/lib/cmake/grpc/")
-message(STATUS "Using gRPC ${gRPC_VERSION}")
-
-set(GRPC_GRPCPP gRPC::grpc++)
+set(PROTOBUF_LIBPROTOBUF libprotobuf)
+set(GRPCPP_REFLECTION grpc++_reflection)
+set(PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
+set(GRPC_GRPCPP grpc++)
 if(CMAKE_CROSSCOMPILING)
   find_program(GRPC_CPP_EXECUTABLE grpc_cpp_plugin)
 else()
-  set(GRPC_CPP_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+  set(GRPC_CPP_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 endif()
-
 # Expose variables with PARENT_SCOPE so that
 # root project can use it for including headers and using executables
 set(PROTOC_EXECUTABLE ${PROTOC_EXECUTABLE} PARENT_SCOPE)
@@ -119,11 +106,3 @@ set(GRPC_CPP_EXECUTABLE ${GRPC_CPP_EXECUTABLE} PARENT_SCOPE)
 set(PROTOBUF_LIBPROTOBUF ${PROTOBUF_LIBPROTOBUF} PARENT_SCOPE)
 set(GRPCPP_REFLECTION ${GRPCPP_REFLECTION} PARENT_SCOPE)
 set(GRPC_GRPCPP ${GRPC_GRPCPP} PARENT_SCOPE)
-
-message(STATUS "=========================================")
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-  message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-message(STATUS "=========================================")
