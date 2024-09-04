@@ -23,16 +23,20 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/inference_processor/inference_processor.hpp>
-#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 
 class App : public holoscan::Application {
  public:
-  void set_source(const std::string& source) {
-    if (source == "aja") { is_aja_source_ = true; }
+  void set_source(const std::string &source) {
+    if (source == "aja") {
+      is_aja_source_ = true;
+    }
   }
 
-  void set_datapath(const std::string& path) { datapath = path; }
+  void set_datapath(const std::string &path) {
+    datapath = path;
+  }
 
   // Specifies if the output of the visualizer should be recorded.
   enum class Record { NONE, VISUALIZER };
@@ -56,8 +60,8 @@ class App : public holoscan::Application {
     if (is_aja_source_) {
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
     } else {
-      source = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer", from_config("replayer"), Arg("directory", datapath));
+      source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
+                                                         Arg("directory", datapath));
     }
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");
@@ -73,18 +77,17 @@ class App : public holoscan::Application {
 
     model_path_map.insert("detect", datapath + "/" + model_file_name);
 
-    auto detect_inference = make_operator<ops::InferenceOp>("detect_inference",
-                                                            from_config("detect_inference"),
-                                                            Arg("model_path_map", model_path_map),
-                                                            Arg("allocator") = pool_resource);
+    auto detect_inference = make_operator<ops::InferenceOp>(
+        "detect_inference", from_config("detect_inference"),
+        Arg("model_path_map", model_path_map), Arg("allocator") = pool_resource);
 
-    std::string processing_config_path = datapath + "/postprocessing.yaml";
+    std::string processing_config_path = datapath+"/postprocessing.yaml";
 
     auto detect_postprocessor =
         make_operator<ops::InferenceProcessorOp>("detect_postprocessor",
-                                                 from_config("detect_postprocessor"),
-                                                 Arg("config_path", processing_config_path),
-                                                 Arg("allocator") = pool_resource);
+                                                   from_config("detect_postprocessor"),
+                                                   Arg("config_path", processing_config_path),
+                                                   Arg("allocator") = pool_resource);
 
     std::map<std::string, int> label_count;
     std::map<std::string, std::vector<float>> color_map;
@@ -96,7 +99,7 @@ class App : public holoscan::Application {
 
     if (!std::filesystem::exists(processing_config_path)) {
       HOLOSCAN_LOG_ERROR("Config path not found. Please make sure the path exists {}",
-                         processing_config_path);
+                          processing_config_path);
       HOLOSCAN_LOG_ERROR("Did you forget to download the datasets manually?");
       std::exit(1);
     }
@@ -109,7 +112,7 @@ class App : public holoscan::Application {
     auto configuration = config["generate_boxes"].as<holoscan::inference::node_type>();
 
     if (configuration.find("objects") != configuration.end()) {
-      for (const auto& [current_object, count] : configuration["objects"]) {
+      for (const auto &[current_object, count] : configuration["objects"]) {
         label_count.insert({current_object, std::stoi(count)});
       }
     } else {
@@ -117,14 +120,16 @@ class App : public holoscan::Application {
     }
 
     if (configuration.find("color") != configuration.end()) {
-      for (const auto& [current_object, current_color] : configuration["color"]) {
+      for (const auto &[current_object, current_color] : configuration["color"]) {
         std::vector<std::string> tokens;
         std::vector<float> col;
 
         if (current_color.length() != 0) {
           holoscan::inference::string_split(current_color, tokens, ' ');
           if (tokens.size() == 4) {
-            for (const auto& t : tokens) { col.push_back(std::stof(t)); }
+            for (const auto &t : tokens) {
+              col.push_back(std::stof(t));
+            }
           } else {
             color_map.insert({current_object, {0, 0, 0, 1}});
           }
@@ -136,12 +141,14 @@ class App : public holoscan::Application {
     }
 
     size_t num_of_objects = 0;
-    for (const auto& item : label_count) { num_of_objects += item.second; }
+    for (const auto &item : label_count) {
+      num_of_objects += item.second;
+    }
     std::cout << "Maximum number of items displayed in Holoviz: " << num_of_objects << std::endl;
     std::vector<ops::HolovizOp::InputSpec> input_object_specs(1 + 2 * num_of_objects);
 
     int object_populated_so_far = 0;
-    for (const auto& item : label_count) {
+    for (const auto &item : label_count) {
       auto key = item.first;
       auto max_objects = item.second;
 
@@ -176,25 +183,26 @@ class App : public holoscan::Application {
     input_object_specs[image_index].type_ = ops::HolovizOp::InputType::COLOR;
     input_object_specs[image_index].priority_ = 0;
 
-    auto holoviz = make_operator<ops::HolovizOp>(
-        "holoviz",
-        from_config("holoviz"),
-        Arg("allocator") = pool_resource,
-        Arg("enable_render_buffer_output") = (record_type_ == Record::VISUALIZER),
-        Arg("tensors") = input_object_specs);
+    auto holoviz = make_operator<ops::HolovizOp>("holoviz",
+                                                 from_config("holoviz"),
+                                                 Arg("allocator") = pool_resource,
+                                                 Arg("enable_render_buffer_output")
+                                                    = (record_type_ == Record::VISUALIZER),
+                                                 Arg("tensors") = input_object_specs);
 
     if (record_type_ == Record::VISUALIZER) {
-      recorder_format_converter =
-          make_operator<ops::FormatConverterOp>("recorder_format_converter",
-                                                from_config("recorder_format_converter"),
-                                                Arg("pool") = pool_resource);
+      recorder_format_converter = make_operator<ops::FormatConverterOp>(
+           "recorder_format_converter",
+           from_config("recorder_format_converter"),
+           Arg("pool") = pool_resource);
 
       recorder = make_operator<ops::VideoStreamRecorderOp>("recorder", from_config("recorder"));
     }
 
     // Flow definition
     if (is_aja_source_) {
-      const std::set<std::pair<std::string, std::string>> aja_ports = {{"video_buffer_output", ""}};
+      const std::set<std::pair<std::string, std::string>> aja_ports =
+                                          {{"video_buffer_output", ""}};
       add_flow(source, detect_preprocessor, aja_ports);
     } else {
       add_flow(source, detect_preprocessor);
@@ -202,7 +210,9 @@ class App : public holoscan::Application {
     }
 
     if (record_type_ == Record::VISUALIZER) {
-      add_flow(holoviz, recorder_format_converter, {{"render_buffer_output", "source_video"}});
+      add_flow(holoviz,
+               recorder_format_converter,
+               {{"render_buffer_output", "source_video"}});
       add_flow(recorder_format_converter, recorder);
     }
 
@@ -218,23 +228,27 @@ class App : public holoscan::Application {
 };
 
 /** Helper function to parse the command line arguments */
-bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
+bool parse_arguments(int argc, char **argv, std::string &config_name, std::string &data_path) {
   static struct option long_options[] = {
-      {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
+      {"data", required_argument, 0, 'd'},
+      {"config", required_argument, 0, 'c'},
+      {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
-    if (c == -1 || c == '?') break;
+  while (int c = getopt_long(argc, argv, "d",
+                             long_options, NULL)) {
+    if (c == -1 || c == '?')
+      break;
 
     switch (c) {
-      case 'c':
-        config_name = optarg;
-        break;
-      case 'd':
-        data_path = optarg;
-        break;
-      default:
-        std::cout << "Unknown arguments returned: " << c << std::endl;
-        return false;
+    case 'c':
+      config_name = optarg;
+      break;
+    case 'd':
+      data_path = optarg;
+      break;
+    default:
+      std::cout << "Unknown arguments returned: " << c << std::endl;
+      return false;
     }
   }
 
@@ -249,13 +263,15 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
   return true;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   auto app = holoscan::make_application<App>();
 
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
+    return 1;
+  }
 
   if (data_path.empty()) {
     // Get the input data environment variable
