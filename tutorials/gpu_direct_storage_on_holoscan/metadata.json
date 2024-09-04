@@ -13,10 +13,10 @@
     // If multiple languages are supported, create a directory per language and a json file accordingly
     "language": "Python",
     // Version of the contribution
-    "version": "Version of the contribution in the form: major.minor.patch",
+    "version": "1.0",
     // Change log
     "changelog": {
-        "X.X": "Creating new tutorial for using GPU Direct Storage (GDS) on IGX"
+        "1.0": "Creating new tutorial for using GPU Direct Storage (GDS) on IGX"
     },
     // Holoscan SDK
     "holoscan_sdk": {
@@ -41,6 +41,6 @@
     // "workdir" specifies the working directory and can be holohub_app_bin, holohub_app_source or holohub_bin
     "run": {
         "command": "python holoscan_hdf5_read_cuda.py --out_path ./data",
-        "workdir": "holohub_app_bin|holohub_app_source|holohub_bin"
+        "workdir": "holohub_app_bin"
     }
 }
