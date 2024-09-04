@@ -25,6 +25,7 @@
             "Benchmarking",
             "Exclusive Display"
         ],
-        "ranking": 1
+        "ranking": 1,
+        "dependencies": "none"
     }
 }
