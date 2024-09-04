@@ -37,7 +37,6 @@
 #include <grpcpp/health_check_service_interface.h>
 #include <holoscan/holoscan.hpp>
 
-
 #include "entity_server.cc"
 
 using grpc::ServerBuilder;
@@ -106,11 +105,10 @@ class GrpcServerOperator : public holoscan::Operator {
 
 class ServerApp : public holoscan::Application {
  public:
-  ServerApp(const std::string& server_address) : server_address_(server_address) {}
+  explicit (const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_hello = make_operator<GrpcServerOperator<HoloscanEntityServiceImpl>>(
-        "say_hello",
-        Arg("server_address", server_address_));
+        "say_hello", Arg("server_address", server_address_));
     add_operator(say_hello);
   }
 

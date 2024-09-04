@@ -35,7 +35,7 @@ namespace grpc_hello_world {
 
 class EntityClient {
  public:
-  EntityClient(std::shared_ptr<Channel> channel) : stub_(Entity::NewStub(channel)) {}
+  explicit EntityClient(std::shared_ptr<Channel> channel) : stub_(Entity::NewStub(channel)) {}
 
   const std::string HelloWorld(const std::string& name) {
     EntityRequest request;
@@ -66,4 +66,4 @@ class EntityClient {
 }  // namespace grpc_hello_world
 }  // namespace holoscan
 
-#endif // ENTITY_CLIENT_CC
+#endif  // ENTITY_CLIENT_CC

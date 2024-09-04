@@ -20,7 +20,7 @@ find_package(PkgConfig REQUIRED)
 find_package(holoscan 2.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/" "/workspace/holoscan-sdk/install")
 
-include(protos/common.cmake)
+include(grpc_generate_cpp)
 
 set(CORE_PROTO_FILES
   ${CMAKE_CURRENT_LIST_DIR}/protos/holoscan.proto

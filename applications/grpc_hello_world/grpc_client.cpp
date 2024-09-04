@@ -109,7 +109,7 @@ class GrpcClientOperator : public holoscan::Operator {
 
 class ClientApp : public holoscan::Application {
  public:
-  ClientApp(const std::string& server_address) : server_address_(server_address) {}
+  explicit ClientApp(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_my_name =
         make_operator<SayMyNameOperator>("say_my_name", make_condition<CountCondition>(1));

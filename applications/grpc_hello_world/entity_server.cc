@@ -25,8 +25,8 @@
 #include "holoscan.pb.h"
 
 using grpc::Server;
-using grpc::ServerContext;
 using grpc::ServerBuilder;
+using grpc::ServerContext;
 using grpc::Status;
 using holoscan::entity::Entity;
 using holoscan::entity::EntityRequest;
@@ -37,12 +37,10 @@ namespace grpc_hello_world {
 
 class HoloscanEntityServiceImpl final : public Entity::Service {
  public:
-  HoloscanEntityServiceImpl(std::function<void()> data_callback)
-      : data_callback_(data_callback) {}
+  HoloscanEntityServiceImpl(std::function<void()> data_callback) : data_callback_(data_callback) {}
 
   Status Metadata(ServerContext* context, const EntityRequest* request,
                   EntityResponse* reply) override {
-
     auto service = request->service();
 
     if (service == "hello_world") {
