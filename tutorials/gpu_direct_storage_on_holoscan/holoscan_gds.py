@@ -3,9 +3,7 @@ import yaml
 import cupy as cp
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec, Tracker
-from holoscan.schedulers import MultiThreadScheduler
 import kvikio
-from kvikio.defaults import compat_mode
 import argparse
 
 parser = argparse.ArgumentParser(
