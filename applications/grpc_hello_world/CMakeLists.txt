@@ -34,23 +34,24 @@ target_link_libraries(grpc_hello_world_protos
   ${GRPCPP_REFLECTION}
   ${PROTOBUF_LIBPROTOBUF})
 
-add_executable(grpc_hello_world main.cpp)
-target_include_directories(grpc_hello_world PUBLIC ${INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS})
-
-
-target_link_libraries(grpc_hello_world
-    absl::flags
-    absl::flags_parse
-    ${GRPC_GRPCPP}
-    ${GRPCPP_REFLECTION}
-    ${PROTOBUF_LIBPROTOBUF}
-    holoscan::core
-    grpc_hello_world_protos)
-
-# Copy the config to the binary directory
 add_custom_target(grpc_hello_world_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/grpc_hello_world.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "grpc_hello_world.yaml"
   BYPRODUCTS "grpc_hello_world.yaml"
 )
-add_dependencies(grpc_hello_world grpc_hello_world_deps)
+
+foreach(_target grpc_server grpc_client)
+  add_executable(${_target} "${_target}.cpp")
+  target_include_directories(${_target} PUBLIC ${INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS})
+
+  target_link_libraries(${_target}
+      absl::flags
+      absl::flags_parse
+      ${GRPC_GRPCPP}
+      ${GRPCPP_REFLECTION}
+      ${PROTOBUF_LIBPROTOBUF}
+      holoscan::core
+      grpc_hello_world_protos)
+
+    add_dependencies(${_target} grpc_hello_world_deps)
+endforeach()

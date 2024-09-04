@@ -17,7 +17,7 @@
 
 /*
  * ┌────────────────────────────────┐
- * │ gRPC Server Fragment (local)   │
+ * │ gRPC Server (local)            │
  * │                                │
  * │   ┌─────────────────────┐      │
  * │   │                     │      │
@@ -31,10 +31,15 @@
 #ifndef SERVER_FRAGMENT_CC
 #define SERVER_FRAGMENT_CC
 
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/health_check_service_interface.h>
 #include <fmt/format.h>
 #include <holoscan/holoscan.hpp>
+
 #include "entity_server.cc"
 
+using grpc::ServerBuilder;
 
 using namespace holoscan;
 
@@ -67,15 +72,26 @@ class GrpcServerOperator : public holoscan::Operator {
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
-               ExecutionContext& context) override {}
+               ExecutionContext& context) override {
+    std::unique_lock<std::mutex> lock(server_callback_mutex_);
+    HOLOSCAN_LOG_INFO("compute(): waiting for connection...");
+    server_callback_cv_.wait(lock);
+    HOLOSCAN_LOG_INFO("compute(): completed.");
+  }
 
  private:
   Parameter<std::string> server_address_;
   std::thread server_thread_;
   std::unique_ptr<Server> server_;
+  std::condition_variable server_callback_cv_;
+  std::mutex server_callback_mutex_;
 
   void StartInternal() {
-    GrpcServiceImplT service;
+    GrpcServiceImplT service([this] {
+      std::lock_guard<std::mutex> lock{this->server_callback_mutex_};
+      this->server_callback_cv_.notify_all();
+      HOLOSCAN_LOG_INFO("Callback triggered.");
+    });
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     ServerBuilder builder;
@@ -87,9 +103,9 @@ class GrpcServerOperator : public holoscan::Operator {
   }
 };
 
-class GrpcServerFragment : public holoscan::Fragment {
+class ServerApp : public holoscan::Application {
  public:
-  GrpcServerFragment(const std::string& server_address) : server_address_(server_address) {}
+  ServerApp(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_hello = make_operator<GrpcServerOperator<HoloscanEntityServiceImpl>>(
         "say_hello", Arg("server_address", server_address_));
@@ -101,4 +117,12 @@ class GrpcServerFragment : public holoscan::Fragment {
 };
 }  // namespace grpc_hello_world
 }  // namespace holoscan
+
+
+
+int main(int argc, char** argv) {
+  auto app = holoscan::make_application<holoscan::grpc_hello_world::ServerApp>("0.0.0.0:50051");
+  app->run();
+  return 0;
+}
 #endif /* SERVER_FRAGMENT_CC */

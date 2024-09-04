@@ -19,11 +19,13 @@
 #define ENTITY_SERVER_CC
 
 #include <fmt/format.h>
+#include <functional>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include "holoscan.grpc.pb.h"
 #include "holoscan.pb.h"
 
 using grpc::Server;
+using grpc::ServerContext;
 using grpc::ServerBuilder;
 using grpc::Status;
 using holoscan::entity::Entity;
@@ -34,19 +36,28 @@ namespace holoscan {
 namespace grpc_hello_world {
 
 class HoloscanEntityServiceImpl final : public Entity::Service {
+ public:
+  HoloscanEntityServiceImpl(std::function<void()> data_callback)
+      : data_callback_(data_callback) {}
+
   Status Metadata(ServerContext* context, const EntityRequest* request,
                   EntityResponse* reply) override {
+
     auto service = request->service();
 
     if (service == "hello_world") {
       auto params = request->parameters();
       auto response = reply->mutable_parameters();
       (*response)["greeting"] = fmt::format("Hello {}!", params["name"]);
+      data_callback_();
       return Status::OK;
     }
 
     return grpc::Status(grpc::StatusCode::NOT_FOUND, fmt::format("Service {} not found", service));
   }
+
+ private:
+  std::function<void()> data_callback_;
 };
 }  // namespace grpc_hello_world
 }  // namespace holoscan

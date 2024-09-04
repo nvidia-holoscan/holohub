@@ -922,11 +922,38 @@
         //#endregion volume_rendering
         //#region gRPC Hello World
         {
-            "name": "(gdb) grpc_hello_world/cpp",
+            "name": "(gdb) grpc_hello_world/cpp Server",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "Build grpc_hello_world",
-            "program": "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_hello_world",
+            "program": "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_server",
+            "args": [
+                "--config",
+                "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_hello_world.yaml",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_hello_world/applications/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_hello_world",
+                "order": 1
+            }
+        }
+        {
+            "name": "(gdb) grpc_hello_world/cpp Client",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_hello_world",
+            "program": "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_client",
             "args": [
                 "--config",
                 "${workspaceFolder}/build/grpc_hello_world/applications/grpc_hello_world/grpc_hello_world.yaml",
@@ -1007,6 +1034,20 @@
                 "hidden": false,
                 "group": "endoscopy_tool_tracking_distributed",
                 "order": 11
+            }
+        },
+        {
+            "name": "(compound) grpc_hello_world/cpp",
+            "configurations": [
+                "(gdb) grpc_hello_world/cpp Server",
+                "(gdb) grpc_hello_world/cpp Client",
+            ],
+            "preLaunchTask": "Build grpc_hello_world",
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_hello_world",
+                "order": 12
             }
         },
     ]

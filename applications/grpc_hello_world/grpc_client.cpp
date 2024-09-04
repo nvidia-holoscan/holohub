@@ -17,7 +17,7 @@
 
 /*
  * ┌───────────────────────────────────────────────────────────────────────┐
- * │ gRPC Client Fragment (local)                                          │
+ * │ gRPC Client (local)                                                   │
  * │                                                                       │
  * │ ┌────────────────────┐   ┌─────────────────────┐   ┌────────────────┐ │
  * │ │                    │   │                     │   │                │ │
@@ -107,9 +107,9 @@ class GrpcClientOperator : public holoscan::Operator {
 
 //
 
-class GrpcClientFragment : public holoscan::Fragment {
+class ClientApp : public holoscan::Application {
  public:
-  GrpcClientFragment(const std::string& server_address) : server_address_(server_address) {}
+  ClientApp(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_my_name =
         make_operator<SayMyNameOperator>("say_my_name", make_condition<CountCondition>(1));
@@ -126,4 +126,10 @@ class GrpcClientFragment : public holoscan::Fragment {
 };
 }  // namespace grpc_hello_world
 }  // namespace holoscan
+
+int main(int argc, char** argv) {
+  auto app = holoscan::make_application<holoscan::grpc_hello_world::ClientApp>("localhost:50051");
+  app->run();
+  return 0;
+}
 #endif /* CLIENT_FRAGMENT_CC */
