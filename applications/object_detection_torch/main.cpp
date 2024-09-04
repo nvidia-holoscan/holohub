@@ -231,6 +231,7 @@ class App : public holoscan::Application {
 bool parse_arguments(int argc, char **argv, std::string &config_name, std::string &data_path) {
   static struct option long_options[] = {
       {"data", required_argument, 0, 'd'},
+      {"config", required_argument, 0, 'c'},
       {0, 0, 0, 0}};
 
   while (int c = getopt_long(argc, argv, "d",
@@ -239,6 +240,9 @@ bool parse_arguments(int argc, char **argv, std::string &config_name, std::strin
       break;
 
     switch (c) {
+    case 'c':
+      config_name = optarg;
+      break;
     case 'd':
       data_path = optarg;
       break;
@@ -249,7 +253,12 @@ bool parse_arguments(int argc, char **argv, std::string &config_name, std::strin
   }
 
   if (optind < argc) {
-    config_name = argv[optind++];
+    if (config_name.empty()) {
+      config_name = argv[optind++];
+    } else {
+      HOLOSCAN_LOG_WARN("Configuration file already set using --config, ignoring '{}'",
+                        argv[optind++]);
+    }
   }
   return true;
 }
