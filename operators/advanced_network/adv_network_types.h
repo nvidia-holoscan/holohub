@@ -58,7 +58,8 @@ struct AdvNetBurstHdr {
   AdvNetBurstHdrParams hdr;
 
   // Pad without union to make bindings readable
-  uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+  void *extra_burst_data;
+  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
