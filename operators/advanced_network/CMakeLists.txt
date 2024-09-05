@@ -58,9 +58,11 @@ add_library(advanced_network_common SHARED
 
 # Define targets for each manager type
 foreach(MGR IN LISTS ANO_MGR_LIST)
-    message(STATUS "Adding manager ${MGR} to the configuration")
-    target_compile_definitions(advanced_network_common PUBLIC "ANO_MGR_${MGR}=1")
-    target_link_libraries(advanced_network_common PRIVATE ano_manager_${MGR})
+    string(TOUPPER ${MGR} MGR_UPPER)
+    string(TOLOWER ${MGR} MGR_LOWER)
+    message(STATUS "Adding manager ${MGR_UPPER} to the configuration")
+    target_compile_definitions(advanced_network_common PUBLIC "ANO_MGR_${MGR_UPPER}=1")
+    target_link_libraries(advanced_network_common PRIVATE ano_manager_${MGR_LOWER})
 endforeach()
 
 target_include_directories(advanced_network_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/managers)

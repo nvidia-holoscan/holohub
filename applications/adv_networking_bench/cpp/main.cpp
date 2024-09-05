@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if ANO_MGR_dpdk
+#if ANO_MGR_DPDK
 #include "dpdk_bench_op_rx.h"
 #include "dpdk_bench_op_tx.h"
 #endif
-#if ANO_MGR_doca
+#if ANO_MGR_DOCA
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
@@ -39,7 +39,7 @@ class App : public holoscan::Application {
 
     // DPDK is the default manager backend
     if (mgr_type ==  holoscan::ops::AnoMgrType::DPDK) {
-#if ANO_MGR_dpdk
+#if ANO_MGR_DPDK
       if (rx_en) {
         auto adv_net_rx =
             make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
@@ -64,7 +64,7 @@ class App : public holoscan::Application {
 #endif
 
     } else if (mgr_type ==  holoscan::ops::AnoMgrType::DOCA) {
-#if ANO_MGR_doca
+#if ANO_MGR_DOCA
       if (rx_en) {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));

@@ -17,17 +17,17 @@
 #include <cuda.h>
 #include "adv_network_mgr.h"
 // Include the appropriate headers based on which ANO_MGR types are defined
-#if ANO_MGR_dpdk
+#if ANO_MGR_DPDK
 #include "adv_network_dpdk_mgr.h"
 #endif
-#if ANO_MGR_doca
+#if ANO_MGR_DOCA
 #include "adv_network_doca_mgr.h"
 #endif
-#if ANO_MGR_rivermax
+#if ANO_MGR_RIVERMAX
 #include "adv_network_rmax_mgr.h"
 #endif
 
-#if ANO_MGR_dpdk || ANO_MGR_doca
+#if ANO_MGR_DPDK || ANO_MGR_DOCA
 #include <rte_common.h>
 #include <rte_malloc.h>
 #endif
@@ -45,11 +45,11 @@ extern void adv_net_initialize_manager(ANOMgr* _manager);
 
 AnoMgrType AnoMgrFactory::get_default_manager_type() {
   AnoMgrType mgr_type = AnoMgrType::UNKNOWN;
-#if ANO_MGR_dpdk
+#if ANO_MGR_DPDK
     mgr_type = AnoMgrType::DPDK;
-#elif ANO_MGR_doca
+#elif ANO_MGR_DOCA
     mgr_type =  AnoMgrType::DOCA;
-#elif ANO_MGR_rivermax
+#elif ANO_MGR_RIVERMAX
     mgr_type = AnoMgrType::RIVERMAX;
 #else
 #error "No advanced network operator manager defined"
@@ -62,17 +62,17 @@ std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
 
   std::unique_ptr<ANOMgr> _manager;
   switch (type) {
-#if ANO_MGR_dpdk
+#if ANO_MGR_DPDK
     case AnoMgrType::DPDK:
       _manager = std::make_unique<DpdkMgr>();
       break;
 #endif
-#if ANO_MGR_doca
+#if ANO_MGR_DOCA
     case AnoMgrType::DOCA:
       _manager = std::make_unique<DocaMgr>();
       break;
 #endif
-#if ANO_MGR_rivermax
+#if ANO_MGR_RIVERMAX
     case AnoMgrType::RIVERMAX:
       _manager = std::make_unique<RmaxMgr>();
       break;
@@ -110,7 +110,7 @@ template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
 
 AdvNetStatus ANOMgr::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
-#if ANO_MGR_dpdk || ANO_MGR_doca
+#if ANO_MGR_DPDK || ANO_MGR_DOCA
   for (auto& mr : cfg_.mrs_) {
     void* ptr;
     AllocRegion ar;
