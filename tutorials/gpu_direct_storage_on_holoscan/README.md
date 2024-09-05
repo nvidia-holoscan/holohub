@@ -1,6 +1,6 @@
 # Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
 ## 	Introduction
-Modern-day edge accelerated computing solutions constantly push the boundaries of what is possible. The success of edge computing is mainly due to a new approach to accelerated computing problems, which are viewed from both a GPU and systems perspective. With innovations such as GPU Direct Storage (GDS) and GPU Direct Storage-over-Fabrics (GDS-OF), we can load data directly onto the GPU at lightning-fast speeds. GDS allows us to transform previously offline batch workloads into online streaming solutions, bringing them into the 21st century. This blog will demonstrate this with a sample pipeline using the latest industrial-grade edge hardware (IGX) and A6000 workstation GPU. We’ll start by providing an overview of the two main types of workflows, then discuss how to set up GDS, and finally, wrap up with an example application using Nvidia Holoscan and the Nvidia Rapids software suite.
+Modern-day edge accelerated computing solutions constantly push the boundaries of what is possible. The success of edge computing is mainly due to a new approach to accelerated computing problems, which are viewed from both a GPU and systems perspective. With innovations such as GPU Direct Storage (GDS) and GPU Direct Storage-over-Fabrics (GDS-OF), we can load data directly onto the GPU at lightning-fast speeds. GDS allows us to transform previously offline batch workloads into online streaming solutions, bringing them into the 21st century. This tutorial demonstrates this with a sample pipeline using the latest industrial-grade edge hardware (IGX) and A6000 workstation GPU. We’ll start by providing an overview of the two main types of workflows, then discuss how to set up GDS, and finally, wrap up with an example application using Nvidia Holoscan and the Nvidia Rapids software suite.
 
 ## 	Overview of GDS and GDS-OF
 To give a brief introduction to the GPU Direct Storage paradigm, we first need to understand the traditional file transfer pathway between the storage device and a GPU. Traditionally, to transfer a file from the storage device to the GPU, the CPU would create a temporary cache or bounce buffer out of the system memory (RAM). This buffer would hold data transferred from the storage device. Only after the data has been transferred to the bounce buffer or the buffer is full will the data transfer from the bounce buffer to the GPU. In the case of large file transfers to repetitive file transfers, this will result in increased latency. GPU Direct Storage sends the data directly from the storage device to the GPU without the need for the temporarily allocated CPU system memory to coordinate movement with the PCIE bus. For more information, please visit the blog below.
@@ -36,7 +36,7 @@ The first step in this process is to obtain the correct hardware. In addition to
 ### Software Installation
 The next step is to update the software inside your IGX. Note: You can skip this step if you have a new IGX system or one that has been freshly flashed. An explanation of each command will be available at the end of this post.
 * Install/update GCC and Linux Headers
-    * ```Sudo apt update```
+    * ```sudo apt update```
 * Install MOFED drivers
     * ```wget --no-check-certificate https://content.mellanox.com/ofed/MLNX_OFED-24.01-0.3.3.1/MLNX_OFED_LINUX-24.01-0.3.3.1-ubuntu22.04-aarch64.iso```
     * ```mkdir /mnt/iso```
@@ -46,8 +46,8 @@ The next step is to update the software inside your IGX. Note: You can skip this
     * ```sudo reboot```
 * Install cuda toolkit, cuda drivers, and GPU drivers
     * ```sudo apt-get update```  
-    * ```sudo apt-get -y install cuda-toolkit-12-5``` 
-    * ```sudo apt-get install -y nvidia-driver-535-open``` 
+    * ```sudo apt-get -y install cuda-toolkit-12-5```
+    * ```sudo apt-get install -y nvidia-driver-535-open```
     * ```sudo apt-get install -y cuda-drivers-535 ```
 
 After updating the essential software, follow the instructions below to install the Nvidia-GDS application and reboot your machine.
@@ -59,7 +59,7 @@ After updating the essential software, follow the instructions below to install 
     * Find which SSD is the new one:
         *   ```Lsblk```
     * Mount a compatible file system (In our case ext4) to the drive
-        * ```sudo mount -t ext4 /dev/nvme1n1```     
+        * ```sudo mount -t ext4 /dev/nvme1n1```
         * ```/mnt/nvme/ -o data=ordered```
 
 Once you have completed the software setup process, there are some additional things you can do to ensure GDS is being used correctly:
@@ -72,7 +72,7 @@ After this, you can run several checks to ensure that GDS is working:
 * Run the gdscheck script
     * ```/usr/local/cuda/gds/tools/gdscheck -p```
 * Run the gdsio application to send sample data to the mounted directory
-    * ```Sudo /usr/local/cuda/gds/tools/gdsio x 0 -i 1M -s 10M -d 0 -w 1 -I 1 -V -D /mnt/nvme``` 
+    * ```Sudo /usr/local/cuda/gds/tools/gdsio x 0 -i 1M -s 10M -d 0 -w 1 -I 1 -V -D /mnt/nvme```
 
 ## Example Application
 ### Using Nvidia Holoscan and RAPIDS
@@ -81,9 +81,10 @@ Kvikio is a part of the RAPIDS ecosystem of libraries. It gives you access to th
 
 Holoscan, a powerful sensor processing SDK, plays a crucial role in enabling scientists and engineers to harness accelerated computing for their needs. It provides the essential framework for hosting a scientific pipeline. In the example below, we demonstrate how Holoscan, in conjunction with CuPy and Kvikio, can be used to read electron microscope data and identify electrons in the image.
 
-Feel free to run the example application by either providing your own data, or using the data [generation script](./data_gen.py). 
+Feel free to run the example application by either providing your own data, or using the data [generation script](./data_gen.py).
 Once the data is generated you can run the application with the following command: 
 ```python3 holoscan_gds.py ```
  
 ## Conclusion
-GPU Direct Storage (GDS) is revolutionizing edge computing by enabling ultra-fast data transfer directly to GPUs. Following the steps outlined in this blog, you can set up GDS on your IGX system and leverage its real-time data processing capabilities. Try it out and see the difference it makes in your workflows!
+GPU Direct Storage (GDS) is revolutionizing edge computing by enabling ultra-fast data transfer directly to GPUs. Following the steps outlined in this tutoril, you can set up GDS on your IGX system and leverage its real-time data processing capabilities.
+Try it out and see the difference it makes in your workflows!
