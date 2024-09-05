@@ -59,7 +59,7 @@ class App : public holoscan::Application {
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
 #else
-      HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is not supported");
+      HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is disabled");
       exit(1);
 #endif
 
@@ -84,7 +84,7 @@ class App : public holoscan::Application {
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
 #else
-      HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is not supported");
+      HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
       exit(1);
 #endif
     } else {
