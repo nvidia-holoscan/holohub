@@ -1,0 +1,33 @@
+{
+    "benchmark": {
+        "name": "Exclusive Display Benchmark",
+        "description": "This benchmark shows performance of exclusive display and default mode in presence of multiple headless applications.",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "version": "0.1.0",
+        "changelog": {
+            "0.1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.1.0",
+            "tested_versions": [
+                "2.1.0"
+            ]
+        },
+        "platforms": [
+            "arm64"
+        ],
+        "tags": [
+            "Benchmarking",
+            "Exclusive Display"
+        ],
+        "ranking": 1,
+        "dependencies": {
+            "holoscan_sdk": "^2.1.0"
+        }
+    }
+}
