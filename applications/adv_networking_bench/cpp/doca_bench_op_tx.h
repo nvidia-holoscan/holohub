@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <rte_cycles.h>
 namespace holoscan::ops {
 
 /*
