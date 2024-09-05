@@ -15,12 +15,13 @@
 
 import os
 from argparse import ArgumentParser
-import torch  # noqa: F401
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
 from holoscan.resources import UnboundedAllocator
 from sam2operator import FormatInferenceInputOp, PointPublisher, SAM2Operator, SamPostprocessorOp
+
+import torch  # noqa: F401 # isort:skip
 
 
 class SegmentOneThingApp(Application):
