@@ -15,6 +15,7 @@
 
 import os
 from argparse import ArgumentParser
+import torch  # noqa: F401
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
