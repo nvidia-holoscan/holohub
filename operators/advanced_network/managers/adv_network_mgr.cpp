@@ -91,6 +91,11 @@ std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
 
 template <typename Config>
 AnoMgrType AnoMgrFactory::get_manager_type(const Config &config) {
+  // Ensure that Config has a method yaml_nodes() that returns a collection
+  //of YAML nodes
+  static_assert(std::is_member_function_pointer<decltype(&Config::yaml_nodes)>::value,
+                "Config type must have a method yaml_nodes() that returns a collection of YAML nodes");
+
   auto& yaml_nodes = config.yaml_nodes();
   for (const auto &yaml_node : yaml_nodes) {
     try {
