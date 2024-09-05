@@ -1,46 +1,30 @@
-// Main json definition for application or operator
-"application": {
-    // Explicit name of the contribution
-    "name": "GPU Direct Storage on IGX",
-    // Author(s) of the contribution
-    "authors": [
-        {
-            "name": "Marcus Manos",
-            "affiliation": "NVIDIA"
-        }
-    ],
-    // Supported language
-    // If multiple languages are supported, create a directory per language and a json file accordingly
-    "language": "Python",
-    // Version of the contribution
-    "version": "1.0",
-    // Change log
-    "changelog": {
-        "1.0": "Creating new tutorial for using GPU Direct Storage (GDS) on IGX"
-    },
-    // Holoscan SDK
-    "holoscan_sdk": {
-        // Minimum supported holoscan version
-        "minimum_required_version": "2.0.0",
-        // All versions of Holoscan SDK tested for this operator/application
-        "tested_versions": [
-            "2.1.0"
-        ]
-    },
-    // Supported platforms
-    "platforms": ["arm64"],
-    // Free-form tags for referencing the contribution
-    "tags": ["GPU Direct Storage"],
-    // Ranking of the contribution. See below for ranking meaning
-    "ranking": 4,
-    // Dependencies for the current contribution
-    "dependencies": {},
-    // Command to run/test the contribution. This is valid for applications.
-    // This command is used by the main run script to test the application/
-    // Use the <holohub_data_dir> for referencing the data directory
-    // "workdir" specifies the working directory and can be holohub_app_bin, holohub_app_source or holohub_bin
-    "run": {
-        "command": "python holoscan_hdf5_read_cuda.py --out_path ./data",
-        "workdir": "holohub_app_bin"
+{
+    "tutorial": {
+        "name": "GPU Direct Storage on IGX",
+        "authors": [
+            {
+                "name": "Marcus Manos",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Creating new tutorial for using GPU Direct Storage (GDS) on IGX"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.0.0",
+            "tested_versions": [
+                "2.1.0"
+            ]
+        },
+        "platforms": [
+            "arm64"
+        ],
+        "tags": [
+            "GPU Direct Storage"
+        ],
+        "ranking": 4,
+        "dependencies": {}
     }
 }
