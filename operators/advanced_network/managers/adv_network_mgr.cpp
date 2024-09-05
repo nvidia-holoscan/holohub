@@ -80,6 +80,8 @@ std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
     case AnoMgrType::DEFAULT:
       _manager = create_instance(get_default_manager_type());
       return _manager;
+    case AnoMgrType::UNKNOWN:
+      throw std::invalid_argument("Unknown manager type");
     default:
       throw std::invalid_argument("Invalid type");
   }
