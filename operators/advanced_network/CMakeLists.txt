@@ -21,7 +21,7 @@ find_package(PkgConfig)
 
 enable_language(CUDA)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+#set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # Remove in production!
 # set(CMAKE_BUILD_TYPE Debug)
