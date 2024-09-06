@@ -2,6 +2,10 @@
 
 This application demonstrates how to run [SAM2](https://github.com/facebookresearch/segment-anything-2) models on live video feed with the possibility of changing query points in real-time.
 
+<p align="center">
+  <img src="./holohub-sam2.gif" alt="Holohub Sam2">
+</p>
+
 The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed. 
 The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks". 
 - "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis" 
