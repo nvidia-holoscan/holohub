@@ -6,10 +6,10 @@ const Hero = () => {
     <div className="hidden sm:mb-8 sm:flex sm:justify-center">
       <div className="relative rounded-full px-3 py-1  mt-2 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
         What's New? &nbsp;
-        <a href="https://github.com/nvidia-holoscan/holoscan-sdk/releases/tag/v2.3.0" className="font-semibold text-lime-500"
+        <a href="https://github.com/nvidia-holoscan/holoscan-sdk/releases/tag/v2.4.0" className="font-semibold text-lime-500"
         target="_blank">
           <span className="absolute inset-0" aria-hidden="true" />
-          Just shipped NVIDIA Holoscan SDK v2.3.0 <span aria-hidden="true">&rarr;</span>
+          Just shipped NVIDIA Holoscan SDK v2.4.0 <span aria-hidden="true">&rarr;</span>
         </a>
       </div>
     </div>
