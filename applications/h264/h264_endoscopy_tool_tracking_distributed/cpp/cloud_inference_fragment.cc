@@ -25,6 +25,8 @@
 
 #include "gxf_imports.cc"
 
+using namespace holoscan;
+
 class CloudInferenceFragment : public holoscan::Fragment {
  private:
   std::string model_dir_;

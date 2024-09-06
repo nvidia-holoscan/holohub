@@ -31,7 +31,7 @@ class VideoInputFragment : public holoscan::Fragment {
   std::string input_dir_;
 
  public:
-  VideoInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
+  explicit VideoInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
 
   void compose() override {
     auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
