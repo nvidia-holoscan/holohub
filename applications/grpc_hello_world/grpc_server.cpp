@@ -105,7 +105,7 @@ class GrpcServerOperator : public holoscan::Operator {
 
 class ServerApp : public holoscan::Application {
  public:
-  explicit (const std::string& server_address) : server_address_(server_address) {}
+  explicit ServerApp(const std::string& server_address) : server_address_(server_address) {}
   void compose() override {
     auto say_hello = make_operator<GrpcServerOperator<HoloscanEntityServiceImpl>>(
         "say_hello", Arg("server_address", server_address_));

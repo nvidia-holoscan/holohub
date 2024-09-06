@@ -39,6 +39,11 @@ add_custom_target(grpc_hello_world_deps
   DEPENDS "grpc_hello_world.yaml"
   BYPRODUCTS "grpc_hello_world.yaml"
 )
+add_custom_target(grpc_hello_world_script
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/run.sh" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "run.sh"
+  BYPRODUCTS "run.sh"
+)
 
 foreach(_target grpc_server grpc_client)
   add_executable(${_target} "${_target}.cpp")
@@ -54,4 +59,5 @@ foreach(_target grpc_server grpc_client)
       grpc_hello_world_protos)
 
     add_dependencies(${_target} grpc_hello_world_deps)
+    add_dependencies(${_target} grpc_hello_world_script)
 endforeach()
