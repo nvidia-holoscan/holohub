@@ -1,0 +1,36 @@
+{
+	"application": {
+		"name": "FHIR Demo",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"ehr_query_llm",
+			"FHIR service client",
+			"FHIR"
+		],
+		"ranking": 1,
+		"run": {
+			"command": "python3 <holohub_app_source>/fhir_demo.py ",
+			"workdir": "holohub_bin"
+		}
+	}
+}

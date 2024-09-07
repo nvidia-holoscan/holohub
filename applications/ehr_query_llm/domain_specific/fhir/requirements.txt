@@ -1,0 +1,4 @@
+fhir.resources~=7.0.0  # avoid conflicting with pydantic ver req'ed by Holoscan
+holoscan~=2.0
+pyzmq~=25.1.0
+requests~=2.31.0
