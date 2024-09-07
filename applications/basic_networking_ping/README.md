@@ -53,7 +53,7 @@ Language can be either C++ or Python.
 
 ## Dev Container
 
-To start the the Dev Container, run the following command from the root directory of Holohub:
+To start the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
 ./dev_container vscode

@@ -59,7 +59,7 @@ If the Holoscan SDK version is 0.5 or lower, following code changes must be made
 
 ## Dev Container
 
-To start the the Dev Container, run the following command from the root directory of Holohub:
+To start the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
 ./dev_container vscode
