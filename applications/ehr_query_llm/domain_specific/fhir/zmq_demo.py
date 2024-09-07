@@ -16,8 +16,9 @@
 import signal
 import sys
 import time
-import zmq
 from threading import Thread
+
+import zmq
 
 from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
 from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
@@ -36,6 +37,7 @@ start_date_procedures = "2024-03-01"
 
 # Flag to enable saving the last non-empty query response
 saving_query_response = False
+
 
 def print_patient(patient_id, records):
     print(f"==> Found {len(records)} records for Patient ID: {patient_id}:")
@@ -66,6 +68,8 @@ def print_latest_diagnostic_report(resources):
         if x["resource"]["resourceType"] == "Procedure"
         and x["resource"]["id"] == "b3906aa2-27a9-4d7d-b458-e288d13231f0"
     ]
+    if len(procedures) == 0:
+        print("There is no procedure resource retrieved for the patient.")
 
     diagnostic_reports = [
         x["resource"]
@@ -91,6 +95,7 @@ def print_latest_diagnostic_report(resources):
         print(f"Notes: {notes}")
         print(f"Image: {image}")
         print("=====================================================")
+
 
 def data_handler():
     global busy
@@ -153,7 +158,9 @@ def sender():
                 )
             else:
                 query = FHIRQuery(
-                    patient_name=patient_name, start_date=start_date_default, end_date=end_date_Default,
+                    patient_name=patient_name,
+                    start_date=start_date_default,
+                    end_date=end_date_Default,
                 )
 
             print("Sending query:")
@@ -165,6 +172,7 @@ def sender():
 def stop(signum=None, frame=None):
     print("Stopping...")
     sys.exit()
+
 
 def show_prompt():
     print(

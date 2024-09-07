@@ -16,6 +16,7 @@
 import json
 from typing import Dict, Union
 
+
 class FHIRQueryResponse:
     """
     Encapsulates a FHIR query response.
@@ -35,11 +36,7 @@ class FHIRQueryResponse:
         """
         return self._patient_resources
 
-    def __init__(
-        self,
-        request_id,
-        patient_resources
-    ):
+    def __init__(self, request_id, patient_resources):
         self._request_id = request_id
         self._patient_resources = patient_resources
 

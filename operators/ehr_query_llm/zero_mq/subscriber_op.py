@@ -15,12 +15,7 @@
 
 import logging
 
-
-from holoscan.core import (
-    Fragment,
-    Operator,
-    OperatorSpec,
-)
+from holoscan.core import Fragment, Operator, OperatorSpec
 
 from operators.ehr_query_llm.message_handling import MessageReceiver
 

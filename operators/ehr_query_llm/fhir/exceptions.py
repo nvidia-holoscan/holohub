@@ -17,5 +17,6 @@
 class FHIRQueryError(Exception):
     pass
 
+
 class InvalidRequestBodyError(Exception):
     pass

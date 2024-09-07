@@ -15,7 +15,7 @@
 
 import json
 import uuid
-from typing import Optional, Union, Dict, List
+from typing import Dict, List, Optional, Union
 
 
 class FHIRQuery:
@@ -26,8 +26,8 @@ class FHIRQuery:
     patient_name: Patient.name
     patient_dob: Patient.birthdate: must be ISO-8601 format. e.g. YYYY-MM-DD
     resources_to_retrieve: limits the type of FHIR resources associated for the patient
-    start_date: limits the start date of the EHR records
-    end_date: limits the end date of the EHR records
+    start_date: limits the start date of the records
+    end_date: limits the end date of the records
     """
 
     def __init__(
@@ -36,7 +36,14 @@ class FHIRQuery:
         identifier: Optional[str] = "",
         patient_name: Optional[str] = "",
         patient_dob: Optional[str] = "",
-        resources_to_retrieve: Optional[List[str]] = ["Observation", "ImagingStudy", "FamilyMemberHistory", "Condition", "DiagnosticReport", "DocumentReference"],
+        resources_to_retrieve: Optional[List[str]] = [
+            "Observation",
+            "ImagingStudy",
+            "FamilyMemberHistory",
+            "Condition",
+            "DiagnosticReport",
+            "DocumentReference",
+        ],
         start_date: Optional[str] = "",
         end_date: Optional[str] = "",
     ):

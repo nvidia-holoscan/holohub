@@ -15,26 +15,20 @@
 
 
 import logging
-from typing import Dict, List
 from time import perf_counter as pc
-
+from typing import Dict, List
 
 import requests
+from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
+
+from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
+from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
+from operators.ehr_query_llm.fhir.exceptions import InvalidRequestBodyError
+from operators.ehr_query_llm.fhir.token_provider import TokenProvider
+
 # WARNING: Disable validation warnings for self-signed server certificates.
 #          Use this for trusted servers in demo/dev only
 requests.packages.urllib3.disable_warnings()
-
-from holoscan.core import (
-    ConditionType,
-    Fragment,
-    Operator,
-    OperatorSpec,
-)
-
-from operators.ehr_query_llm.fhir.exceptions import InvalidRequestBodyError
-from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
-from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
-from operators.ehr_query_llm.fhir.token_provider import TokenProvider
 
 
 class FhirClientOperator(Operator):
@@ -110,10 +104,14 @@ class FhirClientOperator(Operator):
                 )
 
         except Exception as ex:
-            self._logger.error(f"{query_parameters.request_id}: Error performing FHIR query", str(ex))
+            self._logger.error(
+                f"{query_parameters.request_id}: Error performing FHIR query", str(ex)
+            )
 
         end = pc()
-        self._logger.info(f"{query_parameters.request_id}: FHIR query elapsed: {end - start} seconds")
+        self._logger.info(
+            f"{query_parameters.request_id}: FHIR query elapsed: {end - start} seconds"
+        )
 
     def _find_patients(self, query_parameters: FHIRQuery) -> Dict[str, str]:
         request_url = self._fhir_endpoint + query_parameters.get_patient_query()

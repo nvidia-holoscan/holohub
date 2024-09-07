@@ -17,33 +17,33 @@
 import base64
 import json
 import logging
-import pydantic
 import re
-from typing import Any, List, Optional, Dict, Tuple
-from fhir.resources.R4B import construct_fhir_element
-from fhir.resources.R4B import FHIRAbstractModel
+from typing import Any, Dict, List, Optional, Tuple
+
+import pydantic
+from fhir.resources.R4B import FHIRAbstractModel, construct_fhir_element
 from fhir.resources.R4B.allergyintolerance import AllergyIntolerance, AllergyIntoleranceReaction
-from fhir.resources.R4B.observation import Observation, ObservationComponent
-from fhir.resources.R4B.patient import Patient
-from fhir.resources.R4B.humanname import HumanName
-from fhir.resources.R4B.familymemberhistory import FamilyMemberHistory
-from fhir.resources.R4B.encounter import Encounter
-from fhir.resources.R4B.condition import Condition
-from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.diagnosticreport import DiagnosticReport
 from fhir.resources.R4B.attachment import Attachment
+from fhir.resources.R4B.careplan import CarePlan
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.condition import Condition
+from fhir.resources.R4B.diagnosticreport import DiagnosticReport
 from fhir.resources.R4B.documentreference import DocumentReference, DocumentReferenceContent
+from fhir.resources.R4B.encounter import Encounter
+from fhir.resources.R4B.familymemberhistory import FamilyMemberHistory
+from fhir.resources.R4B.humanname import HumanName
+from fhir.resources.R4B.imagingstudy import ImagingStudy, ImagingStudySeries
+from fhir.resources.R4B.immunization import Immunization
 from fhir.resources.R4B.medication import Medication
 from fhir.resources.R4B.medicationrequest import MedicationRequest
 from fhir.resources.R4B.medicationstatement import MedicationStatement
-from fhir.resources.R4B.careplan import CarePlan
+from fhir.resources.R4B.observation import Observation, ObservationComponent
+from fhir.resources.R4B.patient import Patient
 from fhir.resources.R4B.procedure import Procedure
-from fhir.resources.R4B.immunization import Immunization
-from fhir.resources.R4B.imagingstudy import ImagingStudy, ImagingStudySeries
 from fhir.resources.R4B.servicerequest import ServiceRequest
 
-
 logger = logging.getLogger("FHIRResourceSanitizer")
+
 
 class FHIRResourceSanitizer:
     """
@@ -210,7 +210,9 @@ class FHIRResourceSanitizer:
         """Handles FHIR resource type: Procedure"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["procedure"] = [item.display for item in model.code.coding]
-        resource["date"] = model.performedPeriod.start.isoformat() if model.performedPeriod else None
+        resource["date"] = (
+            model.performedPeriod.start.isoformat() if model.performedPeriod else None
+        )
         if model.location and model.location.display:
             resource["location"] = model.location.display
         if model.reasonReference:
@@ -236,8 +238,12 @@ class FHIRResourceSanitizer:
         resource["status"] = model.status
         resource["intent"] = model.intent
         resource["request_order"] = [item.display for item in model.code.coding]
-        resource["occurrence"] = model.occurrenceDateTime.isoformat() if model.occurrenceDateTime else "N/A"
-        resource["performer"] = [item.reference for item in model.performer] if model.performer else "N/A"
+        resource["occurrence"] = (
+            model.occurrenceDateTime.isoformat() if model.occurrenceDateTime else "N/A"
+        )
+        resource["performer"] = (
+            [item.reference for item in model.performer] if model.performer else "N/A"
+        )
         resource["reason"] = [item.display for code in model.reasonCode for item in code.coding]
 
         return sanitized_data
@@ -296,7 +302,9 @@ class FHIRResourceSanitizer:
                 for item in model.medicationCodeableConcept.coding
             ]
         resource["dosage"] = [item.text for item in model.dosage]
-        resource["effective_date_time"] = model.effectiveDateTime.isoformat() if model.effectiveDateTime else "N/A"
+        resource["effective_date_time"] = (
+            model.effectiveDateTime.isoformat() if model.effectiveDateTime else "N/A"
+        )
         return sanitized_data
 
     @staticmethod
@@ -410,7 +418,7 @@ class FHIRResourceSanitizer:
     def encounter(original_data: Dict, model: Encounter) -> Dict:
         """Handles FHIR resource type: Encounter"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
-        
+
         if model.type:
             resource["type"] = [
                 FHIRResourceSanitizer._get_coding_value(code)

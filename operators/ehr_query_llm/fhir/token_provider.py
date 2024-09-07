@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime, timedelta
-import requests
 import time
+from datetime import datetime, timedelta
 
-class TokenProvider():
+import requests
+
+
+class TokenProvider:
     """This class manages authorization token with OAuth2 server-to-server workflow.
 
     This class is initialized with a client id and secret along with a OAuth2
@@ -33,12 +35,13 @@ class TokenProvider():
     SCOPE = "openid"
     EXPIRES_IN = 3600
 
-    def __init__(self,
-                 oauth_url: str,
-                 client_id: str,
-                 client_secret: str,
-                 verify_cert: bool=True,
-                 ):
+    def __init__(
+        self,
+        oauth_url: str,
+        client_id: str,
+        client_secret: str,
+        verify_cert: bool = True,
+    ):
 
         self.oauth_url = oauth_url
         self.client_id = client_id
@@ -78,18 +81,17 @@ class TokenProvider():
 
     def get_token(self):
         request_time = datetime.now()
-        post_data = {"grant_type": self._grant_type,
-                     "client_id": self.client_id,
-                     "client_secret": self.client_secret,
-                     "scope": self._scope,
-                     }
+        post_data = {
+            "grant_type": self._grant_type,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scope": self._scope,
+        }
 
         max_retry = 3
         for i in range(max_retry):
             try:
-                response = requests.post(self.oauth_url,
-                                        data=post_data,
-                                        verify=self.verify_cert)
+                response = requests.post(self.oauth_url, data=post_data, verify=self.verify_cert)
                 response.raise_for_status()
 
                 token_json = response.json()

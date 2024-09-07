@@ -14,20 +14,21 @@
 # limitations under the License.
 
 import argparse
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from urllib.parse import urlparse
 
-from holoscan.core import Application
 from holoscan.conditions import PeriodicCondition
+from holoscan.core import Application
 
 from operators.ehr_query_llm.fhir.fhir_client_op import FhirClientOperator
 from operators.ehr_query_llm.fhir.fhir_resource_sanitizer_op import FhirResourceSanitizerOp
 from operators.ehr_query_llm.fhir.token_provider import TokenProvider
-from operators.ehr_query_llm.zero_mq.subscriber_op import ZeroMQSubscriberOp
 from operators.ehr_query_llm.zero_mq.publisher_op import ZeroMQPublisherOp
+from operators.ehr_query_llm.zero_mq.subscriber_op import ZeroMQSubscriberOp
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -41,10 +42,7 @@ def parse_args() -> argparse.Namespace:
         help="The FHIR service URL.",
     )
     parser.add_argument(
-        "--auth_url",
-        type=str,
-        default=None,
-        help="The OAuth2 authorization service URL."
+        "--auth_url", type=str, default=None, help="The OAuth2 authorization service URL."
     )
     parser.add_argument(
         "--uid",
@@ -66,6 +64,7 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     return args
 
+
 class FhirDemo(Application):
     def __init__(self, args):
         self.args = args
@@ -74,9 +73,11 @@ class FhirDemo(Application):
     def compose(self):
         # Basic validation of FHIR endpoint URL
         url_parsed = urlparse(self.args.fhir_url)
-        if (not str(url_parsed.scheme).casefold().startswith('http')) or \
-           (not url_parsed.netloc) or \
-           (not url_parsed.hostname):
+        if (
+            (not str(url_parsed.scheme).casefold().startswith("http"))
+            or (not url_parsed.netloc)
+            or (not url_parsed.hostname)
+        ):
             raise ValueError("FHIR service URL is invalid.")
 
         token_provider = None
@@ -87,7 +88,7 @@ class FhirDemo(Application):
                 client_id=self.args.uid,
                 client_secret=self.args.secret,
                 verify_cert=self.args.verify_cert,
-                )
+            )
 
         # Define the operators
         sub = ZeroMQSubscriberOp(

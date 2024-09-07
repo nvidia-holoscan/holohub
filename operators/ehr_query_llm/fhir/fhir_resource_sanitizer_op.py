@@ -17,13 +17,7 @@
 import logging
 from time import perf_counter as pc
 
-
-from holoscan.core import (
-    ConditionType,
-    Fragment,
-    Operator,
-    OperatorSpec,
-)
+from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
 from operators.ehr_query_llm.fhir.resource_sanitizer import FHIRResourceSanitizer
