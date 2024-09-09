@@ -21,9 +21,9 @@
 
 #include <holoscan/holoscan.hpp>
 
-#include "cloud_inference_fragment.cc"
-#include "video_input_fragment.cc"
-#include "viz_fragment.cc"
+#include "cloud_inference_fragment.hpp"
+#include "video_input_fragment.hpp"
+#include "viz_fragment.hpp"
 
 using namespace holoscan;
 

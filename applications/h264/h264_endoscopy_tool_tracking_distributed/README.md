@@ -1,6 +1,6 @@
 # Distributed H.264 Endoscopy Tool Tracking Application
 
-This application is similar to the [H.264 Endoscopy Tool Tracking](../../h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
+This application is similar to the [H.264 Endoscopy Tool Tracking](../h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
 
 1. Video Input: get video input from a pre-recorded video file.
 2. Inference: run the inference using LSTM and run the post-processing script.
@@ -35,7 +35,7 @@ The data is automatically downloaded when building the application.
 # Start the application with the visualization fragment
 ./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
 ```
-
+--base_img gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/dev-x86_64:main
 ### Python
 
 ```bash
@@ -65,7 +65,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 
 ## Dev Container
 
-To start the the Dev Container, run the following command from the root directory of Holohub:
+To start the VS Code Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
 ./dev_container vscode h264

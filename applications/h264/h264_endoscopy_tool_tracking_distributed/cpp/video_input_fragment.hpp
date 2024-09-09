@@ -15,29 +15,33 @@
  * limitations under the License.
  */
 
-#ifndef CLOUD_INFERENCE_FRAGMENT_CC
-#define CLOUD_INFERENCE_FRAGMENT_CC
+#ifndef VIDOE_INPUT_FRAGMENT_HPP
+#define VIDOE_INPUT_FRAGMENT_HPP
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include <lstm_tensor_rt_inference.hpp>
-#include <tool_tracking_postprocessor.hpp>
+#include <holoscan/operators/gxf_codelet/gxf_codelet.hpp>
 
-#include "gxf_imports.cc"
+#include "gxf_imports.hpp"
 
 using namespace holoscan;
 
-class CloudInferenceFragment : public holoscan::Fragment {
+class VideoInputFragment : public holoscan::Fragment {
  private:
-  std::string model_dir_;
-  uint32_t width_ = 0;
-  uint32_t height_ = 0;
+  std::string input_dir_;
 
  public:
-  CloudInferenceFragment(const std::string& model_dir, const uint32_t width, const uint32_t height)
-      : model_dir_(model_dir), width_(width), height_(height) {}
+  explicit VideoInputFragment(const std::string& input_dir) : input_dir_(input_dir) {}
 
   void compose() override {
+    auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
+        "bitstream_reader",
+        from_config("bitstream_reader"),
+        Arg("input_file_path", input_dir_ + "/surgical_video.264"),
+        make_condition<CountCondition>(750),
+        make_condition<PeriodicCondition>("periodic-condition",
+                                          Arg("recess_period") = std::string("25hz")),
+        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
     auto response_condition = make_condition<AsynchronousCondition>("response_condition");
     auto video_decoder_context = make_resource<VideoDecoderContext>(
         "decoder-context", Arg("async_scheduling_term") = response_condition);
@@ -62,37 +66,10 @@ class CloudInferenceFragment : public holoscan::Fragment {
         from_config("decoder_output_format_converter"),
         Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 
-    auto rgb_float_format_converter = make_operator<ops::FormatConverterOp>(
-        "rgb_float_format_converter",
-        from_config("rgb_float_format_converter"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
-
-    const std::string model_file_path = model_dir_ + "/tool_loc_convlstm.onnx";
-    const std::string engine_cache_dir = model_dir_ + "/engines";
-
-    auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
-        "lstm_inferer",
-        from_config("lstm_inference"),
-        Arg("model_file_path", model_file_path),
-        Arg("engine_cache_dir", engine_cache_dir),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"),
-        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
-
-    auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
-        "tool_tracking_postprocessor",
-        from_config("tool_tracking_postprocessor"),
-        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"),
-        Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
-
-    add_operator(video_decoder_request);
+    add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
     add_flow(video_decoder_response,
              decoder_output_format_converter,
              {{"output_transmitter", "source_video"}});
-    add_flow(
-        decoder_output_format_converter, rgb_float_format_converter, {{"tensor", "source_video"}});
-    add_flow(rgb_float_format_converter, lstm_inferer);
-    add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
   }
 };
-
 #endif

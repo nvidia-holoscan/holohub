@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef VIZ_FRAGMENT_CC
-#define VIZ_FRAGMENT_CC
+#ifndef VIZ_FRAGMENT_HPP
+#define VIZ_FRAGMENT_HPP
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -30,14 +30,11 @@ class VizFragment : public holoscan::Fragment {
   VizFragment(const uint32_t width, const uint32_t height) : width_(width), height_(height) {}
 
   void compose() override {
-    std::shared_ptr<UnboundedAllocator> visualizer_allocator;
-
     auto visualizer_operator =
         make_operator<ops::HolovizOp>("holoviz",
                                       from_config("holoviz"),
                                       Arg("width") = width_,
-                                      Arg("height") = height_,
-                                      Arg("allocator") = visualizer_allocator);
+                                      Arg("height") = height_);
     add_operator(visualizer_operator);
   }
 };

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GXF_IMPORTS_CC
-#define GXF_IMPORTS_CC
+#ifndef H264_ENDOSCOPY_TOOL_TRACKING_DISTRIBUTED_GXF_IMPORTS_HPP
+#define H264_ENDOSCOPY_TOOL_TRACKING_DISTRIBUTED_GXF_IMPORTS_HPP
 
 #include <holoscan/core/resources/gxf/gxf_component_resource.hpp>
 #include <holoscan/operators/gxf_codelet/gxf_codelet.hpp>
