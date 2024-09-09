@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "EHR Query with LLM",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.0",
+			"tested_versions": [
+				"1.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"HoloHub",
+			"EHR Query",
+			"LLM",
+			"RAG",
+			"Generative AI"
+		],
+		"ranking": 1,
+		"run": {
+			"command": "",
+			"workdir": "holohub_bin"
+		}
+	}
+}
