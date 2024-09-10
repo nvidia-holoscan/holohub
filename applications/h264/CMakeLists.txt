@@ -20,5 +20,11 @@ add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
                                   tool_tracking_postprocessor
                         )
 
+add_holohub_application(h264_endoscopy_tool_tracking_distributed DEPENDS
+                        OPERATORS video_encoder
+                                  tensor_to_video_buffer
+                                  lstm_tensor_rt_inference
+                                  tool_tracking_postprocessor)
+
 add_holohub_application(h264_video_decode DEPENDS
                         OPERATORS video_decoder video_read_bitstream)

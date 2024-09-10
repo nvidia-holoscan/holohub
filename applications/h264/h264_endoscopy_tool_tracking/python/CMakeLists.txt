@@ -18,8 +18,8 @@ find_package(holoscan 2.1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable the operators
-add_library(nvidia_nim_imaging INTERFACE)
-target_link_libraries(nvidia_nim_imaging INTERFACE holoscan::core holoscan::ops::holoviz holoscan::ops::lstm_tensor_rt_inference holoscan::ops::tensor_to_video_buffer holoscan::ops::tool_tracking_postprocessor)
+add_library(h264_endoscopy_tool_tracking_python INTERFACE)
+target_link_libraries(h264_endoscopy_tool_tracking_python INTERFACE holoscan::core holoscan::ops::holoviz holoscan::ops::lstm_tensor_rt_inference holoscan::ops::tensor_to_video_buffer holoscan::ops::tool_tracking_postprocessor)
 
 # Add testing
 if(BUILD_TESTING)

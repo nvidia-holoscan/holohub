@@ -307,6 +307,32 @@
         },
         {
             "type": "shell",
+            "label": "Build h264_endoscopy_tool_tracking_distributed",
+            "command": "./run",
+            "args": [
+                "build",
+                "h264_endoscopy_tool_tracking_distributed",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "h264_endoscopy_tool_tracking_distributed"
+            }
+        },
+        {
+            "type": "shell",
             "label": "Build h264_video_decode",
             "command": "./run",
             "args": [

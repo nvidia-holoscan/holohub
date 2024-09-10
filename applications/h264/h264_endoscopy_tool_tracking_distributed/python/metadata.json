@@ -1,0 +1,55 @@
+{
+  "application": {
+    "name": "H.264 Endoscopy Tool Tracking Distributed",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "Python",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial Release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "2.5.0",
+      "tested_versions": ["2.5.0"]
+    },
+    "platforms": ["amd64", "arm64"],
+    "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
+    "ranking": 1,
+    "dependencies": {
+      "operators": [
+        {
+          "name": "videodecoder",
+          "version": "1.2.0"
+        },
+        {
+          "name": "videodecoderio",
+          "version": "1.2.0"
+        },
+        {
+          "name": "videoencoder",
+          "version": "1.2.0"
+        },
+        {
+          "name": "videoencoderio",
+          "version": "1.2.0"
+        }
+      ],
+      "data": [
+        {
+          "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+          "description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+          "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+          "version": "20230222"
+        }
+      ]
+    },
+    "run": {
+      "command": "python3 <holohub_app_source>/h264_endoscopy_tool_tracking_distributed.py --data <holohub_data_dir>/endoscopy",
+      "workdir": "holohub_bin"
+    }
+  }
+}
