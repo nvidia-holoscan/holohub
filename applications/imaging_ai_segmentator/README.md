@@ -147,7 +147,7 @@ applications/imaging_ai_segmentator/output
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
 ```
 
-### Run the Aapplication in Dev Container
+### Run the Application in Dev Container
 
 In this mode, there is no need to `build` and `install`. The Python code will run in its source folders, and both the model and input DICOM files need to be downloaded manually with the scripts provided below.
 
