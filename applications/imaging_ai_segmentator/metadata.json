@@ -1,0 +1,88 @@
+{
+	"application": {
+		"name": "Imaging AI Whole Body Segmentation",
+		"authors": [
+			{
+				"name": "Ming Qin",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.3.0",
+			"tested_versions": [
+				"2.3.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Radiology Imaging",
+			"DICOM",
+			"DICOM SEG",
+			"Segmentation by AI",
+			"Total segmentator",
+			"MONAI",
+			"MONAI Model Zoo"
+		],
+		"ranking": 1,
+		"dependencies": {
+            "python-packages": {
+                "holoscan": {
+                    "version": "2.3.0",
+                    "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
+                },
+				"highdicom": {
+                    "version": "0.18.2",
+                    "license-url": "https://github.com/ImagingDataCommons/highdicom/blob/master/LICENSE"
+                },
+				"monai": {
+                    "version": "1.0.0",
+                    "license-url": "https://github.com/Project-MONAI/MONAI/blob/dev/LICENSE"
+                },
+				"nibabel": {
+                    "version": "3.2.1",
+                    "license-url": "https://nipy.org/nibabel/legal.html"
+                },
+				"numpy": {
+                    "version": "1.21.6",
+                    "license-url": "https://github.com/numpy/numpy/blob/main/LICENSE.txt"
+                },
+				"Pillow": {
+                    "version": "8.0.0",
+                    "license-url": "https://github.com/python-pillow/Pillow/blob/main/LICENSE"
+                },
+				"pydicom": {
+                    "version": "2.3.0",
+                    "license-url": "https://github.com/pydicom/pydicom/blob/main/LICENSE"
+                },
+				"SimpleITK": {
+                    "version": "2.0.0",
+                    "license-url": "https://github.com/SimpleITK/SimpleITK/blob/master/LICENSE"
+                },
+				"scikit-image": {
+                    "version": "0.17.2",
+                    "license-url": "https://github.com/scikit-image/scikit-image/blob/main/LICENSE.txt"
+                },
+				"torch": {
+                    "version": "1.2.0",
+                    "license-url": "https://github.com/pytorch/pytorch/blob/main/LICENSE"
+                },
+				"typeguard": {
+                    "version": "3.0.0",
+                    "license-url": "https://github.com/agronholm/typeguard/blob/master/LICENSE"
+                }
+            }
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/app.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
