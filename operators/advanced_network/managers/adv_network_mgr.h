@@ -77,6 +77,7 @@ class ANOMgr {
   virtual int address_to_port(const std::string& addr) = 0;
   virtual bool validate_config() const;
 
+    virtual ~ANOMgr() = default;
  protected:
   static constexpr int MAX_IFS = 4;
   static constexpr int MAX_GPUS = 8;
@@ -92,6 +93,46 @@ class ANOMgr {
   virtual void adjust_memory_regions() {}
 };
 
-void set_ano_mgr(const AdvNetConfigYaml& cfg);
+class AnoMgrFactory {
+ public:
 
-}  // namespace holoscan::ops
+  static void set_manager_type(AnoMgrType type) {
+    if (AnoMgrType_ != AnoMgrType::UNKNOWN && AnoMgrType_ != type) {
+      throw std::logic_error("Manager type is already set with another manager type.");
+    }
+    if (type == AnoMgrType::DEFAULT) {
+      AnoMgrType_ = get_default_manager_type();
+    } else {
+      AnoMgrType_ = type;
+    }
+  }
+
+  static AnoMgrType get_manager_type() { return AnoMgrType_; }
+  
+  template <typename Config>
+  static AnoMgrType get_manager_type(const Config &config);
+  
+  static AnoMgrType get_default_manager_type();
+
+  static ANOMgr& get_active_manager() {
+    if (AnoMgrType_ == AnoMgrType::UNKNOWN) {
+      throw std::logic_error("AnoMgrType not set");
+    }
+    if (!AnoMgrInstance_) { AnoMgrInstance_ = create_instance(AnoMgrType_); }
+    return *AnoMgrInstance_;
+  }
+
+ private:
+  AnoMgrFactory() = default;
+  ~AnoMgrFactory() = default;
+  AnoMgrFactory(const AnoMgrFactory&) = delete;
+  AnoMgrFactory& operator=(const AnoMgrFactory&) = delete;
+
+  static std::unique_ptr<ANOMgr> AnoMgrInstance_;
+  static AnoMgrType AnoMgrType_;
+
+  static std::unique_ptr<ANOMgr> create_instance(AnoMgrType type);
+};
+
+}; // namespace holoscan::ops
+

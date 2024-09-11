@@ -155,6 +155,53 @@ enum class AdvNetDirection : uint8_t {
 };
 
 /**
+ * @brief Manager Type
+ *
+ */
+enum class AnoMgrType {
+  UNKNOWN = -1,
+  DEFAULT,
+  DPDK,
+  DOCA,
+  RIVERMAX,
+};
+
+static constexpr const char* ANO_MGR_STR__DPDK = "dpdk";
+static constexpr const char* ANO_MGR_STR__DOCA = "doca";
+static constexpr const char* ANO_MGR_STR__RIVERMAX = "rivermax";
+static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
+
+/**
+ * @brief Convert string to manager type
+ *
+ * @param str
+ * @return AnoMgrType
+ */
+inline AnoMgrType manager_type_from_string(const std::string &str) {
+  if (str == ANO_MGR_STR__DPDK) return AnoMgrType::DPDK;
+  if (str == ANO_MGR_STR__DOCA) return AnoMgrType::DOCA;
+  if (str == ANO_MGR_STR__RIVERMAX) return AnoMgrType::RIVERMAX;
+  if (str == ANO_MGR_STR__DEFAULT) return AnoMgrType::DEFAULT;
+  throw std::logic_error("Unrecognized manager type, available options dpdk/doca/rivermax/default");
+}
+
+/**
+ * @brief Convert manager type to string
+ *
+ * @param type
+ * @return std::string
+ */
+inline std::string manager_type_to_string(AnoMgrType type) {
+  switch (type) {
+    case AnoMgrType::DPDK: return ANO_MGR_STR__DPDK;
+    case AnoMgrType::DOCA: return ANO_MGR_STR__DOCA;
+    case AnoMgrType::RIVERMAX: return ANO_MGR_STR__RIVERMAX;
+    case AnoMgrType::DEFAULT: return ANO_MGR_STR__DEFAULT;
+    default: return "unknown";
+  }
+}
+
+/**
  * @brief Parameters to configure advanced network operators
  *
  */
@@ -230,8 +277,8 @@ struct FlowConfig {
 struct CommonConfig {
   int version;
   int master_core_;
-  std::string mgr_;
   AdvNetDirection dir;
+  AnoMgrType manager_type;
 };
 
 struct AdvNetRxConfig {
@@ -276,19 +323,6 @@ auto adv_net_get_rx_tx_cfg_en(const Config& config) {
   }
 
   return std::make_tuple(rx, tx);
-}
-
-template <typename Config>
-std::string adv_net_get_manager(const Config& config) {
-  auto& yaml_nodes = config.yaml_nodes();
-  for (const auto& yaml_node : yaml_nodes) {
-    try {
-      auto node = yaml_node["advanced_network"]["cfg"];
-      return node["manager"].template as<std::string>();
-    } catch (const std::exception& e) { return "default"; }
-  }
-
-  return "default";
 }
 
 };  // namespace holoscan::ops

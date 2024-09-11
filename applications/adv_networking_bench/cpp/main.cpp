@@ -14,11 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#if ANO_MGR_DPDK
 #include "dpdk_bench_op_rx.h"
 #include "dpdk_bench_op_tx.h"
+#endif
+#if ANO_MGR_DOCA
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
+#endif
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
@@ -31,11 +34,12 @@ class App : public holoscan::Application {
 
     HOLOSCAN_LOG_INFO("Initializing advanced network operator");
     const auto [rx_en, tx_en] = holoscan::ops::adv_net_get_rx_tx_cfg_en(config());
-    const std::string mgr = holoscan::ops::adv_net_get_manager(config());
-    HOLOSCAN_LOG_INFO("Using ANO manager {}", mgr);
+    const auto mgr_type = holoscan::ops::adv_net_get_manager_type(config());
+    HOLOSCAN_LOG_INFO("Using ANO manager {}", holoscan::ops::manager_type_to_string(mgr_type));
 
     // DPDK is the default manager backend
-    if (mgr == "default" || mgr == "dpdk") {
+    if (mgr_type ==  holoscan::ops::AnoMgrType::DPDK) {
+#if ANO_MGR_DPDK
       if (rx_en) {
         auto adv_net_rx =
             make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
@@ -54,7 +58,13 @@ class App : public holoscan::Application {
             make_condition<BooleanCondition>("is_alive", true));
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
-    } else if (mgr == "doca") {
+#else
+      HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is disabled");
+      exit(1);
+#endif
+
+    } else if (mgr_type ==  holoscan::ops::AnoMgrType::DOCA) {
+#if ANO_MGR_DOCA
       if (rx_en) {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));
@@ -73,6 +83,10 @@ class App : public holoscan::Application {
             make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
         add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
       }
+#else
+      HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
+      exit(1);
+#endif
     } else {
       HOLOSCAN_LOG_ERROR("Invalid ANO manager/backend");
       exit(1);

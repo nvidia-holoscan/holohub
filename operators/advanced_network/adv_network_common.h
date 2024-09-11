@@ -55,7 +55,24 @@ inline int EnabledDirections(const std::string& dir) {
 }
 
 /**
- * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams for one segment
+ * @brief Returns a manager type
+ *
+ * @return Manager type
+ */
+AnoMgrType adv_net_get_manager_type();
+
+/**
+ * @brief Returns a manager type
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return Manager type
+ */
+template <typename Config>
+AnoMgrType adv_net_get_manager_type(const Config& config);
+
+
+/**
+ * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
  *
  * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the CPU packet pointer at index idx
@@ -424,10 +441,11 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       input_spec.common_.version = node["version"].as<int32_t>();
       input_spec.common_.master_core_ = node["master_core"].as<int32_t>();
       try {
-        input_spec.common_.mgr_ = node["manager"].as<std::string>();
+        input_spec.common_.manager_type   = holoscan::ops::manager_type_from_string(node["manager"].as<std::string>(holoscan::ops::ANO_MGR_STR__DEFAULT));
       } catch (const std::exception& e) {
-        input_spec.common_.mgr_ = "dpdk";  // Use DPDK as the default
+        input_spec.common_.manager_type = holoscan::ops::AnoMgrType::DEFAULT;
       }
+     
 
       try {
         input_spec.debug_ = node["debug"].as<bool>();

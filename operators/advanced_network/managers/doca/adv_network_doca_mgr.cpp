@@ -1279,6 +1279,7 @@ int DocaMgr::rx_core(void* arg) {
   }
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
+  #if ADV_NETWORK_MANAGER_WARMUP_KERNEL
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1288,6 +1289,7 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               false);
+  #endif
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
 
