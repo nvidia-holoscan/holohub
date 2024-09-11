@@ -16,6 +16,7 @@
 import os
 from argparse import ArgumentParser
 
+from holoscan import __version__ as holoscan_version
 from holoscan.core import Application
 from holoscan.operators import (
     AJASourceOp,
@@ -25,7 +26,8 @@ from holoscan.operators import (
     InferenceProcessorOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import UnboundedAllocator
+from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from packaging.version import Version
 
 from holohub.visualizer_icardio import VisualizerICardioOp
 
@@ -49,6 +51,8 @@ class MultiAIICardio(Application):
         self.sample_data_path = data
 
     def compose(self):
+        cuda_stream_pool = CudaStreamPool(self, name="cuda_stream")
+
         is_aja = self.source.lower() == "aja"
         SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
         source_kwargs = self.kwargs(self.source)
@@ -60,33 +64,48 @@ class MultiAIICardio(Application):
         source = SourceClass(self, name=self.source, **source_kwargs)
 
         in_dtype = "rgba8888" if is_aja else "rgb888"
-        pool = UnboundedAllocator(self, name="pool")
-        plax_cham_resized = FormatConverterOp(
-            self,
-            name="plax_cham_resized",
-            pool=pool,
-            in_dtype=in_dtype,
-            **self.kwargs("plax_cham_resized"),
-        )
+        in_components = 4 if is_aja else 3
+        bytes_per_float32 = 4
         plax_cham_pre = FormatConverterOp(
             self,
             name="plax_cham_pre",
-            pool=pool,
             in_dtype=in_dtype,
+            pool=BlockMemoryPool(
+                self,
+                name="plax_cham_pre_pool",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=320 * 320 * bytes_per_float32 * in_components,
+                num_blocks=3,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("plax_cham_pre"),
         )
         aortic_ste_pre = FormatConverterOp(
             self,
             name="aortic_ste_pre",
-            pool=pool,
             in_dtype=in_dtype,
+            pool=BlockMemoryPool(
+                self,
+                name="aortic_ste_pre_pool",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=300 * 300 * bytes_per_float32 * in_components,
+                num_blocks=3,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("aortic_ste_pre"),
         )
         b_mode_pers_pre = FormatConverterOp(
             self,
             name="b_mode_pers_pre",
-            pool=pool,
             in_dtype=in_dtype,
+            pool=BlockMemoryPool(
+                self,
+                name="b_mode_pers_pre_pool",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=320 * 240 * bytes_per_float32 * in_components,
+                num_blocks=3,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("b_mode_pers_pre"),
         )
 
@@ -108,33 +127,73 @@ class MultiAIICardio(Application):
                 device_map[k] = str(v)
             inference_kwargs["device_map"] = device_map
 
+        plax_chamber_output_size = 320 * 320 * bytes_per_float32 * 6
+        aortic_stenosis_output_size = bytes_per_float32 * 2
+        bmode_perspective_output_size = bytes_per_float32 * 1
+        block_size = max(
+            plax_chamber_output_size, aortic_stenosis_output_size, bmode_perspective_output_size
+        )
+
         multiai_inference = InferenceOp(
             self,
             name="multiai_inference",
-            allocator=pool,
+            allocator=BlockMemoryPool(
+                self,
+                name="multiai_inference_allocator",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=block_size,
+                num_blocks=2 * 3,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
             **inference_kwargs,
         )
 
+        # version 2.6 supports the CUDA version of `max_per_channel_scaled`
+        try:
+            supports_cuda_processing = Version(holoscan_version) >= Version("2.6")
+        except Exception:
+            supports_cuda_processing = False
         multiai_postprocessor = InferenceProcessorOp(
             self,
-            allocator=pool,
+            input_on_cuda=supports_cuda_processing,
+            output_on_cuda=supports_cuda_processing,
+            allocator=BlockMemoryPool(
+                self,
+                name="multiai_postprocessor_allocator",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=2 * bytes_per_float32 * 6,
+                num_blocks=1,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("multiai_postprocessor"),
         )
 
         visualizer_kwargs = self.kwargs("visualizer_icardio")
         visualizer_kwargs["data_dir"] = self.sample_data_path
-        visualizer_icardio = VisualizerICardioOp(self, allocator=pool, **visualizer_kwargs)
-        holoviz = HolovizOp(self, allocator=pool, name="holoviz", **self.kwargs("holoviz"))
+        bytes_per_uint8 = 1
+        visualizer_icardio = VisualizerICardioOp(
+            self,
+            allocator=BlockMemoryPool(
+                self,
+                name="visualizer_icardio_allocator",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=320 * 320 * 4 * bytes_per_uint8,
+                num_blocks=1 * 8,
+            ),
+            cuda_stream_pool=cuda_stream_pool,
+            **visualizer_kwargs,
+        )
+        holoviz = HolovizOp(
+            self, name="holoviz", cuda_stream_pool=cuda_stream_pool, **self.kwargs("holoviz")
+        )
 
         # connect the input to the resizer and each pre-processor
-        for op in [plax_cham_resized, plax_cham_pre, aortic_ste_pre, b_mode_pers_pre]:
-            if is_aja:
-                self.add_flow(source, op, {("video_buffer_output", "")})
-            else:
-                self.add_flow(source, op)
+        source_port_name = "video_buffer_output" if is_aja else ""
+        for op in [plax_cham_pre, aortic_ste_pre, b_mode_pers_pre]:
+            self.add_flow(source, op, {(source_port_name, "")})
 
-        # connect the resized source video to the visualizer
-        self.add_flow(plax_cham_resized, holoviz, {("", "receivers")})
+        # connect the source video to the visualizer
+        self.add_flow(source, holoviz, {(source_port_name, "receivers")})
 
         # connect all pre-processor outputs to the inference operator
         for op in [plax_cham_pre, aortic_ste_pre, b_mode_pers_pre]:
