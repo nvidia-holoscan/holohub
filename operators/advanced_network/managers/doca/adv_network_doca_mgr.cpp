@@ -1573,6 +1573,10 @@ void* DocaMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
   return get_pkt_ptr(burst, idx);
 }
 
+void* DocaMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+  return nullptr;
+}
+
 uint64_t DocaMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
   return burst->hdr.hdr.nbytes;
 }

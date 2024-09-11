@@ -58,7 +58,8 @@ struct AdvNetBurstHdr {
   AdvNetBurstHdrParams hdr;
 
   // Pad without union to make bindings readable
-  uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+  void *extra_burst_data;
+  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
@@ -67,6 +68,7 @@ struct AdvNetBurstParams {
 
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
+  void** pkt_extra_info;
   cudaEvent_t event;
 };
 
@@ -219,6 +221,11 @@ struct AdvNetConfig {
   bool enabled = false;
 };
 
+class AnoMgrExtraQueueConfig {
+public:
+    virtual ~AnoMgrExtraQueueConfig() = default;
+};
+
 struct CommonQueueConfig {
   std::string name_;
   int id_;
@@ -227,6 +234,7 @@ struct CommonQueueConfig {
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;
+  AnoMgrExtraQueueConfig* extra_queue_config;
 };
 
 struct MemoryRegion {
@@ -305,7 +313,7 @@ struct AdvNetConfigYaml {
   CommonConfig common_;
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
-  bool debug_;
+  uint16_t debug_;
 };
 
 template <typename Config>
