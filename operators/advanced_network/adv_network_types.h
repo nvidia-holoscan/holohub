@@ -313,7 +313,7 @@ struct AdvNetConfigYaml {
   CommonConfig common_;
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
-  bool debug_;
+  uint16_t debug_;
 };
 
 template <typename Config>

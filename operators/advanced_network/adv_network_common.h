@@ -525,9 +525,9 @@ static bool decode(const Node& node, holoscan::ops::AdvNetConfigYaml& input_spec
     }
 
     try {
-      input_spec.debug_ = node["debug"].as<bool>();
+      input_spec.debug_ = node["debug"].as<uint16_t>();
     } catch (const std::exception& e) {
-      input_spec.debug_ = false;
+      input_spec.debug_ = 0;
     }
 
     try {
