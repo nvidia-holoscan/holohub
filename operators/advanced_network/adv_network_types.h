@@ -221,6 +221,11 @@ struct AdvNetConfig {
   bool enabled = false;
 };
 
+class AnoMgrExtraQueueConfig {
+public:
+    virtual ~AnoMgrExtraQueueConfig() = default;
+};
+
 struct CommonQueueConfig {
   std::string name_;
   int id_;
@@ -229,6 +234,7 @@ struct CommonQueueConfig {
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;
+  AnoMgrExtraQueueConfig* extra_queue_config;
 };
 
 struct MemoryRegion {

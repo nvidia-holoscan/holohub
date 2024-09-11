@@ -406,6 +406,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_confi
     q.common_.id_ = q_item["id"].as<int>();
     q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
     q.common_.batch_size_ = q_item["batch_size"].as<int>();
+    q.common_.extra_queue_config = nullptr;
     q.output_port_ = q_item["output_port"].as<std::string>();
 
     const auto& mrs = q_item["memory_regions"];
