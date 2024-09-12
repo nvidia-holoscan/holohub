@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "FHIR Demo",
+		"name": "FHIR Client App",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -49,7 +49,7 @@
             }
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/fhir_demo.py ",
+			"command": "python3 <holohub_app_source>/fhir_client.py",
 			"workdir": "holohub_bin"
 		}
 	}

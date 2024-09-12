@@ -65,7 +65,7 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-class FhirDemo(Application):
+class FhirClient(Application):
     def __init__(self, args):
         self.args = args
         super().__init__()
@@ -120,8 +120,13 @@ class FhirDemo(Application):
         self.add_flow(fhirsan, pub)
 
 
-if __name__ == "__main__":
+# Create this function so that the __main__.py can directly call it
+def main():
     logging.basicConfig(level=logging.DEBUG)
     args = parse_args()
-    app = FhirDemo(args=args)
+    app = FhirClient(args=args)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

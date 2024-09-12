@@ -14,6 +14,24 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(ehr_query_llm/domain_specific/fhir LANGUAGES NONE)
+project(ehr_query_llm/domain_specific/fhir CXX)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(holoscan 2.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Install application and dependencies into the install/ directory for packaging
+install(
+  FILES __main__.py
+        fhir_client.py
+        metadata.json
+        README.md
+        requirements.txt
+        run_cmd_template.sh
+        test_fhir_client.py
+  DESTINATION fhir
+  COMPONENT "holohub-apps"
+)
+
+install(
+  DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/ehr_query_llm
+  DESTINATION fhir/operators)
