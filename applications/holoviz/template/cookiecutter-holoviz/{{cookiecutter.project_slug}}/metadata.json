@@ -28,7 +28,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/holoviz/{{ cookiecutter.project_slug }}",
+			"command": "<holohub_app_bin>/{{ cookiecutter.project_slug }}",
 			"workdir": "holohub_bin"
 		}
 	}

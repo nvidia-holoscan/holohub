@@ -1,4 +1,3 @@
-#!/bin/bash
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,27 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -x
+cmake_minimum_required(VERSION 3.20)
 
-PATH=$PATH:$HOME/.local/bin
+project(holoviz_yuv)
 
-if ! command -v cookiecutter &> /dev/null; then
-    python3 -m pip install cookiecutter
-fi
-if ! command -v clang-format &> /dev/null; then
-    python3 -m pip install clang-format
-fi
+find_package(holoscan 2.4 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-generate() {
-    local project_dir="$1"
-    local example="$2"
-    local project_name="$3"
+add_executable(holoviz_yuv
+  holoviz_yuv.cpp
+)
 
-    rm -rf ../${project_dir}
-    cookiecutter --no-input cookiecutter-holoviz "example=${example}" "project_name=${project_name}" ${@:4} -o ..
-    clang-format -i ../${project_dir}/*.cpp
-}
+target_link_libraries(holoviz_yuv
+  PRIVATE
+    holoscan::core
+    holoscan::ops::holoviz
+  )
 
-generate "holoviz_srgb" "sRGB" "Holoviz sRGB"
-generate "holoviz_vsync" "vsync" "Holoviz vsync"
-generate "holoviz_yuv" "YUV" "Holoviz YUV" "holoscan_version=2.4"
+if(BUILD_TESTING)
+  # Add test
+  add_test(NAME holoviz_yuv_test
+           COMMAND holoviz_yuv
+           --count=10
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_tests_properties(holoviz_yuv_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Application has finished running.")
+endif()
