@@ -853,6 +853,33 @@
             }
         },
         //#endregion h264_video_decode
+        //#region holoviz
+        {
+            "name": "(gdb) Holoviz examples",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build ${input:holoviz_example_name}",
+            "program": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}/${input:holoviz_example_name}",
+            "args": [ ],
+            "environment": [ ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "holoviz",
+                "order": 1
+            }
+        },
+        //#endregion holoviz
         //#region volume_rendering
         {
             "name": "(gdb) volume_rendering/cpp",
@@ -980,5 +1007,18 @@
                 "order": 11
             }
         },
-    ]
+    ],
+    "inputs": [
+        {
+            "id": "holoviz_example_name",
+            "description": "Select Holoviz example program",
+            "type": "pickString",
+            "options": [
+                "holoviz_srgb",
+                "holoviz_vsync",
+                "holoviz_yuv",
+            ],
+            "default": "holoviz_srgb"
+        }
+    ],
 }

@@ -15,3 +15,4 @@
 
 add_holohub_application(holoviz_srgb)
 add_holohub_application(holoviz_vsync)
+add_holohub_application(holoviz_yuv)

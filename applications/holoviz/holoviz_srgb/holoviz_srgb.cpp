@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,8 @@ class SourceOp : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(SourceOp);
 
   void initialize() override {
-    shape_ = nvidia::gxf::Shape{64, 64, 3};
+    const int32_t width = 64, height = 64;
+    shape_ = nvidia::gxf::Shape{width, height, 3};
     element_type_ = nvidia::gxf::PrimitiveType::kUnsigned8;
     element_size_ = nvidia::gxf::PrimitiveTypeSize(element_type_);
     strides_ = nvidia::gxf::ComputeTrivialStrides(shape_, element_size_);
@@ -109,10 +110,11 @@ class App : public holoscan::Application {
                                      // stop application count
                                      make_condition<CountCondition>("count-condition", count_));
 
+    ops::HolovizOp::InputSpec input_spec("image", ops::HolovizOp::InputType::COLOR);
+
     // By default the image format is auto detected. Auto detection assumes linear color space,
     // but we provide an sRGB encoded image. Create an input spec and change the image format to
     // sRGB.
-    ops::HolovizOp::InputSpec input_spec("image", ops::HolovizOp::InputType::COLOR);
     input_spec.image_format_ = ops::HolovizOp::ImageFormat::R8G8B8_SRGB;
 
     auto holoviz = make_operator<ops::HolovizOp>(
@@ -146,7 +148,7 @@ int main(int argc, char** argv) {
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
-        std::cout << "Holoscan ClaraViz volume renderer."
+        std::cout << "Holoviz sRGB" << std::endl
                   << "Usage: " << argv[0] << " [options]" << std::endl
                   << "Options:" << std::endl
                   << "  -h, --help                    Display this information" << std::endl
