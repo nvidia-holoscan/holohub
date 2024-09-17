@@ -82,24 +82,37 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
                          42);
   }
 
-  void free_bufs() {
+  // GPUNet IO has a ring buffer, older buffers get overridden without warning
+  // as new packets come in so there is no need to free previous buffers. This method is still
+  // needed to ensure we do not start processing too many batches in parallel.
+  void free_batch_queue() {
+    // Iterate through the batches tracked for copy/reordering
     while (out_q.size() > 0) {
       const auto first = out_q.front();
+      // If CUDA processing/copy is complete, stop tracking that batch
+      // and leave space for the next batch in the queue
       if (cudaEventQuery(first.evt) == cudaSuccess) {
         out_q.pop();
       } else {
+        // No need to check the next batch if the previous one is still being processed
         break;
       }
     }
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
+    // If we processed a batch of packets in a previous compute call, that was done asynchronously,
+    // and we'll need to know when that completes to have room to process more batches.
+    // Ideally, we'd do that on a callback from CUDA, but that is slow. For that reason and
+    // to keep it simple, we do that check right here on the next epoch of the operator.
+    free_batch_queue();
+
+    // Get new input burst (ANO batch of packets)
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
-      free_bufs();
+      HOLOSCAN_LOG_ERROR("No burst input");
       return;
     }
-
     auto burst = burst_opt.value();
 
     // In config file, queue 0 is for all other non-UDP packets so we don't care
@@ -113,8 +126,11 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
     for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
       if (aggr_pkts_recv_ >= batch_size_.get()) {
-        free_bufs();
+        aggr_pkts_recv_ = 0;
 
+        // Free the batch queue for batches which have already been  aggregated to the GPU again, in case
+        // some of it got completed since the beginning of `compute`, so we have extra space in out_q.
+        free_batch_queue();
         if (out_q.size() == num_concurrent) {
           HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
           return;
@@ -150,7 +166,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
         }
 
         cur_idx = (++cur_idx % num_concurrent);
-        aggr_pkts_recv_ = 0;
       }
 
       h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =

@@ -93,27 +93,37 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                          42);
   }
 
-  void free_bufs() {
+  // Free buffers if CUDA processing/copy is complete
+  void free_processed_packets() {
+    // Iterate through the batches tracked for processing
     while (out_q.size() > 0) {
       const auto first = out_q.front();
+      // If CUDA processing/copy is complete, free the packets for all bursts in this batch
       if (cudaEventQuery(first.evt) == cudaSuccess) {
         for (auto m = 0; m < first.num_batches; m++) {
           adv_net_free_all_pkts_and_burst(first.msg[m]);
         }
         out_q.pop();
       } else {
+        // No need to check the next batch if the previous one is still being processed
         break;
       }
     }
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
+    // If we processed a batch of packets in a previous compute call, that was done asynchronously,
+    // and we'll need to free the packets eventually so the NIC can have space for the next bursts.
+    // Ideally, we'd free the packets on a callback from CUDA, but that is slow. For that reason and
+    // to keep it simple, we do that check right here on the next epoch of the operator.
+    free_processed_packets();
+
+    // Get new input burst (ANO batch of packets)
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
-      free_bufs();
+      HOLOSCAN_LOG_ERROR("No burst input");
       return;
     }
-
     auto burst = burst_opt.value();
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
@@ -165,10 +175,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       // Do some work on full_batch_data_h_ or full_batch_data_d_
       aggr_pkts_recv_ = 0;
 
-      // In CPU-only mode we can free earlier, but to keep it simple we free at the same point
-      // as we do in GPU-only mode
-      free_bufs();
-
+      // Free buffers for packets which have already been aggregated to the GPU again, in case
+      // some of it got completed since the beginning of `compute`, so we have extra space in out_q.
+      // Note: In CPU-only mode we can free earlier (after memcopy), but to keep it simple we free
+      //       at the same point as we do in GPUDirect mode
+      free_processed_packets();
       if (out_q.size() == num_concurrent) {
         HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
         adv_net_free_all_pkts_and_burst(burst);
