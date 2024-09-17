@@ -96,14 +96,14 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   // Free buffers if CUDA processing/copy is complete
   void free_processed_packets() {
     // Iterate through the batches tracked for processing
-    while (out_q.size() > 0) {
-      const auto first = out_q.front();
+    while (batch_q_.size() > 0) {
+      const auto batch = batch_q_.front();
       // If CUDA processing/copy is complete, free the packets for all bursts in this batch
-      if (cudaEventQuery(first.evt) == cudaSuccess) {
-        for (auto m = 0; m < first.num_batches; m++) {
-          adv_net_free_all_pkts_and_burst(first.msg[m]);
+      if (cudaEventQuery(batch.evt) == cudaSuccess) {
+        for (auto m = 0; m < batch.num_bursts; m++) {
+          adv_net_free_all_pkts_and_burst(batch.bursts[m]);
         }
-        out_q.pop();
+        batch_q_.pop();
       } else {
         // No need to check the next batch if the previous one is still being processed
         break;
@@ -133,7 +133,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     }
 
     // Store burst structure
-    cur_msg_.msg[cur_msg_.num_batches++] = burst;
+    cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
 
     // Count packets received
     ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
@@ -145,24 +145,24 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     if (gpu_direct_.get()) {
       if (hds_.get()) {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
           ttl_bytes_recv_ +=
               adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
         }
       } else {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] =
               reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
           ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
         }
       }
     } else {
-      auto batch_offset = aggr_pkts_recv_ * nom_payload_size_;
+      auto burst_offset = aggr_pkts_recv_ * nom_payload_size_;
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
         auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
         auto len = adv_net_get_seg_pkt_len(burst, 0, p) - header_size_.get();
 
-        memcpy((char*)full_batch_data_h_[cur_idx] + batch_offset + p * nom_payload_size_,
+        memcpy((char*)full_batch_data_h_[cur_batch_idx_] + burst_offset + p * nom_payload_size_,
                pkt + 1,
                len);
 
@@ -176,42 +176,42 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       aggr_pkts_recv_ = 0;
 
       // Free buffers for packets which have already been aggregated to the GPU again, in case
-      // some of it got completed since the beginning of `compute`, so we have extra space in out_q.
+      // some of it got completed since the beginning of `compute`, so we have extra space in batch_q_.
       // Note: In CPU-only mode we can free earlier (after memcopy), but to keep it simple we free
       //       at the same point as we do in GPUDirect mode
       free_processed_packets();
-      if (out_q.size() == num_concurrent) {
+      if (batch_q_.size() == num_concurrent) {
         HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
         adv_net_free_all_pkts_and_burst(burst);
         return;
       }
 
       if (gpu_direct_.get()) {
-        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
-                              h_dev_ptrs_[cur_idx],
+        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
+                              h_dev_ptrs_[cur_batch_idx_],
                               nom_payload_size_,
                               batch_size_.get(),
-                              streams_[cur_idx]);
+                              streams_[cur_batch_idx_]);
 
       } else {
-          if (out_q.size() == num_concurrent) {
+          if (batch_q_.size() == num_concurrent) {
             HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
             adv_net_free_all_pkts_and_burst(burst);
             return;
           }
 
-          cudaMemcpyAsync(full_batch_data_d_[cur_idx],
-                          full_batch_data_h_[cur_idx],
+          cudaMemcpyAsync(full_batch_data_d_[cur_batch_idx_],
+                          full_batch_data_h_[cur_batch_idx_],
                           batch_size_.get() * nom_payload_size_,
                           cudaMemcpyDefault,
-                          streams_[cur_idx]);
+                          streams_[cur_batch_idx_]);
       }
 
-      cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+      cudaEventRecord(events_[cur_batch_idx_], streams_[cur_batch_idx_]);
 
-      cur_msg_.evt = events_[cur_idx];
-      out_q.push(cur_msg_);
-      cur_msg_.num_batches = 0;
+      cur_batch_.evt = events_[cur_batch_idx_];
+      batch_q_.push(cur_batch_);
+      cur_batch_.num_bursts = 0;
 
       if (cudaGetLastError() != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
@@ -220,23 +220,24 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         exit(1);
       }
 
-      cur_idx = (++cur_idx % num_concurrent);
+      cur_batch_idx_ = (++cur_batch_idx_ % num_concurrent);
     }
   }
 
  private:
   static constexpr int num_concurrent = 4;    // Number of concurrent batches processing
-  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
+  static constexpr int MAX_ANO_BURSTS = 10;   // Batches from ANO for one app batch
 
-  // Holds burst buffers that cannot be freed yet
-  struct RxMsg {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
-    int num_batches;
+  // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
+  struct BatchAggregationParams {
+    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    int num_bursts;
     cudaEvent_t evt;
   };
 
-  RxMsg cur_msg_{};
-  std::queue<RxMsg> out_q;
+  BatchAggregationParams cur_batch_{};             // Parameters of current batch to process
+  int cur_batch_idx_ = 0;                          // Current batch ID
+  std::queue<BatchAggregationParams> batch_q_;     // Queue of batches being processed
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
@@ -252,7 +253,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
-  int cur_idx = 0;
 };
 
 }  // namespace holoscan::ops

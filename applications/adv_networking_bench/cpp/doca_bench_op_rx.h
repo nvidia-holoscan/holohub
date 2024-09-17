@@ -87,12 +87,12 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   // needed to ensure we do not start processing too many batches in parallel.
   void free_batch_queue() {
     // Iterate through the batches tracked for copy/reordering
-    while (out_q.size() > 0) {
-      const auto first = out_q.front();
+    while (batch_q_.size() > 0) {
+      const auto batch = batch_q_.front();
       // If CUDA processing/copy is complete, stop tracking that batch
       // and leave space for the next batch in the queue
-      if (cudaEventQuery(first.evt) == cudaSuccess) {
-        out_q.pop();
+      if (cudaEventQuery(batch.evt) == cudaSuccess) {
+        batch_q_.pop();
       } else {
         // No need to check the next batch if the previous one is still being processed
         break;
@@ -129,34 +129,34 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
         aggr_pkts_recv_ = 0;
 
         // Free the batch queue for batches which have already been  aggregated to the GPU again, in case
-        // some of it got completed since the beginning of `compute`, so we have extra space in out_q.
+        // some of it got completed since the beginning of `compute`, so we have extra space in batch_q_.
         free_batch_queue();
-        if (out_q.size() == num_concurrent) {
+        if (batch_q_.size() == num_concurrent) {
           HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
           return;
         }
 
         // HOLOSCAN_LOG_INFO("Launch order kernel, aggr_pkts_recv_ {} pkt_idx {} batch_size_.get()
-        // {} cur_idx {}", aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_idx);
+        // {} cur_batch_idx_ {}", aggr_pkts_recv_, pkt_idx, batch_size_.get(), cur_batch_idx_);
 #if DEBUG_CUDA_TIMES == 1
         float et_ms = 0;
-        cudaEventRecord(events_start_[cur_idx], streams_[cur_idx]);
+        cudaEventRecord(events_start_[cur_batch_idx_], streams_[cur_batch_idx_]);
 #endif
 
-        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
-                              h_dev_ptrs_[cur_idx],
+        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
+                              h_dev_ptrs_[cur_batch_idx_],
                               nom_payload_size_,
                               batch_size_.get(),
-                              streams_[cur_idx]);
+                              streams_[cur_batch_idx_]);
 #if DEBUG_CUDA_TIMES == 1
-        cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-        cudaEventSynchronize(events_[cur_idx]);
-        cudaEventElapsedTime(&et_ms, events_start_[cur_idx], events_[cur_idx]);
+        cudaEventRecord(events_[cur_batch_idx_], streams_[cur_batch_idx_]);
+        cudaEventSynchronize(events_[cur_batch_idx_]);
+        cudaEventElapsedTime(&et_ms, events_start_[cur_batch_idx_], events_[cur_batch_idx_]);
         HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} et_ms {}", aggr_pkts_recv_, et_ms);
 #endif
-        cur_msg_.evt = events_[cur_idx];
-        out_q.push(cur_msg_);
-        cur_msg_.num_batches = 0;
+        cur_batch_.evt = events_[cur_batch_idx_];
+        batch_q_.push(cur_batch_);
+        cur_batch_.num_bursts = 0;
 
         if (cudaGetLastError() != cudaSuccess) {
           HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
@@ -165,10 +165,10 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
           exit(1);
         }
 
-        cur_idx = (++cur_idx % num_concurrent);
+        cur_batch_idx_ = (++cur_batch_idx_ % num_concurrent);
       }
 
-      h_dev_ptrs_[cur_idx][aggr_pkts_recv_++] =
+      h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_++] =
           reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
@@ -177,17 +177,18 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
  private:
   static constexpr int num_concurrent = 4;    // Number of concurrent batches processing
-  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
+  static constexpr int MAX_ANO_BURSTS = 10;   // Batches from ANO for one app batch
 
   // Holds burst buffers that cannot be freed yet
-  struct RxMsg {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
-    int num_batches;
+  struct BatchAggregationParams {
+    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    int num_bursts;
     cudaEvent_t evt;
   };
 
-  RxMsg cur_msg_{};
-  std::queue<RxMsg> out_q;
+  BatchAggregationParams cur_batch_{};             // Parameters of current batch to process
+  int cur_batch_idx_ = 0;                          // Current batch ID
+  std::queue<BatchAggregationParams> batch_q_;     // Queue of batches being processed
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
@@ -201,7 +202,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   std::array<cudaEvent_t, num_concurrent> events_start_;
-  int cur_idx = 0;
 };
 
 }  // namespace holoscan::ops
