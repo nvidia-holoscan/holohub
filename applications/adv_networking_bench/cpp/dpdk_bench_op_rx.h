@@ -118,13 +118,14 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     auto burst = burst_opt.value();
 
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
-
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     if (adv_net_get_q_id(burst) == 0) {
       adv_net_free_all_pkts_and_burst(burst);
       return;
     }
+  
+    // Count packets received
+    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
     /* Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
      * Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the

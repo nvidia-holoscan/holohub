@@ -102,13 +102,14 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
     auto burst = burst_opt.value();
 
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
-
     // In config file, queue 0 is for all other non-UDP packets so we don't care
     if (adv_net_get_q_id(burst) == 0) {
       // HOLOSCAN_LOG_INFO("Ignoring packets on queue 0");
       return;
     }
+
+    // Count packets received
+    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
     for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
       if (aggr_pkts_recv_ >= batch_size_.get()) {
