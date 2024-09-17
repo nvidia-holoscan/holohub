@@ -110,8 +110,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    int64_t ttl_bytes_in_cur_batch_ = 0;
-
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
       free_bufs();
@@ -137,18 +135,16 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       if (hds_.get()) {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
-          ttl_bytes_in_cur_batch_ +=
+          ttl_bytes_recv_ +=
               adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
         }
       } else {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
               reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
-          ttl_bytes_in_cur_batch_ += adv_net_get_seg_pkt_len(burst, 0, p);
+          ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
         }
       }
-
-      ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
     } else {
       auto batch_offset = aggr_pkts_recv_ * nom_payload_size_;
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
@@ -160,7 +156,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                len);
 
         ttl_bytes_recv_ += len + sizeof(UDPIPV4Pkt);
-        ttl_bytes_in_cur_batch_ += len + sizeof(UDPIPV4Pkt);
       }
     }
 

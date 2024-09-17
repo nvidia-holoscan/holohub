@@ -96,7 +96,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    int64_t ttl_bytes_in_cur_batch_ = 0;
     int pkt_idx = 0;
     bool complete = true;
 
@@ -162,8 +161,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
           reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
-    ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
-    ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
+    ttl_bytes_recv_ += adv_net_get_burst_tot_byte(burst);
   }
 
  private:
