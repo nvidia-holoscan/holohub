@@ -121,7 +121,10 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       adv_net_free_all_pkts_and_burst(burst);
       return;
     }
-  
+
+    // Store burst structure
+    cur_msg_.msg[cur_msg_.num_batches++] = burst;
+
     // Count packets received
     ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
@@ -158,7 +161,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     }
 
     aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
-    cur_msg_.msg[cur_msg_.num_batches++] = burst;
     if (aggr_pkts_recv_ >= batch_size_.get()) {
       // Do some work on full_batch_data_h_ or full_batch_data_d_
       aggr_pkts_recv_ = 0;
