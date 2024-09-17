@@ -159,14 +159,15 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     } else {
       auto burst_offset = aggr_pkts_recv_ * nom_payload_size_;
       for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-        auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
-        auto len = adv_net_get_seg_pkt_len(burst, 0, p) - header_size_.get();
+        auto payload_ptr = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + 1;
+        auto pkt_len = adv_net_get_seg_pkt_len(burst, 0, p);
+        auto payload_len = pkt_len - header_size_.get();
 
         memcpy((char*)full_batch_data_h_[cur_batch_idx_] + burst_offset + p * nom_payload_size_,
-               pkt + 1,
-               len);
+               payload_ptr,
+               payload_len);
 
-        ttl_bytes_recv_ += len + sizeof(UDPIPV4Pkt);
+        ttl_bytes_recv_ += pkt_len;
       }
     }
 
