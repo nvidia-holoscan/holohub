@@ -131,7 +131,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
      * entire burst buffer pointer is saved and freed once an entire batch is received.
      */
     if (gpu_direct_.get()) {
-      int64_t bytes_in_batch = 0;
       if (hds_.get()) {
         for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
@@ -221,13 +220,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   struct RxMsg {
     std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
     int num_batches;
-    void* full_batch_data_h_;
     cudaEvent_t evt;
   };
 
   RxMsg cur_msg_{};
   std::queue<RxMsg> out_q;
-  int burst_buf_idx_ = 0;                          // Index into burst_buf_idx_ of current burst
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch

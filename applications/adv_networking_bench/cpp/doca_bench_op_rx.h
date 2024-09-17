@@ -65,8 +65,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
   void setup(OperatorSpec& spec) override {
     spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
-    // spec.param<bool>(hds_, "split_boundary", "Header-data split boundary",
-    //     "Byte boundary where header and data is split", false);
     spec.param<uint32_t>(batch_size_,
                          "batch_size",
                          "Batch size",
@@ -96,9 +94,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    int pkt_idx = 0;
-    bool complete = true;
-
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
       free_bufs();
@@ -115,7 +110,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       return;
     }
 
-    for (pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
+    for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
       if (aggr_pkts_recv_ >= batch_size_.get()) {
         free_bufs();
 
@@ -177,18 +172,16 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
   RxMsg cur_msg_{};
   std::queue<RxMsg> out_q;
-  int burst_buf_idx_ = 0;                          // Index into burst_buf_idx_ of current burst
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
   uint16_t nom_payload_size_;                      // Nominal payload size (no headers)
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
-  void* full_batch_data_h_;                        // Host-pinned aggregated batch
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet
-  static int s;
+
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   std::array<cudaEvent_t, num_concurrent> events_start_;
