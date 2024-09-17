@@ -195,12 +195,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                               streams_[cur_batch_idx_]);
 
       } else {
-          if (batch_q_.size() == num_concurrent) {
-            HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
-            adv_net_free_all_pkts_and_burst(burst);
-            return;
-          }
-
           cudaMemcpyAsync(full_batch_data_d_[cur_batch_idx_],
                           full_batch_data_h_[cur_batch_idx_],
                           batch_size_.get() * nom_payload_size_,
