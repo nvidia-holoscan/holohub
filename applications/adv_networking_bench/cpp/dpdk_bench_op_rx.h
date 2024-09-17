@@ -51,9 +51,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
       if (!gpu_direct_.get()) {
         cudaMallocHost(&full_batch_data_h_[n], batch_size_.get() * nom_payload_size_);
-      }
-
-      if (gpu_direct_.get()) {
+      } else {
         cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
       }
 
