@@ -70,7 +70,6 @@ advanced_network:
           - name: "ADC Samples"
             id: 0
             batch_size: 10240
-            split_boundary: 0
             cpu_core: 11
             memory_regions:
               - "Data_TX_GPU"
