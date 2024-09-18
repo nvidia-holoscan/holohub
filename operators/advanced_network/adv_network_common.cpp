@@ -419,6 +419,32 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
 }
 
 /**
+ * @brief Parse common queue configuration from a YAML node.
+ *
+ * @param q_item The YAML node containing the queue configuration.
+ * @param common The CommonQueueConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQueueConfig& common) {
+  try {
+    common.name_ = q_item["name"].as<std::string>();
+    common.id_ = q_item["id"].as<int>();
+    common.cpu_core_ = q_item["cpu_core"].as<std::string>();
+    common.batch_size_ = q_item["batch_size"].as<int>();
+    common.split_boundary_ = q_item["split_boundary"].as<int>(0);
+    common.extra_queue_config = nullptr;
+
+    const auto& mrs = q_item["memory_regions"];
+    common.mrs_.reserve(mrs.size());
+    for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
+    return false;
+  }
+  return true;
+}
+
+/**
  * @brief Parse common RX queue configuration from a YAML node.
  *
  * @param q_item The YAML node containing the RX queue configuration.
@@ -427,18 +453,11 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::RxQueueConfig& q) {
+  if (!parse_common_queue_config(q_item, q.common_)) {
+    return false;
+  }
   try {
-    q.common_.name_ = q_item["name"].as<std::string>();
-    q.common_.id_ = q_item["id"].as<int>();
-    q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-    q.common_.batch_size_ = q_item["batch_size"].as<int>();
-    q.common_.split_boundary_ = q_item["split_boundary"].as<int>(0);
-    q.common_.extra_queue_config = nullptr;
     q.output_port_ = q_item["output_port"].as<std::string>();
-
-    const auto& mrs = q_item["memory_regions"];
-    q.common_.mrs_.reserve(mrs.size());
-    for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing RxQueueConfig: {}", e.what());
     return false;
@@ -491,18 +510,10 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::TxQueueConfig& q) {
+  if (!parse_common_queue_config(q_item, q.common_)) {
+    return false;
+  }
   try {
-    q.common_.name_ = q_item["name"].as<std::string>();
-    q.common_.id_ = q_item["id"].as<int>();
-    q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-    q.common_.batch_size_ = q_item["batch_size"].as<int>();
-    q.common_.split_boundary_ = q_item["split_boundary"].as<int>(0);
-    q.common_.extra_queue_config = nullptr;
-
-    const auto& mrs = q_item["memory_regions"];
-    q.common_.mrs_.reserve(mrs.size());
-    for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
-
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
     for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
