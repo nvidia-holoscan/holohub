@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 # Define targets for each manager type
 foreach(MGR IN LISTS ANO_MGR_LIST)
     string(TOUPPER ${MGR} MGR_UPPER)
-    string(TOLOWER ${MGR} MGR_LOWER)    
+    string(TOLOWER ${MGR} MGR_LOWER)
     message(STATUS "Adding manager ${MGR_UPPER} to the configuration")
     project(ano_manager_${MGR_LOWER} LANGUAGES CXX CUDA)
     add_library(${PROJECT_NAME} SHARED)

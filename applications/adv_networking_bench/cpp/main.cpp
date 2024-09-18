@@ -38,7 +38,7 @@ class App : public holoscan::Application {
     HOLOSCAN_LOG_INFO("Using ANO manager {}", holoscan::ops::manager_type_to_string(mgr_type));
 
     // DPDK is the default manager backend
-    if (mgr_type ==  holoscan::ops::AnoMgrType::DPDK) {
+    if (mgr_type == holoscan::ops::AnoMgrType::DPDK) {
 #if ANO_MGR_DPDK
       if (rx_en) {
         auto adv_net_rx =
@@ -47,7 +47,7 @@ class App : public holoscan::Application {
                                                make_condition<BooleanCondition>("is_alive", true));
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx", from_config("bench_rx"));
-        add_flow(adv_net_rx, bench_rx, {{"bench_rx_out", "burst_in"}});
+        add_flow(adv_net_rx, bench_rx, {{ "bench_rx_out", "burst_in" }});
       }
       if (tx_en) {
         auto adv_net_tx =
@@ -56,14 +56,14 @@ class App : public holoscan::Application {
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
-        add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
+        add_flow(bench_tx, adv_net_tx, {{ "burst_out", "burst_in" }});
       }
 #else
       HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is disabled");
       exit(1);
 #endif
 
-    } else if (mgr_type ==  holoscan::ops::AnoMgrType::DOCA) {
+    } else if (mgr_type == holoscan::ops::AnoMgrType::DOCA) {
 #if ANO_MGR_DOCA
       if (rx_en) {
         auto bench_rx =
@@ -72,7 +72,7 @@ class App : public holoscan::Application {
             make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
                                                from_config("advanced_network"),
                                                make_condition<BooleanCondition>("is_alive", true));
-        add_flow(adv_net_rx, bench_rx, {{"bench_rx_out", "burst_in"}});
+        add_flow(adv_net_rx, bench_rx, {{ "bench_rx_out", "burst_in" }});
       }
       if (tx_en) {
         auto bench_tx = make_operator<ops::AdvNetworkingBenchDocaTxOp>(
@@ -81,7 +81,7 @@ class App : public holoscan::Application {
             make_condition<BooleanCondition>("is_alive", true));
         auto adv_net_tx =
             make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
-        add_flow(bench_tx, adv_net_tx, {{"burst_out", "burst_in"}});
+        add_flow(bench_tx, adv_net_tx, {{ "burst_out", "burst_in" }});
       }
 #else
       HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");

@@ -43,7 +43,7 @@ class ANOMgr {
   virtual uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) = 0;
   virtual void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) = 0;
   virtual uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) = 0;
-  virtual void *get_pkt_extra_info(AdvNetBurstParams *burst, int idx) = 0;
+  virtual void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) = 0;
   virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) = 0;
   virtual AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) = 0;
   virtual AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
@@ -78,7 +78,8 @@ class ANOMgr {
   virtual int address_to_port(const std::string& addr) = 0;
   virtual bool validate_config() const;
 
-    virtual ~ANOMgr() = default;
+  virtual ~ANOMgr() = default;
+
  protected:
   static constexpr int MAX_IFS = 4;
   static constexpr int MAX_GPUS = 8;
@@ -96,7 +97,6 @@ class ANOMgr {
 
 class AnoMgrFactory {
  public:
-
   static void set_manager_type(AnoMgrType type) {
     if (AnoMgrType_ != AnoMgrType::UNKNOWN && AnoMgrType_ != type) {
       throw std::logic_error("Manager type is already set with another manager type.");
@@ -109,16 +109,14 @@ class AnoMgrFactory {
   }
 
   static AnoMgrType get_manager_type() { return AnoMgrType_; }
-  
+
   template <typename Config>
-  static AnoMgrType get_manager_type(const Config &config);
-  
+  static AnoMgrType get_manager_type(const Config& config);
+
   static AnoMgrType get_default_manager_type();
 
   static ANOMgr& get_active_manager() {
-    if (AnoMgrType_ == AnoMgrType::UNKNOWN) {
-      throw std::logic_error("AnoMgrType not set");
-    }
+    if (AnoMgrType_ == AnoMgrType::UNKNOWN) { throw std::logic_error("AnoMgrType not set"); }
     if (!AnoMgrInstance_) { AnoMgrInstance_ = create_instance(AnoMgrType_); }
     return *AnoMgrInstance_;
   }
@@ -135,5 +133,4 @@ class AnoMgrFactory {
   static std::unique_ptr<ANOMgr> create_instance(AnoMgrType type);
 };
 
-}; // namespace holoscan::ops
-
+};  // namespace holoscan::ops

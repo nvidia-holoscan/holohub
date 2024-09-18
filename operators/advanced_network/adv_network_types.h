@@ -58,7 +58,7 @@ struct AdvNetBurstHdr {
   AdvNetBurstHdrParams hdr;
 
   // Pad without union to make bindings readable
-  void *extra_burst_data;
+  void* extra_burst_data;
   uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
 };
 
@@ -179,7 +179,7 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
  * @param str
  * @return AnoMgrType
  */
-inline AnoMgrType manager_type_from_string(const std::string &str) {
+inline AnoMgrType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__DPDK) return AnoMgrType::DPDK;
   if (str == ANO_MGR_STR__DOCA) return AnoMgrType::DOCA;
   if (str == ANO_MGR_STR__RIVERMAX) return AnoMgrType::RIVERMAX;
@@ -195,11 +195,16 @@ inline AnoMgrType manager_type_from_string(const std::string &str) {
  */
 inline std::string manager_type_to_string(AnoMgrType type) {
   switch (type) {
-    case AnoMgrType::DPDK: return ANO_MGR_STR__DPDK;
-    case AnoMgrType::DOCA: return ANO_MGR_STR__DOCA;
-    case AnoMgrType::RIVERMAX: return ANO_MGR_STR__RIVERMAX;
-    case AnoMgrType::DEFAULT: return ANO_MGR_STR__DEFAULT;
-    default: return "unknown";
+    case AnoMgrType::DPDK:
+      return ANO_MGR_STR__DPDK;
+    case AnoMgrType::DOCA:
+      return ANO_MGR_STR__DOCA;
+    case AnoMgrType::RIVERMAX:
+      return ANO_MGR_STR__RIVERMAX;
+    case AnoMgrType::DEFAULT:
+      return ANO_MGR_STR__DEFAULT;
+    default:
+      return "unknown";
   }
 }
 
@@ -222,8 +227,8 @@ struct AdvNetConfig {
 };
 
 class AnoMgrExtraQueueConfig {
-public:
-    virtual ~AnoMgrExtraQueueConfig() = default;
+ public:
+  virtual ~AnoMgrExtraQueueConfig() = default;
 };
 
 struct CommonQueueConfig {
