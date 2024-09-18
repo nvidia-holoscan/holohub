@@ -432,7 +432,7 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
     common.cpu_core_ = q_item["cpu_core"].as<std::string>();
     common.batch_size_ = q_item["batch_size"].as<int>();
     common.split_boundary_ = q_item["split_boundary"].as<int>(0);
-    common.extra_queue_config = nullptr;
+    common.extra_queue_config_ = nullptr;
 
     const auto& mrs = q_item["memory_regions"];
     common.mrs_.reserve(mrs.size());
