@@ -1,3 +1,4 @@
+%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,25 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+# Required fields for packaging the application
+# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+application:
+  title: Holoscan App Package - EHR FHIR Client Application
+  version: 1.0
+  inputFormats: ["tcp"]
+  outputFormats: ["tcp"]
 
-cmake_minimum_required(VERSION 3.20)
-project(ehr_query_llm/domain_specific/fhir NONE)
+resources:
+  cpu: 4
+  memory: 4Gi
 
-# Install application and dependencies into the install/ directory for packaging
-install(
-  FILES __main__.py
-        app.yaml
-        fhir_client.py
-        metadata.json
-        packageHAP.sh
-        README.md
-        requirements.txt
-        run_cmd_template.sh
-        test_fhir_client.py
-  DESTINATION fhir
-  COMPONENT "holohub-apps"
-)
-
-install(
-  DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/ehr_query_llm
-  DESTINATION fhir/operators)
