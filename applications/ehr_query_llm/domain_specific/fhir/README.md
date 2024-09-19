@@ -26,6 +26,7 @@ The default set of resource types to retrieve are list below, which can be overr
 
 There are a number of ways to build and run this application, as well as packaging this application as a Holoscan Application Package, a [Open Container Initiative](https://opencontainers.org/) compliant image. The following sections describe each in detail.
 
+It is further expected that you have read the [HoloHub README](../../../README.md), have cloned the HoloHub repository to your local system, and the current working directory is the HoloHub root, `holohub`.
 
 **_Note_**:
 The application listens on request message to start retrieving resources from the server and then publishing the results, so another application is needed to drive this workflow, e.g. the LLM applicaition. To help with simple testing, a Python script is provided as part of this application, and will be described at the end of this section.
