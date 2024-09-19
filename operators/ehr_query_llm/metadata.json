@@ -1,0 +1,52 @@
+{
+	"operator": {
+		"name": "ehr_query_llm",
+		"authors": [
+			{
+				"name": "Holoscan SDK Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.4.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"ehr_query_llm",
+			"FHIR service client",
+			"FHIR"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"python-packages": {
+                "holoscan": {
+                    "version": "2.3.0",
+                    "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
+                },
+				"fhir.resources": {
+                    "version": "7.0.0",
+                    "license-url": "https://github.com/nazrulworld/fhir.resources/blob/main/LICENSE"
+                },
+				"pyzmq": {
+                    "version": "25.1.0",
+                    "license-url": "https://github.com/zeromq/pyzmq/blob/main/LICENSE.md"
+                },
+				"requests": {
+                    "version": "2.31.0",
+                    "license-url": "https://github.com/psf/requests/blob/main/LICENSE"
+                }
+            }
+		}
+	}
+}
