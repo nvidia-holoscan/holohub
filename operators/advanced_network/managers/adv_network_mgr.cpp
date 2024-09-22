@@ -42,24 +42,21 @@ AnoMgrType AnoMgrFactory::AnoMgrType_ = AnoMgrType::UNKNOWN;
 
 extern void adv_net_initialize_manager(ANOMgr* _manager);
 
-
 AnoMgrType AnoMgrFactory::get_default_manager_type() {
   AnoMgrType mgr_type = AnoMgrType::UNKNOWN;
 #if ANO_MGR_DPDK
-    mgr_type = AnoMgrType::DPDK;
+  mgr_type = AnoMgrType::DPDK;
 #elif ANO_MGR_DOCA
-    mgr_type =  AnoMgrType::DOCA;
+  mgr_type = AnoMgrType::DOCA;
 #elif ANO_MGR_RIVERMAX
-    mgr_type = AnoMgrType::RIVERMAX;
+  mgr_type = AnoMgrType::RIVERMAX;
 #else
 #error "No advanced network operator manager defined"
 #endif
   return mgr_type;
 }
 
-
 std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
-
   std::unique_ptr<ANOMgr> _manager;
   switch (type) {
 #if ANO_MGR_DPDK
@@ -86,26 +83,26 @@ std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
       throw std::invalid_argument("Invalid type");
   }
 
-  //Initialize the ADV Net Common API
+  // Initialize the ADV Net Common API
   adv_net_initialize_manager(_manager.get());
   return _manager;
 }
 
 template <typename Config>
-AnoMgrType AnoMgrFactory::get_manager_type(const Config &config) {
+AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
   // Ensure that Config has a method yaml_nodes() that returns a collection
-  //of YAML nodes
-  static_assert(std::is_member_function_pointer<decltype(&Config::yaml_nodes)>::value,
-                "Config type must have a method yaml_nodes() that returns a collection of YAML nodes");
+  // of YAML nodes
+  static_assert(
+      std::is_member_function_pointer<decltype(&Config::yaml_nodes)>::value,
+      "Config type must have a method yaml_nodes() that returns a collection of YAML nodes");
 
   auto& yaml_nodes = config.yaml_nodes();
-  for (const auto &yaml_node : yaml_nodes) {
+  for (const auto& yaml_node : yaml_nodes) {
     try {
       auto node = yaml_node["advanced_network"]["cfg"];
       std::string manager = node["manager"].template as<std::string>(ANO_MGR_STR__DEFAULT);
       return manager_type_from_string(manager);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
       return manager_type_from_string(holoscan::ops::ANO_MGR_STR__DEFAULT);
     }
   }
@@ -167,9 +164,9 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
       }
 
       if (ptr == nullptr) {
-        HOLOSCAN_LOG_CRITICAL(
-            "Fatal to allocate {} of type {} for MR",
-                  mr.second.ttl_size_, static_cast<int>(mr.second.kind_));
+        HOLOSCAN_LOG_CRITICAL("Fatal to allocate {} of type {} for MR",
+                              mr.second.ttl_size_,
+                              static_cast<int>(mr.second.kind_));
         return AdvNetStatus::NULL_PTR;
       }
     }

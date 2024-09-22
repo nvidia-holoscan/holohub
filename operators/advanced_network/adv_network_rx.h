@@ -24,8 +24,6 @@
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
 
-
-
 namespace holoscan::ops {
 /*
   Class for handling data from a high-speed network. This can be used for low-speed networks too,
@@ -36,41 +34,41 @@ class AdvNetworkOpRx : public Operator {
   class AdvNetworkOpRxImpl;
 
  public:
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkOpRx);
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkOpRx);
 
-    // Constructor with output ports initialization
-    HOLOSCAN_OPERATOR_FORWARD_TEMPLATE()
-    AdvNetworkOpRx(std::unordered_set<std::string> output_ports_list, ArgT&& arg, ArgsT&&... args)
-        : Operator(std::forward<ArgT>(arg), std::forward<ArgsT>(args)...), output_ports(std::move(output_ports_list)) {}
-    
-    AdvNetworkOpRx() = default;
-    ~AdvNetworkOpRx() = default;
+  // Constructor with output ports initialization
+  HOLOSCAN_OPERATOR_FORWARD_TEMPLATE()
+  AdvNetworkOpRx(std::unordered_set<std::string> output_ports_list, ArgT&& arg, ArgsT&&... args)
+      : Operator(std::forward<ArgT>(arg), std::forward<ArgsT>(args)...),
+        output_ports(std::move(output_ports_list)) {}
 
-    void initialize() override;
-    int Init();
-    int FreeBurst(AdvNetBurstParams *burst);
+  AdvNetworkOpRx() = default;
+  ~AdvNetworkOpRx() = default;
 
-    // Holoscan functions
-    void setup(OperatorSpec& spec) override;
-    void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
+  void initialize() override;
+  int Init();
+  int FreeBurst(AdvNetBurstParams* burst);
 
+  // Holoscan functions
+  void setup(OperatorSpec& spec) override;
+  void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
  private:
-    static constexpr int RX_BURST_SIZE = 128;
-    AdvNetworkOpRxImpl *impl;
-    std::unordered_map<uint32_t, std::string> pq_map_;
-    std::unordered_set<std::string> output_ports;
+  static constexpr int RX_BURST_SIZE = 128;
+  AdvNetworkOpRxImpl* impl;
+  std::unordered_map<uint32_t, std::string> pq_map_;
+  std::unordered_set<std::string> output_ports;
 
-    Parameter<std::string> if_name_;
-    Parameter<std::string> cpu_cores_;
-    Parameter<std::string> master_core_;
-    Parameter<std::string> direction_;
-    Parameter<int> hds_split_;
-    Parameter<int> gpu_device_;
-    Parameter<int> batch_size_;
-    Parameter<int> max_packet_size_;
-    Parameter<uint32_t> num_concurrent_batches_;
-    Parameter<AdvNetConfigYaml> cfg_;
+  Parameter<std::string> if_name_;
+  Parameter<std::string> cpu_cores_;
+  Parameter<std::string> master_core_;
+  Parameter<std::string> direction_;
+  Parameter<int> hds_split_;
+  Parameter<int> gpu_device_;
+  Parameter<int> batch_size_;
+  Parameter<int> max_packet_size_;
+  Parameter<uint32_t> num_concurrent_batches_;
+  Parameter<AdvNetConfigYaml> cfg_;
 };
 
 };  // namespace holoscan::ops

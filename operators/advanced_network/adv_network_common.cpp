@@ -22,7 +22,8 @@
 #include <rte_memcpy.h>
 #include <rte_ethdev.h>
 
-#define ASSERT_ANO_MGR_INITIALIZED() assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
+#define ASSERT_ANO_MGR_INITIALIZED() \
+  assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
 namespace holoscan::ops {
 
 /**
@@ -36,19 +37,17 @@ namespace holoscan::ops {
 // Declare a static global variable for the manager
 static ANOMgr* g_ano_mgr = nullptr;
 
-
-AdvNetBurstParams *adv_net_create_burst_params() {
+AdvNetBurstParams* adv_net_create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_burst_params();
 }
-
 
 void adv_net_initialize_manager(ANOMgr* manager) {
   g_ano_mgr = manager;
 }
 
 ANOMgr* adv_net_get_active_manager() {
-    return g_ano_mgr;
+  return g_ano_mgr;
 }
 
 AnoMgrType adv_net_get_manager_type() {
@@ -355,7 +354,7 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
 
   try {
     auto& yaml_nodes = conf.yaml_nodes();
-    for (const YAML::Node& node : yaml_nodes) {    
+    for (const YAML::Node& node : yaml_nodes) {
       const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
       for (const auto& intf : intfs) {
         const auto& intf_dir = intf[dir];
@@ -367,25 +366,21 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
         }
       }
     }
-  } catch (const std::exception& e) {
-    GXF_LOG_ERROR(e.what());
-  }
+  } catch (const std::exception& e) { GXF_LOG_ERROR(e.what()); }
   return output_ports;
-  
 }
 
 };  // namespace holoscan::ops
 
 /**
  * @brief Parse flow configuration from a YAML node.
- * 
+ *
  * @param flow_item The YAML node containing the flow configuration.
  * @param flow The FlowConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
-                                                      const YAML::Node &flow_item,
-                                                      holoscan::ops::FlowConfig &flow) {
+    const YAML::Node& flow_item, holoscan::ops::FlowConfig& flow) {
   try {
     flow.name_ = flow_item["name"].as<std::string>();
     flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
@@ -401,14 +396,13 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
 
 /**
  * @brief Parse memory region configuration from a YAML node.
- * 
+ *
  * @param mr The YAML node containing the memory region configuration.
  * @param tmr The MemoryRegion object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
-                                                                const YAML::Node &mr,
-                                                                holoscan::ops::MemoryRegion &tmr) {
+    const YAML::Node& mr, holoscan::ops::MemoryRegion& tmr) {
   try {
     tmr.name_ = mr["name"].as<std::string>();
     tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
@@ -426,14 +420,13 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
 
 /**
  * @brief Parse common RX queue configuration from a YAML node.
- * 
+ *
  * @param q_item The YAML node containing the RX queue configuration.
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_config(
-                                                                const YAML::Node &q_item,
-                                                                holoscan::ops::RxQueueConfig &q) {
+    const YAML::Node& q_item, holoscan::ops::RxQueueConfig& q) {
   try {
     q.common_.name_ = q_item["name"].as<std::string>();
     q.common_.id_ = q_item["id"].as<int>();
@@ -445,9 +438,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_confi
 
     const auto& mrs = q_item["memory_regions"];
     q.common_.mrs_.reserve(mrs.size());
-    for (const auto& mr : mrs) {
-      q.common_.mrs_.push_back(mr.as<std::string>());
-    }
+    for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing RxQueueConfig: {}", e.what());
     return false;
@@ -457,30 +448,27 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_confi
 
 /**
  * @brief Parse RX queue configuration from a YAML node.
- * 
+ *
  * @param q_item The YAML node containing the RX queue configuration.
  * @param manager_type The manager type.
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
-                                                      const YAML::Node &q_item,
-                                                      const holoscan::ops::AnoMgrType &manager_type,
-                                                      holoscan::ops::RxQueueConfig &q) {
+    const YAML::Node& q_item, const holoscan::ops::AnoMgrType& manager_type,
+    holoscan::ops::RxQueueConfig& q) {
   try {
     holoscan::ops::AnoMgrType _manager_type = manager_type;
 
-    if (!parse_rx_queue_common_config(q_item, q)) {
-      return false;
-    }
+    if (!parse_rx_queue_common_config(q_item, q)) { return false; }
 
     if (manager_type == holoscan::ops::AnoMgrType::DEFAULT) {
       _manager_type = holoscan::ops::AnoMgrFactory::get_default_manager_type();
     }
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::ops::AnoMgrType::RIVERMAX) {
-      holoscan::ops::AdvNetStatus status = 
-              holoscan::ops::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
+      holoscan::ops::AdvNetStatus status =
+          holoscan::ops::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
       if (status != holoscan::ops::AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
@@ -496,14 +484,13 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
 
 /**
  * @brief Parse common TX queue configuration from a YAML node.
- * 
+ *
  * @param q_item The YAML node containing the TX queue configuration.
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_config(
-                                                              const YAML::Node &q_item,
-                                                              holoscan::ops::TxQueueConfig &q) {
+    const YAML::Node& q_item, holoscan::ops::TxQueueConfig& q) {
   try {
     q.common_.name_ = q_item["name"].as<std::string>();
     q.common_.id_ = q_item["id"].as<int>();
@@ -514,15 +501,11 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_confi
 
     const auto& mrs = q_item["memory_regions"];
     q.common_.mrs_.reserve(mrs.size());
-    for (const auto& mr : mrs) {
-      q.common_.mrs_.push_back(mr.as<std::string>());
-    }
+    for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
 
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
-    for (const auto& off : offload) {
-      q.common_.offloads_.push_back(off.as<std::string>());
-    }
+    for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
@@ -532,16 +515,15 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_confi
 
 /**
  * @brief Parse TX queue configuration from a YAML node.
- * 
+ *
  * @param q_item The YAML node containing the TX queue configuration.
  * @param manager_type The manager type.
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_config(
-                                                      const YAML::Node &q_item,
-                                                      const holoscan::ops::AnoMgrType &manager_type,
-                                                      holoscan::ops::TxQueueConfig &q) {
+    const YAML::Node& q_item, const holoscan::ops::AnoMgrType& manager_type,
+    holoscan::ops::TxQueueConfig& q) {
   try {
     holoscan::ops::AnoMgrType _manager_type = manager_type;
 
@@ -549,14 +531,12 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_config(
       _manager_type = holoscan::ops::AnoMgrFactory::get_default_manager_type();
     }
 
-    if (!parse_tx_queue_common_config(q_item, q)) {
-      return false;
-    }
+    if (!parse_tx_queue_common_config(q_item, q)) { return false; }
 
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::ops::AnoMgrType::RIVERMAX) {
       holoscan::ops::AdvNetStatus status =
-            holoscan::ops::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
+          holoscan::ops::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
       if (status != holoscan::ops::AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;

@@ -56,9 +56,9 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel
-#if ADV_NETWORK_MANAGER_WARMUP_KERNEL      
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
       simple_packet_reorder(NULL, NULL, 1, 1, streams_[n]);
-#endif      
+#endif
       cudaStreamSynchronize(streams_[n]);
     }
 
