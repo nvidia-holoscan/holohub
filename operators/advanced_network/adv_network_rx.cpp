@@ -28,7 +28,14 @@ struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
 };
 
 void AdvNetworkOpRx::setup(OperatorSpec& spec) {
-  spec.output<std::shared_ptr<AdvNetBurstParams>>("bench_rx_out");
+  if (output_ports.empty()) {
+    output_ports.insert("bench_rx_out");
+  }
+  
+  for (const auto& port : output_ports) {
+    spec.output<std::shared_ptr<AdvNetBurstParams>>(port);
+    HOLOSCAN_LOG_INFO("Adding output port {}", port);
+  }
 
   spec.param(cfg_,
              "cfg",

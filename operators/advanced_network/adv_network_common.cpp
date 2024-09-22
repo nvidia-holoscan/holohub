@@ -341,6 +341,39 @@ void adv_net_print_stats() {
   g_ano_mgr->print_stats();
 }
 
+std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir) {
+  std::unordered_set<std::string> output_ports;
+  std::string default_output_name;
+
+  if (dir == "rx") {
+    default_output_name = "bench_rx_out";
+  } else if (dir == "tx") {
+    default_output_name = "bench_tx_out";
+  } else {
+    return output_ports;
+  }
+
+  try {
+    auto& yaml_nodes = conf.yaml_nodes();
+    for (const YAML::Node& node : yaml_nodes) {    
+      const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
+      for (const auto& intf : intfs) {
+        const auto& intf_dir = intf[dir];
+        for (const auto& dir_item : intf_dir) {
+          for (const auto& q_item : dir_item["queues"]) {
+            auto out_port_name = q_item["output_port"].as<std::string>(default_output_name);
+            output_ports.insert(out_port_name);
+          }
+        }
+      }
+    }
+  } catch (const std::exception& e) {
+    GXF_LOG_ERROR(e.what());
+  }
+  return output_ports;
+  
+}
+
 };  // namespace holoscan::ops
 
 /**

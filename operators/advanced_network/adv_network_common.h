@@ -411,6 +411,16 @@ void adv_net_shutdown();
  */
 void adv_net_print_stats();
 
+/**
+ * @brief Get the list (set) of rx/tx ports from a node
+ *
+ * @param node Yaml node
+ * @param dir String of direction ["rx", "tx"]
+ *
+ * @returns unordered set of rx/tx port names
+ */
+std::unordered_set<std::string> adv_net_get_port_names(const  Config& conf, const std::string& dir);
+
 };  // namespace holoscan::ops
 
 template <>
