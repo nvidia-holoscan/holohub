@@ -48,6 +48,19 @@ target_link_libraries(adv_networking_bench
   holoscan::advanced_network_tx
   matx::matx
 )
+# Initialize ANO_MGR with a default if not provided
+if(NOT DEFINED ANO_MGR)
+    set(ANO_MGR "dpdk doca" CACHE STRING "Manager type(s) list")
+endif()
+
+separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
+
+# Define targets for each manager type
+foreach(MGR IN LISTS ANO_MGR_LIST)
+    message(STATUS "Adding manager ${MGR} to the configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR}=1")
+endforeach()
+
 
 set_target_properties(adv_networking_bench PROPERTIES CUDA_ARCHITECTURES "80;90")
 
@@ -65,4 +78,11 @@ add_custom_target(adv_networking_bench_doca_tx_rx_yaml
 )
 
 add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
+
+add_custom_target(adv_networking_bench_rmax_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rmax_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rmax_rx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
 

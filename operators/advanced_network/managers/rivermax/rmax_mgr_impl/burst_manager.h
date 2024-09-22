@@ -1,0 +1,422 @@
+/*
+ * Copyright © 2017-2023 NVIDIA CORPORATION & AFFILIATES. ALL RIGHTS RESERVED.
+ *
+ * This software product is a proprietary product of Nvidia Corporation and its affiliates
+ * (the "Company") and all right, title, and interest in and to the software
+ * product, including all associated intellectual property rights, are and
+ * shall remain exclusively with the Company.
+ *
+ * This software product is governed by the End User License Agreement
+ * provided with the software product.
+ */
+
+#ifndef BURST_MANAGER_H_
+#define BURST_MANAGER_H_
+
+#include <cstddef>
+#include <iostream>
+
+#include "rmax_ano_data_types.h"
+#include "rmax_service/ipo_chunk_consumer_base.h"
+#include "rmax_service/rmax_ipo_receiver_service.h"
+#include "adv_network_types.h"
+#include <holoscan/logger/logger.hpp>
+
+namespace holoscan::ops {
+using namespace ral::services;
+
+/**
+ * @brief Interface for a generic queue.
+ *
+ * This interface defines the basic operations for a generic queue, including
+ * enqueueing, dequeueing, checking the size, and clearing the queue.
+ *
+ * @tparam T The type of elements in the queue.
+ */
+template <typename T>
+class QueueInterface {
+ public:
+  /**
+   * @brief Virtual destructor for the QueueInterface class.
+   */
+  virtual ~QueueInterface() = default;
+
+  /**
+   * @brief Enqueues a value into the queue.
+   *
+   * @param value The value to enqueue.
+   */
+  virtual void enqueue(const T& value) = 0;
+
+  /**
+   * @brief Tries to dequeue a value from the queue.
+   *
+   * @param value The value to dequeue.
+   * @return True if the dequeue was successful, false otherwise.
+   */
+  virtual bool try_dequeue(T& value) = 0;
+
+  /**
+   * @brief Tries to dequeue a value from the queue with a timeout.
+   *
+   * @param value The value to dequeue.
+   * @param timeout The timeout for the dequeue operation.
+   * @return True if the dequeue was successful, false otherwise.
+   */
+  virtual bool try_dequeue(T& value, std::chrono::milliseconds timeout) = 0;
+
+  /**
+   * @brief Gets the size of the queue.
+   *
+   * @return The size of the queue.
+   */
+  virtual size_t get_size() const = 0;
+
+  /**
+   * @brief Clears the queue.
+   */
+  virtual void clear() = 0;
+};
+
+/**
+ * @brief A queue for handling bursts of packets.
+ *
+ * The AnoBurstsQueue class implements the IAnoBurstsCollection interface and
+ * provides functionality for managing a queue of bursts of packets. It supports
+ * operations such as putting bursts into the queue, getting bursts from the queue,
+ * checking the number of available bursts, and clearing the queue.
+ */
+class AnoBurstsQueue : public IAnoBurstsCollection {
+ public:
+  /**
+   * @brief Constructor for the AnoBurstsQueue class.
+   *
+   * Initializes the AnoBurstsQueue instance.
+   */
+  AnoBurstsQueue();
+
+  /**
+   * @brief Virtual destructor for the AnoBurstsQueue class.
+   */
+  virtual ~AnoBurstsQueue() = default;
+
+  /**
+   * @brief Enqueues a burst into the queue.
+   *
+   * @param burst The burst to put into the queue.
+   * @return True if the burst was successfully put into the queue, false otherwise.
+   */
+  bool enqueue_burst(std::shared_ptr<AdvNetBurstParams> burst) override;
+
+  /**
+   * @brief Dequeues a burst from the queue.
+   *
+   * @return A shared pointer to the burst.
+   */
+  std::shared_ptr<AdvNetBurstParams> dequeue_burst() override;
+
+  /**
+   * @brief Gets the number of available bursts in the queue.
+   *
+   * @return The number of available bursts.
+   */
+  size_t available_bursts() override { return m_queue->get_size(); };
+
+  /**
+   * @brief Checks if the queue is empty.
+   *
+   * @return True if the queue is empty, false otherwise.
+   */
+  bool empty() override { return m_queue->get_size() == 0; };
+
+  /**
+   * @brief Clears the queue.
+   */
+  void clear();
+
+ private:
+  std::unique_ptr<QueueInterface<std::shared_ptr<AdvNetBurstParams>>> m_queue;
+};
+
+/**
+ * @brief Manages RX bursts for advanced networking operations.
+ *
+ * The RxBurstsManager class is responsible for managing RX bursts in advanced networking
+ * operations. It handles the creation, deletion, and processing of bursts, as well as
+ * managing the lifecycle of packets within bursts. This class interfaces with the Rmax
+ * framework to provide the necessary functionality for handling and transforming data
+ * into a format suitable for ANO processing.
+ */
+class RxBurstsManager {
+ public:
+  static constexpr int MAX_PKT_BURST = 9100;  ///< Maximum number of packets per burst.
+  static constexpr uint32_t RMAX_ANO_BURST_FLAG_KEEP_PACKET_INFO =
+      0x1;  ///< Flag to keep packet info.
+  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;
+  static constexpr uint32_t GET_BURST_TIMEOUT_MS = 1000;
+
+  /**
+   * @brief Constructor for the RxBurstsManager class.
+   *
+   * Initializes the burst manager with the specified parameters.
+   *
+   * @param send_packet_info Flag indicating whether to send packet info.
+   * @param port_id ID of the port.
+   * @param queue_id ID of the queue.
+   * @param burst_out_size Size of the burst output.
+   * @param gpu_id ID of the GPU.
+   * @param rx_bursts_out_queue Shared pointer to the output queue for RX bursts.
+   */
+  RxBurstsManager(bool send_packet_info, int port_id, int queue_id, uint16_t burst_out_size = 0,
+                  int gpu_id = INVALID_GPU_ID,
+                  std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue = nullptr);
+
+  /**
+   * @brief Destructor for the RxBurstsManager class.
+   */
+  virtual ~RxBurstsManager();
+
+  /**
+   * @brief Creates a burst with the specified burst ID.
+   *
+   * @param burst_id ID of the burst to create.
+   * @return Shared pointer to the created burst parameters.
+   */
+  std::shared_ptr<AdvNetBurstParams> create_burst(uint16_t burst_id);
+
+  /**
+   * @brief Deletes the specified burst.
+   *
+   * @param burst Shared pointer to the burst parameters to delete.
+   */
+  void delete_burst(std::shared_ptr<AdvNetBurstParams> burst);
+
+  /**
+   * @brief Gets the burst ID for the specified burst.
+   *
+   * @param burst Pointer to the burst parameters.
+   * @return Burst ID.
+   */
+  uint16_t get_burst_id(AdvNetBurstParams* burst) const {
+    auto burst_info = get_burst_info(burst);
+    if (burst_info == nullptr) { return 0; }
+    return burst_info->burst_id;
+  }
+
+  /**
+   * @brief Gets the burst tag for the specified burst.
+   *
+   * @param burst Pointer to the burst parameters.
+   * @return Burst tag.
+   */
+  uint16_t get_burst_tag(AdvNetBurstParams* burst) const {
+    auto burst_info = get_burst_info(burst);
+    if (burst_info == nullptr) { return 0; }
+    return burst_info->tag;
+  }
+
+  /**
+   * @brief Sets the parameters for the next chunk.
+   *
+   * @param chunk_size Size of the chunk.
+   * @param hds_on Flag indicating if header data splitting (HDS) is enabled.
+   * @param header_stride_size Stride size for the header data.
+   * @param payload_stride_size Stride size for the payload data.
+   * @return ReturnStatus indicating the success or failure of the operation.
+   */
+  ReturnStatus set_next_chunk_params(size_t chunk_size, bool hds_on, size_t header_stride_size,
+                                     size_t payload_stride_size) {
+    m_hds_on = hds_on;
+    m_header_stride_size = header_stride_size;
+    m_payload_stride_size = payload_stride_size;
+    return ReturnStatus::success;
+  }
+
+  /**
+   * @brief Submits the next packet to the burst manager.
+   *
+   * @param header_ptr Pointer to the header data.
+   * @param payload_ptr Pointer to the payload data.
+   * @param header_length Length of the header data.
+   * @param payload_length Length of the payload data.
+   * @param packet_info Extended information about the packet.
+   * @return ReturnStatus indicating the success or failure of the operation.
+   */
+  ReturnStatus submit_next_packet(uint8_t* header_ptr, uint8_t* payload_ptr, size_t header_length,
+                                  size_t payload_length,
+                                  const RmaxPacketExtendedInfo& packet_info) {
+    // Consider to add check for pointers
+    std::shared_ptr<AdvNetBurstParams> cur_burst = get_or_allocate_current_burst();
+    if (cur_burst == nullptr) {
+      HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
+      return ReturnStatus::no_free_chunks;
+    }
+    size_t packet_ind_in_out_burst = cur_burst->hdr.hdr.num_pkts;
+    append_packet_to_burst(*cur_burst,
+                           packet_ind_in_out_burst,
+                           header_ptr,
+                           payload_ptr,
+                           header_length,
+                           payload_length,
+                           packet_info);
+    cur_burst->hdr.hdr.num_pkts++;
+
+    // Enqueue the current burst if it meets the minimum size requirement
+    if (cur_burst->hdr.hdr.num_pkts >= m_burst_out_size) {
+      bool res = m_rx_bursts_out_queue->enqueue_burst(cur_burst);
+      reset_current_burst();
+      if (!res) {
+        HOLOSCAN_LOG_ERROR("Failed to enqueue burst");
+        return ReturnStatus::failure;
+      }
+    }
+
+    return ReturnStatus::success;
+  }
+
+  /**
+   * @brief Gets an RX burst.
+   *
+   * @param burst Pointer to the burst parameters.
+   * @return ReturnStatus indicating the success or failure of the operation.
+   */
+  ReturnStatus get_rx_burst(AdvNetBurstParams** burst) {
+    *burst = m_rx_bursts_out_queue->dequeue_burst().get();
+    if (*burst == nullptr) { return ReturnStatus::failure; }
+    return ReturnStatus::success;
+  }
+
+  /**
+   * @brief Gets the burst information.
+   *
+   * @param burst Pointer to the burst parameters.
+   * @return Pointer to the burst extended information.
+   */
+  AnoBurstExtendedInfo* get_burst_info(AdvNetBurstParams* burst) const {
+    return reinterpret_cast<AnoBurstExtendedInfo*>(&(burst->hdr.custom_burst_data));
+  }
+
+  /**
+   * @brief Marks the RX burst as done.
+   *
+   * @param burst Pointer to the burst parameters.
+   */
+  void rx_burst_done(AdvNetBurstParams* burst);
+
+ protected:
+  /**
+   * @brief Allocates a new burst.
+   *
+   * @return Shared pointer to the allocated burst parameters.
+   */
+  std::shared_ptr<AdvNetBurstParams> allocate_burst() {
+    auto burst = m_rx_bursts_mempool->dequeue_burst();
+    if (burst != nullptr) {
+      burst->hdr.hdr.num_pkts = 0;
+      burst->hdr.hdr.port_id = 0;
+    }
+    return burst;
+  }
+
+  /**
+   * @brief Updates the burst information.
+   *
+   * @param burst Reference to the burst parameters.
+   */
+  void update_burst_info(AdvNetBurstParams& burst) {
+    burst.hdr.hdr.q_id = m_queue_id;
+    burst.hdr.hdr.port_id = m_port_id;
+
+    auto burst_info = get_burst_info(&burst);
+    burst_info->hds_on = m_hds_on;
+    burst_info->header_stride_size = m_header_stride_size;
+    burst_info->payload_stride_size = m_payload_stride_size;
+    burst_info->header_seg_idx = 0;
+    burst_info->payload_on_cpu = !m_gpu_direct;
+
+    if (m_hds_on) {
+      burst_info->payload_seg_idx = 1;
+      burst_info->header_on_cpu = true;
+    } else {
+      burst_info->payload_seg_idx = 0;
+      burst_info->header_on_cpu = m_gpu_direct;
+    }
+  }
+
+  /**
+   * @brief Gets or allocates the current burst.
+   *
+   * @return Shared pointer to the current burst parameters.
+   */
+  std::shared_ptr<AdvNetBurstParams> get_or_allocate_current_burst() {
+    if (m_cur_out_burst == nullptr) {
+      m_cur_out_burst = allocate_burst();
+      if (m_cur_out_burst == nullptr) {
+        HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
+        return nullptr;
+      }
+      update_burst_info(*m_cur_out_burst);
+    }
+    return m_cur_out_burst;
+  }
+
+  /**
+   * @brief Resets the current burst.
+   */
+  void reset_current_burst() { m_cur_out_burst = nullptr; }
+
+  /**
+   * @brief Appends a packet to the burst.
+   *
+   * @param burst Reference to the burst parameters.
+   * @param packet_ind_in_out_burst Index of the packet in the burst.
+   * @param header_ptr Pointer to the header data.
+   * @param payload_ptr Pointer to the payload data.
+   * @param header_length Length of the header data.
+   * @param payload_length Length of the payload data.
+   * @param packet_info Extended information about the packet.
+   */
+  void append_packet_to_burst(AdvNetBurstParams& burst, size_t packet_ind_in_out_burst,
+                              uint8_t* header_ptr, uint8_t* payload_ptr, size_t header_length,
+                              size_t payload_length, const RmaxPacketExtendedInfo& packet_info) {
+    RmaxPacketExtendedInfo* rx_packet_info = nullptr;
+
+    if (m_send_packet_info) {
+      rx_packet_info =
+          reinterpret_cast<RmaxPacketExtendedInfo*>(burst.pkt_extra_info[packet_ind_in_out_burst]);
+      rx_packet_info->timestamp = packet_info.timestamp;
+      rx_packet_info->flow_tag = packet_info.flow_tag;
+    }
+    if (m_hds_on) {
+      burst.pkts[0][packet_ind_in_out_burst] = header_ptr;
+      burst.pkts[1][packet_ind_in_out_burst] = payload_ptr;
+      burst.pkt_lens[0][packet_ind_in_out_burst] = header_length;
+      burst.pkt_lens[1][packet_ind_in_out_burst] = payload_length;
+    } else {
+      burst.pkts[0][packet_ind_in_out_burst] = payload_ptr;
+      burst.pkts[1][packet_ind_in_out_burst] = nullptr;
+      burst.pkt_lens[0][packet_ind_in_out_burst] = header_length;
+      burst.pkt_lens[1][packet_ind_in_out_burst] = 0;
+    }
+  }
+
+ protected:
+  bool m_send_packet_info = false;
+  int m_port_id = 0;
+  int m_queue_id = 0;
+  uint16_t m_burst_out_size = 0;
+  int m_gpu_id = -1;
+  bool m_hds_on = false;
+  bool m_gpu_direct = false;
+  size_t m_header_stride_size = 0;
+  size_t m_payload_stride_size = 0;
+  bool m_using_shared_out_queue = true;
+  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool = nullptr;
+  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue = nullptr;
+  std::shared_ptr<AdvNetBurstParams> m_cur_out_burst = nullptr;
+  AnoBurstExtendedInfo m_burst_info;
+};
+
+};  // namespace holoscan::ops
+
+#endif /* BURST_MANAGER_H_ */

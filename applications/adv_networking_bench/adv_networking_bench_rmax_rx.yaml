@@ -1,0 +1,107 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "rivermax"
+    master_core: 5              # Master CPU core
+    memory_regions:
+    - name: "Default_RX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000
+    - name: "Data_RX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000
+    - name: "Default_RX_CPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000      
+
+    interfaces:
+    - name: data1
+      address:  cc:00.1           
+      rx:
+        - queues:
+          - name: "Data"
+            id: 1
+            cpu_core:  "11,12,13"
+            batch_size: 4320
+            output_port: "bench_rx_out"
+            split_boundary: 20
+            memory_regions: 
+              - "Data_RX_GPU"
+            rmax_rx_settings:
+              gpu_device: 0
+              gpu_direct: true
+              max_packet_size: 1200
+              num_concurrent_batches: 10
+              memory_registration: true
+              verbose: true
+              max_path_diff_us: 100
+              ext_seq_num: true
+              sleep_between_operations_us: 100
+              allocator_type: "huge_page_2mb"
+              local_ip_addresses:
+                - 2.1.0.12
+                - 2.1.0.12
+              source_ip_addresses:
+                - 2.1.0.2
+                - 2.1.0.2
+              destination_ip_addresses:
+                - 224.1.1.1
+                - 224.1.1.2
+              destination_ports:
+                - 50020
+                - 50120
+
+          flows:
+            - name: "ADC Samples"
+              action:
+                type: queue
+                id: 1
+              match:
+                udp_src: 4096 #12288
+                udp_dst: 4096 #12288
+
+bench_rx:
+  split_boundary: true
+  gpu_direct: true
+  batch_size: 8640
+  max_packet_size: 1220
+  header_size: 20  

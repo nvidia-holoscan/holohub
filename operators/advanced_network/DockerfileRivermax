@@ -1,0 +1,83 @@
+FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v2.0.0-dgpu
+
+
+ARG UBUNTU_VERSION=22.04
+
+# the path to the zip downloaded from rivermax site, e.g. ~/Downloads/rivermax_ubuntu2204_1.60.1.tar.gz
+
+ARG RIVERMAX_VERSION=1.60.1
+ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
+
+ARG OFED_VERSION=24.01-0.3.3.1
+ARG CACHEBUST=1
+ARG BUILDARCH
+RUN echo "Using build architecture ${BUILDARCH}"
+RUN echo "Using architecture $TARGETPLATFORM"
+
+ARG RMAX_TEGRA_ENABLED=OFF
+# Set the maximum number of jobs for parallel build
+ARG MAXPROC=8
+# Set the number of jobs for parallel build
+RUN JOBS=$(( $(nproc) < 8 ? $(nproc) : 8 ))
+
+RUN apt update && apt install -y python3-pyelftools ninja-build meson 
+RUN pip3 install scipy loguru attrs
+WORKDIR /opt
+
+RUN    eval `dpkg-architecture` \
+        && wget https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-204000-24.04-ubuntu2204_${BUILDARCH}.deb -O doca-host.deb \
+        && ls -lh && apt install ./doca-host.deb \
+        && apt update \
+        && apt install -y doca-all \
+        && apt install -y doca-gpu doca-gpu-dev
+
+
+# install packages for development
+RUN apt install iproute2 libcap-dev gdb ethtool iputils-ping net-tools -y
+
+# install rivermax deps
+RUN apt install libfmt-dev libnl-3-dev libnl-genl-3-dev libcap-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev -y
+
+# COPY the Rivermax zipped SDK
+COPY ${RIVERMAX_SDK_ZIP_PATH} /tmp/rivermax_sdk.tar.gz
+
+# Extracting Rivermax SDK
+RUN if [ -f "/tmp/rivermax_sdk.tar.gz" ]; then \
+      echo "Extracting Rivermax SDK..." && \
+      tar -xzf /tmp/rivermax_sdk.tar.gz && \
+      mv /opt/${RIVERMAX_VERSION} /opt/rivermax_sdk && \
+      rm -v /tmp/rivermax_sdk.tar.gz; \
+    else \
+      echo "Error: Rivermax SDK tar.gz not found in /tmp"; exit 1; \
+    fi
+
+
+WORKDIR /opt/rivermax_sdk
+# Find the .deb file inside the extracted folder and install it
+RUN DEB_FILE=$(find . -name "rivermax_${RIVERMAX_VERSION}_${BUILDARCH}.deb" -type f) && \
+    if [ -f "$DEB_FILE" ]; then \
+        echo "Installing Rivermax core from $DEB_FILE..." && \
+        dpkg -i "$DEB_FILE"; \
+    else \
+        echo "Error: Rivermax ${BUILDARCH}.deb package not found"; exit 1; \
+    fi
+
+# building rivermax test apps for sample apps
+RUN cd apps && \
+    cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA_ENABLED} -DRMAX_BUILD_VIEWER=ON && \
+    cmake --build build -j  $JOBS
+
+# tmp add some missing definitions to rmax_apps_lib
+RUN echo '\
+    target_compile_definitions(rmax-apps-util-reduced PUBLIC \
+            $<$<BOOL:${RMAX_CUDA}>:CUDA_ENABLED> \
+            $<$<BOOL:${RMAX_TEGRA}>:TEGRA_ENABLED> \
+    )' >> rmax_apps_lib/util/CMakeLists.txt
+
+# building rivermax rmax_apps_lib apps for sample apps
+RUN cd rmax_apps_lib && \
+    cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA_ENABLED} && \
+    cmake --build build -j  $JOBS
+
+# tmp remove apps from the build in rmax_apps_lib
+RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt

@@ -17,6 +17,9 @@
 
 #pragma once
 #include <stdint.h>
+#include <assert.h>
+#include <cuda_runtime.h>
+
 #if __cplusplus
 extern "C" {
 #endif
