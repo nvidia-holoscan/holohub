@@ -59,7 +59,7 @@ struct AdvNetBurstHdr {
 
   // Pad without union to make bindings readable
   void* extra_burst_data;
-  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) - sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
@@ -226,8 +226,19 @@ struct AdvNetConfig {
   bool enabled = false;
 };
 
+/**
+ * @brief Base class for additional queue configuration.
+ *
+ * This class serves as a base class for any additional queue configuration
+ * that might be needed by different manager types. This class should be
+ * inherited by the derived class that will hold the additional configuration
+ * for a specific manager type.
+ */
 class AnoMgrExtraQueueConfig {
  public:
+ /**
+   * @brief Virtual destructor for proper cleanup of derived class objects.
+   */ 
   virtual ~AnoMgrExtraQueueConfig() = default;
 };
 
@@ -239,7 +250,7 @@ struct CommonQueueConfig {
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;
-  AnoMgrExtraQueueConfig* extra_queue_config;
+  AnoMgrExtraQueueConfig* extra_queue_config_;
 };
 
 struct MemoryRegion {
