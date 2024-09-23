@@ -50,7 +50,16 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
 ## 💻 Supported Hardware
 - IGX w/ dGPU
 - x86 w/ dGPU
-> Note: iGPU is not yet supported. This app can be built on iGPU devices and the florence2_app.py will run, however, the full QT UI app is not yet supported for iGPU.
+- IGX w/ iGPU and Jetson AGX supported with workaround<br>
+  There is a known issue running this application on IGX w/ iGPU and on Jetson AGX (see [#500](https://github.com/nvidia-holoscan/holohub/issues/500)).
+  The workaround is to update the device to avoid picking up the libnvv4l2.so library.
+
+  ```bash
+  cd /usr/lib/aarch64-linux-gnu/
+  ls -l libv4l2.so.0.0.999999
+  sudo rm libv4l2.so.0.0.999999
+  sudo ln -s libv4l2.so.0.0.0.0  libv4l2.so.0.0.999999
+  ```
 
 
 ## Dev Container
