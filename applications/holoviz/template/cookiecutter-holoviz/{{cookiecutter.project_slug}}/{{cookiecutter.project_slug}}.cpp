@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-{%- set example = namespace(print_fps = false) %}
-{%- if cookiecutter.example == "vsync" %}
+{%- set example = namespace(print_fps = false, input_spec = false) %}
+{%- if cookiecutter.example == "sRGB" %}
+  {% set example.input_spec = true %}
+{%- elif cookiecutter.example == "vsync" %}
   {% set example.print_fps = true %}
+{%- elif cookiecutter.example == "YUV" %}
+  {% set example.input_spec = true %}
 {%- endif %}
 
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
-{%- if cookiecutter.example == "vsync" %}
+{%- if example.print_fps %}
 #include <chrono>
 {%- endif %}
 #include <string>
@@ -37,7 +41,8 @@ class SourceOp : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(SourceOp);
 
   void initialize() override {
-    shape_ = nvidia::gxf::Shape{64, 64, 3};
+    const int32_t width = 64, height = 64;
+    shape_ = nvidia::gxf::Shape{width, height, 3};
     element_type_ = nvidia::gxf::PrimitiveType::kUnsigned8;
     element_size_ = nvidia::gxf::PrimitiveTypeSize(element_type_);
     strides_ = nvidia::gxf::ComputeTrivialStrides(shape_, element_size_);
@@ -79,6 +84,57 @@ class SourceOp : public Operator {
       }
     }
 
+{%- if cookiecutter.example == "YUV" %}
+
+    // use the RGB data to generate YUV 420 BT.601 extended range data
+
+    // setup the video buffer info with the YUV color planes
+    video_buffer_info_.width = width;
+    video_buffer_info_.height = height;
+    video_buffer_info_.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12_ER;
+    video_buffer_info_.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
+    video_buffer_info_.color_planes =
+        nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12_ER>()
+            .getDefaultColorPlanes(width, height, false /*stride_align*/);
+
+    const nvidia::gxf::ColorPlane& y_color_plane = video_buffer_info_.color_planes[0];
+    const nvidia::gxf::ColorPlane& uv_color_plane = video_buffer_info_.color_planes[1];
+
+    yuv_data_.resize(y_color_plane.size + uv_color_plane.size);
+
+    // color model conversion from RGB to YUV as defined in BT.601
+    const float Kr = 0.299f;
+    const float Kb = 0.114f;
+    const float Kg = 1.f - Kb - Kr;
+
+    for (size_t y = 0; y < height; ++y) {
+      for (size_t x = 0; x < width; ++x) {
+        const float r = data_[y * strides_[0] + x * strides_[1] + 0] / 255.f;
+        const float g = data_[y * strides_[0] + x * strides_[1] + 1] / 255.f;
+        const float b = data_[y * strides_[0] + x * strides_[1] + 2] / 255.f;
+
+        float luma = Kr * r + Kg * g + Kb * b;  // 0 ... 1
+        float u = (b - luma) / (1.f - Kb);      // -1 ... 1
+        float v = (r - luma) / (1.f - Kr);      // -1 ... 1
+
+        // ITU “full range” quantization rule
+        u = u * 0.5f + 0.5f;
+        v = v * 0.5f + 0.5f;
+
+        yuv_data_[y * y_color_plane.stride + x] = uint8_t(luma * 255.f + 0.5f);
+        if (((x & 1) == 0) && ((y & 1) == 0)) {
+          yuv_data_[uv_color_plane.offset +
+                  (y / 2) * uv_color_plane.stride + (x / 2) * uv_color_plane.bytes_per_pixel + 0] =
+              uint8_t(u * 255.f + 0.5f);
+          yuv_data_[uv_color_plane.offset +
+                  (y / 2) * uv_color_plane.stride + (x / 2) * uv_color_plane.bytes_per_pixel + 1] =
+              uint8_t(v * 255.f + 0.5f);
+        }
+      }
+    }
+
+{%- endif %}
+
     Operator::initialize();
   }
 
@@ -93,6 +149,15 @@ class SourceOp : public Operator {
 {% endif -%}
 
     auto entity = holoscan::gxf::Entity::New(&context);
+{%- if cookiecutter.example == "YUV" %}
+    auto video_buffer =
+        static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::VideoBuffer>("image");
+    video_buffer.value()->wrapMemory(video_buffer_info_,
+                                    yuv_data_.size(),
+                                    nvidia::gxf::MemoryStorageType::kSystem,
+                                    yuv_data_.data(),
+                                    nullptr);
+{% else -%}
     auto tensor = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
     tensor.value()->wrapMemory(shape_,
                                element_type_,
@@ -101,6 +166,7 @@ class SourceOp : public Operator {
                                nvidia::gxf::MemoryStorageType::kSystem,
                                data_.data(),
                                nullptr);
+{% endif -%}
     output.emit(entity, "output");
 {%- if example.print_fps %}
 
@@ -123,6 +189,10 @@ class SourceOp : public Operator {
   uint64_t element_size_;
   nvidia::gxf::Tensor::stride_array_t strides_;
   std::vector<uint8_t> data_;
+{%- if cookiecutter.example == "YUV" %}
+  std::vector<uint8_t> yuv_data_;
+  nvidia::gxf::VideoBufferInfo video_buffer_info_{};
+{%- endif %}
 
 {%- if example.print_fps %}
   std::chrono::steady_clock::time_point start_;
@@ -144,19 +214,31 @@ class App : public holoscan::Application {
         make_operator<ops::SourceOp>("source",
                                      // stop application count
                                      make_condition<CountCondition>("count-condition", count_));
+{%- if example.input_spec %}
+
+    ops::HolovizOp::InputSpec input_spec("image", ops::HolovizOp::InputType::COLOR);
+{%- endif %}
 {%- if cookiecutter.example == "sRGB" %}
 
     // By default the image format is auto detected. Auto detection assumes linear color space,
     // but we provide an sRGB encoded image. Create an input spec and change the image format to
     // sRGB.
-    ops::HolovizOp::InputSpec input_spec("image", ops::HolovizOp::InputType::COLOR);
     input_spec.image_format_ = ops::HolovizOp::ImageFormat::R8G8B8_SRGB;
+{%- elif cookiecutter.example == "YUV" %}
+
+    // Set the YUV image format, model conversion and range for the input tensor.
+    input_spec.image_format_ = ops::HolovizOp::ImageFormat::Y8_U8V8_2PLANE_420_UNORM;
+    input_spec.yuv_model_conversion_ = ops::HolovizOp::YuvModelConversion::YUV_601;
+    input_spec.yuv_range_ = ops::HolovizOp::YuvRange::ITU_FULL;
+
 {%- endif %}
 
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
-{%- if cookiecutter.example == "sRGB" %}
+{%- if example.input_spec %}
         Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{input_spec}),
+{%- endif %}
+{%- if cookiecutter.example == "sRGB" %}
         // enable the sRGB frame buffer
         Arg("framebuffer_srgb", true),
 {%- endif %}
@@ -195,7 +277,7 @@ int main(int argc, char** argv) {
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
-        std::cout << "Holoscan ClaraViz volume renderer."
+        std::cout << "{{ cookiecutter.project_name }}" << std::endl
                   << "Usage: " << argv[0] << " [options]" << std::endl
                   << "Options:" << std::endl
                   << "  -h, --help                    Display this information" << std::endl

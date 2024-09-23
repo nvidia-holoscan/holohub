@@ -31,9 +31,10 @@ generate() {
     local project_name="$3"
 
     rm -rf ../${project_dir}
-    cookiecutter --no-input cookiecutter-holoviz "example=${example}" "project_name=${project_name}" -o ..
+    cookiecutter --no-input cookiecutter-holoviz "example=${example}" "project_name=${project_name}" ${@:4} -o ..
     clang-format -i ../${project_dir}/*.cpp
 }
 
 generate "holoviz_srgb" "sRGB" "Holoviz sRGB"
 generate "holoviz_vsync" "vsync" "Holoviz vsync"
+generate "holoviz_yuv" "YUV" "Holoviz YUV" "holoscan_version=2.4"
