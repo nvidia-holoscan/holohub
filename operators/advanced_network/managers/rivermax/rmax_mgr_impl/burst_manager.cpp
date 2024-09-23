@@ -180,10 +180,10 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
    * @brief Constructor with initial queue size.
    *
    * @param size Initial size of the memory pool.
-   * @param rx_burst_manager Reference to the RX burst manager.
+   * @param burst_handler Reference to the burst handler.
    * @param tag Tag for the burst.
    */
-  AnoBurstsMemoryPool(size_t size, RxBurstsManager& rx_burst_manager, uint32_t tag);
+  AnoBurstsMemoryPool(size_t size, BurstHandler& burst_handler, uint32_t tag);
 
   /**
    * @brief Destructor to clean up resources.
@@ -200,24 +200,23 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
   std::unique_ptr<QueueInterface<std::shared_ptr<AdvNetBurstParams>>>
       m_queue;  ///< Queue to manage bursts.
   std::map<uint16_t, std::shared_ptr<AdvNetBurstParams>>
-      m_burst_map;        ///< Map to store bursts by ID.
-  size_t m_initial_size;  ///< Initial size of the memory pool.
+      m_burst_map;                       ///< Map to store bursts by ID.
+  size_t m_initial_size;                 ///< Initial size of the memory pool.
   mutable std::mutex m_burst_map_mutex;  ///< Mutex to protect access to the burst map.
   mutable std::mutex m_queue_mutex;      ///< Mutex to protect access to the queue.
-  uint32_t m_bursts_tag = 0;  ///< Tag for the bursts.
-  RxBurstsManager& m_rx_bursts_manager;  ///< Reference to the RX bursts manager.
+  uint32_t m_bursts_tag = 0;             ///< Tag for the bursts.
+  BurstHandler& m_burst_handler;         ///< Reference to the burst handler.
 };
 
 /**
  * @brief Constructor for AnoBurstsMemoryPool.
  *
  * @param size Initial size of the memory pool.
- * @param rx_burst_manager Reference to the RX burst manager.
+ * @param burst_handler Reference to the burst handler.
  * @param tag Tag for the burst.
  */
-AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RxBurstsManager& rx_burst_manager,
-                                         uint32_t tag)
-    : m_initial_size(size), m_bursts_tag(tag), m_rx_bursts_manager(rx_burst_manager) {
+AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, BurstHandler& burst_handler, uint32_t tag)
+    : m_initial_size(size), m_bursts_tag(tag), m_burst_handler(burst_handler) {
 #if USE_BLOCKING_MEMPOOL
   m_queue = std::make_unique<BlockingQueue<std::shared_ptr<AdvNetBurstParams>>>();
 #else
@@ -226,7 +225,7 @@ AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RxBurstsManager& rx_burst_
 
   // Initialize bursts and add them to the queue
   for (uint16_t i = 0; i < size; i++) {
-    auto burst = m_rx_bursts_manager.create_burst(i);
+    auto burst = m_burst_handler.create_burst(i);
     m_queue->enqueue(burst);
     m_burst_map[i] = burst;
   }
@@ -245,7 +244,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(AdvNetBurstParams* burst) {
   }
 
   // Read burst info
-  uint16_t burst_id = m_rx_bursts_manager.get_burst_id(burst);
+  uint16_t burst_id = m_burst_handler.get_burst_id(*burst);
 
   std::lock_guard<std::mutex> lock(m_burst_map_mutex);
   auto it = m_burst_map.find(burst_id);
@@ -269,7 +268,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<AdvNetBurstParams> burst
   std::lock_guard<std::mutex> lock(m_queue_mutex);
 
   if (m_queue->get_size() < m_initial_size) {
-    auto burst_tag = m_rx_bursts_manager.get_burst_tag(burst.get());
+    auto burst_tag = m_burst_handler.get_burst_tag(*burst);
     if (m_bursts_tag != burst_tag) {
       HOLOSCAN_LOG_ERROR("Invalid burst tag");
       return false;
@@ -306,7 +305,7 @@ AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
   std::shared_ptr<AdvNetBurstParams> burst;
   // Dequeue and delete all bursts in the queue
   while (m_queue->get_size() > 0 && m_queue->try_dequeue(burst)) {
-    m_rx_bursts_manager.delete_burst(burst);
+    m_burst_handler.delete_burst(burst);
   }
   std::lock_guard<std::mutex> lock(m_burst_map_mutex);
   m_burst_map.clear();
@@ -359,6 +358,96 @@ std::shared_ptr<AdvNetBurstParams> AnoBurstsQueue::dequeue_burst() {
 }
 
 /**
+ * @brief Constructs a BurstHandler object.
+ *
+ * @param send_packet_info Flag indicating whether to send packet info.
+ * @param port_id The port ID.
+ * @param queue_id The queue ID.
+ * @param gpu_direct Flag indicating whether GPU direct is enabled.
+ */
+BurstHandler::BurstHandler(bool send_packet_info, int port_id, int queue_id, bool gpu_direct)
+    : m_send_packet_info(send_packet_info),
+      m_port_id(port_id),
+      m_queue_id(queue_id),
+      m_gpu_direct(gpu_direct) {
+  const uint32_t burst_tag = burst_tag_from_port_and_queue_id(port_id, queue_id);
+
+  m_burst_info.tag = burst_tag;
+  m_burst_info.burst_flags =
+      (m_send_packet_info ? BurstFlags::INFO_PER_PACKET : BurstFlags::FLAGS_NONE);
+  m_burst_info.burst_id = 0;
+  m_burst_info.hds_on = false;
+  m_burst_info.header_on_cpu = false;
+  m_burst_info.payload_on_cpu = false;
+  m_burst_info.header_stride_size = 0;
+  m_burst_info.payload_stride_size = 0;
+  m_burst_info.header_seg_idx = 0;
+  m_burst_info.payload_seg_idx = 0;
+}
+
+/**
+ * @brief Creates and initializes a new burst with the given burst ID
+ *
+ * @param burst_id The ID of the burst to create.
+ * @return A shared pointer to the created burst.
+ */
+std::shared_ptr<AdvNetBurstParams> BurstHandler::create_burst(uint16_t burst_id) {
+  auto burst = std::make_shared<AdvNetBurstParams>();
+
+  if (m_send_packet_info) {
+    burst->pkt_extra_info = reinterpret_cast<void**>(new RmaxPacketExtendedInfo*[MAX_PKT_BURST]);
+    for (int j = 0; j < MAX_PKT_BURST; j++) {
+      burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RmaxPacketExtendedInfo());
+    }
+  }
+
+  burst->pkts[0] = new void*[MAX_PKT_BURST];
+  burst->pkts[1] = new void*[MAX_PKT_BURST];
+  burst->pkt_lens[0] = new uint32_t[MAX_PKT_BURST];
+  burst->pkt_lens[1] = new uint32_t[MAX_PKT_BURST];
+  std::memset(burst->pkt_lens[0], 0, MAX_PKT_BURST * sizeof(uint32_t));
+  std::memset(burst->pkt_lens[1], 0, MAX_PKT_BURST * sizeof(uint32_t));
+
+  m_burst_info.burst_id = burst_id;
+  std::memcpy(get_burst_info(*burst), &m_burst_info, sizeof(m_burst_info));
+  return burst;
+}
+
+/**
+ * @brief Deletes a burst and frees its associated resources.
+ *
+ * @param burst A shared pointer to the burst to delete.
+ */
+void BurstHandler::delete_burst(std::shared_ptr<AdvNetBurstParams> burst) {
+  if (burst == nullptr) {
+    HOLOSCAN_LOG_ERROR("Invalid burst");
+    return;
+  }
+
+  // Delete packet information if required
+  if (m_send_packet_info && burst->pkt_extra_info != nullptr) {
+    for (int i = 0; i < MAX_PKT_BURST; i++) {
+      if (burst->pkt_extra_info[i] != nullptr) {
+        delete reinterpret_cast<RmaxPacketExtendedInfo*>(burst->pkt_extra_info[i]);
+        burst->pkt_extra_info[i] = nullptr;
+      }
+    }
+    delete[] burst->pkt_extra_info;
+    burst->pkt_extra_info = nullptr;
+  }
+
+  // Free the memory allocated for packets and their lengths
+  delete[] burst->pkts[0];
+  burst->pkts[0] = nullptr;
+  delete[] burst->pkts[1];
+  burst->pkts[1] = nullptr;
+  delete[] burst->pkt_lens[0];
+  burst->pkt_lens[0] = nullptr;
+  delete[] burst->pkt_lens[1];
+  burst->pkt_lens[1] = nullptr;
+}
+
+/**
  * @brief Marks a burst as done and returns it to the memory pool.
  *
  * @param burst Pointer to the burst that is done.
@@ -391,69 +480,6 @@ void RxBurstsManager::rx_burst_done(AdvNetBurstParams* burst) {
 }
 
 /**
- * @brief Initializes a burst with the given burst ID.
- *
- * @param burst_id ID of the burst.
- * @return Shared pointer to the initialized burst.
- */
-std::shared_ptr<AdvNetBurstParams> RxBurstsManager::create_burst(uint16_t burst_id) {
-  auto burst = std::make_shared<AdvNetBurstParams>();
-
-  if (m_send_packet_info) {
-    // Allocate memory for the packets
-    burst->pkt_extra_info = reinterpret_cast<void**>(new RmaxPacketExtendedInfo*[MAX_PKT_BURST]);
-    for (int j = 0; j < MAX_PKT_BURST; j++) {
-      burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RmaxPacketExtendedInfo());
-    }
-  }
-
-  burst->pkts[0] = new void*[MAX_PKT_BURST];
-  burst->pkts[1] = new void*[MAX_PKT_BURST];
-  burst->pkt_lens[0] = new uint32_t[MAX_PKT_BURST];
-  burst->pkt_lens[1] = new uint32_t[MAX_PKT_BURST];
-  memset(burst->pkt_lens[0], 0, MAX_PKT_BURST * sizeof(uint32_t));
-  memset(burst->pkt_lens[1], 0, MAX_PKT_BURST * sizeof(uint32_t));
-
-  m_burst_info.burst_id = burst_id;
-  memcpy(get_burst_info(burst.get()), &m_burst_info, sizeof(m_burst_info));
-  return burst;
-}
-
-/**
- * @brief Deletes a burst and frees its associated resources.
- *
- * @param burst A shared pointer to the burst to be deleted.
- */
-void RxBurstsManager::delete_burst(std::shared_ptr<AdvNetBurstParams> burst) {
-  if (burst == nullptr) {
-    HOLOSCAN_LOG_ERROR("Invalid burst");
-    return;
-  }
-
-  // Delete packet information if required
-  if (m_send_packet_info && burst->pkt_extra_info != nullptr) {
-    for (int i = 0; i < MAX_PKT_BURST; i++) {
-      if (burst->pkt_extra_info[i] != nullptr) {
-        delete reinterpret_cast<RmaxPacketExtendedInfo*>(burst->pkt_extra_info[i]);
-        burst->pkt_extra_info[i] = nullptr;
-      }
-    }
-    delete[] burst->pkt_extra_info;
-    burst->pkt_extra_info = nullptr;
-  }
-
-  // Free the memory allocated for packets and their lengths
-  delete[] burst->pkts[0];
-  burst->pkts[0] = nullptr;
-  delete[] burst->pkts[1];
-  burst->pkts[1] = nullptr;
-  delete[] burst->pkt_lens[0];
-  burst->pkt_lens[0] = nullptr;
-  delete[] burst->pkt_lens[1];
-  burst->pkt_lens[1] = nullptr;
-}
-
-/**
  * @brief Constructor for the RxBurstsManager class.
  *
  * Initializes the chunk consumer with the specified parameters.
@@ -473,26 +499,15 @@ RxBurstsManager::RxBurstsManager(bool send_packet_info, int port_id, int queue_i
       m_queue_id(queue_id),
       m_burst_out_size(burst_out_size),
       m_gpu_id(gpu_id),
-      m_rx_bursts_out_queue(rx_bursts_out_queue) {
-  const uint32_t burst_tag = (port_id << 16) | queue_id;
+      m_rx_bursts_out_queue(rx_bursts_out_queue),
+      m_burst_handler(std::make_unique<BurstHandler>(send_packet_info, port_id, queue_id,
+                                                     gpu_id != INVALID_GPU_ID)) {
+  const uint32_t burst_tag = BurstHandler::burst_tag_from_port_and_queue_id(port_id, queue_id);
   m_gpu_direct = (m_gpu_id != INVALID_GPU_ID);
-
-  // Initialize common burst info
-  m_burst_info.tag = burst_tag;
-  m_burst_info.burst_flags =
-      (m_send_packet_info ? BurstFlags::INFO_PER_PACKET : BurstFlags::FLAGS_NONE);
-  m_burst_info.burst_id = 0;
-  m_burst_info.hds_on = false;
-  m_burst_info.header_on_cpu = false;
-  m_burst_info.payload_on_cpu = false;
-  m_burst_info.header_stride_size = 0;
-  m_burst_info.payload_stride_size = 0;
-  m_burst_info.header_seg_idx = 0;
-  m_burst_info.payload_seg_idx = 0;
 
   // Initialize the burst memory pool
   m_rx_bursts_mempool =
-      std::make_unique<AnoBurstsMemoryPool>(DEFAULT_NUM_RX_BURSTS, *this, burst_tag);
+      std::make_unique<AnoBurstsMemoryPool>(DEFAULT_NUM_RX_BURSTS, *m_burst_handler, burst_tag);
   // Initialize the output queue if not provided
   if (!m_rx_bursts_out_queue) {
     m_rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
@@ -500,7 +515,8 @@ RxBurstsManager::RxBurstsManager(bool send_packet_info, int port_id, int queue_i
   }
 
   // Adjust burst size to be within valid limits
-  if (m_burst_out_size > MAX_PKT_BURST || m_burst_out_size == 0) m_burst_out_size = MAX_PKT_BURST;
+  if (m_burst_out_size > BurstHandler::MAX_PKT_BURST || m_burst_out_size == 0)
+    m_burst_out_size = BurstHandler::MAX_PKT_BURST;
 }
 
 /**
