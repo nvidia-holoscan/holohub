@@ -137,6 +137,7 @@ class RmaxMgr::RmaxMgrImpl {
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
+  void initialize_rx_service(uint32_t service_id, const RmaxIPOReceiverConfig& config);
   bool parse_configuration(const AdvNetConfigYaml& cfg);
   void set_default_config(RmaxIPOReceiverConfig& rx_service_cfg);
   bool configure_rx_queue(uint16_t port_id, int master_core, int gpu_id, const RxQueueConfig& q);
@@ -555,36 +556,48 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rivermax_setparam("RIVERMAX_LOG_LEVEL", std::to_string(rmax_log_level), true);
 
   // Iterate over the RX service configurations and initialize each RX service
-  for (const auto& entry : rx_service_configs) {
-    uint32_t key = entry.first;
-    const RmaxIPOReceiverConfig& config = entry.second;
-    uint16_t port_id = BurstHandler::burst_port_id_from_burst_tag(key);
-    uint16_t queue_id = BurstHandler::burst_queue_id_from_burst_tag(key);
+  for (const auto& entry : rx_service_configs) { initialize_rx_service(entry.first, entry.second); }
+}
 
-    // Create and initialize the RX service
-    auto rx_service = std::make_unique<RmaxIPOReceiverService>(config);
-    auto init_status = rx_service->get_init_status();
-    if (init_status != ReturnStatus::obj_init_success) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize RX service, status: {}", (int)init_status);
-      continue;
-    }
+/**
+ * @brief Initializes an RX service with the given configuration.
+ *
+ * This method creates and initializes an RX service based on the provided configuration.
+ * It also sets up the necessary burst managers, packet processors, and chunk consumers.
+ *
+ * @param service_id The unique service id identifying the RX service.
+ * @param config The configuration for the RX service.
+ */
+void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
+                                                 const RmaxIPOReceiverConfig& config) {
+  uint16_t port_id = BurstHandler::burst_port_id_from_burst_tag(service_id);
+  uint16_t queue_id = BurstHandler::burst_queue_id_from_burst_tag(service_id);
 
-    // Store the RX service and create the chunk consumer
-    rx_services[key] = std::move(rx_service);
-    rx_burst_managers[key] = std::make_shared<RxBurstsManager>(send_packet_info,
-                                                               port_id,
-                                                               queue_id,
-                                                               config.max_chunk_size,
-                                                               config.app_settings->gpu_id,
-                                                               rx_bursts_out_queue);
-
-    rx_packet_processors[key] = std::make_shared<RxPacketProcessor>(rx_burst_managers[key]);
-
-    rmax_chunk_consumers[key] = std::make_unique<RmaxChunkConsumerAno>(rx_packet_processors[key]);
-
-    // Set the chunk consumer for the RX service
-    rx_services[key]->set_chunk_consumer(rmax_chunk_consumers[key].get());
+  // Create and initialize the RX service
+  auto rx_service = std::make_unique<RmaxIPOReceiverService>(config);
+  auto init_status = rx_service->get_init_status();
+  if (init_status != ReturnStatus::obj_init_success) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize RX service, status: {}", (int)init_status);
+    return;
   }
+
+  // Store the RX service and create the chunk consumer
+  rx_services[service_id] = std::move(rx_service);
+  rx_burst_managers[service_id] = std::make_shared<RxBurstsManager>(send_packet_info,
+                                                                    port_id,
+                                                                    queue_id,
+                                                                    config.max_chunk_size,
+                                                                    config.app_settings->gpu_id,
+                                                                    rx_bursts_out_queue);
+
+  rx_packet_processors[service_id] =
+      std::make_shared<RxPacketProcessor>(rx_burst_managers[service_id]);
+
+  rmax_chunk_consumers[service_id] =
+      std::make_unique<RmaxChunkConsumerAno>(rx_packet_processors[service_id]);
+
+  // Set the chunk consumer for the RX service
+  rx_services[service_id]->set_chunk_consumer(rmax_chunk_consumers[service_id].get());
 }
 
 void RmaxMgr::RmaxMgrImpl::print_stream_stats(std::stringstream& ss, uint32_t stream_index,
