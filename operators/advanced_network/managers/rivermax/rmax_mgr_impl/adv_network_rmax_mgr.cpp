@@ -130,15 +130,29 @@ class RmaxMgr::RmaxMgrImpl {
   static constexpr double MEGABYTE = 1048576.0;
   static constexpr int USECS_IN_SECOND = 1000000;
   static constexpr int DEFAULT_NUM_RX_BURST = 64;
-  static constexpr uint16_t RMAX_DEFAULT_DEBUG_LEVEL = 3;
-  static constexpr uint16_t RMAX_MIN_DEBUG_LEVEL = 1;
-  static constexpr uint16_t RMAX_MAX_DEBUG_LEVEL = 6;
+  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;
+  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;
+  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;
 
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   bool parse_configuration(const AdvNetConfigYaml& cfg);
   void set_default_config(RmaxIPOReceiverConfig& rx_service_cfg);
+  bool configure_rx_queue(uint16_t port_id, int master_core, int gpu_id, const RxQueueConfig& q);
+  bool buid_rmax_ipo_receiver_config(const RmaxRxQueueConfig& rmax_rx_config, int master_core,
+                                     const std::string& cores, int gpu_id, int split_boundary,
+                                     RmaxIPOReceiverConfig& rx_service_cfg);
+  bool validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config);
+  void set_rx_service_common_app_settings(AppSettings& app_settings_config,
+                                          const RmaxRxQueueConfig& rmax_rx_config, int master_core,
+                                          int gpu_id, int split_boundary);
+  void set_allocator_type(AppSettings& app_settings_config, const std::string& allocator_type);
+  bool parse_and_set_cores(AppSettings& app_settings_config, const std::string& cores);
+  void set_rx_service_ipo_receiver_settings(RmaxIPOReceiverConfig& rx_service_cfg,
+                                            const RmaxRxQueueConfig& rmax_rx_config);
+  void add_new_rx_service_config(RmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
+                                 uint16_t queue_id);
   void print_total_stats();
   void print_stream_stats(std::stringstream& ss, uint32_t stream_index,
                           IPORXStatistics stream_stats,
@@ -156,7 +170,7 @@ class RmaxMgr::RmaxMgrImpl {
   bool initialized_ = false;
   bool send_packet_info = true;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
-  uint16_t debug_level = RMAX_DEFAULT_DEBUG_LEVEL;
+  uint16_t rmax_log_level = RMAX_DEFAULT_LOG_LEVEL;
 };
 
 std::atomic<bool> force_quit = false;
@@ -209,185 +223,287 @@ void RmaxMgr::RmaxMgrImpl::set_default_config(RmaxIPOReceiverConfig& rx_service_
  * @return True if the configuration was successfully parsed, false otherwise.
  */
 bool RmaxMgr::RmaxMgrImpl::parse_configuration(const AdvNetConfigYaml& cfg) {
-  bool rc = false;  // Return code indicating success or failure
+  int rmax_rx_config_found = 0;
 
-  // Iterate over each interface in the configuration
   for (const auto& intf : cfg_.ifs_) {
     HOLOSCAN_LOG_INFO("Rmax init Port {} -- RX: {} TX: {}",
                       intf.port_id_,
                       intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
-    // Iterate over each RX queue in the interface
     for (const auto& q : intf.rx_.queues_) {
-      HOLOSCAN_LOG_INFO("Configuring RX queue: {} ({}) on port {}",
-                        q.common_.name_,
-                        q.common_.id_,
-                        intf.port_id_);
-
-      // Check if extra queue configuration is present
-      if (!(q.common_.extra_queue_config_)) continue;
-
-      // Cast the extra queue configuration to RmaxRxQueueConfig
-      auto* rmax_rx_config_ptr = dynamic_cast<RmaxRxQueueConfig*>(q.common_.extra_queue_config_);
-      if (!rmax_rx_config_ptr) {
-        HOLOSCAN_LOG_ERROR("Failed to cast extra queue config to RmaxRxQueueConfig");
+      if (!configure_rx_queue(intf.port_id_,
+                              cfg.common_.master_core_,
+                              cfg_.mrs_.at(q.common_.mrs_[0]).affinity_,
+                              q)) {
         continue;
       }
-
-      auto& rmax_rx_config = *rmax_rx_config_ptr;
-      // Validate the presence of necessary IP addresses and ports
-      if (rmax_rx_config.source_ips.empty()) {
-        HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
-        continue;
-      }
-
-      if (rmax_rx_config.local_ips.empty()) {
-        HOLOSCAN_LOG_ERROR("Local IP addresses are not set for RTP stream");
-        continue;
-      }
-      if (rmax_rx_config.destination_ips.empty()) {
-        HOLOSCAN_LOG_ERROR("Destination IP addresses are not set for RTP stream");
-        continue;
-      }
-      if (rmax_rx_config.destination_ports.empty()) {
-        HOLOSCAN_LOG_ERROR("Destination ports are not set for RTP stream");
-        continue;
-      }
-      if ((rmax_rx_config.local_ips.size() != rmax_rx_config.source_ips.size()) ||
-          (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ips.size()) ||
-          (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ports.size())) {
-        HOLOSCAN_LOG_ERROR(
-            "Local/Source/Destination IP addresses and ports sizes are not equal for RTP stream");
-        continue;
-      }
-
-      // Initialize RX service configuration
-      RmaxIPOReceiverConfig rx_service_cfg;
-      rx_service_cfg.app_settings = std::make_shared<AppSettings>();
-
-      // Set default configuration
-      set_default_config(rx_service_cfg);
-
-      auto& cfg_out = *(rx_service_cfg.app_settings);
-      // Set connection parameters
-      cfg_out.local_ips = rmax_rx_config.local_ips;
-      cfg_out.source_ips = rmax_rx_config.source_ips;
-      cfg_out.destination_ips = rmax_rx_config.destination_ips;
-      cfg_out.destination_ports = rmax_rx_config.destination_ports;
-
-      // Set GPU direct configuration
-      if (rmax_rx_config.gpu_direct) {
-        cfg_out.gpu_id = cfg_.mrs_.at(q.common_.mrs_[0]).affinity_;
-      } else {
-        cfg_out.gpu_id = INVALID_GPU_ID;
-      }
-
-      // Lambda function to set allocator type
-      auto setAllocatorType = [&](const std::string& allocatorTypeStr,
-                                  AllocatorTypeUI allocatorType) {
-        if (rmax_rx_config.allocator_type == allocatorTypeStr) {
-          cfg_out.allocator_type = allocatorType;
-        }
-      };
-
-      // Set allocator type based on configuration
-      cfg_out.allocator_type = AllocatorTypeUI::Auto;
-      setAllocatorType("auto", AllocatorTypeUI::Auto);
-      setAllocatorType("huge_page_default", AllocatorTypeUI::HugePageDefault);
-      setAllocatorType("malloc", AllocatorTypeUI::Malloc);
-      setAllocatorType("huge_page_2mb", AllocatorTypeUI::HugePage2MB);
-      setAllocatorType("huge_page_512mb", AllocatorTypeUI::HugePage512MB);
-      setAllocatorType("huge_page_1gb", AllocatorTypeUI::HugePage1GB);
-      setAllocatorType("gpu", AllocatorTypeUI::Gpu);
-
-      // Set internal thread core
-      if (cfg.common_.master_core_ >= 0 &&
-          cfg.common_.master_core_ < std::thread::hardware_concurrency()) {
-        cfg_out.internal_thread_core = cfg.common_.master_core_;
-      } else {
-        cfg_out.internal_thread_core = CPU_NONE;
-      }
-
-      // Parse and set application thread cores
-      std::string cores = q.common_.cpu_core_;
-      std::istringstream iss(cores);
-      std::string coreStr;
-      bool to_reset_cores_vector = true;
-      while (std::getline(iss, coreStr, ',')) {
-        try {
-          int core = std::stoi(coreStr);
-          if (core < 0 || core >= std::thread::hardware_concurrency()) {
-            HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
-          } else {
-            if (to_reset_cores_vector) {
-              cfg_out.app_threads_cores.clear();
-              to_reset_cores_vector = false;
-            }
-            cfg_out.app_threads_cores.push_back(core);
-          }
-        } catch (const std::invalid_argument& e) {
-          HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
-        } catch (const std::out_of_range& e) {
-          HOLOSCAN_LOG_ERROR("Core number out of range: {}", coreStr);
-        }
-      }
-
-      // Set additional RX service configuration parameters
-      rx_service_cfg.is_extended_sequence_number = rmax_rx_config.ext_seq_num;
-      rx_service_cfg.max_path_differential_us = rmax_rx_config.max_path_differential_us;
-      if (rx_service_cfg.max_path_differential_us >= USECS_IN_SECOND) {
-        HOLOSCAN_LOG_ERROR("Max path differential must be less than 1 second");
-        rx_service_cfg.max_path_differential_us = USECS_IN_SECOND;
-      }
-
-      rx_service_cfg.rx_stats_period_report_ms = rmax_rx_config.rx_stats_period_report_ms;
-
-      rx_service_cfg.register_memory = rmax_rx_config.memory_registration;
-      send_packet_info = rmax_rx_config.send_packet_info;
-
-      cfg_out.num_of_threads = rmax_rx_config.num_of_threads;
-      cfg_out.print_parameters = rmax_rx_config.print_parameters;
-      cfg_out.sleep_between_operations_us = rmax_rx_config.sleep_between_operations_us;
-
-      cfg_out.packet_payload_size = rmax_rx_config.max_packet_size;
-      cfg_out.packet_app_header_size = q.common_.split_boundary_;
-
-      cfg_out.num_of_chunks = rmax_rx_config.num_concurrent_batches;
-      cfg_out.num_of_packets_in_chunk =
-          rmax_rx_config.max_chunk_size * rmax_rx_config.num_concurrent_batches;
-      rx_service_cfg.max_chunk_size = rmax_rx_config.max_chunk_size;
-
-      // Generate a unique key for the RX service configuration
-      uint32_t key = BurstHandler::burst_tag_from_port_and_queue_id(intf.port_id_, q.common_.id_);
-
-      // Check if the RX service configuration already exists
-      if (rx_service_configs.find(key) != rx_service_configs.end()) {
-        HOLOSCAN_LOG_ERROR("RMAX ANO settings for port {} and queue {} already exists",
-                           intf.port_id_,
-                           q.common_.id_);
-        continue;
-      }
-
-      // Store the RX service configuration
-      rx_service_cfg.rmax_apps_lib = rmax_apps_lib;
-      rx_service_configs[key] = rx_service_cfg;
-
-      if (cfg.debug_ >= RMAX_MIN_DEBUG_LEVEL && cfg.debug_ <= RMAX_MAX_DEBUG_LEVEL) {
-        debug_level = cfg.debug_;
-      }
-
-      rc = true;  // Indicate successful parsing
+      rmax_rx_config_found++;
     }
   }
 
-  // Log the result of the parsing process
-  if (rc) {
-    HOLOSCAN_LOG_INFO("RMAX ANO settings were successfully parsed");
-  } else {
-    HOLOSCAN_LOG_ERROR("Failed to parse RMAX ANO settings");
+  if (cfg.debug_ >= RMAX_MIN_LOG_LEVEL && cfg.debug_ <= RMAX_MAX_LOG_LEVEL) {
+    rmax_log_level = cfg.debug_;
   }
-  return rc;
+
+  if (rmax_rx_config_found > 0) {
+    HOLOSCAN_LOG_INFO(
+        "RMAX ANO settings were successfully parsed, Found {} RMAX RX Queues settings",
+        rmax_rx_config_found);
+  } else {
+    HOLOSCAN_LOG_ERROR("Failed to parse RMAX ANO settings. No valid settings found");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Configures the RX queue for a given port.
+ *
+ * @param port_id The port ID.
+ * @param master_core The master core ID.
+ * @param gpu_id The GPU ID.
+ * @param q The RX queue configuration.
+ * @return True if the configuration is successful, false otherwise.
+ */
+bool RmaxMgr::RmaxMgrImpl::configure_rx_queue(uint16_t port_id, int master_core, int gpu_id,
+                                              const RxQueueConfig& q) {
+  HOLOSCAN_LOG_INFO(
+      "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
+
+  // extra queue config_ contains RMAX configuration. If it is not set, return false
+  if (!q.common_.extra_queue_config_) return false;
+
+  auto* rmax_rx_config_ptr = dynamic_cast<RmaxRxQueueConfig*>(q.common_.extra_queue_config_);
+  if (!rmax_rx_config_ptr) {
+    HOLOSCAN_LOG_ERROR("Failed to cast extra queue config to RmaxRxQueueConfig");
+    return false;
+  }
+
+  auto& rmax_rx_config = *rmax_rx_config_ptr;
+  if (!validate_rx_queue_config(rmax_rx_config)) { return false; }
+
+  RmaxIPOReceiverConfig rx_service_cfg;
+
+  if (!buid_rmax_ipo_receiver_config(rmax_rx_config,
+                                     master_core,
+                                     q.common_.cpu_core_,
+                                     gpu_id,
+                                     q.common_.split_boundary_,
+                                     rx_service_cfg)) {
+    return false;
+  }
+
+  add_new_rx_service_config(rx_service_cfg, port_id, q.common_.id_);
+
+  return true;
+}
+/**
+ * @brief Builds the Rmax IPO receiver configuration.
+ *
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param master_core The master core ID.
+ * @param cores The cores configuration string.
+ * @param gpu_id The GPU ID.
+ * @param split_boundary The split boundary value.
+ * @param rx_service_cfg The RX service configuration to be built.
+ * @return True if the configuration is successful, false otherwise.
+ */
+bool RmaxMgr::RmaxMgrImpl::buid_rmax_ipo_receiver_config(const RmaxRxQueueConfig& rmax_rx_config,
+                                                         int master_core, const std::string& cores,
+                                                         int gpu_id, int split_boundary,
+                                                         RmaxIPOReceiverConfig& rx_service_cfg) {
+  rx_service_cfg.app_settings = std::make_shared<AppSettings>();
+  set_default_config(rx_service_cfg);
+
+  auto& app_settings_config = *(rx_service_cfg.app_settings);
+  set_rx_service_common_app_settings(
+      app_settings_config, rmax_rx_config, master_core, gpu_id, split_boundary);
+
+  if (!parse_and_set_cores(app_settings_config, cores)) { return false; }
+
+  set_rx_service_ipo_receiver_settings(rx_service_cfg, rmax_rx_config);
+
+  return true;
+}
+
+/**
+ * @brief Validates the RX queue configuration.
+ *
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @return True if the configuration is valid, false otherwise.
+ */
+bool RmaxMgr::RmaxMgrImpl::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config) {
+  if (rmax_rx_config.source_ips.empty()) {
+    HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
+    return false;
+  }
+
+  if (rmax_rx_config.local_ips.empty()) {
+    HOLOSCAN_LOG_ERROR("Local IP addresses are not set for RTP stream");
+    return false;
+  }
+
+  if (rmax_rx_config.destination_ips.empty()) {
+    HOLOSCAN_LOG_ERROR("Destination IP addresses are not set for RTP stream");
+    return false;
+  }
+
+  if (rmax_rx_config.destination_ports.empty()) {
+    HOLOSCAN_LOG_ERROR("Destination ports are not set for RTP stream");
+    return false;
+  }
+
+  if ((rmax_rx_config.local_ips.size() != rmax_rx_config.source_ips.size()) ||
+      (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ips.size()) ||
+      (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ports.size())) {
+    HOLOSCAN_LOG_ERROR(
+        "Local/Source/Destination IP addresses and ports sizes are not equal for RTP stream");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Sets the common application settings for the RX service.
+ *
+ * @param app_settings_config The application settings configuration.
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param master_core The master core ID.
+ * @param gpu_id The GPU ID.
+ * @param split_boundary The split boundary value.
+ */
+void RmaxMgr::RmaxMgrImpl::set_rx_service_common_app_settings(
+    AppSettings& app_settings_config, const RmaxRxQueueConfig& rmax_rx_config, int master_core,
+    int gpu_id, int split_boundary) {
+  app_settings_config.local_ips = rmax_rx_config.local_ips;
+  app_settings_config.source_ips = rmax_rx_config.source_ips;
+  app_settings_config.destination_ips = rmax_rx_config.destination_ips;
+  app_settings_config.destination_ports = rmax_rx_config.destination_ports;
+
+  if (rmax_rx_config.gpu_direct) {
+    app_settings_config.gpu_id = gpu_id;
+  } else {
+    app_settings_config.gpu_id = INVALID_GPU_ID;
+  }
+
+  set_allocator_type(app_settings_config, rmax_rx_config.allocator_type);
+
+  if (master_core >= 0 && master_core < std::thread::hardware_concurrency()) {
+    app_settings_config.internal_thread_core = master_core;
+  } else {
+    app_settings_config.internal_thread_core = CPU_NONE;
+  }
+  app_settings_config.num_of_threads = rmax_rx_config.num_of_threads;
+  app_settings_config.print_parameters = rmax_rx_config.print_parameters;
+  app_settings_config.sleep_between_operations_us = rmax_rx_config.sleep_between_operations_us;
+  app_settings_config.packet_payload_size = rmax_rx_config.max_packet_size;
+  app_settings_config.packet_app_header_size = split_boundary;
+  app_settings_config.num_of_chunks = rmax_rx_config.num_concurrent_batches;
+  app_settings_config.num_of_packets_in_chunk =
+      rmax_rx_config.max_chunk_size * rmax_rx_config.num_concurrent_batches;
+}
+
+/**
+ * @brief Sets the allocator type for the application settings.
+ *
+ * @param app_settings_config The application settings configuration.
+ * @param allocator_type The allocator type string.
+ */
+void RmaxMgr::RmaxMgrImpl::set_allocator_type(AppSettings& app_settings_config,
+                                              const std::string& allocator_type) {
+  auto setAllocatorType = [&](const std::string& allocatorTypeStr, AllocatorTypeUI allocatorType) {
+    if (allocator_type == allocatorTypeStr) { app_settings_config.allocator_type = allocatorType; }
+  };
+
+  app_settings_config.allocator_type = AllocatorTypeUI::Auto;
+  setAllocatorType("auto", AllocatorTypeUI::Auto);
+  setAllocatorType("huge_page_default", AllocatorTypeUI::HugePageDefault);
+  setAllocatorType("malloc", AllocatorTypeUI::Malloc);
+  setAllocatorType("huge_page_2mb", AllocatorTypeUI::HugePage2MB);
+  setAllocatorType("huge_page_512mb", AllocatorTypeUI::HugePage512MB);
+  setAllocatorType("huge_page_1gb", AllocatorTypeUI::HugePage1GB);
+  setAllocatorType("gpu", AllocatorTypeUI::Gpu);
+}
+
+/**
+ * @brief Parses and sets the cores for the application settings.
+ *
+ * @param app_settings_config The application settings configuration.
+ * @param cores The cores configuration string.
+ * @return True if the cores are successfully parsed and set, false otherwise.
+ */
+bool RmaxMgr::RmaxMgrImpl::parse_and_set_cores(AppSettings& app_settings_config,
+                                               const std::string& cores) {
+  std::istringstream iss(cores);
+  std::string coreStr;
+  bool to_reset_cores_vector = true;
+  while (std::getline(iss, coreStr, ',')) {
+    try {
+      int core = std::stoi(coreStr);
+      if (core < 0 || core >= std::thread::hardware_concurrency()) {
+        HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
+        return false;
+      } else {
+        if (to_reset_cores_vector) {
+          app_settings_config.app_threads_cores.clear();
+          to_reset_cores_vector = false;
+        }
+        app_settings_config.app_threads_cores.push_back(core);
+      }
+    } catch (const std::invalid_argument& e) {
+      HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
+      return false;
+    } catch (const std::out_of_range& e) {
+      HOLOSCAN_LOG_ERROR("Core number out of range: {}", coreStr);
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * @brief Sets the IPO receiver settings for the RX service.
+ *
+ * @param rx_service_cfg The RX service configuration.
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ */
+void RmaxMgr::RmaxMgrImpl::set_rx_service_ipo_receiver_settings(
+    RmaxIPOReceiverConfig& rx_service_cfg, const RmaxRxQueueConfig& rmax_rx_config) {
+  rx_service_cfg.is_extended_sequence_number = rmax_rx_config.ext_seq_num;
+  rx_service_cfg.max_path_differential_us = rmax_rx_config.max_path_differential_us;
+  if (rx_service_cfg.max_path_differential_us >= USECS_IN_SECOND) {
+    HOLOSCAN_LOG_ERROR("Max path differential must be less than 1 second");
+    rx_service_cfg.max_path_differential_us = USECS_IN_SECOND;
+  }
+
+  rx_service_cfg.rx_stats_period_report_ms = rmax_rx_config.rx_stats_period_report_ms;
+  rx_service_cfg.register_memory = rmax_rx_config.memory_registration;
+  rx_service_cfg.max_chunk_size = rmax_rx_config.max_chunk_size;
+  rx_service_cfg.rmax_apps_lib = rmax_apps_lib;
+
+  send_packet_info = rmax_rx_config.send_packet_info;
+}
+
+/**
+ * @brief Adds a new RX service configuration to configuration map.
+ *
+ * @param rx_service_cfg The RX service configuration.
+ * @param port_id The port ID.
+ * @param queue_id The queue ID.
+ */
+void RmaxMgr::RmaxMgrImpl::add_new_rx_service_config(RmaxIPOReceiverConfig& rx_service_cfg,
+                                                     uint16_t port_id, uint16_t queue_id) {
+  uint32_t key = BurstHandler::burst_tag_from_port_and_queue_id(port_id, queue_id);
+  if (rx_service_configs.find(key) != rx_service_configs.end()) {
+    HOLOSCAN_LOG_ERROR(
+        "RMAX ANO settings for port {} and queue {} already exists", port_id, queue_id);
+    return;
+  }
+
+  rx_service_configs[key] = rx_service_cfg;
 }
 
 /**
@@ -436,7 +552,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
     return;
   }
 
-  rivermax_setparam("RIVERMAX_LOG_LEVEL", std::to_string(debug_level), true);
+  rivermax_setparam("RIVERMAX_LOG_LEVEL", std::to_string(rmax_log_level), true);
 
   // Iterate over the RX service configurations and initialize each RX service
   for (const auto& entry : rx_service_configs) {
