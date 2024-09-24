@@ -333,6 +333,12 @@ setup() {
     apt-get install --no-install-recommends -y libv4l-dev
   fi
 
+  # git
+  git_version=$(dpkg --status git | grep -Po '^Version: \K[^-]*')
+  if [[ $git_version == "" ]]; then
+    echo "Installing git"
+    apt-get install --no-install-recommends -y git
+  fi
 
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
