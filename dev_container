@@ -956,8 +956,6 @@ build_and_run() {
         --install)
             if [[ -n "$2" ]]; then
                 install="--install"
-                # Default to install in the source directory
-                configure_args="${configure_args} '-DCMAKE_INSTALL_PREFIX_TO_SOURCE=1'"
                 shift 1
             else
                 echo "Error: --run_args requires a value"
