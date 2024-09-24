@@ -13,9 +13,12 @@ tutorial describes the steps to enable CUDA MPS and demonstrate few performance 
 4. [IGX Orin](#igx-orin)
     1. [Model Benchmarking Application Setup](#model-benchmarking-application-setup)
     1. [Performance Benchmark Setup](#performance-benchmark-setup)
-    1. [Performance Benefits on IGX Orin w/ dGPU](#performance-benefits-on-igx-orin-w-dgpu)
+    1. [Performance Benefits on IGX Orin w/ Discrete GPU](#performance-benefits-on-igx-orin-w-discrete-gpu)
         1. [Varying Number of Instances](#varying-number-of-instances)
         1. [Varying Number of Parallel Inferences](#varying-number-of-parallel-inferences)
+    1. [ IGX Orin w/ iGPU](#igx-orin-w-integrated-gpu)
+        1. [MPS Setup on IGX-iGPU](#mps-setup-on-igx-igpu)
+        1. [Performance Benefits on IGX Orin w/ Integrated GPU](#performance-benefits-on-igx-orin-w-integrated-gpu)
 
 ## Steps to enable CUDA MPS
 
@@ -112,46 +115,63 @@ We use the following steps:
 
 **1. Patch Application:**
 
-`./benchmarks/holoscan_flow_benchmarking/patch_application.sh model_benchmarking`
+```bash
+./benchmarks/holoscan_flow_benchmarking/patch_application.sh model_benchmarking
+```
 
 **2. Build Application for Benchmarking:**
 
-`./run build model_benchmarking python --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking`
+```bash
+./run build model_benchmarking python --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking`
+```
 
 **3. Set Up V4l2Loopback Devices:**
 
 i. Install `v4l2loopback` and `v4l2loopback`:
 
-`sudo apt-get install v4l2loopback-dkms ffmpeg`
+```bash
+sudo apt-get install v4l2loopback-dkms ffmpeg
+```
 
 ii. Determine the number of instances you would like to benchmark and set that as the value of `devices`. Then, load the `v4l2loopback` kernel module on virtual devices `/dev/video[*]`. This enables each instance to get its input from a separate virtual device.
 
 **Example:** For 3 instances, the `v4l2loopback` kernel module can be loaded on `/dev/video1`, `/dev/video2` and `/dev/video3`:
 
-`sudo modprobe v4l2loopback devices=3 video_nr=1 max_buffers=4`
+```bash
+sudo modprobe v4l2loopback devices=3 video_nr=1 max_buffers=4
+```
 
-Now open 3 separate terminals. 
+Now open 3 separate terminals.
 
-In terminal-1, run: 
-`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video1`
+In terminal-1, run:
+```bash
+ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video1
+```
 
-In terminal-2, run: 
-`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video2`
+In terminal-2, run:
+```bash
+ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video2
+```
 
-In terminal-3, run: 
+In terminal-3, run:
 `ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video3`
 
 **4. Benchmark Application:**
 
-```python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l <number of parallel inferences> -i"  --language python -i <number of instances> -r <number of runs> -m <number of messages> --sched greedy -d <outputs folder> -u```
+```bash
+python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l <number of parallel inferences> -i"  --language python -i <number of instances> -r <number of runs> -m <number of messages> --sched greedy -d <outputs folder> -u
+```
 
-The command executes `<number of runs>` runs of `<number of instances>` instances of the model benchmarking application with `<number of messages>` messages. Each instance runs `<number of parallel inferences>` parallel model benchmarking inferences with no post-processing and visualization (`-i`). 
+The command executes `<number of runs>` runs of `<number of instances>` instances of the model benchmarking application with `<number of messages>` messages. Each instance runs `<number of parallel inferences>` parallel model benchmarking inferences with no post-processing and visualization (`-i`).
 
 Please refer to [Model benchmarking options](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities) and [Holoscan flow benchmarking options](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities) for more information on the various command options.
 
 **Example**: After Step-3, to benchmark 3 instances for 10 runs with 1000 messages, run:
 
-`python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l 7 -i"  --language python -i 3 -r 10 -m 1000 --sched greedy -d myoutputs -u`
+```bash
+
+python benchmarks/holoscan_flow_benchmarking/benchmark.py --run-command="python applications/model_benchmarking/python/model_benchmarking.py -l 7 -i"  --language python -i 3 -r 10 -m 1000 --sched greedy -d myoutputs -u`
+```
 
 
 ### Performance Benefits on IGX Orin w/ Discrete GPU
@@ -162,21 +182,21 @@ We look at the performance benefits of MPS by varying the number of instances an
 
 We fix the number of parallel inferences to 7, number of runs to 10 and number of messages to 1000 and vary the number of instances from 3 to 7 using the `-i` parameter. Please refer to [Performance Benchmark Setup](#performance-benchmark-setup) for benchmarking commands.
 
-The graph below shows the maximum end-to-end latency of model benchmarking application with and without CUDA MPS, where the active thread percentage was set to `80/(number of instances)`. For example, for 5 instances, we set the active thread percentage to `80/5 = 16`. By provisioning resources this way, we leave some resources idle in case a client should require to use it. Please refer to [CUDA MPS Resource Provisioning](https://docs.nvidia.com/deploy/mps/#volta-mps-execution-resource-provisioning) for more details regarding this.  
+The graph below shows the maximum end-to-end latency of model benchmarking application with and without CUDA MPS, where the active thread percentage was set to `80/(number of instances)`. For example, for 5 instances, we set the active thread percentage to `80/5 = 16`. By provisioning resources this way, we leave some resouces idle in case a client should require to use it. Please refer to [CUDA MPS Resource Provisioning](https://docs.nvidia.com/deploy/mps/#volta-mps-execution-resource-provisioning) for more details regarding this.
 
-The graph is missing a bar for the case of 7 instances and 7 parallel inferences as we were unable to get the baseline to execute. However, we were able to run when MPS was enabled, highlighting the advantage of using MPS for large workloads. We see that the maximum end-to-end latency improves when MPS is enabled and the improvement is more pronounced as the number of instances increases. This is because, as the number of concurrent processes increases, MPS confines CUDA workloads to a certain predefined set of SMs. MPS combines multiple CUDA contexts from multiple processes into one, while simultaneously running them together. 
-It reduces the number of context switches and related inferences, resulting in improved GPU utilization. 
+The graph is missing a bar for the case of 7 instances and 7 parallel inferences as we were unable to get the baseline to execute. However, we were able to run when MPS was enabled, highlighting the advantage of using MPS for large workloads. We see that the maximum end-to-end latency improves when MPS is enabled and the improvement is more pronounced as the number of instances increases. This is beacuse, as the number of concurrent processes increases, MPS confines CUDA workloads to a certain predefined set of SMs. MPS combines multiple CUDA contexts from multiple processes into one, while simultaneously running them together.
+It reduces the number of context switches and related inferences, resulting in improved GPU utilization.
 
 
 | Maximum end-to-end Latency |
 | :-------------------------:|
-![max e2e latency](images/multiple_inference_7/Maximum%20Latency%20(ms).png)
+![max e2e latency](images/igx-dgpu/multiple_inference_7/Maximum%20Latency%20(ms).png)
 
-We also notice minor improvements in the 99.9<sup>th</sup> percentile latency and similar improvements in the 99<sup>th</sup> percentile latency.  
- 
+We also notice minor improvements in the 99.9<sup>th</sup> percentile latency and similar improvements in the 99<sup>th</sup> percentile latency.
+
 | 99.9<sup>th</sup> Percentile Latency|   99<sup>th</sup> Percentile Latency |
 | :-------------------------:|:-------------------------: |
-![ 99.9<sup>th</sup> percentile latency](images/multiple_inference_7/99.9th%20Percentile%20Latency%20(ms).png)  |   ![ 99<sup>th</sup> percentile latency](images/multiple_inference_7/99th%20Percentile%20Latency%20(ms).png) |
+![ 99.9<sup>th</sup> percentile latency](images/igx-dgpu/multiple_inference_7/99.9th%20Percentile%20Latency%20(ms).png)  |   ![ 99<sup>th</sup> percentile latency](images/igx-dgpu/multiple_inference_7/99th%20Percentile%20Latency%20(ms).png) |
 
 
 #### Varying Number of Parallel Inferences
@@ -185,6 +205,83 @@ We vary the number of parallel inferences to show that MPS may not be beneficial
 
 As the number of parallel inferences increases, so does the workload, and the benefit of MPS is more evident. However, when the workload is low, CUDA MPS may not be beneficial. 
 
-| Maximum Latency for 5 Instances | 
+| Maximum Latency for 5 Instances |
 | :-------------------------:|
-![max latency for 5 parallel inf](images/Maximum%20Latency%20(ms).png)  |  
+![max latency for 5 parallel inf](images/igx-dgpu/parallel_inf_Maximum%20Latency%20(ms).png)|
+
+###  IGX Orin w/ Integrated GPU
+#### MPS Setup on IGX-iGPU
+> Note that we run all commands as root
+
+**1. Please add cuda-12.5+ to `$PATH` and `$LD_LIBRARY_PATH`**
+
+```bash
+echo $PATH
+/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+
+echo $LD_LIBRARY_PATH
+/usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:
+```
+
+**2. Be sure to pass `-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6 ` to `docker run` to ensure that the container is connected to the MPS control and server**
+
+Example:
+```bash
+docker run --net host --interactive --tty -u 0 -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /home/soham/vani/holohub:/workspace/holohub -w /workspace/holohub --runtime=nvidia --gpus all --cap-add CAP_SYS_PTRACE --ipc=host -v /dev:/dev --device-cgroup-rule='c 81:* rmw' --device-cgroup-rule='c 189:* rmw' -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display -e HOME=/workspace/holohub -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/video7 --device /dev/video6 --device /dev/video5 --device /dev/video4 --device /dev/video3 --device /dev/video2 --device /dev/video1 --device /dev/video0 --device /dev/capture-vi-channel71 --device /dev/capture-vi-channel70 --device /dev/capture-vi-channel69 --device /dev/capture-vi-channel68 --device /dev/capture-vi-channel67 --device /dev/capture-vi-channel66 --device /dev/capture-vi-channel65 --device /dev/capture-vi-channel64 --device /dev/capture-vi-channel63 --device /dev/capture-vi-channel62 --device /dev/capture-vi-channel61 --device /dev/capture-vi-channel60 --device /dev/capture-vi-channel59 --device /dev/capture-vi-channel58 --device /dev/capture-vi-channel57 --device /dev/capture-vi-channel56 --device /dev/capture-vi-channel55 --device /dev/capture-vi-channel54 --device /dev/capture-vi-channel53 --device /dev/capture-vi-channel52 --device /dev/capture-vi-channel51 --device /dev/capture-vi-channel50 --device /dev/capture-vi-channel49 --device /dev/capture-vi-channel48 --device /dev/capture-vi-channel47 --device /dev/capture-vi-channel46 --device /dev/capture-vi-channel45 --device /dev/capture-vi-channel44 --device /dev/capture-vi-channel43 --device /dev/capture-vi-channel42 --device /dev/capture-vi-channel41 --device /dev/capture-vi-channel40 --device /dev/capture-vi-channel39 --device /dev/capture-vi-channel38 --device /dev/capture-vi-channel37 --device /dev/capture-vi-channel36 --device /dev/capture-vi-channel35 --device /dev/capture-vi-channel34 --device /dev/capture-vi-channel33 --device /dev/capture-vi-channel32 --device /dev/capture-vi-channel31 --device /dev/capture-vi-channel30 --device /dev/capture-vi-channel29 --device /dev/capture-vi-channel28 --device /dev/capture-vi-channel27 --device /dev/capture-vi-channel26 --device /dev/capture-vi-channel25 --device /dev/capture-vi-channel24 --device /dev/capture-vi-channel23 --device /dev/capture-vi-channel22 --device /dev/capture-vi-channel21 --device /dev/capture-vi-channel20 --device /dev/capture-vi-channel19 --device /dev/capture-vi-channel18 --device /dev/capture-vi-channel17 --device /dev/capture-vi-channel16 --device /dev/capture-vi-channel15 --device /dev/capture-vi-channel14 --device /dev/capture-vi-channel13 --device /dev/capture-vi-channel12 --device /dev/capture-vi-channel11 --device /dev/capture-vi-channel10 --device /dev/capture-vi-channel9 --device /dev/capture-vi-channel8 --device /dev/capture-vi-channel7 --device /dev/capture-vi-channel6 --device /dev/capture-vi-channel5 --device /dev/capture-vi-channel4 --device /dev/capture-vi-channel3 --device /dev/capture-vi-channel2 --device /dev/capture-vi-channel1 --device /dev/capture-vi-channel0 --device /dev/snd/controlC3 --device /dev/snd/pcmC3D19c --device /dev/snd/pcmC3D19p --device /dev/snd/pcmC3D18c --device /dev/snd/pcmC3D18p --device /dev/snd/pcmC3D17c --device /dev/snd/pcmC3D17p --device /dev/snd/pcmC3D16c --device /dev/snd/pcmC3D16p --device /dev/snd/pcmC3D15c --device /dev/snd/pcmC3D15p --device /dev/snd/pcmC3D14c --device /dev/snd/pcmC3D14p --device /dev/snd/pcmC3D13c --device /dev/snd/pcmC3D13p --device /dev/snd/pcmC3D12c --device /dev/snd/pcmC3D12p --device /dev/snd/pcmC3D11c --device /dev/snd/pcmC3D11p --device /dev/snd/pcmC3D10c --device /dev/snd/pcmC3D10p --device /dev/snd/pcmC3D9c --device /dev/snd/pcmC3D9p --device /dev/snd/pcmC3D8c --device /dev/snd/pcmC3D8p --device /dev/snd/pcmC3D7c --device /dev/snd/pcmC3D7p --device /dev/snd/pcmC3D6c --device /dev/snd/pcmC3D6p --device /dev/snd/pcmC3D5c --device /dev/snd/pcmC3D5p --device /dev/snd/pcmC3D4c --device /dev/snd/pcmC3D4p --device /dev/snd/pcmC3D3c --device /dev/snd/pcmC3D3p --device /dev/snd/pcmC3D2c --device /dev/snd/pcmC3D2p --device /dev/snd/pcmC3D1c --device /dev/snd/pcmC3D1p --device /dev/snd/pcmC3D0c --device /dev/snd/pcmC3D0p --device /dev/snd/controlC2 --device /dev/snd/pcmC2D0c --device /dev/snd/pcmC2D0p --device /dev/snd/controlC1 --device /dev/snd/pcmC1D0c --device /dev/snd/pcmC1D0p --device /dev/snd/controlC0 --device /dev/snd/hwC0D0 --device /dev/snd/pcmC0D9p --device /dev/snd/pcmC0D8p --device /dev/snd/pcmC0D7p --device /dev/snd/pcmC0D3p --device /dev/snd/seq --device /dev/snd/timer -v /etc/asound.conf:/etc/asound.conf --group-add 29 -e DISPLAY -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra -v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6  -v /home/soham/cuda-samples:/workspace/cuda-samples --group-add video --rm -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache -e PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking --ipc=host --cap-add=CAP_SYS_PTRACE --ulimit memlock=-1 --ulimit stack=67108864 holohub:v2.1
+```
+
+**3. Inside the container, be sure to set the following environment variables:**
+```bash
+export CUDA_VISIBLE_DEVICES=0
+export CUDA_MPS_PIPE_DIRECTORY=/tmp/nvidia-mps
+export CUDA_MPS_LOG_DIRECTORY=/tmp/nvidia-log
+
+export PATH=/usr/local/cuda-12.6/bin:$PATH
+export PATH=/usr/local/cuda-12.6/compat:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/nvidia:$LD_LIBRARY_PATH
+```
+Our `$PATH` and `$LD_LIBRARY_PATH` values inside the container are:
+```bash
+echo $PATH
+/usr/local/cuda-12.6/bin:/opt/tensorrt/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/nvidia/holoscan/bin
+
+echo $LD_LIBRARY_PATH
+/usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:/usr/local/cuda/compat/lib.real:/usr/local/cuda/compat/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/opt/nvidia/holoscan/lib
+```
+
+**4. Start MPS server and control**
+```bash
+sudo -i
+export CUDA_MPS_ACTIVE_THREAD_PERCENTAGE=20
+nvidia-cuda-mps-control -d
+```
+
+**5. After steps 1-4, follow the [benchmark insructions](#performance-benchmark-setup) to benchmark the application**
+
+#### Performance Benefits on IGX Orin w/ Integrated GPU
+
+We look at the performance benefits of MPS by varying the number of application instances. We run
+the model benchmarking application in a mode where the inputs are always available and being read
+from the disk with the video replayer operator. For every instance of the application, we run 1
+inference (`-l 1`) as iGPU is a smaller GPU. In this experiment, we also oversubscribe the GPU to
+provide the instances more opportunity to utilize the available SMs (IGX Orin iGPU has 16 SMs).
+
+From our experiments, we observe that enabling MPS results in 22-50%, 13-49% and 6-37% improvement
+in maximum latency, 99.9 percentile latency and average latency, respectively. The graphs below
+capture the result. In the X-axis, number of instances is show to increase from 2 to 7, and the
+number in the parenthesis shows the number of SMs per instance enabled by `CUDA_ACTIVE_THREAD_PERCENTAGE`.
+
+| Maximum end-to-end Latency |
+| :-------------------------:|
+![max e2e latency](images/igx-igpu/igx_igpu_max.png)
+
+
+| 99.9 Percentile Latency|   Average Latency |
+| :-------------------------:|:-------------------------: |
+![ 99.9 percentile latency](images/igx-igpu/igx_igpu_999p.png)  |   ![average latency](images/igx-igpu/igx_igpu_avg.png) |
+
+We use different number of SMs for different instances to ensure the total number of SMs requested
+by all the instances exceed the number of available SMs.
