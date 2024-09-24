@@ -67,11 +67,10 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   FILES endoscopy_tool_tracking.py
-  DESTINATION ${CMAKE_INSTALL_BINDIR}/endoscopy_tool_tracking/python
+  DESTINATION endoscopy_tool_tracking/python
 )
 
 install(
   FILES endoscopy_tool_tracking.yaml
-  DESTINATION ${CMAKE_INSTALL_BINDIR}/endoscopy_tool_tracking/python
+  DESTINATION endoscopy_tool_tracking/python
 )
-

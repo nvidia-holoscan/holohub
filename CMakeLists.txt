@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20.1)
-project(Holohub-internal CXX)
+project(Holohub CXX)
 
 # set CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -25,7 +25,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/deps)
 include(HoloHubConfigHelpers)
 
 # Set install directory
-if(NOT CMAKE_INSTALL_PREFIX)
+if(CMAKE_INSTALL_PREFIX_TO_SOURCE)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install" CACHE PATH "Installation directory" FORCE)
 endif()
 
