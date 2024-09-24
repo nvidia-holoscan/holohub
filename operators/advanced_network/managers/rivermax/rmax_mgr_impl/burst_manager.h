@@ -26,119 +26,6 @@ namespace holoscan::ops {
 using namespace ral::services;
 
 /**
- * @brief Interface for a generic queue.
- *
- * This interface defines the basic operations for a generic queue, including
- * enqueueing, dequeueing, checking the size, and clearing the queue.
- *
- * @tparam T The type of elements in the queue.
- */
-template <typename T>
-class QueueInterface {
- public:
-  /**
-   * @brief Virtual destructor for the QueueInterface class.
-   */
-  virtual ~QueueInterface() = default;
-
-  /**
-   * @brief Enqueues a value into the queue.
-   *
-   * @param value The value to enqueue.
-   */
-  virtual void enqueue(const T& value) = 0;
-
-  /**
-   * @brief Tries to dequeue a value from the queue.
-   *
-   * @param value The value to dequeue.
-   * @return True if the dequeue was successful, false otherwise.
-   */
-  virtual bool try_dequeue(T& value) = 0;
-
-  /**
-   * @brief Tries to dequeue a value from the queue with a timeout.
-   *
-   * @param value The value to dequeue.
-   * @param timeout The timeout for the dequeue operation.
-   * @return True if the dequeue was successful, false otherwise.
-   */
-  virtual bool try_dequeue(T& value, std::chrono::milliseconds timeout) = 0;
-
-  /**
-   * @brief Gets the size of the queue.
-   *
-   * @return The size of the queue.
-   */
-  virtual size_t get_size() const = 0;
-
-  /**
-   * @brief Clears the queue.
-   */
-  virtual void clear() = 0;
-};
-
-/**
- * @brief A queue for handling bursts of packets.
- *
- * The AnoBurstsQueue class implements the IAnoBurstsCollection interface and
- * provides functionality for managing a queue of bursts of packets. It supports
- * operations such as putting bursts into the queue, getting bursts from the queue,
- * checking the number of available bursts, and clearing the queue.
- */
-class AnoBurstsQueue : public IAnoBurstsCollection {
- public:
-  /**
-   * @brief Constructor for the AnoBurstsQueue class.
-   *
-   * Initializes the AnoBurstsQueue instance.
-   */
-  AnoBurstsQueue();
-
-  /**
-   * @brief Virtual destructor for the AnoBurstsQueue class.
-   */
-  virtual ~AnoBurstsQueue() = default;
-
-  /**
-   * @brief Enqueues a burst into the queue.
-   *
-   * @param burst The burst to put into the queue.
-   * @return True if the burst was successfully put into the queue, false otherwise.
-   */
-  bool enqueue_burst(std::shared_ptr<AdvNetBurstParams> burst) override;
-
-  /**
-   * @brief Dequeues a burst from the queue.
-   *
-   * @return A shared pointer to the burst.
-   */
-  std::shared_ptr<AdvNetBurstParams> dequeue_burst() override;
-
-  /**
-   * @brief Gets the number of available bursts in the queue.
-   *
-   * @return The number of available bursts.
-   */
-  size_t available_bursts() override { return m_queue->get_size(); };
-
-  /**
-   * @brief Checks if the queue is empty.
-   *
-   * @return True if the queue is empty, false otherwise.
-   */
-  bool empty() override { return m_queue->get_size() == 0; };
-
-  /**
-   * @brief Clears the queue.
-   */
-  void clear();
-
- private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<AdvNetBurstParams>>> m_queue;
-};
-
-/**
  * @brief Class responsible for handling burst operations.
  */
 class BurstHandler {
@@ -164,6 +51,27 @@ class BurstHandler {
    */
   static inline uint32_t burst_tag_from_port_and_queue_id(int port_id, int queue_id) {
     return (port_id << 16) | queue_id;
+  }
+
+  /**
+   * @brief Calculates the port ID based on the burst tag.
+   *
+   * @param tag The burst tag.
+   * @return The calculated Port ID.
+   */
+  static inline uint16_t burst_port_id_from_burst_tag(uint32_t tag) {
+    return (uint16_t)((tag >> 16) & 0xFFFF);
+    ;
+  }
+
+  /**
+   * @brief Calculates the queue ID based on the burst tag.
+   *
+   * @param tag The burst tag.
+   * @return The calculated Queue ID.
+   */
+  static inline uint16_t burst_queue_id_from_burst_tag(uint32_t tag) {
+    return (uint16_t)(tag & 0xFFFF);
   }
 
   /**
@@ -220,33 +128,27 @@ class BurstHandler {
    *
    * @param burst The burst to append the packet to.
    * @param packet_ind_in_out_burst The index of the packet in the burst.
-   * @param header_ptr A pointer to the packet header.
-   * @param payload_ptr A pointer to the packet payload.
-   * @param header_length The length of the packet header.
-   * @param payload_length The length of the packet payload.
-   * @param packet_info The extended info of the packet.
+   * @param packet_data The extended data of the packet.
    */
   inline void append_packet_to_burst(AdvNetBurstParams& burst, size_t packet_ind_in_out_burst,
-                                     uint8_t* header_ptr, uint8_t* payload_ptr,
-                                     size_t header_length, size_t payload_length, bool hds_on,
-                                     const RmaxPacketExtendedInfo& packet_info) {
+                                     bool hds_on, const RmaxPacketData& packet_data) {
     RmaxPacketExtendedInfo* rx_packet_info = nullptr;
 
     if (m_send_packet_info) {
       rx_packet_info =
           reinterpret_cast<RmaxPacketExtendedInfo*>(burst.pkt_extra_info[packet_ind_in_out_burst]);
-      rx_packet_info->timestamp = packet_info.timestamp;
-      rx_packet_info->flow_tag = packet_info.flow_tag;
+      rx_packet_info->timestamp = packet_data.extended_info.timestamp;
+      rx_packet_info->flow_tag = packet_data.extended_info.flow_tag;
     }
     if (hds_on) {
-      burst.pkts[0][packet_ind_in_out_burst] = header_ptr;
-      burst.pkts[1][packet_ind_in_out_burst] = payload_ptr;
-      burst.pkt_lens[0][packet_ind_in_out_burst] = header_length;
-      burst.pkt_lens[1][packet_ind_in_out_burst] = payload_length;
+      burst.pkts[0][packet_ind_in_out_burst] = packet_data.header_ptr;
+      burst.pkts[1][packet_ind_in_out_burst] = packet_data.payload_ptr;
+      burst.pkt_lens[0][packet_ind_in_out_burst] = packet_data.header_length;
+      burst.pkt_lens[1][packet_ind_in_out_burst] = packet_data.payload_length;
     } else {
-      burst.pkts[0][packet_ind_in_out_burst] = payload_ptr;
+      burst.pkts[0][packet_ind_in_out_burst] = packet_data.payload_ptr;
       burst.pkts[1][packet_ind_in_out_burst] = nullptr;
-      burst.pkt_lens[0][packet_ind_in_out_burst] = header_length;
+      burst.pkt_lens[0][packet_ind_in_out_burst] = packet_data.header_length;
       burst.pkt_lens[1][packet_ind_in_out_burst] = 0;
     }
   }
@@ -365,16 +267,10 @@ class RxBurstsManager {
   /**
    * @brief Submits the next packet to the burst manager.
    *
-   * @param header_ptr Pointer to the header data.
-   * @param payload_ptr Pointer to the payload data.
-   * @param header_length Length of the header data.
-   * @param payload_length Length of the payload data.
-   * @param packet_info Extended information about the packet.
+   * @param packet_data Extended information about the packet.
    * @return ReturnStatus indicating the success or failure of the operation.
    */
-  inline ReturnStatus submit_next_packet(uint8_t* header_ptr, uint8_t* payload_ptr,
-                                         size_t header_length, size_t payload_length,
-                                         const RmaxPacketExtendedInfo& packet_info) {
+  inline ReturnStatus submit_next_packet(const RmaxPacketData& packet_data) {
     // Consider to add check for pointers
     std::shared_ptr<AdvNetBurstParams> cur_burst = get_or_allocate_current_burst();
     if (cur_burst == nullptr) {
@@ -383,14 +279,8 @@ class RxBurstsManager {
     }
 
     size_t packet_ind_in_out_burst = m_burst_handler->get_num_packets(*cur_burst);
-    m_burst_handler->append_packet_to_burst(*cur_burst,
-                                            packet_ind_in_out_burst,
-                                            header_ptr,
-                                            payload_ptr,
-                                            header_length,
-                                            payload_length,
-                                            m_hds_on,
-                                            packet_info);
+    m_burst_handler->append_packet_to_burst(
+        *cur_burst, packet_ind_in_out_burst, m_hds_on, packet_data);
     packet_ind_in_out_burst++;
     m_burst_handler->set_num_packets(*cur_burst, packet_ind_in_out_burst);
 

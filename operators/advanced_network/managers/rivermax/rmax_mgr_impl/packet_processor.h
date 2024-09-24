@@ -25,6 +25,27 @@ namespace holoscan::ops {
 using namespace ral::services;
 
 /**
+ * @brief Parameters for processing a chunk of packets.
+ *
+ * The PacketsChunkParams struct contains the parameters required for processing
+ * a chunk of packets.
+ */
+struct PacketsChunkParams {
+  uint8_t* header_ptr;                        /**< Pointer to the header data. */
+  uint8_t* payload_ptr;                       /**< Pointer to the payload data. */
+  const ReceivePacketInfo* packet_info_array; /**< Array of packet information. */
+  size_t chunk_size;                          /**< Size of the chunk to process. */
+  bool hds_on;                /**< Flag indicating if header data splitting (HDS) is enabled. */
+  size_t header_stride_size;  /**< Stride size for the header data. */
+  size_t payload_stride_size; /**< Stride size for the payload data. */
+};
+
+struct PacketsChunkProcessResult {
+  size_t processed_packets;
+  ReturnStatus status;
+};
+
+/**
  * @brief Interface for packet processors.
  *
  * The IPacketProcessor class defines the interface for processing packets.
@@ -41,24 +62,13 @@ class IPacketProcessor {
   /**
    * @brief Processes packets.
    *
-   * This function processes the packets contained in the provided arrays and updates the
-   * processed packet count.
+   * This function processes the packets contained in the provided arrays and returns the
+   * number of processed packets along with the status.
    *
-   * @param header_ptr Pointer to the header data.
-   * @param payload_ptr Pointer to the payload data.
-   * @param packet_info_array Array of packet information.
-   * @param chunk_size Size of the chunk to process.
-   * @param hds_on Flag indicating if header data splitting (HDS) is enabled.
-   * @param header_stride_size Stride size for the header data.
-   * @param payload_stride_size Stride size for the payload data.
-   * @param processed_packets Reference to the size_t that will be updated with the number of
-   * processed packets.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @param params Struct containing packet processing parameters.
+   * @return ProcessResult containing the number of processed packets and the status.
    */
-  virtual ReturnStatus process_packets(uint8_t* header_ptr, uint8_t* payload_ptr,
-                                       const ReceivePacketInfo* packet_info_array,
-                                       size_t chunk_size, bool hds_on, size_t header_stride_size,
-                                       size_t payload_stride_size, size_t& processed_packets) = 0;
+  virtual PacketsChunkProcessResult process_packets(const PacketsChunkParams& params) = 0;
 };
 
 /**
@@ -86,78 +96,54 @@ class RxPacketProcessor : public IPacketProcessor {
   /**
    * @brief Processes packets.
    *
-   * This function processes the packets contained in the provided arrays and updates the
-   * processed packet count.
+   * This function processes the packets contained in the provided arrays and returns the
+   * number of processed packets along with the status.
    *
-   * @param header_ptr Pointer to the header data.
-   * @param payload_ptr Pointer to the payload data.
-   * @param packet_info_array Array of packet information.
-   * @param chunk_size Size of the chunk to process.
-   * @param hds_on Flag indicating if header data splitting (HDS) is enabled.
-   * @param header_stride_size Stride size for the header data.
-   * @param payload_stride_size Stride size for the payload data.
-   * @param processed_packets Reference to the size_t that will be updated with the number of
-   * processed packets.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @param params Struct containing packet processing parameters.
+   * @return ProcessResult containing the number of processed packets and the status.
    */
-  ReturnStatus process_packets(uint8_t* header_ptr, uint8_t* payload_ptr,
-                               const ReceivePacketInfo* packet_info_array, size_t chunk_size,
-                               bool hds_on, size_t header_stride_size, size_t payload_stride_size,
-                               size_t& processed_packets) override {
-    processed_packets = 0;
+  PacketsChunkProcessResult process_packets(const PacketsChunkParams& params) override {
+    PacketsChunkProcessResult result = {0, ReturnStatus::success};
 
     // Return success if there are no packets to process
-    if (chunk_size == 0) { return ReturnStatus::success; }
+    if (params.chunk_size == 0) { return result; }
 
-    auto remaining_packets = chunk_size;
-    size_t consumed_packets_single_burst = 0;
+    auto remaining_packets = params.chunk_size;
 
-    // Inform manager about a new chunk and it's params
-    auto status = m_rx_burst_manager->set_next_chunk_params(
-        chunk_size, hds_on, header_stride_size, payload_stride_size);
+    // Inform manager about a new chunk and its params
+    result.status = m_rx_burst_manager->set_next_chunk_params(
+        params.chunk_size, params.hds_on, params.header_stride_size, params.payload_stride_size);
 
-    if (status != ReturnStatus::success) { return status; }
+    if (result.status != ReturnStatus::success) { return result; }
+
+    auto header_ptr = params.header_ptr;
+    auto payload_ptr = params.payload_ptr;
 
     // Process packets one by one until all packets are processed
     while (remaining_packets > 0) {
-      auto status =
-          process_single_packet(header_ptr, payload_ptr, packet_info_array[processed_packets]);
+      RmaxPacketData rx_packet_data = {
+          header_ptr,
+          payload_ptr,
+          params.packet_info_array[result.processed_packets].get_packet_sub_block_size(0),
+          params.packet_info_array[result.processed_packets].get_packet_sub_block_size(1),
+          {params.packet_info_array[result.processed_packets].get_packet_flow_tag(),
+           params.packet_info_array[result.processed_packets].get_packet_timestamp()}};
 
-      if (status != ReturnStatus::success) { return status; }
+      result.status = m_rx_burst_manager->submit_next_packet(rx_packet_data);
 
-      processed_packets++;
+      if (result.status != ReturnStatus::success) { return result; }
+
+      result.processed_packets++;
       remaining_packets--;
-      header_ptr += header_stride_size;
-      payload_ptr += payload_stride_size;
+      header_ptr += params.header_stride_size;
+      payload_ptr += params.payload_stride_size;
     }
 
-    return ReturnStatus::success;
+    return result;
   }
 
  private:
   std::shared_ptr<RxBurstsManager> m_rx_burst_manager;
-
-  /**
-   * @brief Processes a single packet.
-   *
-   * This function processes a single packet and submits it to the burst manager.
-   *
-   * @param header_ptr Pointer to the header data.
-   * @param payload_ptr Pointer to the payload data.
-   * @param packet_info Reference to the packet information.
-   * @return ReturnStatus indicating the success or failure of the operation.
-   */
-  ReturnStatus process_single_packet(uint8_t* header_ptr, uint8_t* payload_ptr,
-                                     const ReceivePacketInfo& packet_info) {
-    RmaxPacketExtendedInfo rx_packet_info = {packet_info.get_packet_flow_tag(),
-                                             packet_info.get_packet_timestamp()};
-
-    return m_rx_burst_manager->submit_next_packet(header_ptr,
-                                                  payload_ptr,
-                                                  packet_info.get_packet_sub_block_size(0),
-                                                  packet_info.get_packet_sub_block_size(1),
-                                                  rx_packet_info);
-  }
 };
 
 };  // namespace holoscan::ops

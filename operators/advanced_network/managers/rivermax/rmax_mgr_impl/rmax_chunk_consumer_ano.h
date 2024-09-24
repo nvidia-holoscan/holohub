@@ -100,45 +100,38 @@ inline ReturnStatus RmaxChunkConsumerAno::consume_chunk_packets(IPOReceiveChunk&
     return ReturnStatus::failure;
   }
 
-  // Get pointers to the packet information, payload, and header data
-  auto packet_info_array = chunk.get_completion_info_ptr();
-  auto* payload_ptr = reinterpret_cast<uint8_t*>(chunk.get_completion_payload_ptr());
-  auto* header_ptr = reinterpret_cast<uint8_t*>(chunk.get_completion_header_ptr());
-
-  // Get the size of the chunk
-  const auto chunk_size = chunk.get_completion_chunk_size();
-
-  // Determine if header data splitting (HDS) is enabled
-  const bool hds_on = (chunk_size > 0) ? (chunk.get_packet_header_size(0) > 0) : false;
-
-  // Get the stride sizes for the header and payload data
-  const auto header_stride_size = stream.get_header_stride_size();
-  const auto payload_stride_size = stream.get_payload_stride_size();
-
   consumed_packets = 0;
 
-  // Return success if there are no packets to process
+  const auto chunk_size = chunk.get_completion_chunk_size();
   if (chunk_size == 0) {
     unconsumed_packets = 0;
     return ReturnStatus::success;
   }
 
-  size_t processed_packets = 0;
   unconsumed_packets = chunk_size;
 
-  auto status = m_packet_processor->process_packets(header_ptr,
-                                                    payload_ptr,
-                                                    packet_info_array,
-                                                    chunk_size,
-                                                    hds_on,
-                                                    header_stride_size,
-                                                    payload_stride_size,
-                                                    processed_packets);
+  PacketsChunkParams params = {
+      // header_ptr: Pointer to the header data
+      reinterpret_cast<uint8_t*>(chunk.get_completion_header_ptr()),
+      // payload_ptr: Pointer to the payload data
+      reinterpret_cast<uint8_t*>(chunk.get_completion_payload_ptr()),
+      // packet_info_array: Array of packet information
+      chunk.get_completion_info_ptr(),
+      chunk_size,
+      // hds_on: Header data splitting enabled
+      (chunk_size > 0) ? (chunk.get_packet_header_size(0) > 0) : false,
+      // header_stride_size: Stride size for the header data
+      stream.get_header_stride_size(),
+      // payload_stride_size: Stride size for the payload data
+      stream.get_payload_stride_size(),
+  };
 
-  consumed_packets += processed_packets;
-  unconsumed_packets -= processed_packets;
+  auto result = m_packet_processor->process_packets(params);
 
-  return status;
+  consumed_packets += result.processed_packets;
+  unconsumed_packets -= result.processed_packets;
+
+  return result.status;
 }
 
 };  // namespace holoscan::ops

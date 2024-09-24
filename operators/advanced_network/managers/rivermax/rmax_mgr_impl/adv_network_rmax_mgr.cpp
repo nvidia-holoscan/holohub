@@ -359,7 +359,7 @@ bool RmaxMgr::RmaxMgrImpl::parse_configuration(const AdvNetConfigYaml& cfg) {
       rx_service_cfg.max_chunk_size = rmax_rx_config.max_chunk_size;
 
       // Generate a unique key for the RX service configuration
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = BurstHandler::burst_tag_from_port_and_queue_id(intf.port_id_, q.common_.id_);
 
       // Check if the RX service configuration already exists
       if (rx_service_configs.find(key) != rx_service_configs.end()) {
@@ -442,8 +442,8 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   for (const auto& entry : rx_service_configs) {
     uint32_t key = entry.first;
     const RmaxIPOReceiverConfig& config = entry.second;
-    uint16_t port_id = (uint16_t)((key >> 16) & 0xFFFF);
-    uint16_t queue_id = (uint16_t)(key & 0xFFFF);
+    uint16_t port_id = BurstHandler::burst_port_id_from_burst_tag(key);
+    uint16_t queue_id = BurstHandler::burst_queue_id_from_burst_tag(key);
 
     // Create and initialize the RX service
     auto rx_service = std::make_unique<RmaxIPOReceiverService>(config);
@@ -782,7 +782,8 @@ void RmaxMgr::RmaxMgrImpl::free_pkt(AdvNetBurstParams* burst, int pkt) {}
  * @param burst The burst parameters.
  */
 void RmaxMgr::RmaxMgrImpl::free_rx_burst(AdvNetBurstParams* burst) {
-  uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  uint32_t key =
+      BurstHandler::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
 
   if (rx_services.find(key) == rx_services.end() ||
       rx_burst_managers.find(key) == rx_burst_managers.end()) {
