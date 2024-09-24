@@ -154,7 +154,9 @@ ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.a
 ```
 
 In terminal-3, run:
-`ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video3`
+```bash
+ffmpeg -stream_loop -1 -re -i /data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video3
+```
 
 **4. Benchmark Application:**
 
@@ -215,6 +217,8 @@ As the number of parallel inferences increases, so does the workload, and the be
 
 **1. Please add cuda-12.5+ to `$PATH` and `$LD_LIBRARY_PATH`**
 
+> If you have multiple CUDA installations, check it at `/usr/local/` directory.
+
 ```bash
 echo $PATH
 /usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
@@ -223,11 +227,13 @@ echo $LD_LIBRARY_PATH
 /usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:
 ```
 
-**2. Be sure to pass `-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6 ` to `docker run` to ensure that the container is connected to the MPS control and server**
+**2. Be sure to pass `-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
+/usr/local/cuda-12.6:/usr/local/cuda-12.6 ` to `./dev_container launch` command to ensure that the container is
+connected to the MPS control and server**
 
 Example:
 ```bash
-docker run --net host --interactive --tty -u 0 -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /home/soham/vani/holohub:/workspace/holohub -w /workspace/holohub --runtime=nvidia --gpus all --cap-add CAP_SYS_PTRACE --ipc=host -v /dev:/dev --device-cgroup-rule='c 81:* rmw' --device-cgroup-rule='c 189:* rmw' -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display -e HOME=/workspace/holohub -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/video7 --device /dev/video6 --device /dev/video5 --device /dev/video4 --device /dev/video3 --device /dev/video2 --device /dev/video1 --device /dev/video0 --device /dev/capture-vi-channel71 --device /dev/capture-vi-channel70 --device /dev/capture-vi-channel69 --device /dev/capture-vi-channel68 --device /dev/capture-vi-channel67 --device /dev/capture-vi-channel66 --device /dev/capture-vi-channel65 --device /dev/capture-vi-channel64 --device /dev/capture-vi-channel63 --device /dev/capture-vi-channel62 --device /dev/capture-vi-channel61 --device /dev/capture-vi-channel60 --device /dev/capture-vi-channel59 --device /dev/capture-vi-channel58 --device /dev/capture-vi-channel57 --device /dev/capture-vi-channel56 --device /dev/capture-vi-channel55 --device /dev/capture-vi-channel54 --device /dev/capture-vi-channel53 --device /dev/capture-vi-channel52 --device /dev/capture-vi-channel51 --device /dev/capture-vi-channel50 --device /dev/capture-vi-channel49 --device /dev/capture-vi-channel48 --device /dev/capture-vi-channel47 --device /dev/capture-vi-channel46 --device /dev/capture-vi-channel45 --device /dev/capture-vi-channel44 --device /dev/capture-vi-channel43 --device /dev/capture-vi-channel42 --device /dev/capture-vi-channel41 --device /dev/capture-vi-channel40 --device /dev/capture-vi-channel39 --device /dev/capture-vi-channel38 --device /dev/capture-vi-channel37 --device /dev/capture-vi-channel36 --device /dev/capture-vi-channel35 --device /dev/capture-vi-channel34 --device /dev/capture-vi-channel33 --device /dev/capture-vi-channel32 --device /dev/capture-vi-channel31 --device /dev/capture-vi-channel30 --device /dev/capture-vi-channel29 --device /dev/capture-vi-channel28 --device /dev/capture-vi-channel27 --device /dev/capture-vi-channel26 --device /dev/capture-vi-channel25 --device /dev/capture-vi-channel24 --device /dev/capture-vi-channel23 --device /dev/capture-vi-channel22 --device /dev/capture-vi-channel21 --device /dev/capture-vi-channel20 --device /dev/capture-vi-channel19 --device /dev/capture-vi-channel18 --device /dev/capture-vi-channel17 --device /dev/capture-vi-channel16 --device /dev/capture-vi-channel15 --device /dev/capture-vi-channel14 --device /dev/capture-vi-channel13 --device /dev/capture-vi-channel12 --device /dev/capture-vi-channel11 --device /dev/capture-vi-channel10 --device /dev/capture-vi-channel9 --device /dev/capture-vi-channel8 --device /dev/capture-vi-channel7 --device /dev/capture-vi-channel6 --device /dev/capture-vi-channel5 --device /dev/capture-vi-channel4 --device /dev/capture-vi-channel3 --device /dev/capture-vi-channel2 --device /dev/capture-vi-channel1 --device /dev/capture-vi-channel0 --device /dev/snd/controlC3 --device /dev/snd/pcmC3D19c --device /dev/snd/pcmC3D19p --device /dev/snd/pcmC3D18c --device /dev/snd/pcmC3D18p --device /dev/snd/pcmC3D17c --device /dev/snd/pcmC3D17p --device /dev/snd/pcmC3D16c --device /dev/snd/pcmC3D16p --device /dev/snd/pcmC3D15c --device /dev/snd/pcmC3D15p --device /dev/snd/pcmC3D14c --device /dev/snd/pcmC3D14p --device /dev/snd/pcmC3D13c --device /dev/snd/pcmC3D13p --device /dev/snd/pcmC3D12c --device /dev/snd/pcmC3D12p --device /dev/snd/pcmC3D11c --device /dev/snd/pcmC3D11p --device /dev/snd/pcmC3D10c --device /dev/snd/pcmC3D10p --device /dev/snd/pcmC3D9c --device /dev/snd/pcmC3D9p --device /dev/snd/pcmC3D8c --device /dev/snd/pcmC3D8p --device /dev/snd/pcmC3D7c --device /dev/snd/pcmC3D7p --device /dev/snd/pcmC3D6c --device /dev/snd/pcmC3D6p --device /dev/snd/pcmC3D5c --device /dev/snd/pcmC3D5p --device /dev/snd/pcmC3D4c --device /dev/snd/pcmC3D4p --device /dev/snd/pcmC3D3c --device /dev/snd/pcmC3D3p --device /dev/snd/pcmC3D2c --device /dev/snd/pcmC3D2p --device /dev/snd/pcmC3D1c --device /dev/snd/pcmC3D1p --device /dev/snd/pcmC3D0c --device /dev/snd/pcmC3D0p --device /dev/snd/controlC2 --device /dev/snd/pcmC2D0c --device /dev/snd/pcmC2D0p --device /dev/snd/controlC1 --device /dev/snd/pcmC1D0c --device /dev/snd/pcmC1D0p --device /dev/snd/controlC0 --device /dev/snd/hwC0D0 --device /dev/snd/pcmC0D9p --device /dev/snd/pcmC0D8p --device /dev/snd/pcmC0D7p --device /dev/snd/pcmC0D3p --device /dev/snd/seq --device /dev/snd/timer -v /etc/asound.conf:/etc/asound.conf --group-add 29 -e DISPLAY -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra -v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6  -v /home/soham/cuda-samples:/workspace/cuda-samples --group-add video --rm -e CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache -e PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking --ipc=host --cap-add=CAP_SYS_PTRACE --ulimit memlock=-1 --ulimit stack=67108864 holohub:v2.1
+./dev_container launch --img holohub:v2.1 --docker_opts "-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6"
 ```
 
 **3. Inside the container, be sure to set the following environment variables:**
