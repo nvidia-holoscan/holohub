@@ -33,10 +33,10 @@ This application uses the [MONAI whole-body segmentation model](https://github.c
 
 The input for this application is a folder of DICOM image files from a CT series. For testing, CT scan images can be downloaded from [The Cancer Imaging Archive](https://nbia.cancerimagingarchive.net/nbia-search/), subject to [Data Usage Policies and Restrictions](https://www.cancerimagingarchive.net/data-usage-policies-and-restrictions/)
 
-One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, is copied and made available [here](https://urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/), though access is currently restricted to Nvidia internal use.
+One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, was used in testing the application. Other DICOM CT Abdomen series can be downloaded from TCIA as test inputs, and, of course, users' own DICOM seriese shall equally work.
 
 **_Note_**:
-Before the test DICOM data is made publicly accessible, please download the DICOM files manually and save them in a folder, preferably named `data/imaging_ai_segmentator/dicom` under the project root, as this folder name is used in the examples in the following steps. Manual download scripts are shown in [`Run the Application in Dev Environment`](#run-the-application-in-dev-environment)
+Please download, or otherwise make available, DICOM files of a CT Abdomen series and save them in a folder, preferably named `data/imaging_ai_segmentator/dicom` under the project root, as this folder name is used in the examples in the following steps. Manual download scripts are shown in [`Run the Application in Dev Environment`](#run-the-application-in-dev-environment)
 
 ### Data Citation
 
@@ -49,7 +49,7 @@ There are a number of ways to build and run this application, as well as packagi
 
 ### Quick Start Using Holohub Container
 
-This is the simplest and fastest way to see the application in action running as a container. As of now, the input DICOM files must be first downloaded and saved in the folder `$PWD/data/imaging_ai_segmentator/dicom`, whereas the PyTorch model is automatically downloaded when container image is built.
+This is the simplest and fastest way to see the application in action running as a container. The input DICOM files must first be downloaded and saved in the folder `$PWD/data/imaging_ai_segmentator/dicom`, whereas the PyTorch model is automatically downloaded when container image is built.
 
 Use the following to build and run the application:
 
@@ -91,15 +91,7 @@ Set the environment variables for the application
 source applications/imaging_ai_segmentator/env_settings.sh
 ```
 
-Download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/)
-(The following example shows downloading from the Holohub artifactory)
-
-```bash
-wget --no-parent -r -l 1  "https://urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/"
-rm -f -r $HOLOSCAN_INPUT_PATH
-mkdir -p $HOLOSCAN_INPUT_PATH
-cp -r urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/ $HOLOSCAN_INPUT_PATH
-```
+If not already done, download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/), unzip if necessary, and save the folder of DICOM files under the folder `$HOLOSCAN_INPUT_PATH`.
 
 Optionally download the AI model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), or wait till the build step to have it downloaded automatically
 
@@ -166,17 +158,9 @@ Set the environment variables for the application
 source applications/imaging_ai_segmentator/env_settings.sh
 ```
 
-Download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/)
-(The following example shows downloading from the Holohub artifactory)
+If not already done, download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/),  unzip if necessary, and save the folder of DICOM files under the folder `$HOLOSCAN_INPUT_PATH`.
 
-```bash
-wget --no-parent -r -l 1  "https://urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/"
-rm -f -r $HOLOSCAN_INPUT_PATH
-mkdir -p $HOLOSCAN_INPUT_PATH
-cp -r urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/ $HOLOSCAN_INPUT_PATH
-```
-
-Download the AI model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), or wait till the build step to have it downloaded automatically
+Optionally download the AI model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), or wait till the build step to have it downloaded automatically
 
 ```bash
 mkdir -p $HOLOSCAN_MODEL_PATH
