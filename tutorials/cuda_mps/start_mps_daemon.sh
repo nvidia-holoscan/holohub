@@ -21,8 +21,9 @@ set -e
 export CUDA_MPS_PIPE_DIRECTORY=/tmp/nvidia-mps
 export CUDA_MPS_LOG_DIRECTORY=/tmp/nvidia-log
 
-nvidia-cuda-mps-control -d
 if [ $# -eq 1 ]
 then
-    echo "set_default_active_thread_percentage $1" | nvidia-cuda-mps-control
+    export CUDA_MPS_ACTIVE_THREAD_PERCENTAGE=$1
 fi
+nvidia-cuda-mps-control -d
+
