@@ -46,9 +46,6 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   add_custom_command(
     OUTPUT imaging_ai_segmentator_data
     COMMAND gdown -q https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O ${DOWNLOAD_DATA_DIR}/models/model.pt
-    # uncomment the two commands below if URL accessible and automated download desired.
-    #COMMAND wget -q --no-parent -r -l 1 -nd -N "https://urm.nvidia.com/artifactory/sw-holoscan-generic/test_data/dicom/TCIA_CT_ABDOMEN/"
-    #WORKING_DIRECTORY ${DOWNLOAD_DATA_DIR}/dicom
     COMMENT "Downloading imaging_ai_segmentator model using gdown..."
   )
   add_custom_target(run ALL
