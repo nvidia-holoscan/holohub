@@ -521,7 +521,7 @@ void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
  */
 void RmaxConfigManager::add_new_rx_service_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                      uint16_t port_id, uint16_t queue_id) {
-  uint32_t key = BurstHandler::burst_tag_from_port_and_queue_id(port_id, queue_id);
+  uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   if (rx_service_configs.find(key) != rx_service_configs.end()) {
     HOLOSCAN_LOG_ERROR(
         "RMAX ANO settings for port {} and queue {} already exists", port_id, queue_id);
@@ -594,9 +594,9 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
  * @param config The configuration for the RX service.
  */
 void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
-                                                 const RmaxIPOReceiverConfig& config) {
-  uint16_t port_id = BurstHandler::burst_port_id_from_burst_tag(service_id);
-  uint16_t queue_id = BurstHandler::burst_queue_id_from_burst_tag(service_id);
+                                                 const ExtRmaxIPOReceiverConfig& config) {
+  uint16_t port_id = RmaxBurst::burst_port_id_from_burst_tag(service_id);
+  uint16_t queue_id = RmaxBurst::burst_queue_id_from_burst_tag(service_id);
 
   // Create and initialize the RX service
   auto rx_service = std::make_unique<RmaxIPOReceiverService>(config);
@@ -790,7 +790,9 @@ uint16_t RmaxMgr::RmaxMgrImpl::get_pkt_len(AdvNetBurstParams* burst, int idx) {
  * @return Pointer to the extra information.
  */
 void* RmaxMgr::RmaxMgrImpl::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
-  if (send_packet_info) return burst->pkt_extra_info[idx];
+  RmaxBurst* rmax_burst = static_cast<RmaxBurst*>(burst);
+  auto burst_flags = rmax_burst->get_burst_flags();
+  if (rmax_burst->is_packet_info_per_packet()) return burst->pkt_extra_info[idx];
   return nullptr;
 }
 
@@ -937,7 +939,7 @@ void RmaxMgr::RmaxMgrImpl::free_pkt(AdvNetBurstParams* burst, int pkt) {}
  */
 void RmaxMgr::RmaxMgrImpl::free_rx_burst(AdvNetBurstParams* burst) {
   uint32_t key =
-      BurstHandler::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+      RmaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
 
   if (rx_services.find(key) == rx_services.end() ||
       rx_burst_managers.find(key) == rx_burst_managers.end()) {
@@ -953,7 +955,7 @@ void RmaxMgr::RmaxMgrImpl::free_rx_burst(AdvNetBurstParams* burst) {
     return;
   }
 
-  rmax_bursts_manager->rx_burst_done(burst);
+  rmax_bursts_manager->rx_burst_done(static_cast<RmaxBurst*>(burst));
 }
 
 /**
@@ -984,7 +986,8 @@ std::optional<uint16_t> RmaxMgr::RmaxMgrImpl::get_port_from_ifname(const std::st
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxMgr::RmaxMgrImpl::get_rx_burst(AdvNetBurstParams** burst) {
-  *burst = rx_bursts_out_queue->dequeue_burst().get();
+  auto out_burst = rx_bursts_out_queue->dequeue_burst().get();
+  *burst = static_cast<AdvNetBurstParams*>(out_burst);
   if (*burst == nullptr) { return AdvNetStatus::NOT_READY; }
   return AdvNetStatus::SUCCESS;
 }

@@ -15,15 +15,17 @@
 
 #include "adv_network_types.h"
 
+
 namespace holoscan::ops {
 
 // using namespace holoscan::ops;
+class RmaxBurst;
 
 class IAnoBurstsCollection {
  public:
   virtual ~IAnoBurstsCollection() = default;
-  virtual bool enqueue_burst(std::shared_ptr<AdvNetBurstParams> burst) = 0;
-  virtual std::shared_ptr<AdvNetBurstParams> dequeue_burst() = 0;
+  virtual bool enqueue_burst(std::shared_ptr<RmaxBurst> burst) = 0;
+  virtual std::shared_ptr<RmaxBurst> dequeue_burst() = 0;
   virtual size_t available_bursts() = 0;
   virtual bool empty() = 0;
 };
@@ -109,14 +111,14 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
    * @param burst The burst to put into the queue.
    * @return True if the burst was successfully put into the queue, false otherwise.
    */
-  bool enqueue_burst(std::shared_ptr<AdvNetBurstParams> burst) override;
+  bool enqueue_burst(std::shared_ptr<RmaxBurst> burst) override;
 
   /**
    * @brief Dequeues a burst from the queue.
    *
    * @return A shared pointer to the burst.
    */
-  std::shared_ptr<AdvNetBurstParams> dequeue_burst() override;
+  std::shared_ptr<RmaxBurst> dequeue_burst() override;
 
   /**
    * @brief Gets the number of available bursts in the queue.
@@ -138,7 +140,7 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
   void clear();
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<AdvNetBurstParams>>> m_queue;
+  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;
 };
 
 enum BurstFlags : uint8_t {
@@ -171,6 +173,7 @@ struct RmaxPacketData {
   size_t payload_length;
   RmaxPacketExtendedInfo extended_info;
 };
+
 
 };  // namespace holoscan::ops
 
