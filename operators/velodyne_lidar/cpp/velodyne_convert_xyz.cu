@@ -39,7 +39,7 @@ __constant__ double d_vlp16_cos_pitch[data_collection::sensors::kVLP16LineCount]
                          __LINE__,                                                      \
                          __FILE__,                                                      \
                          cudaGetErrorString(cuda_status),                               \
-                         cuda_status);                                                  \
+                         static_cast<int>(cuda_status));                                \
       throw std::runtime_error("Unable to copy device to host");                        \
     }                                                                                   \
   }
