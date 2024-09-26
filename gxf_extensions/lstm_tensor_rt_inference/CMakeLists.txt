@@ -31,6 +31,8 @@ target_link_libraries(gxf_lstm_tensor_rt_inference_lib
     CUDA::cudart
     GXF::cuda
     GXF::std
+    nvinfer
+    nvinfer_plugin
     nvonnxparser
     yaml-cpp
     holoscan::core  # included only as a way to find dlpack/dlpack.h for GXF::std
