@@ -804,11 +804,32 @@ void RmaxMgr::RmaxMgrImpl::print_total_stats() {
  * before destroying the Rmax manager implementation.
  */
 RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
-  print_total_stats();
   for (auto& rx_service_thread : rx_service_threads) {
     if (rx_service_thread.joinable()) { rx_service_thread.join(); }
   }
-}
+  for (auto& [service_id, rx_service] : rx_services) {
+    if (rx_service) {
+      // Clear the chunk consumer
+      rx_service->set_chunk_consumer(nullptr);
+    }
+  }
+// Clear the RX services
+  rx_services.clear();
+
+  // Clear the RX burst managers
+  rx_burst_managers.clear();
+
+  // Clear the RX packet processors
+  rx_packet_processors.clear();
+
+  // Clear the Rmax chunk consumers
+  rmax_chunk_consumers.clear();
+
+  rx_bursts_out_queue->clear();
+
+  rx_bursts_out_queue.reset();
+
+} 
 
 /**
  * @brief Runs the Rmax manager.
