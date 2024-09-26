@@ -197,15 +197,13 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
   bool empty() override { return m_queue->get_size() == 0; };
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>>
-      m_queue;  ///< Queue to manage bursts.
-  std::map<uint16_t, std::shared_ptr<RmaxBurst>>
-      m_burst_map;                       ///< Map to store bursts by ID.
-  size_t m_initial_size;                 ///< Initial size of the memory pool.
-  mutable std::mutex m_burst_map_mutex;  ///< Mutex to protect access to the burst map.
-  mutable std::mutex m_queue_mutex;      ///< Mutex to protect access to the queue.
-  uint32_t m_bursts_tag = 0;             ///< Tag for the bursts.
-  RmaxBurst::BurstHandler& m_burst_handler;         ///< Reference to the burst handler.
+  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;  ///< Queue to manage bursts.
+  std::map<uint16_t, std::shared_ptr<RmaxBurst>> m_burst_map;  ///< Map to store bursts by ID.
+  size_t m_initial_size;                                       ///< Initial size of the memory pool.
+  mutable std::mutex m_burst_map_mutex;      ///< Mutex to protect access to the burst map.
+  mutable std::mutex m_queue_mutex;          ///< Mutex to protect access to the queue.
+  uint32_t m_bursts_tag = 0;                 ///< Tag for the bursts.
+  RmaxBurst::BurstHandler& m_burst_handler;  ///< Reference to the burst handler.
 };
 
 /**
@@ -215,7 +213,8 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
  * @param burst_handler Reference to the burst handler.
  * @param tag Tag for the burst.
  */
-AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler, uint32_t tag)
+AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler,
+                                         uint32_t tag)
     : m_initial_size(size), m_bursts_tag(tag), m_burst_handler(burst_handler) {
 #if USE_BLOCKING_MEMPOOL
   m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RmaxBurst>>>();
@@ -369,7 +368,8 @@ std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
  * @param queue_id The queue ID.
  * @param gpu_direct Flag indicating whether GPU direct is enabled.
  */
-RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, int queue_id, bool gpu_direct)
+RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, int queue_id,
+                                      bool gpu_direct)
     : m_send_packet_ext_info(send_packet_ext_info),
       m_port_id(port_id),
       m_queue_id(queue_id),
@@ -396,7 +396,6 @@ RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, in
  * @return A shared pointer to the created burst.
  */
 std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_id) {
-  
   std::shared_ptr<RmaxBurst> burst(new RmaxBurst(m_port_id, m_queue_id));
 
   if (m_send_packet_ext_info) {
@@ -505,8 +504,8 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
       m_burst_out_size(burst_out_size),
       m_gpu_id(gpu_id),
       m_rx_bursts_out_queue(rx_bursts_out_queue),
-      m_burst_handler(std::make_unique<RmaxBurst::BurstHandler>(send_packet_ext_info, port_id, queue_id,
-                                                     gpu_id != INVALID_GPU_ID)) {
+      m_burst_handler(std::make_unique<RmaxBurst::BurstHandler>(
+          send_packet_ext_info, port_id, queue_id, gpu_id != INVALID_GPU_ID)) {
   const uint32_t burst_tag = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   m_gpu_direct = (m_gpu_id != INVALID_GPU_ID);
 

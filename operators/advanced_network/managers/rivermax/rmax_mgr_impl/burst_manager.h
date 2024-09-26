@@ -25,8 +25,16 @@
 namespace holoscan::ops {
 using namespace ral::services;
 
+/**
+ * @class RmaxBurst
+ * @brief Represents a burst of packets in the advanced network.
+ */
 class RmaxBurst : public AdvNetBurstParams {
  public:
+  /**
+   * @class BurstHandler
+   * @brief Handles operations related to bursts.
+   */
   class BurstHandler;
 
   /**
@@ -48,7 +56,6 @@ class RmaxBurst : public AdvNetBurstParams {
    */
   static inline uint16_t burst_port_id_from_burst_tag(uint32_t tag) {
     return (uint16_t)((tag >> 16) & 0xFFFF);
-    ;
   }
 
   /**
@@ -61,34 +68,62 @@ class RmaxBurst : public AdvNetBurstParams {
     return (uint16_t)(tag & 0xFFFF);
   }
 
+  /**
+   * @brief Gets the burst ID.
+   *
+   * @return The burst ID.
+   */
   inline uint16_t get_burst_id() const {
     auto burst_info = get_burst_info();
     if (burst_info == nullptr) { return 0; }
     return burst_info->burst_id;
   }
-  
-  inline uint16_t get_port_id() const {
-    return hdr.hdr.port_id;
-  }
 
-  inline uint16_t get_queue_id() const {
-    return hdr.hdr.q_id;
-  }
+  /**
+   * @brief Gets the port ID.
+   *
+   * @return The port ID.
+   */
+  inline uint16_t get_port_id() const { return hdr.hdr.port_id; }
 
-  inline uint32_t get_burst_tag() const {
-    return (hdr.hdr.port_id << 16) | hdr.hdr.q_id;
-  }
+  /**
+   * @brief Gets the queue ID.
+   *
+   * @return The queue ID.
+   */
+  inline uint16_t get_queue_id() const { return hdr.hdr.q_id; }
+
+  /**
+   * @brief Gets the burst tag.
+   *
+   * @return The burst tag.
+   */
+  inline uint32_t get_burst_tag() const { return (hdr.hdr.port_id << 16) | hdr.hdr.q_id; }
+
+  /**
+   * @brief Checks if packet info is per packet.
+   *
+   * @return True if packet info is per packet, false otherwise.
+   */
   inline bool is_packet_info_per_packet() const {
     return get_burst_flags() & BurstFlags::INFO_PER_PACKET;
   }
-  
-  inline void update_burst_info(bool hds_on, size_t header_stride_size, size_t payload_stride_size, bool gpu_direct) {
 
+  /**
+   * @brief Updates the burst info.
+   *
+   * @param hds_on Indicates if HDS is on.
+   * @param header_stride_size The header stride size.
+   * @param payload_stride_size The payload stride size.
+   * @param gpu_direct Indicates if GPU direct is enabled.
+   */
+  inline void update_burst_info(bool hds_on, size_t header_stride_size, size_t payload_stride_size,
+                                bool gpu_direct) {
     auto burst_info = get_burst_info();
 
     if (burst_info == nullptr) { return; }
 
-    //Update burst info resets the number of packets in the burst
+    // Update burst info resets the number of packets in the burst
     set_num_packets(0);
 
     burst_info->hds_on = hds_on;
@@ -111,7 +146,6 @@ class RmaxBurst : public AdvNetBurstParams {
   /**
    * @brief Gets the flags of a burst.
    *
-   * @param burst A reference to the burst.
    * @return The flags of the burst.
    */
   inline BurstFlags get_burst_flags() const {
@@ -123,13 +157,12 @@ class RmaxBurst : public AdvNetBurstParams {
   /**
    * @brief Gets the extended info of a burst.
    *
-   * @param burst A reference to the burst.
    * @return A pointer to the extended info of the burst.
    */
   inline AnoBurstExtendedInfo* get_burst_info() const {
-    return const_cast<AnoBurstExtendedInfo*>(reinterpret_cast<const AnoBurstExtendedInfo*>(&(hdr.custom_burst_data)));
+    return const_cast<AnoBurstExtendedInfo*>(
+        reinterpret_cast<const AnoBurstExtendedInfo*>(&(hdr.custom_burst_data)));
   }
-
 
   /**
    * @brief Gets the number of packets in a burst.
@@ -143,12 +176,15 @@ class RmaxBurst : public AdvNetBurstParams {
    *
    * @param num_pkts The number of packets to set.
    */
-  inline void set_num_packets(uint16_t num_pkts) {
-    hdr.hdr.num_pkts = num_pkts;
-  }
+  inline void set_num_packets(uint16_t num_pkts) { hdr.hdr.num_pkts = num_pkts; }
 
+  /**
+   * @brief Appends a packet to the burst.
+   *
+   * @param packet_ind_in_out_burst The index of the packet in the burst.
+   * @param packet_data The data of the packet to append.
+   */
   inline void append_packet(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
-
     auto burst_info = get_burst_info();
 
     if (burst_info->burst_flags & BurstFlags::INFO_PER_PACKET) {
@@ -157,7 +193,7 @@ class RmaxBurst : public AdvNetBurstParams {
       rx_packet_info->timestamp = packet_data.extended_info.timestamp;
       rx_packet_info->flow_tag = packet_data.extended_info.flow_tag;
     }
-    
+
     if (burst_info->hds_on) {
       pkts[0][packet_ind_in_out_burst] = packet_data.header_ptr;
       pkts[1][packet_ind_in_out_burst] = packet_data.payload_ptr;
@@ -171,12 +207,19 @@ class RmaxBurst : public AdvNetBurstParams {
     }
   }
 
-private:
+ private:
+  /**
+   * @brief Constructs an RmaxBurst object.
+   *
+   * @param port_id The port ID.
+   * @param queue_id The queue ID.
+   */
   RmaxBurst(uint16_t port_id, uint16_t queue_id) {
     hdr.hdr.port_id = port_id;
     hdr.hdr.q_id = queue_id;
   }
 };
+
 /**
  * @brief Class responsible for handling burst operations.
  */
@@ -210,7 +253,7 @@ class RmaxBurst::BurstHandler {
   void delete_burst(std::shared_ptr<RmaxBurst> burst);
 
  private:
-  bool m_send_packet_ext_info;            ///< Flag indicating whether to send packet info.
+  bool m_send_packet_ext_info;        ///< Flag indicating whether to send packet info.
   int m_port_id;                      ///< The port ID.
   int m_queue_id;                     ///< The queue ID.
   bool m_gpu_direct;                  ///< Flag indicating whether GPU direct is enabled.
@@ -228,8 +271,9 @@ class RmaxBurst::BurstHandler {
  */
 class RxBurstsManager {
  public:
-  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;
-  static constexpr uint32_t GET_BURST_TIMEOUT_MS = 1000;
+  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;  ///< Default number of RX bursts.
+  static constexpr uint32_t GET_BURST_TIMEOUT_MS =
+      1000;  ///< Timeout for getting a burst in milliseconds.
 
   /**
    * @brief Constructor for the RxBurstsManager class.
@@ -345,7 +389,8 @@ class RxBurstsManager {
         HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
         return nullptr;
       }
-      m_cur_out_burst->update_burst_info(m_hds_on, m_header_stride_size, m_payload_stride_size, m_gpu_direct);
+      m_cur_out_burst->update_burst_info(
+          m_hds_on, m_header_stride_size, m_payload_stride_size, m_gpu_direct);
     }
     return m_cur_out_burst;
   }
@@ -356,21 +401,24 @@ class RxBurstsManager {
   inline void reset_current_burst() { m_cur_out_burst = nullptr; }
 
  protected:
-  bool m_send_packet_ext_info = false;
-  int m_port_id = 0;
-  int m_queue_id = 0;
-  uint16_t m_burst_out_size = 0;
-  int m_gpu_id = -1;
-  bool m_hds_on = false;
-  bool m_gpu_direct = false;
-  size_t m_header_stride_size = 0;
-  size_t m_payload_stride_size = 0;
-  bool m_using_shared_out_queue = true;
-  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool = nullptr;
-  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue = nullptr;
-  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;
-  AnoBurstExtendedInfo m_burst_info;
-  std::unique_ptr<RmaxBurst::BurstHandler> m_burst_handler;
+  bool m_send_packet_ext_info = false;  ///< Flag indicating whether to send packet info.
+  int m_port_id = 0;                    ///< ID of the port.
+  int m_queue_id = 0;                   ///< ID of the queue.
+  uint16_t m_burst_out_size = 0;        ///< Size of the burst output.
+  int m_gpu_id = -1;                    ///< ID of the GPU.
+  bool m_hds_on = false;             ///< Flag indicating if header data splitting (HDS) is enabled.
+  bool m_gpu_direct = false;         ///< Flag indicating whether GPU direct is enabled.
+  size_t m_header_stride_size = 0;   ///< Stride size for the header data.
+  size_t m_payload_stride_size = 0;  ///< Stride size for the payload data.
+  bool m_using_shared_out_queue = true;  ///< Flag indicating whether a shared output queue is used.
+  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool =
+      nullptr;  ///< Unique pointer to the RX bursts memory pool.
+  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue =
+      nullptr;  ///< Shared pointer to the output queue for RX bursts.
+  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;  ///< Shared pointer to the current burst.
+  AnoBurstExtendedInfo m_burst_info;                     ///< Extended info of the burst.
+  std::unique_ptr<RmaxBurst::BurstHandler>
+      m_burst_handler;  ///< Unique pointer to the burst handler.
 };
 
 };  // namespace holoscan::ops
