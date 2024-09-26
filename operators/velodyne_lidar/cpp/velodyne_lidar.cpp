@@ -33,7 +33,7 @@
                          __LINE__,                                                      \
                          __FILE__,                                                      \
                          cudaGetErrorString(cuda_status),                               \
-                         cuda_status);                                                  \
+                         static_cast<int>(cuda_status));                                \
       throw std::runtime_error("Unable to copy device to host");                        \
     }                                                                                   \
   }
