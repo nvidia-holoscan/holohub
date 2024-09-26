@@ -55,6 +55,7 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
   size_t max_chunk_size;
   uint32_t num_concurrent_batches;
   bool gpu_direct;
+  int gpu_device_id;
   std::vector<std::string> local_ips;
   std::vector<std::string> source_ips;
   std::vector<std::string> destination_ips;
@@ -133,11 +134,10 @@ class RmaxConfigManager {
    *
    * @param port_id The port ID.
    * @param master_core The master core ID.
-   * @param gpu_id The GPU ID.
    * @param q The RX queue configuration.
    * @return True if the RX queue was successfully configured, false otherwise.
    */
-  bool configure_rx_queue(uint16_t port_id, int master_core, int gpu_id, const RxQueueConfig& q);
+  bool configure_rx_queue(uint16_t port_id, int master_core, const RxQueueConfig& q);
 
   /**
    * @brief Builds the Rmax IPO receiver configuration.
@@ -145,13 +145,12 @@ class RmaxConfigManager {
    * @param rmax_rx_config The Rmax RX queue configuration.
    * @param master_core The master core ID.
    * @param cores The cores to use.
-   * @param gpu_id The GPU ID.
    * @param split_boundary The split boundary.
    * @param rx_service_cfg The RX service configuration to build.
    * @return True if the configuration was successfully built, false otherwise.
    */
   bool build_rmax_ipo_receiver_config(const RmaxRxQueueConfig& rmax_rx_config, int master_core,
-                                      const std::string& cores, int gpu_id, int split_boundary,
+                                      const std::string& cores, int split_boundary,
                                       ExtRmaxIPOReceiverConfig& rx_service_cfg);
 
   /**
@@ -168,12 +167,11 @@ class RmaxConfigManager {
    * @param app_settings_config The application settings configuration to set.
    * @param rmax_rx_config The Rmax RX queue configuration.
    * @param master_core The master core ID.
-   * @param gpu_id The GPU ID.
    * @param split_boundary The split boundary.
    */
   void set_rx_service_common_app_settings(AppSettings& app_settings_config,
                                           const RmaxRxQueueConfig& rmax_rx_config, int master_core,
-                                          int gpu_id, int split_boundary);
+                                          int split_boundary);
 
   /**
    * @brief Sets the allocator type for the application settings.
@@ -362,10 +360,7 @@ bool RmaxConfigManager::parse_configuration(
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
     for (const auto& q : intf.rx_.queues_) {
-      if (!configure_rx_queue(intf.port_id_,
-                              cfg.common_.master_core_,
-                              cfg.mrs_.at(q.common_.mrs_[0]).affinity_,
-                              q)) {
+      if (!configure_rx_queue(intf.port_id_, cfg.common_.master_core_, q)) {
         continue;
       }
       rmax_rx_config_found++;
@@ -393,11 +388,10 @@ bool RmaxConfigManager::parse_configuration(
  *
  * @param port_id The port ID.
  * @param master_core The master core ID.
- * @param gpu_id The GPU ID.
  * @param q The RX queue configuration.
  * @return True if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core, int gpu_id,
+bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core,
                                            const RxQueueConfig& q) {
   HOLOSCAN_LOG_INFO(
       "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
@@ -419,7 +413,6 @@ bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core, in
   if (!build_rmax_ipo_receiver_config(rmax_rx_config,
                                       master_core,
                                       q.common_.cpu_core_,
-                                      gpu_id,
                                       q.common_.split_boundary_,
                                       rx_service_cfg)) {
     return false;
@@ -436,21 +429,20 @@ bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core, in
  * @param rmax_rx_config The Rmax RX queue configuration.
  * @param master_core The master core ID.
  * @param cores The cores configuration string.
- * @param gpu_id The GPU ID.
  * @param split_boundary The split boundary value.
  * @param rx_service_cfg The RX service configuration to be built.
  * @return True if the configuration is successful, false otherwise.
  */
 bool RmaxConfigManager::build_rmax_ipo_receiver_config(const RmaxRxQueueConfig& rmax_rx_config,
                                                        int master_core, const std::string& cores,
-                                                       int gpu_id, int split_boundary,
+                                                       int split_boundary,
                                                        ExtRmaxIPOReceiverConfig& rx_service_cfg) {
   rx_service_cfg.app_settings = std::make_shared<AppSettings>();
   set_default_config(rx_service_cfg);
 
   auto& app_settings_config = *(rx_service_cfg.app_settings);
   set_rx_service_common_app_settings(
-      app_settings_config, rmax_rx_config, master_core, gpu_id, split_boundary);
+      app_settings_config, rmax_rx_config, master_core, split_boundary);
 
   if (!parse_and_set_cores(app_settings_config, cores)) { return false; }
 
@@ -503,12 +495,11 @@ bool RmaxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_r
  * @param app_settings_config The application settings configuration.
  * @param rmax_rx_config The Rmax RX queue configuration.
  * @param master_core The master core ID.
- * @param gpu_id The GPU ID.
  * @param split_boundary The split boundary value.
  */
 void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
                                                            const RmaxRxQueueConfig& rmax_rx_config,
-                                                           int master_core, int gpu_id,
+                                                           int master_core,
                                                            int split_boundary) {
   app_settings_config.local_ips = rmax_rx_config.local_ips;
   app_settings_config.source_ips = rmax_rx_config.source_ips;
@@ -516,7 +507,7 @@ void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_sett
   app_settings_config.destination_ports = rmax_rx_config.destination_ports;
 
   if (rmax_rx_config.gpu_direct) {
-    app_settings_config.gpu_id = gpu_id;
+    app_settings_config.gpu_id = rmax_rx_config.gpu_device_id;
   } else {
     app_settings_config.gpu_id = INVALID_GPU_ID;
   }
@@ -1312,6 +1303,7 @@ AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, R
   rmax_rx_config.send_packet_ext_info = rmax_rx_settings["send_packet_ext_info"].as<bool>(true);
   rmax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
   rmax_rx_config.gpu_direct = rmax_rx_settings["gpu_direct"].as<bool>(false);
+  rmax_rx_config.gpu_device_id = rmax_rx_settings["gpu_device"].as<int>(INVALID_GPU_ID);
   rmax_rx_config.max_packet_size = rmax_rx_settings["max_packet_size"].as<uint16_t>(1500);
   rmax_rx_config.num_concurrent_batches =
       rmax_rx_settings["num_concurrent_batches"].as<uint32_t>(10);
