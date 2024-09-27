@@ -53,8 +53,9 @@ void print_tensor(const std::shared_ptr<holoscan::Tensor>& tensor, size_t n_prin
   auto ndim = tensor->ndim();
   auto itemsize = tensor->itemsize();
 
-  HOLOSCAN_LOG_INFO(
-      "device.device_type={}, device.device_id={}", device.device_type, device.device_id);
+  HOLOSCAN_LOG_INFO("device.device_type={}, device.device_id={}",
+                    static_cast<int>(device.device_type),
+                    device.device_id);
   HOLOSCAN_LOG_INFO(
       "dtype.code={}, dtype.bits={}, dtype.lanes={}", dtype.code, dtype.bits, dtype.lanes);
   for (int i = 0; i < shape.size(); ++i) { HOLOSCAN_LOG_INFO("shape[{}]={}", i, shape[i]); }
