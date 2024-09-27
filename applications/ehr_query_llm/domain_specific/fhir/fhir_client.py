@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--verify_cert",
         action="store_true",  # SECURITY WARNING: verify server cert if flag provided.
-        help="The user/client secret for requesting OAuth2 authorization token.",
+        help="Specify this flag to enable verifying FHIR server cert.",
     )
     args = parser.parse_args()
     return args
