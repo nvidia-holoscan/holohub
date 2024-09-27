@@ -206,7 +206,7 @@ class RmaxConfigManager {
    * @param port_id The port ID.
    * @param queue_id The queue ID.
    */
-  void add_new_rx_service_config(ExtRmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
+  void add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
                                  uint16_t queue_id);
 
   uint16_t rmax_log_level = RMAX_DEFAULT_LOG_LEVEL;  ///< Current log level for Rmax.
@@ -405,7 +405,7 @@ bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core,
     return false;
   }
 
-  auto& rmax_rx_config = *rmax_rx_config_ptr;
+  const auto& rmax_rx_config = *rmax_rx_config_ptr;
   if (!validate_rx_queue_config(rmax_rx_config)) { return false; }
 
   ExtRmaxIPOReceiverConfig rx_service_cfg;
@@ -617,7 +617,7 @@ void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
  * @param port_id The port ID.
  * @param queue_id The queue ID.
  */
-void RmaxConfigManager::add_new_rx_service_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
+void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                   uint16_t port_id, uint16_t queue_id) {
   uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   if (rx_service_configs.find(key) != rx_service_configs.end()) {
@@ -911,7 +911,6 @@ uint16_t RmaxMgr::RmaxMgrImpl::get_pkt_len(AdvNetBurstParams* burst, int idx) {
  */
 void* RmaxMgr::RmaxMgrImpl::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
   RmaxBurst* rmax_burst = static_cast<RmaxBurst*>(burst);
-  auto burst_flags = rmax_burst->get_burst_flags();
   if (rmax_burst->is_packet_info_per_packet()) return burst->pkt_extra_info[idx];
   return nullptr;
 }
@@ -1093,9 +1092,12 @@ void RmaxMgr::RmaxMgrImpl::free_tx_burst(AdvNetBurstParams* burst) {}
  */
 std::optional<uint16_t> RmaxMgr::RmaxMgrImpl::get_port_from_ifname(const std::string& name) {
   HOLOSCAN_LOG_INFO("Port name {}", name);
-  for (const auto& intf : cfg_.ifs_) {
-    if (name == intf.address_) { return intf.port_id_; }
-  }
+  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&name](const auto& intf) {
+    return name == intf.address_;
+  });
+
+  if (it != cfg_.ifs_.end()) { return it->port_id_; }
+
   return -1;
 }
 
@@ -1153,8 +1155,8 @@ void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
     HOLOSCAN_LOG_INFO("ANO RMAX manager shutting down");
     // Nodes are waiting to signals to exit
-    std::raise(SIGINT);
     force_quit.store(false);
+    std::raise(SIGINT);
   }
 }
 
@@ -1202,8 +1204,12 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::get_mac(int port, char* mac) {
  * @return The port number.
  */
 int RmaxMgr::RmaxMgrImpl::address_to_port(const std::string& addr) {
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
+  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&addr](const auto& intf) {
+    return intf.address_ == addr;
+  });
+
+  if (it != cfg_.ifs_.end()) {
+    return it->port_id_;
   }
   return -1;
 }
