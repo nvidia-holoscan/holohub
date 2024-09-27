@@ -4,11 +4,11 @@ This is an application to interface with a FHIR server to retrieve or post FHIR 
 
 It requires the FHIR Server endpoint URL be provided on the command line as well as client authentication credentials if required. As of now, authentication and authorization is limited to OAuth2.0 server to server workflow. When authorization is requiired by the server, its OAuth2.0 token service URL along with client ID and secret must be provided to the application.
 
-This application also uses ZeroMQ to communicate with its own clients, listening on a well known port for messages to retrieve resources for a patient, as well as publishing the retrieved resources on another well known port. For simplicity,the listening port is defined in the code to be `5600`, and the publishing port `5601`. Messaging security, at transport or message level, is not implemented in this example, and the application only connects to ports on local host.
+This application also uses ZeroMQ to communicate with its own clients, listening on a well known port on local host for messages to retrieve resources of a patient, as well as publishing the retrieved resources on another well known port. For simplicity, the listening port is defined in the code to be `5600`, and the publishing port `5601`. Messaging security, at transport or message level, is not implemented in this example.
 
-Message definition is simple, with a well known topic and content in JSON format, whose attributes are message topic specific.
+Message schema is simple, with a well known topic string and topic specific content schema in JSON format.
 
-The default set of resource types to retrieve are list below, which can be overridden by the request message
+The default set of FHIR resource types to retrieve are listed below, which can be overridden by the request message
 - Observation
 - ImagingStudy
 - FamilyMemberHistory
@@ -29,14 +29,17 @@ There are a number of ways to build and run this application, as well as packagi
 It is further expected that you have read the [HoloHub README](../../../README.md), have cloned the HoloHub repository to your local system, and the current working directory is the HoloHub root, `holohub`.
 
 **_Note_**:
-The application listens on request message to start retrieving resources from the server and then publishing the results, so another application is needed to drive this workflow, e.g. the LLM applicaition. To help with simple testing, a Python script is provided as part of this application, and will be described at the end of this section.
+The application listens on request message to start retrieving resources from the server and then publishes the results, so another application is needed to drive this workflow, e.g. the LLM applicaition. To help with simple testing, a Python script is provided as part of this application, and its usage is described below in this [section](#test-the-running-application).
 
 ### Quick Start Using HoloHub Container
 
 This is the simplest and fastest way to start the application in a HoloHub dev container and get it ready to listen to request messages.
 
+**_Note_**:
+Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization endpoint and client credential as needed.
+
 ```bash
-./dev_container build_and_run fhir --run_args "--fhir_url https://ec2-54-153-22-172.us-west-1.compute.amazonaws.com/FhirServer/R4 --auth_url https://54.153.22.172/auth/realms/icfs/protocol/openid-connect/token --uid nvidia_client --secret j21MOC1n5tbSM8507FHZUGMTwXaZ9jbG"
+./dev_container build_and_run fhir --run_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
 Add the additional command line option, `--container_args "-u root"`, to avoid seeing the following error (though no impact on execution)
