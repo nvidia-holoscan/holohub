@@ -459,7 +459,7 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty,EHR,ehr \
                             --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
       # Fix cpplint with clang
