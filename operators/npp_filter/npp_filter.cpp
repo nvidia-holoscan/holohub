@@ -282,7 +282,8 @@ void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
     throw std::runtime_error(fmt::format("Unknown filter {}.", filter_.get()));
   }
   if (status != NPP_SUCCESS) {
-    throw std::runtime_error(fmt::format("Filter {} failed with error {}", filter_.get(), status));
+    throw std::runtime_error(
+        fmt::format("Filter {} failed with error {}", filter_.get(), static_cast<int>(status)));
   }
 
   // pass the CUDA stream to the output message
