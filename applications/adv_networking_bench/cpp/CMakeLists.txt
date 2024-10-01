@@ -63,12 +63,12 @@ add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
 
 # Installation
 install(TARGETS adv_networking_bench
-        DESTINATION adv_networking_bench/cpp)
+        DESTINATION bin/adv_networking_bench/cpp)
 
 install(
   FILES ../adv_networking_bench_default_rx.yaml
         ../adv_networking_bench_default_tx.yaml
         ../adv_networking_bench_default_tx_rx.yaml
         ../adv_networking_bench_doca_tx_rx.yaml
-  DESTINATION adv_networking_bench/cpp
+  DESTINATION bin/adv_networking_bench/cpp
 )
