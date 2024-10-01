@@ -104,6 +104,12 @@ With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a ne
 
 > ⚠️ Warning: Build error may occur if an application provides its own Dockerfile with additional dependencies. In this case, refer to the [Application-Specific Dockerfile](#application-specific-dockerfile) section to launch a new Dev Container session with the appropriate Docker image.
 
+### Holoscan Flow Benchmarking
+
+[Holoscan Flow Benchmarking](./../benchmarks/holoscan_flow_benchmarking/README.md) is a tool to evaluate the performance of an Holoscan application. The VSCode setup provides a task to automatically build, run and analyze an application. From the menu, select **View->Command Palette...->Tasks: Run Task** and then the **Holoscan Flow Benchmarking** task. There will be a prompt asking for the application name. Enter the name, for example **multiai_ultrasound** and press return.
+
+The application executable will now be patched, compiled, executed, the results will be anaalyzed and displayed in the terminal.
+
 ## Advanced Options
 
 ### Application-Specific Dockerfile

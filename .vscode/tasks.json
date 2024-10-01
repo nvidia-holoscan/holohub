@@ -389,6 +389,80 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Build for Holoscan Flow Benchmarking",
+            "command": "./run",
+            "args": [
+                "build",
+                "${input:app_name}",
+                "--benchmark"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Run Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Build for Holoscan Flow Benchmarking",
+            ],
+            "command": "python",
+            "args": [
+                "./benchmarks/holoscan_flow_benchmarking/benchmark.py",
+                "-a",
+                "${input:app_name}",
+                "-d",
+                "/tmp",
+                "--sched",
+                "greedy",
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Analyze Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Run Holoscan Flow Benchmarking",
+            ],
+            "command": "python",
+            "args": [
+                "./benchmarks/holoscan_flow_benchmarking/analyze.py",
+                "-m",
+                "-a",
+                "-g",
+                "/tmp/logger_greedy_*",
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "label": "Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Analyze Holoscan Flow Benchmarking"
+            ],
+            "problemMatcher": [],
         }
+    ],
+    "inputs": [
+        {
+            "id": "app_name",
+            "description": "Select Application",
+            "type": "promptString",
+        },
     ]
 }
