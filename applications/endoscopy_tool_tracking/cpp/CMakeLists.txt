@@ -156,10 +156,10 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS endoscopy_tool_tracking
-  DESTINATION endoscopy_tool_tracking/cpp
+  DESTINATION bin/endoscopy_tool_tracking/cpp
 )
 
 install(
   FILES endoscopy_tool_tracking.yaml
-  DESTINATION endoscopy_tool_tracking/cpp
+  DESTINATION bin/endoscopy_tool_tracking/cpp
 )

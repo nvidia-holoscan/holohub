@@ -67,10 +67,10 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   FILES endoscopy_tool_tracking.py
-  DESTINATION endoscopy_tool_tracking/python
+  DESTINATION bin/endoscopy_tool_tracking/python
 )
 
 install(
   FILES endoscopy_tool_tracking.yaml
-  DESTINATION endoscopy_tool_tracking/python
+  DESTINATION bin/endoscopy_tool_tracking/python
 )
