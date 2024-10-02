@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,7 +99,7 @@ class UltrasoundApp(Application):
         width_preprocessor = 1264
         height_preprocessor = 1080
         preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * bpp
-        preprocessor_num_blocks = 2
+        preprocessor_num_blocks = 3
         segmentation_preprocessor = FormatConverterOp(
             self,
             name="segmentation_preprocessor",
