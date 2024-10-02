@@ -635,8 +635,13 @@ gxf::Expected<std::vector<char>> TensorRtInference::convertModelToEngine() {
   if (enable_fp16_.get()) { builderConfig->setFlag(nvinfer1::BuilderFlag::kFP16); }
 
   // Parses ONNX with explicit batch size for support of dynamic shapes/batch
-  NvInferHandle<nvinfer1::INetworkDefinition> network(builder->createNetworkV2(
-      1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH)));
+  #if NV_TENSORRT_MAJOR < 10
+    const auto explicitBatch =
+              1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+  #else
+    const auto explicitBatch = 1U;
+  #endif
+  NvInferHandle<nvinfer1::INetworkDefinition> network(builder->createNetworkV2(explicitBatch));
 
   NvInferHandle<nvonnxparser::IParser> onnx_parser(
       nvonnxparser::createParser(*network, cuda_logger_));
