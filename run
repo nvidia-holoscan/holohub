@@ -379,10 +379,13 @@ setup() {
      install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
   fi
 
-  # Make sure we do not install any cuda12 packages
-  install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
+  # Check the current version of libnvinfer-bin
+  installed_libnvinferbin=$(dpkg --status libnvinfer-bin 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  installed_libnvinferbin_version=${installed_libnvinferbin%.*}
+  install_cuda_dependencies_package libnvinfer-headers-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-plugin-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvonnxparsers-dev $installed_libnvinferbin_version
 
   # Install the autocomplete
   echo "Installing autocomplete"

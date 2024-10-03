@@ -66,7 +66,7 @@ RUN apt update \
     graphviz\
     ninja-build
 
-RUN pip3 install meson
+RUN pip install meson
 
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
