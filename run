@@ -334,8 +334,8 @@ setup() {
   fi
 
   # git
-  git_version=$(dpkg --status git | grep -Po '^Version: \K[^-]*')
-  if [[ $git_version == "" ]]; then
+  git_path=$(which git)
+  if [[ $git_path == "" ]]; then
     echo "Installing git"
     apt-get install --no-install-recommends -y git
   fi
