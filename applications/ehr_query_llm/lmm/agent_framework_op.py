@@ -26,9 +26,10 @@ from agents.ehr import EHRAgent
 from agents.ehr_builder import EHRBuilderAgent
 from agents.selector import SelectorAgent
 from holoscan.core import Operator, OperatorSpec
-from operators.ehr_query_llm.message_handling import MessageReceiver, MessageSender
 from utils.chat_utils import ChatHistory
 from utils.response_handler import ResponseHandler
+
+from operators.ehr_query_llm.message_handling import MessageReceiver, MessageSender
 
 
 class AgentFrameworkOp(Operator):
