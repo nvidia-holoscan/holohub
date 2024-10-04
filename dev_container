@@ -465,11 +465,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.4.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.5.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
