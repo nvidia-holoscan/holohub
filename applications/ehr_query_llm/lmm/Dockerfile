@@ -42,7 +42,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy over app-specific requirements
-COPY applications/holoscrub/lmm/requirements.txt /tmp/requirements.txt
+COPY applications/ehr_query_llm/lmm/requirements.txt /tmp/requirements.txt
 
 # Install setuptools prior to all other requirements to avoid install errors
 RUN python3 -m pip install --no-cache-dir setuptools && \
