@@ -32,7 +32,7 @@
             "python-packages": {
 				"chromadb": {
                     "version": "0.4.24",
-                    "license-url": "hhttps://github.com/chroma-core/chroma/blob/main/LICENSE"
+                    "license-url": "https://github.com/chroma-core/chroma/blob/main/LICENSE"
                 },
                 "holoscan": {
                     "version": "2.3.0",
