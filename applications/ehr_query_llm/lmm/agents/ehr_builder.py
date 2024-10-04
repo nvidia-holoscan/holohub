@@ -15,7 +15,7 @@
 
 import json
 
-from applications.holoscrub.lmm.rag.ehr.create_ehr_db_local import create_ehr_database
+from applications.ehr_query_llm.lmm.rag.ehr.create_ehr_db_local import create_ehr_database
 
 from .base_agent import Agent
 

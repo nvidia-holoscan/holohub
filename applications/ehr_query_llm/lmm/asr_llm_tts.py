@@ -58,13 +58,13 @@ def parse_args() -> argparse.Namespace:
         "--ssl-cert",
         type=str,
         help="Absolute path to 'cert.pem' inside container file system",
-        default="/workspace/holohub/applications/holoscrub/lmm/ssl/cert.pem",
+        default="/workspace/holohub/applications/ehr_query_llm/lmm/ssl/cert.pem",
     )
     parser.add_argument(
         "--ssl-key",
         type=str,
         help="Absolute path to 'key.pem' inside container file system",
-        default="/workspace/holohub/applications/holoscrub/lmm/ssl/key.pem",
+        default="/workspace/holohub/applications/ehr_query_llm/lmm/ssl/key.pem",
     )
     log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     parser.add_argument(

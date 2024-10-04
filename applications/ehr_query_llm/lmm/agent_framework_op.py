@@ -26,7 +26,7 @@ from agents.ehr import EHRAgent
 from agents.ehr_builder import EHRBuilderAgent
 from agents.selector import SelectorAgent
 from holoscan.core import Operator, OperatorSpec
-from operators.holoscrub.message_handling import MessageReceiver, MessageSender
+from operators.ehr_query_llm.message_handling import MessageReceiver, MessageSender
 from utils.chat_utils import ChatHistory
 from utils.response_handler import ResponseHandler
 
@@ -52,7 +52,7 @@ class AgentFrameworkOp(Operator):
         self.episode_num = 1
 
         # instantiate agents
-        self.AGENTS_BASE_PATH = "/workspace/holohub/applications/holoscrub/lmm/agents_configs"
+        self.AGENTS_BASE_PATH = "/workspace/holohub/applications/ehr_query_llm/lmm/agents_configs"
 
         # instantiate response handler
         self.response_handler = ResponseHandler()

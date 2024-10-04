@@ -49,7 +49,7 @@ publish:
     - "response"
 
 embedding_model: "/workspace/volumes/models/bge-large-ehr-finetune"
-db_path: "/workspace/holohub/applications/holoscrub/lmm/rag/ehr/db"
+db_path: "/workspace/holohub/applications/ehr_query_llm/lmm/rag/ehr/db"
 k: 10
 fetch_k: 200
 lambda_mult: 0.7
