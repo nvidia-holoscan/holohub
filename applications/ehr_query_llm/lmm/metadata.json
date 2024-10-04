@@ -23,9 +23,57 @@
 			"arm64"
 		],
 		"tags": [
-			"EHR"
+			"EHR",
+			"LLM",
+			"RAG"
 		],
 		"ranking": 1,
+		"dependencies": {
+            "python-packages": {
+				"chromadb": {
+                    "version": "0.4.24",
+                    "license-url": "hhttps://github.com/chroma-core/chroma/blob/main/LICENSE"
+                },
+                "holoscan": {
+                    "version": "2.3.0",
+                    "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
+                },
+				"fhir.resources": {
+                    "version": "7.0.0",
+                    "license-url": "https://github.com/nazrulworld/fhir.resources/blob/main/LICENSE"
+                },
+				"flask": {
+                    "version": "3.0.2",
+                    "license-url": "https://github.com/pallets/flask/blob/main/LICENSE.txt"
+                },
+				"llama_index": {
+                    "version": "0.10.14",
+                    "license-url": "https://github.com/run-llama/llama_index/blob/main/LICENSE"
+                },
+				"langchain": {
+                    "version": "0.1.0",
+                    "license-url": "https://github.com/langchain-ai/langchain/blob/master/LICENSE"
+                },
+				"nvidia-riva-client":
+				{
+					"version": "2.13.0",
+                    "license-url": "https://github.com/nvidia-riva/python-clients/blob/main/LICENSE"
+				},
+				"pyzmq": {
+                    "version": "25.1.0",
+                    "license-url": "https://github.com/zeromq/pyzmq/blob/main/LICENSE.md"
+                },
+				"requests": {
+                    "version": "2.31.0",
+                    "license-url": "https://github.com/psf/requests/blob/main/LICENSE"
+                },
+				"websockets":
+				{
+					"version": "12.0",
+                    "license-url": "https://websockets.readthedocs.io/en/stable/project/license.html"
+				}
+            }
+		},
 		"run": {
 			"command": "python3 <holohub_app_source>/asr_llm_tts.py",
 			"workdir": "holohub_bin"

@@ -13,30 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-from threading import Event, Thread
-from queue import Queue
+import datetime
 import json
 import logging
 import os
-from time import time
-import datetime
-
+from queue import Queue
+from threading import Thread
 from time import sleep
-from utils.response_handler import ResponseHandler
-from utils.chat_utils import ChatHistory
 
-from holoscan.core import Operator, OperatorSpec
-
-from operators.holoscrub.message_handling import MessageSender, MessageReceiver
-from agents.selector import SelectorAgent
 from agents.chat import ChatAgent
-
 from agents.ehr import EHRAgent
-
 from agents.ehr_builder import EHRBuilderAgent
-
-from agents.fhirchat import FHIRChatAgent
+from agents.selector import SelectorAgent
+from holoscan.core import Operator, OperatorSpec
+from operators.holoscrub.message_handling import MessageReceiver, MessageSender
+from utils.chat_utils import ChatHistory
+from utils.response_handler import ResponseHandler
 
 
 class AgentFrameworkOp(Operator):
@@ -51,7 +43,9 @@ class AgentFrameworkOp(Operator):
         self.streaming_queue = Queue()
         self.rag_documents = None
         self.sender = MessageSender("tcp://*:5555")
-        self.image_receiver = MessageReceiver(topic="primary_app_image", endpoint="tcp://localhost:5560")
+        self.image_receiver = MessageReceiver(
+            topic="primary_app_image", endpoint="tcp://localhost:5560"
+        )
         self.frame_request_topic = "primary_app_request"
         self.frame_request_timeout = 5
         # Determines which agents are available
@@ -73,12 +67,12 @@ class AgentFrameworkOp(Operator):
 
         # EHRBuilder agent
         ehr_builder_agent_path = self.get_agent_settings_path("ehr_builder")
-        self.ehr_builder_agent = EHRBuilderAgent(ehr_builder_agent_path, self.response_handler) 
+        self.ehr_builder_agent = EHRBuilderAgent(ehr_builder_agent_path, self.response_handler)
 
         # EHR agent
         ehr_agent_path = self.get_agent_settings_path("ehr")
         self.ehr_agent = EHRAgent(ehr_agent_path, self.response_handler)
-        
+
         # create chat history
         self.chat_history = ChatHistory()
         self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
@@ -97,7 +91,9 @@ class AgentFrameworkOp(Operator):
 
     def process_selector_request(self, asr_text):
         """Function for Selector Agent to choose Downstream Agent and Start Thread"""
-        selected_agent_name, corrected_text = self.selector_agent.process_request(asr_text, self.chat_history.to_list())
+        selected_agent_name, corrected_text = self.selector_agent.process_request(
+            asr_text, self.chat_history.to_list()
+        )
         self._logger.debug(f"Original Text: {asr_text}")
         self._logger.debug(f"Corrected Text: {corrected_text}")
         self._logger.debug(f"Selected Agent: {selected_agent_name}")
@@ -113,14 +109,15 @@ class AgentFrameworkOp(Operator):
             if selected_agent_name == "EHRBuilderAgent":
                 response = self.ehr_builder_agent.process_request(asr_text)
             elif selected_agent_name == "EHRAgent":
-                response, documents = self.ehr_agent.process_request(asr_text, self.chat_history.to_list())
+                response, documents = self.ehr_agent.process_request(
+                    asr_text, self.chat_history.to_list()
+                )
                 self.rag_documents = documents
             else:
                 response = "Invalid agent selection"
                 self._logger.error(response)
         except Exception as e:
             self._logger.error(f"Error processing agent request: {e}")
-
 
     def compute(self, op_input, op_output, context):
         printer_response = op_input.receive("printer_response")
@@ -167,7 +164,7 @@ class AgentFrameworkOp(Operator):
             "agent_response": agent_response,
             "is_speaking": is_speaking,
             "chat_history": self.chat_history.to_list(),  # Optionally emit the chat history
-            "rag_documents": self.rag_documents
+            "rag_documents": self.rag_documents,
         }
         op_output.emit(agent_response, "agent_response")
 
@@ -175,7 +172,7 @@ class AgentFrameworkOp(Operator):
         """
         Publishes any tool Chosen by an Agent
         """
-        try: 
+        try:
             json_response = json.loads(agent_response)
             if json_response.get("name") == "chat":
                 return
@@ -192,11 +189,9 @@ class AgentFrameworkOp(Operator):
         except Exception as e:
             self._logger.error(f"Error in publish: {e}")
 
-
     def reset_history(self):
         self.chat_history = ChatHistory()
-        self._logger.info(f"Reset chat history")
-
+        self._logger.info("Reset chat history")
 
     def _get_video_frame(self):
         self.sender.send_json(self.frame_request_topic, "Image please")
@@ -205,7 +200,7 @@ class AgentFrameworkOp(Operator):
         image_b64 = frame_response.get("image_b64", None)
         tool_labels = frame_response.get("tool_labels", {})
         start_time = datetime.datetime.now()
-        while image_b64 == None:
+        while image_b64 is None:
             if (datetime.datetime.now() - start_time).total_seconds() > self.frame_request_timeout:
                 break
             sleep(0.1)
@@ -219,8 +214,5 @@ class AgentFrameworkOp(Operator):
         else:
             self._logger.error("0MQ frame not received")
         self._logger.debug("0MQ message received")
-        visual_info = {
-            "image_b64": image_b64,
-            "tool_labels": tool_labels
-        }
+        visual_info = {"image_b64": image_b64, "tool_labels": tool_labels}
         return visual_info

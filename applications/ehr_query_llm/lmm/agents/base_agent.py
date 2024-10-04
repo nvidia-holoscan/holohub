@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-import requests
-from time import sleep
 import json
-import urllib
 import logging
-import yaml
 import time
-import tiktoken
+import urllib
+from abc import ABC, abstractmethod
 from threading import Lock
+from time import sleep
+
+import requests
+import tiktoken
+import yaml
 
 
 class Agent(ABC):
@@ -30,6 +31,7 @@ class Agent(ABC):
     _llm_lock = Lock()
     # Used to lock the LMM for concurrent requests
     _lmm_lock = Lock()
+
     def __init__(self, settings_path, response_handler, agent_key=None):
         self.load_settings(settings_path)
         self.response_handler = response_handler
@@ -41,31 +43,33 @@ class Agent(ABC):
         """
         Load and apply agent settings from a YAML file.
         """
-        with open(settings_path, 'r') as file:
+        with open(settings_path, "r") as file:
             settings = yaml.safe_load(file)
 
         # If an agent key is provided, use nested settings; otherwise, use top-level settings
         self.agent_settings = settings[agent_key] if agent_key else settings
 
         # Extracting common configuration for all agents
-        self.description = self.agent_settings.get('description', '')
-        self.max_prompt_tokens = self.agent_settings.get('max_prompt_tokens', 3000)
-        self.ctx_length = self.agent_settings.get('ctx_length', '')
+        self.description = self.agent_settings.get("description", "")
+        self.max_prompt_tokens = self.agent_settings.get("max_prompt_tokens", 3000)
+        self.ctx_length = self.agent_settings.get("ctx_length", "")
         # Multi-line prompt requires a .strip() to remove the newline character
-        self.agent_prompt = self.agent_settings.get('agent_prompt', '').strip()
-        self.user_prefix = self.agent_settings.get('user_prefix', '')
-        self.bot_prefix = self.agent_settings.get('bot_prefix', '')
-        self.bot_rule_prefix = self.agent_settings.get('bot_rule_prefix', '')
-        self.end_token = self.agent_settings.get('end_token', '')
-        self.grammar = self.agent_settings.get('grammar', None)
-        self.publish_settings = self.agent_settings.get('publish', {})
+        self.agent_prompt = self.agent_settings.get("agent_prompt", "").strip()
+        self.user_prefix = self.agent_settings.get("user_prefix", "")
+        self.bot_prefix = self.agent_settings.get("bot_prefix", "")
+        self.bot_rule_prefix = self.agent_settings.get("bot_rule_prefix", "")
+        self.end_token = self.agent_settings.get("end_token", "")
+        self.grammar = self.agent_settings.get("grammar", None)
+        self.publish_settings = self.agent_settings.get("publish", {})
         # Get the url for the LLM api
-        self.llm_url = self.agent_settings.get('llm_url')
+        self.llm_url = self.agent_settings.get("llm_url")
 
         # Additional handling for tool-specific settings if needed
-        self.tools = self.agent_settings.get('tools', {})
+        self.tools = self.agent_settings.get("tools", {})
 
-    def stream_response(self, prompt, grammar, temperature=0, display_output=True, allow_muting=True):
+    def stream_response(
+        self, prompt, grammar, temperature=0, display_output=True, allow_muting=True
+    ):
         """
         Stream a response from the LLM and optionally write to the output queue.
         This method will attempt to connect to the LLM server for up to 30 seconds.
@@ -88,7 +92,7 @@ class Agent(ABC):
                         "max_tokens": self.ctx_length,
                         "stop": ["</s>", self.end_token],
                         "n_keep": -1,
-                        "stream": True
+                        "stream": True,
                     }
                     resData = requests.request(
                         "POST",
@@ -107,7 +111,7 @@ class Agent(ABC):
                             next_token = json.loads(decoded_line[6:]).get("content")
                             # Llama.cpp returns a "slot unavailable" message when the slot is unavailable
                             # as opposed to raising an exception
-                            if next_token == 'slot unavailable':
+                            if next_token == "slot unavailable":
                                 raise ConnectionRefusedError("Slot unavailable")
                             response += next_token
                             if display_output:
@@ -122,8 +126,10 @@ class Agent(ABC):
                 if lock_acquired:
                     Agent._llm_lock.release()
         raise ConnectionRefusedError("Llama.cpp slot unavailable after 30 seconds")
-    
-    def stream_image_response(self, prompt, image_b64, grammar, temperature=0, display_output=True, allow_muting=True):
+
+    def stream_image_response(
+        self, prompt, image_b64, grammar, temperature=0, display_output=True, allow_muting=True
+    ):
         """
         Annotation agent specific request to the annotation LMM
         """
@@ -138,10 +144,7 @@ class Agent(ABC):
                 if Agent._lmm_lock.acquire(blocking=True, timeout=30):
                     lock_acquired = True
                     # Llama-specific request data with image data
-                    image_data = [{
-                        "data": image_b64,
-                        "id": 0
-                    }]
+                    image_data = [{"data": image_b64, "id": 0}]
 
                     request_data = {
                         "prompt": prompt,
@@ -190,7 +193,7 @@ class Agent(ABC):
         system_prompt = f"{self.bot_rule_prefix}\n{self.agent_prompt}\n{self.end_token}"
         # Create the system prompt component
         user_prompt = f"\n{self.user_prefix}\n{text}\n{self.end_token}"
-        # Calulate the token usage of the system and user prompts
+        # Calculate the token usage of the system and user prompts
         token_usage = self.calculate_token_usage(system_prompt + user_prompt)
         # Create the chat history component without exceeding the maximum prompt tokens
         chat_prompt = self.create_conversation_str(chat_history, token_usage)
@@ -244,7 +247,9 @@ class Agent(ABC):
                 response = requests.get(self.llm_url)
                 # Check for a successful response status code (e.g., 200 OK)
                 if response.status_code == 200:
-                    self._logger.debug(f"{type(self).__name__} connected to Llama.cpp server at {self.llm_url}")
+                    self._logger.debug(
+                        f"{type(self).__name__} connected to Llama.cpp server at {self.llm_url}"
+                    )
                     return
             except requests.ConnectionError:
                 sleep(sleep_time)
@@ -253,14 +258,14 @@ class Agent(ABC):
         raise requests.ConnectionError(f"Unable to connected to Llama.cpp server at {self.llm_url}")
 
     def _get_tool_str(self, tool_labels):
-            tool_str = ""
-            if tool_labels:
-                for name, coords in tool_labels.items():
-                    # only use 3 decimal places
-                    tool_str += f"{name}: [{coords[0]:.3f}, {coords[1]:.3f}], "
-            if tool_str:
-                tool_str = tool_str[:-2]
-            return tool_str
+        tool_str = ""
+        if tool_labels:
+            for name, coords in tool_labels.items():
+                # only use 3 decimal places
+                tool_str += f"{name}: [{coords[0]:.3f}, {coords[1]:.3f}], "
+        if tool_str:
+            tool_str = tool_str[:-2]
+        return tool_str
 
     @abstractmethod
     def process_request(self, input_data, chat_history):
@@ -275,18 +280,18 @@ class Agent(ABC):
         """
         try:
             # Read the existing content of the file
-            with open(file_path, 'r') as file:
-                content = file.read().rstrip('\n\n,] ') + ','
+            with open(file_path, "r") as file:
+                content = file.read().rstrip("\n\n,] ") + ","
 
             # If the file is not empty and already contains a JSON array
             if content:
-                with open(file_path, 'w') as file:
-                    file.write(content + '\n\t' + json.dumps(json_object) + '\n]\n')
+                with open(file_path, "w") as file:
+                    file.write(content + "\n\t" + json.dumps(json_object) + "\n]\n")
             else:
                 # If the file is empty, start a new JSON array
-                with open(file_path, 'w') as file:
-                    file.write('[' + '\n\t' + json.dumps(json_object) + '\n]\n')
+                with open(file_path, "w") as file:
+                    file.write("[" + "\n\t" + json.dumps(json_object) + "\n]\n")
         except FileNotFoundError:
             # If the file does not exist, create it and add the JSON object
-            with open(file_path, 'w') as file:
-                file.write('[' + '\n\t' + json.dumps(json_object) + '\n]\n')
+            with open(file_path, "w") as file:
+                file.write("[" + "\n\t" + json.dumps(json_object) + "\n]\n")

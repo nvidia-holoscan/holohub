@@ -15,6 +15,7 @@
 
 from holoscan.core import Operator, OperatorSpec
 
+
 class StreamingPrintOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         self.temp_transcription = [""]
@@ -45,7 +46,7 @@ class StreamingPrintOp(Operator):
             transcript = result.alternatives[0].transcript
             if result.is_final:
                 is_final = True
-                overwrite_chars = ' ' * (num_chars_printed - len(transcript))
+                overwrite_chars = " " * (num_chars_printed - len(transcript))
                 appended_text = transcript + overwrite_chars + "\n"
                 self.transcription[-1] = appended_text
                 self.temp_transcription = self.transcription
@@ -104,12 +105,12 @@ class StreamingPrintOp(Operator):
         done_speaking = asr_response["done_speaking"]
         riva_results = asr_response["riva_response"]
         whisper_response = asr_response["whisper_response"]
-        
-        # If speaking is complete, wait for final repsonse
+
+        # If speaking is complete, wait for final response
         if done_speaking:
             self.waiting_for_final = True
             self.whisper_response = whisper_response
-        
+
         # Update the transcript and return whether the response is final
         is_final = self.print_streaming(riva_results)
 
@@ -131,18 +132,18 @@ class StreamingPrintOp(Operator):
             self.last_final_transcript = ""
             transcript = self.whisper_response
             self.whisper_response = ""
-        
+
         # Get the number of characters in the transcript
         prompt_length = len(transcript.replace(" ", "").replace("\n", ""))
         # If the prompt is complete but there are less than 3 chars
         # reset the flag. 3 is an arbitrary length that likely indicates
-        # the user accidently pressed the space bar
+        # the user accidentally pressed the space bar
         if prompt_complete and prompt_length < 10:
             prompt_complete = False
 
         asr_response = {
             "is_speaking": asr_response["is_speaking"],
             "prompt_complete": prompt_complete,
-            "asr_transcript": transcript
+            "asr_transcript": transcript,
         }
         op_output.emit(asr_response, "printer_response")

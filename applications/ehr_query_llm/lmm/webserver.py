@@ -20,10 +20,10 @@ import copy
 import json
 import pprint
 import queue
+import ssl
 import struct
 import threading
 import time
-import ssl
 
 import flask
 from holoscan.core import Operator, OperatorSpec
@@ -68,10 +68,9 @@ class Webserver(threading.Thread):
         self.ssl_context = None
 
         if self.ssl_cert and self.ssl_key:
-            #self.ssl_context = (self.ssl_cert, self.ssl_key)
+            # self.ssl_context = (self.ssl_cert, self.ssl_key)
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.ssl_context.load_cert_chain(certfile=self.ssl_cert, keyfile=self.ssl_key)
-            
 
         # flask server
         self.app = flask.Flask(__name__)
@@ -80,7 +79,7 @@ class Webserver(threading.Thread):
         # websocket
         self.ws_port = ws_port
         self.ws_queue = queue.Queue()
-        
+
         self.ws_server = websocket_serve(
             self.on_websocket, host=self.host, port=self.ws_port, ssl_context=self.ssl_context
         )
@@ -93,13 +92,13 @@ class Webserver(threading.Thread):
 
     def on_websocket_msg(self, msg, type, timestamp):
         """
-        Recieve websocket message from client
+        Receive websocket message from client
         """
         if type == 0:  # JSON
-            if 'chat_history_reset' in msg:
+            if "chat_history_reset" in msg:
                 self.history_reset_callback()
-            if 'tts_voice' in msg:
-                self.voice_change_callback(msg['tts_voice'])
+            if "tts_voice" in msg:
+                self.voice_change_callback(msg["tts_voice"])
             pass
         elif type == 1:  # text (chat input)
             # TODO enable text input
@@ -162,7 +161,7 @@ class Webserver(threading.Thread):
 
             if msg_id != self.msg_count_rx:
                 print(
-                    f"-- warning:  recieved websocket message from {websocket.remote_address} with out-of-order ID {msg_id}  (last={self.msg_count_rx})"
+                    f"-- warning:  Received websocket message from {websocket.remote_address} with out-of-order ID {msg_id}  (last={self.msg_count_rx})"
                 )
                 self.msg_count_rx = msg_id
 
@@ -171,7 +170,7 @@ class Webserver(threading.Thread):
 
             if payload_size != msgPayloadSize:
                 print(
-                    f"-- warning:  recieved invalid websocket message from {websocket.remote_address} (payload_size={payload_size} actual={msgPayloadSize}"
+                    f"-- warning:  Received invalid websocket message from {websocket.remote_address} (payload_size={payload_size} actual={msgPayloadSize}"
                 )
 
             payload = msg[header_size:]
@@ -183,7 +182,7 @@ class Webserver(threading.Thread):
 
             if self.log_level > 1 or (self.log_level > 0 and msg_type <= 1):
                 print(
-                    f"-- recieved {Webserver.msg_type_str(msg_type)} websocket message from {websocket.remote_address} (type={msg_type} size={payload_size})"
+                    f"-- Received {Webserver.msg_type_str(msg_type)} websocket message from {websocket.remote_address} (type={msg_type} size={payload_size})"
                 )
                 if msg_type <= 1:
                     pprint.pprint(payload)
@@ -298,11 +297,23 @@ class WebServerOp(Operator):
     uses websockets to update a Flask app.
     """
 
-    def __init__(self, fragment, audio_msg_callback, history_reset_callback, voice_change_callback, ssl_key, ssl_cert, webapp_port, ws_port, *args, **kwargs):
+    def __init__(
+        self,
+        fragment,
+        audio_msg_callback,
+        history_reset_callback,
+        voice_change_callback,
+        ssl_key,
+        ssl_cert,
+        webapp_port,
+        ws_port,
+        *args,
+        **kwargs,
+    ):
         self.server = Webserver(
-            audio_msg_callback = audio_msg_callback,
-            history_reset_callback = history_reset_callback,
-            voice_change_callback = voice_change_callback,
+            audio_msg_callback=audio_msg_callback,
+            history_reset_callback=history_reset_callback,
+            voice_change_callback=voice_change_callback,
             ssl_key=ssl_key,
             ssl_cert=ssl_cert,
             web_port=webapp_port,

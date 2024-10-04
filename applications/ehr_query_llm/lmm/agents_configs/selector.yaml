@@ -17,7 +17,7 @@
 description: This agent is used to respond to general queries, or when the correct response is uncertain and clarification is needed.
 # Prompts formats will change depending on how your specific model was trained.
 # The current model used, Mistral-7B-OpenOrca, uses a ChatML template.
-# This prompt template is specifed at https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
+# This prompt template is specified at https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
 user_prefix: "<|im_start|>user"
 bot_prefix: "<|im_start|>assistant"
 bot_rule_prefix: "<|im_start|>system"

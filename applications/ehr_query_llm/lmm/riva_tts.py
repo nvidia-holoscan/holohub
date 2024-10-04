@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import re
+import time
 from queue import Queue
 from threading import Event, Thread
 from time import sleep
-from typing import Optional
-import time
-import json
-import re
 
 import riva.client
 from holoscan.core import Operator, OperatorSpec
@@ -98,7 +97,10 @@ class RivaTTSOp(Operator):
                         # Sleep buffer to keep TTS smooth
                         sleep_buffer = 0.01
                         # Calculate time it will take to play the audio
-                        time_sleep = ((len(audio) / (self.cli_args.sample_rate_hz * bit_depth / 8)) - (time.perf_counter() - time_start)) - sleep_buffer
+                        time_sleep = (
+                            (len(audio) / (self.cli_args.sample_rate_hz * bit_depth / 8))
+                            - (time.perf_counter() - time_start)
+                        ) - sleep_buffer
                         if time_sleep > 0.001:
                             sleep(time_sleep)
                     # Break from streaming response loop if TTS is being muted
@@ -114,14 +116,13 @@ class RivaTTSOp(Operator):
             self.is_muted.clear()
             self.is_responding = False
 
-
     def compute(self, op_input, op_output, context):
         llm_emit = op_input.receive("agent_response")
         is_done = llm_emit["is_done"]
         agent_response = llm_emit["agent_response"]
         is_speaking = llm_emit["is_speaking"]
 
-        # If the user is interrupting mute the TTS 
+        # If the user is interrupting mute the TTS
         if self.is_responding and is_speaking:
             self.is_muted.set()
 
@@ -142,7 +143,7 @@ class RivaTTSOp(Operator):
                 self._previous_sentences = []
                 self._last_tts = None
 
-        # Keep track of the last response  
+        # Keep track of the last response
         if agent_response:
             self._last_response = agent_response
 
@@ -154,23 +155,27 @@ class RivaTTSOp(Operator):
         try:
             # Parse agents with a "response" field before the LLM is complete
             # (Results in lower latency for TTS streaming)
-            response_agents = ["ChatAgent", "EHRAgent","EHRBuilderAgent"]
+            response_agents = ["ChatAgent", "EHRAgent", "EHRBuilderAgent"]
             for agent in response_agents:
                 if agent in agent_response:
                     sentences = self.parse_streamed_response(agent_response)
                     # Remove any sentences that have already been spoken
-                    sentences = [sentence for sentence in sentences if sentence not in self._previous_sentences]
+                    sentences = [
+                        sentence
+                        for sentence in sentences
+                        if sentence not in self._previous_sentences
+                    ]
                     # Add the new sentences to the previous sentences
                     self._previous_sentences += sentences
                     # Crease single string from the sentences
                     tts_response = "\n".join(sentences)
                     tts_response = self.replace_abbreviations(tts_response)
                     return tts_response
-            
+
             # Parse agents without a "response" field when the LLM is complete
-            #agent_response = agent_response.replace("\n", "\\n")
-            #json_response = json.loads(agent_response)
-          
+            # agent_response = agent_response.replace("\n", "\\n")
+            # json_response = json.loads(agent_response)
+
         except json.JSONDecodeError:
             # If it's not valid JSON, return None
             return None
@@ -184,11 +189,10 @@ class RivaTTSOp(Operator):
         """
         Replaces common abbreviations with their full forms to help Riva TTS
         """
-        text = re.sub(r'(\d+)mm', r'\1 millimeter', text)
-        text = re.sub(r'(\d+)cm', r'\1 centimeter', text)
-        text = re.sub(r'(\d+)mg/dL', r'\1 milligrams per deciliter', text)
+        text = re.sub(r"(\d+)mm", r"\1 millimeter", text)
+        text = re.sub(r"(\d+)cm", r"\1 centimeter", text)
+        text = re.sub(r"(\d+)mg/dL", r"\1 milligrams per deciliter", text)
         return text
-
 
     @staticmethod
     def parse_streamed_response(streamed_text, min_sentence_length=5):
@@ -200,25 +204,25 @@ class RivaTTSOp(Operator):
         Parameters:
         - streamed_text (str): The streamed text in JSON-like format.
         - min_sentence_length (int): Minimum length for a sentence to be considered valid.
-        
+
         Returns:
         - sentences (list): A list of complete sentences extracted from the 'response' part.
         """
         # Extracting text after '"response" : "'
         match = re.search(r'"response"\s*:\s*"((?:[^"\\]|\\.)*)', streamed_text, re.DOTALL)
         if not match:
-            return [] # Return an empty list if no match is found
+            return []  # Return an empty list if no match is found
         response_text = match.group(1)
-        
+
         # Check for patterns indicating the end of the "response" field
-        end_of_response_encountered = streamed_text.strip().endswith('}')
+        end_of_response_encountered = streamed_text.strip().endswith("}")
         # Removing everything after the last legitimate ending if end_of_response_encountered
         if end_of_response_encountered:
-            response_text = re.sub(r'"\s*(,|})?$', '', response_text)
+            response_text = re.sub(r'"\s*(,|})?$', "", response_text)
         # Splitting on periods to get sentences
-        potential_sentences = response_text.split('.')
+        potential_sentences = response_text.split(".")
         # Removing the last element if it's likely an incomplete sentence and not at the end of the response
-        valid_last_sentence = potential_sentences[-1].strip().endswith('.')
+        valid_last_sentence = potential_sentences[-1].strip().endswith(".")
         # Filtering sentences based on length
         sentences = []
         for sentence in potential_sentences:
@@ -231,5 +235,5 @@ class RivaTTSOp(Operator):
         # If the last sentence is not complete and the end of the response was not encountered, remove it
         if sentences and not valid_last_sentence and not end_of_response_encountered:
             sentences = sentences[:-1]
-    
+
         return sentences

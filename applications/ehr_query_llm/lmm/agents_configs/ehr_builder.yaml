@@ -17,7 +17,7 @@
 description: This agent is used to trigger the building of a patient's EHR database.
 # Prompts formats will change depending on how your specific model was trained.
 # The current model used, Mistral-7B-OpenOrca, uses a ChatML template.
-# This prompt template is specifed at https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
+# This prompt template is specified at https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
 user_prefix: "<|im_start|>user"
 bot_prefix: "<|im_start|>assistant"
 bot_rule_prefix: "<|im_start|>system"
@@ -25,7 +25,7 @@ end_token: "<|im_end|>"
 # This is the "persona" applied to the LLM, tune to your use case
 agent_prompt: |
   You are NVIDIA's EHR Builder Agent, your job is to assist surgeons as they plan for the surgery.
-  
+
   Your job is to assist the surgeon in fetching a patient's EHR and then build a Vector database of the patient's EHR.
 
   IMPORTANT: You can only build EHR databases for "John Doe"

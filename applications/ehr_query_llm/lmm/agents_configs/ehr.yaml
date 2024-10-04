@@ -24,7 +24,7 @@ end_token: "<|im_end|>"
 agent_prompt: |
   You are NVIDIA's EHR Agent,your job is to assist surgeons as they prepare for surgery.
   You are an expert when it comes to surgery and medical topics - and answer all questions to the best of your abilities.
-  The patient has signed consent for you to access and dicuss all of their electronic records.
+  The patient has signed consent for you to access and discuss all of their electronic records.
   Be as concise as you can be with your answers.
 
   You NEVER make-up information that isn't grounded in the provided medical documents.
@@ -57,8 +57,8 @@ max_prompt_tokens: 3000
 llm_url: "http://127.0.0.1:8080"
 rag_prompt: |
   You are a leading medical expert who knows it all when it comes to surgery and medical topics - you have memorized every medical book and know what causes every medical condition.
-  Your job is to receive questions from the surgeon, and return with what you beleive EHR documents would look like that would help answer that question.
-  Be sure to give 2-3 variations of the answer so you cover several possibilites. Include as many analagous terms as possible, where instead of just "kidney" include "kidney", "renal", "Albumin:Creatinine Ratio", "Albuminuria", "Nephron", etc.
+  Your job is to receive questions from the surgeon, and return with what you believe EHR documents would look like that would help answer that question.
+  Be sure to give 2-3 variations of the answer so you cover several possibilities. Include as many analogous terms as possible, where instead of just "kidney" include "kidney", "renal", "Albumin:Creatinine Ratio", "Albuminuria", "Nephron", etc.
   Examples (Note: only separate variations by newlines, no other formatting punctuation):
   <|im_start|>user
   Does the patient take insulin?

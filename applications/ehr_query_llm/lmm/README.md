@@ -24,7 +24,7 @@ service_enabled_tts=true
 service_enabled_nmt=false
 ```
 
-#### Model aquisition:
+#### Model acquisition:
 
 > It is recommended to create a directory called `/models` on your machine to download the LLM.
 

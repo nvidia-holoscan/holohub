@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
-import yaml
-import re
 from pathlib import Path
+
+import yaml
 
 
 class ChatHistory:
@@ -35,7 +34,7 @@ class ChatHistory:
     def add_image(self, image_html):
         # Add a place for the bot to respond with the image
         if len(self.history[self.bot_index]) < 2:
-                self.history[self.bot_index].append("")
+            self.history[self.bot_index].append("")
         # Add a pair of responses to the history if the last
         # set of responses is complete
         elif self.history[self.bot_index][1] != "":
@@ -57,7 +56,7 @@ class ChatHistory:
             self.current_responder = "bot"
 
         if prompt_complete and self.current_responder == "bot":
-            # If its the bots turn and theres a llm response add the llm
+            # If its the bots turn and there's a llm response add the llm
             # response
             if llm_response:
                 self.history[self.bot_index][1] = llm_response
@@ -91,7 +90,7 @@ class ChatHistory:
             # If the bot is done responding reset the bot index or
             # add a string for the user to then write to
             if self.bot_index == -2:
-                    self.bot_index = -1
+                self.bot_index = -1
             else:
                 self.history.append([""])
             self.current_responder = "user"
@@ -99,7 +98,7 @@ class ChatHistory:
         # If there is a new ASR transcript update the user's chat bubble
         if asr_transcript:
             self.history[self.user_index][0] = asr_transcript
-        
+
         # Only keep last 15 turns to reduce memory usage
         if len(self.history) > 15:
             self.history = self.history[-15:]
@@ -107,6 +106,7 @@ class ChatHistory:
     def to_list(self):
         # Returns the chat history as a list
         return self.history
+
 
 def get_tool_definitions(directory="tools"):
     """
@@ -116,11 +116,11 @@ def get_tool_definitions(directory="tools"):
     directory_path = Path(os.path.join(Path(__file__).parent, directory))
     for file in directory_path.iterdir():
         if str(file).endswith(".yaml"):
-            with open(str(file), 'r') as f:
+            with open(str(file), "r") as f:
                 data = yaml.safe_load(f)
-                name = data.get('name', 'N/A')
-                description = data.get('description', 'N/A')
-                usage = data.get('usage', 'N/A')
+                name = data.get("name", "N/A")
+                description = data.get("description", "N/A")
+                usage = data.get("usage", "N/A")
                 final_string += f"name: {name}\ndescription: {description}\n{usage}\n"
 
     return final_string

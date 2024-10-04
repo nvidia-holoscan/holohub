@@ -13,26 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from holoscan.core import Operator, OperatorSpec
-from riva.client.auth import Auth
-import riva.client
-import riva.client.proto.riva_asr_pb2 as rasr
-import riva.client.proto.riva_asr_pb2_grpc as rasr_srv
-from typing import Callable, Dict, Generator, Iterable, List, Optional, TextIO, Union
-from typing import Optional, Dict, Union
-from time import sleep
-from pynput.keyboard import Key, Listener
-from datetime import datetime
 from queue import Queue
 from threading import Thread
 from time import sleep
 from typing import Generator, Iterable
-import torch
-import numpy as np
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-from scipy.signal import resample_poly
 
+import numpy as np
+import riva.client
+import riva.client.proto.riva_asr_pb2 as rasr
+import riva.client.proto.riva_asr_pb2_grpc as rasr_srv
+import torch
 from holoscan.core import Operator, OperatorSpec
+from pynput.keyboard import Key, Listener
+from riva.client.auth import Auth
+from scipy.signal import resample_poly
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 
 class RivaASROp(Operator):
@@ -41,7 +36,17 @@ class RivaASROp(Operator):
     audio using Riva. This operator must create the microphone instance as in order to perform real-time
     transcription, Riva uses streaming gRPC calls that requires an audio generator as an input.
     """
-    def __init__(self, fragment, auth: Auth, cli_args, boosted_lm_words=None, boosted_lm_score=0, *args, **kwargs):
+
+    def __init__(
+        self,
+        fragment,
+        auth: Auth,
+        cli_args,
+        boosted_lm_words=None,
+        boosted_lm_score=0,
+        *args,
+        **kwargs,
+    ):
         self.is_speaking = False
         # Used to determine if the transcript should be sent as complete
         self.done_speaking = False
@@ -91,7 +96,10 @@ class RivaASROp(Operator):
         model_id = "openai/whisper-medium.en"
 
         model = AutoModelForSpeechSeq2Seq.from_pretrained(
-            model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True, 
+            model_id,
+            torch_dtype=torch_dtype,
+            low_cpu_mem_usage=True,
+            use_safetensors=True,
         )
         model.to(device)
 
@@ -115,7 +123,7 @@ class RivaASROp(Operator):
         audio_data /= np.iinfo(np.int16).max
         audio_data = self._resample_to_16k(audio_data, self.sample_rate_hz)
         transcription = self.whisper_pipeline(audio_data)["text"]
-        # Clear the 
+        # Clear the
         self.audio_bytes = bytes()
         return transcription
 
@@ -162,7 +170,6 @@ class RivaASROp(Operator):
             while True:
                 riva_response = self.riva_reponse_generator.next()
                 self.streaming_queue.put(riva_response)
-
 
     def on_space_press(self, key):
         """
@@ -222,12 +229,12 @@ class RivaASROp(Operator):
         if whisper_response:
             self.done_speaking = True
             self.whisper_response = ""
- 
+
         asr_response = {
             "is_speaking": self.is_speaking,
             "done_speaking": self.done_speaking,
             "riva_response": riva_response,
-            "whisper_response": whisper_response
+            "whisper_response": whisper_response,
         }
         op_output.emit(asr_response, "asr_response")
         # Reset done_speaking flag
@@ -239,29 +246,29 @@ class AudioQueue:
     Implement same context manager/iterator interfaces as MicrophoneStream (for ASR.process_audio())
     Credit for this code: https://github.com/dusty-nv/jetson-containers/blob/master/packages/llm/llamaspeak/asr.py
     """
+
     def __init__(self, audio_chunk=1600):
         self.queue = Queue()
         self.audio_chunk = audio_chunk
 
     def put(self, samples):
         self.queue.put(samples)
-        
+
     def __enter__(self):
         return self
-        
+
     def __exit__(self, type, value, traceback):
         pass
-        
+
     def __next__(self) -> bytes:
         data = []
         size = 0
-        
+
         while size <= self.audio_chunk * 2:
             data.append(self.queue.get())
             size += len(data[-1])
 
-        return b''.join(data)
-    
+        return b"".join(data)
+
     def __iter__(self):
         return self
-        

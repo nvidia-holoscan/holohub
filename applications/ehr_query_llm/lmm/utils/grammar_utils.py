@@ -19,6 +19,7 @@ from pathlib import Path
 
 import yaml
 
+
 def clean_json_string(s):
     s = s.strip()
     s = re.sub(r'\}"?$', "}", s)

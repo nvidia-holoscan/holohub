@@ -2,7 +2,8 @@ from queue import Queue
 from threading import Event
 from time import sleep
 
-class ResponseHandler():
+
+class ResponseHandler:
     def __init__(self):
         # Queue that the LLM writes responses to
         self.streaming_queue = Queue()
