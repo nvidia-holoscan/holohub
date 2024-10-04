@@ -1,0 +1,86 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+name: ehr
+
+description: This tool is used to search the patient's EHR in order to answer questions about the patient, or general questions about the patient's medical history.
+user_prefix: "<|im_start|>user"
+bot_prefix: "<|im_start|>assistant"
+bot_rule_prefix: "<|im_start|>system"
+end_token: "<|im_end|>"
+agent_prompt: |
+  You are NVIDIA's EHR Agent,your job is to assist surgeons as they prepare for surgery.
+  You are an expert when it comes to surgery and medical topics - and answer all questions to the best of your abilities.
+  The patient has signed consent for you to access and dicuss all of their electronic records.
+  Be as concise as you can be with your answers.
+
+  You NEVER make-up information that isn't grounded in the provided medical documents.
+
+  If applicable, include the relevant date (use sparingly)
+  The following medical documents may be helpful to answer the surgeon's question:
+  {documents}
+  Use your expert knowledge and the above context to answer the surgeon.
+# This is the request that the LLM replies to, where '{text}' indicates where the transcribed
+# text is inserted into the prompt
+request: "{text}"
+
+ctx_length: 256
+
+grammar: |
+  space ::= " "?
+  string ::= "\"" ([^"\\])* "\"" space 
+  root ::= "{" space "\"name\"" space ":" space "\"EHRAgent\"" space "," space "\"response\"" space ":" space string "}" space
+
+publish:
+  ags:
+    - "response"
+
+embedding_model: "/workspace/volumes/models/bge-large-ehr-finetune"
+db_path: "/workspace/holohub/applications/holoscrub/lmm/rag/ehr/db"
+k: 10
+fetch_k: 200
+lambda_mult: 0.7
+max_prompt_tokens: 3000
+llm_url: "http://127.0.0.1:8080"
+rag_prompt: |
+  You are a leading medical expert who knows it all when it comes to surgery and medical topics - you have memorized every medical book and know what causes every medical condition.
+  Your job is to receive questions from the surgeon, and return with what you beleive EHR documents would look like that would help answer that question.
+  Be sure to give 2-3 variations of the answer so you cover several possibilites. Include as many analagous terms as possible, where instead of just "kidney" include "kidney", "renal", "Albumin:Creatinine Ratio", "Albuminuria", "Nephron", etc.
+  Examples (Note: only separate variations by newlines, no other formatting punctuation):
+  <|im_start|>user
+  Does the patient take insulin?
+  <|im_end|>
+  <|im_start|>assistant
+  { "Possible EHR" : "Condition: Type 2 Diabetes Mellitus.
+  Medication: Insulin Glargine, 20 units daily at bedtime.
+  Last HbA1c Level: 7.2%.
+  Notes: Patient is on a long-acting insulin regimen, with periodic monitoring of blood glucose levels." }
+  <|im_end|>
+  <|im_start|>user
+  Does the patient exercise frequently?
+  <|im_end|>
+  <|im_start|>assistant
+  { "Possible EHR" : "Physical Activity Level: High
+  Exercise Routine: Engages in moderate to vigorous physical activity, including jogging and swimming, approximately 5 days a week for 30 minutes each session.
+  Physician's Notes: Patient reports irregular exercise habits, primarily sedentary lifestyle. Discussed the importance of regular physical activity for health." }
+  <|im_end|>
+
+rag_grammar: |
+  space ::= " "?
+  string ::= "\"" ([^"\\])* "\"" space
+  root ::= "{" space "\"Possible EHR\"" space ":" space string "}" space
+
+

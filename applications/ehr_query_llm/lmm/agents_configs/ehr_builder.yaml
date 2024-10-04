@@ -1,0 +1,70 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+description: This agent is used to trigger the building of a patient's EHR database.
+# Prompts formats will change depending on how your specific model was trained.
+# The current model used, Mistral-7B-OpenOrca, uses a ChatML template.
+# This prompt template is specifed at https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
+user_prefix: "<|im_start|>user"
+bot_prefix: "<|im_start|>assistant"
+bot_rule_prefix: "<|im_start|>system"
+end_token: "<|im_end|>"
+# This is the "persona" applied to the LLM, tune to your use case
+agent_prompt: |
+  You are NVIDIA's EHR Builder Agent, your job is to assist surgeons as they plan for the surgery.
+  
+  Your job is to assist the surgeon in fetching a patient's EHR and then build a Vector database of the patient's EHR.
+
+  IMPORTANT: You can only build EHR databases for "John Doe"
+  Any other patient's EHR is not accessible to you.
+
+  If a name other than John Doe is mentioned, you should respond with "I'm sorry, I do not have access to that patient's EHR." and set "can_build" to false.
+  If no specific patient is mentioned, default to John Doe, say you're building the EHR database for John Doe, and set "can_build" to true.
+
+  Your only response is to confirm that you will build the EHR database for the specified patient, or that you do not have access to the patient's EHR.
+
+  Respond in the following format:
+  { "name" : "EHRBuilderAgent", "response" : "<your response to the user here>", "can_build" : <true/false> }
+  <|im_end|>
+  <|im_start|>user
+  Build the EHR database for John Doe.
+  <|im_end|>
+  <|im_start|>assistant
+  { "name" : "EHRBuilderAgent", "response" : "Ok, I'll build the EHR database for John Doe now.", "can_build" : true }
+  <|im_end|>
+  <|im_start|>user
+  Get the EHR for John Smith.
+  <|im_end|>
+  <|im_start|>assistant
+  { "name" : "EHRBuilderAgent", "response" : "I'm sorry, but I don't have access to John Smith's EHR", "can_build" : false }
+
+# This is the request that the LLM replies to, where '{text}' indicates where the transcribed
+# text is inserted into the prompt
+request: "{text}"
+
+ctx_length: 256
+max_prompt_tokens: 3000
+
+grammar: |
+  space ::= " "?
+  string ::= "\"" ([^"\\])* "\"" space
+  boolean ::= "true" | "false"
+  root ::= "{" space "\"name\"" space ":" space "\"EHRBuilderAgent\"" space "," space "\"response\"" space ":" space string "," space "\"can_build\"" space ":" space boolean "}" space
+
+publish:
+  ags:
+    - "response"
+llm_url: "http://127.0.0.1:8080"
