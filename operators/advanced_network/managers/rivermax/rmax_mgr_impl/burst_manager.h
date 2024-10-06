@@ -225,7 +225,7 @@ class RmaxBurst : public AdvNetBurstParams {
  */
 class RmaxBurst::BurstHandler {
  public:
-  static constexpr int MAX_PKT_BURST = 9100;  ///< Maximum number of packets per burst.
+  static constexpr int MAX_PKT_BURST = 9100;
 
   /**
    * @brief Constructs a BurstHandler object.
@@ -253,11 +253,11 @@ class RmaxBurst::BurstHandler {
   void delete_burst(std::shared_ptr<RmaxBurst> burst);
 
  private:
-  bool m_send_packet_ext_info;        ///< Flag indicating whether to send packet info.
-  int m_port_id;                      ///< The port ID.
-  int m_queue_id;                     ///< The queue ID.
-  bool m_gpu_direct;                  ///< Flag indicating whether GPU direct is enabled.
-  AnoBurstExtendedInfo m_burst_info;  ///< The extended info of the burst.
+  bool m_send_packet_ext_info;
+  int m_port_id;
+  int m_queue_id;
+  bool m_gpu_direct;
+  AnoBurstExtendedInfo m_burst_info;
 };
 
 /**
@@ -271,9 +271,8 @@ class RmaxBurst::BurstHandler {
  */
 class RxBurstsManager {
  public:
-  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;  ///< Default number of RX bursts.
-  static constexpr uint32_t GET_BURST_TIMEOUT_MS =
-      1000;  ///< Timeout for getting a burst in milliseconds.
+  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;
+  static constexpr uint32_t GET_BURST_TIMEOUT_MS = 1000;
 
   /**
    * @brief Constructor for the RxBurstsManager class.
@@ -401,24 +400,21 @@ class RxBurstsManager {
   inline void reset_current_burst() { m_cur_out_burst = nullptr; }
 
  protected:
-  bool m_send_packet_ext_info = false;  ///< Flag indicating whether to send packet info.
-  int m_port_id = 0;                    ///< ID of the port.
-  int m_queue_id = 0;                   ///< ID of the queue.
-  uint16_t m_burst_out_size = 0;        ///< Size of the burst output.
-  int m_gpu_id = -1;                    ///< ID of the GPU.
-  bool m_hds_on = false;             ///< Flag indicating if header data splitting (HDS) is enabled.
-  bool m_gpu_direct = false;         ///< Flag indicating whether GPU direct is enabled.
-  size_t m_header_stride_size = 0;   ///< Stride size for the header data.
-  size_t m_payload_stride_size = 0;  ///< Stride size for the payload data.
-  bool m_using_shared_out_queue = true;  ///< Flag indicating whether a shared output queue is used.
-  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool =
-      nullptr;  ///< Unique pointer to the RX bursts memory pool.
-  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue =
-      nullptr;  ///< Shared pointer to the output queue for RX bursts.
-  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;  ///< Shared pointer to the current burst.
-  AnoBurstExtendedInfo m_burst_info;                     ///< Extended info of the burst.
-  std::unique_ptr<RmaxBurst::BurstHandler>
-      m_burst_handler;  ///< Unique pointer to the burst handler.
+  bool m_send_packet_ext_info = false;
+  int m_port_id = 0;
+  int m_queue_id = 0;
+  uint16_t m_burst_out_size = 0;
+  int m_gpu_id = -1;
+  bool m_hds_on = false;
+  bool m_gpu_direct = false;
+  size_t m_header_stride_size = 0;
+  size_t m_payload_stride_size = 0;
+  bool m_using_shared_out_queue = true;
+  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool = nullptr;
+  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue = nullptr;
+  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;
+  AnoBurstExtendedInfo m_burst_info;
+  std::unique_ptr<RmaxBurst::BurstHandler> m_burst_handler;
 };
 
 };  // namespace holoscan::ops

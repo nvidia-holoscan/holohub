@@ -31,13 +31,13 @@ using namespace ral::services;
  * a chunk of packets.
  */
 struct PacketsChunkParams {
-  uint8_t* header_ptr;                        /**< Pointer to the header data. */
-  uint8_t* payload_ptr;                       /**< Pointer to the payload data. */
-  const ReceivePacketInfo* packet_info_array; /**< Array of packet information. */
-  size_t chunk_size;                          /**< Size of the chunk to process. */
-  bool hds_on;                /**< Flag indicating if header data splitting (HDS) is enabled. */
-  size_t header_stride_size;  /**< Stride size for the header data. */
-  size_t payload_stride_size; /**< Stride size for the payload data. */
+  uint8_t* header_ptr;
+  uint8_t* payload_ptr;
+  const ReceivePacketInfo* packet_info_array;
+  size_t chunk_size;
+  bool hds_on;
+  size_t header_stride_size;
+  size_t payload_stride_size;
 };
 
 struct PacketsChunkProcessResult {

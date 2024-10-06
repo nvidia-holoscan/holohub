@@ -32,7 +32,6 @@
 
 #include "services/utils/cpu.h"
 
-
 #define BREAK_ON_FAILURE(rc) \
   if (unlikely(rc == ReturnStatus::failure)) { break; }
 #define BREAK_ON_NO_SUCCESS(rc) \

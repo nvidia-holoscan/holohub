@@ -174,7 +174,6 @@ struct RmaxPacketData {
   RmaxPacketExtendedInfo extended_info;
 };
 
-
 };  // namespace holoscan::ops
 
 #endif  // RMAX_ANO_DATA_TYPES_H_

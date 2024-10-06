@@ -79,7 +79,7 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
  * @brief Extended configuration for Rmax IPO Receiver.
  */
 struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
-  bool send_packet_ext_info;  ///< Flag indicating whether to send packet extended info.
+  bool send_packet_ext_info;
 };
 
 /**
@@ -91,9 +91,9 @@ struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
  */
 class RmaxConfigManager {
  public:
-  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;  ///< Default log level for Rmax.
-  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;      ///< Minimum log level for Rmax.
-  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;      ///< Maximum log level for Rmax.
+  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;
+  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;
+  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;
 
   /**
    * @brief Parses the configuration from a YAML file.
@@ -209,11 +209,9 @@ class RmaxConfigManager {
   void add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
                                  uint16_t queue_id);
 
-  uint16_t rmax_log_level = RMAX_DEFAULT_LOG_LEVEL;  ///< Current log level for Rmax.
-  std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig>
-      rx_service_configs;  ///< RX service configurations.
-  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib =
-      nullptr;  ///< Shared pointer to the RmaxAppsLibFacade.
+  uint16_t rmax_log_level = RMAX_DEFAULT_LOG_LEVEL;
+  std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig> rx_service_configs;
+  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
 };
 
 /**
@@ -293,7 +291,6 @@ class RmaxMgr::RmaxMgrImpl {
   std::vector<std::thread> rx_service_threads;
   bool initialized_ = false;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
-  // Instances of the new classes
   RmaxConfigManager config_manager;
 };
 
@@ -360,9 +357,7 @@ bool RmaxConfigManager::parse_configuration(
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
     for (const auto& q : intf.rx_.queues_) {
-      if (!configure_rx_queue(intf.port_id_, cfg.common_.master_core_, q)) {
-        continue;
-      }
+      if (!configure_rx_queue(intf.port_id_, cfg.common_.master_core_, q)) { continue; }
       rmax_rx_config_found++;
     }
   }
@@ -499,8 +494,7 @@ bool RmaxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_r
  */
 void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
                                                            const RmaxRxQueueConfig& rmax_rx_config,
-                                                           int master_core,
-                                                           int split_boundary) {
+                                                           int master_core, int split_boundary) {
   app_settings_config.local_ips = rmax_rx_config.local_ips;
   app_settings_config.source_ips = rmax_rx_config.source_ips;
   app_settings_config.destination_ips = rmax_rx_config.destination_ips;
@@ -662,13 +656,10 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const AdvNetConfigYaml& cfg
  * and initializing the RX services and chunk consumers.
  */
 void RmaxMgr::RmaxMgrImpl::initialize() {
-  // Create the RX bursts output queue
   rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
 
-  // Create the Rmax applications library facade
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
 
-  // Parse the configuration
   bool res = config_manager.parse_configuration(cfg_, rmax_apps_lib);
   if (!res) {
     HOLOSCAN_LOG_ERROR("Failed to parse configuration for RMAX ANO Manager");
@@ -678,7 +669,6 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rivermax_setparam(
       "RIVERMAX_LOG_LEVEL", std::to_string(config_manager.get_rmax_log_level()), true);
 
-  // Iterate over the RX service configurations and initialize each RX service
   const auto& rx_service_configs = config_manager.get_rx_service_configs();
   for (const auto& entry : rx_service_configs) { initialize_rx_service(entry.first, entry.second); }
 }
@@ -697,7 +687,6 @@ void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
   uint16_t port_id = RmaxBurst::burst_port_id_from_burst_tag(service_id);
   uint16_t queue_id = RmaxBurst::burst_queue_id_from_burst_tag(service_id);
 
-  // Create and initialize the RX service
   auto rx_service = std::make_unique<RmaxIPOReceiverService>(config);
   auto init_status = rx_service->get_init_status();
   if (init_status != ReturnStatus::obj_init_success) {
@@ -705,7 +694,6 @@ void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
     return;
   }
 
-  // Store the RX service and create the chunk consumer
   rx_services[service_id] = std::move(rx_service);
   rx_burst_managers[service_id] = std::make_shared<RxBurstsManager>(config.send_packet_ext_info,
                                                                     port_id,
@@ -720,7 +708,6 @@ void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
   rmax_chunk_consumers[service_id] =
       std::make_unique<RmaxChunkConsumerAno>(rx_packet_processors[service_id]);
 
-  // Set the chunk consumer for the RX service
   rx_services[service_id]->set_chunk_consumer(rmax_chunk_consumers[service_id].get());
 }
 
@@ -731,13 +718,10 @@ void RmaxMgr::RmaxMgrImpl::print_stream_stats(std::stringstream& ss, uint32_t st
      << " Got " << std::setw(7) << stream_stats.rx_counter << " packets | ";
 
   if (stream_stats.received_bytes >= GIGABYTE) {
-    // Display in gigabytes
     ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / GIGABYTE) << " GB |";
   } else if (stream_stats.received_bytes >= MEGABYTE) {
-    // Display in megabytes
     ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / MEGABYTE) << " MB |";
   } else {
-    // Display in bytes
     ss << stream_stats.received_bytes << " bytes |";
   }
 
@@ -770,9 +754,9 @@ void RmaxMgr::RmaxMgrImpl::print_stream_stats(std::stringstream& ss, uint32_t st
  * @brief Prints the statistics of the Rmax manager.
  */
 void RmaxMgr::RmaxMgrImpl::print_total_stats() {
-  // Implementation for printing statistics
   std::stringstream ss;
   uint32_t stream_id = 0;
+
   ss << "RMAX ANO Statistics\n";
   ss << "====================\n";
   ss << "Total Statistics\n";
@@ -799,28 +783,20 @@ RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
     if (rx_service_thread.joinable()) { rx_service_thread.join(); }
   }
   for (auto& [service_id, rx_service] : rx_services) {
-    if (rx_service) {
-      // Clear the chunk consumer
-      rx_service->set_chunk_consumer(nullptr);
-    }
+    if (rx_service) { rx_service->set_chunk_consumer(nullptr); }
   }
-// Clear the RX services
   rx_services.clear();
 
-  // Clear the RX burst managers
   rx_burst_managers.clear();
 
-  // Clear the RX packet processors
   rx_packet_processors.clear();
 
-  // Clear the Rmax chunk consumers
   rmax_chunk_consumers.clear();
 
   rx_bursts_out_queue->clear();
 
   rx_bursts_out_queue.reset();
-
-} 
+}
 
 /**
  * @brief Runs the Rmax manager.
@@ -840,9 +816,8 @@ void RmaxMgr::RmaxMgrImpl::run() {
     }
     rx_service_threads.emplace_back([rx_service_ptr = rx_service.get()]() {
       ReturnStatus status = rx_service_ptr->run();
-      // Handle the status if needed
+      // TODO: Handle the status if needed
     });
-    // Use a lambda to capture the raw pointer and invoke the run method
   }
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
@@ -1154,7 +1129,6 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::send_tx_burst(AdvNetBurstParams* burst) {
 void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
     HOLOSCAN_LOG_INFO("ANO RMAX manager shutting down");
-    // Nodes are waiting to signals to exit
     force_quit.store(false);
     std::raise(SIGINT);
   }
@@ -1208,9 +1182,7 @@ int RmaxMgr::RmaxMgrImpl::address_to_port(const std::string& addr) {
     return intf.address_ == addr;
   });
 
-  if (it != cfg_.ifs_.end()) {
-    return it->port_id_;
-  }
+  if (it != cfg_.ifs_.end()) { return it->port_id_; }
   return -1;
 }
 
@@ -1264,40 +1236,32 @@ void RmaxMgr::run() {
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q) {
-  // Extract the rmax_rx_settings node from the YAML configuration
   const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
 
-  // Check if rmax_rx_settings node exists
   if (!rmax_rx_settings) {
     HOLOSCAN_LOG_ERROR("Rmax RX settings not found");
     return AdvNetStatus::INVALID_PARAMETER;
   }
 
-  // Allocate memory for extra queue configuration
   q.common_.extra_queue_config_ = new RmaxRxQueueConfig();
   auto& rmax_rx_config = *(reinterpret_cast<RmaxRxQueueConfig*>(q.common_.extra_queue_config_));
 
-  // Parse local IP addresses
   for (const auto& q_item_ip : rmax_rx_settings["local_ip_addresses"]) {
     rmax_rx_config.local_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  // Parse source IP addresses
   for (const auto& q_item_ip : rmax_rx_settings["source_ip_addresses"]) {
     rmax_rx_config.source_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  // Parse destination IP addresses
   for (const auto& q_item_ip : rmax_rx_settings["destination_ip_addresses"]) {
     rmax_rx_config.destination_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  // Parse destination ports
   for (const auto& q_item_ip : rmax_rx_settings["destination_ports"]) {
     rmax_rx_config.destination_ports.emplace_back(q_item_ip.as<uint16_t>());
   }
 
-  // Parse additional RX queue settings
   rmax_rx_config.ext_seq_num = rmax_rx_settings["ext_seq_num"].as<bool>(true);
   rmax_rx_config.max_path_differential_us = rmax_rx_settings["max_path_diff_us"].as<uint32_t>(0);
   rmax_rx_config.allocator_type = rmax_rx_settings["allocator_type"].as<std::string>("auto");

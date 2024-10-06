@@ -40,8 +40,8 @@ namespace holoscan::ops {
  */
 template <typename T>
 class NonBlockingQueue : public QueueInterface<T> {
-  std::queue<T> queue_;       ///< Internal queue to store elements.
-  mutable std::mutex mutex_;  ///< Mutex to protect access to the queue.
+  std::queue<T> queue_;
+  mutable std::mutex mutex_;
 
  public:
   /**
@@ -105,9 +105,9 @@ class NonBlockingQueue : public QueueInterface<T> {
  */
 template <typename T>
 class BlockingQueue : public QueueInterface<T> {
-  std::queue<T> queue_;           ///< Internal queue to store elements.
-  mutable std::mutex mutex_;      ///< Mutex to protect access to the queue.
-  std::condition_variable cond_;  ///< Condition variable for blocking operations.
+  std::queue<T> queue_;
+  mutable std::mutex mutex_;
+  std::condition_variable cond_;
 
  public:
   /**
@@ -197,13 +197,13 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
   bool empty() override { return m_queue->get_size() == 0; };
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;  ///< Queue to manage bursts.
-  std::map<uint16_t, std::shared_ptr<RmaxBurst>> m_burst_map;  ///< Map to store bursts by ID.
-  size_t m_initial_size;                                       ///< Initial size of the memory pool.
-  mutable std::mutex m_burst_map_mutex;      ///< Mutex to protect access to the burst map.
-  mutable std::mutex m_queue_mutex;          ///< Mutex to protect access to the queue.
-  uint32_t m_bursts_tag = 0;                 ///< Tag for the bursts.
-  RmaxBurst::BurstHandler& m_burst_handler;  ///< Reference to the burst handler.
+  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;
+  std::map<uint16_t, std::shared_ptr<RmaxBurst>> m_burst_map;
+  size_t m_initial_size;
+  mutable std::mutex m_burst_map_mutex;
+  mutable std::mutex m_queue_mutex;
+  uint32_t m_bursts_tag = 0;
+  RmaxBurst::BurstHandler& m_burst_handler;
 };
 
 /**
@@ -222,7 +222,6 @@ AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& b
   m_queue = std::make_unique<NonBlockingQueue<std::shared_ptr<RmaxBurst>>>();
 #endif
 
-  // Initialize bursts and add them to the queue
   for (uint16_t i = 0; i < size; i++) {
     auto burst = m_burst_handler.create_burst(i);
     m_queue->enqueue(burst);
@@ -242,7 +241,6 @@ bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
     return false;
   }
 
-  // Read burst info
   uint16_t burst_id = burst->get_burst_id();
 
   std::lock_guard<std::mutex> lock(m_burst_map_mutex);
@@ -267,7 +265,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
     return false;
   }
-  // Lock the mutex to ensure thread safety
+
   std::lock_guard<std::mutex> lock(m_queue_mutex);
 
   if (m_queue->get_size() < m_initial_size) {
@@ -291,7 +289,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
  */
 std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
   std::shared_ptr<RmaxBurst> burst;
-  // Try to dequeue a burst from the queue with a timeout
+
   if (m_queue->try_dequeue(burst,
                            std::chrono::milliseconds(RxBurstsManager::GET_BURST_TIMEOUT_MS))) {
     return burst;
@@ -306,7 +304,7 @@ std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
  */
 AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
   std::shared_ptr<RmaxBurst> burst;
-  // Dequeue and delete all bursts in the queue
+
   while (m_queue->get_size() > 0 && m_queue->try_dequeue(burst)) {
     m_burst_handler.delete_burst(burst);
   }
@@ -352,7 +350,7 @@ void AnoBurstsQueue::clear() {
  */
 std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
   std::shared_ptr<RmaxBurst> burst;
-  // Try to dequeue a burst from the queue with a timeout
+
   if (m_queue->try_dequeue(burst,
                            std::chrono::milliseconds(RxBurstsManager::GET_BURST_TIMEOUT_MS))) {
     return burst;
@@ -428,7 +426,6 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
     return;
   }
 
-  // Delete packet information if required
   if (m_send_packet_ext_info && burst->pkt_extra_info != nullptr) {
     for (int i = 0; i < MAX_PKT_BURST; i++) {
       if (burst->pkt_extra_info[i] != nullptr) {
@@ -440,7 +437,6 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
     burst->pkt_extra_info = nullptr;
   }
 
-  // Free the memory allocated for packets and their lengths
   delete[] burst->pkts[0];
   burst->pkts[0] = nullptr;
   delete[] burst->pkts[1];
@@ -462,14 +458,11 @@ void RxBurstsManager::rx_burst_done(RmaxBurst* burst) {
     return;
   }
 
-  // Get the base pointer to the burst pool
   IAnoBurstsCollection* basePtr = m_rx_bursts_mempool.get();
 
-  // Use dynamic_cast to safely cast to the derived class
   AnoBurstsMemoryPool* derivedPtr = dynamic_cast<AnoBurstsMemoryPool*>(basePtr);
 
   if (derivedPtr) {
-    // Return the burst to the memory pool
     bool rc = derivedPtr->enqueue_burst(burst);
     if (!rc) {
       HOLOSCAN_LOG_ERROR("Failed to push burst back to the pool. Port_id {}:{}, queue_id {}:{}",
@@ -509,16 +502,14 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
   const uint32_t burst_tag = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   m_gpu_direct = (m_gpu_id != INVALID_GPU_ID);
 
-  // Initialize the burst memory pool
   m_rx_bursts_mempool =
       std::make_unique<AnoBurstsMemoryPool>(DEFAULT_NUM_RX_BURSTS, *m_burst_handler, burst_tag);
-  // Initialize the output queue if not provided
+
   if (!m_rx_bursts_out_queue) {
     m_rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
     m_using_shared_out_queue = false;
   }
 
-  // Adjust burst size to be within valid limits
   if (m_burst_out_size > RmaxBurst::BurstHandler::MAX_PKT_BURST || m_burst_out_size == 0)
     m_burst_out_size = RmaxBurst::BurstHandler::MAX_PKT_BURST;
 }
