@@ -12,6 +12,7 @@
 
 #include <string>
 #include <cstring>
+#include <mutex>
 #include <rivermax_api.h>
 
 #include "rt_threads.h"
@@ -30,6 +31,32 @@ static const std::map<AllocatorTypeUI, AllocatorType> UI_ALLOCATOR_TYPE_MAP{
     {AllocatorTypeUI::HugePage2MB, AllocatorType::HugePage2MB},
     {AllocatorTypeUI::HugePage512MB, AllocatorType::HugePage512MB},
     {AllocatorTypeUI::HugePage1GB, AllocatorType::HugePage1GB}};
+}
+
+class MemoryAllocatorFactory {
+ public:
+  static std::shared_ptr<MemoryAllocator> getAllocator(AllocatorType type,
+                                                       std::shared_ptr<AppSettings> app_settings);
+
+ private:
+  static std::map<AllocatorType, std::shared_ptr<MemoryAllocator>> s_allocators;
+  static std::mutex s_mutex;
+};
+
+std::map<AllocatorType, std::shared_ptr<MemoryAllocator>> MemoryAllocatorFactory::s_allocators;
+std::mutex MemoryAllocatorFactory::s_mutex;
+
+std::shared_ptr<MemoryAllocator> MemoryAllocatorFactory::getAllocator(
+    AllocatorType type, std::shared_ptr<AppSettings> app_settings) {
+  std::lock_guard<std::mutex> lock(s_mutex);
+
+  auto it = s_allocators.find(type);
+  if (it != s_allocators.end()) { return it->second; }
+
+  std::shared_ptr<MemoryAllocator> allocator;
+  allocator = MemoryAllocator::get_memory_allocator(type, app_settings);
+  s_allocators[type] = allocator;
+  return allocator;
 }
 
 RmaxBaseService::RmaxBaseService(const std::string& service_description)
@@ -95,13 +122,13 @@ ReturnStatus RmaxBaseService::initialize_memory_allocators() {
     payload_allocator_type = allocator_type;
   }
   m_header_allocator =
-      m_rmax_apps_lib->get_memory_allocator(header_allocator_type, m_service_settings);
+      MemoryAllocatorFactory::getAllocator(header_allocator_type, m_service_settings);
   if (m_header_allocator == nullptr) {
     std::cerr << "Failed to create header memory allocator" << std::endl;
     return ReturnStatus::failure;
   }
   m_payload_allocator =
-      m_rmax_apps_lib->get_memory_allocator(payload_allocator_type, m_service_settings);
+      MemoryAllocatorFactory::getAllocator(payload_allocator_type, m_service_settings);
   if (m_payload_allocator == nullptr) {
     std::cerr << "Failed to create payload memory allocator" << std::endl;
     return ReturnStatus::failure;
