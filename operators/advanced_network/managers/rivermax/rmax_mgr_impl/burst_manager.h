@@ -31,6 +31,8 @@ using namespace ral::services;
  */
 class RmaxBurst : public AdvNetBurstParams {
  public:
+  static constexpr int MAX_PKT_IN_BURST = 9100;
+
   /**
    * @class BurstHandler
    * @brief Handles operations related to bursts.
@@ -165,6 +167,13 @@ class RmaxBurst : public AdvNetBurstParams {
   }
 
   /**
+   * @brief Gets the maximum number of packets in a burst.
+   *
+   * @return The maximum number of packets in the burst.
+   */
+  inline uint16_t get_max_num_packets() const { return m_max_num_packets; }
+
+  /**
    * @brief Gets the number of packets in a burst.
    *
    * @return The number of packets in the burst.
@@ -213,11 +222,17 @@ class RmaxBurst : public AdvNetBurstParams {
    *
    * @param port_id The port ID.
    * @param queue_id The queue ID.
+   * @param max_packets_in_burst The maximum number of packets in the burst.
    */
-  RmaxBurst(uint16_t port_id, uint16_t queue_id) {
+  RmaxBurst(uint16_t port_id, uint16_t queue_id,
+            uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
+      : m_max_num_packets(max_packets_in_burst) {
     hdr.hdr.port_id = port_id;
     hdr.hdr.q_id = queue_id;
   }
+
+ private:
+  uint16_t m_max_num_packets = MAX_PKT_IN_BURST;
 };
 
 /**
@@ -225,7 +240,6 @@ class RmaxBurst : public AdvNetBurstParams {
  */
 class RmaxBurst::BurstHandler {
  public:
-  static constexpr int MAX_PKT_BURST = 9100;
 
   /**
    * @brief Constructs a BurstHandler object.

@@ -394,21 +394,21 @@ RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, in
  * @return A shared pointer to the created burst.
  */
 std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_id) {
-  std::shared_ptr<RmaxBurst> burst(new RmaxBurst(m_port_id, m_queue_id));
+  std::shared_ptr<RmaxBurst> burst(new RmaxBurst(m_port_id, m_queue_id, MAX_PKT_IN_BURST));
 
   if (m_send_packet_ext_info) {
-    burst->pkt_extra_info = reinterpret_cast<void**>(new RmaxPacketExtendedInfo*[MAX_PKT_BURST]);
-    for (int j = 0; j < MAX_PKT_BURST; j++) {
+    burst->pkt_extra_info = reinterpret_cast<void**>(new RmaxPacketExtendedInfo*[MAX_PKT_IN_BURST]);
+    for (int j = 0; j < MAX_PKT_IN_BURST; j++) {
       burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RmaxPacketExtendedInfo());
     }
   }
 
-  burst->pkts[0] = new void*[MAX_PKT_BURST];
-  burst->pkts[1] = new void*[MAX_PKT_BURST];
-  burst->pkt_lens[0] = new uint32_t[MAX_PKT_BURST];
-  burst->pkt_lens[1] = new uint32_t[MAX_PKT_BURST];
-  std::memset(burst->pkt_lens[0], 0, MAX_PKT_BURST * sizeof(uint32_t));
-  std::memset(burst->pkt_lens[1], 0, MAX_PKT_BURST * sizeof(uint32_t));
+  burst->pkts[0] = new void*[MAX_PKT_IN_BURST];
+  burst->pkts[1] = new void*[MAX_PKT_IN_BURST];
+  burst->pkt_lens[0] = new uint32_t[MAX_PKT_IN_BURST];
+  burst->pkt_lens[1] = new uint32_t[MAX_PKT_IN_BURST];
+  std::memset(burst->pkt_lens[0], 0, MAX_PKT_IN_BURST * sizeof(uint32_t));
+  std::memset(burst->pkt_lens[1], 0, MAX_PKT_IN_BURST * sizeof(uint32_t));
 
   m_burst_info.burst_id = burst_id;
   std::memcpy(burst->get_burst_info(), &m_burst_info, sizeof(m_burst_info));
@@ -427,7 +427,7 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
   }
 
   if (m_send_packet_ext_info && burst->pkt_extra_info != nullptr) {
-    for (int i = 0; i < MAX_PKT_BURST; i++) {
+    for (int i = 0; i < MAX_PKT_IN_BURST; i++) {
       if (burst->pkt_extra_info[i] != nullptr) {
         delete reinterpret_cast<RmaxPacketExtendedInfo*>(burst->pkt_extra_info[i]);
         burst->pkt_extra_info[i] = nullptr;
@@ -484,7 +484,7 @@ void RxBurstsManager::rx_burst_done(RmaxBurst* burst) {
  * @param send_packet_ext_info Flag indicating if packet information should be sent.
  * @param port_id The port ID.
  * @param queue_id The queue ID.
- * @param burst_out_size The minimum output chunk size.
+ * @param burst_out_size The minimum output burst size.
  * @param gpu_id The GPU ID.
  * @param rx_bursts_out_queue Shared pointer to the output queue for received bursts.
  */
@@ -510,8 +510,8 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
     m_using_shared_out_queue = false;
   }
 
-  if (m_burst_out_size > RmaxBurst::BurstHandler::MAX_PKT_BURST || m_burst_out_size == 0)
-    m_burst_out_size = RmaxBurst::BurstHandler::MAX_PKT_BURST;
+  if (m_burst_out_size > RmaxBurst::MAX_PKT_IN_BURST || m_burst_out_size == 0)
+    m_burst_out_size = RmaxBurst::MAX_PKT_IN_BURST;
 }
 
 /**
