@@ -328,8 +328,6 @@ ReturnStatus IPOReceiverIONode::wait_first_packet() {
   IPOReceiveChunk chunk(m_stream_settings.packet_app_header_size != 0);
   ReturnStatus rc = ReturnStatus::success;
   bool initialized = false;
-  size_t packets_consumed = 0;
-  size_t packets_unconsumed = 0;
   while (likely(!initialized && rc != ReturnStatus::failure &&
                 SignalHandler::get_received_signal() < 0)) {
     for (auto& stream : m_streams) {
@@ -338,8 +336,8 @@ ReturnStatus IPOReceiverIONode::wait_first_packet() {
       if (chunk.get_completion_chunk_size() > 0) {
         initialized = true;
         if (m_chunk_consumer) {
-          m_chunk_consumer->consume_chunk_packets(
-              chunk, *(stream.get()), packets_consumed, packets_unconsumed);
+          auto [status, packets_consumed, packets_unconsumed] =
+              m_chunk_consumer->consume_chunk_packets(chunk, *(stream.get()));
           stream->update_consumed_packets_stats(packets_consumed, packets_unconsumed);
         }
         break;
@@ -375,8 +373,7 @@ void IPOReceiverIONode::operator()() {
   }
   // main receive loop
   auto start_time = std::chrono::high_resolution_clock::now();
-  size_t packets_consumed = 0;
-  size_t packets_unconsumed = 0;
+
   while (likely(rc != ReturnStatus::failure && SignalHandler::get_received_signal() < 0)) {
     for (auto& stream : m_streams) {
       rc = stream->get_next_chunk(&chunk);
@@ -385,10 +382,10 @@ void IPOReceiverIONode::operator()() {
         break;
       }
       if (m_chunk_consumer) {
-        rc = m_chunk_consumer->consume_chunk_packets(
-            chunk, *(stream.get()), packets_consumed, packets_unconsumed);
+        auto [status, packets_consumed, packets_unconsumed] =
+            m_chunk_consumer->consume_chunk_packets(chunk, *(stream.get()));
         stream->update_consumed_packets_stats(packets_consumed, packets_unconsumed);
-        BREAK_ON_NO_SUCCESS(rc);
+        BREAK_ON_NO_SUCCESS(status);
       }
     }
 

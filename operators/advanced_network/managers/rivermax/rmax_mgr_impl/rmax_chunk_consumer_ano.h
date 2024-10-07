@@ -57,19 +57,17 @@ class RmaxChunkConsumerAno : public IIPOChunkConsumer {
   /**
    * @brief Consumes and processes packets from a given chunk.
    *
-   * This function processes the packets contained in the provided chunk and updates the
-   * consumed and unconsumed byte counts.
+   * This function processes the packets contained in the provided chunk and returns a tuple
+   * containing the return status, the number of consumed packets, and the number of unconsumed
+   * packets.
    *
    * @param chunk Reference to the IPOReceiveChunk containing the packets.
    * @param stream Reference to the IPOReceiveStream associated with the chunk.
-   * @param consumed_packets Reference to the size_t that will be updated with the number of
-   * consumed packets.
-   * @param unconsumed_packets Reference to the size_t that will be updated with the number of
-   * unconsumed packets.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
+   * consumed packets, and the number of unconsumed packets.
    */
-  ReturnStatus consume_chunk_packets(IPOReceiveChunk& chunk, IPOReceiveStream& stream,
-                                     size_t& consumed_packets, size_t& unconsumed_packets) override;
+  std::tuple<ReturnStatus, size_t, size_t> consume_chunk_packets(IPOReceiveChunk& chunk,
+                                                                 IPOReceiveStream& stream) override;
 
  protected:
   std::shared_ptr<RxPacketProcessor> m_packet_processor;
@@ -78,37 +76,28 @@ class RmaxChunkConsumerAno : public IIPOChunkConsumer {
 /**
  * @brief Consumes and processes packets from a given chunk.
  *
- * This function processes the packets contained in the provided chunk and updates the
- * consumed and unconsumed byte counts.
- *
- * No need to set initial values for consumed_packets and unconsumed_packets.
+ * This function processes the packets contained in the provided chunk and returns a tuple
+ * containing the return status, the number of consumed packets, and the number of unconsumed
+ * packets.
  *
  * @param chunk Reference to the IPOReceiveChunk containing the packets.
  * @param stream Reference to the IPOReceiveStream associated with the chunk.
- * @param consumed_packets Reference to the size_t that will be updated with the number of consumed
- * packets.
- * @param unconsumed_packets Reference to the size_t that will be updated with the number of
- * unconsumed packets.
- * @return ReturnStatus indicating the success or failure of the operation.
+ * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
+ * consumed packets, and the number of unconsumed packets.
  */
-inline ReturnStatus RmaxChunkConsumerAno::consume_chunk_packets(IPOReceiveChunk& chunk,
-                                                                IPOReceiveStream& stream,
-                                                                size_t& consumed_packets,
-                                                                size_t& unconsumed_packets) {
+inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_chunk_packets(
+    IPOReceiveChunk& chunk, IPOReceiveStream& stream) {
   if (m_packet_processor == nullptr) {
     HOLOSCAN_LOG_ERROR("Packet processor is not set");
-    return ReturnStatus::failure;
+    return {ReturnStatus::failure, 0, 0};
+    ;
   }
-
-  consumed_packets = 0;
 
   const auto chunk_size = chunk.get_completion_chunk_size();
   if (chunk_size == 0) {
-    unconsumed_packets = 0;
-    return ReturnStatus::success;
+    return {ReturnStatus::success, 0, 0};
+    ;
   }
-
-  unconsumed_packets = chunk_size;
 
   PacketsChunkParams params = {
       // header_ptr: Pointer to the header data
@@ -128,10 +117,7 @@ inline ReturnStatus RmaxChunkConsumerAno::consume_chunk_packets(IPOReceiveChunk&
 
   auto result = m_packet_processor->process_packets(params);
 
-  consumed_packets += result.processed_packets;
-  unconsumed_packets -= result.processed_packets;
-
-  return result.status;
+  return {result.status, result.processed_packets, chunk_size - result.processed_packets};
 }
 
 };  // namespace holoscan::ops

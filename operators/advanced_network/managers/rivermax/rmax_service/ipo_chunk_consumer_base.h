@@ -41,20 +41,17 @@ class IIPOChunkConsumer {
   /**
    * @brief Consumes and processes packets from a given chunk.
    *
-   * This function processes the packets contained in the provided chunk and updates the
-   * consumed and unconsumed byte counts.
+   * This function processes the packets contained in the provided chunk and returns a tuple
+   * containing the return status, the number of consumed packets, and the number of unconsumed
+   * packets.
    *
    * @param chunk Reference to the IPOReceiveChunk containing the packets.
    * @param stream Reference to the IPOReceiveStream associated with the chunk.
-   * @param consumed_packets Reference to the size_t that will be updated with the number of
-   * consumed packets.
-   * @param unconsumed_packets Reference to the size_t that will be updated with the number of
-   * unconsumed packets.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
+   * consumed packets, and the number of unconsumed packets.
    */
-  virtual ReturnStatus consume_chunk_packets(IPOReceiveChunk& chunk, IPOReceiveStream& stream,
-                                             size_t& consumed_packets,
-                                             size_t& unconsumed_packets) = 0;
+  virtual std::tuple<ReturnStatus, size_t, size_t> consume_chunk_packets(
+      IPOReceiveChunk& chunk, IPOReceiveStream& stream) = 0;
 };
 
 }  // namespace io_node
