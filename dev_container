@@ -303,7 +303,7 @@ get_conditional_options() {
     if [ -n "$video_id" ]; then
         conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
     fi
-    render_id=$(get_group_id rnder)
+    render_id=$(get_group_id render)
     if [ -n "$render_id" ]; then
         conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
     fi
