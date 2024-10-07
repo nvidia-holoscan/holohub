@@ -89,8 +89,8 @@ void AppIPOReceiveStream::print_statistics(
       1.e6;
 
   ss << "[stream_index " << std::setw(3) << get_id() << "]"
-     << " Got " << std::setw(7) << m_statistic.rx_counter << " packets during "
-     << std::fixed << std::setprecision(1) << std::setw(4) << duration_sec << " sec | ";
+     << " Got " << std::setw(7) << m_statistic.rx_counter << " packets during " << std::fixed
+     << std::setprecision(1) << std::setw(4) << duration_sec << " sec | ";
 
   ss << std::fixed << std::setprecision(2);
   double bitrate_Mbps = m_statistic.get_bitrate_Mbps();

@@ -23,7 +23,6 @@ using namespace ral::lib::services;
 namespace ral {
 namespace services {
 
-
 struct RmaxBaseServiceConfig {
   std::shared_ptr<AppSettings> app_settings;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib;
@@ -38,7 +37,7 @@ struct RmaxBaseServiceConfig {
  * to ensure that all services start together.
  */
 class IRmaxServicesSynchronizer {
-public:
+ public:
   virtual ~IRmaxServicesSynchronizer() = default;
   /**
    * @brief Wait for all services to reach the start point and then proceed.

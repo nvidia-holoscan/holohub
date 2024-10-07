@@ -113,10 +113,8 @@ ReturnStatus RmaxIPOReceiverService::run(IRmaxServicesSynchronizer* sync_obj) {
     distribute_memory_for_receivers();
 
     m_service_running = true;
-    
-    if (sync_obj) {
-      sync_obj->wait_for_start();
-    }
+
+    if (sync_obj) { sync_obj->wait_for_start(); }
 
     run_threads(m_receivers);
 

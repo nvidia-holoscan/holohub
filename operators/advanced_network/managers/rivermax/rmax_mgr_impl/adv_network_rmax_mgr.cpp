@@ -29,7 +29,6 @@
 #include <tuple>
 #include <cassert>
 
-
 #include "adv_network_rmax_mgr.h"
 #include "rmax_mgr_impl/burst_manager.h"
 #include "rmax_mgr_impl/packet_processor.h"
@@ -801,8 +800,9 @@ RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
 }
 
 class RmaxServicesSynchronizer : public IRmaxServicesSynchronizer {
-public:
-  explicit RmaxServicesSynchronizer(std::size_t count) : threshold(count), count(count), generation(0), ready(false), waiting_threads(0) {}
+ public:
+  explicit RmaxServicesSynchronizer(std::size_t count)
+      : threshold(count), count(count), generation(0), ready(false), waiting_threads(0) {}
 
   void wait_for_start() override {
     wait_at_barrier();
@@ -819,13 +819,13 @@ public:
     std::unique_lock<std::mutex> lock(mtx);
     cv.wait(lock, [this] { return waiting_threads == threshold; });
   }
-    
+
   void wait_until_all_are_running() {
     std::unique_lock<std::mutex> lock(mtx);
     cv.wait(lock, [this] { return waiting_threads == 0; });
   }
 
-private:
+ private:
   void wait_at_barrier() {
     std::unique_lock<std::mutex> lock(mtx);
     auto gen = generation;
@@ -844,11 +844,10 @@ private:
     cv.notify_all();
     cv.wait(lock, [this] { return ready; });
     waiting_threads--;
-    if (waiting_threads == 0) {
-      cv.notify_all();
-    }
+    if (waiting_threads == 0) { cv.notify_all(); }
   }
-private:
+
+ private:
   std::mutex mtx;
   std::condition_variable cv;
   std::size_t threshold;
@@ -857,8 +856,6 @@ private:
   bool ready;
   std::size_t waiting_threads;
 };
-
-
 
 /**
  * @brief Runs the Rmax manager.
@@ -869,10 +866,10 @@ private:
  */
 void RmaxMgr::RmaxMgrImpl::run() {
   HOLOSCAN_LOG_INFO("Starting RX Services");
-  
+
   std::size_t num_services = rx_services.size();
   RmaxServicesSynchronizer services_sync(num_services);
-  
+
   for (const auto& entry : rx_services) {
     uint32_t key = entry.first;
     auto& rx_service = entry.second;

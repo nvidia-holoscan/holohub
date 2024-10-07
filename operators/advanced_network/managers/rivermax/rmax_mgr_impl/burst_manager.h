@@ -245,8 +245,7 @@ class RmaxBurst : public AdvNetBurstParams {
    * @param queue_id The queue ID.
    * @param max_packets_in_burst The maximum number of packets in the burst.
    */
-  RmaxBurst(uint16_t port_id, uint16_t queue_id,
-            uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
+  RmaxBurst(uint16_t port_id, uint16_t queue_id, uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
       : m_max_num_packets(max_packets_in_burst) {
     hdr.hdr.port_id = port_id;
     hdr.hdr.q_id = queue_id;
@@ -261,7 +260,6 @@ class RmaxBurst : public AdvNetBurstParams {
  */
 class RmaxBurst::BurstHandler {
  public:
-
   /**
    * @brief Constructs a BurstHandler object.
    *
