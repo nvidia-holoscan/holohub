@@ -84,9 +84,24 @@ ReturnStatus AppIPOReceiveStream::get_next_chunk(IPOReceiveChunk* chunk) {
 void AppIPOReceiveStream::print_statistics(
     std::ostream& out, const std::chrono::high_resolution_clock::duration& duration) const {
   std::stringstream ss;
+  double duration_sec =
+      static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) /
+      1.e6;
+
   ss << "[stream_index " << std::setw(3) << get_id() << "]"
-     << " Got " << std::setw(7) << m_statistic.rx_counter << " packets |"
-     << " dropped: ";
+     << " Got " << std::setw(7) << m_statistic.rx_counter << " packets during "
+     << std::fixed << std::setprecision(1) << std::setw(4) << duration_sec << " sec | ";
+
+  ss << std::fixed << std::setprecision(2);
+  double bitrate_Mbps = m_statistic.get_bitrate_Mbps();
+
+  if (bitrate_Mbps > 1000.) {
+    ss << std::setw(4) << (bitrate_Mbps / 1000.) / duration_sec << " Gbps |";
+  } else {
+    ss << std::setw(4) << bitrate_Mbps / duration_sec << " Mbps |";
+  }
+
+  ss << " dropped: ";
   for (uint32_t s_index = 0; s_index < m_paths.size(); ++s_index) {
     if (s_index > 0) { ss << ", "; }
     ss << m_path_stats[s_index].rx_dropped + m_statistic.rx_dropped;
@@ -97,18 +112,6 @@ void AppIPOReceiveStream::print_statistics(
      << " lost: " << m_statistic.rx_dropped << " |"
      << " exceed MD: " << m_statistic.rx_exceed_md << " |"
      << " bad RTP hdr: " << m_statistic.rx_corrupt_rtp_header << " | ";
-  ss << std::fixed << std::setprecision(2);
-  double bitrate_Mbps = m_statistic.get_bitrate_Mbps();
-
-  double duration_sec =
-      static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) /
-      1.e6;
-  if (bitrate_Mbps > 1000.) {
-    ss << std::setw(4) << (bitrate_Mbps / 1000.) / duration_sec << " Gbps during ";
-  } else {
-    ss << std::setw(4) << bitrate_Mbps / duration_sec << " Mbps during ";
-  }
-  ss << std::setw(4) << duration_sec << " sec";
 
   for (uint32_t s_index = 0; s_index < m_paths.size(); ++s_index) {
     ss << " | " << m_paths[s_index].flow.get_destination_ip() << ":"
