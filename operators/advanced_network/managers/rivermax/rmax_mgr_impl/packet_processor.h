@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <tuple>
 
 #include "rmax_ano_data_types.h"
 #include "burst_manager.h"
@@ -40,11 +41,6 @@ struct PacketsChunkParams {
   size_t payload_stride_size;
 };
 
-struct PacketsChunkProcessResult {
-  size_t processed_packets;
-  ReturnStatus status;
-};
-
 /**
  * @brief Interface for packet processors.
  *
@@ -63,12 +59,12 @@ class IPacketProcessor {
    * @brief Processes packets.
    *
    * This function processes the packets contained in the provided arrays and returns the
-   * number of processed packets along with the status.
+   * status along with the number of processed packets.
    *
    * @param params Struct containing packet processing parameters.
-   * @return ProcessResult containing the number of processed packets and the status.
+   * @return A tuple containing the status and the number of processed packets.
    */
-  virtual PacketsChunkProcessResult process_packets(const PacketsChunkParams& params) = 0;
+  virtual std::tuple<ReturnStatus, size_t> process_packets(const PacketsChunkParams& params) = 0;
 };
 
 /**
@@ -97,22 +93,23 @@ class RxPacketProcessor : public IPacketProcessor {
    * @brief Processes packets.
    *
    * This function processes the packets contained in the provided arrays and returns the
-   * number of processed packets along with the status.
+   * status along with the number of processed packets.
    *
    * @param params Struct containing packet processing parameters.
-   * @return ProcessResult containing the number of processed packets and the status.
+   * @return A tuple containing the status and the number of processed packets.
    */
-  PacketsChunkProcessResult process_packets(const PacketsChunkParams& params) override {
-    PacketsChunkProcessResult result = {0, ReturnStatus::success};
+  std::tuple<ReturnStatus, size_t> process_packets(const PacketsChunkParams& params) override {
+    size_t processed_packets = 0;
+    ReturnStatus status = ReturnStatus::success;
 
-    if (params.chunk_size == 0) { return result; }
+    if (params.chunk_size == 0) { return {status, processed_packets}; }
 
     auto remaining_packets = params.chunk_size;
 
-    result.status = m_rx_burst_manager->set_next_chunk_params(
+    status = m_rx_burst_manager->set_next_chunk_params(
         params.chunk_size, params.hds_on, params.header_stride_size, params.payload_stride_size);
 
-    if (result.status != ReturnStatus::success) { return result; }
+    if (status != ReturnStatus::success) { return {status, processed_packets}; }
 
     auto header_ptr = params.header_ptr;
     auto payload_ptr = params.payload_ptr;
@@ -121,22 +118,22 @@ class RxPacketProcessor : public IPacketProcessor {
       RmaxPacketData rx_packet_data = {
           header_ptr,
           payload_ptr,
-          params.packet_info_array[result.processed_packets].get_packet_sub_block_size(0),
-          params.packet_info_array[result.processed_packets].get_packet_sub_block_size(1),
-          {params.packet_info_array[result.processed_packets].get_packet_flow_tag(),
-           params.packet_info_array[result.processed_packets].get_packet_timestamp()}};
+          params.packet_info_array[processed_packets].get_packet_sub_block_size(0),
+          params.packet_info_array[processed_packets].get_packet_sub_block_size(1),
+          {params.packet_info_array[processed_packets].get_packet_flow_tag(),
+           params.packet_info_array[processed_packets].get_packet_timestamp()}};
 
-      result.status = m_rx_burst_manager->submit_next_packet(rx_packet_data);
+      status = m_rx_burst_manager->submit_next_packet(rx_packet_data);
 
-      if (result.status != ReturnStatus::success) { return result; }
+      if (status != ReturnStatus::success) { return {status, processed_packets}; }
 
-      result.processed_packets++;
+      processed_packets++;
       remaining_packets--;
       header_ptr += params.header_stride_size;
       payload_ptr += params.payload_stride_size;
     }
 
-    return result;
+    return {status, processed_packets};
   }
 
  private:

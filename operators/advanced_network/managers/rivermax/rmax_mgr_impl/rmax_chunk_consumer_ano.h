@@ -115,9 +115,9 @@ inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_ch
       stream.get_payload_stride_size(),
   };
 
-  auto result = m_packet_processor->process_packets(params);
+  auto [status, processed_packets] = m_packet_processor->process_packets(params);
 
-  return {result.status, result.processed_packets, chunk_size - result.processed_packets};
+  return {status, processed_packets, chunk_size - processed_packets};
 }
 
 };  // namespace holoscan::ops
