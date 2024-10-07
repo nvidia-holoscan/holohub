@@ -23,8 +23,6 @@
 #include <assert.h>
 #include <sys/time.h>
 
-#define MEASURE_PERFORMANCE 0
-
 #define BURST_ACCESS_METHOD_ORIGINAL 0
 #define BURST_ACCESS_METHOD_RAW_PTR 1
 #define BURST_ACCESS_METHOD_DIRECT_ACCESS 2
@@ -47,14 +45,6 @@ namespace holoscan::ops {
     _holoscan_cuda_err;                                                                         \
   })
 
-#if MEASURE_PERFORMANCE
-// Step 2: Define a struct for measurement results
-struct Measurement {
-  std::chrono::duration<double, std::micro> time;
-  int64_t parameter;
-};
-#endif
-
 #define ADV_NETWORK_MANAGER_WARMUP_KERNEL 1
 
 class AdvNetworkingBenchRmaxRxOp : public Operator {
@@ -70,9 +60,6 @@ class AdvNetworkingBenchRmaxRxOp : public Operator {
                       ttl_packets_dropped_);
 
     HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
-#if MEASURE_PERFORMANCE
-    print_measurements(time_perfomance_results);
-#endif
     freeResources();
   }
 
@@ -180,10 +167,6 @@ class AdvNetworkingBenchRmaxRxOp : public Operator {
       return;
     }
 
-#if MEASURE_PERFORMANCE
-    auto start = std::chrono::high_resolution_clock::now();
-#endif
-
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_ORIGINAL)
     auto burst = burst_opt.value();
 #else
@@ -250,11 +233,6 @@ class AdvNetworkingBenchRmaxRxOp : public Operator {
         ttl_bytes_in_cur_batch_ += len + sizeof(UDPIPV4Pkt);
       }
     }
-#if MEASURE_PERFORMANCE
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::micro> duration = end - start;
-    time_perfomance_results.push_back({duration, burst_size});
-#endif
 
     aggr_pkts_recv_ += burst_size;
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_ORIGINAL)
@@ -331,21 +309,6 @@ class AdvNetworkingBenchRmaxRxOp : public Operator {
     }
   }
 
-#if MEASURE_PERFORMANCE
-  void print_measurements(const std::vector<Measurement>& results) {
-    std::cout << "Time (ms) | Parameter\n";
-    std::cout << "---------------------\n";
-    double total_time = 0;
-    for (const auto& result : results) {
-      std::cout << result.time.count() << " | " << result.parameter << "\n";
-      total_time += result.time.count();
-    }
-    double average_time = results.empty() ? 0 : total_time / results.size();
-    std::cout << "---------------------\n";
-    std::cout << "Average time: " << average_time << " us\n";
-  }
-#endif
-
  private:
   static constexpr int num_concurrent = 10;   // Number of concurrent batches processing
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
@@ -378,9 +341,6 @@ class AdvNetworkingBenchRmaxRxOp : public Operator {
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   int cur_idx = 0;
-#if MEASURE_PERFORMANCE
-  std::vector<Measurement> time_perfomance_results;
-#endif
 };
 
 }  // namespace holoscan::ops
