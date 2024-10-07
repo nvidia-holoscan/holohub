@@ -96,7 +96,7 @@ class RmaxIPOReceiverService : public RmaxBaseService {
    */
   explicit RmaxIPOReceiverService(const RmaxIPOReceiverConfig& cfg);
   virtual ~RmaxIPOReceiverService() = default;
-  ReturnStatus run() override;
+  ReturnStatus run(IRmaxServicesSynchronizer* sync_obj = nullptr) override;
   bool is_alive() { return m_service_running; }
   bool set_chunk_consumer(IIPOChunkConsumer* chunk_consumer);
 

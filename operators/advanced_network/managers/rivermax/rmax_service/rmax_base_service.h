@@ -23,9 +23,30 @@ using namespace ral::lib::services;
 namespace ral {
 namespace services {
 
+
 struct RmaxBaseServiceConfig {
   std::shared_ptr<AppSettings> app_settings;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib;
+};
+
+/**
+ * @class IRmaxServicesSynchronizer
+ * @brief Interface for synchronizing Rmax services.
+ *
+ * This interface provides a method for synchronizing the start of multiple Rmax services.
+ * Implementations of this interface should provide the necessary synchronization mechanisms
+ * to ensure that all services start together.
+ */
+class IRmaxServicesSynchronizer {
+public:
+  virtual ~IRmaxServicesSynchronizer() = default;
+  /**
+   * @brief Wait for all services to reach the start point and then proceed.
+   *
+   * This method should be implemented to provide the necessary synchronization
+   * to ensure that all services reach the start point before any of them proceed.
+   */
+  virtual void wait_for_start() = 0;
 };
 
 constexpr int INVALID_CORE_NUMBER = -1;
@@ -77,7 +98,7 @@ class RmaxBaseService {
    *
    * @return: Status of the operation.
    */
-  virtual ReturnStatus run() = 0;
+  virtual ReturnStatus run(IRmaxServicesSynchronizer* sync_obj = nullptr) = 0;
 
   virtual ReturnStatus get_init_status() const { return m_obj_init_status; }
 

@@ -92,7 +92,7 @@ ReturnStatus RmaxIPOReceiverService::initialize_connection_parameters() {
   return ReturnStatus::success;
 }
 
-ReturnStatus RmaxIPOReceiverService::run() {
+ReturnStatus RmaxIPOReceiverService::run(IRmaxServicesSynchronizer* sync_obj) {
   if (m_obj_init_status != ReturnStatus::obj_init_success) { return m_obj_init_status; }
 
   try {
@@ -113,6 +113,10 @@ ReturnStatus RmaxIPOReceiverService::run() {
     distribute_memory_for_receivers();
 
     m_service_running = true;
+    
+    if (sync_obj) {
+      sync_obj->wait_for_start();
+    }
 
     run_threads(m_receivers);
 
