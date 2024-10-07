@@ -112,21 +112,25 @@ class RmaxBurst : public AdvNetBurstParams {
   }
 
   /**
-   * @brief Updates the burst info.
+   * @brief Resets the burst packets
+   */
+  inline void reset_burst_packets() { set_num_packets(0); }
+
+  /**
+   * @brief Resets the burst and sets its parameters.
    *
    * @param hds_on Indicates if HDS is on.
    * @param header_stride_size The header stride size.
    * @param payload_stride_size The payload stride size.
    * @param gpu_direct Indicates if GPU direct is enabled.
    */
-  inline void update_burst_info(bool hds_on, size_t header_stride_size, size_t payload_stride_size,
-                                bool gpu_direct) {
+  inline void reset_burst_with_updated_params(bool hds_on, size_t header_stride_size,
+                                              size_t payload_stride_size, bool gpu_direct) {
+    set_num_packets(0);
+
     auto burst_info = get_burst_info();
 
     if (burst_info == nullptr) { return; }
-
-    // Update burst info resets the number of packets in the burst
-    set_num_packets(0);
 
     burst_info->hds_on = hds_on;
     burst_info->header_stride_size = header_stride_size;
@@ -181,19 +185,30 @@ class RmaxBurst : public AdvNetBurstParams {
   inline uint16_t get_num_packets() const { return hdr.hdr.num_pkts; }
 
   /**
-   * @brief Sets the number of packets in a burst.
+   * @brief Appends a packet to the burst.
    *
-   * @param num_pkts The number of packets to set.
+   * @param packet_data The data of the packet to append.
+   *
+   * @throws runtime_error If the maximum number of packets is exceeded.
    */
-  inline void set_num_packets(uint16_t num_pkts) { hdr.hdr.num_pkts = num_pkts; }
+  inline void append_packet(const RmaxPacketData& packet_data) {
+    if (hdr.hdr.num_pkts >= m_max_num_packets) {
+      throw std::runtime_error("Maximum number of packets exceeded (num_packets: " +
+                               std::to_string(m_max_num_packets) + ")");
+    }
+    set_packet_data(get_num_packets(), packet_data);
+    hdr.hdr.num_pkts += 1;
+  }
 
+ private:
   /**
    * @brief Appends a packet to the burst.
    *
    * @param packet_ind_in_out_burst The index of the packet in the burst.
+   *                                Index boudary checks are not performed in this function.
    * @param packet_data The data of the packet to append.
    */
-  inline void append_packet(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
+  inline void set_packet_data(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
     auto burst_info = get_burst_info();
 
     if (burst_info->burst_flags & BurstFlags::INFO_PER_PACKET) {
@@ -216,7 +231,13 @@ class RmaxBurst : public AdvNetBurstParams {
     }
   }
 
- private:
+  /**
+   * @brief Sets the number of packets in a burst.
+   *
+   * @param num_pkts The number of packets to set.
+   */
+  inline void set_num_packets(uint16_t num_pkts) { hdr.hdr.num_pkts = num_pkts; }
+
   /**
    * @brief Constructs an RmaxBurst object.
    *
@@ -333,38 +354,33 @@ class RxBurstsManager {
    * @return ReturnStatus indicating the success or failure of the operation.
    */
   inline ReturnStatus submit_next_packet(const RmaxPacketData& packet_data) {
-    // Consider to add check for pointers
-    std::shared_ptr<RmaxBurst> cur_burst = get_or_allocate_current_burst();
-    if (cur_burst == nullptr) {
+    get_or_allocate_current_burst();
+    if (m_cur_out_burst == nullptr) {
       HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
       return ReturnStatus::no_free_chunks;
     }
 
-    size_t packet_ind_in_out_burst = cur_burst->get_num_packets();
-    cur_burst->append_packet(packet_ind_in_out_burst, packet_data);
-    packet_ind_in_out_burst++;
-    cur_burst->set_num_packets(packet_ind_in_out_burst);
+    m_cur_out_burst->append_packet(packet_data);
 
-    // Enqueue the current burst if it meets the minimum size requirement
-    if (packet_ind_in_out_burst >= m_burst_out_size) {
-      bool res = m_rx_bursts_out_queue->enqueue_burst(cur_burst);
-      reset_current_burst();
-      if (!res) {
-        HOLOSCAN_LOG_ERROR("Failed to enqueue burst");
-        return ReturnStatus::failure;
-      }
+    if (m_cur_out_burst->get_num_packets() >= m_burst_out_size) {
+      return enqueue_and_reset_current_burst();
     }
 
     return ReturnStatus::success;
   }
 
   /**
-   * @brief Gets an RX burst.
+   * @brief Gets an RX burst. Do not use in a case shared queue is used
    *
    * @param burst Pointer to the burst parameters.
+   * @throws logic_error If shared output queue is used.
    * @return ReturnStatus indicating the success or failure of the operation.
    */
   inline ReturnStatus get_rx_burst(AdvNetBurstParams** burst) {
+    if (m_using_shared_out_queue) {
+      throw std::logic_error("Cannot get RX burst when using shared output queue");
+    }
+
     auto out_burst = m_rx_bursts_out_queue->dequeue_burst().get();
     *burst = static_cast<AdvNetBurstParams*>(out_burst);
     if (*burst == nullptr) { return ReturnStatus::failure; }
@@ -386,7 +402,6 @@ class RxBurstsManager {
    */
   inline std::shared_ptr<RmaxBurst> allocate_burst() {
     auto burst = m_rx_bursts_mempool->dequeue_burst();
-    if (burst != nullptr) { burst->set_num_packets(0); }
     return burst;
   }
 
@@ -402,10 +417,26 @@ class RxBurstsManager {
         HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
         return nullptr;
       }
-      m_cur_out_burst->update_burst_info(
+      m_cur_out_burst->reset_burst_with_updated_params(
           m_hds_on, m_header_stride_size, m_payload_stride_size, m_gpu_direct);
     }
     return m_cur_out_burst;
+  }
+
+  inline ReturnStatus enqueue_and_reset_current_burst() {
+    if (m_cur_out_burst == nullptr) {
+      HOLOSCAN_LOG_ERROR("Trying to enqueue an empty burst");
+      return ReturnStatus::failure;
+    }
+
+    bool res = m_rx_bursts_out_queue->enqueue_burst(m_cur_out_burst);
+    reset_current_burst();
+    if (!res) {
+      HOLOSCAN_LOG_ERROR("Failed to enqueue burst");
+      return ReturnStatus::failure;
+    }
+
+    return ReturnStatus::success;
   }
 
   /**

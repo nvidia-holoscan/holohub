@@ -86,7 +86,7 @@ class RxPacketProcessor : public IPacketProcessor {
    *
    * @param rx_burst_manager Shared pointer to the burst manager.
    */
-  RxPacketProcessor(std::shared_ptr<RxBurstsManager> rx_burst_manager)
+  explicit RxPacketProcessor(std::shared_ptr<RxBurstsManager> rx_burst_manager)
       : m_rx_burst_manager(rx_burst_manager) {
     if (m_rx_burst_manager == nullptr) {
       throw std::invalid_argument("RxPacketProcessor: rx_burst_manager is nullptr");
@@ -105,12 +105,10 @@ class RxPacketProcessor : public IPacketProcessor {
   PacketsChunkProcessResult process_packets(const PacketsChunkParams& params) override {
     PacketsChunkProcessResult result = {0, ReturnStatus::success};
 
-    // Return success if there are no packets to process
     if (params.chunk_size == 0) { return result; }
 
     auto remaining_packets = params.chunk_size;
 
-    // Inform manager about a new chunk and its params
     result.status = m_rx_burst_manager->set_next_chunk_params(
         params.chunk_size, params.hds_on, params.header_stride_size, params.payload_stride_size);
 
@@ -119,7 +117,6 @@ class RxPacketProcessor : public IPacketProcessor {
     auto header_ptr = params.header_ptr;
     auto payload_ptr = params.payload_ptr;
 
-    // Process packets one by one until all packets are processed
     while (remaining_packets > 0) {
       RmaxPacketData rx_packet_data = {
           header_ptr,
