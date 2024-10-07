@@ -18,6 +18,7 @@
 #include <atomic>
 #include <cmath>
 #include <complex>
+#include <condition_variable>
 #include <chrono>
 #include <iostream>
 #include <map>
@@ -27,6 +28,7 @@
 #include <vector>
 #include <tuple>
 #include <cassert>
+
 
 #include "adv_network_rmax_mgr.h"
 #include "rmax_mgr_impl/burst_manager.h"
@@ -798,6 +800,66 @@ RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
   rx_bursts_out_queue.reset();
 }
 
+class RmaxServicesSynchronizer : public IRmaxServicesSynchronizer {
+public:
+  explicit RmaxServicesSynchronizer(std::size_t count) : threshold(count), count(count), generation(0), ready(false), waiting_threads(0) {}
+
+  void wait_for_start() override {
+    wait_at_barrier();
+    wait_for_signal_to_run();
+  }
+
+  void start_all() {
+    std::lock_guard<std::mutex> lock(mtx);
+    ready = true;
+    cv.notify_all();
+  }
+
+  void wait_until_all_ready_to_run() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [this] { return waiting_threads == threshold; });
+  }
+    
+  void wait_until_all_are_running() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [this] { return waiting_threads == 0; });
+  }
+
+private:
+  void wait_at_barrier() {
+    std::unique_lock<std::mutex> lock(mtx);
+    auto gen = generation;
+    if (--count == 0) {
+      generation++;
+      count = threshold;
+      cv.notify_all();
+    } else {
+      cv.wait(lock, [this, gen] { return gen != generation; });
+    }
+  }
+
+  void wait_for_signal_to_run() {
+    std::unique_lock<std::mutex> lock(mtx);
+    waiting_threads++;
+    cv.notify_all();
+    cv.wait(lock, [this] { return ready; });
+    waiting_threads--;
+    if (waiting_threads == 0) {
+      cv.notify_all();
+    }
+  }
+private:
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::size_t threshold;
+  std::size_t count;
+  std::size_t generation;
+  bool ready;
+  std::size_t waiting_threads;
+};
+
+
+
 /**
  * @brief Runs the Rmax manager.
  *
@@ -807,6 +869,10 @@ RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
  */
 void RmaxMgr::RmaxMgrImpl::run() {
   HOLOSCAN_LOG_INFO("Starting RX Services");
+  
+  std::size_t num_services = rx_services.size();
+  RmaxServicesSynchronizer services_sync(num_services);
+  
   for (const auto& entry : rx_services) {
     uint32_t key = entry.first;
     auto& rx_service = entry.second;
@@ -814,11 +880,15 @@ void RmaxMgr::RmaxMgrImpl::run() {
       HOLOSCAN_LOG_ERROR("Rx Service failed to initialize, cannot run");
       return;
     }
-    rx_service_threads.emplace_back([rx_service_ptr = rx_service.get()]() {
-      ReturnStatus status = rx_service_ptr->run();
+    rx_service_threads.emplace_back([rx_service_ptr = rx_service.get(), &services_sync]() {
+      ReturnStatus status = rx_service_ptr->run(&services_sync);
       // TODO: Handle the status if needed
     });
   }
+  services_sync.wait_until_all_ready_to_run();
+  services_sync.start_all();
+  services_sync.wait_until_all_are_running();
+
   HOLOSCAN_LOG_INFO("Done starting workers");
 }
 
