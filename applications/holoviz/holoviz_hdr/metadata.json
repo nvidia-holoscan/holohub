@@ -1,9 +1,9 @@
 {
 	"application": {
-		"name": "{{ cookiecutter.project_name }}",
+		"name": "Holoviz HDR",
 		"authors": [
 			{
-				"name": "{{ cookiecutter.full_name }}",
+				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+			"minimum_required_version": "2.5",
 			"tested_versions": [
-				"{{ cookiecutter.holoscan_version }}"
+				"2.5"
 			]
 		},
 		"platforms": [
@@ -23,12 +23,12 @@
 			"arm64"
 		],
 		"tags": [
-			"{{ cookiecutter.project_name }}"{{ cookiecutter.tags }}
+			"Holoviz HDR","BT.2020","ST.2084","EOTF"
 		],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/{{ cookiecutter.project_slug }}",
+			"command": "<holohub_app_bin>/holoviz_hdr",
 			"workdir": "holohub_bin"
 		}
 	}

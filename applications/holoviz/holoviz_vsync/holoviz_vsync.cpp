@@ -37,27 +37,24 @@ class SourceOp : public Operator {
 
     data_.resize(strides_[0] * shape_.dimension(0));
 
-    // create an RGB image with random values
+    // create an RGB image with smooth color transitions
     for (size_t y = 0; y < shape_.dimension(0); ++y) {
       for (size_t x = 0; x < shape_.dimension(1); ++x) {
-        for (size_t component = 0; component < shape_.dimension(2); ++component) {
-          float value;
+        float rgb[3];
+        for (size_t component = 0; component < 3; ++component) {
           switch (component) {
             case 0:
-              value = float(x) / shape_.dimension(1);
+              rgb[component] = float(x) / shape_.dimension(1);
               break;
             case 1:
-              value = float(y) / shape_.dimension(0);
+              rgb[component] = float(y) / shape_.dimension(0);
               break;
             case 2:
-              value = 1.f - (float(x) / shape_.dimension(1));
-              break;
-            default:
-              value = 1.f;
+              rgb[component] = 1.f - (float(x) / shape_.dimension(1));
               break;
           }
-
-          data_[y * strides_[0] + x * strides_[1] + component] = uint8_t((value * 255.f) + 0.5f);
+          data_[y * strides_[0] + x * strides_[1] + component] =
+              uint8_t((rgb[component] * 255.f) + 0.5f);
         }
       }
     }

@@ -1014,6 +1014,7 @@
             "description": "Select Holoviz example program",
             "type": "pickString",
             "options": [
+                "holoviz_hdr",
                 "holoviz_srgb",
                 "holoviz_vsync",
                 "holoviz_yuv",

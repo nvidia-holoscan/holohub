@@ -5,5 +5,6 @@
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
     "project_description": "Holoviz Boilerplate contains all the boilerplate you need to create a Holoviz example application.",
     "holoscan_version": "2.3",
-    "example": [ "sRGB", "vsync", "YUV" ]
+    "example": [ "sRGB", "vsync", "YUV", "HDR" ],
+    "tags": ""
 }
