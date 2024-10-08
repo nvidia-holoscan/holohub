@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-{%- set example = namespace(print_fps = false, input_spec = false) %}
-{%- if cookiecutter.example == "sRGB" %}
+{%- set example = namespace(print_fps = false, input_spec = false, rgb_data_type = "uint8_t", color_components = 3) %}
+{%- if cookiecutter.example == "HDR" %}
+  {% set example.rgb_data_type = "float" %}
+  {% set example.color_components = 4 %}
+{%- elif cookiecutter.example == "sRGB" %}
   {% set example.input_spec = true %}
 {%- elif cookiecutter.example == "vsync" %}
   {% set example.print_fps = true %}
@@ -42,45 +45,90 @@ class SourceOp : public Operator {
 
   void initialize() override {
     const int32_t width = 64, height = 64;
-    shape_ = nvidia::gxf::Shape{width, height, 3};
+    shape_ = nvidia::gxf::Shape{width, height, {{ example.color_components }}};
+{%- if example.rgb_data_type == "uint8_t" %}
     element_type_ = nvidia::gxf::PrimitiveType::kUnsigned8;
+{%- elif example.rgb_data_type == "float" %}
+    element_type_ = nvidia::gxf::PrimitiveType::kFloat32;
+{%- endif %}
     element_size_ = nvidia::gxf::PrimitiveTypeSize(element_type_);
     strides_ = nvidia::gxf::ComputeTrivialStrides(shape_, element_size_);
 
     data_.resize(strides_[0] * shape_.dimension(0));
 
-    // create an RGB image with random values
+    // create an RGB image with smooth color transitions
     for (size_t y = 0; y < shape_.dimension(0); ++y) {
       for (size_t x = 0; x < shape_.dimension(1); ++x) {
-        for (size_t component = 0; component < shape_.dimension(2); ++component) {
-          float value;
+        float rgb[3];
+        for (size_t component = 0; component < 3; ++component) {
           switch (component) {
             case 0:
-              value = float(x) / shape_.dimension(1);
+              rgb[component] = float(x) / shape_.dimension(1);
               break;
             case 1:
-              value = float(y) / shape_.dimension(0);
+              rgb[component] = float(y) / shape_.dimension(0);
               break;
             case 2:
-              value = 1.f - (float(x) / shape_.dimension(1));
-              break;
-            default:
-              value = 1.f;
+              rgb[component] = 1.f - (float(x) / shape_.dimension(1));
               break;
           }
 {%- if cookiecutter.example == "sRGB" %}
 
           // inverse sRGB EOTF conversion from linear to non-linear
-          // https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.html
-          if (value < 0.04045f) {
-            value /= 12.92f;
+          // https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.html#TRANSFER_SRGB
+          if (rgb[component] < 0.04045f) {
+            rgb[component] /= 12.92f;
           } else {
-            value = std::pow(((value + 0.055f) / 1.055f), 2.4f);
+            rgb[component] = std::pow(((rgb[component] + 0.055f) / 1.055f), 2.4f);
           }
 {%- endif %}
+{%- if cookiecutter.example == "HDR" %}
 
-          data_[y * strides_[0] + x * strides_[1] + component] = uint8_t((value * 255.f) + 0.5f);
+          // create two regions, the top region has 100 nits
+          // the bottom region starts at 100 nits and ends at 500 nits
+          constexpr float max_luminance = 10000.f;
+          if (y < height / 2) {
+            rgb[component] *= 100.f / max_luminance;
+          } else {
+            rgb[component] *= (100.f + (float(x) / shape_.dimension(1)) * 500.f) / max_luminance;
+          }
         }
+
+        // use the RGB data to generate data in HDR10 (BT2020 color space) with SMPTE ST2084
+        // Perceptual Quantizer (PQ) EOTF
+
+        float rgb_2020[3];
+        // linear to BT2020 color space conversion
+        // https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.html#PRIMARIES_BT2020
+        rgb_2020[0] = std::clamp(
+          (0.636958f * rgb[0]) + (0.144617f * rgb[1]) + (0.168881f * rgb[2]), 0.f, 1.f);
+        rgb_2020[1] = std::clamp(
+          (0.262700f * rgb[0]) + (0.677998f * rgb[1]) + (0.059302f * rgb[2]), 0.f, 1.f);
+        rgb_2020[2] = std::clamp(
+          (0.000000f * rgb[0]) + (0.028073f * rgb[1]) + (1.060985f * rgb[2]), 0.f, 1.f);
+
+        // apply inverse SMPTE ST2084 Perceptual Quantizer (PQ) EOTF
+        constexpr float m1 = 2610.f / 16384.f;
+        constexpr float m2 = 2523.f / 4096.f * 128.f;
+        constexpr float c2 = 2413.f / 4096.f * 32.f;
+        constexpr float c3 = 2392.f / 4096.f * 32.f;
+        constexpr float c1 = c3 - c2 + 1.f;
+
+        for (size_t component = 0; component < 3; ++component) {
+          float lp = std::pow(rgb_2020[component], m1);
+          float value = std::pow((c1 + c2 * lp) / (1.f + c3 * lp), m2);
+
+          *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(
+              data_.data()) + y * strides_[0] + x * strides_[1] + component * strides_[2]) = value;
+        }
+        // alpha
+        *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(
+              data_.data()) + y * strides_[0] + x * strides_[1] + 3 * strides_[2]) = 1.f;
+
+{%- else %}
+         data_[y * strides_[0] + x * strides_[1] + component] = uint8_t((rgb[component] * 255.f) + 0.5f);
+        }
+{%- endif %}
       }
     }
 
@@ -188,7 +236,7 @@ class SourceOp : public Operator {
   nvidia::gxf::PrimitiveType element_type_;
   uint64_t element_size_;
   nvidia::gxf::Tensor::stride_array_t strides_;
-  std::vector<uint8_t> data_;
+  std::vector<{{ example.rgb_data_type }}> data_;
 {%- if cookiecutter.example == "YUV" %}
   std::vector<uint8_t> yuv_data_;
   nvidia::gxf::VideoBufferInfo video_buffer_info_{};
@@ -237,6 +285,10 @@ class App : public holoscan::Application {
         "holoviz",
 {%- if example.input_spec %}
         Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{input_spec}),
+{%- endif %}
+{%- if cookiecutter.example == "HDR" %}
+        // select the HDR10 ST2084 display color space
+        Arg("display_color_space", ops::HolovizOp::ColorSpace::HDR10_ST2084),
 {%- endif %}
 {%- if cookiecutter.example == "sRGB" %}
         // enable the sRGB frame buffer

@@ -35,6 +35,7 @@ generate() {
     clang-format -i ../${project_dir}/*.cpp
 }
 
+generate "holoviz_hdr" "HDR" "Holoviz HDR" "tags=,\"BT.2020\",\"ST.2084\",\"EOTF\"" "holoscan_version=2.5"
 generate "holoviz_srgb" "sRGB" "Holoviz sRGB"
 generate "holoviz_vsync" "vsync" "Holoviz vsync"
-generate "holoviz_yuv" "YUV" "Holoviz YUV" "holoscan_version=2.4"
+generate "holoviz_yuv" "YUV" "Holoviz YUV" "tags=,\"YCbCr\"" "holoscan_version=2.4"

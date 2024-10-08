@@ -23,7 +23,7 @@
 			"arm64"
 		],
 		"tags": [
-			"Holoviz YUV"
+			"Holoviz YUV","YCbCr"
 		],
 		"ranking": 1,
 		"dependencies": {},
