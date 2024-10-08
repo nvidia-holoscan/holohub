@@ -21,6 +21,7 @@ ARG GPU_TYPE
 ############################################################
 # Base image
 ############################################################
+
 FROM ${BASE_IMAGE} as base
 ARG DEBIAN_FRONTEND=noninteractive
 #
