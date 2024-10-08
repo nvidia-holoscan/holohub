@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 extensions:
-  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
+  - lib/gxf_extensions/libgxf_videomaster.so
 
 source: "replayer" # Valid values "replayer", "aja"  or "videomaster"
 

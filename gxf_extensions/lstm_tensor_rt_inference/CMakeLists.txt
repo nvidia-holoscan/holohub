@@ -18,7 +18,7 @@ project(gxf_lstm_tensor_rt_inference)
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-             # Create library
+# Create library
 add_library(gxf_lstm_tensor_rt_inference_lib SHARED
   tensor_rt_inference.cpp
   tensor_rt_inference.hpp
@@ -45,3 +45,8 @@ add_library(gxf_lstm_tensor_rt_inference SHARED
 target_link_libraries(gxf_lstm_tensor_rt_inference
   PUBLIC gxf_lstm_tensor_rt_inference_lib
 )
+
+install(TARGETS gxf_lstm_tensor_rt_inference_lib
+                gxf_lstm_tensor_rt_inference
+        DESTINATION lib/gxf_extensions
+                )

@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 extensions:
-  - gxf_extensions/emergent_source/libgxf_emergent_source.so
+  - lib/gxf_extensions/libgxf_emergent_source.so
 
 emergent:
   width: 4200

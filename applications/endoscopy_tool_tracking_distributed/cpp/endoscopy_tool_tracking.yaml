@@ -19,7 +19,7 @@ extensions:
   - libgxf_cuda.so
   - libgxf_multimedia.so
   - libgxf_serialization.so
-  - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+  - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
 replayer:
   basename: "surgical_video"
