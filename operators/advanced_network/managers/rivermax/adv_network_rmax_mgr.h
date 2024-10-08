@@ -18,8 +18,9 @@
 #pragma once
 
 #include <string>
-#include "adv_network_mgr.h"
 #include <yaml-cpp/yaml.h>
+
+#include "adv_network_mgr.h"
 
 namespace holoscan::ops {
 

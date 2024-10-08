@@ -28,6 +28,7 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         rmax_mgr_impl/adv_network_rmax_mgr.cpp
         rmax_mgr_impl/burst_manager.cpp
+        rmax_mgr_impl/rmax_config_manager.cpp
     PUBLIC
         adv_network_rmax_mgr.h
 )
