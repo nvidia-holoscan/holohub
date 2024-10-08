@@ -17,10 +17,6 @@
 
 ARG BASE_IMAGE
 ARG GPU_TYPE
-############################################################
-# Torch image (Used to extract the ARM64 dGPU pytorch wheel)
-############################################################
-FROM nvcr.io/nvidia/pytorch:23.10-py3 as pytorch
 
 ############################################################
 # Base image
