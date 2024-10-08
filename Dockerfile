@@ -63,7 +63,11 @@ RUN apt update \
     gobject-introspection \
     libgtk-3-dev \
     libcanberra-gtk-module \
-    graphviz
+    graphviz\
+    ninja-build
+
+RUN pip install meson
+
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
     fi

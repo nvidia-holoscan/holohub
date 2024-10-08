@@ -13,7 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(holoviz_hdr)
-add_holohub_application(holoviz_srgb)
-add_holohub_application(holoviz_vsync)
-add_holohub_application(holoviz_yuv)
+cmake_minimum_required(VERSION 3.20)
+
+project(holoviz_hdr)
+
+find_package(holoscan 2.5 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+add_executable(holoviz_hdr
+  holoviz_hdr.cpp
+)
+
+target_link_libraries(holoviz_hdr
+  PRIVATE
+    holoscan::core
+    holoscan::ops::holoviz
+  )
+
+if(BUILD_TESTING)
+  # Add test
+  add_test(NAME holoviz_hdr_test
+           COMMAND holoviz_hdr
+           --count=10
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_tests_properties(holoviz_hdr_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Application has finished running.")
+endif()

@@ -333,6 +333,12 @@ setup() {
     apt-get install --no-install-recommends -y libv4l-dev
   fi
 
+  # git
+  git_path=$(which git)
+  if [[ $git_path == "" ]]; then
+    echo "Installing git"
+    apt-get install --no-install-recommends -y git
+  fi
 
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
@@ -373,10 +379,13 @@ setup() {
      install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
   fi
 
-  # Make sure we do not install any cuda12 packages
-  install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
+  # Check the current version of libnvinfer-bin
+  installed_libnvinferbin=$(dpkg --status libnvinfer-bin 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  installed_libnvinferbin_version=${installed_libnvinferbin%.*}
+  install_cuda_dependencies_package libnvinfer-headers-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-plugin-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvonnxparsers-dev $installed_libnvinferbin_version
 
   # Install the autocomplete
   echo "Installing autocomplete"
@@ -459,7 +468,7 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+      run_command codespell -w -i 3 ${DIR_TO_RUN} --ignore-words codespell_ignore_words.txt \
                             --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
       # Fix cpplint with clang
@@ -506,7 +515,7 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
-                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+                          --ignore-words codespell_ignore_words.txt \
                           --exclude-file codespell.txt || exit_code=1
 
     echo "Linting CMake"

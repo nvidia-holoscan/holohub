@@ -303,7 +303,7 @@ get_conditional_options() {
     if [ -n "$video_id" ]; then
         conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
     fi
-    render_id=$(get_group_id rnder)
+    render_id=$(get_group_id render)
     if [ -n "$render_id" ]; then
         conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
     fi
@@ -465,11 +465,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.4.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.5.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
