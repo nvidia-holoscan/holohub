@@ -33,6 +33,7 @@ if(BUILD_TESTING)
                        ENVIRONMENT "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(endoscopy_tool_tracking_distributed_python_test_args PROPERTIES
+                       FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
@@ -44,6 +45,7 @@ if(BUILD_TESTING)
                        ENVIRONMENT "HOLOSCAN_INPUT_PATH=${HOLOHUB_DATA_DIR}/endoscopy;HOLOSCAN_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml;PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(endoscopy_tool_tracking_distributed_python_test_env_vars PROPERTIES
+                       FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 

@@ -35,5 +35,19 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
+
+# Add testing
+if(BUILD_TESTING)
+  file(MAKE_DIRECTORY ${HOLOHUB_DATA_DIR}/endoscopy/engines)
+  add_test(
+    NAME endoscopy_engine_generation
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/generate_trt_engine.py
+      --input ${HOLOHUB_DATA_DIR}/endoscopy/tool_loc_convlstm.onnx
+      --output ${HOLOHUB_DATA_DIR}/endoscopy/engines/
+      --fp16
+  )
+  set_tests_properties(endoscopy_engine_generation PROPERTIES FIXTURES_SETUP endoscopy_engine_generation_fixture)
+endif()
+
 add_subdirectory(cpp)
 add_subdirectory(python)
