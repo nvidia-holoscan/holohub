@@ -56,7 +56,7 @@ docker run \
     -w $PWD \
     -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
     -e DISPLAY=$DISPLAY \
-    docker.io/library/holohub:rivermax-ronyr \
+    docker.io/library/holohub:rivermax \
     bash
 
 # entering the container
