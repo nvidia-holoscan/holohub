@@ -34,6 +34,7 @@
 #include "rmax_mgr_impl/burst_manager.h"
 #include "rmax_mgr_impl/packet_processor.h"
 #include "rmax_mgr_impl/rmax_chunk_consumer_ano.h"
+#include "rmax_mgr_impl/stats_printer.h"
 #include "rmax_ipo_receiver_service.h"
 #include <holoscan/logger/logger.hpp>
 #include "rt_threads.h"
@@ -97,18 +98,14 @@ class RmaxMgr::RmaxMgrImpl {
   int address_to_port(const std::string& addr);
 
  private:
-  static constexpr double GIGABYTE = 1073741824.0;
-  static constexpr double MEGABYTE = 1048576.0;
-  static constexpr int DEFAULT_NUM_RX_BURST = 64;
-
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   void initialize_rx_service(uint32_t service_id, const ExtRmaxIPOReceiverConfig& config);
-  void print_total_stats();
-  void print_stream_stats(std::stringstream& ss, uint32_t stream_index,
-                          IPORXStatistics stream_stats,
-                          std::vector<IPOPathStatistics> stream_path_stats);
+
+ private:
+  static constexpr int DEFAULT_NUM_RX_BURST = 64;
+
   AdvNetConfigYaml cfg_;
   std::unordered_map<uint32_t,
                      std::unique_ptr<ral::services::rmax_ipo_receiver::RmaxIPOReceiverService>>
@@ -211,67 +208,6 @@ void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
       std::make_unique<RmaxChunkConsumerAno>(rx_packet_processors[service_id]);
 
   rx_services[service_id]->set_chunk_consumer(rmax_chunk_consumers[service_id].get());
-}
-
-void RmaxMgr::RmaxMgrImpl::print_stream_stats(std::stringstream& ss, uint32_t stream_index,
-                                              IPORXStatistics stream_stats,
-                                              std::vector<IPOPathStatistics> stream_path_stats) {
-  ss << "[stream_index " << std::setw(3) << stream_index << "]"
-     << " Got " << std::setw(7) << stream_stats.rx_counter << " packets | ";
-
-  if (stream_stats.received_bytes >= GIGABYTE) {
-    ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / GIGABYTE) << " GB |";
-  } else if (stream_stats.received_bytes >= MEGABYTE) {
-    ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / MEGABYTE) << " MB |";
-  } else {
-    ss << stream_stats.received_bytes << " bytes |";
-  }
-
-  ss << " dropped: ";
-  for (uint32_t s_index = 0; s_index < stream_path_stats.size(); ++s_index) {
-    if (s_index > 0) { ss << ", "; }
-    ss << stream_path_stats[s_index].rx_dropped + stream_stats.rx_dropped;
-  }
-  ss << " |"
-     << " consumed: " << stream_stats.consumed_packets << " |"
-     << " unconsumed: " << stream_stats.unconsumed_packets << " |"
-     << " lost: " << stream_stats.rx_dropped << " |"
-     << " exceed MD: " << stream_stats.rx_exceed_md << " |"
-     << " bad RTP hdr: " << stream_stats.rx_corrupt_rtp_header << " | ";
-
-  for (uint32_t s_index = 0; s_index < stream_path_stats.size(); ++s_index) {
-    if (stream_stats.rx_counter > 0) {
-      uint32_t number = static_cast<uint32_t>(
-          floor(100 * static_cast<double>(stream_path_stats[s_index].rx_count) /
-                static_cast<double>(stream_stats.rx_counter)));
-      ss << " " << std::setw(3) << number << "%";
-    } else {
-      ss << "   0%";
-    }
-  }
-  ss << "\n";
-}
-
-/**
- * @brief Prints the statistics of the Rmax manager.
- */
-void RmaxMgr::RmaxMgrImpl::print_total_stats() {
-  std::stringstream ss;
-  uint32_t stream_id = 0;
-
-  ss << "RMAX ANO Statistics\n";
-  ss << "====================\n";
-  ss << "Total Statistics\n";
-  ss << "----------------\n";
-  for (const auto& entry : rx_services) {
-    uint32_t key = entry.first;
-    auto& rx_service = entry.second;
-    auto [stream_stats, path_stats] = rx_service->get_streams_statistics();
-    for (uint32_t i = 0; i < stream_stats.size(); ++i) {
-      print_stream_stats(ss, stream_id++, stream_stats[i], path_stats[i]);
-    }
-  }
-  HOLOSCAN_LOG_INFO(ss.str());
 }
 
 /**
@@ -706,7 +642,9 @@ void RmaxMgr::RmaxMgrImpl::shutdown() {
  * @brief Prints the statistics of the Rmax manager.
  */
 void RmaxMgr::RmaxMgrImpl::print_stats() {
-  print_total_stats();
+  std::stringstream ss;
+  StatsPrinter::print_total_stats(ss, rx_services);
+  HOLOSCAN_LOG_INFO(ss.str());
 }
 
 /**
