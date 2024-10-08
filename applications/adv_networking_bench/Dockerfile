@@ -14,17 +14,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+ARG BASE_IMAGE
+ARG GPU_TYPE
 
-FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v2.0.0-dgpu
+FROM ${BASE_IMAGE} as base
 
 ARG UBUNTU_VERSION=22.04
-ARG OFED_VERSION=24.01-0.3.3.1
+ARG OFED_VERSION=24.07-0.6.1.0
 ARG CACHEBUST=1
 ARG BUILDARCH
 RUN echo "Using build architecture ${BUILDARCH}"
 RUN echo "Using architecture $TARGETPLATFORM"
 
-RUN apt update && apt install -y python3-pyelftools ninja-build meson 
+RUN apt update && apt install -y python3-pyelftools ninja-build meson
 RUN pip3 install scipy loguru attrs
 WORKDIR /opt
 
