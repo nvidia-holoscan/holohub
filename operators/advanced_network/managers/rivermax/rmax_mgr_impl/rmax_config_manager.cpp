@@ -231,9 +231,9 @@ void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_sett
   app_settings_config.sleep_between_operations_us = rmax_rx_config.sleep_between_operations_us;
   app_settings_config.packet_payload_size = rmax_rx_config.max_packet_size;
   app_settings_config.packet_app_header_size = split_boundary;
-  app_settings_config.num_of_chunks = rmax_rx_config.num_concurrent_batches;
-  app_settings_config.num_of_packets_in_chunk =
-      rmax_rx_config.max_chunk_size * rmax_rx_config.num_concurrent_batches;
+  app_settings_config.num_of_packets_in_chunk = std::pow(
+      2,
+      std::ceil(std::log2(rmax_rx_config.max_chunk_size * rmax_rx_config.num_concurrent_batches)));
 }
 
 /**
