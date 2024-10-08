@@ -20,8 +20,6 @@ import os
 from queue import Queue
 from threading import Thread
 from time import sleep
-
-from agents.chat import ChatAgent
 from agents.ehr import EHRAgent
 from agents.ehr_builder import EHRBuilderAgent
 from agents.selector import SelectorAgent
