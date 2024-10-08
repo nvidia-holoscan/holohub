@@ -156,29 +156,10 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS endoscopy_tool_tracking
-  DESTINATION endoscopy_tool_tracking_cpp
-  COMPONENT "holohub-apps"
-)
-
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" APP_YAML_FILE)
-string(REPLACE "gxf_extensions/lstm_tensor_rt_inference/" "" APP_YAML_FILE "${APP_YAML_FILE}")
-file(WRITE "${CMAKE_BINARY_DIR}/packaging/cpp/endoscopy_tool_tracking.yaml" "${APP_YAML_FILE}")
-
-install(
-  FILES ${CMAKE_BINARY_DIR}/packaging/cpp/endoscopy_tool_tracking.yaml
-  DESTINATION endoscopy_tool_tracking_cpp
-  COMPONENT "holohub-apps"
+  DESTINATION bin/endoscopy_tool_tracking/cpp
 )
 
 install(
-  DIRECTORY ${CMAKE_BINARY_DIR}/gxf_extensions/lstm_tensor_rt_inference/
-  DESTINATION endoscopy_tool_tracking_cpp
-  FILES_MATCHING PATTERN "*.so"
-  PATTERN "CMakeFiles" EXCLUDE)
-
-install(
-  FILES
-  ${CMAKE_BINARY_DIR}/operators/lstm_tensor_rt_inference/liblstm_tensor_rt_inference.so
-  ${CMAKE_BINARY_DIR}/operators/tool_tracking_postprocessor/libtool_tracking_postprocessor.so
-  DESTINATION endoscopy_tool_tracking_cpp
-  COMPONENT "holohub-apps")
+  FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
