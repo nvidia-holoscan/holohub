@@ -375,6 +375,51 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `boolean`
   		- default:`true`
 
+- Example of the Rivermax queue configuration for redundant stream using HDS and GPU
+  This example demonstrates receiving a redundant stream sent from a sender with source addresses 192.168.100.4 and 192.168.100.3. 
+  The stream is received via NIC which have local IP (same) 192.168.100.5 (listed twice, once per stream). 
+  The multicast addresses and UDP ports on which the stream is being received are 224.1.1.1:5001 and 224.1.1.2:5001
+ The incoming packets are of size 1152 bytes. The initial 20 bytes are stripped from the payload as an  application header and placed in buffers allocated in RAM.
+ The remaining 1132 bytes are placed in dedicated payload buffers.  In this case, the payload buffers are allocated in GPU 0 memory.
+```YAML
+   interfaces:
+    - address: 0005:03:00.0
+      name: data1
+      rx:
+        queues:
+        - name: Data1
+          id: 1
+          cpu_core: '11'
+          batch_size: 1024
+          split_boundary: 20
+          output_port: bench_rx_out_1    
+          rmax_rx_settings:
+            gpu_device: 0
+            gpu_direct: true
+            max_packet_size: 1152
+            num_concurrent_batches: 64
+            memory_registration: true
+            allocator_type: huge_page_2mb
+            max_path_diff_us: 100
+            ext_seq_num: true
+            sleep_between_operations_us: 100
+            local_ip_addresses:
+            - 192.168.100.5
+            - 192.168.100.5
+            source_ip_addresses:
+            - 192.168.100.4
+            - 192.168.100.4
+            destination_ip_addresses:
+            - 224.1.1.1
+            - 224.1.1.2
+            destination_ports:
+            - 50001
+            - 50001
+            rx_stats_period_report_ms: 3000
+            send_packet_ext_info: true
+          
+```
+
 ##### Transmit Configuration (tx)
  (<mark>Current version of Rivermax manager doesn't support TX</mark>)
 
