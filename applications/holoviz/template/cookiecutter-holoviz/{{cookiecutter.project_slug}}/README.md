@@ -46,6 +46,9 @@ By default, the frame buffer is using linear color space. To use the sRGB color 
         Arg("framebuffer_srbg", true));
 ```
 
+{%- elif cookiecutter.example == "UI" %}
+This application uses the layer callback provided by the Holoviz operator and leverages the Holoviz module API to add an UI layer with `Dear ImGui` elements and a geometry layer dynamically changing based on user input.
+
 {%- elif cookiecutter.example == "vsync" %}
 This application demonstrates the capability of the Holoviz operator to wait for the vertical blank of the display before updating the current image. It prints the displayed frames per second to the console, if sync to vertical blank is enabled the frames per second are capped to the display refresh rate.
 
