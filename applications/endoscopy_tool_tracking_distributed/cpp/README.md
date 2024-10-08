@@ -24,21 +24,21 @@ If you want to manually convert the video data, please refer to the instructions
 
 ```sh
 # Build the Holohub container for the Distributed Endoscopy Tool Tracking application
-./dev_container build --docker_file applications/endoscopy_tool_tracking_distributed/Dockerfile
+./dev_container build --docker_file applications/endoscopy_tool_tracking_distributed/Dockerfile --img holohub:endoscopy_tool_tracking_distributed
 
 # Launch the container
-./dev_container launch
+./dev_container launch --img holohub:endoscopy_tool_tracking_distributed
 
 # Build the Distributed Endoscopy Tool Tracking application
 ./run build endoscopy_tool_tracking_distributed
 
-# Generate the onnx engine
+# Generate the TRT engine file from onnx
 python3 utilities/generate_trt_engine.py --input data/endoscopy/tool_loc_convlstm.onnx --output data/endoscopy/engines/ --fp16
 
 # Start the application with all three fragments
 ./run launch endoscopy_tool_tracking_distributed cpp
 
-# Once you have completed the above command, you may exit the container and
+# Once you have completed the step to generate the TRT engine file, you may exit the container and
 #  use the following commands to run the application in distributed mode:
 
 # Start the application with the video_in fragment
