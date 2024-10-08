@@ -42,8 +42,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 if(NOT DEFINED RAL_DIR_PATH)
     set(RAL_DIR_PATH "/opt/rivermax_sdk/rmax_apps_lib" CACHE STRING "Rmax Apps Lib absolute path")
 endif()
+
 set(RMAX_CUDA TRUE)
-set(RMAX_TEGRA TRUE)
+
+if(NOT DEFINED RMAX_TEGRA)
+    message(STATUS "RMAX_TEGRA was not defined. Defaulting to FALSE")
+    set(RMAX_TEGRA FALSE)
+else()
+    if(RMAX_TEGRA STREQUAL "TRUE" OR RMAX_TEGRA STREQUAL "ON")
+        set(RMAX_TEGRA TRUE)
+    else()
+        set(RMAX_TEGRA FALSE)
+    endif()
+endif()
+
+unset(RMAX_TEGRA CACHE)
+message(STATUS "RMAX_TEGRA is set to: ${RMAX_TEGRA}")
+
 add_subdirectory(${RAL_DIR_PATH} ${CMAKE_BINARY_DIR}/external_build)
 
 
