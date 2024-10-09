@@ -23,12 +23,12 @@ set -o xtrace
 SCRIPT=`realpath "$0"`
 HERE=`dirname "$SCRIPT"`
 ROOT=`realpath $HERE/..`
-CONTAINER_NAME=demo-rivermax
+CONTAINER_NAME=demo-rivermax-$USER
 
 nvidia_icd_json=$(find -L /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
 
 
-XAUTH=/tmp/.docker.xauth
+XAUTH=$HOME/.docker.xauth
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 chmod 777 $XAUTH
 docker rm -f $CONTAINER_NAME
