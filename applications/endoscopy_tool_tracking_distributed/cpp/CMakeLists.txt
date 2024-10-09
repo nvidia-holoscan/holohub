@@ -57,7 +57,6 @@ add_dependencies(endoscopy_tool_tracking_distributed endoscopy_tool_tracking_dis
 
 # Add testing
 if(BUILD_TESTING)
-
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
@@ -68,8 +67,8 @@ if(BUILD_TESTING)
   add_test(NAME endoscopy_tool_tracking_distributed_cpp_test_args
            COMMAND endoscopy_tool_tracking_distributed --data "${HOLOHUB_DATA_DIR}/endoscopy" --config "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
   set_tests_properties(endoscopy_tool_tracking_distributed_cpp_test_args PROPERTIES
+                       FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
@@ -81,6 +80,7 @@ if(BUILD_TESTING)
     ENVIRONMENT "HOLOSCAN_INPUT_PATH=${HOLOHUB_DATA_DIR}/endoscopy;HOLOSCAN_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml")
 
   set_tests_properties(endoscopy_tool_tracking_distributed_cpp_test_env_var PROPERTIES
+                        FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                         PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                         FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()
