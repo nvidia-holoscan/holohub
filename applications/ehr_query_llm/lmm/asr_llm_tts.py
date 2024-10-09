@@ -22,6 +22,7 @@ import riva.client
 from agent_framework_op import AgentFrameworkOp
 from holoscan.core import Application
 from holoscan.logger import LogLevel, set_log_level
+from riva.client import audio_io
 from riva.client.argparse_utils import (
     add_asr_config_argparse_parameters,
     add_connection_argparse_parameters,
@@ -133,9 +134,7 @@ def main():
     set_log_level(LogLevel.WARN)
     args = parse_args()
     if not args.sample_rate_hz:
-        args.sample_rate_hz = int(
-            riva.client.audio_io.get_default_input_device_info()["defaultSampleRate"]
-        )
+        args.sample_rate_hz = int(audio_io.get_default_input_device_info()["defaultSampleRate"])
 
     app = ASR_LLM_TTS(args=args)
     config_file = os.path.join(os.path.dirname(__file__), "asr_llm_tts.yaml")
