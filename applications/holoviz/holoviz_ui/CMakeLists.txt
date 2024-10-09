@@ -15,30 +15,28 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project({{ cookiecutter.project_slug }})
+project(holoviz_ui)
 
-find_package(holoscan {{ cookiecutter.holoscan_version }} REQUIRED CONFIG
+find_package(holoscan 2.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable({{ cookiecutter.project_slug }}
-  {{ cookiecutter.project_slug }}.cpp
+add_executable(holoviz_ui
+  holoviz_ui.cpp
 )
 
-target_link_libraries({{ cookiecutter.project_slug }}
+target_link_libraries(holoviz_ui
   PRIVATE
     holoscan::core
     holoscan::ops::holoviz
-{%- if cookiecutter.example == "UI" %}
     holoscan::viz::imgui
-{%- endif %}
   )
 
 if(BUILD_TESTING)
   # Add test
-  add_test(NAME {{ cookiecutter.project_slug }}_test
-           COMMAND {{ cookiecutter.project_slug }}
+  add_test(NAME holoviz_ui_test
+           COMMAND holoviz_ui
            --count=10
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  set_tests_properties({{ cookiecutter.project_slug }}_test PROPERTIES
+  set_tests_properties(holoviz_ui_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Application has finished running.")
 endif()
