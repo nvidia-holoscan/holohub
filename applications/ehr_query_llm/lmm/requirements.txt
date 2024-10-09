@@ -22,5 +22,6 @@ pikepdf==8.13.0
 pypdf==4.0.2
 poppler-utils==0.1.0
 markdown==3.5.2
-fhir.resources~=7.1.0
+fhir.resources~=7.0.0
+holoscan~=2.0
 accelerate==0.27.2
