@@ -120,23 +120,6 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking",
-            "command": "./run",
-            "args": [
-                "build",
-                "endoscopy_tool_tracking",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
             "label": "Build colonoscopy_segmentation",
             "command": "./run",
             "args": [
@@ -380,6 +363,23 @@
             "args": [
                 "build",
                 "holoviz_yuv",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build multiai_ultrasound",
+            "command": "./run",
+            "args": [
+                "build",
+                "multiai_ultrasound",
                 "--type",
                 "debug"
             ],

@@ -13,20 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
-project(visualizer_icardio)
+project(visualizer_icardio LANGUAGES CXX CUDA)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(visualizer_icardio SHARED
   visualizer_icardio.cpp
+  visualizer_icardio.cu
+  visualizer_icardio.cuh
   visualizer_icardio.hpp
   )
 
 target_link_libraries(visualizer_icardio
     holoscan::core
     holoscan::infer
-    holoscan::infer_utils)
+    holoscan::infer_utils
+    CUDA::cudart)
 
 target_include_directories(visualizer_icardio INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(visualizer_icardio PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
