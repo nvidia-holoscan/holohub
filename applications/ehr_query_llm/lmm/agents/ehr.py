@@ -15,8 +15,8 @@
 
 import json
 
-from langchain.embeddings import HuggingFaceBgeEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.vectorstores import Chroma
 
 from .base_agent import Agent
 
