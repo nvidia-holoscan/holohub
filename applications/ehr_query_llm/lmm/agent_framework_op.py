@@ -18,6 +18,7 @@ import json
 import logging
 import os
 from queue import Queue
+
 from threading import Thread
 from time import sleep
 from agents.ehr import EHRAgent
@@ -61,8 +62,8 @@ class AgentFrameworkOp(Operator):
         self.selector_agent = SelectorAgent(selector_path, self.response_handler)
 
         # chat agent
-        chat_agent_path = self.get_agent_settings_path("chat")
-        self.chat_agent = ChatAgent(chat_agent_path, self.response_handler)
+        #chat_agent_path = self.get_agent_settings_path("chat")
+        #self.chat_agent = ChatAgent(chat_agent_path, self.response_handler)
 
         # EHRBuilder agent
         ehr_builder_agent_path = self.get_agent_settings_path("ehr_builder")

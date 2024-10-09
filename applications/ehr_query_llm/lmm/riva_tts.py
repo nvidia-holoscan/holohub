@@ -155,7 +155,7 @@ class RivaTTSOp(Operator):
         try:
             # Parse agents with a "response" field before the LLM is complete
             # (Results in lower latency for TTS streaming)
-            response_agents = ["ChatAgent", "EHRAgent", "EHRBuilderAgent"]
+            response_agents = ["EHRAgent", "EHRBuilderAgent"]
             for agent in response_agents:
                 if agent in agent_response:
                     sentences = self.parse_streamed_response(agent_response)
