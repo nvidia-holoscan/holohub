@@ -944,24 +944,12 @@ build_and_run() {
             fi
             ;;
         --no_run)
-            if [[ -n "$2" ]]; then
-                run_app=0
-                shift 1
-            else
-                echo "Error: --run_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
+            run_app=0
+            shift 1
             ;;
         --install)
-            if [[ -n "$2" ]]; then
-                install="--install"
-                shift 1
-            else
-                echo "Error: --run_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
+            install="--install"
+            shift 1
             ;;
         --verbose)
             container_build_args+=" --verbose"

@@ -21,13 +21,26 @@ If you want to manually convert the video data, please refer to the instructions
 
 ### Run Instructions
 
-Run the following command to start the application.  This will run the app with a pre-recorded video as input:
 
 ```sh
-# Start the application with all three fragments
-./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp
+# Build the Holohub container for the Distributed Endoscopy Tool Tracking application
+./dev_container build --docker_file applications/endoscopy_tool_tracking_distributed/Dockerfile --img holohub:endoscopy_tool_tracking_distributed
 
-# Use the following commands to run the same application three processes:
+# Launch the container
+./dev_container launch --img holohub:endoscopy_tool_tracking_distributed
+
+# Build the Distributed Endoscopy Tool Tracking application
+./run build endoscopy_tool_tracking_distributed
+
+# Generate the TRT engine file from onnx
+python3 utilities/generate_trt_engine.py --input data/endoscopy/tool_loc_convlstm.onnx --output data/endoscopy/engines/ --fp16
+
+# Start the application with all three fragments
+./run launch endoscopy_tool_tracking_distributed cpp
+
+# Once you have completed the step to generate the TRT engine file, you may exit the container and
+#  use the following commands to run the application in distributed mode:
+
 # Start the application with the video_in fragment
 ./dev_container build_and_run endoscopy_tool_tracking_distributed --language cpp --run_args "--driver --worker --fragments video_in --address :10000"
 # Start the application with the inference fragment

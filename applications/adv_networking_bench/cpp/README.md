@@ -64,10 +64,13 @@ This application requires all configuration and requirements from the advanced n
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
+```bash
+./dev_container build_and_run adv_networking_bench
+```
+
 ### Run Instructions
 
 First, go in your `build` or `install` directory, then for the transmitter run:
-
 
 ```bash
 ./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_tx.yaml
@@ -76,7 +79,7 @@ First, go in your `build` or `install` directory, then for the transmitter run:
 Or for the receiver:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_tx.yaml
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_rx.yaml
 ```
 
 With DOCA:
