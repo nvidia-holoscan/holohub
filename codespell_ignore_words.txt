@@ -1,4 +1,5 @@
 # This file contains the exact words in code that should be ignore from codespell
+ags
 nd
 ba
 activ
