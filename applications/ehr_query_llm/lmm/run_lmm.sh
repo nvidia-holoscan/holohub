@@ -54,6 +54,8 @@ set_transformer_cache
 # Define log file paths
 LLM_LOG_FILE="/workspace/holohub/applications/ehr_query_llm/lmm/llama_cpp.log"
 
+echo "Hold on tight, starting the Llama.cpp LLM server process + main EHR app!"
+
 # Run the Llama.cpp LLM server process + main EHR app
 /opt/nvidia/holoscan/llama.cpp/build/bin/server \
     -m  /workspace/volumes/models/openchat-3.5-0106.Q8_0.gguf \
