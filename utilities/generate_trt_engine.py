@@ -63,9 +63,7 @@ def convert_onnx(input_file, output_file, fp16_enabled):
     Returns:
         None
     """
-    trtexec_cmd = (
-        f"trtexec --onnx='{input_file}' --saveEngine='{output_file}'"
-    )
+    trtexec_cmd = f"trtexec --onnx='{input_file}' --saveEngine='{output_file}'"
     if fp16_enabled:
         trtexec_cmd += " --fp16"
     status = os.system(trtexec_cmd)
