@@ -126,7 +126,6 @@ The AgentFrameworkOp works by using a SelectorAgent to select which Agent should
 
 Adding a new "agent" for ehr_query_llm involves creating a new agent .py and YAML file in the `agents` directory, and in the new .py inheriting the Agent base class `agents/base_agent.py`.
 
-An agent may also be used to control tools. Please see the VisualizationAgent agent as an example for volume rendering and degorification.  
 
 When creating a new agent .py file, you will need to define:
 
