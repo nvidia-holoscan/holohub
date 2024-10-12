@@ -3,6 +3,8 @@
 # Array to hold PIDs of background processes
 declare -a bg_pids
 
+set -x 
+
 # Function to clean up and kill the background processes
 cleanup() {
     echo "Terminating Llama.cpp server process..."
@@ -47,6 +49,7 @@ trap cleanup SIGINT SIGTERM
 set_python_path
 set_transformer_cache
 # set_offline_flags
+netstat -tuln | grep -E ':8080|:8050|:49000'
 
 # Build ehr_query_llm/lmm
 /workspace/holohub/run build ehr_query_llm/lmm
@@ -65,8 +68,20 @@ echo "Hold on tight, starting the Llama.cpp LLM server process + main EHR app!"
     -c 8000 \
     --cont-batching \
     > ${LLM_LOG_FILE} 2>&1 \
-& python3 /workspace/holohub/applications/ehr_query_llm/lmm/asr_llm_tts.py \
-& bg_pids+=($!) \
+& python3 /workspace/holohub/applications/ehr_query_llm/lmm/asr_llm_tts.py &
+bg_pids+=($!) 
+
+sleep 5  # Give the server time to start
+if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200"; then
+    echo "Llama.cpp server failed to start or respond"
+    exit 1
+fi
+
+echo "Background processes:"
+jobs -l
+
+# Add a delay
+#sleep 2
 
 # Let the script clean up the server process
 wait
