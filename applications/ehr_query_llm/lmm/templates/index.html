@@ -35,6 +35,25 @@
     <script type='text/javascript' src='/static/websocket.js'></script>
     <script type='text/javascript' src='/static/audio.js'></script>
     
+    <script>
+      let audioContext;
+      
+      function initAudioContext() {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          console.log('AudioContext initialized successfully');
+        } catch (e) {
+          console.error('Failed to create AudioContext:', e);
+        }
+      }
+      
+      // Initialize on user interaction
+      document.addEventListener('click', function() {
+        if (!audioContext) initAudioContext();
+      }, { once: true });
+      </script>
+
+    <button id="initAudioButton">Initialize Audio</button>
 		<script type="text/javascript">
 
       function onChatMessageKey(event) {  // https://stackoverflow.com/a/49389811
@@ -55,6 +74,8 @@
       function onChatHistoryReset() {
         sendWebsocket({'chat_history_reset': true});
       }
+      
+
       
       function onVoiceSelect() {
         const voice = document.getElementById('voice-select').value;
