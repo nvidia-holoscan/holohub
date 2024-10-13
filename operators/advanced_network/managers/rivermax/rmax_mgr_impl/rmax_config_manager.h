@@ -104,27 +104,6 @@ class RmaxConfigManager {
     return rx_service_configs;
   }
 
-  /**
-   * @brief Parses the RX queue configuration from a YAML node.
-   *
-   * This function extracts the RX queue configuration settings from the provided YAML node
-   * and populates the RxQueueConfig structure with the extracted values.
-   *
-   * @param q_item The YAML node containing the RX queue configuration.
-   * @param q The RxQueueConfig structure to be populated.
-   * @return AdvNetStatus indicating the success or failure of the operation.
-   */
-  static AdvNetStatus parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q);
-
-  /**
-   * @brief Parses the TX queue Rivermax configuration.
-   *
-   * @param q_item The YAML node containing the queue item.
-   * @param q The TX queue configuration to be populated.
-   * @return AdvNetStatus indicating the success or failure of the operation.
-   */
-  static AdvNetStatus parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
-
  private:
   /**
    * @brief Sets the default configuration for an RX service.
@@ -216,6 +195,35 @@ class RmaxConfigManager {
   uint16_t rmax_log_level = RMAX_DEFAULT_LOG_LEVEL;
   std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig> rx_service_configs;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
+};
+
+/**
+ * @brief Parses the configuration for Rmax.
+ *
+ * The RmaxConfigParser class is responsible for parsing the configuration settings for Rmax.
+ */
+class RmaxConfigParser {
+ public:
+  /**
+   * @brief Parses the RX queue configuration from a YAML node.
+   *
+   * This function extracts the RX queue configuration settings from the provided YAML node
+   * and populates the RxQueueConfig structure with the extracted values.
+   *
+   * @param q_item The YAML node containing the RX queue configuration.
+   * @param q The RxQueueConfig structure to be populated.
+   * @return AdvNetStatus indicating the success or failure of the operation.
+   */
+  static AdvNetStatus parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q);
+
+  /**
+   * @brief Parses the TX queue Rivermax configuration.
+   *
+   * @param q_item The YAML node containing the queue item.
+   * @param q The TX queue configuration to be populated.
+   * @return AdvNetStatus indicating the success or failure of the operation.
+   */
+  static AdvNetStatus parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
 };
 
 }  // namespace holoscan::ops

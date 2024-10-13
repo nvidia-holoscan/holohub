@@ -346,7 +346,7 @@ void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig
  * @param q The RxQueueConfig structure to be populated.
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxConfigManager::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
+AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
                                                                RxQueueConfig& q) {
   const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
 
@@ -401,7 +401,7 @@ AdvNetStatus RmaxConfigManager::parse_rx_queue_rivermax_config(const YAML::Node&
  * @param q The TX queue configuration to be populated.
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxConfigManager::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
+AdvNetStatus RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
                                                                TxQueueConfig& q) {
   return AdvNetStatus::SUCCESS;
 }

@@ -742,7 +742,7 @@ void RmaxMgr::run() {
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q) {
-  return RmaxConfigManager::parse_rx_queue_rivermax_config(q_item, q);
+  return RmaxConfigParser::parse_rx_queue_rivermax_config(q_item, q);
 }
 
 /**
@@ -753,7 +753,7 @@ AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, R
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxMgr::parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q) {
-  return RmaxConfigManager::parse_tx_queue_rivermax_config(q_item, q);
+  return RmaxConfigParser::parse_tx_queue_rivermax_config(q_item, q);
 }
 
 /**
