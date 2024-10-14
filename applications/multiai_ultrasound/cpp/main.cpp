@@ -148,7 +148,6 @@ class App : public holoscan::Application {
     auto visualizer_icardio = make_operator<ops::VisualizerICardioOp>(
         "visualizer_icardio",
         from_config("visualizer_icardio"),
-        Arg("enable_render_buffer_output") = (record_type_ == Record::VISUALIZER),
         Arg("data_dir") = datapath,
         Arg("allocator") =
             make_resource<BlockMemoryPool>("visualizer_icardio_allocator",
@@ -159,7 +158,15 @@ class App : public holoscan::Application {
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto holoviz = make_operator<ops::HolovizOp>(
-        "holoviz", from_config("holoviz"), Arg("cuda_stream_pool") = cuda_stream_pool);
+        "holoviz", from_config("holoviz"),
+        Arg("enable_render_buffer_output") = (record_type_ == Record::VISUALIZER),
+        Arg("allocator") =
+            make_resource<BlockMemoryPool>("visualizer_allocator",
+                                           (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
+                                           // max from VisualizerICardioOp::tensor_to_shape_
+                                           320 * 320 * 4 * sizeof(uint8_t),
+                                           1 * 8),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
 
     // Add recording operators
@@ -210,7 +217,7 @@ class App : public holoscan::Application {
         add_flow(source, recorder);
       }
     } else if (record_type_ == Record::VISUALIZER) {
-      add_flow(visualizer_icardio,
+      add_flow(holoviz,
                recorder_format_converter,
                {{"render_buffer_output", "source_video"}});
       add_flow(recorder_format_converter, recorder);
