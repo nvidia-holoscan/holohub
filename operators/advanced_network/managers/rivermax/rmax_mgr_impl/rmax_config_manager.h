@@ -156,13 +156,28 @@ class RmaxConfigManager {
   uint16_t get_rmax_log_level() const { return rmax_log_level_; }
 
   /**
+   * @brief Type alias for the constant iterator of the configuration map.
+   */
+  using ConstIterator = std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig>::const_iterator;
+
+  /**
+   * @brief Returns a constant iterator to the beginning of the configuration map.
+   *
+   * @return ConstIterator A constant iterator to the beginning of the configuration map.
+   */
+  ConstIterator begin() const { return rx_service_configs_.begin(); }
+
+  /**
+   * @brief Returns a constant iterator to the end of the configuration map.
+   *
+   * @return ConstIterator A constant iterator to the end of the configuration map.
+   */
+  ConstIterator end() const { return rx_service_configs_.end(); }
+  /**
    * @brief Gets the RX service configurations.
    *
    * @return A constant reference to the unordered map of RX service configurations.
    */
-  const std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig>& get_rx_service_configs() const {
-    return rx_service_configs_;
-  }
 
  private:
   /**

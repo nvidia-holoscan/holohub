@@ -172,8 +172,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rivermax_setparam(
       "RIVERMAX_LOG_LEVEL", std::to_string(config_manager.get_rmax_log_level()), true);
 
-  const auto& rx_service_configs = config_manager.get_rx_service_configs();
-  for (const auto& entry : rx_service_configs) { initialize_rx_service(entry.first, entry.second); }
+  for (const auto& config : config_manager) { initialize_rx_service(config.first, config.second); }
   this->initialized_ = true;
 }
 
