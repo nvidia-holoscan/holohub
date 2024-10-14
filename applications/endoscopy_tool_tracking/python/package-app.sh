@@ -33,10 +33,8 @@ if [ $(get_host_arch) == "aarch64" ]; then
 fi
 
 echo -e "Copying the required files to the application directory..."
-cp -R "$GIT_ROOT/install/lib/liblstm_tensor_rt_inference.so" "$APP_PATH"
-cp "$GIT_ROOT/install/lib/libtool_tracking_postprocessor.so" "$APP_PATH"
-cp "$GIT_ROOT/install/lib/gxf_extensions/libgxf_lstm_tensor_rt_inference_lib.so" "$APP_PATH"
-cp "$GIT_ROOT/install/lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so" "$APP_PATH"
+cp "$GIT_ROOT/install/lib/*" "$APP_PATH"
+cp "$GIT_ROOT/install/lib/gxf_extensions/*" "$APP_PATH"
 cp -R "$GIT_ROOT/install/python/lib/holohub" "$APP_PATH"
 sed -i 's|lib/gxf_extensions/||' "$APP_PATH/endoscopy_tool_tracking.yaml"
 echo -e "done\n"
