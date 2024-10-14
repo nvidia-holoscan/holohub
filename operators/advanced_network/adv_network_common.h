@@ -537,10 +537,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
           input_spec.mrs_[tmr.name_] = tmr;
         }
       } catch (const std::exception& e) {
-        if (input_spec.common_.manager_type != holoscan::ops::AnoMgrType::RIVERMAX) {
-          HOLOSCAN_LOG_ERROR("Must define at least one memory type");
-          return false;
-        }
+        HOLOSCAN_LOG_ERROR("Must define at least one memory type");
+        return false;
       }
 
       try {

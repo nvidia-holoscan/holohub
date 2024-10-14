@@ -59,6 +59,12 @@ endif()
 unset(RMAX_TEGRA CACHE)
 message(STATUS "RMAX_TEGRA is set to: ${RMAX_TEGRA}")
 
+if(RMAX_TEGRA)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC RMAX_TEGRA=1)
+else()
+    target_compile_definitions(${PROJECT_NAME} PUBLIC RMAX_TEGRA=0)
+endif()
+
 add_subdirectory(${RAL_DIR_PATH} ${CMAKE_BINARY_DIR}/external_build)
 
 

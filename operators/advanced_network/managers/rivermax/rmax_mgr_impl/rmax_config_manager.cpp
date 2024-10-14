@@ -14,7 +14,7 @@ static constexpr int USECS_IN_SECOND = 1000000;
  *
  * @param rx_service_cfg The RX service configuration to be set.
  */
-void RmaxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) {
+void RmaxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const {
   rx_service_cfg.app_settings->destination_ip = DESTINATION_IP_DEFAULT;
   rx_service_cfg.app_settings->destination_port = DESTINATION_PORT_DEFAULT;
   rx_service_cfg.app_settings->num_of_threads = NUM_OF_THREADS_DEFAULT;
@@ -54,14 +54,13 @@ void RmaxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_
  * structures with these settings.
  *
  * @param cfg The configuration YAML.
- * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
  * @return True if the configuration was successfully parsed, false otherwise.
  */
-bool RmaxConfigManager::parse_configuration(
-    const AdvNetConfigYaml& cfg, std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) {
+bool RmaxConfigManager::parse_configuration(const AdvNetConfigYaml& cfg) {
   int rmax_rx_config_found = 0;
 
-  this->rmax_apps_lib = rmax_apps_lib;
+  is_configured_ = false;
+  cfg_ = cfg;
 
   for (const auto& intf : cfg.ifs_) {
     HOLOSCAN_LOG_INFO("Rmax init Port {} -- RX: {} TX: {}",
@@ -70,13 +69,13 @@ bool RmaxConfigManager::parse_configuration(
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
     for (const auto& q : intf.rx_.queues_) {
-      if (!configure_rx_queue(intf.port_id_, cfg.common_.master_core_, q)) { continue; }
+      if (!append_candidate_for_rx_queue(intf.port_id_, q)) { continue; }
       rmax_rx_config_found++;
     }
   }
 
   if (cfg.debug_ >= RMAX_MIN_LOG_LEVEL && cfg.debug_ <= RMAX_MAX_LOG_LEVEL) {
-    rmax_log_level = cfg.debug_;
+    rmax_log_level_ = cfg.debug_;
   }
 
   if (rmax_rx_config_found > 0) {
@@ -88,19 +87,19 @@ bool RmaxConfigManager::parse_configuration(
     return false;
   }
 
+  is_configured_ = true;
   return true;
 }
 
 /**
- * @brief Configures the RX queue for a given port.
+ * @brief Validates RX queue for Rmax Queue configuration. If valid, appends the RX queue for a
+ * given port.
  *
  * @param port_id The port ID.
- * @param master_core The master core ID.
  * @param q The RX queue configuration.
- * @return True if the configuration is successful, false otherwise.
+ * @return True if the configuration was appended successfully, false otherwise.
  */
-bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core,
-                                           const RxQueueConfig& q) {
+bool RmaxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) {
   HOLOSCAN_LOG_INFO(
       "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
 
@@ -113,18 +112,19 @@ bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core,
     return false;
   }
 
-  const auto& rmax_rx_config = *rmax_rx_config_ptr;
+  RmaxRxQueueConfig rmax_rx_config(*rmax_rx_config_ptr);
+
+  rmax_rx_config.dump_parameters();
+
   if (!validate_rx_queue_config(rmax_rx_config)) { return false; }
+
+  if (!validate_memory_regions_config(q, rmax_rx_config)) { return false; }
+
+  if (config_memory_allocator(rmax_rx_config, q) == false) { return false; }
 
   ExtRmaxIPOReceiverConfig rx_service_cfg;
 
-  if (!build_rmax_ipo_receiver_config(rmax_rx_config,
-                                      master_core,
-                                      q.common_.cpu_core_,
-                                      q.common_.split_boundary_,
-                                      rx_service_cfg)) {
-    return false;
-  }
+  if (!build_rmax_ipo_receiver_config(rx_service_cfg, rmax_rx_config, q)) { return false; }
 
   add_new_rx_service_config(rx_service_cfg, port_id, q.common_.id_);
 
@@ -132,27 +132,241 @@ bool RmaxConfigManager::configure_rx_queue(uint16_t port_id, int master_core,
 }
 
 /**
+ * @brief Configures the memory allocator for the RMAX RX queue.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ * @param q The RX queue configuration.
+ * @return true if the configuration is successful, false otherwise.
+ */
+bool RmaxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
+                                                const RxQueueConfig& q) {
+  uint16_t num_of_mrs = q.common_.mrs_.size();
+  HOLOSCAN_LOG_INFO(
+      "Configuring memory allocator for RMAX RX queue: {}, number of memory regions: {}",
+      q.common_.name_,
+      num_of_mrs);
+  if (num_of_mrs == 1) {
+    return config_memory_allocator_from_single_mrs(rmax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]]);
+  } else if (num_of_mrs == 2) {
+    return config_memory_allocator_from_dual_mrs(
+        rmax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]], cfg_.mrs_[q.common_.mrs_[1]]);
+  } else {
+    HOLOSCAN_LOG_ERROR("Incompatible number of memory regions for Rivermax RX queue: {} [1..{}]",
+                       num_of_mrs,
+                       MAX_RMAX_MEMORY_REGIONS);
+    return false;
+  }
+}
+
+/**
+ * @brief Configures the memory allocator for a single memory region.
+ *        The allocator will be used for both the header and payload memory.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ * @param q The RX queue configuration.
+ * @param mr The memory region.
+ * @return true if the configuration is successful, false otherwise.
+ */
+bool RmaxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
+                                                                const RxQueueConfig& q,
+                                                                const MemoryRegion& mr) {
+  rmax_rx_config.split_boundary = 0;
+  rmax_rx_config.max_packet_size = mr.buf_size_;
+  rmax_rx_config.packets_buffers_size = mr.num_bufs_;
+
+  if (set_gpu_is_in_use_if_applicable(rmax_rx_config, mr)) { return true; }
+
+  set_gpu_is_not_in_use(rmax_rx_config);
+  set_cpu_allocator_type(rmax_rx_config, mr);
+
+  return true;
+}
+
+/**
+ * @brief Configures the memory allocator for dual memory regions.
+ *        If GPU is in use, it will be used for the payload memory region,
+ *        and the CPU allocator will be used for the header memory region.
+ *        Otherwise, the function expects that the same allocator is configured
+ *        for both memory regions.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ * @param q The RX queue configuration.
+ * @param mr_header The header memory region.
+ * @param mr_payload The payload memory region.
+ * @return true if the configuration is successful, false otherwise.
+ */
+bool RmaxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
+                                                              const RxQueueConfig& q,
+                                                              const MemoryRegion& mr_header,
+                                                              const MemoryRegion& mr_payload) {
+  rmax_rx_config.split_boundary = mr_header.buf_size_;
+  rmax_rx_config.max_packet_size = mr_payload.buf_size_;
+  rmax_rx_config.packets_buffers_size = mr_payload.num_bufs_;
+
+  if (!set_gpu_is_in_use_if_applicable(rmax_rx_config, mr_payload)) {
+    set_gpu_is_not_in_use(rmax_rx_config);
+  }
+
+  set_cpu_allocator_type(rmax_rx_config, mr_header);
+
+  return true;
+}
+
+/**
+ * @brief Sets the GPU memory configuration if applicable.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ * @param mr The memory region.
+ * @return true if the GPU memory configuration is set, false otherwise.
+ */
+bool RmaxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
+                                                        const MemoryRegion& mr) {
+#if RMAX_TEGRA
+  if (mr.kind_ == MemoryKind::DEVICE || mr.kind_ == MemoryKind::HOST_PINNED) {
+#else
+  if (mr.kind_ == MemoryKind::DEVICE) {
+#endif
+    rmax_rx_config.gpu_device_id = mr.affinity_;
+    rmax_rx_config.gpu_direct = true;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * @brief Sets the CPU memory configuration.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ */
+void RmaxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
+  rmax_rx_config.gpu_device_id = -1;
+  rmax_rx_config.gpu_direct = false;
+}
+
+/**
+ * @brief Sets the allocator type based on the memory region.
+ *
+ * @param rmax_rx_config The RMAX RX queue configuration.
+ * @param mr The memory region.
+ */
+void RmaxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
+                                               const MemoryRegion& mr) {
+#if RMAX_TEGRA
+  if (mr.kind_ == MemoryKind::HOST) {
+#else
+  if (mr.kind_ == MemoryKind::HOST || mr.kind_ == MemoryKind::HOST_PINNED) {
+#endif
+
+    rmax_rx_config.allocator_type = "malloc";
+  } else if (mr.kind_ == MemoryKind::HUGE) {
+    if (rmax_rx_config.allocator_type != "huge_page_default" &&
+        rmax_rx_config.allocator_type != "huge_page_2mb" &&
+        rmax_rx_config.allocator_type != "huge_page_512mb" &&
+        rmax_rx_config.allocator_type != "huge_page_1gb") {
+      rmax_rx_config.allocator_type = "huge_page_default";
+    }  // else the allocator type is already set
+  }
+}
+
+/**
+ * @brief Validates the RX queue memory regions configuration.
+ *
+ * @param q The RX queue configuration.
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @return True if the configuration is valid, false otherwise.
+ */
+bool RmaxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
+                                                       const RmaxRxQueueConfig& rmax_rx_config) {
+  uint16_t num_of_mrs = q.common_.mrs_.size();
+  try {
+    if (num_of_mrs == 1) {
+      return validate_memory_regions_config_from_single_mrs(
+          q, rmax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]));
+    } else if (num_of_mrs == 2) {
+      return validate_memory_regions_config_from_dual_mrs(
+          q, rmax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]), cfg_.mrs_.at(q.common_.mrs_[1]));
+    } else {
+      HOLOSCAN_LOG_ERROR("Incompatible number of memory regions for Rivermax RX queue: {} [1..{}]",
+                         num_of_mrs,
+                         MAX_RMAX_MEMORY_REGIONS);
+      return false;
+    }
+  } catch (const std::out_of_range& e) {
+    if (num_of_mrs == 1)
+      HOLOSCAN_LOG_ERROR("Invalid memory region for Rivermax RX queue: {}", q.common_.mrs_[0]);
+    else
+      HOLOSCAN_LOG_ERROR("Invalid memory region for Rivermax RX queue: {} or {}",
+                         q.common_.mrs_[0],
+                         q.common_.mrs_[1]);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Validates the RX queue memory regions configuration for a single memory region.
+ *
+ * @param q The RX queue configuration.
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param mr The memory region.
+ * @return True if the configuration is valid, false otherwise.
+ */
+bool RmaxConfigManager::validate_memory_regions_config_from_single_mrs(
+    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr) {
+  return true;
+}
+
+/**
+ * @brief Validates the RX queue memory regions configuration for dual memory regions.
+ *
+ * @param q The RX queue configuration.
+ * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param mr_header The header memory region.
+ * @param mr_payload The payload memory region.
+ * @return True if the configuration is valid, false otherwise.
+ */
+bool RmaxConfigManager::validate_memory_regions_config_from_dual_mrs(
+    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr_header,
+    const MemoryRegion& mr_payload) {
+  if (mr_payload.kind_ != MemoryKind::DEVICE && mr_header.kind_ != mr_payload.kind_) {
+    HOLOSCAN_LOG_ERROR(
+        "Memory region kind mismatch: {} != {}", (int)(mr_header.kind_), (int)mr_payload.kind_);
+    return false;
+  }
+
+  if (mr_payload.kind_ == MemoryKind::DEVICE && mr_header.kind_ == MemoryKind::DEVICE) {
+    HOLOSCAN_LOG_ERROR("Both memory regions are device memory");
+    return false;
+  }
+
+  if (mr_payload.buf_size_ == 0) {
+    HOLOSCAN_LOG_ERROR("Invalid payload memory region size: {}", mr_payload.buf_size_);
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * @brief Builds the Rmax IPO receiver configuration.
  *
- * @param rmax_rx_config The Rmax RX queue configuration.
- * @param master_core The master core ID.
- * @param cores The cores configuration string.
- * @param split_boundary The split boundary value.
  * @param rx_service_cfg The RX service configuration to be built.
+s * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param q The RX queue configuration.
  * @return True if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::build_rmax_ipo_receiver_config(const RmaxRxQueueConfig& rmax_rx_config,
-                                                       int master_core, const std::string& cores,
-                                                       int split_boundary,
-                                                       ExtRmaxIPOReceiverConfig& rx_service_cfg) {
+bool RmaxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
+                                                       const RmaxRxQueueConfig& rmax_rx_config,
+                                                       const RxQueueConfig& q) {
   rx_service_cfg.app_settings = std::make_shared<AppSettings>();
   set_default_config(rx_service_cfg);
 
   auto& app_settings_config = *(rx_service_cfg.app_settings);
-  set_rx_service_common_app_settings(
-      app_settings_config, rmax_rx_config, master_core, split_boundary);
 
-  if (!parse_and_set_cores(app_settings_config, cores)) { return false; }
+  set_rx_service_common_app_settings(app_settings_config, rmax_rx_config);
+
+  if (!parse_and_set_cores(app_settings_config, q.common_.cpu_core_)) { return false; }
 
   set_rx_service_ipo_receiver_settings(rx_service_cfg, rmax_rx_config);
 
@@ -202,12 +416,10 @@ bool RmaxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_r
  *
  * @param app_settings_config The application settings configuration.
  * @param rmax_rx_config The Rmax RX queue configuration.
- * @param master_core The master core ID.
  * @param split_boundary The split boundary value.
  */
-void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
-                                                           const RmaxRxQueueConfig& rmax_rx_config,
-                                                           int master_core, int split_boundary) {
+void RmaxConfigManager::set_rx_service_common_app_settings(
+    AppSettings& app_settings_config, const RmaxRxQueueConfig& rmax_rx_config) {
   app_settings_config.local_ips = rmax_rx_config.local_ips;
   app_settings_config.source_ips = rmax_rx_config.source_ips;
   app_settings_config.destination_ips = rmax_rx_config.destination_ips;
@@ -221,8 +433,9 @@ void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_sett
 
   set_allocator_type(app_settings_config, rmax_rx_config.allocator_type);
 
-  if (master_core >= 0 && master_core < std::thread::hardware_concurrency()) {
-    app_settings_config.internal_thread_core = master_core;
+  if (cfg_.common_.master_core_ >= 0 &&
+      cfg_.common_.master_core_ < std::thread::hardware_concurrency()) {
+    app_settings_config.internal_thread_core = cfg_.common_.master_core_;
   } else {
     app_settings_config.internal_thread_core = CPU_NONE;
   }
@@ -230,10 +443,9 @@ void RmaxConfigManager::set_rx_service_common_app_settings(AppSettings& app_sett
   app_settings_config.print_parameters = rmax_rx_config.print_parameters;
   app_settings_config.sleep_between_operations_us = rmax_rx_config.sleep_between_operations_us;
   app_settings_config.packet_payload_size = rmax_rx_config.max_packet_size;
-  app_settings_config.packet_app_header_size = split_boundary;
-  app_settings_config.num_of_packets_in_chunk = std::pow(
-      2,
-      std::ceil(std::log2(rmax_rx_config.max_chunk_size * rmax_rx_config.num_concurrent_batches)));
+  app_settings_config.packet_app_header_size = rmax_rx_config.split_boundary;
+  app_settings_config.num_of_packets_in_chunk =
+      std::pow(2, std::ceil(std::log2(rmax_rx_config.packets_buffers_size)));
 }
 
 /**
@@ -312,7 +524,7 @@ void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
   rx_service_cfg.rx_stats_period_report_ms = rmax_rx_config.rx_stats_period_report_ms;
   rx_service_cfg.register_memory = rmax_rx_config.memory_registration;
   rx_service_cfg.max_chunk_size = rmax_rx_config.max_chunk_size;
-  rx_service_cfg.rmax_apps_lib = this->rmax_apps_lib;
+  rx_service_cfg.rmax_apps_lib = this->rmax_apps_lib_;
 
   rx_service_cfg.send_packet_ext_info = rmax_rx_config.send_packet_ext_info;
 }
@@ -327,14 +539,14 @@ void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
 void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                   uint16_t port_id, uint16_t queue_id) {
   uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
-  if (rx_service_configs.find(key) != rx_service_configs.end()) {
+  if (rx_service_configs_.find(key) != rx_service_configs_.end()) {
     HOLOSCAN_LOG_ERROR(
         "Rivermax ANO settings for port {} and queue {} already exists", port_id, queue_id);
     return;
   }
   HOLOSCAN_LOG_INFO("Rivermax ANO settings for port {} and queue {} added", port_id, queue_id);
 
-  rx_service_configs[key] = rx_service_cfg;
+  rx_service_configs_[key] = rx_service_cfg;
 }
 
 /**
@@ -348,7 +560,7 @@ void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
-                                                               RxQueueConfig& q) {
+                                                              RxQueueConfig& q) {
   const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
 
   if (!rmax_rx_settings) {
@@ -385,11 +597,6 @@ AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& 
   rmax_rx_config.num_of_threads = rmax_rx_settings["num_of_threads"].as<size_t>(1);
   rmax_rx_config.send_packet_ext_info = rmax_rx_settings["send_packet_ext_info"].as<bool>(true);
   rmax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
-  rmax_rx_config.gpu_direct = rmax_rx_settings["gpu_direct"].as<bool>(false);
-  rmax_rx_config.gpu_device_id = rmax_rx_settings["gpu_device"].as<int>(INVALID_GPU_ID);
-  rmax_rx_config.max_packet_size = rmax_rx_settings["max_packet_size"].as<uint16_t>(1500);
-  rmax_rx_config.num_concurrent_batches =
-      rmax_rx_settings["num_concurrent_batches"].as<uint32_t>(10);
   rmax_rx_config.rx_stats_period_report_ms =
       rmax_rx_settings["rx_stats_period_report_ms"].as<uint32_t>(0);
   return AdvNetStatus::SUCCESS;
@@ -403,8 +610,38 @@ AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& 
  * @return AdvNetStatus indicating the success or failure of the operation.
  */
 AdvNetStatus RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
-                                                               TxQueueConfig& q) {
+                                                              TxQueueConfig& q) {
   return AdvNetStatus::SUCCESS;
+}
+
+void RmaxRxQueueConfig::dump_parameters() const {
+  if (this->print_parameters) {
+    HOLOSCAN_LOG_INFO("Rivermax RX Queue Config:");
+    // print gpu settings
+    HOLOSCAN_LOG_INFO("\tNetwork settings:");
+    HOLOSCAN_LOG_INFO("\t\tlocal_ips: {}", fmt::join(local_ips, ", "));
+    HOLOSCAN_LOG_INFO("\t\tsource_ips: {}", fmt::join(source_ips, ", "));
+    HOLOSCAN_LOG_INFO("\t\tdestination_ips: {}", fmt::join(destination_ips, ", "));
+    HOLOSCAN_LOG_INFO("\t\tdestination_ports: {}", fmt::join(destination_ports, ", "));
+    HOLOSCAN_LOG_INFO("\tGPU settings:");
+    HOLOSCAN_LOG_INFO("\t\tGPU ID: {}", gpu_device_id);
+    HOLOSCAN_LOG_INFO("\t\tGPU Direct: {}", gpu_direct);
+    HOLOSCAN_LOG_INFO("\tMemory config settings:");
+    HOLOSCAN_LOG_INFO("\t\tallocator_type: {}", allocator_type);
+    HOLOSCAN_LOG_INFO("\t\tmemory_registration: {}", memory_registration);
+    HOLOSCAN_LOG_INFO("\tPacket settings:");
+    HOLOSCAN_LOG_INFO("\t\tbatch_size/max_chunk_size: {}", max_chunk_size);
+    HOLOSCAN_LOG_INFO("\t\tsplit_boundary/header_size: {}", split_boundary);
+    HOLOSCAN_LOG_INFO("\t\tmax_packet_size: {}", max_packet_size);
+    HOLOSCAN_LOG_INFO("\t\tpackets_buffers_size: {}", packets_buffers_size);
+    HOLOSCAN_LOG_INFO("\tRMAX IPO settings:");
+    HOLOSCAN_LOG_INFO("\t\text_seq_num: {}", ext_seq_num);
+    HOLOSCAN_LOG_INFO("\t\tsleep_between_operations: {}", sleep_between_operations);
+    HOLOSCAN_LOG_INFO("\t\tmax_path_differential_us: {}", max_path_differential_us);
+    HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
+    HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
+    HOLOSCAN_LOG_INFO("\t\trx_stats_period_report_ms: {}", rx_stats_period_report_ms);
+  }
 }
 
 };  // namespace holoscan::ops

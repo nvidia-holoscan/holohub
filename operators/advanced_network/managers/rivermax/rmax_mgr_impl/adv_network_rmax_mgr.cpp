@@ -117,7 +117,6 @@ class RmaxMgr::RmaxMgrImpl {
   std::vector<std::thread> rx_service_threads;
   bool initialized_ = false;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
-  RmaxConfigManager config_manager;
 };
 
 std::atomic<bool> force_quit = false;
@@ -141,9 +140,13 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const AdvNetConfigYaml& cfg
     std::thread t(&RmaxMgr::RmaxMgrImpl::initialize, this);
     t.join();
 
-    this->initialized_ = true;
+    if (!this->initialized_) {
+      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax ANO Manager");
+      return false;
+    }
     run();
   }
+
   return true;
 }
 
@@ -158,8 +161,9 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
 
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
+  RmaxConfigManager config_manager(rmax_apps_lib);
 
-  bool res = config_manager.parse_configuration(cfg_, rmax_apps_lib);
+  bool res = config_manager.parse_configuration(cfg_);
   if (!res) {
     HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
     return;
@@ -170,6 +174,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
 
   const auto& rx_service_configs = config_manager.get_rx_service_configs();
   for (const auto& entry : rx_service_configs) { initialize_rx_service(entry.first, entry.second); }
+  this->initialized_ = true;
 }
 
 /**

@@ -439,14 +439,17 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
     common.batch_size_ = q_item["batch_size"].as<int>();
     common.split_boundary_ = q_item["split_boundary"].as<int>(0);
     common.extra_queue_config_ = nullptr;
-    
     if (q_item["memory_regions"].IsDefined()) {
       const auto& mrs = q_item["memory_regions"];
-      common.mrs_.reserve(mrs.size());
+      if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
       for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
+    return false;
+  }
+  if (common.mrs_.empty()) {
+    HOLOSCAN_LOG_ERROR("No memory regions defined for queue: {}", common.name_);
     return false;
   }
   return true;
