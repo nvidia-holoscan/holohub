@@ -23,7 +23,9 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/inference_processor/inference_processor.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+
 #include <holoscan/version_config.hpp>
 
 #include <visualizer_icardio.hpp>
@@ -37,12 +39,25 @@ class App : public holoscan::Application {
     if (source == "aja") { is_aja_source_ = true; }
   }
 
+  enum class Record { NONE, INPUT, VISUALIZER };
+
+  void set_record(const std::string& record) {
+    if (record == "input") {
+      record_type_ = Record::INPUT;
+    } else if (record == "visualizer") {
+      record_type_ = Record::VISUALIZER;
+    }
+  }
+
   void set_datapath(const std::string& path) { datapath = path; }
 
   void compose() override {
     using namespace holoscan;
 
     std::shared_ptr<Operator> source;
+    std::shared_ptr<Operator> recorder;
+    std::shared_ptr<Operator> recorder_format_converter;
+
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream");
 
@@ -143,10 +158,34 @@ class App : public holoscan::Application {
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto holoviz = make_operator<ops::HolovizOp>(
-        "holoviz", from_config("holoviz"), Arg("cuda_stream_pool") = cuda_stream_pool);
+        "holoviz", from_config("holoviz"),
+        Arg("enable_render_buffer_output") = (record_type_ == Record::VISUALIZER),
+        Arg("allocator") =
+            make_resource<BlockMemoryPool>("visualizer_allocator",
+                                           (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
+                                           // max from VisualizerICardioOp::tensor_to_shape_
+                                           320 * 320 * 4 * sizeof(uint8_t),
+                                           1 * 8),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
+
+
+    // Add recording operators
+    if (record_type_ != Record::NONE) {
+      if (((record_type_ == Record::INPUT) && is_aja_source_) ||
+          (record_type_ == Record::VISUALIZER)) {
+        recorder_format_converter = make_operator<ops::FormatConverterOp>(
+            "recorder_format_converter",
+            from_config("recorder_format_converter"),
+            Arg("pool") =
+                make_resource<BlockMemoryPool>("pool",
+                                           (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
+                                           320 * 320 * 4 * sizeof(uint8_t),
+                                           1 * 8));
+      }
+      recorder = make_operator<ops::VideoStreamRecorderOp>("recorder", from_config("recorder"));
+    }
 
     // Flow definition
-
     const std::string source_port_name = is_aja_source_ ? "video_buffer_output" : "";
     add_flow(source, plax_cham_pre, {{source_port_name, ""}});
     add_flow(source, aortic_ste_pre, {{source_port_name, ""}});
@@ -168,10 +207,26 @@ class App : public holoscan::Application {
     add_flow(visualizer_icardio, holoviz, {{"keyarea_5", "receivers"}});
     add_flow(visualizer_icardio, holoviz, {{"lines", "receivers"}});
     add_flow(visualizer_icardio, holoviz, {{"logo", "receivers"}});
+
+
+    if (record_type_ == Record::INPUT) {
+      if (is_aja_source_) {
+        add_flow(source, recorder_format_converter, {{source_port_name, "source_video"}});
+        add_flow(recorder_format_converter, recorder);
+      } else {
+        add_flow(source, recorder);
+      }
+    } else if (record_type_ == Record::VISUALIZER) {
+      add_flow(holoviz,
+               recorder_format_converter,
+               {{"render_buffer_output", "source_video"}});
+      add_flow(recorder_format_converter, recorder);
+    }
   }
 
  private:
   bool is_aja_source_ = false;
+  Record record_type_ = Record::NONE;
   std::string datapath = "data/multiai_ultrasound";
 };
 
@@ -214,6 +269,10 @@ int main(int argc, char** argv) {
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
+
+  auto record_type = app->from_config("record_type").as<std::string>();
+  app->set_record(record_type);
+
   if (data_path != "") app->set_datapath(data_path);
   app->run();
 

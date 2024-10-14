@@ -15,7 +15,6 @@
 # limitations under the License.
 ---
 source: "replayer" # or "aja"
-do_record: false   # or 'true' if you want to record input video stream.
 
 replayer:
   basename: "icardio_input1"
@@ -23,6 +22,9 @@ replayer:
   repeat: true    # default: false
   realtime: true  # default: true
   count: 0        # default: 0 (no frame count restriction)
+
+record_type: "none"   # or "input" if you want to record input video stream, or "visualizer" if you want
+                      # to record the visualizer output.
 
 aja:  # AJASourceOp
   width: 1920
@@ -140,3 +142,11 @@ holoviz:
   width: 320
   height: 320
   use_exclusive_display: false
+
+recorder_format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+recorder:
+  directory: "/tmp"
+  basename: "tensor"
