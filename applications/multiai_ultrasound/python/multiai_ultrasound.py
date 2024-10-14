@@ -221,9 +221,9 @@ class MultiAIICardio(Application):
             self,
             name="holoviz",
             cuda_stream_pool=cuda_stream_pool,
-            enable_render_buffer_output= record_type == "visualizer",
+            enable_render_buffer_output=record_type == "visualizer",
             allocator=visualizer_allocator,
-            **self.kwargs("holoviz")
+            **self.kwargs("holoviz"),
         )
 
         # connect the input to the resizer and each pre-processor
