@@ -248,7 +248,7 @@ bound to a non-isolated core. Should differ from isolated cores in queues below.
 
 ##### Memory regions
 
-`memory_regions:` List of regions where buffers are stored. (<mark>Not in use for Rivermax manager</mark>)
+`memory_regions:` List of regions where buffers are stored.
 
 - **`name`**: Memory Region name
   - type: `string`
@@ -281,9 +281,9 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	full path: `cfg\interfaces\rx\queues`
 	- **`name`**: Name of queue
   		- type: `string`
- 	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
+	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
   		- type: `integer`
-	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNet IORivermax manager</mark>
+	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
 		Rivermax manager can accept coma separated list of CPU IDs
   		- type: `string`
 	- **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
@@ -320,38 +320,13 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
   type: `list`
   full path: `cfg\interfaces\rx\queues\rmax_rx_settings`
-	- **`gpu_device`**: GPU device number if using GPUDirect
-  		- type: `integer`
-  		- default:`-1`
-	- **`gpu_direct`**: GPUDirect is enabled on the queue
-  		- type: `boolean`
-  		- default:`false`
-	- **`max_packet_size`**: Largest packet size expected
-  		- type: `integer`
-  		- default:`1500`
-	- **`num_concurrent_batches`**: Number of batches that can be outstanding (not freed) at any given time. This value directly affects
-	the amount of memory needed for receiving packets. A value too small and packets will be dropped, while a value too large will
-	unnecessarily use excess CPU and/or GPU memory.
-  		- type: `integer`
-  		- default:`10`
 	- **`memory_registration`**: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
 		<mark>Can be used only together with HDS enabled</mark>
   		- type: `boolean`
   		- default:`false`
- 	- **`allocator_type`**:  Memory allocator type. If the user selects GPU device by setting `gpu_device` to a valid device id, then payload buffer will be allocated in GPU memory. 
- 		If the user also enables HDS by setting  `split_boundary` to non-zero value, then header buffer will be allocated in RAM using the allocator type.
-		- type: `string`
-		- default:`auto`
-		The following types are available:
-			- `auto` - Automatic selection (default).
-			- `malloc` - malloc memory allocation using system-default page size.
-			- `hugepage` - Huge Page allocation using system-default huge page size.
-			- `hugepage-2m` - Allocate 2 MB huge pages.
-			- `hugepage-512m` - Allocate 512 MB huge pages.
-			- `hugepage-1g` - Allocate 1024 MB huge pages.
 	- **`max_path_diff_us`**: Sets the maximum number of microseconds that receiver waits for the same packet to arrive from a different stream (if IPO is enabled)
-  		- type: `integer`
-  		- default:`0`
+		- type: `integer`
+		- default:`0`
 	- **`ext_seq_num`**: The RTP sequence number is used by the hardware to determine the location of arriving packets in the receive buffer.
 		The application supports two sequence number parsing modes: 16-bit RTP sequence number (default) and 32-bit extended sequence number,
 		consisting of 16 low order RTP sequence number bits and 16 high order bits from the start of RTP payload. When set to `true` 32-bit ext. sequence number will be used
@@ -382,7 +357,22 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
  The incoming packets are of size 1152 bytes. The initial 20 bytes are stripped from the payload as an  application header and placed in buffers allocated in RAM.
  The remaining 1132 bytes are placed in dedicated payload buffers.  In this case, the payload buffers are allocated in GPU 0 memory.
 ```YAML
-   interfaces:
+    memory_regions:
+    - name: "Data_RX_CPU"
+      kind: "huge"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 43200
+      buf_size: 20
+    - name: "Data_RX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 43200
+      buf_size: 1132
+    interfaces:
     - address: 0005:03:00.0
       name: data1
       rx:
@@ -390,19 +380,16 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
         - name: Data1
           id: 1
           cpu_core: '11'
-          batch_size: 1024
-          split_boundary: 20
+          batch_size: 4320
           output_port: bench_rx_out_1    
           rmax_rx_settings:
-            gpu_device: 0
-            gpu_direct: true
-            max_packet_size: 1152
-            num_concurrent_batches: 64
             memory_registration: true
-            allocator_type: huge_page_2mb
             max_path_diff_us: 100
             ext_seq_num: true
             sleep_between_operations_us: 100
+            memory_regions: 
+            - "Data_RX_CPU"
+            - "Data_RX_GPU"
             local_ip_addresses:
             - 192.168.100.5
             - 192.168.100.5
