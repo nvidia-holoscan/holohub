@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ from holoscan.operators import (
     HolovizOp,
     InferenceOp,
     InferenceProcessorOp,
+    VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
@@ -33,7 +34,7 @@ from holohub.visualizer_icardio import VisualizerICardioOp
 
 
 class MultiAIICardio(Application):
-    def __init__(self, data, source="replayer"):
+    def __init__(self, data, source="replayer", record_type=None):
         super().__init__()
 
         if data == "none":
@@ -48,12 +49,19 @@ class MultiAIICardio(Application):
             raise ValueError(f"unsupported source: {source}. Please use 'replayer' or 'aja'.")
         self.source = source
 
+        self.record_type = record_type
+        if record_type is not None:
+            if record_type not in ("input", "visualizer"):
+                raise ValueError("record_type must be either ('input' or 'visualizer')")
+
         self.sample_data_path = data
 
     def compose(self):
         cuda_stream_pool = CudaStreamPool(self, name="cuda_stream")
 
+        record_type = self.record_type
         is_aja = self.source.lower() == "aja"
+
         SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
         source_kwargs = self.kwargs(self.source)
         if self.source == "replayer":
@@ -183,8 +191,39 @@ class MultiAIICardio(Application):
             cuda_stream_pool=cuda_stream_pool,
             **visualizer_kwargs,
         )
+
+        source_pool_kwargs = dict(
+            storage_type=MemoryStorageType.DEVICE,
+            block_size=block_size,
+            num_blocks=1,
+        )
+
+        if record_type is not None:
+            if ((record_type == "input") and (self.source != "replayer")) or (
+                record_type == "visualizer"
+            ):
+                recorder_format_converter = FormatConverterOp(
+                    self,
+                    name="recorder_format_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("recorder_format_converter"),
+                )
+            recorder = VideoStreamRecorderOp(
+                name="recorder", fragment=self, **self.kwargs("recorder")
+            )
+
+        if (record_type == "visualizer") and (self.source == "replayer"):
+            visualizer_allocator = BlockMemoryPool(self, name="allocator", **source_pool_kwargs)
+        else:
+            visualizer_allocator = None
+
         holoviz = HolovizOp(
-            self, name="holoviz", cuda_stream_pool=cuda_stream_pool, **self.kwargs("holoviz")
+            self,
+            name="holoviz",
+            cuda_stream_pool=cuda_stream_pool,
+            enable_render_buffer_output=record_type == "visualizer",
+            allocator=visualizer_allocator,
+            **self.kwargs("holoviz"),
         )
 
         # connect the input to the resizer and each pre-processor
@@ -219,6 +258,25 @@ class MultiAIICardio(Application):
         for src in visualizer_inputs:
             self.add_flow(visualizer_icardio, holoviz, {(src, "receivers")})
 
+        # Flow for the recorder
+        if record_type == "input":
+            if self.source != "replayer":
+                self.add_flow(
+                    source,
+                    recorder_format_converter,
+                    {("video_buffer_output", "source_video")},
+                )
+                self.add_flow(recorder_format_converter, recorder)
+            else:
+                self.add_flow(source, recorder)
+        elif record_type == "visualizer":
+            self.add_flow(
+                holoviz,
+                recorder_format_converter,
+                {("render_buffer_output", "source_video")},
+            )
+            self.add_flow(recorder_format_converter, recorder)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Multi-AI demo application.")
@@ -231,6 +289,13 @@ if __name__ == "__main__":
             "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
             "capture card as the source (default: %(default)s)."
         ),
+    )
+    parser.add_argument(
+        "-r",
+        "--record_type",
+        choices=["none", "input", "visualizer"],
+        default="none",
+        help="The video stream to record (default: %(default)s).",
     )
     parser.add_argument(
         "-c",
@@ -246,11 +311,15 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    record_type = args.record_type
+    if record_type == "none":
+        record_type = None
+
     if args.config == "none":
         config_file = os.path.join(os.path.dirname(__file__), "multiai_ultrasound.yaml")
     else:
         config_file = args.config
 
-    app = MultiAIICardio(source=args.source, data=args.data)
+    app = MultiAIICardio(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
     app.run()
