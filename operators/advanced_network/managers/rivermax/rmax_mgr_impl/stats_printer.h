@@ -77,7 +77,7 @@ class StatsPrinter {
           rx_services) {
     uint32_t stream_id = 0;
 
-    ss << "RMAX ANO Statistics\n";
+    ss << "RIVERMAX ANO Statistics\n";
     ss << "====================\n";
     ss << "Total Statistics\n";
     ss << "----------------\n";

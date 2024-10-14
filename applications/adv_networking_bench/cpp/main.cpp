@@ -109,7 +109,7 @@ class App : public holoscan::Application {
         }
       }
       if (tx_en) {
-        HOLOSCAN_LOG_ERROR("RMAX ANO manager/backend doesn't support TX");
+        HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend doesn't support TX");
         exit(1);
       }
 #else

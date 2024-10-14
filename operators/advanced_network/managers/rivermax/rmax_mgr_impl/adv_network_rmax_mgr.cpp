@@ -161,7 +161,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
 
   bool res = config_manager.parse_configuration(cfg_, rmax_apps_lib);
   if (!res) {
-    HOLOSCAN_LOG_ERROR("Failed to parse configuration for RMAX ANO Manager");
+    HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
     return;
   }
 
@@ -632,7 +632,7 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::send_tx_burst(AdvNetBurstParams* burst) {
  */
 void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
-    HOLOSCAN_LOG_INFO("ANO RMAX manager shutting down");
+    HOLOSCAN_LOG_INFO("ANO Rivermax manager shutting down");
     force_quit.store(false);
     std::raise(SIGINT);
   }
