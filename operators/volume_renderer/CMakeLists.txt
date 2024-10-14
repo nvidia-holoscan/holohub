@@ -52,16 +52,11 @@ FetchContent_Declare(
 # enable CMP0077 to allow overwriting option() statements in FetchContent sub-projects
 cmake_policy(SET CMP0077 NEW)
 
-FetchContent_GetProperties(ClaraViz)
-if(NOT claraviz_POPULATED)
-    FetchContent_Populate(ClaraViz)
-    set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
-    add_subdirectory(${claraviz_SOURCE_DIR}/thirdparty ${claraviz_BINARY_DIR}/thirdparty)
-    add_subdirectory(${claraviz_SOURCE_DIR}/src ${claraviz_BINARY_DIR}/src)
-endif()
-set(FETCHCONTENT_QUIET ON)
-
+FetchContent_MakeAvailable(ClaraViz)
 set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
+add_subdirectory(${claraviz_SOURCE_DIR}/src ${claraviz_BINARY_DIR}/src)
+
+set(FETCHCONTENT_QUIET ON)
 
 find_package(clara_viz_renderer REQUIRED HINTS ${claraviz_SOURCE_DIR}/cmake)
 install(IMPORTED_RUNTIME_ARTIFACTS clara::viz::renderer
