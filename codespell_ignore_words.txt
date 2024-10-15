@@ -11,4 +11,7 @@ donot
 thirdparty
 EHR
 ehr
+Infor
+infor
+INFOR
 
