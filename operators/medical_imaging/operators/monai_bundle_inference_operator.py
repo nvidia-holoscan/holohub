@@ -53,136 +53,6 @@ create_workflow, _ = optional_import("monai.bundle", name="create_workflow")
 __all__ = ["MonaiBundleInferenceOperator", "IOMapping", "BundleConfigNames"]
 
 
-def get_bundle_config(bundle_path, config_names):
-    """
-    Gets the configuration parser from the specified Torchscript bundle file path.
-    """
-
-    bundle_suffixes = (".json", ".yaml", "yml")  # The only supported file ext(s)
-    config_folder = "extra"
-
-    def _read_from_archive(archive, root_name: str, config_name: str, do_search=True):
-        """A helper function for reading the content of a config in the zip archive.
-
-        Tries to read config content at the expected path in the archive, if error occurs,
-        search and read with alternative paths.
-        """
-
-        content_text = None
-        config_name = config_name.split(".")[0]  # In case ext is present
-
-        # Try directly read with constructed and expected path into the archive
-        for suffix in bundle_suffixes:
-            path = Path(root_name, config_folder, config_name).with_suffix(suffix)
-            try:
-                logging.debug(f"Trying to read config {config_name!r} content from {path!r}.")
-                content_text = archive.read(str(path))
-                break
-            except Exception:
-                logging.debug(f"Error reading from {path}. Will try alternative ways.")
-                continue
-
-        # Try search for the name in the name list of the archive
-        if not content_text and do_search:
-            logging.debug(f"Trying to find the file in the archive for config {config_name!r}.")
-            name_list = archive.namelist()
-            for suffix in bundle_suffixes:
-                for n in name_list:
-                    if (f"{config_name}{suffix}").casefold in n.casefold():
-                        logging.debug(
-                            f"Trying to read content of config {config_name!r} from {n!r}."
-                        )
-                        content_text = archive.read(n)
-                        break
-
-        if not content_text:
-            raise IOError(
-                f"Cannot read config {config_name}{bundle_suffixes} or its content in the archive."
-            )
-
-        return content_text
-
-    def _extract_from_archive(
-        archive,
-        root_name: str,
-        config_names: List[str],
-        dest_folder: Union[str, Path],
-        do_search=True,
-    ):
-        """A helper function for extract files of configs from the archive to the destination folder
-
-        Tries to extract with the full paths from the archive file, if error occurs, tries to search for
-        and read from the file(s) if do_search is true.
-        """
-
-        config_names = [cn.split(".")[0] for cn in config_names]  # In case the extension is present
-        file_list = []
-
-        # Try directly read first with path into the archive
-        for suffix in bundle_suffixes:
-            try:
-                logging.debug(f"Trying to extract {config_names} with ext {suffix}.")
-                file_list = [
-                    str(Path(root_name, config_folder, cn).with_suffix(suffix))
-                    for cn in config_names
-                ]
-                archive.extractall(members=file_list, path=dest_folder)
-                break
-            except Exception as ex:
-                file_list = []
-                logging.debug(
-                    f"Will try file search after error on extracting {config_names} with {file_list}: {ex}"
-                )
-                continue
-
-        # If files not extracted, try search for expected files in the name list of the archive
-        if (len(file_list) < 1) and do_search:
-            logging.debug(f"Trying to find the config files in the archive for {config_names}.")
-            name_list = archive.namelist()
-            leftovers = deepcopy(config_names)  # to track any that are not found.
-            for cn in config_names:
-                for suffix in bundle_suffixes:
-                    found = False
-                    for n in name_list:
-                        if (f"{cn}{suffix}").casefold() in n.casefold():
-                            found = True
-                            archive.extract(member=n, path=dest_folder)
-                            break
-                    if found:
-                        leftovers.remove(cn)
-                        break
-
-            if len(leftovers) > 0:
-                raise IOError(f"Failed to extract content for these config(s): {leftovers}.")
-
-        return file_list
-
-    # End of helper functions
-
-    if isinstance(config_names, str):
-        config_names = [config_names]
-
-    name, _ = os.path.splitext(
-        os.path.basename(bundle_path)
-    )  # bundle file name same archive folder name
-    parser = ConfigParser()
-
-    # Parser to read the required metadata and extra config contents from the archive
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with zipfile.ZipFile(bundle_path, "r") as archive:
-            metadata_config_name = "metadata"
-            metadata_text = _read_from_archive(archive, name, metadata_config_name)
-            parser.read_meta(f=json.loads(metadata_text))
-
-            # now get the other named configs
-            file_list = _extract_from_archive(archive, name, config_names, tmp_dir)
-            parser.read_config([Path(tmp_dir, f_path) for f_path in file_list])
-
-    parser.parse()
-
-    return parser
-
-
 DISALLOW_LOAD_SAVE = ["LoadImage", "SaveImage"]
 DISALLOW_SAVE = ["SaveImage"]
 
@@ -243,18 +113,13 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
     This inference operator configures itself based on the bundle workflow setup. When using bundle workflow, only inputs, outputs,
     and accordingly map need to be set for operator running. Its compute method is meant to be general purpose to most any bundle
-    such that it will handle any input specified in the bundle and produce output as specified, using the bundle workflow.
+    such that it will handle any streaming input and output specified in the bundle, using the bundle workflow.
     A number of methods are provided which define parts of functionality relating to this behavior, users may wish
     to overwrite these to change behavior is needed for specific bundles.
 
-    The input(s) and output(s) for this operator need to be provided when an instance is created, and their labels need
-    to correspond to the bundle network input and output names, which are also used as the keys in the pre and post processing.
-
-    For image input and output, the type is the `Image` class. For output of probabilities, the type is `Dict`.
-
-    This operator is expected to be linked with both source and destination operators, e.g. receiving an `Image` object from
-    the `DICOMSeriesToVolumeOperator`, and passing a segmentation `Image` to the `DICOMSegmentationWriterOperator`.
-    In such cases, the I/O storage type can only be `IN_MEMORY` due to the restrictions imposed by the application executor.
+    This operator is expected to be linked with both source and destination operators, e.g. receiving an numpy array object from
+    an image lodaer operator, and passing a segmentation mask to an image saver operator.
+    In this cases, the I/O storage type can only be `IN_MEMORY` due to the restrictions imposed by the application executor.
 
     For the time being, the input and output to this operator are limited to in_memory object.
     """
@@ -308,9 +173,11 @@ class MonaiBundleInferenceOperator(InferenceOperator):
     def _create_bundle_workflow(self):
         """
         Create the MONAI bundle workflow to perform inference.
-        The workflow file can be created through two ways:
+        The workflow object can be created through two ways:
             1. Through a MONAI bundle config file
             2. Through a python MONAI bundle
+        The second one is a placeholder for the pure PythonWorkflow which does not
+        contain any config files.
         """
         config_file = self._get_inference_config()
         # Create bundle workflow through config file
