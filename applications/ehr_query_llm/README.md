@@ -9,7 +9,7 @@ This application is NOT for clinical use.
 
 As shown in the acrhitecture digram above, there are three main components in this application
 - [FHIR](https://fhir.org/) services, for example provided by [Infor Cloverleaf](https://www.infor.com/products/cloverleaf), which consolidates and supports distributing patient electronic health records within and even among affiliated institutions. It handles various underlying healthcare informitics protocols while providing a consistent API and data content for the AP applications. This service can be hosted on-premise or on cloud. A Cloverleaf instance hosted on AWS, populated with synthetic patient data, is used in testing this reference application.
-- [FHIR Client](./domain_specific/fhir/README.mdREADME.md), developed on [Holoscan SDK](https://developer.nvidia.com/holoscan-sdk) [Version 2.5](https://docs.nvidia.com/holoscan/sdk-user-guide/index.html) for getting and posting patient health records defined as [FHIR Resources](https://www.hl7.org/fhir/resourcelist.html). It also validate and transforms the resources for concumption by the AI application
+- [FHIR Client](./domain_specific/fhir/README.md), developed on [Holoscan SDK](https://developer.nvidia.com/holoscan-sdk) [Version 2.5](https://docs.nvidia.com/holoscan/sdk-user-guide/index.html) for getting and posting patient health records defined as [FHIR Resources](https://www.hl7.org/fhir/resourcelist.html). It also validate and transforms the resources for concumption by the AI application
 - Generative AI application, developed on Holoscan SDK with fine-tuned open source Embedding and LLM models. It interacts with end users, prepares the patient records on user demand, builds the vector database, and generates answers on user query with a LLM. In the first phase of this reference application only language models are supported and multi-modal support is on the roadmap.
 
 ## Requirements
@@ -33,7 +33,7 @@ It is acknowdged that [Synthea](https://synthea.mitre.org/) was used to generate
 All three components need to be started and running. Sequence to start them need not be enforced but FHIR Server and FHIR Client must be running when the AI application is asked to create the vector database. The following provides the most natural starting sequence:
 - FHIR Server is started and ready to serve records of at least one known patient. Please consult the chosen FHIR server's guides
 - Start the FHIR Client by following this [README](./domain_specific/fhir/README.md), either interactively in dev mode or a Docker container
-- Start the Gen AI application by following its [README](./lmm/)
+- Start the Gen AI application by following its [README](./lmm/README.md)
 
 Open a Web browser at the URL presented by the Gen AI application, and start asking questions!
 
