@@ -1,0 +1,31 @@
+imports:
+  - $import os
+  - $import numpy as np
+
+data: "/coco"
+epochs: 65
+batch_size: 32
+eval_batch_size: 32
+use_cuda: true
+no_cuda: false
+seed: $np.random.randint(1e4)
+checkpoint: null
+torchvision_weights_version: "IMAGENET1K_V2"
+learning_rate: 2.6e-3
+momentum: 0.9
+weight_decay: 0.0005
+evaluation: [21, 31, 37, 42, 48, 53, 59, 64]
+multistep: [43, 54]
+backbone: "resnet50"
+backbone_path: null
+num_workers: 8
+local_rank: $os.getenv('LOCAL_RANK',0)
+N_gpu: 1
+amp: true
+distributed: false
+mode: "training"
+log_interval: 20
+json_summary: null
+save: "./output"
+data_layout: "channels_first"
+warmup: null
