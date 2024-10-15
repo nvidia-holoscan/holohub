@@ -14,16 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if ANO_MGR_DPDK
-#include "dpdk_bench_op_rx.h"
-#include "dpdk_bench_op_tx.h"
+#if ANO_MGR_DPDK || ANO_MGR_RIVERMAX
+#include "default_bench_op_rx.h"
+#include "default_bench_op_tx.h"
 #endif
 #if ANO_MGR_DOCA
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
-#endif
-#if ANO_MGR_RIVERMAX
-#include "rmax_bench_op_rx.h"
 #endif
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
@@ -103,7 +100,7 @@ class App : public holoscan::Application {
         int index = 0;
         for (const auto& port : output_rx_ports) {
           std::string bench_rx_name = "bench_rx_" + std::to_string(index++);
-          auto bench_rx = make_operator<ops::AdvNetworkingBenchRmaxRxOp>(bench_rx_name,
+          auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
                                                                          from_config("bench_rx"));
           add_flow(adv_net_rx, bench_rx, {{ port, "burst_in" }});
         }
@@ -138,9 +135,7 @@ int main(int argc, char** argv) {
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
-#if ANO_MGR_RIVERMAX
   holoscan::ops::adv_net_print_stats();
   holoscan::ops::adv_net_shutdown();
-#endif
   return 0;
 }
