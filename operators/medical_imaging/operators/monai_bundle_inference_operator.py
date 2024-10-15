@@ -45,62 +45,44 @@ SpaceKeys, _ = optional_import(MONAI_UTILS, name="SpaceKeys")
 create_workflow, _ = optional_import("monai.bundle", name="create_workflow")
 
 
-__all__ = ["MonaiBundleInferenceOperator", "IOMapping", "BundleConfigNames"]
+__all__ = ["MonaiBundleInferenceOperator"]
 
-
-DISALLOW_LOAD_SAVE = ["LoadImage", "SaveImage"]
-DISALLOW_SAVE = ["SaveImage"]
-
-
-def filter_compose(compose, disallowed_prefixes):
-    """
-    Removes transforms from the given Compose object whose names begin with `disallowed_prefixes`.
-    """
-    filtered = []
-    for t in compose.transforms:
-        tname = type(t).__name__
-        if not any(dis in tname for dis in disallowed_prefixes):
-            filtered.append(t)
-
-    compose.transforms = tuple(filtered)
-    return compose
-
-
-def is_map_compose(compose):
-    """
-    Returns True if the given Compose object uses MapTransform instances.
-    """
-    return isinstance(first(compose.transforms), MapTransform)
-
-
-class IOMapping:
-    """This object holds an I/O definition for an operator."""
-
-    def __init__(
-        self,
-        label: str,
-        data_type: Type,
-        storage_type: IOType,
-    ):
-        """Creates an object holding an operator I/O definitions.
-
-        Limitations apply with the combination of data_type and storage_type, which will
-        be validated at runtime.
-
-        Args:
-            label (str): Label for the operator input or output.
-            data_type (Type): Datatype of the I/O data content.
-            storage_type (IOType): The storage type expected, i.e. IN_MEMORY or DISK.
-        """
-        self.label: str = label
-        self.data_type: Type = data_type
-        self.storage_type: IOType = storage_type
-
+BUNDLE_PROPERTIES_HOLOSCAN = {
+    "bundle_root": {
+        "description": "root path of the bundle.",
+        "required": True,
+        "id": "bundle_root"
+    },
+    "device": {
+        "description": "target device to execute the bundle workflow.",
+        "required": True,
+        "id": "device"
+    },
+    "dataflow": {
+        "description": "dataflow to execute the bundle workflow.",
+        "required": True,
+        "id": "dataflow"
+    },
+    "version": {
+        "description": "bundle version",
+        "required": True,
+        "id": "_meta_::version"
+    },
+    "channel_def": {
+        "description": "channel definition for the prediction",
+        "required": False,
+        "id": "_meta_::network_data_format::outputs::pred::channel_def"
+    },
+    "type": {
+        "description": "data type of the input image",
+        "required": False,
+        "id": "_meta_::network_data_format::outputs::pred::type"
+    }
+}
 
 class MONAIBundleWorkflowType:
     train = "train"
     infer = "inference"
-
 
 
 class MonaiBundleInferenceOperator(Operator):
@@ -156,7 +138,6 @@ class MonaiBundleInferenceOperator(Operator):
         if not self._workflow:
             raise AttributeError(f"Cannot create MONAIBundleInferenceOperator from path {self._bundle_path}")
 
-        self._device = self._workflow.device
         self._input_keys = input_keys
         self._output_keys = output_keys
 
@@ -187,48 +168,15 @@ class MonaiBundleInferenceOperator(Operator):
         inference_config_list = glob.glob(os.path.join(self.bundle_path, "configs", "inference.*"))
         return inference_config_list[0] if inference_config_list else None
 
-    @property
-    def bundle_path(self) -> Union[Path, None]:
-        """The path of the MONAI Bundle model."""
-        return self._bundle_path
-
-    @bundle_path.setter
-    def bundle_path(self, bundle_path: Union[str, Path]):
-        if not bundle_path or not Path(bundle_path).expanduser().is_file():
-            raise ValueError(f"Value, {bundle_path}, is not a valid file path.")
-        self._bundle_path = Path(bundle_path).expanduser().resolve()
-
-
-    def _get_io_data_type(self, conf):
-        """
-        Gets the input/output type of the given input or output metadata dictionary. The known Python types for input
-        or output types are given in the dictionary `BundleOperator.known_io_data_types` which relate type names to
-        the actual type. if `conf["type"]` is an actual object that's not a string then this is assumed to be the
-        type specifier and is returned. The fallback type is `bytes` which indicates the value is a pickled object.
-
-        Args:
-            conf: configuration dictionary for an input or output from the "network_data_format" metadata section
-
-        Returns:
-            A concrete type associated with this input/output type, this can be Image or np.ndarray or a Python type
-        """
-
-        # The Bundle's network_data_format for inputs and outputs does not indicate the storage type, i.e. IN_MEMORY
-        # or DISK, for the input(s) and output(s) of the operators. Configuration is required, though limited to
-        # IN_MEMORY for now.
-        # Certain association and transform are also required. The App SDK IN_MEMORY I/O can hold
-        # Any type, so if the type match and content format matches, data can simply be used as is, however, with
-        # the Type being Image, the object needs to be converted before being used as the expected "image" type.
-        ctype = conf["type"]
-        if ctype in self.known_io_data_types:  # known type name from the specification
-            return self.known_io_data_types[ctype]
-        elif isinstance(ctype, type):  # type object
-            return ctype
-        else:  # don't know, something that hasn't been figured out
-            logging.warn(
-                f"I/O data type, {ctype}, is not a known/supported type. Return as Type object."
-            )
-            return object
+    def __getattr__(self, name):
+        if name in BUNDLE_PROPERTIES_HOLOSCAN:
+            return self._workflow.get(name)
+    
+    def __setattr__(self, name, value):
+        if name in BUNDLE_PROPERTIES_HOLOSCAN:
+            self._workflow.set(name, value)
+        else:
+            return super().__setattr__(name, value)
 
     def setup(self, spec: OperatorSpec):
         [spec.input(v) for v in self._input_keys]
@@ -243,6 +191,7 @@ class MonaiBundleInferenceOperator(Operator):
             context (ExecutionContext): An execution context for the operator.
         """
 
+        self._workflow.initialize()
         inputs: Any = {}  # Use type Any to quiet MyPy type checking complaints.
         for name in self._intput_keys:
             # Input MetaTensor creation is based on the same logic in monai LoadImage
