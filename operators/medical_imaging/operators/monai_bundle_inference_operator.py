@@ -14,32 +14,16 @@
 # limitations under the License.
 
 import logging
-import os
 import time
-import glob
-from threading import Lock
 from typing import Any, Dict, List
 
-import numpy as np
 from holoscan.core import Fragment, Operator, OperatorSpec
-
-from operators.medical_imaging.core import AppContext, Image
 from operators.medical_imaging.utils.importutil import optional_import
 
 
 MONAI_UTILS = "monai.utils"
-nibabel, _ = optional_import("nibabel", "3.2.1")
-torch, _ = optional_import("torch", "1.10.2")
 
-NdarrayOrTensor, _ = optional_import("monai.config", name="NdarrayOrTensor")
-MetaTensor, _ = optional_import("monai.data.meta_tensor", name="MetaTensor")
-PostFix, _ = optional_import(
-    "monai.utils.enums", name="PostFix"
-)  # For the default meta_key_postfix
 ensure_tuple, _ = optional_import(MONAI_UTILS, name="ensure_tuple")
-convert_to_dst_type, _ = optional_import(MONAI_UTILS, name="convert_to_dst_type")
-MetaKeys, _ = optional_import(MONAI_UTILS, name="MetaKeys")
-SpaceKeys, _ = optional_import(MONAI_UTILS, name="SpaceKeys")
 create_workflow, _ = optional_import("monai.bundle", name="create_workflow")
 
 
@@ -95,20 +79,10 @@ class MonaiBundleInferenceOperator(Operator):
     For the time being, the input and output to this operator are limited to in_memory object.
     """
 
-    known_io_data_types = {
-        "image": Image,  # Image object
-        "series": np.ndarray,
-        "tuples": np.ndarray,
-        "probabilities": Dict[str, Any],  # dictionary containing probabilities and predicted labels
-    }
-
-    kw_preprocessed_inputs = "preprocessed_inputs"
-
     def __init__(
         self,
         fragment: Fragment,
         *args,
-        app_context: AppContext,
         input_keys: List[str],
         output_keys: List[str],
         workflow_kwargs: Dict,
@@ -118,14 +92,10 @@ class MonaiBundleInferenceOperator(Operator):
 
         Args:
             fragment (Fragment): An instance of the Application class which is derived from Fragment.
-            app_context (AppContext): Object holding the I/O and model paths, and potentially loaded models.
             input_keys (List[str]): Define the inputs' name.
             output_keys (List[str]): Defines the outputs' name.
             workflow_kwargs (Dict): Kwargs to initialize a MONAI bundle workflow.
         """
-
-        self._executing = False
-        self._lock = Lock()
 
         self._workflow = self._create_bundle_workflow(workflow_kwargs)
         if not self._workflow:
@@ -133,9 +103,7 @@ class MonaiBundleInferenceOperator(Operator):
 
         self._input_keys = input_keys
         self._output_keys = output_keys
-
         self._fragment = fragment  # In case it is needed.
-        self.app_context = app_context
 
         super().__init__(fragment, *args, **kwargs)
 
@@ -173,11 +141,8 @@ class MonaiBundleInferenceOperator(Operator):
         self._workflow.initialize()
         inputs: Any = {}  # Use type Any to quiet MyPy type checking complaints.
         for name in self._intput_keys:
-            # Input MetaTensor creation is based on the same logic in monai LoadImage
-            # value: NdarrayOrTensor  # MyPy complaints
             value = op_input.receive(name)
             inputs[name] = value
-            # Named metadata dict not needed any more, as it is in the MetaTensor
 
         self._workflow.dataflow.clear()
         self._workflow.dataflow.update(inputs)
