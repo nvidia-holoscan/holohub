@@ -17,15 +17,13 @@ import logging
 import os
 import time
 import glob
-from copy import deepcopy
-from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Dict, List
 
 import numpy as np
 from holoscan.core import Fragment, Operator, OperatorSpec
 
-from operators.medical_imaging.core import AppContext, Image, IOType
+from operators.medical_imaging.core import AppContext, Image
 from operators.medical_imaging.utils.importutil import optional_import
 
 
