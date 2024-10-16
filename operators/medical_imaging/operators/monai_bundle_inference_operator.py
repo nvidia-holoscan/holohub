@@ -80,10 +80,6 @@ BUNDLE_PROPERTIES_HOLOSCAN = {
     }
 }
 
-class MONAIBundleWorkflowType:
-    train = "train"
-    infer = "inference"
-
 
 class MonaiBundleInferenceOperator(Operator):
     """This inference operator automates the inference operation for a given MONAI Bundle.
@@ -117,7 +113,7 @@ class MonaiBundleInferenceOperator(Operator):
         app_context: AppContext,
         input_keys: List[str],
         output_keys: List[str],
-        bundle_path: Union[Path, str],
+        workflow_kwargs: Dict,
         **kwargs,
     ):
         """Create an instance of this class, associated with an Application/Fragment.
@@ -127,16 +123,15 @@ class MonaiBundleInferenceOperator(Operator):
             app_context (AppContext): Object holding the I/O and model paths, and potentially loaded models.
             input_keys (List[str]): Define the inputs' name.
             output_keys (List[str]): Defines the outputs' name.
-            bundle_path (Union[Path, str]): Known path to the bundle file.
+            workflow_kwargs (Dict): Kwargs to initialize a MONAI bundle workflow.
         """
 
         self._executing = False
         self._lock = Lock()
 
-        self._bundle_path = bundle_path
-        self._workflow = self._create_bundle_workflow()
+        self._workflow = self._create_bundle_workflow(workflow_kwargs)
         if not self._workflow:
-            raise AttributeError(f"Cannot create MONAIBundleInferenceOperator from path {self._bundle_path}")
+            raise AttributeError(f"Cannot create MONAIBundleInferenceOperator from kwargs {workflow_kwargs}")
 
         self._input_keys = input_keys
         self._output_keys = output_keys
@@ -146,21 +141,12 @@ class MonaiBundleInferenceOperator(Operator):
 
         super().__init__(fragment, *args, **kwargs)
 
-    def _create_bundle_workflow(self):
+    def _create_bundle_workflow(self, workflow_kwargs):
         """
-        Create the MONAI bundle workflow to perform inference.
-        The workflow object can be created through two ways:
-            1. Through a MONAI bundle config file
-            2. Through a python MONAI bundle
-        The second one is a placeholder for the pure PythonWorkflow which does not
-        contain any config files.
+        Create the MONAI bundle workflow to perform bundle run.
+        The workflow object is created from the user defined workflow args.
         """
-        config_file = self._get_inference_config()
-        # Create bundle workflow through config file
-        if os.path.exists(config_file):
-            workflow = create_workflow(workflow_type=MONAIBundleWorkflowType.infer, config_file=config_file, bundle_root=self.bundle_path)
-        else:
-            workflow = create_workflow(workflow_type=MONAIBundleWorkflowType.infer, workflow_name="PythonWorkflow")
+        workflow = create_workflow(**workflow_kwargs)
         return workflow
 
     def _get_inference_config(self):
