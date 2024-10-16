@@ -38,10 +38,11 @@ def generate_mean_std():
 
 class SSDWorkflow(BundleWorkflow):
 
-    def __init__(self, config_file=None, workflow_type="train"):
+    def __init__(self, config_file=None, workflow_type="train", **override):
 
         parser = ConfigParser()
         parser.read_config(config_file)
+        parser.update(pairs=override)
 
         super().__init__(workflow_type=workflow_type)
         self._props = {}
@@ -92,9 +93,8 @@ class SSDWorkflow(BundleWorkflow):
     def run(self):
         if str(self.workflow_type).startswith("train"):
             return self.train()
-        if str(self.workflow_type).startswith("infer"):
-            return self.infer()
-        return self.validate()
+        else:
+            raise NotImplementedError(f"Workflow type {self.workflow_type} is not supported.")
 
     def finalize(self):
         pass
