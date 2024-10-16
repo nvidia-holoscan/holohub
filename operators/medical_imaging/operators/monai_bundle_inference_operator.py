@@ -147,11 +147,6 @@ class MonaiBundleInferenceOperator(Operator):
         workflow = create_workflow(**workflow_kwargs)
         return workflow
 
-    def _get_inference_config(self):
-        """Get the inference config file."""
-        inference_config_list = glob.glob(os.path.join(self.bundle_path, "configs", "inference.*"))
-        return inference_config_list[0] if inference_config_list else None
-
     def __getattr__(self, name):
         if name in BUNDLE_PROPERTIES_HOLOSCAN:
             return self._workflow.get(name)
