@@ -30,6 +30,7 @@
     IOMapping
     ModelInfo
     MonaiBundleInferenceOperator
+    MonaiTransformOperator
     MonaiSegInferenceOperator
     PNGConverterOperator
     PublisherOperator
@@ -56,11 +57,10 @@ from .dicom_text_sr_writer_operator import DICOMTextSRWriterOperator as DICOMTex
 from .dicom_utils import EquipmentInfo as EquipmentInfo
 from .dicom_utils import ModelInfo as ModelInfo
 from .inference_operator import InferenceOperator as InferenceOperator
-from .monai_bundle_inference_operator import BundleConfigNames as BundleConfigNames
-from .monai_bundle_inference_operator import IOMapping as IOMapping
 from .monai_bundle_inference_operator import (
     MonaiBundleInferenceOperator as MonaiBundleInferenceOperator,
 )
+from .monai_transform_operator import MonaiTransformOperator as MonaiTransformOperator
 from .monai_seg_inference_operator import MonaiSegInferenceOperator as MonaiSegInferenceOperator
 from .nii_data_loader_operator import NiftiDataLoader as NiftiDataLoader
 from .png_converter_operator import PNGConverterOperator as PNGConverterOperator
