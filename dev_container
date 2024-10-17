@@ -486,6 +486,7 @@ Usage: ./dev_container build [options]
     --verbose : Print variables passed to docker build command
     --no-cache : Do not use cache when building the image
     --build-arg : provides extra arguments to docker build command
+    --secret : provides secret to docker build command
     '
 }
 
@@ -548,6 +549,16 @@ build() {
                 shift 2
             else
                 echo "Error: --build-arg requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
+         --secret)
+            if [[ -n "$2" ]]; then
+                extra_args+=" --secret $2"
+                shift 2
+            else
+                echo "Error: --secret requires a value"
                 build_desc
                 exit 1
             fi
@@ -856,7 +867,8 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --no_run : Skip launching the application.
         --install: Install the application into install/<app> if supported.
         --build_args : Build the app with additional CMake configuration arguments
-        --build_docker_arg: additional docker argument when building the container
+        --build_docker_arg : additional docker argument when building the container
+        --secret : pass secret to build container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
@@ -953,6 +965,16 @@ build_and_run() {
                 shift 2
             else
                 echo "Error: --build_docker_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --secret)
+            if [[ -n "$2" ]]; then
+                container_build_args+=" --secret $2"
+                shift 2
+            else
+                echo "Error: --secret requires a value"
                 build_and_run_desc
                 exit 1
             fi
