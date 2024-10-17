@@ -16,11 +16,16 @@
 # limitations under the License.
 
 import logging
+import os
 from pathlib import Path
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
 from monai_totalseg_operator import MonaiTotalSegOperator
+from operators.medical_imaging.operators import MonaiBundleInferenceOperator, MonaiTransformOperator
+from monai.transforms import Lambdad, SqueezeDimd, ToNumpyd, AsChannelLastd, Transposed
+from monai.bundle import download
+import numpy as np
 from pydicom.sr.codedict import codes  # Required for setting SegmentDescription attributes.
 
 from operators.medical_imaging.core.app_context import AppContext
@@ -153,8 +158,12 @@ class AISegApp(Application):
         super().__init__(*args, **kwargs)
         self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
 
-    def run(self, *args, **kwargs):
+    def run(self, bundle_name, bundle_path, *args, **kwargs):
         # This method calls the base class to run. Can be omitted if simply calling through.
+        self.bundle_path = bundle_path
+        os.makedirs(self.bundle_path, exist_ok=True)
+        download(name=bundle_name, bundle_dir=bundle_path)
+        self.bundle_root = os.path.join(self.bundle_path, bundle_name)
         self._logger.info(f"Begin {self.run.__name__}")
         super().run(*args, **kwargs)
         self._logger.info(f"End {self.run.__name__}")
@@ -181,14 +190,25 @@ class AISegApp(Application):
         )
         series_to_vol_op = DICOMSeriesToVolumeOperator(self, name="series_to_vol_op")
 
-        # Model specific inference operator, supporting MONAI transforms.
-        seg_op = MonaiTotalSegOperator(
-            self,
-            app_context=app_context,
-            output_folder=app_output_path / "saved_images_folder",
-            model_path=model_path,
-            name="seg_op",
-        )
+        # Starting MONAI inference.
+        # First adapt the input to a format that fit the MONAI bundle operator input.
+        input_keys = ["image"]
+        output_keys = ["pred"]
+        input_adapter = Lambdad(keys=["image"], func=lambda x: x.data)
+        input_adapt_op = MonaiTransformOperator(self, input_keys, output_keys=input_keys, transforms=[input_adapter])
+
+        # Run the image inference with bundle workflow.
+        config_file = os.path.join(self.bundle_root, "conigs", "inference.json")
+        workflow_kwargs = {"config_file": config_file, "workflow_type": "inference"}
+        whole_seg_opt = MonaiBundleInferenceOperator(self, input_keys, output_keys, workflow_kwargs)
+
+        # Run post processing to adapt the bundle output to other operators.
+        squeeze_trans = SqueezeDimd(keys=output_keys)
+        to_numpy_trans = ToNumpyd(keys=output_keys, dtype=np.uint8)
+        channel_last_trans = AsChannelLastd(keys=output_keys)
+        transpose_trans = Transposed(keys=output_keys, indices=[1, 0])
+        transform_list = [squeeze_trans, to_numpy_trans, channel_last_trans, transpose_trans]
+        output_adapt_op = MonaiTransformOperator(self, input_keys=output_keys, output_keys=output_keys, transforms=transform_list)
 
         # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
         # User can Look up SNOMED CT codes at, e.g.
@@ -231,7 +251,9 @@ class AISegApp(Application):
             series_to_vol_op,
             {("study_selected_series_list", "study_selected_series_list")},
         )
-        self.add_flow(series_to_vol_op, seg_op, {("image", "image")})
+        self.add_flow(series_to_vol_op, input_adapt_op, {("image", "image")})
+        self.add_flow(input_adapt_op, whole_seg_opt, {("image", "image")})
+        self.add_flow(whole_seg_opt, output_adapt_op, {("pred", "pred")})
 
         # Note below the dicom_seg_writer requires two inputs, each coming from a source operator.
         #   Seg writing needs all segment descriptions coded, otherwise fails.
@@ -240,7 +262,7 @@ class AISegApp(Application):
             dicom_seg_writer,
             {("study_selected_series_list", "study_selected_series_list")},
         )
-        self.add_flow(seg_op, dicom_seg_writer, {("seg_image", "seg_image")})
+        self.add_flow(output_adapt_op, dicom_seg_writer, {("pred", "seg_image")})
 
         self._logger.debug(f"End {self.compose.__name__}")
 
