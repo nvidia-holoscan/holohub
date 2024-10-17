@@ -485,6 +485,7 @@ Usage: ./dev_container build [options]
     --img : Specify fully qualified container name
     --verbose : Print variables passed to docker build command
     --no-cache : Do not use cache when building the image
+    --build-arg : provides extra arguments to docker build command
     '
 }
 
@@ -498,6 +499,7 @@ build() {
     local compute_capacity=$(get_compute_capacity)
     local print_verbose=0
     local no_cache=
+    local extra_args=
 
     # Check if buildx exists
     if ! $(docker buildx version &>/dev/null); then
@@ -540,6 +542,16 @@ build() {
                 exit 1
             fi
             ;;
+        --build-arg)
+            if [[ -n "$2" ]]; then
+                extra_args+=" --build-arg $2"
+                shift 2
+            else
+                echo "Error: --build-arg requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
         --no-cache)
             no_cache="--no-cache"
             shift
@@ -572,6 +584,7 @@ build() {
         --build-arg GPU_TYPE=${gpu_type} \
         --build-arg COMPUTE_CAPACITY=${compute_capacity} \
         --network=host \
+        ${extra_args} \
         ${no_cache} \
         -f ${docker_file_path} \
         -t ${img} \
@@ -843,6 +856,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --no_run : Skip launching the application.
         --install: Install the application into install/<app> if supported.
         --build_args : Build the app with additional CMake configuration arguments
+        --build_docker_arg: additional docker argument when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
@@ -929,6 +943,16 @@ build_and_run() {
                 shift 2
             else
                 echo "Error: --build_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --build_docker_arg)
+            if [[ -n "$2" ]]; then
+                container_build_args+=" --build-arg $2"
+                shift 2
+            else
+                echo "Error: --build_docker_args requires a value"
                 build_and_run_desc
                 exit 1
             fi
