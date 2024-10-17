@@ -1,4 +1,5 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
             "type": "shell",
@@ -307,62 +308,11 @@
         },
         {
             "type": "shell",
-            "label": "Build holoviz_hdr",
+            "label": "Build Holoviz examples",
             "command": "./run",
             "args": [
                 "build",
-                "holoviz_hdr",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
-            "label": "Build holoviz_srgb",
-            "command": "./run",
-            "args": [
-                "build",
-                "holoviz_srgb",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
-            "label": "Build holoviz_vsync",
-            "command": "./run",
-            "args": [
-                "build",
-                "holoviz_vsync",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
-            "label": "Build holoviz_yuv",
-            "command": "./run",
-            "args": [
-                "build",
-                "holoviz_yuv",
+                "${input:remember_holoviz_example_name}",
                 "--type",
                 "debug"
             ],
@@ -481,5 +431,13 @@
             "description": "Select Application",
             "type": "promptString",
         },
+        {
+            "id": "remember_holoviz_example_name",
+            "type": "command",
+            "command": "extension.commandvariable.remember",
+            "args": {
+                "key": "holoviz_example_name"
+            }
+        }
     ]
 }
