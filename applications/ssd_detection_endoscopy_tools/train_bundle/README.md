@@ -19,9 +19,19 @@ pip install -r DeepLearningExamples/PyTorch/Detection/SSD/requirements.txt
 
 ### Prepare Customized Workflow
 
-Since the original training pipeline is using pythonic way, we can extend the [`BundleWorkflow` class of MONAI Bundle](https://github.com/Project-MONAI/MONAI/blob/dev/monai/bundle/workflows.py) and convert the content of `main.py` into it.
-As shown in `scripts/workflow.py`, except of defining necessary functions (like `_set_property`, `_get_property`) that the `BundleWorkflow` requires, other parts (especially the train function) follow the original format. Please note that some of the logics are removed (such as distributed training) to simplify this example but you can still include them if needed.
-As for the arguments, we prepared a config file in: `config/hyper_parameters.yaml` to store all of them, and users can still override them in CLI.
+The original training pipeline of SSD is run in command line, and can parse arguments into the `main.py` file.
+In order to convert into a MONAI Bundle format, we can extend the [`PythonicWorkflow` class of MONAI Bundle](https://github.com/Project-MONAI/MONAI/blob/dev/monai/bundle/workflows.py) and convert the content of `main.py` into it.
+
+As for the arguments, we can prepare a config file (MONAI Bundle workflow can parse it) to replace it (see `configs/hyper_parameters.yaml`), and users can still override them in CLI.
+
+As for other functions, we don't need to modify them.
+
+As for the code under `if __name__ == "__main__":` which will be executed directly when run the script, we only need a bit modification and put them into `run` function (see `def run()`)
+
+### Prepare Metadata Config
+
+`configs/metadata.json` is an import part of a MONAI Bundle. It contains data like the bundle version, change log, dependencies, and the information of the network input and output.
+It helps authors and users to manage versions, distribute and reproduce results.
 
 ### Prepare Dataset
 
@@ -30,7 +40,7 @@ Please follow
 ### Training Command
 
 ```Bash
-python -m monai.bundle run_workflow "scripts.workflow.SSDWorkflow" --config_file configs/hyper_parameters.yaml --data <dataset to be trained>
+python -m monai.bundle run_workflow "scripts.workflow.SSDWorkflow" --config_file configs/hyper_parameters.yaml --data <dataset to be trained> --save <folder to save weights> --json_summary <json file to save logs>
 ```
 
 ### Evaluation Command

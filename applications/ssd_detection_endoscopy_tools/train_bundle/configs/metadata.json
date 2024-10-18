@@ -1,0 +1,71 @@
+{
+    "schema": "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/meta_schema_20240725.json",
+    "version": "0.0.1",
+    "changelog": {
+        "0.0.1": "SSD example"
+    },
+    "monai_version": "1.4.0",
+    "pytorch_version": "2.4.0",
+    "numpy_version": "1.24.4",
+    "required_packages_version": {
+        "Cython": "3.0.11",
+        "scikit-image": "0.23.2",
+        "pybind11": "2.13.4",
+        "ujson": "5.10.0"
+    },
+    "git_dependencies": [
+        "git+https://github.com/NVIDIA/cocoapi.git@v0.7.3#subdirectory=PythonAPI",
+        "git+https://github.com/NVIDIA/dllogger.git#egg=dllogger"
+    ],
+    "name": "SSD Detection on Endoscopy Tools",
+    "task": "Endoscopy Tools Detection",
+    "description": "SSD Detection on Endoscopy Tools",
+    "authors": "MONAI team",
+    "copyright": "",
+    "network_data_format": {
+        "inputs": {
+            "image": {
+                "type": "image",
+                "format": "tensor",
+                "num_channels": 3,
+                "spatial_shape": [
+                    300,
+                    300
+                ],
+                "dtype": "float16",
+                "value_range": [
+                    -10000,
+                    10000
+                ]
+            }
+        },
+        "outputs": {
+            "dboxes": {
+                "type": "bounding box",
+                "format": "tensor",
+                "num_channels": 4,
+                "spatial_shape": [
+                    8732
+                ],
+                "dtype": "float16",
+                "value_range": [
+                    -10000,
+                    10000
+                ]
+            },
+            "labels": {
+                "type": "label",
+                "format": "tensor",
+                "num_channels": 81,
+                "spatial_shape": [
+                    8732
+                ],
+                "dtype": "float16",
+                "value_range": [
+                    -10000,
+                    10000
+                ]
+            }
+        }
+    }
+}
