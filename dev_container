@@ -454,13 +454,14 @@ check_nvidia_ctk() {
 #===============================================================================
 
 get_host_gpu() {
-    if lsmod | grep -q nvidia_drm && command -v nvidia-smi >/dev/null; then
-        echo -n "dgpu"
-    elif lsmod | grep -q nvgpu; then
-        echo -n "igpu"
+    if ! command -v nvidia-smi >/dev/null; then
+        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo -n "dgpu";
+    elif [[ ! $(nvidia-smi --query-gpu=name --format=csv,noheader) ]] || \
+         [[ $(nvidia-smi --query-gpu=name --format=csv,noheader -i 0) =~ "Orin (nvgpu)" ]]; then
+        echo -n "igpu";
     else
-        c_echo_err Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
-        echo -n "dgpu"
+        echo -n "dgpu";
     fi
 }
 
