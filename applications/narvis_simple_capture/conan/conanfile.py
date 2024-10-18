@@ -47,7 +47,3 @@ class DeployDepsConan(ConanFile):
 
     def requirements(self):
         self.holoscan_dependencies.add_dependencies(self, self.get_dependencies())
-
-
-    def requirements(self):
-        self.pcpd_dependencies.add_dependencies(self, self.get_dependencies())

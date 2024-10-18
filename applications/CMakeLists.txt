@@ -81,8 +81,6 @@ add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
-add_holohub_application(narvis_simple_capture DEPENDS OPERATORS realsense_camera)
-
 add_holohub_application(tao_peoplenet)
 
 add_holohub_application(network_radar_pipeline DEPENDS
