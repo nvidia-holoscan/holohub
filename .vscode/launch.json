@@ -149,7 +149,6 @@
             }
         },
         //#endregion asr_to_llm
-
         //#region sam2
         {
             "name": "(debugpy) sam2/python",
@@ -178,7 +177,6 @@
             }
         },
         //#endregion sam2
-
         //#region colonoscopy_segmentation
         {
             "name": "(debugpy) colonoscopy_segmentation/python",
@@ -858,10 +856,10 @@
             "name": "(gdb) Holoviz examples",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build ${input:holoviz_example_name}",
+            "preLaunchTask": "Build Holoviz examples",
             "program": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}/${input:holoviz_example_name}",
-            "args": [ ],
-            "environment": [ ],
+            "args": [],
+            "environment": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}",
             "externalConsole": false,
@@ -1071,15 +1069,19 @@
     "inputs": [
         {
             "id": "holoviz_example_name",
-            "description": "Select Holoviz example program",
-            "type": "pickString",
-            "options": [
-                "holoviz_hdr",
-                "holoviz_srgb",
-                "holoviz_vsync",
-                "holoviz_yuv",
-            ],
-            "default": "holoviz_srgb"
-        }
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Select Holoviz example program",
+                "options": [],
+                "fileName": "${workspaceFolder}/applications/holoviz/template/generate_projects.sh",
+                "fileFormat": "pattern",
+                "pattern": {
+                    "regexp": "^generate [\"](.*?)[\"].*$",
+                    "flags": "gm",
+                },
+                "key": "holoviz_example_name"
+            }
+        },
     ],
 }

@@ -29,6 +29,11 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+{%- if cookiecutter.example == "UI" %}
+#include <holoviz/holoviz.hpp>
+#include <imgui.h>
+
+{%- endif %}
 
 {%- if example.print_fps %}
 #include <chrono>
@@ -298,6 +303,12 @@ class App : public holoscan::Application {
         // enable synchronization to vertical blank
         Arg("vsync", true),
 {%- endif %}
+{%- if cookiecutter.example == "UI" %}
+        // set the layer callback to execute a member function of the App class.
+        Arg("layer_callback",
+            ops::HolovizOp::LayerCallbackFunction(
+                std::bind(&App::layer_callback, this, std::placeholders::_1))),
+{%- endif %}
         Arg("window_title", std::string("{{ cookiecutter.project_name }}")),
         Arg("cuda_stream_pool", make_resource<CudaStreamPool>("cuda_stream_pool", 0, 0, 0, 1, 5)));
 {%- raw %}
@@ -306,7 +317,55 @@ class App : public holoscan::Application {
 {%- endraw %}
   }
 
+{%- if cookiecutter.example == "UI" %}
+  void layer_callback(const std::vector<holoscan::gxf::Entity>& inputs) {
+    using namespace holoscan;
+
+    // The layer callback is executed after the Holoviz operator has finished drawing all layers. We
+    // now can add our own layers after that.
+    // For more information on Holoviz layers see
+    // https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#layers.
+
+    // Add a simple UI, Holoviz supports a `Dear ImGui` layer. For more information on `Dear ImGui`
+    // check https://github.com/ocornut/imgui.
+    viz::BeginImGuiLayer();
+    ImGui::Begin("UI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Checkbox("Checkbox", &checkbox_selected_);
+    static const char* combo_items[] = {
+        "Item 1",
+        "Item 2",
+        "Item 3",
+    };
+    ImGui::Combo("Combo", &combo_item_, combo_items, IM_ARRAYSIZE(combo_items));
+    ImGui::SliderFloat("Slider Float", &slider_float_value_, 0.F, 1.F);
+    ImGui::SliderInt("Slider Int", &slider_int_value_, -10, 10);
+    ImGui::Separator();
+    ImGui::ColorEdit4("Color", color_value_, ImGuiColorEditFlags_DefaultOptions_);
+    viz::EndLayer();
+
+    // Now create a geometry layer using the values of the UI.
+    viz::BeginGeometryLayer();
+    // Draw the text from combo with the color set by the user and the position set by the sliders.
+    viz::Color(color_value_[0], color_value_[1], color_value_[2], color_value_[3]);
+    viz::Text(slider_float_value_,
+              float(slider_int_value_ + 10) / 20.F,
+              checkbox_selected_ ? 0.1F : 0.05F,
+              combo_items[combo_item_]);
+    viz::EndLayer();
+  }
+
+{%- endif %}
+
+private:
   const int count_;
+
+{%- if cookiecutter.example == "UI" %}
+  bool checkbox_selected_ = false;
+  int combo_item_ = 0;
+  float slider_float_value_ = 0.F;
+  int slider_int_value_ = 0;
+  float color_value_[4]{1.F, 1.F, 1.F, 1.F};
+{%- endif %}
 };
 
 int main(int argc, char** argv) {
