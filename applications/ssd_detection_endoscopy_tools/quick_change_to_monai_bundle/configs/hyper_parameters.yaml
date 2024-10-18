@@ -1,0 +1,27 @@
+data: "/coco"
+epochs: 65
+batch_size: 32
+eval_batch_size: 32
+no_cuda: false
+seed: null
+checkpoint: null
+torchvision_weights_version: "IMAGENET1K_V2"
+save: null
+mode: "training"
+evaluation: [21, 31, 37, 42, 48, 53, 59, 64]
+multistep: [43, 54]
+learning_rate: 2.6e-3
+momentum: 0.9
+weight_decay: 0.0005
+warmup: null
+benchmark_iterations: 20
+benchmark_warmup: 20
+backbone: "resnet50"
+backbone_path: null
+num_workers: 8
+amp: true
+allow_tf32: true
+data_layout: "channels_first"
+log_interval: 20
+json_summary: null
+local_rank: 0
