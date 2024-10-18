@@ -161,6 +161,7 @@ class App : public holoscan::Application {
     add_flow(source, holoviz, {{"output", "receivers"}});
   }
 
+ private:
   const int count_;
 };
 
