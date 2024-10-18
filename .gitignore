@@ -30,3 +30,12 @@ ngc-cli/
 .local/
 tmp/
 
+/applications/narvis_simple_capture/conan/conanbuild.sh
+/applications/narvis_simple_capture/conan/conanbuildenv.sh
+/applications/narvis_simple_capture/conan/conanrun.sh
+/applications/narvis_simple_capture/conan/conanrunenv.sh
+/applications/narvis_simple_capture/conan/deactivate_conanbuild.sh
+/applications/narvis_simple_capture/conan/deactivate_conanbuildenv.sh
+/applications/narvis_simple_capture/conan/deactivate_conanrun.sh
+/cmake-build-debug/
+/.idea/

@@ -5,7 +5,7 @@ from conan.tools.files import apply_conandata_patches, collect_libs, copy, expor
 def mkdep(pkg_name:str, **kw):
     return (pkg_name, kw)
 
-PCPD_DEPENDENCIES = {
+HOLOSCAN_DEPENDENCIES = {
     "arrow": mkdep("arrow/12.0.1@camposs/stable", transitive_libs=True),
     "assimp": mkdep("assimp/5.2.2", transitive_libs=True),
     "bitset2": mkdep("bitset2/0.1@camposs/stable"),
@@ -40,6 +40,7 @@ PCPD_DEPENDENCIES = {
     "libe57format": mkdep("libe57format/2.3.0", transitive_libs=True),
     "libjpeg": mkdep("libjpeg/9e", force=True),
     "libjpeg-turbo": mkdep("libjpeg-turbo/3.0.1", transitive_headers=True, transitive_libs=True, force=True),
+    "librealsense": mkdep("librealsense/2.53.1", transitive_headers=True, transitive_libs=True, force=True),
     "libnuma": mkdep("libnuma/2.0.14"),
     "libwebp": mkdep("libwebp/1.3.2", force=True),
     "libpng": mkdep("libpng/1.6.40", override=True),
@@ -123,17 +124,17 @@ def get_default_options(self:ConanFile):
 
 
 def available_packages() -> list:
-    return PCPD_DEPENDENCIES.keys()
+    return HOLOSCAN_DEPENDENCIES.keys()
 
 def add_build_tools(self:ConanFile, tools:list, **kwargs):
     
     deps_ok = True
     for d in tools:
-        if d not in PCPD_DEPENDENCIES:
+        if d not in HOLOSCAN_DEPENDENCIES:
             self.output.warning("Missing external tool: {}".format(d))
             deps_ok = False
         else:
-            pkg_name, kw = PCPD_DEPENDENCIES[d]
+            pkg_name, kw = HOLOSCAN_DEPENDENCIES[d]
             self.tool_requires(pkg_name, **kwargs)
 
     if not deps_ok:
@@ -143,11 +144,11 @@ def add_dependencies(self:ConanFile, deps:list):
     
     deps_ok = True
     for d in deps:
-        if d not in PCPD_DEPENDENCIES:
+        if d not in HOLOSCAN_DEPENDENCIES:
             self.output.warning("Missing external dependency: {}".format(d))
             deps_ok = False
         else:
-            pkg_name, kw = PCPD_DEPENDENCIES[d]
+            pkg_name, kw = HOLOSCAN_DEPENDENCIES[d]
             self.requires(pkg_name, **kw)
 
     if not deps_ok:
@@ -268,10 +269,10 @@ def configure_dependencies(self:ConanFile, shared_lib:bool, deps:list):
 
 
 class PcpdDependenciesConan(ConanFile):
-    name = "pcpd_dependencies"
+    name = "holoscan_dependencies"
     version = "0.4.0"
     package_type = "python-require"
 
-    description = "Pcpd 3rdparty dependencies collected"
-    url = "https://github.com/TUM-CAMP-NARVIS/artekmed"
+    description = "Holoscan 3rdparty dependencies collected"
+    url = "https://github.com/TUM-CAMP-NARVIS/holohub-narvis"
     license = "internal"

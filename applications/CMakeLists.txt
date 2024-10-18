@@ -64,6 +64,8 @@ add_holohub_application(multiai_endoscopy)
 add_holohub_application(multiai_ultrasound DEPENDS
                         OPERATORS visualizer_icardio)
 
+add_holohub_application(narvis_simple_capture DEPENDS OPERATORS azure_kinect_camera)
+
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
@@ -79,8 +81,6 @@ add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_p
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
-
-add_holohub_application(narvis_simple_capture DEPENDS OPERATORS realsense_camera)
 
 add_holohub_application(tao_peoplenet)
 

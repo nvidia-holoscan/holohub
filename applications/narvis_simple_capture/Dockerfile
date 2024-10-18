@@ -94,26 +94,29 @@ RUN apt update \
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-ENV PATH="${PATH}:/root/.cargo/bin"
+ENV PATH="${PATH}:${HOME}/.cargo/bin"
 RUN rustup update
 
-RUN apt install libnvidia-gl-535 mesa-utils
+RUN apt install --no-install-recommends -y \
+    libnvidia-gl-535 mesa-utils libgl1-mesa-dev
 
 RUN pip install conan && \
     conan profile detect && \
     conan remote add camposs "https://conan.campar.in.tum.de/artifactory/api/conan/conan-camposs"
 
 WORKDIR /opt/tcn/dependencies
-ADD applications/narvis_simple_capture/conan/pcpd_dependencies /opt/tcn/dependencies/pcpd_dependencies
+ADD applications/narvis_simple_capture/conan/holoscan_dependencies /opt/tcn/dependencies/holoscan_dependencies
 ADD applications/narvis_simple_capture/conan/conanfile.py /opt/tcn/dependencies/conanfile.py
 ADD applications/narvis_simple_capture/conan/relocatable_app.py /opt/tcn/dependencies/relocatable_app.py
 
-WORKDIR /opt/tcn/dependencies/pcpd_dependencies
-RUN conan export --user artekmed --channel stable .
+WORKDIR /opt/tcn/dependencies/holoscan_dependencies
+RUN conan export --user camposs --channel stable .
 
 WORKDIR /opt/tcn/dependencies
 RUN conan install . --build missing --build outdated --deployer=/opt/tcn/dependencies/relocatable_app.py --deployer-folder=/opt/tcn/3rdparty -c tools.system.package_manager:mode=install
-
+ENV PATH="/opt/tcn/3rdparty/direct_deploy/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/tcn/3rdparty/direct_deploy/lib:${LD_LIBRARY_PATH}"
+ENV CMAKE_PREFIX_PATH="/opt/tcn/3rdparty/direct_deploy"
 
 # --------------------------------------------------------------------------
 #
