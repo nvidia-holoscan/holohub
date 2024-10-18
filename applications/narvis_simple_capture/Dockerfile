@@ -97,15 +97,16 @@ RUN apt update \
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-#ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
-ENV PATH="${PATH}:${HOME}/.cargo/bin"
+ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
 RUN rustup update
 
 RUN pip install conan && \
     conan profile detect && \
     conan remote add camposs "https://conan.campar.in.tum.de/artifactory/api/conan/conan-camposs"
 
+# Install conan dependencies
 WORKDIR /opt/tcn/dependencies
+
 ADD applications/narvis_simple_capture/conan/holoscan_dependencies /opt/tcn/dependencies/holoscan_dependencies
 ADD applications/narvis_simple_capture/conan/conanfile.py /opt/tcn/dependencies/conanfile.py
 ADD applications/narvis_simple_capture/conan/relocatable_app.py /opt/tcn/dependencies/relocatable_app.py
