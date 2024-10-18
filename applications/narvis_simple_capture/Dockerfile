@@ -88,7 +88,8 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         librealsense2-dev \
         libudev-dev \
-        libusb-1.0-0-dev
+        libusb-1.0-0-dev \
+        libnvidia-gl-535 mesa-utils libgl1-mesa-dev
 
 ## this should probably be another build-layer ...
 
@@ -97,9 +98,6 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 #ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
 ENV PATH="${PATH}:${HOME}/.cargo/bin"
 RUN rustup update
-
-RUN apt install --no-install-recommends -y \
-    libnvidia-gl-535 mesa-utils libgl1-mesa-dev
 
 RUN pip install conan && \
     conan profile detect && \
