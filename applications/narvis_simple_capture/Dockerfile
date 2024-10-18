@@ -78,15 +78,9 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         lsb-release
 
-# Add librealsense apt source.
-RUN curl -sSf https://librealsense.intel.com/Debian/librealsense.pgp | tee /etc/apt/keyrings/librealsense.pgp > /dev/null
-RUN echo "deb [signed-by=/etc/apt/keyrings/librealsense.pgp] https://librealsense.intel.com/Debian/apt-repo `lsb_release -cs` main" \
-    | tee /etc/apt/sources.list.d/librealsense.list
-
 # Install librealsense.
 RUN apt update \
     && apt install --no-install-recommends -y \
-        librealsense2-dev \
         libudev-dev \
         libusb-1.0-0-dev \
         libnvidia-gl-535 mesa-utils libgl1-mesa-dev \

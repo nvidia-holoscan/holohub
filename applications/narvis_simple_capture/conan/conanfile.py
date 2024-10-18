@@ -20,7 +20,6 @@ class DeployDepsConan(ConanFile):
         "libtiff/*:jpeg": "libjpeg-turbo",
         "jasper/*:with_libjpeg": "libjpeg-turbo",
         "zstd/*:shared": True,
-        "librealsense/*:shared": True,
     }
 
     settings = "os",
@@ -38,12 +37,10 @@ class DeployDepsConan(ConanFile):
     def get_dependencies(self):
         dependencies = ["kinect-azure-sensor-sdk", "capnproto", "eigen", "fast-cdr", "fmt", "iceoryx",
                         "libjpeg-turbo", "opencv", "openssl", "zenoh-cpp", "zlib", "zdepth"]
-
         return dependencies
 
     def configure(self):
         self.holoscan_dependencies.configure_dependencies(self, True, self.get_dependencies())
-
 
     def requirements(self):
         self.holoscan_dependencies.add_dependencies(self, self.get_dependencies())
