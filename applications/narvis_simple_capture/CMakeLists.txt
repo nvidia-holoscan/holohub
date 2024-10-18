@@ -17,7 +17,4 @@ cmake_minimum_required(VERSION 3.20)
 project(narvis_simple_capture_apps LANGUAGES NONE)
 
 add_subdirectory(cpp)
-<<<<<<< HEAD
 add_subdirectory(python)
-=======
->>>>>>> fd0dbfa (initial draft of narvis-simple-capture test application based on realsense viewer)

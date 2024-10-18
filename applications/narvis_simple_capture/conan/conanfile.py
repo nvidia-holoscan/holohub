@@ -20,6 +20,7 @@ class DeployDepsConan(ConanFile):
         "libtiff/*:jpeg": "libjpeg-turbo",
         "jasper/*:with_libjpeg": "libjpeg-turbo",
         "zstd/*:shared": True,
+        "librealsense/*:shared": True,
     }
 
     settings = "os",
