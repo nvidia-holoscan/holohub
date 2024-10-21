@@ -647,7 +647,7 @@ void RmaxMgr::RmaxMgrImpl::shutdown() {
  */
 void RmaxMgr::RmaxMgrImpl::print_stats() {
   std::stringstream ss;
-  StatsPrinter::print_total_stats(ss, rx_services);
+  IpoRxStatsPrinter::print_total_stats(ss, rx_services);
   HOLOSCAN_LOG_INFO(ss.str());
 }
 

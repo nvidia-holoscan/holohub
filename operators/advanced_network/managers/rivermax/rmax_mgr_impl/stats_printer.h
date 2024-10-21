@@ -21,7 +21,7 @@
 
 namespace holoscan::ops {
 
-class StatsPrinter {
+class IpoRxStatsPrinter {
  public:
   static constexpr double GIGABYTE = 1073741824.0;
   static constexpr double MEGABYTE = 1048576.0;
