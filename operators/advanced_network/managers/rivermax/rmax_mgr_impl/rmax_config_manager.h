@@ -45,7 +45,6 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
   bool print_parameters;
   uint32_t max_path_differential_us;
   int sleep_between_operations_us;
-  bool sleep_between_operations;
   std::string allocator_type;
   bool ext_seq_num;
   bool memory_registration;
@@ -72,7 +71,6 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
         print_parameters(other.print_parameters),
         max_path_differential_us(other.max_path_differential_us),
         sleep_between_operations_us(other.sleep_between_operations_us),
-        sleep_between_operations(other.sleep_between_operations),
         allocator_type(other.allocator_type),
         ext_seq_num(other.ext_seq_num),
         memory_registration(other.memory_registration),
@@ -96,7 +94,6 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
       print_parameters = other.print_parameters;
       max_path_differential_us = other.max_path_differential_us;
       sleep_between_operations_us = other.sleep_between_operations_us;
-      sleep_between_operations = other.sleep_between_operations;
       allocator_type = other.allocator_type;
       ext_seq_num = other.ext_seq_num;
       memory_registration = other.memory_registration;

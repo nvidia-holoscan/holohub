@@ -114,13 +114,13 @@ bool RmaxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const Rx
 
   RmaxRxQueueConfig rmax_rx_config(*rmax_rx_config_ptr);
 
-  rmax_rx_config.dump_parameters();
-
   if (!validate_rx_queue_config(rmax_rx_config)) { return false; }
 
   if (!validate_memory_regions_config(q, rmax_rx_config)) { return false; }
 
   if (config_memory_allocator(rmax_rx_config, q) == false) { return false; }
+
+  rmax_rx_config.dump_parameters();
 
   ExtRmaxIPOReceiverConfig rx_service_cfg;
 
@@ -636,7 +636,7 @@ void RmaxRxQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\t\tpackets_buffers_size: {}", packets_buffers_size);
     HOLOSCAN_LOG_INFO("\tRMAX IPO settings:");
     HOLOSCAN_LOG_INFO("\t\text_seq_num: {}", ext_seq_num);
-    HOLOSCAN_LOG_INFO("\t\tsleep_between_operations: {}", sleep_between_operations);
+    HOLOSCAN_LOG_INFO("\t\tsleep_between_operations_us: {}", sleep_between_operations_us);
     HOLOSCAN_LOG_INFO("\t\tmax_path_differential_us: {}", max_path_differential_us);
     HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
     HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
