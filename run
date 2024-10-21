@@ -469,7 +469,8 @@ lint() {
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} --ignore-words codespell_ignore_words.txt \
-                            --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
+                            --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
+                            --skip="./applications/nvidia_nim/nvidia_nim_nvclip/nvidia_nim.yaml" || exit_code=1
 
       # Fix cpplint with clang
       files_to_fix=`set -o pipefail; ${HOLOHUB_PY_EXE} -m cpplint \
@@ -515,6 +516,7 @@ lint() {
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
+                          --skip="./applications/nvidia_nim/nvidia_nim_nvclip/nvidia_nim.yaml" \
                           --ignore-words codespell_ignore_words.txt \
                           --exclude-file codespell.txt || exit_code=1
 
