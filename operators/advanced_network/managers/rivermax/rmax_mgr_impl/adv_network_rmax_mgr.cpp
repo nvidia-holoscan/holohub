@@ -161,7 +161,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
 
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
-  RmaxConfigManager config_manager(rmax_apps_lib);
+  RmaxConfigContainer config_manager(rmax_apps_lib);
 
   bool res = config_manager.parse_configuration(cfg_);
   if (!res) {
@@ -172,7 +172,15 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   rivermax_setparam(
       "RIVERMAX_LOG_LEVEL", std::to_string(config_manager.get_rmax_log_level()), true);
 
-  for (const auto& config : config_manager) { initialize_rx_service(config.first, config.second); }
+  auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
+      config_manager.get_config_manager(RmaxConfigContainer::ConfigType::RX));
+
+  if (rx_config_manager) {
+    for (const auto& config : *rx_config_manager) {
+      initialize_rx_service(config.first, config.second);
+    }
+  }
+
   this->initialized_ = true;
 }
 

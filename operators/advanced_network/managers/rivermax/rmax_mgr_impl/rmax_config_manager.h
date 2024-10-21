@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <vector>
 #include <yaml-cpp/yaml.h>
 
 #include "adv_network_mgr.h"
@@ -114,75 +115,126 @@ struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
 };
 
 /**
- * @brief Manages the configuration for Rmax.
- */
-/**
- * @brief Manages the configuration for Rmax.
+ * @brief Base interface for configuration managers.
  *
- * The RmaxConfigManager class is responsible for parsing and managing the configuration
- * settings for Rmax. It handles the configuration of RX queues, validation of configurations,
- * and setting various application settings.
+ * The IConfigManager interface defines the basic operations for configuration managers
+ * in Rmax. It provides a template for iterators and a method to set the configuration.
  */
-class RmaxConfigManager {
+class IConfigManager {
  public:
-  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;
-  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;
-  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;
   static constexpr uint16_t MAX_RMAX_MEMORY_REGIONS = 2;
 
-  /**
-   * @brief Constructs a new RmaxConfigManager object.
-   * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
-   */
-  RmaxConfigManager(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
-      : rmax_apps_lib_(rmax_apps_lib) {}
+  template <typename T>
+  using ConstIterator = typename std::unordered_map<uint32_t, T>::const_iterator;
+
+  virtual ~IConfigManager() = default;
 
   /**
-   * @brief Parses the configuration from a YAML file.
+   * @brief Sets the configuration.
    *
    * @param cfg The configuration object parsed from YAML.
-   * @return True if the configuration was successfully parsed, false otherwise.
+   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
+   * @return True if the configuration was successfully set, false otherwise.
    */
-  bool parse_configuration(const AdvNetConfigYaml& cfg);
+  virtual bool set_configuration(const AdvNetConfigYaml& cfg,
+                                 std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) = 0;
+};
+
+/**
+ * @brief Interface for RX configuration managers.
+ *
+ * The IRxConfigManager interface extends IConfigManager and defines additional operations
+ * specific to RX configuration managers in Rmax.
+ */
+class IRxConfigManager : public IConfigManager {
+ public:
+  using ConstIterator = IConfigManager::ConstIterator<ExtRmaxIPOReceiverConfig>;
 
   /**
-   * @brief Gets the current log level for Rmax.
+   * @brief Gets the beginning iterator for RX configurations.
    *
-   * @return The current log level.
+   * @return The beginning iterator.
    */
-  uint16_t get_rmax_log_level() const { return rmax_log_level_; }
+  virtual ConstIterator begin() const = 0;
 
   /**
-   * @brief Type alias for the constant iterator of the configuration map.
+   * @brief Gets the ending iterator for RX configurations.
+   *
+   * @return The ending iterator.
    */
-  using ConstIterator = std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig>::const_iterator;
+  virtual ConstIterator end() const = 0;
 
   /**
-   * @brief Returns a constant iterator to the beginning of the configuration map.
+   * @brief Appends a candidate for RX queue configuration.
    *
-   * @return ConstIterator A constant iterator to the beginning of the configuration map.
+   * @param port_id The port ID.
+   * @param q The RX queue configuration.
+   * @return True if the configuration was appended successfully, false otherwise.
    */
-  ConstIterator begin() const { return rx_service_configs_.begin(); }
+  virtual bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) = 0;
+};
+
+/**
+ * @brief Interface for TX configuration managers.
+ *
+ * The ITxConfigManager interface extends IConfigManager and defines additional operations
+ * specific to TX configuration managers in Rmax.
+ */
+class ITxConfigManager : public IConfigManager {
+ public:
+  using ConstIterator = IConfigManager::ConstIterator<RmaxBaseServiceConfig>;
 
   /**
-   * @brief Returns a constant iterator to the end of the configuration map.
+   * @brief Gets the beginning iterator for TX configurations.
    *
-   * @return ConstIterator A constant iterator to the end of the configuration map.
+   * @return The beginning iterator.
    */
-  ConstIterator end() const { return rx_service_configs_.end(); }
-  /**
-   * @brief Gets the RX service configurations.
-   *
-   * @return A constant reference to the unordered map of RX service configurations.
-   */
+  virtual ConstIterator begin() const = 0;
 
- private:
   /**
-   * @brief Sets the default configuration for an RX service.
+   * @brief Gets the ending iterator for TX configurations.
    *
-   * @param rx_service_cfg The RX service configuration to set defaults for.
+   * @return The ending iterator.
    */
-  void set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const;
+  virtual ConstIterator end() const = 0;
+
+  /**
+   * @brief Appends a candidate for TX queue configuration.
+   *
+   * @param port_id The port ID.
+   * @param q The TX queue configuration.
+   * @return True if the configuration was appended successfully, false otherwise.
+   */
+  virtual bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) = 0;
+};
+
+/**
+ * @brief Manages the RX configuration for Rmax.
+ *
+ * The RxConfigManager class is responsible for managing the configuration settings
+ * for RX queues in Rmax. It validates and appends RX queue configurations for given ports.
+ */
+class RxConfigManager : public IRxConfigManager {
+ public:
+  using ConstIterator = IConfigManager::ConstIterator<ExtRmaxIPOReceiverConfig>;
+
+  ConstIterator begin() const override { return rx_service_configs_.begin(); }
+  ConstIterator end() const override { return rx_service_configs_.end(); }
+
+  /**
+   * @brief Sets the configuration for RX queues.
+   *
+   * @param cfg The configuration object parsed from YAML.
+   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
+   * @return True if the configuration was successfully set, false otherwise.
+   */
+  bool set_configuration(const AdvNetConfigYaml& cfg,
+                         std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
+    cfg_ = cfg;
+    rmax_apps_lib_ = rmax_apps_lib;
+    is_configuration_set_ = true;
+    return true;
+  }
 
   /**
    * @brief Validates RX queue for Rmax Queue configuration. If valid, appends the RX queue for a
@@ -192,7 +244,15 @@ class RmaxConfigManager {
    * @param q The RX queue configuration.
    * @return True if the configuration was appended successfully, false otherwise.
    */
-  bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q);
+  virtual bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) override;
+
+ private:
+  /**
+   * @brief Sets the default configuration for an RX service.
+   *
+   * @param rx_service_cfg The RX service configuration to set defaults for.
+   */
+  void set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const;
 
   /**
    * @brief Builds the Rmax IPO receiver configuration.
@@ -357,8 +417,150 @@ class RmaxConfigManager {
   void add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
                                  uint16_t queue_id);
 
-  uint16_t rmax_log_level_ = RMAX_DEFAULT_LOG_LEVEL;
+ private:
   std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig> rx_service_configs_;
+  AdvNetConfigYaml cfg_;
+  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
+  bool is_configuration_set_ = false;
+};
+
+/**
+ * @brief Manages the TX configuration for Rmax.
+ *
+ * The TxConfigManager class is responsible for managing the configuration settings
+ * for TX queues in Rmax. It validates and appends TX queue configurations for given ports.
+ */
+class TxConfigManager : public ITxConfigManager {
+ public:
+  using ConstIterator = IConfigManager::ConstIterator<RmaxBaseServiceConfig>;
+
+  ConstIterator begin() const override { return tx_service_configs_.begin(); }
+  ConstIterator end() const override { return tx_service_configs_.end(); }
+
+  /**
+   * @brief Sets the configuration for TX queues.
+   *
+   * @param cfg The configuration object parsed from YAML.
+   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
+   * @return True if the configuration was successfully set, false otherwise.
+   */
+  bool set_configuration(const AdvNetConfigYaml& cfg,
+                         std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
+    cfg_ = cfg;
+    rmax_apps_lib_ = rmax_apps_lib;
+    is_configuration_set_ = true;
+    return true;
+  }
+
+  /**
+   * @brief Validates TX queue for Rmax Queue configuration. If valid, appends the TX queue for a
+   * given port.
+   *
+   * @param port_id The port ID.
+   * @param q The TX queue configuration.
+   * @return True if the configuration was appended successfully, false otherwise.
+   */
+  virtual bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) override;
+
+ private:
+  std::unordered_map<uint32_t, RmaxBaseServiceConfig> tx_service_configs_;
+  AdvNetConfigYaml cfg_;
+  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
+  bool is_configuration_set_ = false;
+};
+
+/**
+ * @brief Manages the configuration for Rmax.
+ *
+ * The RmaxConfigContainer class is responsible for parsing and managing the configuration
+ * settings for Rmax via dedicated configuration managers.
+ */
+class RmaxConfigContainer {
+ public:
+  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;
+  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;
+  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;
+
+  enum class ConfigType { RX, TX };
+
+  /**
+   * @brief Constructs a new RmaxConfigContainer object.
+   * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
+   */
+  RmaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
+      : rmax_apps_lib_(rmax_apps_lib) {
+    initialize_managers();
+  }
+
+  /**
+   * @brief Parses the configuration from the YAML file.
+   *
+   * This function iterates over the interfaces and their respective RX an TX queues
+   * defined in the configuration YAML, extracting and validating the necessary
+   * settings for each queue. It then populates the RX and TX service configuration
+   * structures with these settings. The parsing is done via dedicated configuration managers.
+   *
+   * @param cfg The configuration YAML.
+   * @return True if the configuration was successfully parsed, false otherwise.
+   */
+  bool parse_configuration(const AdvNetConfigYaml& cfg);
+
+  std::shared_ptr<IConfigManager> get_config_manager(ConfigType type) const {
+    auto it = config_managers_.find(type);
+    if (it != config_managers_.end()) { return it->second; }
+    return nullptr;
+  }
+
+  /**
+   * @brief Gets the current log level for Rmax.
+   *
+   * @return The current log level.
+   */
+  uint16_t get_rmax_log_level() const { return rmax_log_level_; }
+
+ private:
+  /**
+   * @brief Initializes the configuration managers.
+   *
+   * This function initializes the configuration managers for RX and TX services.
+   */
+  void initialize_managers();
+
+  /**
+   * @brief Adds a configuration manager.
+   *
+   * This function adds a configuration manager for the specified type.
+   *
+   * @param type The type of configuration manager to add.
+   * @param config_manager The shared pointer to the configuration manager.
+   */
+  void add_config_manager(ConfigType type, std::shared_ptr<IConfigManager> config_manager);
+
+  /**
+   * @brief Parses the RX queues configuration.
+   *
+   * This function parses the configuration for RX queues for the specified port ID.
+   *
+   * @param port_id The port ID for which to parse the RX queues.
+   * @param queues The vector of RX queue configurations.
+   * @return An integer indicating the success or failure of the parsing operation.
+   */
+  int parse_rx_queues(uint16_t port_id, const std::vector<RxQueueConfig>& queues);
+
+  /**
+   * @brief Parses the TX queues configuration.
+   *
+   * This function parses the configuration for TX queues for the specified port ID.
+   *
+   * @param port_id The port ID for which to parse the TX queues.
+   * @param queues The vector of TX queue configurations.
+   * @return An integer indicating the success or failure of the parsing operation.
+   */
+  int parse_tx_queues(uint16_t port_id, const std::vector<TxQueueConfig>& queues);
+
+ private:
+  uint16_t rmax_log_level_ = RMAX_DEFAULT_LOG_LEVEL;
+  std::unordered_map<ConfigType, std::shared_ptr<IConfigManager>> config_managers_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   AdvNetConfigYaml cfg_;
   bool is_configured_ = false;

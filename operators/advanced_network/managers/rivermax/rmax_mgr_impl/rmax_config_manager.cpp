@@ -10,11 +10,166 @@ namespace holoscan::ops {
 static constexpr int USECS_IN_SECOND = 1000000;
 
 /**
+ * @brief Factory class for creating configuration managers.
+ *
+ * The ConfigManagerFactory class provides a static method to create instances of
+ * configuration managers based on the specified configuration type
+ */
+class ConfigManagerFactory {
+public:
+ /**
+  * @brief Creates a configuration manager.
+  *
+  * This static method creates and returns a shared pointer to a configuration manager
+  * based on the specified configuration type.
+  *
+  * @param type The type of configuration manager to create
+  * @return A shared pointer to the created configuration manager, or nullptr if the type is
+  * invalid.
+  */
+ static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
+   switch (type) {
+     case RmaxConfigContainer::ConfigType::RX:
+       return std::make_shared<RxConfigManager>();
+     case RmaxConfigContainer::ConfigType::TX:
+       return std::make_shared<TxConfigManager>();
+     default:
+       return nullptr;
+   }
+ }
+};
+
+/**
+ * @brief Adds a configuration manager.
+ *
+ * This function adds a configuration manager for the specified type.
+ *
+ * @param type The type of configuration manager to add.
+ * @param config_manager The shared pointer to the configuration manager.
+ */
+void RmaxConfigContainer::add_config_manager(ConfigType type,
+                                             std::shared_ptr<IConfigManager> config_manager) {
+  config_managers_[type] = config_manager;
+}
+
+/**
+ * @brief Initializes the configuration managers.
+ *
+ * This function initializes the configuration managers for RX and TX services.
+ */
+void RmaxConfigContainer::initialize_managers() {
+  add_config_manager(ConfigType::RX, ConfigManagerFactory::create_manager(ConfigType::RX));
+  add_config_manager(ConfigType::TX, ConfigManagerFactory::create_manager(ConfigType::TX));
+}
+
+/**
+ * @brief Parses the RX queues configuration.
+ *
+ * This function parses the configuration for RX queues for the specified port ID.
+ *
+ * @param port_id The port ID for which to parse the RX queues.
+ * @param queues The vector of RX queue configurations.
+ * @return An integer indicating the success or failure of the parsing operation.
+ */
+int RmaxConfigContainer::parse_rx_queues(uint16_t port_id,
+                                         const std::vector<RxQueueConfig>& queues) {
+  int rmax_rx_config_found = 0;
+
+  auto rx_manager = std::dynamic_pointer_cast<RxConfigManager>(
+      get_config_manager(RmaxConfigContainer::ConfigType::RX));
+
+  if (!rx_manager) { return 0; }
+
+  rx_manager->set_configuration(cfg_, rmax_apps_lib_);
+
+  for (const auto& q : queues) {
+    if (!rx_manager->append_candidate_for_rx_queue(port_id, q)) { continue; }
+    rmax_rx_config_found++;
+  }
+
+  return rmax_rx_config_found;
+}
+
+/**
+ * @brief Parses the TX queues configuration.
+ *
+ * This function parses the configuration for TX queues for the specified port ID.
+ *
+ * @param port_id The port ID for which to parse the TX queues.
+ * @param queues The vector of TX queue configurations.
+ * @return An integer indicating the success or failure of the parsing operation.
+ */
+int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
+                                         const std::vector<TxQueueConfig>& queues) {
+  int rmax_tx_config_found = 0;
+
+  auto tx_manager = std::dynamic_pointer_cast<TxConfigManager>(
+      get_config_manager(RmaxConfigContainer::ConfigType::TX));
+
+  if (!tx_manager) { return 0; }
+
+  tx_manager->set_configuration(cfg_, rmax_apps_lib_);
+
+  for (const auto& q : queues) {
+    if (!tx_manager->append_candidate_for_tx_queue(port_id, q)) { continue; }
+    rmax_tx_config_found++;
+  }
+
+  return rmax_tx_config_found;
+}
+
+/**
+ * @brief Parses the configuration from the YAML file.
+ *
+ * This function iterates over the interfaces and their respective RX an TX queues
+ * defined in the configuration YAML, extracting and validating the necessary
+ * settings for each queue. It then populates the RX and TX service configuration
+ * structures with these settings. The parsing is done via dedicated configuration managers.
+ *
+ * @param cfg The configuration YAML.
+ * @return True if the configuration was successfully parsed, false otherwise.
+ */
+bool RmaxConfigContainer::parse_configuration(const AdvNetConfigYaml& cfg) {
+  int rmax_rx_config_found = 0;
+  int rmax_tx_config_found = 0;
+
+  is_configured_ = false;
+  cfg_ = cfg;
+
+  for (const auto& intf : cfg.ifs_) {
+    HOLOSCAN_LOG_INFO("Rmax init Port {} -- RX: {} TX: {}",
+                      intf.port_id_,
+                      intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
+                      intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
+
+    rmax_rx_config_found += parse_rx_queues(intf.port_id_, intf.rx_.queues_);
+    rmax_tx_config_found += parse_tx_queues(intf.port_id_, intf.tx_.queues_);
+  }
+
+  if (cfg.debug_ >= RMAX_MIN_LOG_LEVEL && cfg.debug_ <= RMAX_MAX_LOG_LEVEL) {
+    rmax_log_level_ = cfg.debug_;
+  }
+  if (rmax_rx_config_found == 0 && rmax_tx_config_found == 0) {
+    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax ANO settings. No valid settings found");
+    return false;
+  }
+
+  HOLOSCAN_LOG_INFO(
+      "Rivermax ANO settings were successfully parsed, Found {} RX Queues and {} TX Queues "
+      "settings",
+      rmax_rx_config_found,
+      rmax_tx_config_found);
+
+  is_configured_ = true;
+  return true;
+}
+
+/**
  * @brief Sets the default configuration for an RX service.
  *
  * @param rx_service_cfg The RX service configuration to be set.
  */
-void RmaxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const {
+void RxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const {
   rx_service_cfg.app_settings->destination_ip = DESTINATION_IP_DEFAULT;
   rx_service_cfg.app_settings->destination_port = DESTINATION_PORT_DEFAULT;
   rx_service_cfg.app_settings->num_of_threads = NUM_OF_THREADS_DEFAULT;
@@ -46,52 +201,6 @@ void RmaxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_
 }
 
 /**
- * @brief Parses the configuration from the YAML file.
- *
- * This function iterates over the interfaces and their respective RX queues
- * defined in the configuration YAML, extracting and validating the necessary
- * settings for each RX queue. It then populates the RX service configuration
- * structures with these settings.
- *
- * @param cfg The configuration YAML.
- * @return True if the configuration was successfully parsed, false otherwise.
- */
-bool RmaxConfigManager::parse_configuration(const AdvNetConfigYaml& cfg) {
-  int rmax_rx_config_found = 0;
-
-  is_configured_ = false;
-  cfg_ = cfg;
-
-  for (const auto& intf : cfg.ifs_) {
-    HOLOSCAN_LOG_INFO("Rmax init Port {} -- RX: {} TX: {}",
-                      intf.port_id_,
-                      intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
-                      intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
-
-    for (const auto& q : intf.rx_.queues_) {
-      if (!append_candidate_for_rx_queue(intf.port_id_, q)) { continue; }
-      rmax_rx_config_found++;
-    }
-  }
-
-  if (cfg.debug_ >= RMAX_MIN_LOG_LEVEL && cfg.debug_ <= RMAX_MAX_LOG_LEVEL) {
-    rmax_log_level_ = cfg.debug_;
-  }
-
-  if (rmax_rx_config_found > 0) {
-    HOLOSCAN_LOG_INFO(
-        "Rivermax ANO settings were successfully parsed, Found {} Rivermax RX Queues settings",
-        rmax_rx_config_found);
-  } else {
-    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax ANO settings. No valid settings found");
-    return false;
-  }
-
-  is_configured_ = true;
-  return true;
-}
-
-/**
  * @brief Validates RX queue for Rmax Queue configuration. If valid, appends the RX queue for a
  * given port.
  *
@@ -99,9 +208,14 @@ bool RmaxConfigManager::parse_configuration(const AdvNetConfigYaml& cfg) {
  * @param q The RX queue configuration.
  * @return True if the configuration was appended successfully, false otherwise.
  */
-bool RmaxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) {
+bool RxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) {
   HOLOSCAN_LOG_INFO(
       "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
+
+  if (is_configuration_set_ == false) {
+    HOLOSCAN_LOG_ERROR("Configuration wasn't set for RxConfigManger");
+    return false;
+  }
 
   // extra queue config_ contains RMAX configuration. If it is not set, return false
   if (!q.common_.extra_queue_config_) return false;
@@ -138,8 +252,8 @@ bool RmaxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const Rx
  * @param q The RX queue configuration.
  * @return true if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
-                                                const RxQueueConfig& q) {
+bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
+                                              const RxQueueConfig& q) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
   HOLOSCAN_LOG_INFO(
       "Configuring memory allocator for RMAX RX queue: {}, number of memory regions: {}",
@@ -167,9 +281,9 @@ bool RmaxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_confi
  * @param mr The memory region.
  * @return true if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
-                                                                const RxQueueConfig& q,
-                                                                const MemoryRegion& mr) {
+bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
+                                                              const RxQueueConfig& q,
+                                                              const MemoryRegion& mr) {
   rmax_rx_config.split_boundary = 0;
   rmax_rx_config.max_packet_size = mr.buf_size_;
   rmax_rx_config.packets_buffers_size = mr.num_bufs_;
@@ -195,10 +309,10 @@ bool RmaxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfi
  * @param mr_payload The payload memory region.
  * @return true if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
-                                                              const RxQueueConfig& q,
-                                                              const MemoryRegion& mr_header,
-                                                              const MemoryRegion& mr_payload) {
+bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
+                                                            const RxQueueConfig& q,
+                                                            const MemoryRegion& mr_header,
+                                                            const MemoryRegion& mr_payload) {
   rmax_rx_config.split_boundary = mr_header.buf_size_;
   rmax_rx_config.max_packet_size = mr_payload.buf_size_;
   rmax_rx_config.packets_buffers_size = mr_payload.num_bufs_;
@@ -219,8 +333,8 @@ bool RmaxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig&
  * @param mr The memory region.
  * @return true if the GPU memory configuration is set, false otherwise.
  */
-bool RmaxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
-                                                        const MemoryRegion& mr) {
+bool RxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
+                                                      const MemoryRegion& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::DEVICE || mr.kind_ == MemoryKind::HOST_PINNED) {
 #else
@@ -238,7 +352,7 @@ bool RmaxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_
  *
  * @param rmax_rx_config The RMAX RX queue configuration.
  */
-void RmaxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
+void RxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
   rmax_rx_config.gpu_device_id = -1;
   rmax_rx_config.gpu_direct = false;
 }
@@ -249,8 +363,8 @@ void RmaxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config)
  * @param rmax_rx_config The RMAX RX queue configuration.
  * @param mr The memory region.
  */
-void RmaxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
-                                               const MemoryRegion& mr) {
+void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
+                                             const MemoryRegion& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::HOST) {
 #else
@@ -275,8 +389,8 @@ void RmaxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config
  * @param rmax_rx_config The Rmax RX queue configuration.
  * @return True if the configuration is valid, false otherwise.
  */
-bool RmaxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
-                                                       const RmaxRxQueueConfig& rmax_rx_config) {
+bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
+                                                     const RmaxRxQueueConfig& rmax_rx_config) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
   try {
     if (num_of_mrs == 1) {
@@ -312,7 +426,7 @@ bool RmaxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
  * @param mr The memory region.
  * @return True if the configuration is valid, false otherwise.
  */
-bool RmaxConfigManager::validate_memory_regions_config_from_single_mrs(
+bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
     const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr) {
   return true;
 }
@@ -326,7 +440,7 @@ bool RmaxConfigManager::validate_memory_regions_config_from_single_mrs(
  * @param mr_payload The payload memory region.
  * @return True if the configuration is valid, false otherwise.
  */
-bool RmaxConfigManager::validate_memory_regions_config_from_dual_mrs(
+bool RxConfigManager::validate_memory_regions_config_from_dual_mrs(
     const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr_header,
     const MemoryRegion& mr_payload) {
   if (mr_payload.kind_ != MemoryKind::DEVICE && mr_header.kind_ != mr_payload.kind_) {
@@ -356,9 +470,9 @@ s * @param rmax_rx_config The Rmax RX queue configuration.
  * @param q The RX queue configuration.
  * @return True if the configuration is successful, false otherwise.
  */
-bool RmaxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                                       const RmaxRxQueueConfig& rmax_rx_config,
-                                                       const RxQueueConfig& q) {
+bool RxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
+                                                     const RmaxRxQueueConfig& rmax_rx_config,
+                                                     const RxQueueConfig& q) {
   rx_service_cfg.app_settings = std::make_shared<AppSettings>();
   set_default_config(rx_service_cfg);
 
@@ -379,7 +493,7 @@ bool RmaxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig&
  * @param rmax_rx_config The Rmax RX queue configuration.
  * @return True if the configuration is valid, false otherwise.
  */
-bool RmaxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config) {
+bool RxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config) {
   if (rmax_rx_config.source_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
     return false;
@@ -418,8 +532,8 @@ bool RmaxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_r
  * @param rmax_rx_config The Rmax RX queue configuration.
  * @param split_boundary The split boundary value.
  */
-void RmaxConfigManager::set_rx_service_common_app_settings(
-    AppSettings& app_settings_config, const RmaxRxQueueConfig& rmax_rx_config) {
+void RxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
+                                                         const RmaxRxQueueConfig& rmax_rx_config) {
   app_settings_config.local_ips = rmax_rx_config.local_ips;
   app_settings_config.source_ips = rmax_rx_config.source_ips;
   app_settings_config.destination_ips = rmax_rx_config.destination_ips;
@@ -454,8 +568,8 @@ void RmaxConfigManager::set_rx_service_common_app_settings(
  * @param app_settings_config The application settings configuration.
  * @param allocator_type The allocator type string.
  */
-void RmaxConfigManager::set_allocator_type(AppSettings& app_settings_config,
-                                           const std::string& allocator_type) {
+void RxConfigManager::set_allocator_type(AppSettings& app_settings_config,
+                                         const std::string& allocator_type) {
   auto setAllocatorType = [&](const std::string& allocatorTypeStr, AllocatorTypeUI allocatorType) {
     if (allocator_type == allocatorTypeStr) { app_settings_config.allocator_type = allocatorType; }
   };
@@ -477,8 +591,8 @@ void RmaxConfigManager::set_allocator_type(AppSettings& app_settings_config,
  * @param cores The cores configuration string.
  * @return True if the cores are successfully parsed and set, false otherwise.
  */
-bool RmaxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
-                                            const std::string& cores) {
+bool RxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
+                                          const std::string& cores) {
   std::istringstream iss(cores);
   std::string coreStr;
   bool to_reset_cores_vector = true;
@@ -512,7 +626,7 @@ bool RmaxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
  * @param rx_service_cfg The RX service configuration.
  * @param rmax_rx_config The Rmax RX queue configuration.
  */
-void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
+void RxConfigManager::set_rx_service_ipo_receiver_settings(
     ExtRmaxIPOReceiverConfig& rx_service_cfg, const RmaxRxQueueConfig& rmax_rx_config) {
   rx_service_cfg.is_extended_sequence_number = rmax_rx_config.ext_seq_num;
   rx_service_cfg.max_path_differential_us = rmax_rx_config.max_path_differential_us;
@@ -536,8 +650,8 @@ void RmaxConfigManager::set_rx_service_ipo_receiver_settings(
  * @param port_id The port ID.
  * @param queue_id The queue ID.
  */
-void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                                  uint16_t port_id, uint16_t queue_id) {
+void RxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
+                                                uint16_t port_id, uint16_t queue_id) {
   uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   if (rx_service_configs_.find(key) != rx_service_configs_.end()) {
     HOLOSCAN_LOG_ERROR(
@@ -547,6 +661,27 @@ void RmaxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig
   HOLOSCAN_LOG_INFO("Rivermax ANO settings for port {} and queue {} added", port_id, queue_id);
 
   rx_service_configs_[key] = rx_service_cfg;
+}
+
+/**
+ * @brief Validates TX queue for Rmax Queue configuration. If valid, appends the TX queue for a
+ * given port.
+ *
+ * @param port_id The port ID.
+ * @param q The TX queue configuration.
+ * @return True if the configuration was appended successfully, false otherwise.
+ */
+bool TxConfigManager::append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) {
+  HOLOSCAN_LOG_INFO(
+      "Configuring TX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
+
+  if (is_configuration_set_ == false) {
+    HOLOSCAN_LOG_ERROR("Configuration wasn't set for TxConfigManger");
+    return false;
+  }
+
+  // TODO: Implement when TX is ready
+  return false;
 }
 
 /**
