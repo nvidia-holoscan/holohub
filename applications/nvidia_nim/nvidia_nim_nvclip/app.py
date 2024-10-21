@@ -50,8 +50,6 @@ class OpenAIOperator(Operator):
         self.model = model
         self.encoding_format = encoding_format
 
-        print(f"======================self.api_key={self.api_key}")
-
         if not self.api_key:
             self.api_key = os.getenv("API_KEY", None)
         if not self.api_key:
