@@ -12,10 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-cmake_minimum_required(VERSION 3.20)
-project(nvidia_nim LANGUAGES NONE)
-
-add_holohub_application(nvidia_nim_chat)
-add_holohub_application(nvidia_nim_imaging)
-add_holohub_application(nvidia_nim_nvclip)

@@ -415,6 +415,23 @@
         },
         {
             "type": "shell",
+            "label": "Build nvidia_nim_nvclip",
+            "command": "./run",
+            "args": [
+                "build",
+                "nvidia_nim_nvclip",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build volume_rendering",
             "command": "./run",
             "args": [
