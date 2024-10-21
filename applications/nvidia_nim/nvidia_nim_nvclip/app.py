@@ -17,9 +17,9 @@ import base64
 import logging
 import os
 import sys
-import torch
 
 import requests.exceptions
+import torch
 from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
 from openai import APIConnectionError, AuthenticationError, OpenAI
