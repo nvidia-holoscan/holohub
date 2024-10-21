@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-#include <chrono>
+#include <imgui.h>
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <holoviz/holoviz.hpp>
 #include <string>
 
 #include <getopt.h>
@@ -65,8 +66,6 @@ class SourceOp : public Operator {
   void setup(OperatorSpec& spec) override { spec.output<holoscan::gxf::Entity>("output"); }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    if (start_.time_since_epoch().count() == 0) { start_ = std::chrono::steady_clock::now(); }
-
     auto entity = holoscan::gxf::Entity::New(&context);
     auto tensor = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
     tensor.value()->wrapMemory(shape_,
@@ -77,17 +76,6 @@ class SourceOp : public Operator {
                                data_.data(),
                                nullptr);
     output.emit(entity, "output");
-
-    iterations_++;
-    const std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start_);
-    if (elapsed.count() > 1000) {
-      const float fps =
-          static_cast<float>(iterations_) / (static_cast<float>(elapsed.count()) / 1000.f);
-      HOLOSCAN_LOG_INFO("Frames per second {}", fps);
-      start_ = std::chrono::steady_clock::now();
-      iterations_ = 0;
-    }
   }
 
  private:
@@ -96,8 +84,6 @@ class SourceOp : public Operator {
   uint64_t element_size_;
   nvidia::gxf::Tensor::stride_array_t strides_;
   std::vector<uint8_t> data_;
-  std::chrono::steady_clock::time_point start_;
-  uint32_t iterations_ = 0;
 };
 
 }  // namespace holoscan::ops
@@ -117,16 +103,58 @@ class App : public holoscan::Application {
 
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
-        // enable synchronization to vertical blank
-        Arg("vsync", true),
-        Arg("window_title", std::string("Holoviz vsync")),
+        // set the layer callback to execute a member function of the App class.
+        Arg("layer_callback",
+            ops::HolovizOp::LayerCallbackFunction(
+                std::bind(&App::layer_callback, this, std::placeholders::_1))),
+        Arg("window_title", std::string("Holoviz UI")),
         Arg("cuda_stream_pool", make_resource<CudaStreamPool>("cuda_stream_pool", 0, 0, 0, 1, 5)));
 
     add_flow(source, holoviz, {{"output", "receivers"}});
   }
+  void layer_callback(const std::vector<holoscan::gxf::Entity>& inputs) {
+    using namespace holoscan;
+
+    // The layer callback is executed after the Holoviz operator has finished drawing all layers. We
+    // now can add our own layers after that.
+    // For more information on Holoviz layers see
+    // https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#layers.
+
+    // Add a simple UI, Holoviz supports a `Dear ImGui` layer. For more information on `Dear ImGui`
+    // check https://github.com/ocornut/imgui.
+    viz::BeginImGuiLayer();
+    ImGui::Begin("UI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Checkbox("Checkbox", &checkbox_selected_);
+    static const char* combo_items[] = {
+        "Item 1",
+        "Item 2",
+        "Item 3",
+    };
+    ImGui::Combo("Combo", &combo_item_, combo_items, IM_ARRAYSIZE(combo_items));
+    ImGui::SliderFloat("Slider Float", &slider_float_value_, 0.F, 1.F);
+    ImGui::SliderInt("Slider Int", &slider_int_value_, -10, 10);
+    ImGui::Separator();
+    ImGui::ColorEdit4("Color", color_value_, ImGuiColorEditFlags_DefaultOptions_);
+    viz::EndLayer();
+
+    // Now create a geometry layer using the values of the UI.
+    viz::BeginGeometryLayer();
+    // Draw the text from combo with the color set by the user and the position set by the sliders.
+    viz::Color(color_value_[0], color_value_[1], color_value_[2], color_value_[3]);
+    viz::Text(slider_float_value_,
+              float(slider_int_value_ + 10) / 20.F,
+              checkbox_selected_ ? 0.1F : 0.05F,
+              combo_items[combo_item_]);
+    viz::EndLayer();
+  }
 
  private:
   const int count_;
+  bool checkbox_selected_ = false;
+  int combo_item_ = 0;
+  float slider_float_value_ = 0.F;
+  int slider_int_value_ = 0;
+  float color_value_[4]{1.F, 1.F, 1.F, 1.F};
 };
 
 int main(int argc, char** argv) {
@@ -146,7 +174,7 @@ int main(int argc, char** argv) {
     const std::string argument(optarg ? optarg : "");
     switch (c) {
       case 'h':
-        std::cout << "Holoviz vsync" << std::endl
+        std::cout << "Holoviz UI" << std::endl
                   << "Usage: " << argv[0] << " [options]" << std::endl
                   << "Options:" << std::endl
                   << "  -h, --help                    Display this information" << std::endl
