@@ -72,6 +72,8 @@ class OpenAIOperator(Operator):
         message = input[0].copy()
         message.append(input[1])
 
+        # Reference: Cosine Similarity https://docs.nvidia.com/nim/nvclip/latest/getting-started.html#cosine-similarity
+        # Calculate cosine similarity between images and text
         try:
             embeddings_data = self.client.embeddings.create(
                 input=message, model=self.model, encoding_format=self.encoding_format
