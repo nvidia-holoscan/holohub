@@ -22,7 +22,12 @@ from threading import Event, Thread
 
 import cupy as cp
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.operators import FormatConverterOp, HolovizOp, V4L2VideoCaptureOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    V4L2VideoCaptureOp,
+    VideoStreamReplayerOp,
+)
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 from PIL import Image
 from vlm import VLM
@@ -83,20 +88,43 @@ class VLMWebAppOp(Operator):
 
 
 class V4L2toVLM(Application):
-    def __init__(self):
+    def __init__(self, data, source="v4l2", video_device="none"):
         """V4L2 to VLM app"""
         super().__init__()
         # set name
         self.name = "V4L2 to VLM app"
+        self.source = source
+
+        if data == "none":
+            data = "/workspace/holohub/data/vila_live"
+
+        self.sample_data_path = data
+        self.video_device = video_device
 
     def compose(self):
-        # V4L2 to capture usb camera input
-        source = V4L2VideoCaptureOp(
-            self,
-            name="source",
-            allocator=UnboundedAllocator(self, name="pool"),
-            **self.kwargs("source"),
-        )
+        pool = UnboundedAllocator(self, name="pool")
+
+        # V4L2 to capture usb camera input or replayer to replay video
+        if self.source == "v4l2":
+            v4l2_args = self.kwargs("v4l2_source")
+            if self.video_device != "none":
+                v4l2_args["device"] = self.video_device
+            source = V4L2VideoCaptureOp(
+                self,
+                name="v4l2_source",
+                allocator=pool,
+                **v4l2_args,
+            )
+            source_output = "signal"
+
+        elif self.source == "replayer":
+            source = VideoStreamReplayerOp(
+                self,
+                name="replayer_source",
+                directory=self.sample_data_path,
+                **self.kwargs("replayer_source"),
+            )
+            source_output = "output"
 
         formatter_cuda_stream_pool = CudaStreamPool(
             self,
@@ -142,7 +170,7 @@ class V4L2toVLM(Application):
         # Initialize the VLM + WebApp operator
         web_server = VLMWebAppOp(self, name="VLMWebAppOp")
 
-        self.add_flow(source, visualizer, {("signal", "receivers")})
+        self.add_flow(source, visualizer, {(source_output, "receivers")})
         self.add_flow(visualizer, format_converter_vlm, {("render_buffer_output", "source_video")})
         self.add_flow(format_converter_vlm, web_server, {("tensor", "video_stream")})
 
@@ -151,10 +179,33 @@ def main():
     # Parse args
     parser = ArgumentParser(description="VILA live application.")
     parser.add_argument(
+        "-s",
+        "--source",
+        choices=["v4l2", "replayer"],
+        default="v4l2",
+        help=(
+            "If 'v4l2', uses the v4l2 device specified in the yaml file or "
+            " --video_device if specified. "
+            "If 'replayer', uses video stream replayer."
+        ),
+    )
+    parser.add_argument(
         "-c",
         "--config",
         default="none",
         help=("Set config path to override the default config file location"),
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="none",
+        help=("Set the data path"),
+    )
+    parser.add_argument(
+        "-v",
+        "--video_device",
+        default="none",
+        help=("The video device to use.  By default the application will use /dev/video0"),
     )
     args = parser.parse_args()
 
@@ -163,7 +214,7 @@ def main():
     else:
         config_file = args.config
 
-    app = V4L2toVLM()
+    app = V4L2toVLM(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()
 

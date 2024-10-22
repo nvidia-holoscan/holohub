@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 extensions:
-  - gxf_extensions/emergent_source/libgxf_emergent_source.so
+  - lib/gxf_extensions/libgxf_emergent_source.so
 
 # Modify the width/height and framerate for the camera used
 # Current is for Emergent HB-5000-SB

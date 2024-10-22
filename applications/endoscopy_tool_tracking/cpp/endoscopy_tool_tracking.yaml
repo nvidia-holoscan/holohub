@@ -29,11 +29,11 @@ resources:
   gpuMemory: 1Gi
 
 extensions:
-  - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+  - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 # Uncomment the following extension when using deltacast as a source
-#  - gxf_extensions/deltacast_videomaster/libgxf_videomaster.so
+#  - lib/gxf_extensions/libgxf_videomaster.so
 # Uncomment the following extension when using yuan as source
-#  - gxf_extensions/yuan_qcap/libgxf_qcap_source.so
+#  - lib/gxf_extensions/libgxf_qcap_source.so
 
 source: "replayer"    # "replayer" or "aja" or "deltacast" or "yuan"
 visualizer: "holoviz"  # "holoviz" or "vtk"

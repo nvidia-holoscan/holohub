@@ -32,7 +32,8 @@
         }
     },
     "runArgs": [
-        "<env>"
+        "--net=host",
+        //"<env>"
     ],
     "containerEnv": {
         // X11 support
@@ -81,6 +82,7 @@
                 "ms-python.vscode-pylance",
                 "ms-vscode.cpptools-extension-pack",
                 "redhat.vscode-yaml",
+                "rioj7.command-variable",
                 "shardulm94.trailing-spaces",
                 "shd101wyy.markdown-preview-enhanced",
                 "stkb.rewrap"

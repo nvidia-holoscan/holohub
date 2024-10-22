@@ -19,7 +19,7 @@ find_package(holoscan 1.0 REQUIRED CONFIG
 
 # Download the yolov8 pose model if it doesn't exist
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx"
-    COMMAND yolo export model=yolov8l-pose.pt format=onnx
+    COMMAND "PATH=${PATH}:/workspace/holohub/.local/bin" /usr/local/bin/yolo export model=yolov8l-pose.pt format=onnx
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
     COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx"

@@ -48,6 +48,8 @@ input_on_cuda : bool, optional
     Boolean indicating whether the input tensors are on the GPU.
 data_dir: string
     Path to the data for the iCardio logo.
+cuda_stream_pool : holoscan.resources.CudaStreamPool, optional
+    CudaStreamPool instance to allocate CUDA streams.
 name : str, optional
     The name of the operator.
 )doc")

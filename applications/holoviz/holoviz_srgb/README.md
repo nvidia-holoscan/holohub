@@ -1,6 +1,6 @@
 # Holoviz sRGB
 
-![](holoviz_srgb.png)<br>
+![](holoviz_srgb.png)
 This application demonstrates the handling of the sRGB color space supported by the Holoviz operator.
 
 The Holoviz operator can convert sRGB input images to linear color space before rendering and also can convert from linear color space to sRGB before writing to the frame buffer.

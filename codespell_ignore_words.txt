@@ -1,0 +1,13 @@
+# This file contains the exact words in code that should be ignore from codespell
+nd
+ba
+activ
+Activ
+dne
+unexpect
+hsi
+donot
+thirdparty
+EHR
+ehr
+

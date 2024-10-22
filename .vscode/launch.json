@@ -149,7 +149,6 @@
             }
         },
         //#endregion asr_to_llm
-
         //#region sam2
         {
             "name": "(debugpy) sam2/python",
@@ -178,7 +177,6 @@
             }
         },
         //#endregion sam2
-
         //#region colonoscopy_segmentation
         {
             "name": "(debugpy) colonoscopy_segmentation/python",
@@ -853,6 +851,93 @@
             }
         },
         //#endregion h264_video_decode
+        //#region holoviz
+        {
+            "name": "(gdb) Holoviz examples",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build Holoviz examples",
+            "program": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}/${input:holoviz_example_name}",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "holoviz",
+                "order": 1
+            }
+        },
+        //#endregion holoviz
+        //#region multiai_ultrasound
+        {
+            "name": "(gdb) multiai_ultrasound/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build multiai_ultrasound",
+            "program": "${workspaceFolder}/build/multiai_ultrasound/applications/multiai_ultrasound/cpp/multiai_ultrasound",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/multiai_ultrasound"
+            ],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/multiai_ultrasound",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "multiai_ultrasound",
+                "order": 1
+            }
+        },
+        {
+            "name": "(debugpy) multiai_ultrasound/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build multiai_ultrasound",
+            "program": "${workspaceFolder}/applications/multiai_ultrasound/python/multiai_ultrasound.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/multiai_ultrasound"
+            ],
+            "cwd": "${workspaceFolder}/build/multiai_ultrasound/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/multiai_ultrasound/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) multiai_ultrasound/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) multiai_ultrasound/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "multiai_ultrasound",
+                "order": 2
+            }
+        },
+        //#endregion multiai_ultrasound
         //#region volume_rendering
         {
             "name": "(gdb) volume_rendering/cpp",
@@ -980,5 +1065,23 @@
                 "order": 11
             }
         },
-    ]
+    ],
+    "inputs": [
+        {
+            "id": "holoviz_example_name",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Select Holoviz example program",
+                "options": [],
+                "fileName": "${workspaceFolder}/applications/holoviz/template/generate_projects.sh",
+                "fileFormat": "pattern",
+                "pattern": {
+                    "regexp": "^generate [\"](.*?)[\"].*$",
+                    "flags": "gm",
+                },
+                "key": "holoviz_example_name"
+            }
+        },
+    ],
 }

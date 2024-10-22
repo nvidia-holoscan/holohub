@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 extensions:
-- gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+- lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
 aja:
   width: 1920

@@ -34,11 +34,6 @@ add_executable(adv_networking_bench
   main.cpp
 )
 
-# set(CMAKE_BUILD_TYPE Debug)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -ggdb")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
-# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G")
-
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 
 target_link_libraries(adv_networking_bench
@@ -86,3 +81,15 @@ add_custom_target(adv_networking_bench_rmax_rx_yaml
 
 add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
 
+# Installation
+install(TARGETS adv_networking_bench
+        DESTINATION bin/adv_networking_bench/cpp)
+
+install(
+  FILES ../adv_networking_bench_default_rx.yaml
+        ../adv_networking_bench_default_tx.yaml
+        ../adv_networking_bench_default_tx_rx.yaml
+        ../adv_networking_bench_doca_tx_rx.yaml
+        ../adv_networking_bench_rmax_rx_yaml
+  DESTINATION bin/adv_networking_bench/cpp
+)

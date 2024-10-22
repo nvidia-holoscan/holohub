@@ -333,6 +333,12 @@ setup() {
     apt-get install --no-install-recommends -y libv4l-dev
   fi
 
+  # git
+  git_path=$(which git)
+  if [[ $git_path == "" ]]; then
+    echo "Installing git"
+    apt-get install --no-install-recommends -y git
+  fi
 
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
@@ -350,7 +356,7 @@ setup() {
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-6 12-5 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -373,10 +379,13 @@ setup() {
      install_cuda_dependencies_package libcudnn8-dev cuda$short_cuda_version
   fi
 
-  # Make sure we do not install any cuda12 packages
-  install_cuda_dependencies_package libnvinfer-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvinfer-plugin-dev cuda$short_cuda_version
-  install_cuda_dependencies_package libnvonnxparsers-dev cuda$short_cuda_version
+  # Check the current version of libnvinfer-bin
+  installed_libnvinferbin=$(dpkg --status libnvinfer-bin 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  installed_libnvinferbin_version=${installed_libnvinferbin%.*}
+  install_cuda_dependencies_package libnvinfer-headers-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvinfer-plugin-dev $installed_libnvinferbin_version
+  install_cuda_dependencies_package libnvonnxparsers-dev $installed_libnvinferbin_version
 
   # Install the autocomplete
   echo "Installing autocomplete"
@@ -459,7 +468,7 @@ lint() {
       run_command isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
       run_command black ${DIR_TO_RUN} || exit_code=1
-      run_command codespell -w -i 3 ${DIR_TO_RUN} -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+      run_command codespell -w -i 3 ${DIR_TO_RUN} --ignore-words codespell_ignore_words.txt \
                             --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
       # Fix cpplint with clang
@@ -468,6 +477,7 @@ lint() {
             --exclude install \
             --exclude build-\* \
             --exclude install-\* \
+            --exclude applications/holoviz/template/cookiecutter\* \
             --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
 
       # Fix C++ lint issues by running clang-format:
@@ -498,13 +508,14 @@ lint() {
             --exclude install \
             --exclude build-\* \
             --exclude install-\* \
+            --exclude applications/holoviz/template/cookiecutter\* \
             --recursive $DIR_TO_RUN \
         | { grep -v 'Ignoring\|Done processing' || true; } || exit_code=1"
 
 
     echo "Code spelling"
     run_command codespell $DIR_TO_RUN --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" \
-                          -L nd,ba,activ,Activ,dne,unexpect,hsi,donot,thirdparty \
+                          --ignore-words codespell_ignore_words.txt \
                           --exclude-file codespell.txt || exit_code=1
 
     echo "Linting CMake"

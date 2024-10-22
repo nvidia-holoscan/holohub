@@ -303,7 +303,7 @@ get_conditional_options() {
     if [ -n "$video_id" ]; then
         conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
     fi
-    render_id=$(get_group_id rnder)
+    render_id=$(get_group_id render)
     if [ -n "$render_id" ]; then
         conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
     fi
@@ -454,22 +454,23 @@ check_nvidia_ctk() {
 #===============================================================================
 
 get_host_gpu() {
-    if lsmod | grep -q nvidia_drm && command -v nvidia-smi >/dev/null; then
-        echo -n "dgpu"
-    elif lsmod | grep -q nvgpu; then
-        echo -n "igpu"
+    if ! command -v nvidia-smi >/dev/null; then
+        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo -n "dgpu";
+    elif [[ ! $(nvidia-smi --query-gpu=name --format=csv,noheader) ]] || \
+         [[ $(nvidia-smi --query-gpu=name --format=csv,noheader -i 0) =~ "Orin (nvgpu)" ]]; then
+        echo -n "igpu";
     else
-        c_echo_err Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
-        echo -n "dgpu"
+        echo -n "dgpu";
     fi
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.3.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.5.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -485,6 +486,7 @@ Usage: ./dev_container build [options]
     --img : Specify fully qualified container name
     --verbose : Print variables passed to docker build command
     --no-cache : Do not use cache when building the image
+    --build-args : provides extra arguments to docker build command
     '
 }
 
@@ -498,6 +500,7 @@ build() {
     local compute_capacity=$(get_compute_capacity)
     local print_verbose=0
     local no_cache=
+    local extra_args=
 
     # Check if buildx exists
     if ! $(docker buildx version &>/dev/null); then
@@ -540,6 +543,16 @@ build() {
                 exit 1
             fi
             ;;
+        --build-args)
+            if [[ -n "$2" ]]; then
+                extra_args+=" $2"
+                shift 2
+            else
+                echo "Error: --build-args requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
         --no-cache)
             no_cache="--no-cache"
             shift
@@ -572,6 +585,7 @@ build() {
         --build-arg GPU_TYPE=${gpu_type} \
         --build-arg COMPUTE_CAPACITY=${compute_capacity} \
         --network=host \
+        ${extra_args} \
         ${no_cache} \
         -f ${docker_file_path} \
         -t ${img} \
@@ -843,6 +857,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --no_run : Skip launching the application.
         --install: Install the application into install/<app> if supported.
         --build_args : Build the app with additional CMake configuration arguments
+        --build_docker_args : additional docker arguments when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
@@ -853,7 +868,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
 build_and_run() {
     local app_name=""
     local app_language=""
-    local container_build_args=""
+    local container_build_args=()
     local container_launch_args=""
     local docker_opts="--entrypoint=bash"
     local build_app=1
@@ -864,13 +879,14 @@ build_and_run() {
     local extra_run_args=""
     local run_app=1
     local install=""
+    local configure_args=""
 
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
         case "$1" in
         --base_img)
             if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                container_build_args+=" --base_img $2"
+                container_build_args+=(--base_img $2)
                 shift 2
             else
                 echo "Error: --base_img requires a value"
@@ -924,10 +940,21 @@ build_and_run() {
             ;;
         --build_args)
             if [[ -n "$2" ]]; then
-                extra_build_args="--configure-args '$2'"
+                configure_args="${configure_args} '$2'"
                 shift 2
             else
                 echo "Error: --build_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --build_docker_args)
+            if [[ -n "$2" ]]; then
+                container_build_args+=(--build-args)
+                container_build_args+=("$2")
+                shift 2
+            else
+                echo "Error: --build_docker_args requires a value"
                 build_and_run_desc
                 exit 1
             fi
@@ -943,27 +970,15 @@ build_and_run() {
             fi
             ;;
         --no_run)
-            if [[ -n "$2" ]]; then
-                run_app=0
-                shift 1
-            else
-                echo "Error: --run_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
+            run_app=0
+            shift 1
             ;;
         --install)
-            if [[ -n "$2" ]]; then
-                install="--install"
-                shift 1
-            else
-                echo "Error: --run_args requires a value"
-                build_and_run_desc
-                exit 1
-            fi
+            install="--install"
+            shift 1
             ;;
         --verbose)
-            container_build_args+=" --verbose"
+            container_build_args+=(--verbose)
             container_launch_args+=" --verbose"
             shift
             ;;
@@ -979,7 +994,7 @@ build_and_run() {
             ;;
         --container_args)
             if [[ -n "$2" ]]; then
-                docker_opts+=" $2"
+                docker_opts+="$2"
                 shift 2
             else
                 echo "Error: --container_args requires a value"
@@ -1008,7 +1023,11 @@ build_and_run() {
         docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
     fi
     if [[ -n "${docker_file}" ]]; then
-        container_build_args+=" --docker_file ${docker_file}"
+        container_build_args+=(--docker_file ${docker_file})
+    fi
+
+    if [[ -n "${configure_args}" ]]; then
+        extra_build_args+=" --configure-args ${configure_args}"
     fi
 
     if [[ -z "$image_name" ]]; then
@@ -1019,11 +1038,11 @@ build_and_run() {
         fi
     fi
 
-    container_build_args+=" --img $image_name"
+    container_build_args+=(--img $image_name)
     container_launch_args+=" --img $image_name"
 
     c_echo "Building application container..."
-    run_command ${SCRIPT_DIR}/dev_container build $container_build_args
+    run_command  ${SCRIPT_DIR}/dev_container build "${container_build_args[@]}"
     if [[ $build_app == 1 ]]; then
         c_echo "Building application..."
         run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $extra_build_with $extra_build_args"
@@ -1232,7 +1251,7 @@ vscode() {
     mkdir -p "${tmpdir}/.devcontainer"
     cp -arL "${dev_container_path}/devcontainer.json" "${tmpdir}/.devcontainer"
     sed -i -e "s|\${localWorkspaceFolder}|$(pwd)|g" "${tmpdir}/.devcontainer/devcontainer.json" \
-        -e "s|\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
+        -e "s|//\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
 
     local hash="$(echo -n "${tmpdir}" | xxd -pu - | tr -d '[:space:]')"
     local url="vscode://vscode-remote/dev-container+${hash}/workspace/holohub"

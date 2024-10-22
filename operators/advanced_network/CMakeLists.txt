@@ -21,10 +21,6 @@ find_package(PkgConfig)
 
 enable_language(CUDA)
 
-#set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-# Remove in production!
-# set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --diag-suppress 1217")
 set(CMAKE_CUDA_ARCHITECTURES "80;90")
 
@@ -94,3 +90,8 @@ target_link_libraries(advanced_network_tx PUBLIC advanced_network_common)
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+# Installation
+install(TARGETS advanced_network_common
+                advanced_network_rx
+                advanced_network_tx)
