@@ -59,8 +59,15 @@ def parse_csv_file(filename):
 def main():
     CSV_FILENAME_DELIMITER = "_"
 
-    parser = argparse.ArgumentParser(description="Generate bar graphs from a CSV file.")
-    parser.add_argument("csv_file", help="Path to the CSV file")
+    parser = argparse.ArgumentParser(
+        description="Generate bar graphs from a CSV file of latency statistics generated with `analyze.py`."
+    )
+    parser.add_argument(
+        "csv_file",
+        help="Path to the latency statistics CSV file. "
+        "The CSV filename must follow the `analyze.py` output convention `<statistics_name>_values.csv`."
+        "Assumes one row of data with each column representing an increasing number of instances. ",
+    )
     parser.add_argument(
         "--output_extension", default="png", help="Output file extension (default: png)"
     )
