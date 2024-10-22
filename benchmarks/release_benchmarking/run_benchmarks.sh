@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -e -x
+set -e
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 TOP=$(realpath "${SCRIPT_DIR}/../..")
@@ -175,8 +175,12 @@ plot_benchmark() {
     app_name=$(echo "$log_pattern" | sed -E 's/_[0-9].*//')
 
     counter=1
-    for log_directory in $(find ${log_dir}/output -name ${log_pattern} -type d); do
-        log_groups+="-g ${log_directory}/logger_* Group${counter} "
+    for log_directory in $(find ${log_dir}/output -name ${log_pattern} -type d | sort -d); do
+        log_groups+="-g "
+        for log_file in $(find ${log_directory} -name "logger_*"); do
+            log_groups+="$(realpath ${log_file}) "
+        done
+        log_groups+="Group${counter} "
         counter=$((counter + 1))
     done
     if [[ -z "${log_groups}" ]]; then
@@ -184,7 +188,7 @@ plot_benchmark() {
         exit 1
     fi
 
-    processing_dir=${log_dir}/processed/${log_pattern}
+    processing_dir="$(realpath ${log_dir})/processed/${log_pattern}"
     mkdir -p ${processing_dir}
 
     pushd ${processing_dir}

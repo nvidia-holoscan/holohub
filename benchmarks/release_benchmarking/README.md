@@ -34,7 +34,8 @@ Data collection can be run in the HoloHub base container for both the Endoscopy 
 # Build the container
 ./dev_container build \
     --img holohub:release_benchmarking \
-    --docker_file benchmarks/release_benchmarking/Dockerfile
+    --docker_file benchmarks/release_benchmarking/Dockerfile \
+    --base_img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version>-$(./dev_container get_host_gpu)
 
 # Launch the dev environment
 ./dev_container launch --img holohub:release_benchmarking
@@ -120,6 +121,14 @@ pushd output
 pandoc <release-version>.md -o <release-version>.pdf --toc
 ```
 
+### (Optional) Submitting Results to HoloHub
+
+The Holoscan SDK team may submit release benchmarking reports to HoloHub git history for general visibility. We use Markdown formatting to make plot diagrams accessible for direct download.
+
+1. Move `<release-version>.md` and accompanying plots to a new `release/<version>` folder.
+2. Update image paths in `<release-version.md>` and verify locally with a markdown renderer such as VS Code.
+3. Commit changes, push to GitHub, and open a Pull Request.
+
 ## Cleanup
 Benchmarking changes to application YAML files can be discarded after benchmarks complete.
 ```bash
@@ -132,3 +141,17 @@ __Why am I seeing high end-to-end latency spikes as outliers in my data?__
 
 Latency spikes may occur in display-driven benchmarking if the display goes to sleep. Please configure your
 display settings to prevent the display from going to sleep before running benchmarks.
+
+We have also infrequently observed latency spikes in cases where display drivers and CUDA Toolkit
+versions are not matched.
+
+__Benchmark applications are failing silently without writing log files.__
+
+Silent failures may indicate an issue with the underlying applications undergoing benchmarking.
+Try running the applications directly and verify execution is as expected:
+- `./run launch endoscopy_tool_tracking cpp`
+- `./run launch multiai_ultrasound cpp`
+
+In some cases you may need to clear your HoloHub build or data folders to address errors:
+- `./run clear_cache`
+- `rm -rf ./data`

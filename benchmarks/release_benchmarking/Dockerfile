@@ -64,6 +64,8 @@ RUN apt update && \
         texlive-fonts-recommended \
         texlive-fonts-extra \
         texlive-latex-extra \
-        lmodern
+        lmodern \
+        librsvg2-*
 RUN python3 -m pip install \
         jinja2-cli>=0.8.2
+RUN $(find / -name gdk-pixbuf-query-loaders) --update-cache
