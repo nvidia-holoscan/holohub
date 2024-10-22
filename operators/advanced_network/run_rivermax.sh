@@ -63,8 +63,8 @@ docker run \
 docker exec -it $CONTAINER_NAME bash
 
 # to build do
-# ./run build network_player --type debug --configure-args "-GNinja -DANO_MGR=rivermax"
+# ./run build adv_networking_bench --configure-args "-DANO_MGR=rivermax"
 # to run
-# ./build/applications/network_player/network_player applications/network_player/network_player_rmax.yaml
+# ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rmax_rx.yaml
 # to rebuild the image run
-# ./dev_container build --docker_file operators/advanced_network/DockerfileRivermax --img holohub:rivermax
+# ./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"

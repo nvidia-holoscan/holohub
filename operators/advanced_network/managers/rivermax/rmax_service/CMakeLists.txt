@@ -45,11 +45,13 @@ endif()
 
 set(RMAX_CUDA TRUE)
 
-if(NOT DEFINED RMAX_TEGRA)
-    message(STATUS "RMAX_TEGRA was not defined. Defaulting to FALSE")
+# Check if the environment variable RMAX_TEGRA is set
+if(NOT DEFINED ENV{RMAX_TEGRA})
+    message(STATUS "Environment variable RMAX_TEGRA was not defined. Defaulting to FALSE")
     set(RMAX_TEGRA FALSE)
 else()
-    if(RMAX_TEGRA STREQUAL "TRUE" OR RMAX_TEGRA STREQUAL "ON")
+    # Convert the environment variable to CMake boolean TRUE or FALSE
+    if("$ENV{RMAX_TEGRA}" STREQUAL "TRUE" OR "$ENV{RMAX_TEGRA}" STREQUAL "ON")
         set(RMAX_TEGRA TRUE)
     else()
         set(RMAX_TEGRA FALSE)

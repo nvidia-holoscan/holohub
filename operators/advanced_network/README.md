@@ -139,15 +139,18 @@ Rivermax manager supports receiving the same stream from multiple redundant path
 Each path is a combination of a source IP address, a destination IPaddress, a destination port, and a local IP address of the receiver device.
 Single path receive supports packet reordering within the NIC, multi-pathreceive also adds recovery of missing packets from other streams.
 
-To build and run the ANO Dockerfile with `Rivermax` support, you can follow these detailed steps:
-- Visit the  [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started) to download the Rivermax Release SDK.
-- Obtain a Rivermax developer license from the same page. This is necessary for using the SDK
-- Copy the downloaded SDK tar file (e.g., rivermax_ubuntu2204_1.60.1.tar.gz) into your current working directory.If you wish to use a different version of the SDK, you may need to edit the `operators/advanced_network/DockerfileRivermax` file to specify this version
-- Place the obtained Rivermax developer license file (rivermax.lic) into the `/opt/mellanox/rivermax/`` directory. You can change this path in the run_rivermax.sh script if necessary
-- Build the Docker Image
+To build and run the ANO Dockerfile with `Rivermax` support, follow these steps:
+
+- Visit the [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started) to download the Rivermax Release SDK.
+- Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.
+- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.60.1.tar.gz`) into your current working directory.
+  - You can adjust the path using the `RIVERMAX_SDK_ZIP_PATH` build argument if needed.
+  - Modify the version using the `RIVERMAX_VERSION` build argument if you're using a different SDK version.
+- Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory. You can change this path in the run_rivermax.sh script if necessary
+- Build the Docker image:
 
 ```
-./dev_container build --docker_file operators/advanced_network/DockerfileRivermax --img holohub:rivermax
+./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"
 ```
 
 - Launch Rivermax container
