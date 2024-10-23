@@ -1,15 +1,32 @@
 # Release Benchmarking Guide
 
-This tutorial provides a simplified interface to evaluate Holoscan SDK performance on two
-commonly visited HoloHub applications.
+This tutorial provides a reproducible workflow for developers to accurately measure the latency of curated HoloHub
+applications across various SDK releases and different deployment scenarios, from single-application
+to multi-model use cases.
+
+Developers can use the [Holoscan Flow Benchmarking](../holoscan_flow_benchmarking/) tools referenced within this guide to systematically
+analyze performance bottlenecks, optimize execution times, and fine-tune their own applications for
+real-time, low-latency processing.
+
+## Contents
+
+- [Background](#background)
+- [Previous Holoscan Release Benchmark Reports](#previous-release-reports)
+- Running the Tutorial
+  - [Running Benchmarks](#running-benchmarks-getting-started)
+  - [Summarizing Data](#summarizing-data)
+  - [Presenting Data](#presenting-data)
+- [Troubleshooting](#troubleshooting)
+- [Developer References](#developer-references)
 
 ## Background
 
 Holoscan SDK emphasizes low end-to-end latency in application pipelines. In addition to other
 benchmarks, we can use HoloHub applications to evaluate Holoscan SDK performance over releases.
 
-In this tutorial we provide a reusable workflow to evaluate end-to-end latency performance on
-the Endoscopy Tool Tracking and Multi-AI Ultrasound HoloHub projects. These projects are generally
+In this tutorial we provide a reproducible workflow to evaluate end-to-end latency performance on
+the [Endoscopy Tool Tracking](/applications/endoscopy_tool_tracking/) and
+[Multi-AI Ultrasound](/applications/multiai_ultrasound) HoloHub projects. These projects are generally
 maintained by the NVIDIA Holoscan team and demonstrate baseline Holoscan SDK inference pipelines
 with video replay and Holoviz rendering output.
 
@@ -26,7 +43,11 @@ Refer to related documents for more information:
 definitions and background
 - versioned releases are available for review in the [release subfolder](release)
 
-## Getting Started
+## Previous Holoscan Release Benchmark Reports
+
+- [Holoscan SDK v2.3.0](./release/v2.3.0/v2.3.0.md)
+
+## Running Benchmarks: Getting Started
 
 Data collection can be run in the HoloHub base container for both the Endoscopy Tool Tracking and the Multi-AI Ultrasound applications. We've provided a custom Dockerfile with tools to process collected data into a benchmark report.
 
@@ -155,3 +176,16 @@ Try running the applications directly and verify execution is as expected:
 In some cases you may need to clear your HoloHub build or data folders to address errors:
 - `./run clear_cache`
 - `rm -rf ./data`
+
+## Developer References
+
+While this tutorial is tailored to curated configurations of the Endoscopy Tool Tracking and
+Multi-AI Ultrasound HoloHub applications, developers utilize underlying
+Holoscan data frame flow tracking tools to similarly measure and analyze performance in custom
+Holoscan applications.
+
+- Refer to the [Holoscan Flow Benchmarking](../holoscan_flow_benchmarking/) project for general
+Holoscan performance profiling tools for both C++ and Python applications.
+- Refer to the [Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf) for a comprehensive overview of pipeline profiling tools.
+- Refer to [`run_benchmarks.sh`](./run_benchmarks.sh) for additional examples demonstrating
+performance data collection and reporting with Holoscan Flow Tracking scripts.
