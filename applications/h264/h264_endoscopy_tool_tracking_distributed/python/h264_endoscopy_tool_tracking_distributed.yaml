@@ -19,7 +19,7 @@ extensions:
   - libgxf_videodecoderio.so
   - libgxf_videoencoder.so
   - libgxf_videoencoderio.so
-  - gxf_extensions/lstm_tensor_rt_inference/libgxf_lstm_tensor_rt_inference.so
+  - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
 bitstream_reader:
   outbuf_storage_type: 0
