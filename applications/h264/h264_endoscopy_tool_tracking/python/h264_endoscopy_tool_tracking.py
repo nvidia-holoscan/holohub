@@ -247,7 +247,6 @@ class EndoscopyApp(Application):
             self,
             name="tool_tracking_postprocessor",
             device_allocator=UnboundedAllocator(self, "device_allocator"),
-            host_allocator=UnboundedAllocator(self, "host_allocator"),
             **self.kwargs("tool_tracking_postprocessor"),
         )
 
@@ -287,11 +286,7 @@ class EndoscopyApp(Application):
         )
         self.add_flow(rgb_float_format_converter, lstm_inferer)
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
-        self.add_flow(
-            tool_tracking_postprocessor,
-            visualizer,
-            {("out_coords", "receivers"), ("out_mask", "receivers")},
-        )
+        self.add_flow(tool_tracking_postprocessor, visualizer, {("out", "receivers")})
 
         if record_output:
             encoder_async_condition = AsynchronousCondition(self, "encoder_async_condition")

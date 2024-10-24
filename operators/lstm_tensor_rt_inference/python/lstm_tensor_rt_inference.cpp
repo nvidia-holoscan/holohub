@@ -25,11 +25,11 @@
 #include <memory>
 #include <string>
 
-#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
+#include "../../operator_util.hpp"
 #include "holoscan/core/resources/gxf/cuda_stream_pool.hpp"
 
 using std::string_literals::operator""s;
@@ -63,11 +63,8 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
       const std::vector<std::string>& output_tensor_names,
       const std::vector<std::string>& input_binding_names,
       const std::vector<std::string>& output_binding_names, const std::string& model_file_path,
-      const std::string& engine_cache_dir,
-      // int64_t dla_core,
-      std::shared_ptr<holoscan::Allocator> pool,
-      std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool,
-      // std::shared_ptr<holoscan::Resource> clock,
+      const std::string& engine_cache_dir, std::shared_ptr<holoscan::Allocator> pool,
+      std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool, std::optional<int32_t> dla_core,
       const std::string& plugins_lib_namespace = "",
       const std::vector<std::string>& input_state_tensor_names = std::vector<std::string>{},
       const std::vector<std::string>& output_state_tensor_names = std::vector<std::string>{},
@@ -80,10 +77,8 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
                                         Arg{"output_binding_names", output_binding_names},
                                         Arg{"model_file_path", model_file_path},
                                         Arg{"engine_cache_dir", engine_cache_dir},
-                                        // Arg{"dla_core", dla_core},
                                         Arg{"pool", pool},
                                         Arg{"cuda_stream_pool", cuda_stream_pool},
-                                        // Arg{"clock", clock},
                                         Arg{"plugins_lib_namespace", plugins_lib_namespace},
                                         Arg{"input_state_tensor_names", input_state_tensor_names},
                                         Arg{"output_state_tensor_names", output_state_tensor_names},
@@ -93,6 +88,7 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
                                         Arg{"relaxed_dimension_check", relaxed_dimension_check},
                                         Arg{"max_workspace_size", max_workspace_size},
                                         Arg{"max_batch_size", max_batch_size}}) {
+    if (dla_core.has_value()) { add_arg(Arg{"dla_core", dla_core.value()}); }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -131,10 +127,9 @@ PYBIND11_MODULE(_lstm_tensor_rt_inference, m) {
                     const std::vector<std::string>&,
                     const std::string&,
                     const std::string&,
-                    // int64_t,  // dla_core
                     std::shared_ptr<holoscan::Allocator>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
-                    // std::shared_ptr<holoscan::Resource>,  // clock
+                    std::optional<int32_t>,
                     const std::string&,
                     const std::vector<std::string>&,
                     const std::vector<std::string>&,
@@ -152,10 +147,9 @@ PYBIND11_MODULE(_lstm_tensor_rt_inference, m) {
            "output_binding_names"_a,
            "model_file_path"_a,
            "engine_cache_dir"_a,
-           // "dla_core"_a,
            "pool"_a,
            "cuda_stream_pool"_a,
-           // "clock"_a,
+           "dla_core"_a = py::none(),
            "plugins_lib_namespace"_a = "",
            "input_state_tensor_names"_a = std::vector<std::string>{},
            "output_state_tensor_names"_a = std::vector<std::string>{},
