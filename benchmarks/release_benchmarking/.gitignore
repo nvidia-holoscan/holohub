@@ -1,0 +1,6 @@
+# Ignore data files in git history
+output/
+processed/
+release/**/*.csv
+tmp/
+*.tar.gz

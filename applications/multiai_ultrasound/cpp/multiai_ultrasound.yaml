@@ -142,6 +142,7 @@ holoviz:
   width: 320
   height: 320
   use_exclusive_display: false
+  headless: false
 
 recorder_format_converter:
   in_dtype: "rgba8888"
