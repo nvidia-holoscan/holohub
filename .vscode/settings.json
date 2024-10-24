@@ -3,6 +3,7 @@
         100
     ],
     "files.associations": {
+        "*.in": "cmake",
         "cstdlib": "cpp",
         "iostream": "cpp",
         "chrono": "cpp",
@@ -121,7 +122,9 @@
         "ranges": "cpp",
         "barrier": "cpp",
         "latch": "cpp",
-        "syncstream": "cpp"
+        "syncstream": "cpp",
+        "annotated_ptr": "cpp",
+        "stream_ref": "cpp"
     },
     "C_Cpp.clang_format_fallbackStyle": "Google",
     "C_Cpp.formatting": "clangFormat",
