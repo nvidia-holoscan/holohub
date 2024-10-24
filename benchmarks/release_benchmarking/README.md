@@ -39,7 +39,7 @@ We plan to release HoloHub benchmarks in the [release subfolder](release) follow
 releases. You can follow the tutorial below to similarly evaluate performance on your own machine.
 
 Refer to related documents for more information:
-- the [results report template file](template/results.md.tmpl) provides additional background on
+- the [results report template file](template/results.md.tmpl) provides additional information on
 definitions and background
 - versioned releases are available for review in the [release subfolder](release)
 
@@ -164,7 +164,7 @@ Latency spikes may occur in display-driven benchmarking if the display goes to s
 display settings to prevent the display from going to sleep before running benchmarks.
 
 We have also infrequently observed latency spikes in cases where display drivers and CUDA Toolkit
-versions are not matched.
+versions are not matched, and due to suboptimal GPU task preemption policies. We are still investigating these issues.
 
 __Benchmark applications are failing silently without writing log files.__
 
@@ -186,6 +186,6 @@ Holoscan applications.
 
 - Refer to the [Holoscan Flow Benchmarking](../holoscan_flow_benchmarking/) project for general
 Holoscan performance profiling tools for both C++ and Python applications.
-- Refer to the [Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf) for a comprehensive overview of pipeline profiling tools.
+- Refer to the [Holoscan Flow Benchmarking whitepaper](https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf) and [tutorial](../holoscan_flow_benchmarking/flow_benchmarking_tutorial.md) for a comprehensive overview of pipeline profiling tools.
 - Refer to [`run_benchmarks.sh`](./run_benchmarks.sh) for additional examples demonstrating
 performance data collection and reporting with Holoscan Flow Tracking scripts.
