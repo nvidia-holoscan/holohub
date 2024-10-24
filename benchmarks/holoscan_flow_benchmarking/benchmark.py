@@ -279,8 +279,12 @@ assignment in Holoscan's Inference operator.",
     print("\nEvaluation completed.")
     print("Log file directory: ", os.path.abspath(log_directory))
     print("All the data flow tracking log files are:", ", ".join(log_files))
+    for missing_file in (file for file in log_files if not os.path.exists(file)):
+        print(f"Warning: Log file {missing_file} is missing.")
     if args.monitor_gpu:
         print("All the GPU utilization log files are:", ", ".join(gpu_utilization_log_files))
+        for missing_file in (file for file in gpu_utilization_log_files):
+            print(f"Warning: Utilization log file {missing_file} is missing.")
 
 
 if __name__ == "__main__":
