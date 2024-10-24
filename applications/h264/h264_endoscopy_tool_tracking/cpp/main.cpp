@@ -181,8 +181,7 @@ class App : public holoscan::Application {
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
         from_config("tool_tracking_postprocessor"),
-        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"),
-        Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
+        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"));
 
     const bool record_output = from_config("record_output").as<bool>();
 
@@ -206,9 +205,7 @@ class App : public holoscan::Application {
         decoder_output_format_converter, rgb_float_format_converter, {{"tensor", "source_video"}});
     add_flow(rgb_float_format_converter, lstm_inferer);
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
-    add_flow(tool_tracking_postprocessor,
-             visualizer,
-             {{"out_coords", "receivers"}, {"out_mask", "receivers"}});
+    add_flow(tool_tracking_postprocessor, visualizer, {{"out", "receivers"}});
 
     if (record_output) {
       auto encoder_async_condition =

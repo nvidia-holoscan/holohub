@@ -17,6 +17,7 @@
 
 #include <getopt.h>
 
+#include <holoscan/holoscan.hpp>
 #include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -24,7 +25,6 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
-#include "holoscan/holoscan.hpp"
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
 #endif
@@ -37,6 +37,11 @@
 #ifdef YUAN_QCAP
 #include <qcap_source.hpp>
 #endif
+
+#include <holoscan/version_config.hpp>
+
+#define HOLOSCAN_VERSION \
+  (HOLOSCAN_VERSION_MAJOR * 10000 + HOLOSCAN_VERSION_MINOR * 100 + HOLOSCAN_VERSION_PATCH)
 
 class App : public holoscan::Application {
  public:
@@ -111,6 +116,10 @@ class App : public holoscan::Application {
       height = 480;
       source = make_operator<ops::VideoStreamReplayerOp>(
           "replayer", from_config("replayer"), Arg("directory", datapath));
+#if HOLOSCAN_VERSION >= 20600
+      // the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
+      source->add_arg(Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")));
+#endif
       source_block_size = width * height * 3 * 4;
       source_num_blocks = 2;
     }
@@ -151,16 +160,19 @@ class App : public holoscan::Application {
             "pool", 1, lstm_inferer_block_size, lstm_inferer_num_blocks),
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    const uint64_t tool_tracking_postprocessor_block_size = 107 * 60 * 7 * 4;
-    const uint64_t tool_tracking_postprocessor_num_blocks = 2;
+    // the tool tracking post process outputs
+    // - a RGBA float32 color mask
+    // - coordinates with x,y and size in float32
+    const uint64_t tool_tracking_postprocessor_block_size =
+        std::max(107 * 60 * 7 * 4 * sizeof(float), 7 * 3 * sizeof(float));
+    const uint64_t tool_tracking_postprocessor_num_blocks = 2 * 2;
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
         Arg("device_allocator") =
             make_resource<BlockMemoryPool>("device_allocator",
                                            1,
                                            tool_tracking_postprocessor_block_size,
-                                           tool_tracking_postprocessor_num_blocks),
-        Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
+                                           tool_tracking_postprocessor_num_blocks));
 
     if (this->visualizer_name == "holoviz") {
       std::shared_ptr<BlockMemoryPool> visualizer_allocator;
@@ -188,17 +200,7 @@ class App : public holoscan::Application {
 
     // Flow definition
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
-
-    if (this->visualizer_name == "holoviz") {
-      add_flow(tool_tracking_postprocessor,
-               visualizer_operator,
-               {{"out_coords", input_annotations_signal}, {"out_mask", input_annotations_signal}});
-    } else {
-      // device tensor on the out_mask port is not used by VtkRendererOp
-      add_flow(tool_tracking_postprocessor,
-               visualizer_operator,
-               {{"out_coords", input_annotations_signal}});
-    }
+    add_flow(tool_tracking_postprocessor, visualizer_operator, {{"out", input_annotations_signal}});
 
     std::string output_signal = "output";  // replayer output signal name
     if (source_ == "deltacast") {

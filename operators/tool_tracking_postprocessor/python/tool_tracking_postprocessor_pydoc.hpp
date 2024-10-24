@@ -39,11 +39,8 @@ Operator performing post-processing for the endoscopy tool tracking demo.
 
 **==Named Outputs==**
 
-    out_coords : nvidia::gxf::Tensor
-        Coordinates tensor, stored on the host (CPU).
-
-    out_mask : nvidia::gxf::Tensor
-        Binary mask tensor, stored on device (GPU).
+    out : nvidia::gxf::Tensor
+        Binary mask and coordinates tensor, stored on the device (GPU).
 
 Parameters
 ----------
@@ -51,8 +48,6 @@ fragment : Fragment
     The fragment that the operator belongs to.
 device_allocator : ``holoscan.resources.Allocator``
     Output allocator used on the device side.
-host_allocator : ``holoscan.resources.Allocator``
-    Output allocator used on the host side.
 min_prob : float, optional
     Minimum probability (in range [0, 1]). Default value is 0.5.
 overlay_img_colors : sequence of sequence of float, optional

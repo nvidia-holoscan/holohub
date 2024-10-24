@@ -73,12 +73,11 @@ class PyToolTrackingPostprocessorOp : public ToolTrackingPostprocessorOp {
   // Define a constructor that fully initializes the object.
   PyToolTrackingPostprocessorOp(
       Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
-      std::shared_ptr<Allocator> host_allocator, float min_prob = 0.5f,
+      float min_prob = 0.5f,
       std::vector<std::vector<float>> overlay_img_colors = VIZ_TOOL_DEFAULT_COLORS,
       std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
       const std::string& name = "tool_tracking_postprocessor")
       : ToolTrackingPostprocessorOp(ArgList{Arg{"device_allocator", device_allocator},
-                                            Arg{"host_allocator", host_allocator},
                                             Arg{"min_prob", min_prob},
                                             Arg{"overlay_img_colors", overlay_img_colors}}) {
     if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
@@ -116,14 +115,12 @@ PYBIND11_MODULE(_tool_tracking_postprocessor, m) {
       .def(py::init<Fragment*,
                     const py::args&,
                     std::shared_ptr<Allocator>,
-                    std::shared_ptr<Allocator>,
                     float,
                     std::vector<std::vector<float>>,
                     std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
            "fragment"_a,
            "device_allocator"_a,
-           "host_allocator"_a,
            "min_prob"_a = 0.5f,
            "overlay_img_colors"_a = VIZ_TOOL_DEFAULT_COLORS,
            "cuda_stream_pool"_a = py::none(),
