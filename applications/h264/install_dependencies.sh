@@ -38,12 +38,12 @@ gxf_mm_extensions=(["decoderio"]="45081ccb-982e-4946-96f9-0d684f2cfbd0" \
                    ["encoder"]="ea5c44e4-15db-4448-a3a6-f32004303338")
 mkdir -p gxf-mm
 mkdir -p ${HOLOSCAN_LIBS_DIR}
-CUDA_VERSION=12.2
+CUDA_VERSION=12.6
 for extension in "${!gxf_mm_extensions[@]}"; do
   if [[ $extension == "decoderio" ]] || [[ $extension == "encoderio" ]]; then
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.2.0-linux-${ARCH}-ubuntu_22.04/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.3.0-linux-${ARCH}-ubuntu_22.04/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   else
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.2.0-linux-${ARCH}-ubuntu_22.04-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.3.0-linux-${ARCH}-ubuntu_22.04-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   fi
   extension_tar=${gxf_mm_extensions[$extension]}.tar.gz
   wget --content-disposition ${extension_url} -O ${extension_tar}
