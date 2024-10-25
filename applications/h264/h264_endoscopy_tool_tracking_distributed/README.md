@@ -35,7 +35,7 @@ The data is automatically downloaded when building the application.
 # Start the application with the visualization fragment
 ./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
 ```
---base_img gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/dev-x86_64:main
+
 ### Python
 
 ```bash
