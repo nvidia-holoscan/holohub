@@ -67,10 +67,7 @@ class OpenAIOperator(Operator):
         spec.input("in")
 
     def compute(self, op_input, op_output, context):
-        input = op_input.receive("in")
-
-        message = input[0].copy()
-        message.append(input[1])
+        message = op_input.receive("in")
 
         # Reference: Cosine Similarity https://docs.nvidia.com/nim/nvclip/latest/getting-started.html#cosine-similarity
         # Calculate cosine similarity between images and text
@@ -93,7 +90,7 @@ class OpenAIOperator(Operator):
                 f"Image {i+1}": round(float(d), 2) * 100 for i, d in enumerate(probabilities)
             }
 
-            print(f"\nPrompt: {input[1]}")
+            print(f"\nPrompt: {message[-1]}")
             print("Output:")
             for prob in probabilities:
                 print(f"{prob}: {probabilities[prob]}%")
@@ -114,9 +111,8 @@ class OpenAIOperator(Operator):
 
 
 class ExamplesOp(Operator):
-    def __init__(self, fragment, *args, spinner, example, **kwargs):
+    def __init__(self, fragment, *args, spinner, **kwargs):
         self.spinner = spinner
-        self.example = example
 
         # Need to call the base class constructor last
         super().__init__(fragment, *args, **kwargs)
@@ -126,28 +122,34 @@ class ExamplesOp(Operator):
 
     def compute(self, op_input, op_output, context):
         user_images = []
-        user_text = ""
-        use_example = False
-        while True:
-            print("\nEnter prompt or hit Enter to use default example: ", end="")
-            user_input = sys.stdin.readline().strip()
-            if user_input != "":
-                user_text = user_input
-            else:
-                use_example = True
-                user_images = self.example["images"]
-                user_text = self.example["text"]
-            break
+        user_prompt = ""
 
-        while True and not use_example:
-            print("\nEnter URL to an image or hit Enter to send the request: ", end="")
+        while True:
+            if len(user_images) == 0:
+                print("\nEnter a URL to an image: ", end="")
+            else:
+                print("\nEnter a URL to another image or hit ENTER to continue: ", end="")
+
             user_input = sys.stdin.readline().strip()
             if user_input == "":
                 break
-            user_images.append(self.pre_process_input(user_input))
+
+            image_data = self.pre_process_input(user_input)
+            if image_data:
+                user_images.append(image_data)
+
+        while True:
+            print("\nEnter a prompt: ", end="")
+            user_input = sys.stdin.readline().strip()
+            if user_input != "":
+                user_prompt = user_input
+                break
 
         self.spinner.start()
-        op_output.emit((user_images, user_text), "out")
+
+        message = user_images + [user_prompt]
+
+        op_output.emit(message, "out")
 
     def pre_process_input(self, data):
         prepared_request = PreparedRequest()
@@ -155,8 +157,9 @@ class ExamplesOp(Operator):
             prepared_request.prepare_url(data, None)
             print("Downloading image...")
             return base64.b64encode(requests.get(prepared_request.url).content).decode("utf-8")
-        except Exception:
-            return data
+        except Exception as e:
+            logger.error("Error downloading image: %s", str(e))
+            return None
 
 
 class NVClipNIMApp(Application):
@@ -173,7 +176,6 @@ class NVClipNIMApp(Application):
             self,
             name="input",
             spinner=spinner,
-            example=self.kwargs("example"),
         )
         chat_op = OpenAIOperator(
             self,
