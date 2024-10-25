@@ -16,7 +16,7 @@
 set -e
 
 GIT_ROOT=$(readlink -f ./$(git rev-parse --show-cdup))
-APP_PATH="$GIT_ROOT/install/fhir"
+APP_PATH="$GIT_ROOT/install/bin/fhir/python"
 APP_CONFIG="app.yaml"
 APP_NAME="fhir"
 IMAGE_TAG="holohub-fhir"

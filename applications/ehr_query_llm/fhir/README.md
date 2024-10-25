@@ -66,7 +66,7 @@ Error processing line 1 of /usr/local/lib/python3.10/dist-packages/holoscan-2.4.
 
 This is a step wise way to run the application in a dev container.
 ```bash
-$ ./dev_container build --docker_file applications/ehr_query_llm/domain_specific/fhir/Dockerfile --img holoscan:fhir --verbose --no-cache
+./dev_container build --docker_file applications/ehr_query_llm/fhir/Dockerfile --img holoscan:fhir --verbose --no-cache
 ```
 
 Optionally check the newly built image
@@ -78,7 +78,7 @@ holoscan           fhir              508140b8d446   3 minutes ago    14.1GB
 
 Launch the container
 ```bash
-$ ./dev_container launch --img holoscan:fhir --as_root
+./dev_container launch --img holoscan:fhir --as_root
 ```
 
 Now in the container, build and run the application
@@ -102,9 +102,9 @@ For a Python application, building and launching the dev container can be comple
 First create and activate a Python virtual environment, followed with installing the dependencies
 
 ```bash
-python3 -m venv testenv
-source testenv/bin/activate
-pip install -r applications/ehr_query_llm/domain_specific/fhir/requirements.txt
+python3 -m venv .testenv
+source .testenv/bin/activate
+pip install -r applications/ehr_query_llm/fhir/requirements.txt
 ```
 
 Build and install the application with `dev_container`
@@ -114,23 +114,23 @@ Build and install the application with `dev_container`
 
 Now, run the application which is _installed_ in the `install` folder, with server URLs and credential of your own
 ```bash
-python install/fhir --fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>
+python install/bin/fhir/python/ --fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>
 ```
 
 ### Test the Running Application
 
-Once the FHIR application has been started with one of the ways, a test application can be used to request and receive FHIR resources, namely `applications/ehr_query_llm/domain_specific/fhir/test_fhir_client.py`.
+Once the FHIR application has been started with one of the ways, a test application can be used to request and receive FHIR resources, namely `applications/ehr_query_llm/fhir/test_fhir_client.py`.
 
 The test application contains hard coded patient name, patient FHIR resource ID, etc., corresponding to a specific test dataset, though can be easily modified for another dataset.
 
 It is strongly recommended to run this test application in a Python virtual environment, which can be the same as in running the FHIR application. The following describes running it in its own environment.
 
 ```bash
-python3 -m venv testenv
-source testenv/bin/activate
+echo "Assuming venv already created with `python3 -m venv .testenv`"
+source .testenv/bin/activate
 pip install -r applications/ehr_query_llm/domain_specific/fhir/requirements.txt
 export PYTHONPATH=${PWD}
-python applications/ehr_query_llm/domain_specific/fhir/test_fhir_client.py
+python applications/ehr_query_llm/fhir/test_fhir_client.py
 ```
 
 From the menu, pick one of the choices for the resources of interest.
@@ -141,7 +141,7 @@ With Holoscan CLI, an applications built with Holoscan SDK can be packaged into 
 
 This example application provides all the necessary contents for HAP packaging. It is required to perform the packaging in a Python virtual environment, with the application's dependencies installed, before running the following script to reveal specific packaging commands.
 ```bash
-applications/ehr_query_llm/domain_specific/fhir/packageHAP.sh
+applications/ehr_query_llm/fhir/packageHAP.sh
 ```
 
 Once the HAP is created, it can then be saved and restored on the target deployment host, and run with `docker run` command, shown below with to be substituted user specific parameters.

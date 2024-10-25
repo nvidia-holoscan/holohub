@@ -64,5 +64,5 @@ RUN apt update \
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
     fi
-COPY applications/ehr_query_llm/domain_specific/fhir/requirements.txt /tmp/requirements.txt
+COPY applications/ehr_query_llm/fhir/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt

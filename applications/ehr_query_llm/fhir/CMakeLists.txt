@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(ehr_query_llm/domain_specific/fhir NONE)
+project(fhir LANGUAGES NONE)
 
 # Install application and dependencies into the install/ directory for packaging
 install(
@@ -27,10 +27,10 @@ install(
         requirements.txt
         run_cmd_template.sh
         test_fhir_client.py
-  DESTINATION fhir
+  DESTINATION bin/fhir/python
   COMPONENT "holohub-apps"
 )
 
 install(
   DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/ehr_query_llm
-  DESTINATION fhir/operators)
+  DESTINATION bin/fhir/python/operators)
