@@ -523,6 +523,14 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       } catch (const std::exception& e) { input_spec.debug_ = 0; }
 
       try {
+        input_spec.log_level_ =
+            holoscan::ops::AnoLogLevel::from_string(node["log_level"].as<std::string>(
+                holoscan::ops::AnoLogLevel::to_string(holoscan::ops::AnoLogLevel::WARN)));
+      } catch (const std::exception& e) {
+        input_spec.log_level_ = holoscan::ops::AnoLogLevel::WARN;
+      }
+
+      try {
         const auto& mrs = node["memory_regions"];
         for (const auto& mr : mrs) {
           holoscan::ops::MemoryRegion tmr;

@@ -19,6 +19,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "adv_network_mgr.h"
+#include "rmax_ano_data_types.h"
 #include "rmax_ipo_receiver_service.h"
 
 namespace holoscan::ops {
@@ -477,10 +478,6 @@ class TxConfigManager : public ITxConfigManager {
  */
 class RmaxConfigContainer {
  public:
-  static constexpr uint16_t RMAX_DEFAULT_LOG_LEVEL = 3;
-  static constexpr uint16_t RMAX_MIN_LOG_LEVEL = 1;
-  static constexpr uint16_t RMAX_MAX_LOG_LEVEL = 6;
-
   enum class ConfigType { RX, TX };
 
   /**
@@ -516,7 +513,7 @@ class RmaxConfigContainer {
    *
    * @return The current log level.
    */
-  uint16_t get_rmax_log_level() const { return rmax_log_level_; }
+  RmaxLogLevel::Level get_rmax_log_level() const { return rmax_log_level_; }
 
  private:
   /**
@@ -558,8 +555,20 @@ class RmaxConfigContainer {
    */
   int parse_tx_queues(uint16_t port_id, const std::vector<TxQueueConfig>& queues);
 
+  /**
+   * @brief Sets the Rmax log level based on the provided Ano log level.
+   *
+   * This function converts the provided Ano log level to the corresponding Rmax log level
+   * and sets it as the current log level for Rmax.
+   *
+   * @param level The Ano log level to be converted and set.
+   */
+  void set_rmax_log_level(AnoLogLevel::Level level) {
+    rmax_log_level_ = RmaxLogLevel::from_ano_log_level(level);
+  }
+
  private:
-  uint16_t rmax_log_level_ = RMAX_DEFAULT_LOG_LEVEL;
+  RmaxLogLevel::Level rmax_log_level_ = RmaxLogLevel::OFF;
   std::unordered_map<ConfigType, std::shared_ptr<IConfigManager>> config_managers_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   AdvNetConfigYaml cfg_;

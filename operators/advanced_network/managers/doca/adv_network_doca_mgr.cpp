@@ -83,6 +83,27 @@ struct RxDocaWorkerParams {
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
+const std::unordered_map<AnoLogLevel::Level, doca_log_level>
+    DocaLogLevel::ano_to_doca_log_level_map = {
+        {AnoLogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
+        {AnoLogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
+        {AnoLogLevel::INFO, DOCA_LOG_LEVEL_INFO},
+        {AnoLogLevel::WARN, DOCA_LOG_LEVEL_WARNING},
+        {AnoLogLevel::ERROR, DOCA_LOG_LEVEL_ERROR},
+        {AnoLogLevel::CRITICAL, DOCA_LOG_LEVEL_CRIT},
+        {AnoLogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
+};
+
+const std::unordered_map<doca_log_level, std::string> DocaLogLevel::level_to_string_map = {
+    {DOCA_LOG_LEVEL_TRACE, "trace"},
+    {DOCA_LOG_LEVEL_DEBUG, "debug"},
+    {DOCA_LOG_LEVEL_INFO, "info"},
+    {DOCA_LOG_LEVEL_WARNING, "warn"},
+    {DOCA_LOG_LEVEL_ERROR, "error"},
+    {DOCA_LOG_LEVEL_CRIT, "critical"},
+    {DOCA_LOG_LEVEL_DISABLE, "disable"},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief Init
@@ -218,17 +239,18 @@ doca_error_t DocaMgr::init_doca_devices() {
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
   }
 
-#if 0
-    struct doca_log_backend *stdout_logger = nullptr;
+  auto log_level = DocaLogLevel::from_ano_log_level(cfg_.log_level_);
+  if (log_level != DOCA_LOG_LEVEL_DISABLE) {
+    struct doca_log_backend* stdout_logger = nullptr;
+
+    HOLOSCAN_LOG_INFO("Setting DOCA Logging level to {}", DocaLogLevel::to_string(log_level));
 
     result = doca_log_backend_create_with_file_sdk(stdout, &stdout_logger);
-    if (result != DOCA_SUCCESS)
-            return result;
+    if (result != DOCA_SUCCESS) return result;
 
-    result = doca_log_backend_set_sdk_level(stdout_logger, DOCA_LOG_LEVEL_TRACE);
-    if (result != DOCA_SUCCESS)
-            return result;
-#endif
+    result = doca_log_backend_set_sdk_level(stdout_logger, log_level);
+    if (result != DOCA_SUCCESS) return result;
+  }
 
   return DOCA_SUCCESS;
 }

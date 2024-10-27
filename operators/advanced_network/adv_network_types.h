@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdexcept>
 #include <unordered_map>
+#include <algorithm>
+#include <cctype>
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/udp.h>
@@ -209,6 +211,46 @@ inline std::string manager_type_to_string(AnoMgrType type) {
       return "unknown";
   }
 }
+class AnoLogLevel {
+ public:
+  enum Level {
+    TRACE = 0,
+    DEBUG = 1,
+    INFO = 2,
+    WARN = 3,
+    ERROR = 4,
+    CRITICAL = 5,
+    OFF = 6,
+  };
+
+  static std::string to_string(Level level) {
+    auto it = level_to_string_map.find(level);
+    if (it != level_to_string_map.end()) { return it->second; }
+    return "warn";
+  }
+
+  static Level from_string(const std::string& str) {
+    std::string lower_str = str;
+    std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), [](unsigned char c) {
+      return std::tolower(c);
+    });
+
+    auto it = string_to_level_map.find(lower_str);
+    if (it != string_to_level_map.end()) { return it->second; }
+    throw std::logic_error(
+        "Unrecognized log level, available options trace/debug/info/warn/error/critical/off");
+  }
+
+ private:
+  static const std::unordered_map<Level, std::string> level_to_string_map;
+  static const std::unordered_map<std::string, Level> string_to_level_map;
+};
+
+class ManagerLogLevelCommand {
+ public:
+  virtual ~ManagerLogLevelCommand() = default;
+  virtual std::vector<std::string> get_cmd_strings() const = 0;
+};
 
 /**
  * @brief Parameters to configure advanced network operators
@@ -332,6 +374,7 @@ struct AdvNetConfigYaml {
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
   uint16_t debug_;
+  AnoLogLevel::Level log_level_;
 };
 
 template <typename Config>

@@ -58,6 +58,61 @@ struct DPDKQueueConfig {
   std::vector<union rte_eth_rxseg> rx_useg;
 };
 
+class DpdkLogLevel {
+ public:
+  enum Level {
+    OFF = 0,
+    EMERGENCY = 1,
+    ALERT = 2,
+    CRITICAL = 3,
+    ERROR = 4,
+    WARN = 5,
+    NOTICE = 6,
+    INFO = 7,
+    DEBUG = 8,
+  };
+
+  static std::string to_description_string(Level level) {
+    auto it = level_to_cmd_map.find(level);
+    if (it != level_to_cmd_map.end()) { return std::get<0>(it->second); }
+    throw std::logic_error(
+        "Unrecognized log level, available options "
+        "debug/info/notice/warn/error/critical/alert/emergency/off");
+  }
+
+  static std::string to_cmd_string(Level level) {
+    auto it = level_to_cmd_map.find(level);
+    if (it != level_to_cmd_map.end()) { return std::get<1>(it->second); }
+    throw std::logic_error(
+        "Unrecognized log level, available options "
+        "debug/info/notice/warn/error/critical/alert/emergency/off");
+  }
+
+  static Level from_ano_log_level(AnoLogLevel::Level ano_level) {
+    auto it = ano_to_dpdk_log_level_map.find(ano_level);
+    if (it != ano_to_dpdk_log_level_map.end()) { return it->second; }
+    return OFF;
+  }
+
+ private:
+  static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
+  static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_dpdk_log_level_map;
+};
+
+class DpdkLogLevelCommand : public ManagerLogLevelCommand {
+ public:
+  explicit DpdkLogLevelCommand(AnoLogLevel::Level ano_level)
+      : level_(DpdkLogLevel::from_ano_log_level(ano_level)) {}
+
+  std::vector<std::string> get_cmd_strings() const override {
+    return {"--log-level=" + DpdkLogLevel::to_cmd_string(DpdkLogLevel::Level::OFF),
+            "--log-level=pmd.net.mlx5:" + DpdkLogLevel::to_cmd_string(level_)};
+  }
+
+ private:
+  DpdkLogLevel::Level level_;
+};
+
 class DpdkMgr : public ANOMgr {
  public:
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");

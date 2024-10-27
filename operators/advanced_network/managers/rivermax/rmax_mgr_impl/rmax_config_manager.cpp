@@ -146,9 +146,8 @@ bool RmaxConfigContainer::parse_configuration(const AdvNetConfigYaml& cfg) {
     rmax_tx_config_found += parse_tx_queues(intf.port_id_, intf.tx_.queues_);
   }
 
-  if (cfg.debug_ >= RMAX_MIN_LOG_LEVEL && cfg.debug_ <= RMAX_MAX_LOG_LEVEL) {
-    rmax_log_level_ = cfg.debug_;
-  }
+  set_rmax_log_level(cfg.log_level_);
+
   if (rmax_rx_config_found == 0 && rmax_tx_config_found == 0) {
     HOLOSCAN_LOG_ERROR("Failed to parse Rivermax ANO settings. No valid settings found");
     return false;

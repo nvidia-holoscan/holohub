@@ -65,6 +65,28 @@ struct UDPPkt {
   uint8_t payload[];
 } __attribute__((packed));
 
+const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::string>>
+    DpdkLogLevel::level_to_cmd_map = {{OFF, {"Disabled", "9"}},
+                                      {EMERGENCY, {"Emergency", "emergency"}},
+                                      {ALERT, {"Alert", "alert"}},
+                                      {CRITICAL, {"Critical", "critical"}},
+                                      {ERROR, {"Error", "error"}},
+                                      {WARN, {"Warning", "warning"}},
+                                      {NOTICE, {"Notice", "notice"}},
+                                      {INFO, {"Info", "info"}},
+                                      {DEBUG, {"Debug", "debug"}}};
+
+const std::unordered_map<AnoLogLevel::Level, DpdkLogLevel::Level>
+    DpdkLogLevel::ano_to_dpdk_log_level_map = {
+        {AnoLogLevel::TRACE, DEBUG},
+        {AnoLogLevel::DEBUG, DEBUG},
+        {AnoLogLevel::INFO, INFO},
+        {AnoLogLevel::WARN, WARN},
+        {AnoLogLevel::ERROR, ERROR},
+        {AnoLogLevel::CRITICAL, CRITICAL},
+        {AnoLogLevel::OFF, OFF},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief Init
@@ -292,10 +314,12 @@ void DpdkMgr::initialize() {
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
 
-  if (cfg_.debug_) {
-    strncpy(_argv[arg++], "--log-level=99", max_arg_size - 1);
-    strncpy(_argv[arg++], "--log-level=pmd.net.mlx5:8", max_arg_size - 1);
-  }
+  DpdkLogLevelCommand cmd(cfg_.log_level_);
+  HOLOSCAN_LOG_INFO(
+      "Setting DPDK log level to: {}",
+      DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
+
+  for (auto& c : cmd.get_cmd_strings()) { strncpy(_argv[arg++], c.c_str(), max_arg_size - 1); }
 
   for (const auto& name : ifs) {
     strncpy(_argv[arg++], "-a", max_arg_size - 1);

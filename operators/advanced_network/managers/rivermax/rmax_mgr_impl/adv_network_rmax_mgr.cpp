@@ -45,6 +45,28 @@ namespace holoscan::ops {
 
 using namespace ral::services::rmax_ipo_receiver;
 
+const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::string>>
+    RmaxLogLevel::level_to_cmd_map = {
+        {TRACE, {"Trace", "0"}},
+        {DEBUG, {"Debug", "1"}},
+        {INFO, {"Info", "2"}},
+        {WARN, {"Warning", "3"}},
+        {ERROR, {"Error", "4"}},
+        {CRITICAL, {"Critical", "5"}},
+        {OFF, {"Disabled", "6"}},
+};
+
+const std::unordered_map<AnoLogLevel::Level, RmaxLogLevel::Level>
+    RmaxLogLevel::ano_to_rmax_log_level_map = {
+        {AnoLogLevel::TRACE, TRACE},
+        {AnoLogLevel::DEBUG, DEBUG},
+        {AnoLogLevel::INFO, INFO},
+        {AnoLogLevel::WARN, WARN},
+        {AnoLogLevel::ERROR, ERROR},
+        {AnoLogLevel::CRITICAL, CRITICAL},
+        {AnoLogLevel::OFF, OFF},
+};
+
 /**
  * @brief Implementation class for RmaxMgr.
  *
@@ -168,9 +190,12 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
     HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
     return;
   }
-
-  rivermax_setparam(
-      "RIVERMAX_LOG_LEVEL", std::to_string(config_manager.get_rmax_log_level()), true);
+  HOLOSCAN_LOG_INFO(
+      "Setting Rivermax Log Level to: {}",
+      holoscan::ops::RmaxLogLevel::to_description_string(config_manager.get_rmax_log_level()));
+  rivermax_setparam("RIVERMAX_LOG_LEVEL",
+                    holoscan::ops::RmaxLogLevel::to_cmd_string(config_manager.get_rmax_log_level()),
+                    true);
 
   auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
       config_manager.get_config_manager(RmaxConfigContainer::ConfigType::RX));

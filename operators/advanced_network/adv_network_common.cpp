@@ -43,6 +43,26 @@ namespace holoscan::ops {
 // Declare a static global variable for the manager
 static ANOMgr* g_ano_mgr = nullptr;
 
+const std::unordered_map<AnoLogLevel::Level, std::string> AnoLogLevel::level_to_string_map = {
+    {TRACE, "trace"},
+    {DEBUG, "debug"},
+    {INFO, "info"},
+    {WARN, "warn"},
+    {ERROR, "error"},
+    {CRITICAL, "critical"},
+    {OFF, "off"},
+};
+
+const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to_level_map = {
+    {"trace", TRACE},
+    {"debug", DEBUG},
+    {"info", INFO},
+    {"warn", WARN},
+    {"error", ERROR},
+    {"critical", CRITICAL},
+    {"off", OFF},
+};
+
 AdvNetBurstParams* adv_net_create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_burst_params();
