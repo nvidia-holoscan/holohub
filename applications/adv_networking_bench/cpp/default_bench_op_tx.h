@@ -49,7 +49,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
   ~AdvNetworkingBenchDefaultTxOp() {
     HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down");
-    adv_net_shutdown();
   }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {

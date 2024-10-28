@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Holoviz HDR",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.5",
+			"tested_versions": [
+				"2.5"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Holoviz HDR","BT.2020","ST.2084","EOTF"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/holoviz_hdr",
+			"workdir": "holohub_bin"
+		}
+	}
+}

@@ -25,11 +25,11 @@
 #include <memory>
 #include <string>
 
-#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/gxf/gxf_operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
+#include "../../operator_util.hpp"
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
@@ -61,8 +61,9 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
                         std::shared_ptr<::holoscan::Allocator> allocator,
                         const std::vector<std::string>& in_tensor_names = {std::string("")},
                         const std::vector<std::string>& out_tensor_names = {std::string("")},
-                        bool input_on_cuda = false,
+                        bool input_on_cuda = true,
                         std::string data_dir = "../data/multiai_ultrasound",
+                        std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
                         // TODO(grelee): handle receivers similarly to HolovizOp?  (default: {})
                         // TODO(grelee): handle transmitter similarly to HolovizOp?
                         const std::string& name = "visualizer_icardio")
@@ -71,6 +72,7 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
                                     Arg{"out_tensor_names", out_tensor_names},
                                     Arg{"input_on_cuda", input_on_cuda},
                                     Arg{"data_dir", data_dir}}) {
+    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -108,13 +110,15 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
                     const std::vector<std::string>&,
                     bool,
                     std::string,
+                    std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
            "fragment"_a,
            "allocator"_a,
            "in_tensor_names"_a,   // = {std::string("")},
            "out_tensor_names"_a,  // = {std::string("")},
-           "input_on_cuda"_a = false,
+           "input_on_cuda"_a = true,
            "data_dir"_a,
+           "cuda_stream_pool"_a = py::none(),
            "name"_a = "visualizer_icardio"s,
            doc::VisualizerICardioOp::doc_VisualizerICardioOp_python)
       .def("initialize", &VisualizerICardioOp::initialize, doc::VisualizerICardioOp::doc_initialize)

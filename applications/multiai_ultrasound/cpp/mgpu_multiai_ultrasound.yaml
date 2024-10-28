@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +31,6 @@ aja:  # AJASourceOp
   enable_overlay: false
 
 broadcast:
-
-plax_cham_resized:
-  out_tensor_name: plax_cham_resize
-  out_dtype: "rgba8888"
-  resize_width: 320
-  resize_height: 320
 
 plax_cham_pre:
   out_tensor_name: plax_cham_pre_proc
@@ -79,23 +73,21 @@ multiai_postprocessor:
     "plax_cham_infer": ["max_per_channel_scaled"]
   processed_map:
     "plax_cham_infer": "plax_chamber_processed"
-  in_tensor_names: ["plax_cham_infer", 
+  in_tensor_names: ["plax_cham_infer",
                         "aortic_infer",
                         "bmode_infer"]
-  out_tensor_names : ["plax_chamber_processed"]    
-  input_on_cuda: false
-  output_on_cuda: false
-  transmit_on_cuda: false
+  out_tensor_names : ["plax_chamber_processed"]
+  transmit_on_cuda: true
 
 visualizer_icardio:
   in_tensor_names: ["plax_chamber_processed"]
-  out_tensor_names: ["keypoints", "keyarea_1", "keyarea_2", 
+  out_tensor_names: ["keypoints", "keyarea_1", "keyarea_2",
                  "keyarea_3", "keyarea_4", "keyarea_5", "lines","logo"]
-  input_on_cuda: false
-  
+  input_on_cuda: true
+
 holoviz:
   tensors:
-    - name: plax_cham_resize
+    - name: ''
       type: color
       priority: 0
     - name: logo

@@ -28,7 +28,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/holoviz/holoviz_srgb",
+			"command": "<holohub_app_bin>/holoviz_srgb",
 			"workdir": "holohub_bin"
 		}
 	}

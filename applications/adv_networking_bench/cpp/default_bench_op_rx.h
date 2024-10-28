@@ -23,7 +23,29 @@
 #include <assert.h>
 #include <sys/time.h>
 
+#define BURST_ACCESS_METHOD_SHARED_PTR 0
+#define BURST_ACCESS_METHOD_RAW_PTR 1
+#define BURST_ACCESS_METHOD_DIRECT_ACCESS 2
+
+#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_DIRECT_ACCESS
+
 namespace holoscan::ops {
+
+#define CUDA_TRY(stmt)                                                                          \
+  ({                                                                                            \
+    cudaError_t _holoscan_cuda_err = stmt;                                                      \
+    if (cudaSuccess != _holoscan_cuda_err) {                                                    \
+      HOLOSCAN_LOG_ERROR("CUDA Runtime call %s in line %d of file %s failed with '%s' (%d).\n", \
+                         #stmt,                                                                 \
+                         __LINE__,                                                              \
+                         __FILE__,                                                              \
+                         cudaGetErrorString(_holoscan_cuda_err),                                \
+                         _holoscan_cuda_err);                                                   \
+    }                                                                                           \
+    _holoscan_cuda_err;                                                                         \
+  })
+
+#define ADV_NETWORK_MANAGER_WARMUP_KERNEL 1
 
 class AdvNetworkingBenchDefaultRxOp : public Operator {
  public:
@@ -32,15 +54,17 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   AdvNetworkingBenchDefaultRxOp() = default;
 
   ~AdvNetworkingBenchDefaultRxOp() {
-    HOLOSCAN_LOG_INFO(
-        "Finished receiver with {}/{} bytes/packets received", ttl_bytes_recv_, ttl_pkts_recv_);
+    HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received and {} packets dropped",
+                      ttl_bytes_recv_,
+                      ttl_pkts_recv_,
+                      ttl_packets_dropped_);
 
     HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
-    adv_net_shutdown();
-    adv_net_print_stats();
+    freeResources();
   }
 
   void initialize() override {
+    cudaError_t cuda_error;
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize()");
     holoscan::Operator::initialize();
 
@@ -48,22 +72,48 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
 
     for (int n = 0; n < num_concurrent; n++) {
-      cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_);
+      cuda_error =
+          CUDA_TRY(cudaMalloc(&full_batch_data_d_[n], batch_size_.get() * nom_payload_size_));
+      if (cudaSuccess != cuda_error) {
+        throw std::runtime_error("Could not allocate cuda memory for full_batch_data_d_[n]");
+      }
+
       if (!gpu_direct_.get()) {
-        cudaMallocHost(&full_batch_data_h_[n], batch_size_.get() * nom_payload_size_);
+        cuda_error =
+            CUDA_TRY(cudaMallocHost(&full_batch_data_h_[n], batch_size_.get() * nom_payload_size_));
+        if (cudaSuccess != cuda_error) {
+          throw std::runtime_error("Could not allocate cuda memory for full_batch_data_h_[n]");
+        }
+      } else {
+        cuda_error =
+            CUDA_TRY(cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get()));
+        if (cudaSuccess != cuda_error) {
+          throw std::runtime_error("Could not allocate cuda memory for h_dev_ptrs_");
+        }
       }
-
-      if (gpu_direct_.get()) {
-        cudaMallocHost((void**)&h_dev_ptrs_[n], sizeof(void*) * batch_size_.get());
-      }
-
       cudaStreamCreate(&streams_[n]);
       cudaEventCreate(&events_[n]);
+      // Warmup streams and kernel
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
+      simple_packet_reorder(NULL, NULL, 1, 1, streams_[n]);
+      cudaStreamSynchronize(streams_[n]);
+#endif
     }
-
     if (hds_.get()) { assert(gpu_direct_.get()); }
 
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize() complete");
+  }
+
+  void freeResources() {
+    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() start");
+    for (int n = 0; n < num_concurrent; n++) {
+      if (full_batch_data_d_[n]) { cudaFree(full_batch_data_d_[n]); }
+      if (full_batch_data_h_[n]) { cudaFreeHost(full_batch_data_h_[n]); }
+      if (h_dev_ptrs_[n]) { cudaFreeHost(h_dev_ptrs_[n]); }
+      if (streams_[n]) { cudaStreamDestroy(streams_[n]); }
+      if (events_[n]) { cudaEventDestroy(events_[n]); }
+    }
+    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() complete");
   }
 
   void setup(OperatorSpec& spec) override {
@@ -118,9 +168,15 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       return;
     }
 
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     auto burst = burst_opt.value();
+#else
+    auto burst_shared = burst_opt.value();
+    auto burst = burst_shared.get();
+#endif
 
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
+    auto burst_size = adv_net_get_num_pkts(burst);
+    ttl_pkts_recv_ += burst_size;
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     if (adv_net_get_q_id(burst) == 0) {
@@ -135,26 +191,41 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     if (gpu_direct_.get()) {
       int64_t bytes_in_batch = 0;
       if (hds_.get()) {
-        for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+        for (int p = 0; p < burst_size; p++) {
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
+          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = burst->pkts[1][p];
+          ttl_bytes_in_cur_batch_ += burst->pkt_lens[0][p] + burst->pkt_lens[1][p];
+#else
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
           ttl_bytes_in_cur_batch_ +=
               adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+#endif
         }
       } else {
-        for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+        for (int p = 0; p < burst_size; p++) {
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
+          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
+              reinterpret_cast<uint8_t*>(burst->pkts[0][p]) + header_size_.get();
+          ttl_bytes_in_cur_batch_ += burst->pkt_lens[0][p];
+#else
           h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
               reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
           ttl_bytes_in_cur_batch_ += adv_net_get_seg_pkt_len(burst, 0, p);
+#endif
         }
       }
 
       ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
     } else {
       auto batch_offset = aggr_pkts_recv_ * nom_payload_size_;
-      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+      for (int p = 0; p < burst_size; p++) {
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
+        auto pkt = static_cast<UDPIPV4Pkt*>(burst->pkts[0][p]);
+        auto len = burst->pkt_lens[0][p] - header_size_.get();
+#else
         auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
         auto len = adv_net_get_seg_pkt_len(burst, 0, p) - header_size_.get();
-
+#endif
         memcpy((char*)full_batch_data_h_[cur_idx] + batch_offset + p * nom_payload_size_,
                pkt + 1,
                len);
@@ -164,8 +235,13 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       }
     }
 
-    aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
+    aggr_pkts_recv_ += burst_size;
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     cur_msg_.msg[cur_msg_.num_batches++] = burst;
+#else
+    cur_msg_.msg[cur_msg_.num_batches++] = burst_shared;
+#endif
+
     if (aggr_pkts_recv_ >= batch_size_.get()) {
       // Do some work on full_batch_data_h_ or full_batch_data_d_
       aggr_pkts_recv_ = 0;
@@ -176,7 +252,15 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
       if (out_q.size() == num_concurrent) {
         HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-        adv_net_free_all_pkts_and_burst(burst);
+        for (auto m = 0; m < cur_msg_.num_batches; m++) {
+          ttl_packets_dropped_ += adv_net_get_num_pkts(cur_msg_.msg[m]);
+          adv_net_free_all_pkts_and_burst(cur_msg_.msg[m]);
+        }
+        cur_msg_.num_batches = 0;
+        cudaError_t err = cudaDeviceSynchronize();
+        if (err != cudaSuccess) {
+          std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
+        }
         return;
       }
 
@@ -187,18 +271,31 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                               batch_size_.get(),
                               streams_[cur_idx]);
 
+        if (cudaGetLastError() != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
+                             batch_size_.get(),
+                             batch_size_.get() * nom_payload_size_);
+          exit(1);
+        }
       } else {
-          if (out_q.size() == num_concurrent) {
-            HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
-            adv_net_free_all_pkts_and_burst(burst);
-            return;
+        if (out_q.size() == num_concurrent) {
+          HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
+          for (auto m = 0; m < cur_msg_.num_batches; m++) {
+            ttl_packets_dropped_ += adv_net_get_num_pkts(cur_msg_.msg[m]);
+            adv_net_free_all_pkts_and_burst(cur_msg_.msg[m]);
           }
-
-          cudaMemcpyAsync(full_batch_data_d_[cur_idx],
-                          full_batch_data_h_[cur_idx],
-                          batch_size_.get() * nom_payload_size_,
-                          cudaMemcpyDefault,
-                          streams_[cur_idx]);
+          cur_msg_.num_batches = 0;
+          cudaError_t err = cudaDeviceSynchronize();
+          if (err != cudaSuccess) {
+            std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
+          }
+          return;
+        }
+        cudaMemcpyAsync(full_batch_data_d_[cur_idx],
+                        full_batch_data_h_[cur_idx],
+                        batch_size_.get() * nom_payload_size_,
+                        cudaMemcpyDefault,
+                        streams_[cur_idx]);
       }
 
       cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
@@ -207,19 +304,12 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       out_q.push(cur_msg_);
       cur_msg_.num_batches = 0;
 
-      if (cudaGetLastError() != cudaSuccess) {
-        HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                            batch_size_.get(),
-                            batch_size_.get() * nom_payload_size_);
-        exit(1);
-      }
-
       cur_idx = (++cur_idx % num_concurrent);
     }
   }
 
  private:
-  static constexpr int num_concurrent = 4;    // Number of concurrent batches processing
+  static constexpr int num_concurrent = 10;   // Number of concurrent batches processing
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
 
   // Holds burst buffers that cannot be freed yet
@@ -236,6 +326,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
+  int64_t ttl_packets_dropped_ = 0;                // Total packets dropped in operator
   uint16_t nom_payload_size_;                      // Nominal payload size (no headers)
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch

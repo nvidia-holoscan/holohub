@@ -17,6 +17,7 @@
 
 #include "kernels.cuh"
 #include <stdio.h>
+#include <assert.h>
 #include "matx.h"
 
 __global__ void populate_packets(uint8_t** gpu_bufs, uint16_t pkt_len, uint16_t offset) {

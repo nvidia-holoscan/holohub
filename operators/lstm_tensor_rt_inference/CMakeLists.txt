@@ -29,3 +29,7 @@ target_include_directories(lstm_tensor_rt_inference INTERFACE ${CMAKE_CURRENT_SO
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+# Installation
+install(TARGETS lstm_tensor_rt_inference)
+

@@ -1,0 +1,42 @@
+{
+	"tutorial": {
+		"name": "NVIDIA Holoscan Bootcamp lab materials",
+		"description": "Holoscan Bootcamp Jupyter notebook for self-paced learning of Holoscan core concepts",
+		"authors": [
+			{
+				"name": "Denis Leshchev",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Adam Thompson",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Nicolas Lebovitz",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.2.0",
+			"tested_versions": [
+				"2.3.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Python",
+			"Sensor Processing",
+            "Bootcamp"
+		],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}

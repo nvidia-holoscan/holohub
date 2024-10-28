@@ -13,5 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_holohub_application(holoviz_hdr)
 add_holohub_application(holoviz_srgb)
+add_holohub_application(holoviz_ui)
 add_holohub_application(holoviz_vsync)
+add_holohub_application(holoviz_yuv)

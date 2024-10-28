@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +69,7 @@ class App : public holoscan::Application {
     int width_preprocessor = 1264;
     int height_preprocessor = 1080;
     uint64_t preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * bpp;
-    uint64_t preprocessor_num_blocks = 2;
+    uint64_t preprocessor_num_blocks = 3;
     auto segmentation_preprocessor = make_operator<ops::FormatConverterOp>(
         "segmentation_preprocessor",
         from_config("segmentation_preprocessor"),

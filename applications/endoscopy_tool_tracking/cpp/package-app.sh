@@ -16,7 +16,7 @@
 set -e
 
 GIT_ROOT=$(readlink -f ./$(git rev-parse --show-cdup))
-APP_PATH="$GIT_ROOT/install/endoscopy_tool_tracking_cpp"
+APP_PATH="$GIT_ROOT/install/bin/endoscopy_tool_tracking/cpp"
 
 . $GIT_ROOT/utilities/bash_utils.sh
 
@@ -32,7 +32,12 @@ if [ $(get_host_arch) == "aarch64" ]; then
     PLATFORM=igx-orin-devkit
 fi
 
+echo -e "Copying the required files to the application directory..."
+cp "$GIT_ROOT/install/lib/*" "$APP_PATH"
+cp "$GIT_ROOT/install/lib/gxf_extensions/*" "$APP_PATH"
+sed -i 's|lib/gxf_extensions/||' "$APP_PATH/endoscopy_tool_tracking.yaml"
 echo -e "done\n"
+
 echo -e Install Holoscan CLI and then use the following commands to package and run the Endoscopy Tool Tracking application:
 echo -e "Package the application:"
 echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t holohub-endoscopy-tool-tracking-cpp $APP_PATH/endoscopy_tool_tracking --include onnx holoviz${NOCOLOR}"

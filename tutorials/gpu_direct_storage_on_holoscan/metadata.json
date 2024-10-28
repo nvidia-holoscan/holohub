@@ -1,0 +1,30 @@
+{
+    "tutorial": {
+        "name": "GPU Direct Storage on IGX",
+        "authors": [
+            {
+                "name": "Marcus Manos",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Creating new tutorial for using GPU Direct Storage (GDS) on IGX"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.0.0",
+            "tested_versions": [
+                "2.1.0"
+            ]
+        },
+        "platforms": [
+            "arm64"
+        ],
+        "tags": [
+            "GPU Direct Storage"
+        ],
+        "ranking": 4,
+        "dependencies": {}
+    }
+}

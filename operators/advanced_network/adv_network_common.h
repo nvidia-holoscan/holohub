@@ -288,17 +288,6 @@ uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
 
 /**
- * @brief Free all packets in a burst
- *
- * Frees all packets in a burst of packets. After completion, all CPU and GPU packets will
- * be released back to the free pool.
- *
- * @param burst Burst structure containing packet lists
- */
-void adv_net_free_all_pkts(AdvNetBurstParams* burst);
-void adv_net_free_all_pkts(std::shared_ptr<AdvNetBurstParams> burst);
-
-/**
  * @brief Free all packets for a single segment in a burst
  *
  * Frees all packets in a single segment in a burst of packets.

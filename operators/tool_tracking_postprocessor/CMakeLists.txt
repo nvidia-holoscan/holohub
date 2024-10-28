@@ -33,3 +33,6 @@ target_include_directories(tool_tracking_postprocessor INTERFACE ${CMAKE_CURRENT
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+install(TARGETS tool_tracking_postprocessor)
+

@@ -49,9 +49,31 @@ Once the main LMM-based app is running, you will see a link for the app at `http
 
 ## 💻 Supported Hardware
 - IGX w/ dGPU
-- IGX w/ iGPU
 - x86 w/ dGPU
+- IGX w/ iGPU and Jetson AGX supported with workaround<br>
+  There is a known issue running this application on IGX w/ iGPU and on Jetson AGX (see [#500](https://github.com/nvidia-holoscan/holohub/issues/500)).
+  The workaround is to update the device to avoid picking up the libnvv4l2.so library.
 
+  ```bash
+  cd /usr/lib/aarch64-linux-gnu/
+  ls -l libv4l2.so.0.0.999999
+  sudo rm libv4l2.so.0.0.999999
+  sudo ln -s libv4l2.so.0.0.0.0  libv4l2.so.0.0.999999
+  ```
+
+## 📷⚙️ Video Options
+There are three options to ingest video data.
+
+1. use a physical device or capture card, such as a v4l2 device as described in the [Setup Instructions](##-⚙️-Setup-Instructions
+). Make sure the [vila_live.yaml](./vila_live.yaml) contains the v4l2_source group and specifies the device correctly. 
+2. convert a video file to a gxf-compatible format using the [convert_video_to_gxf_entities.py](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script. See the [yolo_model_deployment](https://github.com/nvidia-holoscan/holohub/tree/main/applications/yolo_model_deployment#step-2-deployment) application for a detailed example. When using the replayer, configure the replayer_source in the yaml file and launch the application with:
+    ```bash
+    ./run_vila_live.sh --source "replayer"
+    ```
+3. create a virtual video device, that mounts a video file and replays it, as detailed in the [v4l2_camera examples in holoscan-sdk](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices). This approach may require signing the [v4l2loopback kernel module](https://github.com/umlaeute/v4l2loopback), when using a system with secure-boot enabled. Make sure the vila_live.yaml contains the v4l2_source group and specifies the virtual device correctly. replay the video, using for example:
+    ```bash
+    ffmpeg -stream_loop -1 -re -i <your_video_path> -pix_fmt yuyv422 -f v4l2 /dev/video3
+    ```
 ## 🙌 Acknowledgements
 - Jetson AI Lab, [Live LLaVA](https://www.jetson-ai-lab.com/tutorial_live-llava.html): for the inspiration to create this app
 - [Jetson-Containers](https://github.com/dusty-nv/jetson-containers/tree/master/packages/llm/llamaspeak) repo: For the Flask web-app with WebSockets

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,8 @@
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
 #include "holoinfer.hpp"
-#include "holoinfer_utils.hpp"
 #include "holoinfer_buffer.hpp"
+#include "holoinfer_utils.hpp"
 
 namespace HoloInfer = holoscan::inference;
 
@@ -38,28 +38,28 @@ namespace holoscan::ops {
  *
  * Class wraps a GXF Codelet(`nvidia::holoscan::multiai::VisualizerICardio`).
  */
-class VisualizerICardioOp: public holoscan::Operator {
+class VisualizerICardioOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VisualizerICardioOp)
 
   VisualizerICardioOp() = default;
 
-  void setup(OperatorSpec &spec) override;
+  void setup(OperatorSpec& spec) override;
   void start() override;
-  void compute(InputContext &op_input, OutputContext &op_output,
-                ExecutionContext &context) override;
+  void stop() override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
 
  private:
   Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::vector<std::string>> out_tensor_names_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
-  Parameter<std::vector<IOSpec *>> receivers_;
-  Parameter<std::vector<IOSpec *>> transmitters_;
+  Parameter<std::vector<IOSpec*>> receivers_;
+  Parameter<std::vector<IOSpec*>> transmitters_;
   Parameter<std::string> data_dir_;
   Parameter<bool> input_on_cuda_;
 
   // Internal state
-  HoloInfer::DataMap data_per_tensor;
   std::map<std::string, std::vector<int>> tensor_size_map_;
 
   const std::string module_{"Visualizer icardio Codelet"};
@@ -77,10 +77,10 @@ class VisualizerICardioOp: public holoscan::Operator {
       {"keyarea_1", 1}, {"keyarea_2", 2}, {"keyarea_3", 3}, {"keyarea_4", 4}, {"keyarea_5", 5}};
 
   const std::string logo_file_ = "logo.txt";
-  std::vector<int> logo_image_;
+  void* logo_image_ = nullptr;
   CudaStreamHandler cuda_stream_handler_;
 };
 
 }  // namespace holoscan::ops
 
-#endif  /* HOLOSCAN_OPERATORS_VISUALIZER_ICARDIO_HPP */
+#endif /* HOLOSCAN_OPERATORS_VISUALIZER_ICARDIO_HPP */

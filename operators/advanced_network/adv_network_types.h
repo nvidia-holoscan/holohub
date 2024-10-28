@@ -21,10 +21,12 @@
 #include <memory>
 #include <optional>
 #include <stdint.h>
+#include <stdexcept>
+#include <unordered_map>
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/udp.h>
-#include "holoscan/holoscan.hpp"
+#include <cuda_runtime.h>
 
 namespace holoscan::ops {
 
@@ -59,7 +61,8 @@ struct AdvNetBurstHdr {
 
   // Pad without union to make bindings readable
   void* extra_burst_data;
-  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) - sizeof(AdvNetBurstHdrParams)];
+  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) -
+                            sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
@@ -113,7 +116,6 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
     } else if (str == "rdma_read") {
       access |= MEM_ACCESS_RDMA_WRITE;
     } else {
-      HOLOSCAN_LOG_ERROR("Invalid access property for memory: {}", str);
       return 0;
     }
   }
@@ -236,9 +238,9 @@ struct AdvNetConfig {
  */
 class AnoMgrExtraQueueConfig {
  public:
- /**
+  /**
    * @brief Virtual destructor for proper cleanup of derived class objects.
-   */ 
+   */
   virtual ~AnoMgrExtraQueueConfig() = default;
 };
 

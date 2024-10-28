@@ -18,9 +18,15 @@
 #include "adv_network_mgr.h"
 #include "adv_network_common.h"
 #include "holoscan/holoscan.hpp"
+#if ANO_MGR_DPDK || ANO_MGR_DOCA
 #include <rte_mbuf.h>
 #include <rte_memcpy.h>
 #include <rte_ethdev.h>
+#endif
+#if ANO_MGR_RIVERMAX
+#include "adv_network_rmax_mgr.h"
+#endif
+
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
   assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
@@ -433,12 +439,17 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
     common.batch_size_ = q_item["batch_size"].as<int>();
     common.split_boundary_ = q_item["split_boundary"].as<int>(0);
     common.extra_queue_config_ = nullptr;
-
-    const auto& mrs = q_item["memory_regions"];
-    common.mrs_.reserve(mrs.size());
-    for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+    if (q_item["memory_regions"].IsDefined()) {
+      const auto& mrs = q_item["memory_regions"];
+      if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
+      for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+    }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
+    return false;
+  }
+  if (common.mrs_.empty()) {
+    HOLOSCAN_LOG_ERROR("No memory regions defined for queue: {}", common.name_);
     return false;
   }
   return true;
