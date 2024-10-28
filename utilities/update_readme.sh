@@ -8,7 +8,7 @@
 # git add README.md && git commit -s -m "Update HoloHub Project Statistics"
 # ```
 
-python ./utilities/gather_metadata.py --output aggregate_metadata.json
+python ./utilities/gather_metadata.py --output aggregate_metadata.json --exclude "applications/holoviz/template/cookiecutter-holoviz/{{cookiecutter.project_slug}}/metadata.json"
 app_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"applications\"" | wc -l)
 sed -i -E "s/Applications-([0-9]+)/Applications-$app_count/" README.md
 ops_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"operators\"" | wc -l)
