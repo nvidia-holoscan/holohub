@@ -95,22 +95,45 @@ class DpdkLogLevel {
   }
 
  private:
+  /**
+   * A map of log level to a tuple of the description and command strings.
+   */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
   static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_dpdk_log_level_map;
 };
 
-class DpdkLogLevelCommand : public ManagerLogLevelCommand {
+/**
+ * @class DpdkLogLevelCommandBuilder
+ * @brief Concrete class for building DPDK log level commands.
+ *
+ * This class implements the ManagerLogLevelCommandBuilder interface to provide
+ * specific command flag strings for managing DPDK log levels.
+ */
+class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
  public:
-  explicit DpdkLogLevelCommand(AnoLogLevel::Level ano_level)
+  /**
+   * @brief Constructor for DpdkLogLevelCommandBuilder.
+   *
+   * @param ano_level The log level from AnoLogLevel to be converted to DPDK log level.
+   */
+  explicit DpdkLogLevelCommandBuilder(AnoLogLevel::Level ano_level)
       : level_(DpdkLogLevel::from_ano_log_level(ano_level)) {}
 
-  std::vector<std::string> get_cmd_strings() const override {
+  /**
+   * @brief Get the command flag strings for DPDK log levels.
+   *
+   * This function returns the specific command flag strings required to set
+   * the DPDK log levels.
+   *
+   * @return A vector of command flag strings.
+   */
+  std::vector<std::string> get_cmd_flags_strings() const override {
     return {"--log-level=" + DpdkLogLevel::to_cmd_string(DpdkLogLevel::Level::OFF),
             "--log-level=pmd.net.mlx5:" + DpdkLogLevel::to_cmd_string(level_)};
   }
 
  private:
-  DpdkLogLevel::Level level_;
+  DpdkLogLevel::Level level_;  ///< The DPDK log level.
 };
 
 class DpdkMgr : public ANOMgr {

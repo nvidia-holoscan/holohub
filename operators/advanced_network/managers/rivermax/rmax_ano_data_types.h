@@ -229,7 +229,13 @@ class RmaxLogLevel {
   }
 
  private:
+  /**
+   * A map of log level to a tuple of the description and command strings.
+   */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
+  /**
+   * A map of Ano log level to Rmax log level.
+   */
   static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_rmax_log_level_map;
 };
 

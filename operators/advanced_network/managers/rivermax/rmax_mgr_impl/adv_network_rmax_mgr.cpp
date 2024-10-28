@@ -45,6 +45,9 @@ namespace holoscan::ops {
 
 using namespace ral::services::rmax_ipo_receiver;
 
+/**
+ * A map of log level to a tuple of the description and command strings.
+ */
 const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::string>>
     RmaxLogLevel::level_to_cmd_map = {
         {TRACE, {"Trace", "0"}},
@@ -56,6 +59,9 @@ const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::strin
         {OFF, {"Disabled", "6"}},
 };
 
+/**
+ * A map of Ano log level to Rmax log level.
+ */
 const std::unordered_map<AnoLogLevel::Level, RmaxLogLevel::Level>
     RmaxLogLevel::ano_to_rmax_log_level_map = {
         {AnoLogLevel::TRACE, TRACE},

@@ -65,6 +65,9 @@ struct UDPPkt {
   uint8_t payload[];
 } __attribute__((packed));
 
+/**
+ * A map of log level to a tuple of the description and command strings.
+ */
 const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::string>>
     DpdkLogLevel::level_to_cmd_map = {{OFF, {"Disabled", "9"}},
                                       {EMERGENCY, {"Emergency", "emergency"}},
