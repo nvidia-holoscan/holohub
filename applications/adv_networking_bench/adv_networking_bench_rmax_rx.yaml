@@ -31,7 +31,7 @@ advanced_network:
     manager: "rivermax"
     master_core: 5              # Master CPU core
     debug: 1
-    log_level: "info"
+    log_level: "warn"
     memory_regions:
     - name: "Data_RX_CPU"
       kind: "huge"

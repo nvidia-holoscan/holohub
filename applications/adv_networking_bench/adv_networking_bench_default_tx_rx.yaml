@@ -31,7 +31,7 @@ advanced_network:
     manager: "dpdk"
     master_core: 3
     debug: false
-    log_level: "debug"
+    log_level: "warn"
 
     memory_regions:
     - name: "Data_TX_GPU"
