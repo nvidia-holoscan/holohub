@@ -519,8 +519,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       }
 
       try {
-        input_spec.debug_ = node["debug"].as<uint16_t>();
-      } catch (const std::exception& e) { input_spec.debug_ = 0; }
+        input_spec.debug_ = node["debug"].as<bool>(false);
+      } catch (const std::exception& e) { input_spec.debug_ = false; }
 
       try {
         input_spec.log_level_ =
