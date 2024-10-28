@@ -33,8 +33,8 @@ if [ $(get_host_arch) == "aarch64" ]; then
 fi
 
 echo -e "Copying the required files to the application directory..."
-cp "$GIT_ROOT/install/lib/*" "$APP_PATH"
-cp "$GIT_ROOT/install/lib/gxf_extensions/*" "$APP_PATH"
+cp -rf "$GIT_ROOT/install/lib/." "$APP_PATH"
+cp -rf "$GIT_ROOT/install/lib/gxf_extensions/." "$APP_PATH"
 sed -i 's|lib/gxf_extensions/||' "$APP_PATH/endoscopy_tool_tracking.yaml"
 echo -e "done\n"
 
