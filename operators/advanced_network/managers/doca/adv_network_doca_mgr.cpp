@@ -94,14 +94,15 @@ const std::unordered_map<AnoLogLevel::Level, doca_log_level>
         {AnoLogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
 };
 
-const std::unordered_map<doca_log_level, std::string> DocaLogLevel::level_to_string_map = {
-    {DOCA_LOG_LEVEL_TRACE, "trace"},
-    {DOCA_LOG_LEVEL_DEBUG, "debug"},
-    {DOCA_LOG_LEVEL_INFO, "info"},
-    {DOCA_LOG_LEVEL_WARNING, "warn"},
-    {DOCA_LOG_LEVEL_ERROR, "error"},
-    {DOCA_LOG_LEVEL_CRIT, "critical"},
-    {DOCA_LOG_LEVEL_DISABLE, "disable"},
+const std::unordered_map<doca_log_level, std::string>
+    DocaLogLevel::level_to_string_description_map = {
+        {DOCA_LOG_LEVEL_TRACE, "Trace"},
+        {DOCA_LOG_LEVEL_DEBUG, "Debug"},
+        {DOCA_LOG_LEVEL_INFO, "Info"},
+        {DOCA_LOG_LEVEL_WARNING, "Warning"},
+        {DOCA_LOG_LEVEL_ERROR, "Error"},
+        {DOCA_LOG_LEVEL_CRIT, "Critical"},
+        {DOCA_LOG_LEVEL_DISABLE, "Disable"},
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +244,8 @@ doca_error_t DocaMgr::init_doca_devices() {
   if (log_level != DOCA_LOG_LEVEL_DISABLE) {
     struct doca_log_backend* stdout_logger = nullptr;
 
-    HOLOSCAN_LOG_INFO("Setting DOCA Logging level to {}", DocaLogLevel::to_string(log_level));
+    HOLOSCAN_LOG_INFO("Setting DOCA Logging level to {}",
+                      DocaLogLevel::to_description_string(log_level));
 
     result = doca_log_backend_create_with_file_sdk(stdout, &stdout_logger);
     if (result != DOCA_SUCCESS) return result;

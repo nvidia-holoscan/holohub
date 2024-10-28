@@ -104,9 +104,9 @@ static constexpr int TX_COMP_THRS = 2;
 
 class DocaLogLevel {
  public:
-  static std::string to_string(doca_log_level level) {
-    auto it = level_to_string_map.find(level);
-    if (it != level_to_string_map.end()) { return it->second; }
+  static std::string to_description_string(doca_log_level level) {
+    auto it = level_to_string_description_map.find(level);
+    if (it != level_to_string_description_map.end()) { return it->second; }
     throw std::logic_error(
         "Unrecognized log level, available options trace/debug/info/warn/error/critical/disable");
   }
@@ -117,7 +117,7 @@ class DocaLogLevel {
   }
 
  private:
-  static const std::unordered_map<doca_log_level, std::string> level_to_string_map;
+  static const std::unordered_map<doca_log_level, std::string> level_to_string_description_map;
   static const std::unordered_map<AnoLogLevel::Level, doca_log_level> ano_to_doca_log_level_map;
 };
 

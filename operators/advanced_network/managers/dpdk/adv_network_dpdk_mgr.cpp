@@ -317,12 +317,14 @@ void DpdkMgr::initialize() {
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
 
-  DpdkLogLevelCommand cmd(cfg_.log_level_);
   HOLOSCAN_LOG_INFO(
       "Setting DPDK log level to: {}",
       DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
 
-  for (auto& c : cmd.get_cmd_strings()) { strncpy(_argv[arg++], c.c_str(), max_arg_size - 1); }
+  DpdkLogLevelCommandBuilder cmd(cfg_.log_level_);
+  for (auto& c : cmd.get_cmd_flags_strings()) {
+    strncpy(_argv[arg++], c.c_str(), max_arg_size - 1);
+  }
 
   for (const auto& name : ifs) {
     strncpy(_argv[arg++], "-a", max_arg_size - 1);

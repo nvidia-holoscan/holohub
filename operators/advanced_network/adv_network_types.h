@@ -246,10 +246,30 @@ class AnoLogLevel {
   static const std::unordered_map<std::string, Level> string_to_level_map;
 };
 
-class ManagerLogLevelCommand {
+/**
+ * @class ManagerLogLevelCommandBuilder
+ * @brief Abstract base class for building manager log level commands.
+ *
+ * This class defines an interface for building commands that manage log levels.
+ * Derived classes must implement the `get_cmd_flags_strings` method to provide
+ * the specific command flag strings.
+ */
+class ManagerLogLevelCommandBuilder {
  public:
-  virtual ~ManagerLogLevelCommand() = default;
-  virtual std::vector<std::string> get_cmd_strings() const = 0;
+  /**
+   * @brief Virtual destructor for the ManagerLogLevelCommandBuilder class.
+   */
+  virtual ~ManagerLogLevelCommandBuilder() = default;
+
+  /**
+   * @brief Pure virtual function to get the command flag strings.
+   *
+   * This function must be implemented by derived classes to return
+   * the specific command flag strings for managing log levels.
+   *
+   * @return A vector of command flag strings.
+   */
+  virtual std::vector<std::string> get_cmd_flags_strings() const = 0;
 };
 
 /**
