@@ -67,6 +67,20 @@ add_custom_target(adv_networking_bench_default_tx_rx_yaml
 
 add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_default_tx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_default_tx_yaml)
+
+add_custom_target(adv_networking_bench_default_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_default_rx_yaml)
+
 add_custom_target(adv_networking_bench_doca_tx_rx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml"

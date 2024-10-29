@@ -313,14 +313,12 @@ def main():
         print("CTEST_FULL_OUTPUT")
 
     # Group the log files and parse the latencies from the log files
-    groups = args.group_log_files
-
     group_name = "Group"
     group_name_counter = 1
 
-    grouped_path_latenices = {}
+    grouped_path_latencies = {}
     grouped_log_files = {}
-    for group in groups:
+    for group in args.group_log_files:
         # check whether the last entry has a dot in it, then it does not have a group name
         current_group_name = ""
         current_log_files = []
@@ -339,7 +337,7 @@ def main():
         parsed_latencies_per_file = []
         for log_file in current_log_files:
             parsed_latencies_per_file.append(parse_log_as_paths_latencies(log_file))
-        grouped_path_latenices[current_group_name] = merge_path_latencies(parsed_latencies_per_file)
+        grouped_path_latencies[current_group_name] = merge_path_latencies(parsed_latencies_per_file)
         grouped_log_files[current_group_name] = current_log_files
 
     if args.max:
@@ -347,7 +345,7 @@ def main():
             with open("max_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Maximum (Worst-case) Latencies")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.max(latency), 2)))
@@ -367,7 +365,7 @@ def main():
             with open("avg_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Average Latencies")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.mean(latency), 2)))
@@ -387,7 +385,7 @@ def main():
             with open("median_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Median Latencies")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.median(latency), 2)))
@@ -407,7 +405,7 @@ def main():
             with open("stddev_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Standard Deviation of Latencies")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.std(latency), 2)))
@@ -427,7 +425,7 @@ def main():
             with open("min_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Minimum Latencies")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(min(latency), 2)))
@@ -447,7 +445,7 @@ def main():
             with open("tail_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Latency Distribution Tail (95-100 percentile)")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
@@ -468,7 +466,7 @@ def main():
             with open("flatness_values.csv", "w") as f:
                 f.truncate(0)
         print_metric_title("Latency Distribution Flatness (10-90 percentile)")
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
@@ -492,7 +490,7 @@ def main():
                 with open(percentile_file, "w") as f:
                     f.truncate(0)
             print_metric_title(f"Latency Percentile ({percentile})")
-            for group_name, paths_latencies in grouped_path_latenices.items():
+            for group_name, paths_latencies in grouped_path_latencies.items():
                 print_group_name_with_log_files(group_name, grouped_log_files[group_name])
                 for path, latency in paths_latencies.items():
                     latency_percentile_str = "{:.2f}".format(
@@ -516,7 +514,7 @@ def main():
 
     if args.draw_cdf:
         fig, ax = init_cdf_plot()
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             draw_cdf(ax, paths_latencies[list(paths_latencies.keys())[0]], group_name)
         complete_cdf_plot(fig, ax)
         plt.tight_layout()
@@ -535,7 +533,7 @@ def main():
     if args.draw_cdf_paths:
         fig, ax = init_cdf_plot()
         operator_legends = {}
-        for group_name, paths_latencies in grouped_path_latenices.items():
+        for group_name, paths_latencies in grouped_path_latencies.items():
             for path, latency in paths_latencies.items():
                 draw_cdf(ax, latency, group_name + "-" + shorten_path(path, operator_legends))
         complete_cdf_plot(fig, ax, operator_legends=operator_legends)

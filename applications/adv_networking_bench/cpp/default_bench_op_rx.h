@@ -99,6 +99,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       cudaStreamSynchronize(streams_[n]);
 #endif
     }
+
     if (hds_.get()) { assert(gpu_direct_.get()); }
 
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize() complete");
@@ -145,26 +146,34 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                          42);
   }
 
-  void free_bufs() {
-    while (out_q.size() > 0) {
-      const auto first = out_q.front();
-      if (cudaEventQuery(first.evt) == cudaSuccess) {
-        for (auto m = 0; m < first.num_batches; m++) {
-          adv_net_free_all_pkts_and_burst(first.msg[m]);
+  // Free buffers if CUDA processing/copy is complete
+  void free_processed_packets() {
+    // Iterate through the batches tracked for processing
+    while (batch_q_.size() > 0) {
+      const auto batch = batch_q_.front();
+      // If CUDA processing/copy is complete, free the packets for all bursts in this batch
+      if (cudaEventQuery(batch.evt) == cudaSuccess) {
+        for (auto m = 0; m < batch.num_bursts; m++) {
+          adv_net_free_all_pkts_and_burst(batch.bursts[m]);
         }
-        out_q.pop();
+        batch_q_.pop();
       } else {
+        // No need to check the next batch if the previous one is still being processed
         break;
       }
     }
   }
 
   void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
-    int64_t ttl_bytes_in_cur_batch_ = 0;
+    // If we processed a batch of packets in a previous compute call, that was done asynchronously,
+    // and we'll need to free the packets eventually so the NIC can have space for the next bursts.
+    // Ideally, we'd free the packets on a callback from CUDA, but that is slow. For that reason and
+    // to keep it simple, we do that check right here on the next epoch of the operator.
+    free_processed_packets();
 
+    // Get new input burst (ANO batch of packets)
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
     if (!burst_opt) {
-      free_bufs();
       return;
     }
 
@@ -176,153 +185,210 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 #endif
 
     auto burst_size = adv_net_get_num_pkts(burst);
+
+    // Count packets received
     ttl_pkts_recv_ += burst_size;
 
     // If packets are coming in from our non-GPUDirect queue, free them and move on
+    // hardcoded to match the YAML config files in this sample app.
+    // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
+    //       at least ARP packets should be processed, or delegate to linux for standard traffic.
     if (adv_net_get_q_id(burst) == 0) {
       adv_net_free_all_pkts_and_burst(burst);
       return;
     }
 
-    /* Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
-     * Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
-     * entire burst buffer pointer is saved and freed once an entire batch is received.
-     */
-    if (gpu_direct_.get()) {
-      int64_t bytes_in_batch = 0;
-      if (hds_.get()) {
-        for (int p = 0; p < burst_size; p++) {
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = burst->pkts[1][p];
-          ttl_bytes_in_cur_batch_ += burst->pkt_lens[0][p] + burst->pkt_lens[1][p];
+    // Store burst structure
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
+    cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
 #else
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
-          ttl_bytes_in_cur_batch_ +=
+    cur_batch_.bursts[cur_batch_.num_bursts++] = burst_shared;
+#endif
+
+    // Track packet payloads for the current burst
+    if (gpu_direct_.get()) {
+      /* GPUDirect mode (needs to match if the ANO queue uses one or more memory regions)
+       * Save off the GPU pointers into a host-pinned buffer (h_dev_ptrs_) to reassemble later.
+       */
+      if (hds_.get()) {
+        // Header-Data-Split: header to CPU, payload to GPU
+        // NOTE: current App assumes only two memory region segments, one for header (CPU),
+        //       and one for payload (GPU).      
+        for (int p = 0; p < burst_size; p++) {
+          // Get pointers to payload data on GPU
+          // NOTE: It's (1) here since the GPU memory region is second in the list for this queue.
+          //       The first region (0) is for headers on CPU, ignored here.
+          // NOTE: currently ordering pointers in the order packets come in. If headers had segment
+          //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = burst->pkts[1][p];
+          ttl_bytes_recv_ += burst->pkt_lens[0][p] + burst->pkt_lens[1][p];
+#else
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+          ttl_bytes_recv_ +=
               adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
 #endif
         }
       } else {
+        // Batched: headers and payload to GPU (queue memory regions should be a single GPU segment)
         for (int p = 0; p < burst_size; p++) {
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
-              reinterpret_cast<uint8_t*>(burst->pkts[0][p]) + header_size_.get();
-          ttl_bytes_in_cur_batch_ += burst->pkt_lens[0][p];
-#else
-          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
+          // Get pointers to payload data on GPU (shifting by header size)
+          // NOTE: currently ordering pointers in the order packets come in. If headers had segment
+          //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] =
               reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
-          ttl_bytes_in_cur_batch_ += adv_net_get_seg_pkt_len(burst, 0, p);
-#endif
+          ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
         }
       }
-
-      ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
     } else {
-      auto batch_offset = aggr_pkts_recv_ * nom_payload_size_;
-      for (int p = 0; p < burst_size; p++) {
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
-        auto pkt = static_cast<UDPIPV4Pkt*>(burst->pkts[0][p]);
-        auto len = burst->pkt_lens[0][p] - header_size_.get();
-#else
-        auto pkt = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p));
-        auto len = adv_net_get_seg_pkt_len(burst, 0, p) - header_size_.get();
-#endif
-        memcpy((char*)full_batch_data_h_[cur_idx] + batch_offset + p * nom_payload_size_,
-               pkt + 1,
-               len);
+      /* CPU Mode (needs to match if the ANO queue uses no GPU memory regions)
+       * Copy each packet payload in a continuous host-pinned buffer, copy of that larger buffer to
+       * the GPU will occur later (copying each packet to GPU directly would be too expensive).
+       *
+       * NOTE: this assume huge pages memory regions. With host-pinned memory regions, this could be
+       *       skipped, though probably not faster given the higher perf to write to huge pages.
+       */
 
-        ttl_bytes_recv_ += len + sizeof(UDPIPV4Pkt);
-        ttl_bytes_in_cur_batch_ += len + sizeof(UDPIPV4Pkt);
+      // Calculate offset for the ANO burst
+      // NOTE: we could keep track of each packet length and aggregate it instead.
+      auto burst_offset = aggr_pkts_recv_ * nom_payload_size_;
+
+      for (int p = 0; p < burst_size; p++) {
+        // Payload address (UDPIPV4Pkt: + 1 skips the header)
+#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_DIRECT_ACCESS)
+        auto payload_ptr = static_cast<UDPIPV4Pkt*>(burst->pkts[0][p]) + 1;
+        // Payload length (packet length minus header length)
+        // NOTE: this should be equal to nom_payload_size_ as we assume the same length for all
+        //       packets in this sample app
+        auto pkt_len = burst->pkt_lens[0][p];
+#else
+        auto payload_ptr = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + 1;
+        // Payload length (packet length minus header length)
+        // NOTE: this should be equal to nom_payload_size_ as we assume the same length for all
+        //       packets in this sample app
+        auto pkt_len = adv_net_get_seg_pkt_len(burst, 0, p);
+#endif
+        auto payload_len = pkt_len - header_size_.get();
+
+        // Copy payload to aggregated CPU buffers now
+        memcpy((char*)full_batch_data_h_[cur_batch_idx_] + burst_offset + p * nom_payload_size_,
+               payload_ptr,
+               payload_len);
+
+        // Count bytes received
+        ttl_bytes_recv_ += pkt_len;
+
+        // TODO: could free CPU packets now
       }
     }
 
+     /* For each ANO batch (named burst), we might not want to right away send the packets to the
+     * next operator, but maybe wait for more packets to come in, to make up what we call an
+     * "App batch". While that increases the latency by needing more data to come in to continue,
+     * it would allow collecting enough packets for reordering (not done here) to trigger the
+     * downstream pipeline as soon as we have enough packets to do a full "message".
+     * Increasing the burst size instead (ANO batch) would ensure the same, but allowing smaller
+     * burst size will improve latency.
+     *
+     * There is also value in CPU mode or HDS mode: to reduce CPU memory usage by not holding onto
+     * packets that can be freed earlier on (whether full packet buffers or headers only for HDS)
+     *
+     * Below, we check if we should wait to receive more packets from
+     * the next burst before processing them in a batch.
+     */
     aggr_pkts_recv_ += burst_size;
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
-    cur_msg_.msg[cur_msg_.num_batches++] = burst;
-#else
-    cur_msg_.msg[cur_msg_.num_batches++] = burst_shared;
-#endif
-
     if (aggr_pkts_recv_ >= batch_size_.get()) {
-      // Do some work on full_batch_data_h_ or full_batch_data_d_
+      // Reset counter for the next app batch
       aggr_pkts_recv_ = 0;
 
-      // In CPU-only mode we can free earlier, but to keep it simple we free at the same point
-      // as we do in GPU-only mode
-      free_bufs();
-
-      if (out_q.size() == num_concurrent) {
-        HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-        for (auto m = 0; m < cur_msg_.num_batches; m++) {
-          ttl_packets_dropped_ += adv_net_get_num_pkts(cur_msg_.msg[m]);
-          adv_net_free_all_pkts_and_burst(cur_msg_.msg[m]);
+      // Free buffers for packets which have already been aggregated to the GPU, in case
+      // some of it got completed since the beginning of `compute`, for extra space in `batch_q_`.
+      // NOTE: In CPU-only mode we can free earlier (after memcopy), but to keep it simple we free
+      //       at the same point as we do in GPUDirect mode
+      free_processed_packets();
+      if (batch_q_.size() == num_concurrent) {
+        // Not enough buffers available to process the packets, drop the packets from this burst
+        HOLOSCAN_LOG_ERROR("Fell behind putting packet data in contiguous memory on GPU!");
+        for (auto m = 0; m < cur_batch_.num_bursts; m++) {
+          ttl_packets_dropped_ += adv_net_get_num_pkts(cur_batch_.bursts[m]);
+          adv_net_free_all_pkts_and_burst(cur_batch_.bursts[m]);
         }
-        cur_msg_.num_batches = 0;
-        cudaError_t err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) {
-          std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
-        }
+        cur_batch_.num_bursts = 0;
+        CUDA_TRY(cudaDeviceSynchronize());
         return;
       }
 
+      // Process/aggregate
       if (gpu_direct_.get()) {
-        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_idx]),
-                              h_dev_ptrs_[cur_idx],
+        // GPUDirect mode: we copy the payload (referenced in h_dev_ptrs_)
+        // to a contiguous memory buffer (full_batch_data_d_)
+        // NOTE: there is no actual reordering since we use the same order as packets came in,
+        //   but they would be reordered if h_dev_ptrs_ was filled based on packet sequence id.
+        simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
+                              h_dev_ptrs_[cur_batch_idx_],
                               nom_payload_size_,
                               batch_size_.get(),
-                              streams_[cur_idx]);
+                              streams_[cur_batch_idx_]);
 
-        if (cudaGetLastError() != cudaSuccess) {
-          HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                             batch_size_.get(),
-                             batch_size_.get() * nom_payload_size_);
-          exit(1);
-        }
       } else {
-        if (out_q.size() == num_concurrent) {
-          HOLOSCAN_LOG_ERROR("Fell behind in copying to the GPU!");
-          for (auto m = 0; m < cur_msg_.num_batches; m++) {
-            ttl_packets_dropped_ += adv_net_get_num_pkts(cur_msg_.msg[m]);
-            adv_net_free_all_pkts_and_burst(cur_msg_.msg[m]);
-          }
-          cur_msg_.num_batches = 0;
-          cudaError_t err = cudaDeviceSynchronize();
-          if (err != cudaSuccess) {
-            std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
-          }
-          return;
-        }
-        cudaMemcpyAsync(full_batch_data_d_[cur_idx],
-                        full_batch_data_h_[cur_idx],
-                        batch_size_.get() * nom_payload_size_,
-                        cudaMemcpyDefault,
-                        streams_[cur_idx]);
+          // Non GPUDirect mode: we copy the payload on host-pinned memory (in full_batch_data_h_)
+          // to a contiguous memory buffer on the GPU (full_batch_data_d_)
+          // NOTE: there is no reordering support here at all
+          cudaMemcpyAsync(full_batch_data_d_[cur_batch_idx_],
+                          full_batch_data_h_[cur_batch_idx_],
+                          batch_size_.get() * nom_payload_size_,
+                          cudaMemcpyDefault,
+                          streams_[cur_batch_idx_]);
       }
 
-      cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+      if (cudaGetLastError() != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
+                           batch_size_.get(),
+                           batch_size_.get() * nom_payload_size_);
+        exit(1);
+      }
 
-      cur_msg_.evt = events_[cur_idx];
-      out_q.push(cur_msg_);
-      cur_msg_.num_batches = 0;
+      /* Keep track of the CUDA work (reorder kernel or copy from CPU) so we do not process
+       * more than `num_concurrent` batches at once, and to can free its associated packets
+       * when the work is done.
+       */
+      cudaEventRecord(events_[cur_batch_idx_], streams_[cur_batch_idx_]);
+      cur_batch_.evt = events_[cur_batch_idx_];
+      batch_q_.push(cur_batch_);
 
-      cur_idx = (++cur_idx % num_concurrent);
+      // CUDA Error checking
+      if (cudaGetLastError() != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
+                            batch_size_.get(),
+                            batch_size_.get() * nom_payload_size_);
+        exit(1);
+      }
+
+      // Update structs for the next batch
+      cur_batch_.num_bursts = 0;
+      cur_batch_idx_ = (++cur_batch_idx_ % num_concurrent);
+
+      // NOTE: output for the next operator would be full_batch_data_d_,
+      // once the CUDA event is completed
     }
   }
 
  private:
-  static constexpr int num_concurrent = 10;   // Number of concurrent batches processing
-  static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
+  // TODO: make configurable?
+  static constexpr int num_concurrent = 10;    // Number of concurrent batches processing
+  // TODO: could infer with (batch_size / burst size)
+  static constexpr int MAX_ANO_BURSTS = 10;   // Batches from ANO for one app batch
 
-  // Holds burst buffers that cannot be freed yet
-  struct RxMsg {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
-    int num_batches;
-    void* full_batch_data_h_;
+  // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
+  struct BatchAggregationParams {
+    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    int num_bursts;
     cudaEvent_t evt;
   };
 
-  RxMsg cur_msg_{};
-  std::queue<RxMsg> out_q;
-  int burst_buf_idx_ = 0;                          // Index into burst_buf_idx_ of current burst
+  BatchAggregationParams cur_batch_{};             // Parameters of current batch to process
+  int cur_batch_idx_ = 0;                          // Current batch ID
+  std::queue<BatchAggregationParams> batch_q_;     // Queue of batches being processed
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   int64_t aggr_pkts_recv_ = 0;                     // Aggregate packets received in processing batch
@@ -339,7 +405,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
-  int cur_idx = 0;
 };
 
 }  // namespace holoscan::ops

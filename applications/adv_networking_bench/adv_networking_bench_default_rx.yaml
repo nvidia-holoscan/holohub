@@ -30,7 +30,8 @@ advanced_network:
     version: 1
     manager: "dpdk"
     master_core: 3
-    debug: false    
+    debug: false
+    log_level: "warn"
 
     memory_regions:
     - name: "Data_RX_CPU"
@@ -53,9 +54,9 @@ advanced_network:
       access:
         - local
       num_bufs: 30720
-      buf_size: 1064        
-    
-    interfaces:      
+      buf_size: 1064
+
+    interfaces:
     - name: data2
       address: 0005:03:00.0
       rx:
@@ -65,14 +66,14 @@ advanced_network:
             cpu_core: 7
             batch_size: 10240
             output_port: "bench_rx_out"
-            memory_regions: 
+            memory_regions:
               - "Default_RX_CPU"
           - name: "Data"
             id: 1
             cpu_core: 8
             batch_size: 10240
             output_port: "bench_rx_out"
-            memory_regions: 
+            memory_regions:
               - "Data_RX_CPU"
               - "Data_RX_GPU"
           flows:
@@ -82,7 +83,7 @@ advanced_network:
                 id: 1
               match:
                 udp_src: 4096 #12288
-                udp_dst: 4096 #12288                          
+                udp_dst: 4096 #12288
 bench_rx:
   split_boundary: true
   gpu_direct: true
