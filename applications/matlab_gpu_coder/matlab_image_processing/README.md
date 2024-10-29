@@ -2,6 +2,8 @@
 
 This application does real-time image processing of Holoscan sample data. The image processing is implemented in MATLAB and converted to CUDA using GPU Coder. When the application is run, Holoviz will display the processed data in real time.
 
+![](screenshot.png)
+
 ## Folder Structure
 
 ```sh
