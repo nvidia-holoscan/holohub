@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import argparse
+import logging
 import os
 import subprocess
 import sys
@@ -22,13 +23,16 @@ import time
 
 from nvitop import Device
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 # global variables for GPU monitoring
 stop_gpu_monitoring = False
 stop_gpu_monitoring_lock = threading.Lock()
 
 
 def monitor_gpu(gpu_uuids, filename):
-    print("Monitoring GPU utilization in a separate thread")
+    logging.info("Monitoring GPU utilization in a separate thread")
     devices = []
     if gpu_uuids == "all" or gpu_uuids == "" or gpu_uuids is None:
         devices = Device.all()
@@ -67,13 +71,13 @@ def run_command(app_launch_command, env):
             stderr=subprocess.PIPE,
         )
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: {e}")
-        print(f"stdout:\n{e.stdout.decode('utf-8')}")
-        print(f"stderr:\n{e.stderr.decode('utf-8')}")
+        logging.error(f"Error running command: {e}")
+        logging.error(f"stdout:\n{e.stdout.decode('utf-8')}")
+        logging.error(f"stderr:\n{e.stderr.decode('utf-8')}")
         sys.exit(1)
     if result.returncode != 0:
         # The command returned an error
-        print(f"Error: Command {app_launch_command} exited with code {result.returncode}")
+        logging.error(f"Command {app_launch_command} exited with code {result.returncode}")
         sys.exit(1)
 
 
@@ -186,8 +190,8 @@ assignment in Holoscan's Inference operator.",
         and "eventbased" not in args.sched
         and args.num_worker_threads != 1
     ):
-        print(
-            "Warning: num_worker_threads is ignored as multithread or eventbased scheduler is not used"
+        logging.warning(
+            "num_worker_threads is ignored as multithread or eventbased scheduler is not used"
         )
 
     log_directory = None
@@ -200,7 +204,7 @@ assignment in Holoscan's Inference operator.",
         # check if the given directory is valid or not
         log_directory = args.log_directory
         if not os.path.isdir(log_directory):
-            print(
+            logging.info(
                 "Log directory is not found. Creating a new directory at",
                 os.path.abspath(log_directory),
             )
@@ -228,10 +232,9 @@ assignment in Holoscan's Inference operator.",
             env["HOLOSCAN_SCHEDULER"] = scheduler
             env["HOLOSCAN_EVENTBASED_WORKER_THREADS"] = str(args.num_worker_threads)
         elif scheduler != "greedy":
-            print("Unsupported scheduler ", scheduler)
+            logging.error("Unsupported scheduler ", scheduler)
             sys.exit(1)
         # No need to set the scheduler for greedy scheduler
-
         for i in range(1, args.runs + 1):
             print(f"Run {i} started for {scheduler} scheduler.")
             instance_threads = []
@@ -272,19 +275,19 @@ assignment in Holoscan's Inference operator.",
                 stop_gpu_monitoring_lock.release()
                 gpu_monitoring_thread.join()
                 gpu_utilization_log_files.append(gpu_utilization_logfile_name)
-            print(f"Run {i} completed for {scheduler} scheduler.")
+            logging.info(f"Run {i} completed for {scheduler} scheduler.")
             time.sleep(1)  # cool down period
 
     # Just print comma-separate values of log_files
-    print("\nEvaluation completed.")
-    print("Log file directory: ", os.path.abspath(log_directory))
-    print("All the data flow tracking log files are:", ", ".join(log_files))
+    logging.info("\nEvaluation completed.")
+    logging.info(f"Log file directory: {os.path.abspath(log_directory)}")
+    logging.info(f"All the data flow tracking log files are: {', '.join(log_files)}")
     for missing_file in (file for file in log_files if not os.path.exists(file)):
-        print(f"Warning: Log file {missing_file} is missing.")
+        logging.error(f"Log file {missing_file} is missing.")
     if args.monitor_gpu:
-        print("All the GPU utilization log files are:", ", ".join(gpu_utilization_log_files))
+        logging.info("All the GPU utilization log files are:", ", ".join(gpu_utilization_log_files))
         for missing_file in (file for file in gpu_utilization_log_files):
-            print(f"Warning: Utilization log file {missing_file} is missing.")
+            logging.error(f"Utilization log file {missing_file} is missing.")
 
 
 if __name__ == "__main__":
