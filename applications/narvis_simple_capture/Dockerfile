@@ -26,7 +26,7 @@ ARG GPU_TYPE
 ############################################################
 # CV-CUDA Downloader
 ############################################################
-FROM ${BASE_IMAGE} as cvcuda-downloader
+FROM ${BASE_IMAGE} AS cvcuda-downloader
 
 ARG GCC_VERSION=11
 ARG CVCUDA_TAG=v0.7.0-beta
@@ -53,7 +53,7 @@ RUN git clone --branch ${CVCUDA_TAG} --depth 1 https://github.com/CVCUDA/CV-CUDA
 # CV-CUDA Builder
 ############################################################
 
-FROM cvcuda-downloader as cvcuda-builder
+FROM cvcuda-downloader AS cvcuda-builder
 WORKDIR /opt/nvidia/CV-CUDA
 
 # compile CV-CUDA
@@ -70,7 +70,7 @@ RUN cd build-rel \
 ############################################################
 # Base (final)
 ############################################################
-FROM cvcuda-builder as base
+FROM cvcuda-builder AS base
 ARG DEBIAN_FRONTEND=noninteractive
 
 
@@ -94,10 +94,11 @@ RUN apt update \
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-ENV PATH="${PATH}:/root/.cargo/bin"
+ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
 RUN rustup update
 
-RUN apt install libnvidia-gl-535 mesa-utils
+
+RUN apt install -y libnvidia-gl-535 mesa-utils
 
 RUN pip install conan && \
     conan profile detect && \
