@@ -89,7 +89,8 @@ RUN apt update \
         librealsense2-dev \
         libudev-dev \
         libusb-1.0-0-dev \
-        libnvidia-gl-535 mesa-utils libgl1-mesa-dev
+        libnvidia-gl-535 mesa-utils libgl1-mesa-dev \
+        libncurses5-dev
 
 ## this should probably be another build-layer ...
 
