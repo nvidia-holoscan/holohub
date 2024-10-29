@@ -278,16 +278,21 @@ assignment in Holoscan's Inference operator.",
             logging.info(f"Run {i} completed for {scheduler} scheduler.")
             time.sleep(1)  # cool down period
 
+    def print_missing(files: list) -> None:
+        absolute_filepaths = [os.path.abspath(os.path.join(log_directory, file)) for file in files]
+        missing_files = [file for file in absolute_filepaths if not os.path.exists(file)]
+        if missing_files:
+            logging.error(f"Log file(s) {', '.join(missing_files)} are missing.")
+
     # Just print comma-separate values of log_files
     logging.info("\nEvaluation completed.")
     logging.info(f"Log file directory: {os.path.abspath(log_directory)}")
     logging.info(f"All the data flow tracking log files are: {', '.join(log_files)}")
-    for missing_file in (file for file in log_files if not os.path.exists(file)):
-        logging.error(f"Log file {missing_file} is missing.")
+    print_missing(log_files)
+
     if args.monitor_gpu:
         logging.info("All the GPU utilization log files are:", ", ".join(gpu_utilization_log_files))
-        for missing_file in (file for file in gpu_utilization_log_files):
-            logging.error(f"Utilization log file {missing_file} is missing.")
+        print_missing(gpu_utilization_log_files)
 
 
 if __name__ == "__main__":
