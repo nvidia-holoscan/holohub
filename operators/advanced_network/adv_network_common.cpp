@@ -27,7 +27,6 @@
 #include "adv_network_rmax_mgr.h"
 #endif
 
-
 #define ASSERT_ANO_MGR_INITIALIZED() \
   assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
 namespace holoscan::ops {
@@ -484,9 +483,7 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::RxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) {
-    return false;
-  }
+  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     q.output_port_ = q_item["output_port"].as<std::string>();
   } catch (const std::exception& e) {
@@ -541,9 +538,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::TxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) {
-    return false;
-  }
+  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());

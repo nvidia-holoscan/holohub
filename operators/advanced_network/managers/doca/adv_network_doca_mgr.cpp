@@ -268,7 +268,8 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
   struct rte_eth_conf eth_conf = {
-      .rxmode = {
+      .rxmode =
+          {
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };
@@ -1303,7 +1304,7 @@ int DocaMgr::rx_core(void* arg) {
   }
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
-  #if ADV_NETWORK_MANAGER_WARMUP_KERNEL
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1313,7 +1314,7 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               false);
-  #endif
+#endif
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
 

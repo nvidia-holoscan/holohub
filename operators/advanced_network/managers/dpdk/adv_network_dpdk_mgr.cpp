@@ -269,15 +269,18 @@ void DpdkMgr::initialize() {
   uint16_t portid;
 
   static struct rte_eth_conf conf_eth_port = {
-      .rxmode = {
+      .rxmode =
+          {
               .mq_mode = RTE_ETH_MQ_RX_RSS,
               .offloads = 0,
           },
-      .txmode = {
+      .txmode =
+          {
               .mq_mode = RTE_ETH_MQ_TX_NONE,
               .offloads = 0,
           },
-      .rx_adv_conf = {
+      .rx_adv_conf =
+          {
               .rss_conf = {.rss_key = NULL, .rss_hf = RTE_ETH_RSS_IP},
           },
   };
@@ -720,7 +723,8 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 
   auto num_rx_ptrs_bufs = (1UL << 13) - 1;
   HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
-                      num_rx_ptrs_bufs, sizeof(void*) * max_rx_batch);
+                    num_rx_ptrs_bufs,
+                    sizeof(void*) * max_rx_batch);
   rx_burst_buffer = rte_mempool_create("RX_BURST_POOL",
                                        num_rx_ptrs_bufs,
                                        sizeof(void*) * max_rx_batch,
