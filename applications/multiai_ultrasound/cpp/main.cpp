@@ -70,6 +70,8 @@ class App : public holoscan::Application {
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");
     auto in_components = is_aja_source_ ? 4 : 3;
+    // FormatConverterOp needs an temporary buffer if converting from RGBA
+    auto format_convert_pool_blocks = (in_components == 4) ? 4 : 3;
     auto plax_cham_pre =
         make_operator<ops::FormatConverterOp>("plax_cham_pre",
                                               from_config("plax_cham_pre"),
@@ -78,7 +80,7 @@ class App : public holoscan::Application {
                                                   "plax_cham_pre_pool",
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   320 * 320 * sizeof(float) * in_components,
-                                                  3),
+                                                  format_convert_pool_blocks),
                                               Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto aortic_ste_pre =
@@ -89,7 +91,7 @@ class App : public holoscan::Application {
                                                   "aortic_ste_pre_pool",
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   300 * 300 * sizeof(float) * in_components,
-                                                  3),
+                                                  format_convert_pool_blocks),
                                               Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto b_mode_pers_pre =
@@ -100,7 +102,7 @@ class App : public holoscan::Application {
                                                   "b_mode_pers_pre_pool",
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   320 * 240 * sizeof(float) * in_components,
-                                                  3),
+                                                  format_convert_pool_blocks),
                                               Arg("cuda_stream_pool") = cuda_stream_pool);
 
     ops::InferenceOp::DataMap model_path_map;
@@ -158,7 +160,8 @@ class App : public holoscan::Application {
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto holoviz = make_operator<ops::HolovizOp>(
-        "holoviz", from_config("holoviz"),
+        "holoviz",
+        from_config("holoviz"),
         Arg("enable_render_buffer_output") = (record_type_ == Record::VISUALIZER),
         Arg("allocator") =
             make_resource<BlockMemoryPool>("visualizer_allocator",
@@ -167,7 +170,6 @@ class App : public holoscan::Application {
                                            320 * 320 * 4 * sizeof(uint8_t),
                                            1 * 8),
         Arg("cuda_stream_pool") = cuda_stream_pool);
-
 
     // Add recording operators
     if (record_type_ != Record::NONE) {
@@ -178,9 +180,9 @@ class App : public holoscan::Application {
             from_config("recorder_format_converter"),
             Arg("pool") =
                 make_resource<BlockMemoryPool>("pool",
-                                           (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
-                                           320 * 320 * 4 * sizeof(uint8_t),
-                                           1 * 8));
+                                               (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
+                                               320 * 320 * 4 * sizeof(uint8_t),
+                                               1 * 8));
       }
       recorder = make_operator<ops::VideoStreamRecorderOp>("recorder", from_config("recorder"));
     }
@@ -208,7 +210,6 @@ class App : public holoscan::Application {
     add_flow(visualizer_icardio, holoviz, {{"lines", "receivers"}});
     add_flow(visualizer_icardio, holoviz, {{"logo", "receivers"}});
 
-
     if (record_type_ == Record::INPUT) {
       if (is_aja_source_) {
         add_flow(source, recorder_format_converter, {{source_port_name, "source_video"}});
@@ -217,9 +218,7 @@ class App : public holoscan::Application {
         add_flow(source, recorder);
       }
     } else if (record_type_ == Record::VISUALIZER) {
-      add_flow(holoviz,
-               recorder_format_converter,
-               {{"render_buffer_output", "source_video"}});
+      add_flow(holoviz, recorder_format_converter, {{"render_buffer_output", "source_video"}});
       add_flow(recorder_format_converter, recorder);
     }
   }

@@ -27,7 +27,6 @@
 #include "adv_network_rmax_mgr.h"
 #endif
 
-
 #define ASSERT_ANO_MGR_INITIALIZED() \
   assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
 namespace holoscan::ops {
@@ -42,6 +41,26 @@ namespace holoscan::ops {
  */
 // Declare a static global variable for the manager
 static ANOMgr* g_ano_mgr = nullptr;
+
+const std::unordered_map<AnoLogLevel::Level, std::string> AnoLogLevel::level_to_string_map = {
+    {TRACE, "trace"},
+    {DEBUG, "debug"},
+    {INFO, "info"},
+    {WARN, "warn"},
+    {ERROR, "error"},
+    {CRITICAL, "critical"},
+    {OFF, "off"},
+};
+
+const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to_level_map = {
+    {"trace", TRACE},
+    {"debug", DEBUG},
+    {"info", INFO},
+    {"warn", WARN},
+    {"error", ERROR},
+    {"critical", CRITICAL},
+    {"off", OFF},
+};
 
 AdvNetBurstParams* adv_net_create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
@@ -464,9 +483,7 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::RxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) {
-    return false;
-  }
+  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     q.output_port_ = q_item["output_port"].as<std::string>();
   } catch (const std::exception& e) {
@@ -521,9 +538,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
  */
 bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::ops::TxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) {
-    return false;
-  }
+  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());

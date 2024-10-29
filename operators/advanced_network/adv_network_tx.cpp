@@ -27,16 +27,14 @@ struct AdvNetworkOpTx::AdvNetworkOpTxImpl {
   ANOMgr* mgr;
 };
 
+void AdvNetworkOpTx::setup(OperatorSpec& spec) {
+  spec.input<AdvNetBurstParams*>("burst_in");
 
-void AdvNetworkOpTx::setup(OperatorSpec& spec)  {
-  spec.input<AdvNetBurstParams *>("burst_in");
-
-  spec.param(
-      cfg_,
-      "cfg",
-      "Configuration",
-      "Configuration for the advanced network operator",
-      AdvNetConfigYaml());
+  spec.param(cfg_,
+             "cfg",
+             "Configuration",
+             "Configuration for the advanced network operator",
+             AdvNetConfigYaml());
 }
 
 void AdvNetworkOpTx::initialize() {
@@ -44,9 +42,7 @@ void AdvNetworkOpTx::initialize() {
   register_converter<holoscan::ops::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
-  if (Init() < 0) {
-    throw std::runtime_error("ANO initialization failed");
-  }
+  if (Init() < 0) { throw std::runtime_error("ANO initialization failed"); }
 }
 
 int AdvNetworkOpTx::Init() {
@@ -65,11 +61,11 @@ int AdvNetworkOpTx::Init() {
 }
 
 void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
-      [[maybe_unused]] ExecutionContext&) {
+                             [[maybe_unused]] ExecutionContext&) {
   int n;
 
-  AdvNetBurstParams *d_params;
-  auto rx = op_input.receive<AdvNetBurstParams *>("burst_in");
+  AdvNetBurstParams* d_params;
+  auto rx = op_input.receive<AdvNetBurstParams*>("burst_in");
 
   if (rx.has_value() && rx.value() != nullptr) {
     const auto tx_buf_res = impl->mgr->get_tx_meta_buf(&d_params);
@@ -78,7 +74,7 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
       return;
     }
 
-    AdvNetBurstParams *burst = rx.value();
+    AdvNetBurstParams* burst = rx.value();
     memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
 
     const auto tx_res = impl->mgr->send_tx_burst(d_params);
@@ -87,8 +83,7 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
       return;
     }
 
-    if (impl->cfg.common_.manager_type != AnoMgrType::DOCA)
-      delete burst;
+    if (impl->cfg.common_.manager_type != AnoMgrType::DOCA) delete burst;
   }
 }
 };  // namespace holoscan::ops

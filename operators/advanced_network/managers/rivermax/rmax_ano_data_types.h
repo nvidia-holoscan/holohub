@@ -174,6 +174,71 @@ struct RmaxPacketData {
   RmaxPacketExtendedInfo extended_info;
 };
 
-};  // namespace holoscan::ops
+/**
+ * @brief Class representing Rmax log levels.
+ */
+class RmaxLogLevel {
+ public:
+  enum Level {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    CRITICAL,
+    OFF,
+  };
+
+  /**
+   * @brief Converts an Rmax log level to a description string.
+   *
+   * @param level The Rmax log level to convert.
+   * @return The string representation of the log level.
+   */
+  static std::string to_description_string(Level level) {
+    auto it = level_to_cmd_map.find(level);
+    if (it != level_to_cmd_map.end()) { return std::get<0>(it->second); }
+    throw std::logic_error(
+        "Unrecognized log level, available options "
+        "debug/info/notice/warn/error/critical/alert/emergency/off");
+  }
+
+  /**
+   * @brief Converts an Rmax log level to a command string.
+   *
+   * @param level The Rmax log level to convert.
+   * @return The string representation of the log level.
+   */
+  static std::string to_cmd_string(Level level) {
+    auto it = level_to_cmd_map.find(level);
+    if (it != level_to_cmd_map.end()) { return std::get<1>(it->second); }
+    throw std::logic_error(
+        "Unrecognized log level, available options "
+        "debug/info/notice/warn/error/critical/alert/emergency/off");
+  }
+  /**
+   * @brief Converts an Ano log level to an Rmax log level.
+   *
+   * @param ano_level The Ano log level to convert.
+   * @return The corresponding Rmax log level.
+   */
+  static Level from_ano_log_level(AnoLogLevel::Level ano_level) {
+    auto it = ano_to_rmax_log_level_map.find(ano_level);
+    if (it != ano_to_rmax_log_level_map.end()) { return it->second; }
+    return OFF;
+  }
+
+ private:
+  /**
+   * A map of log level to a tuple of the description and command strings.
+   */
+  static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
+  /**
+   * A map of Ano log level to Rmax log level.
+   */
+  static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_rmax_log_level_map;
+};
+
+}  // namespace holoscan::ops
 
 #endif  // RMAX_ANO_DATA_TYPES_H_

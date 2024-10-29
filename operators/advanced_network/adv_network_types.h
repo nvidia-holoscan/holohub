@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdexcept>
 #include <unordered_map>
+#include <algorithm>
+#include <cctype>
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/udp.h>
@@ -209,6 +211,66 @@ inline std::string manager_type_to_string(AnoMgrType type) {
       return "unknown";
   }
 }
+class AnoLogLevel {
+ public:
+  enum Level {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    CRITICAL,
+    OFF,
+  };
+
+  static std::string to_string(Level level) {
+    auto it = level_to_string_map.find(level);
+    if (it != level_to_string_map.end()) { return it->second; }
+    return "warn";
+  }
+
+  static Level from_string(const std::string& str) {
+    std::string lower_str = str;
+    std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), [](unsigned char c) {
+      return std::tolower(c);
+    });
+
+    auto it = string_to_level_map.find(lower_str);
+    if (it != string_to_level_map.end()) { return it->second; }
+    throw std::logic_error(
+        "Unrecognized log level, available options trace/debug/info/warn/error/critical/off");
+  }
+
+ private:
+  static const std::unordered_map<Level, std::string> level_to_string_map;
+  static const std::unordered_map<std::string, Level> string_to_level_map;
+};
+
+/**
+ * @class ManagerLogLevelCommandBuilder
+ * @brief Abstract base class for building manager log level commands.
+ *
+ * This class defines an interface for building commands that manage log levels.
+ * Derived classes must implement the `get_cmd_flags_strings` method to provide
+ * the specific command flag strings.
+ */
+class ManagerLogLevelCommandBuilder {
+ public:
+  /**
+   * @brief Virtual destructor for the ManagerLogLevelCommandBuilder class.
+   */
+  virtual ~ManagerLogLevelCommandBuilder() = default;
+
+  /**
+   * @brief Pure virtual function to get the command flag strings.
+   *
+   * This function must be implemented by derived classes to return
+   * the specific command flag strings for managing log levels.
+   *
+   * @return A vector of command flag strings.
+   */
+  virtual std::vector<std::string> get_cmd_flags_strings() const = 0;
+};
 
 /**
  * @brief Parameters to configure advanced network operators
@@ -332,6 +394,7 @@ struct AdvNetConfigYaml {
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
   uint16_t debug_;
+  AnoLogLevel::Level log_level_;
 };
 
 template <typename Config>

@@ -83,6 +83,28 @@ struct RxDocaWorkerParams {
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
+const std::unordered_map<AnoLogLevel::Level, doca_log_level>
+    DocaLogLevel::ano_to_doca_log_level_map = {
+        {AnoLogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
+        {AnoLogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
+        {AnoLogLevel::INFO, DOCA_LOG_LEVEL_INFO},
+        {AnoLogLevel::WARN, DOCA_LOG_LEVEL_WARNING},
+        {AnoLogLevel::ERROR, DOCA_LOG_LEVEL_ERROR},
+        {AnoLogLevel::CRITICAL, DOCA_LOG_LEVEL_CRIT},
+        {AnoLogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
+};
+
+const std::unordered_map<doca_log_level, std::string>
+    DocaLogLevel::level_to_string_description_map = {
+        {DOCA_LOG_LEVEL_TRACE, "Trace"},
+        {DOCA_LOG_LEVEL_DEBUG, "Debug"},
+        {DOCA_LOG_LEVEL_INFO, "Info"},
+        {DOCA_LOG_LEVEL_WARNING, "Warning"},
+        {DOCA_LOG_LEVEL_ERROR, "Error"},
+        {DOCA_LOG_LEVEL_CRIT, "Critical"},
+        {DOCA_LOG_LEVEL_DISABLE, "Disable"},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief Init
@@ -218,17 +240,19 @@ doca_error_t DocaMgr::init_doca_devices() {
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
   }
 
-#if 0
-    struct doca_log_backend *stdout_logger = nullptr;
+  auto log_level = DocaLogLevel::from_ano_log_level(cfg_.log_level_);
+  if (log_level != DOCA_LOG_LEVEL_DISABLE) {
+    struct doca_log_backend* stdout_logger = nullptr;
+
+    HOLOSCAN_LOG_INFO("Setting DOCA Logging level to {}",
+                      DocaLogLevel::to_description_string(log_level));
 
     result = doca_log_backend_create_with_file_sdk(stdout, &stdout_logger);
-    if (result != DOCA_SUCCESS)
-            return result;
+    if (result != DOCA_SUCCESS) return result;
 
-    result = doca_log_backend_set_sdk_level(stdout_logger, DOCA_LOG_LEVEL_TRACE);
-    if (result != DOCA_SUCCESS)
-            return result;
-#endif
+    result = doca_log_backend_set_sdk_level(stdout_logger, log_level);
+    if (result != DOCA_SUCCESS) return result;
+  }
 
   return DOCA_SUCCESS;
 }
@@ -244,7 +268,8 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
   struct rte_eth_conf eth_conf = {
-      .rxmode = {
+      .rxmode =
+          {
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };
@@ -1279,7 +1304,7 @@ int DocaMgr::rx_core(void* arg) {
   }
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
-  #if ADV_NETWORK_MANAGER_WARMUP_KERNEL
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1289,7 +1314,7 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               false);
-  #endif
+#endif
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
 

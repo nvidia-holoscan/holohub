@@ -1,0 +1,35 @@
+{
+  "sdk_release": "vX.Y.0",
+  "holohub_revision": "12345678",
+  "x86": {
+      "version": {
+        "cpu": "",
+        "dgpu": "",
+        "driver": "",
+        "cuda": "",
+        "os": ""
+      },
+      "processed_path": "x86/processed"
+  },
+  "igpu": {
+    "version": {
+      "cpu": "",
+      "dgpu": "",
+      "driver": "",
+      "cuda": "",
+      "os": ""
+    },
+    "processed_path": "igpu/processed"
+  },
+  "dgpu": {
+    "version": {
+      "cpu": "",
+      "dgpu": "",
+      "driver": "",
+      "cuda": "",
+      "os": ""
+    },
+    "processed_path": "dgpu/processed"
+  },
+  "format": "markdown"
+}

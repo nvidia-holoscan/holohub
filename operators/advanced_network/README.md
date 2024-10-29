@@ -248,6 +248,8 @@ bound to a non-isolated core. Should differ from isolated cores in queues below.
   - type: `integer`
 - **`manager`**: Backend networking library. default: `dpdk`. Other: `doca` (GPUNet IO), `rivermax`
   - type: `string`
+- **`log_level`**: Backend log level. default: `warn`. Other: `trace` , `debug`, `info`, `error`, `critical`, `off`
+  - type: `string`
 
 ##### Memory regions
 
