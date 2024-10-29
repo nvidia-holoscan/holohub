@@ -22,33 +22,11 @@
 #include <utility>
 #include <vector>
 
-#include "holoscan/core/fragment.hpp"
-#include "holoscan/core/gxf/entity.hpp"
-#include "holoscan/core/execution_context.hpp"
-#include "holoscan/core/io_context.hpp"
-#include "holoscan/core/operator_spec.hpp"
+#include <holoscan/core/execution_context.hpp>
 
-#include "holoscan/core/conditions/gxf/boolean.hpp"
-#include "holoscan/core/resources/gxf/allocator.hpp"
-#include "holoscan/core/resources/gxf/cuda_stream_pool.hpp"
+#include <gxf/std/tensor.hpp>
 
-#include "gxf/std/tensor.hpp"
-
-using holoscan::ops::tool_tracking_postprocessor::cuda_postprocess;
-
-#define CUDA_TRY(stmt)                                                                   \
-  ({                                                                                     \
-    cudaError_t _holoscan_cuda_err = stmt;                                               \
-    if (cudaSuccess != _holoscan_cuda_err) {                                             \
-      GXF_LOG_ERROR("CUDA Runtime call %s in line %d of file %s failed with '%s' (%d).", \
-                    #stmt,                                                               \
-                    __LINE__,                                                            \
-                    __FILE__,                                                            \
-                    cudaGetErrorString(_holoscan_cuda_err),                              \
-                    _holoscan_cuda_err);                                                 \
-    }                                                                                    \
-    _holoscan_cuda_err;                                                                  \
-  })
+#include "tool_tracking_postprocessor.cuh"
 
 namespace holoscan::ops {
 
@@ -69,15 +47,10 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
                                                                  {1.00f, 1.00f, 0.60f}};
 
   auto& in_tensor = spec.input<gxf::Entity>("in");
-  // Because coords is on host and mask is on device, emit them on separate ports for
-  // compatibility with use of this operator in distributed applications.
-  auto& out_coords = spec.output<gxf::Entity>("out_coords");
-  auto& out_mask = spec.output<gxf::Entity>("out_mask").condition(ConditionType::kNone);
+  auto& out_tensor = spec.output<gxf::Entity>("out");
 
   spec.param(in_, "in", "Input", "Input port.", &in_tensor);
-  spec.param(
-      out_coords_, "out_coords", "Output", "Output port for coordinates (on host).", &out_coords);
-  spec.param(out_mask_, "out_mask", "Output", "Output port for mask (on device).", &out_mask);
+  spec.param(out_, "out", "Output", "Output port.", &out_tensor);
 
   spec.param(
       min_prob_, "min_prob", "Minimum probability", "Minimum probability.", DEFAULT_MIN_PROB);
@@ -88,19 +61,22 @@ void ToolTrackingPostprocessorOp::setup(OperatorSpec& spec) {
              "Color of the image overlays, a list of RGB values with components between 0 and 1",
              DEFAULT_COLORS);
 
-  spec.param(host_allocator_, "host_allocator", "Allocator", "Output Allocator");
   spec.param(device_allocator_, "device_allocator", "Allocator", "Output Allocator");
 
   cuda_stream_handler_.define_params(spec);
+}
+
+void ToolTrackingPostprocessorOp::stop() {
+  if (dev_colors_) {
+    CUDA_TRY(cudaFree(dev_colors_));
+    dev_colors_ = nullptr;
+  }
 }
 
 void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext& op_output,
                                           ExecutionContext& context) {
   // The type of `in_message` is 'holoscan::gxf::Entity'.
   auto in_message = op_input.receive<gxf::Entity>("in").value();
-  auto maybe_tensor = in_message.get<Tensor>("probs");
-  if (!maybe_tensor) { throw std::runtime_error("Tensor 'probs' not found in message."); }
-  auto probs_tensor = maybe_tensor;
 
   // get the CUDA stream from the input message
   gxf_result_t stream_handler_result =
@@ -109,120 +85,102 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
     throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
   }
 
-  std::vector<float> probs(probs_tensor->size());
-  CUDA_TRY(cudaMemcpyAsync(probs.data(),
-                           probs_tensor->data(),
-                           probs_tensor->nbytes(),
-                           cudaMemcpyDeviceToHost,
-                           cuda_stream_handler_.get_cuda_stream(context.context())));
+  auto maybe_tensor = in_message.get<Tensor>("probs");
+  if (!maybe_tensor) { throw std::runtime_error("Tensor 'probs' not found in message."); }
+  auto probs_tensor = maybe_tensor;
 
   maybe_tensor = in_message.get<Tensor>("scaled_coords");
   if (!maybe_tensor) { throw std::runtime_error("Tensor 'scaled_coords' not found in message."); }
   auto scaled_coords_tensor = maybe_tensor;
 
-  std::vector<float> scaled_coords(scaled_coords_tensor->size());
-  CUDA_TRY(cudaMemcpyAsync(scaled_coords.data(),
-                           scaled_coords_tensor->data(),
-                           scaled_coords_tensor->nbytes(),
-                           cudaMemcpyDeviceToHost,
-                           cuda_stream_handler_.get_cuda_stream(context.context())));
-
   maybe_tensor = in_message.get<Tensor>("binary_masks");
   if (!maybe_tensor) { throw std::runtime_error("Tensor 'binary_masks' not found in message."); }
   auto binary_masks_tensor = maybe_tensor;
 
-  // Create a new message (nvidia::nvidia::gxf::Entity) for host tensor(s)
-  auto out_message_host = nvidia::gxf::Entity::New(context.context());
+  // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
+  auto device_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), device_allocator_.get()->gxf_cid());
 
-  // filter coordinates based on probability
-  std::vector<uint32_t> visible_classes;
-  {
-    // wait for the CUDA memory copy to finish
-    CUDA_TRY(cudaStreamSynchronize(cuda_stream_handler_.get_cuda_stream(context.context())));
+  // Create a new message (nvidia::nvidia::gxf::Entity) for the output
+  auto out_message = nvidia::gxf::Entity::New(context.context());
 
-    std::vector<float> filtered_scaled_coords;
-    for (size_t index = 0; index < probs.size(); ++index) {
-      if (probs[index] > min_prob_) {
-        filtered_scaled_coords.push_back(scaled_coords[index * 2]);
-        filtered_scaled_coords.push_back(scaled_coords[index * 2 + 1]);
-        visible_classes.push_back(index);
-      } else {
-        filtered_scaled_coords.push_back(-1.f);
-        filtered_scaled_coords.push_back(-1.f);
-      }
-    }
-
-    auto out_coords_tensor = out_message_host.value().add<nvidia::gxf::Tensor>("scaled_coords");
-    if (!out_coords_tensor) {
-      throw std::runtime_error("Failed to allocate output tensor 'scaled_coords'");
-    }
-
-    // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
-    auto host_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
-        context.context(), host_allocator_.get()->gxf_cid());
-
-    const nvidia::gxf::Shape output_shape{1, int32_t(filtered_scaled_coords.size() / 2), 2};
-    out_coords_tensor.value()->reshape<float>(
-        output_shape, nvidia::gxf::MemoryStorageType::kHost, host_allocator.value());
-    if (!out_coords_tensor.value()->pointer()) {
-      throw std::runtime_error(
-          "Failed to allocate output tensor buffer for tensor 'scaled_coords'.");
-    }
-    memcpy(out_coords_tensor.value()->data<float>().value(),
-           filtered_scaled_coords.data(),
-           filtered_scaled_coords.size() * sizeof(float));
+  // Create a new tensor for the scaled coords
+  auto out_coords_tensor = out_message.value().add<nvidia::gxf::Tensor>("scaled_coords");
+  if (!out_coords_tensor) {
+    throw std::runtime_error("Failed to allocate output tensor 'scaled_coords'");
   }
 
-  // Create a new message (nvidia::nvidia::gxf::Entity) for device tensor(s)
-  auto out_message_device = nvidia::gxf::Entity::New(context.context());
+  const nvidia::gxf::Shape coords_shape{int32_t(probs_tensor->size()), 3};
+  out_coords_tensor.value()->reshape<float>(
+      coords_shape, nvidia::gxf::MemoryStorageType::kDevice, device_allocator.value());
+  if (!out_coords_tensor.value()->pointer()) {
+    throw std::runtime_error("Failed to allocate output tensor buffer for tensor 'scaled_coords'.");
+  }
 
-  // filter binary mask
-  {
-    auto out_mask_tensor = out_message_device.value().add<nvidia::gxf::Tensor>("mask");
-    if (!out_mask_tensor) { throw std::runtime_error("Failed to allocate output tensor 'mask'"); }
+  // Create a new tensor for the mask
+  auto out_mask_tensor = out_message.value().add<nvidia::gxf::Tensor>("mask");
+  if (!out_mask_tensor) { throw std::runtime_error("Failed to allocate output tensor 'mask'"); }
 
-    // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
-    auto device_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
-        context.context(), device_allocator_.get()->gxf_cid());
+  const nvidia::gxf::Shape mask_shape{static_cast<int>(binary_masks_tensor->shape()[2]),
+                                      static_cast<int>(binary_masks_tensor->shape()[3]),
+                                      4};
+  out_mask_tensor.value()->reshape<float>(
+      mask_shape, nvidia::gxf::MemoryStorageType::kDevice, device_allocator.value());
+  if (!out_mask_tensor.value()->pointer()) {
+    throw std::runtime_error("Failed to allocate output tensor buffer for tensor 'mask'.");
+  }
 
-    const nvidia::gxf::Shape output_shape{static_cast<int>(binary_masks_tensor->shape()[2]),
-                                          static_cast<int>(binary_masks_tensor->shape()[3]),
-                                          4};
-    out_mask_tensor.value()->reshape<float>(
-        output_shape, nvidia::gxf::MemoryStorageType::kDevice, device_allocator.value());
-    if (!out_mask_tensor.value()->pointer()) {
-      throw std::runtime_error("Failed to allocate output tensor buffer for tensor 'mask'.");
+  const cudaStream_t cuda_stream = cuda_stream_handler_.get_cuda_stream(context.context());
+
+  if (num_colors_ != probs_tensor->size()) {
+    num_colors_ = probs_tensor->size();
+    if (dev_colors_) {
+      CUDA_TRY(cudaFree(dev_colors_));
+      dev_colors_ = nullptr;
     }
+  }
 
-    float* const out_data = out_mask_tensor.value()->data<float>().value();
-    const size_t layer_size = output_shape.dimension(0) * output_shape.dimension(1);
-    bool first = true;
-    for (auto& index : visible_classes) {
+  if (!dev_colors_) {
+    // copy colors to CUDA device memory, this is needed by the postprocessing kernel
+    CUDA_TRY(cudaMalloc(&dev_colors_, num_colors_ * sizeof(float3)));
+
+    // build a vector with the colors, if more colors are required than specified, repeat the
+    // last color
+    std::vector<float3> colors;
+    for (auto index = 0; index < num_colors_; ++index) {
       const auto& img_color =
-          overlay_img_colors_.get()[std::min(index, uint32_t(overlay_img_colors_.get().size()))];
-      const std::array<float, 3> color{{img_color[0], img_color[1], img_color[2]}};
-      cuda_postprocess(output_shape.dimension(0),
-                       output_shape.dimension(1),
-                       color,
-                       first,
-                       static_cast<float*>(binary_masks_tensor->data()) + index * layer_size,
-                       reinterpret_cast<float4*>(out_data),
-                       cuda_stream_handler_.get_cuda_stream(context.context()));
-      first = false;
+          overlay_img_colors_.get()[std::min(index, int(overlay_img_colors_.get().size()))];
+      colors.push_back(make_float3(img_color[0], img_color[1], img_color[2]));
     }
+
+    CUDA_TRY(cudaMemcpyAsync(dev_colors_,
+                             colors.data(),
+                             num_colors_ * sizeof(float3),
+                             cudaMemcpyHostToDevice,
+                             cuda_stream));
   }
+
+  // filter coordinates based on probability and create a colored mask from the binary mask
+  cuda_postprocess(probs_tensor->size(),
+                   min_prob_,
+                   reinterpret_cast<const float*>(probs_tensor->data()),
+                   reinterpret_cast<const float2*>(scaled_coords_tensor->data()),
+                   reinterpret_cast<float3*>(out_coords_tensor.value()->pointer()),
+                   mask_shape.dimension(0),
+                   mask_shape.dimension(1),
+                   reinterpret_cast<const float3*>(dev_colors_),
+                   reinterpret_cast<const float*>(binary_masks_tensor->data()),
+                   reinterpret_cast<float4*>(out_mask_tensor.value()->pointer()),
+                   cuda_stream);
 
   // pass the CUDA stream to the output message
-  stream_handler_result = cuda_stream_handler_.to_message(out_message_device);
-
+  stream_handler_result = cuda_stream_handler_.to_message(out_message);
   if (stream_handler_result != GXF_SUCCESS) {
     throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
   }
 
-  auto result_host = gxf::Entity(std::move(out_message_host.value()));
-  auto result_device = gxf::Entity(std::move(out_message_device.value()));
-  op_output.emit(result_host, "out_coords");
-  op_output.emit(result_device, "out_mask");
+  auto result = gxf::Entity(std::move(out_message.value()));
+  op_output.emit(result, "out");
 }
 
 }  // namespace holoscan::ops

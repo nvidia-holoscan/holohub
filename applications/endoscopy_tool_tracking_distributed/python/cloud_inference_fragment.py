@@ -98,7 +98,6 @@ class CloudInferenceFragment(Fragment):
                 self,
                 name="device_allocator",
             ),
-            host_allocator=UnboundedAllocator(self, name="host_allocator"),
         )
 
         self.add_flow(format_converter, lstm_inferer)

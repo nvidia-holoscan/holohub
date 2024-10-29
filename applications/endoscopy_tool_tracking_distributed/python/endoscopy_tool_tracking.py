@@ -72,10 +72,7 @@ class EndoscopyApp(Application):
         self.add_flow(
             inference_fragment,
             viz_fragment,
-            {
-                ("tool_tracking_postprocessor.out_coords", "holoviz.receivers"),
-                ("tool_tracking_postprocessor.out_mask", "holoviz.receivers"),
-            },
+            {("tool_tracking_postprocessor.out", "holoviz.receivers")},
         )
 
         self.add_flow(
