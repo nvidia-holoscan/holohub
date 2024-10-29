@@ -58,12 +58,11 @@ class LSTMTensorRTInferenceOp : public holoscan::ops::GXFOperator {
   Parameter<std::shared_ptr<Allocator>> pool_;
   Parameter<std::shared_ptr<CudaStreamPool>> cuda_stream_pool_;
   Parameter<int64_t> max_workspace_size_;
-  Parameter<int64_t> dla_core_;
+  Parameter<int32_t> dla_core_;
   Parameter<int32_t> max_batch_size_;
   Parameter<bool> enable_fp16_;
   Parameter<bool> relaxed_dimension_check_;
   Parameter<bool> verbose_;
-  Parameter<std::shared_ptr<Resource>> clock_;
 
   Parameter<std::vector<IOSpec*>> rx_;
   Parameter<IOSpec*> tx_;

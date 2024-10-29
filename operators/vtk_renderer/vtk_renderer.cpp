@@ -145,11 +145,11 @@ void VtkRendererOp::compute(InputContext& op_input, OutputContext&, ExecutionCon
 
     this->internals->foreground_renderer->RemoveAllViewProps();
 
-    // scale_coords comes in the format [X0 Y0 X1 Y1 ... Xn Yn]
+    // scale_coords comes in the format [X0 Y0 S0 X1 Y1 S1 ... Xn Yn Sn]
     // each numbered tuple represent a label (scissors, clipper...)
-    for (int i = 0; i < scaled_coords.size(); i += 2) {
+    for (int i = 0; i < scaled_coords.size(); i += 3) {
       if (scaled_coords[i] > 0) {
-        std::string label = labels.get()[i / 2];
+        std::string label = labels.get()[i / 3];
         float x = scaled_coords[i];
         float y = scaled_coords[i + 1];
         render_text_at_location(label, x, y, this->internals->foreground_renderer);

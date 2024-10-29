@@ -94,7 +94,8 @@ void LSTMTensorRTInferenceOp::setup(OperatorSpec& spec) {
              "dla_core",
              "DLA Core",
              "DLA Core to use. Fallback to GPU is always enabled. "
-             "Default to use GPU only.");
+             "Default to use GPU only.",
+             ParameterFlag::kOptional);
   spec.param(max_batch_size_,
              "max_batch_size",
              "Max Batch Size",
@@ -117,7 +118,6 @@ void LSTMTensorRTInferenceOp::setup(OperatorSpec& spec) {
              "Relaxed Dimension Check",
              "Ignore dimensions of 1 for input tensor dimension check.",
              true);
-  spec.param(clock_, "clock", "Clock", "Instance of clock for publish time.");
 
   spec.param(rx_, "rx", "RX", "List of receivers to take input tensors", {&in_tensor});
   spec.param(tx_, "tx", "TX", "Transmitter to publish output tensors", &out_tensor);

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,7 @@ from holoscan.operators import (
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import (
-    BlockMemoryPool,
-    CudaStreamPool,
-    MemoryStorageType,
-    UnboundedAllocator,
-)
+from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 
@@ -114,6 +109,13 @@ class EndoscopyApp(Application):
                 directory=video_dir,
                 **self.kwargs("replayer"),
             )
+            # the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
+            try:
+                from holoscan.resources import RMMAllocator
+
+                source.add_arg(allocator=RMMAllocator(self, name="video_replayer_allocator"))
+            except Exception:
+                pass
             # 4 bytes/channel, 3 channels
             source_block_size = width * height * 3 * 4
             source_num_blocks = 2
@@ -177,8 +179,14 @@ class EndoscopyApp(Application):
             **self.kwargs("lstm_inference"),
         )
 
-        tool_tracking_postprocessor_block_size = 107 * 60 * 7 * 4
-        tool_tracking_postprocessor_num_blocks = 2
+        # the tool tracking post process outputs
+        # - a RGBA float32 color mask
+        # - coordinates with x,y and size in float32
+        bytes_per_float32 = 4
+        tool_tracking_postprocessor_block_size = max(
+            107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
+        )
+        tool_tracking_postprocessor_num_blocks = 2 * 2
         tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
             self,
             name="tool_tracking_postprocessor",
@@ -189,7 +197,6 @@ class EndoscopyApp(Application):
                 block_size=tool_tracking_postprocessor_block_size,
                 num_blocks=tool_tracking_postprocessor_num_blocks,
             ),
-            host_allocator=UnboundedAllocator(self, name="host_allocator"),
         )
 
         if (record_type == "visualizer") and (self.source == "replayer"):
@@ -223,16 +230,11 @@ class EndoscopyApp(Application):
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
 
-        if renderer == "holoviz":
-            self.add_flow(
-                tool_tracking_postprocessor,
-                visualizer,
-                {("out_coords", input_annotations_signal), ("out_mask", input_annotations_signal)},
-            )
-        else:
-            self.add_flow(
-                tool_tracking_postprocessor, visualizer, {("out_coords", input_annotations_signal)}
-            )
+        self.add_flow(
+            tool_tracking_postprocessor,
+            visualizer,
+            {("out", input_annotations_signal)},
+        )
 
         self.add_flow(
             source,

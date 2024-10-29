@@ -38,7 +38,7 @@ This implementation is based on `nvidia::gxf::TensorRtInference`.
 - **`max_workspace_size`**: Size of working space in bytes (default: `67108864l` (64MB))
   - type: `int64_t`
 - **`dla_core`**: DLA Core to use. Fallback to GPU is always enabled. Default to use GPU only (`optional`)
-  - type: `int64_t`
+  - type: `int32_t`
 - **`max_batch_size`**: Maximum possible batch size in case the first dimension is dynamic and used as batch size (default: `1`)
   - type: `int32_t`
 - **`enable_fp16_`**: Enable inference with FP16 and FP32 fallback (default: `false`)
@@ -47,8 +47,6 @@ This implementation is based on `nvidia::gxf::TensorRtInference`.
   - type: `bool`
 - **`relaxed_dimension_check`**: Ignore dimensions of 1 for input tensor dimension check (default: `true`)
   - type: `bool`
-- **`clock`**: Instance of clock for publish time (`optional`)
-  - type: `gxf::Handle<gxf::Clock>`
 - **`rx`**: List of receivers to take input tensors
   - type: `std::vector<gxf::Handle<gxf::Receiver>>`
 - **`tx`**: Transmitter to publish output tensors

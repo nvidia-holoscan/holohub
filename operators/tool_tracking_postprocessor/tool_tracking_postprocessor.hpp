@@ -22,8 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "tool_tracking_postprocessor.cuh"
-
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
@@ -41,18 +39,13 @@ namespace holoscan::ops {
  *
  * ==Named Outputs==
  *
- * - **out_coords** : `nvidia::gxf::Tensor`
- *   - Coordinates tensor, stored on the host (CPU).
- *
- * - **out_mask** : `nvidia::gxf::Tensor`
- *   - Binary mask tensor, stored on device (GPU).
+ * - **out** : `nvidia::gxf::Tensor`
+ *   - Binary mask and coordinates tensor, stored on the device (GPU).
  *
  * ==Parameters==
  *
- * - **host_allocator**: The holoscan::Allocator class (e.g. UnboundedAllocator) use for host
- *   memory allocation of the `out_coords` tensor.
  * - **device_allocator**: The holoscan::Allocator class (e.g. UnboundedAllocator or
- *   BlockMemoryPool) used for device memory allocation for the `out_mask` tensor.
+ *   BlockMemoryPool) used for device memory allocation for the output tensors.
  * - **min_prob**: Minimum probability threshold used by the operator.
  *   Optional (default: 0.5).
  * - **overlay_img_colors**: A `vector<vector<float>>` where each inner vector is a set of three
@@ -68,21 +61,23 @@ class ToolTrackingPostprocessorOp : public holoscan::Operator {
   ToolTrackingPostprocessorOp() = default;
 
   void setup(OperatorSpec& spec) override;
+  void stop() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
 
  private:
   Parameter<holoscan::IOSpec*> in_;
-  Parameter<holoscan::IOSpec*> out_coords_;
-  Parameter<holoscan::IOSpec*> out_mask_;
+  Parameter<holoscan::IOSpec*> out_;
 
   Parameter<float> min_prob_;
   Parameter<std::vector<std::vector<float>>> overlay_img_colors_;
 
-  Parameter<std::shared_ptr<Allocator>> host_allocator_;
   Parameter<std::shared_ptr<Allocator>> device_allocator_;
 
   CudaStreamHandler cuda_stream_handler_;
+
+  uint32_t num_colors_ = 0;
+  void *dev_colors_ = nullptr;
 };
 
 }  // namespace holoscan::ops
