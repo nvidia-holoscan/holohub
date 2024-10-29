@@ -1,0 +1,36 @@
+{
+  "application": {
+    "name": "Narvis Simple Capture",
+    "authors": [
+      {
+        "name": "Ulrich Eck",
+        "affiliation": "CAMP/TUM"
+      }
+    ],
+    "language": "Python",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial Release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "2.1.0",
+      "tested_versions": [
+        "2.1.0"
+      ]
+    },
+    "platforms": [
+      "amd64",
+      "arm64"
+    ],
+    "tags": [
+      "Video"
+    ],
+    "ranking": 2,
+    "dependencies": {
+    },
+    "run": {
+      "command": "python3 <holohub_app_source>/narvis_simple_capture.py",
+      "workdir": "holohub_bin"
+    }
+  }
+}

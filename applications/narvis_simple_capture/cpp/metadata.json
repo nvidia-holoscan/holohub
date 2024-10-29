@@ -1,28 +1,28 @@
 {
-	"application": {
-		"name": "Narvis Simple Capture",
-		"authors": [
-			{
-				"name": "Narvis Team",
-				"affiliation": "Camp"
-			}
-		],
-		"language": "C++",
-		"version": "1.0",
-		"changelog": {
-			"1.0": "Initial Release"
-		},
-		"holoscan_sdk": {
-			"minimum_required_version": "2.5.0",
-			"tested_versions": ["2.5.0"]
-		},
-		"platforms": ["amd64", "arm64"],
-		"tags": [],
-		"ranking": 0,
-		"dependencies": {},
-		"run": {
-			"command": "<holohub_app_bin>/narvis_simple_capture",
-			"workdir": "holohub_bin"
-		}
-	}
+  "application": {
+    "name": "Narvis Simple Capture",
+    "authors": [
+      {
+        "name": "Narvis Team",
+        "affiliation": "Camp"
+      }
+    ],
+    "language": "C++",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial Release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "2.5.0",
+      "tested_versions": ["2.5.0"]
+    },
+    "platforms": ["amd64", "arm64"],
+    "tags": [],
+    "ranking": 0,
+    "dependencies": {},
+    "run": {
+      "command": "<holohub_app_bin>/narvis_simple_capture",
+      "workdir": "holohub_bin"
+    }
+  }
 } 
