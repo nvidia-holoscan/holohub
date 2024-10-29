@@ -93,12 +93,14 @@ RUN apt update \
         libncurses5-dev \
         libacl1-dev
 
-## this should probably be another build-layer ...
 
+## this should probably be another build-layer ...
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
 RUN rustup update
+
+
 
 RUN pip install conan && \
     conan profile detect && \
