@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 
 project(tool_tracking_postprocessor LANGUAGES CXX CUDA)
 
@@ -30,6 +30,8 @@ set_target_properties(tool_tracking_postprocessor
   PROPERTIES
     # separable compilation is required since we launch kernels from within kernels
     CUDA_SEPARABLE_COMPILATION ON
+    # compile for the architecture of the current GPU
+    CUDA_ARCHITECTURES "native"
   )
 
 target_link_libraries(tool_tracking_postprocessor
