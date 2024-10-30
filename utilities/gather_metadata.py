@@ -18,7 +18,11 @@
 import argparse
 import codecs
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def find_metadata_files(repo_paths):
@@ -79,32 +83,39 @@ def generate_build_and_run_command(metadata: dict) -> str:
         return f'./dev_container build_and_run {metadata["application_name"]}'
 
 
-def gather_metadata(repo_path) -> dict:
+def gather_metadata(repo_path, exclude_files: None) -> dict:
     """Collect project metadata from JSON files into a single dictionary"""
     SCHEMA_TYPES = ["application", "operator", "gxf_extension", "tutorial"]
 
     metadata_files = find_metadata_files(repo_path)
     metadata = []
+    exclude_files = exclude_files or []
 
     # Iterate over the found metadata files
     for file_path in metadata_files:
+        if file_path in exclude_files:
+            continue
         with open(file_path, "r") as file:
-            data = json.load(file)
+            try:
+                data = json.load(file)
 
-            for schema_type in SCHEMA_TYPES:
-                if schema_type in data:
-                    data["metadata"] = data.pop(schema_type)
-                    break
+                for schema_type in SCHEMA_TYPES:
+                    if schema_type in data:
+                        data["metadata"] = data.pop(schema_type)
+                        break
 
-            readme = extract_readme(file_path)
-            application_name = extract_application_name(file_path)
-            source_folder = os.path.normpath(file_path).split("/")[0]
-            data["readme"] = readme
-            data["application_name"] = application_name
-            data["source_folder"] = source_folder
-            if source_folder == "applications":
-                data["build_and_run"] = generate_build_and_run_command(data)
-            metadata.append(data)
+                readme = extract_readme(file_path)
+                application_name = extract_application_name(file_path)
+                source_folder = os.path.normpath(file_path).split("/")[0]
+                data["readme"] = readme
+                data["application_name"] = application_name
+                data["source_folder"] = source_folder
+                if source_folder == "applications":
+                    data["build_and_run"] = generate_build_and_run_command(data)
+                metadata.append(data)
+            except json.decoder.JSONDecodeError as e:
+                logger.error('Error parsing JSON file "%s": %s', file_path, e)
+                continue
 
     return metadata
 
@@ -118,7 +129,7 @@ def main(args: argparse.Namespace):
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS
     output_file = args.output or DEFAULT_OUTPUT_FILEPATH
 
-    metadata = gather_metadata(repo_paths)
+    metadata = gather_metadata(repo_paths, exclude_files=args.exclude)
 
     # Write the metadata to the output file
     with open(output_file, "w") as output:
@@ -142,6 +153,13 @@ if __name__ == "__main__":
         nargs="*",
         required=False,
         help="Path(s) to search for metadata files",
+    )
+    parser.add_argument(
+        "--exclude",
+        type=str,
+        nargs="*",
+        required=False,
+        help="Filepath(s) to exclude from metadata collection. Takes priority over --include.",
     )
     args = parser.parse_args()
     main(args)
