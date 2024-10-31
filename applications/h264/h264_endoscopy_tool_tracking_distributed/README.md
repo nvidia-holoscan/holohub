@@ -25,30 +25,30 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # Start the application with all three fragments
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language cpp
 
 # Use the following commands to run the same application three processes:
 # Start the application with the video_in fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language cpp --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
 # Start the application with the inference fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language cpp --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
 # Start the application with the visualization fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language cpp --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language cpp --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
 ```
 
 ### Python
 
 ```bash
 # Start the application with all three fragments
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language python
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language python
 
 # Use the following commands to run the same application three processes:
 # Start the application with the video_in fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language python --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language python --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
 # Start the application with the inference fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language python --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language python --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
 # Start the application with the visualization fragment
-./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --docker_file applications/h264/Dockerfile --language python --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
+./dev_container build_and_run h264_endoscopy_tool_tracking_distributed --language python --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
