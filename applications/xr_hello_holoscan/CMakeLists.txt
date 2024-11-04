@@ -25,6 +25,7 @@ set(CMAKE_CUDA_ARCHITECTURES 75)
 FetchContent_Declare(
   Eigen3
   URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(Eigen3)
 
