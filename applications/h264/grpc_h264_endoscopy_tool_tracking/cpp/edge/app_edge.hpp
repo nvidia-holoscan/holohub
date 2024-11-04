@@ -35,7 +35,9 @@ using namespace holoscan;
  *
  * This class inherits from the holoscan::Application and is a client application offloads the
  * inference and process to a remote gRPC server. It is composed with two fragments, a video input
- * fragment and a visualization fragment using Holoviz.
+ * fragment and a visualization fragment using Holoviz. This enables running the edge application on
+ * two systems, separating the input from the visualization. For example, a video surveillance
+ * camera capturing and streaming input to another system displaying the footage.
  */
 class AppEdge : public holoscan::Application {
  public:

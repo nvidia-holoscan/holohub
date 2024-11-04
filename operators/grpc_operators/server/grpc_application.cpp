@@ -58,7 +58,7 @@ void HoloscanGrpcApplication::enqueue_request(const EntityRequest& request) {
   auto out_message = nvidia::gxf::Entity::New(executor().context());
 
   holoscan::ops::TensorProto::entity_request_to_tensor(
-      &request, out_message.value(), gxf_allocator.value());
+      &request, out_message.value(), gxf_allocator.value(), grpc_request_op->get_cuda_stream());
 
   auto entity = std::make_shared<nvidia::gxf::Entity>(out_message.value());
   request_queue->push(entity);

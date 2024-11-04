@@ -24,6 +24,8 @@ void GrpcClientRequestOp::setup(OperatorSpec& spec) {
 
   spec.param(request_queue_, "request_queue", "Request Queue", "Outgoing gRPC requests.");
   spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
+
+  cuda_stream_handler_.define_params(spec);
 }
 
 void GrpcClientRequestOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -34,9 +36,14 @@ void GrpcClientRequestOp::compute(InputContext& op_input, OutputContext& op_outp
     return;
   }
   auto request = std::make_shared<EntityRequest>();
-  holoscan::ops::TensorProto::tensor_to_entity_request(maybe_input_message.value(), request);
+  holoscan::ops::TensorProto::tensor_to_entity_request(
+      maybe_input_message.value(), request, get_cuda_stream());
   request_queue_->push(request);
   HOLOSCAN_LOG_DEBUG("grpc: request converted and queued for transmission");
+}
+
+const cudaStream_t GrpcClientRequestOp::get_cuda_stream() {
+  return cuda_stream_handler_.get_cuda_stream(fragment()->executor().context());
 }
 
 }  // namespace holoscan::ops

@@ -20,6 +20,7 @@
 
 #include <gxf/app/graph_entity.hpp>
 #include <holoscan/holoscan.hpp>
+#include <holoscan/utils/cuda_stream_handler.hpp>
 
 #include "../generated/holoscan.pb.h"
 
@@ -65,9 +66,13 @@ class GrpcClientRequestOp : public holoscan::Operator {
 
   Executor& executor() { return fragment()->executor(); }
 
+  const cudaStream_t get_cuda_stream();
+
  private:
   Parameter<std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>>> request_queue_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
+
+  CudaStreamHandler cuda_stream_handler_;
 };
 }  // namespace holoscan::ops
 #endif /* CLIENT_GRPC_CLIENT_REQUEST_HPP */

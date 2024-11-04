@@ -71,6 +71,9 @@ using create_application_instance_func = std::function<ApplicationInstance(
  * instances of HoloscanGrpcApplication. It follows the singleton pattern to ensure that
  * only one instance of the factory exists.
  *
+ * Register each gRPC service with a Holoscan application with the Application Factory.
+ * This decouples the application creation from the gRPC service and the application pipeline.
+ *
  * @note Copy constructor and assignment operator are deleted to prevent copying.
  */
 

@@ -23,6 +23,8 @@ void GrpcServerResponseOp::setup(OperatorSpec& spec) {
   spec.input<nvidia::gxf::Entity>("input", IOSpec::kAnySize);
 
   spec.param(response_queue_, "response_queue", "Response Queue", "Outgoing gRPC results.");
+
+  cuda_stream_handler_.define_params(spec);
 }
 
 void GrpcServerResponseOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -33,7 +35,8 @@ void GrpcServerResponseOp::compute(InputContext& op_input, OutputContext& op_out
   auto input_messages = op_input.receive<std::vector<holoscan::gxf::Entity>>("input").value();
 
   for (auto&& message : input_messages) {
-    holoscan::ops::TensorProto::tensor_to_entity_response(message, response);
+    holoscan::ops::TensorProto::tensor_to_entity_response(
+        message, response, cuda_stream_handler_.get_cuda_stream(fragment()->executor().context()));
     tensors++;
   }
 

@@ -52,7 +52,10 @@ void EntityClientService::start_entity_stream_internal() {
         if (!out_message) { throw std::runtime_error("Failed to create GXF entity"); }
 
         holoscan::ops::TensorProto::entity_response_to_tensor(
-            response, out_message.value(), gxf_allocator.value());
+            response,
+            out_message.value(),
+            gxf_allocator.value(),
+            grpc_request_operator_->get_cuda_stream());
         return std::make_shared<nvidia::gxf::Entity>(out_message.value());
       },
       // Handle RPC completed event

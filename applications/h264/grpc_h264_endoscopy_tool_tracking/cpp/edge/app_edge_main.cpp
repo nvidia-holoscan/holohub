@@ -76,9 +76,6 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
  * 7. Runs the application.
  */
 int main(int argc, char** argv) {
-  auto width = 854;
-  auto height = 480;
-
   // Parse the arguments
   std::string config_path = "";
   std::string data_directory = "";

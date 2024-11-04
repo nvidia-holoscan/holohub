@@ -29,7 +29,7 @@ using namespace holoscan;
 
 /**
  * @class AsynchronousConditionQueue
- * @brief A This class is a Holoscan Resource that is responsible for storing a queue of data
+ * @brief This class is a Holoscan Resource that is responsible for storing a queue of data
  * entities.
  *
  * The AsynchronousCondition is used to notify when data is available.

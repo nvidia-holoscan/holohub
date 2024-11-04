@@ -18,7 +18,7 @@ add_holohub_application(grpc_h264_endoscopy_tool_tracking DEPENDS
                                   tensor_to_video_buffer
                                   lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                                  grpc)
+                                  grpc_operators)
 
 add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
                         OPERATORS video_encoder

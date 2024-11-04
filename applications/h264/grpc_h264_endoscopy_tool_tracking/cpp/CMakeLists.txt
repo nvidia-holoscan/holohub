@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(grpc_h264_endoscopy_tool_tracking CXX)
 
-find_package(holoscan 2.5 REQUIRED CONFIG
+find_package(holoscan 2.6 REQUIRED CONFIG
   PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(grpc_h264_endoscopy_tool_tracking_cloud

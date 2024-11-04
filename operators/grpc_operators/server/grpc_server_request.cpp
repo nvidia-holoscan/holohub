@@ -32,6 +32,8 @@ void GrpcServerRequestOp::setup(OperatorSpec& spec) {
              "is transmitted or received.");
 
   spec.output<holoscan::gxf::Entity>("output");
+
+  cuda_stream_handler_.define_params(spec);
 }
 
 void GrpcServerRequestOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -49,6 +51,10 @@ std::shared_ptr<UnboundedAllocator> GrpcServerRequestOp::allocator() {
 
 const uint32_t GrpcServerRequestOp::rpc_timeout() {
   return rpc_timeout_.get();
+}
+
+const cudaStream_t GrpcServerRequestOp::get_cuda_stream() {
+  return cuda_stream_handler_.get_cuda_stream(fragment()->executor().context());
 }
 
 }  // namespace holoscan::ops

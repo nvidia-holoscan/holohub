@@ -41,13 +41,11 @@ class VizFragment : public holoscan::Fragment {
     int64_t source_block_size = width_ * height_ * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto visualizer_op =
-        make_operator<ops::HolovizOp>("visualizer_op",
-                                      from_config("holoviz"),
-                                      Arg("width") = width_,
-                                      Arg("height") = height_,
-                                      Arg("allocator") = make_resource<BlockMemoryPool>(
-                                          "allocator", 1, source_block_size, source_num_blocks));
+    auto visualizer_op = make_operator<ops::HolovizOp>(
+        "visualizer_op",
+        from_config("holoviz"),
+        Arg("width") = width_,
+        Arg("height") = height_);
     add_operator(visualizer_op);
   }
 

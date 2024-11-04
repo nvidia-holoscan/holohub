@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_APP_CLOUD_PIPELINE_HPP
-#define GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_APP_CLOUD_PIPELINE_HPP
+#ifndef GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
+#define GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
 
 #include <gxf/core/entity.hpp>
 #include <holoscan/holoscan.hpp>
@@ -69,24 +69,28 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
                                              Arg("async_scheduling_term") = request_condition,
                                              Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
-        "video_decoder_response",
-        streaming_enabled,
-        from_config("video_decoder_response"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"),
-        Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_response =
+        make_operator<VideoDecoderResponseOp>("video_decoder_response",
+                                              streaming_enabled,
+                                              from_config("video_decoder_response"),
+                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
+                                              Arg("videodecoder_context") = video_decoder_context);
 
-    auto decoder_output_format_converter = make_operator<ops::FormatConverterOp>(
-        "decoder_output_format_converter",
-        streaming_enabled,
-        from_config("decoder_output_format_converter"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+    auto cuda_stream_pool = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
-    auto rgb_float_format_converter = make_operator<ops::FormatConverterOp>(
-        "rgb_float_format_converter",
-        streaming_enabled,
-        from_config("rgb_float_format_converter"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+    auto decoder_output_format_converter =
+        make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
+                                              streaming_enabled,
+                                              from_config("decoder_output_format_converter"),
+                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
+                                              Arg("cuda_stream_pool") = cuda_stream_pool);
+
+    auto rgb_float_format_converter =
+        make_operator<ops::FormatConverterOp>("rgb_float_format_converter",
+                                              streaming_enabled,
+                                              from_config("rgb_float_format_converter"),
+                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
+                                              Arg("cuda_stream_pool") = cuda_stream_pool);
 
     const std::string model_file_path = data_path + "/tool_loc_convlstm.onnx";
     const std::string engine_cache_dir = data_path + "/engines";
@@ -97,15 +101,14 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
         from_config("lstm_inference"),
         Arg("model_file_path", model_file_path),
         Arg("engine_cache_dir", engine_cache_dir),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"),
-        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
+        Arg("pool") = make_resource<RMMAllocator>("pool"),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
         streaming_enabled,
         from_config("tool_tracking_postprocessor"),
-        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"),
-        Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
+        Arg("device_allocator") = make_resource<RMMAllocator>("device_allocator"));
 
     // Here we connect the GrpcServerRequestOp to the VideoDecoderRequestOp to send the received
     // video frames for decoding.
@@ -125,4 +128,4 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
   }
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
-#endif /* GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_APP_CLOUD_PIPELINE_HPP */
+#endif /* GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP */

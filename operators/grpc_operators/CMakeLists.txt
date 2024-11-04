@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(grpc_operators)
 
-find_package(holoscan 2.5 REQUIRED CONFIG
+find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 include(grpc_generate_cpp)
@@ -26,7 +26,6 @@ set(CORE_PROTO_FILES
 grpc_generate_cpp(CORE_GRPC_SRCS CORE_GRPC_HDRS INCLUDE_DIRS ${CORE_PROTO_FILES})
 
 add_library(grpc_operators SHARED
-  # ${CORE_GRPC_HDRS}
   ${CORE_GRPC_SRCS}
   server/application_factory.cpp
   server/entity_server.cpp
@@ -53,7 +52,7 @@ target_link_libraries(grpc_operators
   )
 
 target_include_directories(grpc_operators
-  INTERFACE
+  PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${INCLUDE_DIRS}
   ${PROTOBUF_INCLUDE_DIRS})

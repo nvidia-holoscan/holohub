@@ -22,8 +22,8 @@
 #include <grpc_server.hpp>
 #include <holoscan/holoscan.hpp>
 
-#include "grpc_service.hpp"
 #include "app_cloud_pipeline.hpp"
+#include "grpc_service.hpp"
 
 using namespace holoscan;
 using namespace holohub::grpc_h264_endoscopy_tool_tracking;
@@ -119,6 +119,9 @@ int main(int argc, char** argv) {
     }
   }
 
+  // Register each gRPC service with a Holoscan application:
+  // - the callback function (create_application_instance_func) is used to create a new instance of
+  //   the application when a new RPC call is received.
   ApplicationFactory::get_instance()->register_application(
       "EntityStream",
       [config_path, data_directory](
@@ -136,7 +139,5 @@ int main(int argc, char** argv) {
       });
 
   GrpcService::get_instance(port, ApplicationFactory::get_instance()).start();
-  // std::thread server_thread = std::thread(&GrpcService::start, grpc_service);
-  // server_thread.join();
   return 0;
 }

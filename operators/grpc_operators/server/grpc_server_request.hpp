@@ -20,6 +20,7 @@
 
 #include <gxf/app/graph_entity.hpp>
 #include <holoscan/holoscan.hpp>
+#include <holoscan/utils/cuda_stream_handler.hpp>
 
 #include "../common/conditional_variable_queue.hpp"
 
@@ -59,11 +60,15 @@ class GrpcServerRequestOp : public holoscan::Operator {
 
   const uint32_t rpc_timeout();
 
+  const cudaStream_t get_cuda_stream();
+
  private:
   Parameter<std::shared_ptr<UnboundedAllocator>> allocator_;
   Parameter<uint32_t> rpc_timeout_;
   Parameter<std::shared_ptr<ConditionVariableQueue<std::shared_ptr<nvidia::gxf::Entity>>>>
       request_queue_;
+
+  CudaStreamHandler cuda_stream_handler_;
 };
 
 }  // namespace holoscan::ops

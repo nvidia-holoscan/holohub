@@ -18,6 +18,8 @@
 #ifndef GRPC_SERVER_RESPONSE_HPP
 #define GRPC_SERVER_RESPONSE_HPP
 
+#include <holoscan/utils/cuda_stream_handler.hpp>
+
 #include "../common/conditional_variable_queue.hpp"
 #include "../common/tensor_proto.hpp"
 #include "../generated/holoscan.pb.h"
@@ -56,6 +58,8 @@ class GrpcServerResponseOp : public holoscan::Operator {
  private:
   Parameter<std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityResponse>>>>
       response_queue_;
+
+  CudaStreamHandler cuda_stream_handler_;
 };
 }  // namespace holoscan::ops
 #endif /* GRPC_SERVER_RESPONSE_HPP */
