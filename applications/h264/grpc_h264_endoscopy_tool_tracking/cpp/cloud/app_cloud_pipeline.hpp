@@ -69,28 +69,28 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
                                              Arg("async_scheduling_term") = request_condition,
                                              Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response =
-        make_operator<VideoDecoderResponseOp>("video_decoder_response",
-                                              streaming_enabled,
-                                              from_config("video_decoder_response"),
-                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
-                                              Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
+        "video_decoder_response",
+        streaming_enabled,
+        from_config("video_decoder_response"),
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("videodecoder_context") = video_decoder_context);
 
     auto cuda_stream_pool = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
-    auto decoder_output_format_converter =
-        make_operator<ops::FormatConverterOp>("decoder_output_format_converter",
-                                              streaming_enabled,
-                                              from_config("decoder_output_format_converter"),
-                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
-                                              Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto decoder_output_format_converter = make_operator<ops::FormatConverterOp>(
+        "decoder_output_format_converter",
+        streaming_enabled,
+        from_config("decoder_output_format_converter"),
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    auto rgb_float_format_converter =
-        make_operator<ops::FormatConverterOp>("rgb_float_format_converter",
-                                              streaming_enabled,
-                                              from_config("rgb_float_format_converter"),
-                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
-                                              Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto rgb_float_format_converter = make_operator<ops::FormatConverterOp>(
+        "rgb_float_format_converter",
+        streaming_enabled,
+        from_config("rgb_float_format_converter"),
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("cuda_stream_pool") = cuda_stream_pool);
 
     const std::string model_file_path = data_path + "/tool_loc_convlstm.onnx";
     const std::string engine_cache_dir = data_path + "/engines";
@@ -101,14 +101,15 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
         from_config("lstm_inference"),
         Arg("model_file_path", model_file_path),
         Arg("engine_cache_dir", engine_cache_dir),
-        Arg("pool") = make_resource<RMMAllocator>("pool"),
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")),
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
         streaming_enabled,
         from_config("tool_tracking_postprocessor"),
-        Arg("device_allocator") = make_resource<RMMAllocator>("device_allocator"));
+        Arg("device_allocator") = make_resource<RMMAllocator>(
+            "device_allocator", Arg("device_memory_max_size") = std::string("256MB")));
 
     // Here we connect the GrpcServerRequestOp to the VideoDecoderRequestOp to send the received
     // video frames for decoding.

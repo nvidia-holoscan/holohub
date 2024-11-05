@@ -64,13 +64,14 @@ class VideoInputFragment : public holoscan::Fragment {
         make_condition<CountCondition>(750),
         make_condition<PeriodicCondition>("periodic-condition",
                                           Arg("recess_period") = std::string("25hz")),
-        Arg("pool") = make_resource<RMMAllocator>("pool"));
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")));
 
     // The GrpcClientRequestOp is responsible for sending data to the gRPC server.
     auto outgoing_requests =
         make_operator<GrpcClientRequestOp>("outgoing_requests",
                                            Arg("request_queue") = request_queue_,
-                                           Arg("allocator") = make_resource<RMMAllocator>("pool"));
+                                           Arg("allocator") = make_resource<RMMAllocator>(
+                                               "pool", Arg("device_memory_max_size") = std::string("256MB")));
 
     auto response_condition = make_condition<AsynchronousCondition>("response_condition");
     auto video_decoder_context = make_resource<VideoDecoderContext>(
@@ -83,16 +84,16 @@ class VideoInputFragment : public holoscan::Fragment {
                                              Arg("async_scheduling_term") = request_condition,
                                              Arg("videodecoder_context") = video_decoder_context);
 
-    auto video_decoder_response =
-        make_operator<VideoDecoderResponseOp>("video_decoder_response",
-                                              from_config("video_decoder_response"),
-                                              Arg("pool") = make_resource<RMMAllocator>("pool"),
-                                              Arg("videodecoder_context") = video_decoder_context);
+    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
+        "video_decoder_response",
+        from_config("video_decoder_response"),
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("videodecoder_context") = video_decoder_context);
 
     auto decoder_output_format_converter = make_operator<FormatConverterOp>(
         "decoder_output_format_converter",
         from_config("decoder_output_format_converter"),
-        Arg("pool") = make_resource<RMMAllocator>("pool"));
+        Arg("pool") = make_resource<RMMAllocator>("pool", Arg("device_memory_max_size") = std::string("256MB")));
 
     // The GrpcClientResponseOp is responsible for handling incoming responses from the gRPC server.
     auto incoming_responses =
