@@ -108,6 +108,7 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
         "tool_tracking_postprocessor",
         streaming_enabled,
         from_config("tool_tracking_postprocessor"),
+        Arg("cuda_stream_pool") = cuda_stream_pool,
         Arg("device_allocator") = make_resource<RMMAllocator>(
             "device_allocator", Arg("device_memory_max_size") = std::string("256MB")));
 

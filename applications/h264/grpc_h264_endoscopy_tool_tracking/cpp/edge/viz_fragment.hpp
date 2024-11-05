@@ -45,7 +45,8 @@ class VizFragment : public holoscan::Fragment {
         "visualizer_op",
         from_config("holoviz"),
         Arg("width") = width_,
-        Arg("height") = height_);
+        Arg("height") = height_,
+        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
     add_operator(visualizer_op);
   }
 

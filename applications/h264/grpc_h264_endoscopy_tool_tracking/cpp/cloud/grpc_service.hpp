@@ -93,7 +93,6 @@ class GrpcService {
   std::unique_ptr<Server> server_;
   std::unique_ptr<HoloscanEntityServiceImpl> service_;
   std::shared_ptr<ApplicationFactory> application_factory_;
-  bool stopped_;
 
   GrpcService(const std::string server_address,
               std::shared_ptr<ApplicationFactory> application_factory)
@@ -101,7 +100,6 @@ class GrpcService {
 
   ~GrpcService() = default;
 
-  GrpcService() : stopped_(false) {}
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
 

@@ -140,6 +140,8 @@ nvidia::gxf::MemoryStorageType TensorProto::memory_storage_type(
       return nvidia::gxf::MemoryStorageType::kHost;
     case holoscan::entity::Tensor::kSystem:
       return nvidia::gxf::MemoryStorageType::kSystem;
+    default:
+      throw std::runtime_error("Unsupported memory storage type");
   }
 }
 

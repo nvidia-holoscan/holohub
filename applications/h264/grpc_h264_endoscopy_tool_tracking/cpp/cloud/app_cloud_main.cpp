@@ -16,8 +16,10 @@
  */
 
 #include <getopt.h>
+#include <csignal>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include <grpc_server.hpp>
 #include <holoscan/holoscan.hpp>
@@ -53,13 +55,19 @@ bool parse_arguments(int argc, char** argv, uint32_t& port, std::string& data_pa
           } catch (const std::exception& e) { std::cerr << e.what() << ":" << optarg << '\n'; }
           break;
         default:
-          holoscan::log_error("Unhandled option '{}'", static_cast<char>(c));
+          HOLOSCAN_LOG_ERROR("Unhandled option '{}'", static_cast<char>(c));
           return false;
       }
     }
   }
 
   return true;
+}
+
+void signal_handler(int signum) {
+  HOLOSCAN_LOG_WARN("Caught signal {}. Stopping services...", signum);
+  std::thread myThread([] { GrpcService::get_instance(0, nullptr).stop(); });
+  myThread.join();
 }
 
 /** Main function */
@@ -138,6 +146,21 @@ int main(int argc, char** argv) {
         return application_instance;
       });
 
-  GrpcService::get_instance(port, ApplicationFactory::get_instance()).start();
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = signal_handler;
+  sigaction(SIGINT, &sa, NULL);
+  sigaction(SIGHUP, &sa, NULL);
+  sigaction(SIGTERM, &sa, NULL);
+
+  try {
+    GrpcService::get_instance(port, ApplicationFactory::get_instance()).start();
+  } catch (std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error running gRPC service: {}", e.what());
+    exit(-1);
+  } catch (...) {
+    HOLOSCAN_LOG_ERROR("Unknown error running gRPC service");
+    exit(-2);
+  }
   return 0;
 }
