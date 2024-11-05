@@ -15,7 +15,7 @@
 
 import logging
 
-from holoscan.core import Fragment, Operator, OperatorSpec
+from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.ehr_query_llm.message_handling import MessageReceiver
 
@@ -56,7 +56,9 @@ class ZeroMQSubscriberOp(Operator):
         super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
-        spec.output("request")
+        spec.output("request").condition(
+            ConditionType.NONE
+        )  # Downstream receiver optional.
 
     def compute(self, op_input, op_output, context):
         """
@@ -65,8 +67,6 @@ class ZeroMQSubscriberOp(Operator):
         request_str = self._queue.receive_json(self._blocking)
         if not request_str:
             return
-            # Who is going to handle this condition?
-            # GXF scheduler expects output as it is not marked as optional. Busy spinning
 
         op_output.emit(request_str, "request")
         self._logger.debug("Received request message sent downstream...")

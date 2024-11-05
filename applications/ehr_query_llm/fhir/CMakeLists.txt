@@ -25,12 +25,14 @@ install(
         packageHAP.sh
         README.md
         requirements.txt
-        run_cmd_template.sh
         test_fhir_client.py
   DESTINATION bin/fhir/python
   COMPONENT "holohub-apps"
 )
 
+# This part is to work around a limitation of HSDK CLI Package before v2.7,
+# where only files and folders under the same application root folder get packaged.
 install(
-  DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/ehr_query_llm
-  DESTINATION bin/fhir/python/operators)
+  DIRECTORY ${CMAKE_SOURCE_DIR}/operators/ehr_query_llm
+  DESTINATION bin/fhir/python/operators
+)

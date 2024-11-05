@@ -52,8 +52,9 @@ class FHIRResourceSanitizer:
 
     @staticmethod
     def sanitize(data: Dict) -> Optional[Dict]:
-        """The sanitize method extracts wanted data, removes noises and transforms the data structure
-            so the AI model can better understand the details of a given FHIR record.
+        """
+        The sanitize method extracts wanted data, removes non-compliant entries, and then transforms
+        the data structure so the AI model can better understand the details of a given FHIR record.
 
         Args:
             data (Dict): a single FHIR document in python dictionary format.

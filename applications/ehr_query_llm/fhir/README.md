@@ -24,12 +24,12 @@ The default set of FHIR resource types to retrieve are listed below, which can b
 
 ## Run Instructions
 
-There are a number of ways to build and run this application, as well as packaging this application as a Holoscan Application Package, a [Open Container Initiative](https://opencontainers.org/) compliant image. The following sections describe each in detail.
+There are several ways to build and run this application and package it as a Holoscan Application Package, an [Open Container Initiative](https://opencontainers.org/) compliant image. The following sections describe each in detail.
 
 It is further expected that you have read the [HoloHub README](../../../README.md), have cloned the HoloHub repository to your local system, and the current working directory is the HoloHub root, `holohub`.
 
 **_Note_**:
-The application listens on request message to start retrieving resources from the server and then publishes the results, so another application is needed to drive this workflow, e.g. the LLM applicaition. To help with simple testing, a Python script is provided as part of this application, and its usage is described below in this [section](#test-the-running-application).
+The application listens on request message to start retrieving resources from the server and then publishes the results, so another application is needed to drive this workflow, e.g. the LLM application. To help with simple testing, a Python script is provided as part of this application, and its usage is described below in this [section](#test-the-running-application).
 
 ### Quick Start Using HoloHub Container
 
@@ -93,9 +93,6 @@ root:~# ./run launch fhir --extra_args "--fhir_url <f_url> --auth_url <a_url> --
 ```
 
 Once done, `exit` the container.
-
-**_Note_**:
-For a Python application, building and launching the dev container can be completely skipped, which means one can simply `pip` install the application specific dependencies in the `requirements.txt` file, and then run the few `./run` commands, shown above, to start the application directly in the host dev environment.
 
 ### Run the Application in the Host Dev Environment with dev_container script
 
