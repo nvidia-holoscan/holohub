@@ -56,9 +56,7 @@ class ZeroMQSubscriberOp(Operator):
         super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
-        spec.output("request").condition(
-            ConditionType.NONE
-        )  # Downstream receiver optional.
+        spec.output("request").condition(ConditionType.NONE)  # Downstream receiver optional.
 
     def compute(self, op_input, op_output, context):
         """
