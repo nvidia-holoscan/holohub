@@ -64,8 +64,10 @@ else() # Upstream DPDK
   target_link_libraries(advanced_network_common PUBLIC ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
 endif()
 
-pkg_check_modules(DOCA REQUIRED doca)
 pkg_check_modules(DOCA REQUIRED doca-gpunetio)
+pkg_check_modules(DOCA REQUIRED doca-flow)
+pkg_check_modules(DOCA REQUIRED doca-common)
+pkg_check_modules(DOCA REQUIRED doca-argp)
 
 add_compile_definitions("ALLOW_EXPERIMENTAL_API")
 add_compile_definitions("DOCA_ALLOW_EXPERIMENTAL_API")
