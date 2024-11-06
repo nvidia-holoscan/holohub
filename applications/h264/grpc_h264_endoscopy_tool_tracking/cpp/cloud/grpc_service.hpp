@@ -99,7 +99,6 @@ class GrpcService {
       : server_address_(server_address), application_factory_(application_factory) {}
 
   ~GrpcService() = default;
-
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
 

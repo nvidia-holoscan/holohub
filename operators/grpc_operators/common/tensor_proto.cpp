@@ -96,7 +96,7 @@ void TensorProto::copy_data_to_proto(const nvidia::gxf::Handle<nvidia::gxf::Tens
     tensor_proto.set_memory_storage_type(holoscan::entity::Tensor::kDevice);
   } else {
     tensor_proto.set_data((*tensor).pointer(), (*tensor).size());
-    tensor_proto.set_memory_storage_type(holoscan::entity::Tensor::kSystem);
+    tensor_proto.set_memory_storage_type(holoscan::entity::Tensor::kHost);
   }
 }
 
