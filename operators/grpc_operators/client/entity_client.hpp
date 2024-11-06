@@ -27,8 +27,8 @@
 #include "../common/asynchronous_condition_queue.hpp"
 #include "../common/conditional_variable_queue.hpp"
 #include "../common/tensor_proto.hpp"
-#include "../generated/holoscan.grpc.pb.h"
-#include "../generated/holoscan.pb.h"
+#include "holoscan.grpc.pb.h"
+#include "holoscan.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

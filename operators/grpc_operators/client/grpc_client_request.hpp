@@ -22,7 +22,7 @@
 #include <holoscan/holoscan.hpp>
 #include <holoscan/utils/cuda_stream_handler.hpp>
 
-#include "../generated/holoscan.pb.h"
+#include "holoscan.pb.h"
 
 #include "../common/asynchronous_condition_queue.hpp"
 #include "../common/conditional_variable_queue.hpp"

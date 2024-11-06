@@ -27,8 +27,8 @@
 #include <memory>
 #include <string>
 
-#include "../generated/holoscan.grpc.pb.h"
-#include "../generated/holoscan.pb.h"
+#include "holoscan.grpc.pb.h"
+#include "holoscan.pb.h"
 #include "grpc_application.hpp"
 
 using grpc::CallbackServerContext;

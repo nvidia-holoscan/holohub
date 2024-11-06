@@ -16,6 +16,7 @@
  */
 
 #include "entity_client.hpp"
+#include <fmt/format.h>
 
 namespace holoscan::ops {
 
@@ -26,9 +27,9 @@ EntityClient::EntityClient(
         response_queue)
     : rpc_timeout_(rpc_timeout), request_queue_(request_queue), response_queue_(response_queue) {
   channel_ = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
-  if (auto status = channel_->GetState(false); status == GRPC_CHANNEL_TRANSIENT_FAILURE) {
-    HOLOSCAN_LOG_ERROR("Error initializing channel. Please check the server address.");
-    throw std::runtime_error{"Error initializing channel"};
+  if (auto status = channel_->GetState(true);
+      status == GRPC_CHANNEL_TRANSIENT_FAILURE || status == GRPC_CHANNEL_SHUTDOWN) {
+    throw std::runtime_error{"Error initializing channel. Please check the server address."};
   }
   stub_ = Entity::NewStub(channel_);
 }
@@ -40,7 +41,8 @@ void EntityClient::EntityStream(on_new_response_available_callback response_cb,
   if (status.ok()) {
     HOLOSCAN_LOG_INFO("grpc client: EntityStream rpc succeeded.");
   } else {
-    HOLOSCAN_LOG_ERROR("grpc client: EntityStream rpc failed: {}", status.error_message());
+    throw std::runtime_error{
+        fmt::format("EntityStream rpc failed with status: {}", status.error_message())};
   }
 }
 
@@ -53,6 +55,7 @@ EntityClient::EntityStreamInternal::EntityStreamInternal(
       rpc_timeout_(rpc_timeout) {
   last_network_activity_ = std::chrono::time_point<std::chrono::system_clock>::min();
   client_->stub_->async()->EntityStream(&context_, this);
+  context_.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(rpc_timeout_));
   StartCall();
   Write();
   Read();
@@ -65,7 +68,15 @@ EntityClient::EntityStreamInternal::~EntityStreamInternal() {
 
 void EntityClient::EntityStreamInternal::OnWriteDone(bool ok) {
   last_network_activity_ = std::chrono::high_resolution_clock::now();
-  if (!ok) { HOLOSCAN_LOG_WARN("grpc client: write failed, error transmitting request"); }
+  if (!ok) {
+    HOLOSCAN_LOG_WARN("grpc client: write failed, error transmitting request");
+    if (auto status = client_->channel_->GetState(true);
+        status == GRPC_CHANNEL_TRANSIENT_FAILURE || status == GRPC_CHANNEL_SHUTDOWN) {
+      HOLOSCAN_LOG_WARN("grpc client: closing connection");
+      done_ = true;
+      StartWritesDone();
+    }
+  }
   write_mutex_.unlock();
 }
 

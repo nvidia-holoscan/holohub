@@ -22,7 +22,7 @@
 
 #include <holoscan/holoscan.hpp>
 
-#include "../generated/holoscan.pb.h"
+#include "holoscan.pb.h"
 
 using holoscan::entity::EntityResponse;
 

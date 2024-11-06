@@ -25,7 +25,7 @@
 #include <gxf/core/entity.hpp>
 #include <holoscan/holoscan.hpp>
 
-#include "../generated/holoscan.pb.h"
+#include "holoscan.pb.h"
 #include "grpc_application.hpp"
 
 using holoscan::entity::EntityResponse;

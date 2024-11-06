@@ -25,7 +25,7 @@
 #include <gxf/core/gxf.h>
 #include <holoscan/holoscan.hpp>
 
-#include "../generated/holoscan.pb.h"
+#include "holoscan.pb.h"
 
 #include "entity_client.hpp"
 #include "grpc_client_request.hpp"

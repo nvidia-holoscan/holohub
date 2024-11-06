@@ -22,7 +22,7 @@
 
 #include "../common/conditional_variable_queue.hpp"
 #include "../common/tensor_proto.hpp"
-#include "../generated/holoscan.pb.h"
+#include "holoscan.pb.h"
 
 using holoscan::entity::EntityResponse;
 
