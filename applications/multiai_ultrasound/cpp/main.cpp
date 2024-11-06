@@ -66,6 +66,10 @@ class App : public holoscan::Application {
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>(
           "replayer", from_config("replayer"), Arg("directory", datapath));
+#if HOLOSCAN_VERSION >= 20600
+      // the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
+      source->add_arg(Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")));
+#endif
     }
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");

@@ -69,6 +69,13 @@ class MultiAIICardio(Application):
             if not os.path.exists(video_dir):
                 raise ValueError(f"Could not find video data: {video_dir=}")
             source_kwargs["directory"] = video_dir
+            # the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
+            try:
+                from holoscan.resources import RMMAllocator
+
+                source_kwargs["allocator"] = RMMAllocator(self, name="video_replayer_allocator")
+            except Exception:
+                pass
         source = SourceClass(self, name=self.source, **source_kwargs)
 
         in_dtype = "rgba8888" if is_aja else "rgb888"
