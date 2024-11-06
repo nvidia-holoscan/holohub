@@ -268,8 +268,7 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
   int ret_dpdk = 0;
   struct rte_eth_dev_info dev_info = {0};
   struct rte_eth_conf eth_conf = {
-      .rxmode =
-          {
+      .rxmode = {
               .mtu = 2048, /* Not really used, just to initialize DPDK */
           },
   };

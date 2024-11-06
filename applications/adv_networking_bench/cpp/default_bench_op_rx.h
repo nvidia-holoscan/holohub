@@ -213,7 +213,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       if (hds_.get()) {
         // Header-Data-Split: header to CPU, payload to GPU
         // NOTE: current App assumes only two memory region segments, one for header (CPU),
-        //       and one for payload (GPU).      
+        //       and one for payload (GPU).
         for (int p = 0; p < burst_size; p++) {
           // Get pointers to payload data on GPU
           // NOTE: It's (1) here since the GPU memory region is second in the list for this queue.
