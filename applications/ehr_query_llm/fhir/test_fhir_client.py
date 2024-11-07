@@ -117,9 +117,8 @@ def data_handler():
                     print_latest_diagnostic_report(fhir_response.patient_resources)
                 except Exception as e:
                     print(e)
-            else:
-                for key in fhir_response.patient_resources:
-                    print_patient(key, fhir_response.patient_resources[key])
+            for key in fhir_response.patient_resources:
+                print_patient(key, fhir_response.patient_resources[key])
 
             busy = False
             show_prompt()

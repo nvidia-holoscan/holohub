@@ -135,7 +135,7 @@ class FhirClientOperator(Operator):
                     if "id" in resource:
                         id = resource.get("id")
                 if "fullUrl" in entry:
-                    request_url = query_parameters.get_everything_fitler(entry.get("fullUrl"))
+                    request_url = query_parameters.get_everything_filter(entry.get("fullUrl"))
 
                 if id and request_url:
                     patient_urls[id] = request_url

@@ -639,21 +639,24 @@ class FHIRResourceSanitizer:
 
 
 if __name__ == "__main__":
-    import glob
+    from pathlib import Path
 
-    path = "/home/vicchang/sc/fhir-data/John Doe/servicerequest.json"
+    current_file_dir = Path(__file__).parent.resolve()
+    data_path = current_file_dir.parent.joinpath("resources/patient_records-3.json").absolute()
 
-    for file in glob.glob(path):
+    if data_path.exists():
         print("==========================================================")
-        print(f"Processing file {file}..........................")
-        with open(file) as f:
-            sample = json.load(f)
+        print(f"Processing file {data_path}..........................")
+        with open(data_path) as f:
+            patient_resources = json.load(f)
 
-        entries = sample.get("entry")
-
-        if entries:
-            for entry in entries:
-                # print(f'processing {entry}')
-                x = FHIRResourceSanitizer.sanitize(entry)
-                # print(json.dumps(x))
-                print(x)
+        entries = patient_resources.get("entry")
+        for patient_key in patient_resources.keys():
+            for entry in patient_resources[patient_key]:
+                try:
+                    sanitized_record = FHIRResourceSanitizer.sanitize(entry)
+                    print(f"{sanitized_record}\n")
+                except NotImplementedError as e:
+                    logging.warning(e)
+    else:
+        print(f"Test data file is not found as expected at {data_path}.")

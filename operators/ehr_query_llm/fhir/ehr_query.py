@@ -75,7 +75,7 @@ class FHIRQuery:
     def to_json(self):
         return json.dumps(vars(self))
 
-    def get_everything_fitler(self, patient_url):
+    def get_everything_filter(self, patient_url):
         url = f"{patient_url}/$everything?"
 
         if self.resources_to_retrieve:
