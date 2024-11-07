@@ -194,13 +194,13 @@ class AISegApp(Application):
         # First adapt the input to a format that fit the MONAI bundle operator input.
         input_keys = ["image"]
         output_keys = ["pred"]
-        input_adapter = Lambdad(keys=["image"], func=lambda x: x.data)
-        input_adapt_op = MonaiTransformOperator(self, input_keys, output_keys=input_keys, transforms=[input_adapter])
+        input_adapter = Lambdad(keys=["image"], func=lambda x: x.asnumpy())
+        input_adapt_op = MonaiTransformOperator(self, input_keys=input_keys, output_keys=input_keys, transforms=[input_adapter])
 
         # Run the image inference with bundle workflow.
-        config_file = os.path.join(self.bundle_root, "conigs", "inference.json")
+        config_file = os.path.join(self.bundle_root, "configs", "inference.json")
         workflow_kwargs = {"config_file": config_file, "workflow_type": "inference"}
-        whole_seg_opt = MonaiBundleInferenceOperator(self, input_keys, output_keys, workflow_kwargs)
+        whole_seg_opt = MonaiBundleInferenceOperator(self, input_keys=input_keys, output_keys=output_keys, workflow_kwargs=workflow_kwargs)
 
         # Run post processing to adapt the bundle output to other operators.
         squeeze_trans = SqueezeDimd(keys=output_keys)

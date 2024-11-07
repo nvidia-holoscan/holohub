@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import logging
 import time
 from typing import Any, Dict, List
@@ -96,7 +97,8 @@ class MonaiBundleInferenceOperator(Operator):
             output_keys (List[str]): Defines the outputs' name.
             workflow_kwargs (Dict): Kwargs to initialize a MONAI bundle workflow.
         """
-
+        config_file = workflow_kwargs.get("config_file", "")
+        self.bundle_path = config_file[:config_file.index("/configs/")] if config_file else ""
         self._workflow = self._create_bundle_workflow(workflow_kwargs)
         if not self._workflow:
             raise AttributeError(f"Cannot create MONAIBundleInferenceOperator from kwargs {workflow_kwargs}")
@@ -112,7 +114,12 @@ class MonaiBundleInferenceOperator(Operator):
         Create the MONAI bundle workflow to perform bundle run.
         The workflow object is created from the user defined workflow args.
         """
+        if self.bundle_path:
+            cwd = os.getcwd()
+            os.chdir(self.bundle_path)
         workflow = create_workflow(**workflow_kwargs)
+        if self.bundle_path:
+            os.chdir(cwd)
         return workflow
 
     def __getattr__(self, name):
@@ -137,10 +144,12 @@ class MonaiBundleInferenceOperator(Operator):
             op_output (OutputContext): An output context for the operator.
             context (ExecutionContext): An execution context for the operator.
         """
-
+        if self.bundle_path:
+            cwd = os.getcwd()
+            os.chdir(self.bundle_path)
         self._workflow.initialize()
         inputs: Any = {}  # Use type Any to quiet MyPy type checking complaints.
-        for name in self._intput_keys:
+        for name in self._input_keys:
             value = op_input.receive(name)
             inputs[name] = value
 
@@ -150,5 +159,7 @@ class MonaiBundleInferenceOperator(Operator):
         self._workflow.run()
         logging.debug(f"Bundle inference elapsed time (seconds): {time.time() - start}")
 
+        if self.bundle_path:
+            os.chdir(cwd)
         for name in self._outputs.keys():
             op_output.emit(self._workflow.dataflow[name], name)

@@ -22,6 +22,6 @@ from app import AISegApp
 if __name__ == "__main__":
     logging.info(f"Begin {__name__}")
 
-    AISegApp().run()
+    AISegApp().run(bundle_name="wholeBody_ct_segmentation", bundle_path="/home/liubin/data/holohub/binliu_holohub/holohub/applications/imaging_ai_segmentator")
 
     logging.info(f"End {__name__}")

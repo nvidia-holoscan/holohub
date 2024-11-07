@@ -22,7 +22,7 @@ from typing import Callable, Dict, Hashable, List
 from holoscan.core import Fragment, Operator, OperatorSpec
 from operators.medical_imaging.utils.importutil import optional_import
 
-Compose, _ = optional_import("monai.transforms", name="compose")
+Compose, _ = optional_import("monai.transforms", name="Compose")
 
 __all__ = ["MonaiTransformOperator"]
 
@@ -106,7 +106,7 @@ class MonaiTransformOperator(Operator):
         """Receive difference inputs."""
         if self._dict_input:
             inputs = {}
-            for name in self._intput_keys:
+            for name in self._input_keys:
                 value = op_input.receive(name)
                 inputs[name] = value
         else:
@@ -116,7 +116,7 @@ class MonaiTransformOperator(Operator):
     def _send_outputs(self, outputs, op_output):
         """Outputs difference outputs"""
         if self._dict_input:
-            for name in self._outputs.keys():
+            for name in self._output_keys:
                 op_output.emit(outputs[name], name)
         else:
             op_output.emit(outputs, self.OP_OUT_NAME)
@@ -129,9 +129,9 @@ class MonaiTransformOperator(Operator):
             op_output (OutputContext): An output context for the operator.
             context (ExecutionContext): An execution context for the operator.
         """
-
+        start = time.time()
         compose_transform = self._compose_transforms()
         inputs = self._receive_inputs(op_input)
         outputs = compose_transform(inputs)
         self._send_outputs(outputs, op_output)
-        logging.debug(f"Bundle inference elapsed time (seconds): {time.time() - start}")
+        logging.debug(f"Transform OP {self}'s elapsed time (seconds): {time.time() - start}")
