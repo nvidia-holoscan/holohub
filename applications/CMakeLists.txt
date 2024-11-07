@@ -76,6 +76,13 @@ add_holohub_application(pva_video_filter)
 
 add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_processing)
 
+add_holohub_application(psd_pipeline_sim DEPENDS
+                        OPERATORS file_reader
+                                  fft
+                                  high_rate_psd
+                                  low_rate_psd
+                                  vita49_psd_packetizer)
+
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)

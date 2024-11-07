@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+# Number of PSDs to produce before exiting
+# -1: run indefinitely
+num_psds: -1
+
+file_reader:
+  file_name: IQ_Data_8MSPS.dat
+  stream_id: 1
+  burst_size: 1280
+  rf_ref_freq_hz: 100000000
+  bandwidth_hz: 6000000
+  sample_rate_sps: 8000000
+  ref_level_dbm: 0
+  gain_db: -10
+
+fft:
+  burst_size: 1280
+  spectrum_type: 1
+  averaging_type: 1
+  window_time: 0
+  window_type: 0
+  transform_points: 1280
+  window_points: 1280
+  resolution: 6250
+  span: 8000000
+  weighting_factor: 0
+  f1_index: -640
+  f2_index: 639
+  window_time_delta: 0
+
+high_rate_psd:
+  burst_size: 1280
+
+low_rate_psd:
+  burst_size: 1280
+  num_averages: 625
+
+vita49_psd_packetizer:
+  burst_size: 1280
+  dest_host: 127.0.0.1
+  dest_port: 4991
