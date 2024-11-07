@@ -518,7 +518,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
               q.common_.id_ = q_item["id"].as<int>();
               q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
               q.common_.batch_size_ = q_item["batch_size"].as<int>();
-              q.common_.split_boundary_ = q_item["split_boundary"].as<int>();
+              if (input_spec.common_.mgr_ != "doca")
+                q.common_.split_boundary_ = q_item["split_boundary"].as<int>();
 
               const auto& mrs = q_item["memory_regions"];
               for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
