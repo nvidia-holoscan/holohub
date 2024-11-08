@@ -32,7 +32,6 @@
 #include "gxf/cuda/cuda_stream.hpp"
 #include "gxf/cuda/cuda_stream_pool.hpp"
 #include "gxf/std/allocator.hpp"
-#include "gxf/std/clock.hpp"
 #include "gxf/std/codelet.hpp"
 #include "gxf/std/receiver.hpp"
 #include "gxf/std/tensor.hpp"
@@ -110,12 +109,11 @@ class TensorRtInference : public gxf::Codelet {
   gxf::Parameter<gxf::Handle<gxf::Allocator>> pool_;
   gxf::Parameter<gxf::Handle<gxf::CudaStreamPool>> cuda_stream_pool_;
   gxf::Parameter<int64_t> max_workspace_size_;
-  gxf::Parameter<int64_t> dla_core_;
+  gxf::Parameter<int32_t> dla_core_;
   gxf::Parameter<int32_t> max_batch_size_;
   gxf::Parameter<bool> enable_fp16_;
   gxf::Parameter<bool> relaxed_dimension_check_;
   gxf::Parameter<bool> verbose_;
-  gxf::Parameter<gxf::Handle<gxf::Clock>> clock_;
 
   gxf::Parameter<std::vector<gxf::Handle<gxf::Receiver>>> rx_;
   gxf::Parameter<gxf::Handle<gxf::Transmitter>> tx_;

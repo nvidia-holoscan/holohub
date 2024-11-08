@@ -3,7 +3,7 @@
 ![]({{ cookiecutter.project_slug }}.png)
 
 {%- if cookiecutter.example == "HDR" %}
-This application demonstrates displaying HDR images using the Holoviz operator. The applications creates image data in HDR10 (BT2020 color space) with SMPTE ST2084 Perceptual Quantizer (PQ) EOTF and displays the image on the screen.
+This application demonstrates displaying HDR images using the Holoviz operator. The application creates image data in HDR10 (BT2020 color space) with SMPTE ST2084 Perceptual Quantizer (PQ) EOTF and displays the image on the screen.
 
 Note that the screenshot above does not show the real HDR image on the display since it's not possible to take screenshots of HDR images.
 

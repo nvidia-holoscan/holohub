@@ -5,9 +5,9 @@
 ![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
 )
 
-[![Applications](https://img.shields.io/badge/Applications-79-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
-[![Operators](https://img.shields.io/badge/Operators-40-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
-[![Tutorials](https://img.shields.io/badge/Tutorials-9-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
+[![Applications](https://img.shields.io/badge/Applications-84-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
+[![Operators](https://img.shields.io/badge/Operators-41-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
+[![Tutorials](https://img.shields.io/badge/Tutorials-12-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
 
 HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan platform to reuse and contribute components and sample applications.
 

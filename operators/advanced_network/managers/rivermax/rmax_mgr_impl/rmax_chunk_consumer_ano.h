@@ -44,7 +44,7 @@ class RmaxChunkConsumerAno : public IIPOChunkConsumer {
    *
    * @param packet_processor Shared pointer to the packet processor.
    */
-  RmaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
+  explicit RmaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
       : m_packet_processor(packet_processor) {}
 
   /**
@@ -90,14 +90,10 @@ inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_ch
   if (m_packet_processor == nullptr) {
     HOLOSCAN_LOG_ERROR("Packet processor is not set");
     return {ReturnStatus::failure, 0, 0};
-    ;
   }
 
   const auto chunk_size = chunk.get_completion_chunk_size();
-  if (chunk_size == 0) {
-    return {ReturnStatus::success, 0, 0};
-    ;
-  }
+  if (chunk_size == 0) { return {ReturnStatus::success, 0, 0}; }
 
   PacketsChunkParams params = {
       // header_ptr: Pointer to the header data

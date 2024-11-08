@@ -40,7 +40,7 @@ namespace holoscan::ops {
                          __LINE__,                                                              \
                          __FILE__,                                                              \
                          cudaGetErrorString(_holoscan_cuda_err),                                \
-                         _holoscan_cuda_err);                                                   \
+                         static_cast<int>(_holoscan_cuda_err));                                 \
     }                                                                                           \
     _holoscan_cuda_err;                                                                         \
   })
@@ -173,9 +173,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     // Get new input burst (ANO batch of packets)
     auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
-    if (!burst_opt) {
-      return;
-    }
+    if (!burst_opt) { return; }
 
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     auto burst = burst_opt.value();
@@ -213,7 +211,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       if (hds_.get()) {
         // Header-Data-Split: header to CPU, payload to GPU
         // NOTE: current App assumes only two memory region segments, one for header (CPU),
-        //       and one for payload (GPU).      
+        //       and one for payload (GPU).
         for (int p = 0; p < burst_size; p++) {
           // Get pointers to payload data on GPU
           // NOTE: It's (1) here since the GPU memory region is second in the list for this queue.
@@ -282,7 +280,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       }
     }
 
-     /* For each ANO batch (named burst), we might not want to right away send the packets to the
+    /* For each ANO batch (named burst), we might not want to right away send the packets to the
      * next operator, but maybe wait for more packets to come in, to make up what we call an
      * "App batch". While that increases the latency by needing more data to come in to continue,
      * it would allow collecting enough packets for reordering (not done here) to trigger the
@@ -331,14 +329,14 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                               streams_[cur_batch_idx_]);
 
       } else {
-          // Non GPUDirect mode: we copy the payload on host-pinned memory (in full_batch_data_h_)
-          // to a contiguous memory buffer on the GPU (full_batch_data_d_)
-          // NOTE: there is no reordering support here at all
-          cudaMemcpyAsync(full_batch_data_d_[cur_batch_idx_],
-                          full_batch_data_h_[cur_batch_idx_],
-                          batch_size_.get() * nom_payload_size_,
-                          cudaMemcpyDefault,
-                          streams_[cur_batch_idx_]);
+        // Non GPUDirect mode: we copy the payload on host-pinned memory (in full_batch_data_h_)
+        // to a contiguous memory buffer on the GPU (full_batch_data_d_)
+        // NOTE: there is no reordering support here at all
+        cudaMemcpyAsync(full_batch_data_d_[cur_batch_idx_],
+                        full_batch_data_h_[cur_batch_idx_],
+                        batch_size_.get() * nom_payload_size_,
+                        cudaMemcpyDefault,
+                        streams_[cur_batch_idx_]);
       }
 
       if (cudaGetLastError() != cudaSuccess) {
@@ -359,8 +357,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       // CUDA Error checking
       if (cudaGetLastError() != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                            batch_size_.get(),
-                            batch_size_.get() * nom_payload_size_);
+                           batch_size_.get(),
+                           batch_size_.get() * nom_payload_size_);
         exit(1);
       }
 
@@ -375,9 +373,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
  private:
   // TODO: make configurable?
-  static constexpr int num_concurrent = 10;    // Number of concurrent batches processing
+  static constexpr int num_concurrent = 10;  // Number of concurrent batches processing
   // TODO: could infer with (batch_size / burst size)
-  static constexpr int MAX_ANO_BURSTS = 10;   // Batches from ANO for one app batch
+  static constexpr int MAX_ANO_BURSTS = 10;  // Batches from ANO for one app batch
 
   // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
   struct BatchAggregationParams {

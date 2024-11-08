@@ -274,12 +274,6 @@ get_conditional_options() {
     local conditional_opt=""
 
 
-    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    if [ -v DISPLAY ]; then
-        conditional_opt+="${prefix}-e DISPLAY${postfix}"
-    fi
-
-
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
     fi
@@ -466,11 +460,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.6.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.5.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.6.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -716,15 +710,34 @@ launch() {
 
     check_nvidia_ctk
 
-    if [ -v DISPLAY ]; then
-        if command -v xhost >/dev/null; then
-            run_command xhost +local:docker
-        fi
-    fi
-
     mount_device_opt="$(get_mount_device_options)"
     conditional_opt="$(get_conditional_options $use_tini $persistent)"
 
+    # display - use XDG_SESSION_TYPE to detect X11 or Wayland
+    # see https://www.freedesktop.org/software/systemd/man/latest/pam_systemd.html#%24XDG_SESSION_TYPE
+    display_server_opt=""
+    if [ -n "${XDG_SESSION_TYPE-}" ]; then
+        display_server_opt+=" -e XDG_SESSION_TYPE"
+        if [ "${XDG_SESSION_TYPE}" == "wayland" ]; then
+            display_server_opt+=" -e WAYLAND_DISPLAY"
+        fi
+    fi
+    if [ -n "${XDG_RUNTIME_DIR-}" ]; then
+        display_server_opt+=" -e XDG_RUNTIME_DIR"
+        if [ -d ${XDG_RUNTIME_DIR} ]; then
+            display_server_opt+=" -v ${XDG_RUNTIME_DIR}:${XDG_RUNTIME_DIR}"
+        fi
+    fi
+    # if XDG_SESSION_TYPE is not set or set to tty or x11, use X11
+    if [ -z "${XDG_SESSION_TYPE-}" ] || [ "${XDG_SESSION_TYPE}" == "x11" ] || [ "${XDG_SESSION_TYPE}" == "tty" ]; then
+        # Allow the docker group to access X11.
+        # Note: not necessary for WSL2 (`SI:localuser:wslg` is added by default)
+        if [ -v DISPLAY ] && command -v xhost >/dev/null; then
+            run_command xhost +local:docker
+        fi
+        display_server_opt+=" -v /tmp/.X11-unix:/tmp/.X11-unix"
+        display_server_opt+=" -e DISPLAY"
+    fi
 
     # when using a locally built Holoscan SDK container it is necessary to provide the path to Holoscan SDK
     # to map Holoscan SDK into the container for building Holohub
@@ -785,8 +798,6 @@ launch() {
     # -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display
     #   Enable GPU acceleration
     #
-    # -v /tmp/.X11-unix:/tmp/.X11-unix
-    #
     # ${mount_nvoptix_bin}
     #   Mount Optix denoiser weights.
 
@@ -795,6 +806,7 @@ launch() {
         c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
+        c_echo W "Launch (display_server_opt: " G "${display_server_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."
         c_echo W "Launch (docker_opts: " G "${docker_opts}" W ")..."
@@ -818,10 +830,10 @@ launch() {
         --device-cgroup-rule "c 189:* rmw" \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -e HOME=/workspace/holohub \
-        -v /tmp/.X11-unix:/tmp/.X11-unix \
         ${additional_volumes} \
         ${mount_device_opt} \
         ${conditional_opt} \
+        ${display_server_opt} \
         ${local_sdk_opt} \
         ${mount_nvoptix_bin} \
         ${ucx_opt} \

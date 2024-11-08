@@ -245,7 +245,7 @@ class RxConfigManager : public IRxConfigManager {
    * @param q The RX queue configuration.
    * @return True if the configuration was appended successfully, false otherwise.
    */
-  virtual bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) override;
+  bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) override;
 
  private:
   /**
@@ -461,7 +461,7 @@ class TxConfigManager : public ITxConfigManager {
    * @param q The TX queue configuration.
    * @return True if the configuration was appended successfully, false otherwise.
    */
-  virtual bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) override;
+  bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) override;
 
  private:
   std::unordered_map<uint32_t, RmaxBaseServiceConfig> tx_service_configs_;
@@ -484,7 +484,7 @@ class RmaxConfigContainer {
    * @brief Constructs a new RmaxConfigContainer object.
    * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
    */
-  RmaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
+  explicit RmaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
       : rmax_apps_lib_(rmax_apps_lib) {
     initialize_managers();
   }

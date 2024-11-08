@@ -269,18 +269,15 @@ void DpdkMgr::initialize() {
   uint16_t portid;
 
   static struct rte_eth_conf conf_eth_port = {
-      .rxmode =
-          {
+      .rxmode = {
               .mq_mode = RTE_ETH_MQ_RX_RSS,
               .offloads = 0,
           },
-      .txmode =
-          {
+      .txmode = {
               .mq_mode = RTE_ETH_MQ_TX_NONE,
               .offloads = 0,
           },
-      .rx_adv_conf =
-          {
+      .rx_adv_conf = {
               .rss_conf = {.rss_key = NULL, .rss_hf = RTE_ETH_RSS_IP},
           },
   };

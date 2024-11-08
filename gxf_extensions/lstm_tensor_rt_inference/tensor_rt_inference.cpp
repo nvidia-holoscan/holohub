@@ -289,12 +289,6 @@ gxf_result_t TensorRtInference::registerInterface(gxf::Registrar* registrar) {
                                  "Relaxed Dimension Check",
                                  "Ignore dimensions of 1 for input tensor dimension check.",
                                  true);
-  result &= registrar->parameter(clock_,
-                                 "clock",
-                                 "Clock",
-                                 "Instance of clock for publish time.",
-                                 gxf::Registrar::NoDefaultParameter(),
-                                 GXF_PARAMETER_FLAGS_OPTIONAL);
 
   result &= registrar->parameter(rx_, "rx", "RX", "List of receivers to take input tensors");
   result &= registrar->parameter(tx_, "tx", "TX", "Transmitter to publish output tensors");

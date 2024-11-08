@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights
- * reserved. SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,8 +92,7 @@ class CloudInferenceFragment : public holoscan::Fragment {
     // use UnboundedAllocator for now.
     auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
         "tool_tracking_postprocessor",
-        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"),
-        Arg("host_allocator") = make_resource<UnboundedAllocator>("host_allocator"));
+        Arg("device_allocator") = make_resource<UnboundedAllocator>("device_allocator"));
 
     add_flow(format_converter, lstm_inferer);
     add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
@@ -139,10 +138,7 @@ class App : public holoscan::Application {
 
     // Flow definition
     add_flow(video_in, cloud_inference, {{"replayer", "format_converter"}});
-    add_flow(cloud_inference,
-             viz,
-             {{"tool_tracking_postprocessor.out_coords", "holoviz.receivers"},
-              {"tool_tracking_postprocessor.out_mask", "holoviz.receivers"}});
+    add_flow(cloud_inference, viz, {{"tool_tracking_postprocessor.out", "holoviz.receivers"}});
 
     add_flow(video_in, viz, {{"replayer.output", "holoviz.receivers"}});
   }

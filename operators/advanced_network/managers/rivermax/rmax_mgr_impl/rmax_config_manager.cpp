@@ -1,3 +1,15 @@
+/*
+ * Copyright © 2017-2024 NVIDIA CORPORATION & AFFILIATES. ALL RIGHTS RESERVED.
+ *
+ * This software product is a proprietary product of Nvidia Corporation and its affiliates
+ * (the "Company") and all right, title, and interest in and to the software
+ * product, including all associated intellectual property rights, are and
+ * shall remain exclusively with the Company.
+ *
+ * This software product is governed by the End User License Agreement
+ * provided with the software product.
+ */
+
 #include "rt_threads.h"
 #include "rmax_ipo_receiver_service.h"
 #include "rmax_mgr_impl/burst_manager.h"
@@ -16,27 +28,27 @@ static constexpr int USECS_IN_SECOND = 1000000;
  * configuration managers based on the specified configuration type
  */
 class ConfigManagerFactory {
-public:
- /**
-  * @brief Creates a configuration manager.
-  *
-  * This static method creates and returns a shared pointer to a configuration manager
-  * based on the specified configuration type.
-  *
-  * @param type The type of configuration manager to create
-  * @return A shared pointer to the created configuration manager, or nullptr if the type is
-  * invalid.
-  */
- static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
-   switch (type) {
-     case RmaxConfigContainer::ConfigType::RX:
-       return std::make_shared<RxConfigManager>();
-     case RmaxConfigContainer::ConfigType::TX:
-       return std::make_shared<TxConfigManager>();
-     default:
-       return nullptr;
-   }
- }
+ public:
+  /**
+   * @brief Creates a configuration manager.
+   *
+   * This static method creates and returns a shared pointer to a configuration manager
+   * based on the specified configuration type.
+   *
+   * @param type The type of configuration manager to create
+   * @return A shared pointer to the created configuration manager, or nullptr if the type is
+   * invalid.
+   */
+  static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
+    switch (type) {
+      case RmaxConfigContainer::ConfigType::RX:
+        return std::make_shared<RxConfigManager>();
+      case RmaxConfigContainer::ConfigType::TX:
+        return std::make_shared<TxConfigManager>();
+      default:
+        return nullptr;
+    }
+  }
 };
 
 /**
@@ -778,4 +790,4 @@ void RmaxRxQueueConfig::dump_parameters() const {
   }
 }
 
-};  // namespace holoscan::ops
+}  // namespace holoscan::ops
