@@ -866,7 +866,10 @@ for k, v in obj[project_type]["run"].items():
    run_command $environment
    run_command $workdir
    run_command $command $extra_args
+   command_status="$?"
    run_command $reset_environment
+
+   return ${command_status}
 }
 
 #===========================================================================================
@@ -1030,7 +1033,6 @@ main() {
             fi
             ;;
     esac
-    ret=$?
 }
 
 main "$@"
