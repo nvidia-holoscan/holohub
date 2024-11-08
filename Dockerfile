@@ -55,6 +55,9 @@ RUN apt update \
         libgles2 \
         libopengl0
 
+# Install packages for LWS2
+RUN apt install -y --allow-downgrades libfribidi0=1.0.8*
+
 # For benchmarking
 RUN apt update \
     && apt install --no-install-recommends -y \
