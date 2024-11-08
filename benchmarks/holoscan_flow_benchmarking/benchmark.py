@@ -25,7 +25,7 @@ from collections import defaultdict
 from nvitop import Device
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
 
 # global variables for GPU monitoring
 stop_gpu_monitoring = False
@@ -76,6 +76,9 @@ def run_command(app_launch_command, env):
         logger.error(f"stdout:\n{e.stdout.decode('utf-8')}")
         logger.error(f"stderr:\n{e.stderr.decode('utf-8')}")
         sys.exit(1)
+
+    logger.debug(f"stdout:\n{result.stdout}")
+    logger.debug(f"stderr:\n{result.stderr}")
     if result.returncode != 0:
         # The command returned an error
         logger.error(f'Command "{app_launch_command}" exited with code {result.returncode}')
@@ -187,9 +190,6 @@ assignment in Holoscan's Inference operator.",
 
     args = parser.parse_args()
 
-    # Set the logging level
-    logger.setLevel(args.level.upper())
-
     if (
         "multithread" not in args.sched
         and "eventbased" not in args.sched
@@ -214,6 +214,20 @@ assignment in Holoscan's Inference operator.",
                 os.path.abspath(log_directory),
             )
             os.mkdir(os.path.abspath(log_directory))
+
+    # Set up detailed logging to file + custom verbosity logging to console
+    fileHandler = logging.FileHandler(os.path.join(log_directory, "benchmark.log"))
+    fileHandler.setLevel(level=logging.DEBUG)
+    fileHandler.setFormatter(
+        logging.Formatter("%(asctime)s %(threadName)s %(levelname)s: %(message)s")
+    )
+    logger.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler(stream=sys.stdout)
+    consoleHandler.setLevel(level=args.level.upper())
+    consoleHandler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
+    logger.root.removeHandler(logger.root.handlers[0])
+    logger.addHandler(consoleHandler)
 
     env = os.environ.copy()
     if args.gpu != "all":
