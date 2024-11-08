@@ -93,9 +93,7 @@ inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_ch
   }
 
   const auto chunk_size = chunk.get_completion_chunk_size();
-  if (chunk_size == 0) {
-    return {ReturnStatus::success, 0, 0};
-  }
+  if (chunk_size == 0) { return {ReturnStatus::success, 0, 0}; }
 
   PacketsChunkParams params = {
       // header_ptr: Pointer to the header data

@@ -2,6 +2,8 @@
 
 This application demonstrates the use of custom components for depth estimation and its rendering using Holoviz with triangle interpolation.
 
+![](screenshot.png)
+
 ### Requirements
 
 - Python 3.8+

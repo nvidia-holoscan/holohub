@@ -31,10 +31,10 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # C++ version
-./dev_container build_and_run h264_endoscopy_tool_tracking --docker_file applications/h264/Dockerfile --language cpp
+./dev_container build_and_run h264_endoscopy_tool_tracking --language cpp
 
 # Python version
-./dev_container build_and_run h264_endoscopy_tool_tracking --docker_file applications/h264/Dockerfile --language python
+./dev_container build_and_run h264_endoscopy_tool_tracking --language python
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and

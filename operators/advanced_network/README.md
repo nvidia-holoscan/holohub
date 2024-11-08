@@ -85,7 +85,7 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 
 ```
 # To build Docker image
-./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-27-ubuntu2204 --no-cache
+./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-28-ubuntu2204 --no-cache
 
 # Launch DOCA container
 ./operators/advanced_network/run_doca.sh

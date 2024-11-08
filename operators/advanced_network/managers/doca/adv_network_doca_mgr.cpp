@@ -147,7 +147,8 @@ static doca_error_t open_doca_device_with_pci(const char* pcie_value, struct doc
 
   res = doca_devinfo_create_list(&dev_list, &nb_devs);
   if (res != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: %d", res);
+    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: %d",
+                       static_cast<int>(res));
     return res;
   }
 
@@ -670,7 +671,7 @@ void DocaMgr::initialize() {
           q.common_.name_,
           q.common_.id_,
           intf.port_id_,
-          mtype,
+          static_cast<int>(mtype),
           rxq_pkts,
           q_max_packet_size);
 
@@ -710,7 +711,7 @@ void DocaMgr::initialize() {
                         q.common_.name_,
                         q.common_.id_,
                         intf.port_id_,
-                        mtype);
+                        static_cast<int>(mtype));
 
       tx_q_map_[key] = new DocaTxQueue(ddev[intf.port_id_],
                                        gdev[gpu_id],
@@ -1287,7 +1288,8 @@ int DocaMgr::rx_core(void* arg) {
 
   res_cuda = cudaStreamCreateWithPriority(&rx_stream, cudaStreamNonBlocking, greatestPriority);
   if (res_cuda != cudaSuccess) {
-    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error %d", res_cuda);
+    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error %d",
+                       static_cast<int>(res_cuda));
     exit(1);
   }
 
@@ -1495,7 +1497,7 @@ int DocaMgr::tx_core(void* arg) {
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamCreateWithFlags(&tx_stream[idxq], cudaStreamNonBlocking);
     if (res_cuda != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithFlags error %d", res_cuda);
+      HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithFlags error {}", static_cast<int>(res_cuda));
       exit(1);
     }
     HOLOSCAN_LOG_DEBUG("Warmup send kernel queue {}", idxq);
@@ -1561,7 +1563,7 @@ int DocaMgr::tx_core(void* arg) {
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamDestroy(tx_stream[idxq]);
     if (res_cuda != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", res_cuda);
+      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", static_cast<int>(res_cuda));
     }
   }
 
@@ -1700,7 +1702,7 @@ bool DocaMgr::tx_burst_available(AdvNetBurstParams* burst) {
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
-          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", txq->tx_cmp_posted);
+          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", static_cast<int>(txq->tx_cmp_posted));
           return false;
         }
 

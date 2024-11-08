@@ -23,8 +23,15 @@ target_sources(${PROJECT_NAME} PRIVATE
   adv_network_doca_kernels.cu
 )
 
-pkg_check_modules(DOCA REQUIRED doca)
 pkg_check_modules(DOCA REQUIRED doca-gpunetio)
+pkg_check_modules(DOCA REQUIRED doca-flow)
+pkg_check_modules(DOCA REQUIRED doca-common)
+pkg_check_modules(DOCA REQUIRED doca-argp)
+
+pkg_check_modules(DPDK REQUIRED libdpdk)
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME}  PUBLIC ${DPDK_CFLAGS})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ALLOW_EXPERIMENTAL_API)
 target_compile_definitions(${PROJECT_NAME} PUBLIC DOCA_ALLOW_EXPERIMENTAL_API)

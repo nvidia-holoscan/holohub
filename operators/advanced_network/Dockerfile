@@ -15,28 +15,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ARG GPU_TYPE=dgpu
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-${GPU_TYPE}
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.6.0-${GPU_TYPE}
 
 FROM ${BASE_IMAGE} AS base
-
 ARG UBUNTU_VERSION=22.04
 ARG OFED_VERSION=24.07-0.6.1.0
 ARG CACHEBUST=1
-ARG BUILDARCH
-RUN echo "Using build architecture ${BUILDARCH}"
-RUN echo "Using architecture $TARGETPLATFORM"
+ARG TARGETARCH
+RUN echo "Using architecture ${TARGETARCH}"
 
 
-RUN apt update && apt install -y python3-pyelftools ninja-build meson
+RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
 RUN pip3 install scipy loguru attrs
 WORKDIR /opt
 
-RUN    eval `dpkg-architecture` \
-        && wget https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-204000-24.04-ubuntu2204_${BUILDARCH}.deb -O doca-host.deb \
-        && ls -lh && apt install ./doca-host.deb \
-        && apt update \
-        && apt install -y doca-all \
-        && apt install -y doca-gpu doca-gpu-dev
+ARG DEBIAN_FRONTEND=noninteractive
+ARG DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64
+
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64; \
+    else \
+        echo "Unknown architecture: $TARGETARCH"; \
+        exit 1; \
+    fi \
+    && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
+    && apt install -y --no-install-recommends wget software-properties-common gpg-agent \
+    && wget -qO - ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | apt-key add - \
+    && add-apt-repository "deb [trusted=yes] ${DOCA_REPO_LINK} ./" \
+    && apt update -y \
+    && apt install -y --no-install-recommends doca-sdk-aes-gcm doca-sdk-apsh doca-sdk-argp doca-sdk-comch doca-sdk-comm-channel doca-sdk-common doca-sdk-compress doca-sdk-devemu doca-sdk-dma doca-sdk-dpa doca-sdk-dpdk-bridge doca-sdk-erasure-coding doca-sdk-eth doca-sdk-flow doca-sdk-pcc doca-sdk-rdma doca-sdk-sha doca-sdk-telemetry-exporter doca-sdk-urom doca-apsh-config doca-bench doca-caps doca-comm-channel-admin doca-pcc-counters doca-sha-offload-engine doca-socket-relay doca-all doca-sdk-gpunetio libdoca-sdk-gpunetio-dev rdma-core flexio libyara8
+
 
 # ==============================
 # DOCA Target (inherits from base)
@@ -88,12 +98,12 @@ RUN if [ -f "/tmp/rivermax_sdk.tar.gz" ]; then \
 WORKDIR /opt/rivermax_sdk
 
 # Find and install the Rivermax .deb package based on the build architecture
-RUN DEB_FILE=$(find . -name "rivermax_${RIVERMAX_VERSION}_${BUILDARCH}.deb" -type f) && \
+RUN DEB_FILE=$(find . -name "rivermax_${RIVERMAX_VERSION}_${TARGETARCH}.deb" -type f) && \
     if [ -f "$DEB_FILE" ]; then \
         echo "Installing Rivermax core from $DEB_FILE..." && \
         dpkg -i "$DEB_FILE"; \
     else \
-        echo "Error: Rivermax ${BUILDARCH}.deb package not found"; exit 1; \
+        echo "Error: Rivermax ${TARGETARCH}.deb package not found"; exit 1; \
     fi
 
 # Build Rivermax test and sample applications

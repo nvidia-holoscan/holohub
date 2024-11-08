@@ -29,26 +29,26 @@ static constexpr int USECS_IN_SECOND = 1000000;
  */
 class ConfigManagerFactory {
  public:
- /**
-  * @brief Creates a configuration manager.
-  *
-  * This static method creates and returns a shared pointer to a configuration manager
-  * based on the specified configuration type.
-  *
-  * @param type The type of configuration manager to create
-  * @return A shared pointer to the created configuration manager, or nullptr if the type is
-  * invalid.
-  */
-static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
-  switch (type) {
-    case RmaxConfigContainer::ConfigType::RX:
-      return std::make_shared<RxConfigManager>();
-    case RmaxConfigContainer::ConfigType::TX:
-      return std::make_shared<TxConfigManager>();
-    default:
-      return nullptr;
+  /**
+   * @brief Creates a configuration manager.
+   *
+   * This static method creates and returns a shared pointer to a configuration manager
+   * based on the specified configuration type.
+   *
+   * @param type The type of configuration manager to create
+   * @return A shared pointer to the created configuration manager, or nullptr if the type is
+   * invalid.
+   */
+  static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
+    switch (type) {
+      case RmaxConfigContainer::ConfigType::RX:
+        return std::make_shared<RxConfigManager>();
+      case RmaxConfigContainer::ConfigType::TX:
+        return std::make_shared<TxConfigManager>();
+      default:
+        return nullptr;
+    }
   }
-}
 };
 
 /**

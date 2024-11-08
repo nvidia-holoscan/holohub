@@ -43,7 +43,7 @@ class BenchmarkedApplication(Application):
                 check_recession_period_ms=0,
                 max_duration_ms=100000,
             )
-        elif scheduler_str and scheduler_str == "multithread":
+        elif scheduler_str and scheduler_str == "eventbased":
             num_threads = os.environ.get("HOLOSCAN_EVENTBASED_WORKER_THREADS", None)
             scheduler = EventBasedScheduler(
                 self,
