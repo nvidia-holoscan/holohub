@@ -70,7 +70,8 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
           const auto alloc_res = cuMemAlloc(&cuptr, align);
           if (alloc_res != CUDA_SUCCESS) {
             HOLOSCAN_LOG_CRITICAL(
-                "Could not allocate {:.2f}MB of GPU memory: {}", align / 1e6, alloc_res);
+                "Could not allocate {:.2f}MB of GPU memory: {}", align / 1e6, 
+                  static_cast<int>(alloc_res));
             return AdvNetStatus::NULL_PTR;
           }
 

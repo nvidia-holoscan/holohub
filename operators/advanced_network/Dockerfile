@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v2.0.0-dgpu
+FROM --platform=$BUILDPLATFORM nvcr.io/nvidia/clara-holoscan/holoscan:v2.6.0-dgpu
 
 ARG UBUNTU_VERSION=22.04
 ARG OFED_VERSION=24.01-0.3.3.1
@@ -29,7 +29,7 @@ RUN pip3 install scipy loguru attrs
 WORKDIR /opt
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64
+ARG DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa
 
 RUN apt update -y \
     && apt install -y --no-install-recommends wget software-properties-common gpg-agent \
