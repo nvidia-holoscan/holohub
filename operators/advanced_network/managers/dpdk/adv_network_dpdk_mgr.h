@@ -145,7 +145,7 @@ class DpdkMgr : public ANOMgr {
   bool set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
   void initialize() override;
   void run() override;
-  static constexpr int JUMBFRAME_SIZE = 9100;
+  static constexpr int JUMBOFRAME_SIZE = 9100;
   static constexpr int DEFAULT_NUM_TX_BURST = 256;
   static constexpr int DEFAULT_NUM_RX_BURST = 64;
   uint16_t default_num_rx_desc = 8192;

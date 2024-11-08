@@ -147,7 +147,7 @@ static doca_error_t open_doca_device_with_pci(const char* pcie_value, struct doc
 
   res = doca_devinfo_create_list(&dev_list, &nb_devs);
   if (res != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: %d",
+    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: {}",
                        static_cast<int>(res));
     return res;
   }
@@ -221,7 +221,7 @@ doca_error_t DocaMgr::init_doca_devices() {
 
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
-    HOLOSCAN_LOG_CRITICAL("DPDK init failed: %d", ret);
+    HOLOSCAN_LOG_CRITICAL("DPDK init failed: {}", ret);
     return DOCA_ERROR_DRIVER;
   }
 
@@ -1288,7 +1288,7 @@ int DocaMgr::rx_core(void* arg) {
 
   res_cuda = cudaStreamCreateWithPriority(&rx_stream, cudaStreamNonBlocking, greatestPriority);
   if (res_cuda != cudaSuccess) {
-    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error %d",
+    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error {}",
                        static_cast<int>(res_cuda));
     exit(1);
   }
@@ -1563,7 +1563,7 @@ int DocaMgr::tx_core(void* arg) {
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamDestroy(tx_stream[idxq]);
     if (res_cuda != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", static_cast<int>(res_cuda));
+      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error {}", static_cast<int>(res_cuda));
     }
   }
 
@@ -1702,7 +1702,7 @@ bool DocaMgr::tx_burst_available(AdvNetBurstParams* burst) {
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
-          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", static_cast<int>(txq->tx_cmp_posted));
+          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", static_cast<int>(txq->tx_cmp_posted.load()));
           return false;
         }
 

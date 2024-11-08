@@ -429,7 +429,12 @@ void DpdkMgr::initialize() {
 #pragma GCC diagnostic pop
 
         if (pool == nullptr) {
-          HOLOSCAN_LOG_CRITICAL("Could not create external memory mempool");
+          HOLOSCAN_LOG_CRITICAL(
+                "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
+                pool_name,
+                mr.num_bufs_,
+                mr.adj_size_,
+                (void*)pool);
           return;
         }
 
@@ -542,7 +547,8 @@ void DpdkMgr::initialize() {
 
     // Subtract eth headers since driver adds that on
     max_pkt_size = std::max(max_pkt_size, 64UL);
-    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBFRAME_SIZE);
+    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBOFRAME_SIZE) -
+      RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN;
     local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
         local_port_conf[intf.port_id_].rxmode.mtu;
 
@@ -1003,54 +1009,43 @@ void PrintDpdkStats() {
     printf(" - Errored packets:     %lu\n", eth_stats.ierrors);
     printf(" - RX out of buffers:   %lu\n", eth_stats.rx_nombuf);
 
-    // printf("\nExtended Stats\n");
+    printf("\nExtended Stats\n");
 
-    // struct rte_eth_xstat *xstats;
-    // struct rte_eth_xstat_name *xstats_names;
-    // static const char *stats_border = "_______";
+    struct rte_eth_xstat *xstats;
+    struct rte_eth_xstat_name *xstats_names;
+    static const char *stats_border = "_______";
 
-    // /* Clear screen and move to top left */
-    // len = rte_eth_xstats_get(i, NULL, 0);
-    // if (len < 0)
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get(%u) failed: %d", 0,
-    //             len);
-    // xstats = (struct rte_eth_xstat *)calloc(len, sizeof(*xstats));
-    // if (xstats == NULL)
-    //     rte_exit(EXIT_FAILURE,
-    //             "Failed to calloc memory for xstats");
-    // ret = rte_eth_xstats_get(i, xstats, len);
-    // if (ret < 0 || ret > len) {
-    //     free(xstats);
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get(%u) len%i failed: %d",
-    //             0, len, ret);
-    // }
-    // xstats_names = (struct rte_eth_xstat_name *)calloc(len, sizeof(*xstats_names));
-    // if (xstats_names == NULL) {
-    //     free(xstats);
-    //     rte_exit(EXIT_FAILURE,
-    //             "Failed to calloc memory for xstats_names");
-    // }
-    // ret = rte_eth_xstats_get_names(i, xstats_names, len);
-    // if (ret < 0 || ret > len) {
-    //     free(xstats);
-    //     free(xstats_names);
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get_names(%u) len%i failed: %d",
-    //             0, len, ret);
-    // }
-    // for (i = 0; i < len; i++) {
-    //     if (xstats[i].value > 0)
-    //         printf("Port %u: %s %s:\t\t%lu\n",
-    //                 0, stats_border,
-    //                 xstats_names[i].name,
-    //                 xstats[i].value);
-    // }
+    /* Clear screen and move to top left */
+    len = rte_eth_xstats_get(i, NULL, 0);
+    if (len < 0)
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get(%u) failed: %d", 0, len);
+    xstats = (struct rte_eth_xstat *)calloc(len, sizeof(*xstats));
+    if (xstats == NULL)
+      rte_exit(EXIT_FAILURE, "Failed to calloc memory for xstats");
+    ret = rte_eth_xstats_get(i, xstats, len);
+    if (ret < 0 || ret > len) {
+      free(xstats);
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get(%u) len%i failed: %d", 0, len, ret);
+    }
+    xstats_names = (struct rte_eth_xstat_name *)calloc(len, sizeof(*xstats_names));
+    if (xstats_names == NULL) {
+      free(xstats);
+      rte_exit(EXIT_FAILURE, "Failed to calloc memory for xstats_names");
+    }
+    ret = rte_eth_xstats_get_names(i, xstats_names, len);
+    if (ret < 0 || ret > len) {
+      free(xstats);
+      free(xstats_names);
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get_names(%u) len%i failed: %d", 0, len, ret);
+    }
+    for (i = 0; i < len; i++) {
+      if (xstats[i].value > 0)
+      printf("Port %u: %s %s:\t\t%lu\n", 0, stats_border, xstats_names[i].name, xstats[i].value);
+    }
 
-    // free(xstats);
-    // free(xstats_names);
-    // printf("done\n");
+    free(xstats);
+    free(xstats_names);
+    printf("done\n");
   }
 
   printf("\n");
