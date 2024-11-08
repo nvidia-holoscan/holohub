@@ -34,7 +34,7 @@ class ZeroMQSubscriberOp(Operator):
         fragment: Fragment,
         *args,
         topic: str,
-        queue_endpoint: str = "tcp://localhost:5556",
+        queue_endpoint: str,
         blocking: bool = False,
         **kwargs,
     ):
@@ -42,7 +42,7 @@ class ZeroMQSubscriberOp(Operator):
 
         Args:
             topic (str): name of the topic to filter. Single for now, to be replaced
-            queue_endpoint (str): message queue endpoint
+            queue_endpoint (str): message queue endpoint, e.g. "tcp://localhost:5556"
             blocking (bool): if a blocking receive. Defaults to False due to existing code assumption
 
         Raises:

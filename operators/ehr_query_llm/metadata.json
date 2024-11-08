@@ -15,7 +15,7 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
-				"2.4.0"
+				"2.5.0"
 			]
 		},
 		"platforms": [
@@ -31,7 +31,7 @@
 		"dependencies": {
 			"python-packages": {
                 "holoscan": {
-                    "version": "2.3.0",
+                    "version": "2.5.0",
                     "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
                 },
 				"fhir.resources": {

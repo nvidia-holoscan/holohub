@@ -34,13 +34,13 @@ class ZeroMQPublisherOp(Operator):
         fragment: Fragment,
         *args,
         topic: str,
-        queue_endpoint: str = "tcp://*:5556",
+        queue_endpoint: str,
         **kwargs,
     ):
         """An operator that checks the messaging queue and emits the message to the request output.
 
         Args:
-            queue_endpoint (str): message queue endpoint
+            queue_endpoint (str): message queue endpoint, e.g. "tcp://*:5556"
         Raises:
             ValueError: if queue_policy is out of range.
         """
