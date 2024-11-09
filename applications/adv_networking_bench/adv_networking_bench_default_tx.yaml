@@ -31,6 +31,7 @@ advanced_network:
     manager: "dpdk"
     master_core: 3
     debug: false
+    log_level: "warn"
 
     memory_regions:
     - name: "Data_TX_CPU"
@@ -45,15 +46,15 @@ advanced_network:
     - name: data1
       address: 0005:03:00.0
       tx:
-        queues:
-        - name: "ADC Samples"
-          id: 0
-          batch_size: 10240
-          cpu_core: 4
-          memory_regions:
-            - "Data_TX_CPU"
-          offloads:
-            - "tx_eth_src"
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            batch_size: 10240
+            cpu_core: 4
+            memory_regions:
+              - "Data_TX_CPU"
+            offloads:
+              - "tx_eth_src"
 
 
 bench_tx:

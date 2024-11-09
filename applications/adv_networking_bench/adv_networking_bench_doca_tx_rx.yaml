@@ -30,6 +30,7 @@ advanced_network:
     version: 1
     manager: "doca"
     master_core: 0 # Master CPU core
+    log_level: "warn"
     memory_regions:
     - name: "Data_TX_GPU"
       kind: "device"
@@ -57,39 +58,39 @@ advanced_network:
     - name: data1
       address: 0000:ca:00.0
       tx:
-        queues:
-        - name: "ADC Samples"
-          id: 0
-          batch_size: 10240
-          cpu_core: 8
-          memory_regions:
-            - "Data_TX_GPU"
-          offloads:
-            - "tx_eth_src"
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            batch_size: 10240
+            cpu_core: 8
+            memory_regions:
+              - "Data_TX_GPU"
+            offloads:
+              - "tx_eth_src"
       rx:
-        queues:
-        - name: "Default"
-          id: 0
-          cpu_core: 10
-          batch_size: 10240
-          output_port: "bench_rx_out"
-          memory_regions:
-            - "Default_RX_GPU"
-        - name: "Data"
-          id: 1
-          cpu_core: 10
-          batch_size: 10240
-          output_port: "bench_rx_out"
-          memory_regions:
-            - "Data_RX_GPU"
-        flows:
-        - name: "ADC Samples"
-          action:
-            type: queue
+        - queues:
+          - name: "Default"
+            id: 0
+            cpu_core: 10
+            batch_size: 10240
+            output_port: "bench_rx_out"
+            memory_regions:
+              - "Default_RX_GPU"
+          - name: "Data"
             id: 1
-          match:
-            udp_src: 4096 #12288
-            udp_dst: 4096 #12288
+            cpu_core: 10
+            batch_size: 10240
+            output_port: "bench_rx_out"
+            memory_regions:
+              - "Data_RX_GPU"
+          flows:
+            - name: "ADC Samples"
+              action:
+                type: queue
+                id: 1
+              match:
+                udp_src: 4096 #12288
+                udp_dst: 4096 #12288
 
 bench_tx:
   eth_dst_addr: 48:b0:2d:e8:cb:17   # Destination MAC

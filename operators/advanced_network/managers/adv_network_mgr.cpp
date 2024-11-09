@@ -16,31 +16,105 @@
  */
 #include <cuda.h>
 #include "adv_network_mgr.h"
+// Include the appropriate headers based on which ANO_MGR types are defined
+#if ANO_MGR_DPDK
 #include "adv_network_dpdk_mgr.h"
+#endif
+#if ANO_MGR_DOCA
 #include "adv_network_doca_mgr.h"
+#endif
+#if ANO_MGR_RIVERMAX
+#include "adv_network_rmax_mgr.h"
+#endif
+
+#if ANO_MGR_DPDK || ANO_MGR_DOCA
+#include <rte_common.h>
+#include <rte_malloc.h>
+#endif
+
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
 
-ANOMgr* g_ano_mgr = nullptr;
+// Initialize static members
+std::unique_ptr<ANOMgr> AnoMgrFactory::AnoMgrInstance_ = nullptr;  // Initialize static members
+AnoMgrType AnoMgrFactory::AnoMgrType_ = AnoMgrType::UNKNOWN;
 
-/* This function decides what ANO backend or "manager" is used for packet processing. The choice of
-   manager is based on what we believe is the best selection based on the user's configuration. */
-void set_ano_mgr(const AdvNetConfigYaml& cfg) {
-  if (g_ano_mgr == nullptr) {
-    if (cfg.common_.mgr_ == "doca") {
-      HOLOSCAN_LOG_INFO("Selecting DOCA as ANO manager");
-      g_ano_mgr = new DocaMgr{};
-    } else {
-      HOLOSCAN_LOG_INFO("Selecting DPDK as ANO manager");
-      g_ano_mgr = new DpdkMgr{};
+extern void adv_net_initialize_manager(ANOMgr* _manager);
+
+AnoMgrType AnoMgrFactory::get_default_manager_type() {
+  AnoMgrType mgr_type = AnoMgrType::UNKNOWN;
+#if ANO_MGR_DPDK
+  mgr_type = AnoMgrType::DPDK;
+#elif ANO_MGR_DOCA
+  mgr_type = AnoMgrType::DOCA;
+#elif ANO_MGR_RIVERMAX
+  mgr_type = AnoMgrType::RIVERMAX;
+#else
+#error "No advanced network operator manager defined"
+#endif
+  return mgr_type;
+}
+
+std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
+  std::unique_ptr<ANOMgr> _manager;
+  switch (type) {
+#if ANO_MGR_DPDK
+    case AnoMgrType::DPDK:
+      _manager = std::make_unique<DpdkMgr>();
+      break;
+#endif
+#if ANO_MGR_DOCA
+    case AnoMgrType::DOCA:
+      _manager = std::make_unique<DocaMgr>();
+      break;
+#endif
+#if ANO_MGR_RIVERMAX
+    case AnoMgrType::RIVERMAX:
+      _manager = std::make_unique<RmaxMgr>();
+      break;
+#endif
+    case AnoMgrType::DEFAULT:
+      _manager = create_instance(get_default_manager_type());
+      return _manager;
+    case AnoMgrType::UNKNOWN:
+      throw std::invalid_argument("Unknown manager type");
+    default:
+      throw std::invalid_argument("Invalid type");
+  }
+
+  // Initialize the ADV Net Common API
+  adv_net_initialize_manager(_manager.get());
+  return _manager;
+}
+
+template <typename Config>
+AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
+  // Ensure that Config has a method yaml_nodes() that returns a collection
+  // of YAML nodes
+  static_assert(
+      std::is_member_function_pointer<decltype(&Config::yaml_nodes)>::value,
+      "Config type must have a method yaml_nodes() that returns a collection of YAML nodes");
+
+  auto& yaml_nodes = config.yaml_nodes();
+  for (const auto& yaml_node : yaml_nodes) {
+    try {
+      auto node = yaml_node["advanced_network"]["cfg"];
+      std::string manager = node["manager"].template as<std::string>(ANO_MGR_STR__DEFAULT);
+      return manager_type_from_string(manager);
+    } catch (const std::exception& e) {
+      return manager_type_from_string(holoscan::ops::ANO_MGR_STR__DEFAULT);
     }
   }
+
+  return manager_type_from_string(holoscan::ops::ANO_MGR_STR__DEFAULT);
 }
+
+template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
 
 AdvNetStatus ANOMgr::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
-
+#if ANO_MGR_DPDK || ANO_MGR_DOCA
   for (auto& mr : cfg_.mrs_) {
     void* ptr;
     AllocRegion ar;
@@ -69,8 +143,9 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
           cudaFree(0);  // Create primary context if it doesn't exist
           const auto alloc_res = cuMemAlloc(&cuptr, align);
           if (alloc_res != CUDA_SUCCESS) {
-            HOLOSCAN_LOG_CRITICAL(
-                "Could not allocate {:.2f}MB of GPU memory: {}", align / 1e6, alloc_res);
+            HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory: {}",
+                                  align / 1e6,
+                                  static_cast<int>(alloc_res));
             return AdvNetStatus::NULL_PTR;
           }
 
@@ -90,9 +165,9 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
       }
 
       if (ptr == nullptr) {
-        HOLOSCAN_LOG_CRITICAL(
-            "Fatal to allocate {} of type {} for MR",
-                  mr.second.ttl_size_, static_cast<int>(mr.second.kind_));
+        HOLOSCAN_LOG_CRITICAL("Fatal to allocate {} of type {} for MR",
+                              mr.second.ttl_size_,
+                              static_cast<int>(mr.second.kind_));
         return AdvNetStatus::NULL_PTR;
       }
     }
@@ -109,7 +184,7 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
         mr.second.ttl_size_);
     ar_[mr.second.name_] = {mr.second.name_, ptr};
   }
-
+#endif
   HOLOSCAN_LOG_INFO("Finished allocating memory regions");
   return AdvNetStatus::SUCCESS;
 }
