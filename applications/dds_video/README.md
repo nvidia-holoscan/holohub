@@ -27,7 +27,7 @@ This application requires [RTI Connext](https://content.rti.com/l/983311/2024-04
 be installed and configured with a valid RTI Connext license prior to use.
 To build on an IGX devkit (using the `armv8` architecture), follow the
 [instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
-up to step 5 (Installing Java and setting JREHOME).
+up to, and including, step 5 (Installing Java and setting JREHOME).
 
 To build the application, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
 the installation path for RTI Connext. This can be done automatically by setting
