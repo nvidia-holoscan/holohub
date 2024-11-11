@@ -36,8 +36,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
         "Finished receiver with {}/{} bytes/packets received", ttl_bytes_recv_, ttl_pkts_recv_);
 
     HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
-    adv_net_shutdown();
-    adv_net_print_stats();
   }
 
   void initialize() override {
@@ -56,7 +54,9 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       cudaEventCreate(&events_[n]);
       cudaEventCreate(&events_start_[n]);
       // Warmup streams and kernel
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
       simple_packet_reorder(NULL, NULL, 1, 1, streams_[n]);
+#endif
       cudaStreamSynchronize(streams_[n]);
     }
 

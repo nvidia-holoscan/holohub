@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-#include "kernels.cuh"
+#include <assert.h>
 #include <stdio.h>
+#include "kernels.cuh"
 #include "matx.h"
 
 __global__ void populate_packets(uint8_t** gpu_bufs, uint16_t pkt_len, uint16_t offset) {

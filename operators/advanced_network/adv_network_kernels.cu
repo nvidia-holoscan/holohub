@@ -17,6 +17,7 @@
 
 #include "adv_network_kernels.h"
 #include <stdio.h>
+#include <assert.h>
 
 /**
  * @brief Simple packet reorder kernel to demonstrate reordering a batch of packets into
@@ -30,6 +31,9 @@
 __global__ void simple_packet_reorder_kernel(void* __restrict__ out,
                                              const void* const* const __restrict__ in,
                                              uint16_t pkt_len, uint32_t num_pkts) {
+  // Warmup
+  if (out == nullptr) return;
+
   const int pkt_idx = blockIdx.x;
   const int len = pkt_len;
   const void* in_pkt = in[pkt_idx];

@@ -65,6 +65,31 @@ struct UDPPkt {
   uint8_t payload[];
 } __attribute__((packed));
 
+/**
+ * A map of log level to a tuple of the description and command strings.
+ */
+const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::string>>
+    DpdkLogLevel::level_to_cmd_map = {{OFF, {"Disabled", "9"}},
+                                      {EMERGENCY, {"Emergency", "emergency"}},
+                                      {ALERT, {"Alert", "alert"}},
+                                      {CRITICAL, {"Critical", "critical"}},
+                                      {ERROR, {"Error", "error"}},
+                                      {WARN, {"Warning", "warning"}},
+                                      {NOTICE, {"Notice", "notice"}},
+                                      {INFO, {"Info", "info"}},
+                                      {DEBUG, {"Debug", "debug"}}};
+
+const std::unordered_map<AnoLogLevel::Level, DpdkLogLevel::Level>
+    DpdkLogLevel::ano_to_dpdk_log_level_map = {
+        {AnoLogLevel::TRACE, DEBUG},
+        {AnoLogLevel::DEBUG, DEBUG},
+        {AnoLogLevel::INFO, INFO},
+        {AnoLogLevel::WARN, WARN},
+        {AnoLogLevel::ERROR, ERROR},
+        {AnoLogLevel::CRITICAL, CRITICAL},
+        {AnoLogLevel::OFF, OFF},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief Init
@@ -292,9 +317,13 @@ void DpdkMgr::initialize() {
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
 
-  if (cfg_.debug_) {
-    strncpy(_argv[arg++], "--log-level=99", max_arg_size - 1);
-    strncpy(_argv[arg++], "--log-level=pmd.net.mlx5:8", max_arg_size - 1);
+  HOLOSCAN_LOG_INFO(
+      "Setting DPDK log level to: {}",
+      DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
+
+  DpdkLogLevelCommandBuilder cmd(cfg_.log_level_);
+  for (auto& c : cmd.get_cmd_flags_strings()) {
+    strncpy(_argv[arg++], c.c_str(), max_arg_size - 1);
   }
 
   for (const auto& name : ifs) {
@@ -400,7 +429,12 @@ void DpdkMgr::initialize() {
 #pragma GCC diagnostic pop
 
         if (pool == nullptr) {
-          HOLOSCAN_LOG_CRITICAL("Could not create external memory mempool");
+          HOLOSCAN_LOG_CRITICAL(
+                "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
+                pool_name,
+                mr.num_bufs_,
+                mr.adj_size_,
+                (void*)pool);
           return;
         }
 
@@ -513,7 +547,8 @@ void DpdkMgr::initialize() {
 
     // Subtract eth headers since driver adds that on
     max_pkt_size = std::max(max_pkt_size, 64UL);
-    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBFRAME_SIZE);
+    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBOFRAME_SIZE) -
+      RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN;
     local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
         local_port_conf[intf.port_id_].rxmode.mtu;
 
@@ -691,7 +726,8 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 
   auto num_rx_ptrs_bufs = (1UL << 13) - 1;
   HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
-                      num_rx_ptrs_bufs, sizeof(void*) * max_rx_batch);
+                    num_rx_ptrs_bufs,
+                    sizeof(void*) * max_rx_batch);
   rx_burst_buffer = rte_mempool_create("RX_BURST_POOL",
                                        num_rx_ptrs_bufs,
                                        sizeof(void*) * max_rx_batch,
@@ -973,54 +1009,43 @@ void PrintDpdkStats() {
     printf(" - Errored packets:     %lu\n", eth_stats.ierrors);
     printf(" - RX out of buffers:   %lu\n", eth_stats.rx_nombuf);
 
-    // printf("\nExtended Stats\n");
+    printf("\nExtended Stats\n");
 
-    // struct rte_eth_xstat *xstats;
-    // struct rte_eth_xstat_name *xstats_names;
-    // static const char *stats_border = "_______";
+    struct rte_eth_xstat *xstats;
+    struct rte_eth_xstat_name *xstats_names;
+    static const char *stats_border = "_______";
 
-    // /* Clear screen and move to top left */
-    // len = rte_eth_xstats_get(i, NULL, 0);
-    // if (len < 0)
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get(%u) failed: %d", 0,
-    //             len);
-    // xstats = (struct rte_eth_xstat *)calloc(len, sizeof(*xstats));
-    // if (xstats == NULL)
-    //     rte_exit(EXIT_FAILURE,
-    //             "Failed to calloc memory for xstats");
-    // ret = rte_eth_xstats_get(i, xstats, len);
-    // if (ret < 0 || ret > len) {
-    //     free(xstats);
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get(%u) len%i failed: %d",
-    //             0, len, ret);
-    // }
-    // xstats_names = (struct rte_eth_xstat_name *)calloc(len, sizeof(*xstats_names));
-    // if (xstats_names == NULL) {
-    //     free(xstats);
-    //     rte_exit(EXIT_FAILURE,
-    //             "Failed to calloc memory for xstats_names");
-    // }
-    // ret = rte_eth_xstats_get_names(i, xstats_names, len);
-    // if (ret < 0 || ret > len) {
-    //     free(xstats);
-    //     free(xstats_names);
-    //     rte_exit(EXIT_FAILURE,
-    //             "rte_eth_xstats_get_names(%u) len%i failed: %d",
-    //             0, len, ret);
-    // }
-    // for (i = 0; i < len; i++) {
-    //     if (xstats[i].value > 0)
-    //         printf("Port %u: %s %s:\t\t%lu\n",
-    //                 0, stats_border,
-    //                 xstats_names[i].name,
-    //                 xstats[i].value);
-    // }
+    /* Clear screen and move to top left */
+    len = rte_eth_xstats_get(i, NULL, 0);
+    if (len < 0)
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get(%u) failed: %d", 0, len);
+    xstats = (struct rte_eth_xstat *)calloc(len, sizeof(*xstats));
+    if (xstats == NULL)
+      rte_exit(EXIT_FAILURE, "Failed to calloc memory for xstats");
+    ret = rte_eth_xstats_get(i, xstats, len);
+    if (ret < 0 || ret > len) {
+      free(xstats);
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get(%u) len%i failed: %d", 0, len, ret);
+    }
+    xstats_names = (struct rte_eth_xstat_name *)calloc(len, sizeof(*xstats_names));
+    if (xstats_names == NULL) {
+      free(xstats);
+      rte_exit(EXIT_FAILURE, "Failed to calloc memory for xstats_names");
+    }
+    ret = rte_eth_xstats_get_names(i, xstats_names, len);
+    if (ret < 0 || ret > len) {
+      free(xstats);
+      free(xstats_names);
+      rte_exit(EXIT_FAILURE, "rte_eth_xstats_get_names(%u) len%i failed: %d", 0, len, ret);
+    }
+    for (i = 0; i < len; i++) {
+      if (xstats[i].value > 0)
+      printf("Port %u: %s %s:\t\t%lu\n", 0, stats_border, xstats_names[i].name, xstats[i].value);
+    }
 
-    // free(xstats);
-    // free(xstats_names);
-    // printf("done\n");
+    free(xstats);
+    free(xstats_names);
+    printf("done\n");
   }
 
   printf("\n");
@@ -1326,6 +1351,10 @@ AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_
       reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx], timestamp_offset_, uint64_t*) = timestamp;
 
   return AdvNetStatus::SUCCESS;
+}
+
+void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+  return nullptr;
 }
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
