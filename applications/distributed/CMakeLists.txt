@@ -13,25 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+cmake_minimum_required(VERSION 3.20)
+project(distributed_applications LANGUAGES NONE)
 
-from holoscan.core import Fragment
-from holoscan.operators import VideoStreamReplayerOp
-
-
-class VideoInputFragment(Fragment):
-    def __init__(self, app, name, video_dir):
-        super().__init__(app, name)
-        self.video_dir = video_dir
-
-        if not os.path.exists(self.video_dir):
-            raise ValueError(f"Could not find video data: {video_dir=}")
-
-    def compose(self):
-        input_op = VideoStreamReplayerOp(
-            self,
-            name="replayer",
-            directory=self.video_dir,
-            **self.kwargs("replayer"),
-        )
-        self.add_operator(input_op)
+add_subdirectory(grpc)
+add_subdirectory(ucx)

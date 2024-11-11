@@ -49,8 +49,7 @@ class App : public holoscan::Application {
     add_flow(video_in, viz, {{"decoder_output_format_converter.tensor", "holoviz.receivers"}});
     add_flow(cloud_inference,
              viz,
-             {{"tool_tracking_postprocessor.out_coords", "holoviz.receivers"},
-              {"tool_tracking_postprocessor.out_mask", "holoviz.receivers"}});
+             {{"tool_tracking_postprocessor.out", "holoviz.receivers"}});
   }
 
  private:

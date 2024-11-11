@@ -14,34 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(h264_endoscopy_tool_tracking_distributed CXX)
-
-find_package(holoscan 2.5 REQUIRED CONFIG
-  PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-add_executable(h264_endoscopy_tool_tracking_distributed
-  main.cpp
-)
-
-target_link_libraries(h264_endoscopy_tool_tracking_distributed
-  PRIVATE
-  holoscan::core
-  holoscan::ops::gxf_codelet
-  holoscan::ops::format_converter
-  holoscan::ops::holoviz
-  holoscan::ops::video_encoder
-  holoscan::ops::tensor_to_video_buffer
-  lstm_tensor_rt_inference
-  tool_tracking_postprocessor
-)
-
-# Copy the config to the binary directory
-add_custom_target(h264_endoscopy_tool_tracking_distributed_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "endoscopy_tool_tracking.yaml"
-  BYPRODUCTS "endoscopy_tool_tracking.yaml"
-)
-add_dependencies(h264_endoscopy_tool_tracking_distributed h264_endoscopy_tool_tracking_distributed_yaml)
+project(ucx_endoscopy_tool_tracking_apps LANGUAGES NONE)
 
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
@@ -54,6 +27,27 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
     URL_MD5 d54f84a562d29ed560a87d2607eba973
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 480
+    GXF_ENTITIES_WIDTH 854
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
   )
-  add_dependencies(h264_endoscopy_tool_tracking_distributed endoscopy_data)
 endif()
+
+
+# Add testing
+if(BUILD_TESTING)
+  file(MAKE_DIRECTORY ${HOLOHUB_DATA_DIR}/endoscopy/engines)
+  add_test(
+    NAME endoscopy_engine_generation
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/generate_trt_engine.py
+      --input ${HOLOHUB_DATA_DIR}/endoscopy/tool_loc_convlstm.onnx
+      --output ${HOLOHUB_DATA_DIR}/endoscopy/engines/
+      --fp16
+  )
+  set_tests_properties(endoscopy_engine_generation PROPERTIES FIXTURES_SETUP endoscopy_engine_generation_fixture)
+endif()
+
+add_subdirectory(cpp)
+add_subdirectory(python)

@@ -1033,6 +1033,7 @@ build_and_run() {
 
     if [[ -z "${docker_file}" ]]; then
         docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
+        c_echo "Using Docker file: ${docker_file}"
     fi
     if [[ -n "${docker_file}" ]]; then
         container_build_args+=(--docker_file ${docker_file})

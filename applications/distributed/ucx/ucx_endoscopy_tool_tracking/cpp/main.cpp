@@ -38,8 +38,12 @@ class VideoInputFragment : public holoscan::Fragment {
     args.add(Arg("directory", input_dir_));
     HOLOSCAN_LOG_INFO("Using video from {}", input_dir_);
 
-    auto replayer =
-        make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"), args);
+    auto replayer = make_operator<ops::VideoStreamReplayerOp>(
+        "replayer",
+        Arg("pool") = make_resource<RMMAllocator>(
+            "pool", Arg("device_memory_max_size") = std::string("256MB")),
+        from_config("replayer"),
+        args);
 
     add_operator(replayer);
   }
