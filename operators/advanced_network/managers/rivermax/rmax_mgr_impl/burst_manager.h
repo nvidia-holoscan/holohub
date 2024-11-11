@@ -205,7 +205,7 @@ class RmaxBurst : public AdvNetBurstParams {
    * @brief Appends a packet to the burst.
    *
    * @param packet_ind_in_out_burst The index of the packet in the burst.
-   *                                Index boudary checks are not performed in this function.
+   *                                Index boundary checks are not performed in this function.
    * @param packet_data The data of the packet to append.
    */
   inline void set_packet_data(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
