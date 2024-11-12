@@ -40,8 +40,7 @@ class VideoInputFragment : public holoscan::Fragment {
 
     auto replayer = make_operator<ops::VideoStreamReplayerOp>(
         "replayer",
-        Arg("pool") = make_resource<RMMAllocator>(
-            "pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")),
         from_config("replayer"),
         args);
 
@@ -114,12 +113,13 @@ class VizFragment : public holoscan::Fragment {
   void compose() override {
     std::shared_ptr<BlockMemoryPool> visualizer_allocator;
 
-    auto visualizer_operator =
-        make_operator<ops::HolovizOp>("holoviz",
-                                      from_config("holoviz"),
-                                      Arg("width") = width_,
-                                      Arg("height") = height_,
-                                      Arg("allocator") = visualizer_allocator);
+    auto visualizer_operator = make_operator<ops::HolovizOp>(
+        "holoviz",
+        from_config("holoviz"),
+        Arg("width") = width_,
+        Arg("height") = height_,
+        Arg("allocator") = visualizer_allocator,
+        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
     add_operator(visualizer_operator);
   }
 };
