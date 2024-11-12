@@ -24,13 +24,13 @@ If you want to manually convert the video data, please refer to the instructions
 
 ```sh
 # Start the application with all three fragments
-./dev_container build_and_run endoscopy_tool_tracking_distributed --language python
+./dev_container build_and_run ucx_endoscopy_tool_tracking --language python
 
 # Use the following commands to run the same application three processes:
 # Start the application with the video_in fragment
-./dev_container build_and_run endoscopy_tool_tracking_distributed --language python --run_args "--driver --worker --fragments video_in --address :10000"
+./dev_container build_and_run ucx_endoscopy_tool_tracking --language python --run_args "--driver --worker --fragments video_in --address :10000"
 # Start the application with the inference fragment
-./dev_container build_and_run endoscopy_tool_tracking_distributed --language python --run_args "--worker --fragments inference --address :10000"
+./dev_container build_and_run ucx_endoscopy_tool_tracking --language python --run_args "--worker --fragments inference --address :10000"
 # Start the application with the visualization fragment
-./dev_container build_and_run endoscopy_tool_tracking_distributed --language python --run_args "--worker --fragments viz --address :10000"
+./dev_container build_and_run ucx_endoscopy_tool_tracking --language python --run_args "--worker --fragments viz --address :10000"
 ```
