@@ -29,8 +29,8 @@ for file in $cpp_files; do
         echo "Found \"BenchmarkedApplication\" in file $file. It is probably patched already. Skipping."
         continue
     fi
-    # Find the "holoscan::Application" line in the cpp file and include benchmark header file before it
-    include_line=$(grep -nE -- "holoscan::Application" "$file" | tail -n 1 | awk -F ':' '{print $1}')
+    # Find the "holoscan::Application {" line in the cpp file and include benchmark header file before it
+    include_line=$(grep -nE -- "holoscan::Application {" "$file" | tail -n 1 | awk -F ':' '{print $1}')
     if [ -z "$include_line" ]; then
         continue
     fi
@@ -40,8 +40,8 @@ for file in $cpp_files; do
     include_line=$((include_line-1))
     sed -i "${include_line} a #include \"benchmark.hpp\"\n" "$file"
 
-    # Modify holoscan::Application to "BenchmarkedApplication"
-    sed -i 's/holoscan::Application/BenchmarkedApplication/g' "$file"
+    # Modify holoscan::Application { to "BenchmarkedApplication {"
+    sed -i 's/holoscan::Application {/BenchmarkedApplication {/g' "$file"
 
     echo "Patched $file. Original file is backed up in $file.bak.  Run command below to see the differences:"
     echo "  diff -u $file.bak $file"
