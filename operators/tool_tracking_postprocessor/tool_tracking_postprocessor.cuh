@@ -19,28 +19,29 @@
 
 #include <array>
 #include <cstdint>
+#include <stdexcept>
 
 #include <holoscan/logger/logger.hpp>
 
 #define CUDA_TRY(stmt)                                                                        \
-  ({                                                                                          \
-    cudaError_t _holoscan_cuda_err = stmt;                                                    \
-    if (cudaSuccess != _holoscan_cuda_err) {                                                  \
-      HOLOSCAN_LOG_ERROR("CUDA Runtime call {} in line {} of file {} failed with '{}' ({}).", \
+  {                                                                                           \
+    cudaError_t cuda_status = stmt;                                                           \
+    if (cudaSuccess != cuda_status) {                                                         \
+      HOLOSCAN_LOG_ERROR("CUDA runtime call {} in line {} of file {} failed with '{}' ({}).", \
                          #stmt,                                                               \
                          __LINE__,                                                            \
                          __FILE__,                                                            \
-                         cudaGetErrorString(_holoscan_cuda_err),                              \
-                         static_cast<int>(_holoscan_cuda_err));                               \
+                         cudaGetErrorString(cuda_status),                                     \
+                         static_cast<int>(cuda_status));                                      \
+      throw std::runtime_error("CUDA runtime call failed");                                   \
     }                                                                                         \
-    _holoscan_cuda_err;                                                                       \
-  })
+  }
 
 namespace holoscan::ops {
 
 void cuda_postprocess(uint32_t count, float min_prob, const float* probs,
                       const float2* scaled_coords, float3* filtered_scaled_coords, uint32_t width,
-                      uint32_t height, const float3 *colors, const float* binary_mask,
+                      uint32_t height, const float3* colors, const float* binary_mask,
                       float4* colored_mask, cudaStream_t cuda_stream);
 
 }  // namespace holoscan::ops

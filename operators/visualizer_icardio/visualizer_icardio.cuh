@@ -20,10 +20,28 @@
 
 #include <cuda.h>
 
+#include <stdexcept>
+
+#include <holoscan/logger/logger.hpp>
+
+#define CUDA_TRY(stmt)                                                                       \
+  {                                                                                          \
+    cudaError_t cuda_status = stmt;                                                          \
+    if (cudaSuccess != cuda_status) {                                                        \
+      HOLOSCAN_LOG_ERROR("CUDA runtime call {} in line {} of file {} failed with '{}' ({})", \
+                         #stmt,                                                              \
+                         __LINE__,                                                           \
+                         __FILE__,                                                           \
+                         cudaGetErrorString(cuda_status),                                    \
+                         int(cuda_status));                                                  \
+      throw std::runtime_error("CUDA runtime call failed");                                  \
+    }                                                                                        \
+  }
+
 namespace holoscan::ops {
 
-void gen_coords(unsigned int offset, unsigned int count, int property_size,
-                const float* input, float* output, cudaStream_t stream);
+void gen_coords(unsigned int offset, unsigned int count, int property_size, const float* input,
+                float* output, cudaStream_t stream);
 
 }  // namespace holoscan::ops
 

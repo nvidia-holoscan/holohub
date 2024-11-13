@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights
- * reserved. SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,20 +30,6 @@
 #include <cuda_runtime.h>
 
 #include "visualizer_icardio.cuh"
-
-#define CUDA_TRY(stmt)                                                                  \
-  {                                                                                     \
-    cudaError_t cuda_status = stmt;                                                     \
-    if (cudaSuccess != cuda_status) {                                                   \
-      HOLOSCAN_LOG_ERROR("Runtime call {} in line {} of file {} failed with '{}' ({})", \
-                         #stmt,                                                         \
-                         __LINE__,                                                      \
-                         __FILE__,                                                      \
-                         cudaGetErrorString(cuda_status),                               \
-                         int(cuda_status));                                             \
-      throw std::runtime_error("Unable to copy device to host");                        \
-    }                                                                                   \
-  }
 
 namespace holoscan::ops {
 
