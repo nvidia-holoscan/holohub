@@ -130,8 +130,8 @@ _Make sure you have installed the [prerequisites](#prerequisites) before attempt
 
 Reference applications based on the Holoscan platform may be found under the [applications](./applications/) directory. Reference applications aim to provide a demonstration of the SDK capabilities.
 
-HoloHub provides a convenient `run` script to build and run applications in your development environment.
-To build an application in your development environment:
+This repository provides a convenient `run` script to build and run applications in your development environment.
+To build an application:
 
 ```bash
   ./run build <application>
