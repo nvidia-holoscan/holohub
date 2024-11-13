@@ -11,7 +11,7 @@ The client application reads a pre-recorded h.264 video file and streams the enc
 ![Overview](static/overview.png)
 *h.264 Endoscopy Tool Tracking Application with gRPC*
 
-From the diagram above, we can see that both the App Cloud (the server) and the App Edge (the client) are very similar to the standalone [Endoscopy Tool Tracking](../../endoscopy_tool_tracking/) application. This section will only describe the differences; for details on inference and post-processing, please refer to the link above.
+From the diagram above, we can see that both the App Cloud (the server) and the App Edge (the client) are very similar to the standalone [Endoscopy Tool Tracking](../../../endoscopy_tool_tracking/) application. This section will only describe the differences; for details on inference and post-processing, please refer to the link above.
 
 On the client side, the differences are the queues and the gRPC client. In the *Video Input Fragment*, we added the following:
 - **Outgoing Requests** operator (`GrpcClientRequestOp`): It converts the video frames (GXF entities) received from the *Video Read Stream* operator into `EntityRequest` protobuf messages and queues each frame in the *Request Queue*.

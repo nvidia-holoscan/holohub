@@ -34,4 +34,10 @@ class VideoInputFragment(Fragment):
             directory=self.video_dir,
             **self.kwargs("replayer"),
         )
+        try:
+            from holoscan.resources import RMMAllocator
+
+            input_op.add_arg(allocator=RMMAllocator(self, name="video_replayer_allocator"))
+        except Exception:
+            pass
         self.add_operator(input_op)

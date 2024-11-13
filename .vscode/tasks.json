@@ -206,11 +206,11 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed",
+            "label": "Build ucx_endoscopy_tool_tracking",
             "command": "./run",
             "args": [
                 "build",
-                "endoscopy_tool_tracking_distributed",
+                "ucx_endoscopy_tool_tracking",
                 "--type",
                 "debug"
             ],
@@ -227,17 +227,17 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed (delay 3s)",
+            "label": "Build ucx_endoscopy_tool_tracking (delay 3s)",
             "command": "sleep 3",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Build endoscopy_tool_tracking_distributed",
+            "dependsOn": "Build ucx_endoscopy_tool_tracking",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -248,17 +248,17 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed (delay 5s)",
+            "label": "Build ucx_endoscopy_tool_tracking (delay 5s)",
             "command": "sleep 5",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Build endoscopy_tool_tracking_distributed",
+            "dependsOn": "Build ucx_endoscopy_tool_tracking",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -269,7 +269,7 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
@@ -291,11 +291,11 @@
         },
         {
             "type": "shell",
-            "label": "Build h264_endoscopy_tool_tracking_distributed",
+            "label": "Build ucx_h264_endoscopy_tool_tracking",
             "command": "./run",
             "args": [
                 "build",
-                "h264_endoscopy_tool_tracking_distributed",
+                "ucx_h264_endoscopy_tool_tracking",
                 "--type",
                 "debug"
             ],
@@ -312,7 +312,7 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "h264_endoscopy_tool_tracking_distributed"
+                "group": "ucx_h264_endoscopy_tool_tracking"
             }
         },
         {

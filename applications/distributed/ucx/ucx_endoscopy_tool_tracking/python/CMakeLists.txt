@@ -25,26 +25,26 @@ if(BUILD_TESTING)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml" ${CONFIG_FILE})
 
   # Add test
-  add_test(NAME endoscopy_tool_tracking_distributed_python_test_args
+  add_test(NAME ucx_endoscopy_tool_tracking_python_test_args
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.py --data "${HOLOHUB_DATA_DIR}/endoscopy" --config "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_tests_properties(endoscopy_tool_tracking_distributed_python_test_args PROPERTIES
+  set_tests_properties(ucx_endoscopy_tool_tracking_python_test_args PROPERTIES
                        ENVIRONMENT "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
-  set_tests_properties(endoscopy_tool_tracking_distributed_python_test_args PROPERTIES
+  set_tests_properties(ucx_endoscopy_tool_tracking_python_test_args PROPERTIES
                        FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
-  add_test(NAME endoscopy_tool_tracking_distributed_python_test_env_vars
+  add_test(NAME ucx_endoscopy_tool_tracking_python_test_env_vars
           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.py --data "${HOLOHUB_DATA_DIR}/endoscopy" --config "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml"
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_tests_properties(endoscopy_tool_tracking_distributed_python_test_env_vars PROPERTIES
+  set_tests_properties(ucx_endoscopy_tool_tracking_python_test_env_vars PROPERTIES
                        ENVIRONMENT "HOLOSCAN_INPUT_PATH=${HOLOHUB_DATA_DIR}/endoscopy;HOLOSCAN_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml;PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
-  set_tests_properties(endoscopy_tool_tracking_distributed_python_test_env_vars PROPERTIES
+  set_tests_properties(ucx_endoscopy_tool_tracking_python_test_env_vars PROPERTIES
                        FIXTURES_REQUIRED endoscopy_engine_generation_fixture
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")

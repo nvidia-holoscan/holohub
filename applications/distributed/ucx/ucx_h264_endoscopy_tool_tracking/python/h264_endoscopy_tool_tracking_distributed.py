@@ -58,10 +58,7 @@ class EndoscopyApp(Application):
         self.add_flow(
             cloud_inference,
             viz,
-            {
-                ("tool_tracking_postprocessor.out_coords", "holoviz.receivers"),
-                ("tool_tracking_postprocessor.out_mask", "holoviz.receivers"),
-            },
+            {("tool_tracking_postprocessor.out", "holoviz.receivers")},
         )
 
 

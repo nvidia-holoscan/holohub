@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
+
+add_holohub_application(grpc_h264_endoscopy_tool_tracking DEPENDS
                         OPERATORS video_encoder
                                   tensor_to_video_buffer
                                   lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                        )
-
-add_holohub_application(h264_video_decode DEPENDS
-                        OPERATORS video_decoder video_read_bitstream)
+                                  grpc_operators)

@@ -36,6 +36,8 @@ add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS deltacast_videomaster
                         )
 
+add_subdirectory(distributed)
+
 add_holohub_application(endoscopy_depth_estimation)
 
 add_holohub_application(endoscopy_out_of_body_detection)
@@ -45,9 +47,6 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                                   tool_tracking_postprocessor
                                   OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
 
-add_holohub_application(endoscopy_tool_tracking_distributed DEPENDS
-                        OPERATORS lstm_tensor_rt_inference
-                                  tool_tracking_postprocessor)
 add_subdirectory(h264)
 
 add_holohub_application(high_speed_endoscopy DEPENDS

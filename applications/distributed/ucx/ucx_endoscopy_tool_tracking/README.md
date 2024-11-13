@@ -10,7 +10,7 @@ Fig. 1 Endoscopy (laparoscopy) image from a cholecystectomy (gallbladder removal
 
 The Distributed Endoscopy Tool Tracking application provides an example of how an endoscopy data stream can be captured and processed using the C++ or Python APIs on multiple hardware platforms.
 
-The Distributed Endoscopy Tool Tracking application is very similar to the [Endoscopy Tool Tracking application](../endoscopy_tool_tracking/) but divides all operators into three fragments as depicted below. 
+The Distributed Endoscopy Tool Tracking application is very similar to the [Endoscopy Tool Tracking application](../../../endoscopy_tool_tracking/) but divides all operators into three fragments as depicted below.
 This allows fragments to run on different systems. For example, one can run the *Video Input Fragment* and the *Visualization Fragment* on a radiology workstation while the *Inference Fragment* runs on a more powerful system with multiple GPUs. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html) for more information on distributed applications.
 
 ### Video Stream Replayer Input
@@ -37,24 +37,24 @@ To start the the Dev Container, run the following command from the root director
 
 There are several launch profiles configured for the C++ version of this application:
 
-1. **(gdb) endoscopy_tool_tracking_distributed/cpp (all fragments)**: Launches all fragments in a single process in debug mode.
-2. **(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment**: Starts the `video_in` fragment in debug mode.
-3. **(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment**: Starts the `inference` fragment in debug mode.
-4. **(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment**: Starts the `viz` fragment in debug mode.
-5. **(compound) endoscopy_tool_tracking_distributed/cpp**: Starts #2, #3, #4 in sequence.
+1. **(gdb) ucx_endoscopy_tool_tracking/cpp (all fragments)**: Launches all fragments in a single process in debug mode.
+2. **(gdb) ucx_endoscopy_tool_tracking/cpp - video_in fragment**: Starts the `video_in` fragment in debug mode.
+3. **(gdb) ucx_endoscopy_tool_tracking/cpp - inference fragment**: Starts the `inference` fragment in debug mode.
+4. **(gdb) ucx_endoscopy_tool_tracking/cpp - viz fragment**: Starts the `viz` fragment in debug mode.
+5. **(compound) ucx_endoscopy_tool_tracking/cpp**: Starts #2, #3, #4 in sequence.
 
 
 #### Python
 
 There are several launch profiles configured for this application:
 
-1. **(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)**: Launches all fragments in a single process in debug mode.
-2. **(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment)**: Launches all fragments in a single process in debug mode.
-3. **(pythoncpp) endoscopy_tool_tracking_distributed/python - video_in fragment**: Starts the `video_in` fragment in debug mode.
-4. **(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment**: Starts the `video_in` fragment in debug mode.
-5. **(pythoncpp) endoscopy_tool_tracking_distributed/python - inference fragment**: Starts the `inference` fragment in debug mode.
-6. **(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment**: Starts the `inference` fragment in debug mode.
-4. **(pythoncpp) endoscopy_tool_tracking_distributed/python - viz fragment**: Starts the `viz` fragment in debug mode.
-5. **(compound) endoscopy_tool_tracking_distributed/python**: Starts #2, #4, #6 in sequence.
+1. **(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)**: Launches all fragments in a single process in debug mode.
+2. **(debugpy) ucx_endoscopy_tool_tracking/python - video_in fragment)**: Launches all fragments in a single process in debug mode.
+3. **(pythoncpp) ucx_endoscopy_tool_tracking/python - video_in fragment**: Starts the `video_in` fragment in debug mode.
+4. **(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment**: Starts the `video_in` fragment in debug mode.
+5. **(pythoncpp) ucx_endoscopy_tool_tracking/python - inference fragment**: Starts the `inference` fragment in debug mode.
+6. **(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment**: Starts the `inference` fragment in debug mode.
+4. **(pythoncpp) ucx_endoscopy_tool_tracking/python - viz fragment**: Starts the `viz` fragment in debug mode.
+5. **(compound) ucx_endoscopy_tool_tracking/python**: Starts #2, #4, #6 in sequence.
 
 Note: Launch profiles prefixed with `debugpy` enables debugging of Python code only. Use `pythoncpp` to debug both C++ and Python code.

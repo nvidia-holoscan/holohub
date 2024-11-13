@@ -96,7 +96,6 @@ class CloudInferenceFragment(Fragment):
             self,
             name="tool_tracking_postprocessor",
             device_allocator=UnboundedAllocator(self, name="device_allocator"),
-            host_allocator=UnboundedAllocator(self, name="host_allocator"),
             **self.kwargs("tool_tracking_postprocessor"),
         )
 

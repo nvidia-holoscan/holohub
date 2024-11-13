@@ -52,7 +52,7 @@
 			]
 		},
 		"run": {
-			"command": "./h264_endoscopy_tool_tracking_distributed --data <holohub_data_dir>/endoscopy",
+			"command": "./ucx_h264_endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_app_bin"
 		}
 	}
