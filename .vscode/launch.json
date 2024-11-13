@@ -1071,6 +1071,35 @@
             }
         },
         //#endregion multiai_ultrasound
+        //#region nvidia_nim_nvclip
+        {
+            "name": "(debugpy) nvidia_nim_nvclip/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build nvidia_nim_nvclip",
+            "program": "${workspaceFolder}/applications/nvidia_nim/nvidia_nim_nvclip/app.py",
+            "cwd": "${workspaceFolder}/build/nvidia_nim_nvclip/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/nvidia_nim_nvclip/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) nvidia_nim_nvclip/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) nvidia_nim_nvclip/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "nvidia_nim_nvclip",
+                "order": 2
+            }
+        },
+        //#endregion holoviz
+
         //#region volume_rendering
         {
             "name": "(gdb) volume_rendering/cpp",

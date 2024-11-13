@@ -61,8 +61,6 @@ class OpenAIOperator(Operator):
 
         self._reset_chat_history()
 
-        print(f"======================self.api_key={self.api_key}")
-
         if not self.api_key:
             self.api_key = os.getenv("API_KEY", None)
         if not self.api_key:
