@@ -1,4 +1,4 @@
-# Welcome to NVIDIA HoloHub!
+# Holoscan Reference Applications
 
 ![Lint](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_lint.yml?branch=main&label=Lint
 )
@@ -9,7 +9,7 @@
 [![Operators](https://img.shields.io/badge/Operators-41-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
 [![Tutorials](https://img.shields.io/badge/Tutorials-12-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
 
-HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing community to share apps and extensions. We invite users and developers of extensions and applications for the Holoscan platform to reuse and contribute components and sample applications.
+This is a central repository for the NVIDIA Holoscan AI sensor processing community to share reference applications, operators, tutorials and benchmarks. We invite users and developers of the Holoscan platform to reuse and contribute to this repository.
 
 # Table of Contents
 - [Overview](#overview)
@@ -22,8 +22,8 @@ HoloHub is a central repository for the NVIDIA Holoscan AI sensor processing com
 
 # Overview
 
-HoloHub is a collection of applications and extensions created by the Holoscan AI sensor processing community.
-The following directories make up the core of HoloHub:
+This repository is a collection of applications and extensions created by the Holoscan AI sensor processing community.
+The following directories make up the core of this repo:
 
 - Example applications: Visit [`applications`](./applications) to explore an evolving collection of example
   applications built on the NVIDIA Holoscan platform. Examples are available from NVIDIA, partners, and
@@ -42,7 +42,7 @@ You will need a platform supported by NVIDIA Holoscan SDK. Refer to the [Holosca
 - An x64 PC with an Ubuntu operating system and an NVIDIA GPU; or
 - A supported NVIDIA ARM development kit.
 
-Individual examples and operators in HoloHub may have additional platform requirements. For instance, some examples may support only ARM platforms.
+Individual examples and operators in this repo may have additional platform requirements. For instance, some examples may support only ARM platforms.
 
 ## Build Environment
 
