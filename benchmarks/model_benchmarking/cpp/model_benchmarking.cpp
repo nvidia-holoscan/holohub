@@ -23,6 +23,7 @@
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -50,13 +51,14 @@ class App : public holoscan::Application {
  public:
   App() = default;
   App(const std::string& datapath, const std::string& model_name, int num_inferences,
-      bool only_inference, bool inference_postprocessing, bool headless)
+      bool only_inference, bool inference_postprocessing, bool headless, bool replayer)
       : datapath(datapath),
         model_name(model_name),
         num_inferences(num_inferences),
         only_inference(only_inference),
         inference_postprocessing(inference_postprocessing),
-        headless(headless) {
+        headless(headless),
+        replayer(replayer) {
     holoscan::Application();
     if (!std::filesystem::exists(datapath)) {
       std::cerr << "Data path " << datapath << " does not exist." << std::endl;
@@ -75,12 +77,16 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
-    auto source = make_operator<ops::V4L2VideoCaptureOp>(
-        "source", from_config("source"), Arg("allocator") = pool_resource);
+    std::shared_ptr<Operator> source;
 
-    // auto source = make_operator<ops::VideoStreamReplayerOp>("replayer",
-    //                                                         from_config("replayer"),
-    //                                                         Arg("directory") = data);
+    if (replayer) {
+      source = make_operator<ops::VideoStreamReplayerOp>(
+          "replayer", from_config("replayer"), Arg("directory") = datapath);
+
+    } else {
+      source = make_operator<ops::V4L2VideoCaptureOp>(
+          "source", from_config("source"), Arg("allocator") = pool_resource);
+    }
 
     auto preprocessor = make_operator<ops::FormatConverterOp>(
         "preprocessor", from_config("preprocessor"), Arg("pool") = pool_resource);
@@ -114,12 +120,20 @@ class App : public holoscan::Application {
             holoviz_name, from_config("viz"), Arg("headless") = headless);
         holovizs.push_back(holoviz);
         // Passthrough to Visualization
-        add_flow(source, holoviz, {{"signal", "receivers"}});
+        if (replayer) {
+          add_flow(source, holoviz, {{"", "receivers"}});
+        } else {
+          add_flow(source, holoviz, {{"signal", "receivers"}});
+        }
       }
     }
 
     // Inference Path
-    add_flow(source, preprocessor, {{"signal", "source_video"}});
+    if (replayer) {
+      add_flow(source, preprocessor, {{"", "source_video"}});
+    } else {
+      add_flow(source, preprocessor, {{"signal", "source_video"}});
+    }
     add_flow(preprocessor, inference, {{"tensor", "receivers"}});
     if (only_inference) {
       HOLOSCAN_LOG_INFO(
@@ -161,7 +175,7 @@ class App : public holoscan::Application {
 
  private:
   int num_inferences = 1;
-  bool only_inference = false, inference_postprocessing = false, headless = false;
+  bool only_inference = false, inference_postprocessing = false, headless = false, replayer = false;
   std::string datapath, model_name;
 };
 
@@ -194,17 +208,18 @@ void print_help() {
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path,
                      std::string& model_name, bool& only_inference, bool& inference_postprocessing,
-                     int& num_inferences, bool& headless) {
+                     int& num_inferences, bool& headless, bool& replayer) {
   static struct option long_options[] = {{"help", required_argument, 0, 'h'},
                                          {"data", required_argument, 0, 'd'},
                                          {"model-name", required_argument, 0, 'm'},
                                          {"only-inference", optional_argument, 0, 'i'},
                                          {"inference-postprocessing", optional_argument, 0, 'p'},
+                                         {"headless", optional_argument, 0, 'e'},
+                                         {"replayer", optional_argument, 0, 'r'},
                                          {"multi-inference", required_argument, 0, 'l'},
-                                         {"headless", required_argument, 0, 'e'},
                                          {0, 0, 0, 0}};
 
-  while (int c = getopt_long(argc, argv, "hd:m:v:ipel:", long_options, NULL)) {
+  while (int c = getopt_long(argc, argv, "hd:m:v:iperl:", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
@@ -226,6 +241,9 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
       case 'e':
         headless = true;
         break;
+      case 'r':
+        replayer = true;
+        break;
       case 'l':
         num_inferences = std::stoi(optarg);
         break;
@@ -245,7 +263,7 @@ int main(int argc, char** argv) {
   std::string config_name = "";
   std::string data_path = "/workspace/holohub/data/ultrasound_segmentation";
   std::string model_name = "us_unet_256x256_nhwc.onnx";
-  bool only_inference = false, inference_postprocessing = false, headless = false;
+  bool only_inference = false, inference_postprocessing = false, headless = false, replayer = false;
   int num_inferences = 1;
   if (!parse_arguments(argc,
                        argv,
@@ -255,12 +273,18 @@ int main(int argc, char** argv) {
                        only_inference,
                        inference_postprocessing,
                        num_inferences,
-                       headless)) {
+                       headless,
+                       replayer)) {
     return 1;
   }
 
-  auto app = holoscan::make_application<App>(
-      data_path, model_name, num_inferences, only_inference, inference_postprocessing, headless);
+  auto app = holoscan::make_application<App>(data_path,
+                                             model_name,
+                                             num_inferences,
+                                             only_inference,
+                                             inference_postprocessing,
+                                             headless,
+                                             replayer);
   if (config_name != "") {
     // Check if config_name is a valid path
     if (!std::filesystem::exists(config_name)) {
