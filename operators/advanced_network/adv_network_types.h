@@ -354,6 +354,7 @@ struct FlowAction {
 struct FlowMatch {
   uint16_t udp_src_;
   uint16_t udp_dst_;
+  uint16_t ipv4_len_;
 };
 struct FlowConfig {
   std::string name_;

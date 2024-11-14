@@ -16,7 +16,7 @@ but raw headers can also be constructed.
 #### Requirements
 
 - Linux
-- A DPDK-compatible network card. For GPUDirect only NVIDIA NICs are supported
+- An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described below
 - DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
@@ -319,6 +319,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	  	- type: `integer`
 		- **`udp_dst`**: UDP destination port
 	  	- type: `integer`
+		- **`ipv4_len`**: IPv4 payload length
+	  	- type: `integer`      
 
 ##### Extended Receive Configuration for Rivermax manager
 - **`rmax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).

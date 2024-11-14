@@ -35,7 +35,7 @@ ARG DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64; \
+        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-ssba; \
     else \
         echo "Unknown architecture: $TARGETARCH"; \
         exit 1; \

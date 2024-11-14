@@ -201,6 +201,7 @@ class DpdkMgr : public ANOMgr {
   bool validate_config() const override;
 
  private:
+  static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
   static int tx_core_worker(void* arg);
@@ -210,9 +211,11 @@ class DpdkMgr : public ANOMgr {
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
   AdvNetStatus register_mrs();
   AdvNetStatus map_mrs();
+  void create_dummy_rx_q();
   int numa_from_mem(const MemoryRegion& mr);
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        AdvNetDirection direction);
+
   void apply_tx_offloads(int port);
 
   std::array<std::string, MAX_IFS> if_names;

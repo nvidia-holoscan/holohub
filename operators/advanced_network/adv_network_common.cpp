@@ -410,12 +410,24 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
     flow.name_ = flow_item["name"].as<std::string>();
     flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
     flow.action_.id_ = flow_item["action"]["id"].as<int>();
-    flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing FlowConfig: {}", e.what());
     return false;
   }
+  
+  try {
+    flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
+    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
+  } catch (const std::exception& e) {
+    flow.match_.udp_src_ = 0;
+    flow.match_.udp_dst_ = 0;
+  }
+
+  try {
+    flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_len_ = 0;
+  }  
   return true;
 }
 
