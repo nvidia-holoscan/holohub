@@ -302,10 +302,10 @@ void DpdkMgr::create_dummy_rx_q() {
       tmp_mr.access_ = 0;
       tmp_mr.buf_size_ = JUMBOFRAME_SIZE;
       tmp_mr.num_bufs_ = 32768;
-      tmp_mr.owned_ = true;    
-      cfg_.mrs_[mr_name] = tmp_mr;  
+      tmp_mr.owned_ = true;
+      cfg_.mrs_[mr_name] = tmp_mr;
     }
-  }  
+  }
 }
 
 void DpdkMgr::initialize() {
@@ -389,8 +389,8 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  for (int i = 0; i < num_ports; i++) { 
-    rte_eth_macaddr_get(i, &mac_addrs[i]); 
+  for (int i = 0; i < num_ports; i++) {
+    rte_eth_macaddr_get(i, &mac_addrs[i]);
   }
 
   create_dummy_rx_q();
@@ -629,7 +629,7 @@ void DpdkMgr::initialize() {
     local_port_conf[intf.port_id_].txmode.offloads |=
         RTE_ETH_TX_OFFLOAD_IPV4_CKSUM | RTE_ETH_TX_OFFLOAD_UDP_CKSUM |
         RTE_ETH_TX_OFFLOAD_TCP_CKSUM | RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
-     
+
 
     HOLOSCAN_LOG_INFO("Initializing port {} with {} RX queues and {} TX queues...",
                       intf.port_id_,
@@ -665,14 +665,12 @@ void DpdkMgr::initialize() {
     if (intf.flow_isolation_) {
       struct rte_flow_error error;
       ret = rte_flow_isolate(intf.port_id_, 1, &error);
-      if (ret < 0) { 
-        HOLOSCAN_LOG_CRITICAL("Failed to set flow isolation"); 
-      }
-      else {
+      if (ret < 0) {
+        HOLOSCAN_LOG_CRITICAL("Failed to set flow isolation");
+      } else {
         HOLOSCAN_LOG_INFO("Port {} in isolation mode", intf.port_id_);
       }
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_INFO("Port {} not in isolation mode", intf.port_id_);
     }
 
@@ -737,7 +735,7 @@ void DpdkMgr::initialize() {
           "Not enabling promiscuous mode on port {} "
           "since flow isolation is enabled",
           intf.port_id_);
-    }    
+    }
 
     ret = rte_eth_dev_start(intf.port_id_);
     if (ret != 0) {
@@ -819,7 +817,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   if (rx_flow_id_buffer == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX burst pool!");
     return -1;
-  }  
+  }
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_meta = rte_mempool_create("RX_META_POOL",
@@ -932,26 +930,26 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     struct rte_flow_item jump_pattern[] = {
       { .type = RTE_FLOW_ITEM_TYPE_ETH, .spec = 0, .mask = 0},
       { .type = RTE_FLOW_ITEM_TYPE_END},
-    };    
+    };
 
     auto res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
     if (!res) {
-      struct rte_flow* flow = rte_flow_create(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      struct rte_flow* flow = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
       if (flow == nullptr) {
         HOLOSCAN_LOG_ERROR("rte_flow_create failed");
       }
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_ERROR("Failed flow validation: {}", res);
-    }   
-  }  
+    }
+  }
 
   memset(pattern, 0, sizeof(pattern));
   memset(action, 0, sizeof(action));
   memset(&attr, 0, sizeof(struct rte_flow_attr));
   memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
-  memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));      
-  
+  memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+
   action[0].type = RTE_FLOW_ACTION_TYPE_MARK;
   action[0].conf = &mark;
   action[1].type = RTE_FLOW_ACTION_TYPE_QUEUE;
@@ -966,7 +964,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     ip_spec.hdr.total_length = htons(cfg.match_.ipv4_len_);
     ip_mask.hdr.total_length = 0xffff;
     pattern[1].spec = &ip_spec;
-    pattern[1].mask = &ip_mask;    
+    pattern[1].mask = &ip_mask;
     HOLOSCAN_LOG_INFO("Adding IPv4 length match for {}", cfg.match_.ipv4_len_);
   }
 
@@ -987,7 +985,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     udp_item.last = NULL;
 
     pattern[2] = udp_item;
-    HOLOSCAN_LOG_INFO("Adding UDP port match for src/dst {}/{}", 
+    HOLOSCAN_LOG_INFO("Adding UDP port match for src/dst {}/{}",
       cfg.match_.udp_src_, cfg.match_.udp_dst_);
   }
 
@@ -1270,18 +1268,20 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
-        HOLOSCAN_LOG_ERROR("Processing function falling behind. No free flow ID buffers for packets!");
+        HOLOSCAN_LOG_ERROR(
+            "Processing function falling behind. No free flow ID buffers for packets!");
         continue;
       }
     }
 
-    if (rte_mempool_get(tparams->flowid_pool, reinterpret_cast<void**>(&burst->pkt_extra_info)) < 0) {
+    if (rte_mempool_get(
+          tparams->flowid_pool, reinterpret_cast<void**>(&burst->pkt_extra_info)) < 0) {
       HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
       continue;
     }
 
     ExtraRxPacketInfo *pkt_info = reinterpret_cast<ExtraRxPacketInfo*>(burst->pkt_extra_info);
-    
+
     if (nb_rx > 0) {
       burst->hdr.hdr.num_pkts = nb_rx;
 
@@ -1291,8 +1291,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
       for (int flow_idx = 0; flow_idx < nb_rx; flow_idx++) {
         if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
           pkt_info[flow_idx].flow_id = mbuf_arr[to_copy + flow_idx]->hash.fdir.hi;
-        }
-        else {
+        } else {
           pkt_info[flow_idx].flow_id = 0;
         }
       }
@@ -1327,7 +1326,6 @@ int DpdkMgr::rx_core_worker(void* arg) {
                                DEFAULT_NUM_RX_BURST);
 
       if (nb_rx == 0) { continue; }
-   
 
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
@@ -1335,11 +1333,10 @@ int DpdkMgr::rx_core_worker(void* arg) {
       for (int flow_idx = 0; flow_idx < to_copy; flow_idx++) {
         if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
           pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
-        }
-        else {
+        } else {
           pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
         }
-      }      
+      }
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < to_copy; p++) {
@@ -1677,7 +1674,7 @@ void DpdkMgr::shutdown() {
     int portid;
     RTE_ETH_FOREACH_DEV(portid) {
       PrintDpdkStats(portid);
-    }  
+    }
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
     force_quit.store(true);

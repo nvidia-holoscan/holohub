@@ -117,12 +117,12 @@ uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) 
 
 uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_pkt_flow_id(burst, idx);  
+  return g_ano_mgr->get_pkt_flow_id(burst, idx);
 }
 
 uint16_t adv_net_get_pkt_flow_id(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return adv_net_get_pkt_flow_id(burst.get(), idx);  
+  return adv_net_get_pkt_flow_id(burst.get(), idx);
 }
 
 uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst) {
@@ -425,7 +425,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
     HOLOSCAN_LOG_ERROR("Error parsing FlowConfig: {}", e.what());
     return false;
   }
-  
+
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
     flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
@@ -438,7 +438,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.ipv4_len_ = 0;
-  }  
+  }
   return true;
 }
 

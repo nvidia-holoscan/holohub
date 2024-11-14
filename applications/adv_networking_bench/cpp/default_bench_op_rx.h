@@ -194,7 +194,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     }
 
     // Count packets received
-    ttl_pkts_recv_ += burst_size;    
+    ttl_pkts_recv_ += burst_size;
 
     // Store burst structure
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
