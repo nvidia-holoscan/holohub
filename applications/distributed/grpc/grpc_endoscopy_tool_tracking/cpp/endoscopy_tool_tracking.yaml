@@ -15,11 +15,28 @@
 # limitations under the License.
 ---
 extensions:
-  - libgxf_videodecoder.so
-  - libgxf_videodecoderio.so
-  - libgxf_videoencoder.so
-  - libgxf_videoencoderio.so
   - ../../../../../lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
+
+application:
+  title: Endoscopy Tool Tracking - gRPC
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+  multifragment: false # default: false, true to run in multi-fragment mode, false otherwise
+  benchmarking: false # default: false, true to enable Data Flow Benchmarking, false otherwise
+
+replayer:
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: false   # default: false
+  realtime: true # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+format_converter:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
 
 grpc_server:
   rpc_timeout: 5
@@ -34,30 +51,9 @@ scheduler:
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 2500
 
-bitstream_reader:
-  outbuf_storage_type: 0
-  aud_nal_present: 0
-
-video_decoder_request:
-  inbuf_storage_type: 1
-
-video_decoder_response:
-  outbuf_storage_type: 1
-
-decoder_output_format_converter:
-  in_dtype: "nv12"
-  out_dtype: "rgb888"
-
-rgb_float_format_converter:
-  out_tensor_name: rgb_float_format_converter_out
-  in_dtype: "rgb888"
-  out_dtype: "float32"
-  scale_min: 0.0
-  scale_max: 255.0
-
 lstm_inference:
   input_tensor_names:
-    - rgb_float_format_converter_out
+    - source_video
     - cellstate_in
     - hiddenstate_in
   input_state_tensor_names:
