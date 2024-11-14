@@ -59,8 +59,6 @@ __global__ void filter_coordinates_kernel(uint32_t count, float min_prob, const 
   // the third component of the coordinate is the size of the crosses and the text
   constexpr float ITEM_SIZE = 0.05f;
 
-  if (index > count) { return; }
-
   // check if the probability meets the minimum probability
   if (probs[index] > min_prob) {
     filtered_scaled_coords[index] =
@@ -80,10 +78,10 @@ void cuda_postprocess(uint32_t count, float min_prob, const float* probs,
                       uint32_t height, const float3* colors, const float* binary_mask,
                       float4* colored_mask, cudaStream_t cuda_stream) {
   // initialize the output mask to zero
-  CUDA_TRY(cudaMemsetAsync(colored_mask, 0, width * height * sizeof(float4)));
+  CUDA_TRY(cudaMemsetAsync(colored_mask, 0, width * height * sizeof(float4), cuda_stream));
 
-  const dim3 block(32, 1, 1);
-  const dim3 grid(ceil_div(count, block.x), 1, 1);
+  const dim3 block(count, 1, 1);
+  const dim3 grid(1, 1, 1);
   filter_coordinates_kernel<<<grid, block, 0, cuda_stream>>>(count,
                                                              min_prob,
                                                              probs,
@@ -94,6 +92,7 @@ void cuda_postprocess(uint32_t count, float min_prob, const float* probs,
                                                              colors,
                                                              binary_mask,
                                                              colored_mask);
+  CUDA_TRY(cudaPeekAtLastError());
 }
 
 }  // namespace holoscan::ops

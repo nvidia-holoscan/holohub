@@ -43,6 +43,7 @@ void gen_coords(unsigned int offset, unsigned int count, int property_size, cons
   dim3 grid((count + block.x - 1) / block.x, 1, 1);
 
   gen_coords_kernel<<<grid, block, 0, stream>>>(count, property_size, input + 2 * offset, output);
+  CUDA_TRY(cudaPeekAtLastError());
 }
 
 }  // namespace holoscan::ops
