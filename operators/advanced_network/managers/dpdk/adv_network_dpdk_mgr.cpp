@@ -49,6 +49,7 @@ struct RxWorkerParams {
   int num_segs;
   uint32_t batch_size;
   struct rte_ring* ring;
+  struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
   uint64_t rx_pkts = 0;
@@ -64,6 +65,10 @@ struct UDPPkt {
   struct rte_udp_hdr udp;
   uint8_t payload[];
 } __attribute__((packed));
+
+struct ExtraRxPacketInfo {
+  uint16_t flow_id;
+};
 
 /**
  * A map of log level to a tuple of the description and command strings.
@@ -797,6 +802,25 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     return -1;
   }
 
+  HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
+                    num_rx_ptrs_bufs,
+                    sizeof(ExtraRxPacketInfo) * max_rx_batch);
+  rx_flow_id_buffer = rte_mempool_create("RX_FLOWID_POOL",
+                                       num_rx_ptrs_bufs,
+                                       sizeof(ExtraRxPacketInfo) * max_rx_batch,
+                                       0,
+                                       0,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       rte_socket_id(),
+                                       0);
+  if (rx_flow_id_buffer == nullptr) {
+    HOLOSCAN_LOG_CRITICAL("Failed to allocate RX burst pool!");
+    return -1;
+  }  
+
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_meta = rte_mempool_create("RX_META_POOL",
                                (1U << 6) - 1U,
@@ -874,7 +898,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 }
 
 #define MAX_PATTERN_NUM 4
-#define MAX_ACTION_NUM 2
+#define MAX_ACTION_NUM 3
 
 
 // Taken from flow_block.c DPDK example */
@@ -885,6 +909,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   struct rte_flow_action action[MAX_ACTION_NUM];
   struct rte_flow* flow = NULL;
   struct rte_flow_action_queue queue = {.index = cfg.action_.id_};
+  struct rte_flow_action_mark  mark = {.id = cfg.id_};
   struct rte_flow_error error;
   struct rte_flow_item_udp udp_spec;
   struct rte_flow_item_udp udp_mask;
@@ -927,9 +952,11 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
   memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));      
   
-  action[0].type = RTE_FLOW_ACTION_TYPE_QUEUE;
-  action[0].conf = &queue;
-  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+  action[0].type = RTE_FLOW_ACTION_TYPE_MARK;
+  action[0].conf = &mark;
+  action[1].type = RTE_FLOW_ACTION_TYPE_QUEUE;
+  action[1].conf = &queue;
+  action[2].type = RTE_FLOW_ACTION_TYPE_END;
 
   pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
   pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
@@ -1160,6 +1187,7 @@ void DpdkMgr::run() {
         params->ring = rx_ring;
         params->queue = q.common_.id_;
         params->burst_pool = rx_burst_buffer;
+        params->flowid_pool = rx_flow_id_buffer;
         params->meta_pool = rx_meta;
         params->batch_size = q.common_.batch_size_;
         rte_eal_remote_launch(
@@ -1242,16 +1270,32 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
-        HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
+        HOLOSCAN_LOG_ERROR("Processing function falling behind. No free flow ID buffers for packets!");
         continue;
       }
     }
 
+    if (rte_mempool_get(tparams->flowid_pool, reinterpret_cast<void**>(&burst->pkt_extra_info)) < 0) {
+      HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
+      continue;
+    }
+
+    ExtraRxPacketInfo *pkt_info = reinterpret_cast<ExtraRxPacketInfo*>(burst->pkt_extra_info);
+    
     if (nb_rx > 0) {
       burst->hdr.hdr.num_pkts = nb_rx;
 
       // Copy non-scattered buffers
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
+
+      for (int flow_idx = 0; flow_idx < nb_rx; flow_idx++) {
+        if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[flow_idx].flow_id = mbuf_arr[to_copy + flow_idx]->hash.fdir.hi;
+        }
+        else {
+          pkt_info[flow_idx].flow_id = 0;
+        }
+      }
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
@@ -1283,23 +1327,19 @@ int DpdkMgr::rx_core_worker(void* arg) {
                                DEFAULT_NUM_RX_BURST);
 
       if (nb_rx == 0) { continue; }
-
-    // static int blah;
-    // if (tparams->queue == 1 && blah++ == 0) {
-    //   for (int p = 0; p < std::min(10, nb_rx); p++) {
-    //     auto *mbuf = reinterpret_cast<rte_mbuf*>(mbuf_arr[p]);
-    //     auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-    //     for (int i = 0; i < 64; i++) {
-    //       printf("%02X ", ((uint8_t*)pkt)[i]);
-    //     }
-    //     printf("\n");
-    //   }
-    //   blah = 1;
-    // }
    
 
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
+
+      for (int flow_idx = 0; flow_idx < to_copy; flow_idx++) {
+        if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
+        }
+        else {
+          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
+        }
+      }      
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < to_copy; p++) {
@@ -1424,6 +1464,11 @@ uint16_t DpdkMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
 
 uint16_t DpdkMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->pkt_len;
+}
+
+uint16_t DpdkMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+  const ExtraRxPacketInfo* info = reinterpret_cast<ExtraRxPacketInfo*>(burst->pkt_extra_info);
+  return info[idx].flow_id;
 }
 
 AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp) {
@@ -1557,6 +1602,7 @@ void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
 }
 
 void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
+  rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(rx_burst_buffer, (void*)burst->pkts[seg]);
   }

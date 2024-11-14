@@ -96,6 +96,7 @@ advanced_network:
               - "Data_RX_GPU"
           flows:
           - name: "ADC Samples"
+            id: 2
             action:
               type: queue
               id: 1
@@ -103,6 +104,15 @@ advanced_network:
               udp_src: 4096 #12288
               udp_dst: 4096 #12288
               ipv4_len: 1050
+          - name: "ADC Samples2"
+            id: 1
+            action:
+              type: queue
+              id: 1
+            match:
+              udp_src: 4095 #12288
+              udp_dst: 4095 #12288
+              ipv4_len: 1050              
 
 bench_rx:
   split_boundary: false

@@ -121,6 +121,19 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
 uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
+ * @brief Get flow ID of a packet
+ * 
+ * Retrieves the flow ID of a packet, or 0 if no flow was matched. The flow ID should match
+ * the flow ID in the flow rule for the ANO config.
+ *
+ * @param burst Burst structure containing packets
+ * @param idx Index of packet
+ * @return uint16_t Flow ID
+ */
+uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx);
+uint16_t adv_net_get_pkt_flow_id(std::shared_ptr<AdvNetBurstParams> burst, int idx);
+
+/**
  * @brief Populate a TX packet burst buffer
  *
  * Populates a transmit packet burst buffer with allocated packets. The user can take these

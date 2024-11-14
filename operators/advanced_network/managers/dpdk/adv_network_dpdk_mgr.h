@@ -165,6 +165,7 @@ class DpdkMgr : public ANOMgr {
   void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
   uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
   uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
+  uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) override;
   void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) override;
   AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
   AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
@@ -230,6 +231,7 @@ class DpdkMgr : public ANOMgr {
   std::unordered_map<uint32_t, DPDKQueueConfig*> tx_q_map_;
   struct rte_mempool* pkt_len_buffer;
   struct rte_mempool* rx_burst_buffer;
+  struct rte_mempool* rx_flow_id_buffer;
   struct rte_mempool* rx_meta;
   struct rte_mempool* tx_meta;
   uint64_t timestamp_mask_{0};

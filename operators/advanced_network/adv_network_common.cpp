@@ -110,14 +110,24 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx) {
   return g_ano_mgr->get_pkt_len(burst, idx);
 }
 
-uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst) {
-  ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_burst_tot_byte(burst.get());
-}
-
 uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return adv_net_get_pkt_len(burst.get(), idx);
+}
+
+uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_pkt_flow_id(burst, idx);  
+}
+
+uint16_t adv_net_get_pkt_flow_id(std::shared_ptr<AdvNetBurstParams> burst, int idx) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return adv_net_get_pkt_flow_id(burst.get(), idx);  
+}
+
+uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_burst_tot_byte(burst.get());
 }
 
 uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
@@ -408,6 +418,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
     const YAML::Node& flow_item, holoscan::ops::FlowConfig& flow) {
   try {
     flow.name_ = flow_item["name"].as<std::string>();
+    flow.id_ = flow_item["id"].as<int>();
     flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
     flow.action_.id_ = flow_item["action"]["id"].as<int>();
   } catch (const std::exception& e) {
