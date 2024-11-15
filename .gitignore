@@ -23,6 +23,7 @@ ngc-cli/
 .wget-hsts
 .viminfo
 .lesshst
+.vscode-server
 
 .cache/
 .cupy/
