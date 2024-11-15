@@ -559,7 +559,7 @@ void DpdkMgr::initialize() {
         if (mr.num_bufs_ < default_num_tx_desc) {
           HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each TX MR", default_num_tx_desc);
           return;
-        }        
+        }
 
         struct rte_mempool* pool;
 #pragma GCC diagnostic push
