@@ -457,6 +457,11 @@ void DpdkMgr::initialize() {
         std::string pool_name = std::string("RXP") + append;
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
 
+        if (mr.num_bufs_ < default_num_rx_desc) {
+          HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR", default_num_rx_desc);
+          return;
+        }
+
         struct rte_mempool* pool;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -550,6 +555,11 @@ void DpdkMgr::initialize() {
                              std::to_string(q.common_.id_) + "_MR" + std::to_string(mr_num);
         std::string pool_name = std::string("TXP") + append;
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
+
+        if (mr.num_bufs_ < default_num_tx_desc) {
+          HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each TX MR", default_num_tx_desc);
+          return;
+        }        
 
         struct rte_mempool* pool;
 #pragma GCC diagnostic push
@@ -657,7 +667,8 @@ void DpdkMgr::initialize() {
           "Cannot adjust number of descriptors: err={}, port={}", ret, intf.port_id_);
       return;
     } else {
-      HOLOSCAN_LOG_INFO("Successfully set descriptors");
+      HOLOSCAN_LOG_INFO("Successfully set descriptors to {}/{}",
+        default_num_rx_desc, default_num_tx_desc);
     }
 
     rte_eth_macaddr_get(intf.port_id_, &conf_ports_eth_addr[intf.port_id_]);
