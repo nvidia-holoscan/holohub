@@ -97,11 +97,10 @@ RUN apt update \
 ## this should probably be another build-layer ...
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
+#ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
+ENV PATH="${PATH}:${HOME}/.cargo/bin"
 RUN rustup update
 
-
-# Install conan
 RUN pip install conan && \
     conan profile detect && \
     conan remote add camposs "https://conan.campar.in.tum.de/artifactory/api/conan/conan-camposs"

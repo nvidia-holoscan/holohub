@@ -15,8 +15,8 @@
 
 # Add operators (in alphabetical order)
 add_holohub_operator(advanced_network)
-add_holohub_operator(azure_kinect_camera)
 add_holohub_operator(apriltag_detector)
+add_holohub_operator(azure_kinect_camera)
 add_holohub_operator(basic_network)
 add_holohub_operator(cvcuda_holoscan_interop)
 add_subdirectory(dds)
