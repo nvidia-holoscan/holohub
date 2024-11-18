@@ -210,7 +210,8 @@ assignment in Holoscan's Inference operator.",
         log_directory = args.log_directory
         if not os.path.isdir(log_directory):
             logger.info(
-                f"Log directory is not found. Creating a new directory at {os.path.abspath(log_directory)}",
+                "Log directory is not found. Creating a new directory at",
+                os.path.abspath(log_directory),
             )
             os.mkdir(os.path.abspath(log_directory))
 
