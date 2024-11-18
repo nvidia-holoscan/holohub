@@ -90,7 +90,8 @@ RUN apt update \
         libudev-dev \
         libusb-1.0-0-dev \
         libnvidia-gl-535 mesa-utils libgl1-mesa-dev \
-        libncurses5-dev
+        libncurses5-dev \
+        libacl1-dev
 
 ## this should probably be another build-layer ...
 
