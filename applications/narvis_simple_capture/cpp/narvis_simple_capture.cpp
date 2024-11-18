@@ -17,7 +17,7 @@
 
 #include "holoscan/holoscan.hpp"
 #include "holoscan/operators/holoviz/holoviz.hpp"
-#include "realsense_camera.hpp"
+#include "azure_kinect_camera.hpp"
 
 class App : public holoscan::Application {
  public:
@@ -26,8 +26,11 @@ class App : public holoscan::Application {
 
     auto allocator = make_resource<UnboundedAllocator>("allocator");
 
-    auto realsense_camera =
-        make_operator<ops::RealsenseCameraOp>("realsense_camera", Arg("allocator") = allocator);
+    auto azure_kinect_camera =
+        make_operator<ops::AzureKinectCameraOp>("azure_kinect_camera",
+                                                Arg("allocator") = allocator,
+                                                Arg("device_serial") = std::string("ANY"),
+                                                Arg("capture_timeout") = 30);
 
     auto color_visualizer =
         make_operator<ops::HolovizOp>("color_visualizer",
@@ -42,8 +45,8 @@ class App : public holoscan::Application {
                                       Arg("window_title") = std::string("RealSense Depth"),
                                       Arg("allocator") = allocator);
 
-    add_flow(realsense_camera, depth_visualizer, {{"depth_buffer", "receivers"}});
-    add_flow(realsense_camera, color_visualizer, {{"color_buffer", "receivers"}});
+    add_flow(azure_kinect_camera, depth_visualizer, {{"depth_buffer", "receivers"}});
+    add_flow(azure_kinect_camera, color_visualizer, {{"color_buffer", "receivers"}});
   }
 };
 
