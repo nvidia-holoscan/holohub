@@ -9,4 +9,4 @@ This directory contains the Holohub gRPC plugins for Holoscan SDK, including:
 - `protos`: Protocol buffers definitions of Holoscan SDK.
 - `common`: Tensor <-> protobuf converters and Holoscan Resources to handle incoming and outgoing data.
 
-Please refer to the [gRPC h.264 Endoscopy Tool Tracking](../../applications/h264/grpc_h264_endoscopy_tool_tracking/README.md) application for additional details.
+Please refer to the [gRPC h.264 Endoscopy Tool Tracking](../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/README.md) application for additional details.
