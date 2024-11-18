@@ -14,5 +14,5 @@ At the top level of the holohub run the following command:
 
 
 ```bash
-./dev_container build_and_run narvis_simple_capture --docker_file ./applications/narvis_simple_capture/Dockerfile --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.5.0-dgpu --img narvis_simple_capture
+./dev_container build_and_run narvis_simple_capture --docker_file ./applications/narvis_simple_capture/Dockerfile --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.6.0-dgpu --img narvis_simple_capture --build_args "--progress=plain"
 ```
