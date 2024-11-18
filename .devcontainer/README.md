@@ -58,18 +58,18 @@ Most Holohub applications are pre-configured with one or more launch profiles. C
 
 To debug multi-fragment applications, find and locate launch profiles prefixed with `(compound)`.
 
-For example, the [Distributed Endoscopy Tool Tracking](../applications/endoscopy_tool_tracking_distributed/) application is configured with `(compound) endoscopy_tool_tracking_distributed/cpp` and `(compound) endoscopy_tool_tracking_distributed/python` launch profiles.
+For example, the [Distributed Endoscopy Tool Tracking](../applications/distributed/ucx/ucx_endoscopy_tool_tracking/) application is configured with `(compound) ucx_endoscopy_tool_tracking/cpp` and `(compound) ucx_endoscopy_tool_tracking/python` launch profiles.
 
 Each of these compound launch profiles links to three pre-configured launch profiles, one for each fragment (`video_in`, `inference`, and `viz`):
 
-- `(compound) endoscopy_tool_tracking_distributed/cpp`
-  - `(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment`
-  - `(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment`
-  - `(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment`
-- `(compound) endoscopy_tool_tracking_distributed/python`
-  - `(gdb) endoscopy_tool_tracking_distributed/python - video_in fragment`
-  - `(gdb) endoscopy_tool_tracking_distributed/python - inference fragment`
-  - `(gdb) endoscopy_tool_tracking_distributed/python - viz fragment`
+- `(compound) ucx_endoscopy_tool_tracking/cpp`
+  - `(gdb) ucx_endoscopy_tool_tracking/cpp - video_in fragment`
+  - `(gdb) ucx_endoscopy_tool_tracking/cpp - inference fragment`
+  - `(gdb) ucx_endoscopy_tool_tracking/cpp - viz fragment`
+- `(compound) ucx_endoscopy_tool_tracking/python`
+  - `(gdb) ucx_endoscopy_tool_tracking/python - video_in fragment`
+  - `(gdb) ucx_endoscopy_tool_tracking/python - inference fragment`
+  - `(gdb) ucx_endoscopy_tool_tracking/python - viz fragment`
 
 When you start debugging with one of these compound launch profiles, VS Code starts three terminals to build the application, one terminal per fragment. After each terminal completes the build process, VS Code launches another terminal to start the fragment. This compound task feature lets us launch and debug all three fragments simultaneously.
 
@@ -234,22 +234,22 @@ Using the following steps enables the `./devcontainer vscode` script to find you
 
 ### Compound Launch Profile Issues
 
-A compound launch profile may not launch all the linked launch profiles. For an example, look at the `(compound) endoscopy_tool_tracking_distributed/python` launch profile.
+A compound launch profile may not launch all the linked launch profiles. For an example, look at the `(compound) ucx_endoscopy_tool_tracking/python` launch profile.
 
 This profile links to three launch profiles, one for each fragment: `inference`, `inference`, and `viz`.
 
-1. `(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment`
-2. `(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment`
-3. `(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment`
+1. `(debugpy) ucx_endoscopy_tool_tracking/python - video_in fragment`
+2. `(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment`
+3. `(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment`
 
-The second launch profile, the `inference` fragment, has `preLaunchTask` configured with the `Build endoscopy_tool_tracking_distributed (delay 3s)` task, which can be found in the [tasks.json](../.vscode/tasks.json) file. This task depends on another task called `Delay Task (3s)` with a bash command `sleep 3` via the `dependsOn` property. This delay task allows the `Build endoscopy_tool_tracking_distributed (delay 3s)` task to put a delay before building the application and enable VS Code to start a terminal session properly. Similarly, the `viz` fragment has a delay of 5 seconds configured. These default values may not work in all scenarios; adjust the sleep value to match your needs.
+The second launch profile, the `inference` fragment, has `preLaunchTask` configured with the `Build ucx_endoscopy_tool_tracking (delay 3s)` task, which can be found in the [tasks.json](../.vscode/tasks.json) file. This task depends on another task called `Delay Task (3s)` with a bash command `sleep 3` via the `dependsOn` property. This delay task allows the `Build ucx_endoscopy_tool_tracking (delay 3s)` task to put a delay before building the application and enable VS Code to start a terminal session properly. Similarly, the `viz` fragment has a delay of 5 seconds configured. These default values may not work in all scenarios; adjust the sleep value to match your needs.
 
 ### Build Errors
 
 When switching between Dev Container and other build environments, the build may fail with the following error:
 
 ```bash
-CMake Error: The current CMakeCache.txt directory /workspace/holohub/build/endoscopy_tool_tracking_distributed/CMakeCache.txt is different than the directory /home/host/github/holohub/build/endoscopy_tool_tracking_distributed where CMakeCache.txt was created.
+CMake Error: The current CMakeCache.txt directory /workspace/holohub/build/ucx_endoscopy_tool_tracking/CMakeCache.txt is different than the directory /home/host/github/holohub/build/ucx_endoscopy_tool_tracking where CMakeCache.txt was created.
 ```
 
 When this error occurs, run the clear cache command in the terminal or from VS Code Command Palette:
