@@ -122,11 +122,11 @@ ENV PATH="/opt/tcn/3rdparty/direct_deploy/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/tcn/3rdparty/direct_deploy/lib:${LD_LIBRARY_PATH}"
 ENV CMAKE_PREFIX_PATH="/opt/tcn/3rdparty/direct_deploy"
 
-
 # --------------------------------------------------------------------------
 #
 # Holohub run setup 
 #
+
 RUN mkdir -p /tmp/scripts
 COPY run /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
