@@ -97,8 +97,7 @@ RUN apt update \
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-#ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
-ENV PATH="${PATH}:${HOME}/.cargo/bin"
+ENV PATH="${PATH}:/home/holoscan/.cargo/bin"
 RUN rustup update
 
 RUN pip install conan && \
