@@ -1,6 +1,6 @@
 # Distributed H.264 Endoscopy Tool Tracking Application
 
-This application is similar to the [H.264 Endoscopy Tool Tracking](../h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
+This application is similar to the [H.264 Endoscopy Tool Tracking](../../../h264/h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
 
 1. Video Input: get video input from a pre-recorded video file.
 2. Inference: run the inference using LSTM and run the post-processing script.
@@ -55,7 +55,7 @@ Important: on aarch64, applications also need tegra folder mounted inside the co
 the `LD_LIBRARY_PATH` environment variable should be updated to include
 tegra folder path.
 
-Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
+Open and edit the [Dockerfile](../../../h264/Dockerfile) and uncomment line 66:
 
 ```bash
 # Uncomment the following line for aarch64 support
