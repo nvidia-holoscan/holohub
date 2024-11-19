@@ -7,8 +7,9 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"version": "1.2",
+		"version": "1.4",
 		"changelog": {
+			"1.4": "More flow support",
 			"1.3": "Plugin support",
 			"1.2": "TX GPUDirect",
 			"1.1": "GPUDirect updates",
@@ -17,16 +18,16 @@
 		"platforms": ["amd64", "arm64"],
 		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
 		"holoscan_sdk": {
-			"minimum_required_version": "0.6.0",
+			"minimum_required_version": "2.6.0",
 			"tested_versions": [
-				"0.6.0"
+				"2.6.0"
 			]
 		},
 		"ranking": 1,
 		"dependencies": {
 				"gxf_extensions": [{
 					"name": "advanced_network",
-					"version": "1.3"
+					"version": "1.4"
 				}
 			   ]
 			}

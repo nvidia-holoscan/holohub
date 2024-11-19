@@ -165,6 +165,7 @@ class DpdkMgr : public ANOMgr {
   void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
   uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
   uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
+  uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) override;
   void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) override;
   AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
   AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
@@ -201,6 +202,7 @@ class DpdkMgr : public ANOMgr {
   bool validate_config() const override;
 
  private:
+  static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
   static int tx_core_worker(void* arg);
@@ -210,9 +212,11 @@ class DpdkMgr : public ANOMgr {
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
   AdvNetStatus register_mrs();
   AdvNetStatus map_mrs();
+  void create_dummy_rx_q();
   int numa_from_mem(const MemoryRegion& mr);
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        AdvNetDirection direction);
+
   void apply_tx_offloads(int port);
 
   std::array<std::string, MAX_IFS> if_names;
@@ -227,6 +231,7 @@ class DpdkMgr : public ANOMgr {
   std::unordered_map<uint32_t, DPDKQueueConfig*> tx_q_map_;
   struct rte_mempool* pkt_len_buffer;
   struct rte_mempool* rx_burst_buffer;
+  struct rte_mempool* rx_flow_id_buffer;
   struct rte_mempool* rx_meta;
   struct rte_mempool* tx_meta;
   uint64_t timestamp_mask_{0};

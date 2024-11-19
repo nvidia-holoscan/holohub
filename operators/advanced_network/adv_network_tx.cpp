@@ -37,6 +37,11 @@ void AdvNetworkOpTx::setup(OperatorSpec& spec) {
              AdvNetConfigYaml());
 }
 
+void AdvNetworkOpTx::stop() {
+  HOLOSCAN_LOG_INFO("AdvNetworkOpTx::stop()");
+  impl->mgr->shutdown();
+}
+
 void AdvNetworkOpTx::initialize() {
   HOLOSCAN_LOG_INFO("AdvNetworkOpTx::initialize()");
   register_converter<holoscan::ops::AdvNetConfigYaml>();

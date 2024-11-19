@@ -40,6 +40,7 @@ class AdvNetworkOpTx : public Operator {
   int FreeBurst(AdvNetBurstParams* burst);
 
   // Holoscan functions
+  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 

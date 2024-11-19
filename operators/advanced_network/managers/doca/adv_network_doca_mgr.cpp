@@ -1611,6 +1611,10 @@ uint16_t DocaMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
   return 0;
 }
 
+uint16_t DocaMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+  return 0;
+}
+
 uint16_t DocaMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
   return 0;
 }

@@ -354,9 +354,11 @@ struct FlowAction {
 struct FlowMatch {
   uint16_t udp_src_;
   uint16_t udp_dst_;
+  uint16_t ipv4_len_;
 };
 struct FlowConfig {
   std::string name_;
+  uint16_t id_;
   FlowAction action_;
   FlowMatch match_;
   void* backend_config_;  // Filled in by operator
