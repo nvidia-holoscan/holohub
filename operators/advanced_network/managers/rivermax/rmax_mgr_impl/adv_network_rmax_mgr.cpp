@@ -846,6 +846,17 @@ uint16_t RmaxMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
 }
 
 /**
+ * @brief Gets the flow ID of a packet. Currently returns 0 for the Rivermax backend
+ *
+ * @param burst The burst parameters.
+ * @param idx The packet index.
+ * @return Flow ID of the packet
+ */
+uint16_t RmaxMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+  return 0;
+}
+
+/**
  * @brief Gets the extra information of a specific packet.
  *
  * @param burst The burst parameters.
