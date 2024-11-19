@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(simple_radar_pipeline CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 2.6.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable cuda language
@@ -27,7 +27,7 @@ include(FetchContent)
 FetchContent_Declare(
   MatX
   GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.5.0
+  GIT_TAG v0.9.0
 )
 FetchContent_MakeAvailable(MatX)
 
