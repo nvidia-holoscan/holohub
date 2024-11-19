@@ -31,7 +31,7 @@
                          __LINE__,                                                            \
                          __FILE__,                                                            \
                          cudaGetErrorString(_holoscan_cuda_err),                              \
-                         _holoscan_cuda_err);                                                 \
+                         static_cast<int>(_holoscan_cuda_err));                               \
     }                                                                                         \
     _holoscan_cuda_err;                                                                       \
   })

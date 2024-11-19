@@ -34,7 +34,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/qt_video_replayer",
+			"command": "<holohub_app_bin>/qt_video_replayer --data <holohub_data_dir>/racerx",
 			"workdir": "holohub_bin"
 		}
 	}

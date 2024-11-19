@@ -1,0 +1,35 @@
+{
+	"operator": {
+		"name": "medical_imaging",
+		"authors": [
+			{
+				"name": "Holoscan SDK Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"2.2.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Medeical Imaging",
+			"DICOM",
+			"AI",
+			"Inference",
+			"MONAI",
+			"STL"
+		],
+		"ranking": 2,
+		"dependencies": {}
+	}
+}

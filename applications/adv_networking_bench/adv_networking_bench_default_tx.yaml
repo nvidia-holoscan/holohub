@@ -30,10 +30,11 @@ advanced_network:
     version: 1
     manager: "dpdk"
     master_core: 3
-    debug: false    
+    debug: false
+    log_level: "warn"
 
     memory_regions:
-    - name: "Data_TX_GPU"
+    - name: "Data_TX_CPU"
       kind: "huge"
       affinity: 0
       access:
@@ -49,13 +50,12 @@ advanced_network:
           - name: "ADC Samples"
             id: 0
             batch_size: 10240
-            split_boundary: 0
             cpu_core: 4
             memory_regions:
-              - "Data_TX_GPU"
+              - "Data_TX_CPU"
             offloads:
-              - "tx_eth_src"         
-                     
+              - "tx_eth_src"
+
 
 bench_tx:
   eth_dst_addr: 48:b0:2d:ed:d0:20   # Destination MAC

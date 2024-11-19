@@ -4,7 +4,7 @@ Holoviz examples are generated from template files using Cookiecutter. The gener
 
 ## Adding a new example
 
-Add a new value to the `examples` array in `cookiecutter-holoviz/cookiecutter.json`, e.g. `"new_example"`.
+Add a new value to the `example` array in `cookiecutter-holoviz/cookiecutter.json`, e.g. `"new_example"`.
 Add a new line `generate "new_example_dir" "new_example" "New Example Window Title"` to `generate_projects.sh`.
 Modify the source code file `cookiecutter-holoviz/{{cookiecutter.project_slug}}/{{cookiecutter.project_slug}}.cpp` and add new
 code covered by the

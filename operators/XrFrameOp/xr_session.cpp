@@ -260,7 +260,7 @@ XrSession::PollResult XrSession::poll_events() {
         break;
       case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
       default: {
-        HOLOSCAN_LOG_DEBUG("Ignoring event type %d", event->type);
+        HOLOSCAN_LOG_DEBUG("Ignoring event type %d", static_cast<int>(event->type));
         break;
       }
     }

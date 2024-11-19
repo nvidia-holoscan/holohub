@@ -18,22 +18,33 @@
 #include "adv_network_rx.h"
 #include "adv_network_mgr.h"
 #include <memory>
+#include <assert.h>
 
 namespace holoscan::ops {
 
-extern ANOMgr* g_ano_mgr;
 struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
   AdvNetConfigYaml cfg;
+  ANOMgr* mgr;
 };
 
 void AdvNetworkOpRx::setup(OperatorSpec& spec) {
-  spec.output<std::shared_ptr<AdvNetBurstParams>>("bench_rx_out");
+  if (output_ports.empty()) { output_ports.insert("bench_rx_out"); }
+
+  for (const auto& port : output_ports) {
+    spec.output<std::shared_ptr<AdvNetBurstParams>>(port);
+    HOLOSCAN_LOG_INFO("Adding output port {}", port);
+  }
 
   spec.param(cfg_,
              "cfg",
              "Configuration",
              "Configuration for the advanced network operator",
              AdvNetConfigYaml());
+}
+
+void AdvNetworkOpRx::stop() {
+  HOLOSCAN_LOG_INFO("AdvNetworkOpRx::stop()");
+  impl->mgr->shutdown();
 }
 
 void AdvNetworkOpRx::initialize() {
@@ -47,13 +58,16 @@ void AdvNetworkOpRx::initialize() {
 int AdvNetworkOpRx::Init() {
   impl = new AdvNetworkOpRxImpl();
   impl->cfg = cfg_.get();
-  set_ano_mgr(impl->cfg);
+  AnoMgrFactory::set_manager_type(impl->cfg.common_.manager_type);
 
-  if (!g_ano_mgr->set_config_and_initialize(impl->cfg)) { return -1; }
+  impl->mgr = &(AnoMgrFactory::get_active_manager());
+  assert(impl->mgr != nullptr && "ANO Manager is not initialized");
+
+  if (!impl->mgr->set_config_and_initialize(impl->cfg)) { return -1; }
 
   for (const auto& intf : impl->cfg.ifs_) {
     const auto& rx = intf.rx_;
-    auto port_opt = g_ano_mgr->get_port_from_ifname(intf.address_);
+    auto port_opt = impl->mgr->get_port_from_ifname(intf.address_);
     if (!port_opt.has_value()) {
       HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
       return -1;
@@ -72,14 +86,14 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
   int n;
   AdvNetBurstParams* burst;
 
-  const auto res = g_ano_mgr->get_rx_burst(&burst);
+  const auto res = impl->mgr->get_rx_burst(&burst);
 
   if (res != AdvNetStatus::SUCCESS) { return; }
 
   auto adv_burst = std::make_shared<AdvNetBurstParams>();
   memcpy(adv_burst.get(), burst, sizeof(*burst));
 
-  g_ano_mgr->free_rx_meta(burst);
+  impl->mgr->free_rx_meta(burst);
 
   const auto port_str = pq_map_[(adv_burst->hdr.hdr.port_id << 16) | adv_burst->hdr.hdr.q_id];
   op_output.emit(adv_burst, port_str.c_str());

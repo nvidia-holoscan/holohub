@@ -28,7 +28,7 @@
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/holoviz/holoviz_vsync",
+			"command": "<holohub_app_bin>/holoviz_vsync",
 			"workdir": "holohub_bin"
 		}
 	}

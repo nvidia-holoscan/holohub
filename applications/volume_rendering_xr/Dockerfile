@@ -20,6 +20,22 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as base
 
+
+############################################################
+# HoloHub run + dev dependencies setup
+############################################################
+
+RUN mkdir -p /tmp/scripts
+COPY run /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/run
+RUN /tmp/scripts/run setup
+
+############################################################
+# Magic Leap base setup
+############################################################
+
 COPY /applications/volume_rendering_xr/scripts/base-setup.sh \
     /tmp/base-setup.sh
 COPY applications/volume_rendering_xr/thirdparty/magicleap/MagicLeapRemoteRendering.gpg \

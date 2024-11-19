@@ -30,7 +30,8 @@ advanced_network:
     version: 1
     manager: "dpdk"
     master_core: 3
-    debug: false    
+    debug: false
+    log_level: "info"
 
     memory_regions:
     - name: "Data_TX_GPU"
@@ -47,6 +48,13 @@ advanced_network:
         - local
       num_bufs: 51200
       buf_size: 9000
+    - name: "Default_RX_GPU2"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 51200
+      buf_size: 9000      
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
@@ -54,54 +62,57 @@ advanced_network:
         - local
       num_bufs: 51200
       buf_size: 9000
-    - name: "Default_RX_CPU"
-      kind: "device"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 51200
-      buf_size: 9000        
-    
+
     interfaces:
     - name: data1
-      address: 0000:ca:00.0
+      address: 0005:03:00.0
       tx:
         - queues:
           - name: "ADC Samples"
             id: 0
             batch_size: 10240
-            split_boundary: 0
             cpu_core: 11
             memory_regions:
               - "Data_TX_GPU"
             offloads:
-              - "tx_eth_src"         
-    # - name: data2
-    #   address: 0005:03:00.1           
-    #   rx:
-    #     - queues:
-    #       - name: "Default"
-    #         id: 0
-    #         cpu_core: 10
-    #         batch_size: 10240
-    #         output_port: "bench_rx_out"
-    #         memory_regions: 
-    #           - "Default_RX_GPU"
-    #       - name: "Data"
-    #         id: 1
-    #         cpu_core: 9
-    #         batch_size: 10240
-    #         output_port: "bench_rx_out"
-    #         memory_regions: 
-    #           - "Data_RX_GPU"
-    #       flows:
-    #         - name: "ADC Samples"
-    #           action:
-    #             type: queue
-    #             id: 1
-    #           match:
-    #             udp_src: 4096 #12288
-    #             udp_dst: 4096 #12288                          
+              - "tx_eth_src"
+    - name: data2
+      address: 0005:03:00.1
+      rx:
+        - queues:
+          - name: "Default"
+            id: 0
+            cpu_core: 10
+            batch_size: 10240
+            output_port: "bench_rx_out"
+            memory_regions:
+              - "Default_RX_GPU"
+          - name: "Data"
+            id: 1
+            cpu_core: 9
+            batch_size: 10240
+            output_port: "bench_rx_out"
+            memory_regions:
+              - "Data_RX_GPU"
+          flows:
+          - name: "ADC Samples"
+            id: 2
+            action:
+              type: queue
+              id: 1
+            match:
+              udp_src: 4096 #12288
+              udp_dst: 4096 #12288
+              ipv4_len: 1050
+          - name: "ADC Samples2"
+            id: 1
+            action:
+              type: queue
+              id: 1
+            match:
+              udp_src: 4095 #12288
+              udp_dst: 4095 #12288
+              ipv4_len: 1050              
 
 bench_rx:
   split_boundary: false
@@ -111,7 +122,7 @@ bench_rx:
   header_size: 64
 
 bench_tx:
-  eth_dst_addr: 48:b0:2d:63:84:ac   # Destination MAC
+  eth_dst_addr: 48:b0:2d:f4:04:48   # Destination MAC
   udp_dst_port: 4096                  # UDP destination port
   udp_src_port: 4096                  # UDP source port
   gpu_direct: true
@@ -119,6 +130,6 @@ bench_tx:
   batch_size: 10000
   payload_size: 1000
   header_size: 64
-  ip_src_addr: 192.168.100.1          # Source IP send from
-  ip_dst_addr: 10.10.100.1          # Destination IP to send to
+  ip_src_addr: 10.10.100.1          # Source IP send from
+  ip_dst_addr: 10.10.100.2          # Destination IP to send to
   address: 0005:03:00.0

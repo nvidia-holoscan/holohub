@@ -28,6 +28,9 @@ target_link_libraries({{ cookiecutter.project_slug }}
   PRIVATE
     holoscan::core
     holoscan::ops::holoviz
+{%- if cookiecutter.example == "UI" %}
+    holoscan::viz::imgui
+{%- endif %}
   )
 
 if(BUILD_TESTING)

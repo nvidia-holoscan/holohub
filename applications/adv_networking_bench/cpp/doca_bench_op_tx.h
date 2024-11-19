@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <rte_cycles.h>
 namespace holoscan::ops {
 
 /*
@@ -48,10 +47,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
 
   AdvNetworkingBenchDocaTxOp() = default;
 
-  ~AdvNetworkingBenchDocaTxOp() {
-    HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down");
-    adv_net_shutdown();
-  }
+  ~AdvNetworkingBenchDocaTxOp() { HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down"); }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
     // adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
@@ -159,8 +155,9 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     if (!first_time) {
       ret_cuda = cudaEventQuery(events_[cur_idx]);
       if ((ret_cuda != cudaSuccess)) {
-        HOLOSCAN_LOG_ERROR(
-            "Falling behind on TX processing for index {} ret {}!", cur_idx, ret_cuda);
+        HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {} ret {}!",
+                           cur_idx,
+                           static_cast<int>(ret_cuda));
         return;
       }
     }

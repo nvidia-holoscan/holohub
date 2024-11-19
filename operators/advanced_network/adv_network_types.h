@@ -21,10 +21,14 @@
 #include <memory>
 #include <optional>
 #include <stdint.h>
+#include <stdexcept>
+#include <unordered_map>
+#include <algorithm>
+#include <cctype>
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/udp.h>
-#include "holoscan/holoscan.hpp"
+#include <cuda_runtime.h>
 
 namespace holoscan::ops {
 
@@ -58,7 +62,9 @@ struct AdvNetBurstHdr {
   AdvNetBurstHdrParams hdr;
 
   // Pad without union to make bindings readable
-  uint8_t pad[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(AdvNetBurstHdrParams)];
+  void* extra_burst_data;
+  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) -
+                            sizeof(AdvNetBurstHdrParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
@@ -67,6 +73,7 @@ struct AdvNetBurstParams {
 
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
+  void** pkt_extra_info;
   cudaEvent_t event;
 };
 
@@ -111,7 +118,6 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
     } else if (str == "rdma_read") {
       access |= MEM_ACCESS_RDMA_WRITE;
     } else {
-      HOLOSCAN_LOG_ERROR("Invalid access property for memory: {}", str);
       return 0;
     }
   }
@@ -155,6 +161,118 @@ enum class AdvNetDirection : uint8_t {
 };
 
 /**
+ * @brief Manager Type
+ *
+ */
+enum class AnoMgrType {
+  UNKNOWN = -1,
+  DEFAULT,
+  DPDK,
+  DOCA,
+  RIVERMAX,
+};
+
+static constexpr const char* ANO_MGR_STR__DPDK = "dpdk";
+static constexpr const char* ANO_MGR_STR__DOCA = "doca";
+static constexpr const char* ANO_MGR_STR__RIVERMAX = "rivermax";
+static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
+
+/**
+ * @brief Convert string to manager type
+ *
+ * @param str
+ * @return AnoMgrType
+ */
+inline AnoMgrType manager_type_from_string(const std::string& str) {
+  if (str == ANO_MGR_STR__DPDK) return AnoMgrType::DPDK;
+  if (str == ANO_MGR_STR__DOCA) return AnoMgrType::DOCA;
+  if (str == ANO_MGR_STR__RIVERMAX) return AnoMgrType::RIVERMAX;
+  if (str == ANO_MGR_STR__DEFAULT) return AnoMgrType::DEFAULT;
+  throw std::logic_error("Unrecognized manager type, available options dpdk/doca/rivermax/default");
+}
+
+/**
+ * @brief Convert manager type to string
+ *
+ * @param type
+ * @return std::string
+ */
+inline std::string manager_type_to_string(AnoMgrType type) {
+  switch (type) {
+    case AnoMgrType::DPDK:
+      return ANO_MGR_STR__DPDK;
+    case AnoMgrType::DOCA:
+      return ANO_MGR_STR__DOCA;
+    case AnoMgrType::RIVERMAX:
+      return ANO_MGR_STR__RIVERMAX;
+    case AnoMgrType::DEFAULT:
+      return ANO_MGR_STR__DEFAULT;
+    default:
+      return "unknown";
+  }
+}
+class AnoLogLevel {
+ public:
+  enum Level {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    CRITICAL,
+    OFF,
+  };
+
+  static std::string to_string(Level level) {
+    auto it = level_to_string_map.find(level);
+    if (it != level_to_string_map.end()) { return it->second; }
+    return "warn";
+  }
+
+  static Level from_string(const std::string& str) {
+    std::string lower_str = str;
+    std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), [](unsigned char c) {
+      return std::tolower(c);
+    });
+
+    auto it = string_to_level_map.find(lower_str);
+    if (it != string_to_level_map.end()) { return it->second; }
+    throw std::logic_error(
+        "Unrecognized log level, available options trace/debug/info/warn/error/critical/off");
+  }
+
+ private:
+  static const std::unordered_map<Level, std::string> level_to_string_map;
+  static const std::unordered_map<std::string, Level> string_to_level_map;
+};
+
+/**
+ * @class ManagerLogLevelCommandBuilder
+ * @brief Abstract base class for building manager log level commands.
+ *
+ * This class defines an interface for building commands that manage log levels.
+ * Derived classes must implement the `get_cmd_flags_strings` method to provide
+ * the specific command flag strings.
+ */
+class ManagerLogLevelCommandBuilder {
+ public:
+  /**
+   * @brief Virtual destructor for the ManagerLogLevelCommandBuilder class.
+   */
+  virtual ~ManagerLogLevelCommandBuilder() = default;
+
+  /**
+   * @brief Pure virtual function to get the command flag strings.
+   *
+   * This function must be implemented by derived classes to return
+   * the specific command flag strings for managing log levels.
+   *
+   * @return A vector of command flag strings.
+   */
+  virtual std::vector<std::string> get_cmd_flags_strings() const = 0;
+};
+
+/**
  * @brief Parameters to configure advanced network operators
  *
  */
@@ -172,6 +290,22 @@ struct AdvNetConfig {
   bool enabled = false;
 };
 
+/**
+ * @brief Base class for additional queue configuration.
+ *
+ * This class serves as a base class for any additional queue configuration
+ * that might be needed by different manager types. This class should be
+ * inherited by the derived class that will hold the additional configuration
+ * for a specific manager type.
+ */
+class AnoMgrExtraQueueConfig {
+ public:
+  /**
+   * @brief Virtual destructor for proper cleanup of derived class objects.
+   */
+  virtual ~AnoMgrExtraQueueConfig() = default;
+};
+
 struct CommonQueueConfig {
   std::string name_;
   int id_;
@@ -180,6 +314,7 @@ struct CommonQueueConfig {
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;
+  AnoMgrExtraQueueConfig* extra_queue_config_;
 };
 
 struct MemoryRegion {
@@ -219,9 +354,11 @@ struct FlowAction {
 struct FlowMatch {
   uint16_t udp_src_;
   uint16_t udp_dst_;
+  uint16_t ipv4_len_;
 };
 struct FlowConfig {
   std::string name_;
+  uint16_t id_;
   FlowAction action_;
   FlowMatch match_;
   void* backend_config_;  // Filled in by operator
@@ -230,8 +367,8 @@ struct FlowConfig {
 struct CommonConfig {
   int version;
   int master_core_;
-  std::string mgr_;
   AdvNetDirection dir;
+  AnoMgrType manager_type;
 };
 
 struct AdvNetRxConfig {
@@ -258,7 +395,8 @@ struct AdvNetConfigYaml {
   CommonConfig common_;
   std::unordered_map<std::string, MemoryRegion> mrs_;
   std::vector<AdvNetConfigInterface> ifs_;
-  bool debug_;
+  uint16_t debug_;
+  AnoLogLevel::Level log_level_;
 };
 
 template <typename Config>
@@ -276,19 +414,6 @@ auto adv_net_get_rx_tx_cfg_en(const Config& config) {
   }
 
   return std::make_tuple(rx, tx);
-}
-
-template <typename Config>
-std::string adv_net_get_manager(const Config& config) {
-  auto& yaml_nodes = config.yaml_nodes();
-  for (const auto& yaml_node : yaml_nodes) {
-    try {
-      auto node = yaml_node["advanced_network"]["cfg"];
-      return node["manager"].template as<std::string>();
-    } catch (const std::exception& e) { return "default"; }
-  }
-
-  return "default";
 }
 
 };  // namespace holoscan::ops

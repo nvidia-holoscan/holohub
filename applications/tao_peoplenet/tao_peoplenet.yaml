@@ -18,7 +18,7 @@ v4l2_source:
   device: "/dev/video0"
 
 replayer_source:
-  basename: "twirl"
+  basename: "people"
   frame_rate: 0   # as specified in timestamps
   repeat: true    # default: false
   count: 0        # default: 0 (no frame count restriction)
@@ -43,8 +43,8 @@ inference:
   is_engine_path: false
 
 postprocessor:
-  iou_threshold: 0.15
-  score_threshold: 0.5
+  iou_threshold: 0.10
+  score_threshold: 0.15
   box_scale: 35.0
   box_offset: 0.5
   grid_height: 34

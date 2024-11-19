@@ -1,4 +1,5 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
             "type": "shell",
@@ -66,17 +67,11 @@
         {
             "type": "shell",
             "label": "Build basic_networking_ping (delay 3s)",
-            "command": "./run",
-            "args": [
-                "build",
-                "basic_networking_ping",
-                "--type",
-                "debug"
-            ],
+            "command": "sleep 3",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Delay Task (3s)",
+            "dependsOn": "Build basic_networking_ping",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -109,11 +104,11 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking",
+            "label": "Build sam2",
             "command": "./run",
             "args": [
                 "build",
-                "endoscopy_tool_tracking",
+                "sam2",
                 "--type",
                 "debug"
             ],
@@ -211,11 +206,11 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed",
+            "label": "Build ucx_endoscopy_tool_tracking",
             "command": "./run",
             "args": [
                 "build",
-                "endoscopy_tool_tracking_distributed",
+                "ucx_endoscopy_tool_tracking",
                 "--type",
                 "debug"
             ],
@@ -232,23 +227,17 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed (delay 3s)",
-            "command": "./run",
-            "args": [
-                "build",
-                "endoscopy_tool_tracking_distributed",
-                "--type",
-                "debug"
-            ],
+            "label": "Build ucx_endoscopy_tool_tracking (delay 3s)",
+            "command": "sleep 3",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Delay Task (3s)",
+            "dependsOn": "Build ucx_endoscopy_tool_tracking",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -259,23 +248,17 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking_distributed (delay 5s)",
-            "command": "./run",
-            "args": [
-                "build",
-                "endoscopy_tool_tracking_distributed",
-                "--type",
-                "debug"
-            ],
+            "label": "Build ucx_endoscopy_tool_tracking (delay 5s)",
+            "command": "sleep 5",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Delay Task (5s)",
+            "dependsOn": "Build ucx_endoscopy_tool_tracking",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -286,7 +269,7 @@
                 "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true,
-                "group": "endoscopy_tool_tracking_distributed"
+                "group": "ucx_endoscopy_tool_tracking"
             }
         },
         {
@@ -308,11 +291,135 @@
         },
         {
             "type": "shell",
+            "label": "Build ucx_h264_endoscopy_tool_tracking",
+            "command": "./run",
+            "args": [
+                "build",
+                "ucx_h264_endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "ucx_h264_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
             "label": "Build h264_video_decode",
             "command": "./run",
             "args": [
                 "build",
                 "h264_video_decode",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build grpc_h264_endoscopy_tool_tracking",
+            "command": "./run",
+            "args": [
+                "build",
+                "grpc_h264_endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_h264_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build grpc_h264_endoscopy_tool_tracking (delay 3s)",
+            "command": "sleep 3",
+            "dependsOn": "Build grpc_h264_endoscopy_tool_tracking",
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_h264_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build Holoviz examples",
+            "command": "./run",
+            "args": [
+                "build",
+                "${input:remember_holoviz_example_name}",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build multiai_ultrasound",
+            "command": "./run",
+            "args": [
+                "build",
+                "multiai_ultrasound",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build nvidia_nim_nvclip",
+            "command": "./run",
+            "args": [
+                "build",
+                "nvidia_nim_nvclip",
                 "--type",
                 "debug"
             ],
@@ -339,6 +446,88 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Build for Holoscan Flow Benchmarking",
+            "command": "./run",
+            "args": [
+                "build",
+                "${input:app_name}",
+                "--benchmark"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Run Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Build for Holoscan Flow Benchmarking",
+            ],
+            "command": "python",
+            "args": [
+                "./benchmarks/holoscan_flow_benchmarking/benchmark.py",
+                "-a",
+                "${input:app_name}",
+                "-d",
+                "/tmp",
+                "--sched",
+                "greedy",
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "type": "shell",
+            "hide": true,
+            "label": "Analyze Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Run Holoscan Flow Benchmarking",
+            ],
+            "command": "python",
+            "args": [
+                "./benchmarks/holoscan_flow_benchmarking/analyze.py",
+                "-m",
+                "-a",
+                "-g",
+                "/tmp/logger_greedy_*",
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "none",
+            "problemMatcher": [],
+        },
+        {
+            "label": "Holoscan Flow Benchmarking",
+            "dependsOn": [
+                "Analyze Holoscan Flow Benchmarking"
+            ],
+            "problemMatcher": [],
+        }
+    ],
+    "inputs": [
+        {
+            "id": "app_name",
+            "description": "Select Application",
+            "type": "promptString",
+        },
+        {
+            "id": "remember_holoviz_example_name",
+            "type": "command",
+            "command": "extension.commandvariable.remember",
+            "args": {
+                "key": "holoviz_example_name"
+            }
         }
     ]
 }

@@ -274,12 +274,6 @@ get_conditional_options() {
     local conditional_opt=""
 
 
-    # Allow connecting from docker. This is not needed for WSL2 (`SI:localuser:wslg` is added by default)
-    if [ -v DISPLAY ]; then
-        conditional_opt+="${prefix}-e DISPLAY${postfix}"
-    fi
-
-
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
     fi
@@ -303,7 +297,7 @@ get_conditional_options() {
     if [ -n "$video_id" ]; then
         conditional_opt+="${prefix}--group-add=${video_id}${postfix}"
     fi
-    render_id=$(get_group_id rnder)
+    render_id=$(get_group_id render)
     if [ -n "$render_id" ]; then
         conditional_opt+="${prefix}--group-add=${render_id}${postfix}"
     fi
@@ -454,22 +448,23 @@ check_nvidia_ctk() {
 #===============================================================================
 
 get_host_gpu() {
-    if lsmod | grep -q nvidia_drm && command -v nvidia-smi >/dev/null; then
-        echo -n "dgpu"
-    elif lsmod | grep -q nvgpu; then
-        echo -n "igpu"
+    if ! command -v nvidia-smi >/dev/null; then
+        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo -n "dgpu";
+    elif [[ ! $(nvidia-smi --query-gpu=name --format=csv,noheader) ]] || \
+         [[ $(nvidia-smi --query-gpu=name --format=csv,noheader -i 0) =~ "Orin (nvgpu)" ]]; then
+        echo -n "igpu";
     else
-        c_echo_err Y "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
-        echo -n "dgpu"
+        echo -n "dgpu";
     fi
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.6.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.3.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v2.6.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -484,6 +479,8 @@ Usage: ./dev_container build [options]
     --docker_file :  path to Dockerfile to use for building container.
     --img : Specify fully qualified container name
     --verbose : Print variables passed to docker build command
+    --no-cache : Do not use cache when building the image
+    --build-args : provides extra arguments to docker build command
     '
 }
 
@@ -496,6 +493,8 @@ build() {
     local img=$(get_default_img)
     local compute_capacity=$(get_compute_capacity)
     local print_verbose=0
+    local no_cache=
+    local extra_args=
 
     # Check if buildx exists
     if ! $(docker buildx version &>/dev/null); then
@@ -538,6 +537,20 @@ build() {
                 exit 1
             fi
             ;;
+        --build-args)
+            if [[ -n "$2" ]]; then
+                extra_args+=" $2"
+                shift 2
+            else
+                echo "Error: --build-args requires a value"
+                build_desc
+                exit 1
+            fi
+            ;;
+        --no-cache)
+            no_cache="--no-cache"
+            shift
+            ;;
         --verbose)
             print_verbose=1
             shift
@@ -566,6 +579,8 @@ build() {
         --build-arg GPU_TYPE=${gpu_type} \
         --build-arg COMPUTE_CAPACITY=${compute_capacity} \
         --network=host \
+        ${extra_args} \
+        ${no_cache} \
         -f ${docker_file_path} \
         -t ${img} \
         ${HOLOHUB_ROOT}
@@ -695,15 +710,34 @@ launch() {
 
     check_nvidia_ctk
 
-    if [ -v DISPLAY ]; then
-        if command -v xhost >/dev/null; then
-            run_command xhost +local:docker
-        fi
-    fi
-
     mount_device_opt="$(get_mount_device_options)"
     conditional_opt="$(get_conditional_options $use_tini $persistent)"
 
+    # display - use XDG_SESSION_TYPE to detect X11 or Wayland
+    # see https://www.freedesktop.org/software/systemd/man/latest/pam_systemd.html#%24XDG_SESSION_TYPE
+    display_server_opt=""
+    if [ -n "${XDG_SESSION_TYPE-}" ]; then
+        display_server_opt+=" -e XDG_SESSION_TYPE"
+        if [ "${XDG_SESSION_TYPE}" == "wayland" ]; then
+            display_server_opt+=" -e WAYLAND_DISPLAY"
+        fi
+    fi
+    if [ -n "${XDG_RUNTIME_DIR-}" ]; then
+        display_server_opt+=" -e XDG_RUNTIME_DIR"
+        if [ -d ${XDG_RUNTIME_DIR} ]; then
+            display_server_opt+=" -v ${XDG_RUNTIME_DIR}:${XDG_RUNTIME_DIR}"
+        fi
+    fi
+    # if XDG_SESSION_TYPE is not set or set to tty or x11, use X11
+    if [ -z "${XDG_SESSION_TYPE-}" ] || [ "${XDG_SESSION_TYPE}" == "x11" ] || [ "${XDG_SESSION_TYPE}" == "tty" ]; then
+        # Allow the docker group to access X11.
+        # Note: not necessary for WSL2 (`SI:localuser:wslg` is added by default)
+        if [ -v DISPLAY ] && command -v xhost >/dev/null; then
+            run_command xhost +local:docker
+        fi
+        display_server_opt+=" -v /tmp/.X11-unix:/tmp/.X11-unix"
+        display_server_opt+=" -e DISPLAY"
+    fi
 
     # when using a locally built Holoscan SDK container it is necessary to provide the path to Holoscan SDK
     # to map Holoscan SDK into the container for building Holohub
@@ -764,8 +798,6 @@ launch() {
     # -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display
     #   Enable GPU acceleration
     #
-    # -v /tmp/.X11-unix:/tmp/.X11-unix
-    #
     # ${mount_nvoptix_bin}
     #   Mount Optix denoiser weights.
 
@@ -774,6 +806,7 @@ launch() {
         c_echo W "Launch (gpu_type: " G "${gpu_type}" W ")..."
         c_echo W "Launch (mount_device_opt: " G "${mount_device_opt}" W ")..."
         c_echo W "Launch (conditional_opt: " G "${conditional_opt}" W ")..."
+        c_echo W "Launch (display_server_opt: " G "${display_server_opt}" W ")..."
         c_echo W "Launch (local_sdk_opt: " G "${local_sdk_opt}" W ")..."
         c_echo W "Launch (ucx_opt: " G "${ucx_opt}" W ")..."
         c_echo W "Launch (docker_opts: " G "${docker_opts}" W ")..."
@@ -797,16 +830,26 @@ launch() {
         --device-cgroup-rule "c 189:* rmw" \
         -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
         -e HOME=/workspace/holohub \
-        -v /tmp/.X11-unix:/tmp/.X11-unix \
         ${additional_volumes} \
         ${mount_device_opt} \
         ${conditional_opt} \
+        ${display_server_opt} \
         ${local_sdk_opt} \
         ${mount_nvoptix_bin} \
         ${ucx_opt} \
         ${docker_opts} \
         ${img} \
         "$@"
+}
+
+build_and_install_desc() { c_echo 'Build the application and install the binaries into install/<app> if supported
+    Usage: ./dev_container build_and_install <application_name>
+    View options with `./dev_container build_and_run_desc`
+    '
+}
+
+build_and_install() {
+    build_and_run --install --no_run "$@"
 }
 
 build_and_run_desc() { c_echo 'Build and run a requested application in a Docker container
@@ -819,10 +862,14 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
             - Otherwise the top-level HoloHub "Dockerfile"
             If `--img` is not specified then a custom image tag will be defined.
         --img : Specify fully qualified output container name
+        --container_args: Additional Docker run args.
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
+        --no_run : Skip launching the application.
+        --install: Install the application into install/<app> if supported.
         --build_args : Build the app with additional CMake configuration arguments
+        --build_docker_args : additional docker arguments when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
@@ -833,21 +880,25 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
 build_and_run() {
     local app_name=""
     local app_language=""
-    local container_build_args=""
-    local container_launch_args="--docker_opts --entrypoint=bash"
+    local container_build_args=()
+    local container_launch_args=""
+    local docker_opts="--entrypoint=bash"
     local build_app=1
     local image_name=""
     local docker_file=""
     local extra_build_args=""
     local extra_build_with=""
     local extra_run_args=""
+    local run_app=1
+    local install=""
+    local configure_args=""
 
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
         case "$1" in
         --base_img)
             if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
-                container_build_args+=" --base_img $2"
+                container_build_args+=(--base_img $2)
                 shift 2
             else
                 echo "Error: --base_img requires a value"
@@ -901,10 +952,21 @@ build_and_run() {
             ;;
         --build_args)
             if [[ -n "$2" ]]; then
-                extra_build_args="--configure-args '$2'"
+                configure_args="${configure_args} '$2'"
                 shift 2
             else
                 echo "Error: --build_args requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --build_docker_args)
+            if [[ -n "$2" ]]; then
+                container_build_args+=(--build-args)
+                container_build_args+=("$2")
+                shift 2
+            else
+                echo "Error: --build_docker_args requires a value"
                 build_and_run_desc
                 exit 1
             fi
@@ -919,8 +981,16 @@ build_and_run() {
                 exit 1
             fi
             ;;
+        --no_run)
+            run_app=0
+            shift 1
+            ;;
+        --install)
+            install="--install"
+            shift 1
+            ;;
         --verbose)
-            container_build_args+=" --verbose"
+            container_build_args+=(--verbose)
             container_launch_args+=" --verbose"
             shift
             ;;
@@ -930,6 +1000,16 @@ build_and_run() {
                 shift 2
             else
                 echo "Error: --language requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --container_args)
+            if [[ -n "$2" ]]; then
+                docker_opts+="$2"
+                shift 2
+            else
+                echo "Error: --container_args requires a value"
                 build_and_run_desc
                 exit 1
             fi
@@ -955,7 +1035,11 @@ build_and_run() {
         docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
     fi
     if [[ -n "${docker_file}" ]]; then
-        container_build_args+=" --docker_file ${docker_file}"
+        container_build_args+=(--docker_file ${docker_file})
+    fi
+
+    if [[ -n "${configure_args}" ]]; then
+        extra_build_args+=" --configure-args ${configure_args}"
     fi
 
     if [[ -z "$image_name" ]]; then
@@ -966,14 +1050,20 @@ build_and_run() {
         fi
     fi
 
-    container_build_args+=" --img $image_name"
+    container_build_args+=(--img $image_name)
     container_launch_args+=" --img $image_name"
 
-    run_command ${SCRIPT_DIR}/dev_container build $container_build_args
+    c_echo "Building application container..."
+    run_command  ${SCRIPT_DIR}/dev_container build "${container_build_args[@]}"
     if [[ $build_app == 1 ]]; then
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run build $app_name $extra_build_with $extra_build_args"
+        c_echo "Building application..."
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $extra_build_with $extra_build_args"
     fi
-    run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args -- -c "./run launch $app_name $app_language $extra_run_args"
+
+    if [[ $run_app == 1 ]]; then
+        c_echo "Launching application..."
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run launch $app_name $app_language $extra_run_args"
+    fi
 }
 
 vscode_desc() { c_echo 'Launch VS Code in Dev Container
@@ -1173,7 +1263,7 @@ vscode() {
     mkdir -p "${tmpdir}/.devcontainer"
     cp -arL "${dev_container_path}/devcontainer.json" "${tmpdir}/.devcontainer"
     sed -i -e "s|\${localWorkspaceFolder}|$(pwd)|g" "${tmpdir}/.devcontainer/devcontainer.json" \
-        -e "s|\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
+        -e "s|//\"<env>\"|$devcontainer_env_file|g" "${tmpdir}/.devcontainer/devcontainer.json"
 
     local hash="$(echo -n "${tmpdir}" | xxd -pu - | tr -d '[:space:]')"
     local url="vscode://vscode-remote/dev-container+${hash}/workspace/holohub"

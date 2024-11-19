@@ -55,7 +55,23 @@ inline int EnabledDirections(const std::string& dir) {
 }
 
 /**
- * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams for one segment
+ * @brief Returns a manager type
+ *
+ * @return Manager type
+ */
+AnoMgrType adv_net_get_manager_type();
+
+/**
+ * @brief Returns a manager type
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return Manager type
+ */
+template <typename Config>
+AnoMgrType adv_net_get_manager_type(const Config& config);
+
+/**
+ * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
  *
  * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the CPU packet pointer at index idx
@@ -103,6 +119,19 @@ uint16_t adv_net_get_seg_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int s
  */
 uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
 uint16_t adv_net_get_pkt_len(std::shared_ptr<AdvNetBurstParams> burst, int idx);
+
+/**
+ * @brief Get flow ID of a packet
+ * 
+ * Retrieves the flow ID of a packet, or 0 if no flow was matched. The flow ID should match
+ * the flow ID in the flow rule for the ANO config.
+ *
+ * @param burst Burst structure containing packets
+ * @param idx Index of packet
+ * @return uint16_t Flow ID
+ */
+uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx);
+uint16_t adv_net_get_pkt_flow_id(std::shared_ptr<AdvNetBurstParams> burst, int idx);
 
 /**
  * @brief Populate a TX packet burst buffer
@@ -272,17 +301,6 @@ uint64_t adv_net_get_burst_tot_byte(std::shared_ptr<AdvNetBurstParams> burst);
 void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
 
 /**
- * @brief Free all packets in a burst
- *
- * Frees all packets in a burst of packets. After completion, all CPU and GPU packets will
- * be released back to the free pool.
- *
- * @param burst Burst structure containing packet lists
- */
-void adv_net_free_all_pkts(AdvNetBurstParams* burst);
-void adv_net_free_all_pkts(std::shared_ptr<AdvNetBurstParams> burst);
-
-/**
  * @brief Free all packets for a single segment in a burst
  *
  * Frees all packets in a single segment in a burst of packets.
@@ -394,6 +412,16 @@ void adv_net_shutdown();
  */
 void adv_net_print_stats();
 
+/**
+ * @brief Get the list (set) of rx/tx ports from a node
+ *
+ * @param node Yaml node
+ * @param dir String of direction ["rx", "tx"]
+ *
+ * @returns unordered set of rx/tx port names
+ */
+std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir);
+
 };  // namespace holoscan::ops
 
 template <>
@@ -412,7 +440,80 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
     //      depthMapRenderModeToString(input_spec.depth_map_render_mode_);
     return node;
   }
+  /**
+   * @brief Parse flow configuration from a YAML node.
+   *
+   * @param flow_item The YAML node containing the flow configuration.
+   * @param flow The FlowConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_flow_config(const YAML::Node& flow_item, holoscan::ops::FlowConfig& flow);
 
+  /**
+   * @brief Parse memory region configuration from a YAML node.
+   *
+   * @param mr The YAML node containing the memory region configuration.
+   * @param tmr The MemoryRegion object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_memory_region_config(const YAML::Node& mr,
+                                         holoscan::ops::MemoryRegion& memory_region);
+
+  /**
+   * @brief Parse common RX queue configuration from a YAML node.
+   *
+   * @param q_item The YAML node containing the RX queue configuration.
+   * @param q The RxQueueConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rx_queue_config(const YAML::Node& q_item,
+                                    const holoscan::ops::AnoMgrType& manager_type,
+                                    holoscan::ops::RxQueueConfig& rx_queue_config);
+
+  /**
+   * @brief Parse RX queue configuration from a YAML node.
+   *
+   * @param q_item The YAML node containing the RX queue configuration.
+   * @param manager_type The manager type.
+   * @param q The RxQueueConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rx_queue_common_config(const YAML::Node& q_item,
+                                           holoscan::ops::RxQueueConfig& rx_queue_config);
+
+  /**
+   * @brief Parse common TX queue configuration from a YAML node.
+   *
+   * @param q_item The YAML node containing the TX queue configuration.
+   * @param q The TxQueueConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_tx_queue_config(const YAML::Node& q_item,
+                                    const holoscan::ops::AnoMgrType& manager_type,
+                                    holoscan::ops::TxQueueConfig& tx_queue_config);
+
+  /**
+   * @brief Parse TX queue configuration from a YAML node.
+   *
+   * @param q_item The YAML node containing the TX queue configuration.
+   * @param manager_type The manager type.
+   * @param q The TxQueueConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_tx_queue_common_config(const YAML::Node& q_item,
+                                           holoscan::ops::TxQueueConfig& tx_queue_config);
+
+  /**
+   * @brief Decode the YAML node into an AdvNetConfigYaml object.
+   *
+   * This function parses the provided YAML node and populates the given AdvNetConfigYaml object.
+   * It handles various configurations such as version, master core, manager type, debug flag,
+   * memory regions, interfaces, RX queues, TX queues, and flows.
+   *
+   * @param node The YAML node containing the configuration.
+   * @param input_spec The AdvNetConfigYaml object to populate.
+   * @return true if decoding was successful, false otherwise.
+   */
   static bool decode(const Node& node, holoscan::ops::AdvNetConfigYaml& input_spec) {
     if (!node.IsMap()) {
       GXF_LOG_ERROR("InputSpec: expected a map");
@@ -424,29 +525,32 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       input_spec.common_.version = node["version"].as<int32_t>();
       input_spec.common_.master_core_ = node["master_core"].as<int32_t>();
       try {
-        input_spec.common_.mgr_ = node["manager"].as<std::string>();
+        input_spec.common_.manager_type = holoscan::ops::manager_type_from_string(
+            node["manager"].as<std::string>(holoscan::ops::ANO_MGR_STR__DEFAULT));
       } catch (const std::exception& e) {
-        input_spec.common_.mgr_ = "dpdk";  // Use DPDK as the default
+        input_spec.common_.manager_type = holoscan::ops::AnoMgrType::DEFAULT;
       }
 
       try {
-        input_spec.debug_ = node["debug"].as<bool>();
+        input_spec.debug_ = node["debug"].as<bool>(false);
       } catch (const std::exception& e) { input_spec.debug_ = false; }
+
+      try {
+        input_spec.log_level_ =
+            holoscan::ops::AnoLogLevel::from_string(node["log_level"].as<std::string>(
+                holoscan::ops::AnoLogLevel::to_string(holoscan::ops::AnoLogLevel::WARN)));
+      } catch (const std::exception& e) {
+        input_spec.log_level_ = holoscan::ops::AnoLogLevel::WARN;
+      }
 
       try {
         const auto& mrs = node["memory_regions"];
         for (const auto& mr : mrs) {
           holoscan::ops::MemoryRegion tmr;
-          tmr.name_ = mr["name"].as<std::string>();
-          tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
-          tmr.buf_size_ = mr["buf_size"].as<size_t>();
-          tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
-          tmr.affinity_ = mr["affinity"].as<uint32_t>();
-          tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
-          try {  // Ownership flag is optional
-            tmr.owned_ = mr["owned"].template as<bool>();
-          } catch (const std::exception& e) { tmr.owned_ = true; }
-
+          if (!parse_memory_region_config(mr, tmr)) {
+            HOLOSCAN_LOG_ERROR("Failed to parse memory region config");
+            return false;
+          }
           if (input_spec.mrs_.find(tmr.name_) != input_spec.mrs_.end()) {
             HOLOSCAN_LOG_CRITICAL("Duplicate memory region names: {}", tmr.name_);
             return false;
@@ -455,6 +559,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
         }
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Must define at least one memory type");
+        return false;
       }
 
       try {
@@ -477,28 +582,20 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
             for (const auto& q_item : rx_item["queues"]) {
               holoscan::ops::RxQueueConfig q;
-              q.common_.name_ = q_item["name"].as<std::string>();
-              q.common_.id_ = q_item["id"].as<int>();
-              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_ = q_item["batch_size"].as<int>();
-              q.output_port_ = q_item["output_port"].as<std::string>();
-
-              const auto& mrs = q_item["memory_regions"];
-              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
-
-              rx_cfg.queues_.emplace_back(q);
+              if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+                HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
+                return false;
+              }
+              rx_cfg.queues_.emplace_back(std::move(q));
             }
 
             for (const auto& flow_item : rx_item["flows"]) {
               holoscan::ops::FlowConfig flow;
-              flow.name_ = flow_item["name"].as<std::string>();
-
-              flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
-              flow.action_.id_ = flow_item["action"]["id"].as<int>();
-              flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-              flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
-
-              rx_cfg.flows_.emplace_back(flow);
+              if (!parse_flow_config(flow_item, flow)) {
+                HOLOSCAN_LOG_ERROR("Failed to parse FlowConfig");
+                return false;
+              }
+              rx_cfg.flows_.emplace_back(std::move(flow));
             }
 
             ifcfg.rx_ = rx_cfg;
@@ -514,21 +611,11 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
             for (const auto& q_item : tx_item["queues"]) {
               holoscan::ops::TxQueueConfig q;
-              q.common_.name_ = q_item["name"].as<std::string>();
-              q.common_.id_ = q_item["id"].as<int>();
-              q.common_.cpu_core_ = q_item["cpu_core"].as<std::string>();
-              q.common_.batch_size_ = q_item["batch_size"].as<int>();
-              q.common_.split_boundary_ = q_item["split_boundary"].as<int>();
-
-              const auto& mrs = q_item["memory_regions"];
-              for (const auto& mr : mrs) { q.common_.mrs_.push_back(mr.as<std::string>()); }
-
-              const auto& offload = q_item["offloads"];
-              for (const auto& off : offload) {
-                q.common_.offloads_.push_back(off.as<std::string>());
+              if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+                HOLOSCAN_LOG_ERROR("Failed to parse TxQueueConfig");
+                return false;
               }
-
-              tx_cfg.queues_.emplace_back(q);
+              tx_cfg.queues_.emplace_back(std::move(q));
             }
 
             ifcfg.tx_ = tx_cfg;

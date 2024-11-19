@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -150,8 +150,14 @@ class Fragment1(Fragment):
             **self.kwargs("lstm_inference"),
         )
 
-        tool_tracking_postprocessor_block_size = 107 * 60 * 7 * 4
-        tool_tracking_postprocessor_num_blocks = 2
+        # the tool tracking post process outputs
+        # - a RGBA float32 color mask
+        # - coordinates with x,y and size in float32
+        bytes_per_float32 = 4
+        tool_tracking_postprocessor_block_size = max(
+            107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
+        )
+        tool_tracking_postprocessor_num_blocks = 2 * 2
         tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
             self,
             name="tool_tracking_postprocessor",
@@ -162,7 +168,6 @@ class Fragment1(Fragment):
                 block_size=tool_tracking_postprocessor_block_size,
                 num_blocks=tool_tracking_postprocessor_num_blocks,
             ),
-            host_allocator=UnboundedAllocator(self, name="host_allocator"),
         )
 
         if (record_type == "visualizer") and (self.source == "replayer"):
@@ -184,11 +189,7 @@ class Fragment1(Fragment):
 
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
-        self.add_flow(
-            tool_tracking_postprocessor,
-            visualizer,
-            {("out_coords", "receivers"), ("out_mask", "receivers")},
-        )
+        self.add_flow(tool_tracking_postprocessor, visualizer, {("out", "receivers")})
         self.add_flow(
             source,
             format_converter,
@@ -233,7 +234,6 @@ class Fragment2(Fragment):
         self.model_path = model_path
 
     def compose(self):
-
         is_aja = self.source.lower() == "aja"
 
         pool = UnboundedAllocator(self, name="fragment2_pool")

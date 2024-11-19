@@ -18,3 +18,8 @@
 # add_custom_target(advanced_networking_bench_python ALL
 #   DEPENDS advanced_network_python
 # )
+
+install(
+  FILES main.py
+  DESTINATION bin/adv_networking_bench/python
+)

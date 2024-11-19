@@ -73,7 +73,8 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME endoscopy_tool_tracking_cpp_test
-           COMMAND endoscopy_tool_tracking ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
+           COMMAND endoscopy_tool_tracking
+                   --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_tool_tracking_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(endoscopy_tool_tracking_cpp_test PROPERTIES
@@ -155,29 +156,10 @@ endif()
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS endoscopy_tool_tracking
-  DESTINATION "${CMAKE_SOURCE_DIR}/install/endoscopy_tool_tracking_cpp"
-  COMPONENT "holohub-apps"
-)
-
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" APP_YAML_FILE)
-string(REPLACE "gxf_extensions/lstm_tensor_rt_inference/" "" APP_YAML_FILE "${APP_YAML_FILE}")
-file(WRITE "${CMAKE_BINARY_DIR}/packaging/cpp/endoscopy_tool_tracking.yaml" "${APP_YAML_FILE}")
-
-install(
-  FILES ${CMAKE_BINARY_DIR}/packaging/cpp/endoscopy_tool_tracking.yaml
-  DESTINATION endoscopy_tool_tracking_cpp
-  COMPONENT "holohub-apps"
+  DESTINATION bin/endoscopy_tool_tracking/cpp
 )
 
 install(
-  DIRECTORY ${gxf_lstm_tensor_rt_inference_BINARY_DIR}/
-  DESTINATION endoscopy_tool_tracking_cpp
-  FILES_MATCHING PATTERN "*.so"
-  PATTERN "CMakeFiles" EXCLUDE)
-
-install(
-  FILES
-  ${lstm_tensor_rt_inference_BINARY_DIR}/liblstm_tensor_rt_inference.so
-  ${tool_tracking_postprocessor_BINARY_DIR}/libtool_tracking_postprocessor.so
-  DESTINATION endoscopy_tool_tracking_cpp
-  COMPONENT "holohub-apps")
+  FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)

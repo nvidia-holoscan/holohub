@@ -30,6 +30,7 @@ add_holohub_operator(cvcuda_holoscan_interop)
 add_subdirectory(dds)
 add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
+add_holohub_operator(grpc_operators)
 add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
 add_holohub_operator(npp_filter)
 add_holohub_operator(openigtlink)
@@ -51,3 +52,11 @@ add_holohub_operator(XrTransformOp)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
 
 
+# install
+install(
+    DIRECTORY "${CMAKE_BINARY_DIR}/python/lib/holohub"
+    DESTINATION python/lib
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN "__pycache__" EXCLUDE
+)

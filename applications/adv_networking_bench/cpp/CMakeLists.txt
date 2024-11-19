@@ -25,7 +25,7 @@ include(FetchContent)
 FetchContent_Declare(
   MatX
   GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG cdcdffd
+  GIT_TAG v0.8.0
 )
 FetchContent_MakeAvailable(MatX)
 
@@ -33,11 +33,6 @@ add_executable(adv_networking_bench
   kernels.cu
   main.cpp
 )
-
-# set(CMAKE_BUILD_TYPE Debug)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -ggdb")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
-# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G")
 
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 
@@ -48,6 +43,19 @@ target_link_libraries(adv_networking_bench
   holoscan::advanced_network_tx
   matx::matx
 )
+# Initialize ANO_MGR with a default if not provided
+if(NOT DEFINED ANO_MGR)
+    set(ANO_MGR "dpdk doca" CACHE STRING "Manager type(s) list")
+endif()
+
+separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
+
+# Define targets for each manager type
+foreach(MGR IN LISTS ANO_MGR_LIST)
+    message(STATUS "Adding manager ${MGR} to the configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR}=1")
+endforeach()
+
 
 set_target_properties(adv_networking_bench PROPERTIES CUDA_ARCHITECTURES "80;90")
 
@@ -59,6 +67,20 @@ add_custom_target(adv_networking_bench_default_tx_rx_yaml
 
 add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_default_tx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_default_tx_yaml)
+
+add_custom_target(adv_networking_bench_default_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_default_rx_yaml)
+
 add_custom_target(adv_networking_bench_doca_tx_rx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml"
@@ -66,3 +88,22 @@ add_custom_target(adv_networking_bench_doca_tx_rx_yaml
 
 add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_rmax_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rmax_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rmax_rx.yaml"
+)
+
+add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
+
+# Installation
+install(TARGETS adv_networking_bench
+        DESTINATION bin/adv_networking_bench/cpp)
+
+install(
+  FILES ../adv_networking_bench_default_rx.yaml
+        ../adv_networking_bench_default_tx.yaml
+        ../adv_networking_bench_default_tx_rx.yaml
+        ../adv_networking_bench_doca_tx_rx.yaml
+        ../adv_networking_bench_rmax_rx_yaml
+  DESTINATION bin/adv_networking_bench/cpp
+)

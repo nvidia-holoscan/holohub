@@ -61,41 +61,15 @@ if(BUILD_TESTING)
     DEPENDS endoscopy_tool_tracking_python_test
     PASS_REGULAR_EXPRESSION "Valid video output!"
   )
-
 endif()
 
 # Install application and dependencies into the install/ directory for packaging
 install(
   FILES endoscopy_tool_tracking.py
-  DESTINATION "endoscopy_tool_tracking_python"
-  COMPONENT "holohub-apps"
-)
-
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" APP_YAML_FILE)
-string(REPLACE "gxf_extensions/lstm_tensor_rt_inference/" "" APP_YAML_FILE "${APP_YAML_FILE}")
-file(WRITE "${CMAKE_BINARY_DIR}/packaging/python/endoscopy_tool_tracking.yaml" "${APP_YAML_FILE}")
-
-install(
-  FILES ${CMAKE_BINARY_DIR}/packaging/python/endoscopy_tool_tracking.yaml
-  DESTINATION endoscopy_tool_tracking_python
-  COMPONENT "holohub-apps"
+  DESTINATION bin/endoscopy_tool_tracking/python
 )
 
 install(
-  DIRECTORY ${gxf_lstm_tensor_rt_inference_BINARY_DIR}/
-  DESTINATION endoscopy_tool_tracking_python
-  FILES_MATCHING PATTERN "*.so"
-  PATTERN "CMakeFiles" EXCLUDE
+  FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/python
 )
-
-install(
-  FILES
-    ${lstm_tensor_rt_inference_BINARY_DIR}/liblstm_tensor_rt_inference.so
-    ${tool_tracking_postprocessor_BINARY_DIR}/libtool_tracking_postprocessor.so
-  DESTINATION "endoscopy_tool_tracking_python"
-  COMPONENT "holohub-apps"
-)
-
-install(
-  DIRECTORY ${Holohub-internal_BINARY_DIR}/python/lib/holohub
-  DESTINATION endoscopy_tool_tracking_python)

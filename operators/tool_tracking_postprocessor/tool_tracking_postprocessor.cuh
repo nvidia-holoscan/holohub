@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +19,29 @@
 
 #include <array>
 #include <cstdint>
+#include <stdexcept>
+
+#include <holoscan/logger/logger.hpp>
+
+#define CUDA_TRY(stmt)                                                                        \
+  {                                                                                           \
+    cudaError_t cuda_status = stmt;                                                           \
+    if (cudaSuccess != cuda_status) {                                                         \
+      HOLOSCAN_LOG_ERROR("CUDA runtime call {} in line {} of file {} failed with '{}' ({}).", \
+                         #stmt,                                                               \
+                         __LINE__,                                                            \
+                         __FILE__,                                                            \
+                         cudaGetErrorString(cuda_status),                                     \
+                         static_cast<int>(cuda_status));                                      \
+      throw std::runtime_error("CUDA runtime call failed");                                   \
+    }                                                                                         \
+  }
 
 namespace holoscan::ops {
-namespace tool_tracking_postprocessor {
 
-void cuda_postprocess(uint32_t width, uint32_t height, const std::array<float, 3>& color,
-                      bool first, const float* input, float4* output, cudaStream_t cuda_stream);
+void cuda_postprocess(uint32_t count, float min_prob, const float* probs,
+                      const float2* scaled_coords, float3* filtered_scaled_coords, uint32_t width,
+                      uint32_t height, const float3* colors, const float* binary_mask,
+                      float4* colored_mask, cudaStream_t cuda_stream);
 
-}  // namespace tool_tracking_postprocessor
 }  // namespace holoscan::ops

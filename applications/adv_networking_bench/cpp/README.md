@@ -64,25 +64,34 @@ This application requires all configuration and requirements from the advanced n
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
+```bash
+./dev_container build_and_run adv_networking_bench
+```
+
 ### Run Instructions
 
 First, go in your `build` or `install` directory, then for the transmitter run:
 
-
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_tx.yaml
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_tx.yaml
 ```
 
 Or for the receiver:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_tx.yaml
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_rx.yaml
 ```
 
 With DOCA:
 
 ```bash
 ./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+```
+
+With RIVERMAX RX:
+
+```bash
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_rmax_rx.yaml
 ```
 
 <mark>For Holoscan internal reasons (not related to the DOCA library), build the Advanced Network Operator with `RX_PERSISTENT_ENABLED` set to 1 MAY cause problems to this application on the receive (process) side (receive hangs). If you experience any issue on the receive side, please read carefully in the Advanced Network Operator README how to solve this problem.</mark>

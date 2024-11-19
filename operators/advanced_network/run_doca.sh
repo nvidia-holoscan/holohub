@@ -44,7 +44,7 @@ docker run \
     -w $PWD \
     -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
     -e DISPLAY=$DISPLAY \
-    docker.io/library/holohub-doca:doca-27-ubuntu2204 \
+    docker.io/library/holohub-doca:doca-28-ubuntu2204 \
     $*
 
 # To build Docker image: ./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-27-ubuntu2204 --no-cache

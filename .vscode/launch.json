@@ -12,7 +12,7 @@
             "preLaunchTask": "Build basic_networking_ping (delay 3s)",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
-                "./applications/basic_networking_ping/cpp/basic_networking_ping_tx.yaml",
+                "./applications/basic_networking_ping/cpp/basic_networking_ping_tx.yaml"
             ],
             "environment": [],
             "stopAtEntry": false,
@@ -39,7 +39,7 @@
             "preLaunchTask": "Build basic_networking_ping",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
-                "./applications/basic_networking_ping/cpp/basic_networking_ping_rx.yaml",
+                "./applications/basic_networking_ping/cpp/basic_networking_ping_rx.yaml"
             ],
             "environment": [],
             "stopAtEntry": false,
@@ -70,7 +70,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}:/usr/local/lib/python3.10/dist-packages"
             },
             "args": [
-                "./basic_networking_ping_tx.yaml",
+                "./basic_networking_ping_tx.yaml"
             ],
             "presentation": {
                 "hidden": true,
@@ -101,7 +101,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/basic_networking_ping/python/lib:${env:PYTHONPATH}:/usr/local/lib/python3.10/dist-packages"
             },
             "args": [
-                "./basic_networking_ping_rx.yaml",
+                "./basic_networking_ping_rx.yaml"
             ],
             "presentation": {
                 "hidden": true,
@@ -149,6 +149,34 @@
             }
         },
         //#endregion asr_to_llm
+        //#region sam2
+        {
+            "name": "(debugpy) sam2/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build sam2",
+            "program": "${workspaceFolder}/applications/sam2/segment_one_thing.py",
+            "cwd": "${workspaceFolder}/applications/sam2/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/sam2/python/lib:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) sam2/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) sam2/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "sam2",
+                "order": 1
+            }
+        },
+        //#endregion sam2
         //#region colonoscopy_segmentation
         {
             "name": "(debugpy) colonoscopy_segmentation/python",
@@ -195,7 +223,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/cuda_quantum/python/lib:${env:PYTHONPATH}"
             },
             "presentation": {
-                "hidden": true,
+                "hidden": true
             }
         },
         {
@@ -254,7 +282,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/cvcuda_basic/python/lib:${env:PYTHONPATH}"
             },
             "presentation": {
-                "hidden": true,
+                "hidden": true
             }
         },
         {
@@ -288,7 +316,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/endoscopy_depth_estimation/python/lib:${env:PYTHONPATH}"
             },
             "presentation": {
-                "hidden": true,
+                "hidden": true
             }
         },
         {
@@ -348,7 +376,7 @@
                 "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
             },
             "presentation": {
-                "hidden": true,
+                "hidden": true
             }
         },
         {
@@ -364,14 +392,14 @@
             }
         },
         //#endregion endoscopy_tool_tracking
-        //#region endoscopy_tool_tracking_distributed
+        //#region ucx_endoscopy_tool_tracking
         //#region C++
         {
-            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp (all fragments)",
+            "name": "(gdb) ucx_endoscopy_tool_tracking/cpp (all fragments)",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/ucx_endoscopy_tool_tracking",
             "environment": [
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
@@ -379,7 +407,7 @@
                 }
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -391,34 +419,38 @@
             ],
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 1
             }
         },
         {
-            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment",
+            "name": "(gdb) ucx_endoscopy_tool_tracking/cpp - video_in fragment",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/ucx_endoscopy_tool_tracking",
             "args": [
                 "--driver",
                 "--worker",
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
                 }
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -430,33 +462,37 @@
             ],
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 3
             }
         },
         {
-            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
+            "name": "(gdb) ucx_endoscopy_tool_tracking/cpp - inference fragment",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 3s)",
-            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking (delay 3s)",
+            "program": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/ucx_endoscopy_tool_tracking",
             "args": [
                 "--worker",
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
                 }
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -468,33 +504,37 @@
             ],
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 4
             }
         },
         {
-            "name": "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
+            "name": "(gdb) ucx_endoscopy_tool_tracking/cpp - viz fragment",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 5s)",
-            "program": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/applications/endoscopy_tool_tracking_distributed/cpp/endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking (delay 5s)",
+            "program": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/ucx_endoscopy_tool_tracking",
             "args": [
                 "--worker",
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "environment": [
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "DEBUG"
+                },
                 {
                     "name": "HOLOSCAN_INPUT_PATH",
                     "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
                 }
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -506,21 +546,21 @@
             ],
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 5
             }
         },
         //#endregion C++
         //#region Python
         {
-            "name": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "name": "(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "PYTHONPATH": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}",
                 "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
             },
             "args": [
@@ -532,26 +572,26 @@
             }
         },
         {
-            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "name": "(pythoncpp) ucx_endoscopy_tool_tracking/python (all fragments)",
             "type": "pythoncpp",
             "request": "launch",
-            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "pythonLaunchName": "(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 2
             }
         },
         {
-            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment",
+            "name": "(debugpy) ucx_endoscopy_tool_tracking/python - video_in fragment",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
-            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "PYTHONPATH": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}",
                 "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
             },
             "args": [
@@ -560,35 +600,35 @@
                 "--fragments",
                 "video_in",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10001",
             ],
             "presentation": {
                 "hidden": true,
             }
         },
         {
-            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - video_in fragment",
+            "name": "(pythoncpp) ucx_endoscopy_tool_tracking/python - video_in fragment",
             "type": "pythoncpp",
             "request": "launch",
-            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "pythonLaunchName": "(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 6
             }
         },
         {
-            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
+            "name": "(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 3s)",
-            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking (delay 3s)",
+            "program": "${workspaceFolder}/applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "PYTHONPATH": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}",
                 "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
             },
             "args": [
@@ -596,35 +636,35 @@
                 "--fragments",
                 "inference",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10002",
             ],
             "presentation": {
                 "hidden": true,
             }
         },
         {
-            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - inference fragment",
+            "name": "(pythoncpp) ucx_endoscopy_tool_tracking/python - inference fragment",
             "type": "pythoncpp",
             "request": "launch",
-            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "pythonLaunchName": "(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 7
             }
         },
         {
-            "name": "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
+            "name": "(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed (delay 5s)",
-            "program": "${workspaceFolder}/applications/endoscopy_tool_tracking_distributed/python/endoscopy_tool_tracking.py",
-            "cwd": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking (delay 5s)",
+            "program": "${workspaceFolder}/applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
+            "cwd": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/build/endoscopy_tool_tracking_distributed/python/lib:${env:PYTHONPATH}",
+                "PYTHONPATH": "${workspaceFolder}/build/ucx_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}",
                 "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
             },
             "args": [
@@ -632,28 +672,28 @@
                 "--fragments",
                 "viz",
                 "--address",
-                "127.0.0.1:10000",
-                "--nic",
-                "lo",
+                ":10000",
+                "--worker-address",
+                ":10003",
             ],
             "presentation": {
                 "hidden": true,
             }
         },
         {
-            "name": "(pythoncpp) endoscopy_tool_tracking_distributed/python - viz fragment",
+            "name": "(pythoncpp) ucx_endoscopy_tool_tracking/python - viz fragment",
             "type": "pythoncpp",
             "request": "launch",
-            "pythonLaunchName": "(debugpy) endoscopy_tool_tracking_distributed/python (all fragments)",
+            "pythonLaunchName": "(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)",
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 8
             }
         },
-        //#endregion endoscopy_tool_tracking_distributed
-        //#endregion endoscopy_tool_tracking_distributed
+        //#endregion Python
+        //#endregion ucx_endoscopy_tool_tracking
         //#region florence-2-vision
         {
             "name": "(debugpy) florence-2-vision/python",
@@ -811,6 +851,255 @@
             }
         },
         //#endregion h264_video_decode
+
+        //#region ucx_h264_endoscopy_tool_tracking
+        {
+            "name": "(gdb) ucx_h264_endoscopy_tool_tracking/cpp (all fragments)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build ucx_h264_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/ucx_h264_endoscopy_tool_tracking/applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/cpp/ucx_h264_endoscopy_tool_tracking",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/ucx_h264_endoscopy_tool_tracking/applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "ucx_h264_endoscopy_tool_tracking",
+                "order": 1
+            }
+        },
+        {
+            "name": "(debugpy) ucx_h264_endoscopy_tool_tracking/python (all fragments)",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build ucx_h264_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/python/h264_endoscopy_tool_tracking_distributed.py",
+            "cwd": "${workspaceFolder}/build/ucx_h264_endoscopy_tool_tracking/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/ucx_h264_endoscopy_tool_tracking/python/lib:${env:PYTHONPATH}",
+                "HOLOSCAN_INPUT_PATH": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            },
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) ucx_h264_endoscopy_tool_tracking/python (all fragments)",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) ucx_h264_endoscopy_tool_tracking/python (all fragments)",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "ucx_h264_endoscopy_tool_tracking",
+                "order": 2
+            }
+        },
+        //#endregion ucx_h264_endoscopy_tool_tracking
+
+        //#region grpc_h264_endoscopy_tool_tracking
+        {
+            "name": "(gdb) grpc_h264_endoscopy_tool_tracking/cpp (edge)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_h264_endoscopy_tool_tracking (delay 3s)",
+            "program": "${workspaceFolder}/build/grpc_h264_endoscopy_tool_tracking/applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/cpp/grpc_h264_endoscopy_tool_tracking_edge",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                },
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "INFO"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_h264_endoscopy_tool_tracking/applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_h264_endoscopy_tool_tracking",
+                "order": 1
+            }
+        },
+        {
+            "name": "(gdb) grpc_h264_endoscopy_tool_tracking/cpp (cloud)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_h264_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/grpc_h264_endoscopy_tool_tracking/applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/cpp/grpc_h264_endoscopy_tool_tracking_cloud",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                },
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "INFO"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_h264_endoscopy_tool_tracking/applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_h264_endoscopy_tool_tracking",
+                "order": 1
+            }
+        },
+        //#endregion grpc_h264_endoscopy_tool_tracking
+
+        //#region holoviz
+        {
+            "name": "(gdb) Holoviz examples",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build Holoviz examples",
+            "program": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}/${input:holoviz_example_name}",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/${input:holoviz_example_name}/applications/holoviz/${input:holoviz_example_name}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "holoviz",
+                "order": 1
+            }
+        },
+        //#endregion holoviz
+        //#region multiai_ultrasound
+        {
+            "name": "(gdb) multiai_ultrasound/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build multiai_ultrasound",
+            "program": "${workspaceFolder}/build/multiai_ultrasound/applications/multiai_ultrasound/cpp/multiai_ultrasound",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/multiai_ultrasound"
+            ],
+            "environment": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/multiai_ultrasound",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "multiai_ultrasound",
+                "order": 1
+            }
+        },
+        {
+            "name": "(debugpy) multiai_ultrasound/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build multiai_ultrasound",
+            "program": "${workspaceFolder}/applications/multiai_ultrasound/python/multiai_ultrasound.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/multiai_ultrasound"
+            ],
+            "cwd": "${workspaceFolder}/build/multiai_ultrasound/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/multiai_ultrasound/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) multiai_ultrasound/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) multiai_ultrasound/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "multiai_ultrasound",
+                "order": 2
+            }
+        },
+        //#endregion multiai_ultrasound
+        //#region nvidia_nim_nvclip
+        {
+            "name": "(debugpy) nvidia_nim_nvclip/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build nvidia_nim_nvclip",
+            "program": "${workspaceFolder}/applications/nvidia_nim/nvidia_nim_nvclip/app.py",
+            "cwd": "${workspaceFolder}/build/nvidia_nim_nvclip/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/nvidia_nim_nvclip/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true,
+            }
+        },
+        {
+            "name": "(pythoncpp) nvidia_nim_nvclip/python",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) nvidia_nim_nvclip/python",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "nvidia_nim_nvclip",
+                "order": 2
+            }
+        },
+        //#endregion holoviz
+
         //#region volume_rendering
         {
             "name": "(gdb) volume_rendering/cpp",
@@ -909,34 +1198,66 @@
             }
         },
         {
-            "name": "(compound) endoscopy_tool_tracking_distributed/cpp",
+            "name": "(compound) ucx_endoscopy_tool_tracking/cpp",
             "configurations": [
-                "(gdb) endoscopy_tool_tracking_distributed/cpp - video_in fragment",
-                "(gdb) endoscopy_tool_tracking_distributed/cpp - inference fragment",
-                "(gdb) endoscopy_tool_tracking_distributed/cpp - viz fragment",
+                "(gdb) ucx_endoscopy_tool_tracking/cpp - video_in fragment",
+                "(gdb) ucx_endoscopy_tool_tracking/cpp - inference fragment",
+                "(gdb) ucx_endoscopy_tool_tracking/cpp - viz fragment",
             ],
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
             "stopAll": true,
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 10
             }
         },
         {
-            "name": "(compound) endoscopy_tool_tracking_distributed/python",
+            "name": "(compound) ucx_endoscopy_tool_tracking/python",
             "configurations": [
-                "(debugpy) endoscopy_tool_tracking_distributed/python - video_in fragment",
-                "(debugpy) endoscopy_tool_tracking_distributed/python - inference fragment",
-                "(debugpy) endoscopy_tool_tracking_distributed/python - viz fragment",
+                "(debugpy) ucx_endoscopy_tool_tracking/python - video_in fragment",
+                "(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment",
+                "(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment",
             ],
-            "preLaunchTask": "Build endoscopy_tool_tracking_distributed",
+            "preLaunchTask": "Build ucx_endoscopy_tool_tracking",
             "stopAll": true,
             "presentation": {
                 "hidden": false,
-                "group": "endoscopy_tool_tracking_distributed",
+                "group": "ucx_endoscopy_tool_tracking",
                 "order": 11
             }
         },
-    ]
+        {
+            "name": "(compound) grpc_h264_endoscopy_tool_tracking/cpp (cloud & edge)",
+            "configurations": [
+                "(gdb) grpc_h264_endoscopy_tool_tracking/cpp (cloud)",
+                "(gdb) grpc_h264_endoscopy_tool_tracking/cpp (edge)"
+            ],
+            "preLaunchTask": "Build grpc_h264_endoscopy_tool_tracking",
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_h264_endoscopy_tool_tracking",
+                "order": 11
+            }
+        },
+    ],
+    "inputs": [
+        {
+            "id": "holoviz_example_name",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Select Holoviz example program",
+                "options": [],
+                "fileName": "${workspaceFolder}/applications/holoviz/template/generate_projects.sh",
+                "fileFormat": "pattern",
+                "pattern": {
+                    "regexp": "^generate [\"](.*?)[\"].*$",
+                    "flags": "gm",
+                },
+                "key": "holoviz_example_name"
+            }
+        },
+    ],
 }

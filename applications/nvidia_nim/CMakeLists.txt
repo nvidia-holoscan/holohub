@@ -18,3 +18,4 @@ project(nvidia_nim LANGUAGES NONE)
 
 add_holohub_application(nvidia_nim_chat)
 add_holohub_application(nvidia_nim_imaging)
+add_holohub_application(nvidia_nim_nvclip)
