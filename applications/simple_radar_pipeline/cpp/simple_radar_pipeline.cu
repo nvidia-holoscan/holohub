@@ -25,38 +25,38 @@ using ComplexType = cuda::std::complex<ftype>;
 
 /* Structures for passing parameters between operators */
 struct PulseCompressionData {
-  PulseCompressionData(tensor_t<ComplexType, 1> *_waveformView,
-                        tensor_t<ComplexType, 3> *_inputView,
+  PulseCompressionData(tensor_t<ComplexType, 1> _waveformView,
+                        tensor_t<ComplexType, 3> _inputView,
                         cudaStream_t _stream)
     : waveformView(_waveformView), inputView(_inputView), stream(_stream)  {}
-  tensor_t<ComplexType, 1> *waveformView;
-  tensor_t<ComplexType, 3> *inputView;
+  tensor_t<ComplexType, 1> waveformView;
+  tensor_t<ComplexType, 3> inputView;
   cudaStream_t stream;
 };
 
 struct ThreePulseCancellerData {
-  ThreePulseCancellerData(tensor_t<ComplexType, 3> *_inputView,
+  ThreePulseCancellerData(tensor_t<ComplexType, 3> _inputView,
                           cudaStream_t _stream)
     : inputView(_inputView), stream(_stream)  {}
-  tensor_t<ComplexType, 3> *inputView;
+  tensor_t<ComplexType, 3> inputView;
   cudaStream_t stream;
 };
 
 struct DopplerData {
-  DopplerData(tensor_t<ComplexType, 3> *_tpcView,
-              tensor_t<ftype, 1> *_cancelMask,
+  DopplerData(tensor_t<ComplexType, 3> _tpcView,
+              tensor_t<ftype, 1> _cancelMask,
               cudaStream_t _stream)
     : tpcView(_tpcView), cancelMask(_cancelMask), stream(_stream)  {}
-  tensor_t<ComplexType, 3> *tpcView;
-  tensor_t<ftype, 1> *cancelMask;
+  tensor_t<ComplexType, 3> tpcView;
+  tensor_t<ftype, 1> cancelMask;
   cudaStream_t stream;
 };
 
 struct CFARData {
-  CFARData(tensor_t<ComplexType, 3> *_tpcView,
+  CFARData(tensor_t<ComplexType, 3> _tpcView,
             cudaStream_t _stream)
     : tpcView(_tpcView), stream(_stream)  {}
-  tensor_t<ComplexType, 3> *tpcView;
+  tensor_t<ComplexType, 3> tpcView;
   cudaStream_t stream;
 };
 
@@ -113,8 +113,6 @@ class PulseCompressionOp : public Operator {
     HOLOSCAN_LOG_INFO("PulseCompressionOp::initialize()");
     holoscan::Operator::initialize();
 
-    norms = new tensor_t<ftype, 0>();
-
     cudaStreamCreate(&stream);
 
     numSamplesRnd = 1;
@@ -122,16 +120,13 @@ class PulseCompressionOp : public Operator {
       numSamplesRnd *= 2;
     }
 
-    waveformView = new tensor_t<ComplexType, 1>({numSamplesRnd});
-    inputView    = new tensor_t<ComplexType, 3>(
-        {numChannels.get(), numPulses.get(), numSamplesRnd});
+    make_tensor(waveformView, {numSamplesRnd});
+    make_tensor(norms);
+    make_tensor(inputView, {numChannels.get(), numPulses.get(), numSamplesRnd});
 
-    cudaMemset(waveformView->Data(), 0, numSamplesRnd * sizeof(ComplexType));
-    cudaMemset(inputView->Data(), 0,
-               inputView->TotalSize() * sizeof(ComplexType));
+    cudaMemset(waveformView.Data(), 0, numSamplesRnd * sizeof(ComplexType));
+    cudaMemset(inputView.Data(), 0, inputView.TotalSize() * sizeof(ComplexType));
 
-    waveformView->PrefetchDevice(stream);
-    inputView->PrefetchDevice(stream);
     HOLOSCAN_LOG_INFO("PulseCompressionOp::initialize() done");
   }
 
@@ -149,12 +144,12 @@ class PulseCompressionOp : public Operator {
     HOLOSCAN_LOG_DEBUG("Pulse compression compute() called");
 
     // Reshape waveform to be waveformLength
-    auto waveformPart = waveformView->Slice({0}, {waveformLength.get()});
-    auto waveformT    = waveformView->template Clone<3>(
+    auto waveformPart = slice(waveformView, {0}, {waveformLength.get()});
+    auto waveformT    = clone<3>(waveformView,
                 {numChannels.get(), numPulses.get(), matxKeepDim});
-    auto waveformFull = waveformView->Slice({0}, {numSamplesRnd});
+    auto waveformFull = slice(waveformView, {0}, {numSamplesRnd});
 
-    auto x = *inputView;
+    auto x = inputView;
 
     // create waveform (assuming waveform is the same for every pulse)
     // this allows us to precompute waveform in frequency domain
@@ -164,16 +159,15 @@ class PulseCompressionOp : public Operator {
     (waveformPart = waveformPart * hamming<0>({waveformLength.get()})).run(stream);
 
     // compute L2 norm
-    sum(*norms, norm(waveformPart), stream);
-    (*norms = sqrt(*norms)).run(stream);
+    (norms = vector_norm(waveformPart, NormOrder::L2)).run(stream);
 
-    (waveformPart = waveformPart / *norms).run(stream);
-    fft(waveformFull, waveformPart, 0, stream);
+    (waveformPart = waveformPart / norms).run(stream);
+    (waveformFull = fft(waveformPart, waveformFull.Size(waveformFull.Rank() - 1))).run(stream);
     (waveformFull = conj(waveformFull)).run(stream);
 
-    fft(x, x, 0, stream);
+    (x = fft(x)).run(stream);
     (x = x * waveformT).run(stream);
-    ifft(x, x, 0, stream);
+    (x = ifft(x)).run(stream);
 
     auto params = ThreePulseCancellerData{inputView, stream};
     op_output.emit(params, "pc_out");
@@ -187,9 +181,9 @@ class PulseCompressionOp : public Operator {
   Parameter<int64_t> numChannels;
   index_t numSamplesRnd;
 
-  tensor_t<ComplexType, 1> *waveformView = nullptr;
-  tensor_t<ComplexType, 3> *inputView = nullptr;
-  tensor_t<ftype, 0> *norms = nullptr;
+  tensor_t<ComplexType, 1> waveformView;
+  tensor_t<ComplexType, 3> inputView;
+  tensor_t<ftype, 0> norms;
 };
 
 class ThreePulseCancellerOp : public Operator {
@@ -217,15 +211,14 @@ class ThreePulseCancellerOp : public Operator {
     }
 
     numCompressedSamples = numSamples.get() - waveformLength.get() + 1;
-    tpcView = new tensor_t<ComplexType, 3>(
+    make_tensor(tpcView,
         {numChannels.get(), numPulsesRnd, numCompressedSamples});
-    cancelMask = new tensor_t<ftype, 1>({3});
-    cancelMask->SetVals({1, -2, 1});
+    make_tensor(cancelMask, {3});
 
-    cudaMemset(tpcView->Data(), 0, tpcView->TotalSize() * sizeof(ComplexType));
+    cancelMask.SetVals({1, -2, 1});
 
-    tpcView->PrefetchDevice(0);
-    cancelMask->PrefetchDevice(0);
+    cudaMemset(tpcView.Data(), 0, tpcView.TotalSize() * sizeof(ComplexType));
+
     HOLOSCAN_LOG_INFO("ThreePulseCancellerOp::initialize() done");
   }
 
@@ -249,14 +242,20 @@ class ThreePulseCancellerOp : public Operator {
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
     HOLOSCAN_LOG_DEBUG("Three pulse canceller compute() called");
     auto tpc_data = op_input.receive<ThreePulseCancellerData>("tpc_in");
+    if (!tpc_data) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get tpc_data structure");
+      return;
+    }
 
-    auto x = tpc_data->inputView->Permute({0, 2, 1}).Slice(
-        {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
-    auto xo = tpcView->Permute({0, 2, 1}).Slice(
-        {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
-    conv1d(xo, x, *cancelMask, matxConvCorrMode_t::MATX_C_MODE_SAME, tpc_data->stream);
+    auto tpc_data_val = tpc_data.value();
 
-    auto params = DopplerData{tpcView, cancelMask, tpc_data->stream};
+    auto x = slice(permute(tpc_data_val.inputView, {0, 2, 1}),
+        {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
+    auto xo = slice(permute(tpcView, {0, 2, 1}),
+        {0, 0, 0}, {numChannels.get(), numCompressedSamples, numPulses.get()});
+    (xo = conv1d(x, cancelMask, matxConvCorrMode_t::MATX_C_MODE_SAME)).run(tpc_data_val.stream);
+
+    auto params = DopplerData{tpcView, cancelMask, tpc_data_val.stream};
     op_output.emit(params, "tpc_out");
   };
 
@@ -268,8 +267,8 @@ class ThreePulseCancellerOp : public Operator {
   index_t numCompressedSamples;
   index_t numPulsesRnd;
 
-  tensor_t<ftype, 1> *cancelMask = nullptr;
-  tensor_t<ComplexType, 3> *tpcView = nullptr;
+  tensor_t<ftype, 1> cancelMask;
+  tensor_t<ComplexType, 3> tpcView;
 };
 
 class DopplerOp : public Operator {
@@ -313,17 +312,25 @@ class DopplerOp : public Operator {
     HOLOSCAN_LOG_DEBUG("Doppler compute() called");
     auto dop_data = op_input.receive<DopplerData>("dop_in");
 
-    const index_t cpulses = numPulses.get() - (dop_data->cancelMask->Size(0) - 1);
+    if (!dop_data) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get dop_data structure");
+      return;
+    }
 
-    auto xc = dop_data->tpcView->Slice({0, 0, 0},
+    auto dop_data_val = dop_data.value();
+
+    const index_t cpulses = numPulses.get() - (dop_data_val.cancelMask.Size(0) - 1);
+
+    auto xc = slice(dop_data->tpcView, {0, 0, 0},
           {numChannels.get(), cpulses, numCompressedSamples});
-    auto xf = dop_data->tpcView->Permute({0, 2, 1});
+    auto xf = permute(dop_data_val.tpcView, {0, 2, 1});
 
-    (xc = xc * hamming<1>({numChannels.get(), numPulses.get() - (dop_data->cancelMask->Size(0) - 1),
-                          numCompressedSamples})).run(dop_data->stream);
-    fft(xf, xf, 0, dop_data->stream);
+    (xc = xc * hamming<1>({numChannels.get(),
+                          numPulses.get() - (dop_data_val.cancelMask.Size(0) - 1),
+                          numCompressedSamples})).run(dop_data_val.stream);
+    (xf = fft(xf)).run(dop_data_val.stream);
 
-    auto params = CFARData{dop_data->tpcView, dop_data->stream};
+    auto params = CFARData{dop_data_val.tpcView, dop_data_val.stream};
     op_output.emit(params, "dop_out");
   };
 
@@ -360,18 +367,17 @@ class CFAROp : public Operator {
 
     numCompressedSamples = numSamples.get() - waveformLength.get() + 1;
 
-    normT = new tensor_t<ftype, 3>(
+    make_tensor(normT,
         {numChannels.get(), numPulsesRnd + cfarMaskY - 1,
          numCompressedSamples + cfarMaskX - 1});
-    ba = new tensor_t<ftype, 3>(
+    make_tensor(ba,
         {numChannels.get(), numPulsesRnd + cfarMaskY - 1,
          numCompressedSamples + cfarMaskX - 1});
-    dets = new tensor_t<int, 3>(
+    make_tensor(dets,
         {numChannels.get(), numPulsesRnd, numCompressedSamples});
-    xPow = new tensor_t<ftype, 3>(
+    make_tensor(xPow,
         {numChannels.get(), numPulsesRnd, numCompressedSamples});
-    cfarMaskView = new tensor_t<ftype, 2>(
-        {cfarMaskY, cfarMaskX});
+    make_tensor(cfarMaskView, {cfarMaskY, cfarMaskX});
 
     // Mask for cfar detection
     // G == guard, R == reference, C == CUT
@@ -390,21 +396,15 @@ class CFAROp : public Operator {
     //    R R R R R ;
     //    R R R R R ];
     //  }
-    cfarMaskView->SetVals({{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    cfarMaskView.SetVals({{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                            {1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1},
                            {1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1},
                            {1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1},
                            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}});
 
     // Pre-process CFAR convolution
-    conv2d(*normT, ones({numChannels.get(), numPulsesRnd, numCompressedSamples}),
-           *cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL, 0);
-
-    ba->PrefetchDevice(0);
-    normT->PrefetchDevice(0);
-    cfarMaskView->PrefetchDevice(0);
-    dets->PrefetchDevice(0);
-    xPow->PrefetchDevice(0);
+    (normT = conv2d(ones({numChannels.get(), numPulsesRnd, numCompressedSamples}),
+           cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL)).run();
 
     HOLOSCAN_LOG_INFO("CFAROp::initialize() done");
   }
@@ -448,24 +448,32 @@ class CFAROp : public Operator {
     HOLOSCAN_LOG_DEBUG("CFAR compute() called");
     auto cfar_data = op_input.receive<CFARData>("cfar_in");
 
-    (*xPow = norm(*cfar_data->tpcView)).run(cfar_data->stream);
+    if (!cfar_data) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get cfar_data structure");
+      return;
+    }
+
+    auto cfar_data_val = cfar_data.value();
+
+    (xPow = abs2(cfar_data_val.tpcView)).run(cfar_data_val.stream);
 
     // Estimate the background average power in each cell
     // background_averages = conv2(Xpow, mask, 'same') ./ norm;
-    conv2d(*ba, *xPow, *cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL, cfar_data->stream);
+    (ba =
+      conv2d(xPow, cfarMaskView, matxConvCorrMode_t::MATX_C_MODE_FULL)).run(cfar_data_val.stream);
 
     // Computing number of cells contributing to each cell.
     // This can be done with a convolution of the cfarMask with
     // ones.
     // norm = conv2(ones(size(X)), mask, 'same');
-    auto normTrim = normT->Slice({0, cfarMaskY / 2, cfarMaskX / 2},
+    auto normTrim = slice(normT, {0, cfarMaskY / 2, cfarMaskX / 2},
                                  {numChannels.get(), numPulsesRnd + cfarMaskY / 2,
                                   numCompressedSamples + cfarMaskX / 2});
 
-    auto baTrim = ba->Slice({0, cfarMaskY / 2, cfarMaskX / 2},
+    auto baTrim = slice(ba, {0, cfarMaskY / 2, cfarMaskX / 2},
                             {numChannels.get(), numPulsesRnd + cfarMaskY / 2,
                              numCompressedSamples + cfarMaskX / 2});
-    (baTrim = baTrim / normTrim).run(cfar_data->stream);
+    (baTrim = baTrim / normTrim).run(cfar_data_val.stream);
 
     // The scalar alpha is used as a multiplier on the background averages
     // to achieve a constant false alarm rate (under certain assumptions);
@@ -480,7 +488,7 @@ class CFAROp : public Operator {
 
     // These 2 branches are functionally equivalent.  A custom op is more
     // efficient as it can avoid repeated loads.
-    calcDets(*dets, *xPow, baTrim, normTrim, pfa).run(cfar_data->stream);
+    calcDets(dets, xPow, baTrim, normTrim, pfa).run(cfar_data_val.stream);
   };
 
  private:
@@ -494,11 +502,11 @@ class CFAROp : public Operator {
   const index_t cfarMaskY = 5;
   static const constexpr float pfa = 1e-5f;
 
-  tensor_t<ftype, 3> *normT = nullptr;
-  tensor_t<ftype, 3> *ba = nullptr;
-  tensor_t<int, 3> *dets = nullptr;
-  tensor_t<ftype, 3> *xPow = nullptr;
-  tensor_t<ftype, 2> *cfarMaskView = nullptr;
+  tensor_t<ftype, 3> normT;
+  tensor_t<ftype, 3> ba;
+  tensor_t<int, 3> dets;
+  tensor_t<ftype, 3> xPow;
+  tensor_t<ftype, 2> cfarMaskView;
 };
 
 
