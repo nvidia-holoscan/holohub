@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
-  holoscan::ops::adv_net_print_stats();
+
   holoscan::ops::adv_net_shutdown();
   return 0;
 }

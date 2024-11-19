@@ -184,9 +184,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     auto burst_size = adv_net_get_num_pkts(burst);
 
-    // Count packets received
-    ttl_pkts_recv_ += burst_size;
-
     // If packets are coming in from our non-GPUDirect queue, free them and move on
     // hardcoded to match the YAML config files in this sample app.
     // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
@@ -195,6 +192,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       adv_net_free_all_pkts_and_burst(burst);
       return;
     }
+
+    // Count packets received
+    ttl_pkts_recv_ += burst_size;
 
     // Store burst structure
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)

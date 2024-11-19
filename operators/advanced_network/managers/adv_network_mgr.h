@@ -43,6 +43,7 @@ class ANOMgr {
   virtual uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) = 0;
   virtual void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) = 0;
   virtual uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) = 0;
+  virtual uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) = 0;
   virtual void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) = 0;
   virtual AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) = 0;
   virtual AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) = 0;

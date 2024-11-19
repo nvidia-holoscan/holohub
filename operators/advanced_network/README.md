@@ -16,7 +16,7 @@ but raw headers can also be constructed.
 #### Requirements
 
 - Linux
-- A DPDK-compatible network card. For GPUDirect only NVIDIA NICs are supported
+- An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described below
 - DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
@@ -188,18 +188,14 @@ sudo sh -c "echo nodev /mnt/huge hugetlbfs pagesize=1GB 0 0 >> /etc/fstab"
 ##### Linux Boot Command Line
 
 The Linux boot command line allows configuration to be injected into Linux before booting. Some configuration options are
-only available at the boot command since they must be provided before the kernel has started. On the Clara AGX and Orin IGX
+only available at the boot command since they must be provided before the kernel has started. On the Orin IGX
 editing the boot command can be done with the following configuration:
 
 ```
-sudo vim /boot/extlinux/extlinux.conf
+sudo vim /etc/default/grub
 # Find the line starting with APPEND and add the following
 
-# For Orin IGX:
 isolcpus=6-11 nohz_full=6-11 irqaffinity=0-5 rcu_nocbs=6-11 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
-
-# For Clara AGX:
-isolcpus=4-7 nohz_full=4=7 irqaffinity=0-3 rcu_nocbs=4-7 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
 ```
 
 The settings above isolate CPU cores 6-11 on the Orin and 4-7 on the Clara, and turn 1GB hugepages on.
@@ -307,6 +303,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   full path: `cfg\interfaces\[rx|tx]\flows`
 	- **`name`**: Name of the flow
 	  - type: `string`
+	- **`id`**: ID of the flow
+	  - type: `integer`    
 	- **`action`**: Action section of flow (what happens. Currently only supports steering to a given queue)
 	  - type: `sequence`
 		- **`type`**: Type of action. Only `queue` is supported currently.
@@ -319,6 +317,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	  	- type: `integer`
 		- **`udp_dst`**: UDP destination port
 	  	- type: `integer`
+		- **`ipv4_len`**: IPv4 payload length
+	  	- type: `integer`      
 
 ##### Extended Receive Configuration for Rivermax manager
 - **`rmax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
