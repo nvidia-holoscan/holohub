@@ -13,9 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET tool_tracking_postprocessor
-    CLASS_NAME "ToolTrackingPostprocessorOp"
-    SOURCES tool_tracking_postprocessor.cpp
-)
+add_subdirectory(lstm_tensor_rt_inference)
+add_subdirectory(tool_tracking_postprocessor)

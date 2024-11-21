@@ -37,7 +37,7 @@
 #include "gxf/std/tensor.hpp"
 #include "gxf/std/transmitter.hpp"
 
-#include "../utils/cuda_stream_handler.hpp"
+#include "cuda_stream_handler.hpp"
 
 namespace nvidia::holoscan::lstm_tensor_rt_inference {
 

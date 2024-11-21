@@ -35,5 +35,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
+add_subdirectory(gxf_extensions)
+add_subdirectory(operators)
 add_subdirectory(cpp)
 add_subdirectory(python)

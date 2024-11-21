@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET visualizer_icardio
-    CLASS_NAME "VisualizerICardioOp"
-    SOURCES visualizer_icardio_pybind.cpp
-)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${Holohub_BINARY_DIR}/lib/gxf_extensions)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${Holohub_BINARY_DIR}/lib/gxf_extensions)
+
+add_subdirectory(lstm_tensor_rt_inference)

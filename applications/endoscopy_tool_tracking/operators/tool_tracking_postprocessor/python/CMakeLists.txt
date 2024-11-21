@@ -15,7 +15,9 @@
 
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET lstm_tensor_rt_inference
-    CLASS_NAME "LSTMTensorRTInferenceOp"
-    SOURCES lstm_tensor_rt_inference.cpp
+    CPP_CMAKE_TARGET tool_tracking_postprocessor
+    CLASS_NAME "ToolTrackingPostprocessorOp"
+    SOURCES tool_tracking_postprocessor.cpp
 )
+
+target_include_directories(tool_tracking_postprocessor_python PRIVATE ${Holohub_SOURCE_DIR}/operators)
