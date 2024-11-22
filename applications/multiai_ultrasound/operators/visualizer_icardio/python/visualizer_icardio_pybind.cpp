@@ -29,7 +29,7 @@
 #include <holoscan/core/gxf/gxf_operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
-#include "../../operator_util.hpp"
+#include "operator_util.hpp"
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;

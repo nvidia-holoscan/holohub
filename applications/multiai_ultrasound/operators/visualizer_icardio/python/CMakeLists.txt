@@ -19,3 +19,5 @@ pybind11_add_holohub_module(
     CLASS_NAME "VisualizerICardioOp"
     SOURCES visualizer_icardio_pybind.cpp
 )
+
+target_include_directories(visualizer_icardio_python PRIVATE ${Holohub_SOURCE_DIR}/operators)
