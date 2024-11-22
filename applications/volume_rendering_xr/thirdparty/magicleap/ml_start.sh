@@ -33,7 +33,7 @@ if ! ps -p $! > /dev/null; then
     exit 1
 fi
 # wait for service startup
-until [ -e /tmp/windrunner_comp_ipc ]
+until [ -e /tmp/windrunner_comp_ipc ] || [ -e /run/user/$(id -u)/windrunner_comp_ipc ];
 do
      echo "Waiting for windrunner-service"
      sleep 1
