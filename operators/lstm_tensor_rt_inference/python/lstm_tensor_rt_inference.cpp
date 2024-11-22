@@ -29,7 +29,7 @@
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
-#include "operator_util.hpp"
+#include "../../operator_util.hpp"
 #include "holoscan/core/resources/gxf/cuda_stream_pool.hpp"
 
 using std::string_literals::operator""s;

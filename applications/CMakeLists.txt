@@ -43,7 +43,9 @@ add_holohub_application(endoscopy_depth_estimation)
 add_holohub_application(endoscopy_out_of_body_detection)
 
 add_holohub_application(endoscopy_tool_tracking DEPENDS
-                        OPERATORS OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
+                        OPERATORS lstm_tensor_rt_inference
+                                  tool_tracking_postprocessor
+                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
 
 add_subdirectory(h264)
 
@@ -58,7 +60,8 @@ add_holohub_application(hyperspectral_segmentation)
 
 add_holohub_application(multiai_endoscopy)
 
-add_holohub_application(multiai_ultrasound)
+add_holohub_application(multiai_ultrasound DEPENDS
+                        OPERATORS visualizer_icardio)
 
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
