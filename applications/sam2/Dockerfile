@@ -17,7 +17,6 @@
 
 
 FROM nvcr.io/nvidia/pytorch:24.06-py3 AS pytorch
-# FROM nvcr.io/nvidia/pytorch:24.05-py3 as pytorch
 
 
 # Install dependencies
@@ -40,10 +39,7 @@ RUN git clone https://github.com/facebookresearch/sam2.git \
     && python3 -m pip install --no-cache-dir -e ".[demo]" \
     && cd checkpoints \
     && ./download_ckpts.sh
-# Add sam2 to PYTHONPATH
-ENV PYTHONPATH="/workspace/sam2"
 WORKDIR /workspace
-
 
 
 # Check the architecture and download the CUDA keyring
@@ -52,24 +48,10 @@ RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64 \
     ; elif [ $(uname -m) = "x86_64" ]; then ARCH=x86_64 \
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
     ; else echo "Unsupported architecture"; fi
-# RUN dpkg -i cuda-keyring_1.1-1_all.deb \
-#     && apt-get update \
-#     && apt-get -y install holoscan 
-
-# # Persistently set PYTHONPATH
-# ENV PYTHONPATH="/opt/nvidia/holoscan/python/lib:$PYTHONPATH"
-
 RUN dpkg -i cuda-keyring_1.1-1_all.deb \
     && apt-get update \
-    && mkdir -p /var/lib/holoscan \
-    && apt-get -y install --reinstall --download-only holoscan \
-    && dpkg -x /var/cache/apt/archives/holoscan*.deb /var/lib/holoscan \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /var/cache/apt/archives/holoscan*.deb
+    && apt-get -y install holoscan
 
-# Add the new installation path to PYTHONPATH
-ENV PYTHONPATH="/var/lib/holoscan/opt/nvidia/holoscan/python/lib:$PYTHONPATH"
 
 # Setup Docker & NVIDIA Container Toolkit's apt repositories to enable DooD
 # for packaging & running applications with the CLI

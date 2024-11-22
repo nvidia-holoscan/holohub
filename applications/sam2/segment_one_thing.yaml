@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 v4l2_source:
-  device: "/dev/video1"
+  device: "/dev/video0"
 
 
 preprocessor:

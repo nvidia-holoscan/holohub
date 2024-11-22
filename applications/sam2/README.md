@@ -54,10 +54,10 @@ Or first build the container, then launch it and run.
  ./dev_container build --docker_file applications/sam2/Dockerfile --img holohub:sam2.1
 ```
 ```sh
-./dev_container launch --img holohub:sam2
+./dev_container launch --img holohub:sam2.1
 ```
 ```sh
-./applications/sam2/start.sh
+./run launch sam2
 ```
 
 ### x86 only
