@@ -54,9 +54,115 @@
         "ranking",
         "dependencies"
       ]
+    },
+    "operator": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "holohub/project/v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
+        "authors": {
+          "$refs": "holohub/project/v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "holohub/project/v1#/$defs/version"
+        },
+        "changelog": {
+          "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "platforms": {
+          "$ref": "holohub/project/v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "holohub/project/v1#/$defs/tags"
+        },
+        "holoscan_sdk": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "ranking": {
+          "$ref": "holohub/project/v1#/$defs/ranking"
+        },
+        "dependencies": {
+          "$ref": "holohub/project/v1#/$defs/dependencies"
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "platforms",
+        "tags",
+        "holoscan_sdk",
+        "ranking",
+        "dependencies"
+      ]
+    },
+    "gxf_extension": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "holohub/project/v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
+        "authors": {
+          "$refs": "holohub/project/v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "holohub/project/v1#/$defs/version"
+        },
+        "changelog": {
+          "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "platforms": {
+          "$ref": "holohub/project/v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "holohub/project/v1#/$defs/tags"
+        },
+        "gxf_version": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "ranking": {
+          "$ref": "holohub/project/v1#/$defs/ranking"
+        },
+        "dependencies": {
+          "$ref": "holohub/project/v1#/$defs/dependencies"
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "platforms",
+        "tags",
+        "gxf_version",
+        "ranking",
+        "dependencies"
+      ]
     }
   },
-  "required": [
-    "application"
+  "oneOf": [
+    {
+        "required": [
+            "application"
+        ]
+    },
+    {
+        "required": [
+            "operator"
+        ]
+    },
+    {
+      "required": [
+          "gxf_extension"
+      ]
+    }
   ]
 }
