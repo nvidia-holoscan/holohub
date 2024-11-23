@@ -80,3 +80,19 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
   add_dependencies(grpc_endoscopy_tool_tracking_edge endoscopy_data)
 endif()
+
+# Install application and dependencies into the install/ directory for packaging
+install(
+  TARGETS grpc_endoscopy_tool_tracking_edge
+  DESTINATION bin/grpc_endoscopy_tool_tracking/cpp
+)
+
+install(
+  TARGETS grpc_endoscopy_tool_tracking_cloud
+  DESTINATION bin/grpc_endoscopy_tool_tracking/cpp
+)
+
+install(
+  FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/grpc_endoscopy_tool_tracking/cpp
+)

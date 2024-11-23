@@ -71,13 +71,19 @@ void signal_handler(int signum) {
 }
 
 /** Helper function to parse benchmarking setting from the configuration file */
-void parse_config(const std::string& config_path, bool& benchmarking) {
+void parse_config(const std::string& config_path, bool& benchmarking,
+                  bool& enable_health_check_service) {
   auto config = holoscan::Config(config_path);
   auto& yaml_nodes = config.yaml_nodes();
   for (const auto& yaml_node : yaml_nodes) {
     try {
       auto application = yaml_node["application"];
-      if (application.IsMap()) { benchmarking = application["benchmarking"].as<bool>(); }
+      if (application.IsMap()) {
+        benchmarking = application["benchmarking"].as<bool>();
+        enable_health_check_service = application["grpc_health_check"].as<bool>();
+      } else {
+        HOLOSCAN_LOG_ERROR("Error parsing configuration file, 'application' is not a map");
+      }
     } catch (std::exception& e) {
       HOLOSCAN_LOG_ERROR("Error parsing configuration file: {}", e.what());
       benchmarking = false;
@@ -143,10 +149,12 @@ int main(int argc, char** argv) {
   }
 
   bool benchmarking = false;
-  parse_config(config_path, benchmarking);
+  bool enable_health_check_service = false;
+  parse_config(config_path, benchmarking, enable_health_check_service);
 
   // Register each gRPC service with a Holoscan application:
-  // - the callback function (create_application_instance_func) is used to create a new instance of
+  // - the callback function (create_application_instance_func) is used to create a new instance
+  // of
   //   the application when a new RPC call is received.
   ApplicationFactory::get_instance()->register_application(
       "EntityStream",

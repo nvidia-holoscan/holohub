@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
-#define GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
+#ifndef GRPC_GRPC_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
+#define GRPC_GRPC_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP
 
 #include <gxf/core/entity.hpp>
 #include <holoscan/holoscan.hpp>
@@ -108,4 +108,4 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
   }
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
-#endif /* GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP */
+#endif /* GRPC_GRPC_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP */

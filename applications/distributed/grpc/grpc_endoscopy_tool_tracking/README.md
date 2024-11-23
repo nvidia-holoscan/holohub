@@ -145,3 +145,9 @@ The following launch profiles are available:
   [error] [program.cpp:614] Event notification 2 for entity [video_in__outgoing_requests] with id [33] received in an unexpected state [Origin]
   ```
 
+
+## Containerize the application
+
+To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./dev_container build_and_install grpc_endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) directory and then follow the generated output to package and run the application.
+
+Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.

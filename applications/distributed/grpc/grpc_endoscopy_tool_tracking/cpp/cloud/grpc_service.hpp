@@ -57,8 +57,8 @@ class GrpcService {
     return instance;
   }
 
-  void start() {
-    grpc::EnableDefaultHealthCheckService(true);
+  void start(bool enable_health_check_service = true) {
+    grpc::EnableDefaultHealthCheckService(enable_health_check_service);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
     service_ = std::make_unique<HoloscanEntityServiceImpl>(
