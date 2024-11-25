@@ -692,7 +692,9 @@ build() {
   run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
   ret=$?
   check_exit_code $ret "Error building application."
-  run_command cmake --build ${build_path} -j
+  # Run jobs in parallel with # one less than that of CPUs
+  JOBS=$(($(nproc) - 1))
+  run_command cmake --build ${build_path} -j${JOBS}
   ret=$?
   check_exit_code $ret "Error building application."
 
