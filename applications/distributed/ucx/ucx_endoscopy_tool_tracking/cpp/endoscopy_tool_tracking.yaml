@@ -21,10 +21,17 @@ extensions:
   - libgxf_serialization.so
   - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
+application:
+  title: Endoscopy Tool Tracking - UCX
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+  benchmarking: true # default: false, true to enable Data Flow Benchmarking, false otherwise
+
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
-  repeat: true    # default: false
+  repeat: false    # default: false
   realtime: true  # default: true
   count: 0        # default: 0 (no frame count restriction)
 
