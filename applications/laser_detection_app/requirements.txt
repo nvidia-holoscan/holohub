@@ -1,4 +1,4 @@
 scikit-image
 opencv-python
-cupy
+cupy-cuda12x
 numpy==1.23.5

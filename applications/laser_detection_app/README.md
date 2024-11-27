@@ -70,7 +70,7 @@ sudo dpkg -i cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb
 ```
 
 ### 5. Setup cuApriltags
-Download the latest cuApriltags library and header file, and set it up on IGX Orin as follows:
+Download the latest [cuApriltags library and header file](https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_nitros/tree/main/isaac_ros_nitros/lib/cuapriltags), and set it up on IGX Orin as follows:
 ```bash
 sudo mkdir /opt/nvidia/cu-april-tags
 sudo mkdir /opt/nvidia/cu-april-tags/include
@@ -86,7 +86,7 @@ Before running the app, make sure that the USB camera can see all the corners of
 
 ```bash
 ./run build usb_cam_calibration
-./run launch usb_cam_calibration
+LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./run launch usb_cam_calibration
 ```
 This will output a file `usb-cali.npy` in the build directory.
 
@@ -104,7 +104,7 @@ Use `sudo` when running the application with EVT camera.
 ### 3. Build and run `laser_detection`
 ```bash
 ./run build laser_detection
-sudo ./run launch laser_detection
+sudo LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./run launch laser_detection
 ```
 Now you can use the laser pointer and point it to the monitor. If the icons are not detecting the laser or they are moving in random fashion, then redo the calibration steps.
 

@@ -16,7 +16,7 @@
 # we don't expose the C++ interface of the operator yet, therfore link
 # statically
 cmake_minimum_required(VERSION 3.20)
-project(apriltag_detector)
+project(apriltag_detector LANGUAGES CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
@@ -46,6 +46,7 @@ target_link_libraries(apriltag_detector
     holoscan::core
     CUDA::nvrtc
     CUDA::nppicc
+    CUDA::cuda_driver
     ${APRILTAG_LIBRARY_DIR}/libcuapriltags.a
   )
 
