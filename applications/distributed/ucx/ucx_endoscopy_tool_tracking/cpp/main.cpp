@@ -40,7 +40,10 @@ class VideoInputFragment : public holoscan::Fragment {
 
     auto replayer = make_operator<ops::VideoStreamReplayerOp>(
         "replayer",
-        Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")),
+        Arg("allocator",
+            make_resource<RMMAllocator>("video_replayer_allocator",
+                                        Arg("device_memory_max_size") = std::string("256MB"),
+                                        Arg("device_memory_initial_size") = std::string("256MB"))),
         from_config("replayer"),
         args);
 
@@ -207,7 +210,12 @@ int main(int argc, char** argv) {
   auto app = holoscan::make_application<App>();
   app->config(config_path);
   app->set_datapath(data_directory);
-  app->run();
 
+  auto trackers = app->track_distributed();
+  app->run();
+  for (const auto& [name, tracker] : trackers) {
+    std::cout << "Fragment: " << name << std::endl;
+    tracker->print();
+  }
   return 0;
 }
