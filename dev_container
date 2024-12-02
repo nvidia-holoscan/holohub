@@ -874,6 +874,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --run_args : Run the app with additional args
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
+        --parallel_jobs: Set the # of parallel build jobs, e.g. $(($(nproc)-1))
     '
 }
 
@@ -892,6 +893,7 @@ build_and_run() {
     local run_app=1
     local install=""
     local configure_args=""
+    local parallel_jobs=""
 
     # Parse CLI arguments next
     while [[ $# -gt 0 ]]; do
@@ -1014,6 +1016,16 @@ build_and_run() {
                 exit 1
             fi
             ;;
+        --parallel_jobs)
+            if [[ -n "$2" ]]; then
+                parallel_jobs="--parallel '$2'"
+                shift 2
+            else
+                echo "Error: --parallel_jobs requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
         *)
             if [[ -z "$app_name" ]]; then
                 app_name="$1"
@@ -1057,7 +1069,7 @@ build_and_run() {
     run_command  ${SCRIPT_DIR}/dev_container build "${container_build_args[@]}"
     if [[ $build_app == 1 ]]; then
         c_echo "Building application..."
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $extra_build_with $extra_build_args"
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $parallel_jobs $extra_build_with $extra_build_args"
     fi
 
     if [[ $run_app == 1 ]]; then
