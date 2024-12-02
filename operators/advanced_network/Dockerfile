@@ -24,29 +24,26 @@ ARG CACHEBUST=1
 ARG TARGETARCH
 RUN echo "Using architecture ${TARGETARCH}"
 
-
 RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
 RUN pip3 install scipy loguru attrs
 WORKDIR /opt
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64
 
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-ssba; \
+        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa; \
     else \
         echo "Unknown architecture: $TARGETARCH"; \
         exit 1; \
     fi \
     && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
-    && apt install -y --no-install-recommends wget software-properties-common gpg-agent \
-    && wget -qO - ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | apt-key add - \
-    && add-apt-repository "deb [trusted=yes] ${DOCA_REPO_LINK} ./" \
+    && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
+    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} \
+    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list \
     && apt update -y \
     && apt install -y --no-install-recommends doca-sdk-aes-gcm doca-sdk-apsh doca-sdk-argp doca-sdk-comch doca-sdk-comm-channel doca-sdk-common doca-sdk-compress doca-sdk-devemu doca-sdk-dma doca-sdk-dpa doca-sdk-dpdk-bridge doca-sdk-erasure-coding doca-sdk-eth doca-sdk-flow doca-sdk-pcc doca-sdk-rdma doca-sdk-sha doca-sdk-telemetry-exporter doca-sdk-urom doca-apsh-config doca-bench doca-caps doca-comm-channel-admin doca-pcc-counters doca-sha-offload-engine doca-socket-relay doca-all doca-sdk-gpunetio libdoca-sdk-gpunetio-dev rdma-core flexio libyara8
-
 
 # ==============================
 # DOCA Target (inherits from base)
