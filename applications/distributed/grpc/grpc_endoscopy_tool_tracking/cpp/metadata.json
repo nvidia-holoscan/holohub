@@ -14,9 +14,9 @@
 		},
 		"dockerfile": "applications/h264/Dockerfile",
 		"holoscan_sdk": {
-			"minimum_required_version": "2.6.0",
+			"minimum_required_version": "2.7.0",
 			"tested_versions": [
-				"2.6.0"
+				"2.7.0"
 			]
 		},
 		"platforms": [
