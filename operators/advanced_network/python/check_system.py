@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import sys
 import re
+import os
 import logging
 
 def setup_logging():
@@ -32,7 +33,9 @@ def parse_args():
 
     parser.add_argument(
         "--mode",
-        choices=["all", "cpu-freq", "check-mrrs", "check-mps", "check-hugepages", "check-gpu-clocks", "check-bar1-size", "check-topo", "check-cmdline"],
+        choices=["all", "cpu-freq", "check-mrrs", "check-mps", "check-hugepages", 
+                 "check-gpu-clocks", "check-bar1-size", "check-topo", "check-cmdline",
+                 "check-mtu", "update-mrrs"],
         required=True,
         help=(
             "Specify the mode of operation:\n"
@@ -45,10 +48,53 @@ def parse_args():
             "  check-bar1-size  - Check the BAR1 size of the GPU\n"
             "  check-topo       - Check the GPU and NIC topology\n"
             "  check-cmdline    - Check the kernel boot parameters\n"
+            "  check-mtu        - Check MTU of each NVIDIA interface\n"
+            "  update-mrrs      - Update MRRS of NICs\n"
         )
     ) 
     return parser.parse_args()
 
+
+def get_nic_info():
+    """
+    Parses the output of `ibdev2netdev -v` to extract and return a list of tuples,
+    where each tuple contains the interface name and its PCIe address.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of tuples with (interface_name, pcie_address).
+    """
+    try:
+        # Run ibdev2netdev -v to get detailed information about Mellanox devices
+        result = subprocess.run(
+            ["ibdev2netdev", "-v"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        # Parse the output to extract interface names and PCIe addresses
+        names = []
+        addrs = []
+        for line in result.stdout.splitlines():
+            match = re.match(r"([\S\:\.]+) .*==>\s+(\S+)", line)
+            if match:
+                pcie_address = match.group(1)
+                interface_name = match.group(2)
+                names.append(interface_name)
+                addrs.append(pcie_address)
+
+        return names, addrs
+
+    except FileNotFoundError:
+        print("The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH.")
+        return [], []
+    except subprocess.CalledProcessError as e:
+        print(f"Error while executing ibdev2netdev: {e}")
+        return [], []
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return [], []
+    
 def get_online_cpus():
     """
     Returns a list of online CPUs by reading /sys/devices/system/cpu/online.
@@ -97,31 +143,13 @@ def check_cpu_governor():
 
 def check_mrrs():
     """
-    Checks if the Maximum Read Request Size (MRRS) of Mellanox Ethernet controllers
+    Checks if the Maximum Read Request Size (MRRS) of NVIDIA Ethernet controllers
     is set to 4096.
     """
     try:
-        # Run lspci to list all PCI devices with detailed information
-        result = subprocess.run(
-            ["lspci", "-v"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        _, addrs = get_nic_info()
         
-        # Filter lines containing "Ethernet controller" and "Mellanox"
-        devices = []
-        for line in result.stdout.splitlines():
-            if "Ethernet controller" in line and "Mellanox" in line:
-                devices.append(line)
-        
-        if not devices:
-            logging.info("No Mellanox Ethernet controllers found on this system.")
-            return
-        
-        for device in devices:
-            # Extract the PCI address (e.g., "0000:02:00.0")
-            pci_address = device.split()[0]
+        for pci_address in addrs: 
             
             # Query MRRS for the NIC using setpci
             mrrs_result = subprocess.run(
@@ -148,32 +176,13 @@ def check_mrrs():
 
 def check_max_payload_size():
     """
-    Checks the Maximum Payload Size (MPS) of Mellanox Ethernet controllers
+    Checks the Maximum Payload Size (MPS) of NVIDIA Ethernet controllers
     from the DevCtl section and ensures it is set to 256 bytes.
     """
     try:
-        # Run lspci to list all PCI devices with detailed information
-        result = subprocess.run(
-            ["lspci", "-v"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        _, addrs = get_nic_info()
         
-        # Filter lines containing "Ethernet controller" and "Mellanox"
-        devices = []
-        for line in result.stdout.splitlines():
-            if "Ethernet controller" in line and "Mellanox" in line:
-                devices.append(line)
-        
-        if not devices:
-            logging.info("No Mellanox Ethernet controllers found on this system.")
-            return
-        
-        for device in devices:
-            # Extract the PCI address (e.g., "0000:02:00.0")
-            pci_address = device.split()[0]
-            
+        for pci_address in addrs:           
             # Query detailed device information using lspci -vv
             mps_result = subprocess.run(
                 ["lspci", "-vv", "-s", pci_address],
@@ -493,11 +502,84 @@ def check_kernel_cmdline():
     except FileNotFoundError:
         logging.error("/proc/cmdline not found. Are you sure you're running on Linux?")
     except Exception as e:
-        logging.error(f"An unexpected error occurred while checking /proc/cmdline: {e}")        
+        logging.error(f"An unexpected error occurred while checking /proc/cmdline: {e}")
+        
+def check_mtu_size():
+    """
+    Checks the MTU size of each NVIDIA NIC using the sysfs interface and prints a warning if it's not over 1500 bytes.
+    """
+    try:
+        ifnames, _ = get_nic_info()
+
+        # Check MTU size for each NVIDIA NIC using sysfs
+        for iface in ifnames:
+            mtu_path = f"/sys/class/net/{iface}/mtu"
+            if os.path.exists(mtu_path):
+                with open(mtu_path, 'r') as f:
+                    mtu_value = int(f.read().strip())
+                    if mtu_value <= 1518:
+                        logging.warning(f"Interface {iface} has an MTU of {mtu_value} bytes. "\
+                                        "If possible use larger frame sizes for better performance")
+                    else:
+                        logging.info(f"Interface {iface} has an acceptable MTU of {mtu_value} bytes.")
+            else:
+                logging.error(f"MTU file for interface {iface} does not exist.")
+
+    except FileNotFoundError:
+        logging.error("The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while executing a command: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+def update_mrrs_for_nvidia_devices():
+    """
+    Updates the PCIe Maximum Read Request Size (MRRS) to 4096 for all Mellanox devices,
+    preserving the lower 12 bits of the current setting.
+    """
+    try:
+        _, addrs = get_nic_info()
+
+
+        # Update MRRS for each PCIe address using setpci
+        for address in addrs:
+            try:
+                # Read the current MRRS value
+                read_result = subprocess.run(
+                    ["setpci", "-s", address, "68.w"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                
+                current_value_hex = read_result.stdout.strip()
+                current_value = int(current_value_hex, 16)
+
+                # Calculate new value: keep lower 12 bits, set upper 4 bits to 5 (for 4096 bytes)
+                new_value = (current_value & 0x0FFF) | (0x5 << 12)
+                
+                # Write the new MRRS value back
+                subprocess.run(
+                    ["setpci", "-s", address, f"68.w={new_value:04x}"],
+                    check=True
+                )
+                logging.info(f"Successfully updated MRRS to 4096 for device at PCIe address {address}={hex(new_value)}.")
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Failed to update MRRS for device at PCIe address {address}: {e}")
+
+    except FileNotFoundError:
+        logging.error("The ibdev2netdev or setpci command is not found. Ensure that they are installed and available in your PATH.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while executing a command: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+     
+ 
 
 def main():
     setup_logging()
     args = parse_args()
+
     if args.mode == "all" or args.mode == "cpu-freq":
         check_cpu_governor()
     if args.mode == "all" or args.mode == "check-mrrs":
@@ -513,7 +595,13 @@ def main():
     if args.mode == "all" or args.mode == "check-topo":        
         check_topology_connections()         
     if args.mode == "all" or args.mode == "check-cmdline":        
-        check_kernel_cmdline()              
+        check_kernel_cmdline()
+    if args.mode == "all" or args.mode == "check-mtu":        
+        check_mtu_size()
+
+    # Set commands
+    if args.mode == "update-mrrs":        
+        update_mrrs_for_nvidia_devices()              
           
 
 if __name__ == "__main__":
