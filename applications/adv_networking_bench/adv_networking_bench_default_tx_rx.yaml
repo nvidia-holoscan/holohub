@@ -48,13 +48,6 @@ advanced_network:
         - local
       num_bufs: 51200
       buf_size: 9000
-    - name: "Default_RX_GPU2"
-      kind: "device"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 51200
-      buf_size: 9000      
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
@@ -104,15 +97,6 @@ advanced_network:
               udp_src: 4096 #12288
               udp_dst: 4096 #12288
               ipv4_len: 1050
-          - name: "ADC Samples2"
-            id: 1
-            action:
-              type: queue
-              id: 1
-            match:
-              udp_src: 4095 #12288
-              udp_dst: 4095 #12288
-              ipv4_len: 1050              
 
 bench_rx:
   split_boundary: false
