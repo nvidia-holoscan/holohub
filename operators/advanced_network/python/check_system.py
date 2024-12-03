@@ -25,33 +25,39 @@ def parse_args():
         epilog=(
             "Examples:\n"
             "  python check_system.py -cpu-freq       # Check CPU frequency governor\n"
-            "  python check_system.py -check-mrrs     # Check MRRS settings for NVIDIA NICs\n\n"
-            "  python check_system.py -check-mps      # Check max payload size settings for NVIDIA NICs\n\n"
+            "  python check_system.py -mrrs     # Check MRRS settings for NVIDIA NICs\n\n"
+            "  python check_system.py -mps      # Check max payload size settings for NVIDIA NICs\n\n"
         ),
         formatter_class=argparse.RawTextHelpFormatter
     )
 
     parser.add_argument(
-        "--mode",
-        choices=["all", "cpu-freq", "check-mrrs", "check-mps", "check-hugepages", 
-                 "check-gpu-clocks", "check-bar1-size", "check-topo", "check-cmdline",
-                 "check-mtu", "update-mrrs"],
-        required=True,
+        "--check",
+        choices=["all", "cpu-freq", "mrrs", "mps", "hugepages", 
+                 "gpu-clocks", "bar1-size", "topo", "cmdline",
+                 "mtu"],
         help=(
-            "Specify the mode of operation:\n"
-            "  all - Perform all checks\n"            
+            "Specify the property to check:\n"
+            "  all        - Perform all checks\n"            
             "  cpu-freq   - Check if the CPU frequency governor is set to 'performance'.\n"
-            "  check-mrrs - Check if the Maximum Read Request Size (MRRS) of NVIDIA NICs is set to 4096.\n"
-            "  check-mps  - Check if the Maximum Payload Size is set to 256B.\n"
-            "  check-hugepages  - Check if hugepages are enabled\n"
-            "  check-gpu-clocks - Check GPU clocks\n"
-            "  check-bar1-size  - Check the BAR1 size of the GPU\n"
-            "  check-topo       - Check the GPU and NIC topology\n"
-            "  check-cmdline    - Check the kernel boot parameters\n"
-            "  check-mtu        - Check MTU of each NVIDIA interface\n"
-            "  update-mrrs      - Update MRRS of NICs\n"
+            "  mrrs       - Check if the Maximum Read Request Size (MRRS) of NVIDIA NICs is set to 4096.\n"
+            "  mps        - Check if the Maximum Payload Size is set to 256B.\n"
+            "  hugepages  - Check if hugepages are enabled\n"
+            "  gpu-clocks - Check GPU clocks\n"
+            "  bar1-size  - Check the BAR1 size of the GPU\n"
+            "  topo       - Check the GPU and NIC topology\n"
+            "  cmdline    - Check the kernel boot parameters\n"
+            "  mtu        - Check MTU of each NVIDIA interface\n"
         )
     ) 
+
+    parser.add_argument(
+        "--set",
+        choices=["mrrs"],
+        help=(
+            "  mrrs      - Update MRRS of NICs\n"
+        )
+    )
     return parser.parse_args()
 
 
@@ -208,9 +214,9 @@ def check_max_payload_size():
                             payload_info = lines[j].strip()
                             max_payload_value = int(payload_info.split("MaxPayload")[1].split("bytes")[0].strip())
                             if max_payload_value == 256:
-                                logging.info(f"{pci_address}: May Payload Size is correctly set to 256 bytes.")
+                                logging.info(f"{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes.")
                             else:
-                                logging.warning(f"{pci_address}: May Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes.")
+                                logging.warning(f"{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes.")
                             break
                     else:
                         logging.error(f"{pci_address}: Unable to find MaxPayload information under DevCtl.")
@@ -580,28 +586,28 @@ def main():
     setup_logging()
     args = parse_args()
 
-    if args.mode == "all" or args.mode == "cpu-freq":
-        check_cpu_governor()
-    if args.mode == "all" or args.mode == "check-mrrs":
-        check_mrrs()
-    if args.mode == "all" or args.mode == "check-mps":
-        check_max_payload_size() 
-    if args.mode == "all" or args.mode == "check-hugepages":
-        check_hugepages()    
-    if args.mode == "all" or args.mode == "check-gpu-clocks":
-        check_nvidia_gpu_clocks()
-    if args.mode == "all" or args.mode == "check-bar1-size":        
-        check_bar1_size()    
-    if args.mode == "all" or args.mode == "check-topo":        
-        check_topology_connections()         
-    if args.mode == "all" or args.mode == "check-cmdline":        
-        check_kernel_cmdline()
-    if args.mode == "all" or args.mode == "check-mtu":        
-        check_mtu_size()
-
-    # Set commands
-    if args.mode == "update-mrrs":        
-        update_mrrs_for_nvidia_devices()              
+    if args.check is not None:
+        if args.check == "all" or args.check == "cpu-freq":
+            check_cpu_governor()
+        if args.check == "all" or args.check == "mrrs":
+            check_mrrs()
+        if args.check == "all" or args.check == "mps":
+            check_max_payload_size() 
+        if args.check == "all" or args.check == "hugepages":
+            check_hugepages()    
+        if args.check == "all" or args.check == "gpu-clocks":
+            check_nvidia_gpu_clocks()
+        if args.check == "all" or args.check == "bar1-size":        
+            check_bar1_size()    
+        if args.check == "all" or args.check == "topo":        
+            check_topology_connections()         
+        if args.check == "all" or args.check == "cmdline":        
+            check_kernel_cmdline()
+        if args.check == "all" or args.check == "mtu":        
+            check_mtu_size()
+    elif args.set is not None:
+        if args.set == "mrrs":        
+            update_mrrs_for_nvidia_devices()              
           
 
 if __name__ == "__main__":
