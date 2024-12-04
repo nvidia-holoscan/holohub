@@ -63,18 +63,18 @@ def run_bash_cmd(cmd) -> CompletedProcess:
     # Stream & capture log
     while p.poll() is None:
         for line in iter(p.stderr.readline, ""):
-            print(line.strip())
+            print(line.strip(), flush=True)
             stderr_lines.append(line)
         for line in iter(p.stdout.readline, ""):
-            print(line.strip())
+            print(line.strip(), flush=True)
             stdout_lines.append(line)
 
     # Capture any remaining output after process ends
     for line in p.stderr:
-        print(line.strip())
+        print(line.strip(), flush=True)
         stderr_lines.append(line)
     for line in p.stdout:
-        print(line.strip())
+        print(line.strip(), flush=True)
         stdout_lines.append(line)
 
     # Close pipes
