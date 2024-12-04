@@ -1,31 +1,30 @@
 {
 	"tutorial": {
-		"name": "My Tutorial",
-		"description": "Demonstrates how to use Holoscan in a certain fashion.",
+		"name": "Interoperability between Holoscan and a Windows Application on a Single Machine",
+		"description": "Demonstrates interoperability between a Holoscan on Linux and a Windows VM application on a single machine",
 		"authors": [
 			{
-				"name": "John Doe",
-				"affiliation": "My Institution"
+				"name": "NVIDIA",
+				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
-		"version": "0.1.0",
+		"language": "bash",
+		"version": "1.0",
 		"changelog": {
-			"0.1.0": "Initial Release"
+			"1.0": "First Tutorial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "1.0.3",
+			"minimum_required_version": "2.6.0",
 			"tested_versions": [
-				"1.0.3"
+				"2.6.0"
 			]
 		},
 		"platforms": [
 			"amd64",
-			"arm64"
 		],
 		"tags": [
-			"Sensor",
-            "Processing",
+			"VM",
+			"Windows",
             "Tutorial"
 		],
 		"ranking": 1,
