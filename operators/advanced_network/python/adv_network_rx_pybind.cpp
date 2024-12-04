@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
@@ -58,7 +59,9 @@ class PyAdvNetworkOpRx : public AdvNetworkOpRx {
 
   // Define a constructor that fully initializes the object.
   PyAdvNetworkOpRx(Fragment* fragment, const py::args& args,
-                   const std::string& name = "advanced_network_rx") {
+                   const std::unordered_set<std::string>& output_ports_list,
+                   const std::string& name)
+      : AdvNetworkOpRx(output_ports_list, ArgList{}) {
     this->add_arg(fragment->from_config("advanced_network"));
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
@@ -87,8 +90,12 @@ PYBIND11_MODULE(_advanced_network_rx, m) {
 
   py::class_<AdvNetworkOpRx, PyAdvNetworkOpRx, Operator, std::shared_ptr<AdvNetworkOpRx>>(
       m, "AdvNetworkOpRx", doc::AdvNetworkOpRx::doc_AdvNetworkOpRx)
-      .def(py::init<Fragment*, const py::args&, const std::string&>(),
+      .def(py::init<Fragment*,
+                    const py::args&,
+                    const std::unordered_set<std::string>&,
+                    const std::string&>(),
            "fragment"_a,
+           "output_ports_list"_a = std::unordered_set<std::string>{},
            "name"_a = "advanced_network_rx"s,
            doc::AdvNetworkOpRx::doc_AdvNetworkOpRx_python)
       .def("initialize", &AdvNetworkOpRx::initialize, doc::AdvNetworkOpRx::doc_initialize)

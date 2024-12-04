@@ -50,12 +50,6 @@ PYBIND11_MODULE(_advanced_network_common, m) {
   m.def("adv_net_get_pkt_len",
         py::overload_cast<std::shared_ptr<AdvNetBurstParams>, int>(&adv_net_get_pkt_len),
         "Get length of the packet");
-  m.def("adv_net_free_all_pkts",
-        py::overload_cast<AdvNetBurstParams*>(&adv_net_free_all_pkts),
-        "Free all packets in a burst");
-  m.def("adv_net_free_all_pkts",
-        py::overload_cast<std::shared_ptr<AdvNetBurstParams>>(&adv_net_free_all_pkts),
-        "Free all packets in a burst");
   m.def("adv_net_free_all_seg_pkts",
         py::overload_cast<AdvNetBurstParams*, int>(&adv_net_free_all_seg_pkts),
         "Free all packets in a burst for one segment");
@@ -152,12 +146,6 @@ PYBIND11_MODULE(_advanced_network_common, m) {
   m.def("adv_net_get_port_from_ifname",
         &adv_net_get_port_from_ifname,
         "Get port number from interface name");
-  m.def("adv_net_free_all_pkts",
-        py::overload_cast<AdvNetBurstParams*>(&adv_net_free_all_pkts),
-        "Frees a list of packets");
-  m.def("adv_net_free_all_pkts",
-        py::overload_cast<std::shared_ptr<AdvNetBurstParams>>(&adv_net_free_all_pkts),
-        "Frees a list of packets");
 
   // py::class_<AdvNetBurstHdrParams>(m, "AdvNetBurstHdrParams").def(py::init<>())
   //     .def_readwrite("num_pkts",  &AdvNetBurstHdrParams::num_pkts)

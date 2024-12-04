@@ -16,7 +16,7 @@ but raw headers can also be constructed.
 #### Requirements
 
 - Linux
-- A DPDK-compatible network card. For GPUDirect only NVIDIA NICs are supported
+- An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described below
 - DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
@@ -85,13 +85,13 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 
 ```
 # To build Docker image
-./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-27-ubuntu2204 --no-cache
+./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-28-ubuntu2204 --no-cache
 
 # Launch DOCA container
 ./operators/advanced_network/run_doca.sh
 
 # To build operator + app from main dir
-./run build adv_networking_bench
+./run build adv_networking_bench --configure-args "-DANO_MGR=doca"
 
 # Run app
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
@@ -110,6 +110,61 @@ sudo -E echo start_server -uid 0 | sudo -E nvidia-cuda-mps-control
 ```
 
 This should solve all problems. Both `RX_PERSISTENT_ENABLED` and `MPS_ENABLED` are defined in `operators/advanced_network/managers/doca/adv_network_doca_mgr.h`.
+##### RIVERMAX
+NVIDIA Rivermax SDK
+Optimized networking SDK for media and data streaming applications.
+NVIDIA® Rivermax® offers a unique IP-based solution for any media and data streaming use case.
+Rivermax together with NVIDIA GPU accelerated computing technologies unlocks innovation for a wide range of applications in Media and Entertainment (M&E), Broadcast, Healthcare, Smart Cities and more.
+Rivermax leverages NVIDIA ConnectX® and BlueField® DPU hardware-streaming acceleration technology that enables direct data transfers to and from the GPU,
+delivering best-in-class throughput and latency with minimal CPU utilization for streaming workloads.
+Rivermax is the only fully-virtualized streaming solution that complies with the stringent timing and traffic flow requirements of the SMPTE ST 2110-21 specification.
+Rivermax enables the future of cloud-based software-defined broadcasting.
+Product release highlights, documentation, platform support, installation and usage guides can be found in the [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started).
+Frequently asked questions, customers product highlights, Video link and more are available on the [Rivermax Product Page](https://developer.nvidia.com/networking/rivermax).
+While the Rivermax interface is abstracted away from users of the advanced network operator, the method in which Rivermax integrates with Holoscan
+is important for understanding how to achieve the highest performance and for debugging.
+
+When the advanced network operator is compiled/linked against a Holoscan application, an instance of the Rivermax manager is created, waiting to accept configuration. 
+When either an RX or TX advanced network operator is defined in aHoloscan application, their configuration is sent to the Rivermax manager.
+Once all advanced network operators have initialized, the Rivermax manager is told to initialize Rivermax. At this point the NIC is configured using all parameters given by the operators.
+This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal threads. 
+The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible. 
+They act as a proxy between the advanced network operators and Rivermax by handling packets faster than the operators may be able to.
+
+To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above. 
+When the user receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU memory.
+This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
+Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.
+Rivermax manager supports receiving the same stream from multiple redundant paths.
+Each path is a combination of a source IP address, a destination IPaddress, a destination port, and a local IP address of the receiver device.
+Single path receive supports packet reordering within the NIC, multi-pathreceive also adds recovery of missing packets from other streams.
+
+To build and run the ANO Dockerfile with `Rivermax` support, follow these steps:
+
+- Visit the [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started) to download the Rivermax Release SDK.
+- Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.
+- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.60.1.tar.gz`) into your current working directory.
+  - You can adjust the path using the `RIVERMAX_SDK_ZIP_PATH` build argument if needed.
+  - Modify the version using the `RIVERMAX_VERSION` build argument if you're using a different SDK version.
+- Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory. You can change this path in the run_rivermax.sh script if necessary
+- Build the Docker image:
+
+```
+./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"
+```
+
+- Launch Rivermax container
+
+```
+# Launch Rivermax container
+./operators/advanced_network/run_rivermax.sh
+
+# To build operator + app from main dir
+./run build adv_networking_bench --configure-args "-DANO_MGR=rivermax"
+
+# Run app
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rmax_rx.yaml
+```
 
 
 
@@ -133,18 +188,14 @@ sudo sh -c "echo nodev /mnt/huge hugetlbfs pagesize=1GB 0 0 >> /etc/fstab"
 ##### Linux Boot Command Line
 
 The Linux boot command line allows configuration to be injected into Linux before booting. Some configuration options are
-only available at the boot command since they must be provided before the kernel has started. On the Clara AGX and Orin IGX
+only available at the boot command since they must be provided before the kernel has started. On the Orin IGX
 editing the boot command can be done with the following configuration:
 
 ```
-sudo vim /boot/extlinux/extlinux.conf
+sudo vim /etc/default/grub
 # Find the line starting with APPEND and add the following
 
-# For Orin IGX:
 isolcpus=6-11 nohz_full=6-11 irqaffinity=0-5 rcu_nocbs=6-11 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
-
-# For Clara AGX:
-isolcpus=4-7 nohz_full=4=7 irqaffinity=0-3 rcu_nocbs=4-7 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
 ```
 
 The settings above isolate CPU cores 6-11 on the Orin and 4-7 on the Clara, and turn 1GB hugepages on.
@@ -189,113 +240,221 @@ The common configuration container parameters are used by both TX and RX:
 - **`version`**: Version of the config. Only 1 is valid currently.
   - type: `integer`
 - **`master_core`**: Master core used to fork and join network threads. This core is not used for packet processing and can be
-bound to a non-isolated core
+bound to a non-isolated core. Should differ from isolated cores in queues below.
+  - type: `integer`
+- **`manager`**: Backend networking library. default: `dpdk`. Other: `doca` (GPUNet IO), `rivermax`
+  - type: `string`
+- **`log_level`**: Backend log level. default: `warn`. Other: `trace` , `debug`, `info`, `error`, `critical`, `off`
+  - type: `string`
+
+##### Memory regions
+
+`memory_regions:` List of regions where buffers are stored.
+
+- **`name`**: Memory Region name
+  - type: `string`
+- **`kind`**: Location. Best options are `device` (GPU), or `huge` (pages - CPU). Not recommended: `host` (CPU), `host_pinned` (CPU).
+  - type: `string`
+- **`affinity`**: GPU ID for GPU memory, NUMA Node ID for CPU memory
+  - type: `integer`
+- **`access`**: Permissions to the rdma memory region ( `local` or `rmda_read` or `rdma_write`)
+  - type: `string`
+- **`num_bufs`**: Higher value means more time to process, but less space on GPU BAR1.
+Too low means risk of dropped packets from NIC having nowhere to write (Rx) or higher latency from buffering (Tx). Good rule of 👍 : 3x batch_size
+  - type: `integer`
+- **`buf_size`**: Size of buffer, equal to packet size or less if breaking down packets (ex: header data split)
   - type: `integer`
 
-##### Receive Configuration
+##### Interfaces
+- **`interfaces`**:  List and configure ethernet interfaces 
+	full path: `cfg\interfaces\`
+	- **`name`**: Name of the interfaca
+	  - type: `string`
+	- **`address`**: PCIe BDF address (lspci) or linux link name (ip link)
+	  - type: `string`
+	- **`rx|tx`** category of queues below
+	full path: `cfg\interfaces\[rx|tx]`
 
-- **`if_name`**: Name of the interface or PCIe BDF to use
-  - type: `string`
-- **`queues`**: Array of queues
-  - type: `array`
-- **`name`**: Name of queue
-  - type: `string`
-- **`gpu_direct`**: GPUDirect is enabled on the queue
-  - type: `boolean`
-- **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
-larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
-buffer. A smaller number reduces latency and bandwidth by passing more messages.
-- **`num_concurrent_batches`**: Number of batches that can be outstanding (not freed) at any given time. This value directly affects
-the amount of memory needed for receiving packets. A value too small and packets will be dropped, while a value too large will
-unnecessarily use excess CPU and/or GPU memory.
-  - type: `integer`
-- **`max_packet_size`**: Largest packet size expected
-  - type: `integer`
-- **`split_boundary`**: Split point in bytes where any byte before this value is sent to CPU, and anything after to GPU
-  - type: `integer`
-- **`gpu_device`**: GPU device number if using GPUDirect
-  - type: `integer`
-- **`cpu_cores`**: List of CPU cores from the isolated set used by the operator for receiving
-  - type: `string`
-- **`flows`**: Array of flows
-  - type: `array`
-- **`name`**: Name of queue
-  - type: `string`
-- **`action`**: Action section of flow
-  - type: `sequence`
-- **`type`**: Type of action. Only "queue" is supported currently.
-  - type: `string`
-- **`id`**: ID of queue to steer to
-  - type: `integer`
-- **`match`**: Match section of flow
-  - type: `sequence`
-- **`udp_src`**: UDP source port
-  - type: `integer`
-- **`udp_dst`**: UDP destination port
-  - type: `integer`
+##### Receive Configuration (rx)
 
-##### Transmit Configuration
+- **`queues`**: List of queues on NIC
+	type: `list`
+	full path: `cfg\interfaces\rx\queues`
+	- **`name`**: Name of queue
+  		- type: `string`
+	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
+  		- type: `integer`
+	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
+		Rivermax manager can accept coma separated list of CPU IDs
+  		- type: `string`
+	- **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
+	larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
+	buffer. A smaller number reduces latency and bandwidth by passing more messages.
+  		- type: `integer`
+	- **`split_boundary`**: HDS (Header Data Split) Split point in bytes between header and payload. If set to 0 HDS is disabled
+  		- type: `integer`
+	- **`output_port`**:  Name of the ANO Rx operator output port for aggregator operators to connect to
+  		- type: `string`
+	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
+		type: `list`
 
-- **`if_name`**: Name of the interface or PCIe BDF to use
-  - type: `string`
-- **`accurate_send`**: Boolean flag to turn on accurate TX scheduling
-  - type: `boolean`
-- **`queues`**: Array of queues
-  - type: `array`
-- **`name`**: Name of queue
-  - type: `string`
-- **`id`**: ID of queue to steer to
-  - type: `integer`
-- **`gpu_direct`**: GPUDirect is enabled on the queue
-  - type: `boolean`
-- **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
-larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
-buffer. A smaller number reduces latency and bandwidth by passing more messages.
-  - type: `integer`
-- **`max_payload_size`**: Largest payload size expected
-  - type: `integer`
-- **`layer_fill`**: Layer(s) that the advanced network operator should populate in the packet. Anything higher than the layer
-specified must be populated by the user. For example, if `ethernet` is specified, the user is responsible for populating values of
-any item above that layer (IP, UDP, etc...). Valid values are `raw`, `ethernet`, `ip`, and `udp`
-  - type: `string`
-- **`eth_dst_addr`**: Destination ethernet MAC address. Only used for `ethernet` layer_fill mode or above
-  - type: `string`
-- **`ip_src_addr`**: Source IP address to send packets from. Only used for `ip` layer_fill and above
-  - type: `string`
-- **`ip_dst_addr`**: Destination IP address to send packets to. Only used for `ip` layer_fill and above
-  - type: `string`
-- **`udp_dst_port`**: UDP destination port. Only used for `udp` layer_fill and above
-  - type: `integer`
-- **`udp_src_port`**: UDP source port. Only used for `udp` layer_fill and above
-  - type: `integer`
-- **`cpu_cores`**: List of CPU cores for transmitting
-  - type: `string`
+- **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
+  type: `list`
+  full path: `cfg\interfaces\[rx|tx]\flows`
+	- **`name`**: Name of the flow
+	  - type: `string`
+	- **`id`**: ID of the flow
+	  - type: `integer`    
+	- **`action`**: Action section of flow (what happens. Currently only supports steering to a given queue)
+	  - type: `sequence`
+		- **`type`**: Type of action. Only `queue` is supported currently.
+	  	-	 type: `string`
+		- **`id`**: ID of queue to steer to
+	  		- type: `integer`
+	- **`match`**: Match section of flow
+	  - type: `sequence`
+		- **`udp_src`**: UDP source port
+	  	- type: `integer`
+		- **`udp_dst`**: UDP destination port
+	  	- type: `integer`
+		- **`ipv4_len`**: IPv4 payload length
+	  	- type: `integer`      
+
+##### Extended Receive Configuration for Rivermax manager
+- **`rmax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
+	Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
+  type: `list`
+  full path: `cfg\interfaces\rx\queues\rmax_rx_settings`
+	- **`memory_registration`**: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
+		<mark>Can be used only together with HDS enabled</mark>
+  		- type: `boolean`
+  		- default:`false`
+	- **`max_path_diff_us`**: Sets the maximum number of microseconds that receiver waits for the same packet to arrive from a different stream (if IPO is enabled)
+		- type: `integer`
+		- default:`0`
+	- **`ext_seq_num`**: The RTP sequence number is used by the hardware to determine the location of arriving packets in the receive buffer.
+		The application supports two sequence number parsing modes: 16-bit RTP sequence number (default) and 32-bit extended sequence number,
+		consisting of 16 low order RTP sequence number bits and 16 high order bits from the start of RTP payload. When set to `true` 32-bit ext. sequence number will be used
+  		- type: `boolean`
+  		- default:`true`
+	- **`sleep_between_operations_us`**: Specifies the duration, in microseconds, that the receiver will pause or sleep between two consecutive receive (RX) operations.
+  		- type: `integer`
+  		- default:`0`
+	- **`local_ip_addresses`**: List of Local NIC IP Addresses (one address per receiving path)
+		- type: `sequence`
+	- **`source_ip_addresses`**: List of Sender IP Addresses (one address per receiving path)
+		- type: `sequence`
+	- **`destination_ip_addresses`**: List of Destination IP Addresses (one address per receiving path), can be multicast
+		- type: `sequence`
+	- **`destination_ports`**: List of Destination IP ports (one port per receiving path)
+		- type: `sequence`
+	- **`rx_stats_period_report_ms`**: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set `0` to disable statistics logging feature
+  		- type: `integer`
+  		- default:`0`
+	- **`send_packet_ext_info`**: Enables the transmission of extended metadata for each received packet
+  		- type: `boolean`
+  		- default:`true`
+
+- Example of the Rivermax queue configuration for redundant stream using HDS and GPU
+  This example demonstrates receiving a redundant stream sent from a sender with source addresses 192.168.100.4 and 192.168.100.3. 
+  The stream is received via NIC which have local IP (same) 192.168.100.5 (listed twice, once per stream). 
+  The multicast addresses and UDP ports on which the stream is being received are 224.1.1.1:5001 and 224.1.1.2:5001
+ The incoming packets are of size 1152 bytes. The initial 20 bytes are stripped from the payload as an  application header and placed in buffers allocated in RAM.
+ The remaining 1132 bytes are placed in dedicated payload buffers.  In this case, the payload buffers are allocated in GPU 0 memory.
+```YAML
+    memory_regions:
+    - name: "Data_RX_CPU"
+      kind: "huge"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 43200
+      buf_size: 20
+    - name: "Data_RX_GPU"
+      kind: "device"
+      affinity: 0
+      access:
+        - local
+      num_bufs: 43200
+      buf_size: 1132
+    interfaces:
+    - address: 0005:03:00.0
+      name: data1
+      rx:
+        queues:
+        - name: Data1
+          id: 1
+          cpu_core: '11'
+          batch_size: 4320
+          output_port: bench_rx_out_1    
+          rmax_rx_settings:
+            memory_registration: true
+            max_path_diff_us: 100
+            ext_seq_num: true
+            sleep_between_operations_us: 100
+            memory_regions: 
+            - "Data_RX_CPU"
+            - "Data_RX_GPU"
+            local_ip_addresses:
+            - 192.168.100.5
+            - 192.168.100.5
+            source_ip_addresses:
+            - 192.168.100.4
+            - 192.168.100.4
+            destination_ip_addresses:
+            - 224.1.1.1
+            - 224.1.1.2
+            destination_ports:
+            - 50001
+            - 50001
+            rx_stats_period_report_ms: 3000
+            send_packet_ext_info: true
+          
+```
+
+##### Transmit Configuration (tx)
+ (<mark>Current version of Rivermax manager doesn't support TX</mark>)
+
+- **`queues`**: List of queues on NIC
+	type: `list`
+	full path: `cfg\interfaces\tx\queues`
+	- **`name`**: Name of queue
+  		- type: `string`
+ 	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
+  		- type: `integer`
+	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNet IORivermax manager</mark>
+		Rivermax manager can accept coma separated list of CPU IDs
+  		- type: `string`
+	- **`batch_size`**: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
+	larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
+	buffer. A smaller number reduces latency and bandwidth by passing more messages.
+  		- type: `integer`
+	- **`split_boundary`**: HDS (Header Data Split) Split point in bytes between header and payload. If set to 0 HDS is disabled
+  		- type: `integer`
+	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
+		type: `list`
+
 
 #### API Structures
 
-Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators.
-`AdvNetBurstParams` provides pointers to all packets on the CPU and GPU, and contains metadata needed by the operator to track
-allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network
-card library, interacting with the `AdvNetBurstParams` is mostly done with the helper functions described below. A user should
-never modify any members of `AdvNetBurstParams` directly as this may break in future versions. The `AdvNetBurstParams` is described
-below:
+Both the transmit and receive operators use a common structure named `AdvNetBurstParams` to pass data to/from other operators. `AdvNetBurstParams` provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by the operator to track allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network card library, interacting with `AdvNetBurstParams` is mostly done with the helper functions described below. A user should never modify any members of `AdvNetBurstParams` directly, as this may break in future versions. The `AdvNetBurstParams` is described below:
 
 ```
 struct AdvNetBurstParams {
-  union {
-      AdvNetBurstParamsHdr hdr;
-      uint8_t buf[HS_NETWORK_HEADER_SIZE_BYTES];
-  };
+  AdvNetBurstHdr hdr;
 
-  void **cpu_pkts;
-  void **gpu_pkts;
+  std::array<void**, MAX_NUM_SEGS> pkts;
+  std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
+  void** pkt_extra_info;
+  cudaEvent_t event;
 };
 ```
 
-Starting from the top, the `hdr` field contains metadata about the batch of packets. `buf` is a placeholder for future expansion
-of fields. `cpu_pkts` contains pointers to CPU packets, while `gpu_pkts` contains pointers to the GPU packets. As mentioned above,
-the `cpu_pkts` and `gpu_pkts` are opaque pointers and should not be access directly. See the next section for information on interacting
-with these fields.
+
+Starting from the top, the `hdr` field contains metadata about the batch of packets. The `pkts` array stores opaque pointers to packet memory locations (e.g., CPU or GPU) across multiple segments, and `pkt_lens` stores the lengths of these packets. `pkt_extra_info` contains additional metadata about each packet, and `event` is a CUDA event used for synchronization.
+
+As mentioned above, the `pkts` and `pkt_lens` fields are opaque and should not be accessed directly. Instead, refer to the helper functions in the next section for interacting with these fields to ensure compatibility with future versions.
+
 
 #### Example API Usage
 

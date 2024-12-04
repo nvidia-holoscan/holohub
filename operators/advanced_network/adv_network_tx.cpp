@@ -18,25 +18,28 @@
 #include "adv_network_tx.h"
 #include "adv_network_mgr.h"
 #include <memory>
+#include <assert.h>
 
 namespace holoscan::ops {
 
-extern ANOMgr *g_ano_mgr;
-
 struct AdvNetworkOpTx::AdvNetworkOpTxImpl {
   AdvNetConfigYaml cfg;
+  ANOMgr* mgr;
 };
 
+void AdvNetworkOpTx::setup(OperatorSpec& spec) {
+  spec.input<AdvNetBurstParams*>("burst_in");
 
-void AdvNetworkOpTx::setup(OperatorSpec& spec)  {
-  spec.input<AdvNetBurstParams *>("burst_in");
+  spec.param(cfg_,
+             "cfg",
+             "Configuration",
+             "Configuration for the advanced network operator",
+             AdvNetConfigYaml());
+}
 
-  spec.param(
-      cfg_,
-      "cfg",
-      "Configuration",
-      "Configuration for the advanced network operator",
-      AdvNetConfigYaml());
+void AdvNetworkOpTx::stop() {
+  HOLOSCAN_LOG_INFO("AdvNetworkOpTx::stop()");
+  impl->mgr->shutdown();
 }
 
 void AdvNetworkOpTx::initialize() {
@@ -44,48 +47,48 @@ void AdvNetworkOpTx::initialize() {
   register_converter<holoscan::ops::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
-  if (Init() < 0) {
-    throw std::runtime_error("ANO initialization failed");
-  }
+  if (Init() < 0) { throw std::runtime_error("ANO initialization failed"); }
 }
 
 int AdvNetworkOpTx::Init() {
   impl = new AdvNetworkOpTxImpl();
   impl->cfg = cfg_.get();
-  set_ano_mgr(impl->cfg);
 
-  if (!g_ano_mgr->set_config_and_initialize(impl->cfg)) {
-    return -1;
-  }
+  AnoMgrFactory::set_manager_type(impl->cfg.common_.manager_type);
+
+  impl->mgr = &(AnoMgrFactory::get_active_manager());
+
+  assert(impl->mgr != nullptr && "ANO Manager is not initialized");
+
+  if (!impl->mgr->set_config_and_initialize(impl->cfg)) { return -1; }
 
   return 0;
 }
 
 void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
-      [[maybe_unused]] ExecutionContext&) {
+                             [[maybe_unused]] ExecutionContext&) {
   int n;
 
-  AdvNetBurstParams *d_params;
-  auto rx = op_input.receive<AdvNetBurstParams *>("burst_in");
+  AdvNetBurstParams* d_params;
+  auto rx = op_input.receive<AdvNetBurstParams*>("burst_in");
 
   if (rx.has_value() && rx.value() != nullptr) {
-    const auto tx_buf_res = g_ano_mgr->get_tx_meta_buf(&d_params);
+    const auto tx_buf_res = impl->mgr->get_tx_meta_buf(&d_params);
     if (tx_buf_res != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor: {}", static_cast<int>(tx_buf_res));
       return;
     }
 
-    AdvNetBurstParams *burst = rx.value();
+    AdvNetBurstParams* burst = rx.value();
     memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
 
-    const auto tx_res = g_ano_mgr->send_tx_burst(d_params);
+    const auto tx_res = impl->mgr->send_tx_burst(d_params);
     if (tx_res != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Failed to send TX burst to ANO: {}", static_cast<int>(tx_res));
       return;
     }
 
-    if (impl->cfg.common_.mgr_ != "doca")
-      delete burst;
+    if (impl->cfg.common_.manager_type != AnoMgrType::DOCA) delete burst;
   }
 }
 };  // namespace holoscan::ops

@@ -423,8 +423,8 @@ DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_
     HOLOSCAN_LOG_ERROR("Failed to add dev to mmap: {}", doca_error_get_descr(result));
   }
 
-  result = doca_gpu_mem_alloc(
-      gdev, tx_buffer_size, GPU_PAGE_SIZE, mtype, &gpu_pkt_addr, &cpu_pkt_addr);
+  result =
+      doca_gpu_mem_alloc(gdev, tx_buffer_size, GPU_PAGE_SIZE, mtype, &gpu_pkt_addr, &cpu_pkt_addr);
   if (result != DOCA_SUCCESS || gpu_pkt_addr == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory {}", doca_error_get_descr(result));
   }

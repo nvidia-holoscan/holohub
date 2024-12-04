@@ -17,8 +17,6 @@ Tool tracking postprocessor codelet
   - type: `float`
 - **`overlay_img_colors`**: Color of the image overlays, a list of RGB values with components between 0 and 1, (default: 12 qualitative classes color scheme from colorbrewer2)
   - type: `std::vector<std::vector<float>>`
-- **`host_allocator`**: Output Allocator
-  - type: `gxf::Handle<gxf::Allocator>`
 - **`device_allocator`**: Output Allocator
   - type: `gxf::Handle<gxf::Allocator>`
 - **`cuda_stream_pool`**: Instance of gxf::CudaStreamPool

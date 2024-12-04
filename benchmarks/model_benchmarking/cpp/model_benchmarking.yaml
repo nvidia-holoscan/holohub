@@ -17,6 +17,13 @@
 source:
   device: "/dev/video6"
 
+replayer:
+  basename: "ultrasound_256x256"
+  frame_rate:
+  repeat: true
+  realtime: false
+  count: 0
+
 preprocessor:  # FormatConverter
   out_tensor_name: source_video
   out_dtype: "float32"

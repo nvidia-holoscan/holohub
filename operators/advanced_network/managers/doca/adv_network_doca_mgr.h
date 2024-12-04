@@ -102,6 +102,25 @@ static constexpr int MAX_PCIE_STR_LEN = 32;
 static constexpr uint64_t default_flow_timeout_usec = 0;
 static constexpr int TX_COMP_THRS = 2;
 
+class DocaLogLevel {
+ public:
+  static std::string to_description_string(doca_log_level level) {
+    auto it = level_to_string_description_map.find(level);
+    if (it != level_to_string_description_map.end()) { return it->second; }
+    throw std::logic_error(
+        "Unrecognized log level, available options trace/debug/info/warn/error/critical/disable");
+  }
+  static doca_log_level from_ano_log_level(AnoLogLevel::Level ano_level) {
+    auto it = ano_to_doca_log_level_map.find(ano_level);
+    if (it != ano_to_doca_log_level_map.end()) { return it->second; }
+    return DOCA_LOG_LEVEL_DISABLE;
+  }
+
+ private:
+  static const std::unordered_map<doca_log_level, std::string> level_to_string_description_map;
+  static const std::unordered_map<AnoLogLevel::Level, doca_log_level> ano_to_doca_log_level_map;
+};
+
 class DocaRxQueue {
  public:
   DocaRxQueue(struct doca_dev* dev, struct doca_gpu* gdev, struct doca_flow_port* df_port,
@@ -178,6 +197,8 @@ class DocaMgr : public ANOMgr {
   void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
   uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
   uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
+  void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) override;
+  uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) override;
   AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
   AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
   AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,

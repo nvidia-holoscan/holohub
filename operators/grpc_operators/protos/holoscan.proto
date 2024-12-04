@@ -1,0 +1,61 @@
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights
+// reserved. SPDX-License-Identifier: Apache-2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package holoscan.entity;
+
+service Entity {
+  rpc Entity (EntityRequest) returns (EntityResponse) {}
+  rpc EntityStream (stream EntityRequest) returns (stream EntityResponse) {}
+}
+
+message EntityRequest {
+  string service = 1;
+  Timestamp timestamp = 2;
+  map<string, string> parameters = 3;
+  map<string, Tensor> tensors = 4;
+}
+
+message EntityResponse {
+  Timestamp timestamp = 1;
+  map<string, string> parameters = 2;
+  map<string, Tensor> tensors = 3;
+}
+
+message Timestamp {
+  // The timestamp in nanoseconds at which the message was published into the system.
+  int64 pubtime = 1;
+  // The timestamp in nanoseconds at the message was acquired. This usually refers to the timestamp
+  // of the original sensor data which created the message.
+  int64 acqtime = 2;
+}
+
+message Tensor {
+  enum MemoryStorageType {
+    kHost = 0;
+    kDevice = 1;
+    kSystem = 2;
+  }
+  enum PrimitiveType {
+    kUnsigned8 = 0;
+    kUnsigned16 = 4;
+    kFloat32 = 9;
+  }
+  PrimitiveType primitive_type = 1;
+  MemoryStorageType memory_storage_type = 2;
+  repeated int32 dimensions = 3;
+  bytes data = 4;
+}

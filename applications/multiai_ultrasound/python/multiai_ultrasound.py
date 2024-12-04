@@ -69,10 +69,19 @@ class MultiAIICardio(Application):
             if not os.path.exists(video_dir):
                 raise ValueError(f"Could not find video data: {video_dir=}")
             source_kwargs["directory"] = video_dir
+            # the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
+            try:
+                from holoscan.resources import RMMAllocator
+
+                source_kwargs["allocator"] = RMMAllocator(self, name="video_replayer_allocator")
+            except Exception:
+                pass
         source = SourceClass(self, name=self.source, **source_kwargs)
 
         in_dtype = "rgba8888" if is_aja else "rgb888"
         in_components = 4 if is_aja else 3
+        # FormatConverterOp needs an temporary buffer if converting from RGBA
+        format_convert_pool_blocks = 4 if in_components == 4 else 3
         bytes_per_float32 = 4
         plax_cham_pre = FormatConverterOp(
             self,
@@ -83,7 +92,7 @@ class MultiAIICardio(Application):
                 name="plax_cham_pre_pool",
                 storage_type=MemoryStorageType.DEVICE,
                 block_size=320 * 320 * bytes_per_float32 * in_components,
-                num_blocks=3,
+                num_blocks=format_convert_pool_blocks,
             ),
             cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("plax_cham_pre"),
@@ -97,7 +106,7 @@ class MultiAIICardio(Application):
                 name="aortic_ste_pre_pool",
                 storage_type=MemoryStorageType.DEVICE,
                 block_size=300 * 300 * bytes_per_float32 * in_components,
-                num_blocks=3,
+                num_blocks=format_convert_pool_blocks,
             ),
             cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("aortic_ste_pre"),
@@ -111,7 +120,7 @@ class MultiAIICardio(Application):
                 name="b_mode_pers_pre_pool",
                 storage_type=MemoryStorageType.DEVICE,
                 block_size=320 * 240 * bytes_per_float32 * in_components,
-                num_blocks=3,
+                num_blocks=format_convert_pool_blocks,
             ),
             cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("b_mode_pers_pre"),

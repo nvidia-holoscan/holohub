@@ -83,6 +83,28 @@ struct RxDocaWorkerParams {
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
+const std::unordered_map<AnoLogLevel::Level, doca_log_level>
+    DocaLogLevel::ano_to_doca_log_level_map = {
+        {AnoLogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
+        {AnoLogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
+        {AnoLogLevel::INFO, DOCA_LOG_LEVEL_INFO},
+        {AnoLogLevel::WARN, DOCA_LOG_LEVEL_WARNING},
+        {AnoLogLevel::ERROR, DOCA_LOG_LEVEL_ERROR},
+        {AnoLogLevel::CRITICAL, DOCA_LOG_LEVEL_CRIT},
+        {AnoLogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
+};
+
+const std::unordered_map<doca_log_level, std::string>
+    DocaLogLevel::level_to_string_description_map = {
+        {DOCA_LOG_LEVEL_TRACE, "Trace"},
+        {DOCA_LOG_LEVEL_DEBUG, "Debug"},
+        {DOCA_LOG_LEVEL_INFO, "Info"},
+        {DOCA_LOG_LEVEL_WARNING, "Warning"},
+        {DOCA_LOG_LEVEL_ERROR, "Error"},
+        {DOCA_LOG_LEVEL_CRIT, "Critical"},
+        {DOCA_LOG_LEVEL_DISABLE, "Disable"},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief Init
@@ -125,7 +147,8 @@ static doca_error_t open_doca_device_with_pci(const char* pcie_value, struct doc
 
   res = doca_devinfo_create_list(&dev_list, &nb_devs);
   if (res != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: %d", res);
+    HOLOSCAN_LOG_ERROR("Failed to load doca devices list. Doca_error value: {}",
+                       static_cast<int>(res));
     return res;
   }
 
@@ -198,7 +221,7 @@ doca_error_t DocaMgr::init_doca_devices() {
 
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
-    HOLOSCAN_LOG_CRITICAL("DPDK init failed: %d", ret);
+    HOLOSCAN_LOG_CRITICAL("DPDK init failed: {}", ret);
     return DOCA_ERROR_DRIVER;
   }
 
@@ -218,17 +241,19 @@ doca_error_t DocaMgr::init_doca_devices() {
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
   }
 
-#if 0
-    struct doca_log_backend *stdout_logger = nullptr;
+  auto log_level = DocaLogLevel::from_ano_log_level(cfg_.log_level_);
+  if (log_level != DOCA_LOG_LEVEL_DISABLE) {
+    struct doca_log_backend* stdout_logger = nullptr;
+
+    HOLOSCAN_LOG_INFO("Setting DOCA Logging level to {}",
+                      DocaLogLevel::to_description_string(log_level));
 
     result = doca_log_backend_create_with_file_sdk(stdout, &stdout_logger);
-    if (result != DOCA_SUCCESS)
-            return result;
+    if (result != DOCA_SUCCESS) return result;
 
-    result = doca_log_backend_set_sdk_level(stdout_logger, DOCA_LOG_LEVEL_TRACE);
-    if (result != DOCA_SUCCESS)
-            return result;
-#endif
+    result = doca_log_backend_set_sdk_level(stdout_logger, log_level);
+    if (result != DOCA_SUCCESS) return result;
+  }
 
   return DOCA_SUCCESS;
 }
@@ -646,7 +671,7 @@ void DocaMgr::initialize() {
           q.common_.name_,
           q.common_.id_,
           intf.port_id_,
-          mtype,
+          static_cast<int>(mtype),
           rxq_pkts,
           q_max_packet_size);
 
@@ -686,7 +711,7 @@ void DocaMgr::initialize() {
                         q.common_.name_,
                         q.common_.id_,
                         intf.port_id_,
-                        mtype);
+                        static_cast<int>(mtype));
 
       tx_q_map_[key] = new DocaTxQueue(ddev[intf.port_id_],
                                        gdev[gpu_id],
@@ -1263,7 +1288,8 @@ int DocaMgr::rx_core(void* arg) {
 
   res_cuda = cudaStreamCreateWithPriority(&rx_stream, cudaStreamNonBlocking, greatestPriority);
   if (res_cuda != cudaSuccess) {
-    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error %d", res_cuda);
+    HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error {}",
+                       static_cast<int>(res_cuda));
     exit(1);
   }
 
@@ -1279,6 +1305,7 @@ int DocaMgr::rx_core(void* arg) {
   }
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
+#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1288,6 +1315,7 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               false);
+#endif
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
 
@@ -1469,7 +1497,7 @@ int DocaMgr::tx_core(void* arg) {
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamCreateWithFlags(&tx_stream[idxq], cudaStreamNonBlocking);
     if (res_cuda != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithFlags error %d", res_cuda);
+      HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithFlags error {}", static_cast<int>(res_cuda));
       exit(1);
     }
     HOLOSCAN_LOG_DEBUG("Warmup send kernel queue {}", idxq);
@@ -1535,7 +1563,7 @@ int DocaMgr::tx_core(void* arg) {
   for (int idxq = 0; idxq < tparams->txqn; idxq++) {
     res_cuda = cudaStreamDestroy(tx_stream[idxq]);
     if (res_cuda != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error %d", res_cuda);
+      HOLOSCAN_LOG_ERROR("Function cudaStreamDestroy error {}", static_cast<int>(res_cuda));
     }
   }
 
@@ -1571,11 +1599,19 @@ void* DocaMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
   return get_pkt_ptr(burst, idx);
 }
 
+void* DocaMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+  return nullptr;
+}
+
 uint64_t DocaMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
   return burst->hdr.hdr.nbytes;
 }
 
 uint16_t DocaMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
+  return 0;
+}
+
+uint16_t DocaMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
   return 0;
 }
 
@@ -1670,7 +1706,7 @@ bool DocaMgr::tx_burst_available(AdvNetBurstParams* burst) {
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
-          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", txq->tx_cmp_posted);
+          HOLOSCAN_LOG_DEBUG("txq->tx_cmp_posted {}", static_cast<int>(txq->tx_cmp_posted.load()));
           return false;
         }
 

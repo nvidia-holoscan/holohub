@@ -31,22 +31,23 @@ class AdvNetworkOpTx : public Operator {
   class AdvNetworkOpTxImpl;
 
  public:
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkOpTx);
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkOpTx);
 
-    AdvNetworkOpTx() = default;
-    ~AdvNetworkOpTx() = default;
-    void initialize() override;
-    int Init();
-    int FreeBurst(AdvNetBurstParams *burst);
+  AdvNetworkOpTx() = default;
+  ~AdvNetworkOpTx() = default;
+  void initialize() override;
+  int Init();
+  int FreeBurst(AdvNetBurstParams* burst);
 
-    // Holoscan functions
-    void setup(OperatorSpec& spec) override;
-    void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
+  // Holoscan functions
+  void stop() override;
+  void setup(OperatorSpec& spec) override;
+  void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
  private:
-    void SetFillInfo();
-    std::unordered_map<uint32_t, void *> tx_rings_;
-    Parameter<AdvNetConfigYaml> cfg_;
-    AdvNetworkOpTxImpl *impl;
+  void SetFillInfo();
+  std::unordered_map<uint32_t, void*> tx_rings_;
+  Parameter<AdvNetConfigYaml> cfg_;
+  AdvNetworkOpTxImpl* impl;
 };
 };  // namespace holoscan::ops

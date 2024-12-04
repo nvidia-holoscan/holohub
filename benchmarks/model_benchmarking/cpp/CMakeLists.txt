@@ -31,6 +31,7 @@ target_link_libraries(model_benchmarking
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
+    holoscan::ops::video_stream_replayer
 )
 
 # Copy config file

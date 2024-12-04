@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import argparse
 import datetime
-import sys
+import os
 
 import matplotlib.pyplot as plt
 
@@ -57,14 +57,30 @@ def parse_csv_file(filename):
 
 
 def main():
-    if len(sys.argv) > 1:
-        csv_file = sys.argv[1]
-    else:
-        print("Usage: python generate_bar_graphs.py <csv_file> <output_extension>")
-        exit(1)
-    output_extension = "png"
-    if len(sys.argv) > 2:
-        output_extension = sys.argv[2]
+    CSV_FILENAME_DELIMITER = "_"
+
+    parser = argparse.ArgumentParser(
+        description="Generate bar graphs from a CSV file of latency statistics generated with `analyze.py`."
+    )
+    parser.add_argument(
+        "csv_file",
+        help="Path to the latency statistics CSV file. "
+        "The CSV filename must follow the `analyze.py` output convention `<statistics_name>_values.csv`."
+        "Assumes one row of data with each column representing an increasing number of instances. ",
+    )
+    parser.add_argument(
+        "--output_extension", default="png", help="Output file extension (default: png)"
+    )
+    parser.add_argument("--app", default="endoscopy", help="Application name for file output")
+    parser.add_argument(
+        "--title", default="Endoscopy Tool Tracking {current_time}", help="Graph title"
+    )
+    parser.add_argument("--quiet", default=False, action="store_true", help="Suppress output")
+    args = parser.parse_args()
+
+    # Use the parsed arguments
+    csv_file = args.csv_file
+    output_extension = args.output_extension
 
     # Parse the CSV file
     data = parse_csv_file(csv_file)
@@ -100,9 +116,10 @@ def main():
 
     ax.set_xlabel("Number of Instances", fontsize=14, fontweight="bold")
 
-    keyword = csv_file.split("_")[0]
+    csv_filename_components = os.path.basename(csv_file).split(CSV_FILENAME_DELIMITER)
+    keyword = csv_filename_components[0]
     if keyword == "percentile":
-        percentile_value = csv_file.split("_")[1]
+        percentile_value = csv_filename_components[1]
     yaxis_label = (
         keyword_to_title(keyword)
         if keyword != "percentile"
@@ -121,21 +138,23 @@ def main():
     ax.tick_params(axis="y", labelsize=14)
     ax.set_ylim([0, max(data) * 1.2])
     current_time = datetime.datetime.now().strftime("%m/%d/%Y %H:%M")
+    title = args.title.format(current_time=current_time)
     ax.set_title(
-        f"Endoscopy Tool Tracking ({current_time})",
+        f"{title}",
         fontsize=14,
         pad=14,
     )
 
     plt.tight_layout()
-    output_keyword = csv_file[: csv_file.rfind("_")]
-    output_file = f"endoscopy_{output_keyword}.{output_extension}"
+    output_keyword = "".join(csv_filename_components[:-1])
+    output_file = f"{args.app}_{output_keyword}.{output_extension}"
     plt.savefig(output_file, bbox_inches="tight")
-    print(
-        f'<CTestMeasurementFile type="image/png" name="instances_{output_keyword}">'
-        + output_file
-        + "</CTestMeasurementFile>"
-    )
+    if not args.quiet:
+        print(
+            f'<CTestMeasurementFile type="image/png" name="instances_{output_keyword}">'
+            + output_file
+            + "</CTestMeasurementFile>"
+        )
 
 
 if __name__ == "__main__":

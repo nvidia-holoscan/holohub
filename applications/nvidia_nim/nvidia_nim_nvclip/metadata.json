@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "NV-CLIP NIM",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3",
+				"2.1.0",
+				"2.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"OpenAI API",
+			"NIM"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/app.py",
+			"workdir": "holohub_app_source"
+		}
+	}
+}
