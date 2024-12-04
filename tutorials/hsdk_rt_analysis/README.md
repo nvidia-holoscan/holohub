@@ -1,6 +1,6 @@
 # Holoscan SDK Response-Time Analysis 
 
-This directory contains helpful scripts for timing analysis of Holoscan apps, based on published research regarding the Holoscan SDK (see citation below).
+We have performed a theoretical response-time analysis of applications created using Holoscan SDK in an RTSS paper [1]. This work accounts for different queuing delays due to different types of connections and dependencies between the operators of a Holoscan application. This directory contains helpful scripts for the timing analysis of Holoscan applications, based on our research paper [1].
 
 Detailed instructions for how to reproduce the results of the paper, along with the code, can be found in the `artifact` directory.
 
