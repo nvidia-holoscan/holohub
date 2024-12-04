@@ -54,9 +54,25 @@
         "ranking",
         "dependencies"
       ]
-    }
+    },
+    "$ref": "holohub/operator/v1#/properties/operator",
+    "$ref": "holohub/gxf_extension/v1#/properties/gxf_extension"
   },
-  "required": [
-    "application"
+  "oneOf": [
+    {
+        "required": [
+            "application"
+        ]
+    },
+    {
+        "required": [
+            "operator"
+        ]
+    },
+    {
+      "required": [
+          "gxf_extension"
+      ]
+    }
   ]
 }

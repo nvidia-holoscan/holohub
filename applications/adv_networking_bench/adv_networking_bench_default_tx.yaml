@@ -56,16 +56,15 @@ advanced_network:
             offloads:
               - "tx_eth_src"
 
-
 bench_tx:
-  eth_dst_addr: 48:b0:2d:ed:d0:20   # Destination MAC
-  udp_dst_port: 4096                  # UDP destination port
-  udp_src_port: 4096                  # UDP source port
-  gpu_direct: false
-  split_boundary: 0
+  gpu_direct: false       # Set to true if using a GPU region for the Tx queues.
+  split_boundary: 0       # Byte boundary where header and data is split, 0 if no split
   batch_size: 10000
   payload_size: 1000
   header_size: 64
-  ip_src_addr: 192.168.100.5          # Source IP send from
-  ip_dst_addr: 10.10.100.4          # Destination IP to send to
-  address: 0005:03:00.0
+  eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
+  ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
+  ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
+  udp_src_port: 4096      # UDP source port
+  udp_dst_port: 4096      # UDP destination port
+  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx above

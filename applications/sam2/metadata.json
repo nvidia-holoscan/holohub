@@ -35,7 +35,7 @@
 		},
 	
 		"run": {
-			"command": "python  '<holohub_app_source>/segment_one_thing.py'",
+			"command": "<holohub_app_source>/start.sh",
 			"workdir": "holohub_bin"
 		}
 	}

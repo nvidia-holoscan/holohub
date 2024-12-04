@@ -49,7 +49,7 @@ advanced_network:
       buf_size: 1200
     interfaces:
     - name: data1
-      address:  cc:00.1           
+      address:  cc:00.1
       rx:
         - queues:
           - name: "Data"
@@ -57,7 +57,7 @@ advanced_network:
             cpu_core:  "11,12,13"
             batch_size: 4320
             output_port: "bench_rx_out_1"
-            memory_regions: 
+            memory_regions:
             - "Data_RX_CPU"
             - "Data_RX_GPU"
             rmax_rx_settings:
@@ -82,8 +82,8 @@ advanced_network:
               rx_stats_period_report_ms: 3000
               send_packet_ext_info: true
 bench_rx:
-  split_boundary: true
-  gpu_direct: true
+  gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
+  split_boundary: true    # Whether header and data is split (Header to CPU)
   batch_size: 8640
   max_packet_size: 1220
-  header_size: 20  
+  header_size: 20

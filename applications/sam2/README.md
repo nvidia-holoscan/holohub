@@ -46,18 +46,18 @@ Determine your desired video device and edit the source device in [segment_one_t
 This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
 ```sh
- ./dev_container build_and_run sam2 --docker_file applications/sam2/Dockerfile --img holohub:sam2
+ ./dev_container build_and_run sam2 --docker_file applications/sam2/Dockerfile --img holohub:sam2.1
 ``` 
 Or first build the container, then launch it and run.
 
 ```sh
- ./dev_container build --docker_file applications/sam2/Dockerfile --img holohub:sam2
+ ./dev_container build --docker_file applications/sam2/Dockerfile --img holohub:sam2.1
 ```
 ```sh
-./dev_container launch --img holohub:sam
+./dev_container launch --img holohub:sam2.1
 ```
 ```sh
-python holohub/applications/sam2/segment_one_thing.py
+./run launch sam2
 ```
 
 ### x86 only

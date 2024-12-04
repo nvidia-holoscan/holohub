@@ -16,12 +16,12 @@
 # limitations under the License.
 
 
-FROM nvcr.io/nvidia/pytorch:24.06-py3 as pytorch
+FROM nvcr.io/nvidia/pytorch:24.06-py3 AS pytorch
 
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
+    git \   
     git-lfs \ 
     x11-apps \
     && rm -rf /var/lib/apt/lists/*
@@ -29,16 +29,18 @@ RUN apt-get update && apt-get install -y \
 # Set up Git LFS
 RUN git lfs install
 
+
 # Clone sam2
 WORKDIR /workspace
 ARG COMPUTE_CAPACITY
-RUN git clone https://github.com/facebookresearch/segment-anything-2.git \
-    && cd segment-anything-2 \
+RUN git clone https://github.com/facebookresearch/sam2.git \
+    && cd sam2 \
     && python3 -m pip install --no-cache-dir -e . \
     && python3 -m pip install --no-cache-dir -e ".[demo]" \
     && cd checkpoints \
     && ./download_ckpts.sh
 WORKDIR /workspace
+
 
 # Check the architecture and download the CUDA keyring
 RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64 \
@@ -48,8 +50,8 @@ RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64 \
     ; else echo "Unsupported architecture"; fi
 RUN dpkg -i cuda-keyring_1.1-1_all.deb \
     && apt-get update \
-    && apt-get -y install holoscan \
-    && export PYTHONPATH="/opt/nvidia/holoscan/python/lib"
+    && apt-get -y install holoscan
+
 
 # Setup Docker & NVIDIA Container Toolkit's apt repositories to enable DooD
 # for packaging & running applications with the CLI

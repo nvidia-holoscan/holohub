@@ -43,6 +43,15 @@ if(FLOW_BENCHMARKING)
   file(MAKE_DIRECTORY "${FLOW_BENCHMARK_DIR}")
 endif()
 
+if(HOLOHUB_BUILD_PYTHON)
+  # Define and create a directory to store python operators under the holohub python module
+  if(NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR lib)
+  endif()
+  set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+endif()
+
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
 set(CMAKE_INSTALL_RPATH

@@ -30,23 +30,23 @@ preprocessor:
 point_publisher:
   point_mover:
     - "width" : 1024
-      "height": 1024
+      "height": 1024 
       "radius": 100
       "center_x": 512
       "center_y": 512
       "frequency": 0.2
 
 sam2:
-  checkpoint_path: "/workspace/segment-anything-2/checkpoints/sam2_hiera_large.pt"
-  model_cfg: "sam2_hiera_l.yaml"
+  checkpoint_path: "/workspace/sam2/checkpoints/sam2.1_hiera_large.pt"
+  model_cfg: "configs/sam2.1/sam2.1_hiera_l.yaml"
 
 # sam2:
-#   checkpoint_path: "/workspace/segment-anything-2/checkpoints/sam2_hiera_small.pt"
-#   model_cfg: "sam2_hiera_s.yaml"
+#   checkpoint_path: "/workspace/sam2/checkpoints/sam2.1_hiera_small.pt"
+#   model_cfg: "configs/sam2.1/sam2.1_hiera_s.yaml"
 
 # sam2:
-#   checkpoint_path: "/workspace/segment-anything-2/checkpoints/sam2_hiera_tiny.pt"
-#   model_cfg: "sam2_hiera_t.yaml"
+#   checkpoint_path: "/workspace/sam2/checkpoints/sam2.1_hiera_tiny.pt"
+#   model_cfg: "configs/sam2.1/sam2.1_hiera_t.yaml"
 
 postprocessor:
   slice_dim: 0
@@ -72,5 +72,3 @@ holoviz:
   #   # [0.3, 0.3, 0.9, 0.75], #Blue RGB for SELLA with alpha=0.5
   #   # [0.9, 0.9, 0.3, 0.75], #Yellow RGB for CLIVAL RECESS alpha=0.5 #https://rgbcolorpicker.com/0-1
   #   ]
-
-
