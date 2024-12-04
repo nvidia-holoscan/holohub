@@ -154,6 +154,7 @@ $ lspci -nnk -d 10de:24b0
 ```
 
 #### Two Identical GPUs (e.g., 2x RTX A4000)
+
 In case of two identical GPUs, the PCI IDs of the GPUs are the same.
 
 ```bash
@@ -179,6 +180,7 @@ The following instructions are only verified for Ubuntu 22.04 and Linux kernel 6
 other Ubuntu and Linux kernel versions, the instructions may not work.
 
 ##### Update GRUB Configuration
+
 Open the `/etc/default/grub` file and find the following line:
 
 ```bash
@@ -208,6 +210,7 @@ Kindly, note that we are using the PCI bus address `0000:01:00.0` of the RTX A40
 script. In specific cases, the PCI bus address may be different and needs to be updated.
 
 ##### Install VFIO driver with the above script
+
 Create a new file `/etc/modprobe.d/vfio.conf` and add the following lines:
 
 ```bash
@@ -276,6 +279,7 @@ and type `nvidia-smi`. The following output should be displayed:
 ![nvidia-smi output in windows vm](./nvidia-smi-windows-vm.png)
 
 #### Replicate Monitor Display to VNC Display
+
 Right now, we have two screen for the Windows VM: physical monitor (VGA) and VNC display. It could be
 difficult to control mouse and keyboard with both the displays. Therefore, the monitor display can
 be replicated to the monitor display so that the Windows VM's physical monitor display can be
@@ -285,18 +289,18 @@ The following configuration shows that the screens are replicated in Windows VM:
 
 ![duplicate_display](./duplicate_display.png)
 
-####
-
 ## Communication Performance between Host and VM
+
 The performance of a Windows VM running on a Linux under KVM-based virtualization is well-studied in
 the research literature. The performance is dependent on specific hardware and applications. In this
 tutorial, we provide the data-transfer performance in our hardware configuration.
 
 > **Note**: Firewalls in both Windows VM and Linux host need to be properly configured to allow
-> network traffic between the two systems. Configuring exact firewall rules is out-of-scope of this
+> network traffic between the two OS. Configuring exact firewall rules is out-of-scope of this
 > tutorial. However, we provide a few tips below as guiding help on this topic.
 
 **Allowing Network Traffic between VM and Host**
+
 Use a "bridge device" for the VM's network configuration.
 
 ![vm_network_config](./vm_network_config.png)
@@ -312,6 +316,7 @@ VM and host. However, in case it does not work, `iptables` or `ufw` can be used 
 on specific ports.
 
 **Configuring firewall**
+
 Turning off the firewall, either in Windows VM, or in host Linux, is not recommended. However, to
 test the setup in this tutorial, firewalls can be turned off. In Windows, type "firewall" in the
 search bar and turn off the firewall. The setting will look like below:
