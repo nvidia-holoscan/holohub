@@ -1,0 +1,632 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+import os
+import re
+import subprocess
+import sys
+
+
+def setup_logging():
+    """
+    Configures the logging settings.
+    """
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+
+def parse_args():
+    """
+    Parses command-line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="Check system tuning for ANO performance",
+        epilog=(
+            "Examples:\n"
+            "  python check_system.py -cpu-freq       # Check CPU frequency governor\n"
+            "  python check_system.py -mrrs     # Check MRRS settings for NVIDIA NICs\n\n"
+            "  python check_system.py -mps      # Check max payload size settings for NVIDIA NICs\n\n"
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--check",
+        choices=[
+            "all",
+            "cpu-freq",
+            "mrrs",
+            "mps",
+            "hugepages",
+            "gpu-clocks",
+            "bar1-size",
+            "topo",
+            "cmdline",
+            "mtu",
+        ],
+        help=(
+            "Specify the property to check:\n"
+            "  all        - Perform all checks\n"
+            "  cpu-freq   - Check if the CPU frequency governor is set to 'performance'.\n"
+            "  mrrs       - Check if the Maximum Read Request Size (MRRS) of NVIDIA NICs is set to 4096.\n"
+            "  mps        - Check if the Maximum Payload Size is set to 256B.\n"
+            "  hugepages  - Check if hugepages are enabled\n"
+            "  gpu-clocks - Check GPU clocks\n"
+            "  bar1-size  - Check the BAR1 size of the GPU\n"
+            "  topo       - Check the GPU and NIC topology\n"
+            "  cmdline    - Check the kernel boot parameters\n"
+            "  mtu        - Check MTU of each NVIDIA interface\n"
+        ),
+    )
+
+    parser.add_argument("--set", choices=["mrrs"], help=("  mrrs      - Update MRRS of NICs\n"))
+    return parser.parse_args()
+
+
+def get_nic_info():
+    """
+    Parses the output of `ibdev2netdev -v` to extract and return a list of tuples,
+    where each tuple contains the interface name and its PCIe address.
+
+    Returns:
+        List[Tuple[str, str]]: A list of tuples with (interface_name, pcie_address).
+    """
+    try:
+        # Run ibdev2netdev -v to get detailed information about Mellanox devices
+        result = subprocess.run(["ibdev2netdev", "-v"], capture_output=True, text=True, check=True)
+
+        # Parse the output to extract interface names and PCIe addresses
+        names = []
+        addrs = []
+        for line in result.stdout.splitlines():
+            match = re.match(r"([\S\:\.]+) .*==>\s+(\S+)", line)
+            if match:
+                pcie_address = match.group(1)
+                interface_name = match.group(2)
+                names.append(interface_name)
+                addrs.append(pcie_address)
+
+        return names, addrs
+
+    except FileNotFoundError:
+        print(
+            "The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH."
+        )
+        return [], []
+    except subprocess.CalledProcessError as e:
+        print(f"Error while executing ibdev2netdev: {e}")
+        return [], []
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return [], []
+
+
+def get_online_cpus():
+    """
+    Returns a list of online CPUs by reading /sys/devices/system/cpu/online.
+    """
+    try:
+        with open("/sys/devices/system/cpu/online", "r") as f:
+            online_cpus = f.read().strip()
+
+        # Parse ranges (e.g., "0-3" -> [0, 1, 2, 3])
+        cpu_list = []
+        for part in online_cpus.split(","):
+            if "-" in part:
+                start, end = map(int, part.split("-"))
+                cpu_list.extend(range(start, end + 1))
+            else:
+                cpu_list.append(int(part))
+
+        return cpu_list
+    except FileNotFoundError:
+        logging.error(
+            "Could not determine online CPUs. File /sys/devices/system/cpu/online not found."
+        )
+        sys.exit(1)
+
+
+def check_cpu_governor():
+    """
+    Checks if the CPU frequency governor is set to 'performance' for all online CPUs.
+    """
+    online_cpus = get_online_cpus()
+
+    for cpu in online_cpus:
+        scaling_governor_path = f"/sys/devices/system/cpu/cpu{cpu}/cpufreq/scaling_governor"
+
+        try:
+            with open(scaling_governor_path, "r") as f:
+                governor = f.read().strip()
+
+            if governor == "performance":
+                logging.info(f"CPU {cpu}: Governor is correctly set to 'performance'.")
+            else:
+                logging.warning(f"CPU {cpu}: Governor is set to '{governor}', not 'performance'.")
+
+        except FileNotFoundError:
+            logging.error(
+                f"CPU {cpu}: Scaling governor file not found. This CPU may not support frequency scaling."
+            )
+        except PermissionError:
+            logging.error(
+                f"CPU {cpu}: Permission denied while accessing scaling governor file. Run as root."
+            )
+
+
+def check_mrrs():
+    """
+    Checks if the Maximum Read Request Size (MRRS) of NVIDIA Ethernet controllers
+    is set to 4096.
+    """
+    try:
+        _, addrs = get_nic_info()
+
+        for pci_address in addrs:
+
+            # Query MRRS for the NIC using setpci
+            mrrs_result = subprocess.run(
+                ["setpci", "-s", pci_address, "68.w"], capture_output=True, text=True, check=True
+            )
+
+            # Convert MRRS value from hexadecimal to decimal
+            mrrs_value = (int(mrrs_result.stdout.strip(), 16) & 0xF000) >> 12
+
+            if mrrs_value == 5:
+                logging.info(f"{pci_address}: MRRS is correctly set to 4096.")
+            else:
+                logging.warning(f"{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096.")
+
+    except FileNotFoundError:
+        logging.error("The required tools (lspci or setpci) are not available on this system.")
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while checking MRRS: {e}")
+        sys.exit(1)
+
+
+def check_max_payload_size():
+    """
+    Checks the Maximum Payload Size (MPS) of NVIDIA Ethernet controllers
+    from the DevCtl section and ensures it is set to 256 bytes.
+    """
+    try:
+        _, addrs = get_nic_info()
+
+        for pci_address in addrs:
+            # Query detailed device information using lspci -vv
+            mps_result = subprocess.run(
+                ["lspci", "-vv", "-s", pci_address], capture_output=True, text=True, check=True
+            )
+
+            # Parse MaxPayload information from the DevCtl section
+            lines = mps_result.stdout.splitlines()
+            devctl_found = False
+            for i, line in enumerate(lines):
+                if "DevCtl:" in line:
+                    devctl_found = True
+                    base_indent = len(line) - len(line.lstrip())  # Indentation level of DevCtl
+                    # Look for MaxPayload in subsequent indented lines
+                    for j in range(i + 1, len(lines)):
+                        current_indent = len(lines[j]) - len(lines[j].lstrip())
+                        if current_indent <= base_indent:  # Stop if indentation decreases or ends
+                            break
+                        if "MaxPayload" in lines[j]:
+                            # Extract the actual MaxPayload value from the line
+                            payload_info = lines[j].strip()
+                            max_payload_value = int(
+                                payload_info.split("MaxPayload")[1].split("bytes")[0].strip()
+                            )
+                            if max_payload_value == 256:
+                                logging.info(
+                                    f"{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes."
+                                )
+                            else:
+                                logging.warning(
+                                    f"{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes."
+                                )
+                            break
+                    else:
+                        logging.error(
+                            f"{pci_address}: Unable to find MaxPayload information under DevCtl."
+                        )
+                    break
+
+            if not devctl_found:
+                logging.error(f"{pci_address}: DevCtl section not found.")
+
+    except FileNotFoundError:
+        logging.error("The required tools (lspci) are not available on this system.")
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while checking Max Payload Size: {e}")
+        sys.exit(1)
+
+
+def check_hugepages():
+    """
+    Checks if hugepages are allocated and ensures that the total allocated hugepage memory
+    is at least 500 MB.
+    """
+    try:
+        # Initialize variables
+        total_hugepages = 0
+        hugepage_size_kB = 0
+
+        # Read /proc/meminfo for hugepage details
+        with open("/proc/meminfo", "r") as file:
+            for line in file:
+                if "HugePages_Total" in line:
+                    total_hugepages = int(line.split(":")[1].strip())
+                elif "Hugepagesize" in line:
+                    hugepage_size_kB = int(line.split(":")[1].strip().split()[0])  # Size in kB
+
+        # Check if hugepages are allocated
+        if total_hugepages > 0:
+            # Calculate total memory allocated to hugepages in MB
+            hugepage_size_MB = hugepage_size_kB / 1024  # Convert kB to MB
+            total_allocated_memory_MB = total_hugepages * hugepage_size_MB
+
+            logging.info(f"HugePages_Total: {total_hugepages}")
+            logging.info(f"HugePage Size: {hugepage_size_MB:.2f} MB")
+            logging.info(f"Total Allocated HugePage Memory: {total_allocated_memory_MB:.2f} MB")
+
+            # Check if the total memory meets the 500 MB requirement
+            if total_allocated_memory_MB >= 500:
+                logging.info("Hugepages are sufficiently allocated with at least 500 MB.")
+                return True
+            else:
+                logging.warning("Hugepages are allocated but do not meet the 500 MB requirement.")
+                return False
+        else:
+            logging.warning("No hugepages are allocated.")
+            return False
+
+    except FileNotFoundError:
+        logging.error("/proc/meminfo not found. Are you sure you're running on Linux?")
+        return False
+    except Exception as e:
+        logging.error(f"An error occurred while checking hugepages: {e}")
+        return False
+
+
+def check_nvidia_gpu_clocks():
+    """
+    Checks all NVIDIA GPUs to ensure that the SM clock and memory clock are set to their maximum values.
+    If not, prints the current and maximum values for each GPU.
+    """
+    try:
+        # Run nvidia-smi to get clock information
+        result = subprocess.run(
+            ["nvidia-smi", "-q", "-d", "CLOCK"], capture_output=True, text=True, check=True
+        )
+
+        # Parse the output of nvidia-smi
+        output = result.stdout.splitlines()
+
+        current_gpu = None
+        sm_current = None
+        sm_max = None
+        mem_current = None
+        mem_max = None
+
+        for line in output:
+            line = line.strip()
+
+            # Detect GPU identifier
+            if line.startswith("GPU"):
+                current_gpu = line.split()[1].strip(":")
+                sm_current = None
+                sm_max = None
+                mem_current = None
+                mem_max = None
+
+            # Parse current clocks under "Clocks" section
+            elif sm_current is None and line.startswith("SM") and "MHz" in line:
+                sm_current = int(line.split(":")[1].strip().split()[0])
+            elif mem_current is None and line.startswith("Memory") and "MHz" in line:
+                mem_current = int(line.split(":")[1].strip().split()[0])
+
+            # Parse maximum clocks under "Max Clocks" section
+            elif line.startswith("Max Clocks"):
+                continue  # Skip the header for Max Clocks section
+            elif line.startswith("SM") and "MHz" in line and sm_max is None:
+                sm_max = int(line.split(":")[1].strip().split()[0])
+            elif line.startswith("Memory") and "MHz" in line and mem_max is None:
+                mem_max = int(line.split(":")[1].strip().split()[0])
+
+            # Once all data for a GPU is collected, compare clocks
+            if (
+                current_gpu is not None
+                and sm_current is not None
+                and sm_max is not None
+                and mem_current is not None
+                and mem_max is not None
+            ):
+                logging.info(f"GPU {current_gpu}: Checking clocks...")
+
+                if sm_current != sm_max:
+                    logging.warning(
+                        f"GPU {current_gpu}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
+                    )
+                else:
+                    logging.info(f"GPU {current_gpu}: SM Clock is correctly set to {sm_max} MHz.")
+
+                if mem_current != mem_max:
+                    logging.warning(
+                        f"GPU {current_gpu}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
+                    )
+                else:
+                    logging.info(
+                        f"GPU {current_gpu}: Memory Clock is correctly set to {mem_max} MHz."
+                    )
+
+                # Reset variables for the next GPU section
+                current_gpu = None
+
+    except FileNotFoundError:
+        logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while querying NVIDIA GPUs: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+
+def check_bar1_size():
+    """
+    Checks the BAR1 size of all NVIDIA GPUs using nvidia-smi.
+    Logs the BAR1 size for each GPU and ensures it is non-zero.
+    """
+    try:
+        # Run nvidia-smi to get BAR1 memory information
+        result = subprocess.run(
+            ["nvidia-smi", "-q", "-d", "MEMORY"], capture_output=True, text=True, check=True
+        )
+
+        # Parse the output of nvidia-smi
+        output = result.stdout.splitlines()
+
+        current_gpu = None
+        bar1_total = None
+
+        for i, line in enumerate(output):
+            line = line.strip()
+
+            # Detect GPU identifier
+            if line.startswith("GPU"):
+                current_gpu = line.split()[1].strip(":")
+                bar1_total = None
+
+            # Parse BAR1 total size under "BAR1 Memory Usage" section
+            elif "BAR1 Memory Usage" in line:
+                continue  # Skip the header for BAR1 Memory Usage section
+            elif "Total" in line and "BAR1" in output[i - 1]:
+                bar1_total_str = line.split(":")[1].strip()
+                if "MiB" in bar1_total_str:
+                    bar1_total = int(bar1_total_str.split()[0])
+
+            # Once BAR1 size is found, log it
+            if current_gpu is not None and bar1_total is not None:
+                if bar1_total > 1024:
+                    logging.info(f"GPU {current_gpu}: BAR1 size is {bar1_total} MiB.")
+                else:
+                    logging.warning(
+                        f"GPU {current_gpu}: BAR1 size is {bar1_total} MiB. This may indicate an issue."
+                    )
+
+                # Reset variables for the next GPU section
+                current_gpu = None
+
+    except FileNotFoundError:
+        logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while querying NVIDIA GPUs: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+
+def check_topology_connections():
+    """
+    Executes `nvidia-smi topo -m`, parses its output, and ensures that every GPU has at least one PIX or PXB connection to a NIC.
+    If not, logs an error specifying the GPU, NIC, and the actual connection type.
+    """
+    try:
+        # Run nvidia-smi topo -m to get topology information
+        result = subprocess.run(
+            ["nvidia-smi", "topo", "-m"], capture_output=True, text=True, check=True
+        )
+
+        # Parse the output of nvidia-smi topo -m
+        topo_output = result.stdout.splitlines()
+
+        # Find the header line (contains GPU/NIC labels)
+        header_index = 0
+
+        if header_index is None:
+            logging.error("Could not find topology table in the nvidia-smi output.")
+            return
+
+        # Extract labels (e.g., GPU0, NIC0, etc.)
+        labels = topo_output[header_index].split()
+
+        # Parse the topology table rows
+        gpu_to_nic_connections = {}
+        for row in topo_output[header_index + 1 :]:
+            row = row.strip()
+            if not row:
+                continue  # Skip empty lines
+
+            # Split row into columns
+            columns = row.split()
+            device_label = columns[0]  # First column is the device label (e.g., GPU0)
+
+            # Check connections for GPUs only
+            if "GPU" in device_label:
+                for col_index, connection_type in enumerate(columns[1:], start=1):
+                    target_label = labels[col_index]
+
+                    # Check if it's a GPU-NIC pair
+                    if "NIC" in target_label:
+                        if device_label not in gpu_to_nic_connections:
+                            gpu_to_nic_connections[device_label] = []
+                        gpu_to_nic_connections[device_label].append((target_label, connection_type))
+
+        # Verify that each GPU has at least one PIX or PXB connection to a NIC
+        for gpu, connections in gpu_to_nic_connections.items():
+            has_valid_connection = False
+            for nic, connection_type in connections:
+                if connection_type in {"PIX", "PXB"}:
+                    logging.info(f"GPU {gpu} has at least one PIX/PXB connection to a NIC")
+                    has_valid_connection = True
+                    break
+
+            if not has_valid_connection:
+                for nic, connection_type in connections:
+                    logging.error(
+                        f"GPU {gpu} does not have a PIX or PXB connection to NIC {nic}. "
+                        f"Current connection type: {connection_type}."
+                    )
+
+    except FileNotFoundError:
+        logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while executing nvidia-smi topo -m: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+
+def check_kernel_cmdline():
+    """
+    Checks if the words "isolcpus", "rcu_nocbs", and "irqaffinity" appear in /proc/cmdline.
+    Logs a separate warning for each word that is missing.
+    """
+    try:
+        # Read the contents of /proc/cmdline
+        with open("/proc/cmdline", "r") as file:
+            cmdline = file.read().strip()
+
+        # Check for each required word
+        required_keywords = ["isolcpus", "rcu_nocbs", "irqaffinity"]
+        for keyword in required_keywords:
+            if keyword not in cmdline:
+                logging.warning(
+                    f"The kernel command line is missing '{keyword}'. Please ensure it is configured."
+                )
+            else:
+                logging.info(f"{keyword} found in kernel boot line")
+
+    except FileNotFoundError:
+        logging.error("/proc/cmdline not found. Are you sure you're running on Linux?")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while checking /proc/cmdline: {e}")
+
+
+def check_mtu_size():
+    """
+    Checks the MTU size of each NVIDIA NIC using the sysfs interface and prints a warning if it's not over 1500 bytes.
+    """
+    try:
+        ifnames, _ = get_nic_info()
+
+        # Check MTU size for each NVIDIA NIC using sysfs
+        for iface in ifnames:
+            mtu_path = f"/sys/class/net/{iface}/mtu"
+            if os.path.exists(mtu_path):
+                with open(mtu_path, "r") as f:
+                    mtu_value = int(f.read().strip())
+                    if mtu_value <= 1518:
+                        logging.warning(
+                            f"Interface {iface} has an MTU of {mtu_value} bytes. "
+                            "If possible use larger frame sizes for better performance"
+                        )
+                    else:
+                        logging.info(
+                            f"Interface {iface} has an acceptable MTU of {mtu_value} bytes."
+                        )
+            else:
+                logging.error(f"MTU file for interface {iface} does not exist.")
+
+    except FileNotFoundError:
+        logging.error(
+            "The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH."
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while executing a command: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+
+def update_mrrs_for_nvidia_devices():
+    """
+    Updates the PCIe Maximum Read Request Size (MRRS) to 4096 for all Mellanox devices,
+    preserving the lower 12 bits of the current setting.
+    """
+    try:
+        _, addrs = get_nic_info()
+
+        # Update MRRS for each PCIe address using setpci
+        for address in addrs:
+            try:
+                # Read the current MRRS value
+                read_result = subprocess.run(
+                    ["setpci", "-s", address, "68.w"], capture_output=True, text=True, check=True
+                )
+
+                current_value_hex = read_result.stdout.strip()
+                current_value = int(current_value_hex, 16)
+
+                # Calculate new value: keep lower 12 bits, set upper 4 bits to 5 (for 4096 bytes)
+                new_value = (current_value & 0x0FFF) | (0x5 << 12)
+
+                # Write the new MRRS value back
+                subprocess.run(["setpci", "-s", address, f"68.w={new_value:04x}"], check=True)
+                logging.info(
+                    f"Successfully updated MRRS to 4096 for device at PCIe address {address}={hex(new_value)}."
+                )
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Failed to update MRRS for device at PCIe address {address}: {e}")
+
+    except FileNotFoundError:
+        logging.error(
+            "The ibdev2netdev or setpci command is not found. Ensure that they are installed and available in your PATH."
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error while executing a command: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+
+
+def main():
+    setup_logging()
+    args = parse_args()
+
+    if args.check is not None:
+        if args.check == "all" or args.check == "cpu-freq":
+            check_cpu_governor()
+        if args.check == "all" or args.check == "mrrs":
+            check_mrrs()
+        if args.check == "all" or args.check == "mps":
+            check_max_payload_size()
+        if args.check == "all" or args.check == "hugepages":
+            check_hugepages()
+        if args.check == "all" or args.check == "gpu-clocks":
+            check_nvidia_gpu_clocks()
+        if args.check == "all" or args.check == "bar1-size":
+            check_bar1_size()
+        if args.check == "all" or args.check == "topo":
+            check_topology_connections()
+        if args.check == "all" or args.check == "cmdline":
+            check_kernel_cmdline()
+        if args.check == "all" or args.check == "mtu":
+            check_mtu_size()
+    elif args.set is not None:
+        if args.set == "mrrs":
+            update_mrrs_for_nvidia_devices()
+
+
+if __name__ == "__main__":
+    main()
