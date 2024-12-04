@@ -24,6 +24,7 @@ scheduler:
   worker_thread_number: 5
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
+  # max_duration_ms: 20000
 
 advanced_network:
   cfg:
