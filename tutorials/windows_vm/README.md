@@ -258,15 +258,32 @@ XML of the assigned GPU in `virt-manager` window should look like the following:
 
 ![VM PCI Details](./windows_vm_pci_details.png)
 
+### Add VNC Display for Windows VM
+
+Add VNC display server via "Add Hardware" option in `virt-manager` so that the Windows VM display
+can be controlled via VNC server running on Linux host.
+
+![vnc_display](./vnc_display.png)
+
 #### Install NVIDIA Driver in Windows VM
 
 Download the NVIDIA driver for RTX A4000 GPU from the
 [NVIDIA website](https://www.nvidia.com/en-us/drivers/).
 
-After installing the NVIDIA driver, open command-prompt by typing `cmd` in the Windows search bar
+After installing the NVIDIA driver, reboot the Windows VM. Then, open command-prompt by typing `cmd` in the Windows search bar
 and type `nvidia-smi`. The following output should be displayed:
 
 ![nvidia-smi output in windows vm](./nvidia-smi-windows-vm.png)
+
+#### Replicate Monitor Display to VNC Display
+Right now, we have two screen for the Windows VM: physical monitor (VGA) and VNC display. It could be
+difficult to control mouse and keyboard with both the displays. Therefore, the monitor display can
+be replicated to the monitor display so that the Windows VM's physical monitor display can be
+controlled via the VNC display.
+
+The following configuration shows that the screens are replicated in Windows VM:
+
+![duplicate_display](./duplicate_display.png)
 
 ####
 
