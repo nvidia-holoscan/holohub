@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
+import os
+import re
 import subprocess
 import sys
-import re
-import os
-import logging
+
 
 def setup_logging():
     """
@@ -14,31 +15,42 @@ def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
+
 
 def parse_args():
     """
     Parses command-line arguments.
     """
-    parser = argparse.ArgumentParser(description="Check system tuning for ANO performance",
+    parser = argparse.ArgumentParser(
+        description="Check system tuning for ANO performance",
         epilog=(
             "Examples:\n"
             "  python check_system.py -cpu-freq       # Check CPU frequency governor\n"
             "  python check_system.py -mrrs     # Check MRRS settings for NVIDIA NICs\n\n"
             "  python check_system.py -mps      # Check max payload size settings for NVIDIA NICs\n\n"
         ),
-        formatter_class=argparse.RawTextHelpFormatter
+        formatter_class=argparse.RawTextHelpFormatter,
     )
 
     parser.add_argument(
         "--check",
-        choices=["all", "cpu-freq", "mrrs", "mps", "hugepages", 
-                 "gpu-clocks", "bar1-size", "topo", "cmdline",
-                 "mtu"],
+        choices=[
+            "all",
+            "cpu-freq",
+            "mrrs",
+            "mps",
+            "hugepages",
+            "gpu-clocks",
+            "bar1-size",
+            "topo",
+            "cmdline",
+            "mtu",
+        ],
         help=(
             "Specify the property to check:\n"
-            "  all        - Perform all checks\n"            
+            "  all        - Perform all checks\n"
             "  cpu-freq   - Check if the CPU frequency governor is set to 'performance'.\n"
             "  mrrs       - Check if the Maximum Read Request Size (MRRS) of NVIDIA NICs is set to 4096.\n"
             "  mps        - Check if the Maximum Payload Size is set to 256B.\n"
@@ -48,16 +60,10 @@ def parse_args():
             "  topo       - Check the GPU and NIC topology\n"
             "  cmdline    - Check the kernel boot parameters\n"
             "  mtu        - Check MTU of each NVIDIA interface\n"
-        )
-    ) 
-
-    parser.add_argument(
-        "--set",
-        choices=["mrrs"],
-        help=(
-            "  mrrs      - Update MRRS of NICs\n"
-        )
+        ),
     )
+
+    parser.add_argument("--set", choices=["mrrs"], help=("  mrrs      - Update MRRS of NICs\n"))
     return parser.parse_args()
 
 
@@ -65,18 +71,13 @@ def get_nic_info():
     """
     Parses the output of `ibdev2netdev -v` to extract and return a list of tuples,
     where each tuple contains the interface name and its PCIe address.
-    
+
     Returns:
         List[Tuple[str, str]]: A list of tuples with (interface_name, pcie_address).
     """
     try:
         # Run ibdev2netdev -v to get detailed information about Mellanox devices
-        result = subprocess.run(
-            ["ibdev2netdev", "-v"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        result = subprocess.run(["ibdev2netdev", "-v"], capture_output=True, text=True, check=True)
 
         # Parse the output to extract interface names and PCIe addresses
         names = []
@@ -92,7 +93,9 @@ def get_nic_info():
         return names, addrs
 
     except FileNotFoundError:
-        print("The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH.")
+        print(
+            "The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH."
+        )
         return [], []
     except subprocess.CalledProcessError as e:
         print(f"Error while executing ibdev2netdev: {e}")
@@ -100,7 +103,8 @@ def get_nic_info():
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return [], []
-    
+
+
 def get_online_cpus():
     """
     Returns a list of online CPUs by reading /sys/devices/system/cpu/online.
@@ -108,7 +112,7 @@ def get_online_cpus():
     try:
         with open("/sys/devices/system/cpu/online", "r") as f:
             online_cpus = f.read().strip()
-        
+
         # Parse ranges (e.g., "0-3" -> [0, 1, 2, 3])
         cpu_list = []
         for part in online_cpus.split(","):
@@ -117,34 +121,41 @@ def get_online_cpus():
                 cpu_list.extend(range(start, end + 1))
             else:
                 cpu_list.append(int(part))
-        
+
         return cpu_list
     except FileNotFoundError:
-        logging.error("Could not determine online CPUs. File /sys/devices/system/cpu/online not found.")
+        logging.error(
+            "Could not determine online CPUs. File /sys/devices/system/cpu/online not found."
+        )
         sys.exit(1)
+
 
 def check_cpu_governor():
     """
     Checks if the CPU frequency governor is set to 'performance' for all online CPUs.
     """
     online_cpus = get_online_cpus()
-    
+
     for cpu in online_cpus:
         scaling_governor_path = f"/sys/devices/system/cpu/cpu{cpu}/cpufreq/scaling_governor"
-        
+
         try:
             with open(scaling_governor_path, "r") as f:
                 governor = f.read().strip()
-            
+
             if governor == "performance":
                 logging.info(f"CPU {cpu}: Governor is correctly set to 'performance'.")
             else:
                 logging.warning(f"CPU {cpu}: Governor is set to '{governor}', not 'performance'.")
 
         except FileNotFoundError:
-            logging.error(f"CPU {cpu}: Scaling governor file not found. This CPU may not support frequency scaling.")
+            logging.error(
+                f"CPU {cpu}: Scaling governor file not found. This CPU may not support frequency scaling."
+            )
         except PermissionError:
-            logging.error(f"CPU {cpu}: Permission denied while accessing scaling governor file. Run as root.")
+            logging.error(
+                f"CPU {cpu}: Permission denied while accessing scaling governor file. Run as root."
+            )
 
 
 def check_mrrs():
@@ -154,31 +165,29 @@ def check_mrrs():
     """
     try:
         _, addrs = get_nic_info()
-        
-        for pci_address in addrs: 
-            
+
+        for pci_address in addrs:
+
             # Query MRRS for the NIC using setpci
             mrrs_result = subprocess.run(
-                ["setpci", "-s", pci_address, "68.w"],
-                capture_output=True,
-                text=True,
-                check=True
+                ["setpci", "-s", pci_address, "68.w"], capture_output=True, text=True, check=True
             )
-            
+
             # Convert MRRS value from hexadecimal to decimal
-            mrrs_value = (int(mrrs_result.stdout.strip(), 16) & 0xf000) >> 12
-            
+            mrrs_value = (int(mrrs_result.stdout.strip(), 16) & 0xF000) >> 12
+
             if mrrs_value == 5:
                 logging.info(f"{pci_address}: MRRS is correctly set to 4096.")
             else:
                 logging.warning(f"{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096.")
-    
+
     except FileNotFoundError:
         logging.error("The required tools (lspci or setpci) are not available on this system.")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while checking MRRS: {e}")
-        sys.exit(1)    
+        sys.exit(1)
+
 
 def check_max_payload_size():
     """
@@ -187,16 +196,13 @@ def check_max_payload_size():
     """
     try:
         _, addrs = get_nic_info()
-        
-        for pci_address in addrs:           
+
+        for pci_address in addrs:
             # Query detailed device information using lspci -vv
             mps_result = subprocess.run(
-                ["lspci", "-vv", "-s", pci_address],
-                capture_output=True,
-                text=True,
-                check=True
+                ["lspci", "-vv", "-s", pci_address], capture_output=True, text=True, check=True
             )
-            
+
             # Parse MaxPayload information from the DevCtl section
             lines = mps_result.stdout.splitlines()
             devctl_found = False
@@ -212,25 +218,34 @@ def check_max_payload_size():
                         if "MaxPayload" in lines[j]:
                             # Extract the actual MaxPayload value from the line
                             payload_info = lines[j].strip()
-                            max_payload_value = int(payload_info.split("MaxPayload")[1].split("bytes")[0].strip())
+                            max_payload_value = int(
+                                payload_info.split("MaxPayload")[1].split("bytes")[0].strip()
+                            )
                             if max_payload_value == 256:
-                                logging.info(f"{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes.")
+                                logging.info(
+                                    f"{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes."
+                                )
                             else:
-                                logging.warning(f"{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes.")
+                                logging.warning(
+                                    f"{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes."
+                                )
                             break
                     else:
-                        logging.error(f"{pci_address}: Unable to find MaxPayload information under DevCtl.")
+                        logging.error(
+                            f"{pci_address}: Unable to find MaxPayload information under DevCtl."
+                        )
                     break
-            
+
             if not devctl_found:
                 logging.error(f"{pci_address}: DevCtl section not found.")
-    
+
     except FileNotFoundError:
         logging.error("The required tools (lspci) are not available on this system.")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while checking Max Payload Size: {e}")
         sys.exit(1)
+
 
 def check_hugepages():
     """
@@ -243,12 +258,12 @@ def check_hugepages():
         hugepage_size_kB = 0
 
         # Read /proc/meminfo for hugepage details
-        with open('/proc/meminfo', 'r') as file:
+        with open("/proc/meminfo", "r") as file:
             for line in file:
-                if 'HugePages_Total' in line:
-                    total_hugepages = int(line.split(':')[1].strip())
-                elif 'Hugepagesize' in line:
-                    hugepage_size_kB = int(line.split(':')[1].strip().split()[0])  # Size in kB
+                if "HugePages_Total" in line:
+                    total_hugepages = int(line.split(":")[1].strip())
+                elif "Hugepagesize" in line:
+                    hugepage_size_kB = int(line.split(":")[1].strip().split()[0])  # Size in kB
 
         # Check if hugepages are allocated
         if total_hugepages > 0:
@@ -276,8 +291,9 @@ def check_hugepages():
         return False
     except Exception as e:
         logging.error(f"An error occurred while checking hugepages: {e}")
-        return False        
-    
+        return False
+
+
 def check_nvidia_gpu_clocks():
     """
     Checks all NVIDIA GPUs to ensure that the SM clock and memory clock are set to their maximum values.
@@ -286,10 +302,7 @@ def check_nvidia_gpu_clocks():
     try:
         # Run nvidia-smi to get clock information
         result = subprocess.run(
-            ["nvidia-smi", "-q", "-d", "CLOCK"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["nvidia-smi", "-q", "-d", "CLOCK"], capture_output=True, text=True, check=True
         )
 
         # Parse the output of nvidia-smi
@@ -313,9 +326,9 @@ def check_nvidia_gpu_clocks():
                 mem_max = None
 
             # Parse current clocks under "Clocks" section
-            elif sm_current == None and line.startswith("SM") and "MHz" in line:
+            elif sm_current is None and line.startswith("SM") and "MHz" in line:
                 sm_current = int(line.split(":")[1].strip().split()[0])
-            elif mem_current == None and line.startswith("Memory") and "MHz" in line:
+            elif mem_current is None and line.startswith("Memory") and "MHz" in line:
                 mem_current = int(line.split(":")[1].strip().split()[0])
 
             # Parse maximum clocks under "Max Clocks" section
@@ -348,7 +361,9 @@ def check_nvidia_gpu_clocks():
                         f"GPU {current_gpu}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
                     )
                 else:
-                    logging.info(f"GPU {current_gpu}: Memory Clock is correctly set to {mem_max} MHz.")
+                    logging.info(
+                        f"GPU {current_gpu}: Memory Clock is correctly set to {mem_max} MHz."
+                    )
 
                 # Reset variables for the next GPU section
                 current_gpu = None
@@ -369,10 +384,7 @@ def check_bar1_size():
     try:
         # Run nvidia-smi to get BAR1 memory information
         result = subprocess.run(
-            ["nvidia-smi", "-q", "-d", "MEMORY"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["nvidia-smi", "-q", "-d", "MEMORY"], capture_output=True, text=True, check=True
         )
 
         # Parse the output of nvidia-smi
@@ -402,8 +414,10 @@ def check_bar1_size():
                 if bar1_total > 1024:
                     logging.info(f"GPU {current_gpu}: BAR1 size is {bar1_total} MiB.")
                 else:
-                    logging.warning(f"GPU {current_gpu}: BAR1 size is {bar1_total} MiB. This may indicate an issue.")
-                
+                    logging.warning(
+                        f"GPU {current_gpu}: BAR1 size is {bar1_total} MiB. This may indicate an issue."
+                    )
+
                 # Reset variables for the next GPU section
                 current_gpu = None
 
@@ -412,7 +426,7 @@ def check_bar1_size():
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while querying NVIDIA GPUs: {e}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")   
+        logging.error(f"An unexpected error occurred: {e}")
 
 
 def check_topology_connections():
@@ -423,10 +437,7 @@ def check_topology_connections():
     try:
         # Run nvidia-smi topo -m to get topology information
         result = subprocess.run(
-            ["nvidia-smi", "topo", "-m"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["nvidia-smi", "topo", "-m"], capture_output=True, text=True, check=True
         )
 
         # Parse the output of nvidia-smi topo -m
@@ -444,7 +455,7 @@ def check_topology_connections():
 
         # Parse the topology table rows
         gpu_to_nic_connections = {}
-        for row in topo_output[header_index + 1:]:
+        for row in topo_output[header_index + 1 :]:
             row = row.strip()
             if not row:
                 continue  # Skip empty lines
@@ -487,6 +498,7 @@ def check_topology_connections():
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
 
+
 def check_kernel_cmdline():
     """
     Checks if the words "isolcpus", "rcu_nocbs", and "irqaffinity" appear in /proc/cmdline.
@@ -501,7 +513,9 @@ def check_kernel_cmdline():
         required_keywords = ["isolcpus", "rcu_nocbs", "irqaffinity"]
         for keyword in required_keywords:
             if keyword not in cmdline:
-                logging.warning(f"The kernel command line is missing '{keyword}'. Please ensure it is configured.")
+                logging.warning(
+                    f"The kernel command line is missing '{keyword}'. Please ensure it is configured."
+                )
             else:
                 logging.info(f"{keyword} found in kernel boot line")
 
@@ -509,7 +523,8 @@ def check_kernel_cmdline():
         logging.error("/proc/cmdline not found. Are you sure you're running on Linux?")
     except Exception as e:
         logging.error(f"An unexpected error occurred while checking /proc/cmdline: {e}")
-        
+
+
 def check_mtu_size():
     """
     Checks the MTU size of each NVIDIA NIC using the sysfs interface and prints a warning if it's not over 1500 bytes.
@@ -521,22 +536,29 @@ def check_mtu_size():
         for iface in ifnames:
             mtu_path = f"/sys/class/net/{iface}/mtu"
             if os.path.exists(mtu_path):
-                with open(mtu_path, 'r') as f:
+                with open(mtu_path, "r") as f:
                     mtu_value = int(f.read().strip())
                     if mtu_value <= 1518:
-                        logging.warning(f"Interface {iface} has an MTU of {mtu_value} bytes. "\
-                                        "If possible use larger frame sizes for better performance")
+                        logging.warning(
+                            f"Interface {iface} has an MTU of {mtu_value} bytes. "
+                            "If possible use larger frame sizes for better performance"
+                        )
                     else:
-                        logging.info(f"Interface {iface} has an acceptable MTU of {mtu_value} bytes.")
+                        logging.info(
+                            f"Interface {iface} has an acceptable MTU of {mtu_value} bytes."
+                        )
             else:
                 logging.error(f"MTU file for interface {iface} does not exist.")
 
     except FileNotFoundError:
-        logging.error("The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH.")
+        logging.error(
+            "The ibdev2netdev command is not found. Ensure that it is installed and available in your PATH."
+        )
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while executing a command: {e}")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
+
 
 def update_mrrs_for_nvidia_devices():
     """
@@ -546,41 +568,37 @@ def update_mrrs_for_nvidia_devices():
     try:
         _, addrs = get_nic_info()
 
-
         # Update MRRS for each PCIe address using setpci
         for address in addrs:
             try:
                 # Read the current MRRS value
                 read_result = subprocess.run(
-                    ["setpci", "-s", address, "68.w"],
-                    capture_output=True,
-                    text=True,
-                    check=True
+                    ["setpci", "-s", address, "68.w"], capture_output=True, text=True, check=True
                 )
-                
+
                 current_value_hex = read_result.stdout.strip()
                 current_value = int(current_value_hex, 16)
 
                 # Calculate new value: keep lower 12 bits, set upper 4 bits to 5 (for 4096 bytes)
                 new_value = (current_value & 0x0FFF) | (0x5 << 12)
-                
+
                 # Write the new MRRS value back
-                subprocess.run(
-                    ["setpci", "-s", address, f"68.w={new_value:04x}"],
-                    check=True
+                subprocess.run(["setpci", "-s", address, f"68.w={new_value:04x}"], check=True)
+                logging.info(
+                    f"Successfully updated MRRS to 4096 for device at PCIe address {address}={hex(new_value)}."
                 )
-                logging.info(f"Successfully updated MRRS to 4096 for device at PCIe address {address}={hex(new_value)}.")
             except subprocess.CalledProcessError as e:
                 logging.error(f"Failed to update MRRS for device at PCIe address {address}: {e}")
 
     except FileNotFoundError:
-        logging.error("The ibdev2netdev or setpci command is not found. Ensure that they are installed and available in your PATH.")
+        logging.error(
+            "The ibdev2netdev or setpci command is not found. Ensure that they are installed and available in your PATH."
+        )
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while executing a command: {e}")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
-     
- 
+
 
 def main():
     setup_logging()
@@ -592,23 +610,23 @@ def main():
         if args.check == "all" or args.check == "mrrs":
             check_mrrs()
         if args.check == "all" or args.check == "mps":
-            check_max_payload_size() 
+            check_max_payload_size()
         if args.check == "all" or args.check == "hugepages":
-            check_hugepages()    
+            check_hugepages()
         if args.check == "all" or args.check == "gpu-clocks":
             check_nvidia_gpu_clocks()
-        if args.check == "all" or args.check == "bar1-size":        
-            check_bar1_size()    
-        if args.check == "all" or args.check == "topo":        
-            check_topology_connections()         
-        if args.check == "all" or args.check == "cmdline":        
+        if args.check == "all" or args.check == "bar1-size":
+            check_bar1_size()
+        if args.check == "all" or args.check == "topo":
+            check_topology_connections()
+        if args.check == "all" or args.check == "cmdline":
             check_kernel_cmdline()
-        if args.check == "all" or args.check == "mtu":        
+        if args.check == "all" or args.check == "mtu":
             check_mtu_size()
     elif args.set is not None:
-        if args.set == "mrrs":        
-            update_mrrs_for_nvidia_devices()              
-          
+        if args.set == "mrrs":
+            update_mrrs_for_nvidia_devices()
+
 
 if __name__ == "__main__":
     main()
