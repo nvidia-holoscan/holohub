@@ -115,7 +115,7 @@ if(BUILD_TESTING)
                   OUTPUT_VARIABLE rx_bus
                   COMMAND_ERROR_IS_FATAL ANY
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] Rx interface BUS info from config: ${rx_bus}")
+  message(STATUS "[ANO Test] Rx interface BUS info from config: ${rx_bus}")
 
   if(rx_bus)
     # Get the interface name
@@ -123,7 +123,7 @@ if(BUILD_TESTING)
                     OUTPUT_VARIABLE rx_if
                     COMMAND_ERROR_IS_FATAL ANY
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message(DEBUG "[ANO Test] Interface for ${rx_bus}: ${rx_if}")
+    message(STATUS "[ANO Test] Interface for ${rx_bus}: ${rx_if}")
 
     if(rx_if)
       # Get the ETH mac address
@@ -131,7 +131,7 @@ if(BUILD_TESTING)
                       OUTPUT_VARIABLE rx_eth_mac
                       COMMAND_ERROR_IS_FATAL ANY
                       OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message(DEBUG "[ANO Test] MAC address for interface ${rx_if}: ${rx_eth_mac}")
+      message(STATUS "[ANO Test] MAC address for interface ${rx_if}: ${rx_eth_mac}")
 
       # Inject in test config + add app timeout
       file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
