@@ -104,7 +104,6 @@ install(
 
 # Add testing
 if(BUILD_TESTING)
-
   ## adv_networking_bench_default_tx_rx_test ##
   # The test below is expected to run on an IGX devkit with a loopback
   # connecting both ports of the IGX NIC (default config currently hardcodes
@@ -118,29 +117,38 @@ if(BUILD_TESTING)
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
   message(DEBUG "[ANO Test] Rx interface BUS info from config: ${rx_bus}")
 
-  # Get the interface name
-  execute_process(COMMAND bash "-c" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${rx_bus} | awk '{print $1}'"
-                  OUTPUT_VARIABLE rx_if
-                  COMMAND_ERROR_IS_FATAL ANY
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] Interface for ${rx_bus}: ${rx_if}")
+  if(rx_bus)
+    # Get the interface name
+    execute_process(COMMAND bash "-c" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${rx_bus} | awk '{print $1}'"
+                    OUTPUT_VARIABLE rx_if
+                    COMMAND_ERROR_IS_FATAL ANY
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(DEBUG "[ANO Test] Interface for ${rx_bus}: ${rx_if}")
 
-  # Get the ETH mac address
-  execute_process(COMMAND cat "${rx_if}/address"
-                  OUTPUT_VARIABLE rx_eth_mac
-                  COMMAND_ERROR_IS_FATAL ANY
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] MAC address for interface ${rx_if}: ${rx_eth_mac}")
+    if(rx_if)
+      # Get the ETH mac address
+      execute_process(COMMAND cat "${rx_if}/address"
+                      OUTPUT_VARIABLE rx_eth_mac
+                      COMMAND_ERROR_IS_FATAL ANY
+                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      message(DEBUG "[ANO Test] MAC address for interface ${rx_if}: ${rx_eth_mac}")
 
-  # Inject in test config + add app timeout
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
-  string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_default_tx_rx_test.yaml" ${TEST_CONFIG})
+      # Inject in test config + add app timeout
+      file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
+      string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
+      string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
+      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_default_tx_rx_test.yaml" ${TEST_CONFIG})
 
-  # Create test
-  file(COPY "testing/adv_networking_test_harness.py" DESTINATION "testing")
-  add_test(NAME adv_networking_bench_dpdk_test
-           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_default_tx_rx_test.yaml" --avg-throughput-threshold 90 --missed-packets-threshold 0.1
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+      # Create test
+      file(COPY "testing/adv_networking_test_harness.py" DESTINATION "testing")
+      add_test(NAME adv_networking_bench_dpdk_test
+              COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_default_tx_rx_test.yaml" --avg-throughput-threshold 90 --missed-packets-threshold 0.1
+              WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    else()
+      message(STATUS "Rx Interface is empty - skipping test")
+    endif()
+  else()
+    message(STATUS "Rx Bud Id is empty - skipping test")
+    endif
+  endif()
 endif()
