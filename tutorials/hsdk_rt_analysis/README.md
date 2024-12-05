@@ -63,7 +63,7 @@ For this application, response times converge to the worst-case response time of
 
 ### Citation
 
-P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis 
+[1] P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis 
 of a Soft Real-time NVIDIA Holoscan Application,” in IEEE Real-Time 
 Systems Symposium, 2024.
 
