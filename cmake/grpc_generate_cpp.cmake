@@ -78,10 +78,10 @@ function(grpc_generate_cpp SRCS HDRS INCLUDE_DIRS)
 endfunction()
 
 include(FetchContent)
-# set(ABSL_ENABLE_INSTALL OFF)
-# set(gRPC_INSTALL OFF)
-# set(protobuf_INSTALL OFF)
-# set(CARES_INSTALL OFF)
+set(ABSL_ENABLE_INSTALL OFF)
+set(gRPC_INSTALL OFF)
+set(protobuf_INSTALL OFF)
+set(CARES_INSTALL OFF)
 FetchContent_Declare(
   grpc
   GIT_REPOSITORY https://github.com/grpc/grpc.git
