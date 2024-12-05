@@ -69,7 +69,15 @@ The only directory we modified is `artifact-eval`, which contains the code to re
 
 ### master.py
 
-The script `master.py` reproduces our experimental results using the files in the `code` folder. It has the following arguments:
+The script `master.py` reproduces our experimental results using the files in the `code` folder. The experiments fall into three categories, described here. More information on all output can be found in the `Output` section.
+
+The main experiments compare the theoretical WCRT for eight HoloHub applications (listed in the paper) to the WCRT from both simulating their execution and running a dummy version of them (which busy waits instead of using the real operators). Creates `evalpessimism.pdf` and `evalsim.pdf`.  
+
+The overhead experiment compares a theoretical WCRT that we know to be ideal to the actual response times in the system to estimate overheads. Creates `evaloverhead.pdf`.
+
+The scalability experiments compare the theoretical WCRT for large graphs that we randomly generated  to the WCRT from simulating their execution. We also evaluate how long the theoretical analysis takes to run. Creates `evalscalability.pdf`, `evalscalabilitypess.pdf`, and `evalanalysis.pdf`.
+
+`master.py` has the following arguments:
 
 - `--iterations`
     - An integer number of iterations, determining how many inputs each graph will process. Default value is 10.
@@ -78,11 +86,11 @@ The script `master.py` reproduces our experimental results using the files in th
 - `--build` or `-b`
     - Option to build executables.
 - `--main-experiments` or `-m`
-    - Option to run primary experiments.
+    - Option to run main experiments. 
 - `--overhead` or `-o`
     - Option to run evaluation of system overheads.
 - `--scalability` or `-s`
-    - Option to run evaluation of scalability.
+    - Option to run scalability experiments.
 
 The experiments cover a user-defined number of variations, as determined by `numvars`. To exactly match the results in the paper,
 `numvars` can be set to 0. In this case, each graph will have a number of variations equal to its node count.
@@ -106,7 +114,7 @@ This uses the `--iterations` argument, so the executables will need to be rebuil
     python master.py --iterations 10 -b
     python master.py --numvars 10 -m -o -s
 
-While running the experiments, output will periodically print to the terminal. The completion of an iteration prints the following output:
+While running the experiments, outputs will be periodically printed to the terminal. The completion of an iteration prints the following output:
 
     Running... iteration 1 complete
 
