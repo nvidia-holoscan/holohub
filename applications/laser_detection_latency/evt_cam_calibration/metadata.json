@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "USB Camera Calibration",
+		"name": "EVT Camera Calibration",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -21,12 +21,18 @@
 		"platforms": [
 			"arm64"
 		],
-		"tags": [
-		],
+		"tags": [],
 		"ranking": 1,
-		"dependencies": {},
+		"dependencies": {
+			"gxf_extensions": [
+				{
+					"name": "emergent_source",
+					"version": "1.0"
+				}
+			]
+		},
 		"run": {
-			"command": "python3 <holohub_app_source>/usb_cam_calibration.py",
+			"command": "python3 <holohub_app_source>/evt_cam_calibration.py",
 			"workdir": "holohub_app_bin"
 		}
 	}

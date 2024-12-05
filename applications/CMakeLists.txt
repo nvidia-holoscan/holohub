@@ -58,7 +58,7 @@ add_holohub_application(imaging_ai_segmentator)
 
 add_holohub_application(hyperspectral_segmentation)
 
-add_subdirectory(laser_detection_app)
+add_subdirectory(laser_detection_latency)
 
 add_holohub_application(multiai_endoscopy)
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# we don't expose the C++ interface of the operator yet, therfore link
+# we don't expose the C++ interface of the operator yet, therefore link
 # statically
 cmake_minimum_required(VERSION 3.20)
 project(apriltag_detector LANGUAGES CXX)

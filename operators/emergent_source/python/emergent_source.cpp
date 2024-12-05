@@ -60,13 +60,13 @@ class PyEmergentSourceOp : public EmergentSourceOp {
                      // defaults here should match constexpr values in EmergentSourceOp::Setup
                      uint32_t width = 4200, uint32_t height = 2160, uint32_t framerate = 240,
                      bool rdma = false, uint32_t exposure = 3072, uint32_t gain = 4095,
-		     const std::string& name = "emergent_source")
+         const std::string& name = "emergent_source")
       : EmergentSourceOp(ArgList{Arg{"width", width},
                                  Arg{"height", height},
                                  Arg{"framerate", framerate},
                                  Arg{"rdma", rdma},
-				 Arg{"exposure", exposure},
-				 Arg{"gain", gain}}) {
+         Arg{"exposure", exposure},
+         Arg{"gain", gain}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -100,8 +100,8 @@ PYBIND11_MODULE(_emergent_source, m) {
                     uint32_t,
                     uint32_t,
                     bool,
-		    uint32_t,
-		    uint32_t,
+        uint32_t,
+        uint32_t,
                     const std::string&>(),
            "fragment"_a,
            // defaults values here should match constexpr values in C++ EmergentSourceOp::Setup
@@ -109,8 +109,8 @@ PYBIND11_MODULE(_emergent_source, m) {
            "height"_a = 2160,
            "framerate"_a = 240,
            "rdma"_a = false,
-	   "exposure"_a = 3072,
-	   "gain"_a = 4095,
+     "exposure"_a = 3072,
+     "gain"_a = 4095,
            "name"_a = "emergent_source"s,
            doc::EmergentSourceOp::doc_EmergentSourceOp_python)
       .def_property_readonly(

@@ -22,8 +22,8 @@
 #include <holoscan/core/parameter.hpp>
 #include <holoscan/utils/cuda_stream_handler.hpp>
 
-#include "cuda.h"
 #include "cuAprilTags.h"
+#include "cuda.h"
 
 namespace holoscan::ops {
 
@@ -32,35 +32,34 @@ namespace holoscan::ops {
 // width_xheight_.
 
 class ApriltagDetectorOp : public holoscan::Operator {
-public:
-    struct output_corners {
-        float2 corners[4];
-        uint16_t id;
-    };
+ public:
+  struct output_corners {
+    float2 corners[4];
+    uint16_t id;
+  };
 
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(ApriltagDetectorOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(ApriltagDetectorOp)
 
-    void setup(holoscan::OperatorSpec& spec) override;
-    void start() override;
-    void stop() override;
-    void compute(holoscan::InputContext&,
-        holoscan::OutputContext& op_output,
-        holoscan::ExecutionContext&) override;
+  void setup(holoscan::OperatorSpec& spec) override;
+  void start() override;
+  void stop() override;
+  void compute(holoscan::InputContext&, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override;
 
-private:
-    holoscan::Parameter<int> width_;
-    holoscan::Parameter<int> height_;
-    // number_of_tags_ will let the operator know, how many
-    // apriltags the user is expecting.
-    holoscan::Parameter<int> number_of_tags_;
+ private:
+  holoscan::Parameter<int> width_;
+  holoscan::Parameter<int> height_;
+  // number_of_tags_ will let the operator know, how many
+  // apriltags the user is expecting.
+  holoscan::Parameter<int> number_of_tags_;
 
-    cuAprilTagsHandle apriltag_handle_;
+  cuAprilTagsHandle apriltag_handle_;
 
-    CUcontext cuda_context_ = nullptr;
-    CUdevice cuda_device_ = 0;
-    holoscan::CudaStreamHandler cuda_stream_handler_;
+  CUcontext cuda_context_ = nullptr;
+  CUdevice cuda_device_ = 0;
+  holoscan::CudaStreamHandler cuda_stream_handler_;
 };
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
 
-#endif // SRC_HOLOLINK_OPERATORS_APRILTAG_DETECTOR_APRILTAG_DETECTOR
+#endif  // SRC_HOLOLINK_OPERATORS_APRILTAG_DETECTOR_APRILTAG_DETECTOR

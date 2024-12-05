@@ -1,8 +1,8 @@
-# Laser Detection
+# Laser Detection Latency
 
 ## Introduction
 
-The laser detection app demonstrates the latency differences between two different cameras visually.
+The laser detection latency application demonstrates the latency differences between two different cameras visually.
 
 <center> <img src="./data/demo.png"></center>
 

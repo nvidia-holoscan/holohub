@@ -20,17 +20,17 @@ find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 set(HOLOSCAN_OPERATORS
-	apriltag_detector
-	emergent_source
+  apriltag_detector
+  emergent_source
 )
 
 add_holohub_application(evt_cam_calibration DEPENDS
                         OPERATORS ${HOLOSCAN_OPERATORS})
 
 add_holohub_application(laser_detection DEPENDS
-			OPERATORS ${HOLOSCAN_OPERATORS})
+      OPERATORS ${HOLOSCAN_OPERATORS})
 
 add_holohub_application(usb_cam_calibration DEPENDS
-			OPERATORS ${HOLOSCAN_OPERATORS})
+      OPERATORS ${HOLOSCAN_OPERATORS})
 
 unset(HOLOSCAN_OPERATORS)
