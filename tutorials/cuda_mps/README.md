@@ -73,6 +73,11 @@ MPS, it can also improve the overall GPU utilization.
 
 ## Performance Benefits on x86 System 
 
+> **Note:** Endoscopy Tool Tracking does not work with CUDA MPS after [holohub/Holoscan-SDK-v2.6.0](https://github.com/nvidia-holoscan/holohub/tree/holoscan-sdk-2.6.0) due to the
+> unavailability of CUDA dynamic parallelism implemented in this
+> [PR](https://github.com/nvidia-holoscan/holohub/pull/550) in CUDA MPS. In case endoscopy tool tracking needs
+> to be tested with CUDA MPS, please use the [`holoscan-sdk-v2.6.0`](https://github.com/nvidia-holoscan/holohub/tree/holoscan-sdk-2.6.0) tag or earlier.
+
 Suppose, we want to run the endoscopy tool tracking and ultrasound segmentation applications
 concurrently on an x86 workstation with RTX A6000 GPU. The below table shows the maximum end-to-end latency performance
 without and with CUDA MPS, where the active thread percentage is set to 40\% for each application.

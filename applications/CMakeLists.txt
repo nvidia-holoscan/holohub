@@ -62,8 +62,7 @@ add_subdirectory(laser_detection_app)
 
 add_holohub_application(multiai_endoscopy)
 
-add_holohub_application(multiai_ultrasound DEPENDS
-                        OPERATORS visualizer_icardio)
+add_holohub_application(multiai_ultrasound)
 
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS

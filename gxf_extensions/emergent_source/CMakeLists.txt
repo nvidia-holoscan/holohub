@@ -28,6 +28,7 @@ target_link_libraries(gxf_emergent_source_lib
   CUDA::cuda_driver
   GXF::multimedia
   GXF::std
+  holoscan::core
   yaml-cpp
   EmergentCamera
 )

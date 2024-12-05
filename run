@@ -557,6 +557,9 @@ build_desc() {
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo "                                          multiple arguments can be passed between quotes"
   echo "                                          or using several --configure-args in the command line"
+  echo "   --parallel <jobs>                    : Build in parallel using the given number of jobs."
+  echo "                                          Only needed to override the native build tool's default."
+  echo "                                          Example: --parallel $(($(nproc)-1))"
   echo ""
   echo "Prior to the first build use './run setup' to install the required dependencies"
   echo ""
@@ -619,6 +622,7 @@ build() {
   local build_path="${CMAKE_BUILD_PATH}"
   local benchmark=false
   local install=false
+  local parallel_jobs=""
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -649,6 +653,10 @@ build() {
          skipnext=1
       elif [ "$arg" = "--buildpath" ]; then
          build_path="${ARGS[i+1]}"
+         skipnext=1
+      elif [ "$arg" = "--parallel" ]; then
+         parallel_jobs="${ARGS[i+1]}"
+         echo "Setting the number of parallel build jobs: ${ARGS[i+1]}"
          skipnext=1
       elif [[ $arg = -* ]]; then
         print_error "Unknown option $arg"
@@ -692,7 +700,8 @@ build() {
   run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
   ret=$?
   check_exit_code $ret "Error building application."
-  run_command cmake --build ${build_path} -j
+  # Job concurrency determined by the underlying build tool unless a number is specified
+  run_command cmake --build ${build_path} -j ${parallel_jobs}
   ret=$?
   check_exit_code $ret "Error building application."
 
