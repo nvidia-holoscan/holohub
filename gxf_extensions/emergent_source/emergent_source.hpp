@@ -44,6 +44,9 @@ constexpr uint32_t kDefaultHeight = 2160;
 constexpr uint32_t kDefaultFramerate = 240;
 constexpr bool kDefaultRDMA = false;
 constexpr PIXEL_FORMAT kDefaultPixelFormat = GVSP_PIX_BAYGB8;
+constexpr uint32_t kDefaultExposure = 3072;
+constexpr uint32_t kDefaultGain = 4095;
+
 
 /// @brief Video input codelet for use with Emergent cameras using ConnectX-6
 ///
@@ -71,6 +74,8 @@ class EmergentSource : public gxf::Codelet {
   gxf::Parameter<uint32_t> height_;
   gxf::Parameter<uint32_t> framerate_;
   gxf::Parameter<bool> use_rdma_;
+  gxf::Parameter<uint32_t> exposure_;
+  gxf::Parameter<uint32_t> gain_;
 
   CEmergentCamera camera_;
   CEmergentFrame evt_frame_[FRAMES_BUFFERS];
