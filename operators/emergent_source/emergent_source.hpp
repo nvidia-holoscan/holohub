@@ -46,6 +46,8 @@ class EmergentSourceOp : public holoscan::ops::GXFOperator {
   Parameter<uint32_t> height_;
   Parameter<uint32_t> framerate_;
   Parameter<bool> use_rdma_;
+  Parameter<uint32_t> exposure_;
+  Parameter<uint32_t> gain_;
 };
 
 }  // namespace holoscan::ops

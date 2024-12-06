@@ -1,30 +1,27 @@
 {
-	"operator": {
-		"name": "emergent_source",
+	"application": {
+		"name": "EVT Camera Calibration",
 		"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
+		"language": "Python",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "2.1.0",
 			"tested_versions": [
-				"0.5.0"
+				"2.2.0"
 			]
 		},
 		"platforms": [
-			"amd64",
 			"arm64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": [],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [
@@ -33,6 +30,10 @@
 					"version": "1.0"
 				}
 			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/evt_cam_calibration.py",
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

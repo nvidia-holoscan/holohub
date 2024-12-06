@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "emergent_source",
+		"name": "apriltag_detector",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -12,9 +12,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "2.2.0",
 			"tested_versions": [
-				"0.5.0"
+				"2.2.0"
 			]
 		},
 		"platforms": [
@@ -22,17 +22,9 @@
 			"arm64"
 		],
 		"tags": [
-			"Camera",
-			"Emergent"
+			"Camera"
 		],
 		"ranking": 1,
-		"dependencies": {
-			"gxf_extensions": [
-				{
-					"name": "emergent_source",
-					"version": "1.0"
-				}
-			]
-		}
+		"dependencies": {}
 	}
 }
