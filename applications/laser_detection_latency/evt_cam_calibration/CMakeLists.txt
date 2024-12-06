@@ -20,8 +20,8 @@ find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_custom_target(evt_cam_calibration_deps ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../data/apriltag-calibration.png" "${CMAKE_CURRENT_BINARY_DIR}/apriltag-calibration.png"
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../data/apriltag-calibration.png"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../images/apriltag-calibration.png" "${CMAKE_CURRENT_BINARY_DIR}/apriltag-calibration.png"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../images/apriltag-calibration.png"
   BYPRODUCTS "apriltag-calibration.png"
 )
 
