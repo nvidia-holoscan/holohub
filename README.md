@@ -5,7 +5,7 @@
 ![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
 )
 
-[![Applications](https://img.shields.io/badge/Applications-84-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
+[![Applications](https://img.shields.io/badge/Applications-87-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
 [![Operators](https://img.shields.io/badge/Operators-41-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
 [![Tutorials](https://img.shields.io/badge/Tutorials-12-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
 
