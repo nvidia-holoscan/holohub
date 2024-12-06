@@ -309,6 +309,9 @@ get_conditional_options() {
         # enable usage of the the perf_event_open call, see
         # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#docker-profiling
         conditional_opt+="${prefix}--cap-add=SYS_ADMIN${postfix}"
+	if [[ "$gpu_type" == "igpu" ]]; then
+	    conditional_opt+="${prefix}-v /opt/nvidia/nsight-systems/2024.2.2:/opt/nvidia/nsight-systems/2024.2.2${postfix}"
+	fi
     fi
 
     # Allow X11 forwarding over SSH
@@ -775,6 +778,11 @@ launch() {
         user="root"
     else
         user="$(id -u):$(id -g)"
+    fi
+    if [[ "$gpu_type" == "igpu" ]] && [[ $nsys_profile == true ]]; then
+        # for iGPU, we need to install nsight in the host system
+	echo "Installing nsight on the host for iGPU container"
+	sudo apt update && sudo apt install -y nsight-systems-2024.2.2
     fi
 
     # DOCKER PARAMETERS

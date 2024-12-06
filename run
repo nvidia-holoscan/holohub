@@ -66,6 +66,17 @@ compare_version () {
     return 0
 }
 
+get_host_gpu() {
+    if ! command -v nvidia-smi >/dev/null; then
+        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo -n "dgpu";
+    elif [[ ! $(nvidia-smi --query-gpu=name --format=csv,noheader) ]] || \
+         [[ $(nvidia-smi --query-gpu=name --format=csv,noheader -i 0) =~ "Orin (nvgpu)" ]]; then
+        echo -n "igpu";
+    else
+        echo -n "dgpu";
+    fi
+}
 
 run_command() {
     local status=0
@@ -841,7 +852,12 @@ for k, v in obj[project_type]["run"].items():
         echo "See https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html#linux-requirements for more information."
         exit 1
       fi
-      command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+      gpu_type=$(get_host_gpu)
+      if [[ "$gpu_type" == "igpu" ]]; then
+          command="/opt/nvidia/nsight-systems/2024.2.2/bin/nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+      else
+          command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+      fi
    fi
 
    # default workdir is bin
