@@ -503,6 +503,12 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       }
 
       try {
+        input_spec.common_.loopback_ = node["loopback"].as<bool>();
+      } catch (const std::exception& e) {
+        input_spec.common_.loopback_ = false;
+      }   
+
+      try {
         input_spec.debug_ = node["debug"].as<bool>(false);
       } catch (const std::exception& e) { input_spec.debug_ = false; }
 

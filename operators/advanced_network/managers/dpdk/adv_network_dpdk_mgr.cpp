@@ -38,6 +38,7 @@ struct TxWorkerParams {
   int queue;
   uint32_t batch_size;
   struct rte_ring* ring;
+  struct rte_ring* lb_ring;
   struct rte_mempool* meta_pool;
   struct rte_mempool* burst_pool;
   struct rte_ether_addr mac_addr;
@@ -50,9 +51,12 @@ struct RxWorkerParams {
   uint64_t timeout_us;
   uint32_t batch_size;
   struct rte_ring* ring;
+  struct rte_ring* lb_ring;
   struct rte_mempool* flowid_pool;
-  struct rte_mempool* burst_pool;
-  struct rte_mempool* meta_pool;
+  struct rte_mempool* rx_burst_pool;
+  struct rte_mempool* tx_burst_pool;
+  struct rte_mempool* rx_meta_pool;
+  struct rte_mempool* tx_meta_pool;
 };
 
 struct RxWorkerMultiQPerQParams {
@@ -65,9 +69,12 @@ struct RxWorkerMultiQPerQParams {
 struct RxWorkerMultiQParams {
   std::vector<RxWorkerMultiQPerQParams> q_params;
   struct rte_ring* ring;
+  struct rte_ring* lb_ring;
   struct rte_mempool* flowid_pool;
-  struct rte_mempool* burst_pool;
-  struct rte_mempool* meta_pool;
+  struct rte_mempool* rx_burst_pool;
+  struct rte_mempool* tx_burst_pool;
+  struct rte_mempool* rx_meta_pool;
+  struct rte_mempool* tx_meta_pool;
 };
 
 /**
@@ -341,6 +348,19 @@ void DpdkMgr::initialize() {
           },
   };
 
+  loopback_ = cfg_.common_.loopback_;
+  if (loopback_) {
+    if (cfg_.ifs_.size() > 1) {
+      HOLOSCAN_LOG_CRITICAL("Only a single interface allowed for loopback mode currently");
+      return;
+    }
+
+    if (cfg_.ifs_[0].rx_.queues_.size() > 1 || cfg_.ifs_[0].tx_.queues_.size() > 1) {
+      HOLOSCAN_LOG_CRITICAL("Only one queue allowed for loopback mode currently");
+      return;
+    }
+  }
+
   for (auto& conf : local_port_conf) { conf = conf_eth_port; }
 
   // Initialize the mapping to determine how many RX queues per core
@@ -388,11 +408,13 @@ void DpdkMgr::initialize() {
     strncpy(_argv[arg++], c.c_str(), max_arg_size - 1);
   }
 
-  for (const auto& name : ifs) {
-    strncpy(_argv[arg++], "-a", max_arg_size - 1);
-    strncpy(_argv[arg++],
-            (name + std::string(",txq_inline_max=0,dv_flow_en=2")).c_str(),
-            max_arg_size - 1);
+  if (!loopback_) {
+    for (const auto& name : ifs) {
+      strncpy(_argv[arg++], "-a", max_arg_size - 1);
+      strncpy(_argv[arg++],
+              (name + std::string(",txq_inline_max=0,dv_flow_en=2")).c_str(),
+              max_arg_size - 1);
+    }
   }
 
   _argv[arg] = nullptr;
@@ -435,17 +457,23 @@ void DpdkMgr::initialize() {
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
   for (auto& intf : cfg_.ifs_) {
-    ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
-      return;
-    }
+    [[maybe_unused]] struct rte_eth_dev_info dev_info;
 
-    struct rte_eth_dev_info dev_info;
-    int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
-    if (ret != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
-      return;
+    if (loopback_) {
+      intf.port_id_ = 0;
+    }
+    else {
+      ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
+      if (ret < 0) {
+        HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
+        return;
+      }
+
+      int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
+      if (ret != 0) {
+        HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
+        return;
+      }
     }
 
     port_q_num[intf.port_id_] = {intf.rx_.queues_.size(), intf.tx_.queues_.size()};
@@ -475,38 +503,40 @@ void DpdkMgr::initialize() {
         std::string pool_name = std::string("RXP") + append;
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
 
-        if (mr.num_bufs_ < default_num_rx_desc) {
-          HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR", default_num_rx_desc);
-          return;
-        }
+        struct rte_mempool* pool = nullptr;
+        if (!loopback_) { // Loopback needs no RX pools since it uses TX
+          if (mr.num_bufs_ < default_num_rx_desc) {
+            HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR", default_num_rx_desc);
+            return;
+          }
 
-        struct rte_mempool* pool;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if (mr.kind_ == MemoryKind::HUGE) {
-          pool = rte_pktmbuf_pool_create(
-              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
-        } else {
-          auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
-          pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
-                                                mr.num_bufs_,
-                                                0,
-                                                0,
-                                                mr.adj_size_,
-                                                numa_from_mem(mr),
-                                                pktmbuf.get(),
-                                                1);
-        }
-#pragma GCC diagnostic pop
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+          if (mr.kind_ == MemoryKind::HUGE) {
+            pool = rte_pktmbuf_pool_create(
+                pool_name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
+          } else {
+            auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
+            pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
+                                                  mr.num_bufs_,
+                                                  0,
+                                                  0,
+                                                  mr.adj_size_,
+                                                  numa_from_mem(mr),
+                                                  pktmbuf.get(),
+                                                  1);
+          }
+  #pragma GCC diagnostic pop
 
-        if (pool == nullptr) {
-          HOLOSCAN_LOG_CRITICAL(
-                "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
-                pool_name,
-                mr.num_bufs_,
-                mr.adj_size_,
-                (void*)pool);
-          return;
+          if (pool == nullptr) {
+            HOLOSCAN_LOG_CRITICAL(
+                  "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
+                  pool_name,
+                  mr.num_bufs_,
+                  mr.adj_size_,
+                  (void*)pool);
+            return;
+          }
         }
 
         q_backend->pools.push_back(pool);
@@ -633,7 +663,7 @@ void DpdkMgr::initialize() {
                       intf.port_id_,
                       local_port_conf[intf.port_id_].rxmode.mtu);
 
-    if (tx.accurate_send_) {
+    if (!loopback_ && tx.accurate_send_) {
       setup_accurate_send_scheduling_mask();
 
       if (ret != 0) {
@@ -665,133 +695,138 @@ void DpdkMgr::initialize() {
                       intf.rx_.queues_.size(),
                       intf.tx_.queues_.size());
 
-    ret = rte_eth_dev_configure(intf.port_id_,
-                                intf.rx_.queues_.size(),
-                                intf.tx_.queues_.size(),
-                                &local_port_conf[intf.port_id_]);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL("Cannot configure device: err={}, str={}, port={}",
-                            ret,
-                            rte_strerror(ret),
-                            intf.port_id_);
-      return;
-    } else {
-      HOLOSCAN_LOG_INFO("Successfully configured ethdev");
-    }
-
-    ret =
-        rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_, &default_num_rx_desc, &default_num_tx_desc);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL(
-          "Cannot adjust number of descriptors: err={}, port={}", ret, intf.port_id_);
-      return;
-    } else {
-      HOLOSCAN_LOG_INFO("Successfully set descriptors to {}/{}",
-        default_num_rx_desc, default_num_tx_desc);
-    }
-
-    rte_eth_macaddr_get(intf.port_id_, &conf_ports_eth_addr[intf.port_id_]);
-
-    if (intf.flow_isolation_) {
-      struct rte_flow_error error;
-      ret = rte_flow_isolate(intf.port_id_, 1, &error);
+    if (!loopback_) {
+      ret = rte_eth_dev_configure(intf.port_id_,
+                                  intf.rx_.queues_.size(),
+                                  intf.tx_.queues_.size(),
+                                  &local_port_conf[intf.port_id_]);
       if (ret < 0) {
-        HOLOSCAN_LOG_CRITICAL("Failed to set flow isolation");
-      } else {
-        HOLOSCAN_LOG_INFO("Port {} in isolation mode", intf.port_id_);
-      }
-    } else {
-      HOLOSCAN_LOG_INFO("Port {} not in isolation mode", intf.port_id_);
-    }
-
-    for (const auto& q : rx.queues_) {
-      // Assume one core for now
-      auto socketid = rte_lcore_to_socket_id(strtol(q.common_.cpu_core_.c_str(), nullptr, 10));
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-      auto qinfo = rx_dpdk_q_map_[key];
-
-      HOLOSCAN_LOG_INFO("Setting up port:{}, queue:{}, Num scatter:{} pool:{}",
-                        intf.port_id_,
-                        q.common_.id_,
-                        q.common_.mrs_.size(),
-                        (void*)qinfo->pools[0]);
-      if (q.common_.mrs_.size() > 1) {
-        ret = rte_eth_rx_queue_setup(intf.port_id_,
-                                     q.common_.id_,
-                                     default_num_rx_desc,
-                                     socketid,
-                                     &qinfo->rxconf_qsplit,
-                                     NULL);
-      } else {
-        ret = rte_eth_rx_queue_setup(
-            intf.port_id_, q.common_.id_, default_num_rx_desc, socketid, NULL, qinfo->pools[0]);
-      }
-
-      if (ret < 0) {
-        HOLOSCAN_LOG_CRITICAL("rte_eth_rx_queue_setup: err={}, port={}", ret, intf.port_id_);
-        return;
-      } else {
-        HOLOSCAN_LOG_INFO("Successfully setup RX port {} queue {}", intf.port_id_, q.common_.id_);
-      }
-    }
-
-    struct rte_eth_txconf txq_conf;
-    for (const auto& q : tx.queues_) {
-      txq_conf = dev_info.default_txconf;
-      txq_conf.offloads = local_port_conf[intf.port_id_].txmode.offloads;
-      ret = rte_eth_tx_queue_setup(intf.port_id_,
-                                   q.common_.id_,
-                                   default_num_tx_desc,
-                                   rte_eth_dev_socket_id(intf.port_id_),
-                                   &txq_conf);
-      if (ret < 0) {
-        HOLOSCAN_LOG_CRITICAL("Queue setup error {}:{}, port={} caps={:x} set={:x}",
+        HOLOSCAN_LOG_CRITICAL("Cannot configure device: err={}, str={}, port={}",
                               ret,
                               rte_strerror(ret),
-                              intf.port_id_,
-                              dev_info.tx_offload_capa,
-                              local_port_conf[intf.port_id_].txmode.offloads);
+                              intf.port_id_);
         return;
       } else {
-        HOLOSCAN_LOG_INFO("Successfully set up TX queue {}/{}", intf.port_id_, q.common_.id_);
+        HOLOSCAN_LOG_INFO("Successfully configured ethdev");
       }
+
+      ret =
+          rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_, &default_num_rx_desc, &default_num_tx_desc);
+      if (ret < 0) {
+        HOLOSCAN_LOG_CRITICAL(
+            "Cannot adjust number of descriptors: err={}, port={}", ret, intf.port_id_);
+        return;
+      } else {
+        HOLOSCAN_LOG_INFO("Successfully set descriptors to {}/{}",
+          default_num_rx_desc, default_num_tx_desc);
+      }
+
+      rte_eth_macaddr_get(intf.port_id_, &conf_ports_eth_addr[intf.port_id_]);
+
+      if (intf.flow_isolation_) {
+        struct rte_flow_error error;
+        ret = rte_flow_isolate(intf.port_id_, 1, &error);
+        if (ret < 0) {
+          HOLOSCAN_LOG_CRITICAL("Failed to set flow isolation");
+        } else {
+          HOLOSCAN_LOG_INFO("Port {} in isolation mode", intf.port_id_);
+        }
+      } else {
+        HOLOSCAN_LOG_INFO("Port {} not in isolation mode", intf.port_id_);
+      }
+
+      for (const auto& q : rx.queues_) {
+        // Assume one core for now
+        auto socketid = rte_lcore_to_socket_id(strtol(q.common_.cpu_core_.c_str(), nullptr, 10));
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        auto qinfo = rx_dpdk_q_map_[key];
+
+        HOLOSCAN_LOG_INFO("Setting up port:{}, queue:{}, Num scatter:{} pool:{}",
+                          intf.port_id_,
+                          q.common_.id_,
+                          q.common_.mrs_.size(),
+                          (void*)qinfo->pools[0]);
+        if (q.common_.mrs_.size() > 1) {
+          ret = rte_eth_rx_queue_setup(intf.port_id_,
+                                       q.common_.id_,
+                                       default_num_rx_desc,
+                                       socketid,
+                                       &qinfo->rxconf_qsplit,
+                                       NULL);
+        } else {
+          ret = rte_eth_rx_queue_setup(
+              intf.port_id_, q.common_.id_, default_num_rx_desc, socketid, NULL, qinfo->pools[0]);
+        }
+
+        if (ret < 0) {
+          HOLOSCAN_LOG_CRITICAL("rte_eth_rx_queue_setup: err={}, port={}", ret, intf.port_id_);
+          return;
+        } else {
+          HOLOSCAN_LOG_INFO("Successfully setup RX port {} queue {}", intf.port_id_, q.common_.id_);
+        }
+      }
+
+      struct rte_eth_txconf txq_conf;
+      for (const auto& q : tx.queues_) {
+        txq_conf = dev_info.default_txconf;
+        txq_conf.offloads = local_port_conf[intf.port_id_].txmode.offloads;
+        ret = rte_eth_tx_queue_setup(intf.port_id_,
+                                     q.common_.id_,
+                                     default_num_tx_desc,
+                                     rte_eth_dev_socket_id(intf.port_id_),
+                                     &txq_conf);
+        if (ret < 0) {
+          HOLOSCAN_LOG_CRITICAL("Queue setup error {}:{}, port={} caps={:x} set={:x}",
+                                ret,
+                                rte_strerror(ret),
+                                intf.port_id_,
+                                dev_info.tx_offload_capa,
+                                local_port_conf[intf.port_id_].txmode.offloads);
+          return;
+        } else {
+          HOLOSCAN_LOG_INFO("Successfully set up TX queue {}/{}", intf.port_id_, q.common_.id_);
+        }
+      }
+
+      if (!intf.flow_isolation_) {
+        HOLOSCAN_LOG_INFO("Enabling promiscuous mode for port {}", intf.port_id_);
+        rte_eth_promiscuous_enable(intf.port_id_);
+      } else {
+        HOLOSCAN_LOG_INFO(
+            "Not enabling promiscuous mode on port {} "
+            "since flow isolation is enabled",
+            intf.port_id_);
+      }
+
+      ret = rte_eth_dev_start(intf.port_id_);
+      if (ret != 0) {
+        HOLOSCAN_LOG_CRITICAL("Cannot start device err={}, port={}", ret, intf.port_id_);
+        return;
+      } else {
+        HOLOSCAN_LOG_INFO("Successfully started port {}", intf.port_id_);
+      }
+
+      HOLOSCAN_LOG_INFO("Port {}, MAC address: {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                        intf.port_id_,
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[0],
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[1],
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[2],
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[3],
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[4],
+                        conf_ports_eth_addr[intf.port_id_].addr_bytes[5]);
+
+      // Start flows
+      int flow_num = 0;
+      for (const auto& flow : rx.flows_) {
+        HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
+        add_flow(intf.port_id_, flow);
+      }
+
+      apply_tx_offloads(intf.port_id_);
     }
-
-    if (!intf.flow_isolation_) {
-      HOLOSCAN_LOG_INFO("Enabling promiscuous mode for port {}", intf.port_id_);
-      rte_eth_promiscuous_enable(intf.port_id_);
-    } else {
-      HOLOSCAN_LOG_INFO(
-          "Not enabling promiscuous mode on port {} "
-          "since flow isolation is enabled",
-          intf.port_id_);
+    else {
+      HOLOSCAN_LOG_INFO("Loopback mode configured");
     }
-
-    ret = rte_eth_dev_start(intf.port_id_);
-    if (ret != 0) {
-      HOLOSCAN_LOG_CRITICAL("Cannot start device err={}, port={}", ret, intf.port_id_);
-      return;
-    } else {
-      HOLOSCAN_LOG_INFO("Successfully started port {}", intf.port_id_);
-    }
-
-    HOLOSCAN_LOG_INFO("Port {}, MAC address: {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-                      intf.port_id_,
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[0],
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[1],
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[2],
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[3],
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[4],
-                      conf_ports_eth_addr[intf.port_id_].addr_bytes[5]);
-
-    // Start flows
-    int flow_num = 0;
-    for (const auto& flow : rx.flows_) {
-      HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
-      add_flow(intf.port_id_, flow);
-    }
-
-    apply_tx_offloads(intf.port_id_);
   }
 
 
@@ -806,7 +841,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   rx_ring =
       rte_ring_create("RX_RING", 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
   if (rx_ring == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate ring!");
+    HOLOSCAN_LOG_CRITICAL("Failed to allocate RX ring!");
     return -1;
   }
 
@@ -920,6 +955,16 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   if (tx_meta == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX meta pool!");
     return -1;
+  }
+
+  if (loopback_) {
+    loopback_ring =
+        rte_ring_create("LOOPBACK_RING", 4096, rte_socket_id(),
+            RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+    if (loopback_ring == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to allocate loopback ring!");
+      return -1;
+    }
   }
 
   return 0;
@@ -1178,6 +1223,7 @@ void DpdkMgr::PrintDpdkStats(int port) {
 }
 
 DpdkMgr::~DpdkMgr() {
+  printf("shutting down\n");
 }
 
 bool DpdkMgr::validate_config() const {
@@ -1198,7 +1244,16 @@ void DpdkMgr::run() {
 
   HOLOSCAN_LOG_INFO("Starting advanced network workers");
   // determine the correct process types for input/output
-  int (*tx_worker)(void*) = tx_core_worker;
+  int (*rx_worker)(void*);
+  int (*tx_worker)(void*);
+  if (!loopback_) {
+    rx_worker = rx_core_worker;
+    tx_worker = tx_core_worker;
+  }
+  else {
+    rx_worker = rx_lb_worker;
+    tx_worker = tx_lb_worker;
+  }
 
   // Launch RX workers. If the core is serving multiple queues then we launch a multi-q worker
   for (const auto &el : this->rx_core_q_map) {
@@ -1217,14 +1272,21 @@ void DpdkMgr::run() {
       params->port = port_id;
       params->num_segs = q->common_.mrs_.size();
       params->ring = rx_ring;
+      params->lb_ring = loopback_ring;
       params->queue = q_id;
-      params->burst_pool = rx_burst_buffer;
+      params->rx_burst_pool = rx_burst_buffer;
+      params->tx_burst_pool = tx_burst_buffers[0];
       params->flowid_pool = rx_flow_id_buffer;
-      params->meta_pool = rx_meta;
+      params->rx_meta_pool = rx_meta;
+      params->tx_meta_pool = tx_meta;
       params->batch_size = q->common_.batch_size_;
       rte_eal_remote_launch(
-          rx_core_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
+        rx_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
     } else {
+      if (loopback_) {
+        HOLOSCAN_LOG_CRITICAL("Loopback mode not yet configured for multiple RX queues!");
+        exit(1);
+      }
       // Multi-q worker
       auto params = new RxWorkerMultiQParams;
       for (const auto &q_info : el.second) {
@@ -1238,9 +1300,9 @@ void DpdkMgr::run() {
       }
 
       params->ring = rx_ring;
-      params->burst_pool = rx_burst_buffer;
+      params->rx_burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
-      params->meta_pool = rx_meta;
+      params->rx_meta_pool = rx_meta;
       rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);
     }
   }
@@ -1321,7 +1383,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
-    if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
+    if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
       HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
       exit(1);
     }
@@ -1334,7 +1396,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
     burst->hdr.hdr.num_segs = cur_segs;
 
     for (int seg = 0; seg < cur_segs; seg++) {
-      if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
+      if (rte_mempool_get(tparams->rx_burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
             "Processing function falling behind. No free flow ID buffers for packets!");
         continue;
@@ -1488,7 +1550,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //
   while (!force_quit.load()) {
     AdvNetBurstParams* burst;
-    if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
+    if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
       HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
       exit(1);
     }
@@ -1499,7 +1561,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
     burst->hdr.hdr.num_segs = tparams->num_segs;
 
     for (int seg = 0; seg < tparams->num_segs; seg++) {
-      if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
+      if (rte_mempool_get(tparams->rx_burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
             "Processing function falling behind. No free RX bursts!");
         continue;
@@ -1627,6 +1689,77 @@ int DpdkMgr::rx_core_worker(void* arg) {
   return 0;
 }
 
+int DpdkMgr::rx_lb_worker(void* arg) {
+  RxWorkerParams* tparams = (RxWorkerParams*)arg;
+  int ret = 0;
+  uint64_t freq = rte_get_tsc_hz();
+  uint64_t timeout_ticks = freq * 0.02;  // expect all packets within 20ms
+  uint64_t total_pkts = 0;
+
+  HOLOSCAN_LOG_INFO("Starting RX Loopback Core {}, port {}, queue {}, socket {}",
+                    rte_lcore_id(),
+                    tparams->port,
+                    tparams->queue,
+                    rte_socket_id());
+  int nb_rx = 0;
+  int to_copy = 0;
+  int cur_pkt_in_batch = 0;
+  //
+  //  run loop
+  //
+  while (!force_quit.load()) {
+    AdvNetBurstParams* meta_burst;
+    if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&meta_burst)) < 0) {
+      HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
+      exit(1);
+    }
+
+    meta_burst->hdr.hdr.q_id = tparams->queue;
+    meta_burst->hdr.hdr.port_id = tparams->port;
+    meta_burst->hdr.hdr.num_segs = tparams->num_segs;
+
+    for (int seg = 0; seg < tparams->num_segs; seg++) {
+      if (rte_mempool_get(
+            tparams->rx_burst_pool, reinterpret_cast<void**>(&meta_burst->pkts[seg])) < 0) {
+        HOLOSCAN_LOG_ERROR(
+            "Processing function falling behind. No free flow ID buffers for packets!");
+        continue;
+      }
+    }
+
+    AdvNetBurstParams* tx_burst;
+    while (!force_quit.load()) {
+      if ( rte_ring_dequeue(tparams->lb_ring, reinterpret_cast<void**>(&tx_burst)) == 0) {
+        meta_burst->hdr = tx_burst->hdr;
+        for (int s = 0; s < tx_burst->hdr.hdr.num_segs; s++) {
+          memcpy(&meta_burst->pkts[s][0], &tx_burst->pkts[s][0],
+                sizeof(void*) * tx_burst->hdr.hdr.num_pkts);
+        }
+
+        total_pkts += tx_burst->hdr.hdr.num_pkts;
+
+        // Free the metadata and rx burst buffers associated with the TX burst. This will *not*
+        // free the packet mbufs since we want to avoid copying the data.
+        for (int seg = 0; seg < tx_burst->hdr.hdr.num_segs; seg++) {
+          rte_mempool_put(tparams->tx_burst_pool, (void*)tx_burst->pkts[seg]);
+        }
+        rte_mempool_put(tparams->tx_meta_pool, tx_burst);
+
+        // mbufs are not freed yet. RX will free them as part of normal processing
+        rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(meta_burst));
+        break;
+      }
+    }
+  }
+
+  HOLOSCAN_LOG_INFO("Total packets received by application (port/queue {}/{}): {}",
+                     tparams->port,
+                     tparams->queue,
+                     total_pkts);
+
+  return 0;
+}
+
 int DpdkMgr::tx_core_worker(void* arg) {
   TxWorkerParams* tparams = (TxWorkerParams*)arg;
   uint64_t seq;
@@ -1693,6 +1826,58 @@ int DpdkMgr::tx_core_worker(void* arg) {
 
     rte_mempool_put(tparams->meta_pool, msg);
     bursts++;
+  }
+
+  HOLOSCAN_LOG_INFO("Total packets transmitted by application (port/queue {}/{}): {}",
+                     tparams->port,
+                     tparams->queue,
+                     ttl_pkts_tx);
+
+  return 0;
+}
+
+
+int DpdkMgr::tx_lb_worker(void* arg) {
+  TxWorkerParams* tparams = (TxWorkerParams*)arg;
+  uint64_t seq;
+  uint64_t ttl_pkts_tx = 0;
+  AdvNetBurstParams* msg;
+  int64_t bursts = 0;
+
+  HOLOSCAN_LOG_INFO(
+        "Starting TX Loopback Core {}, port {}, queue {} socket {} using burst pool {} ring {}",
+        rte_lcore_id(),
+        tparams->port,
+        tparams->queue,
+        rte_socket_id(),
+        (void*)tparams->burst_pool,
+        (void*)tparams->ring);
+
+  while (!force_quit.load()) {
+    if (rte_ring_dequeue(tparams->ring, reinterpret_cast<void**>(&msg)) != 0) {
+      continue;
+    }
+
+    // Scatter mode needs to chain all the buffers
+    if (msg->hdr.hdr.num_segs > 1) {
+      for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
+        for (int seg = 0; seg < msg->hdr.hdr.num_segs - 1; seg++) {
+          auto* mbuf = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg][p]);
+          mbuf->next = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg + 1][p]);
+        }
+
+        reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
+      }
+    }
+
+    auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
+
+    if (rte_ring_enqueue(tparams->lb_ring, reinterpret_cast<void*>(msg)) != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
+      break;
+    }
+
+    ttl_pkts_tx += msg->hdr.hdr.num_pkts;
   }
 
   HOLOSCAN_LOG_INFO("Total packets transmitted by application (port/queue {}/{}): {}",
@@ -1811,8 +1996,12 @@ AdvNetStatus DpdkMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* d
 
 bool DpdkMgr::tx_burst_available(AdvNetBurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
-  const auto& q = tx_dpdk_q_map_[key];
+  const auto item = tx_dpdk_q_map_.find(key);
+  if (item == tx_dpdk_q_map_.end()) {
+    return false;
+  }
 
+  const auto& q = item->second;
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
   }
@@ -1871,6 +2060,10 @@ void DpdkMgr::free_tx_burst(AdvNetBurstParams* burst) {
 }
 
 std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
+  if (name == "loopback") {
+    return 0;
+  }
+
   uint16_t port;
   auto ret = rte_eth_dev_get_port_by_name(name.c_str(), &port);
   if (ret < 0) { return {}; }
@@ -1927,9 +2120,11 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
 void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
   if (--num_init == 0) {
-    int portid;
-    RTE_ETH_FOREACH_DEV(portid) {
-      PrintDpdkStats(portid);
+    if (!loopback_) {
+      int portid;
+      RTE_ETH_FOREACH_DEV(portid) {
+        PrintDpdkStats(portid);
+      }
     }
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
