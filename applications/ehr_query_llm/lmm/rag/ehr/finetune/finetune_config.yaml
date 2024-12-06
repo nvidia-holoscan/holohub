@@ -1,0 +1,45 @@
+
+grammar: |
+  root ::= "{" thought "," question "}"
+  thought ::= "\"Thought process\": " string
+  question ::= "\"Question\": " string
+  space ::= " "?
+  string ::= "\"" ([^"{}])* "\""
+
+prompt: |
+  You are a leading medical expert who knows it all when it comes to surgery and medical topics - you have memorized every medical book and know what causes every medical condition.
+  As a leading medical expert, you are tasked with setting up a quiz for medical students.
+
+  Your task is to setup 1 question for an upcoming quiz/examination. The question should be abstract in nature and requires that students extrapolate to bigger picture concepts.
+  Restrict the questions to use the EHR documents provided.
+  Additionally, VARY THE VOCABULARY so the question doesn't mirror terms used in the EHR.
+  BE MORE CREATIVE than JUST asking if a value is in the normal range.
+
+  You must first BRIEFLY think out-loud what a good question would be for the given context.
+  Then, write down just the question. (Don't use phrases such as "Based on the information provided.." just state the question)
+
+  Examples of suitable questions:
+  ## Context:
+  final laboratory:
+    observation:
+      Low Density Lipoprotein Cholesterol: 120.82 mg/dL
+    Date: 2009-08-31
+  ## Response:
+  {"Thought process" : "I should quiz the student on if they know LDL ranges, where high LDL cholesterol is 160 - 189 mg/dL","question" : "Did the patient have high LDL cholesterol on 2009-08-31?"}
+
+  ## Context:
+  active condition: Diabetes
+    Date: 1973-02-15
+  ## Response:
+  {"Thought process" : "I should quiz the student on if they know that insufficient insulin production is a key characteristic of diabetes","question" : "Is the patient making enough insulin?"}
+
+  ## Context:
+  active condition: Hypertriglyceridemia (disorder)
+    Date: 1974-02-21
+  ## Response:
+  {"Thought process" : "I should quiz the student on if they know that elevated triglycerides is a key characteristic of Hypertriglyceridemia","question" : "Does the patient have elevated triglycerides?"}
+  Does the patient have elevated triglycerides?
+
+  ## Context:
+
+epochs: 7
