@@ -70,6 +70,7 @@ void ApplicationFactory::destroy_application_instance(
     if (instance.instance == application_instance) {
       instance.instance->stop_streaming();
       instance.future.wait_for(std::chrono::seconds(1));
+      if (instance.tracker != nullptr) { instance.tracker->print(); }
       application_instances_.erase(service_name);
       HOLOSCAN_LOG_INFO("Application instance deleted for {}", service_name);
       return;

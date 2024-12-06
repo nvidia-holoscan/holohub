@@ -274,6 +274,53 @@
         },
         {
             "type": "shell",
+            "label": "Build grpc_endoscopy_tool_tracking",
+            "command": "./run",
+            "args": [
+                "build",
+                "grpc_endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build grpc_endoscopy_tool_tracking (delay 3s)",
+            "command": "sleep 3",
+            "dependsOn": "Build grpc_endoscopy_tool_tracking",
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
             "label": "Build h264_endoscopy_tool_tracking",
             "command": "./run",
             "args": [
@@ -331,6 +378,53 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build grpc_endoscopy_tool_tracking",
+            "command": "./run",
+            "args": [
+                "build",
+                "grpc_endoscopy_tool_tracking",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_endoscopy_tool_tracking"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build grpc_endoscopy_tool_tracking (delay 3s)",
+            "command": "sleep 3",
+            "dependsOn": "Build grpc_endoscopy_tool_tracking",
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "grpc_endoscopy_tool_tracking"
+            }
         },
         {
             "type": "shell",

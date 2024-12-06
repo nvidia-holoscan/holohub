@@ -45,7 +45,7 @@ namespace holoscan::ops {
 class EntityClientService {
  public:
   EntityClientService(
-      const std::string& server_address, const uint32_t rpc_timeout,
+      const std::string& server_address, const uint32_t rpc_timeout, const bool interrupt,
       std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue,
       std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>>
           response_queue,
@@ -85,6 +85,7 @@ class EntityClientService {
 
   const std::string server_address_;
   const uint32_t rpc_timeout_;
+  const bool interrupt_;
   std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue_;
   std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>> response_queue_;
   std::shared_ptr<GrpcClientRequestOp> grpc_request_operator_;
