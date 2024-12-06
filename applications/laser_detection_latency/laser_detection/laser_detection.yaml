@@ -15,24 +15,43 @@
 # limitations under the License.
 ---
 extensions:
-  - lib/gxf_extensions/libgxf_emergent_source.so
+    - ../../../lib/gxf_extensions/libgxf_emergent_source.so
 
 emergent:
   width: 4200
   height: 2160
-  framerate: 30
+  framerate: 120
   rdma: true
-  exposure: 10000
+  exposure: 3072
+  gain: 600
 
 demosaic:
   generate_alpha: false
   bayer_grid_pos: 2
   interpolation_mode: 0 # this is the only interpolation mode supported by NPP currently
 
+cal_evt_coords:
+  width: 4200
+  height: 2160
+
+usb_source:
+  device: "/dev/video0"
+  width: 1920
+  height: 1080
+  exposure_time: 30
+  gain: 0
+
+cal_usb_coords:
+  width: 1920
+  height: 1080
+
+add_view:
+  display_width: 1920
+  display_height: 1080
+
 holoviz:
-  # display_name: DP-2
-  width: 2560
-  height: 1440
-  # use_exclusive_display: true
+  width: 1920
+  height: 1080
+  framerate: 120
   fullscreen: true
 

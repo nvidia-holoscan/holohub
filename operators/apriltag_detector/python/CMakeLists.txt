@@ -1,5 +1,4 @@
-%YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-extensions:
-  - lib/gxf_extensions/libgxf_emergent_source.so
 
-emergent:
-  width: 4200
-  height: 2160
-  framerate: 30
-  rdma: true
-  exposure: 10000
+include(pybind11_add_holohub_module)
 
-demosaic:
-  generate_alpha: false
-  bayer_grid_pos: 2
-  interpolation_mode: 0 # this is the only interpolation mode supported by NPP currently
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET apriltag_detector
+    CLASS_NAME "ApriltagDetectorOp"
+    SOURCES apriltag_detector.cpp
+)
 
-holoviz:
-  # display_name: DP-2
-  width: 2560
-  height: 1440
-  # use_exclusive_display: true
-  fullscreen: true
-
+target_include_directories(apriltag_detector_python
+    PRIVATE /opt/nvidia/cu-april-tags/include
+)
