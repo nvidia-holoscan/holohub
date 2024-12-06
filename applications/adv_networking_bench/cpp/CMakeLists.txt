@@ -104,43 +104,54 @@ install(
 
 # Add testing
 if(BUILD_TESTING)
-
-  ## adv_networking_bench_default_tx_rx_test ##
-  # The test below is expected to run on an IGX devkit with a loopback
-  # connecting both ports of the IGX NIC (default config currently hardcodes
-  # the BUS address of these two ports), with optimal system setups (BAR1,
+  ## adv_networking_bench_dpdk_loopback_test ##
+  # The test below is expected to run on a system with a ConnectX NIC with
+  # both ports connected in a loopback, with optimal system setups (BAR1,
   # GPU clock, CPU clock, huge pages, etc... docs incoming).
 
-  # Get the BUS ID of the interface doing Rx in the config
-  execute_process(COMMAND bash "-c" "grep -A2 -B2 ' rx:' ${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml | grep ' address:' | awk '{print $2}'"
-                  OUTPUT_VARIABLE rx_bus
-                  COMMAND_ERROR_IS_FATAL ANY
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] Rx interface BUS info from config: ${rx_bus}")
+  # Define a macro to handle the execution and checks
+  macro(execute_and_check MSG CMD OUTPUT_VAR)
+    execute_process(COMMAND bash "-c" "${CMD}"
+                    RESULT_VARIABLE result_code
+                    OUTPUT_VARIABLE ${OUTPUT_VAR}
+                    ERROR_VARIABLE error_code
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT result_code EQUAL 0 OR "${${OUTPUT_VAR}}" STREQUAL "")
+      message(WARNING "[ANO Test] ${MSG} '${CMD}' failed (${result_code}) or output was empty")
+      message(STATUS "[ANO Test] Skipping advanced networking loopback test")
+      return()
+    else()
+      message(STATUS "[ANO Test] ${MSG} ${${OUTPUT_VAR}}")
+    endif()
+  endmacro()
 
-  # Get the interface name
-  execute_process(COMMAND bash "-c" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${rx_bus} | awk '{print $1}'"
-                  OUTPUT_VARIABLE rx_if
-                  COMMAND_ERROR_IS_FATAL ANY
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] Interface for ${rx_bus}: ${rx_if}")
+  # Check NIC addresses
+  message(STATUS "[ANO Test] Checking system compatibility for advanced networking loopback test")
+  execute_and_check("ConnectX BUS Addresses:" "lspci | grep -E \"Ethernet.*ConnectX\" | awk '{print $1}'" cx_bus_address_list)
+  string(REGEX REPLACE "\n" ";" cx_bus_address_list "${cx_bus_address_list}")
+  list(LENGTH cx_bus_address_list cx_bus_address_list_count)
+  if(NOT cx_bus_address_list_count EQUAL 2)
+    message(WARNING "[ANO Test] Expected 2 CX NICs, found ${cx_bus_address_list_count}")
+    message(WARNING "[ANO Test] Skipping advanced networking test")
+    return()
+  endif()
+  list(GET cx_bus_address_list 0 tx_bus)
+  list(GET cx_bus_address_list 1 rx_bus)
+  execute_and_check("ETH Interface for ${tx_bus}:" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${tx_bus} | awk '{print $1}'" tx_if)
+  execute_and_check("MAC Address for ${tx_if}:" "cat ${tx_if}/address" rx_eth_mac)
 
-  # Get the ETH mac address
-  execute_process(COMMAND cat "${rx_if}/address"
-                  OUTPUT_VARIABLE rx_eth_mac
-                  COMMAND_ERROR_IS_FATAL ANY
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(DEBUG "[ANO Test] MAC address for interface ${rx_if}: ${rx_eth_mac}")
-
-  # Inject in test config + add app timeout
+  # Inject in the test config and add app timeout
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
-  string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
   string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_default_tx_rx_test.yaml" ${TEST_CONFIG})
+  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
+  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
+  string(REGEX REPLACE "address: [^\n]*Source[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
+  string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_loopback_test.yaml" ${TEST_CONFIG})
 
-  # Create test
+  # Define the test
   file(COPY "testing/adv_networking_test_harness.py" DESTINATION "testing")
   add_test(NAME adv_networking_bench_dpdk_test
-           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_default_tx_rx_test.yaml" --avg-throughput-threshold 90 --missed-packets-threshold 0.1
+           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_loopback_test.yaml" --avg-throughput-threshold 90 --missed-packets-threshold 0.1
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()

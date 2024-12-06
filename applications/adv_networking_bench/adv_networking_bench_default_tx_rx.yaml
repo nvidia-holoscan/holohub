@@ -59,7 +59,7 @@ advanced_network:
 
     interfaces:
     - name: data1
-      address: 0005:03:00.0
+      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
       tx:
         - queues:
           - name: "ADC Samples"
@@ -71,7 +71,7 @@ advanced_network:
             offloads:
               - "tx_eth_src"
     - name: data2
-      address: 0005:03:00.1
+      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       flow_isolation: false
       rx:
         - queues:
@@ -118,4 +118,4 @@ bench_tx:
   ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
   udp_src_port: 4096      # UDP source port
   udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx above
+  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
