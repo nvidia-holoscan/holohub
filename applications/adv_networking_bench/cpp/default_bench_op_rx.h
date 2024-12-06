@@ -27,7 +27,7 @@
 #define BURST_ACCESS_METHOD_RAW_PTR 1
 #define BURST_ACCESS_METHOD_DIRECT_ACCESS 2
 
-#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_DIRECT_ACCESS
+#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_SHARED_PTR
 
 namespace holoscan::ops {
 
@@ -184,24 +184,14 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     auto burst_size = adv_net_get_num_pkts(burst);
 
-    // If packets are coming in from our non-GPUDirect queue, free them and move on
-    // hardcoded to match the YAML config files in this sample app.
-    // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
-    //       at least ARP packets should be processed, or delegate to linux for standard traffic.
-    if (adv_net_get_q_id(burst) == 0) {
-      adv_net_free_all_pkts_and_burst(burst);
-      return;
-    }
-
-    // Count packets received
-    ttl_pkts_recv_ += burst_size;
-
     // Store burst structure
 #if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
 #else
     cur_batch_.bursts[cur_batch_.num_bursts++] = burst_shared;
 #endif
+    // Count packets received
+    ttl_pkts_recv_ += burst_size;
 
     // Track packet payloads for the current burst
     if (gpu_direct_.get()) {

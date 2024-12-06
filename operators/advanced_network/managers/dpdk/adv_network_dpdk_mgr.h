@@ -206,6 +206,8 @@ class DpdkMgr : public ANOMgr {
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
   static int tx_core_worker(void* arg);
+  static int rx_lb_worker(void* arg);
+  static int tx_lb_worker(void* arg);  
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
@@ -224,6 +226,7 @@ class DpdkMgr : public ANOMgr {
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
   struct rte_ring* rx_ring;
+  struct rte_ring* loopback_ring;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
   std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
@@ -236,6 +239,7 @@ class DpdkMgr : public ANOMgr {
   struct rte_mempool* tx_meta;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
+  bool loopback_;
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
   int num_init = 0;

@@ -145,7 +145,8 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
 
           if (alloc_res != CUDA_SUCCESS) {
             const char* err_str = nullptr;
-            cuGetErrorString(alloc_res, &err_str);
+            CUresult result;
+            cuGetErrorString(result, &err_str);
             HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory. Error: {}",
                                   align / 1e6,
                                   err_str);
