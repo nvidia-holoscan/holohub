@@ -4,14 +4,14 @@
 
 The laser detection latency application demonstrates the latency differences between two different cameras visually.
 
-<center> <img src="./data/demo.png"></center>
+<center> <img src="./images/demo.png"></center>
 
 This folder contains three applications, please refer to the respective application folder for application and configuration file.
 
 1. **[USB Camera Calibration app](./usb_cam_calibration/README.md):**
     This app is designed to do monitor registration by the USB camera. It uses a gray image which has [April tags](https://github.com/AprilRobotics/apriltag) on all the four corners and is as shown below.
 
-<center> <img src="./data/apriltag-calibration.png" width="400" height="300"></center>
+<center> <img src="./images/apriltag-calibration.png" width="400" height="300"></center>
 
 The detection of these four April tags are done using `ApriltagDetectionOp`. For proper and correct monitor registration, the camera should be able to completely see all the four corners of the monitor. If it does not, the app will not output correct corners for the monitor. It is also important to make sure that the scene is well lit with no light sources in the back of the monitor.
 

@@ -21,14 +21,14 @@ find_package(holoscan 2.0 REQUIRED CONFIG
 
 add_custom_target(laser_detection_deps ALL
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_SOURCE_DIR}/../data/left-asset.png"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../images/left-asset.png"
     "${CMAKE_CURRENT_BINARY_DIR}/left-asset.png"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_SOURCE_DIR}/../data/right-asset.png"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../images/right-asset.png"
     "${CMAKE_CURRENT_BINARY_DIR}/right-asset.png"
   DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/../data/left-asset.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../data/right-asset.png"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../images/left-asset.png"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../images/right-asset.png"
 )
 
 add_library(laser_detection INTERFACE)
