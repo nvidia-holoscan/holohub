@@ -185,7 +185,7 @@ def check_mrrs():
     is set to 4096.
     """
     try:
-        _, addrs = get_nic_info()
+        name, addrs = get_nic_info()
 
         for pci_address in addrs:
 
@@ -198,9 +198,9 @@ def check_mrrs():
             mrrs_value = (int(mrrs_result.stdout.strip(), 16) & 0xF000) >> 12
 
             if mrrs_value == 5:
-                logging.info(f"{pci_address}: MRRS is correctly set to 4096.")
+                logging.info(f"{name}/{pci_address}: MRRS is correctly set to 4096.")
             else:
-                logging.warning(f"{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096.")
+                logging.warning(f"{name}/{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096.")
 
     except FileNotFoundError:
         logging.error("The required tools (lspci or setpci) are not available on this system.")
@@ -216,7 +216,7 @@ def check_max_payload_size():
     from the DevCtl section and ensures it is set to 256 bytes.
     """
     try:
-        _, addrs = get_nic_info()
+        name, addrs = get_nic_info()
 
         for pci_address in addrs:
             # Query detailed device information using lspci -vv
@@ -244,11 +244,11 @@ def check_max_payload_size():
                             )
                             if max_payload_value == 256:
                                 logging.info(
-                                    f"{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes."
+                                    f"{name}/{pci_address}: PCIe Max Payload Size is correctly set to 256 bytes."
                                 )
                             else:
                                 logging.warning(
-                                    f"{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes."
+                                    f"{name}/{pci_address}: PCIe Max Payload Size is not set to 256 bytes. Found: {max_payload_value} bytes."
                                 )
                             break
                     else:
@@ -318,76 +318,42 @@ def check_hugepages():
 def check_nvidia_gpu_clocks():
     """
     Checks all NVIDIA GPUs to ensure that the SM clock and memory clock are set to their maximum values.
-    If not, prints the current and maximum values for each GPU.
+    If not, logs the current and maximum values for each GPU.
     """
     try:
+        # Define the fields to query
+        fields = ["clocks.sm", "clocks.max.sm", "clocks.mem", "clocks.max.mem"]
+        query = ",".join(fields)
+
         # Run nvidia-smi to get clock information
         result = subprocess.run(
-            ["nvidia-smi", "-q", "-d", "CLOCK"], capture_output=True, text=True, check=True
+            ["nvidia-smi", f"--query-gpu={query}", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, check=True
         )
 
         # Parse the output of nvidia-smi
-        output = result.stdout.splitlines()
+        output = result.stdout.strip().splitlines()
 
-        current_gpu = None
-        sm_current = None
-        sm_max = None
-        mem_current = None
-        mem_max = None
+        for idx, line in enumerate(output):
+            sm_current, sm_max, mem_current, mem_max = map(int, line.split(","))
 
-        for line in output:
-            line = line.strip()
+            logging.debug(f"GPU {idx}: Checking clocks...")
 
-            # Detect GPU identifier
-            if line.startswith("GPU"):
-                current_gpu = line.split()[1].strip(":")
-                sm_current = None
-                sm_max = None
-                mem_current = None
-                mem_max = None
+            if sm_current != sm_max:
+                logging.warning(
+                    f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
+                )
+            else:
+                logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_max} MHz.")
 
-            # Parse current clocks under "Clocks" section
-            elif sm_current is None and line.startswith("SM") and "MHz" in line:
-                sm_current = int(line.split(":")[1].strip().split()[0])
-            elif mem_current is None and line.startswith("Memory") and "MHz" in line:
-                mem_current = int(line.split(":")[1].strip().split()[0])
-
-            # Parse maximum clocks under "Max Clocks" section
-            elif line.startswith("Max Clocks"):
-                continue  # Skip the header for Max Clocks section
-            elif line.startswith("SM") and "MHz" in line and sm_max is None:
-                sm_max = int(line.split(":")[1].strip().split()[0])
-            elif line.startswith("Memory") and "MHz" in line and mem_max is None:
-                mem_max = int(line.split(":")[1].strip().split()[0])
-
-            # Once all data for a GPU is collected, compare clocks
-            if (
-                current_gpu is not None
-                and sm_current is not None
-                and sm_max is not None
-                and mem_current is not None
-                and mem_max is not None
-            ):
-                logging.info(f"GPU {current_gpu}: Checking clocks...")
-
-                if sm_current != sm_max:
-                    logging.warning(
-                        f"GPU {current_gpu}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
-                    )
-                else:
-                    logging.info(f"GPU {current_gpu}: SM Clock is correctly set to {sm_max} MHz.")
-
-                if mem_current != mem_max:
-                    logging.warning(
-                        f"GPU {current_gpu}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
-                    )
-                else:
-                    logging.info(
-                        f"GPU {current_gpu}: Memory Clock is correctly set to {mem_max} MHz."
-                    )
-
-                # Reset variables for the next GPU section
-                current_gpu = None
+            if mem_current != mem_max:
+                logging.warning(
+                    f"GPU {idx}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
+                )
+            else:
+                logging.info(
+                    f"GPU {idx}: Memory Clock is correctly set to {mem_max} MHz."
+                )
 
     except FileNotFoundError:
         logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
