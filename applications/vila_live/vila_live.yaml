@@ -14,8 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-v4l2_source:
-  device: "/dev/video0"
+v4l2_source_0:
+  device: "/dev/video4"
+
+v4l2_source_1:
+  device: "/dev/video3"
+
+v4l2_source_2:
+  device: "/dev/video5"
 
 replayer_source:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
@@ -31,3 +37,4 @@ holoviz:
       type: color
       opacity: 1.0
       priority: 0
+
