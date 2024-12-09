@@ -79,6 +79,12 @@ def parse_args():
     )
 
     parser.add_argument("--set", choices=["mrrs"], help=("  mrrs      - Update MRRS of NICs\n"))
+
+    # Check if no arguments are provided
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
     return parser.parse_args()
 
 
