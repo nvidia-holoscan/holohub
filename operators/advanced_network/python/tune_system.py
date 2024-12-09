@@ -260,12 +260,12 @@ def check_max_payload_size():
                             break
                     else:
                         logging.error(
-                            f"{pci_address}: Unable to find MaxPayload information under DevCtl."
+                            f"{name}/{pci_address}: Unable to find MaxPayload information under DevCtl."
                         )
                     break
 
             if not devctl_found:
-                logging.error(f"{pci_address}: DevCtl section not found.")
+                logging.error(f"{name}/{pci_address}: DevCtl section not found.")
 
     except FileNotFoundError:
         logging.error("The required tools (lspci) are not available on this system.")
