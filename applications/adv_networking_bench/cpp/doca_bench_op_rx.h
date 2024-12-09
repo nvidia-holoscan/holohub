@@ -115,15 +115,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     }
     auto burst = burst_opt.value();
 
-    // If packets are coming in from our default (non-data) queue, free them and move on. This is
-    // hardcoded to match the YAML config files in this sample app.
-    // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
-    //       at least ARP packets should be processed, or delegate to linux for standard traffic.
-    if (adv_net_get_q_id(burst) == 0) {
-      HOLOSCAN_LOG_DEBUG("Ignoring packets on queue 0");
-      return;
-    }
-
     // Count packets received
     ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
 
