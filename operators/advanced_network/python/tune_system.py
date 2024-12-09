@@ -527,7 +527,7 @@ def check_mtu_size():
         for intf in nic_info:
             iface = intf[0]
 
-        # Check MTU size for each NVIDIA NIC using sysfs
+            # Check MTU size for each NVIDIA NIC using sysfs
             mtu_path = f"/sys/class/net/{iface}/mtu"
             if os.path.exists(mtu_path):
                 with open(mtu_path, "r") as f:
@@ -567,7 +567,10 @@ def update_mrrs_for_nvidia_devices():
             try:
                 # Read the current MRRS value
                 read_result = subprocess.run(
-                    ["setpci", "-s", pci_address, "68.w"], capture_output=True, text=True, check=True
+                    ["setpci", "-s", pci_address, "68.w"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
                 )
 
                 current_value_hex = read_result.stdout.strip()
@@ -582,7 +585,9 @@ def update_mrrs_for_nvidia_devices():
                     f"Successfully updated MRRS to 4096 for device at PCIe address {pci_address}={hex(new_value)}."
                 )
             except subprocess.CalledProcessError as e:
-                logging.error(f"Failed to update MRRS for device at PCIe address {pci_address}: {e}")
+                logging.error(
+                    f"Failed to update MRRS for device at PCIe address {pci_address}: {e}"
+                )
 
     except FileNotFoundError:
         logging.error(
