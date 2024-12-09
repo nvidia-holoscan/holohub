@@ -915,6 +915,76 @@
         },
         //#endregion ucx_h264_endoscopy_tool_tracking
 
+
+        //#region grpc_endoscopy_tool_tracking
+        {
+            "name": "(gdb) grpc_endoscopy_tool_tracking/cpp (edge)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking (delay 3s)",
+            "program": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp/grpc_endoscopy_tool_tracking_edge",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                },
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "INFO"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
+                "order": 1
+            }
+        },
+        {
+            "name": "(gdb) grpc_endoscopy_tool_tracking/cpp (cloud)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp/grpc_endoscopy_tool_tracking_cloud",
+            "environment": [
+                {
+                    "name": "HOLOSCAN_INPUT_PATH",
+                    "value": "${env:HOLOHUB_DATA_DIR}/endoscopy"
+                },
+                {
+                    "name": "HOLOSCAN_LOG_LEVEL",
+                    "value": "INFO"
+                }
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
+                "order": 1
+            }
+        },
+        //#endregion grpc_endoscopy_tool_tracking
+
         //#region grpc_h264_endoscopy_tool_tracking
         {
             "name": "(gdb) grpc_h264_endoscopy_tool_tracking/cpp (edge)",
@@ -1224,6 +1294,20 @@
             "presentation": {
                 "hidden": false,
                 "group": "ucx_endoscopy_tool_tracking",
+                "order": 11
+            }
+        },
+        {
+            "name": "(compound) grpc_endoscopy_tool_tracking/cpp (cloud & edge)",
+            "configurations": [
+                "(gdb) grpc_endoscopy_tool_tracking/cpp (cloud)",
+                "(gdb) grpc_endoscopy_tool_tracking/cpp (edge)"
+            ],
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking",
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
                 "order": 11
             }
         },
