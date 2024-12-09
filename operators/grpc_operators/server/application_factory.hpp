@@ -50,6 +50,7 @@ class HoloscanGrpcApplication;
 struct ApplicationInstance {
   std::shared_ptr<HoloscanGrpcApplication> instance;
   std::future<void> future;
+  DataFlowTracker* tracker = nullptr;
 };
 
 /**
