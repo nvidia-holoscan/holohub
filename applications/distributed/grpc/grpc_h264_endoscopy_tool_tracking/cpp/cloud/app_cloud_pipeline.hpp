@@ -23,6 +23,12 @@
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#include "holoscan/core/resources/gxf/gxf_component_resource.hpp"
+#include "holoscan/operators/gxf_codelet/gxf_codelet.hpp"
+
+#include "tensor_to_video_buffer.hpp"
+#include "video_encoder.hpp"
+
 #include <grpc_server.hpp>
 #include <lstm_tensor_rt_inference.hpp>
 #include <tool_tracking_postprocessor.hpp>
@@ -56,6 +62,19 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
   void compose() override {
     // Call base class compose to initialize the queues.
     HoloscanGrpcApplication::compose();
+    uint32_t width = 854;
+    uint32_t height = 480;
+    int64_t source_block_size = width * height * 3 * 4;
+    int64_t source_num_blocks = 2;
+
+    auto tensor_to_video_buffer = make_operator<ops::TensorToVideoBufferOp>(
+          "tensor_to_video_buffer", from_config("tensor_to_video_buffer"));
+
+    auto encoder_input_format_converter = make_operator<ops::FormatConverterOp>(
+          "encoder_input_format_converter",
+          from_config("encoder_input_format_converter"),
+          Arg("pool") =
+              make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
 
     // Create the Endoscopy Tool Tracking (ETT) Pipeline similar to the regular ETT application.
     auto response_condition = make_condition<AsynchronousCondition>("response_condition");
@@ -116,6 +135,23 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
         Arg("device_allocator") = make_resource<RMMAllocator>(
             "device_allocator", Arg("device_memory_max_size") = std::string("256MB")));
 
+    auto encoder_async_condition =
+          make_condition<AsynchronousCondition>("encoder_async_condition");
+      
+    auto video_encoder_context =
+          make_resource<VideoEncoderContext>(Arg("scheduling_term") = encoder_async_condition);
+
+    auto video_encoder_request = make_operator<ops::VideoEncoderRequestOp>(
+          "video_encoder_request",
+          from_config("video_encoder_request"),
+          Arg("videoencoder_context") = video_encoder_context);
+
+    auto video_encoder_response = make_operator<VideoEncoderResponseOp>(
+          "video_encoder_response",
+          from_config("video_encoder_response"),
+          Arg("pool") =
+              make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
+          Arg("videoencoder_context") = video_encoder_context);
     // Here we connect the GrpcServerRequestOp to the VideoDecoderRequestOp to send the received
     // video frames for decoding.
     add_flow(grpc_request_op, video_decoder_request, {{"output", "input_frame"}});
@@ -125,13 +161,23 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
              {{"output_transmitter", "source_video"}});
     add_flow(
         decoder_output_format_converter, rgb_float_format_converter, {{"tensor", "source_video"}});
-    add_flow(rgb_float_format_converter, lstm_inferer);
-    add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
+
+     add_flow(rgb_float_format_converter,
+               encoder_input_format_converter,
+               {{"tensor", "source_video"}});
+      add_flow(encoder_input_format_converter, tensor_to_video_buffer, {{"tensor", "in_tensor"}});
+      add_flow(
+          tensor_to_video_buffer, video_encoder_request, {{"out_video_buffer", "input_frame"}});
+      add_flow(video_encoder_response, grpc_response_op, {{"output_transmitter", "input"}});
+    }    
+    //add_flow(rgb_float_format_converter, lstm_inferer);
+    //add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
 
     // Lastly, we connect the results from the tool tracking postprocessor to the
     // GrpcServerResponseOp so the pipeline can return the results back to the client
-    add_flow(tool_tracking_postprocessor, grpc_response_op, {{"out", "input"}});
-  }
+    //add_flow(tool_tracking_postprocessor, grpc_response_op, {{"out", "input"}});
+    //add_flow(rgb_float_format_converter, grpc_response_op, {{"", "input"}});
+    
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
 #endif /* GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_CLOUD_APP_CLOUD_PIPELINE_HPP */
