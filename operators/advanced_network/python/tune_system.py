@@ -188,9 +188,11 @@ def check_mrrs():
     is set to 4096.
     """
     try:
-        name, addrs = get_nic_info()
+        names, addrs = get_nic_info()
+        for idx in range(len(addrs)):
 
-        for pci_address in addrs:
+            pci_address = addrs[idx]
+            name = names[idx]
 
             # Query MRRS for the NIC using setpci
             mrrs_result = subprocess.run(
@@ -219,9 +221,11 @@ def check_max_payload_size():
     from the DevCtl section and ensures it is set to 256 bytes.
     """
     try:
-        name, addrs = get_nic_info()
+        names, addrs = get_nic_info()
+        for idx in range(len(addrs)):
+            pci_address = addrs[idx]
+            name = names[idx]
 
-        for pci_address in addrs:
             # Query detailed device information using lspci -vv
             mps_result = subprocess.run(
                 ["lspci", "-vv", "-s", pci_address], capture_output=True, text=True, check=True
