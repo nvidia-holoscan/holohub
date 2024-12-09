@@ -48,28 +48,15 @@ advanced_network:
         - local
       num_bufs: 30720
       buf_size: 1064
-    - name: "Default_RX_CPU"
-      kind: "huge"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 30720
-      buf_size: 1064
 
     interfaces:
     - name: data2
       address: 0005:03:00.0
+      flow_isolation: true
       rx:
         - queues:
-          - name: "Default"
-            id: 0
-            cpu_core: 7
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Default_RX_CPU"
           - name: "Data"
-            id: 1
+            id: 0
             cpu_core: 8
             batch_size: 10240
             output_port: "bench_rx_out"
