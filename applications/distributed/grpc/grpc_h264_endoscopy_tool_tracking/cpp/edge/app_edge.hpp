@@ -49,16 +49,105 @@ class AppEdge : public holoscan::Application {
     uint32_t width = 854;
     uint32_t height = 480;
 
-    auto video_in = make_fragment<VideoInputFragment>("video_in", datapath_, width, height);
-    auto viz = make_fragment<VizFragment>("viz", width, height);
+    // auto video_in = make_fragment<VideoInputFragment>("video_in", datapath_, width, height);
+    // auto viz = make_fragment<VizFragment>("viz", width, height);
 
-    // Connect the video input fragment to the visualization fragment.
-    // - Connect the decoded video frames to the visualizer.
-    // - Connect the inference & post-process results to the visualizer.
-    add_flow(video_in,
-             viz,
-             {{"decoder_output_format_converter.tensor", "visualizer_op.receivers"},
-              {"incoming_responses.output", "visualizer_op.receivers"}});
+    // // Connect the video input fragment to the visualization fragment.
+    // // - Connect the decoded video frames to the visualizer.
+    // // - Connect the inference & post-process results to the visualizer.
+    // add_flow(video_in,
+    //          viz,
+    //          {{"decoder_output_format_converter.tensor", "visualizer_op.receivers"},
+    //           {"incoming_responses.output", "visualizer_op.receivers"}});
+     
+    std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue_;
+    std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>> response_queue_;
+    std::shared_ptr<AsynchronousCondition> condition_;
+    std::shared_ptr<EntityClientService> entity_client_service_;
+    std::string datapath_;
+    uint32_t width_;
+    uint32_t height_;
+    condition_ = make_condition<AsynchronousCondition>("response_available_condition");
+    request_queue_ =
+        make_resource<ConditionVariableQueue<std::shared_ptr<EntityRequest>>>("request_queue");
+    response_queue_ =
+        make_resource<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>>(
+            "response_queue", condition_);
+
+    auto bitstream_reader = make_operator<VideoReadBitstreamOp>(
+        "bitstream_reader",
+        from_config("bitstream_reader"),
+        Arg("input_file_path", datapath_ + "/surgical_video.264"),
+        make_condition<CountCondition>(750),
+        make_condition<PeriodicCondition>("periodic-condition",
+                                          Arg("recess_period") = std::string("25hz")),
+        Arg("pool") = make_resource<RMMAllocator>(
+            "pool", Arg("device_memory_max_size") = std::string("256MB")));
+
+    // The GrpcClientRequestOp is responsible for sending data to the gRPC server.
+    auto outgoing_requests = make_operator<GrpcClientRequestOp>(
+        "outgoing_requests",
+        Arg("request_queue") = request_queue_,
+        Arg("allocator") = make_resource<RMMAllocator>(
+            "pool", Arg("device_memory_max_size") = std::string("256MB")));
+
+    auto response_condition = make_condition<AsynchronousCondition>("response_condition");
+    auto video_decoder_context = make_resource<VideoDecoderContext>(
+        "decoder-context", Arg("async_scheduling_term") = response_condition);
+
+    auto request_condition = make_condition<AsynchronousCondition>("request_condition");
+    auto video_decoder_request =
+        make_operator<VideoDecoderRequestOp>("video_decoder_request",
+                                             from_config("video_decoder_request"),
+                                             Arg("async_scheduling_term") = request_condition,
+                                             Arg("videodecoder_context") = video_decoder_context);
+
+    auto video_decoder_response = make_operator<VideoDecoderResponseOp>(
+        "video_decoder_response",
+        from_config("video_decoder_response"),
+        Arg("pool") = make_resource<RMMAllocator>(
+            "pool", Arg("device_memory_max_size") = std::string("256MB")),
+        Arg("videodecoder_context") = video_decoder_context);
+
+    auto decoder_output_format_converter = make_operator<FormatConverterOp>(
+        "decoder_output_format_converter",
+        from_config("decoder_output_format_converter"),
+        Arg("pool") = make_resource<RMMAllocator>(
+            "pool", Arg("device_memory_max_size") = std::string("256MB")));
+
+    // The GrpcClientResponseOp is responsible for handling incoming responses from the gRPC server.
+    auto incoming_responses =
+        make_operator<GrpcClientResponseOp>("incoming_responses",
+                                            Arg("condition") = condition_,
+                                            Arg("response_queue") = response_queue_);
+
+    // Send the frames to the gRPC server for processing.
+    add_flow(bitstream_reader, outgoing_requests, {{"output_transmitter", "input"}});
+
+    add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
+    add_flow(video_decoder_response,
+             decoder_output_format_converter,
+             {{"output_transmitter", "source_video"}});
+
+    // Here we add the operator to process the response queue with data received from the gRPC
+    // server. The operator will convert the data to a GXF Entity and send it to the Holoviz.
+    add_operator(incoming_responses);
+
+    entity_client_service_ = std::make_shared<EntityClientService>(
+        from_config("grpc_client.server_address").as<std::string>(),
+        from_config("grpc_client.rpc_timeout").as<uint32_t>(),
+        request_queue_,
+        response_queue_,
+        outgoing_requests);
+    entity_client_service_->start_entity_stream();
+
+    auto visualizer_op = make_operator<ops::HolovizOp>(
+        "visualizer_op",
+        from_config("holoviz"),
+        Arg("width") = width_,
+        Arg("height") = height_,
+        Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
+    add_operator(visualizer_op);
   }
 
  private:
