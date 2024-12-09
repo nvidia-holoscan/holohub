@@ -205,7 +205,9 @@ def check_mrrs():
             if mrrs_value == 5:
                 logging.info(f"{name}/{pci_address}: MRRS is correctly set to 4096.")
             else:
-                logging.warning(f"{name}/{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096.")
+                logging.warning(
+                    f"{name}/{pci_address}: MRRS is set to {2**(7+mrrs_value)}, not 4096."
+                )
 
     except FileNotFoundError:
         logging.error("The required tools (lspci or setpci) are not available on this system.")
@@ -335,7 +337,9 @@ def check_nvidia_gpu_clocks():
         # Run nvidia-smi to get clock information
         result = subprocess.run(
             ["nvidia-smi", f"--query-gpu={query}", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         # Parse the output of nvidia-smi
@@ -358,9 +362,7 @@ def check_nvidia_gpu_clocks():
                     f"GPU {idx}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
                 )
             else:
-                logging.info(
-                    f"GPU {idx}: Memory Clock is correctly set to {mem_max} MHz."
-                )
+                logging.info(f"GPU {idx}: Memory Clock is correctly set to {mem_max} MHz.")
 
     except FileNotFoundError:
         logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
@@ -624,6 +626,6 @@ def main():
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
-        sys.exit("This script must be run as root! Please use 'sudo' to execute it.")  
-    
+        sys.exit("This script must be run as root! Please use 'sudo' to execute it.")
+
     main()
