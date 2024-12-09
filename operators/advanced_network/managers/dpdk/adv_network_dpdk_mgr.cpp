@@ -38,7 +38,7 @@ struct TxWorkerParams {
   int queue;
   uint32_t batch_size;
   struct rte_ring* ring;
-  struct rte_ring* lb_ring;
+  struct rte_ring* lb_ring;         // Ring used between TX and RX when in SW loopback mode
   struct rte_mempool* meta_pool;
   struct rte_mempool* burst_pool;
   struct rte_ether_addr mac_addr;
@@ -51,7 +51,7 @@ struct RxWorkerParams {
   uint64_t timeout_us;
   uint32_t batch_size;
   struct rte_ring* ring;
-  struct rte_ring* lb_ring;
+  struct rte_ring* lb_ring;          // Ring used between TX and RX when in SW loopback mode
   struct rte_mempool* flowid_pool;
   struct rte_mempool* rx_burst_pool;
   struct rte_mempool* tx_burst_pool;
@@ -71,10 +71,10 @@ struct RxWorkerMultiQParams {
   struct rte_ring* ring;
   struct rte_ring* lb_ring;
   struct rte_mempool* flowid_pool;
-  struct rte_mempool* rx_burst_pool;
-  struct rte_mempool* tx_burst_pool;
-  struct rte_mempool* rx_meta_pool;
-  struct rte_mempool* tx_meta_pool;
+  struct rte_mempool* rx_burst_pool; // Pool used to pull out bursts from RX pool
+  struct rte_mempool* tx_burst_pool; // Pool used for loopback mode to return transmitted bursts
+  struct rte_mempool* rx_meta_pool;  // Pool used for RX metadata structures
+  struct rte_mempool* tx_meta_pool;  // Pool used in loopback for returning transmitted metadata
 };
 
 /**
@@ -1996,12 +1996,18 @@ AdvNetStatus DpdkMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* d
 
 bool DpdkMgr::tx_burst_available(AdvNetBurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+<<<<<<< HEAD
   const auto item = tx_dpdk_q_map_.find(key);
   if (item == tx_dpdk_q_map_.end()) {
     return false;
   }
 
   const auto& q = item->second;
+=======
+
+  const auto& q = tx_q_map_[key];
+
+>>>>>>> bed3de93 (updates)
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
   }
