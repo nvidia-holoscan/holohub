@@ -42,14 +42,17 @@ def parse_args():
         description="Check system tuning for ANO performance",
         epilog=(
             "Examples:\n"
-            "  python check_system.py -cpu-freq       # Check CPU frequency governor\n"
-            "  python check_system.py -mrrs     # Check MRRS settings for NVIDIA NICs\n\n"
-            "  python check_system.py -mps      # Check max payload size settings for NVIDIA NICs\n\n"
+            f"  python {sys.argv[0]} --check cpu-freq    # Check CPU frequency governor\n"
+            f"  python {sys.argv[0]} --check mrrs        # Check MRRS settings for NVIDIA NICs\n"
+            f"  python {sys.argv[0]} --check mps         # Check max payload size settings\n"
+            f"  python {sys.argv[0]} --set mrrs          # Set PCIe MRRS\n\n"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         "--check",
         choices=[
             "all",
@@ -78,7 +81,7 @@ def parse_args():
         ),
     )
 
-    parser.add_argument("--set", choices=["mrrs"], help=("  mrrs      - Update MRRS of NICs\n"))
+    group.add_argument("--set", choices=["mrrs"], help=("  mrrs      - Update MRRS of NICs\n"))
 
     # Check if no arguments are provided
     if len(sys.argv) == 1:
