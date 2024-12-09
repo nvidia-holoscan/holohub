@@ -619,4 +619,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if os.geteuid() != 0:
+        sys.exit("This script must be run as root! Please use 'sudo' to execute it.")  
+    
     main()
