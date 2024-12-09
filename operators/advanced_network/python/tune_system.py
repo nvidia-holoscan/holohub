@@ -97,24 +97,22 @@ def get_nic_info():
     where each tuple contains the interface name and its PCIe address.
 
     Returns:
-        List[Tuple[str, str]]: A list of tuples with (interface_name, pcie_address).
+        List[Tuple[str, str]]: A list of tuples containing the IF name and PCIe address
     """
     try:
         # Run ibdev2netdev -v to get detailed information about Mellanox devices
         result = subprocess.run(["ibdev2netdev", "-v"], capture_output=True, text=True, check=True)
 
         # Parse the output to extract interface names and PCIe addresses
-        names = []
-        addrs = []
+        vals = []
         for line in result.stdout.splitlines():
             match = re.match(r"([\S\:\.]+) .*==>\s+(\S+)", line)
             if match:
                 pcie_address = match.group(1)
                 interface_name = match.group(2)
-                names.append(interface_name)
-                addrs.append(pcie_address)
+                vals.append((interface_name, pcie_address))
 
-        return names, addrs
+        return vals
 
     except FileNotFoundError:
         print(
@@ -188,11 +186,10 @@ def check_mrrs():
     is set to 4096.
     """
     try:
-        names, addrs = get_nic_info()
-        for idx in range(len(addrs)):
-
-            pci_address = addrs[idx]
-            name = names[idx]
+        nic_info = get_nic_info()
+        for intf in nic_info:
+            name = intf[0]
+            pci_address = intf[1]
 
             # Query MRRS for the NIC using setpci
             mrrs_result = subprocess.run(
@@ -223,10 +220,10 @@ def check_max_payload_size():
     from the DevCtl section and ensures it is set to 256 bytes.
     """
     try:
-        names, addrs = get_nic_info()
-        for idx in range(len(addrs)):
-            pci_address = addrs[idx]
-            name = names[idx]
+        nic_info = get_nic_info()
+        for intf in nic_info:
+            name = intf[0]
+            pci_address = intf[1]
 
             # Query detailed device information using lspci -vv
             mps_result = subprocess.run(
@@ -526,10 +523,11 @@ def check_mtu_size():
     Checks the MTU size of each NVIDIA NIC using the sysfs interface and prints a warning if it's not over 1500 bytes.
     """
     try:
-        ifnames, _ = get_nic_info()
+        nic_info = get_nic_info()
+        for intf in nic_info:
+            iface = intf[0]
 
         # Check MTU size for each NVIDIA NIC using sysfs
-        for iface in ifnames:
             mtu_path = f"/sys/class/net/{iface}/mtu"
             if os.path.exists(mtu_path):
                 with open(mtu_path, "r") as f:
@@ -562,14 +560,14 @@ def update_mrrs_for_nvidia_devices():
     preserving the lower 12 bits of the current setting.
     """
     try:
-        _, addrs = get_nic_info()
+        nic_info = get_nic_info()
+        for intf in nic_info:
+            pci_address = intf[1]
 
-        # Update MRRS for each PCIe address using setpci
-        for address in addrs:
             try:
                 # Read the current MRRS value
                 read_result = subprocess.run(
-                    ["setpci", "-s", address, "68.w"], capture_output=True, text=True, check=True
+                    ["setpci", "-s", pci_address, "68.w"], capture_output=True, text=True, check=True
                 )
 
                 current_value_hex = read_result.stdout.strip()
@@ -579,12 +577,12 @@ def update_mrrs_for_nvidia_devices():
                 new_value = (current_value & 0x0FFF) | (0x5 << 12)
 
                 # Write the new MRRS value back
-                subprocess.run(["setpci", "-s", address, f"68.w={new_value:04x}"], check=True)
+                subprocess.run(["setpci", "-s", pci_address, f"68.w={new_value:04x}"], check=True)
                 logging.info(
-                    f"Successfully updated MRRS to 4096 for device at PCIe address {address}={hex(new_value)}."
+                    f"Successfully updated MRRS to 4096 for device at PCIe address {pci_address}={hex(new_value)}."
                 )
             except subprocess.CalledProcessError as e:
-                logging.error(f"Failed to update MRRS for device at PCIe address {address}: {e}")
+                logging.error(f"Failed to update MRRS for device at PCIe address {pci_address}: {e}")
 
     except FileNotFoundError:
         logging.error(
