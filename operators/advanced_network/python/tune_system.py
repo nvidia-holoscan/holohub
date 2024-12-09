@@ -535,7 +535,7 @@ def check_mtu_size():
                     if mtu_value <= 1518:
                         logging.warning(
                             f"Interface {iface} has an MTU of {mtu_value} bytes. "
-                            "If possible use larger frame sizes for better performance"
+                            "If possible use larger frame sizes ( > 1518B) for better performance"
                         )
                     else:
                         logging.info(
