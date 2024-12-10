@@ -68,3 +68,6 @@ add_subdirectory(operators)
 
 # Build the extensions
 add_subdirectory(gxf_extensions)
+
+# Build packaging
+add_subdirectory(pkg)

@@ -28,6 +28,12 @@ target_include_directories(basic_network PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(basic_network holoscan::core)
 
+# Installation
+install(
+    TARGETS basic_network
+    COMPONENT holoscan-networking
+)
+
 # Python equivalent
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
