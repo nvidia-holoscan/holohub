@@ -90,13 +90,8 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
 
   if (res != AdvNetStatus::SUCCESS) { return; }
 
-  auto adv_burst = std::make_shared<AdvNetBurstParams>();
-  memcpy(adv_burst.get(), burst, sizeof(*burst));
-
-  impl->mgr->free_rx_meta(burst);
-
-  const auto port_str = pq_map_[(adv_burst->hdr.hdr.port_id << 16) | adv_burst->hdr.hdr.q_id];
-  op_output.emit(adv_burst, port_str.c_str());
+  const auto port_str = pq_map_[(burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id];
+  op_output.emit(burst, port_str.c_str());
 }
 
 };  // namespace holoscan::ops
