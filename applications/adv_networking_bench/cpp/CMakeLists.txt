@@ -91,15 +91,17 @@ add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
 
 # Installation
 install(TARGETS adv_networking_bench
-        DESTINATION bin/adv_networking_bench/cpp)
+        DESTINATION bin/adv_networking_bench/cpp
+        COMPONENT holoscan-networking)
 
 install(
   FILES ../adv_networking_bench_default_rx.yaml
         ../adv_networking_bench_default_tx.yaml
         ../adv_networking_bench_default_tx_rx.yaml
         ../adv_networking_bench_doca_tx_rx.yaml
-        ../adv_networking_bench_rmax_rx_yaml
+        ../adv_networking_bench_rmax_rx.yaml
   DESTINATION bin/adv_networking_bench/cpp
+  COMPONENT holoscan-networking
 )
 
 # Add testing
