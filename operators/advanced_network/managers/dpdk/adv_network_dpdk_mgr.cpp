@@ -330,8 +330,8 @@ void DpdkMgr::initialize() {
           },
   };
   
-  loopback_ = cfg_.common_.loopback_;
-  if (loopback_) {
+  loopback_ = cfg_.common_.loopback_ ? LoopbackType::LOOPBACK_TYPE_SW : LoopbackType::DISABLED;
+  if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
     if (cfg_.ifs_.size() > 1) {
       HOLOSCAN_LOG_CRITICAL("Only a single interface allowed for loopback mode currently");
       return;
@@ -387,7 +387,7 @@ void DpdkMgr::initialize() {
     strncpy(_argv[arg++], c.c_str(), max_arg_size - 1);
   }
 
-  if (!loopback_) {
+  if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
     for (const auto& name : ifs) {
       strncpy(_argv[arg++], "-a", max_arg_size - 1);
       strncpy(_argv[arg++],
@@ -427,9 +427,11 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  if (map_mrs() != AdvNetStatus::SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
-    return;
+  if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
+    if (map_mrs() != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
+      return;
+    }
   }
 
   // Build name to id mapping
@@ -438,7 +440,7 @@ void DpdkMgr::initialize() {
   for (auto& intf : cfg_.ifs_) {
     [[maybe_unused]] struct rte_eth_dev_info dev_info;    
 
-    if (loopback_) {
+    if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
       intf.port_id_ = 0;
     }
     else {
@@ -483,7 +485,7 @@ void DpdkMgr::initialize() {
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
 
         struct rte_mempool* pool = nullptr;
-        if (!loopback_) { // Loopback needs no RX pools since it uses TX
+        if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) { // Loopback needs no RX pools
           if (mr.num_bufs_ < default_num_rx_desc) {
             HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR", default_num_rx_desc);
             return;
@@ -641,7 +643,7 @@ void DpdkMgr::initialize() {
                       intf.port_id_,
                       local_port_conf[intf.port_id_].rxmode.mtu);
 
-    if (!loopback_ && tx.accurate_send_) {
+    if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW && tx.accurate_send_) {
       setup_accurate_send_scheduling_mask();
 
       if (ret != 0) {
@@ -673,7 +675,7 @@ void DpdkMgr::initialize() {
                       intf.rx_.queues_.size(),
                       intf.tx_.queues_.size());
 
-    if (!loopback_) {
+    if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
       ret = rte_eth_dev_configure(intf.port_id_,
                                   intf.rx_.queues_.size(),
                                   intf.tx_.queues_.size(),
@@ -935,7 +937,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     return -1;
   }
 
-  if (loopback_) {
+  if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
     loopback_ring =
         rte_ring_create("LOOPBACK_RING", 4096, rte_socket_id(), 
             RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
@@ -1225,7 +1227,7 @@ void DpdkMgr::run() {
   int (*rx_worker)(void*);
   int (*tx_worker)(void*);
 
-  if (!loopback_) {
+  if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
     rx_worker = rx_core_worker;
     tx_worker = tx_core_worker;
   }
@@ -1864,7 +1866,7 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
 void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
   if (--num_init == 0) {
-    if (!loopback_) {
+    if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
       int portid;
       RTE_ETH_FOREACH_DEV(portid) {
         PrintDpdkStats(portid);
