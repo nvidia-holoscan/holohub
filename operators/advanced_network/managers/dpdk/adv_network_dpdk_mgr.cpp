@@ -1300,7 +1300,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
 
       for (int p = 0; p < nb_rx; p++) {
-        if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+        if (mbuf_arr[to_copy + p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
           pkt_info[p].flow_id = mbuf_arr[to_copy + p]->hash.fdir.hi;
         } else {
           pkt_info[p].flow_id = 0;
@@ -1341,11 +1341,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
-      for (int flow_idx = 0; flow_idx < to_copy; flow_idx++) {
-        if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
+      for (int p = 0; p < to_copy; p++) {
+        if (mbuf_arr[p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = mbuf_arr[p]->hash.fdir.hi;
         } else {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = 0;
         }
       }
 

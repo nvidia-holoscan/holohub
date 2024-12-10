@@ -215,8 +215,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
           ttl_bytes_recv_ +=
               adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
-#endif   
-        }    
+#endif
+        }
       } else {
         // Batched: headers and payload to GPU (queue memory regions should be a single GPU segment)
         for (int p = 0; p < burst_size; p++) {
@@ -226,7 +226,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] =
               reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
           ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
-        }   
+        }
       }
     } else {
       /* CPU Mode (needs to match if the ANO queue uses no GPU memory regions)
