@@ -1280,7 +1280,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
-            "Processing function falling behind. No free flow ID buffers for packets!");
+            "Processing function falling behind. No free RX bursts!");
         continue;
       }
     }
@@ -1299,17 +1299,17 @@ int DpdkMgr::rx_core_worker(void* arg) {
       // Copy non-scattered buffers
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
 
-      for (int flow_idx = 0; flow_idx < nb_rx; flow_idx++) {
+      for (int p = 0; p < nb_rx; p++) {
         if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[flow_idx].flow_id = mbuf_arr[to_copy + flow_idx]->hash.fdir.hi;
+          pkt_info[p].flow_id = mbuf_arr[to_copy + p]->hash.fdir.hi;
         } else {
-          pkt_info[flow_idx].flow_id = 0;
+          pkt_info[p].flow_id = 0;
         }
       }
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
-          struct rte_mbuf* mbuf = mbuf_arr[p];
+          struct rte_mbuf* mbuf = mbuf_arr[to_copy + p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
             burst->pkts[seg][p] = mbuf;
@@ -1584,8 +1584,6 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
 
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
-  reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
-
   return AdvNetStatus::SUCCESS;
 }
 
@@ -1611,6 +1609,7 @@ void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
 
 void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
   rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
+  rte_mempool_put(rx_meta, burst);
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(rx_burst_buffer, (void*)burst->pkts[seg]);
   }
