@@ -159,12 +159,29 @@ class V4L2toVLM(Application):
     def compose(self):
         pool = UnboundedAllocator(self, name="pool")
 
+        num_sources = 0
+        while True:
+            try:
+                v4l2_source_key = f'v4l2_source_{num_sources}'
+                v4l2_args = self.kwargs(v4l2_source_key)
+                
+                # Validate that v4l2_args is not None and is a dictionary
+                if not v4l2_args or not isinstance(v4l2_args, dict):
+                    break
+                
+                num_sources += 1
+            
+            except Exception as e:
+                #print(f"Add if you need: {e}")
+                break
+        
         # Sources initialization
         sources = []
         source_outputs = []
+        print(f"Found {num_sources} sources")
 
         # Try sources with sequential numbering
-        for i in range(3):  # Start with trying v4l2_source_0 and v4l2_source_1
+        for i in range(num_sources):  # Start with trying v4l2_source_0 and v4l2_source_1
             source_key = f'v4l2_source_{i}'
             v4l2_args = self.kwargs(source_key)
 
