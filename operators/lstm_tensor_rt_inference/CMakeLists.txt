@@ -12,24 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.20)
-project(lstm_tensor_rt_inference)
+if (NOT HOLOHUB_WHEEL_TESTING)
+    cmake_minimum_required(VERSION 3.20)
+    project(lstm_tensor_rt_inference)
 
-find_package(holoscan REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+    find_package(holoscan REQUIRED CONFIG
+                 PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(lstm_tensor_rt_inference SHARED
-  lstm_tensor_rt_inference.cpp
-  lstm_tensor_rt_inference.hpp
-  )
+    add_library(lstm_tensor_rt_inference SHARED
+      lstm_tensor_rt_inference.cpp
+      lstm_tensor_rt_inference.hpp
+      )
 
-target_link_libraries(lstm_tensor_rt_inference holoscan::core)
-target_include_directories(lstm_tensor_rt_inference INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(lstm_tensor_rt_inference holoscan::core)
+    target_include_directories(lstm_tensor_rt_inference INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(HOLOHUB_BUILD_PYTHON)
-    add_subdirectory(python)
+    if(HOLOHUB_BUILD_PYTHON)
+        add_subdirectory(python)
+    endif()
+
+    # Installation
+    install(TARGETS lstm_tensor_rt_inference)
 endif()
-
-# Installation
-install(TARGETS lstm_tensor_rt_inference)
-

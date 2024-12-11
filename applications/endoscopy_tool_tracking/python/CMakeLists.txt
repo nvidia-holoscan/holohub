@@ -15,8 +15,10 @@
 
 # Add testing
 if(BUILD_TESTING)
-  # To get the environment path
-  find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+  if (NOT HOLOHUB_WHEEL_TESTING)
+      # To get the environment path
+      find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+  endif()
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_endoscopy_tool_tracking_output)
