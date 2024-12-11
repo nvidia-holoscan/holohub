@@ -16,9 +16,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(laser_detection_apps LANGUAGES NONE)
 
-find_package(holoscan 2.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
 set(HOLOSCAN_OPERATORS
   apriltag_detector
   emergent_source
