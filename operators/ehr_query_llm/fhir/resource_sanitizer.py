@@ -641,22 +641,34 @@ class FHIRResourceSanitizer:
 if __name__ == "__main__":
     from pathlib import Path
 
+    message = """
+    Sample Medical records encoded in HL7 FHIR R4 JSON format can be downloaded from https://synthea.mitre.org, e.g.
+    https://synthetichealth.github.io/synthea-sample-data/downloads/latest/synthea_sample_data_fhir_latest.zip.
+    Once unzipped the file can be used as input replacing the resources/example_fhir_resources.json.
+    """
     current_file_dir = Path(__file__).parent.resolve()
-    data_path = current_file_dir.parent.joinpath("resources/patient_records-3.json").absolute()
+    data_path = current_file_dir.parent.joinpath("resources/example_fhir_resources.json").absolute()
 
     if data_path.exists():
-        print("==========================================================")
-        print(f"Processing file {data_path}..........................")
+        print(f"\n{message}\n")
+        print(f"Processing file {data_path}..........................\n")
         with open(data_path) as f:
             patient_resources = json.load(f)
 
-        entries = patient_resources.get("entry")
-        for patient_key in patient_resources.keys():
-            for entry in patient_resources[patient_key]:
-                try:
-                    sanitized_record = FHIRResourceSanitizer.sanitize(entry)
-                    print(f"{sanitized_record}\n")
-                except NotImplementedError as e:
-                    logging.warning(e)
+        # Typical test FHIR Bundle JSON has an "entry" attribute containing a list of items,
+        # though this attribute could be replaced with an patient ID in some cases,
+        # hence the logic below.
+        entry_items = patient_resources.get("entry", None)
+        if entry_items:
+            print(f"'entry' attribute exists, containing {len(entry_items)} itenms.\n")
+
+        for key in patient_resources.keys():
+            for entry_item in patient_resources[key]:
+                if type(entry_item) is dict:
+                    try:
+                        sanitized_record = FHIRResourceSanitizer.sanitize(entry_item)
+                        print(f"{sanitized_record}\n")
+                    except NotImplementedError as e:
+                        logging.warning(e)
     else:
         print(f"Test data file is not found as expected at {data_path}.")
