@@ -15,7 +15,7 @@
 
 # Add testing
 if(BUILD_TESTING)
-  if (NOT HOLOHUB_WHEEL_TESTING)
+  if(NOT HOLOHUB_WHEEL_TESTING)
       # To get the environment path
       find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
   endif()

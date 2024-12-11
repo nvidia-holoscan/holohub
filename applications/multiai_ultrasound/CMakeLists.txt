@@ -36,7 +36,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-if (NOT HOLOHUB_WHEEL_TESTING)
+if(NOT HOLOHUB_WHEEL_TESTING)
     add_subdirectory(operators)
     add_subdirectory(cpp)
 endif()
