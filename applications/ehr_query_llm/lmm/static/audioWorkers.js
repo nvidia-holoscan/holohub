@@ -26,7 +26,7 @@
 
 class AudioCaptureProcessor extends AudioWorkletProcessor {
     process([inputs], [outputs], parameters) {
-          //console.log(`AudioCaptureProcessor::process(${inputs.length}, ${outputs.length})`);
+       
           // convert float->int16 samples
           var input = inputs[0]; 
           var samples = new Int16Array(input.length);
@@ -35,10 +35,6 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
               samples[i] = 32767 * Math.min(Math.max(input[i], -1), 1);
           
           this.port.postMessage(samples, [samples.buffer]);
-          
-          // relay outputs
-          //for( let i=0; i < inputs.length && i < outputs.length; i++ )
-          //	outputs[i].set(inputs[i]);
           
       return true;
     }
