@@ -40,7 +40,10 @@ class VideoInputFragment : public holoscan::Fragment {
 
     auto replayer = make_operator<ops::VideoStreamReplayerOp>(
         "replayer",
-        Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")),
+        Arg("allocator",
+            make_resource<RMMAllocator>("video_replayer_allocator",
+                                        Arg("device_memory_max_size") = std::string("256MB"),
+                                        Arg("device_memory_initial_size") = std::string("256MB"))),
         from_config("replayer"),
         args);
 
@@ -175,6 +178,23 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
   return true;
 }
 
+/** Helper function to parse fragment mode and benchmarking settings from the configuration file */
+void parse_config(const std::string& config_path, bool& benchmarking) {
+  auto config = holoscan::Config(config_path);
+  auto& yaml_nodes = config.yaml_nodes();
+  for (const auto& yaml_node : yaml_nodes) {
+    try {
+      auto application = yaml_node["application"];
+      if (application.IsMap()) {
+        benchmarking = application["benchmarking"].as<bool>();
+      }
+    } catch (std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Error parsing configuration file: {}", e.what());
+      benchmarking = false;
+    }
+  }
+}
+
 /** Main function */
 int main(int argc, char** argv) {
   std::string config_path = "";
@@ -204,10 +224,25 @@ int main(int argc, char** argv) {
     }
   }
 
+  bool benchmarking = false;
+  parse_config(config_path, benchmarking);
+
   auto app = holoscan::make_application<App>();
   app->config(config_path);
   app->set_datapath(data_directory);
+
+  std::unordered_map<std::string, DataFlowTracker*> trackers;
+  if (benchmarking) {
+    trackers = app->track_distributed();
+  }
+
   app->run();
 
+  if (benchmarking) {
+    for (const auto& [name, tracker] : trackers) {
+      std::cout << "Fragment: " << name << std::endl;
+      tracker->print();
+    }
+  }
   return 0;
 }
