@@ -31,9 +31,6 @@ function(holohub_configure_deb)
     message(FATAL_ERROR "Missing required arguments: ${missingArgs}")
   endif()
 
-  if (NOT ARG_COMPONENTS)
-    set(ARG_COMPONENTS "${ARG_NAME}")
-  endif()
   if(NOT ARG_SECTION)
    set(ARG_SECTION "devel")
   endif()
@@ -43,7 +40,6 @@ function(holohub_configure_deb)
 
   # set configurable properties
   set(CPACK_PACKAGE_NAME "${ARG_NAME}")
-  set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if valid?
   set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${ARG_DESCRIPTION}")
   set(CPACK_PACKAGE_VERSION "${ARG_VERSION}")
   set(CPACK_PACKAGE_VENDOR "${ARG_VENDOR}")
@@ -52,14 +48,20 @@ function(holohub_configure_deb)
   set(CPACK_PACKAGE_SECTION "${ARG_SECTION}")
   set(CPACK_PACKAGE_PRIORITY "${ARG_PRIORITY}")
 
+  if(ARG_COMPONENTS)
+    # only packages installed components, in a single package
+    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if valid?
+    set(CPACK_DEB_COMPONENT_INSTALL 1)
+    set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+  else()
+    # package all installed targets
+    set(CPACK_DEB_COMPONENT_INSTALL 0)
+  endif()
+
   # standard configurations
   set(CPACK_STRIP_FILES TRUE)
   set(CPACK_GENERATOR DEB)
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-
-  # only install components from CPACK_COMPONENTS_ALL in a single package
-  set(CPACK_DEB_COMPONENT_INSTALL 1)
-  set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 
   # generate package specific CPack configs to allow for multi packages
   set(CPACK_OUTPUT_CONFIG_FILE "${CMAKE_BINARY_DIR}/pkg/CPackConfig-${ARG_NAME}.cmake")
