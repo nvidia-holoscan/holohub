@@ -14,8 +14,9 @@
 # limitations under the License.
 
 import json
+from timeit import default_timer as timer
 
-from applications.ehr_query_llm.lmm.rag.ehr.create_ehr_db_local import create_ehr_database
+from applications.ehr_query_llm.lmm.rag.ehr.create_ehr_db import create_ehr_database
 
 from .base_agent import Agent
 
@@ -52,11 +53,16 @@ class EHRBuilderAgent(Agent):
         json_response = json.loads(response.replace("\n", "\\n"))
         can_build = json_response.get("can_build", False)
         if can_build:
+            start_time = timer()
+            # Call the helper module's function to retrieve EHR and build the database
             time_to_build = create_ehr_database()
+            self._logger.debug(
+                "DB creation sans EHR retrieval and prep took %.2f seconds." % time_to_build
+            )
+            elapsed_seconds = timer() - start_time
             response = (
                 '{"name": "EHRBuilderAgent", "response": "Completed building the EHR database. The database was built in '
-                + str(time_to_build)
-                + ' seconds."}'
+                + " %.2f seconds" % elapsed_seconds
             )
 
             self.response_handler.add_response(response)

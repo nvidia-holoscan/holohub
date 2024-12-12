@@ -32,13 +32,13 @@ from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
 from operators.ehr_query_llm.message_handling import MessageReceiver
 
 # FHIR global vars
-topic_request = "ehr-request"
-topic_response = "ehr-response"
-busy = False
-resources_to_retrieve = ["Observation", "FamilyMemberHistory", "Condition", "AllergyIntolerance"]
+TOPIC_REQUEST = "ehr-request"
+TOPIC_RESPONSE = "ehr-response"
+BUSY = False
+RESOURCES_TO_RETRIEVE = ["Observation", "FamilyMemberHistory", "Condition", "AllergyIntolerance"]
 
 # EHR Patient ID for John Doe
-mrn = "108915cc-b9f2-47db-ad4b-0143151f4f61"
+ID_DEFAULT = "108915cc-b9f2-47db-ad4b-0143151f4f61"
 
 # LLM summary global vars
 ehr_data = None
@@ -53,12 +53,12 @@ PERSISTENT_FOLDER = "/workspace/holohub/applications/ehr_query_llm/lmm/rag/ehr/d
 
 
 def get_ehr_data(
-    allow_reqested_only: Optional[bool] = True,
+    allow_requested_only: Optional[bool] = True,
 ):
     global ehr_data
     global ehr_request_ids
 
-    receiver = MessageReceiver(topic_response, "tcp://localhost:5601")
+    receiver = MessageReceiver(TOPIC_RESPONSE, "tcp://localhost:5601")
     while True:
         response = receiver.receive_json(blocking=True)
         try:
@@ -66,11 +66,11 @@ def get_ehr_data(
             logging.info(f"Got a response for request, id: {ehr_response.request_id}")
             if ehr_response.request_id.casefold() not in ehr_request_ids:
                 # For now, only support request/response scenario
-                # In the future, may need to support unsolicilated messages
+                # In the future, may need to support unsolicited messages
                 logging.warning(
                     f"Processing response for a untracked request, id {ehr_response.request_id}"
                 )
-                if allow_reqested_only:
+                if allow_requested_only:
                     continue
             else:
                 ehr_request_ids.remove(ehr_response.request_id.strip())
@@ -86,7 +86,9 @@ def get_ehr_data(
         time.sleep(1)
 
 
-def send_request():
+def send_request(identifier: str, resources_to_retrieve: list = RESOURCES_TO_RETRIEVE):
+    """Send request to retrieve the EHR resources with the provided identifier string"""
+
     global ehr_request_ids
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
@@ -97,10 +99,10 @@ def send_request():
     # as ZeroMQ does not guarantee message delivery if the sub is not fully connected.
     time.sleep(1)
     logging.info("Sending request to FHIR server...")
-    query = FHIRQuery(identifier=mrn, resources_to_retrieve=resources_to_retrieve)
+    query = FHIRQuery(identifier=identifier, resources_to_retrieve=RESOURCES_TO_RETRIEVE)
     ehr_request_ids.append(query.request_id.casefold())
-    logging.info(f"Sent request with id {query.request_id}")
-    socket.send_multipart([topic_request.encode("utf-8"), query.to_json().encode("utf-8")])
+    logging.info(f"Sent request, id: {query.request_id}")
+    socket.send_multipart([TOPIC_REQUEST.encode("utf-8"), query.to_json().encode("utf-8")])
 
 
 def stop(signum=None, frame=None):
@@ -194,8 +196,9 @@ def flatten_ehr(ehr_dict):
             # Parse FamilyMemberHistory
             elif resource["resourceType"] == "FamilyMemberHistory":
                 summary = f"The {'deceased' if resource['deceased'] else 'living'} {'/'.join(resource['relationship'])} has {' ,'.join(resource['conditions'])}"
-                # TODO Update FHIR parsing to include date
-                flattened_ehr = update_ehr_dict(flattened_ehr, summary, None)
+                # Schema for this FHIR resource has date (recorded) attribute but with Cardinality of 0..1, so often not present.
+                # The parsing will try to include date, but in practice the date recorded is often not used as a query parameter.
+                flattened_ehr = update_ehr_dict(flattened_ehr, summary, resource.get("date", None))
             elif resource["resourceType"] == "AllergyIntolerance":
                 summary = f"{resource['clinical_status'].capitalize()} allergy intolerance:\n\tAllergy: {', '.join([allergy['display'] for allergy in resource['allergy_intolerance']])}\n\tCriticality: {resource['criticality']}"
                 flattened_ehr = update_ehr_dict(flattened_ehr, summary, None)
@@ -226,17 +229,22 @@ def create_db_docs(flattened_ehr):
     return documents
 
 
-def main():
+def create_ehr_database(identifier: str = ID_DEFAULT):
+    """Create EHR database for the subject identified by the identifier string.
+
+    A default identifer is provided, by expected to removed once the main user of this module is ready.
+    """
     logging.basicConfig(level=logging.INFO)
     global ehr_data
     global t_receiver
     global t_sender
-    signal.signal(signal.SIGINT, stop)
+    #
 
     t_receiver = Thread(target=get_ehr_data)
     t_receiver.daemon = True
     t_receiver.start()
-    t_sender = Thread(target=send_request)
+    logging.info(f"Requesting EHR resources identified by {identifier}...")
+    t_sender = Thread(target=send_request, kwargs={"identifier": identifier})
     t_sender.daemon = True
     t_sender.start()
     t_receiver.join()
@@ -250,8 +258,10 @@ def main():
     end_time = time.time()
     total_time = end_time - start_time
     logging.info("Done!\n")
-    logging.info(f"Total time to build db: {total_time}")
+    logging.info(f"Total time to build db sans EHR retrieval and prep: {total_time} seconds.")
+    return total_time
 
 
 if __name__ == "__main__":
-    main()
+    signal.signal(signal.SIGINT, stop)
+    create_ehr_database()
