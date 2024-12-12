@@ -32,9 +32,31 @@
 #include <rte_malloc.h>
 #endif
 
-#include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
+
+// Declare a static global variable for the manager
+static ANOMgr* g_ano_mgr = nullptr;  
+
+const std::unordered_map<AnoLogLevel::Level, std::string> AnoLogLevel::level_to_string_map = {
+    {TRACE, "trace"},
+    {DEBUG, "debug"},
+    {INFO, "info"},
+    {WARN, "warn"},
+    {ERROR, "error"},
+    {CRITICAL, "critical"},
+    {OFF, "off"},
+};
+
+const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to_level_map = {
+    {"trace", TRACE},
+    {"debug", DEBUG},
+    {"info", INFO},
+    {"warn", WARN},
+    {"error", ERROR},
+    {"critical", CRITICAL},
+    {"off", OFF},
+};
 
 // Initialize static members
 std::unique_ptr<ANOMgr> AnoMgrFactory::AnoMgrInstance_ = nullptr;  // Initialize static members
@@ -111,6 +133,25 @@ AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
 }
 
 template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
+
+void adv_net_initialize_manager(ANOMgr* manager) {
+  g_ano_mgr = manager;
+}
+
+ANOMgr* adv_net_get_active_manager() {
+  return g_ano_mgr;
+}
+
+AnoMgrType adv_net_get_manager_type() {
+  return AnoMgrFactory::get_manager_type();
+}
+
+template <typename Config>
+AnoMgrType adv_net_get_manager_type(const Config& config) {
+  return AnoMgrFactory::get_manager_type(config);
+}
+
+template AnoMgrType adv_net_get_manager_type<Config>(const Config&);
 
 AdvNetStatus ANOMgr::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
@@ -223,6 +264,30 @@ bool ANOMgr::validate_config() const {
   }
 
   return pass;
+}
+
+void ANOMgr::format_eth_addr(char* dst, std::string addr) {
+  std::istringstream iss(addr);
+  std::string byteString;
+
+  uint8_t byte_cnt = 0;
+  while (std::getline(iss, byteString, ':')) {
+    if (byteString.length() == 2) {
+      uint16_t byte = std::stoi(byteString, nullptr, 16);
+      dst[byte_cnt++] = static_cast<char>(byte);
+    } else {
+      HOLOSCAN_LOG_ERROR("Invalid MAC address format: {}", addr);
+      dst[0] = 0x00;
+    }
+  }
+}
+
+void ANOMgr::set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs) {
+  assert(burst != nullptr && "burst is null");
+  burst->hdr.hdr.num_pkts = num;
+  burst->hdr.hdr.port_id = port;
+  burst->hdr.hdr.q_id = q;
+  burst->hdr.hdr.num_segs = segs;
 }
 
 };  // namespace holoscan::ops

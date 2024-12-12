@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#include "adv_network_mgr.h"
 #include "adv_network_tx.h"
 #include "adv_network_kernels.h"
 #include "kernels.cuh"
@@ -52,7 +53,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
-    // adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
+    // ano_mgr_->get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
     memcpy(pkt.eth.h_dest, eth_dst_, sizeof(pkt.eth.h_dest));
     pkt.eth.h_proto = htons(0x0800);
 
@@ -79,7 +80,9 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
-    // port_id_ = adv_net_address_to_port(address_.get());
+    ano_mgr_ = adv_net_get_active_manager();
+
+    // port_id_ = ano_mgr_->address_to_port(address_.get());
     port_id_ = 0;
 
     size_t buf_size = batch_size_.get() * payload_size_.get();
@@ -96,7 +99,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       for (int b = 0; b < buf_size; b++) { cptr[b] = cur++; }
     }
 
-    adv_net_format_eth_addr(eth_dst_, eth_dst_addr_.get());
+    ano_mgr_->format_eth_addr(eth_dst_, eth_dst_addr_.get());
     inet_pton(AF_INET, ip_src_addr_.get().c_str(), &ip_src_);
     inet_pton(AF_INET, ip_dst_addr_.get().c_str(), &ip_dst_);
 
@@ -131,7 +134,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.output<std::shared_ptr<AdvNetBurstParams>>("burst_out");
+    spec.output<AdvNetBurstParams*>("burst_out");
 
     spec.param<uint32_t>(
         batch_size_, "batch_size", "Batch size", "Batch size for each processing epoch", 1000);
@@ -183,53 +186,53 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       return;
     }
 
-    auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
+    auto msg = ano_mgr_->create_burst_params();
+    ano_mgr_->set_hdr(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
 
-    while (!adv_net_tx_burst_available(msg)) {}
-    if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
+    while (!ano_mgr_->tx_burst_available(msg)) {}
+    if ((ret = ano_mgr_->get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_ERROR("Error returned from ano_mgr_->get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
     }
 
     // For HDS mode or CPU mode populate the packet headers
-    for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
+    for (int num_pkt = 0; num_pkt < ano_mgr_->get_num_pkts(msg); num_pkt++) {
       if (!gpu_direct_.get() || hds_.get() > 0) {
-        if ((ret = adv_net_set_eth_hdr(msg, num_pkt, eth_dst_)) != AdvNetStatus::SUCCESS) {
+        if ((ret = ano_mgr_->set_eth_hdr(msg, num_pkt, eth_dst_)) != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set Ethernet header for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          ano_mgr_->free_all_pkts_and_burst(msg);
           return;
         }
 
         // Remove Eth + IP size
         const auto ip_len = payload_size_.get() + header_size_.get() - (14 + 20);
-        if ((ret = adv_net_set_ipv4_hdr(msg, num_pkt, ip_len, 17, ip_src_, ip_dst_)) !=
+        if ((ret = ano_mgr_->set_ipv4_hdr(msg, num_pkt, ip_len, 17, ip_src_, ip_dst_)) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set IP header for packet {}", 0);
-          adv_net_free_all_pkts_and_burst(msg);
+          ano_mgr_->free_all_pkts_and_burst(msg);
           return;
         }
 
-        if ((ret = adv_net_set_udp_hdr(msg,
+        if ((ret = ano_mgr_->set_udp_hdr(msg,
                                        num_pkt,
                                        // Remove Eth + IP + UDP headers
                                        payload_size_.get() + header_size_.get() - (14 + 20 + 8),
                                        udp_src_port_.get(),
                                        udp_dst_port_.get())) != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
-          adv_net_free_all_pkts_and_burst(msg);
+          ano_mgr_->free_all_pkts_and_burst(msg);
           return;
         }
 
         // Only set payload on CPU buffer if we're not in HDS mode
         if (hds_.get() == 0) {
-          if ((ret = adv_net_set_udp_payload(
+          if ((ret = ano_mgr_->set_udp_payload(
                    msg,
                    num_pkt,
                    static_cast<char*>(full_batch_data_h_) + num_pkt * payload_size_.get(),
                    payload_size_.get())) != AdvNetStatus::SUCCESS) {
             HOLOSCAN_LOG_ERROR("Failed to set UDP payload for packet {}", num_pkt);
-            adv_net_free_all_pkts_and_burst(msg);
+            ano_mgr_->free_all_pkts_and_burst(msg);
             return;
           }
         }
@@ -238,24 +241,24 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       // Figure out the CPU and GPU length portions for ANO
       if (gpu_direct_.get() && hds_.get() > 0) {
         gpu_bufs[cur_idx][num_pkt] =
-            reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 1, num_pkt));
-        if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_.get(), payload_size_.get()})) !=
+            reinterpret_cast<uint8_t*>(ano_mgr_->get_seg_pkt_ptr(msg, 1, num_pkt));
+        if ((ret = ano_mgr_->set_pkt_lens(msg, num_pkt, {hds_.get(), payload_size_.get()})) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          ano_mgr_->free_all_pkts_and_burst(msg);
           return;
         }
       } else {
         if (gpu_direct_.get()) {
           gpu_bufs[cur_idx][num_pkt] =
-              reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(msg, 0, num_pkt));
+              reinterpret_cast<uint8_t*>(ano_mgr_->get_seg_pkt_ptr(msg, 0, num_pkt));
         }
 
         if ((ret =
-                 adv_net_set_pkt_lens(msg, num_pkt, {payload_size_.get() + header_size_.get()})) !=
+                 ano_mgr_->set_pkt_lens(msg, num_pkt, {payload_size_.get() + header_size_.get()})) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          ano_mgr_->free_all_pkts_and_burst(msg);
           return;
         }
       }
@@ -266,7 +269,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       copy_headers(gpu_bufs[cur_idx],
                    gds_header_,
                    header_size_.get(),
-                   adv_net_get_num_pkts(msg),
+                   ano_mgr_->get_num_pkts(msg),
                    streams_[cur_idx]);
     }
 
@@ -275,7 +278,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
       populate_packets(gpu_bufs[cur_idx],
                        payload_size_.get(),
-                       adv_net_get_num_pkts(msg),
+                       ano_mgr_->get_num_pkts(msg),
                        offset,
                        streams_[cur_idx]);
       cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
@@ -327,6 +330,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
+  ANOMgr *ano_mgr_;
 };
 
 }  // namespace holoscan::ops

@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <atomic>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 #include <thread>
@@ -46,7 +47,6 @@
 #include <doca_eth_txq_gpu_data_path.h>
 
 #include "adv_network_mgr.h"
-#include "adv_network_common.h"
 
 #define FLOW_NB_COUNTERS 524228 /* 1024 x 512 */
 #define MAX_SQ_DESCR_NUM 32768
@@ -207,10 +207,11 @@ class DocaMgr : public ANOMgr {
                            uint16_t dst_port) override;
   AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) override;
   bool tx_burst_available(AdvNetBurstParams* burst) override;
-
   AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
   void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override{};
+  void free_all_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) override {};
+  void free_all_pkts_and_burst(AdvNetBurstParams* burst) override {};  
   void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override{};
   void free_pkt(AdvNetBurstParams* burst, int pkt) override{};
   void free_all_pkts(AdvNetBurstParams* burst) override{};

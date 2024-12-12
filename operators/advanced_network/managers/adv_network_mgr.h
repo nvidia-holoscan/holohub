@@ -17,7 +17,9 @@
 
 #pragma once
 
+#include "holoscan/holoscan.hpp"
 #include "adv_network_types.h"
+#include <cassert>
 #include <optional>
 
 namespace holoscan::ops {
@@ -53,9 +55,10 @@ class ANOMgr {
                                    uint16_t src_port, uint16_t dst_port) = 0;
   virtual AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) = 0;
   virtual bool tx_burst_available(AdvNetBurstParams* burst) = 0;
-
   virtual AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
                                     const std::initializer_list<int>& lens) = 0;
+  virtual void free_all_pkts_and_burst(AdvNetBurstParams* burst) = 0;
+  virtual void free_all_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) = 0;
   virtual void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) = 0;
   virtual void free_all_pkts(AdvNetBurstParams* burst) = 0;
   virtual void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) = 0;
@@ -78,6 +81,18 @@ class ANOMgr {
   virtual AdvNetStatus get_mac(int port, char* mac) = 0;
   virtual int address_to_port(const std::string& addr) = 0;
   virtual bool validate_config() const;
+
+  inline int64_t get_num_pkts(AdvNetBurstParams* burst) {
+    return burst->hdr.hdr.num_pkts;
+  }
+
+  inline int64_t get_q_id(AdvNetBurstParams* burst) {
+    assert(burst != nullptr && "burst is null");
+    return burst->hdr.hdr.q_id;
+  }
+
+  void format_eth_addr(char* dst, std::string addr);
+  void set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs);
 
   virtual ~ANOMgr() = default;
 
@@ -133,5 +148,23 @@ class AnoMgrFactory {
 
   static std::unique_ptr<ANOMgr> create_instance(AnoMgrType type);
 };
+
+ANOMgr* adv_net_get_active_manager();
+
+/**
+ * @brief Returns a manager type
+ *
+ * @return Manager type
+ */
+AnoMgrType adv_net_get_manager_type();
+
+/**
+ * @brief Returns a manager type
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return Manager type
+ */
+template <typename Config>
+AnoMgrType adv_net_get_manager_type(const Config& config);
 
 };  // namespace holoscan::ops

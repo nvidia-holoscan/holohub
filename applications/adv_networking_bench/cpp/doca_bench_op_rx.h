@@ -42,6 +42,8 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDocaRxOp::initialize()");
     holoscan::Operator::initialize();
 
+    ano_mgr_ = adv_net_get_active_manager();
+
     HOLOSCAN_LOG_INFO("holoscan::Operator::initialize() complete");
 
     // For this example assume all packets are the same size, specified in the config
@@ -108,7 +110,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     free_batch_queue();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
     if (!burst_opt) {
       HOLOSCAN_LOG_ERROR("No burst input");
       return;
@@ -119,16 +121,16 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     // hardcoded to match the YAML config files in this sample app.
     // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
     //       at least ARP packets should be processed, or delegate to linux for standard traffic.
-    if (adv_net_get_q_id(burst) == 0) {
+    if (ano_mgr_->get_q_id(burst) == 0) {
       HOLOSCAN_LOG_DEBUG("Ignoring packets on queue 0");
       return;
     }
 
     // Count packets received
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
+    ttl_pkts_recv_ += ano_mgr_->get_num_pkts(burst);
 
     // Iterate over packets on GPU
-    for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
+    for (int pkt_idx = 0; pkt_idx < ano_mgr_->get_num_pkts(burst); pkt_idx++) {
       /* For each ANO batch (named burst), we might not want to right away send the packets to the
       * next operator, but maybe wait for more packets to come in, to make up what we call an
       * "App batch". While that increases the latency by needing more data to come in to continue,
@@ -200,11 +202,11 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       // NOTE: currently ordering pointers in the order packets come in. If headers had segment
       //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
       h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(ano_mgr_->get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     // Count bytes received
-    ttl_bytes_recv_ += adv_net_get_burst_tot_byte(burst);
+    ttl_bytes_recv_ += ano_mgr_->get_burst_tot_byte(burst);
   }
 
  private:
@@ -236,6 +238,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
   std::array<cudaEvent_t, num_concurrent> events_start_;
+  ANOMgr *ano_mgr_;
 };
 
 }  // namespace holoscan::ops

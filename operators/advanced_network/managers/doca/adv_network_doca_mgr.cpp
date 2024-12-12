@@ -1802,6 +1802,7 @@ void DocaMgr::shutdown() {
 
   if (force_quit_doca.load() == false) {
     HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
+
     force_quit_doca.store(true);
     for (int i = 0; i < worker_th_idx; i++) {
       HOLOSCAN_LOG_INFO("Waiting on thread {}", i);

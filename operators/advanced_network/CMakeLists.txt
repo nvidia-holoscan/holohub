@@ -53,8 +53,8 @@ separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
 add_subdirectory(managers)
 
 add_library(advanced_network_common SHARED
-  adv_network_common.cpp
   adv_network_kernels.cu
+  adv_network_yaml.cpp
   managers/adv_network_mgr.cpp
 )
 

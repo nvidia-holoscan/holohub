@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memory>
-#include "adv_network_common.h"
+#include "adv_network_types.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {

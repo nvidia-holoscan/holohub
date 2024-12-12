@@ -42,13 +42,13 @@ advanced_network:
         - local
       num_bufs: 51200
       buf_size: 9000
-    - name: "Default_RX_GPU"
-      kind: "device"
+    - name: "Data_RX_CPU"
+      kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 64
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
@@ -59,7 +59,7 @@ advanced_network:
 
     interfaces:
     - name: data1
-      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
+      address: 0005:03:00.0       # The BUS address of the interface doing Tx
       tx:
         - queues:
           - name: "ADC Samples"
@@ -71,30 +71,24 @@ advanced_network:
             offloads:
               - "tx_eth_src"
     - name: data2
-      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
-      flow_isolation: false
+      address: 0005:03:00.1       # The BUS address of the interface doing Rx
+      flow_isolation: true
       rx:
         - queues:
-          - name: "Default"
-            id: 0
-            cpu_core: 10
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Default_RX_GPU"
           - name: "Data"
-            id: 1
+            id: 0
             cpu_core: 9
             batch_size: 10240
             output_port: "bench_rx_out"
             memory_regions:
+              - "Data_RX_CPU"
               - "Data_RX_GPU"
           flows:
           - name: "ADC Samples"
             id: 2
             action:
               type: queue
-              id: 1
+              id: 0
             match:
               udp_src: 4096 #12288
               udp_dst: 4096 #12288
@@ -102,7 +96,7 @@ advanced_network:
 
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
-  split_boundary: false   # Whether header and data is split (Header to CPU)
+  split_boundary: true   # Whether header and data is split (Header to CPU)
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
@@ -118,4 +112,4 @@ bench_tx:
   ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
   udp_src_port: 4096      # UDP source port
   udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
+  address: 0005:03:00.0 # Source NIC Bus ID. Should match the address of the Tx interface above

@@ -17,6 +17,7 @@
 
 #include "adv_network_tx.h"
 #include "adv_network_mgr.h"
+#include "adv_network_yaml.h"
 #include <memory>
 #include <assert.h>
 
@@ -73,22 +74,13 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
   auto rx = op_input.receive<AdvNetBurstParams*>("burst_in");
 
   if (rx.has_value() && rx.value() != nullptr) {
-    const auto tx_buf_res = impl->mgr->get_tx_meta_buf(&d_params);
-    if (tx_buf_res != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor: {}", static_cast<int>(tx_buf_res));
-      return;
-    }
-
     AdvNetBurstParams* burst = rx.value();
-    memcpy(static_cast<void*>(d_params), burst, sizeof(*burst));
 
-    const auto tx_res = impl->mgr->send_tx_burst(d_params);
+    const auto tx_res = impl->mgr->send_tx_burst(burst);
     if (tx_res != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Failed to send TX burst to ANO: {}", static_cast<int>(tx_res));
       return;
     }
-
-    if (impl->cfg.common_.manager_type != AnoMgrType::DOCA) delete burst;
   }
 }
 };  // namespace holoscan::ops

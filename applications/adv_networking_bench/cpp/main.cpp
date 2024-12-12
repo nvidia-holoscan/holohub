@@ -22,6 +22,7 @@
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
+#include "adv_network_yaml.h"
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
@@ -106,11 +107,11 @@ class App : public holoscan::Application {
         }
       }
       if (tx_en) {
-        HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend doesn't support TX");
+        HOLOSCAN_LOG_ERROR("Rivermax ANO manager/backend doesn't support TX");
         exit(1);
       }
 #else
-      HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend is not supported");
+      HOLOSCAN_LOG_ERROR("Rivermax ANO manager/backend is not supported");
       exit(1);
 #endif
     } else {
@@ -136,6 +137,8 @@ int main(int argc, char** argv) {
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
-  holoscan::ops::adv_net_shutdown();
+  // Shut down the ANO and print statistics
+  auto ano_mgr = holoscan::ops::adv_net_get_active_manager();
+  ano_mgr->shutdown();
   return 0;
 }

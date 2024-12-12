@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include "adv_network_doca_kernels.h"
+#include "holoscan/holoscan.hpp"
 #define ETHER_ADDR_LEN 6
 #define DOCA_DEBUG_KERNEL 0
 

@@ -1492,6 +1492,10 @@ void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
 }
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
+  if (!tx_burst_available(burst)) {
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+  }
+
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto& q = tx_q_map_[key];
 
@@ -1585,6 +1589,16 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
   return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::free_all_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) {
+  free_all_seg_pkts(burst, seg);
+  free_rx_burst(burst);
+}
+
+void DpdkMgr::free_all_pkts_and_burst(AdvNetBurstParams* burst) {
+  free_all_pkts(burst);
+  free_rx_burst(burst);
 }
 
 void DpdkMgr::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
@@ -1681,10 +1695,7 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
 void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
   if (--num_init == 0) {
-    int portid;
-    RTE_ETH_FOREACH_DEV(portid) {
-      PrintDpdkStats(portid);
-    }
+    print_stats();
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
     force_quit.store(true);
@@ -1703,7 +1714,12 @@ uint64_t DpdkMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
 }
 
 AdvNetBurstParams* DpdkMgr::create_burst_params() {
-  return new AdvNetBurstParams();
+  AdvNetBurstParams *params;
+  if (get_tx_meta_buf(&params) != AdvNetStatus::SUCCESS) {
+    return nullptr;
+  }
+
+  return params;
 }
 
 };  // namespace holoscan::ops
