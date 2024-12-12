@@ -59,13 +59,6 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
           const output = outputs[0];
           var samplesWritten = 0;
           
-          /*for(let i = 0; i < output.length; i++) {
-                  output[i] = Math.sin(this.sampleCount * (Math.sin(this.sampleCount/24000.0) + 440.0) * Math.PI * 2.0 / 48000.0); //* 32767;
-                  this.sampleCount++;
-          }*/
-          
-          //console.log(`audio queue length ${this.queue.length} ${output.length} ${this.playhead}`);
-          
           while( this.queue.length > 0 && samplesWritten < output.length ) {
               for( let i=samplesWritten; i < output.length && this.playhead < this.queue[0].length; i++ ) {
                   output[i] = this.queue[0][this.playhead] / 32767.0;
@@ -79,10 +72,6 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
               }
           }
   
-          /*if( samplesWritten < output.length ) {
-              console.warn(`gap in output audio  (${samplesWritten} of ${output.length} samples written)`);
-          }*/
-          
           for( let i=samplesWritten; i < output.length; i++ ) {
               output[i] = 0;
           }
