@@ -34,7 +34,10 @@ Download the [quantized Mistral 7B finetuned LLM](https://huggingface.co/TheBlok
 wget -nc -P <your_model_dir> https://huggingface.co/TheBloke/openchat-3.5-0106-GGUF/resolve/main/openchat-3.5-0106.Q8_0.gguf
 ```
 
-[Placeholder for the finetuned Bge-large-en embedding model]
+Download the BGE-large finetuned embedding model from NGC:
+ ```bash
+ wget https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/bge-large-ehr-finetune
+``` 
 
 Execute the following command from the Holohub root directory:
 
