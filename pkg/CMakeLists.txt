@@ -13,4 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(holoscan-networking)
+add_holohub_package(holoscan-networking
+                    APPLICATIONS adv_networking_bench basic_networking_ping
+                    OPERATORS advanced_network basic_network)
