@@ -172,10 +172,6 @@ class RivaTTSOp(Operator):
                     tts_response = self.replace_abbreviations(tts_response)
                     return tts_response
 
-            # Parse agents without a "response" field when the LLM is complete
-            # agent_response = agent_response.replace("\n", "\\n")
-            # json_response = json.loads(agent_response)
-
         except json.JSONDecodeError:
             # If it's not valid JSON, return None
             return None

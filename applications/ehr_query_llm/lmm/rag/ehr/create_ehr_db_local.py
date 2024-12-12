@@ -188,7 +188,20 @@ def create_db_docs(flattened_ehr):
 
 def create_ehr_database():
     persist_directory = PERSISTENT_FOLDER
-    ehr_data = get_ehr_data()
+
+    try:
+        ehr_data = get_ehr_data()
+    except FileNotFoundError:
+        print(
+            "\033[31m"
+            f"Failed to load cached ehr data in order to build the vector database:\n"
+            f"  The file containing EHR FHIR resources in JSON is expected but is not found at {EHR_DATA_JSON}\n\n"
+            "This file should contain a FHIR bundle in JSON format, captured from querying the FHIR server, "
+            "in the JSON format of {<patiennt ID> : [<FHIR resource>]}"
+            "\033[m"
+        )
+        exit(1)
+
     flattened_ehr = flatten_ehr(ehr_data)
     documents = create_db_docs(flattened_ehr)
     print(f"Total DB documents: {len(flattened_ehr)}")

@@ -123,7 +123,6 @@ class RivaASROp(Operator):
         audio_data /= np.iinfo(np.int16).max
         audio_data = self._resample_to_16k(audio_data, self.sample_rate_hz)
         transcription = self.whisper_pipeline(audio_data)["text"]
-        # Clear the
         self.audio_bytes = bytes()
         return transcription
 

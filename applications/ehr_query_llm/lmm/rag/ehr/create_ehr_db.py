@@ -91,7 +91,10 @@ def send_request():
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
     socket.bind("tcp://*:5600")
-    # Give ZeroMQ time to bind TODO determine why this is needed
+    # Give ZeroMQ subscribers time to bind.
+    # Subscribers maybe waiting to connect but it takes a finite time to complete binding
+    # to the pub socket. If it is published immediately, a message may be lost
+    # as ZeroMQ does not guarantee message delivery if the sub is not fully connected.
     time.sleep(1)
     logging.info("Sending request to FHIR server...")
     query = FHIRQuery(identifier=mrn, resources_to_retrieve=resources_to_retrieve)

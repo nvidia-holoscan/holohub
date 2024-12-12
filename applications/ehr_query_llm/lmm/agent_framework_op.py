@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,8 @@ from operators.ehr_query_llm.message_handling import MessageReceiver, MessageSen
 
 
 class AgentFrameworkOp(Operator):
+    """Creates and uses the Selector and EHR agents to respond to prompts with agents' responses."""
+
     def __init__(
         self,
         fragment,
@@ -60,10 +62,6 @@ class AgentFrameworkOp(Operator):
         # selector agent
         selector_path = self.get_agent_settings_path("selector")
         self.selector_agent = SelectorAgent(selector_path, self.response_handler)
-
-        # chat agent
-        # chat_agent_path = self.get_agent_settings_path("chat")
-        # self.chat_agent = ChatAgent(chat_agent_path, self.response_handler)
 
         # EHRBuilder agent
         ehr_builder_agent_path = self.get_agent_settings_path("ehr_builder")
