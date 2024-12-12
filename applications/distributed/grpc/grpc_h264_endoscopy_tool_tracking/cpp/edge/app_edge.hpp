@@ -124,22 +124,16 @@ class AppEdge : public holoscan::Application {
     // Send the frames to the gRPC server for processing.
     add_flow(bitstream_reader, outgoing_requests, {{"output_transmitter", "input"}});
 
-    add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
-    add_flow(video_decoder_response,
-             decoder_output_format_converter,
-             {{"output_transmitter", "source_video"}});
+    //add_flow(bitstream_reader, video_decoder_request, {{"output_transmitter", "input_frame"}});
+    //add_flow(video_decoder_response,
+            //  decoder_output_format_converter,
+            //  {{"output_transmitter", "source_video"}});
 
     // Here we add the operator to process the response queue with data received from the gRPC
     // server. The operator will convert the data to a GXF Entity and send it to the Holoviz.
     add_operator(incoming_responses);
 
-    entity_client_service_ = std::make_shared<EntityClientService>(
-        from_config("grpc_client.server_address").as<std::string>(),
-        from_config("grpc_client.rpc_timeout").as<uint32_t>(),
-        request_queue_,
-        response_queue_,
-        outgoing_requests);
-    entity_client_service_->start_entity_stream();
+    
 
     auto visualizer_op = make_operator<ops::HolovizOp>(
         "visualizer_op",
@@ -147,7 +141,18 @@ class AppEdge : public holoscan::Application {
         Arg("width") = width_,
         Arg("height") = height_,
         Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
-    add_operator(visualizer_op);
+    //add_operator(visualizer_op);
+    //connect incoming responses to visualizer 
+    
+    add_flow(incoming_responses, visualizer_op, {{"output", "receivers"}});
+    //add entity client service here
+    entity_client_service_ = std::make_shared<EntityClientService>(
+        from_config("grpc_client.server_address").as<std::string>(),
+        from_config("grpc_client.rpc_timeout").as<uint32_t>(),
+        request_queue_,
+        response_queue_,
+        outgoing_requests);
+    entity_client_service_->start_entity_stream();
   }
 
  private:

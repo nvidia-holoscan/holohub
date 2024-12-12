@@ -159,16 +159,17 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
     add_flow(video_decoder_response,
              decoder_output_format_converter,
              {{"output_transmitter", "source_video"}});
+             //rgb_float converted not needed 
     add_flow(
-        decoder_output_format_converter, rgb_float_format_converter, {{"tensor", "source_video"}});
+        decoder_output_format_converter,grpc_response_op, {{"tensor", "input"}});
 
-     add_flow(rgb_float_format_converter,
-               encoder_input_format_converter,
-               {{"tensor", "source_video"}});
-      add_flow(encoder_input_format_converter, tensor_to_video_buffer, {{"tensor", "in_tensor"}});
-      add_flow(
-          tensor_to_video_buffer, video_encoder_request, {{"out_video_buffer", "input_frame"}});
-      add_flow(video_encoder_response, grpc_response_op, {{"output_transmitter", "input"}});
+    //  add_flow(rgb_float_format_converter,
+    //            encoder_input_format_converter,
+    //            {{"tensor", "source_video"}});
+    //   add_flow(encoder_input_format_converter, tensor_to_video_buffer, {{"tensor", "in_tensor"}});
+    //   add_flow(
+    //       tensor_to_video_buffer, video_encoder_request, {{"out_video_buffer", "input_frame"}});
+    //   add_flow(video_encoder_response, grpc_response_op, {{"output_transmitter", "input"}});
     }    
     //add_flow(rgb_float_format_converter, lstm_inferer);
     //add_flow(lstm_inferer, tool_tracking_postprocessor, {{"tensor", "in"}});
