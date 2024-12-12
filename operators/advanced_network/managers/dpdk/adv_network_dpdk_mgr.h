@@ -48,7 +48,6 @@
 #include <atomic>
 #include <unordered_map>
 #include "adv_network_mgr.h"
-#include "adv_network_common.h"
 
 namespace holoscan::ops {
 
@@ -175,9 +174,10 @@ class DpdkMgr : public ANOMgr {
                            uint16_t dst_port) override;
   AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) override;
   bool tx_burst_available(AdvNetBurstParams* burst) override;
-
   AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
+  void free_all_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) override;
+  void free_all_pkts_and_burst(AdvNetBurstParams* burst) override;
   void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override;
   void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override;
   void free_pkt(AdvNetBurstParams* burst, int pkt) override;

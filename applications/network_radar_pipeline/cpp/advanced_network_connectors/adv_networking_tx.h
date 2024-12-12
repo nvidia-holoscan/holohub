@@ -109,6 +109,8 @@ class AdvConnectorOpTx : public Operator {
   index_t num_packets_buf;
   size_t buf_stride;
   size_t buf_size;
+
+  ANOMgr *ano_mgr_;
 };  // AdvConnectorOpTx
 
 }  // namespace holoscan::ops

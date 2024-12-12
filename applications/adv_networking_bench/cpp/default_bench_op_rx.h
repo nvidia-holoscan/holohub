@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
+#include "adv_network_mgr.h"
 #include "adv_network_rx.h"
 #include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
+#include <chrono>
 #include <sys/time.h>
 
-#define BURST_ACCESS_METHOD_SHARED_PTR 0
-#define BURST_ACCESS_METHOD_RAW_PTR 1
-#define BURST_ACCESS_METHOD_DIRECT_ACCESS 2
+#define BURST_ACCESS_METHOD_RAW_PTR 0
+#define BURST_ACCESS_METHOD_DIRECT_ACCESS 1
 
-#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_DIRECT_ACCESS
+#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_RAW_PTR
 
 namespace holoscan::ops {
 
@@ -67,6 +68,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     cudaError_t cuda_error;
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize()");
     holoscan::Operator::initialize();
+
+    ano_mgr_ = adv_net_get_active_manager();
 
     // For this example assume all packets are the same size, specified in the config
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
@@ -154,7 +157,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       // If CUDA processing/copy is complete, free the packets for all bursts in this batch
       if (cudaEventQuery(batch.evt) == cudaSuccess) {
         for (auto m = 0; m < batch.num_bursts; m++) {
-          adv_net_free_all_pkts_and_burst(batch.bursts[m]);
+          ano_mgr_->free_all_pkts_and_burst(batch.bursts[m]);
         }
         batch_q_.pop();
       } else {
@@ -172,36 +175,17 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     free_processed_packets();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
     if (!burst_opt) { return; }
 
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     auto burst = burst_opt.value();
-#else
-    auto burst_shared = burst_opt.value();
-    auto burst = burst_shared.get();
-#endif
-
-    auto burst_size = adv_net_get_num_pkts(burst);
-
-    // If packets are coming in from our non-GPUDirect queue, free them and move on
-    // hardcoded to match the YAML config files in this sample app.
-    // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
-    //       at least ARP packets should be processed, or delegate to linux for standard traffic.
-    if (adv_net_get_q_id(burst) == 0) {
-      adv_net_free_all_pkts_and_burst(burst);
-      return;
-    }
+    auto burst_size = ano_mgr_->get_num_pkts(burst);
 
     // Count packets received
     ttl_pkts_recv_ += burst_size;
 
     // Store burst structure
-#if (BURST_ACCESS_METHOD == BURST_ACCESS_METHOD_SHARED_PTR)
     cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
-#else
-    cur_batch_.bursts[cur_batch_.num_bursts++] = burst_shared;
-#endif
 
     // Track packet payloads for the current burst
     if (gpu_direct_.get()) {
@@ -212,6 +196,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         // Header-Data-Split: header to CPU, payload to GPU
         // NOTE: current App assumes only two memory region segments, one for header (CPU),
         //       and one for payload (GPU).
+                auto start = std::chrono::high_resolution_clock::now();
         for (int p = 0; p < burst_size; p++) {
           // Get pointers to payload data on GPU
           // NOTE: It's (1) here since the GPU memory region is second in the list for this queue.
@@ -222,11 +207,19 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = burst->pkts[1][p];
           ttl_bytes_recv_ += burst->pkt_lens[0][p] + burst->pkt_lens[1][p];
 #else
-          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = ano_mgr_->get_seg_pkt_ptr(burst, 1, p);
           ttl_bytes_recv_ +=
-              adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+              ano_mgr_->get_seg_pkt_len(burst, 0, p) + ano_mgr_->get_seg_pkt_len(burst, 1, p);
 #endif
         }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate elapsed time in microseconds
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+  static int blah;
+  if (blah++ < 15)
+        std::cout << "Time taken: " << duration << " microseconds" << std::endl;           
       } else {
         // Batched: headers and payload to GPU (queue memory regions should be a single GPU segment)
         for (int p = 0; p < burst_size; p++) {
@@ -234,9 +227,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           // NOTE: currently ordering pointers in the order packets come in. If headers had segment
           //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] =
-              reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
-          ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
-        }
+              reinterpret_cast<uint8_t*>(ano_mgr_->get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
+          ttl_bytes_recv_ += ano_mgr_->get_seg_pkt_len(burst, 0, p);
+        }         
       }
     } else {
       /* CPU Mode (needs to match if the ANO queue uses no GPU memory regions)
@@ -260,11 +253,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         //       packets in this sample app
         auto pkt_len = burst->pkt_lens[0][p];
 #else
-        auto payload_ptr = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + 1;
+        auto payload_ptr = static_cast<UDPIPV4Pkt*>(ano_mgr_->get_seg_pkt_ptr(burst, 0, p)) + 1;
         // Payload length (packet length minus header length)
         // NOTE: this should be equal to nom_payload_size_ as we assume the same length for all
         //       packets in this sample app
-        auto pkt_len = adv_net_get_seg_pkt_len(burst, 0, p);
+        auto pkt_len = ano_mgr_->get_seg_pkt_len(burst, 0, p);
 #endif
         auto payload_len = pkt_len - header_size_.get();
 
@@ -277,7 +270,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         ttl_bytes_recv_ += pkt_len;
 
         // TODO: could free CPU packets now
-      }
+      }  
     }
 
     /* For each ANO batch (named burst), we might not want to right away send the packets to the
@@ -308,8 +301,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         // Not enough buffers available to process the packets, drop the packets from this burst
         HOLOSCAN_LOG_ERROR("Fell behind putting packet data in contiguous memory on GPU!");
         for (auto m = 0; m < cur_batch_.num_bursts; m++) {
-          ttl_packets_dropped_ += adv_net_get_num_pkts(cur_batch_.bursts[m]);
-          adv_net_free_all_pkts_and_burst(cur_batch_.bursts[m]);
+          ttl_packets_dropped_ += ano_mgr_->get_num_pkts(cur_batch_.bursts[m]);
+          ano_mgr_->free_all_pkts_and_burst(cur_batch_.bursts[m]);
         }
         cur_batch_.num_bursts = 0;
         CUDA_TRY(cudaDeviceSynchronize());
@@ -379,7 +372,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
   // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
   struct BatchAggregationParams {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    std::array<AdvNetBurstParams*, MAX_ANO_BURSTS> bursts;
     int num_bursts;
     cudaEvent_t evt;
   };
@@ -400,6 +393,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet
+  ANOMgr *ano_mgr_;                                 // ANO manager base pointer
 
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;

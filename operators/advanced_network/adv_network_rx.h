@@ -20,8 +20,8 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include "adv_network_common.h"
 #include "holoscan/holoscan.hpp"
+#include "adv_network_types.h"
 #include <experimental/propagate_const>
 
 namespace holoscan::ops {

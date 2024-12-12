@@ -161,6 +161,8 @@ void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize()");
   holoscan::Operator::initialize();
 
+  ano_mgr_ = adv_net_get_active_manager();
+
   cudaStreamCreateWithFlags(&proc_stream, cudaStreamNonBlocking);
 
   // Assume all packets are the same size, specified in the config
@@ -238,7 +240,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_pkts_and_burst(first.msg[m]);
+        ano_mgr->free_all_pkts_and_burst(first.msg[m]);
       }
       out_q.pop();
     } else {
@@ -300,8 +302,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   auto burst = burst_opt.value();
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
-  if (adv_net_get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
-    adv_net_free_all_pkts_and_burst(burst);
+  if (ano_mgr->get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
+    ano_mgr->free_all_pkts_and_burst(burst);
     HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
     return;
   }
@@ -311,22 +313,22 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   // entire burst buffer pointer is saved and freed once an entire batch is received.
   if (gpu_direct_.get()) {
     if (split_boundary_.get()) {
-      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+      for (int p = 0; p < ano_mgr->get_num_pkts(burst); p++) {
+        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = ano_mgr->get_seg_pkt_ptr(burst, 1, p);
         ttl_bytes_in_cur_batch_ +=
-            adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+            ano_mgr->get_seg_pkt_len(burst, 0, p) + ano_mgr->get_seg_pkt_len(burst, 1, p);
       }
     } else {
-      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+      for (int p = 0; p < ano_mgr->get_num_pkts(burst); p++) {
         h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
-            reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, p)) + PADDED_HDR_SIZE;
-        ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
+            reinterpret_cast<uint8_t*>(ano_mgr->get_pkt_ptr(burst, p)) + PADDED_HDR_SIZE;
+        ttl_bytes_in_cur_batch_ += ano_mgr->get_burst_tot_byte(burst);
       }
     }
   }
   ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
-  aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
+  aggr_pkts_recv_ += ano_mgr->get_num_pkts(burst);
 
   HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
       aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
@@ -375,7 +377,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
         exit(1);
       }
     } else {
-      adv_net_free_all_pkts_and_burst(burst);
+      ano_mgr->free_all_pkts_and_burst(burst);
     }
     aggr_pkts_recv_ = 0;
     cur_idx = (++cur_idx % num_concurrent);

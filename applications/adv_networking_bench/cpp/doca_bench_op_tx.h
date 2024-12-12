@@ -50,7 +50,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   ~AdvNetworkingBenchDocaTxOp() { HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down"); }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
-    // adv_net_get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
+    // ano_mgr_->get_mac(port_id_, reinterpret_cast<char*>(&pkt.eth.h_source[0]));
     memcpy(pkt.eth.h_dest, eth_dst_, sizeof(pkt.eth.h_dest));
     pkt.eth.h_proto = htons(0x0800);
 
@@ -77,9 +77,11 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDocaTxOp::initialize()");
     holoscan::Operator::initialize();
 
+    ano_mgr_ = adv_net_get_active_manager();
+
     size_t buf_size = batch_size_.get() * payload_size_.get();
 
-    adv_net_format_eth_addr(eth_dst_, eth_dst_addr_.get());
+    ano_mgr_->format_eth_addr(eth_dst_, eth_dst_addr_.get());
     inet_pton(AF_INET, ip_src_addr_.get().c_str(), &ip_src_);
     inet_pton(AF_INET, ip_dst_addr_.get().c_str(), &ip_dst_);
 
@@ -162,21 +164,21 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
       }
     }
 
-    auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), num_segments);
+    auto msg = ano_mgr_->create_burst_params();
+    ano_mgr_->set_hdr(msg, port_id_, queue_id, batch_size_.get(), num_segments);
 
     // HOLOSCAN_LOG_INFO("Start main thread");
 
-    while ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
+    while ((ret = ano_mgr_->get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {}
 
     // For HDS mode or CPU mode populate the packet headers
-    for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
+    for (int num_pkt = 0; num_pkt < ano_mgr_->get_num_pkts(msg); num_pkt++) {
       gpu_len = payload_size_.get() + header_size_.get();  // sizeof UDP header
-      gpu_bufs[cur_idx][num_pkt] = reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(msg, num_pkt));
+      gpu_bufs[cur_idx][num_pkt] = reinterpret_cast<uint8_t*>(ano_mgr_->get_pkt_ptr(msg, num_pkt));
 
-      if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
+      if ((ret = ano_mgr_->set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_pkts_and_burst(msg);
+        ano_mgr_->free_all_pkts_and_burst(msg);
         return;
       }
     }
@@ -185,13 +187,13 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
     copy_headers(gpu_bufs[cur_idx],
                  pkt_header_,
                  header_size_.get(),
-                 adv_net_get_num_pkts(msg),
+                 ano_mgr_->get_num_pkts(msg),
                  streams_[cur_idx]);
 
     // Populate packets with 16-bit numbers of {0,0}, {1,1}, ...
     populate_packets(gpu_bufs[cur_idx],
                      payload_size_.get(),
-                     adv_net_get_num_pkts(msg),
+                     ano_mgr_->get_num_pkts(msg),
                      header_size_.get(),
                      streams_[cur_idx]);
     cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
@@ -241,6 +243,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
   bool first_time;
+  ANOMgr *ano_mgr_;
 };
 
 }  // namespace holoscan::ops

@@ -1280,7 +1280,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
-            "Processing function falling behind. No free flow ID buffers for packets!");
+            "Processing function falling behind. No free RX bursts!");
         continue;
       }
     }
@@ -1299,17 +1299,17 @@ int DpdkMgr::rx_core_worker(void* arg) {
       // Copy non-scattered buffers
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
 
-      for (int flow_idx = 0; flow_idx < nb_rx; flow_idx++) {
-        if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[flow_idx].flow_id = mbuf_arr[to_copy + flow_idx]->hash.fdir.hi;
+      for (int p = 0; p < nb_rx; p++) {
+        if (mbuf_arr[to_copy + p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[p].flow_id = mbuf_arr[to_copy + p]->hash.fdir.hi;
         } else {
-          pkt_info[flow_idx].flow_id = 0;
+          pkt_info[p].flow_id = 0;
         }
       }
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
-          struct rte_mbuf* mbuf = mbuf_arr[p];
+          struct rte_mbuf* mbuf = mbuf_arr[to_copy + p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
             burst->pkts[seg][p] = mbuf;
@@ -1341,11 +1341,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
-      for (int flow_idx = 0; flow_idx < to_copy; flow_idx++) {
-        if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
+      for (int p = 0; p < to_copy; p++) {
+        if (mbuf_arr[p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = mbuf_arr[p]->hash.fdir.hi;
         } else {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = 0;
         }
       }
 
@@ -1492,6 +1492,10 @@ void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
 }
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
+  if (!tx_burst_available(burst)) {
+    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+  }
+
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto& q = tx_q_map_[key];
 
@@ -1584,9 +1588,17 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
 
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
-  reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
-
   return AdvNetStatus::SUCCESS;
+}
+
+void DpdkMgr::free_all_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) {
+  free_all_seg_pkts(burst, seg);
+  free_rx_burst(burst);
+}
+
+void DpdkMgr::free_all_pkts_and_burst(AdvNetBurstParams* burst) {
+  free_all_pkts(burst);
+  free_rx_burst(burst);
 }
 
 void DpdkMgr::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
@@ -1611,6 +1623,7 @@ void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
 
 void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
   rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
+  rte_mempool_put(rx_meta, burst);
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(rx_burst_buffer, (void*)burst->pkts[seg]);
   }
@@ -1682,10 +1695,7 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
 void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
   if (--num_init == 0) {
-    int portid;
-    RTE_ETH_FOREACH_DEV(portid) {
-      PrintDpdkStats(portid);
-    }
+    print_stats();
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
     force_quit.store(true);
@@ -1704,7 +1714,12 @@ uint64_t DpdkMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
 }
 
 AdvNetBurstParams* DpdkMgr::create_burst_params() {
-  return new AdvNetBurstParams();
+  AdvNetBurstParams *params;
+  if (get_tx_meta_buf(&params) != AdvNetStatus::SUCCESS) {
+    return nullptr;
+  }
+
+  return params;
 }
 
 };  // namespace holoscan::ops

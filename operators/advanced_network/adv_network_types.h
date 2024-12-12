@@ -19,7 +19,6 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <optional>
 #include <stdint.h>
 #include <stdexcept>
 #include <unordered_map>
