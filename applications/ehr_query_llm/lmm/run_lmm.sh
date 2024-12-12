@@ -26,6 +26,8 @@ set_python_path() {
     local holoscan_sdk_install=$(grep -Po '^holoscan_DIR:PATH=\K[^ ]*' build/CMakeCache.txt)
     local holohub_build_dir="${SCRIPT_DIR}/build"
     local environment="export PYTHONPATH=${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR}"
+    # Check that Holoscan is available in PYTHONPATH
+    python -c "import holoscan" || ("Failed to import Holoscan module" && exit 1)
     echo "${environment}"
     eval "${environment}"
 }

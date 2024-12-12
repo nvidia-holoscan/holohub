@@ -58,10 +58,6 @@ class StreamingPrintOp(Operator):
         if partial_transcript != "":
             overwrite_chars = " " * (num_chars_printed - len(partial_transcript))
             self.temp_transcription[-1] = partial_transcript + (overwrite_chars + "\r")
-            # os.system('cls' if os.name=='nt' else 'clear')
-            # for line in self.temp_transcription:
-            #     print(line, end='')
-            # print('', end='', flush=True)
             num_chars_printed = len(partial_transcript) + 3
         return is_final
 
