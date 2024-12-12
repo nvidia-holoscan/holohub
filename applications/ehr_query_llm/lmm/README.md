@@ -146,7 +146,7 @@ For the YAML file, the fields needed are:
 
 **ctx_length**: Context length for the model. This determines how much output the agent is capable of generating. Smaller values lead to faster to first token time, but can be at the sacrifice of detail and verbosity.
 
-**grammar:** This is the BNF grammar used to constrain the models output. It can be a bit tricky to write. ChatGPT is great at writing these grammars for you if you give an example JSON of what you want :). Also helpful, is the Llama.cpp [BNF grammar guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md).
+**grammar:** This is the BNF grammar used to constrain the models output. It can be a bit tricky to write. ChatGPT is great at writing these grammars for you if you give an example JSON of what you want. Also helpful, is the Llama.cpp [BNF grammar guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md).
 
 **publish:** The only important part of this field is the "args" sub-field. This should be a list of your arg names. This is important as this is used as the list of keys to pull the relevant args from the LMM's response, and thus ensure the relevant fields are complete for a given tool use.
 

@@ -51,10 +51,6 @@ class StreamingPrintOp(Operator):
                 self.transcription[-1] = appended_text
                 self.temp_transcription = self.transcription
                 self.temp_transcription.append("")
-                # os.system('cls' if os.name=='nt' else 'clear')
-                # for line in self.transcription:
-                #     print(line, end='')
-                # print('', end='', flush=True)
                 self.transcription.append("")
                 num_chars_printed = 0
             else:
