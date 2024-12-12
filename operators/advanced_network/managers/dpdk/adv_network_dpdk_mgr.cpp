@@ -1201,7 +1201,7 @@ void DpdkMgr::run() {
   int (*tx_worker)(void*) = tx_core_worker;
 
   // Launch RX workers. If the core is serving multiple queues then we launch a multi-q worker
-  for (const auto &el: this->rx_core_q_map) {
+  for (const auto &el : this->rx_core_q_map) {
     // Single queue
     if (el.second.size() == 1) {
       uint16_t port_id = el.second[0].first;
@@ -1224,25 +1224,24 @@ void DpdkMgr::run() {
       params->batch_size = q->common_.batch_size_;
       rte_eal_remote_launch(
           rx_core_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
-    }
-    else {
+    } else {
       // Multi-q worker
       auto params = new RxWorkerMultiQParams;
-      for (const auto &q_info: el.second) {
+      for (const auto &q_info : el.second) {
         uint16_t port_id = q_info.first;
         uint16_t q_id    = q_info.second;
         uint32_t key     = (port_id << 16) | q_id;
-        const auto &q    = rx_cfg_q_map_[key];   
+        const auto &q    = rx_cfg_q_map_[key];
 
-        params->q_params.push_back({port_id, q_id, 
-                    (int)q->common_.mrs_.size(), q->common_.batch_size_});    
+        params->q_params.push_back({port_id, q_id,
+                    (int)q->common_.mrs_.size(), q->common_.batch_size_});
       }
 
       params->ring = rx_ring;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
       params->meta_pool = rx_meta;
-      rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);      
+      rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);
     }
   }
 
@@ -1298,7 +1297,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
 
   std::string pq_str = "";
-  for (const auto &pq: tparams->q_params) {
+  for (const auto &pq : tparams->q_params) {
     pq_str += std::to_string(pq.port) + "/" + std::to_string(pq.queue) + " ";
   }
 
@@ -1311,11 +1310,11 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> to_copy{};
   std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> cur_pkt_in_batch{};
 
-  uint16_t cur_idx        = 0; 
+  uint16_t cur_idx        = 0;
   uint16_t cur_port       = tparams->q_params[cur_idx].port;
   uint16_t cur_q          = tparams->q_params[cur_idx].queue;
   uint16_t cur_segs       = tparams->q_params[cur_idx].num_segs;
-  uint32_t cur_batch_size = tparams->q_params[cur_idx].batch_size;      
+  uint32_t cur_batch_size = tparams->q_params[cur_idx].batch_size;
 
 
   //
@@ -1354,9 +1353,9 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
       burst->hdr.hdr.num_pkts = nb_rx[cur_idx];
 
       // Copy non-scattered buffers
-      memcpy( &burst->pkts[0][0], 
-              &mbuf_arr[to_copy[cur_idx]], 
-              sizeof(rte_mbuf*) * nb_rx[cur_idx]);
+      memcpy(&burst->pkts[0][0],
+             &mbuf_arr[to_copy[cur_idx]],
+             sizeof(rte_mbuf*) * nb_rx[cur_idx]);
 
       for (int flow_idx = 0; flow_idx < nb_rx[cur_idx]; flow_idx++) {
         if (mbuf_arr[to_copy[cur_idx] + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
@@ -1388,7 +1387,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
     cur_port       = tparams->q_params[cur_idx].port;
     cur_q          = tparams->q_params[cur_idx].queue;
     cur_segs       = tparams->q_params[cur_idx].num_segs;
-    cur_batch_size = tparams->q_params[cur_idx].batch_size;      
+    cur_batch_size = tparams->q_params[cur_idx].batch_size;
 
     // DPDK on some ARM platforms requires that you always pass nb_pkts as a number divisible
     // by 4. If you pass something other than that, you get undefined results and will end up
@@ -1402,20 +1401,20 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
                                DpdkMgr::DEFAULT_NUM_RX_BURST);
 
-      if (nb_rx[cur_idx] == 0) { 
+      if (nb_rx[cur_idx] == 0) {
         cur_idx = (cur_idx + 1) % num_queues;
         cur_port       = tparams->q_params[cur_idx].port;
         cur_q          = tparams->q_params[cur_idx].queue;
         cur_segs       = tparams->q_params[cur_idx].num_segs;
-        cur_batch_size = tparams->q_params[cur_idx].batch_size;  
-        continue; 
+        cur_batch_size = tparams->q_params[cur_idx].batch_size;
+        continue;
       }
 
-      to_copy[cur_idx] = std::min(nb_rx[cur_idx], 
+      to_copy[cur_idx] = std::min(nb_rx[cur_idx],
                                   (int)(cur_batch_size - burst->hdr.hdr.num_pkts));
-      memcpy( &burst->pkts[0][burst->hdr.hdr.num_pkts], 
-              &mbuf_arr, 
-              sizeof(rte_mbuf*) * to_copy[cur_idx]);
+      memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts],
+             &mbuf_arr,
+             sizeof(rte_mbuf*) * to_copy[cur_idx]);
 
       for (int flow_idx = 0; flow_idx < to_copy[cur_idx]; flow_idx++) {
         if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
@@ -1455,7 +1454,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
                      pq_str,
                      total_pkts);
 
-  return 0;  
+  return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
