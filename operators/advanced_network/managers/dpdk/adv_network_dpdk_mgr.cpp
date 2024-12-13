@@ -47,6 +47,7 @@ struct RxWorkerParams {
   int port;
   int queue;
   int num_segs;
+  uint64_t timeout_us;
   uint32_t batch_size;
   struct rte_ring* ring;
   struct rte_mempool* flowid_pool;
@@ -1199,6 +1200,7 @@ void DpdkMgr::run() {
         params->flowid_pool = rx_flow_id_buffer;
         params->meta_pool = rx_meta;
         params->batch_size = q.common_.batch_size_;
+        params->timeout_us = q.timeout_us_;
         rte_eal_remote_launch(
             rx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
       }
@@ -1237,6 +1239,30 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+inline uint64_t DpdkMgr::get_tsc_hz() {
+#define CYC_PER_1MHZ 1E6
+	/* Use the generic counter ticks to calculate the PMU
+	 * cycle frequency.
+	 */
+	uint64_t ticks;
+	uint64_t start_ticks, cur_ticks;
+	uint64_t start_pmu_cycles, end_pmu_cycles;
+
+	/* Number of ticks for 1/10 second */
+	ticks = __rte_arm64_cntfrq() / 10;
+
+	start_ticks = __rte_arm64_cntvct_precise();
+	start_pmu_cycles = rte_rdtsc_precise();
+	do {
+		cur_ticks = __rte_arm64_cntvct();
+	} while ((cur_ticks - start_ticks) < ticks);
+	end_pmu_cycles = rte_rdtsc_precise();
+
+	/* Adjust the cycles to next 1Mhz */
+	return RTE_ALIGN_MUL_CEIL(end_pmu_cycles - start_pmu_cycles,
+			CYC_PER_1MHZ) * 10;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief
@@ -1246,9 +1272,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
   RxWorkerParams* tparams = (RxWorkerParams*)arg;
   struct rte_mbuf* rx_mbufs[DEFAULT_NUM_RX_BURST];
   int ret = 0;
-  uint64_t freq = rte_get_tsc_hz();
-  uint64_t timeout_ticks = freq * 0.02;  // expect all packets within 20ms
 
+  // In the future we may want to periodically update this if the CPU clock drifts
+  uint64_t freq = rte_get_tsc_hz();
+  uint64_t timeout_cycles = freq * (tparams->timeout_us/1e6);
+  uint64_t last_cycles = rte_get_tsc_cycles();
   uint64_t total_pkts = 0;
 
   flush_packets(tparams->port);
@@ -1336,7 +1364,21 @@ int DpdkMgr::rx_core_worker(void* arg) {
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
                                DEFAULT_NUM_RX_BURST);
 
-      if (nb_rx == 0) { continue; }
+      if (nb_rx == 0) { 
+        if (burst->hdr.hdr.num_pkts > 0 && timeout_cycles > 0) {
+          const auto cur_cycles = rte_get_tsc_cycles();
+
+          // We hit our timeout. Send the partial batch immediately
+          if ((cur_cycles - last_cycles) > timeout_cycles) {
+            cur_pkt_in_batch = 0;
+            rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+            last_cycles = cur_cycles;
+            break;     
+          }
+        }
+
+        continue; 
+      }
 
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
@@ -1366,9 +1408,21 @@ int DpdkMgr::rx_core_worker(void* arg) {
       nb_rx -= to_copy;
 
       if (burst->hdr.hdr.num_pkts == tparams->batch_size) {
-        cur_pkt_in_batch = 0;
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+        cur_pkt_in_batch = 0;        
+        last_cycles = rte_get_tsc_cycles();
         break;
+      }
+      else if (timeout_cycles > 0) {
+        const auto cur_cycles = rte_get_tsc_cycles();
+
+        // We hit our timeout. Send the partial batch immediately
+        if ((cur_cycles - last_cycles) > timeout_cycles) {
+          rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+          cur_pkt_in_batch = 0;          
+          last_cycles = cur_cycles;
+          break;     
+        }
       }
     } while (!force_quit.load());
   }
