@@ -41,6 +41,11 @@ static inline constexpr uint32_t MAX_NUM_RX_QUEUES = 32;
 static inline constexpr uint32_t MAX_NUM_TX_QUEUES = 32;
 static inline constexpr uint32_t MAX_INTERFACES = 4;
 
+enum class LoopbackType {
+  LOOPBACK_TYPE_SW,
+  DISABLED
+};
+
 /**
  * @brief Header of AdvNetBurstParams
  *
@@ -369,6 +374,7 @@ struct CommonConfig {
   int master_core_;
   AdvNetDirection dir;
   AnoMgrType manager_type;
+  LoopbackType loopback_;
 };
 
 struct AdvNetRxConfig {
