@@ -25,6 +25,7 @@ HOLOHUB_PY_LIB="${HOLOHUB_PY_EXE/bin/lib}"
 
 YELLOW="\e[1;33m"
 RED="\e[1;31m"
+CYAN="\e[1;36m"
 NOCOLOR="\e[0m"
 BOLD="\e[1;37m"
 
@@ -73,9 +74,9 @@ run_command() {
     local cmd="$*"
 
     if [ "${DO_DRY_RUN}" != "true" ]; then
-        echo -e "${YELLOW}[command]${NOCOLOR} ${cmd}"
+        echo -e "${CYAN}[command]${NOCOLOR} ${cmd}"
     else
-        echo -e "${YELLOW}[dryrun]${NOCOLOR} ${cmd}"
+        echo -e "${CYAN}[dryrun]${NOCOLOR} ${cmd}"
     fi
 
     [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
@@ -209,6 +210,10 @@ get_app_default_language() {
 
 print_error() {
     echo -e "${RED}ERROR${NOCOLOR}:" $*
+}
+
+print_warning() {
+    echo -e "${YELLOW}WARNING${NOCOLOR}:" $*
 }
 
 
@@ -667,57 +672,71 @@ build() {
       fi
   done
 
-  echo "Building Holohub"
-
-  # Application to build
+  # Application or operator to build
   if [ "$1" == "" ]; then
-    print_error "Please specify which application to build."
-    echo "You can run ./run list for a full list of applications."
+    print_error "Please specify which operator or application to build."
+    echo "You can run ./run list for a full list of options."
     exit 1
   fi
+  project=$(basename "$1")
+  opt_prefix=""
+  is_app=false
+  if list_apps | grep -Fxq "$project"; then
+    opt_prefix="-D APP_"
+    is_app=true
+  elif list_operators | grep -Fxq "$project"; then
+    opt_prefix="-D OP_"
+  else
+    print_error "Unknown application or operator: $1"
+    echo "You can run ./run list for a full list of options."
+    exit 1
+  fi
+  echo "Building $project"
+  opt_flag="$opt_prefix$project:BOOL=1"
 
   # Assign default build path
   if [ "$build_path" == "" ]; then
-    build_path="build/$1"
+    build_path="build/$project"
   fi
 
   local app_source_root_path
   if [ $benchmark == true ]; then
-    app_source_root_path=$(get_app_source_root_dir $1)
-    run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+    if [ $is_app == true ]; then
+      app_source_root_path=$(get_app_source_root_dir $project)
+      run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+    else
+      print_warning "Requesting benchmarking with --benchmark is only available for applications, ignoring"
+    fi
   fi
 
-  echo "Building $1 application"
-  application="-DAPP_$1=1"
-
   # We define the python path to make sure we grab the right one
-  cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+  cmake_extra_args="--no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
 
   # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+  cmake_extra_args="$cmake_extra_args $configure_args -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
-  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -D CMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${opt_flag}
   ret=$?
-  check_exit_code $ret "Error building application."
+  check_exit_code $ret "Error building $project."
   # Job concurrency determined by the underlying build tool unless a number is specified
   run_command cmake --build ${build_path} -j ${parallel_jobs}
   ret=$?
-  check_exit_code $ret "Error building application."
+  check_exit_code $ret "Error building $project."
 
   if [ $install == true ]; then
     run_command cmake --install ${build_path}
     ret=$?
-    check_exit_code $ret "Error installing application."
+    check_exit_code $ret "Error installing $project."
   fi
 
-  if [ $benchmark == true ]; then
+  if [ $benchmark == true ] && [ $is_app == true ]; then
     app_source_root_path=$(get_app_source_root_dir $1)
     run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
   fi
 
-  echo "Holohub build done."
+  echo "Build done."
 }
 
 
