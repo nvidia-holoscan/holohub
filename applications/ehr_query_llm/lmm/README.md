@@ -9,9 +9,14 @@
 
 #### Speech pipeline
 
-Note: NVIDIA Riva Version Compatibility : tested with v2.13.0 / v2.14.0
+**_Note_**
+___
+[NVIDIA Riva](https://www.nvidia.com/en-us/ai-data-science/products/riva/) provides speech and translation services for user interaction with the LLM. We recommend running Riva in the bare metal host environment outside of the development container to minimize demands on container resources. During test run, it was observed that Riva could take up around 8 GB of GPU memory, while the rest of the application around 12 GB of GPU memory.
 
-Adhere to the "Data Center" configuration specifications in the [Riva Quick Start guide](https://docs.nvidia.com/deeplearning/riva/user-guide/docs/quick-start-guide.html#data-center).
+NVIDIA Riva Version Compatibility : tested with v2.13.0 / v2.14.0.
+___
+
+Please adhere to the "Data Center" configuration specifications in the [Riva Quick Start guide](https://docs.nvidia.com/deeplearning/riva/user-guide/docs/quick-start-guide.html#data-center).
 
 To optimize Riva installation footprint:
 * Locate the `config.sh` file in the riva_quickstart_vX.XX.X directory.
@@ -23,6 +28,7 @@ service_enabled_nlp=false
 service_enabled_tts=true
 service_enabled_nmt=false
 ```
+[NVIDIA Riva](https://www.nvidia.com/en-us/ai-data-science/products/riva/) provides speech and translation services for user interaction with the LLM. We recommend running Riva in the bare metal host environment outside of the development container to minimize demands on container resources.
 
 #### Model acquisition:
 
