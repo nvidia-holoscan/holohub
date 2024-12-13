@@ -28,7 +28,6 @@ service_enabled_nlp=false
 service_enabled_tts=true
 service_enabled_nmt=false
 ```
-[NVIDIA Riva](https://www.nvidia.com/en-us/ai-data-science/products/riva/) provides speech and translation services for user interaction with the LLM. We recommend running Riva in the bare metal host environment outside of the development container to minimize demands on container resources.
 
 #### Model acquisition:
 
