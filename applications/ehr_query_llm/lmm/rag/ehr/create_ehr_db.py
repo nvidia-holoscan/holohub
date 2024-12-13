@@ -232,7 +232,7 @@ def create_db_docs(flattened_ehr):
 def create_ehr_database(identifier: str = ID_DEFAULT):
     """Create EHR database for the subject identified by the identifier string.
 
-    A default identifer is provided, by expected to removed once the main user of this module is ready.
+    A default identifier is provided, by expected to removed once the main user of this module is ready.
     """
     logging.basicConfig(level=logging.INFO)
     global ehr_data

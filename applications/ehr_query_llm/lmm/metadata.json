@@ -15,7 +15,7 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.0",
 			"tested_versions": [
-				"1.0.0"
+				"1.0.0, 2.5, 2.7.0"
 			]
 		},
 		"platforms": [
@@ -35,7 +35,7 @@
                     "license-url": "https://github.com/chroma-core/chroma/blob/main/LICENSE"
                 },
                 "holoscan": {
-                    "version": "2.3.0",
+                    "version": "2.7.0",
                     "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
                 },
 				"fhir.resources": {
