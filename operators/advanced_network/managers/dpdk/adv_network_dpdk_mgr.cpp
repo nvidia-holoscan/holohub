@@ -1239,29 +1239,6 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
-inline uint64_t DpdkMgr::get_tsc_hz() {
-#define CYC_PER_1MHZ 1E6
-	/* Use the generic counter ticks to calculate the PMU
-	 * cycle frequency.
-	 */
-	uint64_t ticks;
-	uint64_t start_ticks, cur_ticks;
-	uint64_t start_pmu_cycles, end_pmu_cycles;
-
-	/* Number of ticks for 1/10 second */
-	ticks = __rte_arm64_cntfrq() / 10;
-
-	start_ticks = __rte_arm64_cntvct_precise();
-	start_pmu_cycles = rte_rdtsc_precise();
-	do {
-		cur_ticks = __rte_arm64_cntvct();
-	} while ((cur_ticks - start_ticks) < ticks);
-	end_pmu_cycles = rte_rdtsc_precise();
-
-	/* Adjust the cycles to next 1Mhz */
-	return RTE_ALIGN_MUL_CEIL(end_pmu_cycles - start_pmu_cycles,
-			CYC_PER_1MHZ) * 10;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -1364,7 +1341,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
                                DEFAULT_NUM_RX_BURST);
 
-      if (nb_rx == 0) { 
+      if (nb_rx == 0) {
         if (burst->hdr.hdr.num_pkts > 0 && timeout_cycles > 0) {
           const auto cur_cycles = rte_get_tsc_cycles();
 
@@ -1373,11 +1350,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
             cur_pkt_in_batch = 0;
             rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
             last_cycles = cur_cycles;
-            break;     
+            break;
           }
         }
 
-        continue; 
+        continue;
       }
 
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
@@ -1409,19 +1386,18 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
       if (burst->hdr.hdr.num_pkts == tparams->batch_size) {
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
-        cur_pkt_in_batch = 0;        
+        cur_pkt_in_batch = 0;
         last_cycles = rte_get_tsc_cycles();
         break;
-      }
-      else if (timeout_cycles > 0) {
+      } else if (timeout_cycles > 0) {
         const auto cur_cycles = rte_get_tsc_cycles();
 
         // We hit our timeout. Send the partial batch immediately
         if ((cur_cycles - last_cycles) > timeout_cycles) {
           rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
-          cur_pkt_in_batch = 0;          
+          cur_pkt_in_batch = 0;  
           last_cycles = cur_cycles;
-          break;     
+          break;
         }
       }
     } while (!force_quit.load());
