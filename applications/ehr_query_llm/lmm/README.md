@@ -189,8 +189,7 @@ publish:
 
 With a complete YAML file, an agent should be able to use any new tool effectively. The only remaining step is ensure you have a ZeroMQ listener in the primary app with a topic that is the same as the tool's name.
 
-The AgentFrameworkOp is based on a ZeroMQ pub/sub to send and respectively recieve messages from the Message Bus and it uses the `MessageReciever` and `MessageSender` classes implmented in the `message_handling.py` Python script. The `MessageSender` sreates a ZeroMQ PUB socket that binds to port 5555, it accepts connections from any interface and it is used to broadcast messages/commands from the agent framework and it uses uses `send_json()` to send JSON-encoded messages with topics.The 0.1s sleep on initialization prevents the "slow joiner" problem where early messages might be lost. The `MessageReceiver` creates a ZeroMQ SUB socket connecting to port 5560 and it uuses `receive_json()` to get messages, with configurable blocking behavior.
-
+The `AgentFrameworkOp` is based on a ZeroMQ publish/subscribe pattern to send and receive messages from the Message Bus. It uses the `MessageReceiver` and `MessageSender` classes implemented in the `message_handling.py` Python script. The `MessageSender` creates a ZeroMQ PUB socket that binds to port 5555, accepts connections from any interface, and is used to broadcast messages and commands from the agent framework. It uses `send_json()` to send JSON-encoded messages with topics. A 0.1-second sleep on initialization prevents the "slow joiner" problem where early messages might be lost. The `MessageReceiver`` creates a ZeroMQ SUB socket connecting to port 5560 and uses receive_json() to get messages, with configurable blocking behavior.
 
 
 
