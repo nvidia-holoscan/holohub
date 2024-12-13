@@ -26,6 +26,7 @@ HOLOHUB_PY_LIB="${HOLOHUB_PY_EXE/bin/lib}"
 YELLOW="\e[1;33m"
 RED="\e[1;31m"
 NOCOLOR="\e[0m"
+BOLD="\e[1;37m"
 
 # Compare versions
 compare_version () {
@@ -885,7 +886,6 @@ for k, v in obj[project_type]["run"].items():
 #===========================================================================================
 # Other options
 
-# Build HoloHub sample apps
 list_desc() {
   echo ""
   echo "Display the list of applications to run."
@@ -893,30 +893,42 @@ list_desc() {
   echo ""
 }
 
+list_cmake_dir_options() {
+  cmake_function=$1
+  cmakelists=$(find ${SCRIPT_DIR} -name "CMakeLists.txt")
+  cmake_add_dir=$(grep --no-filename $cmake_function $cmakelists)
+  echo "$cmake_add_dir" | sed -n "s|$cmake_function([[:space:]]*\([^[:space:])]*\).*|\1|p" | sort
+}
+
+list_apps() {
+  list_cmake_dir_options add_holohub_application
+}
+
+list_operators() {
+  list_cmake_dir_options add_holohub_operator
+}
+
+list_packages() {
+  list_cmake_dir_options add_holohub_package
+}
+
 list() {
-  echo ""
-  echo "***** HoloHub applications ******"
+  echo
+  echo -e "${BOLD}== APPLICATIONS =================${NOCOLOR}"
+  echo
 
-  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
-  apps+=$(find ${SCRIPT_DIR}/benchmarks -name 'metadata.json' | sort -d)
-  for d in ${apps}; do
-    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}'/(applications|benchmarks)/\K[^ ]*')
-
-    local language="${appname##*/}"
-    if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
-      language=""
-      filename="${appname}"
-    else
-      language="(${language})"
-      filename="${appname%/*}"
-    fi
-
-    application="${filename##*/}"
-
-    echo "- ${application} ${language}"
-  done
-  echo ""
-  echo "Run ./run build <app_name> to build a specific app."
+  list_apps
+  echo
+  echo -e "${BOLD}== OPERATORS ====================${NOCOLOR}"
+  echo
+  list_operators
+  echo
+  echo -e "${BOLD}== PACKAGES =====================${NOCOLOR}"
+  echo
+  list_packages
+  echo
+  echo -e "${BOLD}=================================${NOCOLOR}"
+  echo
 }
 
 # Returns the list of words for autocompletion
