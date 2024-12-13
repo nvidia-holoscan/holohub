@@ -150,7 +150,52 @@ For the YAML file, the fields needed are:
 
 **publish:** The only important part of this field is the "args" sub-field. This should be a list of your arg names. This is important as this is used as the list of keys to pull the relevant args from the LMM's response, and thus ensure the relevant fields are complete for a given tool use.
 
+For a specific example, please refer to the EHR Agent YAML file below:
+
+```
+description: This tool is used to search the patient's EHR in order to answer questions about the patient, or general questions about the patient's medical history.
+user_prefix: "<|im_start|>user"
+bot_prefix: "<|im_start|>assistant"
+bot_rule_prefix: "<|im_start|>system"
+end_token: "<|im_end|>"
+agent_prompt: |
+  You are NVIDIA's EHR Agent,your job is to assist surgeons as they prepare for surgery.
+  You are an expert when it comes to surgery and medical topics - and answer all questions to the best of your abilities.
+  The patient has signed consent for you to access and discuss all of their electronic records.
+  Be as concise as you can be with your answers.
+
+  You NEVER make-up information that isn't grounded in the provided medical documents.
+
+  If applicable, include the relevant date (use sparingly)
+  The following medical documents may be helpful to answer the surgeon's question:
+  {documents}
+  Use your expert knowledge and the above context to answer the surgeon.
+# This is the request that the LLM replies to, where '{text}' indicates where the transcribed
+# text is inserted into the prompt
+request: "{text}"
+
+ctx_length: 256
+
+grammar: |
+  space ::= " "?
+  string ::= "\"" ([^"\\])* "\"" space 
+  root ::= "{" space "\"name\"" space ":" space "\"EHRAgent\"" space "," space "\"response\"" space ":" space string "}" space
+
+publish:
+  ags:
+    - "response"
+
+```
+
 With a complete YAML file, an agent should be able to use any new tool effectively. The only remaining step is ensure you have a ZeroMQ listener in the primary app with a topic that is the same as the tool's name.
+
+The AgentFrameworkOp is based on a ZeroMQ pub/sub to send and respectively recieve messages from the Message Bus and it uses the `MessageReciever` and `MessageSender` classes implmented in the `message_handling.py` Python script. The `MessageSender` sreates a ZeroMQ PUB socket that binds to port 5555, it accepts connections from any interface and it is used to broadcast messages/commands from the agent framework and it uses uses `send_json()` to send JSON-encoded messages with topics.The 0.1s sleep on initialization prevents the "slow joiner" problem where early messages might be lost. The `MessageReceiver` creates a ZeroMQ SUB socket connecting to port 5560 and it uuses `receive_json()` to get messages, with configurable blocking behavior.
+
+
+
+
+
+
 
 ### EHR RAG
 To test new document formats for the database use [test_db.py](./rag/ehr/test_db.py)
