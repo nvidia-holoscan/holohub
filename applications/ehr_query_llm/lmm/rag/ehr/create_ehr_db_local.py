@@ -197,7 +197,7 @@ def create_ehr_database():
             f"Failed to load cached ehr data in order to build the vector database:\n"
             f"  The file containing EHR FHIR resources in JSON is expected but is not found at {EHR_DATA_JSON}\n\n"
             "This file should contain a FHIR bundle in JSON format, captured from querying the FHIR server, "
-            "in the JSON format of {<patiennt ID> : [<FHIR resource>]}"
+            "in the JSON format of {<patient ID> : [<FHIR resource>]}"
             "\033[m"
         )
         exit(1)
