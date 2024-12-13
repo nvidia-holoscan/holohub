@@ -8,7 +8,7 @@ The laser detection latency application demonstrates the latency differences bet
 
 This folder contains three applications, please refer to the respective application folder for application and configuration file.
 
-1. **[USB Camera Calibration app](./usb_cam_calibration/README.md):**
+1. **[USB Camera Calibration app](./usb_cam_calibration):**
     This app is designed to do monitor registration by the USB camera. It uses a gray image which has [April tags](https://github.com/AprilRobotics/apriltag) on all the four corners and is as shown below.
 
 <center> <img src="./images/apriltag-calibration.png" width="400" height="300"></center>
@@ -17,14 +17,14 @@ The detection of these four April tags are done using `ApriltagDetectionOp`. For
 
 This app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). If a different camera is being used, please change the camera settings in the python app or yaml configuration file.
 
-2. **[EVT Camera Calibration app](./evt_cam_calibration/README.md):** 
+2. **[EVT Camera Calibration app](./evt_cam_calibration):**
     This app is designed to do monitor registration by the [Emergent Vision Technologies (EVT)](https://emergentvisiontec.com/) camera. It uses the same gray image which has April tags on all the four corners as shown above. 
 
 In this app the detection of these four April tags are done using `ApriltagDetectionOp` as well. For proper and correct monitor registration, the camera should be able to completely see all the four corners of the monitor. If it does not, the app will not output correct corners for the monitor. It is also important to make sure that the scene is well lit with no light sources in the back of the monitor.
 
 This app is designed using [EVT HB-9000-G 25GE](https://emergentvisiontec.com/products/bolt-hb-25gige-cameras-rdma-area-scan/hb-9000-g/). If a different camera is being used, please change the camera settings in the python app or yaml configuration file.
 
-3. **[Laser Detection app](./laser_detection/README.md):**
+3. **[Laser Detection app](./laser_detection):**
     The laser detection is the app that is run after the calibration apps detected the monitor successfully. This app uses two camera sources: one is EVT camera and other is USB camera. The video feed from both camera is used to detect laser pointed at the monitor. There are two icons that will be shown on the display. The white icon represents USB camera and the green icon represents the EVT camera. When the laser is detected the respective icons move to the coordinates. The laser detection algorithm is same for both camera sources.
 
 ## Hardware requirements
