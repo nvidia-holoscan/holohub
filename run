@@ -265,12 +265,8 @@ install_cuda_dependencies_package() {
 }
 
 # Setup the environment
-# Build HoloHub sample apps
 setup_desc() {
-  echo ""
-  echo "Install the required dependencies for HoloHub (sample applications)"
-  echo "Usage: ./run setup"
-  echo ""
+  echo -e "${BOLD}Install the standard set of dependencies for HoloHub applications${NOCOLOR}"
 }
 
 setup() {
@@ -403,16 +399,19 @@ setup() {
 #===========================================================================================
 # Lint
 
-install_lint_deps_desc() { echo 'Install lint dependencies
+install_lint_deps_desc() {
+  echo -e "
+  ${BOLD}Install lint dependencies${NOCOLOR}
 
-This command will install the dependencies required to run the linting tools.
+  This command will install the dependencies required to run the linting tools.
 
-- Python linting: ruff, isort, black, mypy
-- CMake linting: cmakelint
-- C++ linting: cpplint, clang-format
-- Spelling: codespell
-'
+  - Python linting: ruff, isort, black, mypy
+  - CMake linting: cmakelint
+  - C++ linting: cpplint, clang-format
+  - Spelling: codespell
+  "
 }
+
 install_lint_deps() {
     # We use $(command) || exit_code=1 to run all linting tools, and exit
     # with failure after all commands were executed if any of them failed
@@ -431,18 +430,20 @@ install_lint_deps() {
     exit $exit_code
 }
 
-lint_desc() { echo 'Lint the repository
+lint_desc() {
+echo -e "
+${BOLD}Lint the repository${NOCOLOR}
 
 Python linting: black, isort, ruff
 C++ linting: cpplint
 CMake linting: cmakelint
 Spelling: codespell
 
-Arguments:
-  $@ - directories to lint (default: .)
+${CYAN}USAGE:${NOCOLOR} ./run lint <directories to lint (default: .)>
 
-Options:
-  --fix: to fix all linting errors'
+${CYAN}Options:${NOCOLOR}
+  --fix: to fix all linting errors
+"
 }
 
 lint() {
@@ -759,19 +760,20 @@ build() {
 
 # Launch a sample app
 launch_desc() {
-  echo ""
-  echo "Launch command allowing to run application directly."
-  echo "Usage: ./run launch <application_name> [language: cpp|python] [--extra_args <args>]"
-  echo "Options:"
-  echo "   --extra_args <args>       : additional arguments passed to the application command"
-  echo "   --nsys_profile            : profile using Nsight Systems"
-  echo "   --verbose                 : output additional run command information to stdout"
-  echo ""
-  echo ""
-  echo "Use './run list' first to list the available applications"
-  echo "Note that applications might be listed but not built."
-  echo "Make sure you ./run build the application first"
-  echo ""
+  echo -e "
+  ${BOLD}Run an application.${NOCOLOR}
+
+  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name> [cpp|python] [options]
+
+  ${CYAN}Options:${NOCOLOR}
+     --extra_args <args>       : additional arguments passed to the application command
+     --nsys_profile            : profile using Nsight Systems
+     --verbose                 : output additional run command information to stdout
+
+
+  Use './run list' or './run list_apps' to list the available applications.
+  Make sure you call './run build <application_name>' to first build the application.
+  "
 }
 
 
@@ -923,10 +925,11 @@ for k, v in obj[project_type]["run"].items():
 # Other options
 
 list_desc() {
-  echo ""
-  echo "Display the list of applications to run."
-  echo "Usage: ./run list"
-  echo ""
+  echo -e "
+  ${BOLD}Display the list of Holohub targets.${NOCOLOR}
+
+  Includes applications, operators, packages.
+  "
 }
 
 list_cmake_dir_options() {
@@ -987,7 +990,7 @@ clear_cache() {
 }
 
 clear_cache_desc() {
-  echo "Remove the build folders"
+  echo -e "${BOLD}Remove the build folders${NOCOLOR}"
 }
 
 parse_args() {
@@ -1055,7 +1058,7 @@ print_usage() {
     echo "  list                                  : List all the available build targets"
     echo "  build <package|application|operator>  : Build a specific package, application, or operator"
     echo "  launch <application> <language>       : Run the application"
-echo
+    echo
 }
 
 print_cmd_help_messages() {
