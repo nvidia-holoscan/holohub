@@ -25,7 +25,9 @@ HOLOHUB_PY_LIB="${HOLOHUB_PY_EXE/bin/lib}"
 
 YELLOW="\e[1;33m"
 RED="\e[1;31m"
+CYAN="\e[1;36m"
 NOCOLOR="\e[0m"
+BOLD="\e[1;37m"
 
 # Compare versions
 compare_version () {
@@ -72,9 +74,9 @@ run_command() {
     local cmd="$*"
 
     if [ "${DO_DRY_RUN}" != "true" ]; then
-        echo -e "${YELLOW}[command]${NOCOLOR} ${cmd}"
+        echo -e "${CYAN}[command]${NOCOLOR} ${cmd}"
     else
-        echo -e "${YELLOW}[dryrun]${NOCOLOR} ${cmd}"
+        echo -e "${CYAN}[dryrun]${NOCOLOR} ${cmd}"
     fi
 
     [ "$(echo -n "$@")" = "" ] && return 1 # return 1 if there is no command available
@@ -210,6 +212,10 @@ print_error() {
     echo -e "${RED}ERROR${NOCOLOR}:" $*
 }
 
+print_warning() {
+    echo -e "${YELLOW}WARNING${NOCOLOR}:" $*
+}
+
 
 check_exit_code() {
   local exit_code=$1
@@ -259,12 +265,8 @@ install_cuda_dependencies_package() {
 }
 
 # Setup the environment
-# Build HoloHub sample apps
 setup_desc() {
-  echo ""
-  echo "Install the required dependencies for HoloHub (sample applications)"
-  echo "Usage: ./run setup"
-  echo ""
+  echo -e "${BOLD}Install the standard set of dependencies for HoloHub applications${NOCOLOR}"
 }
 
 setup() {
@@ -397,16 +399,19 @@ setup() {
 #===========================================================================================
 # Lint
 
-install_lint_deps_desc() { echo 'Install lint dependencies
+install_lint_deps_desc() {
+  echo -e "
+  ${BOLD}Install lint dependencies${NOCOLOR}
 
-This command will install the dependencies required to run the linting tools.
+  This command will install the dependencies required to run the linting tools.
 
-- Python linting: ruff, isort, black, mypy
-- CMake linting: cmakelint
-- C++ linting: cpplint, clang-format
-- Spelling: codespell
-'
+  - Python linting: ruff, isort, black, mypy
+  - CMake linting: cmakelint
+  - C++ linting: cpplint, clang-format
+  - Spelling: codespell
+  "
 }
+
 install_lint_deps() {
     # We use $(command) || exit_code=1 to run all linting tools, and exit
     # with failure after all commands were executed if any of them failed
@@ -425,18 +430,20 @@ install_lint_deps() {
     exit $exit_code
 }
 
-lint_desc() { echo 'Lint the repository
+lint_desc() {
+echo -e "
+${BOLD}Lint the repository${NOCOLOR}
 
 Python linting: black, isort, ruff
 C++ linting: cpplint
 CMake linting: cmakelint
 Spelling: codespell
 
-Arguments:
-  $@ - directories to lint (default: .)
+${CYAN}USAGE:${NOCOLOR} ./run lint <directories to lint (default: .)>
 
-Options:
-  --fix: to fix all linting errors'
+${CYAN}Options:${NOCOLOR}
+  --fix: to fix all linting errors
+"
 }
 
 lint() {
@@ -534,35 +541,42 @@ lint() {
 
 
 #===========================================================================================
-# Build HoloHub sample apps
+# Build HoloHub targets
 
 build_desc() {
-  echo ""
-  echo "Build the application(s) in HoloHub"
-  echo "Usage: ./run build <application_name> [options]"
-  echo "Options:"
-  echo "   --sdk <path_to_holoscan_SDK>  : Provide path to the SDK"
-  echo "   --with <list of operators>  : Optional operators that should be built"
-  echo "                                 If multiple operators are to be built, list must be"
-  echo "                                 in quotes with operators separated by semicolons (;)"
+  echo
+  echo -e "${BOLD}Build a Holohub operator, application, or package, in its isolated build directory.${NOCOLOR}"
+  echo
+  echo -e "${CYAN}USAGE:${NOCOLOR}"
+  echo
+  echo "  ./run build <target> [options]"
+  echo "  ./run build ./path/to/<target> [options]"
+  echo
+  echo -e "${CYAN}Options:${NOCOLOR}"
+  echo
+  echo "   --sdk <path_to_holoscan_SDK>         : Provide path to the SDK"
+  echo "   --with <list of operators>           : Optional operators that should be built"
+  echo "                                          If multiple operators are to be built, list must be"
+  echo "                                          in quotes with operators separated by semicolons (;)"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
   echo "   --buildpath <build_directory>        : Change the build path."
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
-  echo "   --benchmark                          : Build for Holoscan Flow Benchmarking."
-  echo "   --install                            : Install applications and its dependencies to"
-  echo "                                          install/<app> if supported."
+  echo "   --benchmark                          : Build for Holoscan Flow Benchmarking. Valid for"
+  echo "                                          applications only"
+  echo "   --install                            : Install the target and its dependencies to"
+  echo "                                          install/<target> if supported."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
   echo "                                          multiple arguments can be passed between quotes"
   echo "                                          or using several --configure-args in the command line"
   echo "   --parallel <jobs>                    : Build in parallel using the given number of jobs."
   echo "                                          Only needed to override the native build tool's default."
   echo "                                          Example: --parallel $(($(nproc)-1))"
-  echo ""
-  echo "Prior to the first build use './run setup' to install the required dependencies"
-  echo ""
+  echo
+  echo "Prior to the first build use './run setup' to install the required dependencies."
+  echo
 }
 
 # See how many directories under the input path matches "install*" pattern
@@ -666,75 +680,100 @@ build() {
       fi
   done
 
-  echo "Building Holohub"
-
-  # Application to build
+  # Package, application or operator to build
   if [ "$1" == "" ]; then
-    print_error "Please specify which application to build."
-    echo "You can run ./run list for a full list of applications."
+    print_error "Please specify which package, application, or operator to build."
+    echo "You can run ./run list for a full list of options."
     exit 1
   fi
+  project=$(basename "$1")
+  opt_prefix=""
+  is_app=false
+  is_pkg=false
+  if list_packages | grep -Fxq "$project"; then
+    opt_prefix="-D PKG_"
+    is_pkg=true
+  elif list_apps | grep -Fxq "$project"; then
+    opt_prefix="-D APP_"
+    is_app=true
+  elif list_operators | grep -Fxq "$project"; then
+    opt_prefix="-D OP_"
+  else
+    print_error "Unknown package, application, or operator: $1"
+    echo "You can run ./run list for a full list of options."
+    exit 1
+  fi
+  echo "Building $project"
+  opt_flag="$opt_prefix$project:BOOL=1"
 
   # Assign default build path
   if [ "$build_path" == "" ]; then
-    build_path="build/$1"
+    build_path="build/$project"
   fi
 
   local app_source_root_path
   if [ $benchmark == true ]; then
-    app_source_root_path=$(get_app_source_root_dir $1)
-    run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+    if [ $is_app == true ]; then
+      app_source_root_path=$(get_app_source_root_dir $project)
+      run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
+    else
+      print_warning "Requesting benchmarking with --benchmark is only available for applications, ignoring"
+    fi
   fi
 
-  echo "Building $1 application"
-  application="-DAPP_$1=1"
-
   # We define the python path to make sure we grab the right one
-  cmake_extra_args="--no-warn-unused-cli -DPython3_EXECUTABLE=${HOLOHUB_PY_EXE} -DPython3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+  cmake_extra_args="--no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
 
   # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -DHOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+  cmake_extra_args="$cmake_extra_args $configure_args -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
-  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -DCMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${application}
+  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -D CMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${opt_flag}
   ret=$?
-  check_exit_code $ret "Error building application."
+  check_exit_code $ret "Error building $project."
   # Job concurrency determined by the underlying build tool unless a number is specified
   run_command cmake --build ${build_path} -j ${parallel_jobs}
   ret=$?
-  check_exit_code $ret "Error building application."
+  check_exit_code $ret "Error building $project."
 
   if [ $install == true ]; then
     run_command cmake --install ${build_path}
     ret=$?
-    check_exit_code $ret "Error installing application."
+    check_exit_code $ret "Error installing $project."
   fi
 
-  if [ $benchmark == true ]; then
+  if [ $benchmark == true ] && [ $is_app == true ]; then
     app_source_root_path=$(get_app_source_root_dir $1)
     run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
   fi
 
-  echo "Holohub build done."
+  if [ $is_pkg == true ]; then
+    for cpack_config in $(find ${build_path}/pkg -name "CPackConfig-*.cmake"); do
+      run_command cpack --config "$cpack_config"
+    done
+  fi
+
+  echo "Build done."
 }
 
 
 # Launch a sample app
 launch_desc() {
-  echo ""
-  echo "Launch command allowing to run application directly."
-  echo "Usage: ./run launch <application_name> [language: cpp|python] [--extra_args <args>]"
-  echo "Options:"
-  echo "   --extra_args <args>       : additional arguments passed to the application command"
-  echo "   --nsys_profile            : profile using Nsight Systems"
-  echo "   --verbose                 : output additional run command information to stdout"
-  echo ""
-  echo ""
-  echo "Use './run list' first to list the available applications"
-  echo "Note that applications might be listed but not built."
-  echo "Make sure you ./run build the application first"
-  echo ""
+  echo -e "
+  ${BOLD}Run an application.${NOCOLOR}
+
+  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name> [cpp|python] [options]
+
+  ${CYAN}Options:${NOCOLOR}
+     --extra_args <args>       : additional arguments passed to the application command
+     --nsys_profile            : profile using Nsight Systems
+     --verbose                 : output additional run command information to stdout
+
+
+  Use './run list' or './run list_apps' to list the available applications.
+  Make sure you call './run build <application_name>' to first build the application.
+  "
 }
 
 
@@ -885,38 +924,50 @@ for k, v in obj[project_type]["run"].items():
 #===========================================================================================
 # Other options
 
-# Build HoloHub sample apps
 list_desc() {
-  echo ""
-  echo "Display the list of applications to run."
-  echo "Usage: ./run list"
-  echo ""
+  echo -e "
+  ${BOLD}Display the list of Holohub targets.${NOCOLOR}
+
+  Includes applications, operators, packages.
+  "
+}
+
+list_cmake_dir_options() {
+  cmake_function=$1
+  cmakelists=$(find ${SCRIPT_DIR} -name "CMakeLists.txt")
+  cmake_add_dir=$(grep --no-filename $cmake_function $cmakelists)
+  echo "$cmake_add_dir" | sed -n "s|$cmake_function([[:space:]]*\([^[:space:])]*\).*|\1|p" | sort
+}
+
+list_apps() {
+  list_cmake_dir_options add_holohub_application
+}
+
+list_operators() {
+  list_cmake_dir_options add_holohub_operator
+}
+
+list_packages() {
+  list_cmake_dir_options add_holohub_package
 }
 
 list() {
-  echo ""
-  echo "***** HoloHub applications ******"
+  echo
+  echo -e "${BOLD}== APPLICATIONS =================${NOCOLOR}"
+  echo
 
-  apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json' | sort -d)
-  apps+=$(find ${SCRIPT_DIR}/benchmarks -name 'metadata.json' | sort -d)
-  for d in ${apps}; do
-    local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}'/(applications|benchmarks)/\K[^ ]*')
-
-    local language="${appname##*/}"
-    if [[ ${language} != "cpp" ]] && [[ ${language} != "python" ]]; then
-      language=""
-      filename="${appname}"
-    else
-      language="(${language})"
-      filename="${appname%/*}"
-    fi
-
-    application="${filename##*/}"
-
-    echo "- ${application} ${language}"
-  done
-  echo ""
-  echo "Run ./run build <app_name> to build a specific app."
+  list_apps
+  echo
+  echo -e "${BOLD}== OPERATORS ====================${NOCOLOR}"
+  echo
+  list_operators
+  echo
+  echo -e "${BOLD}== PACKAGES =====================${NOCOLOR}"
+  echo
+  list_packages
+  echo
+  echo -e "${BOLD}=================================${NOCOLOR}"
+  echo
 }
 
 # Returns the list of words for autocompletion
@@ -939,7 +990,7 @@ clear_cache() {
 }
 
 clear_cache_desc() {
-  echo "Remove the build folders"
+  echo -e "${BOLD}Remove the build folders${NOCOLOR}"
 }
 
 parse_args() {
@@ -995,18 +1046,19 @@ parse_args() {
 print_usage() {
     set +x
     echo
-    echo "USAGE: $0 [command] [arguments]..."
-    echo ""
-    echo "Global Arguments"
-    echo "  --help, -h                                    : Print help messages for [command]"
-    echo "  --dryrun                                      : Print commands to screen without running"
-    echo ""
-    echo "Command List"
-    echo "  setup                                         : Install HoloHub main required packages"
-    echo "  clear_cache                                   : Clear cache folders"
-    echo "  list                                          : List all the applications"
-    echo "  build [application] [--sdk holoscan_sdk]      : Build a specific application. Default is sample apps"
-    echo "  launch <application> <language>               : Run the application"
+    echo -e "${BOLD}USAGE: $0 [command] [arguments]...${NOCOLOR}"
+    echo
+    echo -e "${CYAN}Global Arguments${NOCOLOR}"
+    echo "  --help, -h                            : Print help messages for [command]"
+    echo "  --dryrun                              : Print commands to screen without running"
+    echo
+    echo -e "${CYAN}Commands${NOCOLOR}"
+    echo "  setup                                 : Install HoloHub main required packages"
+    echo "  clear_cache                           : Clear cache folders"
+    echo "  list                                  : List all the available build targets"
+    echo "  build <package|application|operator>  : Build a specific package, application, or operator"
+    echo "  launch <application> <language>       : Run the application"
+    echo
 }
 
 print_cmd_help_messages() {
