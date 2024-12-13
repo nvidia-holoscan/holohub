@@ -161,6 +161,12 @@ enum class AdvNetDirection : uint8_t {
 };
 
 /**
+ * @brief Loopback mode
+ *
+ */
+enum class LoopbackType { LOOPBACK_TYPE_SW, DISABLED };
+
+/**
  * @brief Manager Type
  *
  */
