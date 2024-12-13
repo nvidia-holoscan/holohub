@@ -149,7 +149,7 @@ Then run the following to build the component of your choice, using either its n
   # Ex: ./run build ./applications/endoscopy_tool_tracking/
   ```
 
-The build artefacts will be created under `./build/<component_name>` by default to isolate them from other components which might have different build environment requirements. You can override this behavior and other defaults, see `./run build --help` for more details.
+The build artifacts will be created under `./build/<component_name>` by default to isolate them from other components which might have different build environment requirements. You can override this behavior and other defaults, see `./run build --help` for more details.
 
 # Running Applications
 
