@@ -202,7 +202,6 @@ class DpdkMgr : public ANOMgr {
   bool validate_config() const override;
 
  private:
-  static uint64_t get_tsc_hz();
   static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
