@@ -330,7 +330,7 @@ void DpdkMgr::initialize() {
           },
   };
   
-  loopback_ = cfg_.common_.loopback_ ? LoopbackType::LOOPBACK_TYPE_SW : LoopbackType::DISABLED;
+  loopback_ = cfg_.common_.loopback_;
   if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
     if (cfg_.ifs_.size() > 1) {
       HOLOSCAN_LOG_CRITICAL("Only a single interface allowed for loopback mode currently");

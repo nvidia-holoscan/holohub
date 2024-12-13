@@ -531,11 +531,13 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
         input_spec.common_.manager_type = holoscan::ops::AnoMgrType::DEFAULT;
       }
 
+      input_spec.common_.loopback_ = holoscan::ops::LoopbackType::DISABLED;
       try {
-        input_spec.common_.loopback_ = node["loopback"].as<bool>();
-      } catch (const std::exception& e) {
-        input_spec.common_.loopback_ = false;
-      }   
+        const auto lbstr = node["loopback"].as<std::string>();
+        if (lbstr == "sw") {
+          input_spec.common_.loopback_ = holoscan::ops::LoopbackType::LOOPBACK_TYPE_SW;
+        }
+      } catch (const std::exception& e) { }   
 
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);

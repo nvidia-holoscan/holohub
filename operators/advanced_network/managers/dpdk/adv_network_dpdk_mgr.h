@@ -239,7 +239,7 @@ class DpdkMgr : public ANOMgr {
   struct rte_mempool* tx_meta;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
-  bool loopback_;
+  LoopbackType loopback_;
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
 
   int num_init = 0;
