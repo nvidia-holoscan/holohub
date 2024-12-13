@@ -1395,7 +1395,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
         // We hit our timeout. Send the partial batch immediately
         if ((cur_cycles - last_cycles) > timeout_cycles) {
           rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
-          cur_pkt_in_batch = 0;  
+          cur_pkt_in_batch = 0;
           last_cycles = cur_cycles;
           break;
         }
