@@ -1,5 +1,74 @@
 ## EHR Agent Framework 
 
+The EHR Agent Framework is designed to handle and interact with EHR (Electronic Health RecordS) and it provides a modular and extensible system for handling various types of queries through specialized agents, with robust error handling and performance optimization features.
+
+
+### Agent Framework overview
+
+The `AgentFrameworkOp` orchestrates multiple specialized agents to handle different types of queries and responses, it maintains a streaming queue for responses and it handles response states through `ResponseHandler`.
+It tracks conversation history using ChatHistory class and updates history based on agent responses and ASR transcripts.
+
+Agent Lifecycle:
+
+- Processes requests asynchronously using threads
+- Controls response streaming and muting during speech
+
+
+### The Base Agent Class
+
+This is an abstract base class implementing common agent functionality:
+
+    - Uses threading.Lock for LLM and , if needed, LMM access
+    - Prevents concurrent requests to language models
+
+It loads configuration from YAML files and it handles prompt templates, tokens limits, and model URLs.The Base Agent is designed to stream responses from LLM server and it supports both text and image-based prompts while enforcing maximum prompt token limits.Throughtout the agent lifecycle it manatins converstaion context and it creates conversation strings within token limits.
+
+
+### The Selector agent 
+
+The Selector Agent routes user queries to appropriate specialized agent by analyzing user input to determine appropriate agent and returning the selected agent name and corrected input text.
+For response parsing, it handles JSON response format . If there are parsing failures, it logs them and it returns `None` for invalid selection.
+
+### The EHR Builder Agent
+
+The EHR Builder Agent EHR Builder Agent handles EHR database construction on demand and it tracks and reports build time performance in the process.
+For response generation, it uses custom prompt templates for EHR tasks and it returns structured JSON responses.
+It also verifies build capability before execution and it reports success/failure status.
+
+### The EHR Agent
+
+The EHR Agent handles EHR queries and data retrieval.It uses Chroma for document storage while implementing HuggingFaceBgeEmbeddings for embeddings
+For the RAG(Retrieval-Augmented Generation) pipeline, it performs MMR (Maximal Marginal Relevance) search with configurable search parameters (`k`, `lambda_mult`, `fetch_k`).
+For prompt generation, it incorporates retrieved documents into prompts and it supports both standard and RAG-specific prompts.
+The EHR Agent is using CUDA for embedding computation and optimizes for cosine similarity calculations.
+
+### Common features across agents
+
+#### Configuration Management:
+
+        -YAML-based settings
+        -Configurable prompts and rules
+        -Extensible tool support
+
+#### Response Handling:
+
+        -Streaming response support
+        -Mutable response states
+        -Structured output formatting
+
+
+#### Error Management:
+
+        -Connection retry logic
+        -Comprehensive error logging
+        -Graceful failure handling
+
+#### Performance Optimization:
+
+        -Thread-safe operations
+        -Token usage optimization
+        -Efficient resource management
+
 ### Table of Contents
 - [Setup Instructions](#setup-instructions)
 - [Run Instructions](#run-instructions)
