@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+vita49_psd_packetizer:
+  dest_host: 127.0.0.1
+  base_dest_port: 4991
