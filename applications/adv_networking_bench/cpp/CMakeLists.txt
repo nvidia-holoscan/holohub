@@ -65,6 +65,12 @@ add_custom_target(adv_networking_bench_default_tx_rx_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
+
 add_custom_target(adv_networking_bench_default_tx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml"
@@ -98,18 +104,16 @@ install(
   FILES ../adv_networking_bench_default_rx.yaml
         ../adv_networking_bench_default_tx.yaml
         ../adv_networking_bench_default_tx_rx.yaml
+        ../adv_networking_bench_default_rx_multi_q.yaml
         ../adv_networking_bench_doca_tx_rx.yaml
         ../adv_networking_bench_rmax_rx.yaml
   DESTINATION bin/adv_networking_bench/cpp
   COMPONENT holoscan-networking
 )
 
+
 # Add testing
 if(BUILD_TESTING)
-  ## adv_networking_bench_dpdk_multi_if_loopback_test ##
-  # The test below is expected to run on a system with a ConnectX NIC with
-  # both ports connected in a loopback, with optimal system setups (BAR1,
-  # GPU clock, CPU clock, huge pages, etc... docs incoming).
 
   # Define a macro to handle the execution and checks
   macro(execute_and_check MSG CMD OUTPUT_VAR)
@@ -121,7 +125,7 @@ if(BUILD_TESTING)
     if(NOT result_code EQUAL 0 OR "${${OUTPUT_VAR}}" STREQUAL "")
       message(STATUS "[ANO Test] ${MSG}")
       message(WARNING "'${CMD}' failed (${result_code}) or output was empty.\nError: ${error_output}")
-      message(STATUS "[ANO Test] Skipping advanced networking loopback test")
+      message(STATUS "[ANO Test] Skipping advanced networking test")
       return()
     else()
       message(STATUS "[ANO Test] ${MSG} ${${OUTPUT_VAR}}")
@@ -138,24 +142,43 @@ if(BUILD_TESTING)
     message(WARNING "[ANO Test] Expected 2 CX NICs, found ${cx_bus_address_list_count}")
     message(WARNING "[ANO Test] Skipping advanced networking test")
     return()
-  endif()
+  endif()  
+
+  # TEST 1 TX/RX loopback over single link. One TX queue and one RX queue 
   list(GET cx_bus_address_list 0 tx_bus)
   list(GET cx_bus_address_list 1 rx_bus)
   execute_and_check("ETH Interface for ${tx_bus}:" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${tx_bus} | awk '{print $1}'" tx_if)
   execute_and_check("MAC Address for ${tx_if}:" "cat ${tx_if}/address" rx_eth_mac)
-
-  # Inject in the test config and add app timeout
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
   string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
   string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
   string(REGEX REPLACE "address: [^\n]*interface[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
   string(REGEX REPLACE "address: [^\n]*Source[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
   string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_multi_if_loopback_test.yaml" ${TEST_CONFIG})
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_multi_if_loopback_test.yaml" ${TEST_CONFIG})  
 
-  # Define the test
+  # TEST 2 RX multi queue with a single CPU core. Uses a scapy script to send packets
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml" TEST_CONFIG)
+  string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
+  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_rx_multi_q.yaml" ${TEST_CONFIG})                      
+
+
+  # Define the tests
   file(COPY "testing/adv_networking_test_harness.py" DESTINATION "testing")
   add_test(NAME adv_networking_bench_dpdk_multi_if_loopback_test
-           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_multi_if_loopback_test.yaml" --avg-throughput-threshold 90 --missed-packets-threshold 0.1
+           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_multi_if_loopback_test.yaml" 
+                  --avg-throughput-threshold 90 
+                  --missed-packets-threshold 0.1
+                  --port-map 0-1
+           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  add_test(NAME adv_networking_bench_dpdk_multi_rx_q_test
+           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_rx_multi_q.yaml" 
+                  --avg-throughput-threshold 0 
+                  --missed-packets-threshold 0 
+                  --packets-per-rx-queue 1 1 
+                  --port-map 0-0
+                  --external-script ${CMAKE_CURRENT_SOURCE_DIR}/../utils/test_multi_rx_q.py
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
