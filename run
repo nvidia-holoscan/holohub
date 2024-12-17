@@ -941,16 +941,18 @@ list_cmake_dir_options() {
 
 list_metadata_json_dir() {
   json_list=$(find $@ -name 'metadata.json' | sort -d)
-
   for json in ${json_list}; do
     local json_path=$(dirname "$json")
     local json_dir=$(basename "$json_path")
-    if [[ ${json_dir} != "cpp" ]] && [[ ${json_dir} != "python" ]]; then
-      language=""
-      name="${json_dir}"
-    else
+    if [[ "${json_dir}" =~ \{\{[^}]+\}\} ]]; then
+      # skip templates like {{ foo }}
+      continue
+    elif [[ ${json_dir} == "cpp" ]] || [[ ${json_dir} == "python" ]]; then
       language="(${json_dir})"
       name=$(basename $(dirname "$json_path"))
+    else
+      language=""
+      name="${json_dir}"
     fi
     echo $name $language
   done
