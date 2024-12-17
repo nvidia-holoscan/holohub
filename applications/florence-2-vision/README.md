@@ -43,7 +43,7 @@ Determine your desired video device and edit the source device in [config.yaml](
 ## 🚀 Build and Run Instructions
 From the Holohub main directory run the following command:
 ```bash
-./dev_container build_and_run florence-2
+./dev_container build_and_run florence-2-vision
 ```
 Note: The first build will take **~1.5 hours** if you're on ARM64. This is largely due to building [Flash Attention 2](https://github.com/Dao-AILab/flash-attention) since pre-built wheels are not distributed for ARM64 platforms.
 
