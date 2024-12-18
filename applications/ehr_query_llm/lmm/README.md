@@ -105,6 +105,7 @@ service_enabled_nmt=false
 
 > It is recommended to create a directory called `/models` on your machine to download the LLM.
 
+
 Download the [quantized Mistral 7B finetuned LLM](https://huggingface.co/TheBloke/openchat-3.5-0106-GGUF) from HugginFace.co:
 
 ```bash
@@ -160,7 +161,14 @@ Launch the `ehr_query_llm:llm` container:
 ```bash
 sudo ./dev_container launch --img ehr_query_llm:llm --add-volume <your_model_dir>
 ```
-* Note, if the parent directory of <your_model_dir> is not `/models` you must update the [asr_llm_tts.yaml](./asr_llm_tts.yaml) and [ehr.yaml](./agents_configs/ehr.yaml) files with the complete path to your model inside the container. You will also need to update the [run_lmm.sh](./run_lmm.sh) so the correct directory is exported in the `set_transformer_cache()` function. (You can determine these paths by looking in `/workspace/volumes` inside the launched container)
+* Note, if the parent directory of <your_model_dir> is not `/models` you must update the [asr_llm_tts.yaml](./asr_llm_tts.yaml) and [ehr.yaml](./agents_configs/ehr.yaml) files with the complete path to your model inside the container. You will also need to update the [run_lmm.sh](./run_lmm.sh) so the correct directory is exported in the `set_transformer_cache()` function. (You can determine these paths by looking in `/workspace/volumes` inside the launched container) or you can use the following `sed` commands:
+
+`sed -i -e 's#^model_path:.*#model_path: /workspace/volumes/<your_model_dir>#' asr_llm_tts.yaml`
+
+`sed -i -e 's#^model_path:.*#model_path: /workspace/volumes/<your_model_dir>#' agents_configs/ehr.yaml`
+
+`sed -i -e 's#^export TRANSFORMERS_CACHE=.*#export TRANSFORMERS_CACHE="/workspace/volumes/<your_model_dir>"#' run_lmm.sh`
+
 
 #### Step 3.2
 
