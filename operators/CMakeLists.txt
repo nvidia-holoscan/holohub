@@ -41,6 +41,7 @@ add_holohub_operator(xr_basic_render)
 add_holohub_operator(XrFrameOp)
 add_holohub_operator(XrTransformOp)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
+add_holohub_operator(ehr_query_llm)
 
 
 # install

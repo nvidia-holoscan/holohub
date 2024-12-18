@@ -117,3 +117,4 @@ add_holohub_application(webrtc_video_server)
 
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
+add_subdirectory(ehr_query_llm)
