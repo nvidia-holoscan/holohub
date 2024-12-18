@@ -26,8 +26,8 @@
 #include "holoscan/core/resources/gxf/gxf_component_resource.hpp"
 #include "holoscan/operators/gxf_codelet/gxf_codelet.hpp"
 
-#include "tensor_to_video_buffer.hpp"
-#include "video_encoder.hpp"
+//#include "tensor_to_video_buffer.hpp"
+//#include "video_encoder.hpp"
 
 #include <grpc_server.hpp>
 #include <lstm_tensor_rt_inference.hpp>
@@ -67,14 +67,14 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
     int64_t source_block_size = width * height * 3 * 4;
     int64_t source_num_blocks = 2;
 
-    auto tensor_to_video_buffer = make_operator<ops::TensorToVideoBufferOp>(
-          "tensor_to_video_buffer", from_config("tensor_to_video_buffer"));
+    // auto tensor_to_video_buffer = make_operator<ops::TensorToVideoBufferOp>(
+    //       "tensor_to_video_buffer", from_config("tensor_to_video_buffer"));
 
-    auto encoder_input_format_converter = make_operator<ops::FormatConverterOp>(
-          "encoder_input_format_converter",
-          from_config("encoder_input_format_converter"),
-          Arg("pool") =
-              make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+    // auto encoder_input_format_converter = make_operator<ops::FormatConverterOp>(
+    //       "encoder_input_format_converter",
+    //       from_config("encoder_input_format_converter"),
+    //       Arg("pool") =
+    //           make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
 
     // Create the Endoscopy Tool Tracking (ETT) Pipeline similar to the regular ETT application.
     auto response_condition = make_condition<AsynchronousCondition>("response_condition");
@@ -106,52 +106,52 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
             "pool", Arg("device_memory_max_size") = std::string("256MB")),
         Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    auto rgb_float_format_converter = make_operator<ops::FormatConverterOp>(
-        "rgb_float_format_converter",
-        streaming_enabled,
-        from_config("rgb_float_format_converter"),
-        Arg("pool") = make_resource<RMMAllocator>(
-            "pool", Arg("device_memory_max_size") = std::string("256MB")),
-        Arg("cuda_stream_pool") = cuda_stream_pool);
+    // auto rgb_float_format_converter = make_operator<ops::FormatConverterOp>(
+    //     "rgb_float_format_converter",
+    //     streaming_enabled,
+    //     from_config("rgb_float_format_converter"),
+    //     Arg("pool") = make_resource<RMMAllocator>(
+    //         "pool", Arg("device_memory_max_size") = std::string("256MB")),
+    //     Arg("cuda_stream_pool") = cuda_stream_pool);
 
     const std::string model_file_path = data_path + "/tool_loc_convlstm.onnx";
     const std::string engine_cache_dir = data_path + "/engines";
 
-    auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
-        "lstm_inferer",
-        streaming_enabled,
-        from_config("lstm_inference"),
-        Arg("model_file_path", model_file_path),
-        Arg("engine_cache_dir", engine_cache_dir),
-        Arg("pool") = make_resource<RMMAllocator>(
-            "pool", Arg("device_memory_max_size") = std::string("256MB")),
-        Arg("cuda_stream_pool") = cuda_stream_pool);
+    // auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
+    //     "lstm_inferer",
+    //     streaming_enabled,
+    //     from_config("lstm_inference"),
+    //     Arg("model_file_path", model_file_path),
+    //     Arg("engine_cache_dir", engine_cache_dir),
+    //     Arg("pool") = make_resource<RMMAllocator>(
+    //         "pool", Arg("device_memory_max_size") = std::string("256MB")),
+    //     Arg("cuda_stream_pool") = cuda_stream_pool);
 
-    auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
-        "tool_tracking_postprocessor",
-        streaming_enabled,
-        from_config("tool_tracking_postprocessor"),
-        Arg("cuda_stream_pool") = cuda_stream_pool,
-        Arg("device_allocator") = make_resource<RMMAllocator>(
-            "device_allocator", Arg("device_memory_max_size") = std::string("256MB")));
+    // auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
+    //     "tool_tracking_postprocessor",
+    //     streaming_enabled,
+    //     from_config("tool_tracking_postprocessor"),
+    //     Arg("cuda_stream_pool") = cuda_stream_pool,
+    //     Arg("device_allocator") = make_resource<RMMAllocator>(
+    //         "device_allocator", Arg("device_memory_max_size") = std::string("256MB")));
 
-    auto encoder_async_condition =
-          make_condition<AsynchronousCondition>("encoder_async_condition");
+    // auto encoder_async_condition =
+    //       make_condition<AsynchronousCondition>("encoder_async_condition");
       
-    auto video_encoder_context =
-          make_resource<VideoEncoderContext>(Arg("scheduling_term") = encoder_async_condition);
+    // auto video_encoder_context =
+    //       make_resource<VideoEncoderContext>(Arg("scheduling_term") = encoder_async_condition);
 
-    auto video_encoder_request = make_operator<ops::VideoEncoderRequestOp>(
-          "video_encoder_request",
-          from_config("video_encoder_request"),
-          Arg("videoencoder_context") = video_encoder_context);
+    // auto video_encoder_request = make_operator<ops::VideoEncoderRequestOp>(
+    //       "video_encoder_request",
+    //       from_config("video_encoder_request"),
+    //       Arg("videoencoder_context") = video_encoder_context);
 
-    auto video_encoder_response = make_operator<VideoEncoderResponseOp>(
-          "video_encoder_response",
-          from_config("video_encoder_response"),
-          Arg("pool") =
-              make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
-          Arg("videoencoder_context") = video_encoder_context);
+    // auto video_encoder_response = make_operator<VideoEncoderResponseOp>(
+    //       "video_encoder_response",
+    //       from_config("video_encoder_response"),
+    //       Arg("pool") =
+    //           make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
+    //       Arg("videoencoder_context") = video_encoder_context);
     // Here we connect the GrpcServerRequestOp to the VideoDecoderRequestOp to send the received
     // video frames for decoding.
     add_flow(grpc_request_op, video_decoder_request, {{"output", "input_frame"}});
@@ -162,6 +162,8 @@ class AppCloudPipeline : public HoloscanGrpcApplication {
              //rgb_float converted not needed 
     add_flow(
         decoder_output_format_converter,grpc_response_op, {{"tensor", "input"}});
+
+
 
     //  add_flow(rgb_float_format_converter,
     //            encoder_input_format_converter,

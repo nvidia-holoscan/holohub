@@ -48,6 +48,8 @@ class AppEdge : public holoscan::Application {
   void compose() {
     uint32_t width = 854;
     uint32_t height = 480;
+    int64_t source_block_size = width_ * height_ * 3 * 4;
+    int64_t source_num_blocks = 2;
 
     // auto video_in = make_fragment<VideoInputFragment>("video_in", datapath_, width, height);
     // auto viz = make_fragment<VizFragment>("viz", width, height);
@@ -60,13 +62,6 @@ class AppEdge : public holoscan::Application {
     //          {{"decoder_output_format_converter.tensor", "visualizer_op.receivers"},
     //           {"incoming_responses.output", "visualizer_op.receivers"}});
      
-    std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue_;
-    std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>> response_queue_;
-    std::shared_ptr<AsynchronousCondition> condition_;
-    std::shared_ptr<EntityClientService> entity_client_service_;
-    std::string datapath_;
-    uint32_t width_;
-    uint32_t height_;
     condition_ = make_condition<AsynchronousCondition>("response_available_condition");
     request_queue_ =
         make_resource<ConditionVariableQueue<std::shared_ptr<EntityRequest>>>("request_queue");
@@ -133,17 +128,15 @@ class AppEdge : public holoscan::Application {
     // server. The operator will convert the data to a GXF Entity and send it to the Holoviz.
     add_operator(incoming_responses);
 
-    
-
     auto visualizer_op = make_operator<ops::HolovizOp>(
         "visualizer_op",
         from_config("holoviz"),
-        Arg("width") = width_,
-        Arg("height") = height_,
+        Arg("width") = width,
+        Arg("height") = height,
         Arg("cuda_stream_pool") = make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5));
     //add_operator(visualizer_op);
     //connect incoming responses to visualizer 
-    
+
     add_flow(incoming_responses, visualizer_op, {{"output", "receivers"}});
     //add entity client service here
     entity_client_service_ = std::make_shared<EntityClientService>(
@@ -157,6 +150,13 @@ class AppEdge : public holoscan::Application {
 
  private:
   std::string datapath_ = "data/endoscopy";
+  std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue_;
+  std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>> response_queue_;
+  std::shared_ptr<AsynchronousCondition> condition_;
+  std::shared_ptr<EntityClientService> entity_client_service_;
+  //std::string datapath_;
+  uint32_t width_;
+  uint32_t height_;
 };
 }  // namespace holohub::grpc_h264_endoscopy_tool_tracking
 #endif /* GRPC_H264_ENDOSCOPY_TOOL_TRACKING_CPP_APP_EDGE_HPP */
