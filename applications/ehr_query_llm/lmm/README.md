@@ -3,6 +3,14 @@
 The EHR Agent Framework is designed to handle and interact with EHR (Electronic Health Records) and it provides a modular and extensible system for handling various types of queries through specialized agents, with robust error handling and performance optimization features.
 
 
+### Table of Contents
+
+- [Agent Framework overview](#agent-framework-overview)
+- [Setup Instructions](#setup-instructions)
+- [Run Instructions](#run-instructions)
+- [Offline Mode](#offline-mode)
+
+
 ### Agent Framework overview
 
 The `AgentFrameworkOp` orchestrates multiple specialized agents to handle different types of queries and responses, it maintains a streaming queue for responses and it handles response states through `ResponseHandler`.
@@ -68,11 +76,6 @@ The EHR Agent is using CUDA for embedding computation and optimizes for cosine s
         -Thread-safe operations
         -Token usage optimization
         -Efficient resource management
-
-### Table of Contents
-- [Setup Instructions](#setup-instructions)
-- [Run Instructions](#run-instructions)
-- [Offline Mode](#offline-mode)
 
 ## Setup Instructions
 
