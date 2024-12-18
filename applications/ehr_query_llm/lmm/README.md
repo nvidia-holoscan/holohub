@@ -29,24 +29,24 @@ This is an abstract base class implementing common agent functionality:
     - Uses threading.Lock for LLM and , if needed, LMM access
     - Prevents concurrent requests to language models
 
-It loads configuration from YAML files and it handles prompt templates, tokens limits, and model URLs.The Base Agent is designed to stream responses from LLM server and it supports both text and image-based prompts while enforcing maximum prompt token limits.Throughtout the agent lifecycle it manatins converstaion context and it creates conversation strings within token limits.
+It loads configuration from YAML files and it handles prompt templates, tokens limits, and model URLs. The Base Agent is designed to stream responses from LLM server and it supports both text and image-based prompts while enforcing maximum prompt token limits. Throughout the agent lifecycle it maintains conversation context and it creates conversation strings within token limits.
 
 
-### The Selector agent 
+### The Selector Agent 
 
-The Selector Agent routes user queries to appropriate specialized agent by analyzing user input to determine appropriate agent and returning the selected agent name and corrected input text.
-For response parsing, it handles JSON response format . If there are parsing failures, it logs them and it returns `None` for invalid selection.
+The Selector Agent routes user queries to the appropriate specialized agent by analyzing user input to determine the appropriate agent and return the selected agent name and corrected input text.
+For response parsing, it handles JSON response format. If there are parsing failures, it logs them and it returns `None` for invalid selection.
 
 ### The EHR Builder Agent
 
-The EHR Builder Agent EHR Builder Agent handles EHR database construction on demand and it tracks and reports build time performance in the process.
+The EHR Builder Agent handles EHR database construction on demand and it tracks and reports build time performance in the process.
 For response generation, it uses custom prompt templates for EHR tasks and it returns structured JSON responses.
 It also verifies build capability before execution and it reports success/failure status.
 
 ### The EHR Agent
 
-The EHR Agent handles EHR queries and data retrieval.It uses Chroma for document storage while implementing HuggingFaceBgeEmbeddings for embeddings
-For the RAG(Retrieval-Augmented Generation) pipeline, it performs MMR (Maximal Marginal Relevance) search with configurable search parameters (`k`, `lambda_mult`, `fetch_k`).
+The EHR Agent handles EHR queries and data retrieval. It uses Chroma for document storage while implementing HuggingFaceBgeEmbeddings for embeddings.
+For the RAG (Retrieval-Augmented Generation) pipeline, it performs MMR (Maximal Marginal Relevance) search with configurable search parameters (`k`, `lambda_mult`, `fetch_k`).
 For prompt generation, it incorporates retrieved documents into prompts and it supports both standard and RAG-specific prompts.
 The EHR Agent is using CUDA for embedding computation and optimizes for cosine similarity calculations.
 
