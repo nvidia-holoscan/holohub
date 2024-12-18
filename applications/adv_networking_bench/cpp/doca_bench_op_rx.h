@@ -108,7 +108,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     free_batch_queue();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
     if (!burst_opt) {
       HOLOSCAN_LOG_ERROR("No burst input");
       return;

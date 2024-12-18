@@ -1725,7 +1725,7 @@ AdvNetStatus DocaMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
 }
 
 void DocaMgr::free_rx_burst(AdvNetBurstParams* burst) {
-  return;
+  rte_mempool_put(rx_meta, burst);
 }
 
 void DocaMgr::free_tx_burst(AdvNetBurstParams* burst) {
