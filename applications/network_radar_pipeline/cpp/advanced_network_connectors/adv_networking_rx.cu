@@ -292,7 +292,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   // todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
 
-  auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+  auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
   if (!burst_opt) {
     free_bufs();
     return;
