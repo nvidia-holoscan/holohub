@@ -57,6 +57,11 @@ set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download direct
 set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib:\$ORIGIN/../../lib:/opt/nvidia/holoscan/lib/")
 
+# Set the default CUDA target platforms
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "60;70;72;75;80;86;87;89;90;90a")
+endif()
+
 # Build packaging
 add_subdirectory(pkg)
 
