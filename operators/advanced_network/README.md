@@ -297,6 +297,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `string`
 	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
 		type: `list`
+	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
+  		- type: `integer`	
 
 - **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
   type: `list`
