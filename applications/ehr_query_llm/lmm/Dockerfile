@@ -42,9 +42,7 @@ RUN apt-get update && \
 COPY applications/ehr_query_llm/lmm/requirements*.txt /tmp/
 
 # Install setuptools prior to all other requirements to avoid install errors
-# Also, install holoscan first and separately as it pins packaging==23.1
 RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements_hsdk.txt && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Clone Llama.cpp and checkout a stable commit
