@@ -33,6 +33,8 @@ struct AllocRegion {
  */
 class ANOMgr {
  public:
+  static constexpr size_t MAX_RX_Q_PER_CORE = 16;
+
   virtual void initialize() = 0;
   virtual bool is_initialized() const { return initialized_; }
   virtual bool set_config_and_initialize(const AdvNetConfigYaml& cfg) = 0;
@@ -91,9 +93,11 @@ class ANOMgr {
   bool initialized_ = false;
   AdvNetConfigYaml cfg_;
   std::unordered_map<std::string, AllocRegion> ar_;
+  std::unordered_map<uint32_t, std::vector<std::pair<uint16_t, uint16_t>>> rx_core_q_map;
 
   virtual AdvNetStatus allocate_memory_regions();
   virtual void adjust_memory_regions() {}
+  void init_rx_core_q_map();
 };
 
 class AnoMgrFactory {
