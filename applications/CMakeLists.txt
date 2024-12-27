@@ -66,10 +66,6 @@ add_holohub_application(multiai_ultrasound)
 
 add_holohub_application(narvis_simple_capture DEPENDS OPERATORS azure_kinect_camera)
 
-add_holohub_application(narvis_simple_capture DEPENDS OPERATORS azure_kinect_camera)
-
-add_holohub_application(narvis_simple_capture DEPENDS OPERATORS azure_kinect_camera)
-
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)

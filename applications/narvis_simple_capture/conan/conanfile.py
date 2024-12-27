@@ -8,8 +8,8 @@ class DeployDepsConan(ConanFile):
     }
 
     default_options = {
-        "cuda_dev_config/*:cuda_version": "12.2",
-        "cuda_dev_config/*:cuda_archs": "75",
+        "cuda_dev_config/*:cuda_version": "12.6",
+        "cuda_dev_config/*:cuda_archs": "75,86",
         "qt/*:with_libjpeg": "libjpeg-turbo",
         "opencv/*:with_jpeg": "libjpeg-turbo",
         "opencv/*:with_cuda": True,
@@ -20,7 +20,6 @@ class DeployDepsConan(ConanFile):
         "libtiff/*:jpeg": "libjpeg-turbo",
         "jasper/*:with_libjpeg": "libjpeg-turbo",
         "zstd/*:shared": True,
-        "librealsense/*:shared": True,
     }
 
     settings = "os",

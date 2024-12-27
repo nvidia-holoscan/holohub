@@ -83,9 +83,11 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         libudev-dev \
         libusb-1.0-0-dev \
-        libnvidia-gl-535 mesa-utils libgl1-mesa-dev \
         libncurses5-dev \
+        mesa-utils libgl1-mesa-dev \
         libacl1-dev
+
+#libnvidia-gl-535
 
 ## this should probably be another build-layer ...
 # install rust
