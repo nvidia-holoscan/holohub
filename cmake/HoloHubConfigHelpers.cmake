@@ -13,6 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Helper function to build packages
+function(add_holohub_package NAME)
+  set(pkgname "PKG_${NAME}")
+  option(${pkgname} "Build the ${NAME} package" ${BUILD_ALL})
+
+  message(DEBUG "${pkgname} = ${${pkgname}}")
+
+  # Configure the package if enabled
+  if(NOT ${pkgname})
+    return()
+  endif()
+  add_subdirectory(${NAME})
+
+  # If we have dependencies make sure they are built
+  cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;APPLICATIONS" ${ARGN})
+  message(DEBUG "${pkgname} exts = ${DEPS_EXTENSIONS}")
+  message(DEBUG "${pkgname} ops = ${DEPS_OPERATORS}")
+  message(DEBUG "${pkgname} apps = ${DEPS_APPLICATIONS}")
+  foreach(dep IN LISTS DEPS_EXTENSIONS)
+    set("EXT_${dep}" ON CACHE BOOL "Build the ${dep} GXF extension" FORCE)
+  endforeach()
+  foreach(dep IN LISTS DEPS_OPERATORS)
+    set("OP_${dep}" ON CACHE BOOL "Build the ${dep} holoscan operator" FORCE)
+  endforeach()
+  foreach(dep IN LISTS DEPS_APPLICATIONS)
+    set("APP_${dep}" ON CACHE BOOL "Build the ${dep} application" FORCE)
+  endforeach()
+endfunction()
+
+
 # Helper function to build application and dependencies
 function(add_holohub_application NAME)
 
@@ -55,6 +85,7 @@ function(add_holohub_application NAME)
 
 endfunction()
 
+
 # Helper function to build operators
 function(add_holohub_operator NAME)
 
@@ -78,6 +109,7 @@ function(add_holohub_operator NAME)
 
   endif()
 endfunction()
+
 
 # Helper function to build extensions
 function(add_holohub_extension NAME)

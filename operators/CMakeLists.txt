@@ -15,6 +15,7 @@
 
 # Add operators (in alphabetical order)
 add_holohub_operator(advanced_network)
+add_holohub_operator(apriltag_detector)
 add_holohub_operator(basic_network)
 add_holohub_operator(cvcuda_holoscan_interop)
 add_subdirectory(dds)
@@ -39,6 +40,7 @@ add_holohub_operator(xr_basic_render)
 add_holohub_operator(XrFrameOp)
 add_holohub_operator(XrTransformOp)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
+add_holohub_operator(ehr_query_llm)
 
 
 # install

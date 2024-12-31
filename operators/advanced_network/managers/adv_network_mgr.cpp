@@ -142,10 +142,13 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
           cudaSetDevice(mr.second.affinity_);
           cudaFree(0);  // Create primary context if it doesn't exist
           const auto alloc_res = cuMemAlloc(&cuptr, align);
+
           if (alloc_res != CUDA_SUCCESS) {
-            HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory: {}",
+            const char* err_str = nullptr;
+            cuGetErrorString(alloc_res, &err_str);
+            HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory. Error: {}",
                                   align / 1e6,
-                                  static_cast<int>(alloc_res));
+                                  err_str);
             return AdvNetStatus::NULL_PTR;
           }
 

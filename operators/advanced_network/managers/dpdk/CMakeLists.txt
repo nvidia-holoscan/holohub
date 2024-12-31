@@ -33,7 +33,8 @@ if(NOT DPDK_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_LDFLAGS_OTHER} ${DPDK_LIBRARIES})
 else() # Upstream DPDK
   set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
-  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core -L${DPDK_LIBRARY_DIRS} ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
+  target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
+  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

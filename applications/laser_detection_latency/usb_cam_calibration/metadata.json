@@ -1,0 +1,32 @@
+{
+	"application": {
+		"name": "USB Camera Calibration",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.1.0",
+			"tested_versions": [
+				"2.2.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/usb_cam_calibration.py",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

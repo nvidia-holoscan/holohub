@@ -72,6 +72,8 @@ add_subdirectory(${RAL_DIR_PATH} ${CMAKE_BINARY_DIR}/external_build)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC rmax-ral-build rmax-ral-lib)
 
+install(TARGETS ${PROJECT_NAME} COMPONENT holoscan-networking)
+
 #find_package(fmt)
 
 #if(fmt_FOUND)

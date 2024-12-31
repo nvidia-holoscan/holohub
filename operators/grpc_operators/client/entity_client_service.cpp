@@ -20,13 +20,14 @@
 namespace holoscan::ops {
 
 EntityClientService::EntityClientService(
-    const std::string& server_address, const uint32_t rpc_timeout,
+    const std::string& server_address, const uint32_t rpc_timeout, const bool interrupt,
     std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityRequest>>> request_queue,
     std::shared_ptr<AsynchronousConditionQueue<std::shared_ptr<nvidia::gxf::Entity>>>
         response_queue,
     std::shared_ptr<GrpcClientRequestOp> grpc_request_operator)
     : server_address_(server_address),
       rpc_timeout_(rpc_timeout),
+      interrupt_(interrupt),
       request_queue_(request_queue),
       response_queue_(response_queue),
       grpc_request_operator_(grpc_request_operator) {}
@@ -70,7 +71,7 @@ void EntityClientService::start_entity_stream_internal() {
     HOLOSCAN_LOG_ERROR("grpc client: EntityStream rpc failed: {}", e.what());
   }
   entity_client_.reset();
-  grpc_request_operator_->executor().interrupt();
+  if (interrupt_) { grpc_request_operator_->executor().interrupt(); }
 }
 
 void EntityClientService::stop_entity_stream() {

@@ -41,6 +41,12 @@ gxf_result_t EmergentSource::registerInterface(gxf::Registrar* registrar) {
     "Framerate of the stream.", kDefaultFramerate);
   result &= registrar->parameter(
     use_rdma_, "rdma", "RDMA", "Enable RDMA.", kDefaultRDMA);
+  result &= registrar->parameter(
+    exposure_, "exposure", "Exposure",
+    "Exposure time", kDefaultExposure);
+  result &= registrar->parameter(
+    gain_, "gain", "gain",
+    "Analog Gain", kDefaultGain);
   return gxf::ToResultCode(result);
 }
 
@@ -116,6 +122,9 @@ EVT_ERROR EmergentSource::CheckCameraCapabilities() {
   }
   EVT_CameraSetUInt32Param(&camera_, "FrameRate", framerate_);
 
+  EVT_CameraSetUInt32Param(&camera_, "Exposure", exposure_);
+  EVT_CameraSetUInt32Param(&camera_, "Gain", gain_);
+
   return err;
 }
 
@@ -158,7 +167,9 @@ void EmergentSource::SetDefaultConfiguration() {
   EVT_CameraSetUInt32Param(&camera_, "Exposure", 3072);
 
   EVT_CameraSetUInt32Param(&camera_, "Gain", 4095);
-  EVT_CameraSetUInt32Param(&camera_, "Offset", 0);
+
+  // Optical black correction is set to 10
+  EVT_CameraSetUInt32Param(&camera_, "Offset", 10);
 
   EVT_CameraSetBoolParam(&camera_, "LUTEnable", false);
   EVT_CameraSetBoolParam(&camera_, "AutoGain", false);

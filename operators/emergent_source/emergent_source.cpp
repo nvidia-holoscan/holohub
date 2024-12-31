@@ -29,12 +29,16 @@ void EmergentSourceOp::setup(OperatorSpec& spec) {
   constexpr uint32_t kDefaultHeight = 2160;
   constexpr uint32_t kDefaultFramerate = 240;
   constexpr bool kDefaultRDMA = false;
+  constexpr uint32_t kDefaultExposure = 3072;
+  constexpr uint32_t kDefaultGain = 4095;
 
   spec.param(signal_, "signal", "Output", "Output channel", &signal);
   spec.param(width_, "width", "Width", "Width of the stream.", kDefaultWidth);
   spec.param(height_, "height", "Height", "Height of the stream.", kDefaultHeight);
   spec.param(framerate_, "framerate", "Framerate", "Framerate of the stream.", kDefaultFramerate);
   spec.param(use_rdma_, "rdma", "RDMA", "Enable RDMA.", kDefaultRDMA);
+  spec.param(exposure_, "exposure", "Exposure", "Exposure time", kDefaultExposure);
+  spec.param(gain_, "gain", "Gain", "Analog Gain", kDefaultWidth);
 }
 
 void EmergentSourceOp::initialize() {

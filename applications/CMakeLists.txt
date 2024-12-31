@@ -58,6 +58,8 @@ add_holohub_application(imaging_ai_segmentator)
 
 add_holohub_application(hyperspectral_segmentation)
 
+add_subdirectory(laser_detection_latency)
+
 add_holohub_application(multiai_endoscopy)
 
 add_holohub_application(multiai_ultrasound)
@@ -113,3 +115,4 @@ add_holohub_application(webrtc_video_server)
 
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
+add_subdirectory(ehr_query_llm)

@@ -56,3 +56,7 @@ target_include_directories(grpc_operators
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${INCLUDE_DIRS}
   ${PROTOBUF_INCLUDE_DIRS})
+
+# Installation
+install(TARGETS grpc_operators)
+
