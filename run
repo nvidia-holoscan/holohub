@@ -880,13 +880,13 @@ for k, v in obj[project_type]["run"].items():
 
    if [ $nsys_profile == true ]; then
       nsys_command="nsys"
-      if [ ! command -v nsys &> /dev/null ]; then
+      if ! command -v nsys &>/dev/null; then
         if [ ! -d "/opt/nvidia/nsys-host" ]; then
           print_error "Nsight Systems CLI command 'nsys' not found. No Nsight installation from the host is also mounted."
-          echo "Please use --nsys_location with the 'dev_container launch' to specify the location of the Nsight Systems installation on the host."
+          echo "Please use --nsys_location with the 'dev_container launch' command to specify the location of the Nsight Systems installation on the host."
           exit 1
         fi
-        nsys_command="/opt/nvidia/nsys-host/nsys"
+        nsys_command="/opt/nvidia/nsys-host/bin/nsys"
       fi
       local perf_event_level=$(cat /proc/sys/kernel/perf_event_paranoid)
       if (( ${perf_event_level} > 2 )); then
