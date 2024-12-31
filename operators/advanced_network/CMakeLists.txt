@@ -92,6 +92,10 @@ if(HOLOHUB_BUILD_PYTHON)
 endif()
 
 # Installation
-install(TARGETS advanced_network_common
-                advanced_network_rx
-                advanced_network_tx)
+install(
+    TARGETS
+        advanced_network_common
+        advanced_network_rx
+        advanced_network_tx
+    COMPONENT holoscan-networking
+)

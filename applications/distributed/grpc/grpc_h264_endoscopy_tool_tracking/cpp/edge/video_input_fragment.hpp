@@ -119,6 +119,7 @@ class VideoInputFragment : public holoscan::Fragment {
     entity_client_service_ = std::make_shared<EntityClientService>(
         from_config("grpc_client.server_address").as<std::string>(),
         from_config("grpc_client.rpc_timeout").as<uint32_t>(),
+        from_config("grpc_client.interrupt").as<bool>(),
         request_queue_,
         response_queue_,
         outgoing_requests);
