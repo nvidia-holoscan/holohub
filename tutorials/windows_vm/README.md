@@ -4,8 +4,7 @@
 
 ## Overview
 
-This tutorial provides a high-level guide on how a Holoscan app can interoperate with a Windows
-application, while they both run on the same machine.
+This tutorial enables Holoscan and Windows applications to run concurrently on the same machine or node.
 
 ## Table of Contents
 
@@ -23,19 +22,26 @@ application, while they both run on the same machine.
 
 ## Description
 
-There are many legacy graphics applications which are developed on the Windows platform. These
-applications want to leverage AI/ML and sensor processing capabilities of NVIDIA Holoscan, but
-Holoscan is a Linux-oriented platform. This tutorial demonstrates a design by which a Windows app
-can interoperate with a Holoscan app running on the same machine.
+Many legacy graphics applications, particularly in medical devices, are developed and operated on
+the Windows platform. A significant number of these medical devices rely on Windows OS for their
+functionality. To integrate AI/ML and sensor processing capabilities from NVIDIA Holoscan into such
+Windows-based systems, we previously introduced a "sidecar" architecture. This architecture involved
+an AI compute node running Holoscan interoperating with a Windows node via a DDS link, showcased in
+the [Holoscan DDS reference application](../../applications/dds_video/).
+This tutorial extends the options for such use-cases by providing developers with a straightforward
+and clear system design to enable interoperability between Holoscan applications and Windows
+applications running on the same physical machine. It demonstrates how to achieve efficient
+communication and processing without the need for separate hardware nodes.
 
-In this tutorial, Holoscan runs on a x86_64 workstation hosting Ubuntu 22.04. Using Linux KVM, a
-Windows VM is created on the host Ubuntu Linux. Two RTX A4000 GPUs are plugged into the x86_64
-workstation. One RTX A4000 GPU is passed through to the Windows VM using
+![windows options](./windows_options.png)
+
+In this tutorial, Holoscan runs on an x86_64 workstation hosting Ubuntu 22.04. Two RTX A4000 GPUs
+are plugged into the x86_64 workstation. Using Linux KVM, a Windows VM is created on the host Ubuntu Linux. One RTX A4000 GPU is passed through to the Windows VM using
 [VFIO](https://docs.kernel.org/driver-api/vfio.html). The other RTX A4000 GPU is reserved for the
-host Ubuntu OS and used by Holoscan. This tutorial provides a step-by-step guide on how to achieve
-this setup. Furthermore, it also demonstrates how a Holoscan app can read USB-based camera frames
-and sends the frames via DDS to an application running on the Windows VM. The Windows VM application
-renders the camera frames on the screen using its dedicated RTX A4000 GPU.
+host Ubuntu OS and used by Holoscan. We provide a step-by-step guide on how to achieve
+this setup. Furthermore, we also demonstrate how a Holoscan application reads USB-based camera
+frames and sends the frames via DDS to an application running on the Windows VM. Finally, the
+Windows VM application renders the camera frames on the screen using its dedicated RTX A4000 GPU.
 
 ## Platform Requirements
 
@@ -52,7 +58,8 @@ Although we used two same GPUs in this tutorial, combinations of two different G
 RTX A4000 and RTX A6000, can also be used.
 
 Since x86_64 workstations are very much diverse, the steps to enable the setup described in this
-tutorial may not work as-is on all x86_64 workstations.
+tutorial may not work as-is on all x86_64 workstations. Performances may also vary across different
+x86_64 workstations.
 
 ## Windows VM Setup Instructions
 
