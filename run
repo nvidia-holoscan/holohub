@@ -879,9 +879,14 @@ for k, v in obj[project_type]["run"].items():
    command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
 
    if [ $nsys_profile == true ]; then
-      if [ ! command -v nsys &> /dev/null ]; then
-        print_error "Nsight Systems CLI command 'nsys' not found."
-        exit 1
+      nsys_command="nsys"
+      if ! command -v nsys &>/dev/null; then
+        if [ ! -d "/opt/nvidia/nsys-host" ]; then
+          print_error "Nsight Systems CLI command 'nsys' not found. No Nsight installation from the host is also mounted."
+          echo "Please use --nsys_location with the 'dev_container launch' command to specify the location of the Nsight Systems installation on the host."
+          exit 1
+        fi
+        nsys_command="/opt/nvidia/nsys-host/bin/nsys"
       fi
       local perf_event_level=$(cat /proc/sys/kernel/perf_event_paranoid)
       if (( ${perf_event_level} > 2 )); then
@@ -889,7 +894,7 @@ for k, v in obj[project_type]["run"].items():
         echo "See https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html#linux-requirements for more information."
         exit 1
       fi
-      command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+      command="${nsys_command} profile --trace=cuda,vulkan,nvtx,osrt ${command}"
    fi
 
    # default workdir is bin
