@@ -118,9 +118,9 @@ class FHIRResourceSanitizer:
 
         try:
             model = construct_fhir_element(resource_type, resource)
-        # If using fhir.resources 0.7.1, then
-        # pydantic.v1.error_wrappers.ValidationError
-        except pydantic.error_wrappers.ValidationError:
+        # If using fhir.resources 7.0.0, then the error type is
+        #      pydantic.error_wrappers.ValidationError
+        except pydantic.v1.error_wrappers.ValidationError:
             logger.error("Validation error while processing: ", resource)
             return None
 
