@@ -304,14 +304,14 @@ setup() {
 
   # Install python dev
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
-  python3_min_version=$(compare_version ${python3_dev_version} "3.8.0")
+  python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
 
   # Python 3.8 to 3.11 are supported
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     echo "Installing python"
     apt install --no-install-recommends -y python3 python3-dev
     python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
-    python3_min_version=$(compare_version ${python3_dev_version} "3.8.0")
+    python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
   fi
 
   # If python version is too high
@@ -690,13 +690,13 @@ build() {
   opt_prefix=""
   is_app=false
   is_pkg=false
-  if list_packages | grep -Fxq "$project"; then
+  if list_packages | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D PKG_"
     is_pkg=true
-  elif list_apps | grep -Fxq "$project"; then
+  elif list_apps | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D APP_"
     is_app=true
-  elif list_operators | grep -Fxq "$project"; then
+  elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D OP_"
   else
     print_error "Unknown package, application, or operator: $1"
@@ -939,12 +939,31 @@ list_cmake_dir_options() {
   echo "$cmake_add_dir" | sed -n "s|$cmake_function([[:space:]]*\([^[:space:])]*\).*|\1|p" | sort
 }
 
+list_metadata_json_dir() {
+  json_list=$(find $@ -name 'metadata.json' | sort -d)
+  for json in ${json_list}; do
+    local json_path=$(dirname "$json")
+    local json_dir=$(basename "$json_path")
+    if [[ "${json_dir}" =~ \{\{[^}]+\}\} ]]; then
+      # skip templates like {{ foo }}
+      continue
+    elif [[ ${json_dir} == "cpp" ]] || [[ ${json_dir} == "python" ]]; then
+      language="(${json_dir})"
+      name=$(basename $(dirname "$json_path"))
+    else
+      language=""
+      name="${json_dir}"
+    fi
+    echo $name $language
+  done
+}
+
 list_apps() {
-  list_cmake_dir_options add_holohub_application
+  list_metadata_json_dir ${SCRIPT_DIR}/applications ${SCRIPT_DIR}/benchmarks
 }
 
 list_operators() {
-  list_cmake_dir_options add_holohub_operator
+  list_metadata_json_dir ${SCRIPT_DIR}/operators
 }
 
 list_packages() {
