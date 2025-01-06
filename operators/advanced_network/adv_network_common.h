@@ -557,6 +557,11 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
                 HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
                 return false;
               }
+
+              try {
+                q.timeout_us_ = q_item["timeout_us"].as<uint64_t>();
+              } catch (const std::exception& e) { q.timeout_us_ = 0; }
+
               rx_cfg.queues_.emplace_back(std::move(q));
             }
 
