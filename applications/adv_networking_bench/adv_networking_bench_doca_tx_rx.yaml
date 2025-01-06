@@ -39,13 +39,6 @@ advanced_network:
         - local
       num_bufs: 51200
       buf_size: 9000
-    - name: "Default_RX_GPU"
-      kind: "device"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 51200
-      buf_size: 9000
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
@@ -57,7 +50,7 @@ advanced_network:
     interfaces:
     - name: data1
       address: 0000:ca:00.0
-      flow_isolation: false
+      flow_isolation: true
       tx:
         - queues:
           - name: "ADC Samples"
@@ -70,15 +63,8 @@ advanced_network:
               - "tx_eth_src"
       rx:
         - queues:
-          - name: "Default"
-            id: 0
-            cpu_core: 10
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Default_RX_GPU"
           - name: "Data"
-            id: 1
+            id: 0
             cpu_core: 10
             batch_size: 10240
             output_port: "bench_rx_out"
@@ -88,7 +74,7 @@ advanced_network:
             - name: "ADC Samples"
               action:
                 type: queue
-                id: 1
+                id: 0
               match:
                 udp_src: 4096 #12288
                 udp_dst: 4096 #12288

@@ -193,10 +193,10 @@ Add each operator or extension in its own directory under the [```operators```](
 - A README file summarizing the operator's purpose;
 - A LICENSE file governing use (optional).
 
-Additionally, each operator must have at least one associated [application](./applications/) to demonstrate the capabilities of the operator.
+Additionally, each operator should have at least one associated [application](./applications/) to demonstrate the capabilities of the operator.
 
-Edit [```CMakeLists.txt```](./operators/CMakeLists.txt) to add the new operator as part of the build system using the ```add_holohub_operator```
-CMake function. If the operator wraps a GXF extension then the optional ```DEPENDS EXTENSIONS``` should be added to tell the build
+Edit the [```CMakeLists.txt```](./operators/CMakeLists.txt) to add the new operator as part of the build system using the ```add_holohub_operator```
+CMake function, passing the new operator folder name as the first argument. If the operator wraps a GXF extension then the optional ```DEPENDS EXTENSIONS``` should be added to tell the build
 system to build the dependent extension(s).
 
 ```cmake
@@ -208,15 +208,22 @@ Note that extensions do not have a ```DEPENDS``` option.
 Refer to the [HoloHub operator template folder](./operators/template/) for stub `metadata.json` and `README` files to copy
 and update for your new operator.
 
+You can then build that operator by configuring your build with `-D OP_my_operator:BOOL=1` (or `-D EXT_my_extension:BOOL=1` for GXF extensions):
+
+```bash
+cmake -S . -B ./build -D OP_my_operator:BOOL=1
+cmake --build ./build -j
+```
+
 ### Adding an Application
 
-Add each application in its own subdirectory under the ```applications``` directory. The subdirectory should contain:
+Add each application in its own subdirectory under the [`applications`](./applications/) directory. The subdirectory should contain:
 - A *metadata.json* file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
 - A README file summarizing the application's purpose and architecture;
 - A LICENSE file governing use (optional).
 
-Edit [```CMakeLists.txt```](./applications/CMakeLists.txt) to add the new application  as part of the build system using the ```add_holohub_application```
-CMake function. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
+Edit [```CMakeLists.txt```](./applications/CMakeLists.txt) to add the new application as part of the build system using the ```add_holohub_application```
+CMake function, passing the new application folder name as the first argument. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
 the build system knows to build the dependent operator(s).
 
 ```cmake
@@ -228,6 +235,49 @@ add_holohub_application(my_application DEPENDS
 
 Refer to the [HoloHub application template folder](./applications/template/) for stub `metadata.json` and `README` files to copy
 and update for your new application.
+
+You can then build that application by configuring your build with `-D APP_my_application:BOOL=1` :
+
+```bash
+cmake -S . -B ./build -D APP_my_application:BOOL=1
+cmake --build ./build -j
+```
+
+### Adding a Package Configuration
+
+1. Ensure the applications/operator CMake targets and/or files you want to package have an `install` rule define in your application/operator CMakeLists.txt files (see [CMake docs](https://cmake.org/cmake/help/latest/command/install.html)). Optionally, pass a `COMPONENT` argument to the `install` rule to control precisely which of your targets/files will get packaged. This can be useful if - for example - you want to create dev vs run packages, not include python bindings, or split your libraries in separate packages for different backends.
+2. Create a folder for your package (or group of packages) under the [`pkg`](./pkg/) directory.
+3. Create a `CMakeLists.txt` file in that new folder with the following contents:
+
+   ```cmake
+   holohub_configure_deb(
+     NAME "my-package-dev"
+     COMPONENTS "my-headers" "my-libs" # (optional) list of installation components to package, Default: all targets/files configured with an install rule will be packaged.
+     DESCRIPTION "My project (dev)"
+     VERSION "X.Y.Z"
+     VENDOR "My org name"
+     CONTACT "John Doe <john@doe.org>"
+     DEPENDS "libc6 (>= 2.34), libstdc++6 (>= 11)" # list of your package debian dependencies - https://www.debian.org/doc/debian-policy/ch-relationships.html
+     SECTION "devel" # (optional)
+     PRIORITY "optional" # (optional)
+   )
+   ```
+
+4. Update the `CMakeLists.txt` file under [`pkg`](./pkg/CMakeLists.txt) to include this new package directory and define the app and operators to build and package using the `add_holohub_package` CMake function:
+
+   ```bash
+   add_holohub_package(my_packager
+                       APPLICATIONS my_app1
+                       OPERATORS my_op1 my_op2)
+   ```
+
+5. You can then generate the package(s) by configuring your build with `-D PKG_my_packager:BOOL=1` :
+
+  ```bash
+  cmake -S . -B ./build -D PKG_my_packager:BOOL=1 # NOTE: avoid adding any other -D PKG_, -D APP_ or -D OP_ as their built targets would currently pollute the content of your package, unless you used COMPONENTS in holohub_configure_deb above
+  cmake --build ./build -j
+  cpack --config ./build/pkg/CPackConfig-*.cmake
+  ```
 
 ### Adding a Tutorial
 
@@ -273,26 +323,26 @@ provided. Please avoid using acronyms, brand, or team names.
   ```
     Developer Certificate of Origin
     Version 1.1
-    
+
     Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
     1 Letterman Drive
     Suite D4700
     San Francisco, CA, 94129
-    
+
     Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
   ```
 
   ```
     Developer's Certificate of Origin 1.1
-    
+
     By making a contribution to this project, I certify that:
-    
+
     (a) The contribution was created in whole or in part by me and I have the right to submit it under the open source license indicated in the file; or
-    
+
     (b) The contribution is based upon previous work that, to the best of my knowledge, is covered under an appropriate open source license and I have the right under that license to submit that work with modifications, whether created in whole or in part by me, under the same open source license (unless I am permitted to submit under a different license), as indicated in the file; or
-    
+
     (c) The contribution was provided directly to me by some other person who certified (a), (b) or (c) and I have not modified it.
-    
+
     (d) I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
   ```
 
