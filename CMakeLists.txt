@@ -59,7 +59,7 @@ set(CMAKE_INSTALL_RPATH
 
 # Set the default CUDA target platforms
 if(NOT CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES "60;70;72;75;80;86;87;89;90;90a")
+  set(CMAKE_CUDA_ARCHITECTURES "native")
 endif()
 
 # Build packaging
