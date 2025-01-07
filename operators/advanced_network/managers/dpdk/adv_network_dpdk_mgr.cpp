@@ -47,6 +47,7 @@ struct RxWorkerParams {
   int port;
   int queue;
   int num_segs;
+  uint64_t timeout_us;
   uint32_t batch_size;
   struct rte_ring* ring;
   struct rte_mempool* flowid_pool;
@@ -1199,6 +1200,7 @@ void DpdkMgr::run() {
         params->flowid_pool = rx_flow_id_buffer;
         params->meta_pool = rx_meta;
         params->batch_size = q.common_.batch_size_;
+        params->timeout_us = q.timeout_us_;
         rte_eal_remote_launch(
             rx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
       }
@@ -1237,6 +1239,7 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///  \brief
@@ -1246,9 +1249,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
   RxWorkerParams* tparams = (RxWorkerParams*)arg;
   struct rte_mbuf* rx_mbufs[DEFAULT_NUM_RX_BURST];
   int ret = 0;
-  uint64_t freq = rte_get_tsc_hz();
-  uint64_t timeout_ticks = freq * 0.02;  // expect all packets within 20ms
 
+  // In the future we may want to periodically update this if the CPU clock drifts
+  uint64_t freq = rte_get_tsc_hz();
+  uint64_t timeout_cycles = freq * (tparams->timeout_us/1e6);
+  uint64_t last_cycles = rte_get_tsc_cycles();
   uint64_t total_pkts = 0;
 
   flush_packets(tparams->port);
@@ -1280,7 +1285,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
-            "Processing function falling behind. No free flow ID buffers for packets!");
+            "Processing function falling behind. No free RX bursts!");
         continue;
       }
     }
@@ -1299,17 +1304,17 @@ int DpdkMgr::rx_core_worker(void* arg) {
       // Copy non-scattered buffers
       memcpy(&burst->pkts[0][0], &mbuf_arr[to_copy], sizeof(rte_mbuf*) * nb_rx);
 
-      for (int flow_idx = 0; flow_idx < nb_rx; flow_idx++) {
-        if (mbuf_arr[to_copy + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[flow_idx].flow_id = mbuf_arr[to_copy + flow_idx]->hash.fdir.hi;
+      for (int p = 0; p < nb_rx; p++) {
+        if (mbuf_arr[to_copy + p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[p].flow_id = mbuf_arr[to_copy + p]->hash.fdir.hi;
         } else {
-          pkt_info[flow_idx].flow_id = 0;
+          pkt_info[p].flow_id = 0;
         }
       }
 
       if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
         for (int p = 0; p < nb_rx; p++) {
-          struct rte_mbuf* mbuf = mbuf_arr[p];
+          struct rte_mbuf* mbuf = mbuf_arr[to_copy + p];
           for (int seg = 1; seg < tparams->num_segs; seg++) {
             mbuf = mbuf->next;
             burst->pkts[seg][p] = mbuf;
@@ -1336,16 +1341,30 @@ int DpdkMgr::rx_core_worker(void* arg) {
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
                                DEFAULT_NUM_RX_BURST);
 
-      if (nb_rx == 0) { continue; }
+      if (nb_rx == 0) {
+        if (burst->hdr.hdr.num_pkts > 0 && timeout_cycles > 0) {
+          const auto cur_cycles = rte_get_tsc_cycles();
+
+          // We hit our timeout. Send the partial batch immediately
+          if ((cur_cycles - last_cycles) > timeout_cycles) {
+            cur_pkt_in_batch = 0;
+            rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+            last_cycles = cur_cycles;
+            break;
+          }
+        }
+
+        continue;
+      }
 
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
-      for (int flow_idx = 0; flow_idx < to_copy; flow_idx++) {
-        if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
+      for (int p = 0; p < to_copy; p++) {
+        if (mbuf_arr[p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = mbuf_arr[p]->hash.fdir.hi;
         } else {
-          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
+          pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = 0;
         }
       }
 
@@ -1366,9 +1385,20 @@ int DpdkMgr::rx_core_worker(void* arg) {
       nb_rx -= to_copy;
 
       if (burst->hdr.hdr.num_pkts == tparams->batch_size) {
-        cur_pkt_in_batch = 0;
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+        cur_pkt_in_batch = 0;
+        last_cycles = rte_get_tsc_cycles();
         break;
+      } else if (timeout_cycles > 0) {
+        const auto cur_cycles = rte_get_tsc_cycles();
+
+        // We hit our timeout. Send the partial batch immediately
+        if ((cur_cycles - last_cycles) > timeout_cycles) {
+          rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+          cur_pkt_in_batch = 0;
+          last_cycles = cur_cycles;
+          break;
+        }
       }
     } while (!force_quit.load());
   }
@@ -1584,8 +1614,6 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
 
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
-  reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
-
   return AdvNetStatus::SUCCESS;
 }
 
@@ -1611,6 +1639,7 @@ void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
 
 void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
   rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
+  rte_mempool_put(rx_meta, burst);
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(rx_burst_buffer, (void*)burst->pkts[seg]);
   }

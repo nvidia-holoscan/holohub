@@ -331,6 +331,7 @@ struct MemoryRegion {
 
 struct RxQueueConfig {
   CommonQueueConfig common_;
+  uint64_t timeout_us_;
   std::string output_port_;
 };
 
