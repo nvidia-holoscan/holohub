@@ -57,7 +57,7 @@ This application has multiple display modes which you can toggle through using t
 
 * original: output the original image from input source
 * depth: output the color depthmap based on the depthmap returned from Depth Anything V2 model
-* side-by-side: output a side-by-side view of the origianl image next to the color depthmap
+* side-by-side: output a side-by-side view of the original image next to the color depthmap
 * interactive: allow user 
 
 In interactive mode, the middle or right mouse button can be used to modify the ratio of original image vs color depthmap is shown.

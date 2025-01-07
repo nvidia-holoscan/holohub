@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import sys
 from argparse import ArgumentParser
 
 import cupy as cp
@@ -22,7 +21,6 @@ import cv2
 import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.gxf import Entity
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -34,8 +32,7 @@ from holoscan.resources import UnboundedAllocator
 
 
 class FormatImageOp(Operator):
-    """ Operator to modify the dimensions of the input tensor
-    """
+    """Operator to modify the dimensions of the input tensor"""
 
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
@@ -45,9 +42,9 @@ class FormatImageOp(Operator):
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
-        """ Modify the dimensions of the input image
+        """Modify the dimensions of the input image
 
-        Input image is expected to be (H, W, C) 
+        Input image is expected to be (H, W, C)
         Output an image of shape (1, C, H, W)
         """
         # Get input message
@@ -64,8 +61,7 @@ class FormatImageOp(Operator):
 
 
 class PostprocessorOp(Operator):
-    """Operator that does postprocessing before sending resulting image to Holoviz
-    """
+    """Operator that does postprocessing before sending resulting image to Holoviz"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -104,8 +100,7 @@ class PostprocessorOp(Operator):
         spec.output("output_specs")
 
     def clamp(self, value, min_value=0, max_value=1):
-        """ Clamp value between [min_value, max_value]
-        """
+        """Clamp value between [min_value, max_value]"""
         return max(min_value, min(max_value, value))
 
     def toggle_display_mode(self, *args):
@@ -114,7 +109,6 @@ class PostprocessorOp(Operator):
 
         LEFT_BUTTON = 0
         PRESSED = 0
-        RELEASED = 1
 
         # If event is for the middle or right mouse button, update some values for interactive mode
         #   - update the status of whether the button is being pressed or released
@@ -126,7 +120,7 @@ class PostprocessorOp(Operator):
             return
 
         # When left mouse button is pressed, update the display mode
-        if action.value == PRESSED :
+        if action.value == PRESSED:
             self.idx = (self.idx + 1) % len(self.display_modes)
             self.current_display_mode = self.display_modes[self.idx]
 
@@ -156,7 +150,6 @@ class PostprocessorOp(Operator):
         inference_output = cp.asarray(in_message.get("inference_output")).squeeze()
 
         image = cp.asarray(in_image.get("preprocessed"))
-
 
         if self.current_display_mode == "original":
             # Display the original image
@@ -244,7 +237,6 @@ class DepthAnythingV2App(Application):
                 allocator=pool,
                 **v4l2_args,
             )
-            source_output = "signal"
             # v4l2 operator outputs RGBA8888
             in_dtype = "rgba8888"
         elif self.source == "replayer":
@@ -254,7 +246,6 @@ class DepthAnythingV2App(Application):
                 directory=self.sample_data_path,
                 **self.kwargs("replayer_source"),
             )
-            source_output = "output"
 
         format_input = FormatImageOp(
             self,
