@@ -1,0 +1,10 @@
+torch>=2.0.1
+torchvision>=0.15.2
+pycocotools
+PyYAML
+tensorboard
+onnxruntime
+timm
+opencv-python
+scipy
+onnx
