@@ -264,7 +264,7 @@ class DepthAnythingV2App(Application):
 
         inference_args = self.kwargs("inference")
         inference_args["model_path_map"] = {
-            "depth": os.path.join(self.sample_data_path, "depth_anything_v2_vitb.onnx")
+            "depth": os.path.join(self.sample_data_path, "depth_anything_v2_vits.onnx")
         }
 
         inference = InferenceOp(
@@ -292,8 +292,7 @@ class DepthAnythingV2App(Application):
 
         self.add_flow(source, preprocessor)
         self.add_flow(preprocessor, postprocessor, {("tensor", "input_image")})
-        self.add_flow(preprocessor, format_input)
-        self.add_flow(format_input, inference, {("", "receivers")})
+        self.add_flow(preprocessor, inference, {("", "receivers")})
         self.add_flow(inference, postprocessor, {("transmitter", "input_depthmap")})
         self.add_flow(postprocessor, holoviz, {("output_image", "receivers")})
         self.add_flow(postprocessor, holoviz, {("output_specs", "input_specs")})

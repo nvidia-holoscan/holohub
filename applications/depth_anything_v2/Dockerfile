@@ -25,7 +25,7 @@ ARG GPU_TYPE
 
 FROM ${BASE_IMAGE} AS builder
 
-ARG MODEL=vitb
+ARG MODEL=vits
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -45,17 +45,25 @@ RUN git clone --depth 1 https://github.com/DepthAnything/Depth-Anything-V2.git \
     && mv depth-anything-tensorrt/depth_anything_v2/dpt.py Depth-Anything-V2/depth_anything_v2 \
     && mv depth-anything-tensorrt/depth_anything_v2/export_v2.py Depth-Anything-V2
 
-RUN pip install onnx \
+RUN pip install onnx onnx-graphsurgeon \
     && pip install -r Depth-Anything-V2/requirements.txt
 
 # Change to the repository directory
 WORKDIR /app/Depth-Anything-V2
 
 RUN mkdir -p checkpoints \
-    && wget -O checkpoints/depth_anything_v2_vitb.pth \
-       https://huggingface.co/depth-anything/Depth-Anything-V2-Base/resolve/main/depth_anything_v2_${MODEL}.pth?download=true
+    && SIZE=$( \
+         if [ "$MODEL" = "vits" ]; then echo "Small"; \
+         elif [ "$MODEL" = "vitb" ]; then echo "Base"; \
+         elif [ "$MODEL" = "vitl" ]; then echo "Large"; \
+         else echo "Unknown"; \
+         fi) \
+    && wget -O checkpoints/depth_anything_v2_${MODEL}.pth \
+       https://huggingface.co/depth-anything/Depth-Anything-V2-${SIZE}/resolve/main/depth_anything_v2_${MODEL}.pth?download=true
 
-RUN python export_v2.py --encoder vitb --input-size 518
+RUN python export_v2.py --encoder ${MODEL} --input-size 518 \
+    && wget https://raw.githubusercontent.com/nvidia-holoscan/holoscan-sdk/refs/heads/main/scripts/graph_surgeon.py \
+    && python ./graph_surgeon.py depth_anything_v2_${MODEL}.onnx depth_anything_v2_${MODEL}.onnx
 
 
 # --------------------------------------------------------------------------
@@ -77,7 +85,6 @@ WORKDIR /app/Depth-Anything-V2
 
 # Copy necessary files from the builder stage
 COPY --from=builder /app/Depth-Anything-V2/*.onnx /models/.
-
 
 #
 # Holohub run setup

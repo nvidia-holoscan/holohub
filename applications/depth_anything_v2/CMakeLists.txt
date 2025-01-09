@@ -18,10 +18,10 @@ find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Copy depth anything v2 model if it's not in the data directory
-add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vitb.onnx"
+add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vits.onnx"
     COMMAND mkdir -p ${HOLOHUB_DATA_DIR}/depth_anything_v2/
-    COMMAND cp "/models/depth_anything_v2_vitb.onnx" "${HOLOHUB_DATA_DIR}/depth_anything_v2/"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vitb.onnx"
+    COMMAND cp "/models/depth_anything_v2_vits.onnx" "${HOLOHUB_DATA_DIR}/depth_anything_v2/"
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vits.onnx"
     )
 
 # Download the testing video and trim
@@ -50,7 +50,7 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_path
 
 add_custom_target(depth_anything_v2_data ALL
                   DEPENDS
-                  "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vitb.onnx"
+                  "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vits.onnx"
                   "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.gxf_index")
 
 # Add testing
