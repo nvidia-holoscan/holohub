@@ -80,6 +80,8 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install opencv-python
+
 # Set the working directory
 WORKDIR /app/Depth-Anything-V2
 

@@ -31,35 +31,6 @@ from holoscan.operators import (
 from holoscan.resources import UnboundedAllocator
 
 
-class FormatImageOp(Operator):
-    """Operator to modify the dimensions of the input tensor"""
-
-    def __init__(self, fragment, *args, **kwargs):
-        super().__init__(fragment, *args, **kwargs)
-
-    def setup(self, spec: OperatorSpec):
-        spec.input("in")
-        spec.output("out")
-
-    def compute(self, op_input, op_output, context):
-        """Modify the dimensions of the input image
-
-        Input image is expected to be (H, W, C)
-        Output an image of shape (1, C, H, W)
-        """
-        # Get input message
-        in_message = op_input.receive("in")
-
-        # Transpose
-        tensor = cp.asarray(in_message.get("preprocessed"))
-        tensor = cp.moveaxis(tensor, 2, 0)[cp.newaxis]
-        # Copy as a contiguous array to avoid issue with strides
-        tensor = cp.ascontiguousarray(tensor)
-
-        # Create output message
-        op_output.emit(dict(preprocessed=tensor), "out")
-
-
 class PostprocessorOp(Operator):
     """Operator that does postprocessing before sending resulting image to Holoviz"""
 
@@ -246,12 +217,6 @@ class DepthAnythingV2App(Application):
                 directory=self.sample_data_path,
                 **self.kwargs("replayer_source"),
             )
-
-        format_input = FormatImageOp(
-            self,
-            name="transpose",
-            pool=pool,
-        )
 
         preprocessor_args = self.kwargs("preprocessor")
         preprocessor = FormatConverterOp(
