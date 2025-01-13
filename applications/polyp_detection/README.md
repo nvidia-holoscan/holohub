@@ -28,7 +28,7 @@ trtexec --onnx=rtdetrv2_timm_r50_nvimagenet_pretrained.onnx --saveEngine=rt_detr
 
 ### Grab example video
 
-(todo) need to upload after license permisison
+(todo) need to upload after license permission
 
 ### Convert Video into GXF Entities
 
