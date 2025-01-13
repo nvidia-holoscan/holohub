@@ -596,6 +596,8 @@ Usage: ./dev_container launch [options]
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
+    --nsys_location : (optional) Specify the location of the Nsight Systems installation on the host
+                       (e.g., /opt/nvidia/nsight-systems/2024.1.1/)
     --init : Support tini entry point
     --persistent : Does not delete container after it is run
     --verbose : Print variables passed to docker run command
@@ -616,6 +618,7 @@ launch() {
     local use_tini=0
     local persistent=0
     local nsys_profile=false
+    local nsys_location=""
     local as_root=false
     local docker_opts=""
 
@@ -668,6 +671,17 @@ launch() {
         --nsys_profile)
             nsys_profile=true
             shift
+            ;;
+        --nsys_location)
+            if [[ -n "$2" ]]; then
+                nsys_location="$2"
+                additional_volumes+="-v $nsys_location:/opt/nvidia/nsys-host "
+                shift 2
+            else
+                echo "Error: --nsys_location requires a value"
+                launch_desc
+                exit 1
+            fi
             ;;
         --as_root)
             as_root=true
