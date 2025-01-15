@@ -72,10 +72,14 @@ def get_response_time(DG, source, sink):
 
         WCRTcandidates[node] = sourcetobottle + bottletosink
 
-
         if node not in longestpath:
+            #An edge case can occur in large graphs where the longest path through the graph does not 
+            #determine the response time.
+            #This is described in the paper in more detail
+            #For most graphs (including all practical examples) this below calculation results in
+            #significant execution time increases for no decrease in pessimism, so we disable it
+            #Note that the analysis is safe either way
 
-            #Huge execution time increase for less pessimism
             if False:
                 #Find the path from the source to the node with the greatest sum of execution times
                 maxcost = 0
