@@ -91,9 +91,6 @@ def overheadmain():
 
     graph.savefig("evaloverhead.pdf", bbox_inches='tight')
 
-
-
-
 def scalabilitymain(graphs, constraint = False):
 
     labels = ['20 edges', '40 edges', '60 edges', '80 edges', '100 edges']
@@ -141,13 +138,7 @@ def scalabilitymain(graphs, constraint = False):
     predicted.close
     simul.close
 
-
-
-
-
 def scalabilitypess():
-
-
     translate = dict([(19,0),(20,0), (39,1), (40, 1), (59,2), (60, 2),(79,3), (80, 3), (99,4), (100, 4)])
     data = [[], [], [], [], []]
 
@@ -178,16 +169,9 @@ def scalabilitypess():
 
     graphscaled.savefig("evalscalabilitypess.pdf", bbox_inches='tight')
 
-
-
-
-
 def timinganalysis():
-
     x = []
     y = []
-
-
     with open('analysistimes.txt', 'r') as timing:
         for line in timing:
             x.append(int(line.split(" ")[0]))
@@ -198,10 +182,8 @@ def timinganalysis():
     # Create the scatter plot
     plt.scatter(x, y, color='black', marker='x', label='A', s=20)
 
-
     plt.yscale('log')
     plt.ylim(1e-4, 1e1)
-    
 
     #Add labels
     plt.ylabel('Analysis Time\n(seconds, log scale, base 10)', fontsize = 20, multialignment='center')
@@ -211,4 +193,3 @@ def timinganalysis():
     plt.yticks(fontsize=15)  # Increase y-axis tick labels font size
 
     graphanalysis.savefig("evalanalysis.pdf", bbox_inches='tight')
-
