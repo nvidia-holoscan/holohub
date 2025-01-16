@@ -59,9 +59,8 @@ qt_add_qml_module(qt_video_replayer
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(racerx
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_racerx_video/versions/20231009/zip
+    URL nvidia/clara-holoscan/holoscan_racerx_video:20231009
     DOWNLOAD_NAME holoscan_racerx_video_20231009.zip
-    URL_MD5 86cd7e5477bb9eaa0cfc0547912d77b2
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     ALL
   )

@@ -43,9 +43,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(orsi
-    URL  https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_orsi_academy_sample_data/versions/20240206/zip
+    URL  nvidia/clara-holoscan/holoscan_orsi_academy_sample_data:20240206
     DOWNLOAD_NAME orsi.zip
-    URL_MD5 5cf78e64bd9696f9e04796cb1e04d2ad
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 1080
