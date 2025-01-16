@@ -78,9 +78,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(volume_rendering_xr
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_volume_rendering_sample_data/versions/20230816/zip
+    URL nvidia/clara-holoscan/holoscan_volume_rendering_sample_data:20230816
     DOWNLOAD_NAME holoscan_volume_rendering_sample_data_20230816.zip
-    URL_MD5 cf5602f1dba90f2e50b1d4eefbf8081e
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
   add_dependencies(volume_rendering_xr volume_rendering_xr_data)

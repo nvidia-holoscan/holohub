@@ -40,9 +40,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(object_detection_torch
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_cars_video/versions/20230725/zip
+    URL nvidia/clara-holoscan/holoscan_cars_video:20230725
     DOWNLOAD_NAME holoscan_cars_video_20230725.zip
-    URL_MD5 a0a510bc01cee0580a280d792da9ac5f
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 1080
