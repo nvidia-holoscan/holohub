@@ -39,9 +39,8 @@ target_link_libraries(endoscopy_out_of_body_detection
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(endoscopy_out_of_body_detection
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/endoscopy_out_of_body_detection/versions/20230127/zip
+    URL nvidia/clara-holoscan/endoscopy_out_of_body_detection:20230127
     DOWNLOAD_NAME endoscopy_out_of_body_detection_20230127.zip
-    URL_MD5 378e9b19bdcb1293f8b3f44ebf07e160
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 256
