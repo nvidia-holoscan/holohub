@@ -8,3 +8,4 @@ timm
 opencv-python
 scipy
 onnx
+holoscan==2.7.0

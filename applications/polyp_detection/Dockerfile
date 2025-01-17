@@ -16,13 +16,8 @@
 # limitations under the License.
 
 
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-dgpu
-
-WORKDIR /colon_workspace
+FROM nvcr.io/nvidia/pytorch:24.01-py3
 
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# TODO: after having the final model weights, upload to some place instead
-COPY rtdetrv2_timm_r50_nvimagenet_pretrained.onnx .

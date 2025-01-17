@@ -1,34 +1,40 @@
 # Polyp Detection
 
-## Build Docker
+This application demonstrates how to run polyp detection models on live video in real-time.
+
+The model: [RT-DETR](https://github.com/lyuwenyu/RT-DETR) is trained on the [REAL-Colon](https://www.nature.com/articles/s41597-024-03359-0) dataset.
+
+## Setup Instructions
+
+### Build Docker and Run
 
 ```Bash
-docker build -t nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-dgpu-polyp-det -f Dockerfile .
+docker build -t holoscan:polyp-det -f Dockerfile .
 ```
 
-## Run Application
-
-### Run Docker
-
-Please mount the directory that contains `holohub/` into `/colon`. For example, my folder is under `/raid/colon_reproduce`.
+Please mount the directory that contains `holohub/` into `/colon_workspace`. For example, my folder is under `/raid/colon_reproduce`.
 
 ```Bash
-docker run --rm -it --gpus=all --ipc=host -p 8888:8888 -v /raid/colon_reproduce:/colon nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-dgpu-polyp-det
+docker run --rm -it --gpus=all --ipc=host -p 8888:8888 -v /raid/colon_reproduce:/colon_workspace holoscan:polyp-det
 ```
+
+### Get ONNX model
+
+(TODO) need to upload after license permission
 
 ### Generate TensorRT model
 
 ```Bash
-trtexec --onnx=rtdetrv2_timm_r50_nvimagenet_pretrained.onnx --saveEngine=rt_detrv2_timm_r50_nvimagenet_pretrained_demo.trt \
+trtexec --onnx=<path-to-onnx>/polyp_det_model.onnx --saveEngine=polyp_det_model.trt \
 --minShapes=images:1x3x640x640,orig_target_sizes:1x2 \
---optShapes=images:128x3x640x640,orig_target_sizes:128x2 \
---maxShapes=images:128x3x640x640,orig_target_sizes:128x2 \
+--optShapes=images:32x3x640x640,orig_target_sizes:32x2 \
+--maxShapes=images:32x3x640x640,orig_target_sizes:32x2 \
 --allowGPUFallback
 ```
 
-### Grab example video
+### Get Example Video
 
-(todo) need to upload after license permission
+(TODO) need to upload after license permission
 
 ### Convert Video into GXF Entities
 
@@ -41,6 +47,6 @@ ffmpeg -i <prepared video>.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python holosc
 ### Run application
 
 ```Bash
-cd /colon/holohub/applications/polyp_detection
-python polyp_detection.py --data /colon/holohub/data/polyp_detection/
+cd /colon_workspace/holohub/applications/polyp_detection
+python polyp_detection.py --data /colon_workspace/holohub/data/polyp_detection/
 ```

@@ -30,9 +30,6 @@ detection_preprocessor:  # FormatConverter
 
 detection_inference:
 
-# detection_postprocessor:  # Postprocessor
-#   in_tensor_name: inference_output_tensor
-#   network_output_type: sigmoid
-#   data_format: nchw
+detection_postprocessor:
 
 # detection_visualizer:  # Holoviz
