@@ -118,6 +118,7 @@ class MonaiBundleInferenceOperator(Operator):
             cwd = os.getcwd()
             os.chdir(self.bundle_path)
         workflow = create_workflow(**workflow_kwargs)
+        workflow.add_property(name="dataflow", required=True, config_id="dataflow")
         if self.bundle_path:
             os.chdir(cwd)
         return workflow

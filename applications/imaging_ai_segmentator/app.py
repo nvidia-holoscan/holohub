@@ -198,7 +198,7 @@ class AISegApp(Application):
         input_adapt_op = MonaiTransformOperator(self, input_keys=input_keys, output_keys=input_keys, transforms=[input_adapter])
 
         # Run the image inference with bundle workflow.
-        config_file = os.path.join(self.bundle_root, "configs", "inference.json")
+        config_file = os.path.join(self.bundle_root, "configs", "inference_rs.json")
         workflow_kwargs = {"config_file": config_file, "workflow_type": "inference"}
         whole_seg_opt = MonaiBundleInferenceOperator(self, input_keys=input_keys, output_keys=output_keys, workflow_kwargs=workflow_kwargs)
 
