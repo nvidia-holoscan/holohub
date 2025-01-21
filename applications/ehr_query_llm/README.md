@@ -32,7 +32,7 @@ It is acknowledged that [Synthea](https://synthea.mitre.org/) was used to genera
 
 All three components need to be started and running. Sequence to start them need not be enforced but FHIR Server and FHIR Client must be running when the AI application is asked to create the vector database. The following provides the most natural starting sequence:
 - FHIR Server is started and ready to serve records of at least one known patient. Please consult the chosen FHIR server's guides
-- Start the FHIR Client by following this [README](./domain_specific/fhir/README.md), either interactively in dev mode or as a Docker container
+- Start the FHIR Client by following this [README](./fhir/README.md), either interactively in dev mode or as a Docker container
 - Start the Gen AI application by following its [README](./lmm/README.md)
 
 Open a Web browser at the URL presented by the Gen AI application and start asking questions!
