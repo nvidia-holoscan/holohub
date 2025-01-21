@@ -1,0 +1,221 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "vpi_stereo.h"
+#include <vpi/Context.h>
+#include <vpi/Image.h>
+#include <vpi/Stream.h>
+#include <vpi/algo/ConvertImageFormat.h>
+#include <vpi/algo/StereoDisparity.h>
+#include <holoscan/operators/holoviz/holoviz.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/utils/cuda_stream_handler.hpp>
+#include <sstream>
+#include <stdexcept>
+
+#define CHECK_VPI(STMT)                                                               \
+  do {                                                                                \
+    VPIStatus status = (STMT);                                                        \
+    if (status != VPI_SUCCESS) {                                                      \
+      char buffer[VPI_MAX_STATUS_MESSAGE_LENGTH];                                     \
+      vpiGetLastStatusMessage(buffer, sizeof(buffer));                                \
+      std::ostringstream ss;                                                          \
+      ss << "line " << __LINE__ << " " << vpiStatusGetName(status) << ": " << buffer; \
+      throw std::runtime_error(ss.str());                                             \
+    }                                                                                 \
+  } while (0);
+
+namespace holoscan::ops {
+
+// inputs are expected to be a rectified stereo pair of Tensors that hold rgb888 data in HWC
+// layout. input1 should be the left camera view, and input2 the right.
+// output is a disparity map Tensor of float data in HWC layout with size width x height x 1
+void VPIStereoOp::setup(OperatorSpec& spec) {
+  spec.input<holoscan::gxf::Entity>("input1");
+  spec.input<holoscan::gxf::Entity>("input2");
+  spec.output<holoscan::gxf::Entity>("output");
+  spec.param(width_, "width", "width", "width", 0);
+  spec.param(height_, "height", "height", "height", 0);
+}
+
+void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
+                          ExecutionContext& context) {
+  auto maybe_tensormap1 = op_input.receive<holoscan::TensorMap>("input1");
+  const auto tensormap1 = maybe_tensormap1.value();
+
+  auto maybe_tensormap2 = op_input.receive<holoscan::TensorMap>("input2");
+  const auto tensormap2 = maybe_tensormap2.value();
+
+  auto tensor1 = tensormap1.begin()->second;
+  auto tensor2 = tensormap2.begin()->second;
+
+  // input HWC layout, RGBA8
+  int orig_height = tensor1->shape()[0];
+  int orig_width = tensor1->shape()[1];
+  int nChannels = tensor1->shape()[2];
+
+  if ((orig_height != tensor2->shape()[0]) || (orig_width != tensor2->shape()[1]) ||
+      (nChannels != tensor2->shape()[2])) {
+    throw std::runtime_error("Input tensor sizes do not match");
+  }
+
+  if ((tensormap1.size() != 1) || (tensormap2.size() != 1)) {
+    throw std::runtime_error("Expecting single tensor input");
+  }
+
+  // TODO: support more formats...
+  if (!(nChannels == 3)) { throw std::runtime_error("Input tensor must have 3 channels"); }
+
+  /// TODO: read VPI params from config file and allow for different input and output sizes
+  VPIStereoDisparityEstimatorCreationParams createParams;
+  CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams));
+  createParams.maxDisparity = 256;
+  createParams.downscaleFactor = 1;
+  createParams.includeDiagonals = 1;
+
+  if ((width_ * createParams.downscaleFactor != orig_width) ||
+      (height_ * createParams.downscaleFactor != orig_height)) {
+    throw std::runtime_error("VPI Processor width and height must match the input video size.");
+  }
+
+  // VPI stream and payload
+  /// TODO: create these once and reuse
+#define OFA_PVA_VIC (VPI_BACKEND_OFA | VPI_BACKEND_PVA | VPI_BACKEND_VIC)
+  // prefer to offload GPU if other accelerators are available
+  VPIContext vpiCtx;
+  CHECK_VPI(vpiContextGetCurrent(&vpiCtx));
+  uint64_t vpiCtxFlags;
+  CHECK_VPI(vpiContextGetFlags(vpiCtx, &vpiCtxFlags));
+  uint64_t stereoBackends = OFA_PVA_VIC;
+  VPIImageFormat inFmt = VPI_IMAGE_FORMAT_Y8_ER_BL;
+  if ((vpiCtxFlags & OFA_PVA_VIC) != OFA_PVA_VIC) {
+    printf("WARNING: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
+    stereoBackends = VPI_BACKEND_CUDA;
+    inFmt = VPI_IMAGE_FORMAT_Y8_ER;
+  }
+  VPIStream stream;
+  CHECK_VPI(vpiStreamCreate(0, &stream));
+  VPIPayload stereoPayload;
+  CHECK_VPI(vpiCreateStereoDisparityEstimator(
+      stereoBackends, orig_width, orig_height, inFmt, &createParams, &stereoPayload));
+
+  // wrap tensor buffers in VPIImages
+  VPIImage inLeftRGB, inRightRGB, outDisp;
+  VPIImageWrapperParams params;
+  CHECK_VPI(vpiInitImageWrapperParams(&params));
+  VPIImageData data;
+  data.bufferType = VPI_IMAGE_BUFFER_CUDA_PITCH_LINEAR;
+  data.buffer.pitch.format = VPI_IMAGE_FORMAT_RGB8;
+  data.buffer.pitch.numPlanes = 1;
+  data.buffer.pitch.planes[0].data = tensor1->data();
+  data.buffer.pitch.planes[0].pitchBytes = orig_width * 3;
+  data.buffer.pitch.planes[0].width = orig_width;
+  data.buffer.pitch.planes[0].height = orig_height;
+  data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_3U8;
+  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &inLeftRGB));
+  // right is same size as left, just different pointer
+  data.buffer.pitch.planes[0].data = tensor2->data();
+  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &inRightRGB));
+
+  // allocate output buffer for F32 disparity
+  auto pointerDisp = std::shared_ptr<void*>(new void*, [](void** pointer) {
+    if (pointer != nullptr) {
+      if (*pointer != nullptr) { cudaFree(*pointer); }
+      delete pointer;
+    }
+  });
+  cudaMalloc(pointerDisp.get(), width_ * height_ * sizeof(float));
+  // output is different format and might be downsampled
+  data.buffer.pitch.format = VPI_IMAGE_FORMAT_F32;
+  data.buffer.pitch.planes[0].data = *pointerDisp.get();
+  data.buffer.pitch.planes[0].pitchBytes = width_ * sizeof(float);
+  data.buffer.pitch.planes[0].width = width_;
+  data.buffer.pitch.planes[0].height = height_;
+  data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_F32;
+  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &outDisp));
+
+  // first, convert from RGB888 to a format with grayscale plane
+  /// TODO: keep temporary images alive rather than continually re-allocating them
+  /// TODO: RGB888 -> Y8_ER[_BL] only supported on CUDA backend. RGBA8888 -> Y8_ER_BL would be
+  /// doable with VIC on tegra.
+  VPIImage inLeftMono, inRightMono;
+  CHECK_VPI(vpiImageCreate(
+      orig_width, orig_height, inFmt, stereoBackends | VPI_BACKEND_CUDA, &inLeftMono));
+  CHECK_VPI(vpiImageCreate(
+      orig_width, orig_height, inFmt, stereoBackends | VPI_BACKEND_CUDA, &inRightMono));
+
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono, NULL));
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, inRightRGB, inRightMono, NULL));
+
+  // estimate stereo disparity
+  VPIImage outDisp16;
+  CHECK_VPI(vpiImageCreate(
+      width_, height_, VPI_IMAGE_FORMAT_S16, stereoBackends | VPI_BACKEND_CUDA, &outDisp16));
+  VPIStereoDisparityEstimatorParams submitParams;
+  CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams));
+  CHECK_VPI(vpiSubmitStereoDisparityEstimator(stream,
+                                              stereoBackends,
+                                              stereoPayload,
+                                              inLeftMono,
+                                              inRightMono,
+                                              outDisp16,
+                                              NULL,
+                                              &submitParams));
+
+  // convert stereo output fom 16 bit (10.5 fixed point) to float
+  VPIConvertImageFormatParams convParams;
+  CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
+  convParams.scale = 1.f / 32.f;  // format conversion with scale only supported on CUDA backend
+  /// TODO: could be more efficient to fuse this conversion into heatmap OP instead
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, outDisp16, outDisp, &convParams));
+
+  /// TODO: wrap the cuda stream from holoscan into VPI, then there would be no need to explicitly
+  /// sync here since all operations would be running in the same stream.
+  CHECK_VPI(vpiStreamSync(stream));
+
+  // clean up VPI objects
+  /// TODO: reuse objects to avoid thrashing memory
+  vpiImageDestroy(inLeftRGB);
+  vpiImageDestroy(inRightRGB);
+  vpiImageDestroy(inLeftMono);
+  vpiImageDestroy(inRightMono);
+  vpiImageDestroy(outDisp16);
+  vpiImageDestroy(outDisp);
+  vpiPayloadDestroy(stereoPayload);
+  vpiStreamDestroy(stream);
+
+  // post FP32 disparity tensor as output message
+  nvidia::gxf::Shape shape = nvidia::gxf::Shape{height_, width_, 1};
+
+  auto out_message = nvidia::gxf::Entity::New(context.context());
+  auto gxf_tensor_disparity = out_message.value().add<nvidia::gxf::Tensor>("");
+
+  gxf_tensor_disparity.value()->wrapMemory(shape,
+                                           nvidia::gxf::PrimitiveType::kFloat32,
+                                           sizeof(float),
+                                           nvidia::gxf::ComputeTrivialStrides(shape, sizeof(float)),
+                                           nvidia::gxf::MemoryStorageType::kDevice,
+                                           *pointerDisp,
+                                           [orig_pointer = pointerDisp](void*) mutable {
+                                             orig_pointer.reset();  // decrement ref count
+                                             return nvidia::gxf::Success;
+                                           });
+
+  op_output.emit(out_message.value(), "output");
+}
+
+}  // namespace holoscan::ops
