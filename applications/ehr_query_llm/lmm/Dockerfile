@@ -60,7 +60,7 @@ RUN if [[ $TARGETARCH == x86_64 ]] || [[ $(uname -m) == x86_64 ]]; then \
         python3 -m pip install torch~=2.5.0; \
     elif [[ $TARGETARCH == aarch64* ]] ||  [[ $(uname -m) == aarch64* ]] ; then \
         echo "Installing Torch for aarch64 architecture" && \
-        python3 -m pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu126; \
+        python3 -m pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/test/cu126; \
     else \
         echo "Unknown architecture: $TARGETARCH"; \
         exit 1; \
