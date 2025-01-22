@@ -19,7 +19,6 @@ from pathlib import Path
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
-
 from operators.medical_imaging.utils.importutil import optional_import
 
 SimpleITK, _ = optional_import("SimpleITK")
@@ -89,6 +88,50 @@ class NiftiDataLoader(Operator):
         image = image_reader.Execute()
         image_np = np.transpose(SimpleITK.GetArrayFromImage(image), [2, 1, 0])
         return image_np
+
+
+class NiftiDataWriter(Operator):
+    """
+    This operator writes a numpy array to a local path as the NIfTI format.
+
+    Named input:
+        image_path: Path to save the image file.
+    """
+    INPUT_NAME = "input_dict"
+    def __init__(self, fragment: Fragment, *args, image_path: Path, save_key: str="pred", **kwargs) -> None:
+        """Creates an instance with the file path to save image to.
+
+        Args:
+            fragment (Fragment): An instance of the Application class which is derived from Fragment.
+            image_path (Path): The file Path to write to.
+        """
+        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self.image_path = image_path  # Allow to be None, to be overridden when compute is called.
+        self.save_key = save_key
+        # Need to call the base class constructor last
+        super().__init__(fragment, *args, **kwargs)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input(self.INPUT_NAME).condition(ConditionType.NONE)
+
+    def compute(self, op_input, op_output, context):
+        """Performs computation with the provided context."""
+
+        # The named input port is optional, so must check for and validate the data
+        input_dict = op_input.receive(self.INPUT_NAME)
+        pred_array = input_dict.get(self.save_key, None)
+        if not pred_array:
+            raise RuntimeError(f"The input must not be empty!")
+
+        self.convert_and_save(pred_array)
+
+    def convert_and_save(self, np_array):
+        """
+        reads the nifti image and returns a numpy image array
+        """
+        nii_image = SimpleITK.GetImageFromArray(np_array)
+        # Save the SimpleITK image as a NIfTI file
+        SimpleITK.WriteImage(nii_image, self.image_path)
 
 
 def test():

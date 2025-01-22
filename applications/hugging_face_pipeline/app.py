@@ -4,7 +4,14 @@ from pathlib import Path
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
 from operators.medical_imaging.core.app_context import AppContext
-from operators.medical_imaging.operators.nii_data_loader_operator import NiftiDataLoader
+from operators.medical_imaging.operators.hugging_face_operator import (
+    HuggingFacePipelineInputAdaptor,
+    HuggingFacePipelineOperator,
+)
+from operators.medical_imaging.operators.nii_data_loader_operator import (
+    NiftiDataLoader,
+    NiftiDataWriter,
+)
 
 
 class AIHFApp(Application):
@@ -35,5 +42,10 @@ class AIHFApp(Application):
         pipeline_uri = app_context.pipeline_uri
 
         nii_data_loader = NiftiDataLoader(self, CountCondition(self,1), input_path=app_input_path)
-
+        hf_pipeline_input_adaptor = HuggingFacePipelineInputAdaptor(self, keys=["image",])
+        hf_pipeline_operator = HuggingFacePipelineOperator(self, app_context=app_context, output_folder=app_output_path, name="hf_pipeline_op", pipeline_name=pipeline_name, pipeline_type=pipeline_type, pipeline_uri=pipeline_uri)
+        nii_data_saver = NiftiDataWriter(self, output_folder=app_output_path, name="nii_writer_op")
+        self.add_flow(nii_data_loader, hf_pipeline_input_adaptor, {("image", "image")})
+        self.add_flow(hf_pipeline_input_adaptor, hf_pipeline_operator, {("output_dict", "input_dict")})
+        self.add_flow(hf_pipeline_operator, nii_data_saver, {("output_dict", "input_dict")})
         

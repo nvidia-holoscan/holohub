@@ -21,10 +21,10 @@ from pathlib import Path
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
 from monai_totalseg_operator import MonaiTotalSegOperator
-from pydicom.sr.codedict import codes  # Required for setting SegmentDescription attributes.
-
 from operators.medical_imaging.core.app_context import AppContext
-from operators.medical_imaging.operators.dicom_data_loader_operator import DICOMDataLoaderOperator
+from operators.medical_imaging.operators.dicom_data_loader_operator import (
+    DICOMDataLoaderOperator,
+)
 from operators.medical_imaging.operators.dicom_seg_writer_operator import (
     DICOMSegmentationWriterOperator,
     SegmentDescription,
@@ -34,6 +34,9 @@ from operators.medical_imaging.operators.dicom_series_selector_operator import (
 )
 from operators.medical_imaging.operators.dicom_series_to_volume_operator import (
     DICOMSeriesToVolumeOperator,
+)
+from pydicom.sr.codedict import (
+    codes,  # Required for setting SegmentDescription attributes.
 )
 
 # Labels for the channels/segments
