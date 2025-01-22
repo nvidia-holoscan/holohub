@@ -18,6 +18,10 @@
 #ifndef VPI_STEREO_OP
 #define VPI_STEREO_OP
 
+#include <vpi/Image.h>
+#include <vpi/ImageFormat.h>
+#include <vpi/Stream.h>
+#include <vpi/Types.h>
 #include <holoscan/holoscan.hpp>
 
 namespace holoscan::ops {
@@ -27,11 +31,21 @@ class VPIStereoOp : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VPIStereoOp);
   VPIStereoOp() = default;
   void setup(OperatorSpec& spec) override;
+  void start() override;
+  void stop() override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
  private:
   Parameter<int> width_;
   Parameter<int> height_;
+
+  VPIStream stream_;
+  VPIPayload payload_;
+  VPIImageFormat inFmt_;
+  uint64_t backends_;
+  VPIImage inLeftMono_;
+  VPIImage inRightMono_;
+  VPIImage outDisp16_;
 };
 
 }  // namespace holoscan::ops

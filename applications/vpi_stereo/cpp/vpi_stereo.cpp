@@ -52,6 +52,48 @@ void VPIStereoOp::setup(OperatorSpec& spec) {
   spec.param(height_, "height", "height", "height", 0);
 }
 
+void VPIStereoOp::start() {
+  /// TODO: read VPI params from config file and allow for different input and output sizes
+  VPIStereoDisparityEstimatorCreationParams createParams;
+  CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams));
+  createParams.maxDisparity = 256;
+  createParams.downscaleFactor = 1;
+  createParams.includeDiagonals = 1;
+
+  // VPI stream and payload are created once and reused every frame
+#define OFA_PVA_VIC (VPI_BACKEND_OFA | VPI_BACKEND_PVA | VPI_BACKEND_VIC)
+  // prefer to offload GPU if other accelerators are available
+  backends_ = OFA_PVA_VIC;
+  inFmt_ = VPI_IMAGE_FORMAT_Y8_ER_BL;
+  VPIContext vpiCtx;
+  CHECK_VPI(vpiContextGetCurrent(&vpiCtx));
+  uint64_t vpiCtxFlags;
+  CHECK_VPI(vpiContextGetFlags(vpiCtx, &vpiCtxFlags));
+  if ((vpiCtxFlags & OFA_PVA_VIC) != OFA_PVA_VIC) {
+    printf("WARNING: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
+    backends_ = VPI_BACKEND_CUDA;
+    inFmt_ = VPI_IMAGE_FORMAT_Y8_ER;
+  }
+  CHECK_VPI(vpiStreamCreate(0, &stream_));
+  CHECK_VPI(vpiCreateStereoDisparityEstimator(
+      backends_, width_, height_, inFmt_, &createParams, &payload_));
+
+  // temporary images for use in format conversions
+  CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inLeftMono_));
+  CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inRightMono_));
+  CHECK_VPI(vpiImageCreate(
+      width_, height_, VPI_IMAGE_FORMAT_S16, backends_ | VPI_BACKEND_CUDA, &outDisp16_));
+}
+
+void VPIStereoOp::stop() {
+  vpiStreamDestroy(stream_);
+  vpiPayloadDestroy(payload_);
+
+  vpiImageDestroy(inLeftMono_);
+  vpiImageDestroy(inRightMono_);
+  vpiImageDestroy(outDisp16_);
+}
+
 void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
                           ExecutionContext& context) {
   auto maybe_tensormap1 = op_input.receive<holoscan::TensorMap>("input1");
@@ -80,38 +122,11 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   // TODO: support more formats...
   if (!(nChannels == 3)) { throw std::runtime_error("Input tensor must have 3 channels"); }
 
-  /// TODO: read VPI params from config file and allow for different input and output sizes
-  VPIStereoDisparityEstimatorCreationParams createParams;
-  CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams));
-  createParams.maxDisparity = 256;
-  createParams.downscaleFactor = 1;
-  createParams.includeDiagonals = 1;
-
-  if ((width_ * createParams.downscaleFactor != orig_width) ||
-      (height_ * createParams.downscaleFactor != orig_height)) {
-    throw std::runtime_error("VPI Processor width and height must match the input video size.");
+  // TODO: allow for different input and output resolutions, and allow size to be discovered from
+  // the input at runtime rather than hard-coded in the config
+  if ((width_ != orig_width) || (height_ != orig_height)) {
+    throw std::runtime_error("Input tensor size must match configuration");
   }
-
-  // VPI stream and payload
-  /// TODO: create these once and reuse
-#define OFA_PVA_VIC (VPI_BACKEND_OFA | VPI_BACKEND_PVA | VPI_BACKEND_VIC)
-  // prefer to offload GPU if other accelerators are available
-  VPIContext vpiCtx;
-  CHECK_VPI(vpiContextGetCurrent(&vpiCtx));
-  uint64_t vpiCtxFlags;
-  CHECK_VPI(vpiContextGetFlags(vpiCtx, &vpiCtxFlags));
-  uint64_t stereoBackends = OFA_PVA_VIC;
-  VPIImageFormat inFmt = VPI_IMAGE_FORMAT_Y8_ER_BL;
-  if ((vpiCtxFlags & OFA_PVA_VIC) != OFA_PVA_VIC) {
-    printf("WARNING: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
-    stereoBackends = VPI_BACKEND_CUDA;
-    inFmt = VPI_IMAGE_FORMAT_Y8_ER;
-  }
-  VPIStream stream;
-  CHECK_VPI(vpiStreamCreate(0, &stream));
-  VPIPayload stereoPayload;
-  CHECK_VPI(vpiCreateStereoDisparityEstimator(
-      stereoBackends, orig_width, orig_height, inFmt, &createParams, &stereoPayload));
 
   // wrap tensor buffers in VPIImages
   VPIImage inLeftRGB, inRightRGB, outDisp;
@@ -139,7 +154,7 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
     }
   });
   cudaMalloc(pointerDisp.get(), width_ * height_ * sizeof(float));
-  // output is different format and might be downsampled
+  // output is FP32
   data.buffer.pitch.format = VPI_IMAGE_FORMAT_F32;
   data.buffer.pitch.planes[0].data = *pointerDisp.get();
   data.buffer.pitch.planes[0].pitchBytes = width_ * sizeof(float);
@@ -148,55 +163,35 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_F32;
   CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &outDisp));
 
-  // first, convert from RGB888 to a format with grayscale plane
-  /// TODO: keep temporary images alive rather than continually re-allocating them
+  // first, convert from RGB888 to a grayscale format
   /// TODO: RGB888 -> Y8_ER[_BL] only supported on CUDA backend. RGBA8888 -> Y8_ER_BL would be
   /// doable with VIC on tegra.
-  VPIImage inLeftMono, inRightMono;
-  CHECK_VPI(vpiImageCreate(
-      orig_width, orig_height, inFmt, stereoBackends | VPI_BACKEND_CUDA, &inLeftMono));
-  CHECK_VPI(vpiImageCreate(
-      orig_width, orig_height, inFmt, stereoBackends | VPI_BACKEND_CUDA, &inRightMono));
-
-  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono, NULL));
-  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, inRightRGB, inRightMono, NULL));
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono_, NULL));
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inRightRGB, inRightMono_, NULL));
 
   // estimate stereo disparity
-  VPIImage outDisp16;
-  CHECK_VPI(vpiImageCreate(
-      width_, height_, VPI_IMAGE_FORMAT_S16, stereoBackends | VPI_BACKEND_CUDA, &outDisp16));
+  /// TODO: use non-default params for better tuning on the example video
   VPIStereoDisparityEstimatorParams submitParams;
   CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams));
-  CHECK_VPI(vpiSubmitStereoDisparityEstimator(stream,
-                                              stereoBackends,
-                                              stereoPayload,
-                                              inLeftMono,
-                                              inRightMono,
-                                              outDisp16,
-                                              NULL,
-                                              &submitParams));
+  CHECK_VPI(vpiSubmitStereoDisparityEstimator(
+      stream_, backends_, payload_, inLeftMono_, inRightMono_, outDisp16_, NULL, &submitParams));
 
   // convert stereo output fom 16 bit (10.5 fixed point) to float
   VPIConvertImageFormatParams convParams;
   CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
   convParams.scale = 1.f / 32.f;  // format conversion with scale only supported on CUDA backend
   /// TODO: could be more efficient to fuse this conversion into heatmap OP instead
-  CHECK_VPI(vpiSubmitConvertImageFormat(stream, VPI_BACKEND_CUDA, outDisp16, outDisp, &convParams));
+  CHECK_VPI(
+      vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp, &convParams));
 
   /// TODO: wrap the cuda stream from holoscan into VPI, then there would be no need to explicitly
   /// sync here since all operations would be running in the same stream.
-  CHECK_VPI(vpiStreamSync(stream));
+  CHECK_VPI(vpiStreamSync(stream_));
 
-  // clean up VPI objects
-  /// TODO: reuse objects to avoid thrashing memory
+  // clean up VPIImage wrappers
   vpiImageDestroy(inLeftRGB);
   vpiImageDestroy(inRightRGB);
-  vpiImageDestroy(inLeftMono);
-  vpiImageDestroy(inRightMono);
-  vpiImageDestroy(outDisp16);
   vpiImageDestroy(outDisp);
-  vpiPayloadDestroy(stereoPayload);
-  vpiStreamDestroy(stream);
 
   // post FP32 disparity tensor as output message
   nvidia::gxf::Shape shape = nvidia::gxf::Shape{height_, width_, 1};
