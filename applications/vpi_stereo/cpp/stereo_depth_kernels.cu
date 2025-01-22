@@ -58,10 +58,11 @@ __global__ void heatmapF32Kernel(float* grayscale, uint8_t* rgb, float min_val, 
     size_t tid_rgb = 3 * tid_disp;
     float v = (grayscale[tid_disp] - min_val) * inv_window;
     v = v > 0.0f ? v : 0.0f;
-    v = v < 255.0f ? v : 255.0f;
-    rgb[tid_rgb] = static_cast<uint8_t>(v);
+    v = v < 256.0f ? v : 0.0f;
+    uint8_t r = static_cast<uint8_t>(v);
+    rgb[tid_rgb] = r;
     rgb[tid_rgb + 1] = 0;
-    rgb[tid_rgb + 2] = 255 - static_cast<uint8_t>(v);
+    rgb[tid_rgb + 2] = (r > 0) ? 255 - static_cast<uint8_t>(v) : 0;
   }
 }
 
