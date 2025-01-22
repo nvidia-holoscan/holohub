@@ -26,9 +26,12 @@ holoviz:
       priority: 0
 
 # Parameters for VPI's stereo disparity estimator
+# note: 256 maxDisparity means values in the range 0-255 are possible
 vpi_stereo:
   width: 1920
   height: 1080
+  maxDisparity: 256
+  downscaleFactor: 1
 
 # Mapping of disparity to min/max heatmap range (blue to red)
 heatmap:

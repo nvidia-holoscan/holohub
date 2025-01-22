@@ -22,6 +22,7 @@
 #include <vpi/ImageFormat.h>
 #include <vpi/Stream.h>
 #include <vpi/Types.h>
+#include <vpi/algo/StereoDisparity.h>
 #include <holoscan/holoscan.hpp>
 
 namespace holoscan::ops {
@@ -38,8 +39,13 @@ class VPIStereoOp : public Operator {
  private:
   Parameter<int> width_;
   Parameter<int> height_;
+  Parameter<int> maxDisparity_;
+  Parameter<int> downscaleFactor_;
 
+  // VPI objects that can be reused each compute() call
   VPIStream stream_;
+  VPIStereoDisparityEstimatorCreationParams createParams_;
+  VPIStereoDisparityEstimatorParams submitParams_;
   VPIPayload payload_;
   VPIImageFormat inFmt_;
   uint64_t backends_;

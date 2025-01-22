@@ -21,9 +21,6 @@
 #include <vpi/Stream.h>
 #include <vpi/algo/ConvertImageFormat.h>
 #include <vpi/algo/StereoDisparity.h>
-#include <holoscan/operators/holoviz/holoviz.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 #include <sstream>
 #include <stdexcept>
 
@@ -48,21 +45,25 @@ void VPIStereoOp::setup(OperatorSpec& spec) {
   spec.input<holoscan::gxf::Entity>("input1");
   spec.input<holoscan::gxf::Entity>("input2");
   spec.output<holoscan::gxf::Entity>("output");
-  spec.param(width_, "width", "width", "width", 0);
-  spec.param(height_, "height", "height", "height", 0);
+  spec.param(width_, "width");
+  spec.param(height_, "height");
+  spec.param(maxDisparity_, "maxDisparity");
+  spec.param(downscaleFactor_, "downscaleFactor");
 }
 
-void VPIStereoOp::start() {
-  /// TODO: read VPI params from config file and allow for different input and output sizes
-  VPIStereoDisparityEstimatorCreationParams createParams;
-  CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams));
-  createParams.maxDisparity = 256;
-  createParams.downscaleFactor = 1;
-  createParams.includeDiagonals = 1;
-
-  // VPI stream and payload are created once and reused every frame
+// VPI stereo disparity estimator can use this combination of accelerators on most Tegra platforms.
 #define OFA_PVA_VIC (VPI_BACKEND_OFA | VPI_BACKEND_PVA | VPI_BACKEND_VIC)
-  // prefer to offload GPU if other accelerators are available
+
+void VPIStereoOp::start() {
+  CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams_));
+  createParams_.maxDisparity = maxDisparity_;
+  createParams_.downscaleFactor = downscaleFactor_;
+
+  /// TODO: use non-default params for better tuning on the example video
+  CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams_));
+
+  // prefer to offload GPU if other accelerators are available. Check the VPI context to discover
+  // which backends are available.
   backends_ = OFA_PVA_VIC;
   inFmt_ = VPI_IMAGE_FORMAT_Y8_ER_BL;
   VPIContext vpiCtx;
@@ -70,15 +71,15 @@ void VPIStereoOp::start() {
   uint64_t vpiCtxFlags;
   CHECK_VPI(vpiContextGetFlags(vpiCtx, &vpiCtxFlags));
   if ((vpiCtxFlags & OFA_PVA_VIC) != OFA_PVA_VIC) {
-    printf("WARNING: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
+    printf("Info: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
     backends_ = VPI_BACKEND_CUDA;
     inFmt_ = VPI_IMAGE_FORMAT_Y8_ER;
   }
   CHECK_VPI(vpiStreamCreate(0, &stream_));
   CHECK_VPI(vpiCreateStereoDisparityEstimator(
-      backends_, width_, height_, inFmt_, &createParams, &payload_));
+      backends_, width_, height_, inFmt_, &createParams_, &payload_));
 
-  // temporary images for use in format conversions
+  // intermediate images for format conversions
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inLeftMono_));
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inRightMono_));
   CHECK_VPI(vpiImageCreate(
@@ -119,7 +120,6 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
     throw std::runtime_error("Expecting single tensor input");
   }
 
-  // TODO: support more formats...
   if (!(nChannels == 3)) { throw std::runtime_error("Input tensor must have 3 channels"); }
 
   // TODO: allow for different input and output resolutions, and allow size to be discovered from
@@ -164,28 +164,23 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &outDisp));
 
   // first, convert from RGB888 to a grayscale format
-  /// TODO: RGB888 -> Y8_ER[_BL] only supported on CUDA backend. RGBA8888 -> Y8_ER_BL would be
-  /// doable with VIC on tegra.
+  /// Note: RGB888 -> Y8 conversions require CUDA backend with VPI
   CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono_, NULL));
   CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inRightRGB, inRightMono_, NULL));
 
   // estimate stereo disparity
-  /// TODO: use non-default params for better tuning on the example video
-  VPIStereoDisparityEstimatorParams submitParams;
-  CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams));
   CHECK_VPI(vpiSubmitStereoDisparityEstimator(
-      stream_, backends_, payload_, inLeftMono_, inRightMono_, outDisp16_, NULL, &submitParams));
+      stream_, backends_, payload_, inLeftMono_, inRightMono_, outDisp16_, NULL, &submitParams_));
 
   // convert stereo output fom 16 bit (10.5 fixed point) to float
   VPIConvertImageFormatParams convParams;
   CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
-  convParams.scale = 1.f / 32.f;  // format conversion with scale only supported on CUDA backend
-  /// TODO: could be more efficient to fuse this conversion into heatmap OP instead
+  /// Note: VPI format conversion with scale only supported on CUDA backend
+  convParams.scale = 1.f / 32.f;
   CHECK_VPI(
       vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp, &convParams));
 
-  /// TODO: wrap the cuda stream from holoscan into VPI, then there would be no need to explicitly
-  /// sync here since all operations would be running in the same stream.
+  // VPI algorithms execute asynchronously. Sync the stream to ensure they are complete.
   CHECK_VPI(vpiStreamSync(stream_));
 
   // clean up VPIImage wrappers
