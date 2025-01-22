@@ -55,11 +55,10 @@ void VPIStereoOp::setup(OperatorSpec& spec) {
 #define OFA_PVA_VIC (VPI_BACKEND_OFA | VPI_BACKEND_PVA | VPI_BACKEND_VIC)
 
 void VPIStereoOp::start() {
+  // set the VPI stereo disparity parameters
   CHECK_VPI(vpiInitStereoDisparityEstimatorCreationParams(&createParams_));
   createParams_.maxDisparity = maxDisparity_;
   createParams_.downscaleFactor = downscaleFactor_;
-
-  /// TODO: use non-default params for better tuning on the example video
   CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams_));
 
   // prefer to offload GPU if other accelerators are available. Check the VPI context to discover
@@ -74,6 +73,10 @@ void VPIStereoOp::start() {
     printf("Info: OFA|PVA|VIC not available! Falling back to CUDA backend.\n");
     backends_ = VPI_BACKEND_CUDA;
     inFmt_ = VPI_IMAGE_FORMAT_Y8_ER;
+  } else {
+    // VPI's accelerator-based stereo has a unique flavor of confidence map that performs better
+    // than the default. Select it here.
+    submitParams_.confidenceType = VPI_STEREO_CONFIDENCE_INFERENCE;
   }
   CHECK_VPI(vpiStreamCreate(0, &stream_));
   CHECK_VPI(vpiCreateStereoDisparityEstimator(
@@ -82,6 +85,8 @@ void VPIStereoOp::start() {
   // intermediate images for format conversions
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inLeftMono_));
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inRightMono_));
+  CHECK_VPI(vpiImageCreate(
+      width_, height_, VPI_IMAGE_FORMAT_U16, backends_ | VPI_BACKEND_CUDA, &outConf16_));
   CHECK_VPI(vpiImageCreate(
       width_, height_, VPI_IMAGE_FORMAT_S16, backends_ | VPI_BACKEND_CUDA, &outDisp16_));
 }
@@ -130,8 +135,6 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
 
   // wrap tensor buffers in VPIImages
   VPIImage inLeftRGB, inRightRGB, outDisp;
-  VPIImageWrapperParams params;
-  CHECK_VPI(vpiInitImageWrapperParams(&params));
   VPIImageData data;
   data.bufferType = VPI_IMAGE_BUFFER_CUDA_PITCH_LINEAR;
   data.buffer.pitch.format = VPI_IMAGE_FORMAT_RGB8;
@@ -141,10 +144,10 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   data.buffer.pitch.planes[0].width = orig_width;
   data.buffer.pitch.planes[0].height = orig_height;
   data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_3U8;
-  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &inLeftRGB));
+  CHECK_VPI(vpiImageCreateWrapper(&data, NULL, VPI_BACKEND_CUDA, &inLeftRGB));
   // right is same size as left, just different pointer
   data.buffer.pitch.planes[0].data = tensor2->data();
-  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &inRightRGB));
+  CHECK_VPI(vpiImageCreateWrapper(&data, NULL, VPI_BACKEND_CUDA, &inRightRGB));
 
   // allocate output buffer for F32 disparity
   auto pointerDisp = std::shared_ptr<void*>(new void*, [](void** pointer) {
@@ -161,21 +164,28 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   data.buffer.pitch.planes[0].width = width_;
   data.buffer.pitch.planes[0].height = height_;
   data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_F32;
-  CHECK_VPI(vpiImageCreateWrapper(&data, &params, VPI_BACKEND_CUDA, &outDisp));
+  CHECK_VPI(vpiImageCreateWrapper(&data, NULL, VPI_BACKEND_CUDA, &outDisp));
 
   // first, convert from RGB888 to a grayscale format
-  /// Note: RGB888 -> Y8 conversions require CUDA backend with VPI
+  /// Note: RGB888 -> Y8 conversion is only supported on CUDA backend
+  /// (VIC would be able to convert RGBA8888, but for the purpose of this example we use RGB888)
   CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono_, NULL));
   CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inRightRGB, inRightMono_, NULL));
 
   // estimate stereo disparity
-  CHECK_VPI(vpiSubmitStereoDisparityEstimator(
-      stream_, backends_, payload_, inLeftMono_, inRightMono_, outDisp16_, NULL, &submitParams_));
+  CHECK_VPI(vpiSubmitStereoDisparityEstimator(stream_,
+                                              backends_,
+                                              payload_,
+                                              inLeftMono_,
+                                              inRightMono_,
+                                              outDisp16_,
+                                              outConf16_,
+                                              &submitParams_));
 
   // convert stereo output fom 16 bit (10.5 fixed point) to float
   VPIConvertImageFormatParams convParams;
   CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
-  /// Note: VPI format conversion with scale only supported on CUDA backend
+  /// Note: VPI format conversion with scale is only supported on CUDA backend
   convParams.scale = 1.f / 32.f;
   CHECK_VPI(
       vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp, &convParams));

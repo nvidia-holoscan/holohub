@@ -51,6 +51,7 @@ class VPIStereoOp : public Operator {
   uint64_t backends_;
   VPIImage inLeftMono_;
   VPIImage inRightMono_;
+  VPIImage outConf16_;
   VPIImage outDisp16_;
 };
 
