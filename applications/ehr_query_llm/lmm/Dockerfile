@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 # limitations under the License.
 
 ARG BASE_IMAGE
-ARG GPU_TYPE
+ARG TARGETARCH
 
 ############################################################
 # Base image
 ############################################################
-
 FROM ${BASE_IMAGE} as base
 ARG DEBIAN_FRONTEND=noninteractive
 #
@@ -42,9 +41,7 @@ RUN apt-get update && \
 COPY applications/ehr_query_llm/lmm/requirements*.txt /tmp/
 
 # Install setuptools prior to all other requirements to avoid install errors
-# Also, install holoscan first and separately as it pins packaging==23.1
 RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements_hsdk.txt && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Clone Llama.cpp and checkout a stable commit
@@ -57,6 +54,16 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git \
     && cmake .. -DLLAMA_CUBLAS=ON \
     && LLAMA_CUDA_F16=true cmake --build . --config Release
 
-WORKDIR /tmp/pip/
+# Install Torch based on the specified architecturea, and if not specified, host's
+RUN if [[ $TARGETARCH == x86_64 ]] || [[ $(uname -m) == x86_64 ]]; then \
+        echo "Installing Torch for x86_64 architecture" && \
+        python3 -m pip install torch~=2.5.0; \
+    elif [[ $TARGETARCH == aarch64* ]] ||  [[ $(uname -m) == aarch64* ]] ; then \
+        echo "Installing Torch for aarch64 architecture" && \
+        python3 -m pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/test/cu126; \
+    else \
+        echo "Unknown architecture: $TARGETARCH"; \
+        exit 1; \
+    fi
 
 WORKDIR /workspace/holohub
