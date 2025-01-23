@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 
-# display window for side-by-side disparity and
+# display window for side-by-side rectified left input and colorized disparity
 holoviz:
   width: 1920
   height: 540
@@ -26,10 +26,16 @@ holoviz:
       priority: 0
 
 # Parameters for VPI's stereo disparity estimator
-# note: 256 maxDisparity means values in the range 0-255 are possible
+# notes:
+# - 256 maxDisparity means values in the range 0-255
+# - inputs are rescaled to width,height prior to disparity estimation, so disparity values are relative to the width
+#   given here and not the original input video width.
+# - downscaleFactor must be 1 on x86_64.
+# - On IGX/AGX/NX systems, larger downscaleFactor will allow the hardware accelerator to operate in
+#   sub-sampling mode for better performance (disparity values still relative to width).
 vpi_stereo:
-  width: 1920
-  height: 1080
+  width: 960
+  height: 540
   maxDisparity: 256
   downscaleFactor: 1
 

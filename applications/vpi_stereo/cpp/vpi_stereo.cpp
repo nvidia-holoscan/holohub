@@ -20,6 +20,7 @@
 #include <vpi/Image.h>
 #include <vpi/Stream.h>
 #include <vpi/algo/ConvertImageFormat.h>
+#include <vpi/algo/Rescale.h>
 #include <vpi/algo/StereoDisparity.h>
 #include <sstream>
 #include <stdexcept>
@@ -60,6 +61,8 @@ void VPIStereoOp::start() {
   createParams_.maxDisparity = maxDisparity_;
   createParams_.downscaleFactor = downscaleFactor_;
   CHECK_VPI(vpiInitStereoDisparityEstimatorParams(&submitParams_));
+  widthDownscaled_ = width_ / downscaleFactor_;
+  heightDownscaled_ = height_ / downscaleFactor_;
 
   // prefer to offload GPU if other accelerators are available. Check the VPI context to discover
   // which backends are available.
@@ -82,22 +85,40 @@ void VPIStereoOp::start() {
   CHECK_VPI(vpiCreateStereoDisparityEstimator(
       backends_, width_, height_, inFmt_, &createParams_, &payload_));
 
-  // intermediate images for format conversions
+  // intermediate images
+  CHECK_VPI(vpiImageCreate(
+      width_, height_, VPI_IMAGE_FORMAT_RGB8, backends_ | VPI_BACKEND_CUDA, &inLeftRGB_));
+  CHECK_VPI(vpiImageCreate(
+      width_, height_, VPI_IMAGE_FORMAT_RGB8, backends_ | VPI_BACKEND_CUDA, &inRightRGB_));
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inLeftMono_));
   CHECK_VPI(vpiImageCreate(width_, height_, inFmt_, backends_ | VPI_BACKEND_CUDA, &inRightMono_));
-  CHECK_VPI(vpiImageCreate(
-      width_, height_, VPI_IMAGE_FORMAT_U16, backends_ | VPI_BACKEND_CUDA, &outConf16_));
-  CHECK_VPI(vpiImageCreate(
-      width_, height_, VPI_IMAGE_FORMAT_S16, backends_ | VPI_BACKEND_CUDA, &outDisp16_));
+  CHECK_VPI(vpiImageCreate(widthDownscaled_,
+                           heightDownscaled_,
+                           VPI_IMAGE_FORMAT_U16,
+                           backends_ | VPI_BACKEND_CUDA,
+                           &outConf16_));
+  CHECK_VPI(vpiImageCreate(widthDownscaled_,
+                           heightDownscaled_,
+                           VPI_IMAGE_FORMAT_S16,
+                           backends_ | VPI_BACKEND_CUDA,
+                           &outDisp16_));
+  CHECK_VPI(vpiImageCreate(widthDownscaled_,
+                           heightDownscaled_,
+                           VPI_IMAGE_FORMAT_F32,
+                           backends_ | VPI_BACKEND_CUDA,
+                           &outDisp_));
 }
 
 void VPIStereoOp::stop() {
   vpiStreamDestroy(stream_);
   vpiPayloadDestroy(payload_);
-
+  vpiImageDestroy(inLeftRGB_);
+  vpiImageDestroy(inRightRGB_);
   vpiImageDestroy(inLeftMono_);
   vpiImageDestroy(inRightMono_);
+  vpiImageDestroy(outConf16_);
   vpiImageDestroy(outDisp16_);
+  vpiImageDestroy(outDisp_);
 }
 
 void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -111,27 +132,21 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   auto tensor1 = tensormap1.begin()->second;
   auto tensor2 = tensormap2.begin()->second;
 
-  // input HWC layout, RGBA8
+  // input HWC layout, RGB8
   int orig_height = tensor1->shape()[0];
   int orig_width = tensor1->shape()[1];
   int nChannels = tensor1->shape()[2];
 
   if ((orig_height != tensor2->shape()[0]) || (orig_width != tensor2->shape()[1]) ||
       (nChannels != tensor2->shape()[2])) {
-    throw std::runtime_error("Input tensor sizes do not match");
+    throw std::runtime_error("Input tensor shapes do not match");
   }
 
   if ((tensormap1.size() != 1) || (tensormap2.size() != 1)) {
-    throw std::runtime_error("Expecting single tensor input");
+    throw std::runtime_error("Expecting two single-tensor inputs");
   }
 
-  if (!(nChannels == 3)) { throw std::runtime_error("Input tensor must have 3 channels"); }
-
-  // TODO: allow for different input and output resolutions, and allow size to be discovered from
-  // the input at runtime rather than hard-coded in the config
-  if ((width_ != orig_width) || (height_ != orig_height)) {
-    throw std::runtime_error("Input tensor size must match configuration");
-  }
+  if (!(nChannels == 3)) { throw std::runtime_error("Input tensors expected to have 3 channels"); }
 
   // wrap tensor buffers in VPIImages
   VPIImage inLeftRGB, inRightRGB, outDisp;
@@ -156,23 +171,45 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
       delete pointer;
     }
   });
-  cudaMalloc(pointerDisp.get(), width_ * height_ * sizeof(float));
-  // output is FP32
+  cudaMalloc(pointerDisp.get(), orig_width * orig_height * sizeof(float));
+  // wrap output for VPI
   data.buffer.pitch.format = VPI_IMAGE_FORMAT_F32;
   data.buffer.pitch.planes[0].data = *pointerDisp.get();
-  data.buffer.pitch.planes[0].pitchBytes = width_ * sizeof(float);
-  data.buffer.pitch.planes[0].width = width_;
-  data.buffer.pitch.planes[0].height = height_;
+  data.buffer.pitch.planes[0].pitchBytes = orig_width * sizeof(float);
+  data.buffer.pitch.planes[0].width = orig_width;
+  data.buffer.pitch.planes[0].height = orig_height;
   data.buffer.pitch.planes[0].pixelType = VPI_PIXEL_TYPE_F32;
   CHECK_VPI(vpiImageCreateWrapper(&data, NULL, VPI_BACKEND_CUDA, &outDisp));
 
-  // first, convert from RGB888 to a grayscale format
+  // first, rescale the inputs to the target resolution if necessary
+  VPIImage inLeft = inLeftRGB;
+  VPIImage inRight = inRightRGB;
+  if ((width_ != orig_width) || (height_ != orig_height)) {
+    CHECK_VPI(vpiSubmitRescale(stream_,
+                               VPI_BACKEND_CUDA,
+                               inLeftRGB,
+                               inLeftRGB_,
+                               VPI_INTERP_CATMULL_ROM,
+                               VPI_BORDER_CLAMP,
+                               0));
+    CHECK_VPI(vpiSubmitRescale(stream_,
+                               VPI_BACKEND_CUDA,
+                               inRightRGB,
+                               inRightRGB_,
+                               VPI_INTERP_CATMULL_ROM,
+                               VPI_BORDER_CLAMP,
+                               0));
+    inLeft = inLeftRGB_;
+    inRight = inRightRGB_;
+  }
+
+  // next, convert from RGB888 to a grayscale format
   /// Note: RGB888 -> Y8 conversion is only supported on CUDA backend
   /// (VIC would be able to convert RGBA8888, but for the purpose of this example we use RGB888)
-  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inLeftRGB, inLeftMono_, NULL));
-  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inRightRGB, inRightMono_, NULL));
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inLeft, inLeftMono_, NULL));
+  CHECK_VPI(vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, inRight, inRightMono_, NULL));
 
-  // estimate stereo disparity
+  // then, estimate stereo disparity
   CHECK_VPI(vpiSubmitStereoDisparityEstimator(stream_,
                                               backends_,
                                               payload_,
@@ -182,14 +219,22 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
                                               outConf16_,
                                               &submitParams_));
 
-  // convert stereo output fom 16 bit (10.5 fixed point) to float
+  // finally, convert stereo output fom 16 bit (10.5 fixed point) to float
   VPIConvertImageFormatParams convParams;
   CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
   /// Note: VPI format conversion with scale is only supported on CUDA backend
   convParams.scale = 1.f / 32.f;
-  CHECK_VPI(
-      vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp, &convParams));
-
+  // rescale output back to the original size if necessary. Using NEAREST since interpolation would
+  // introduce false disparity values at discontinuities.
+  if ((widthDownscaled_ != orig_width) || (heightDownscaled_ != orig_height)) {
+    CHECK_VPI(
+        vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp_, &convParams));
+    CHECK_VPI(vpiSubmitRescale(
+        stream_, VPI_BACKEND_CUDA, outDisp_, outDisp, VPI_INTERP_NEAREST, VPI_BORDER_CLAMP, 0));
+  } else {
+    CHECK_VPI(
+        vpiSubmitConvertImageFormat(stream_, VPI_BACKEND_CUDA, outDisp16_, outDisp, &convParams));
+  }
   // VPI algorithms execute asynchronously. Sync the stream to ensure they are complete.
   CHECK_VPI(vpiStreamSync(stream_));
 
@@ -199,7 +244,7 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   vpiImageDestroy(outDisp);
 
   // post FP32 disparity tensor as output message
-  nvidia::gxf::Shape shape = nvidia::gxf::Shape{height_, width_, 1};
+  nvidia::gxf::Shape shape = nvidia::gxf::Shape{orig_height, orig_width, 1};
 
   auto out_message = nvidia::gxf::Entity::New(context.context());
   auto gxf_tensor_disparity = out_message.value().add<nvidia::gxf::Tensor>("");

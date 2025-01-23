@@ -41,6 +41,8 @@ class VPIStereoOp : public Operator {
   Parameter<int> height_;
   Parameter<int> maxDisparity_;
   Parameter<int> downscaleFactor_;
+  int widthDownscaled_;
+  int heightDownscaled_;
 
   // VPI objects that can be reused each compute() call
   VPIStream stream_;
@@ -49,10 +51,13 @@ class VPIStereoOp : public Operator {
   VPIPayload payload_;
   VPIImageFormat inFmt_;
   uint64_t backends_;
+  VPIImage inLeftRGB_;
+  VPIImage inRightRGB_;
   VPIImage inLeftMono_;
   VPIImage inRightMono_;
   VPIImage outConf16_;
   VPIImage outDisp16_;
+  VPIImage outDisp_;
 };
 
 }  // namespace holoscan::ops
