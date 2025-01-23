@@ -1,3 +1,4 @@
+holoscan>=2.5
 nvidia-riva-client==2.13.0
 pyaudio==0.2.14
 pynput==1.7.6
