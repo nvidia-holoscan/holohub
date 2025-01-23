@@ -37,12 +37,14 @@
 #include "tracking_postprocessor.h"
 #include "undistort_rectify.h"
 
+class StereoDepthApp;
+
 class StereoDepthApp : public holoscan::Application {
  private:
   std::string stereo_calibration_;
 
  public:
-  StereoDepthApp(std::string file) : stereo_calibration_(file) {};
+  explicit StereoDepthApp(std::string file) : stereo_calibration_(file) {}
   void compose() override {
     using namespace holoscan;
     YAML::Node calibration = YAML::LoadFile(stereo_calibration_);
@@ -50,7 +52,7 @@ class StereoDepthApp : public holoscan::Application {
     std::vector<float> d1 = calibration["d1"].as<std::vector<float>>();
     std::vector<float> M2 = calibration["M2"].as<std::vector<float>>();
     std::vector<float> d2 = calibration["d2"].as<std::vector<float>>();
-    std::vector<float> R = calibration["R"].as<std::vector<float>>();
+    std::vector<float> R = calibration['R'].as<std::vector<float>>();
     std::vector<float> t = calibration["t"].as<std::vector<float>>();
     int width = calibration["width"].as<int>();
     int height = calibration["height"].as<int>();
@@ -241,4 +243,4 @@ int main(int argc, char** argv) {
   app->config(config_file_string);
   app->run();
   return 0;
-};
+}

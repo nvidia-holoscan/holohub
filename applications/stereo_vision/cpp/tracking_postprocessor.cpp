@@ -55,7 +55,7 @@ void TrackingPostprocessor::compute(InputContext& op_input, OutputContext& op_ou
   int scores_N = detection_boxes->shape()[1];
 
   if (!(boxes_batch == 1 && scores_batch == 1 && boxes_N == scores_N && boxes_coord == 4)) {
-    throw std::runtime_error("Wrong input dimentions for yolo input");
+    throw std::runtime_error("Wrong input dimensions for yolo input");
   }
 
   auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("image");

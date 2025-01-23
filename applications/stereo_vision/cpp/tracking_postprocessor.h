@@ -30,7 +30,7 @@ class TrackingPostprocessor : public Operator {
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
-  private:
+ private:
   Parameter<float> score_threshold_;
   Parameter<int> bb_width_;
   Parameter<int> bb_height_;

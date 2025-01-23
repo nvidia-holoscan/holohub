@@ -40,7 +40,7 @@ using. This can be found using `v4l2-ctl --list-devices`.
 
 ## Models
 
-This demo requires the ESS DNN Stereo Disparity availible from the NGC catalog for disparity and the
+This demo requires the ESS DNN Stereo Disparity available from the NGC catalog for disparity and the
 YOLOv8 onnx model for object detection. Both models are downloaded when you build the application.
 
 ### ESS DNN

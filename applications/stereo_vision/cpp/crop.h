@@ -24,18 +24,18 @@
 
 namespace holoscan::ops {
 
-  class CropOp : public Operator{
-  public:
-      HOLOSCAN_OPERATOR_FORWARD_ARGS(CropOp);
-      CropOp() = default;
-      void setup(OperatorSpec& spec) override;
-      void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
-  private:
-      Parameter<int> x_;
-      Parameter<int> y_;
-      Parameter<int> width_;
-      Parameter<int> height_;
-  };
+class CropOp : public Operator{
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(CropOp);
+  CropOp() = default;
+  void setup(OperatorSpec& spec) override;
+  void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
+ private:
+  Parameter<int> x_;
+  Parameter<int> y_;
+  Parameter<int> width_;
+  Parameter<int> height_;
+};
 
-}
+}  // namespace holoscan::ops
 #endif

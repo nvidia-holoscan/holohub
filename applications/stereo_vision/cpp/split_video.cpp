@@ -34,7 +34,7 @@ void SplitVideoOp::setup(OperatorSpec& spec) {
   spec.param(stereo_video_layout_,
              "stereo_video_layout",
              "Stereo Video Layout",
-             "Horizontal or Vertical Concatination of Stereo Video Frames",
+             "Horizontal or Vertical Concatenation of Stereo Video Frames",
              STEREO_VIDEO_HORIZONTAL);
 }
 
@@ -142,7 +142,7 @@ void MergeVideoOp::setup(OperatorSpec& spec) {
   spec.param(stereo_video_layout_,
              "stereo_video_layout",
              "Stereo Video Layout",
-             "Horizontal or Vertical Concatination of Stereo Video Frames",
+             "Horizontal or Vertical Concatenation of Stereo Video Frames",
              STEREO_VIDEO_HORIZONTAL);
 }
 

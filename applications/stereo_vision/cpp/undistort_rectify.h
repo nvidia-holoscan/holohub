@@ -33,7 +33,7 @@ class UndistortRectifyOp : public Operator {
  public:
   class RectificationMap {
    public:
-    RectificationMap() {};
+    RectificationMap() {}
     RectificationMap(float* M, float* d, float* R, float* P, int width, int height);
     ~RectificationMap();
     void setParameters(float* M, float* d, float* R, float* P, int width, int height);
@@ -55,7 +55,7 @@ class UndistortRectifyOp : public Operator {
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
   void setRectificationMap(std::shared_ptr<RectificationMap> rectification_map) {
     rectification_map_ = rectification_map;
-  };
+  }
 
  private:
   std::shared_ptr<RectificationMap> rectification_map_;
