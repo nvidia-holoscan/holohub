@@ -76,6 +76,43 @@ It takes quite a few minutes when this command is run the first time.
 
 ### Run the Application in Dev Container
 
+In this mode, there is no need to `build` and `install`. The Python code will run in its source folders, and the input files need to be downloaded manually to container path "$HOME/data/dataset".
+
+Also, the `PYTHONPATH` environment variable must be set to locate the necessary Holohub medical imaging operators. The input NIfTI file path needs to be defined via environment variable `HOLOSCAN_INPUT_PATH`.
+
+First [Build and launch the Holohub Container](../../README.md#container-build-recommended), landing in `/workspace/holohub`
+
+Set the `PYTHONPATH` to include the Holohub source folder
+```bash
+export PYTHONPATH=$PYTHONPATH:$PWD
+```
+
+Set the environment variables for the application
+```bash
+source applications/hugging_face_pipeline/env_settings.sh
+```
+
+If not already done, download NIfTI images from [Spleen_Task09](https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar) and save the folder to `$DATASET_PATH`.
+```
+cd $DATASET_PATH
+wget https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar
+```
+
+Install Python packages required by the application
+```bash
+pip install -r applications/hugging_face_pipeline/requirements.txt
+```
+
+Run the application
+```bash
+rm -f -r $HOLOSCAN_OUTPUT_PATH
+python applications/hugging_face_pipeline/
+```
+
+Check output
+```bash
+ls $HOLOSCAN_OUTPUT_PATH
+```
 
 ## Packaging the Application for Distribution
 

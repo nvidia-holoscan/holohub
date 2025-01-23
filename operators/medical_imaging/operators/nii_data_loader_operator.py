@@ -16,6 +16,7 @@
 
 import logging
 from pathlib import Path
+from monai.transforms import LoadImaged
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -35,7 +36,9 @@ class NiftiDataLoader(Operator):
         image: A Numpy array object. Downstream receiver optional.
     """
 
-    def __init__(self, fragment: Fragment, *args, input_path: Path, **kwargs) -> None:
+    def __init__(
+        self, fragment: Fragment, *args, input_path: Path, use_monai: bool = False, **kwargs
+    ) -> None:
         """Creates an instance with the file path to load image from.
 
         Args:
@@ -46,7 +49,7 @@ class NiftiDataLoader(Operator):
         self.input_path = input_path  # Allow to be None, to be overridden when compute is called.
         self.input_name_path = "image_path"
         self.output_name_image = "image"
-
+        self.use_monai = use_monai
         # Need to call the base class constructor last
         super().__init__(fragment, *args, **kwargs)
 
@@ -83,10 +86,19 @@ class NiftiDataLoader(Operator):
         """
         reads the nifti image and returns a numpy image array
         """
-        image_reader = SimpleITK.ImageFileReader()
-        image_reader.SetFileName(str(nii_path))
-        image = image_reader.Execute()
-        image_np = np.transpose(SimpleITK.GetArrayFromImage(image), [2, 1, 0])
+        if self.use_monai:
+            image_reader = LoadImaged(
+                keys=[
+                    "image",
+                ]
+            )
+            inputs = {"image": nii_path}
+            image_np = image_reader(inputs)
+        else:
+            image_reader = SimpleITK.ImageFileReader()
+            image_reader.SetFileName(str(nii_path))
+            image = image_reader.Execute()
+            image_np = np.transpose(SimpleITK.GetArrayFromImage(image), [2, 1, 0])
         return image_np
 
 
@@ -97,8 +109,12 @@ class NiftiDataWriter(Operator):
     Named input:
         image_path: Path to save the image file.
     """
+
     INPUT_NAME = "input_dict"
-    def __init__(self, fragment: Fragment, *args, image_path: Path, save_key: str="pred", **kwargs) -> None:
+
+    def __init__(
+        self, fragment: Fragment, *args, image_path: Path, save_key: str = "pred", **kwargs
+    ) -> None:
         """Creates an instance with the file path to save image to.
 
         Args:
