@@ -133,10 +133,11 @@ gxf_result_t VideoMasterTransmitter::tick() {
     else if (!(video_format != Deltacast::Helper::VideoFormat{})) {
       gxf::Expected<void> result;
 
-      result &= configure_board_for_overlay();
-      result &= configure_stream();
       video_format = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate}; 
       _video_information->set_video_format(stream_handle(), video_format);
+      
+      result &= configure_board_for_overlay();
+      result &= configure_stream();
       result &= configure_stream_for_overlay();
       result &= init_buffers();
       result &= start_stream();
