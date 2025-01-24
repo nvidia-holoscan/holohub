@@ -23,9 +23,6 @@ CURDIR=$(pwd)
 mkdir -p "$1"
 cd "$1"
 
-# Download sample stereo video
-wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/clara-holoscan/holoscan_stereo_video/20241216/files?redirect=true&path=stereo-plants.mp4' -O stereo-plants.mp4
-wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/clara-holoscan/holoscan_stereo_video/20241216/files?redirect=true&path=stereo_calibration.yaml' -O stereo_calibration.yaml
 #get the yolo model from ultralytics
 mkdir -p source/yolo
 cd source/yolo

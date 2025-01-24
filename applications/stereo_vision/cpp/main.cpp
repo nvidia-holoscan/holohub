@@ -228,9 +228,15 @@ int main(int argc, char** argv) {
   if (stereo_cal) {
     stereo_cal_string = stereo_cal;
   } else {
-    auto default_path = std::filesystem::canonical(argv[0]).parent_path();
-    default_path /= std::filesystem::path("stereo_calibration.yaml");
-    stereo_cal_string = default_path.string();
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+
+    if (input_path != nullptr && input_path[0] != '\0') {
+        stereo_cal_string = std::string(input_path) + "/stereo_vision/stereo_calibration.yaml";
+    } else {
+        auto default_path = std::filesystem::canonical(argv[0]).parent_path();
+        default_path /= std::filesystem::path("stereo_calibration.yaml");
+        stereo_cal_string = default_path.string();
+    }
   }
   if (config_file) {
     config_file_string = config_file;

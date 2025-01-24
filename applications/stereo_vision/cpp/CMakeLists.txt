@@ -61,10 +61,17 @@ add_custom_target(stereo_depth_yaml
     BYPRODUCTS "stereo_vision.yaml"
 )
 
-add_custom_target(stereo_calibration_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${HOLOHUB_DATA_DIR}/stereo_vision/stereo_calibration.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "stereo_calibration.yaml"
-    BYPRODUCTS "stereo_calibration.yaml"
+add_custom_command(
+    OUTPUT "${HOLOHUB_DATA_DIR}/stereo_vision/yolov8-nms-update.onnx"
+           "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/get_data_and_models.sh" "${HOLOHUB_DATA_DIR}/stereo_vision"
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
+               "${HOLOHUB_DATA_DIR}/stereo_vision/yolov8-nms-update.onnx"
 )
 
-add_dependencies(stereo_depth stereo_depth_yaml stereo_calibration_yaml)
+add_custom_target(get_data_and_models ALL
+                  DEPENDS
+                  "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
+                  "${HOLOHUB_DATA_DIR}/stereo_vision/yolov8-nms-update.onnx")
+
+add_dependencies(stereo_depth stereo_depth_yaml get_data_and_models)
