@@ -16,8 +16,9 @@
 # limitations under the License.
 
 
-FROM nvcr.io/nvidia/pytorch:24.01-py3
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-dgpu
 
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y ffmpeg

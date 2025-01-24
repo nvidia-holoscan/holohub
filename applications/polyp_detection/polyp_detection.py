@@ -24,14 +24,43 @@ import cupy as cp
 import numpy as np
 import tensorrt as trt
 import torch
-from polyp_det_operator import PolypDetInferenceOp, PolypDetPostprocessorOp
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
+from holoscan.operators import FormatConverterOp, InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
 
 
+class PolypDetPostprocessorOp(Operator):
+    """Example of an operator post processing the tensor from inference component.
+
+    This operator has:
+        inputs:  "input_tensor"
+        outputs: "output_tensor"
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+
+    def compute(self, op_input, op_output, context, scores_threshold=0.5):
+        # Get input message which is a dictionary
+        in_message = op_input.receive("in")
+        pred_logits = in_message.get("pred_logits")
+        pred_boxes = in_message.get("pred_boxes")
+
+        print(f"pred_logits: {pred_logits.shape}, pred_boxes: {pred_boxes.shape}")
+
+
 class PolypDetectionApp(Application):
-    def __init__(self, data, source="replayer"):
+    def __init__(
+        self,
+        data,
+        source="replayer",
+        video_size=(1164, 1034),
+        inference_size=(640, 640),
+        model_path="",
+    ):
         """Initialize the colonoscopy detection application
 
         Parameters
@@ -53,6 +82,9 @@ class PolypDetectionApp(Application):
             data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
         self.sample_data_path = data
+        self.video_size = video_size
+        self.inference_size = inference_size
+        self.model_path = model_path
 
     def compose(self):
         n_channels = 3
@@ -65,10 +97,10 @@ class PolypDetectionApp(Application):
             self, name="replayer", directory=video_dir, **self.kwargs("replayer")
         )
 
-        width_preprocessor = 640
-        height_preprocessor = 640
+        width_preprocessor = self.video_size[0]
+        height_preprocessor = self.video_size[1]
         preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * bpp
-        preprocessor_num_blocks = 2
+        preprocessor_num_blocks = 3
         detection_preprocessor = FormatConverterOp(
             self,
             name="detection_preprocessor",
@@ -78,15 +110,16 @@ class PolypDetectionApp(Application):
                 block_size=preprocessor_block_size,
                 num_blocks=preprocessor_num_blocks,
             ),
+            resize_width=self.inference_size[0],
+            resize_height=self.inference_size[1],
             **self.kwargs("detection_preprocessor"),
         )
 
-        detection_inference = PolypDetInferenceOp(
+        detection_inference = InferenceOp(
             self,
             name="detection_inference",
             allocator=UnboundedAllocator(self, name="pool"),
-            orig_size=(1164, 1034),
-            trt_model="/colon_workspace/RT-DETR/rtdetrv2_pytorch/rt_detrv2_timm_r50_nvimagenet_pretrained_neg_finetune.trt",
+            model_path_map={"polyp_det": self.model_path},
             **self.kwargs("detection_inference"),
         )
 
@@ -98,13 +131,19 @@ class PolypDetectionApp(Application):
         )
 
         self.add_flow(source, detection_preprocessor)
-        self.add_flow(detection_preprocessor, detection_inference, {("tensor", "input")})
-        self.add_flow(detection_inference, detection_postprocessor, {("output", "in")})
+        self.add_flow(detection_preprocessor, detection_inference, {("tensor", "receivers")})
+        self.add_flow(detection_inference, detection_postprocessor, {("transmitter", "in")})
 
 
 if __name__ == "__main__":
     # Parse args
-    parser = ArgumentParser(description="Colonoscopy segmentation demo application.")
+    parser = ArgumentParser(description="Polyp Detection demo application.")
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="/colon_workspace/polyp_detection_data",
+        help=("Set the data path"),
+    )
     parser.add_argument(
         "-s",
         "--source",
@@ -113,16 +152,26 @@ if __name__ == "__main__":
         help=("If 'replayer', replay a prerecorded video."),
     )
     parser.add_argument(
+        "-m",
+        "--model",
+        default="",
+        help=("Set the model path"),
+    )
+    parser.add_argument(
+        "--video_size",
+        default=(1164, 1034),
+        help=("Set the video size"),
+    )
+    parser.add_argument(
+        "--inference_size",
+        default=(640, 640),
+        help=("Set the inference size"),
+    )
+    parser.add_argument(
         "-c",
         "--config",
         default="none",
         help=("Set config path to override the default config file location"),
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="/colon_workspace/holohub/data/polyp_detection",
-        help=("Set the data path"),
     )
 
     args = parser.parse_args()
@@ -131,6 +180,12 @@ if __name__ == "__main__":
         config_file = os.path.join(os.path.dirname(__file__), "polyp_detection.yaml")
     else:
         config_file = args.config
-    app = PolypDetectionApp(data=args.data, source=args.source)
+    app = PolypDetectionApp(
+        data=args.data,
+        source=args.source,
+        video_size=args.video_size,
+        inference_size=args.inference_size,
+        model_path=args.model,
+    )
     app.config(config_file)
     app.run()

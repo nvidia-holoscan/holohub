@@ -23,12 +23,16 @@ replayer:  # VideoStreamReplayer
   batch_size: 1
 
 detection_preprocessor:  # FormatConverter
-    out_tensor_name: source_video
+    out_tensor_name: "source_video"
     out_dtype: "float32"
-    resize_width: 640
-    resize_height: 640
 
 detection_inference:
+    backend: "trt"
+    enable_fp16: true
+    pre_processor_map:
+      "polyp_det": ["source_video"]
+    inference_map:
+      "polyp_det": ["pred_logits", "pred_boxes"]
 
 detection_postprocessor:
 

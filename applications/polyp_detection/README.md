@@ -12,10 +12,10 @@ The model: [RT-DETR](https://github.com/lyuwenyu/RT-DETR) is trained on the [REA
 docker build -t holoscan:polyp-det -f Dockerfile .
 ```
 
-Please mount the directory that contains `holohub/` into `/colon_workspace`. For example, my folder is under `/raid/colon_reproduce`.
+Please mount the directory that contains `holohub/` into `/colon_workspace`. For example, my folder is under `/raid/colon_workspace`:
 
 ```Bash
-docker run --rm -it --gpus=all --ipc=host -p 8888:8888 -v /raid/colon_reproduce:/colon_workspace holoscan:polyp-det
+docker run --rm -it --gpus=all --ipc=host -v /raid/colon_workspace:/colon_workspace holoscan:polyp-det
 ```
 
 ### Get ONNX model
@@ -41,12 +41,13 @@ trtexec --onnx=<path-to-onnx>/polyp_det_model.onnx --saveEngine=polyp_det_model.
 ```Bash
 apt-get update && apt-get install -y ffmpeg
 git clone https://github.com/nvidia-holoscan/holoscan-sdk.git
-ffmpeg -i <prepared video>.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python holoscan-sdk/scripts/convert_video_to_gxf_entities.py --width 1164 --height 1034 --channels 3 --framerate 30 --directory /colon/holohub/data/polyp_detection/
+mkdir /colon_workspace/polyp_detection_data
+ffmpeg -i <prepared video>.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python holoscan-sdk/scripts/convert_video_to_gxf_entities.py --width 1164 --height 1034 --channels 3 --framerate 30 --directory /colon_workspace/polyp_detection_data
 ```
 
 ### Run application
 
 ```Bash
 cd /colon_workspace/holohub/applications/polyp_detection
-python polyp_detection.py --data /colon_workspace/holohub/data/polyp_detection/
+python polyp_detection.py --data  /colon_workspace/polyp_detection_data --model /colon_workspace/rtdetrv2_timm_r50_nvimagenet_pretrained_neg_finetune_bhwc.onnx
 ```
