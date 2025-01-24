@@ -31,7 +31,6 @@ FetchContent_Declare(
     GIT_TAG         feature/keyer_helper
     SOURCE_DIR      "${CMAKE_CURRENT_LIST_DIR}/api_helper"
 )
-
 FetchContent_MakeAvailable(VideoMasterAPIHelper)
 
 # Finds the VideoMaster SDK

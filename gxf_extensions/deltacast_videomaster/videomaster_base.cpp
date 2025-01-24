@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "VideoMasterHD_ApplicationBuffers.h"
+#include "VideoMasterHD_String.h"
 #include "gxf/multimedia/video.hpp"
 #include "VideoMasterAPIHelper/api.hpp"
 #include "VideoMasterAPIHelper/api_success.hpp"
@@ -169,6 +170,8 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
 
   video_format = {};
 
+  GXF_LOG_INFO("%s stream successfully opened.", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+
   return gxf::Success;
 }
 
@@ -198,15 +201,16 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
       stream_handle(),
       _video_information->get_stream_properties_values(stream_handle())
     );
-
-
     if (!success_opt.has_value() || !success_opt.value()) {
       GXF_LOG_ERROR("Failed to set stream properties");
       return gxf::Unexpected{GXF_FAILURE};
     }
-
-    video_format = _video_information->get_video_format(stream_handle()).value();
   }
+
+  const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
+  video_format = _video_information->get_video_format(stream_handle()).value();
+  GXF_LOG_INFO("%s configured in %ux%u@%u", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
+    , video_format.width, video_format.height, video_format.framerate);
 
   return gxf::Success;
 }
@@ -301,10 +305,18 @@ void VideoMasterBase::free_buffers() {
 gxf::Expected<void> VideoMasterBase::start_stream() {
   _slot_count = 0;
 
-  Deltacast::Helper::ApiSuccess success;
-  success = VHD_StartStream(*stream_handle());
+  const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  Deltacast::Helper::ApiSuccess success;
+  if (!(success = VHD_StartStream(*stream_handle())))
+  {
+    GXF_LOG_ERROR("Could not start stream %s", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+    return gxf::Unexpected{GXF_FAILURE};
+  }
+
+  GXF_LOG_INFO("%s stream successfully started.", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+
+  return gxf::Success;
 }
 
 bool VideoMasterBase::gxf_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message) {
