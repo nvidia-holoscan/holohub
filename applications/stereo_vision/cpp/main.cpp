@@ -41,10 +41,12 @@ class StereoDepthApp;
 
 class StereoDepthApp : public holoscan::Application {
  private:
+  std::string source_;
   std::string stereo_calibration_;
 
  public:
-  explicit StereoDepthApp(std::string file) : stereo_calibration_(file) {}
+  explicit StereoDepthApp(std::string source, std::string file) :
+      source_(source), stereo_calibration_(file) {}
   void compose() override {
     using namespace holoscan;
     YAML::Node calibration = YAML::LoadFile(stereo_calibration_);
@@ -57,6 +59,8 @@ class StereoDepthApp : public holoscan::Application {
     int width = calibration["width"].as<int>();
     int height = calibration["height"].as<int>();
 
+
+    std::cout << "*********** SOURCE *************" << source_ << std::endl;
     auto source = make_operator<ops::V4L2VideoCaptureOp>(
         "source",
         from_config("source"),
@@ -194,19 +198,29 @@ void print_usage() {
   std::cout << "Usage: program [--config <config-file>] [--stereo <stereo-calibration-file>]\n";
 }
 
-void parse_arguments(int argc, char* argv[], char*& config_file, char*& stereo_file) {
+void parse_arguments(int argc, char* argv[], std::string& config_file,
+        std::string& source, std::string& stereo_file) {
   int option_index = 0;
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
-                                         {"stereo-calibration", required_argument, 0, 's'},
+                                         {"source", required_argument, 0, 's'},
+                                         {"stereo-calibration", required_argument, 0, 't'},
                                          {0, 0, 0, 0}};
 
   int c;
-  while ((c = getopt_long(argc, argv, "c:s:", long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "c:s:t:", long_options, &option_index)) != -1) {
     switch (c) {
       case 'c':
         config_file = optarg;
         break;
       case 's':
+        if (strcmp(optarg, "replayer") != 0 && strcmp(optarg, "v4l2") != 0) {
+          std::cerr << "Error: Invalid value for --source. Allowed values: {replayer, v4l2}.\n";
+          print_usage();
+          exit(1);
+        }
+        source = optarg;
+        break;
+      case 't':
         stereo_file = optarg;
         break;
       case '?':
@@ -220,33 +234,34 @@ void parse_arguments(int argc, char* argv[], char*& config_file, char*& stereo_f
 }
 
 int main(int argc, char** argv) {
-  char* config_file = nullptr;
-  char* stereo_cal = nullptr;
-  std::string stereo_cal_string;
-  std::string config_file_string;
-  parse_arguments(argc, argv, config_file, stereo_cal);
-  if (stereo_cal) {
-    stereo_cal_string = stereo_cal;
-  } else {
+  std::string config_file, source, stereo_cal;
+
+  parse_arguments(argc, argv, config_file, source, stereo_cal);
+
+  if (stereo_cal.empty()) {
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
 
     if (input_path != nullptr && input_path[0] != '\0') {
-        stereo_cal_string = std::string(input_path) + "/stereo_vision/stereo_calibration.yaml";
+      stereo_cal = std::string(input_path) + "/stereo_vision/stereo_calibration.yaml";
     } else {
-        auto default_path = std::filesystem::canonical(argv[0]).parent_path();
-        default_path /= std::filesystem::path("stereo_calibration.yaml");
-        stereo_cal_string = default_path.string();
+      auto default_path = std::filesystem::canonical(argv[0]).parent_path();
+      default_path /= std::filesystem::path("stereo_calibration.yaml");
+      stereo_cal = default_path.string();
     }
   }
-  if (config_file) {
-    config_file_string = config_file;
-  } else {
+
+  if (config_file.empty()) {
     auto default_path = std::filesystem::canonical(argv[0]).parent_path();
     default_path /= std::filesystem::path("stereo_vision.yaml");
-    config_file_string = default_path.string();
+    config_file = default_path.string();
   }
-  auto app = holoscan::make_application<StereoDepthApp>(stereo_cal_string);
-  app->config(config_file_string);
+
+  if (source.empty()) {
+    source = "replayer";
+  }
+
+  auto app = holoscan::make_application<StereoDepthApp>(source, stereo_cal);
+  app->config(config_file);
   app->run();
   return 0;
 }
