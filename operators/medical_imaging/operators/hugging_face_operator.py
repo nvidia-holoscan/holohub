@@ -7,6 +7,7 @@ from typing import Dict, Sequence
 from holoscan.core import Fragment, Operator, OperatorSpec
 from huggingface_hub import snapshot_download
 from transformers import pipeline
+from monai.data import MetaTensor
 
 
 class HF_Pipeline_Type(str, Enum):
@@ -108,7 +109,11 @@ class HuggingFacePipelineOperator(Operator):
         spec.output(self.OUTPUT_NAME)
 
     def compute(self, op_input, op_output, context):
-        breakpoint()
-        input_dict = op_input.receive(self.INPUT_NAME)
+        input_dict = {}
+        input_image = op_input.receive(self.INPUT_NAME)
+        input_data = input_image.asnumpy()
+        meta_data = input_image.metadata()
+        input_dict = {"image": MetaTensor(input_data, affine=meta_data["affine"], meta=meta_data)}
+        input_dict.update({"label_prompt": [3]})
         outputs = self.pipeline(input_dict)
         op_output.emit(outputs, self.OUTPUT_NAME)

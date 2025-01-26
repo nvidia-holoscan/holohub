@@ -16,11 +16,12 @@
 
 import logging
 from pathlib import Path
-from monai.transforms import LoadImaged
+from monai.transforms import LoadImage, SaveImage
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 from operators.medical_imaging.utils.importutil import optional_import
+from operators.medical_imaging.core.domain import Image
 
 SimpleITK, _ = optional_import("SimpleITK")
 
@@ -78,7 +79,6 @@ class NiftiDataLoader(Operator):
                 raise ValueError(
                     f"No valid file path from input port or obj attribute: {self.input_path}"
                 )
-
         image_np = self.convert_and_save(input_path)
         op_output.emit(image_np, self.output_name_image)
 
@@ -87,13 +87,9 @@ class NiftiDataLoader(Operator):
         reads the nifti image and returns a numpy image array
         """
         if self.use_monai:
-            image_reader = LoadImaged(
-                keys=[
-                    "image",
-                ]
-            )
-            inputs = {"image": nii_path}
-            image_np = image_reader(inputs)
+            image_reader = LoadImage()
+            image_np = image_reader(nii_path)
+            image_np = Image(image_np.numpy(), image_np.meta)
         else:
             image_reader = SimpleITK.ImageFileReader()
             image_reader.SetFileName(str(nii_path))
@@ -113,7 +109,7 @@ class NiftiDataWriter(Operator):
     INPUT_NAME = "input_dict"
 
     def __init__(
-        self, fragment: Fragment, *args, image_path: Path, save_key: str = "pred", **kwargs
+        self, fragment: Fragment, *args, image_path: Path, save_key: str="pred", use_monai=False, **kwargs
     ) -> None:
         """Creates an instance with the file path to save image to.
 
@@ -124,6 +120,7 @@ class NiftiDataWriter(Operator):
         self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
         self.image_path = image_path  # Allow to be None, to be overridden when compute is called.
         self.save_key = save_key
+        self.use_monai = use_monai
         # Need to call the base class constructor last
         super().__init__(fragment, *args, **kwargs)
 
@@ -135,19 +132,21 @@ class NiftiDataWriter(Operator):
 
         # The named input port is optional, so must check for and validate the data
         input_dict = op_input.receive(self.INPUT_NAME)
-        pred_array = input_dict.get(self.save_key, None)
-        if not pred_array:
-            raise RuntimeError(f"The input must not be empty!")
-
+        input_res = input_dict[0]
+        pred_array = input_res.get(self.save_key, None)
         self.convert_and_save(pred_array)
 
     def convert_and_save(self, np_array):
         """
         reads the nifti image and returns a numpy image array
         """
-        nii_image = SimpleITK.GetImageFromArray(np_array)
-        # Save the SimpleITK image as a NIfTI file
-        SimpleITK.WriteImage(nii_image, self.image_path)
+        if self.use_monai:
+            image_saver = SaveImage(self.image_path)
+            image_saver(np_array)
+        else:
+            nii_image = SimpleITK.GetImageFromArray(np_array)
+            # Save the SimpleITK image as a NIfTI file
+            SimpleITK.WriteImage(nii_image, self.image_path)
 
 
 def test():

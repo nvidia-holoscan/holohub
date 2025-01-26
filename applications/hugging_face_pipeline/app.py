@@ -60,9 +60,9 @@ class AIHFApp(Application):
             name="hf_pipeline_op",
             pipeline_name=pipeline_name,
             pipeline_type=pipeline_type,
-            pipeline_init_kwargs={"device": "cuda:0"},
+            pipeline_init_kwargs={"device": "cuda:0", "save_output": False},
         )
-        nii_data_saver = NiftiDataWriter(self, name="nii_writer_op", image_path=app_output_path)
+        nii_data_saver = NiftiDataWriter(self, name="nii_writer_op", image_path=app_output_path, user_monai=True)
         # self.add_flow(nii_data_loader, hf_pipeline_input_adaptor, {("image", "image")})
         self.add_flow(nii_data_loader, hf_pipeline_operator, {("image", "input_dict")})
         self.add_flow(hf_pipeline_operator, nii_data_saver, {("output_dict", "input_dict")})
