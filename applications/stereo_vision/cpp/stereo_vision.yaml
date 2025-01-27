@@ -65,7 +65,12 @@ yolo_format_converter:
   resize_width: 640
   resize_height: 640
 
-source:
+v4l2:
    device: "/dev/video3"
 
-
+replayer:
+  basename: "stereo-plants"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)

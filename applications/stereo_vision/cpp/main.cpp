@@ -43,10 +43,14 @@ class StereoDepthApp : public holoscan::Application {
  private:
   std::string source_;
   std::string stereo_calibration_;
+  std::string datapath_;
 
  public:
   explicit StereoDepthApp(std::string source, std::string file) :
       source_(source), stereo_calibration_(file) {}
+
+  void set_datapath(const std::string& path) { datapath_ = path; }
+
   void compose() override {
     using namespace holoscan;
     YAML::Node calibration = YAML::LoadFile(stereo_calibration_);
@@ -59,16 +63,32 @@ class StereoDepthApp : public holoscan::Application {
     int width = calibration["width"].as<int>();
     int height = calibration["height"].as<int>();
 
+    std::shared_ptr<Operator> source;
+    std::string source_output;
 
-    std::cout << "*********** SOURCE *************" << source_ << std::endl;
-    auto source = make_operator<ops::V4L2VideoCaptureOp>(
-        "source",
-        from_config("source"),
-        Arg("allocator") = make_resource<UnboundedAllocator>("pool_v4l2"));
+    auto in_dtype = Arg("in_dtype", std::string("rgba8888"));
+
+    if (source_ == "v4l2") {
+      source = make_operator<ops::V4L2VideoCaptureOp>(
+        "v4l2",
+        from_config("v4l2"),
+        Arg("allocator") = make_resource<UnboundedAllocator>("pool_source"));
+      source_output = "signal";
+    } else if (source_ == "replayer") {
+      source = make_operator<ops::VideoStreamReplayerOp>(
+        "replayer",
+        from_config("replayer"),
+        Arg("directory", datapath_),
+        Arg("allocator") = make_resource<UnboundedAllocator>("pool_source"));
+      source_output = "output";
+      in_dtype = Arg("in_dtype", std::string("rgb888"));
+    } else {
+      std::cout << "Unsupported input source" << std::endl;
+      exit(1);
+    }
 
     auto v4l2_converter_pool =
-        Arg("pool", make_resource<holoscan::UnboundedAllocator>("pool_v4l2"));
-    auto in_dtype = Arg("in_dtype", std::string("rgba8888"));
+        Arg("pool", make_resource<holoscan::UnboundedAllocator>("pool_converter"));
     auto out_dtype = Arg("out_dtype", std::string("rgb888"));
     auto v4l2_converter = make_operator<ops::FormatConverterOp>(
         "converter", in_dtype, out_dtype, v4l2_converter_pool);
@@ -162,7 +182,7 @@ class StereoDepthApp : public holoscan::Application {
     ////////////////////////////
 
     // Rectification
-    add_flow(source, v4l2_converter, {{"signal", "source_video"}});
+    add_flow(source, v4l2_converter, {{source_output, "source_video"}});
     add_flow(v4l2_converter, splitter, {{"tensor", "input"}});
     add_flow(splitter, rectifier1, {{"output1", "input"}});
     add_flow(splitter, rectifier2, {{"output2", "input"}});
@@ -198,11 +218,12 @@ void print_usage() {
   std::cout << "Usage: program [--config <config-file>] [--stereo <stereo-calibration-file>]\n";
 }
 
-void parse_arguments(int argc, char* argv[], std::string& config_file,
+void parse_arguments(int argc, char* argv[], std::string& data_path, std::string& config_file,
         std::string& source, std::string& stereo_file) {
   int option_index = 0;
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
                                          {"source", required_argument, 0, 's'},
+                                         {"data", required_argument, 0, 'd'},
                                          {"stereo-calibration", required_argument, 0, 't'},
                                          {0, 0, 0, 0}};
 
@@ -211,6 +232,9 @@ void parse_arguments(int argc, char* argv[], std::string& config_file,
     switch (c) {
       case 'c':
         config_file = optarg;
+        break;
+      case 'd':
+        data_path = optarg;
         break;
       case 's':
         if (strcmp(optarg, "replayer") != 0 && strcmp(optarg, "v4l2") != 0) {
@@ -234,20 +258,25 @@ void parse_arguments(int argc, char* argv[], std::string& config_file,
 }
 
 int main(int argc, char** argv) {
-  std::string config_file, source, stereo_cal;
+  std::string data_directory, config_file, source, stereo_cal;
 
-  parse_arguments(argc, argv, config_file, source, stereo_cal);
+  parse_arguments(argc, argv, data_directory, config_file, source, stereo_cal);
+
+  if (data_directory.empty()) {
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+    if (input_path != nullptr && input_path[0] != '\0') {
+      data_directory = std::string(input_path) + "/stereo_vision";
+    } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/stereo_vision")) {
+      data_directory = std::string((std::filesystem::current_path() / "data/stereo_vision").c_str());
+    } else {
+      HOLOSCAN_LOG_ERROR(
+          "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
+      exit(1);
+    }
+  }
 
   if (stereo_cal.empty()) {
-    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
-
-    if (input_path != nullptr && input_path[0] != '\0') {
-      stereo_cal = std::string(input_path) + "/stereo_vision/stereo_calibration.yaml";
-    } else {
-      auto default_path = std::filesystem::canonical(argv[0]).parent_path();
-      default_path /= std::filesystem::path("stereo_calibration.yaml");
-      stereo_cal = default_path.string();
-    }
+    stereo_cal = data_directory + "/stereo_calibration.yaml";
   }
 
   if (config_file.empty()) {
@@ -262,6 +291,7 @@ int main(int argc, char** argv) {
 
   auto app = holoscan::make_application<StereoDepthApp>(source, stereo_cal);
   app->config(config_file);
+  app->set_datapath(data_directory);
   app->run();
   return 0;
 }
