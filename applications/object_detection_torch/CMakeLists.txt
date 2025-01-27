@@ -54,6 +54,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   # Download the model
   add_custom_target(download_model
     COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+    DEPENDS object_detection_torch_data
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
   )
   add_dependencies(object_detection_torch download_model)
@@ -69,7 +70,9 @@ add_custom_target(object_detection_torch_yaml
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/labels.txt"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/labels.txt"
-    DEPENDS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+    DEPENDS
+      "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+      object_detection_torch_data  # download after NGC data is downloaded to avoid directory overwrite
     BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
 )
 add_dependencies(object_detection_torch object_detection_torch_yaml)
