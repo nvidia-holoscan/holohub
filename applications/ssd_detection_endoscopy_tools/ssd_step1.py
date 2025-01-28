@@ -25,14 +25,10 @@ import torch
 import torch.nn.functional as F
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import (
-    AJASourceOp,
-    FormatConverterOp,
-    HolovizOp,
-    InferenceOp,
-    VideoStreamReplayerOp,
-)
+from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 torch.cuda.set_device(torch.device("cuda:0"))
 

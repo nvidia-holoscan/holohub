@@ -21,7 +21,11 @@
 #ifdef USE_VIDEOMASTER
 #include <videomaster_source.hpp>
 #endif
-#include <holoscan/operators/aja_source/aja_source.hpp>
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
+
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include <getopt.h>

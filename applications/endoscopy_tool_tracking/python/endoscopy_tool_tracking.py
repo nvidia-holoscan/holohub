@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     VideoStreamRecorderOp,
@@ -31,6 +30,7 @@ from holoscan.resources import (
     UnboundedAllocator,
 )
 
+from holohub.aja_source import AJASourceOp
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 
 # Enable this line for Yuam capture card
