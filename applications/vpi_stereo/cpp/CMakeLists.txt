@@ -52,23 +52,28 @@ target_link_libraries(vpi_stereo
   vpi
 )
 
-# Copy configuration, calibration and source video files to output dir
+# Copy configuration file to current build directory
 add_custom_target(vpi_stereo_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/stereo_vision.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "stereo_vision.yaml"
-    BYPRODUCTS "stereo_vision.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/vpi_stereo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "vpi_stereo.yaml"
+    BYPRODUCTS "vpi_stereo.yaml"
 )
 
-add_custom_target(vpi_stereo_calibration_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/stereo_calibration.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "stereo_calibration.yaml"
+set(VPI_STEREO_CALIBRATION_FILE ${HOLOHUB_DATA_DIR}/vpi_stereo/stereo_calibration.yaml)
+if(NOT EXISTS ${VPI_STEREO_CALIBRATION_FILE})
+  # Reusing the stereo calibration from stereo_vision application
+  set(STEREO_VISION_CALIBRATION_FILE ${HOLOHUB_DATA_DIR}/stereo_vision/stereo_calibration.yaml)
+  if(NOT EXISTS ${STEREO_VISION_CALIBRATION_FILE})
+    set(STEREO_VISION_CALIBRATION_URL "https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/clara-holoscan/holoscan_stereo_video/20241216/files?redirect=true&path=stereo_calibration.yaml")
+    file(DOWNLOAD ${STEREO_VISION_CALIBRATION_URL} ${VPI_STEREO_CALIBRATION_FILE})
+  else()
+    make_directory(${HOLOHUB_DATA_DIR}/vpi_stereo)
+    file(COPY_FILE ${STEREO_VISION_CALIBRATION_FILE} ${VPI_STEREO_CALIBRATION_FILE} ONLY_IF_DIFFERENT)
+  endif()
+endif()
+add_custom_target(stereo_calibration_yaml
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${VPI_STEREO_CALIBRATION_FILE} ${CMAKE_CURRENT_BINARY_DIR}
     BYPRODUCTS "stereo_calibration.yaml"
 )
 
-add_custom_target(vpi_stereo_mp4
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/stereo.mp4" ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "stereo.mp4"
-    BYPRODUCTS "stereo.mp4"
-)
-
-add_dependencies(vpi_stereo vpi_stereo_yaml vpi_stereo_calibration_yaml vpi_stereo_mp4)
+add_dependencies(vpi_stereo vpi_stereo_yaml stereo_calibration_yaml)

@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
     config_file_string = config_file;
   } else {
     auto default_path = std::filesystem::canonical(argv[0]).parent_path();
-    default_path /= std::filesystem::path("stereo_vision.yaml");
+    default_path /= std::filesystem::path("vpi_stereo.yaml");
     config_file_string = default_path.string();
   }
   auto app = holoscan::make_application<VPIStereoApp>(stereo_cal_string);
