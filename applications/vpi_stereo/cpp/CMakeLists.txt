@@ -40,14 +40,10 @@ add_executable(vpi_stereo
 target_link_libraries(vpi_stereo
   PRIVATE
   holoscan::core
-  holoscan::ops::video_stream_replayer
   holoscan::ops::holoviz
   holoscan::ops::v4l2
   holoscan::ops::format_converter
-  CUDA::nppif
-  CUDA::nppidei
-  CUDA::nppicc
-  CUDA::nppial
+  CUDA::nppig
   Eigen3::Eigen
   vpi
 )

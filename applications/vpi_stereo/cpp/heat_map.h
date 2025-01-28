@@ -19,7 +19,6 @@
 #define OPERATORS_HEATMAP
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 
 namespace holoscan::ops {
 

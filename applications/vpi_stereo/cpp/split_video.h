@@ -19,7 +19,6 @@
 #define OPERATORS_SPLIT_VIDEO
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 
 namespace holoscan::ops {
 #define STEREO_VIDEO_HORIZONTAL 0

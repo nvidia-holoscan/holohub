@@ -19,9 +19,6 @@
 #define OPERATORS_UNDISTORT_RECTIFY
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/holoviz/holoviz.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 
 namespace holoscan::ops {
 

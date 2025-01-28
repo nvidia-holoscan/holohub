@@ -16,7 +16,6 @@
  */
 
 #include "split_video.h"
-#include <npp.h>
 #include <gxf/std/tensor.hpp>
 #if __has_include("gxf/std/dlpack_utils.hpp")
 #define GXF_HAS_DLPACK_SUPPORT 1

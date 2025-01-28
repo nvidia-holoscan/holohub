@@ -16,21 +16,16 @@
  */
 
 #include <getopt.h>
-#include <npp.h>
-#include <Eigen/Dense>
 #include <iostream>
 
 #include <holoscan/holoscan.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 
-#include <holoscan/operators/format_converter/format_converter.hpp>
 #include "crop.h"
 #include "heat_map.h"
 #include "split_video.h"
-#include "stereo_depth_kernels.h"
 #include "undistort_rectify.h"
 #include "vpi_stereo.h"
 
