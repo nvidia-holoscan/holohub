@@ -27,7 +27,7 @@ from holoscan.operators import (
     HolovizOp,
     InferenceOp,
     V4L2VideoCaptureOp,
-    VideoStreamReplayerOp
+    VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
 
@@ -369,7 +369,7 @@ class BodyPoseEstimationApp(Application):
                 self,
                 name="replayer_source",
                 directory=self.sample_data_path,
-                **self.kwargs("replayer_source")
+                **self.kwargs("replayer_source"),
             )
             source_output = "output"
         elif self.source == "dds":
