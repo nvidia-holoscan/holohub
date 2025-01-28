@@ -18,7 +18,6 @@
 #include <getopt.h>
 
 #include "holoscan/holoscan.hpp"
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
@@ -26,6 +25,9 @@
 #include <visualizer_icardio.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {

@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -27,6 +26,7 @@ from holoscan.operators import (
 )
 from holoscan.resources import UnboundedAllocator
 
+from holohub.aja_source import AJASourceOp
 from holohub.visualizer_icardio import VisualizerICardioOp
 
 

@@ -20,14 +20,10 @@ import holoscan as hs
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import (
-    AJASourceOp,
-    FormatConverterOp,
-    HolovizOp,
-    InferenceOp,
-    VideoStreamReplayerOp,
-)
+from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 try:
     import cupy as cp
