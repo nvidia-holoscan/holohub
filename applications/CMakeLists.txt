@@ -42,7 +42,7 @@ add_subdirectory(distributed)
 
 add_holohub_application(endoscopy_depth_estimation)
 
-add_holohub_application(endoscopy_out_of_body_detection OPERATORS aja_source)
+add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_source)
 
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
@@ -63,7 +63,7 @@ add_holohub_application(hyperspectral_segmentation)
 
 add_subdirectory(laser_detection_latency)
 
-add_holohub_application(multiai_endoscopy OPERATORS aja_source)
+add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
 
 add_holohub_application(multiai_ultrasound OPERATORS aja_source)
 
@@ -71,7 +71,7 @@ add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(object_detection_torch OPERATORS aja_source)
+add_holohub_application(object_detection_torch DEPENDS OPERATORS aja_source)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
@@ -99,7 +99,7 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
-add_holohub_application(ultrasound_segmentation OPERATORS aja_source)
+add_holohub_application(ultrasound_segmentation DEPENDS OPERATORS aja_source)
 
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar
