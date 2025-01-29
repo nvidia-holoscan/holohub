@@ -167,7 +167,7 @@ void confidenceMask(float* disp, float* confidence, float thres, uint32_t width,
 __global__ void preprocessESSKernel(uint8_t* input, float* output, uint32_t input_width,
                                     uint32_t input_height, uint32_t input_channels,
                                     uint32_t output_width, uint32_t output_height) {
-  // convert to float, resize and move data to NXCxHxW format, scale the range
+  // convert to float, resize and move data to NxCxHxW format, scale the range
   uint32_t out_nx = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t out_ny = blockIdx.y * blockDim.y + threadIdx.y;
   if (out_nx < output_width & out_ny < output_height) {

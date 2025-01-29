@@ -26,7 +26,7 @@
 namespace holoscan::ops {
 
 // Holoscan operator for applying undistortion and rectification to the images based on the
-// intrinsic and extrinisc calibration parameters
+// intrinsic and extrinsic calibration parameters
 class UndistortRectifyOp : public Operator {
   static void stereoRecitfy();
 

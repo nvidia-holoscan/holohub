@@ -17,7 +17,7 @@ This pipeline takes video from a stereo camera and estimates disparity using DNN
 This application requires a V4L2 stereo camera or recorded stereo video as input. A video acquired from a StereoLabs ZED
 camera is downloaded when running the `get_data_and_models.sh` script when building the application.
 A script for obtaining the calibration for StereoLabs cameras is also provided.
-
+Holoscan SDK >=2.0,<=2.5 is required for TensorRT 8.6 compatibility.
 ### Camera Calibration
 
 The default calibration will work for the sample video. If using a stereolabs camera the calibration
