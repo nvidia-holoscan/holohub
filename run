@@ -371,8 +371,8 @@ setup() {
   echo "Cuda version found: $short_cuda_version"
 
   # Install cudnn9 first
-  install_cuda_dependencies_package libcudnn9-cuda-12 cuda$short_cuda_version true
-  install_cuda_dependencies_package libcudnn9-dev-cuda-12 cuda$short_cuda_version true
+  install_cuda_dependencies_package libcudnn9-cuda-12 9.* true
+  install_cuda_dependencies_package libcudnn9-dev-cuda-12 9.* true
 
   # Check if cudnn9 is install, if not install cudnn8
   installed_cudnn9_version=$(apt list --installed libcudnn9-cuda-12 2>/dev/null | grep libcudnn9-cuda-12)
