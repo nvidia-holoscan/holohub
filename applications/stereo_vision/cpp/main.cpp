@@ -229,8 +229,10 @@ int main(int argc, char** argv) {
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
     if (input_path != nullptr && input_path[0] != '\0') {
       data_directory = std::string(input_path) + "/stereo_vision";
-    } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/stereo_vision")) {
-      data_directory = std::string((std::filesystem::current_path() / "data/stereo_vision").c_str());
+    } else if (std::filesystem::is_directory(
+          std::filesystem::current_path() / "data/stereo_vision")) {
+      data_directory = std::string(
+          (std::filesystem::current_path() / "data/stereo_vision").c_str());
     } else {
       HOLOSCAN_LOG_ERROR(
           "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
