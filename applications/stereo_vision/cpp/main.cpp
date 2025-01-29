@@ -156,27 +156,6 @@ class StereoDepthApp : public holoscan::Application {
         from_config("ess_inference"),
         Arg("allocator") = make_resource<UnboundedAllocator>("pool_ess"));
 
-    const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
-        make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
-    uint64_t source_block_size = width * height * 4 * 4;
-    uint64_t source_num_blocks = 4;
-    auto yolo_format_converter =
-        make_operator<ops::FormatConverterOp>("yolo_format_converter",
-                                              from_config("yolo_format_converter"),
-                                              Arg("pool") = make_resource<BlockMemoryPool>(
-                                                  "pool", 1, source_block_size, source_num_blocks),
-                                              Arg("cuda_stream_pool") = cuda_stream_pool);
-
-    auto yolo_inference = make_operator<ops::InferenceOp>(
-        "yolo_inference",
-        from_config("yolo_inference"),
-        Arg("allocator") = make_resource<UnboundedAllocator>("pool_yolo"));
-
-    auto tracking_postprocessor =
-        make_operator<ops::TrackingPostprocessor>("tracking_postprocessor");
-    auto tracking_postprocessor_heatmap =
-        make_operator<ops::TrackingPostprocessor>("tracking_postprocessor_heatmap");
-
     ////////////////////////////
     // Connect the operators   //
     ////////////////////////////
@@ -194,22 +173,6 @@ class StereoDepthApp : public holoscan::Application {
     add_flow(ess_inference, ess_postprocessor, {{"transmitter", "input"}});
     add_flow(ess_postprocessor, crop_disparity_ess, {{"output", "input"}});
     add_flow(crop_disparity_ess, heatmap_ess, {{"output", "input"}});
-
-    // YOLO detection
-    add_flow(rectifier1, crop_color, {{"output", "input"}});
-    add_flow(crop_color, yolo_format_converter, {{"output", "source_video"}});
-    add_flow(yolo_format_converter, yolo_inference, {{"tensor", "receivers"}});
-    add_flow(yolo_inference, tracking_postprocessor, {{"transmitter", "yolo_input"}});
-    add_flow(crop_color, tracking_postprocessor, {{"output", "image"}});
-
-    // Visualization
-    // draw yolo boxes on disparity heatmap as well
-    add_flow(yolo_inference, tracking_postprocessor_heatmap, {{"transmitter", "yolo_input"}});
-    add_flow(heatmap_ess, tracking_postprocessor_heatmap, {{"output", "image"}});
-
-    add_flow(tracking_postprocessor_heatmap, merger, {{"output", "input1"}});
-    add_flow(tracking_postprocessor, merger, {{"output", "input2"}});
-    add_flow(merger, holoviz, {{"output", "receivers"}});
     add_flow(heatmap_ess, holoviz, {{"output", "receivers"}});
   }
 };

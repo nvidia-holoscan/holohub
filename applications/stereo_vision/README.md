@@ -6,12 +6,11 @@
 
 ## Overview
 
-A demo pipeline showcasing stereo disparity estimation and object detection.
+A demo pipeline showcasing stereo disparity estimation.
 
 ## Description
 
-This pipeline takes video from a stereo camera and estimates disparity using DNN ESS and object
-detection using YOLO. The disparity maps and bounding boxes are displayed through Holoviz.
+This pipeline takes video from a stereo camera and estimates disparity using DNN ESS. The disparity map is displayed through Holoviz.
 
 ## Requirements
 
@@ -39,18 +38,12 @@ using. This can be found using `v4l2-ctl --list-devices`.
 
 ## Models
 
-This demo requires the ESS DNN Stereo Disparity available from the NGC catalog for disparity and the
-YOLOv8 onnx model for object detection. Both models are downloaded when you build the application.
+This demo requires the ESS DNN Stereo Disparity available from the NGC catalog for disparity estimation. This model is downloaded when you build the application.
 
 ### ESS DNN
 
 The ESS engine files generated in this demo application is specific to TRT8.6; make sure
 you build the devcontainer with a compatible `base_img` as shown in the <b>Build and Run Instructions</b> section.
-
-### YOLOv8
-
-For object detection, a YOLOv8 model from [Ultralytics](https://docs.ultralytics.com/models/yolov8/) is used
-and exported to ONNX with non-max suppression plugin as mentioned [here](https://github.com/triple-Mu/YOLOv8-TensorRT).
 
 ## Build and Run Instructions
 

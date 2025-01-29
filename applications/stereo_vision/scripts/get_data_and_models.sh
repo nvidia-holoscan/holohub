@@ -20,20 +20,6 @@ fi
 
 SCRIPTDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-#get the yolo model from ultralytics
-mkdir -p $1/source/yolo
-cd $1/source/yolo
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
-#add the non-maximum suspression and export an onnx file usable by the inference operator
-git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git
-pip install onnx torch ultralytics onnx_graphsurgeon
-python3 YOLOv8-TensorRT/export-det.py --weights yolov8s.pt --iou-thres 0.65 --conf-thres 0.25 --topk 100 --opset 11 --sim --input-shape 1 3 640 640 --device cuda:0
-
-# Download graph_surgeon script
-wget --content-disposition 'https://raw.githubusercontent.com/nvidia-holoscan/holoscan-sdk/refs/tags/v2.8.1/scripts/graph_surgeon.py' -O $SCRIPTDIR/graph_surgeon.py
-python3 "$SCRIPTDIR/graph_surgeon.py" "$1/source/yolo/yolov8s.onnx" "$1/yolov8-nms-update.onnx"
-rm $SCRIPTDIR/graph_surgeon.py
-
 #get the ess and tao converter from ngc to produce engine file for ess stereo matching
 mkdir -p $1/source/ess
 cd $1/source/ess
