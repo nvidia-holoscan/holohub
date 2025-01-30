@@ -24,7 +24,7 @@
 namespace holoscan::ops {
 
 // Makes an RGB U8 heatmap from a float32 grayscale image.
-// Heatmap is scaled from min_disp_ to max_disp_ parameters. 
+// Heatmap is scaled from min_disp_ to max_disp_ parameters.
 class HeatmapOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(HeatmapOp);

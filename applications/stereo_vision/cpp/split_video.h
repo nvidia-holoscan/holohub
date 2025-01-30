@@ -25,7 +25,7 @@ namespace holoscan::ops {
 #define STEREO_VIDEO_HORIZONTAL 0
 #define STEREO_VIDEO_VERTICAL 1
 
-//splits a horizontally or vertically stacked stereo video into two video streams
+// splits a horizontally or vertically stacked stereo video into two video streams
 class SplitVideoOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(SplitVideoOp);
@@ -37,7 +37,7 @@ class SplitVideoOp : public Operator {
   Parameter<int> stereo_video_layout_;
 };
 
-//combines two videos into a single horizontally or vertically stacked video
+// combines two videos into a single horizontally or vertically stacked video
 class MergeVideoOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(MergeVideoOp);

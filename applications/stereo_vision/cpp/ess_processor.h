@@ -39,7 +39,7 @@ class ESSPreprocessorOp : public Operator {
   Parameter<int> height_;
 };
 
-// Masks low confidence pixes and resizes and rescales the disparity map to the desired resolution.
+// Masks low confidence pixels and resizes and rescales the disparity map to the desired resolution.
 class ESSPostprocessorOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(ESSPostprocessorOp);
