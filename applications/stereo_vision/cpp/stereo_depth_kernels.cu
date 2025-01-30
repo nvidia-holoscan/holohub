@@ -74,58 +74,6 @@ void heatmapF32(float* grayscale, uint8_t* rgb, float min_val, float max_val, ui
   heatmapF32Kernel<<<launch_grid, block_dim, 0, stream>>>(
       grayscale, rgb, min_val, inv_window, width, height);
 }
-
-__global__ void drawBBKernel(uint8_t* rgb, int32_t* num_detections, float* detection_boxes,
-                             float* detection_scores, float min_score, uint32_t width,
-                             uint32_t height, float sx, float sy) {
-  uint32_t nx = blockIdx.x * blockDim.x + threadIdx.x;
-  uint32_t ny = blockIdx.y * blockDim.y + threadIdx.y;
-  if (nx < width & ny < height) {
-    float ix = nx * sx;
-    float iy = ny * sy;
-    for (int32_t i = 0; i < num_detections[0]; i++) {
-      if (detection_scores[i] > min_score) {
-        if (fabsf(ix - detection_boxes[4 * i + 0]) < (2 * sx) && iy >= detection_boxes[4 * i + 1] &&
-            iy <= detection_boxes[4 * i + 3]) {
-          int tid = 3 * (nx + ny * width);
-          rgb[tid] = 0;
-          rgb[tid + 1] = 255;
-          rgb[tid + 2] = 0;
-        } else if (fabsf(ix - detection_boxes[4 * i + 2]) < (2 * sx) &&
-                   iy >= detection_boxes[4 * i + 1] && iy <= detection_boxes[4 * i + 3]) {
-          int tid = 3 * (nx + ny * width);
-          rgb[tid] = 0;
-          rgb[tid + 1] = 255;
-          rgb[tid + 2] = 0;
-        } else if (fabsf(iy - detection_boxes[4 * i + 1]) < (2 * sy) &&
-                   ix >= detection_boxes[4 * i + 0] && ix <= detection_boxes[4 * i + 2]) {
-          int tid = 3 * (nx + ny * width);
-          rgb[tid] = 0;
-          rgb[tid + 1] = 255;
-          rgb[tid + 2] = 0;
-        } else if (fabsf(iy - detection_boxes[4 * i + 3]) < (2 * sy) &&
-                   ix >= detection_boxes[4 * i + 0] && ix <= detection_boxes[4 * i + 2]) {
-          int tid = 3 * (nx + ny * width);
-          rgb[tid] = 0;
-          rgb[tid + 1] = 255;
-          rgb[tid + 2] = 0;
-        }
-      }
-    }
-  }
-}
-
-void drawBB(uint8_t* rgb, int32_t* num_detections, float* detection_boxes, float* detection_scores,
-            float min_score, uint32_t width, uint32_t height, uint32_t detection_width,
-            uint32_t detection_height, cudaStream_t stream) {
-  float sx = static_cast<float>(detection_width) / static_cast<float>(width);
-  float sy = static_cast<float>(detection_height) / static_cast<float>(height);
-  const dim3 block_dim(32, 32);
-  const dim3 launch_grid((width + (block_dim.x - 1)) / block_dim.x,
-                         (height + (block_dim.y - 1)) / block_dim.y);
-  drawBBKernel<<<launch_grid, block_dim, 0, stream>>>(
-      rgb, num_detections, detection_boxes, detection_scores, min_score, width, height, sx, sy);
-}
 __global__ void confidenceMaskKernel(int16_t* disp, uint16_t* confidence, uint16_t thres,
                                      uint32_t width, uint32_t height) {
   uint32_t nx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -213,26 +161,4 @@ void preprocessESS(uint8_t* input, float* output, uint32_t input_width, uint32_t
                          (output_height + (block_dim.y - 1)) / block_dim.y);
   preprocessESSKernel<<<launch_grid, block_dim, 0, stream>>>(
       input, output, input_width, input_height, input_channels, output_width, output_height);
-}
-
-__global__ void shiftU16ToU8Kernel(uint16_t* input, uint8_t* output, int width, int height,
-                                   int nChannels) {
-  uint32_t nx = blockIdx.x * blockDim.x + threadIdx.x;
-  uint32_t ny = blockIdx.y * blockDim.y + threadIdx.y;
-  if (nx < width & ny < height) {
-    for (int n = 0; n < nChannels; n++) {
-      size_t tid = nChannels * (nx + ny * width) + n;
-      uint16_t res = input[tid] >> 8;
-      output[tid] = static_cast<uint8_t>(res);
-    }
-  }
-}
-
-void shiftU16ToU8(uint16_t* input, uint8_t* output, int width, int height, int nChannels,
-                  cudaStream_t stream) {
-  const dim3 block_dim(32, 32);
-  const dim3 launch_grid((width + (block_dim.x - 1)) / block_dim.x,
-                         (height + (block_dim.y - 1)) / block_dim.y);
-  shiftU16ToU8Kernel<<<launch_grid, block_dim, 0, stream>>>(
-      input, output, width, height, nChannels);
 }

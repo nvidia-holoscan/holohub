@@ -34,11 +34,4 @@ void preprocessESS(uint8_t* input, float* output, uint32_t input_width, uint32_t
                    uint32_t input_channels, uint32_t output_width, uint32_t output_height,
                    cudaStream_t stream);
 
-void shiftU16ToU8(uint16_t* input, uint8_t* output, int width, int height, int nChannels,
-                  cudaStream_t stream);
-
-void drawBB(uint8_t* rgb, int32_t* num_detections, float* detection_boxes, float* detection_scores,
-            float min_score, uint32_t width, uint32_t height, uint32_t detection_width,
-            uint32_t detection_height, cudaStream_t stream);
-
 #endif

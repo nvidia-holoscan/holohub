@@ -18,12 +18,6 @@
 #include "split_video.h"
 #include <npp.h>
 #include <gxf/std/tensor.hpp>
-#if __has_include("gxf/std/dlpack_utils.hpp")
-#define GXF_HAS_DLPACK_SUPPORT 1
-#else
-#define GXF_HAS_DLPACK_SUPPORT 0
-#include <holoscan/core/gxf/gxf_tensor.hpp>
-#endif
 
 namespace holoscan::ops {
 

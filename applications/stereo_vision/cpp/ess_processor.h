@@ -25,6 +25,8 @@
 
 namespace holoscan::ops {
 
+// Takes two RGB or RGBA U8 images and prepares them for the ESS inference model.
+// The images are converted to float, resized and changed to NxCxHxW format.
 class ESSPreprocessorOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(ESSPreprocessorOp);
@@ -37,6 +39,7 @@ class ESSPreprocessorOp : public Operator {
   Parameter<int> height_;
 };
 
+// Masks low confidence pixes and resizes and rescales the disparity map to the desired resolution.
 class ESSPostprocessorOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(ESSPostprocessorOp);
@@ -47,14 +50,6 @@ class ESSPostprocessorOp : public Operator {
  private:
   Parameter<int> width_;
   Parameter<int> height_;
-};
-
-class ShiftU16ToU8Op : public Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(ShiftU16ToU8Op);
-  ShiftU16ToU8Op() = default;
-  void setup(OperatorSpec& spec) override;
-  void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 };
 
 }  // namespace holoscan::ops

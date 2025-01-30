@@ -34,7 +34,6 @@
 #include "heat_map.h"
 #include "split_video.h"
 #include "stereo_depth_kernels.h"
-#include "tracking_postprocessor.h"
 #include "undistort_rectify.h"
 
 class StereoDepthApp;
@@ -129,8 +128,6 @@ class StereoDepthApp : public holoscan::Application {
     rectifier2->setRectificationMap(rectification_map2);
 
     auto holoviz = make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"));
-    auto merger = make_operator<ops::MergeVideoOp>(
-        "merger", Arg("stereo_video_layout", STEREO_VIDEO_HORIZONTAL));
 
     auto ess_preprocessor =
         make_operator<ops::ESSPreprocessorOp>("ess_preprocessor", from_config("ess_preprocessor"));

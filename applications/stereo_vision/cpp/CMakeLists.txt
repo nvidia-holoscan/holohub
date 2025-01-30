@@ -36,7 +36,6 @@ add_executable(stereo_depth
   stereo_depth_kernels.cu
   crop.cpp
   ess_processor.cpp
-  tracking_postprocessor.cpp
 )
 target_link_libraries(stereo_depth
   PRIVATE
