@@ -18,14 +18,8 @@
 #ifndef HOLOSCAN_OPERATORS_AJA_SOURCE_AJA_SOURCE_HPP
 #define HOLOSCAN_OPERATORS_AJA_SOURCE_AJA_SOURCE_HPP
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
-// AJA headers are not clean C++ and generate warnings
-// when compiled with -Werror.
-// Since ajantv2 is 3rd party code, we disable the warning for now.
 #include <ajantv2/includes/ntv2card.h>
 #include <ajantv2/includes/ntv2devicescanner.h>
-#pragma GCC diagnostic pop
 #include <ajantv2/includes/ntv2enums.h>
 
 #include <string>
@@ -43,41 +37,21 @@ namespace holoscan::ops {
 /**
  * @brief Operator class to get the video stream from AJA capture card.
  *
- * ==Named Inputs==
+ * **Named inputs:**
+ *     - *overlay_buffer_input*: `nvidia::gxf::VideoBuffer` (optional)
+ *         - The operator does not require a message on this input port in order for ``compute`` to
+ *         be called. If a message is found, and `enable_overlay` is true, the image will be
+ *         mixed with the image captured by the AJA card. If `enable_overlay` is false, any message
+ *         on this port will be ignored.
  *
- * - **overlay_buffer_input** : `nvidia::gxf::VideoBuffer` (optional)
- *   - The operator does not require a message on this input port in order for `compute` to
- *     be called. If a message is found, and `enable_overlay` is true, the image will be
- *     mixed with the image captured by the AJA card. If `enable_overlay` is false, any message
- *     on this port will be ignored.
- *
- * ==Named Outputs==
- *
- * - **video_buffer_output** : `nvidia::gxf::VideoBuffer`
- *   - The output video frame from the AJA capture card. If `overlay_rdma` is true, this
- *     video buffer will be on the device, otherwise it will be in pinned host memory.
- * - **overlay_buffer_output** : `nvidia::gxf::VideoBuffer` (optional)
- *   - This output port will only emit a video buffer when `enable_overlay` is true. If
- *     `overlay_rdma` is true, this video buffer will be on the device, otherwise it will be
- *     in pinned host memory.
- *
- * ==Parameters==
- *
- * - **device**: The device to target (e.g., "0" for device 0). Optional (default: "0").
- * - **channel**: The camera `NTV2Channel` to use for output (e.g., `NTV2Channel::NTV2_CHANNEL1`
- *   (`0`) or "NTV2_CHANNEL1" (in YAML) for the first channel). Optional (default:
- *   `NTV2Channel::NTV2_CHANNEL1` in C++ or `"NTV2_CHANNEL1"` in YAML).
- * - **width**: Width of the video stream. Optional (default: `1920`).
- * - **height**: Height of the video stream. Optional (default: `1080`).
- * - **framerate**: Frame rate of the video stream. Optional (default: `60`).
- * - **interlaced**: Whether the frame is interlaced (true) or progressive (false). Optional (default: `false`).
- * - **rdma**: Boolean indicating whether RDMA is enabled. Optional (default: `false`).
- * - **enable_overlay**: Boolean indicating whether a separate overlay channel is enabled. Optional
- *   (default: `false`).
- * - **overlay_channel**: The camera `NTV2Channel` to use for overlay output. Optional (default:
- *   `NTV2Channel::NTV2_CHANNEL2` in C++ or `"NTV2_CHANNEL2"` in YAML).
- * - **overlay_rdma**: Boolean indicating whether RDMA is enabled for the overlay. Optional
- *   (default: `true`).
+ * **Named outputs:**
+ *     - *video_buffer_output*: `nvidia::gxf::VideoBuffer`
+ *         - The output video frame from the AJA capture card. If ``overlay_rdma`` is true, this
+ *         video buffer will be on the device, otherwise it will be in pinned host memory.
+ *     - *overlay_buffer_output*: `nvidia::gxf::VideoBuffer` (optional)
+ *         - This output port will only emit a video buffer when ``enable_overlay`` is true. If
+ *         ``overlay_rdma`` is true, this video buffer will be on the device, otherwise it will be
+ *         in pinned host memory.
  */
 class AJASourceOp : public holoscan::Operator {
  public:
@@ -110,7 +84,6 @@ class AJASourceOp : public holoscan::Operator {
   Parameter<uint32_t> width_;
   Parameter<uint32_t> height_;
   Parameter<uint32_t> framerate_;
-  Parameter<bool> interlaced_;
   Parameter<bool> use_rdma_;
   Parameter<bool> enable_overlay_;
   Parameter<NTV2Channel> overlay_channel_;
@@ -121,7 +94,7 @@ class AJASourceOp : public holoscan::Operator {
   // internal state
   CNTV2Card device_;
   NTV2DeviceID device_id_ = DEVICE_ID_NOTFOUND;
-  NTV2VideoFormat video_format_ = NTV2_FORMAT_UNKNOWN;
+  NTV2VideoFormat video_format_ = NTV2_FORMAT_1080p_6000_A;
   NTV2PixelFormat pixel_format_ = NTV2_FBF_ABGR;
   bool use_tsi_ = false;
   bool is_kona_hdmi_ = false;
