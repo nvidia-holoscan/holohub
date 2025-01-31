@@ -1,5 +1,9 @@
 # VPI Stereo Vision
 
+<p align="center">
+  <img src="./images/vpi_stereo.gif" alt="Stereo vision using VPI">
+</p>
+
 ## Overview
 
 Demo pipeline showing stereo disparity estimation using the
