@@ -33,7 +33,6 @@ if(BUILD_TESTING)
 
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT ultrasound_segmentation_test.py
-  PRE_LINK
   COMMAND patch -u -o ultrasound_segmentation_test.py ${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.py
       ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/python_ultrasound_segmentation.patch
   COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" ultrasound_segmentation_test.py

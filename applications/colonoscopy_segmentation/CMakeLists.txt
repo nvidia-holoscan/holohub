@@ -52,7 +52,6 @@ if(BUILD_TESTING)
 
     # Patch the current example to enable recording the rendering window
     add_custom_command(OUTPUT colonoscopy_segmentation_test.py
-    PRE_LINK
     COMMAND patch -u -o colonoscopy_segmentation_test.py ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py
         ${CMAKE_SOURCE_DIR}/applications/colonoscopy_segmentation/testing/colonoscopy_segmentation.patch
     COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" colonoscopy_segmentation_test.py

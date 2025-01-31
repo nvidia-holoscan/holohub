@@ -64,7 +64,6 @@ if(BUILD_TESTING)
 
     # Patch the current example to enable recording the rendering window
     add_custom_command(OUTPUT main_test.cpp
-    PRE_LINK
     COMMAND patch -u -o main_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/cpp_ultrasound_segmentation.patch
     COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" main_test.cpp
