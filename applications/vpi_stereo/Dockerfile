@@ -83,24 +83,24 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-# Add CUDA packages to library path
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.6/targets/aarch64-linux/lib/
+# On Holoscan versions earlier than 2.8, this envar avoids issues with V4L capture source
+ENV LIBV4L2_ENABLE_RTLD_NODELETE=1
 
 # Set up the Jetson repository to fetch the VPI packages
 RUN apt update \
     && apt install -y gnupg software-properties-common
 RUN apt-key adv --fetch-key https://repo.download.nvidia.com/jetson/jetson-ota-public.asc
 
-# Select the correct repo for the platform
-RUN ARCH="$(uname -m)"; \
-    if [ "$ARCH" = "x86_64" ]; then \
+# Select the correct repo for the target platform
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
       add-apt-repository 'deb https://repo.download.nvidia.com/jetson/x86_64/jammy r36.4 main'; \
-    elif [ "$ARCH" = "aarch64" ]; then \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
       add-apt-repository 'deb https://repo.download.nvidia.com/jetson/common r36.4 main'; \
       apt-get update \
         && apt install -y libnpp-12-6 libcufft-12-6 cuda-cudart-12-6 libegl1-mesa; \
     else \
-      echo "$ARCH Platform Unknown!" && false; \
+      echo "Unknown target: $TARGETARCH" && false; \
     fi
 
 # Install VPI

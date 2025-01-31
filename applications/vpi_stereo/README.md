@@ -15,6 +15,10 @@ This pipeline takes video from a stereo camera and uses VPI's
 [stereo disparity estimation algorithm](https://docs.nvidia.com/vpi/algo_stereo_disparity.html).
 The input video and estimate disparity map are displayed using Holoviz.
 
+The application will select accelerator backends if available (OFA, PVA and VIC). This demonstrates
+how VPI can be used to offload stereo disparity processing from the GPU on supported devices such as
+NVIDIA IGX, AGX, or NX platforms.
+
 ## Input Video
 
 Requires a V4L2 stereo camera or recorded stereo video. See the [stereo_vision](../stereo_vision/)
@@ -25,19 +29,11 @@ application uses /dev/video3 as input device.
 ## Requirements
 
 This demo requires VPI version 3.2 or greater. The included Dockerfile will install VPI and its
-dependencies for either an x86_64 host (with NVIDIA GPU), or aarch64 host (NVIDIA IGX, NX or AGX).
+dependencies for either an amd64 target (with discrete NVIDIA GPU), or arm64 target (NVIDIA IGX,
+AGX, or NX).
 
 ## Build and Run Instructions
 
 ```sh
-./dev_container build_and_run vpi_stereo --docker_file ./applications/vpi_stereo/Dockerfile
+./dev_container build_and_run vpi_stereo
 ```
-
-### Troubleshooting
-
-If you see an error like this on IGX/AGX/NX platform:
-```
-Caught signal 11 (Segmentation fault: address not mapped to object at address 0x1c09)
-```
-It could be due to a known issue with Holoscan container version less than 2.8. To workaround, add
-this argument to the build_and_run command: `--container_args " -e LIBV4L2_ENABLE_RTLD_NODELETE=1"`
