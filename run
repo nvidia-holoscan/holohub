@@ -342,6 +342,13 @@ setup() {
     apt-get install --no-install-recommends -y git
   fi
 
+  # unzip
+  unzip_path=$(which unzip)
+  if [[ $unzip_path == "" ]]; then
+    echo "Installing unzip"
+    apt-get install --no-install-recommends -y unzip
+  fi
+
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
   if [[ $ngc_version == "" ]]; then
