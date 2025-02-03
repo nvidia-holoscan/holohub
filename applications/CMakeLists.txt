@@ -90,6 +90,14 @@ add_holohub_application(network_radar_pipeline DEPENDS
                         OPERATORS basic_network
                                   advanced_network)
 
+add_holohub_application(psd_pipeline DEPENDS
+                        OPERATORS advanced_network
+                                  fft
+                                  high_rate_psd
+                                  low_rate_psd
+                                  vita49_psd_packetizer
+                                  data_writer)
+
 add_holohub_application(ultrasound_segmentation)
 
 add_holohub_application(velodyne_lidar_app DEPENDS
