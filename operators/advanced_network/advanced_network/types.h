@@ -28,7 +28,7 @@
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/udp.h>
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 
 namespace holoscan::advanced_network {
 
@@ -43,10 +43,32 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
 
 
 /**
- * @brief Header of BurstParams
+ * Opcodes for ANO
+*/
+
+enum class AdvNetOpCode {
+  SEND,
+  RECEIVE,
+  RDMA_WRITE,
+  RDMA_WRITE_IMM,  
+  RDMA_READ,
+};
+
+struct AdvNetRdmaHdr {
+  std::string  local_mr_name;
+  std::string  remote_mr_name;
+  void        *raddr;
+  uint64_t     dst_key;
+  uint32_t     imm;
+};
+
+/**
+ * @brief Header of AdvNetBurstParams
  *
  */
 struct BurstHeaderParams {
+  uint8_t version;
+  AdvNetOpCode  opcode;  
   size_t num_pkts;
   uint16_t port_id;
   uint16_t q_id;
@@ -57,6 +79,7 @@ struct BurstHeaderParams {
   uint32_t max_pkt_size;
   uint32_t gpu_pkt0_idx;
   uintptr_t gpu_pkt0_addr;
+  AdvNetRdmaHdr rdma;
 };
 
 struct BurstHeader {
@@ -75,7 +98,7 @@ struct BurstParams {
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
   void** pkt_extra_info;
-  cudaEvent_t event;
+  //cudaEvent_t event;
 };
 
 // Example IPV4 UDP packet using Linux headers
@@ -172,11 +195,13 @@ enum class ManagerType {
   DPDK,
   DOCA,
   RIVERMAX,
+  RDMA,
 };
 
 static constexpr const char* ANO_MGR_STR__DPDK = "dpdk";
 static constexpr const char* ANO_MGR_STR__GPUNETIO = "gpunetio";
 static constexpr const char* ANO_MGR_STR__RIVERMAX = "rivermax";
+static constexpr const char* ANO_MGR_STR__RDMA = "RDMA";
 static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
 
 /**
@@ -188,6 +213,7 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
 inline ManagerType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
   if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
+  if (str == ANO_MGR_STR__RDMA) return AnoMgrType::RDMA;
   if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
   if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
   throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
@@ -211,12 +237,58 @@ inline std::string manager_type_to_string(ManagerType type) {
       return ANO_MGR_STR__GPUNETIO;
     case ManagerType::RIVERMAX:
       return ANO_MGR_STR__RIVERMAX;
-    case ManagerType::DEFAULT:
+    case AnoMgrType::RDMA:
+      return ANO_MGR_STR__RDMA;      
+    case AnoMgrType::DEFAULT:
       return ANO_MGR_STR__DEFAULT;
     default:
       return "unknown";
   }
 }
+
+enum class RDMAMode {
+  CLIENT,
+  SERVER,
+
+  INVALID
+};
+
+inline RDMAMode GetRDMAModeFromString(const std::string &mode_str) {
+  if (mode_str == "client") {
+    return RDMAMode::CLIENT;
+  }
+  else if (mode_str == "server") {
+    return RDMAMode::SERVER;
+  }
+
+  return RDMAMode::INVALID;
+}
+
+enum class RDMATransportMode {
+  RC,
+  UC,
+  UD,
+
+  INVALID
+};
+
+inline RDMATransportMode GetRDMATransportModeFromString(const std::string &mode_str) {
+  if (mode_str == "RC") {
+    return RDMATransportMode::RC;
+  }
+  else if (mode_str == "UC") {
+    return RDMATransportMode::UC;
+  }
+
+  return RDMATransportMode::INVALID;
+}
+
+
+struct RDMAConfig {
+  RDMAMode mode_ = RDMAMode::INVALID;
+  RDMATransportMode xmode_ = RDMATransportMode::INVALID;
+};
+
 class LogLevel {
  public:
   enum Level {
@@ -307,6 +379,7 @@ struct CommonQueueConfig {
 
 struct MemoryRegionConfig {
   std::string name_;
+  std::string if_name_;
   MemoryKind kind_;
   uint16_t affinity_;
   uint32_t access_;
@@ -375,6 +448,7 @@ struct InterfaceConfig {
   std::string name_;
   std::string address_;
   uint16_t port_id_;
+  RDMAConfig rdma_;
   RxConfig rx_;
   TxConfig tx_;
 };

@@ -601,14 +601,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
-
+          ifcfg.port_id_ = port++;
+          ifcfg.rdma_.mode_    = holoscan::ops::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
+          ifcfg.rdma_.xmode_   = holoscan::ops::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
+          
           try {
             const auto& rx = intf["rx"];
             holoscan::advanced_network::RxConfig rx_cfg;
 
             try {
               rx_cfg.flow_isolation_ = rx["flow_isolation"].as<bool>();
-            } catch (const std::exception& e) { rx_cfg.flow_isolation_ = false; }
+            } catch (const std::exception& e) { rx_cfg.flow_isolation_ = false; }             
 
             for (const auto& q_item : rx["queues"]) {
               holoscan::advanced_network::RxQueueConfig q;

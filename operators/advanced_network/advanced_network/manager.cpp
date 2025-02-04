@@ -114,7 +114,7 @@ template ManagerType ManagerFactory::get_manager_type<Config>(const Config&);
 
 Status Manager::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
-#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
+#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO || ANO_MGR_RDMA
   for (auto& mr : cfg_.mrs_) {
     void* ptr;
     AllocRegion ar;

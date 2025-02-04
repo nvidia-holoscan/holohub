@@ -52,9 +52,4 @@ else() # Upstream DPDK
   )
 endif()
 
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "80;90")
-
-
 target_compile_options(${PROJECT_NAME}  PUBLIC ${DPDK_CFLAGS})
