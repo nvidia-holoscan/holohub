@@ -21,8 +21,8 @@ add_executable(aja_capture
 target_link_libraries(aja_capture
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::holoviz
+  holoscan::aja
 )
 
 # Copy config file
@@ -70,11 +70,11 @@ if(BUILD_TESTING)
   target_link_libraries(aja_capture_test
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::holoviz
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
+    holoscan::aja
   )
 
   # Add the test and make sure it runs

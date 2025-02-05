@@ -27,12 +27,12 @@ add_executable(multiai_endoscopy
 target_link_libraries(multiai_endoscopy
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::format_converter
   holoscan::ops::inference
   holoscan::ops::segmentation_postprocessor
   holoscan::ops::holoviz
+  holoscan::aja
 )
 
 # Download the associated dataset if needed
@@ -80,13 +80,13 @@ if(BUILD_TESTING)
   target_link_libraries(multiai_endoscopy_cpp_test
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
     holoscan::ops::holoviz
+    holoscan::aja
   )
 
   # Add the test and make sure it runs
