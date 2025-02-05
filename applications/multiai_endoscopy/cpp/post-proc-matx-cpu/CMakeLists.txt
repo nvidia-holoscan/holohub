@@ -44,12 +44,12 @@ add_executable(multi_ai
 target_link_libraries(multi_ai
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::format_converter
   holoscan::ops::inference
   holoscan::ops::segmentation_postprocessor
   holoscan::ops::holoviz
+  holoscan::aja
   matx::matx
 )
 

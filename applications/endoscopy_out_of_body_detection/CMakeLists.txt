@@ -28,11 +28,11 @@ add_executable(endoscopy_out_of_body_detection
 target_link_libraries(endoscopy_out_of_body_detection
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
+    holoscan::aja
 )
 
 # Download the associated dataset if needed

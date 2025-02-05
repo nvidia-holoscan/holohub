@@ -26,12 +26,12 @@ add_executable(ultrasound_segmentation
 target_link_libraries(ultrasound_segmentation
    PRIVATE
    holoscan::core
-   holoscan::ops::aja
    holoscan::ops::video_stream_replayer
    holoscan::ops::format_converter
    holoscan::ops::inference
    holoscan::ops::segmentation_postprocessor
    holoscan::ops::holoviz
+   holoscan::aja
 )
 
 # Download the associated dataset if needed
@@ -78,13 +78,13 @@ if(BUILD_TESTING)
   target_link_libraries(ultrasound_segmentation_cpp_test
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
     holoscan::ops::holoviz
+    holoscan::aja
   )
 
   # Add the test and make sure it runs
