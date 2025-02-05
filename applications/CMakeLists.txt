@@ -68,7 +68,7 @@ add_subdirectory(laser_detection_latency)
 
 add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
 
-add_holohub_application(multiai_ultrasound OPERATORS aja_source)
+add_holohub_application(multiai_ultrasound DEPENDS OPERATORS aja_source)
 
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS

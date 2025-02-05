@@ -43,7 +43,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --source aja --data <holohub_data_dir>/endoscopy",
+			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
 		}
 	}

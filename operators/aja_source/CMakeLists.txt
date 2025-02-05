@@ -38,9 +38,6 @@ FetchContent_MakeAvailable(ajantv2)
 # Disable all the warnings for AJA
 target_compile_options(ajantv2 PRIVATE -w)
 
-#set_target_properties(ajantv2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
-# ajantv2 is a static library so we do not need to install it.
-
 add_library(AJA::ajantv2 ALIAS ajantv2)
 
 add_library(aja_source SHARED

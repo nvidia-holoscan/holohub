@@ -16,9 +16,9 @@
  */
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#include <aja_source.hpp>
 class App : public holoscan::Application {
  public:
   void compose() override {
