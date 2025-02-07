@@ -85,6 +85,12 @@ add_custom_target(adv_networking_bench_rmax_rx_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
 
+add_custom_target(adv_networking_bench_rdma_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_rdma_tx_rx_yaml)
+
 # Installation
 install(TARGETS adv_networking_bench
         DESTINATION examples/adv_networking_bench
@@ -97,6 +103,7 @@ install(
     ../adv_networking_bench_default_rx_multi_q.yaml
     ../adv_networking_bench_gpunetio_tx_rx.yaml
     ../adv_networking_bench_rmax_rx.yaml
+    ../adv_networking_bench_rdma_tx_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE

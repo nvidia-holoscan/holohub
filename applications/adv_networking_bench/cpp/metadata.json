@@ -31,7 +31,7 @@
 			}]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/adv_networking_bench adv_networking_bench_default_tx_rx.yaml",
+			"command": "<holohub_app_bin>/adv_networking_bench",
 			"workdir": "holohub_bin"
 		}
 	}

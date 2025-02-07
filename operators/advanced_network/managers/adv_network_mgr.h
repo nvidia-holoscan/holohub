@@ -78,7 +78,7 @@ class ANOMgr {
   virtual AdvNetStatus get_mac(int port, char* mac) = 0;
   virtual int address_to_port(const std::string& addr) = 0;
   virtual bool validate_config() const;
-  std::string get_intf_from_mr(const std::string &mr_name);
+  int get_intf_from_mr(const std::string &mr_name);
 
   virtual ~ANOMgr() = default;
 

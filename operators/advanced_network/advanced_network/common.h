@@ -657,8 +657,13 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
             }
 
             ifcfg.tx_ = tx_cfg;
+<<<<<<< HEAD:operators/advanced_network/advanced_network/common.h
           } catch (const std::exception& e) {}  // No TX queues defined for this interface.
 
+=======
+          }
+printf("pushing back\n");
+>>>>>>> c5ad71f6 (More RDMA progress):operators/advanced_network/adv_network_common.h
           input_spec.ifs_.push_back(ifcfg);
         }
       } catch (const std::exception& e) {

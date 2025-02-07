@@ -22,6 +22,10 @@
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
+#if ANO_MGR_RDMA
+#include "rdma_bench_sender.h"
+#include "rdma_bench_client.h"
+#endif
 #include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
@@ -39,6 +43,7 @@ class App : public holoscan::Application {
     }
 
     HOLOSCAN_LOG_INFO("Initialized advanced network operator");
+    const auto [rdma_server_en, rdma_client_en] = holoscan::ops::adv_net_get_rdma_cfg_en(config());
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
 
@@ -98,6 +103,39 @@ class App : public holoscan::Application {
       }
 #else
       HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend is not supported");
+      exit(1);
+#endif
+    } else if (mgr_type == holoscan::ops::AnoMgrType::RDMA) {
+#if ANO_MGR_RDMA
+      auto adv_net_rx = make_operator<holoscan::ops::AdvNetworkOpRx>(
+          "adv_network_rx",
+          output_rx_ports,
+          from_config("advanced_network"),
+          make_condition<BooleanCondition>("is_alive", true));
+      auto adv_net_tx =
+          make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
+
+      if (rdma_server_en) {
+        auto bench_server = make_operator<ops::AdvNetworkingRdmaServerOp>(
+            "bench_tx",
+            from_config("bench_tx"),
+            make_condition<BooleanCondition>("is_alive", true));
+
+        add_flow(adv_net_rx, bench_server, {{ "bench_rx_out", "rdma_in" }});
+        add_flow(bench_server, adv_net_tx, {{ "rdma_out", "burst_in" }});
+      }
+
+      if (rdma_client_en) {
+        auto bench_client = make_operator<ops::AdvNetworkingRdmaClientOp>(
+            "bench_tx",
+            from_config("bench_tx"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_flow(adv_net_rx, bench_client, {{ "bench_rx_out", "rdma_in" }});
+        add_flow(bench_client, adv_net_tx, {{ "rdma_out", "burst_in" }});
+      }
+
+#else
+      HOLOSCAN_LOG_ERROR("RDMA ANO manager/backend is not supported");
       exit(1);
 #endif
     } else {
