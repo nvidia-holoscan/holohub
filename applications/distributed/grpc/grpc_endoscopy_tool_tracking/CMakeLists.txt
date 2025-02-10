@@ -16,6 +16,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(grpc_endoscopy_tool_tracking LANGUAGES NONE)
 
+# Default to download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
 # Download the endoscopy sample data
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
@@ -32,3 +35,4 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 endif()
 
 add_subdirectory(cpp)
+add_subdirectory(python)
