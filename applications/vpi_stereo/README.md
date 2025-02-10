@@ -21,10 +21,8 @@ NVIDIA IGX, AGX, or NX platforms.
 
 ## Input Video
 
-Requires a V4L2 stereo camera or recorded stereo video. See the [stereo_vision](../stereo_vision/)
-demo application for more information on how to obtain a stereo sample video, stereo camera
-calibration data, and how to set up a v4l2 loopback device. The default configuration file for this
-application uses /dev/video3 as input device.
+Requires a V4L2 stereo camera, or recorded stereo video, and matching calibration data. By default,
+the application will share the same source data as [stereo_vision](../stereo_vision/).
 
 ## Requirements
 
@@ -34,6 +32,11 @@ AGX, or NX).
 
 ## Build and Run Instructions
 
+Using default video source (same as stereo_vision application):
 ```sh
 ./dev_container build_and_run vpi_stereo
+```
+Using a v4l2 video source (live camera or loopback device):
+```sh
+./dev_container build_and_run vpi_stereo --run_args "--source v4l2"
 ```

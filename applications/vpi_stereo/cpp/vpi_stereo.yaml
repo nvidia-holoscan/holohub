@@ -45,6 +45,12 @@ heatmap:
   max_disp: 255.0
 
 # v4l2 source device
-source:
+v4l2:
    device: "/dev/video3"
-   # pass_through: true # TODO.. would be nice to avoid extra conversions and just read an NV12 stream direct from V4L
+
+replayer:
+  basename: "stereo-plants"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)

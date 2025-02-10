@@ -22,6 +22,7 @@
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include "crop.h"
 #include "heat_map.h"
@@ -32,23 +33,43 @@
 class VPIStereoApp : public holoscan::Application {
  private:
   std::string stereo_calibration_;
+  std::string source_;
+  std::string datapath_;
 
  public:
-  VPIStereoApp(std::string file) : stereo_calibration_(file) {};
+  void set_datapath(const std::string& path) { datapath_ = path; }
+
+  VPIStereoApp(std::string source, std::string file)
+      : source_(source), stereo_calibration_(file) {};
   void compose() override {
     using namespace holoscan;
 
-    bool useVPI = true;
-
     // video stream, format conversion, split single stereo video frame into left and right
     // frames.
-    auto source = make_operator<ops::V4L2VideoCaptureOp>(
-        "source",
-        from_config("source"),
-        Arg("allocator") = make_resource<UnboundedAllocator>("pool_v4l2"));
+    std::shared_ptr<Operator> video_source;
+    std::string source_output;
+    auto in_dtype = Arg("in_dtype", std::string("rgba8888"));
+
+    if (source_ == "v4l2") {
+      video_source = make_operator<ops::V4L2VideoCaptureOp>(
+          "source",
+          from_config("v4l2"),
+          Arg("allocator") = make_resource<UnboundedAllocator>("pool_v4l2"));
+      source_output = "signal";
+    } else if (source_ == "replayer") {
+      video_source = make_operator<ops::VideoStreamReplayerOp>(
+          "replayer",
+          from_config("replayer"),
+          Arg("directory", datapath_),
+          Arg("allocator") = make_resource<UnboundedAllocator>("pool_replayer"));
+      source_output = "output";
+      in_dtype = Arg("in_dtype", std::string("rgb888"));
+    } else {
+      throw std::runtime_error("Unsupported video source");
+    }
+
     auto v4l2_converter_pool =
         Arg("pool", make_resource<holoscan::UnboundedAllocator>("pool_v4l2"));
-    auto in_dtype = Arg("in_dtype", std::string("rgba8888"));
     /// TODO: VPI would prefer single channel 8b image or NV12, but neither the V4L2 capture or
     /// format converter can support that today.  VPI has RGBA8888 -> Mono format conversion support
     /// via CUDA or VIC, but RGB888 support only via CUDA.
@@ -123,7 +144,7 @@ class VPIStereoApp : public holoscan::Application {
     auto holoviz = make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"));
 
     // Rectification
-    add_flow(source, v4l2_converter, {{"signal", "source_video"}});
+    add_flow(video_source, v4l2_converter, {{source_output, "source_video"}});
     add_flow(v4l2_converter, splitter, {{"tensor", "input"}});
     add_flow(splitter, rectifier1, {{"output1", "input"}});
     add_flow(splitter, rectifier2, {{"output2", "input"}});
@@ -148,22 +169,39 @@ class VPIStereoApp : public holoscan::Application {
 };
 
 void print_usage() {
-  std::cout << "Usage: program [--config <config-file>] [--stereo <stereo-calibration-file>]\n";
+  std::cout << "Usage: program [--config <config-file>]\n"
+               "               [--source <v4l2|replayer>]\n"
+               "               [--data <data-directory>]\n"
+               "               [--stereo-calibration <stereo-calibration-file>]\n";
 }
 
-void parse_arguments(int argc, char* argv[], char*& config_file, char*& stereo_file) {
+void parse_arguments(int argc, char* argv[], std::string& data_path, std::string& config_file,
+                     std::string& source, std::string& stereo_file) {
   int option_index = 0;
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
-                                         {"stereo-calibration", required_argument, 0, 's'},
+                                         {"data", required_argument, 0, 'd'},
+                                         {"source", required_argument, 0, 's'},
+                                         {"stereo-calibration", required_argument, 0, 't'},
                                          {0, 0, 0, 0}};
 
   int c;
-  while ((c = getopt_long(argc, argv, "c:s:", long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "c:d:s:t:", long_options, &option_index)) != -1) {
     switch (c) {
       case 'c':
         config_file = optarg;
         break;
+      case 'd':
+        data_path = optarg;
+        break;
       case 's':
+        if (strcmp(optarg, "replayer") != 0 && strcmp(optarg, "v4l2") != 0) {
+          std::cerr << "Error: Invalid value for --source. Allowed values: {replayer, v4l2}.\n";
+          print_usage();
+          exit(1);
+        }
+        source = optarg;
+        break;
+      case 't':
         stereo_file = optarg;
         break;
       case '?':
@@ -177,27 +215,36 @@ void parse_arguments(int argc, char* argv[], char*& config_file, char*& stereo_f
 }
 
 int main(int argc, char** argv) {
-  char* config_file = nullptr;
-  char* stereo_cal = nullptr;
-  std::string stereo_cal_string;
-  std::string config_file_string;
-  parse_arguments(argc, argv, config_file, stereo_cal);
-  if (stereo_cal) {
-    stereo_cal_string = stereo_cal;
-  } else {
-    auto default_path = std::filesystem::canonical(argv[0]).parent_path();
-    default_path /= std::filesystem::path("stereo_calibration.yaml");
-    stereo_cal_string = default_path.string();
+  std::string data_directory, config_file, source, stereo_cal;
+
+  parse_arguments(argc, argv, data_directory, config_file, source, stereo_cal);
+
+  if (data_directory.empty()) {
+    auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
+    if (input_path != nullptr && input_path[0] != '\0') {
+      data_directory = std::string(input_path) + "/vpi_stereo";
+    } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/vpi_stereo")) {
+      data_directory = std::string((std::filesystem::current_path() / "data/vpi_stereo").c_str());
+    } else {
+      HOLOSCAN_LOG_ERROR(
+          "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
+      exit(1);
+    }
   }
-  if (config_file) {
-    config_file_string = config_file;
-  } else {
+
+  if (stereo_cal.empty()) { stereo_cal = data_directory + "/stereo_calibration.yaml"; }
+
+  if (config_file.empty()) {
     auto default_path = std::filesystem::canonical(argv[0]).parent_path();
     default_path /= std::filesystem::path("vpi_stereo.yaml");
-    config_file_string = default_path.string();
+    config_file = default_path.string();
   }
-  auto app = holoscan::make_application<VPIStereoApp>(stereo_cal_string);
-  app->config(config_file_string);
+
+  if (source.empty()) { source = "replayer"; }
+
+  auto app = holoscan::make_application<VPIStereoApp>(source, stereo_cal);
+  app->config(config_file);
+  app->set_datapath(data_directory);
   app->run();
   return 0;
-};
+}

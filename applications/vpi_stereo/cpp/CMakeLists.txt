@@ -43,6 +43,7 @@ target_link_libraries(vpi_stereo
   holoscan::ops::holoviz
   holoscan::ops::v4l2
   holoscan::ops::format_converter
+  holoscan::ops::video_stream_replayer
   CUDA::nppig
   Eigen3::Eigen
   vpi
@@ -55,21 +56,26 @@ add_custom_target(vpi_stereo_yaml
     BYPRODUCTS "vpi_stereo.yaml"
 )
 
-set(VPI_STEREO_CALIBRATION_FILE ${HOLOHUB_DATA_DIR}/vpi_stereo/stereo_calibration.yaml)
-if(NOT EXISTS ${VPI_STEREO_CALIBRATION_FILE})
-  # Reusing the stereo calibration from stereo_vision application
-  set(STEREO_VISION_CALIBRATION_FILE ${HOLOHUB_DATA_DIR}/stereo_vision/stereo_calibration.yaml)
-  if(NOT EXISTS ${STEREO_VISION_CALIBRATION_FILE})
-    set(STEREO_VISION_CALIBRATION_URL "https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/clara-holoscan/holoscan_stereo_video/20241216/files?redirect=true&path=stereo_calibration.yaml")
-    file(DOWNLOAD ${STEREO_VISION_CALIBRATION_URL} ${VPI_STEREO_CALIBRATION_FILE})
-  else()
-    make_directory(${HOLOHUB_DATA_DIR}/vpi_stereo)
-    file(COPY_FILE ${STEREO_VISION_CALIBRATION_FILE} ${VPI_STEREO_CALIBRATION_FILE} ONLY_IF_DIFFERENT)
-  endif()
+# Reusing the same stereo sample video and calibration file from the stereo_vision application
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  # defines the stereo_vision_data target
+  holoscan_download_data(stereo_vision
+    URL nvidia/clara-holoscan/holoscan_stereo_video:20241216
+    DOWNLOAD_NAME holoscan_stereo_vision_20241216.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 1080
+    GXF_ENTITIES_WIDTH 3840
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+    ALL
+    )
 endif()
-add_custom_target(stereo_calibration_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${VPI_STEREO_CALIBRATION_FILE} ${CMAKE_CURRENT_BINARY_DIR}
-    BYPRODUCTS "stereo_calibration.yaml"
+
+add_custom_target(vpi_stereo_data
+  COMMAND ${CMAKE_COMMAND} -E create_symlink "${HOLOHUB_DATA_DIR}/stereo_vision" "${HOLOHUB_DATA_DIR}/vpi_stereo"
+  DEPENDS stereo_vision_data
 )
 
-add_dependencies(vpi_stereo vpi_stereo_yaml stereo_calibration_yaml)
+add_dependencies(vpi_stereo vpi_stereo_yaml vpi_stereo_data)
