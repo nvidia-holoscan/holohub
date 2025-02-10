@@ -151,6 +151,65 @@ class HoloscanGrpcApplication : public holoscan::Application {
    */
   void stop_streaming();
 
+  /**
+   * @brief Retrieves the gRPC server request operator.
+   *
+   * This function returns a shared pointer to the GrpcServerRequest operator object.
+   *
+   * @return std::shared_ptr<GrpcServerRequestOp> A shared pointer to the gRPC server request
+   * operator.
+   */
+  std::shared_ptr<GrpcServerRequestOp> get_grpc_request_op() const;
+
+  /**
+   * @brief Retrieves the gRPC server response operator.
+   *
+   * This function returns a shared pointer to the GrpcServerResponse operator object.
+   *
+   * @return std::shared_ptr<GrpcServerResponseOp> A shared pointer to the gRPC server response
+   * operator.
+   */
+  std::shared_ptr<GrpcServerResponseOp> get_grpc_response_op() const;
+
+  /**
+   * @brief Retrieves the request queue.
+   *
+   * This function returns a shared pointer to a ConditionVariableQueue that holds shared pointers
+   * to nvidia::gxf::Entity objects. The request queue is used to manage incoming requests.
+   *
+   * @return std::shared_ptr<ConditionVariableQueue<std::shared_ptr<nvidia::gxf::Entity>>>
+   *         A shared pointer to the request queue.
+   */
+  std::shared_ptr<ConditionVariableQueue<std::shared_ptr<nvidia::gxf::Entity>>> get_request_queue()
+      const;
+
+  /**
+   * @brief Retrieves the response queue.
+   *
+   * This function returns a shared pointer to a ConditionVariableQueue that holds shared pointers
+   * to EntityResponse objects.
+   *
+   * @return std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityResponse>>> A shared
+   * pointer to the response queue.
+   */
+  std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityResponse>>> get_response_queue()
+      const;
+
+  /**
+   * @brief Retrieves the current state of the streaming enabled condition.
+   *
+   * @return std::shared_ptr<BooleanCondition> A shared pointer to the BooleanCondition indicating
+   * whether streaming is enabled.
+   */
+  std::shared_ptr<BooleanCondition> get_streaming_enabled() const;
+
+  /**
+   * @brief Retrieves the data path.
+   *
+   * @return A string representing the data path.
+   */
+  std::string get_data_path() const;
+
  protected:
   std::shared_ptr<GrpcServerRequestOp> grpc_request_op;
   std::shared_ptr<GrpcServerResponseOp> grpc_response_op;

@@ -983,6 +983,67 @@
                 "order": 1
             }
         },
+        {
+            "name": "(debugpy) grpc_endoscopy_tool_tracking/python (cloud)",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking",
+            "program": "${workspaceFolder}/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/cloud/app_cloud_main.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "cwd": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "group": "grpc_endoscopy_tool_tracking",
+                "hidden": true
+            }
+        },
+        {
+            "name": "(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) grpc_endoscopy_tool_tracking/python (cloud)",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
+                "order": 2
+            }
+        },
+        {
+            "name": "(debugpy) grpc_endoscopy_tool_tracking/python (edge)",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking (delay 3s)",
+            "program": "${workspaceFolder}/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/edge/app_edge_main.py",
+            "args": [
+                "--data",
+                "${env:HOLOHUB_DATA_DIR}/endoscopy"
+            ],
+            "cwd": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/grpc_endoscopy_tool_tracking/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "hidden": true
+            }
+        },
+        {
+            "name": "(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)",
+            "type": "pythoncpp",
+            "request": "launch",
+            "pythonLaunchName": "(debugpy) grpc_endoscopy_tool_tracking/python (edge)",
+            "cppConfig": "default (gdb) Attach",
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
+                "order": 2
+            }
+        },
         //#endregion grpc_endoscopy_tool_tracking
 
         //#region grpc_h264_endoscopy_tool_tracking
@@ -1308,7 +1369,21 @@
             "presentation": {
                 "hidden": false,
                 "group": "grpc_endoscopy_tool_tracking",
-                "order": 11
+                "order": 12
+            }
+        },
+        {
+            "name": "(compound) grpc_endoscopy_tool_tracking/python (cloud & edge)",
+            "configurations": [
+                "(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)",
+                "(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)"
+            ],
+            "preLaunchTask": "Build grpc_endoscopy_tool_tracking",
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "grpc_endoscopy_tool_tracking",
+                "order": 12
             }
         },
         {
@@ -1322,7 +1397,7 @@
             "presentation": {
                 "hidden": false,
                 "group": "grpc_h264_endoscopy_tool_tracking",
-                "order": 11
+                "order": 13
             }
         },
     ],

@@ -7,11 +7,12 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": "Python",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/distributed/grpc/grpc_endoscopy_tool_tracking/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.7.0",
 			"tested_versions": [
@@ -39,8 +40,8 @@
 			]
 		},
 		"run": {
-			"command": "./launch.sh --data <holohub_data_dir>/endoscopy",
-			"workdir": "holohub_app_bin"
+			"command": "<holohub_app_source>/launch.sh --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
 		}
 	}
 }

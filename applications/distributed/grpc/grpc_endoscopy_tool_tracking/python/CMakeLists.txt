@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,26 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(grpc_operators LANGUAGES NONE)
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+find_package(holoscan 2.6 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+install(
+  DIRECTORY cloud edge
+  DESTINATION bin/grpc_endoscopy_tool_tracking/python
+)
+
+install(
+  FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/grpc_endoscopy_tool_tracking/python
+)
+
+install(
+  FILES requirements.txt
+  DESTINATION bin/grpc_endoscopy_tool_tracking/python/cloud
+)
+
+install(
+  FILES requirements.txt
+  DESTINATION bin/grpc_endoscopy_tool_tracking/python/edge
+)
