@@ -19,8 +19,6 @@ project(endoscopy_out_of_body_detection CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-
 add_executable(endoscopy_out_of_body_detection
     main.cpp
 )
