@@ -14,10 +14,10 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(endoscopy_out_of_body_detection_apps LANGUAGES NONE)
 
-# Default to download datasets
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+project(endoscopy_out_of_body_detection LANGUAGES NONE)
+
+find_package(holoscan 0.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Download the associated dataset if needed
 if(HOLOHUB_DOWNLOAD_DATASETS)
@@ -31,7 +31,20 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_WIDTH 256
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
-    )
+  )
 endif()
 
+# Copy config file to the build directory
+add_custom_target(endoscopy_out_of_body_detection_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_out_of_body_detection.yaml"
+          ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_out_of_body_detection.yaml"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection.yaml"
+)
+
+# Add subdirectories
 add_subdirectory(cpp)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

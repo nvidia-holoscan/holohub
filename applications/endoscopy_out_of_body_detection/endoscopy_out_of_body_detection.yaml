@@ -52,8 +52,8 @@ out_of_body_preprocessor:
 
 out_of_body_inference:
   backend: "trt"
-  #model_path_map: 
-  #  "out_of_body": "out_of_body_detection.onnx"
+  model_path_map:
+   "out_of_body": "out_of_body_detection.onnx"
   pre_processor_map: 
     "out_of_body": ["out_of_body_preprocessed"]
   inference_map: 

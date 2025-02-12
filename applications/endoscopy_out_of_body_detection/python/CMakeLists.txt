@@ -14,29 +14,6 @@
 # limitations under the License.
 
 
-project(endoscopy_out_of_body_detection CXX)
-
-add_executable(endoscopy_out_of_body_detection
-    main.cpp
-)
-
-target_link_libraries(endoscopy_out_of_body_detection
-    PRIVATE
-    holoscan::core
-    holoscan::ops::video_stream_replayer
-    holoscan::ops::format_converter
-    holoscan::ops::inference
-    holoscan::ops::inference_processor
-    holoscan::aja
-)
-
-# Add dependencies
-add_dependencies(endoscopy_out_of_body_detection endoscopy_out_of_body_detection_yaml)
-
-if(HOLOHUB_DOWNLOAD_DATASETS)
-    add_dependencies(endoscopy_out_of_body_detection endoscopy_out_of_body_detection_data)
-endif()
-
 # Add testing
 if(BUILD_TESTING)
   # Configure the yaml file to only play 10 frames
@@ -47,9 +24,10 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME endoscopy_out_of_body_detection_test
-           COMMAND endoscopy_out_of_body_detection ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection_testing.yaml
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/main.py
+                   --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy_out_of_body_detection"
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(endoscopy_out_of_body_detection_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
