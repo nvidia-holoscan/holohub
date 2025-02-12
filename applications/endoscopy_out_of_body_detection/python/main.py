@@ -15,14 +15,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import argparse
 import os
+
 from holoscan.core import Application
 from holoscan.operators import (
     AJASourceOp,
-    VideoStreamReplayerOp,
     FormatConverterOp,
     InferenceOp,
-    InferenceProcessorOp
+    InferenceProcessorOp,
+    VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
 
@@ -35,7 +37,9 @@ class EndoscopyOutOfBodyDetectionApp(Application):
         self.data_dir = data_dir
         self.source = source.lower()
         if self.source not in ["replayer", "aja"]:
-            raise ValueError(f"Unsupported source: {source}. Please choose either 'replayer' or 'aja'.")
+            raise ValueError(
+                f"Unsupported source: {source}. Please choose either 'replayer' or 'aja'."
+            )
         self.do_record = do_record
         self.enable_analytics = enable_analytics
 
@@ -71,11 +75,15 @@ class EndoscopyOutOfBodyDetectionApp(Application):
         inference_kwargs = self.kwargs("out_of_body_inference")
         for k, v in inference_kwargs["model_path_map"].items():
             inference_kwargs["model_path_map"][k] = os.path.join(self.data_dir, v)
-        out_of_body_inference = InferenceOp(self, name="out_of_body_inference", allocator=pool, **inference_kwargs)
+        out_of_body_inference = InferenceOp(
+            self, name="out_of_body_inference", allocator=pool, **inference_kwargs
+        )
 
         # Post-processing for inference results
         postprocess_config = (
-            "analytics_out_of_body_postprocessor" if self.enable_analytics else "out_of_body_postprocessor"
+            "analytics_out_of_body_postprocessor"
+            if self.enable_analytics
+            else "out_of_body_postprocessor"
         )
         out_of_body_postprocessor = InferenceProcessorOp(
             self,
@@ -91,7 +99,9 @@ class EndoscopyOutOfBodyDetectionApp(Application):
         else:
             self.add_flow(source, out_of_body_preprocessor)
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
-        self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")})
+        self.add_flow(
+            out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")}
+        )
 
 
 def main(args):
@@ -101,15 +111,19 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Endoscopy Out-of-Body Detection (Python)")
     parser.add_argument("--config", type=str, help="Path to the config file")
     parser.add_argument(
-        "--data", type=str, default=os.environ.get("HOLOHUB_DATA_PATH", "../data"), help="Path to the data directory"
+        "--data",
+        type=str,
+        default=os.environ.get("HOLOHUB_DATA_PATH", "../data"),
+        help="Path to the data directory",
     )
     parser.add_argument(
-        "--source", choices=["replayer", "aja"], default="replayer", help="Input source (default: replayer)"
+        "--source",
+        choices=["replayer", "aja"],
+        default="replayer",
+        help="Input source (default: replayer)",
     )
     parser.add_argument("--record", action="store_true", help="Record the input video")
     parser.add_argument("--analytics", action="store_true", help="Enable analytics")
