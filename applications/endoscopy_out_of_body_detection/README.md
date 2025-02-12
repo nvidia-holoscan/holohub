@@ -25,11 +25,8 @@ __Note: This application does not include visualization components.__
 
 The endoscopy detection model and sample datasets are available on [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/endoscopy_out_of_body_detection). The package includes:
 
-- Pre-trained ONNX model for out-of-body detection
-- Sample endoscopy video clips (MP4 format):
-  - OP1-out-2.mp4
-  - OP4-out-8.mp4
-  - OP8-out-4.mp4
+- Pre-trained ONNX model for out-of-body detection: `out_of_body_detection.onnx`
+- Sample endoscopy video clips (MP4 format): `sample_clip_out_of_body_detection.mp4`
 
 ### Data Preparation
 
