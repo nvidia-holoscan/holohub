@@ -39,8 +39,7 @@ class VPIStereoApp : public holoscan::Application {
  public:
   void set_datapath(const std::string& path) { datapath_ = path; }
 
-  VPIStereoApp(std::string source, std::string file)
-      : source_(source), stereo_calibration_(file) {};
+  VPIStereoApp(std::string source, std::string file) : source_(source), stereo_calibration_(file) {}
   void compose() override {
     using namespace holoscan;
 

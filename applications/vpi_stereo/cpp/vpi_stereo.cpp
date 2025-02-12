@@ -219,7 +219,7 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
                                               outConf16_,
                                               &submitParams_));
 
-  // finally, convert stereo output fom 16 bit (10.5 fixed point) to float
+  // finally, convert stereo output from 16 bit (10.5 fixed point) to float
   VPIConvertImageFormatParams convParams;
   CHECK_VPI(vpiInitConvertImageFormatParams(&convParams));
   /// Note: VPI format conversion with scale is only supported on CUDA backend

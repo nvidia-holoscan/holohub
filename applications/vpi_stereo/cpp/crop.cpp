@@ -53,14 +53,14 @@ void CropOp::compute(InputContext& op_input, OutputContext& op_output, Execution
   int element_size = nvidia::gxf::PrimitiveTypeSize(data_type);
 
   if (x_ < 0 || y_ < 0 || width_ <= 0 || height_ <= 0) {
-    throw std::runtime_error("Invalide crop dimensions");
+    throw std::runtime_error("Invalid crop dimensions");
   }
 
   if ((x_ + width_) > orig_width || (y_ + height_) > orig_height) {
     std::cout << "orig_width " << orig_width << std::endl;
     std::cout << "orig_height " << orig_height << std::endl;
     std::cout << "nChannels " << nChannels << std::endl;
-    throw std::runtime_error("Crop exceeds image boundries");
+    throw std::runtime_error("Crop exceeds image boundaries");
   }
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
