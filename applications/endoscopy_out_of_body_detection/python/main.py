@@ -22,8 +22,7 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
     FormatConverterOp,
     InferenceOp,
-    InferenceProcessorOp,
-    VideoStreamRecorderOp,  # Optional recording
+    InferenceProcessorOp
 )
 from holoscan.resources import UnboundedAllocator
 

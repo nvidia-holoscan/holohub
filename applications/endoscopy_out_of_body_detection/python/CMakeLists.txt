@@ -23,12 +23,12 @@ if(BUILD_TESTING)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection_testing.yaml" ${CONFIG_FILE})
 
   # Add test
-  add_test(NAME endoscopy_out_of_body_detection_test
+  add_test(NAME endoscopy_out_of_body_detection_python_test
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/main.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy_out_of_body_detection"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  set_tests_properties(endoscopy_out_of_body_detection_test PROPERTIES
+  set_tests_properties(endoscopy_out_of_body_detection_python_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()

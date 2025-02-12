@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-project(endoscopy_out_of_body_detection CXX)
-
 add_executable(endoscopy_out_of_body_detection
     main.cpp
 )
