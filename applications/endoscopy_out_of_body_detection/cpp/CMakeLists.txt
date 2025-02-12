@@ -30,12 +30,20 @@ target_link_libraries(endoscopy_out_of_body_detection
     holoscan::aja
 )
 
-# Add dependencies
-add_dependencies(endoscopy_out_of_body_detection endoscopy_out_of_body_detection_yaml)
-
+# Add downloaded data as a dependency
 if(HOLOHUB_DOWNLOAD_DATASETS)
     add_dependencies(endoscopy_out_of_body_detection endoscopy_out_of_body_detection_data)
 endif()
+
+# Copy config file to the build directory
+add_custom_target(endoscopy_out_of_body_detection_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_CURRENT_SOURCE_DIR}/../endoscopy_out_of_body_detection.yaml"
+          ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../endoscopy_out_of_body_detection.yaml"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection.yaml"
+)
+add_dependencies(endoscopy_out_of_body_detection endoscopy_out_of_body_detection_yaml)
 
 # Add testing
 if(BUILD_TESTING)

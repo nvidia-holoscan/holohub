@@ -15,9 +15,9 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(endoscopy_out_of_body_detection LANGUAGES NONE)
+project(endoscopy_out_of_body_detection)
 
-find_package(holoscan 0.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Download the associated dataset if needed
 if(HOLOHUB_DOWNLOAD_DATASETS)
@@ -33,15 +33,6 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_FRAMERATE 30
   )
 endif()
-
-# Copy config file to the build directory
-add_custom_target(endoscopy_out_of_body_detection_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_out_of_body_detection.yaml"
-          ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_out_of_body_detection.yaml"
-  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection.yaml"
-)
 
 # Add subdirectories
 add_subdirectory(cpp)
