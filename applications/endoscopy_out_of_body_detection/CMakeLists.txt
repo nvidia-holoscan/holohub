@@ -15,9 +15,10 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(endoscopy_out_of_body_detection)
+project(endoscopy_out_of_body_detection CXX)
 
-find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(holoscan 1.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Download the associated dataset if needed
 if(HOLOHUB_DOWNLOAD_DATASETS)
