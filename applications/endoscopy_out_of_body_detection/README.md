@@ -76,7 +76,7 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 
 ## Building
 
-./dev_container build  # do we need a custom Dockerfile for ffmpeg?
+./dev_container build
 ./dev_container launch 
 ./run build endoscopy_out_of_body_detection <cpp/python>
 ./run launch endoscopy_out_of_body_detection <cpp/python>
