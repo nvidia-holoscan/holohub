@@ -114,12 +114,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Endoscopy Out-of-Body Detection (Python)")
     parser.add_argument("--config", type=str, help="Path to the config file")
     parser.add_argument(
+        "-d",
         "--data",
         type=str,
         default=os.environ.get("HOLOHUB_DATA_PATH", "../data"),
         help="Path to the data directory",
     )
     parser.add_argument(
+        "-s",
         "--source",
         choices=["replayer", "aja"],
         default="replayer",

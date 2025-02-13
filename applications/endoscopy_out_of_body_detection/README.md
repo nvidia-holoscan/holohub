@@ -73,49 +73,34 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 - Model parameters in the `inference` section
 - Analytics settings for data export
 
-### SDK Version Compatibility
-
-For Holoscan SDK version 0.5 or lower, make the following modifications:
-
-In `main.cpp`:
-
-```cpp
-// Replace these includes
-#include <holoscan/operators/inference/inference.hpp>
-#include <holoscan/operators/inference_processor/inference_processor.hpp>
-
-// With these
-#include <holoscan/operators/multiai_inference/multiai_inference.hpp>
-#include <holoscan/operators/multiai_postprocessor/multiai_postprocessor.hpp>
-
-// Replace operator types
-ops::InferenceOp -> ops::MultiAIInferenceOp
-ops::InferenceProcessorOp -> ops::MultiAIPostprocessorOp
-```
-
-In `CMakeLists.txt`:
-
-```cmake
-# Update SDK version
-set(HOLOSCAN_SDK_VERSION "0.5")
-
-# Replace operator dependencies
-holoscan::ops::inference -> holoscan::ops::multiai_inference
-holoscan::ops::inference_processor -> holoscan::ops::multiai_postprocessor
-```
 
 ## Building
 
-Follow the build instructions in the top-level Holohub README.md file.
+./dev_container build  # do we need a custom Dockerfile for ffmpeg?
+./dev_container launch 
+./run build endoscopy_out_of_body_detection <cpp/python>
+./run launch endoscopy_out_of_body_detection <cpp/python>
+
+For more information, see the Holohub [README.md](https://github.com/nvidia-holoscan/holohub/blob/main/README.md).
 
 ## Running the Application
 
 ### Basic Usage
 
+For C++:
 From your build directory:
 
 ```bash
 applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
+  --config endoscopy_out_of_body_detection.yaml \
+  --data ../data/endoscopy_out_of_body_detection
+```
+
+For Python:
+
+```bash
+applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection.py \
+  --config endoscopy_out_of_body_detection.yaml \
   --data ../data/endoscopy_out_of_body_detection
 ```
 
