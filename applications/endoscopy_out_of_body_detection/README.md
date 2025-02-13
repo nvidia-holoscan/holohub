@@ -12,6 +12,12 @@ This application performs real-time detection of whether an endoscope is inside 
 
 __Note: This application does not include visualization components.__
 
+## Quick Start
+
+Run the following command to build and launch the application on a supported Holoscan platform:
+
+`./dev_container build_and_run endoscopy_out_of_body_detection --language <cpp/python>`
+
 ## Prerequisites
 
 - NVIDIA Holoscan SDK (version 0.5 or higher)
