@@ -15,7 +15,7 @@ __Note: This application does not include visualization components.__
 ## Prerequisites
 
 - NVIDIA Holoscan SDK (version 0.5 or higher)
-- CUDA-capable NVIDIA GPU
+- [A supported Holoscan platform or workstation with CUDA-capable NVIDIA GPU](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html)
 - CMake build system
 - FFmpeg (for data conversion)
 
