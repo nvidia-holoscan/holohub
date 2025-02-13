@@ -79,3 +79,28 @@ add_custom_target(vpi_stereo_data
 )
 
 add_dependencies(vpi_stereo vpi_stereo_yaml vpi_stereo_data)
+
+# Add testing
+if(BUILD_TESTING)
+  # Configure the yaml file for testing
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/vpi_stereo.yaml" CONFIG_FILE)
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/vpi_stereo_testing.yaml ${CONFIG_FILE})
+
+  add_custom_target(vpi_stereo_test ALL
+    DEPENDS vpi_stereo
+  )
+
+  # Add test
+  add_test(NAME vpi_stereo_test
+    COMMAND vpi_stereo
+              --config ${CMAKE_CURRENT_BINARY_DIR}/vpi_stereo_testing.yaml
+              --data "${HOLOHUB_DATA_DIR}/vpi_stereo"
+              --source replayer
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  set_tests_properties(vpi_stereo_test
+                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+endif()
