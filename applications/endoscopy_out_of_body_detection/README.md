@@ -34,7 +34,7 @@ The endoscopy detection model and sample datasets are available on [NGC](https:/
 - Pre-trained ONNX model for out-of-body detection: `out_of_body_detection.onnx`
 - Sample endoscopy video clips (MP4 format): `sample_clip_out_of_body_detection.mp4`
 
-### Data Preparation
+### Data Preparation (optional)
 
 The application requires the input videos to be converted to GXF tensor format. This conversion happens automatically during building, but manual conversion can be done following these steps:
 
