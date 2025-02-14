@@ -1,0 +1,36 @@
+{
+	"application": {
+		"name": "Stereo Vision",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.4.0",
+			"tested_versions": [
+				"2.4.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Endoscopy",
+			"Stereo"
+		],
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/stereo_depth",
+			"workdir": "holohub_bin"
+		}
+	}
+}

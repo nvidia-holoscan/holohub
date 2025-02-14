@@ -26,12 +26,12 @@ add_executable(ultrasound_segmentation
 target_link_libraries(ultrasound_segmentation
    PRIVATE
    holoscan::core
-   holoscan::ops::aja
    holoscan::ops::video_stream_replayer
    holoscan::ops::format_converter
    holoscan::ops::inference
    holoscan::ops::segmentation_postprocessor
    holoscan::ops::holoviz
+   holoscan::aja
 )
 
 # Download the associated dataset if needed
@@ -64,7 +64,6 @@ if(BUILD_TESTING)
 
     # Patch the current example to enable recording the rendering window
     add_custom_command(OUTPUT main_test.cpp
-    PRE_LINK
     COMMAND patch -u -o main_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/cpp_ultrasound_segmentation.patch
     COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" main_test.cpp
@@ -79,13 +78,13 @@ if(BUILD_TESTING)
   target_link_libraries(ultrasound_segmentation_cpp_test
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
     holoscan::ops::holoviz
+    holoscan::aja
   )
 
   # Add the test and make sure it runs

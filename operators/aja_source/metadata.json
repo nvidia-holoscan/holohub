@@ -1,0 +1,32 @@
+{
+	"operator": {
+		"name": "aja_source",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Camera",
+			"AJA"
+		],
+		"ranking": 1,
+		"dependencies": {
+		}
+	}
+}

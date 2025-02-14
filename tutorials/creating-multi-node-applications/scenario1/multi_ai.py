@@ -22,7 +22,6 @@ import cupy as cp
 import numpy as np
 from holoscan.core import Application, Fragment, Operator, OperatorSpec
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -30,6 +29,8 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 
 class DetectionPostprocessorOp(Operator):

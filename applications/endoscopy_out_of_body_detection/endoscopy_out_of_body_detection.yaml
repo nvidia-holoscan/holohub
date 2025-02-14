@@ -19,7 +19,6 @@ extensions:
   - libgxf_cuda.so
   - libgxf_multimedia.so
   - libgxf_serialization.so
-  - libgxf_stream_playback.so
 
 source: "replayer" # or "aja"
 do_record: false   # or 'true' if you want to record input video stream.
@@ -53,12 +52,12 @@ out_of_body_preprocessor:
 
 out_of_body_inference:
   backend: "trt"
-  #model_path_map: 
-  #  "out_of_body": "out_of_body_detection.onnx"
+  model_path_map:
+   "out_of_body": "out_of_body_detection.onnx"
   pre_processor_map: 
     "out_of_body": ["out_of_body_preprocessed"]
   inference_map: 
-    "out_of_body": "out_of_body_inferred"
+    "out_of_body": ["out_of_body_inferred"]
   in_tensor_names: ["out_of_body_preprocessed"]
   out_tensor_names: ["out_of_body_inferred"]
   parallel_inference: false

@@ -19,7 +19,6 @@ from argparse import ArgumentParser
 from holoscan import __version__ as holoscan_version
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -30,6 +29,7 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 from packaging.version import Version
 
+from holohub.aja_source import AJASourceOp
 from holohub.visualizer_icardio import VisualizerICardioOp
 
 
