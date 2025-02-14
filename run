@@ -1036,6 +1036,10 @@ list_apps() {
   list_metadata_json_dir ${SCRIPT_DIR}/applications ${SCRIPT_DIR}/benchmarks
 }
 
+list_workflows() {
+  list_metadata_json_dir ${SCRIPT_DIR}/workflows
+}
+
 list_operators() {
   list_metadata_json_dir ${SCRIPT_DIR}/operators
 }
@@ -1046,9 +1050,12 @@ list_packages() {
 
 list() {
   echo
+  echo -e "${BOLD}== WORKFLOWS ===================${NOCOLOR}"
+  echo
+  list_workflows
+  echo
   echo -e "${BOLD}== APPLICATIONS =================${NOCOLOR}"
   echo
-
   list_apps
   echo
   echo -e "${BOLD}== OPERATORS ====================${NOCOLOR}"

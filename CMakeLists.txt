@@ -72,6 +72,9 @@ endif()
 add_subdirectory(pkg)
 
 # Build the applications
+add_subdirectory(workflows)
+
+# Build the applications
 add_subdirectory(applications)
 
 # Build the benchmarks
