@@ -1,0 +1,26 @@
+--- a/applications/aja_video_capture/cpp/aja_capture.cpp
++++ b/applications/aja_video_capture/cpp/aja_capture2.cpp
+@@ -19,6 +19,12 @@
+ #include <holoscan/operators/aja_source/aja_source.hpp>
+ #include <holoscan/operators/holoviz/holoviz.hpp>
+
+ #include <aja_source.hpp>
++#ifdef RECORD_OUTPUT
++#include <holoscan/operators/format_converter/format_converter.hpp>
++#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
++#include <recorder.hpp>
++#endif
++
+ class App : public holoscan::Application {
+  public:
+   void compose() override {
+@@ -29,6 +35,9 @@ class App : public holoscan::Application {
+ 
+     // Flow definition
+     add_flow(source, visualizer, {{"video_buffer_output", "receivers"}});
++
++    // Recorder to validate the video output
++    RECORDER(visualizer);
+   }
+ };
+ 
