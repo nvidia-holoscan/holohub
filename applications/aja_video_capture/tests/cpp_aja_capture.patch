@@ -1,0 +1,37 @@
+diff --git a/applications/aja_video_capture/cpp/aja_capture.cpp b/applications/aja_video_capture/cpp/aja_capture.cpp
+index 890ec9ab..8431555c 100644
+--- a/applications/aja_video_capture/cpp/aja_capture.cpp
++++ b/applications/aja_video_capture/cpp/aja_capture.cpp
+@@ -19,6 +19,11 @@
+ #include <holoscan/operators/holoviz/holoviz.hpp>
+ 
+ #include <aja_source.hpp>
++
++#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
++#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
++#include <holoscan/operators/format_converter/format_converter.hpp>
++
+ class App : public holoscan::Application {
+  public:
+   void compose() override {
+@@ -30,6 +35,21 @@ class App : public holoscan::Application {
+ 
+     // Flow definition
+     add_flow(source, visualizer, {{"video_buffer_output", "receivers"}});
++
++    // Recorder to validate the video output
++    std::shared_ptr<Operator> recorder_format_converter;
++    recorder_format_converter = make_operator<ops::FormatConverterOp>(
++        "recorder_format_converter",
++        Arg("in_dtype", std::string("rgba8888")),
++        Arg("out_dtype", std::string("rgb888")));
++    auto recorder = make_operator<ops::VideoStreamRecorderOp>(
++        "recorder",
++        Arg("directory", std::string(RECORDING_DIR)),
++        Arg("basename", std::string(SOURCE_VIDEO_BASENAME)));
++    add_flow(visualizer, recorder_format_converter, {{"render_buffer_output", "source_video"}});
++    add_flow(recorder_format_converter, recorder);
++    visualizer->add_arg(Arg("enable_render_buffer_output", true));
++    visualizer->add_arg(Arg("allocator", make_resource<UnboundedAllocator>("allocator")));
+   }
+ };
