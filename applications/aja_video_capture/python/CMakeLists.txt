@@ -25,7 +25,7 @@ if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_aja_capture_output)
-  set(VALIDATION_FRAMES_DIR ${Holoscan-examples_SOURCE_DIR}/../tests/data/validation_frames/aja_capture/)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/)
 
   file(MAKE_DIRECTORY ${RECORDING_DIR})
 
@@ -38,26 +38,26 @@ if(BUILD_TESTING)
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT aja_capture_test.py
     COMMAND patch -u -o aja_capture_test.py ${CMAKE_CURRENT_SOURCE_DIR}/aja_capture.py
-      ${Holoscan-examples_SOURCE_DIR}/../tests/data/validation_frames/aja_capture/python_aja_capture.patch
+      ${CMAKE_CURRENT_SOURCE_DIR}/../tests/python_aja_capture.patch
   )
 
   add_custom_target(python_aja_capture_test ALL
     DEPENDS "aja_capture_test.py"
   )
 
-  add_test(NAME EXAMPLE_PYTHON_AJA_CAPTURE_TEST
+  add_test(NAME AJA_CAPTURE_PYTHON_TEST
     COMMAND python3 aja_capture_test.py --config python_aja_capture_config.yaml
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
 
-  set_tests_properties(EXAMPLE_PYTHON_AJA_CAPTURE_TEST PROPERTIES
+  set_tests_properties(AJA_CAPTURE_PYTHON_TEST PROPERTIES
     DEPENDS "aja_capture_test.py"
     PASS_REGULAR_EXPRESSION "Scheduler stopped: Some entities are waiting for execution"
   )
 
   # Add a test to check the validity of the frames
-  add_test(NAME EXAMPLE_PYTHON_AJA_CAPTURE_RENDER_TEST
-      COMMAND python3 ${Holoscan-examples_SOURCE_DIR}/../scripts/video_validation.py
+  add_test(NAME AJA_CAPTURE_PYTHON_RENDER_TEST
+      COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
       --source_video_dir ${RECORDING_DIR}
       --source_video_basename ${SOURCE_VIDEO_BASENAME}
       --output_dir ${RECORDING_DIR}
@@ -65,8 +65,8 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 
-  set_tests_properties(EXAMPLE_PYTHON_AJA_CAPTURE_RENDER_TEST PROPERTIES
-    DEPENDS EXAMPLE_PYTHON_AJA_CAPTURE_TEST
+  set_tests_properties(AJA_CAPTURE_PYTHON_RENDER_TEST PROPERTIES
+    DEPENDS AJA_CAPTURE_PYTHON_TEST
     PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 

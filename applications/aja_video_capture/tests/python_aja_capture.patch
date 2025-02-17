@@ -1,0 +1,37 @@
+diff --git a/applications/aja_video_capture/python/aja_capture.py b/applications/aja_video_capture/python/aja_capture.py
+index 3d12ebda..7d43943f 100644
+--- a/applications/aja_video_capture/python/aja_capture.py
++++ b/applications/aja_video_capture/python/aja_capture.py
+@@ -20,6 +20,8 @@ import os
+ from holoscan.conditions import CountCondition
+ from holoscan.core import Application
+ from holoscan.operators import HolovizOp
++from holoscan.operators import VideoStreamRecorderOp, FormatConverterOp
++from holoscan.resources import UnboundedAllocator
+ 
+ from holohub.aja_source import AJASourceOp
+ 
+@@ -46,6 +48,23 @@ class AJACaptureApp(Application):
+         visualizer = HolovizOp(self, name="holoviz", **self.kwargs("holoviz"))
+ 
+         self.add_flow(source, visualizer, {("video_buffer_output", "receivers")})
++        recorder_format_converter = FormatConverterOp(
++            self,
++            name="recorder_format_converter",
++            in_dtype="rgba8888",
++            out_dtype="rgb888",
++            pool=UnboundedAllocator(self, name="pool")
++        )
++        recorder = VideoStreamRecorderOp(
++            self,
++            name="recorder",
++            **self.kwargs("recorder")
++        )
++
++        visualizer.add_arg(allocator=UnboundedAllocator(self, name="allocator"))
++
++        self.add_flow(visualizer, recorder_format_converter, {("render_buffer_output", "source_video")})
++        self.add_flow(recorder_format_converter, recorder)
+ 
+ 
+ def main(config_file):
