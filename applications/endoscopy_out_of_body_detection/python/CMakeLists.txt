@@ -28,6 +28,9 @@ if(BUILD_TESTING)
                    --config ${CMAKE_CURRENT_BINARY_DIR}/endoscopy_out_of_body_detection_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/endoscopy_out_of_body_detection"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  set_property(TEST endoscopy_out_of_body_detection_python_test PROPERTY ENVIRONMENT
+                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
   set_tests_properties(endoscopy_out_of_body_detection_python_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
