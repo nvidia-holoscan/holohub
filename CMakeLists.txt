@@ -34,7 +34,7 @@ include(CTest)
 
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
+option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)

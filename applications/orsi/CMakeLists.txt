@@ -30,6 +30,7 @@ set(HOLOSCAN_OPERATORS
         orsi_segmentation_postprocessor
         orsi_segmentation_preprocessor
         orsi_visualizer
+        aja_source
 )
 
 if(ORSI_VIDEO_MASTER_SDK_FOUND)

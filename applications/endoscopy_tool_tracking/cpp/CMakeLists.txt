@@ -26,13 +26,13 @@ add_executable(endoscopy_tool_tracking
 target_link_libraries(endoscopy_tool_tracking
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::video_stream_recorder
   holoscan::ops::format_converter
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
+  holoscan::aja
 )
 
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>)
