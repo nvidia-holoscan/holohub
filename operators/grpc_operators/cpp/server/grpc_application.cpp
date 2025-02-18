@@ -52,6 +52,10 @@ void HoloscanGrpcApplication::set_data_path(const std::string path) {
   data_path = path;
 }
 
+std::string HoloscanGrpcApplication::get_data_path() const {
+  return data_path;
+}
+
 void HoloscanGrpcApplication::enqueue_request(const EntityRequest& request) {
   auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
       executor().context(), grpc_request_op->allocator()->gxf_cid());
@@ -86,6 +90,27 @@ void HoloscanGrpcApplication::start_streaming() {
 
 void HoloscanGrpcApplication::stop_streaming() {
   streaming_enabled->disable_tick();
+}
+
+std::shared_ptr<GrpcServerRequestOp> HoloscanGrpcApplication::get_grpc_request_op() const {
+  return grpc_request_op;
+}
+std::shared_ptr<GrpcServerResponseOp> HoloscanGrpcApplication::get_grpc_response_op() const {
+  return grpc_response_op;
+}
+
+std::shared_ptr<ConditionVariableQueue<std::shared_ptr<nvidia::gxf::Entity>>>
+HoloscanGrpcApplication::get_request_queue() const {
+  return request_queue;
+}
+
+std::shared_ptr<ConditionVariableQueue<std::shared_ptr<EntityResponse>>>
+HoloscanGrpcApplication::get_response_queue() const {
+  return response_queue;
+}
+
+std::shared_ptr<BooleanCondition> HoloscanGrpcApplication::get_streaming_enabled() const {
+  return streaming_enabled;
 }
 
 }  // namespace holoscan::ops
