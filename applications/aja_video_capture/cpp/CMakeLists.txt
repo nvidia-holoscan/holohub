@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(holoscan 3.0 REQUIRED)
+find_package(holoscan 1.0 REQUIRED)
 
 # Create example
 add_executable(aja_capture
