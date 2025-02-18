@@ -30,6 +30,8 @@
 #include "undistort_rectify.h"
 #include "vpi_stereo.h"
 
+class VPIStereoApp;
+
 class VPIStereoApp : public holoscan::Application {
  private:
   std::string stereo_calibration_;
@@ -84,8 +86,8 @@ class VPIStereoApp : public holoscan::Application {
     std::vector<float> d1 = calibration["d1"].as<std::vector<float>>();
     std::vector<float> M2 = calibration["M2"].as<std::vector<float>>();
     std::vector<float> d2 = calibration["d2"].as<std::vector<float>>();
-    std::vector<float> R = calibration["R"].as<std::vector<float>>();
-    std::vector<float> t = calibration["t"].as<std::vector<float>>();
+    std::vector<float> R = calibration['R'].as<std::vector<float>>();
+    std::vector<float> t = calibration['t'].as<std::vector<float>>();
     int width = calibration["width"].as<int>();
     int height = calibration["height"].as<int>();
 
