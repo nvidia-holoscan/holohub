@@ -1,4 +1,4 @@
-site_name: Holohub
+site_name: Holoscan Reference Applications
 site_url: https://nvidia-holoscan.github.io/holohub
 repo_url: https://github.com/nvidia-holoscan/holohub
 repo_name: nvidia-holoscan/holohub
@@ -49,6 +49,8 @@ extra_css:
 
 plugins:
   - search
+#  - git-revision-date-localized:
+#      fallback_to_build_date: true
   - gen-files:
       scripts:
         - scripts/generate_pages.py
@@ -91,6 +93,8 @@ markdown_extensions:
           - overrides/.icons
   - pymdownx.tabbed:
       alternate_style: true
+  - toc:
+      title: On this page
   - def_list
   - admonition
   - footnotes

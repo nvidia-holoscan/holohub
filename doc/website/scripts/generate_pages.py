@@ -19,6 +19,7 @@ import os
 import json
 import re
 from pathlib import Path
+import subprocess
 
 import mkdocs_gen_files
 
@@ -26,6 +27,32 @@ import mkdocs_gen_files
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
+def get_last_modified_date(path: str) -> str:
+    """Get the last modified date of a file or directory from git."""
+    try:
+        # Get the last commit date for the path
+        cmd = ['git', 'log', '-1', '--format=%ad', '--date=short', path]
+        result = subprocess.run(
+            cmd,
+            cwd='/holohub',
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        # Convert YYYY-MM-DD to Month DD, YYYY format
+        date = result.stdout.strip()
+        try:
+            year, month, day = date.split('-')
+            months = ['January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December']
+            return f"{months[int(month)-1]} {int(day)}, {year}"
+        except:
+            return date
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Git command failed: {e}")
+        logger.error(f"Git error output: {e.stderr}")
+        return "Unknown"
 
 def parse_metadata_file(metadata_file: Path, statistics) -> None:
     """Copy README file from a sub-package to the user guide's developer guide directory.
@@ -153,6 +180,10 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
 
         header_text = f":octicons-person-24: **Authors:** "+", ".join(f"{author['name']} ({author['affiliation']})" for author in authors)+"<br>"
         header_text += f":octicons-device-desktop-24: **Supported platforms:** "+", ".join(platforms)+"<br>"
+
+        # Add last modified date from git
+        last_modified = get_last_modified_date(str(metadata_file.parent))
+        header_text += f":octicons-clock-24: **Last modified:** {last_modified}<br>"
 
         if 'language' in locals():
           header_text += f":octicons-code-square-24: **Language:** "+language+"<br>"

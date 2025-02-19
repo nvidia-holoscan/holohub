@@ -8,5 +8,6 @@ mkdocs-jupyter
 mkdocs-include-dir-to-nav
 mkdocs-literate-nav
 mkdocs-site-urls
+mkdocs-git-revision-date-localized-plugin
 mike
 mistune
