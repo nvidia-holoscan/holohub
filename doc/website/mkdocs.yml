@@ -112,7 +112,7 @@ extra:
   generator: false
   analytics:
     provider: google
-    property: G-XXXXXXXXXX
+    property: G-S5CCWVS2B6
 
 copyright: |
   &copy; Copyright 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
