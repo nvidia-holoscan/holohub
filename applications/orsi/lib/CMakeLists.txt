@@ -28,8 +28,8 @@ target_link_libraries(orsi_app_lib
    PUBLIC
    holoscan::core
    holoscan::ops::video_stream_replayer
-   holoscan::ops::aja
    holoscan::orsi::format_converter
+   holoscan::aja
 )
 
 set(VIDEOMASTER_OPERATOR "")

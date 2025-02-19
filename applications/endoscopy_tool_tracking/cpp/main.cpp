@@ -18,7 +18,6 @@
 #include <getopt.h>
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
@@ -27,6 +26,10 @@
 #include <tool_tracking_postprocessor.hpp>
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
+#endif
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
 #endif
 
 #ifdef DELTACAST_VIDEOMASTER

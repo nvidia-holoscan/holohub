@@ -18,13 +18,17 @@
 
 #include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <gxf/std/tensor.hpp>
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
+
 #if __has_include("gxf/std/dlpack_utils.hpp")
   #define GXF_HAS_DLPACK_SUPPORT 1
 #else

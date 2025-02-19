@@ -18,11 +18,14 @@
 #include <getopt.h>
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/inference_processor/inference_processor.hpp>
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
 
 class App : public holoscan::Application {
  public:
@@ -90,12 +93,19 @@ class App : public holoscan::Application {
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& config_name, std::string& data_path) {
-  static struct option long_options[] = {{"data", required_argument, 0, 'd'}, {0, 0, 0, 0}};
+  static struct option long_options[] = {
+    {"config", required_argument, 0, 'c'},
+    {"data", required_argument, 0, 'd'},
+    {0, 0, 0, 0}
+  };
 
-  while (int c = getopt_long(argc, argv, "d", long_options, NULL)) {
+  while (int c = getopt_long(argc, argv, "c:d:", long_options, NULL)) {
     if (c == -1 || c == '?') break;
 
     switch (c) {
+      case 'c':
+        config_name = optarg;
+        break;
       case 'd':
         data_path = optarg;
         break;
@@ -105,7 +115,6 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) { config_name = argv[optind++]; }
   return true;
 }
 

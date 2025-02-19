@@ -44,7 +44,7 @@ data_writer:
 ## Example Usage
 
 For an example of how to use this operator, see the
-[`psd_pipeline`](../../applications/psd_pipeline) application.
+[`psd_pipeline`](../../psd_pipeline) application.
 
 Usually, you'd just want to write one burst of data to a file. To
 do that, you could use a `CountCondition` to limit the number of
