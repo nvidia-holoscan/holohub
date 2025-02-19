@@ -261,7 +261,7 @@ def generate_pages() -> None:
         None
     """
     root = Path(__file__).parent.parent.parent
-    applications_dir = root / "holohub/"
+    applications_dir = root
 
     statistics = {
         "operators": 0,
@@ -270,6 +270,8 @@ def generate_pages() -> None:
         "workflows": 0,
         "benchmarks": 0,
     }
+
+    logger.info(f"applications_dir: {applications_dir}")
 
     # Parse the metadata.json files
     for metadata_file in applications_dir.rglob("metadata.json"):
