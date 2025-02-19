@@ -33,6 +33,7 @@ def get_last_modified_date(path: str) -> str:
     try:
         # Get the last commit date for the path
         cmd = ["git", "log", "-1", "--format=%ad", "--date=short", path]
+        logger.info(f"Git Path: {path}")
         result = subprocess.run(cmd, cwd=path, capture_output=True, text=True, check=True)
         # Convert YYYY-MM-DD to Month DD, YYYY format
         date = result.stdout.strip()
@@ -81,12 +82,10 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
 
     # Extract the application name
     if dest_dir == "applications":
-        path = (
-            str(metadata_file).removeprefix("/holohub/applications/").removesuffix("/metadata.json")
-        )
+        path = re.sub(r".*/applications/", "", str(metadata_file)).removesuffix("/metadata.json")
         statistics["applications"] += 1
     elif dest_dir == "workflows":
-        path = str(metadata_file).removeprefix("/holohub/workflows/").removesuffix("/metadata.json")
+        path = re.sub(r".*/workflows/", "", str(metadata_file)).removesuffix("/metadata.json")
         statistics["workflows"] += 1
     # For operators we put a flat list
     elif dest_dir == "operators":
@@ -156,7 +155,7 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
             readme_text = readme_file.read()
 
             # Regular expression pattern to match paths containing .gif, .png, or .jpg
-            pattern = r'["(\[][^:"\s)]*\.(?:gif|png|jpg)[")\]]'
+            pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
 
             # Find all matches in the string
             matches = re.findall(pattern, readme_text)
