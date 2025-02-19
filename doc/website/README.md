@@ -1,8 +1,8 @@
 # Holohub Website
 
-## Viewing the current Holohub github pages
+## Viewing the current HoloHub GitHub Pages
 
-The documentation should be viewable at [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub).
+The documentation is viewable at [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub).
 
 ## Previewing the website locally
 

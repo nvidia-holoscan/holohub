@@ -250,9 +250,6 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
     with mkdocs_gen_files.open(dest_file, "w") as fd:
         fd.write(output_text)
 
-        # logger.info(f"Added: {dest_file}")
-        # mkdocs_gen_files.set_edit_path(dest_file, metadata_file.relative_to('/holohub/'+dest_dir))
-
 
 def generate_pages() -> None:
     """Generate pages for documentation.
