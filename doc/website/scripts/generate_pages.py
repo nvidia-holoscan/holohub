@@ -33,7 +33,7 @@ def get_last_modified_date(path: str) -> str:
     try:
         # Get the last commit date for the path
         cmd = ["git", "log", "-1", "--format=%ad", "--date=short", path]
-        result = subprocess.run(cmd, cwd="/holohub", capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, cwd=path, capture_output=True, text=True, check=True)
         # Convert YYYY-MM-DD to Month DD, YYYY format
         date = result.stdout.strip()
         try:
@@ -260,8 +260,7 @@ def generate_pages() -> None:
     Returns:
         None
     """
-    root = Path(__file__).parent.parent.parent
-    applications_dir = root
+    root = Path(__file__).parent.parent.parent.parent
 
     statistics = {
         "operators": 0,
@@ -271,10 +270,10 @@ def generate_pages() -> None:
         "benchmarks": 0,
     }
 
-    logger.info(f"applications_dir: {applications_dir}")
+    logger.info(f"root: {root}")
 
     # Parse the metadata.json files
-    for metadata_file in applications_dir.rglob("metadata.json"):
+    for metadata_file in root.rglob("metadata.json"):
         parse_metadata_file(metadata_file, statistics)
 
     logger.info(f"Stats: {statistics}")
