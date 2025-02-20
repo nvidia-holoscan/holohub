@@ -54,16 +54,18 @@ def extract_readme(file_path):
 
 
 def extract_application_name(metadata_filepath: str) -> str:
-    """Extract the application name from the README file path.
+    """Extract the application or workflow name from the README file path.
 
-    HoloHub convention is such that an application `metadata.json` file
+    HoloHub convention is such that an application/workflow `metadata.json` file
     must be located at either:
-    - the named application project folder; or
-    - a language subfolder one level below the application project folder.
+    - the named project folder; or
+    - a language subfolder one level below the project folder.
 
     The following are valid examples:
     - applications/my_application/metadata.json -> my_application
     - applications/nested/paths/my_application/cpp/metadata.json -> my_application
+    - workflows/my_workflow/metadata.json -> my_workflow
+    
     """
     parts = metadata_filepath.split(os.sep)
     if parts[-2] in ["cpp", "python"]:
@@ -72,7 +74,7 @@ def extract_application_name(metadata_filepath: str) -> str:
 
 
 def generate_build_and_run_command(metadata: dict) -> str:
-    """Generate the build and run command for the application"""
+    """Generate the build and run command for the application or workflow"""
     language = metadata.get("metadata", {}).get("language", "").lower()
     if language == "python":
         return f'./dev_container build_and_run {metadata["application_name"]} --language python'
@@ -110,7 +112,7 @@ def gather_metadata(repo_path, exclude_files: None) -> dict:
                 data["readme"] = readme
                 data["application_name"] = application_name
                 data["source_folder"] = source_folder
-                if source_folder == "applications":
+                if source_folder in ["applications", "workflows"]:
                     data["build_and_run"] = generate_build_and_run_command(data)
                 metadata.append(data)
             except json.decoder.JSONDecodeError as e:
@@ -123,7 +125,7 @@ def gather_metadata(repo_path, exclude_files: None) -> dict:
 def main(args: argparse.Namespace):
     """Run the gather application"""
 
-    DEFAULT_INCLUDE_PATHS = ["applications", "operators", "tutorials"]
+    DEFAULT_INCLUDE_PATHS = ["workflows", "applications", "operators", "tutorials"]
     DEFAULT_OUTPUT_FILEPATH = "aggregate_metadata.json"
 
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS
