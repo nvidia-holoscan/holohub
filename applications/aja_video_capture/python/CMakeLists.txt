@@ -20,6 +20,15 @@ add_custom_target(python_aja_capture ALL
   BYPRODUCTS "aja_capture.py"
 )
 
+# Copy config file
+add_custom_target(python_aja_capture_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/aja_capture.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "aja_capture.yaml"
+  BYPRODUCTS "aja_capture.yaml"
+)
+
+add_dependencies(python_aja_capture python_aja_capture_yaml)
+
 # Testing
 if(BUILD_TESTING)
 
