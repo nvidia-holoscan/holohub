@@ -14,6 +14,7 @@
 		},
 		"platforms": ["amd64", "arm64"],
 		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
