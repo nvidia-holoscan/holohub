@@ -29,6 +29,8 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onn
     COMMAND python ./graph_surgeon.py yolov8s.onnx yolov8s.onnx
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/yolo_model_deployment"
     COMMAND mv yolov8s.onnx "${HOLOHUB_DATA_DIR}/yolo_model_deployment"
+    COMMAND rm -rf YOLOv8-TensorRT
+    COMMAND rm graph_surgeon.py
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onnx"
     )
 

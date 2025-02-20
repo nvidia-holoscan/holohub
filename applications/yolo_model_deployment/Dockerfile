@@ -31,7 +31,8 @@ RUN apt-get update \
 
 RUN pip3 install \
     ultralytics \
-    onnx
+    onnx \
+    onnx-graphsurgeon
 
 # --------------------------------------------------------------------------
 #

@@ -17,16 +17,16 @@ import os
 from argparse import ArgumentParser
 
 import cupy as cp
-import numpy as np
 import holoscan as hs
+import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
-    VideoStreamReplayerOp,
     V4L2VideoCaptureOp,
+    VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
 
@@ -129,7 +129,6 @@ class YoloDetApp(Application):
             source_output = "output"
             in_dtype = "rgb888"
 
-
         # Operators
         detection_preprocessor = FormatConverterOp(
             self,
@@ -189,9 +188,7 @@ if __name__ == "__main__":
         "--source",
         choices=["v4l2", "replayer"],
         default="v4l2",
-        help=(
-            "Input source: 'v4l2' for V4L2 device or 'replayer' for video stream replayer."
-        ),
+        help=("Input source: 'v4l2' for V4L2 device or 'replayer' for video stream replayer."),
     )
     parser.add_argument(
         "-d",
