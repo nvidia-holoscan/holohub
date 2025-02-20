@@ -56,8 +56,6 @@ class Volume {
   std::chrono::duration<float> frame_duration_;
   /// space origin
   std::array<double, 3> space_origin_{0.0, 0.0, 0.0};
-  /// space directions
-  std::vector<std::array<double, 3>> space_directions_;
 
   nvidia::gxf::MemoryStorageType storage_type_ = nvidia::gxf::MemoryStorageType::kDevice;
   nvidia::gxf::Handle<nvidia::gxf::Allocator> allocator_;

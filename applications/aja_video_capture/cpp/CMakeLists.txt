@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(holoscan 1.0 REQUIRED)
+
 # Create example
 add_executable(aja_capture
   aja_capture.cpp
@@ -39,7 +41,7 @@ if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME video_replayer_output)
-  set(VALIDATION_FRAMES_DIR ${Holoscan-examples_SOURCE_DIR}/../tests/data/validation_frames/aja_capture/)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/)
 
   file(MAKE_DIRECTORY ${RECORDING_DIR})
 
@@ -51,7 +53,7 @@ if(BUILD_TESTING)
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT aja_capture_test.cpp
     COMMAND patch -u -o aja_capture_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/aja_capture.cpp
-      ${Holoscan-examples_SOURCE_DIR}/../tests/data/validation_frames/aja_capture/cpp_aja_capture.patch
+      ${CMAKE_CURRENT_SOURCE_DIR}/../tests/cpp_aja_capture.patch
   )
 
   # Create the test executable
@@ -78,17 +80,17 @@ if(BUILD_TESTING)
   )
 
   # Add the test and make sure it runs
-  add_test(NAME EXAMPLE_CPP_AJA_CAPTURE_TEST
+  add_test(NAME AJA_CAPTURE_CPP_TEST
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/aja_capture_test ${CONFIG_FILE}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-  set_tests_properties(EXAMPLE_CPP_AJA_CAPTURE_TEST PROPERTIES
+  set_tests_properties(AJA_CAPTURE_CPP_TEST PROPERTIES
     PASS_REGULAR_EXPRESSION "Scheduler stopped: Some entities are waiting for execution"
   )
 
   # Add a test to check the validity of the frames
-  add_test(NAME EXAMPLE_CPP_AJA_CAPTURE_RENDER_TEST
-      COMMAND python3 ${Holoscan-examples_SOURCE_DIR}/../scripts/video_validation.py
+  add_test(NAME AJA_CAPTURE_CPP_RENDER_TEST
+      COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
       --source_video_dir ${RECORDING_DIR}
       --source_video_basename ${SOURCE_VIDEO_BASENAME}
       --output_dir ${RECORDING_DIR}
@@ -96,8 +98,8 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 
-  set_tests_properties(EXAMPLE_CPP_AJA_CAPTURE_RENDER_TEST PROPERTIES
-  DEPENDS EXAMPLE_CPP_AJA_CAPTURE_TEST
+  set_tests_properties(AJA_CAPTURE_CPP_RENDER_TEST PROPERTIES
+  DEPENDS AJA_CAPTURE_CPP_TEST
   PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 

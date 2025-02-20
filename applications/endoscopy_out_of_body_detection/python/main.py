@@ -20,13 +20,14 @@ import os
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     InferenceOp,
     InferenceProcessorOp,
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 
 class EndoscopyOutOfBodyDetectionApp(Application):

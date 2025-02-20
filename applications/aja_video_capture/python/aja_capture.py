@@ -19,7 +19,9 @@ import os
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from holoscan.operators import AJASourceOp, HolovizOp
+from holoscan.operators import HolovizOp
+
+from holohub.aja_source import AJASourceOp
 
 
 class AJACaptureApp(Application):
