@@ -53,7 +53,21 @@ struct RxWorkerParams {
   struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
-  uint64_t rx_pkts = 0;
+};
+
+struct RxWorkerMultiQPerQParams {
+  int port;
+  int queue;
+  int num_segs;
+  int batch_size;
+};
+
+struct RxWorkerMultiQParams {
+  std::vector<RxWorkerMultiQPerQParams> q_params;
+  struct rte_ring* ring;
+  struct rte_mempool* flowid_pool;
+  struct rte_mempool* burst_pool;
+  struct rte_mempool* meta_pool;
 };
 
 /**
@@ -329,6 +343,9 @@ void DpdkMgr::initialize() {
 
   for (auto& conf : local_port_conf) { conf = conf_eth_port; }
 
+  // Initialize the mapping to determine how many RX queues per core
+  this->init_rx_core_q_map();
+
   /* Initialize DPDK params */
   constexpr int max_nargs = 32;
   constexpr int max_arg_size = 64;
@@ -533,7 +550,8 @@ void DpdkMgr::initialize() {
       }
 
       uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-      rx_q_map_[key] = q_backend;
+      rx_dpdk_q_map_[key] = q_backend;
+      rx_cfg_q_map_[key]  = &q;
     }
 
     local_port_conf[intf.port_id_].rxmode.offloads |= RTE_ETH_RX_OFFLOAD_CHECKSUM;
@@ -597,7 +615,7 @@ void DpdkMgr::initialize() {
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
       uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-      tx_q_map_[key] = q_backend;
+      tx_dpdk_q_map_[key] = q_backend;
     }
 
     HOLOSCAN_LOG_INFO("Max packet size needed with TX: {}", max_pkt_size);
@@ -690,7 +708,7 @@ void DpdkMgr::initialize() {
       // Assume one core for now
       auto socketid = rte_lcore_to_socket_id(strtol(q.common_.cpu_core_.c_str(), nullptr, 10));
       uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-      auto qinfo = rx_q_map_[key];
+      auto qinfo = rx_dpdk_q_map_[key];
 
       HOLOSCAN_LOG_INFO("Setting up port:{}, queue:{}, Num scatter:{} pool:{}",
                         intf.port_id_,
@@ -1180,32 +1198,54 @@ void DpdkMgr::run() {
 
   HOLOSCAN_LOG_INFO("Starting advanced network workers");
   // determine the correct process types for input/output
-  int (*rx_worker)(void*) = rx_core_worker;
   int (*tx_worker)(void*) = tx_core_worker;
 
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.rx_.queues_.size() > 0) {
-      const auto& rx = intf.rx_;
-      for (auto& q : rx.queues_) {
-        // Dummy queue made to appease HWS. Don't launch worker
-        if (q.common_.name_.find("UNUSED") == 0) {
-          continue;
-        }
-        auto params = new RxWorkerParams;
-        params->port = intf.port_id_;
-        params->num_segs = q.common_.mrs_.size();
-        params->ring = rx_ring;
-        params->queue = q.common_.id_;
-        params->burst_pool = rx_burst_buffer;
-        params->flowid_pool = rx_flow_id_buffer;
-        params->meta_pool = rx_meta;
-        params->batch_size = q.common_.batch_size_;
-        params->timeout_us = q.timeout_us_;
-        rte_eal_remote_launch(
-            rx_worker, (void*)params, strtol(q.common_.cpu_core_.c_str(), NULL, 10));
-      }
-    }
+  // Launch RX workers. If the core is serving multiple queues then we launch a multi-q worker
+  for (const auto &el : this->rx_core_q_map) {
+    // Single queue
+    if (el.second.size() == 1) {
+      uint16_t port_id = el.second[0].first;
+      uint16_t q_id    = el.second[0].second;
+      uint32_t key     = (port_id << 16) | q_id;
+      const auto &q    = rx_cfg_q_map_[key];
 
+      // Dummy queue made to appease HWS. Don't launch worker
+      if (q->common_.name_.find("UNUSED") == 0) {
+        continue;
+      }
+      auto params = new RxWorkerParams;
+      params->port = port_id;
+      params->num_segs = q->common_.mrs_.size();
+      params->ring = rx_ring;
+      params->queue = q_id;
+      params->burst_pool = rx_burst_buffer;
+      params->flowid_pool = rx_flow_id_buffer;
+      params->meta_pool = rx_meta;
+      params->batch_size = q->common_.batch_size_;
+      rte_eal_remote_launch(
+          rx_core_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
+    } else {
+      // Multi-q worker
+      auto params = new RxWorkerMultiQParams;
+      for (const auto &q_info : el.second) {
+        uint16_t port_id = q_info.first;
+        uint16_t q_id    = q_info.second;
+        uint32_t key     = (port_id << 16) | q_id;
+        const auto &q    = rx_cfg_q_map_[key];
+
+        params->q_params.push_back({port_id, q_id,
+                    (int)q->common_.mrs_.size(), q->common_.batch_size_});
+      }
+
+      params->ring = rx_ring;
+      params->burst_pool = rx_burst_buffer;
+      params->flowid_pool = rx_flow_id_buffer;
+      params->meta_pool = rx_meta;
+      rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);
+    }
+  }
+
+  for (const auto& intf : cfg_.ifs_) {
     if (intf.tx_.queues_.size() > 0) {
       const auto& tx = intf.tx_;
       for (auto& q : tx.queues_) {
@@ -1239,6 +1279,183 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+/*
+  RX worker supporting multiple queues for a single core. This is useful when a user wants
+  to segregate traffic by queues, but they don't want to waste extra CPU cores by mapping a
+  core per queue.
+*/
+int DpdkMgr::rx_core_multi_q_worker(void* arg) {
+  RxWorkerMultiQParams* tparams = (RxWorkerMultiQParams*)arg;
+
+  int ret = 0;
+  uint64_t freq = rte_get_tsc_hz();
+  uint64_t timeout_ticks = freq * 0.02;  // expect all packets within 20ms
+  uint64_t total_pkts = 0;
+  std::array<AdvNetBurstParams*, ANOMgr::MAX_RX_Q_PER_CORE> bursts;
+
+  uint16_t num_queues = tparams->q_params.size();
+  struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
+
+  std::string pq_str = "";
+  for (const auto &pq : tparams->q_params) {
+    pq_str += std::to_string(pq.port) + "/" + std::to_string(pq.queue) + " ";
+  }
+
+  HOLOSCAN_LOG_INFO("Starting multi-queue RX Core {}, P/Q: {}, socket {}",
+                    rte_lcore_id(),
+                    pq_str,
+                    rte_socket_id());
+
+  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> nb_rx{};
+  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> to_copy{};
+  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> cur_pkt_in_batch{};
+
+  uint16_t cur_idx        = 0;
+  uint16_t cur_port       = tparams->q_params[cur_idx].port;
+  uint16_t cur_q          = tparams->q_params[cur_idx].queue;
+  uint16_t cur_segs       = tparams->q_params[cur_idx].num_segs;
+  uint32_t cur_batch_size = tparams->q_params[cur_idx].batch_size;
+
+
+  //
+  //  run loop
+  //
+  while (!force_quit.load()) {
+    if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
+      HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
+      exit(1);
+    }
+
+    AdvNetBurstParams* burst  = bursts[cur_idx];
+
+    //  Queue ID for receiver to differentiate
+    burst->hdr.hdr.q_id     = cur_q;
+    burst->hdr.hdr.port_id  = cur_port;
+    burst->hdr.hdr.num_segs = cur_segs;
+
+    for (int seg = 0; seg < cur_segs; seg++) {
+      if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
+        HOLOSCAN_LOG_ERROR(
+            "Processing function falling behind. No free flow ID buffers for packets!");
+        continue;
+      }
+    }
+
+    if (rte_mempool_get(
+          tparams->flowid_pool, reinterpret_cast<void**>(&burst->pkt_extra_info)) < 0) {
+      HOLOSCAN_LOG_ERROR("Processing function falling behind. No free CPU buffers for packets!");
+      continue;
+    }
+
+    ExtraRxPacketInfo *pkt_info = reinterpret_cast<ExtraRxPacketInfo*>(burst->pkt_extra_info);
+
+    if (nb_rx[cur_idx] > 0) {
+      burst->hdr.hdr.num_pkts = nb_rx[cur_idx];
+
+      // Copy non-scattered buffers
+      memcpy(&burst->pkts[0][0],
+             &mbuf_arr[to_copy[cur_idx]],
+             sizeof(rte_mbuf*) * nb_rx[cur_idx]);
+
+      for (int flow_idx = 0; flow_idx < nb_rx[cur_idx]; flow_idx++) {
+        if (mbuf_arr[to_copy[cur_idx] + flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[flow_idx].flow_id = mbuf_arr[to_copy[cur_idx] + flow_idx]->hash.fdir.hi;
+        } else {
+          pkt_info[flow_idx].flow_id = 0;
+        }
+      }
+
+      if (cur_segs > 1) {  // Extra work when buffers are scattered
+        for (int p = 0; p < nb_rx[cur_idx]; p++) {
+          struct rte_mbuf* mbuf = mbuf_arr[p];
+          for (int seg = 1; seg < cur_segs; seg++) {
+            mbuf = mbuf->next;
+            burst->pkts[seg][p] = mbuf;
+          }
+        }
+
+        cur_pkt_in_batch[cur_idx] += nb_rx[cur_idx];
+      }
+
+      nb_rx[cur_idx] = 0;
+    } else {
+      burst->hdr.hdr.num_pkts = 0;
+    }
+
+    // Move on to the next queue to ensure fairness among queues
+    cur_idx = (cur_idx + 1) % num_queues;
+    cur_port       = tparams->q_params[cur_idx].port;
+    cur_q          = tparams->q_params[cur_idx].queue;
+    cur_segs       = tparams->q_params[cur_idx].num_segs;
+    cur_batch_size = tparams->q_params[cur_idx].batch_size;
+
+    // DPDK on some ARM platforms requires that you always pass nb_pkts as a number divisible
+    // by 4. If you pass something other than that, you get undefined results and will end up
+    // running out of buffers.
+    do {
+      int burst_size = std::min((uint32_t)DpdkMgr::DEFAULT_NUM_RX_BURST,
+                                (uint32_t)(cur_batch_size - burst->hdr.hdr.num_pkts));
+
+      nb_rx[cur_idx] = rte_eth_rx_burst(cur_port,
+                               cur_q,
+                               reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
+                               DpdkMgr::DEFAULT_NUM_RX_BURST);
+
+      if (nb_rx[cur_idx] == 0) {
+        cur_idx = (cur_idx + 1) % num_queues;
+        cur_port       = tparams->q_params[cur_idx].port;
+        cur_q          = tparams->q_params[cur_idx].queue;
+        cur_segs       = tparams->q_params[cur_idx].num_segs;
+        cur_batch_size = tparams->q_params[cur_idx].batch_size;
+        continue;
+      }
+
+      to_copy[cur_idx] = std::min(nb_rx[cur_idx],
+                                  (int)(cur_batch_size - burst->hdr.hdr.num_pkts));
+      memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts],
+             &mbuf_arr,
+             sizeof(rte_mbuf*) * to_copy[cur_idx]);
+
+      for (int flow_idx = 0; flow_idx < to_copy[cur_idx]; flow_idx++) {
+        if (mbuf_arr[flow_idx]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
+          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = mbuf_arr[flow_idx]->hash.fdir.hi;
+        } else {
+          pkt_info[burst->hdr.hdr.num_pkts + flow_idx].flow_id = 0;
+        }
+      }
+
+      if (cur_segs > 1) {  // Extra work when buffers are scattered
+        for (int p = 0; p < to_copy[cur_idx]; p++) {
+          struct rte_mbuf* mbuf = mbuf_arr[p];
+          for (int seg = 1; seg < cur_segs; seg++) {
+            mbuf = mbuf->next;
+            burst->pkts[seg][cur_pkt_in_batch[cur_idx] + p] = mbuf;
+          }
+        }
+
+        cur_pkt_in_batch[cur_idx] += to_copy[cur_idx];
+      }
+
+      burst->hdr.hdr.num_pkts += to_copy[cur_idx];
+      total_pkts              += nb_rx[cur_idx];
+      nb_rx[cur_idx]          -= to_copy[cur_idx];
+
+      if (burst->hdr.hdr.num_pkts == cur_batch_size) {
+        cur_pkt_in_batch[cur_idx] = 0;
+        rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+
+        // Don't move to the next queue yet since there may be some packets left over in the array
+        break;
+      }
+    } while (!force_quit.load());
+  }
+
+  HOLOSCAN_LOG_INFO("Total packets received by application (Port/Queue {}): {}",
+                     pq_str,
+                     total_pkts);
+
+  return 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -1247,7 +1464,6 @@ void DpdkMgr::flush_packets(int port) {
 ////////////////////////////////////////////////////////////////////////////////
 int DpdkMgr::rx_core_worker(void* arg) {
   RxWorkerParams* tparams = (RxWorkerParams*)arg;
-  struct rte_mbuf* rx_mbufs[DEFAULT_NUM_RX_BURST];
   int ret = 0;
 
   // In the future we may want to periodically update this if the CPU clock drifts
@@ -1523,7 +1739,7 @@ void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
 
 AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
-  const auto& q = tx_q_map_[key];
+  const auto& q = tx_dpdk_q_map_[key];
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
@@ -1595,7 +1811,7 @@ AdvNetStatus DpdkMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* d
 
 bool DpdkMgr::tx_burst_available(AdvNetBurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
-  const auto& q = tx_q_map_[key];
+  const auto& q = tx_dpdk_q_map_[key];
 
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
