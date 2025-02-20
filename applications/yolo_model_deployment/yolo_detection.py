@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,19 @@
 import os
 from argparse import ArgumentParser
 
-import holoscan as hs
+import cupy as cp
 import numpy as np
+import holoscan as hs
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, VideoStreamReplayerOp
-from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
-
-from holohub.aja_source import AJASourceOp
-
-try:
-    import cupy as cp
-except ImportError:
-    raise ImportError(
-        "CuPy must be installed to run this example. See "
-        "https://docs.cupy.dev/en/stable/install.html"
-    )
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    VideoStreamReplayerOp,
+    V4L2VideoCaptureOp,
+)
+from holoscan.resources import UnboundedAllocator
 
 
 class DetectionPostprocessorOp(Operator):
@@ -80,85 +77,77 @@ class DetectionPostprocessorOp(Operator):
 
 
 class YoloDetApp(Application):
+    """
+    YOLO Detection Application.
+
+    This application performs object detection using a YOLO model. It supports
+    video input from a replayer or a V4L2 device and visualizes the detection results.
+
+    Parameters:
+        video_dir (str): Path to the video directory.
+        data (str): Path to the model data directory.
+        source (str): Input source, either "replayer" or "v4l2".
+    """
+
     def __init__(self, video_dir, data, source="replayer"):
-        """Initialize the ultrasound segmentation application
-
-        Parameters
-        ----------
-        source : {"replayer", "aja"}
-            When set to "replayer" (the default), pre-recorded sample video data is
-            used as the application input. Otherwise, the video stream from an AJA
-            capture card is used.
-        """
-
         super().__init__()
-
-        # set name
-        self.name = "YoloDet App"
-
-        # Optional parameters affecting the graph created by compose.
+        self.name = "YOLO Detection App"
         self.source = source
 
+        # Set default paths if not provided
         if data == "none":
-            data = os.environ.get("HOLOHUB_DATA_PATH", "./")
-
-        self.model_path_map = {"yolo_det": os.path.join(data, "yolov8-nms-update.onnx")}
+            data = os.path.join(
+                os.environ.get("HOLOHUB_DATA_PATH", "../data"), "yolo_model_deployment"
+            )
+        self.data = data
 
         if video_dir == "none":
-            video_dir = "./example_video"
-
+            video_dir = data
         self.video_dir = video_dir
 
     def compose(self):
-        n_channels = 4  # RGBA
-        bpp = 4  # bytes per pixel
+        # Resource allocator
+        pool = UnboundedAllocator(self, name="pool")
 
-        is_aja = self.source.lower() == "aja"
-        if is_aja:
-            source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
-            drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
-            drop_alpha_num_blocks = 2
-            drop_alpha_channel = FormatConverterOp(
+        # Input source
+        if self.source == "v4l2":
+            source = V4L2VideoCaptureOp(
                 self,
-                name="drop_alpha_channel",
-                pool=BlockMemoryPool(
-                    self,
-                    storage_type=MemoryStorageType.DEVICE,
-                    block_size=drop_alpha_block_size,
-                    num_blocks=drop_alpha_num_blocks,
-                ),
-                **self.kwargs("drop_alpha_channel"),
+                name="v4l2_source",
+                allocator=pool,
+                **self.kwargs("v4l2_source"),
             )
+            source_output = "signal"
+            in_dtype = "rgba8888"  # V4L2 outputs RGBA8888
         else:
-            video_dir = self.video_dir
-            if not os.path.exists(video_dir):
-                raise ValueError(f"Could not find video data: {video_dir=}")
             source = VideoStreamReplayerOp(
-                self, name="replayer", directory=video_dir, **self.kwargs("replayer")
+                self,
+                name="replayer",
+                directory=self.video_dir,
+                **self.kwargs("replayer"),
             )
+            source_output = "output"
+            in_dtype = "rgb888"
 
-        width_preprocessor = 640
-        height_preprocessor = 640
-        preprocessor_block_size = width_preprocessor * height_preprocessor * n_channels * bpp
-        preprocessor_num_blocks = 2
+
+        # Operators
         detection_preprocessor = FormatConverterOp(
             self,
             name="detection_preprocessor",
-            pool=BlockMemoryPool(
-                self,
-                storage_type=MemoryStorageType.DEVICE,
-                block_size=preprocessor_block_size,
-                num_blocks=preprocessor_num_blocks,
-            ),
+            pool=pool,
+            in_dtype=in_dtype,
             **self.kwargs("detection_preprocessor"),
         )
+
+        inference_kwargs = self.kwargs("detection_inference")
+        for k, v in inference_kwargs["model_path_map"].items():
+            inference_kwargs["model_path_map"][k] = os.path.join(self.data, v)
 
         detection_inference = InferenceOp(
             self,
             name="detection_inference",
             allocator=UnboundedAllocator(self, name="allocator"),
-            model_path_map=self.model_path_map,
-            **self.kwargs("detection_inference"),
+            **inference_kwargs,
         )
 
         detection_postprocessor = DetectionPostprocessorOp(
@@ -184,53 +173,42 @@ class YoloDetApp(Application):
             **self.kwargs("detection_visualizer"),
         )
 
-        if is_aja:
-            self.add_flow(source, detection_visualizer, {("video_buffer_output", "receivers")})
-            self.add_flow(source, drop_alpha_channel, {("video_buffer_output", "")})
-            self.add_flow(drop_alpha_channel, detection_preprocessor)
-        else:
-            self.add_flow(source, detection_visualizer, {("", "receivers")})
-            self.add_flow(source, detection_preprocessor)
+        # Data flow
+        self.add_flow(source, detection_visualizer, {(source_output, "receivers")})
+        self.add_flow(source, detection_preprocessor)
         self.add_flow(detection_preprocessor, detection_inference, {("", "receivers")})
         self.add_flow(detection_inference, detection_postprocessor, {("transmitter", "")})
-        self.add_flow(
-            detection_postprocessor,
-            detection_visualizer,
-            {("out", "receivers")},
-        )
+        self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 
 
 if __name__ == "__main__":
-    # Parse args
-    parser = ArgumentParser(description="Yolo detection demo application.")
+    # Argument parser
+    parser = ArgumentParser(description="YOLO Detection Demo Application.")
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja"],
-        default="replayer",
+        choices=["v4l2", "replayer"],
+        default="v4l2",
         help=(
-            "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
-            "capture card as the source (default: %(default)s)."
+            "Input source: 'v4l2' for V4L2 device or 'replayer' for video stream replayer."
         ),
     )
     parser.add_argument(
         "-d",
         "--data",
         default="none",
-        help=("Set the model path"),
+        help="Path to the model data directory.",
     )
-
     parser.add_argument(
         "-v",
         "--video_dir",
         default="none",
-        help=("Set the video dir path"),
+        help="Path to the video directory.",
     )
 
     args = parser.parse_args()
 
     config_file = os.path.join(os.path.dirname(__file__), "yolo_detection.yaml")
-
     app = YoloDetApp(video_dir=args.video_dir, data=args.data, source=args.source)
     app.config(config_file)
     app.run()

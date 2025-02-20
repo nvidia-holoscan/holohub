@@ -129,6 +129,8 @@ add_holohub_application(video_deidentification)
 
 add_holohub_application(webrtc_video_server)
 
+add_holohub_application(yolo_model_deployment)
+
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
