@@ -14,5 +14,4 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
-add_holohub_application(multiai_workflow DEPENDS OPERATORS aja_source)
 add_holohub_application(real_time_ai_surgical_video_processing DEPENDS OPERATORS aja_source)

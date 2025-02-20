@@ -71,7 +71,7 @@ endif()
 # Build packaging
 add_subdirectory(pkg)
 
-# Build the applications
+# Build the workflows
 add_subdirectory(workflows)
 
 # Build the applications
