@@ -858,6 +858,7 @@ launch_desc() {
 
   ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name|workflow_name> [cpp|python] [options]
 
+
   ${CYAN}Options:${NOCOLOR}
      --extra_args <args>       : additional arguments passed to the application/workflow command
      --nsys_profile           : profile using Nsight Systems
