@@ -39,3 +39,16 @@ get_host_gpu() {
 get_host_arch() {
     echo -n "$(uname -m)"
 }
+
+get_platform_example_for_cli() {
+    if [ $(get_host_arch) == "aarch64" ]; then
+        if [ $(get_host_gpu) == "igpu" ]; then
+            PLATFORM=igx-igpu
+        else
+            PLATFORM=igx-dgpu
+        fi
+    else
+        PLATFORM=x86_64
+    fi
+    echo -n $PLATFORM
+}

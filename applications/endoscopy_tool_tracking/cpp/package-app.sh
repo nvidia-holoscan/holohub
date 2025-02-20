@@ -27,11 +27,7 @@ if [ ! -d $APP_PATH ]; then
     exit -1
 fi
 
-PLATFORM=x64-workstation
-GPU=$(get_host_gpu)
-if [ $(get_host_arch) == "aarch64" ]; then
-    PLATFORM=igx-orin-devkit
-fi
+PLATFORM=$(get_platform_example_for_cli)
 
 echo -e "Updating application configuration file..."
 sed -i 's|lib/gxf_extensions/||' "$APP_PATH/endoscopy_tool_tracking.yaml"
@@ -39,9 +35,9 @@ echo -e "done\n"
 
 echo -e Install Holoscan CLI and then use the following commands to package and run the Endoscopy Tool Tracking application:
 echo -e "Package the application:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t holohub-endoscopy-tool-tracking-cpp --include onnx holoviz --add $INSTALL_DIR/lib/ $APP_PATH/endoscopy_tool_tracking${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform [jetson | igx-igpu | igx-dgpu | sbsa | x86_64] -t holohub-endoscopy-tool-tracking-cpp --include onnx holoviz --add $INSTALL_DIR/lib/ $APP_PATH/endoscopy_tool_tracking${NOCOLOR}"
 echo -e "\nFor example:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform ${PLATFORM} --platform-config ${GPU} -t holohub-endoscopy-tool-tracking-cpp --include onnx holoviz --add $INSTALL_DIR/lib/ $APP_PATH/endoscopy_tool_tracking${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform ${PLATFORM}  -t holohub-endoscopy-tool-tracking-cpp --include onnx holoviz --add $INSTALL_DIR/lib/ $APP_PATH/endoscopy_tool_tracking${NOCOLOR}"
 echo -e "\nRun the application:"
 echo -e "${YELLOW}holoscan run -r \$(docker images | grep "holohub-endoscopy-tool-tracking-cpp" | awk '{print \$1\":\"\$2}') -i $GIT_ROOT/data/endoscopy${NOCOLOR}"
 echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."

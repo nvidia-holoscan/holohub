@@ -26,17 +26,13 @@ if [ ! -d $APP_PATH ]; then
     exit -1
 fi
 
-PLATFORM=x64-workstation
-GPU=$(get_host_gpu)
-if [ $(get_host_arch) == "aarch64" ]; then
-    PLATFORM=igx-orin-devkit
-fi
+PLATFORM=$(get_platform_example_for_cli)
 
 echo -e "\nPlease use the Holoscan SDK CLI to package and run the Imaging AI Segmentator application with the following set of commands:"
 echo -e "\nGeneral command and options to package an application:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/app.yaml --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t holohub-imaging_ai_segmentator -m $GIT_ROOT/data/imaging_ai_segmentator/models $APP_PATH/ ${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/app.yaml --platform [jetson | igx-igpu | igx-dgpu | sbsa | x86_64] -t holohub-imaging_ai_segmentator -m $GIT_ROOT/data/imaging_ai_segmentator/models $APP_PATH/ ${NOCOLOR}"
 echo -e "\nCommand to package this application:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/app.yaml --platform ${PLATFORM} --platform-config ${GPU} -t holohub-imaging_ai_segmentator -m $GIT_ROOT/data/imaging_ai_segmentator/models $APP_PATH/ ${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/app.yaml --platform ${PLATFORM}  -t holohub-imaging_ai_segmentator -m $GIT_ROOT/data/imaging_ai_segmentator/models $APP_PATH/ ${NOCOLOR}"
 echo -e "\nList the newly built application container:"
 echo -e "${YELLOW}docker images | grep "holohub-imaging_ai_segmentator" | awk '{print \$1\":\"\$2}' ${NOCOLOR}"
 echo -e "\nRun the application container, after creating and cleaning output folder:"
