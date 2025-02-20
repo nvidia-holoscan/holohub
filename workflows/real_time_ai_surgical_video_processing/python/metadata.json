@@ -1,0 +1,68 @@
+{
+	"application": {
+		"name": "Real-Time AI Surgical Video Processing Workflow",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.1.0",
+			"tested_versions": [
+				"2.9.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Multiai",
+			"SSD",
+			"bounding box",
+			"Detection",
+			"MONAI",
+			"Segmentation"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"data": [
+				{
+						"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+						"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+						"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+						"version": "20230222"
+				},
+				{
+					"name": "A SSD Detection model for Endoscopy Surgical Tools",
+					"description": "This resource contains a SSD Detection model for the identification of surgical tools",
+					"url": "https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/ssd_surgical_tool_detection_model"
+				},
+				{
+					"name": "Model for HoloHub Sample App for MONAI Endoscopic Tool Segmentation",
+					"url": "https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model"
+				}
+			],
+			"libraries": [
+				{
+					"name": "numpy",
+					"version": "1.22.3"
+				},
+				{
+					"name": "cupy",
+					"version": "11.6.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/main.py --config <holohub_app_source>/config.yaml --data <holohub_data_dir>/",
+			"workdir": "holohub_bin"
+		}
+	}
+}
