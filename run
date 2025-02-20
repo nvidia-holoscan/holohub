@@ -114,21 +114,31 @@ get_buildtype_str() {
 
 get_app_source_root_dir() {
   # Get source path for a given application according to HoloHub convention.
-  # Usage: ./run get_app_source_root_dir <app_name>
+  # Usage: ./run get_app_source_root_dir <app_name> [is_workflow]
   local appname="$1"
+  local is_workflow="$2"
+
   if [[ -z "${appname}" ]]; then
     echo "Missing app name argument for get_app_source_root_dir"
     exit 1
   fi
 
-  holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+  if [[ -z "${is_workflow}" ]]; then
+    is_workflow=false
+  fi
+
+  if [[ "${is_workflow}" == "true" ]]; then
+    holohub_app_source="${SCRIPT_DIR}/workflows/${appname}"
+  else
+    holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+  fi
 
   # Check if the application is in a subdirectory
   if [ ! -d "$holohub_app_source" ]; then
-    sub_app_path=$(find ${SCRIPT_DIR}/applications -type d -name "${appname}")
-    app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
+    sub_app_path=$(find ${holohub_app_source} -type d -name "${appname}")
+    app_rel_path=${sub_app_path#"${holohub_app_source}/"}
     if [[ -n "$app_rel_path" ]]; then
-      holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
+      holohub_app_source="${holohub_app_source}/${app_rel_path}"
     fi
   fi
 
@@ -149,11 +159,16 @@ get_app_source_lang_dir() {
   # Get source path for a given application language implementation according to HoloHub convention.
   # If a project defines more than one language implementation it must define one subfolder per language,
   # otherwise the implementation may be provided at the top level or in a subfolder at the contributor's discretion.
-  # Usage: ./run get_app_source_lang_dir <app_name> <language>
+  # Usage: ./run get_app_source_lang_dir <app_name> <language> [is_workflow]
   local appname="$1"
   local language="$2"
+  local is_workflow="$3"
 
-  local holohub_app_source=$(get_app_source_root_dir "${appname}")
+  if [[ -z "${is_workflow}" ]]; then
+    is_workflow=false
+  fi
+
+  local holohub_app_source=$(get_app_source_root_dir "${appname}" "${is_workflow}")
   if [[ -n "${holohub_app_source}" ]] && [[ -d "${holohub_app_source}/${language}" ]]; then
     holohub_app_source="${holohub_app_source}/${language}"
   fi
@@ -226,13 +241,18 @@ get_app_dockerfile() {
   # 2. Check for a Dockerfile in the application language implementation directory.
   # 3. Check for a Dockerfile in the root application directory.
   # 4. Use the default Dockerfile provided at the top level of the HoloHub repository.
-  # Usage: ./run get_app_dockerfile <app_name> <language>
+  # Usage: ./run get_app_dockerfile <app_name> <language> [is_workflow]
   local appname="$1"
   local language="$2"
+  local is_workflow="$3"
   local dockerfile_path=""
 
-  local app_source_root_path=$(get_app_source_root_dir ${appname})
-  local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language})
+  if [[ -z "${is_workflow}" ]]; then
+    is_workflow=false
+  fi
+
+  local app_source_root_path=$(get_app_source_root_dir ${appname} ${is_workflow})
+  local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language} ${is_workflow})
 
   local dockerfile_entry=$(cat "${app_source_lang_path}/metadata.json" 2>/dev/null | grep "dockerfile" )
   if [[ -n "${dockerfile_entry}" ]]; then
@@ -610,7 +630,7 @@ lint() {
 
 build_desc() {
   echo
-  echo -e "${BOLD}Build a Holohub operator, application, or package, in its isolated build directory.${NOCOLOR}"
+  echo -e "${BOLD}Build a Holohub operator, application, workflow, or package, in its isolated build directory.${NOCOLOR}"
   echo
   echo -e "${CYAN}USAGE:${NOCOLOR}"
   echo
@@ -630,7 +650,7 @@ build_desc() {
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --benchmark                          : Build for Holoscan Flow Benchmarking. Valid for"
-  echo "                                          applications only"
+  echo "                                          applications/workflows only"
   echo "   --install                            : Install the target and its dependencies to"
   echo "                                          install/<target> if supported."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
@@ -759,16 +779,20 @@ build() {
   opt_prefix=""
   is_app=false
   is_pkg=false
+  is_workflow=false
   if list_packages | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D PKG_"
     is_pkg=true
   elif list_apps | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D APP_"
     is_app=true
+  elif list_workflows | awk '{print $1}' | grep -Fxq "$project"; then
+    opt_prefix="-D APP_"
+    is_workflow=true
   elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="-D OP_"
   else
-    print_error "Unknown package, application, or operator: $1"
+    print_error "Unknown package, application, workflow, or operator: $1"
     echo "You can run ./run list for a full list of options."
     exit 1
   fi
@@ -782,11 +806,11 @@ build() {
 
   local app_source_root_path
   if [ $benchmark == true ]; then
-    if [ $is_app == true ]; then
-      app_source_root_path=$(get_app_source_root_dir $project)
+    if [ $is_app == true ] || [ $is_workflow == true ]; then
+      app_source_root_path=$(get_app_source_root_dir $project ${is_workflow})
       run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
     else
-      print_warning "Requesting benchmarking with --benchmark is only available for applications, ignoring"
+      print_warning "Requesting benchmarking with --benchmark is only available for applications/workflows, ignoring"
     fi
   fi
 
@@ -813,7 +837,7 @@ build() {
   fi
 
   if [ $benchmark == true ] && [ $is_app == true ]; then
-    app_source_root_path=$(get_app_source_root_dir $1)
+    app_source_root_path=$(get_app_source_root_dir $1 ${is_workflow})
     run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
   fi
 
@@ -830,24 +854,26 @@ build() {
 # Launch a sample app
 launch_desc() {
   echo -e "
-  ${BOLD}Run an application.${NOCOLOR}
+  ${BOLD}Run an application or workflow.${NOCOLOR}
 
-  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name> [cpp|python] [options]
+  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name|workflow_name> [cpp|python] [options]
 
   ${CYAN}Options:${NOCOLOR}
-     --extra_args <args>       : additional arguments passed to the application command
-     --nsys_profile            : profile using Nsight Systems
-     --verbose                 : output additional run command information to stdout
+     --extra_args <args>       : additional arguments passed to the application/workflow command
+     --nsys_profile           : profile using Nsight Systems
+     --verbose                : output additional run command information to stdout
 
 
-  Use './run list' or './run list_apps' to list the available applications.
-  Make sure you call './run build <application_name>' to first build the application.
+  Use './run list'
+  Use './run list_apps' to list the available applications.
+  Use './run list_workflows' to list the available workflows.
+  Make sure you call './run build <application_name|workflow_name>' to first build the target.
   "
 }
 
 
 launch() {
-   local appname=""
+   local target=""
    local language=""
    local extra_args=""
    local nsys_profile=false
@@ -902,7 +928,13 @@ launch() {
      fi
    fi
 
-   holohub_app_source=$(get_app_source_lang_dir "${appname}" "${language}")
+   # Check if target is an application or workflow
+   local is_workflow=false
+   if list_workflows | awk '{print $1}' | grep -Fxq "$appname"; then
+     is_workflow=true
+   fi
+
+   holohub_app_source=$(get_app_source_lang_dir "${appname}" "${language}" "${is_workflow}")
    if [[ -z "${holohub_app_source}" ]]; then
      print_error "Could not find app source directory for ${appname} ${language}."
      launch_desc
@@ -919,6 +951,10 @@ launch() {
    fi
 
    holohub_app_bin="${holohub_build_dir}/${holohub_app_source#"$SCRIPT_DIR/"}"
+   if [ "$is_workflow" = true ]; then
+     holohub_app_bin="${holohub_app_bin/workflows/applications/}"
+   fi
+   
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
@@ -1002,7 +1038,7 @@ list_desc() {
   echo -e "
   ${BOLD}Display the list of Holohub targets.${NOCOLOR}
 
-  Includes applications, operators, packages.
+  Includes workflows, applications, operators, packages.
   "
 }
 
@@ -1072,6 +1108,7 @@ list() {
 
 # Returns the list of words for autocompletion
 autocompletion_list() {
+  # Get applications
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
@@ -1079,6 +1116,16 @@ autocompletion_list() {
     # Deal with subdirectories of applications
     echo "${filename##*/}"
   done
+
+  # Get workflows
+  workflows=$(find ${SCRIPT_DIR}/workflows -name 'metadata.json')
+  for d in ${workflows}; do
+    local workflowname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/workflows/'\K[^ ]*')
+    filename="${workflowname%/*}"
+    # Deal with subdirectories of workflows
+    echo "${filename##*/}"
+  done
+
   echo "build launch clear_cache cpp python install_lint_deps lint setup"
 }
 
@@ -1175,7 +1222,6 @@ print_cmd_help_messages() {
     print_usage
     return 0
 }
-
 
 main() {
     local ret=0
