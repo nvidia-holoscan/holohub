@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,4 +38,19 @@ get_host_gpu() {
 
 get_host_arch() {
     echo -n "$(uname -m)"
+}
+
+# Get an example value for the running PLATFORM.
+# Since we cannot detect the actual hardware, IGX vs Jetson, we use IGX as an example.
+get_platform_example_for_cli() {
+    if [ $(get_host_arch) == "aarch64" ]; then
+        if [ $(get_host_gpu) == "igpu" ]; then
+            PLATFORM=igx-igpu
+        else
+            PLATFORM=igx-dgpu
+        fi
+    else
+        PLATFORM=x86_64
+    fi
+    echo -n $PLATFORM
 }
