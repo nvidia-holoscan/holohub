@@ -376,7 +376,7 @@ struct CommonConfig {
   int master_core_;
   AdvNetDirection dir;
   AnoMgrType manager_type;
-  bool loopback_;
+  LoopbackType loopback_;
 };
 
 struct AdvNetRxConfig {

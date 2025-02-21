@@ -348,7 +348,7 @@ void DpdkMgr::initialize() {
           },
   };
 
-  loopback_ = cfg_.common_.loopback_ ? LoopbackType::LOOPBACK_TYPE_SW : LoopbackType::DISABLED;
+  loopback_ = cfg_.common_.loopback_;
   if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
     if (cfg_.ifs_.size() > 1) {
       HOLOSCAN_LOG_CRITICAL("Only a single interface allowed for loopback mode currently");
@@ -463,8 +463,7 @@ void DpdkMgr::initialize() {
 
     if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
       intf.port_id_ = 0;
-    }
-    else {
+    } else {
       ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
       if (ret < 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
@@ -825,8 +824,7 @@ void DpdkMgr::initialize() {
       }
 
       apply_tx_offloads(intf.port_id_);
-    }
-    else {
+    } else {
       HOLOSCAN_LOG_INFO("Loopback mode configured");
     }
   }
@@ -984,12 +982,12 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   struct rte_flow_action action[MAX_ACTION_NUM];
   struct rte_flow* flow = NULL;
   struct rte_flow_action_queue queue = {.index = cfg.action_.id_};
-  struct rte_flow_action_mark  mark = {.id = cfg.id_};
+  struct rte_flow_action_mark mark = {.id = cfg.id_};
   struct rte_flow_error error;
   struct rte_flow_item_udp udp_spec;
   struct rte_flow_item_udp udp_mask;
-  struct rte_flow_item_ipv4  ip_spec;
-  struct rte_flow_item_ipv4  ip_mask;
+  struct rte_flow_item_ipv4 ip_spec;
+  struct rte_flow_item_ipv4 ip_mask;
   struct rte_flow_item udp_item;
   int res;
 
@@ -1252,8 +1250,7 @@ void DpdkMgr::run() {
   if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
     rx_worker = rx_core_worker;
     tx_worker = tx_core_worker;
-  }
-  else {
+  } else {
     rx_worker = rx_lb_worker;
     tx_worker = tx_lb_worker;
   }
@@ -1319,6 +1316,7 @@ void DpdkMgr::run() {
         //  params->hds    = q.common_.hds_ > 0;
         params->port = intf.port_id_;
         params->ring = tx_rings[key];
+        params->lb_ring = loopback_ring;
         params->queue = q.common_.id_;
         params->burst_pool = tx_burst_buffers[key];
         params->meta_pool = tx_meta;
