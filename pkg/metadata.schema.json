@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/package/v1",
+  "type": "object",
+  "properties": {
+    "package": {
+      "type": "object",
+      "properties": {
+        "dockerfile": {
+          "type": "string",
+          "description": "Path to the Dockerfile used to build this package"
+        }
+      }
+    }
+  }
+}
