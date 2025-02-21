@@ -40,6 +40,8 @@ get_host_arch() {
     echo -n "$(uname -m)"
 }
 
+# Get an example value for the running PLATFORM.
+# Since we cannot detect the actual hardware, IGX vs Jetson, we use IGX as an example.
 get_platform_example_for_cli() {
     if [ $(get_host_arch) == "aarch64" ]; then
         if [ $(get_host_gpu) == "igpu" ]; then
