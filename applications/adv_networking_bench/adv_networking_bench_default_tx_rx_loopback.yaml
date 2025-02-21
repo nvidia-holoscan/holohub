@@ -32,7 +32,7 @@ advanced_network:
     master_core: 3
     debug: false
     log_level: "info"
-    loopback: true
+    loopback: "sw"
 
     memory_regions:
     - name: "Control_TX_CPU"
@@ -41,7 +41,7 @@ advanced_network:
       access:
         - local
       num_bufs: 51200
-      buf_size: 9000    
+      buf_size: 9000
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
@@ -73,7 +73,7 @@ advanced_network:
             output_port: "bench_rx_out"
             memory_regions:
               - "Control_TX_CPU"
-              - "Data_TX_GPU"    
+              - "Data_TX_GPU"
 
 bench_rx:
   split_boundary: true
@@ -83,7 +83,7 @@ bench_rx:
   header_size: 64
 
 bench_tx:
-  eth_dst_addr: 48:b0:2d:f4:04:48   # Destination MAC
+  eth_dst_addr: <00:00:00:00:00:00>   # Destination MAC
   udp_dst_port: 4096                  # UDP destination port
   udp_src_port: 4096                  # UDP source port
   gpu_direct: true
@@ -91,6 +91,6 @@ bench_tx:
   batch_size: 10000
   payload_size: 1000
   header_size: 64
-  ip_src_addr: 10.10.100.1          # Source IP send from
-  ip_dst_addr: 10.10.100.2          # Destination IP to send to
-  address: 0005:03:00.0
+  ip_src_addr: <1.2.3.4>              # Source IP send from
+  ip_dst_addr: <5.6.7.8>              # Destination IP to send to
+  address: <0000:00:00.0>
