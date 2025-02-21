@@ -26,7 +26,7 @@
 #define BURST_ACCESS_METHOD_RAW_PTR 0
 #define BURST_ACCESS_METHOD_DIRECT_ACCESS 1
 
-#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_SHARED_PTR
+#define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_RAW_PTR
 
 namespace holoscan::ops {
 
@@ -178,13 +178,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     auto burst_size = adv_net_get_num_pkts(burst);
 
-    // Store burst structure
-    cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
-#else
-    cur_batch_.bursts[cur_batch_.num_bursts++] = burst_shared;
-#endif
     // Count packets received
     ttl_pkts_recv_ += burst_size;
+
+    // Store burst structure
+    cur_batch_.bursts[cur_batch_.num_bursts++] = burst;
 
     // Track packet payloads for the current burst
     if (gpu_direct_.get()) {
