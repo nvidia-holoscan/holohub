@@ -71,10 +71,10 @@ struct RxWorkerMultiQParams {
   struct rte_ring* ring;
   struct rte_ring* lb_ring;
   struct rte_mempool* flowid_pool;
-  struct rte_mempool* rx_burst_pool; // Pool used to pull out bursts from RX pool
-  struct rte_mempool* tx_burst_pool; // Pool used for loopback mode to return transmitted bursts
-  struct rte_mempool* rx_meta_pool;  // Pool used for RX metadata structures
-  struct rte_mempool* tx_meta_pool;  // Pool used in loopback for returning transmitted metadata
+  struct rte_mempool* rx_burst_pool;  // Pool used to pull out bursts from RX pool
+  struct rte_mempool* tx_burst_pool;  // Pool used for loopback mode to return transmitted bursts
+  struct rte_mempool* rx_meta_pool;   // Pool used for RX metadata structures
+  struct rte_mempool* tx_meta_pool;   // Pool used in loopback for returning transmitted metadata
 };
 
 /**
@@ -505,9 +505,10 @@ void DpdkMgr::initialize() {
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
 
         struct rte_mempool* pool = nullptr;
-        if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) { // Loopback needs no RX pools
+        if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {  // Loopback needs no RX pools
           if (mr.num_bufs_ < default_num_rx_desc) {
-            HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR", default_num_rx_desc);
+            HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR",
+                                  default_num_rx_desc);
             return;
           }
 
@@ -711,8 +712,9 @@ void DpdkMgr::initialize() {
         HOLOSCAN_LOG_INFO("Successfully configured ethdev");
       }
 
-      ret =
-          rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_, &default_num_rx_desc, &default_num_tx_desc);
+      ret = rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_,
+                                             &default_num_rx_desc,
+                                             &default_num_tx_desc);
       if (ret < 0) {
         HOLOSCAN_LOG_CRITICAL(
             "Cannot adjust number of descriptors: err={}, port={}", ret, intf.port_id_);
@@ -1397,7 +1399,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
     burst->hdr.hdr.num_segs = cur_segs;
 
     for (int seg = 0; seg < cur_segs; seg++) {
-      if (rte_mempool_get(tparams->rx_burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
+      if (rte_mempool_get(tparams->rx_burst_pool,
+                          reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
             "Processing function falling behind. No free flow ID buffers for packets!");
         continue;
@@ -1562,7 +1565,8 @@ int DpdkMgr::rx_core_worker(void* arg) {
     burst->hdr.hdr.num_segs = tparams->num_segs;
 
     for (int seg = 0; seg < tparams->num_segs; seg++) {
-      if (rte_mempool_get(tparams->rx_burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
+      if (rte_mempool_get(tparams->rx_burst_pool,
+                          reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {
         HOLOSCAN_LOG_ERROR(
             "Processing function falling behind. No free RX bursts!");
         continue;
@@ -1730,7 +1734,7 @@ int DpdkMgr::rx_lb_worker(void* arg) {
 
     AdvNetBurstParams* tx_burst;
     while (!force_quit.load()) {
-      if ( rte_ring_dequeue(tparams->lb_ring, reinterpret_cast<void**>(&tx_burst)) == 0) {
+      if (rte_ring_dequeue(tparams->lb_ring, reinterpret_cast<void**>(&tx_burst)) == 0) {
         meta_burst->hdr = tx_burst->hdr;
         for (int s = 0; s < tx_burst->hdr.hdr.num_segs; s++) {
           memcpy(&meta_burst->pkts[s][0], &tx_burst->pkts[s][0],
