@@ -411,9 +411,7 @@ void DpdkMgr::initialize() {
   if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
     for (const auto& name : ifs) {
       strncpy(_argv[arg++], "-a", max_arg_size - 1);
-      strncpy(_argv[arg++],
-              (name + std::string(",txq_inline_max=0,dv_flow_en=2")).c_str(),
-              max_arg_size - 1);
+      strncpy(_argv[arg++], name.c_str(), max_arg_size - 1);
     }
   }
 
@@ -1225,7 +1223,7 @@ void DpdkMgr::PrintDpdkStats(int port) {
 }
 
 DpdkMgr::~DpdkMgr() {
-  printf("shutting down\n");
+  HOLOSCAN_LOG_INFO("shutting down\n");
 }
 
 bool DpdkMgr::validate_config() const {
