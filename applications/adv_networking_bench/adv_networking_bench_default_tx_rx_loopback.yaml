@@ -24,8 +24,6 @@ scheduler:
   worker_thread_number: 5
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
-  # max_duration_ms: 20000
-  loopback: ""
 
 advanced_network:
   cfg:
@@ -34,16 +32,17 @@ advanced_network:
     master_core: 3
     debug: false
     log_level: "info"
+    loopback: "sw"
 
     memory_regions:
-    - name: "Data_RX_GPU"
-      kind: "device"
+    - name: "Control_TX_CPU"
+      kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 51200
       buf_size: 9000
-    - name: "Data_RX_GPU2"
+    - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
       access:
@@ -52,9 +51,19 @@ advanced_network:
       buf_size: 9000
 
     interfaces:
-    - name: data2
-      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
-      flow_isolation: true
+    - name: data1
+      address: "loopback"
+      tx:
+        - queues:
+          - name: "ADC Samples"
+            id: 0
+            batch_size: 10240
+            cpu_core: 11
+            memory_regions:
+              - "Control_TX_CPU"
+              - "Data_TX_GPU"
+            offloads:
+              - "tx_eth_src"
       rx:
         - queues:
           - name: "Data"
@@ -63,35 +72,25 @@ advanced_network:
             batch_size: 10240
             output_port: "bench_rx_out"
             memory_regions:
-              - "Data_RX_GPU"
-          - name: "Data"
-            id: 1
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU2"
-          flows:
-          - name: "ADC Samples"
-            id: 0
-            action:
-              type: queue
-              id: 0
-            match:
-              udp_src: 4096 #12288
-              udp_dst: 4096 #12288
-          - name: "ADC Samples"
-            id: 1
-            action:
-              type: queue
-              id: 1
-            match:
-              udp_src: 4095 #12288
-              udp_dst: 4095 #12288
+              - "Control_TX_CPU"
+              - "Data_TX_GPU"
 
 bench_rx:
-  gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
-  split_boundary: false   # Whether header and data is split (Header to CPU)
+  split_boundary: true
+  gpu_direct: true
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
+
+bench_tx:
+  eth_dst_addr: <00:00:00:00:00:00>   # Destination MAC
+  udp_dst_port: 4096                  # UDP destination port
+  udp_src_port: 4096                  # UDP source port
+  gpu_direct: true
+  split_boundary: 64
+  batch_size: 10000
+  payload_size: 1000
+  header_size: 64
+  ip_src_addr: <1.2.3.4>              # Source IP send from
+  ip_dst_addr: <5.6.7.8>              # Destination IP to send to
+  address: <0000:00:00.0>

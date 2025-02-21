@@ -32,6 +32,7 @@ advanced_network:
     master_core: 3
     debug: false
     log_level: "warn"
+    loopback: ""
 
     memory_regions:
     - name: "Data_TX_CPU"

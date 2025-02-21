@@ -118,7 +118,7 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet
- * 
+ *
  * Retrieves the flow ID of a packet, or 0 if no flow was matched. The flow ID should match
  * the flow ID in the flow rule for the ANO config.
  *
@@ -501,6 +501,14 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       } catch (const std::exception& e) {
         input_spec.common_.manager_type = holoscan::ops::AnoMgrType::DEFAULT;
       }
+
+      input_spec.common_.loopback_ = holoscan::ops::LoopbackType::DISABLED;
+      try {
+        const auto lbstr = node["loopback"].as<std::string>();
+        if (lbstr == "sw") {
+          input_spec.common_.loopback_ = holoscan::ops::LoopbackType::LOOPBACK_TYPE_SW;
+        }
+      } catch (const std::exception& e) {}
 
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);
