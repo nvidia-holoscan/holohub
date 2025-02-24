@@ -321,8 +321,12 @@ Status adv_net_init(NetworkConfig &config) {
   return Status::SUCCESS;
 }
 
+// RDMA Functions
+AdvNetStatus adv_net_rdma_connect_to_server(const std::string& server_addr, uint16_t server_port) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port);
+}
 
-};  // namespace holoscan::advanced_network
+};  // namespace holoscan::ops
 
 /**
  * @brief Parse flow configuration from a YAML node.

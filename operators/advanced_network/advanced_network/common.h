@@ -452,7 +452,24 @@ void shutdown();
  *
  */
 void print_stats();
-};  // namespace holoscan::advanced_network
+
+/**
+ * @brief Get the list (set) of rx/tx ports from a node
+ *
+ * @param node Yaml node
+ * @param dir String of direction ["rx", "tx"]
+ *
+ * @returns unordered set of rx/tx port names
+ */
+std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir);
+
+// RDMA functions
+AdvNetStatus adv_net_rdma_connect_to_server(const std::string& server_addr, uint16_t server_port);
+// AdvNetStatus adv_net_rdma_shutdown();
+// AdvNetStatus adv_net_rdma_accept(int server_id, struct rdma_cm_id** client_id);
+// AdvNetStatus adv_net_rdma_reject(struct rdma_cm_id* client_id);
+
+};  // namespace holoscan::ops
 
 template <>
 struct YAML::convert<holoscan::advanced_network::NetworkConfig> {

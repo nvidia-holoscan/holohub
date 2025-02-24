@@ -53,27 +53,61 @@ class AdvNetworkingRdmaClientOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::freeResources() complete");
   }
 
+  bool connect_to_server(OutputContext& op_output) {
+    HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::connect_to_server() start");
+
+    auto burst = adv_net_create_burst();
+    burst->hdr.hdr.opcode = AdvNetOpCode::CONNECT;
+    burst->hdr.hdr.server_addr = server_address_;
+    burst->hdr.hdr.server_port = server_port_.get();
+    burst->hdr.hdr.local_mr_name = "LOCAL_MR"; // Unused
+    burst->hdr.hdr.remote_mr_name = "REMOTE_MR"; // Unused
+    burst->hdr.hdr.raddr = nullptr; // Unused
+    burst->hdr.hdr.dst_key = 0; // Unused
+    burst->hdr.hdr.imm = 0; // Unused
+
+    op_output.emit(burst);
+
+    HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::connect_to_server() complete");
+    return true;
+  }
+
   void setup(OperatorSpec& spec) override {
     spec.input<AdvNetBurstParams*>("rdma_in");
     spec.output<AdvNetBurstParams*>("rdma_out");
+    spec.param<uint32_t>(message_size_,
+                         "message_size",
+                         "Message size",
+                         "Message size in bytes",
+                         1024);
+    spec.param<bool>(rdma_write_,
+                     "rdma_write",
+                     "Rdma write",
+                     "Whether to issue RDMA writes",
+                     true);
+    spec.param<std::string>(server_address_str_,
+                            "server_address",
+                            "Server address",
+                            "Server address",
+                            "192.168.3.1");
+    spec.param<uint16_t>(server_port_,
+                         "server_port",
+                         "Server port",
+                         "Server port",
+                         4096);
 
-    spec.param<uint32_t>(batch_size_,
-                         "batch_size",
-                         "Batch size",
-                         "Batch size in packets for each processing epoch",
-                         1000);
-    spec.param<uint16_t>(max_packet_size_,
-                         "max_packet_size",
-                         "Max packet size",
-                         "Maximum packet size expected from sender",
-                         9100);
+    server_addr_ = inet_addr(server_address_str_.get().c_str());
   }
 
 
-  void compute(InputContext& op_input, OutputContext&, ExecutionContext& context) override {
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
     // Get new input burst (ANO batch of packets)
     auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
-    if (!burst_opt) { return; }
+    if (!burst_opt) { 
+      if (!connected_) {
+        connect_to_server(op_output);
+      }
+    }
 
     auto burst = burst_opt.value();
     auto burst_size = adv_net_get_num_pkts(burst);
@@ -86,10 +120,14 @@ class AdvNetworkingRdmaClientOp : public Operator {
   }
 
  private:
+  bool connected_ = false;
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
-  Parameter<uint32_t> batch_size_;                 // Batch size for one processing block
-  Parameter<uint16_t> max_packet_size_;            // Maximum size of a single packet
+  uint32_t server_addr_;
+  Parameter<bool> rdma_write_;               // Message size in bytes
+  Parameter<uint32_t> message_size_;               // Message size in bytes
+  Parameter<std::string> server_address_str_;         // Server address
+  Parameter<uint16_t> server_port_;              // Server port
 };
 
 }  // namespace holoscan::ops

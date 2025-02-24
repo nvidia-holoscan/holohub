@@ -117,8 +117,8 @@ class App : public holoscan::Application {
 
       if (rdma_server_en) {
         auto bench_server = make_operator<ops::AdvNetworkingRdmaServerOp>(
-            "bench_tx",
-            from_config("bench_tx"),
+            "rdma_bench_server",
+            from_config("rdma_bench_server"),
             make_condition<BooleanCondition>("is_alive", true));
 
         add_flow(adv_net_rx, bench_server, {{ "bench_rx_out", "rdma_in" }});
@@ -127,8 +127,8 @@ class App : public holoscan::Application {
 
       if (rdma_client_en) {
         auto bench_client = make_operator<ops::AdvNetworkingRdmaClientOp>(
-            "bench_tx",
-            from_config("bench_tx"),
+            "rdma_bench_client",
+            from_config("rdma_bench_client"),
             make_condition<BooleanCondition>("is_alive", true));
         add_flow(adv_net_rx, bench_client, {{ "bench_rx_out", "rdma_in" }});
         add_flow(bench_client, adv_net_tx, {{ "rdma_out", "burst_in" }});

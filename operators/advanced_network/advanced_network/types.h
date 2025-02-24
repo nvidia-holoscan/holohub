@@ -43,23 +43,51 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
 
 
 /**
+ * @brief Return status codes from advanced network operators
+ *
+ */
+enum class AdvNetStatus {
+  SUCCESS,
+  NULL_PTR,
+  NO_FREE_BURST_BUFFERS,
+  NO_FREE_PACKET_BUFFERS,
+  NOT_READY,
+  INVALID_PARAMETER,
+  NO_SPACE_AVAILABLE,
+  NOT_SUPPORTED,
+  GENERIC_FAILURE,
+  CONNECT_FAILURE,
+};
+
+/**
  * Opcodes for ANO
 */
 
-enum class AdvNetOpCode {
+
+enum class AdvNetRDMAOpCode {
+  CONNECT,
   SEND,
   RECEIVE,
   RDMA_WRITE,
   RDMA_WRITE_IMM,  
   RDMA_READ,
+  RDMA_READ_IMM,
 };
 
-struct AdvNetRdmaHdr {
-  std::string  local_mr_name;
-  std::string  remote_mr_name;
+struct AdvNetRdmaBurstHdr {
+  uint8_t version;
+  AdvNetRDMAOpCode  opcode; 
+  AdvNetStatus status;
+  size_t num_pkts;
+  uint16_t port_id;
+  uint16_t q_id;  
+  char  local_mr_name[32];
+  char  remote_mr_name[32];
   void        *raddr;
   uint64_t     dst_key;
   uint32_t     imm;
+  uint32_t    server_addr;
+  uint16_t     server_port;
 };
 
 /**
@@ -68,7 +96,6 @@ struct AdvNetRdmaHdr {
  */
 struct BurstHeaderParams {
   uint8_t version;
-  AdvNetOpCode  opcode;  
   size_t num_pkts;
   uint16_t port_id;
   uint16_t q_id;
@@ -79,7 +106,6 @@ struct BurstHeaderParams {
   uint32_t max_pkt_size;
   uint32_t gpu_pkt0_idx;
   uintptr_t gpu_pkt0_addr;
-  AdvNetRdmaHdr rdma;
 };
 
 struct BurstHeader {
@@ -93,7 +119,10 @@ struct BurstHeader {
 
 static inline constexpr int MAX_NUM_SEGS = 4;
 struct BurstParams {
-  BurstHeader hdr;
+  union {
+    BurstHeader hdr;
+    AdvNetRdmaBurstHdr rdma_hdr;
+  };  
 
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;

@@ -1499,7 +1499,6 @@ int DpdkMgr::rx_core_worker(void* arg) {
     burst->hdr.hdr.q_id = tparams->queue;
     burst->hdr.hdr.port_id = tparams->port;
     burst->hdr.hdr.num_segs = tparams->num_segs;
-    burst->hdr.hdr.opcode = AdvNetOpCode::RECEIVE;
 
     for (int seg = 0; seg < tparams->num_segs; seg++) {
       if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&burst->pkts[seg])) < 0) {

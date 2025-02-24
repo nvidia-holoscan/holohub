@@ -80,6 +80,11 @@ class ANOMgr {
   virtual bool validate_config() const;
   int get_intf_from_mr(const std::string &mr_name);
 
+  // RDMA functions
+  virtual AdvNetStatus rdma_connect_to_server(const std::string& server_addr, uint16_t server_port) {
+    return AdvNetStatus::SUCCESS;
+  };
+
   virtual ~ANOMgr() = default;
 
  protected:

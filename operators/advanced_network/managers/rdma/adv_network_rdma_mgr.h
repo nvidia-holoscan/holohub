@@ -35,8 +35,10 @@ namespace holoscan::ops {
 struct rdma_qp_params {
    struct ibv_cq *rx_cq;
    struct ibv_cq *tx_cq;
-   mqd_t rx_mq;
-   mqd_t tx_mq;
+   struct rte_ring *rx_ring;
+   struct rte_ring *tx_ring;
+   // mqd_t rx_mq;
+   // mqd_t tx_mq;
    struct ibv_qp_init_attr qp_attr;
 };
 
@@ -135,9 +137,10 @@ class RdmaMgr : public ANOMgr {
     bool validate_config() const override { return true; }
 
     // RDMA-specific functions
+    AdvNetStatus rdma_connect_to_server(uint32_t server_addr, uint16_t server_port);    
     AdvNetStatus register_mr(std::string name, int intf, void *addr, size_t len, int flags);
     AdvNetStatus wait_on_key_xchg();
-     
+    void poll_cm_events();
 
 
  private:
@@ -149,7 +152,6 @@ class RdmaMgr : public ANOMgr {
     static constexpr int MAX_OUSTANDING_WR = 64;
     std::vector<struct rdma_cm_id *> cm_server_id_;
     std::vector<struct rdma_cm_id *> cm_client_id_;
-    struct rdma_event_channel *cm_event_channel_;
     std::vector<rdma_server_params> sparams_;
     std::vector<std::thread> txrx_workers;
     std::unordered_map<int, struct ibv_pd *> pd_map_;
@@ -165,6 +167,7 @@ class RdmaMgr : public ANOMgr {
     struct rte_mempool* tx_meta;
     std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
 
+    void rdma_thread(int if_idx, int q);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     int rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id);
     int rdma_register_cfg_mrs();

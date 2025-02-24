@@ -246,6 +246,7 @@ namespace holoscan::ops {
   int RdmaMgr::setup_client_params_for_server(rdma_server_params *sparams, int if_idx) {
     // RX/TX queues should be symmetric with RDMA
     const auto num_queues = cfg_.ifs_[if_idx].rx_.queues_.size();
+    const int port_id = cfg_.ifs_[if_idx].port_id_;
     for (int qi = 0; qi < num_queues; qi++) {
       rdma_qp_params qp_params;
 
@@ -299,17 +300,23 @@ namespace holoscan::ops {
       attr.mq_msgsize = sizeof(AdvNetBurstParams);
       attr.mq_curmsgs = 0;
 
-      const int q = 0; // Add multiple queues later
-      std::string q_name = "I" + std::to_string(cfg_.ifs_[if_idx].port_id_) + 
-                           "_Q" + std::to_string(q);
-      qp_params.rx_mq = mq_open((q_name + "_RX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
-      qp_params.tx_mq = mq_open((q_name + "_TX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
+      qp_params.rx_ring = rx_ring;  
 
-      if (qp_params.rx_mq == (mqd_t)-1 || 
-          qp_params.tx_mq == (mqd_t)-1) {
-        HOLOSCAN_LOG_CRITICAL("Failed to create message queues for {}", q_name);
-        return -1;
-      }
+      const uint32_t key = (port_id << 16) | qi;
+      qp_params.tx_ring = tx_rings[key];
+      
+
+      // const int q = 0; // Add multiple queues later
+      // std::string q_name = "P" + std::to_string(cfg_.ifs_[if_idx].port_id_) + 
+      //                      "_Q" + std::to_string(q);
+      // qp_params.rx_mq = mq_open((q_name + "_RX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
+      // qp_params.tx_mq = mq_open((q_name + "_TX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
+
+      // if (qp_params.rx_mq == (mqd_t)-1 || 
+      //     qp_params.tx_mq == (mqd_t)-1) {
+      //   HOLOSCAN_LOG_CRITICAL("Failed to create message queues for {}", q_name);
+      //   return -1;
+      // }
 
       sparams->qp_params.emplace_back(qp_params);        
     }
@@ -334,23 +341,36 @@ namespace holoscan::ops {
   /**
    * Worker thread for a server SQ
   */
-  void RdmaMgr::server_tx(int if_idx, int q) {
+  void RdmaMgr::rdma_thread(int if_idx, int q) {
     struct ibv_wc wc;
     int num_comp;
     const auto &qref = cfg_.ifs_[if_idx].tx_.queues_[q];
     const auto &rdma_qref = sparams_[if_idx].qp_params[q];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
+    struct rte_ring *tx_ring = rdma_qref.tx_ring;
 
     if (set_affinity(cpu_core) != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to set TX core affinity");
+      HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
       return;
     }
 
-    HOLOSCAN_LOG_INFO("Affined TX thread to core {}", cpu_core);
+    HOLOSCAN_LOG_INFO("Affined RDMA thread to core {}", cpu_core);
 
     // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
     // periodically poll the CQ.
     while (!rdma_force_quit.load()) {
+      // Check RQ first to reduce latency
+      while ((num_comp = ibv_poll_cq(rdma_qref.rx_cq, 1, &wc)) != 0) {
+        if (wc.status != IBV_WC_SUCCESS) {
+          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", wc.status, wc.wr_id, wc.opcode);
+        }
+        else {
+          HOLOSCAN_LOG_INFO("Received message from client: {}", 
+                  wc.status);
+        }
+      }
+
+      // Check TX CQ for completion
       while ((num_comp = ibv_poll_cq(rdma_qref.tx_cq, 1, &wc)) != 0) {
         if (wc.status != IBV_WC_SUCCESS) {
           HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", wc.status, wc.wr_id, wc.opcode);
@@ -359,7 +379,7 @@ namespace holoscan::ops {
 
         if (wc.opcode == IBV_WC_RDMA_READ) {
           // AdvNetBurstParams read_burst;
-          // read_burst.hdr.hdr.
+          // read_burst.rdma_hdr.
 
           // out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
           // out_wr_[cur_wc_id_].done  = false;
@@ -375,171 +395,201 @@ namespace holoscan::ops {
         }
       }
 
-      // Now handle any incoming sends
+      // Now handle any incoming messages
       AdvNetBurstParams burst;
-      ssize_t bytes = mq_receive(rdma_qref.tx_mq, reinterpret_cast<char*>(&burst), sizeof(burst), nullptr);
-      if (bytes > 0) {
-        const auto endpt = endpoints_.find(reinterpret_cast<struct rdma_cm_id*>(burst.hdr.hdr.rdma.dst_key));
-        if (endpt == endpoints_.end()) {
-          HOLOSCAN_LOG_ERROR("Trying to send to client {}, but that client is not connected", burst.hdr.hdr.rdma.dst_key);
-          continue;
-        }
 
-        const auto local_mr = mrs_.find(burst.hdr.hdr.rdma.local_mr_name);
-        if (local_mr == mrs_.end()) {
-          HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst.hdr.hdr.rdma.local_mr_name);
-          free_tx_burst(&burst);
-          continue;
-        }
+      //ssize_t bytes = mq_receive(rdma_qref.tx_mq, reinterpret_cast<char*>(&burst), sizeof(burst), nullptr);
+      if (rte_ring_dequeue(rdma_qref.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
+        continue; 
+      }
 
-        switch (burst.hdr.hdr.opcode) {
-          case AdvNetOpCode::SEND:
-          { // perform send operation
-            // Currently we expect SEND operations to be rare, and certainly not with thousands of
-            // packets. For that reason we post one at a time and do not try to batch.
-            for (int p = 0; p < burst.hdr.hdr.num_pkts; p++) {
-              ibv_send_wr wr;
-              ibv_send_wr *bad_wr;
-              ibv_sge sge;
+      const auto endpt = endpoints_.find(reinterpret_cast<struct rdma_cm_id*>(burst.rdma_hdr.dst_key));
+      if (endpt == endpoints_.end()) {
+        HOLOSCAN_LOG_ERROR("Trying to send to client {}, but that client is not connected", burst.rdma_hdr.dst_key);
+        continue;
+      }
 
-              memset(&wr, 0, sizeof(wr));
-              sge.addr      = (uint64_t)burst.pkts[0][p];
-              sge.length    = (uint32_t)burst.pkt_lens[0][p];
-              sge.lkey      = local_mr->second.mr_->lkey;
-              wr.sg_list    = &sge;
-              wr.num_sge    = 1;
-              wr.opcode     = IBV_WR_SEND;
-              wr.send_flags = IBV_SEND_SIGNALED;
+      const auto local_mr = mrs_.find(burst.rdma_hdr.local_mr_name);
+      if (local_mr == mrs_.end()) {
+        HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst.rdma_hdr.local_mr_name);
+        free_tx_burst(&burst);
+        continue;
+      }
 
-              int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
-              if (ret != 0) {
-                HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
-                free_tx_burst(&burst);
-                continue;
-              }   
-            }
-
-            break; 
+      switch (burst.rdma_hdr.opcode) {
+        case AdvNetRDMAOpCode::CONNECT:
+        {
+          HOLOSCAN_LOG_INFO("Received connect request from client");
+          auto ret = rdma_connect_to_server(burst.rdma_hdr.server_addr, burst.rdma_hdr.server_port);
+          if (ret != AdvNetStatus::SUCCESS) {
+            burst.rdma_hdr.status = AdvNetStatus::CONNECT_FAILURE;
+            HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", ret);
           }
-          case AdvNetOpCode::RDMA_WRITE: [[fall_through]];
-          case AdvNetOpCode::RDMA_WRITE_IMM:
-          {
-            for (int p = 0; p < burst.hdr.hdr.num_pkts; p++) {
-              ibv_send_wr wr;
-              ibv_send_wr *bad_wr;
-              ibv_sge sge;
-
-              memset(&wr, 0, sizeof(wr));
-              sge.addr      = (uint64_t)burst.pkts[0][p];
-              sge.length    = (uint32_t)burst.pkt_lens[0][p];
-              sge.lkey      = local_mr->second.mr_->lkey;
-              wr.sg_list    = &sge;
-              wr.num_sge    = 1;
-              if (burst.hdr.hdr.opcode==AdvNetOpCode::RDMA_WRITE) {
-                wr.opcode   = IBV_WR_RDMA_WRITE;
-              }
-              else {
-                wr.opcode   = IBV_WR_RDMA_WRITE_WITH_IMM;
-                wr.imm_data = htonl(burst.hdr.hdr.rdma.imm);
-              }
- 
-              wr.send_flags = IBV_SEND_SIGNALED;
-
-              // Look up remote key
-              const auto remote_mr = endpt->second.find(burst.hdr.hdr.rdma.remote_mr_name);
-              if (remote_mr == endpt->second.end()) {
-                HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
-                      burst.hdr.hdr.rdma.remote_mr_name, burst.hdr.hdr.rdma.dst_key);
-                free_tx_burst(&burst);
-                continue;
-              }              
-              wr.wr.rdma.rkey = remote_mr->second.key;
-              wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.hdr.hdr.rdma.raddr);
-
-              int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
-              if (ret != 0) {
-                HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
-                free_tx_burst(&burst);
-                continue;
-              }
-            }
-            break;
+          else {
+            burst.rdma_hdr.status = AdvNetStatus::SUCCESS;
           }
-          case AdvNetOpCode::RDMA_READ:
-          {
-            for (int p = 0; p < burst.hdr.hdr.num_pkts; p++) {
-              ibv_send_wr wr;
-              ibv_send_wr *bad_wr;
-              ibv_sge sge;
 
-              memset(&wr, 0, sizeof(wr));
-              sge.addr      = (uint64_t)burst.pkts[0][p];
-              sge.length    = (uint32_t)burst.pkt_lens[0][p];
-              sge.lkey      = local_mr->second.mr_->lkey;
-              wr.sg_list    = &sge;
-              wr.num_sge    = 1;
-              wr.opcode     = IBV_WR_RDMA_READ;
-              wr.send_flags = IBV_SEND_SIGNALED;
-
-              // Look up remote key
-              const auto remote_mr = endpt->second.find(burst.hdr.hdr.rdma.remote_mr_name);
-              if (remote_mr == endpt->second.end()) {
-                HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
-                      burst.hdr.hdr.rdma.remote_mr_name, burst.hdr.hdr.rdma.dst_key);
-                free_tx_burst(&burst);
-                continue;
-              }              
-              wr.wr.rdma.rkey  = remote_mr->second.key;
-              wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.hdr.hdr.rdma.raddr);
-
-              int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
-              if (ret != 0) {
-                HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
-                free_tx_burst(&burst);
-                continue;
-              }
-
-              out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
-              out_wr_[cur_wc_id_].done  = false;
-              out_wr_[cur_wc_id_].mr = remote_mr->second;
-              out_wr_[cur_wc_id_].mr.ptr = burst.pkts[0][p];
-              cur_wc_id_++;
-            }
-            break;
-          }          
+          rte_ring_enqueue(rx_ring, &burst);
+          break;
         }
+        case AdvNetRDMAOpCode::SEND:
+        { // perform send operation
+          // Currently we expect SEND operations to be rare, and certainly not with thousands of
+          // packets. For that reason we post one at a time and do not try to batch.
+          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+            ibv_send_wr wr;
+            ibv_send_wr *bad_wr;
+            ibv_sge sge;
+
+            memset(&wr, 0, sizeof(wr));
+            sge.addr      = (uint64_t)burst.pkts[0][p];
+            sge.length    = (uint32_t)burst.pkt_lens[0][p];
+            sge.lkey      = local_mr->second.mr_->lkey;
+            wr.sg_list    = &sge;
+            wr.num_sge    = 1;
+            wr.opcode     = IBV_WR_SEND;
+            wr.send_flags = IBV_SEND_SIGNALED;
+
+            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
+            if (ret != 0) {
+              HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
+              free_tx_burst(&burst);
+              continue;
+            }   
+            }
+
+          break; 
+        }
+        case AdvNetRDMAOpCode::RDMA_WRITE: [[fall_through]];
+        case AdvNetRDMAOpCode::RDMA_WRITE_IMM:
+        {
+          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+            ibv_send_wr wr;
+            ibv_send_wr *bad_wr;
+            ibv_sge sge;
+
+            memset(&wr, 0, sizeof(wr));
+            sge.addr      = (uint64_t)burst.pkts[0][p];
+            sge.length    = (uint32_t)burst.pkt_lens[0][p];
+            sge.lkey      = local_mr->second.mr_->lkey;
+            wr.sg_list    = &sge;
+            wr.num_sge    = 1;
+            if (burst.rdma_hdr.opcode==AdvNetRDMAOpCode::RDMA_WRITE) {
+              wr.opcode   = IBV_WR_RDMA_WRITE;
+            }
+            else {
+              wr.opcode   = IBV_WR_RDMA_WRITE_WITH_IMM;
+              wr.imm_data = htonl(burst.rdma_hdr.imm);
+            }
+
+            wr.send_flags = IBV_SEND_SIGNALED;
+
+            // Look up remote key
+            const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
+            if (remote_mr == endpt->second.end()) {
+              HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
+                    burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
+              free_tx_burst(&burst);
+              continue;
+            }              
+            wr.wr.rdma.rkey = remote_mr->second.key;
+            wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
+
+            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
+            if (ret != 0) {
+              HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
+              free_tx_burst(&burst);
+              continue;
+            }
+          }
+          break;
+        }
+        case AdvNetRDMAOpCode::RDMA_READ:
+        {
+          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+            ibv_send_wr wr;
+            ibv_send_wr *bad_wr;
+            ibv_sge sge;
+
+            memset(&wr, 0, sizeof(wr));
+            sge.addr      = (uint64_t)burst.pkts[0][p];
+            sge.length    = (uint32_t)burst.pkt_lens[0][p];
+            sge.lkey      = local_mr->second.mr_->lkey;
+            wr.sg_list    = &sge;
+            wr.num_sge    = 1;
+            wr.opcode     = IBV_WR_RDMA_READ;
+            wr.send_flags = IBV_SEND_SIGNALED;
+
+            // Look up remote key
+            const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
+            if (remote_mr == endpt->second.end()) {
+              HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
+                    burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
+              free_tx_burst(&burst);
+              continue;
+            }              
+            wr.wr.rdma.rkey  = remote_mr->second.key;
+            wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
+
+            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
+            if (ret != 0) {
+              HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", errno);
+              free_tx_burst(&burst);
+              continue;
+            }
+
+            out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
+            out_wr_[cur_wc_id_].done  = false;
+            out_wr_[cur_wc_id_].mr = remote_mr->second;
+            out_wr_[cur_wc_id_].mr.ptr = burst.pkts[0][p];
+            cur_wc_id_++;
+          }
+          break;
+        }          
       }
     }
   }
 
-  /**
-   * Worker thread for a server RQ
-  */
-  void RdmaMgr::server_rx(int if_idx, int q) {
-    struct ibv_wc wc;
-    int num_comp;
-    const auto &qref = cfg_.ifs_[if_idx].tx_.queues_[q];
-    const auto &rdma_qref = sparams_[if_idx].qp_params[q];
-    const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
+  AdvNetStatus RdmaMgr::rdma_connect_to_server(uint32_t server_addr, uint16_t server_port) {
+    struct sockaddr_in addr;
+    struct rdma_cm_id *cm_id = nullptr;
+    struct rdma_event_channel *ec = nullptr;
+    struct rdma_cm_event *event = nullptr;
+    struct rdma_conn_param conn_param = {};
 
-
-    if (set_affinity(cpu_core) != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to set RX core affinity");
-      return;
+    // Create event channel
+    ec = rdma_create_event_channel();
+    if (!ec) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create event channel");
+      return AdvNetStatus::CONNECT_FAILURE;
     }
 
-    HOLOSCAN_LOG_INFO("Affined RX thread to core {}", cpu_core);
-
-    // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
-    // periodically poll the CQ.
-    while (!rdma_force_quit.load()) {
-      while ((num_comp = ibv_poll_cq(rdma_qref.rx_cq, 1, &wc)) != 0) {
-        if (wc.status != IBV_WC_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", wc.status, wc.wr_id, wc.opcode);
-        }
-      }    
+    // Create RDMA id
+    if (rdma_create_id(ec, &cm_id, nullptr, RDMA_PS_TCP)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create ID");
+      return AdvNetStatus::CONNECT_FAILURE;
     }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(server_port);  // Same port as server
+    addr.sin_addr.s_addr = server_addr;
+
+    if (rdma_resolve_addr(cm_id, nullptr, (struct sockaddr *)&addr, 2000)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
+      return AdvNetStatus::CONNECT_FAILURE;
+    }    
+
+    int ret = rdma_connect(cm_server_id_[0], &addr);
+    if (ret != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", errno);
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+
+    return AdvNetStatus::SUCCESS;
   }
+
+
 
   void RdmaMgr::run_server() {
     int ret;
@@ -558,17 +608,18 @@ namespace holoscan::ops {
 
     HOLOSCAN_LOG_INFO("Found {} RDMA-capable devices", num_ib_devices);
       
-    // Create a channel for events. Only the master thread reads from this channel
-    cm_event_channel_ = rdma_create_event_channel();    
-    if (cm_event_channel_ == nullptr) {
-      HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
-      return;
-    }
 
     // Start an RDMA server on each interface specified
     for (const auto &intf: cfg_.ifs_) {
       if (intf.rdma_.mode_ != RDMAMode::SERVER) {
         continue;
+      }
+
+      // Create a channel for events. Only the master thread reads from this channel
+      auto cm_event_channel = rdma_create_event_channel();    
+      if (cm_event_channel == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
+        return;
       }
 
       // Initialize all the setup before the main loop
@@ -586,7 +637,7 @@ namespace holoscan::ops {
       HOLOSCAN_LOG_INFO("Successfully created CM event channel");
 
       struct rdma_cm_id *s_id;
-      ret = rdma_create_id(cm_event_channel_, &s_id, nullptr, RDMA_PS_TCP);
+      ret = rdma_create_id(cm_event_channel, &s_id, nullptr, RDMA_PS_TCP);
       if (ret != 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to create RDMA server ID {}", errno);
         return;
@@ -633,8 +684,8 @@ namespace holoscan::ops {
     // Our master thread's job is to wait on connections from clients, set up all the needed
     // information for them (QPs, MRs, etc), and spawn client threads to monitor both TX and RX
     struct rdma_cm_event *cm_event = nullptr;    
-    while (true) {
-      ret = rdma_get_cm_event(cm_event_channel_, &cm_event);
+    while (!rdma_force_quit.load()) {
+      ret = rdma_get_cm_event(cm_event_channel, &cm_event);
       if (ret != 0) {
         HOLOSCAN_LOG_INFO("Failed to get CM event: {}", errno);
         continue;
@@ -665,6 +716,11 @@ namespace holoscan::ops {
             break;
           }
           else {
+            struct rdma_conn_param conn_param = {};
+            conn_param.responder_resources = 1;
+            conn_param.initiator_depth = 1;
+            conn_param.rnr_retry_count = 7;     
+
             // resize sparams_ for number of interfaces and add to array. finish posix mq work
             listen_idx = listen_iter - cm_server_id_.begin();
             setup_client_params_for_server(&sparams, listen_idx);
@@ -672,11 +728,16 @@ namespace holoscan::ops {
 
             sparams_[listen_idx] = sparams;
 
+            if (rdma_accept(sparams.client_id, &conn_param) != 0) {
+              HOLOSCAN_LOG_CRITICAL("Failed to accept connection: {}", errno);
+              rdma_reject(sparams.client_id, nullptr, 0);
+              continue;
+            }
+
             // Spawn a new TX and RX thread for each QP
             const auto num_queues = 1; //cfg_.rx[listen_idx].queues_.size();
             for (int q = 0; q < num_queues; q++) {
-              txrx_workers.emplace_back(std::thread(&RdmaMgr::server_tx, this, listen_idx, q));
-              txrx_workers.emplace_back(std::thread(&RdmaMgr::server_rx, this, listen_idx, q));
+              txrx_workers.emplace_back(std::thread(&RdmaMgr::rdma_thread, this, listen_idx, q));
             }
           }
           break;
@@ -764,10 +825,10 @@ namespace holoscan::ops {
   }
 
   void RdmaMgr::free_tx_burst(AdvNetBurstParams* burst) {
-    // const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+    // const uint32_t key = (burst->rdma_hdr.port_id << 16) | burst->rdma_hdr.q_id;
     // const auto burst_pool = tx_burst_buffers.find(key);
 
-    // for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+    // for (int seg = 0; seg < burst->rdma_hdr.num_segs; seg++) {
     //   rte_mempool_put(burst_pool->second, (void*)burst->pkts[seg]);
     // }
   } 
@@ -851,14 +912,30 @@ namespace holoscan::ops {
       }
     }
 
+    std::vector<std::thread> threads;
+
+    // Create a channel for events. Only the master thread reads from this channel
+    cm_event_channel_ = rdma_create_event_channel();    
+    if (cm_event_channel_ == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
+      return;
+    }
+
     if (server) {
-      std::thread t(&RdmaMgr::run_server, this);
-      t.join();
+      threads.emplace_back(std::thread(&RdmaMgr::run_server, this));
     }
     
     if (client) {
       init_client();
-      std::thread t(&RdmaMgr::run_client, this);
+      threads.emplace_back(std::thread(&RdmaMgr::run_client, this));
+    }
+
+
+    HOLOSCAN_LOG_INFO("Waiting for all threads to complete");
+
+    // Each thread launches a separate CM event channel loop. They also spawn their own threads 
+    // for each QP
+    for (auto& t : threads) {
       t.join();
     }
   }
