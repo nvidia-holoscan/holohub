@@ -37,9 +37,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # [Optional] Uncomment this section to install additional vcpkg ports.
 # RUN su vscode -c "${VCPKG_ROOT}/vcpkg install <your-port-name-here>"
 
-# Install Holoscan CLI dependencies
-RUN pip install $(sed -n '/done <<EOF/,/EOF/{/done <<EOF/b;/EOF/b;p}' /opt/nvidia/holoscan/bin/holoscan)
-
 # Install additional packages
 RUN apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \

@@ -40,7 +40,6 @@ if(BUILD_TESTING)
 
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT multi_ai_test.py
-  PRE_LINK
   COMMAND patch -u -o multi_ai_test.py ${CMAKE_CURRENT_SOURCE_DIR}/multi_ai.py
       ${CMAKE_SOURCE_DIR}/applications/multiai_endoscopy/testing/python_multiai_endoscopy.patch
   COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" multi_ai_test.py

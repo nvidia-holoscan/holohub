@@ -26,13 +26,13 @@ add_executable(object_detection_torch
 target_link_libraries(object_detection_torch
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
+    holoscan::aja
 )
 
 # Download the cars sample data

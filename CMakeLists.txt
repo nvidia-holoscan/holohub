@@ -29,12 +29,18 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install" CACHE PATH "Installation directory" FORCE)
 endif()
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 # Enable Testing
 include(CTest)
 
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
+option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
