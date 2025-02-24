@@ -309,9 +309,13 @@ def main():
     args = parser.parse_args()
 
     # Run the bash command
-    result = run_bash_cmd(args.command, args.external_script)
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    try:
+        result = run_bash_cmd(args.command, args.external_script)
+        if result.returncode != 0:
+            sys.exit(result.returncode)
+    except Exception as e:
+        logger.error('Failed to run external script')
+        sys.exit(-1)
 
     # Validate the benchmark results
     success = validate_ano_benchmark(
