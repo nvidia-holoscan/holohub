@@ -314,7 +314,6 @@ def main():
         if result.returncode != 0:
             sys.exit(result.returncode)
     except Exception as e:
-        logger.error('Failed to run external script')
         sys.exit(-1)
 
     # Validate the benchmark results
