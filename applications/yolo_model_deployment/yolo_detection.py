@@ -114,11 +114,27 @@ coco_label_map = {
 
 class DetectionPostprocessorOp(Operator):
     """Example of an operator post processing the tensor from inference component.
-    Following the example of tensor_interop.py and ping.py4
 
-    This operator has:
-        inputs:  "input_tensor"
-        outputs: "output_tensor"
+        in:
+            inference_output_detection_boxes: Tensor of shape (nbatch, nboxes, ncoord)
+                where:
+                - nbatch: number of batches (typically 1)
+                - nboxes: number of detected boxes
+                - ncoord: coordinates (x1, y1, x2, y2) of each box
+            inference_output_detection_scores: Tensor of shape (nbatch, nboxes)
+                Confidence scores for each detected box
+            inference_output_detection_classes: Tensor of shape (nbatch, nboxes)
+                Predicted class (int) for each detected box
+
+        outputs:
+            bbox: (nbatch, nboxes*2, ncoord/2)
+                where coordinates are scaled to [0,1] range
+            bbox_label: (nbatch, nboxes, 2)
+                label text coordinates, top-left of the bbox
+
+        output_specs:
+            HolovizOp.InputSpec("bbox_label", "text")
+                a list of display label text
     """
 
     def __init__(self, *args, width=640, label_name_map=coco_label_map, **kwargs):
