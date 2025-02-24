@@ -87,6 +87,6 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
 COPY rti_license.dat /opt/rti.com/rti_license.dat
 
-COPY applications/dds_video/bootstrap.sh /opt/rti.com/boostrap.sh
+COPY applications/dds_video/bootstrap.sh /opt/rti.com/bootstrap.sh
 
-ENTRYPOINT ["/bin/bash", "-c", "/opt/rti.com/boostrap.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "/opt/rti.com/bootstrap.sh"]
