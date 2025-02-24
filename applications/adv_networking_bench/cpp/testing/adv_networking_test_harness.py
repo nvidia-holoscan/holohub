@@ -261,6 +261,7 @@ def validate_ano_benchmark(
 def main():
     # Set up logging
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+    logger = logging.getLogger(__name__)
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run a bash command")
