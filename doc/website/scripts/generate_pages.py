@@ -290,6 +290,7 @@ def generate_pages() -> None:
     with mkdocs_gen_files.open("index.md", "w") as fd:
         fd.write(home_text)
 
+
 if __name__ in {"__main__", "<run_path>"}:
     # Check if name is either '__main__', or the equivalent default in `runpy.run_path(...)`, which is '<run_path>'
     generate_pages()
