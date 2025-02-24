@@ -51,7 +51,7 @@ done using the RTI `rtienv` script) and use the following:
 # 1. Copy the RTI Connext DDS license file to the root of the Holohub repository
 cp [path/to/rti_license.dat] ./rti_license.dat
 # 2. Build the container
-./dev_container build --docker_file applications/dds_video/Dockerfile
+./dev_container build --docker_file applications/dds/dds_video/Dockerfile
 # 3. Configure RTI Environment
 eval $(rtienv -l rti_license.dat)
 # 4. Launch the container
