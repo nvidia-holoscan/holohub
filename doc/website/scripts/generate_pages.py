@@ -74,31 +74,34 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
     # Read the file
     # Parse the JSON data
     with open(metadata_file, "r") as metadatafile:
-        print(metadatafile)
         metadata = json.load(metadatafile)
         key = list(metadata.keys())[0]
         dest_dir = str(key) + "s"
 
-    # Extract the application name
+    # Extract the application name, removing cpp/python from the path for counting
     if dest_dir == "applications":
         path = re.sub(r".*/applications/", "", str(metadata_file)).removesuffix("/metadata.json")
-        statistics["applications"] += 1
+        base_path = re.sub(r"/(cpp|python)$", "", path)
+        statistics["unique_applications"].add(base_path)
     elif dest_dir == "workflows":
         path = re.sub(r".*/workflows/", "", str(metadata_file)).removesuffix("/metadata.json")
-        statistics["workflows"] += 1
-    # For operators we put a flat list
+        base_path = re.sub(r"/(cpp|python)$", "", path)
+        statistics["unique_workflows"].add(base_path)
     elif dest_dir == "operators":
         path = str(metadata_file).removesuffix("/metadata.json")
         path = path.split("/")[-1]
-        statistics["operators"] += 1
+        base_path = re.sub(r"/(cpp|python)$", "", path)
+        statistics["unique_operators"].add(base_path)
     elif dest_dir == "tutorials":
         path = str(metadata_file).removesuffix("/metadata.json")
         path = path.split("/")[-1]
-        statistics["tutorials"] += 1
+        base_path = re.sub(r"/(cpp|python)$", "", path)
+        statistics["unique_tutorials"].add(base_path)
     elif dest_dir == "benchmarks":
         path = str(metadata_file).removesuffix("/metadata.json")
         path = path.split("/")[-1]
-        statistics["benchmarks"] += 1
+        base_path = re.sub(r"/(cpp|python)$", "", path)
+        statistics["unique_benchmarks"].add(base_path)
     else:
         logger.error(f"Don't know the output path for: {dest_dir}")
         return
@@ -178,7 +181,6 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
                     imgmatch = match[1:]
                 if imgmatch.startswith("/"):
                     imgmatch = imgmatch[1:]
-                logger.info(f"TEST: {match} = {imgmatch}")
                 readme_text = readme_text.replace(
                     match,
                     "https://github.com/nvidia-holoscan/holohub/blob/main/"
@@ -261,11 +263,11 @@ def generate_pages() -> None:
     root = Path(__file__).parent.parent.parent.parent
 
     statistics = {
-        "operators": 0,
-        "tutorials": 0,
-        "applications": 0,
-        "workflows": 0,
-        "benchmarks": 0,
+        "unique_operators": set(),
+        "unique_tutorials": set(),
+        "unique_applications": set(),
+        "unique_workflows": set(),
+        "unique_benchmarks": set(),
     }
 
     logger.info(f"root: {root}")
@@ -279,11 +281,11 @@ def generate_pages() -> None:
     homefile_path = str(Path(__file__).parent.parent) + "/docs/index.md"
     with open(homefile_path, "r") as home_file:
         home_text = home_file.read()
-        home_text = home_text.replace("#operators", str(statistics["operators"]))
-        home_text = home_text.replace("#tutorials", str(statistics["tutorials"]))
-        home_text = home_text.replace("#applications", str(statistics["applications"]))
-        home_text = home_text.replace("#workflows", str(statistics["workflows"]))
-        home_text = home_text.replace("#benchmarks", str(statistics["benchmarks"]))
+        home_text = home_text.replace("#operators", str(len(statistics["unique_operators"])))
+        home_text = home_text.replace("#tutorials", str(len(statistics["unique_tutorials"])))
+        home_text = home_text.replace("#applications", str(len(statistics["unique_applications"])))
+        home_text = home_text.replace("#workflows", str(len(statistics["unique_workflows"])))
+        home_text = home_text.replace("#benchmarks", str(len(statistics["unique_benchmarks"])))
 
     with mkdocs_gen_files.open("index.md", "w") as fd:
         fd.write(home_text)
