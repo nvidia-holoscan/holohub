@@ -21,10 +21,31 @@ Holoviz output.
 
 ![DDS Video Application Workflow](docs/workflow_dds_video_app.png)
 
+## Prerequisites
+
+- This application requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
+be installed and configured with a valid RTI Connext license prior to use. 
+- V4L2 capable device
+
+> [!NOTE]  
+> Instructions below are based on the `.run' installer from RTI Connext. Refer to the
+> [Linux installation](https://community.rti.com/static/documentation/developers/get-started/full-install.html)
+> for details.
+
+
+## Quick Start
+
+```bash
+# Start the publisher
+./dev_container build_and_run dds_video --container_args "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run_args "-p"
+
+# Start the subscriber
+./dev_container build_and_run dds_video --container_args "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run_args "-s"
+```
+
+
 ## Building the Application
 
-This application requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
-be installed and configured with a valid RTI Connext license prior to use.
 To build on an IGX devkit (using the `armv8` architecture), follow the
 [instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
 up to, and including, step 5 (Installing Java and setting JREHOME).
@@ -32,7 +53,7 @@ up to, and including, step 5 (Installing Java and setting JREHOME).
 To build the application, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
 the installation path for RTI Connext. This can be done automatically by setting
 the `NDDSHOME` environment variable to the RTI Connext installation directory
-(such as when using the RTI `rtienv` scripts), or manually at build time, e.g.:
+(such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
 $ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0
@@ -45,20 +66,20 @@ install RTI Connext into a development container. Instead, Connext should be
 installed onto the host as above and then the development container can be
 launched with the RTI Connext folder mounted at runtime. To do so, ensure that
 the `NDDSHOME` and `CONNEXTDDS_ARCH` environment variables are set (which can be
-done using the RTI `rtienv` script) and use the following:
+done using the RTI `setenv` script) and use the following:
 
 ```sh
-# 1. Copy the RTI Connext DDS license file to the root of the Holohub repository
-cp [path/to/rti_license.dat] ./rti_license.dat
-# 2. Build the container
+# 1. Build the container
 ./dev_container build --docker_file applications/dds/dds_video/Dockerfile
-# 3. Configure RTI Environment
-eval $(rtienv -l rti_license.dat)
-# 4. Launch the container
-./dev_container launch --docker_opts "-v /usr/bin:/host/bin -v $NDDSHOME:/opt/rti.com/rti_connext_dds-7.3.0/"
-# 5. Build the application
+# 2. Launch the container
+./dev_container launch --docker_opts "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
+# 3. Build the application
 ./run build dds_video
+# Continue to the next section to run the application with the publisher. 
+# Open a new terminal to repeat step #2 and launch a new container for the subscriber.
 ```
+
+
 
 ## Running the Application
 
