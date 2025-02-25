@@ -24,7 +24,7 @@ This app currently supports two input options:
 
 ## Data
 
-This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-woman-running-on-a-pathway-5823544/) when the application is built.  Please review the [license terms](https://www.pexels.com/license/) from Pexels.
+This application downloads a pre-recorded video from [Pexels](https://www.pexels.com/video/a-group-of-people-introduces-oneself-to-each-other-by-shaking-hands-3252919/) when the application is built.  Please review the [license terms](https://www.pexels.com/license/) from Pexels.
 
 ## Run
 
