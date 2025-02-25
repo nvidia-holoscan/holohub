@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "Polyp detection",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0"
+			]
+		},
+		"platforms": [
+			"amd64",
+			"arm64"
+		],
+		"tags": [
+			"Colonoscopy",
+			"Detection"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"libraries": []
+		},
+		"run": {
+			"command": "python3 polyp_detection.py --data <holohub_data_dir>/polyp_detection",
+			"workdir": "holohub_app_source"
+		}
+	}
+}
