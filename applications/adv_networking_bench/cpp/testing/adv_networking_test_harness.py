@@ -191,6 +191,7 @@ def validate_ano_benchmark(
 
     if not compare_metrics("q_rx_pkts", q_rx_pkts, expected_q_pkts):
         logger.info("Failed q_rx_pkts check")
+        return False
 
     exec_time = float(re.search(r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms", log).group(1))
     logger.debug("Transmit packets:", transmit_pkts)
