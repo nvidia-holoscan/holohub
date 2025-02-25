@@ -39,9 +39,18 @@ class AppEdgeSingleFragment(Application):
 
         super().__init__()
 
+    async def cleanup(self):
+        """Async cleanup method"""
+        if self.entity_client_service:
+            try:
+                # Shield the stop operation from cancellation
+                await asyncio.shield(self.entity_client_service.stop_entity_stream())
+            except Exception as e:
+                self.logger.error(f"Error during cleanup: {e}")
+
     def __del__(self):
         if self.entity_client_service:
-            asyncio.shield(self.entity_client_service.stop_entity_stream())
+            self.logger.warning("Object deleted before cleanup() was called")
 
     def compose(self):
         width = 854
