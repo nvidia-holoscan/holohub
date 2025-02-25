@@ -33,3 +33,5 @@ ngc-cli/
 .local/
 tmp/
 
+# Licenses
+rti_license.dat
