@@ -108,33 +108,33 @@ coco_label_map = {
     76: "scissors",
     77: "teddy bear",
     78: "hair drier",
-    79: "toothbrush"
+    79: "toothbrush",
 }
 
 
 class DetectionPostprocessorOp(Operator):
     """Example of an operator post processing the tensor from inference component.
 
-        in:
-            inference_output_detection_boxes: Tensor of shape (nbatch, nboxes, ncoord)
-                where:
-                - nbatch: number of batches (typically 1)
-                - nboxes: number of detected boxes
-                - ncoord: coordinates (x1, y1, x2, y2) of each box
-            inference_output_detection_scores: Tensor of shape (nbatch, nboxes)
-                Confidence scores for each detected box
-            inference_output_detection_classes: Tensor of shape (nbatch, nboxes)
-                Predicted class (int) for each detected box
+    in:
+        inference_output_detection_boxes: Tensor of shape (nbatch, nboxes, ncoord)
+            where:
+            - nbatch: number of batches (typically 1)
+            - nboxes: number of detected boxes
+            - ncoord: coordinates (x1, y1, x2, y2) of each box
+        inference_output_detection_scores: Tensor of shape (nbatch, nboxes)
+            Confidence scores for each detected box
+        inference_output_detection_classes: Tensor of shape (nbatch, nboxes)
+            Predicted class (int) for each detected box
 
-        outputs:
-            bbox: (nbatch, nboxes*2, ncoord/2)
-                where coordinates are scaled to [0,1] range
-            bbox_label: (nbatch, nboxes, 2)
-                label text coordinates, top-left of the bbox
+    outputs:
+        bbox: (nbatch, nboxes*2, ncoord/2)
+            where coordinates are scaled to [0,1] range
+        bbox_label: (nbatch, nboxes, 2)
+            label text coordinates, top-left of the bbox
 
-        output_specs:
-            HolovizOp.InputSpec("bbox_label", "text")
-                a list of display label text
+    output_specs:
+        HolovizOp.InputSpec("bbox_label", "text")
+            a list of display label text
     """
 
     def __init__(self, *args, width=640, label_name_map=coco_label_map, **kwargs):
@@ -160,14 +160,14 @@ class DetectionPostprocessorOp(Operator):
         labels = cp.asarray(
             in_message.get("inference_output_detection_classes")
         ).get()  # (nbatch, nboxes)
-        
+
         ix = scores.flatten() > 0  # Find the bbox with score >0
         if np.all(ix == False):
             bboxes = np.zeros([1, 2, 2], dtype=np.float32)
             labels = np.zeros([1, 1], dtype=np.float32)
             bboxes_reshape = bboxes
         else:
-            bboxes = bboxes[:, ix, :] # (nbatch, nboxes, 4)
+            bboxes = bboxes[:, ix, :]  # (nbatch, nboxes, 4)
             labels = labels[:, ix]
             # Make box shape compatible with Holoviz
             bboxes = bboxes / self.width  # The x, y need to be rescaled to [0,1]
@@ -176,17 +176,15 @@ class DetectionPostprocessorOp(Operator):
         bbox_label_text = [self.label_name_map[int(label)] for label in labels[0]]
 
         # Prepare output
-        bbox_label = np.asarray([(b[0], b[1]) for b in bboxes[0]]) # Get the top-left coordinates
-        out_message = {
-            "bbox_label": bbox_label, 
-            "bbox": bboxes_reshape
-        }
+        bbox_label = np.asarray([(b[0], b[1]) for b in bboxes[0]])  # Get the top-left coordinates
+        out_message = {"bbox_label": bbox_label, "bbox": bboxes_reshape}
 
         spec_label = HolovizOp.InputSpec("bbox_label", "text")
         spec_label.text = bbox_label_text
 
         op_output.emit(out_message, "outputs")
         op_output.emit([spec_label], "output_specs")
+
 
 class YoloDetApp(Application):
     """
@@ -291,8 +289,9 @@ class YoloDetApp(Application):
         self.add_flow(detection_inference, detection_postprocessor, {("transmitter", "")})
         # Connect the postprocessor to the visualizer
         self.add_flow(detection_postprocessor, detection_visualizer, {("outputs", "receivers")})
-        self.add_flow(detection_postprocessor, detection_visualizer, {("output_specs", "input_specs")})
-
+        self.add_flow(
+            detection_postprocessor, detection_visualizer, {("output_specs", "input_specs")}
+        )
 
 
 if __name__ == "__main__":
