@@ -135,8 +135,17 @@ The following launch profiles are available:
 - **(gdb) grpc_endoscopy_tool_tracking/cpp (edge)**: Launch the gRPC client.
 
 
+#### Python
+
+The following launch profiles are available:
+
+- **(compound) grpc_endoscopy_tool_tracking/python (cloud & edge)**: Launch both the gRPC server and the client.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)**: Launch the gRPC client.
+
 ## Limitations & Known Issues
 
+### C++
 - The connection between the server and the client is controlled by `rpc_timeout`. If no data is received or sent within the configured time, it assumes the call has been completed and hangs up. The `rpc_timeout` value can be configured in the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) file with a default of 5 seconds. Increasing this value may help on a slow network.
 - The server can serve one request at any given time. Any subsequent call receives a `grpc::StatusCode::RESOURCE_EXHAUSTED` status.
 - When debugging using the compound profile, the server may not be ready to serve, resulting in errors with the client application. When this happens, open [tasks.json](../../../../.vscode/tasks.json), find `Build grpc_endoscopy_tool_tracking (delay 3s)`, and adjust the `command` field with a higher sleep value.
@@ -145,9 +154,11 @@ The following launch profiles are available:
   [error] [program.cpp:614] Event notification 2 for entity [video_in__outgoing_requests] with id [33] received in an unexpected state [Origin]
   ```
 
+### Python
+- The client may not exit the application correctly if it experiences any errors; use CTRL+C to exit the application if needed.
 
 ## Containerize the application
 
-To containerize the application, first install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html), build the application using `./dev_container build_and_install grpc_endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) directory and then follow the generated output to package and run the application.
+To containerize the application, first install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html), build the application using `./dev_container build_and_install grpc_endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) directory or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
 
 Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.
