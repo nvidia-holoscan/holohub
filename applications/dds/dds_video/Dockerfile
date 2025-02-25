@@ -85,8 +85,7 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-COPY rti_license.dat /opt/rti.com/rti_license.dat
+ENV NDDSHOME=/opt/rti.com/rti_connext_dds-7.3.0
+ENV RTI_CONNEXT_DDS_DIR=$NDDSHOME
 
-COPY applications/dds/dds_video/bootstrap.sh /opt/rti.com/bootstrap.sh
-
-ENTRYPOINT ["/bin/bash", "-c", "/opt/rti.com/bootstrap.sh"]
+CMD ["/bin/bash", "-c", "source $NDDSHOME/resource/scripts/rtisetenv_x64Linux4gcc7.3.0.bash && exec /bin/bash"]
