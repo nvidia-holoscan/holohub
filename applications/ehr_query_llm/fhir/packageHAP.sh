@@ -37,9 +37,9 @@ fi
 
 echo -e "\nPlease use the Holoscan SDK CLI to package and run the $APP_NAME application container with the following set of commands:"
 echo -e "\nGeneral command and options to package an application:"
-echo -e "${YELLOW}holoscan package -c <App_Path>/<App_Config> --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t <Image Tag> ${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c <App_Path>/<App_Config> --platform [jetson | igx-igpu | igx-dgpu | sbsa | x86_64] -t <Image Tag> ${NOCOLOR}"
 echo -e "\nCommand to package this application:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/$APP_CONFIG --platform ${PLATFORM} --platform-config ${GPU} -t $IMAGE_TAG $APP_PATH ${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/$APP_CONFIG --platform ${PLATFORM}  -t $IMAGE_TAG $APP_PATH ${NOCOLOR}"
 echo -e "\nList the newly built application container image (command result also shown):"
 echo -e "${YELLOW}docker images | grep "$IMAGE_TAG" | awk '{print \$1\":\"\$2}' ${NOCOLOR}"
 IMAGE_FULL_NAME=$(docker images | grep "$IMAGE_TAG" | awk '{print $1":"$2}')

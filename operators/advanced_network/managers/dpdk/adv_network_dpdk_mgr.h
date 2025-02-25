@@ -205,6 +205,7 @@ class DpdkMgr : public ANOMgr {
   static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
+  static int rx_core_multi_q_worker(void* arg);
   static int tx_core_worker(void* arg);
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
@@ -227,8 +228,9 @@ class DpdkMgr : public ANOMgr {
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
   std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
-  std::unordered_map<uint32_t, DPDKQueueConfig*> rx_q_map_;
-  std::unordered_map<uint32_t, DPDKQueueConfig*> tx_q_map_;
+  std::unordered_map<uint32_t, DPDKQueueConfig*> rx_dpdk_q_map_;
+  std::unordered_map<uint32_t, DPDKQueueConfig*> tx_dpdk_q_map_;
+  std::unordered_map<uint32_t, const RxQueueConfig*> rx_cfg_q_map_;
   struct rte_mempool* pkt_len_buffer;
   struct rte_mempool* rx_burst_buffer;
   struct rte_mempool* rx_flow_id_buffer;

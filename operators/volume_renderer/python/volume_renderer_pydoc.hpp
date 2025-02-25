@@ -45,12 +45,24 @@ fragment : Fragment
     The fragment that the operator belongs to.
 config_file : str, optional
     Config file path. The content of the file is passed to `clara::viz::JsonInterface::SetSettings()` at initialization time.
+write_config_file : str, optional
+    Deduce config settings from volume data and write to file. Sets a light in correct distance.
+    Sets a transfer function using the histogram of the data. Writes the JSON configuration to the
+    file with the given name.
 allocator : ``holoscan.resources.Allocator``, optional
     Allocator used to allocate render buffer outputs when no pre-allocated color or depth buffer is passed to `color_buffer_in` or `depth_buffer_in`. Allocator needs to be capable to allocate device memory.
 alloc_width : int, optional
     Width of the render buffer to allocate when no pre-allocated buffers are provided.
 alloc_height : int, optional
     Height of the render buffer to allocate when no pre-allocated buffers are provided.
+density_min : float, optional
+    Minimum density volume element value. If not set this is calculated from the volume data. In
+    practice CT volumes have a minimum value of -1024 which corresponds to the lower value of the
+    Hounsfield scale range usually used.
+density_max : float, optional
+    Maximum density volume element value. If not set this is calculated from the volume data. In
+    practice CT volumes have a minimum value of -1024 which corresponds to the lower value of the
+    Hounsfield scale range usually used.
 name : str, optional
     The name of the operator.
 )doc")

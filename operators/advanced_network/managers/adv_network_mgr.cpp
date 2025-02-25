@@ -228,4 +228,17 @@ bool ANOMgr::validate_config() const {
   return pass;
 }
 
+void ANOMgr::init_rx_core_q_map() {
+  for (const auto& intf : cfg_.ifs_) {
+    for (const auto& q : intf.rx_.queues_) {
+      int cpu_core = strtol(q.common_.cpu_core_.c_str(), nullptr, 10);
+      rx_core_q_map[cpu_core].push_back(std::make_pair(intf.port_id_, q.common_.id_));
+
+      if (rx_core_q_map[cpu_core].size() > MAX_RX_Q_PER_CORE) {
+        HOLOSCAN_LOG_CRITICAL("Too many RX queues assigned to core {}!", cpu_core);
+      }
+    }
+  }
+}
+
 };  // namespace holoscan::ops

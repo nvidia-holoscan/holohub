@@ -161,6 +161,64 @@ get_app_source_lang_dir() {
   echo -n "${holohub_app_source}"
 }
 
+get_pkg_dir() {
+  # Get source path for a given package according to HoloHub convention.
+  # Usage: ./run get_pkg_dir <pkg_name>
+  local pkgname="$1"
+  if [[ -z "${pkgname}" ]]; then
+    echo "Missing package name argument for get_pkg_dir"
+    exit 1
+  fi
+
+  holohub_pkg_source="${SCRIPT_DIR}/pkg/${pkgname}"
+
+  # Check if the package is in a subdirectory
+  if [ ! -d "$holohub_pkg_source" ]; then
+    sub_pkg_path=$(find ${SCRIPT_DIR}/pkg -type d -name "${pkgname}")
+    pkg_rel_path=${sub_pkg_path#"${SCRIPT_DIR}/pkg/"}
+    if [[ -n "$pkg_rel_path" ]]; then
+      holohub_pkg_source="${SCRIPT_DIR}/pkg/${pkg_rel_path}"
+    fi
+  fi
+
+  if [ ! -d "$holohub_pkg_source" ]; then
+    echo "Could not find package ${pkgname}"
+    exit 1
+  fi
+
+  echo -n "${holohub_pkg_source}"
+}
+
+get_pkg_dockerfile() {
+  # Parse the path to a custom package Dockerfile, if provided.
+  # Follows the HoloHub convention:
+  # 1. Check the metadata.json file for a "dockerfile" entry.
+  # 2. Check for a Dockerfile in the package directory.
+  # 3. Use the default Dockerfile provided at the top level of the HoloHub repository.
+  # Usage: ./run get_pkg_dockerfile <pkg_name>
+  local pkgname="$1"
+  local dockerfile_path=""
+
+  packages=$(list_packages | awk '{print $1}')
+  if [[ ! " ${packages[*]} " =~ " ${pkgname} " ]]; then
+    echo "Package ${pkgname} not found in list of packages: (see ./run list_packages)"
+    exit 1
+  fi
+
+  local pkg_source_path=$(get_pkg_dir ${pkgname})
+  local dockerfile_entry=$(cat "${pkg_source_path}/metadata.json" 2>/dev/null | grep "dockerfile" )
+  if [[ -n "${dockerfile_entry}" ]]; then
+    pattern="s#<holohub_pkg_source>#${pkg_source_path}#g"
+    dockerfile_path=$(echo "${dockerfile_entry}" | awk -F'["]' '{ print $4 }' | sed -E ${pattern})
+  elif [[ -f "${pkg_source_path}/Dockerfile" ]]; then
+    dockerfile_path="${pkg_source_path}/Dockerfile"
+  else
+    dockerfile_path="${SCRIPT_DIR}/Dockerfile"
+  fi
+
+  echo -n "${dockerfile_path}"
+}
+
 get_app_dockerfile() {
   # Parse the path to a custom application Dockerfile, if provided.
   # Follows the HoloHub convention:

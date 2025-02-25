@@ -112,6 +112,7 @@ if __name__ == "__main__":
         "tutorials", ignore_patterns=["template"], metadata_is_required=False
     )
     exit_code_benchmarks = validate_json_directory("benchmarks")
+    exit_code_packages = validate_json_directory("pkg", metadata_is_required=False)
 
     sys.exit(
         max(
@@ -120,5 +121,6 @@ if __name__ == "__main__":
             exit_code_applications,
             exit_code_tutorials,
             exit_code_benchmarks,
+            exit_code_packages,
         )
     )

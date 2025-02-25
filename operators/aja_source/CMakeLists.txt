@@ -34,6 +34,7 @@ set(AJANTV2_DISABLE_TESTS ON)
 set(AJANTV2_DISABLE_TOOLS ON)
 set(AJA_INSTALL_HEADERS OFF)
 set(AJA_INSTALL_SOURCES OFF)
+message(STATUS "Fetching AJA sources")
 FetchContent_MakeAvailable(ajantv2)
 # Disable all the warnings for AJA
 target_compile_options(ajantv2 PRIVATE -w)
