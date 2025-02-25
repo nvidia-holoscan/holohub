@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="H.264 endoscopy tool tracking application.")
+    parser = argparse.ArgumentParser(description="Endoscopy tool tracking application.")
     parser.add_argument("-d", "--data", type=str, help="Path to the data directory")
     parser.add_argument("-c", "--config", type=str, help="Path to the configuration file")
     args = parser.parse_args()
@@ -56,13 +56,16 @@ async def main():
     app = AppEdgeSingleFragment(data_directory)
     app.config(str(config_path))
 
-    with Tracker(app) as trackers:
-        future = app.run_async()
-        await app.start_streaming_client()
+    try:
+        with Tracker(app) as trackers:
+            future = app.run_async()
+            await app.start_streaming_client()
 
-        future.result()
-        trackers.print()
+            future.result()
+            trackers.print()
+    finally:
+        app.cleanup()
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())
