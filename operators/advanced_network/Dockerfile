@@ -25,7 +25,7 @@ ARG TARGETARCH
 RUN echo "Using architecture ${TARGETARCH}"
 
 RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
-RUN pip3 install scipy loguru attrs
+RUN pip3 install scipy loguru attrs scapy
 WORKDIR /opt
 
 ARG DEBIAN_FRONTEND=noninteractive
