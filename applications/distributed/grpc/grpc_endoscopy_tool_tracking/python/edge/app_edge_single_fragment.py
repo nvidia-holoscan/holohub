@@ -111,7 +111,6 @@ class AppEdgeSingleFragment(Application):
         )
 
         self.add_flow(replayer, outgoing_requests, {("output", "input")})
-        self.add_operator(incoming_responses)
         self.add_flow(replayer, visualizer_op, {("output", "receivers")})
         self.add_flow(incoming_responses, visualizer_op, {("output", "receivers")})
 

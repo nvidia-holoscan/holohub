@@ -80,9 +80,6 @@ class EndoscopyToolTrackingPipeline(HoloscanGrpcApplication):
             **self.kwargs("lstm_inference"),
         )
 
-        # Due to an underlying change in the GXF UCX extension in GXF 4.0 that results in a known issue
-        # where we have to allocate more blocks than expected when using a BlockMemoryPool, we need to
-        # use UnboundedAllocator for now.
         bytes_per_float32 = 4
         tool_tracking_postprocessor_block_size = max(
             107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
@@ -101,15 +98,9 @@ class EndoscopyToolTrackingPipeline(HoloscanGrpcApplication):
             ),
         )
 
-        # Here we connect the GrpcServerRequestOp to the VideoDecoderRequestOp to send the received
-        # video frames for decoding.
         self.add_flow(self.grpc_request_op, format_converter, {("output", "source_video")})
-
         self.add_flow(format_converter, lstm_inferer)
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
-
-        # Lastly, we connect the results from the tool tracking postprocessor to the
-        # GrpcServerResponseOp so the pipeline can return the results back to the client
         self.add_flow(tool_tracking_postprocessor, self.grpc_response_op, {("out", "input")})
 
         self.composed = True

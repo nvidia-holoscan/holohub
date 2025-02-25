@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,8 +66,7 @@ RUN apt update \
     graphviz\
     ninja-build
 
-COPY applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/requirements.txt /tmp/grpc_requirements.txt
-RUN pip3 install -r /tmp/grpc_requirements.txt
+RUN pip install meson
 
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
@@ -77,3 +76,7 @@ RUN pip install -r /tmp/benchmarking_requirements.txt
 
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
+
+COPY applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/requirements.txt /tmp/grpc_requirements.txt
+RUN pip3 install -r /tmp/grpc_requirements.txt
