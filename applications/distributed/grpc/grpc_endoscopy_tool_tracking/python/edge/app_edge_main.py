@@ -64,7 +64,7 @@ async def main():
             future.result()
             trackers.print()
     finally:
-        app.cleanup()
+        await app.cleanup()
 
 
 if __name__ == "__main__":
