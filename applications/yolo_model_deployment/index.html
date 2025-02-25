@@ -22,7 +22,7 @@
     
     
       
-        <title>Yolo Detection Application - Holoscan Reference Applications</title>
+        <title>Yolo Detection - Holoscan Reference Applications</title>
       
     
     
@@ -140,7 +140,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Yolo Detection Application
+              Yolo Detection
             
           </span>
         </div>
@@ -1402,7 +1402,7 @@
           
   
   <span class="md-ellipsis">
-    Yolo Detection Application
+    Yolo Detection
     
   </span>
   
@@ -1414,7 +1414,7 @@
         
   
   <span class="md-ellipsis">
-    Yolo Detection Application
+    Yolo Detection
     
   </span>
   
@@ -1439,46 +1439,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dependencies-repos" class="md-nav__link">
+  <a href="#model" class="md-nav__link">
     <span class="md-ellipsis">
-      Dependencies Repos
+      Model
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisition" class="md-nav__link">
+  <a href="#input-source" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisition
+      Input Source
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#procedures" class="md-nav__link">
+  <a href="#data" class="md-nav__link">
     <span class="md-ellipsis">
-      Procedures
+      Data
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Procedures">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-prepare-the-model-with-nms-layer-and-nms-plugin" class="md-nav__link">
+  <a href="#video-replayer-support" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 1: Prepare the Model with NMS Layer and NMS Plugin
+      Video Replayer Support
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-deployment" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Deployment
+      Configuration
     </span>
   </a>
   
@@ -1486,15 +1495,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#results" class="md-nav__link">
-    <span class="md-ellipsis">
-      Results:
-    </span>
-  </a>
   
 </li>
       
@@ -6927,46 +6927,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dependencies-repos" class="md-nav__link">
+  <a href="#model" class="md-nav__link">
     <span class="md-ellipsis">
-      Dependencies Repos
+      Model
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisition" class="md-nav__link">
+  <a href="#input-source" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisition
+      Input Source
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#procedures" class="md-nav__link">
+  <a href="#data" class="md-nav__link">
     <span class="md-ellipsis">
-      Procedures
+      Data
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Procedures">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-prepare-the-model-with-nms-layer-and-nms-plugin" class="md-nav__link">
+  <a href="#video-replayer-support" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 1: Prepare the Model with NMS Layer and NMS Plugin
+      Video Replayer Support
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-deployment" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Deployment
+      Configuration
     </span>
   </a>
   
@@ -6974,15 +6983,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#results" class="md-nav__link">
-    <span class="md-ellipsis">
-      Results:
-    </span>
-  </a>
   
 </li>
       
@@ -7005,13 +7005,13 @@
       
       
       
-        <a href="../../tags/#tag:yolo" class="md-tag">Yolo</a>
+        <a href="../../tags/#tag:computer-vision" class="md-tag">Computer Vision</a>
       
     
       
       
       
-        <a href="../../tags/#tag:bounding-box" class="md-tag">bounding box</a>
+        <a href="../../tags/#tag:yolo-detection" class="md-tag">Yolo Detection</a>
       
     
   </nav>
@@ -7019,172 +7019,37 @@
 
 
 <h1 id="holoscan-yolo"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/yolo_model_deployment">Holoscan-Yolo</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Meiran Peng (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> February 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> February 25, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br>
 This project is aiming to provide basic guidance to deploy Yolo-based model to Holoscan SDK as "Bring Your Own Model"</p>
-<p>The reference application's pipeline is the same as <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/ultrasound_segmentation">Ultrasound Segmentation Application in Holoscan SDK</a>.</p>
-<p>The operators applied in this operation including:
-- Video Stream Replayer (replayer as source) | AJASourceOp (AJA card is as source)
-- Format Converter (float32 + resize)
-- TensorRT Inference
-- Detection PostProcessor (customized Python Operator to extract Bounding Box)
-- HoloViz</p>
-<p>This project includes below procedures:
-1. <a href="#prerequisition">Prerequisition</a>
-    1.1 Prepare Holoscan SDK env
-    1.2 Prepare dependent libraries inside container.
-2. <a href="#procedures">Deploy Procedures</a>
-    2.1 <a href="#step-1-prepare-the-model-with-nms-layer-and-nms-plugin">Step1: prepare the model with NMS</a> depend on pytorch env, can be done outside Holoscan SDK, refer each models' installation env section.   <br />
-    2.2 <a href="#step-2-deployment">Step2: Deployment</a>
-        - Prepare Env
-        - Update Model with NHWC as input
-        - Prepare test video with gxf support format
-        - Update application with py/yaml
-        - Prepare working folder
-        - Run the Application.</p>
-<p>This repo takes yolo v7 as an example.</p>
-<h2 id="dependencies-repos">Dependencies Repos</h2>
-<ul>
-<li>Holoscan SDK: https://github.com/nvidia-holoscan/holoscan-sdk</li>
-<li>Yolo v7 repo: https://github.com/WongKinYiu/yolov7 </li>
-<li>Yolo v8 repo: https://github.com/ultralytics/ultralytics </li>
-<li>Yolo v8 export repo: https://github.com/triple-Mu/YOLOv8-TensorRT </li>
-</ul>
-<h2 id="prerequisition">Prerequisition</h2>
-<ul>
-<li>
-<p>Holoscan environment:</p>
-<ul>
-<li>NGC container: <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan">Holoscan container image on NGC</a></li>
-</ul>
-</li>
-<li>
-<p>Install below libraries inside container via, or skip it to <a href="#step-2-deployment">Step 2: Deployment</a>
-    <div class="highlight"><pre><span></span><code>    pip install onnxruntime
-    pip install nvidia-pyindex
-    pip install onnx-graphsurgeon
-    apt update
-    apt install ffmpeg
-</code></pre></div></p>
-<ul>
-<li>onnxruntime, nvidia-pyindex,onnx-graphsurgeon are needed for <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#graph_surgeonpy">graph_surgeon.py</a> scripts to do onnx model conversion. Since when converting a model from PyTorch to ONNX, it is likely that the input of the model is in the form NCHW (batch, channels, height, width), and needs to be converted to NHWC (batch, height, width, channels). </li>
-<li>cupy is used in custom operators for performance improvements</li>
-<li>numpy is used in script to convert video in <a href="#step-2-deployment">Step 2</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="procedures">Procedures</h2>
-<h3 id="step-1-prepare-the-model-with-nms-layer-and-nms-plugin">Step 1: Prepare the Model with NMS Layer and NMS Plugin</h3>
-<ul>
-<li>
-<p><a href="https://github.com/triple-Mu/YOLOv8-TensorRT">Yolo_v8</a></p>
-<ul>
-<li><code>git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git</code></li>
-<li>Installation dependent package as described in this repo. Recommend to use latest <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch">PyTorch docker</a> for model export. </li>
-<li>Export the model
-    <div class="highlight"><pre><span></span><code>    wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
-    python3 export-det.py --weights yolov8s.pt --iou-thres 0.65 --conf-thres 0.25 --topk 100 --opset 11 --sim --input-shape 1 3 640 640 --device cuda:0
-</code></pre></div></li>
-<li>Check the model via <a href="https://netron.app/">netron</a> shall include EfficientNMS_TRT layer with output <code>num_dets</code>, <code>bboxes</code>, <code>scores</code>, and <code>labels</code></li>
-</ul>
-</li>
-<li>
-<p><a href="https://github.com/WongKinYiu/yolov7">Yolo_v7</a></p>
-<ul>
-<li><code>git clone https://github.com/WongKinYiu/yolov7.git</code></li>
-<li>Prepare env, docker recommended as <a href="https://github.com/WongKinYiu/yolov7#installation">yolo v7 installation</a></li>
-<li>Export the model
-    <div class="highlight"><pre><span></span><code>wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-tiny.pt
-python3 export.py --weights ./yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640
-</code></pre></div>
-    NOTE: the <code>end2end</code> parameter will output the the end to end model with NMS Layer and Plugin. Other parameters pls refer detail information via <a href="https://github.com/WongKinYiu/yolov7/blob/main/export.py#L19">link</a></li>
-<li>Check the model via <a href="https://netron.app/">netron</a> shall include EfficientNMS_TRT layer with output <code>num_dets</code>, <code>det_boxes</code>, <code>det_scores</code>, and <code>det_classes</code></li>
-</ul>
-</li>
-</ul>
-<p>NOTE: The output name maybe different for different export models, pls correct yolo_detecton.yaml section "output_binding_names" in detection_inference part accordingly.</p>
-<h3 id="step-2-deployment">Step 2: Deployment</h3>
-<ul>
-<li>
-<p><code>git clone</code> this repo to your local folder, e.g. ./holohub</p>
-</li>
-<li>
-<p><code>cd ./holohub/applications/yolo_model_deployment</code></p>
-</li>
-<li>
-<p>Copy the onnx model with NMS in Step 1 to this application folder. (The onnx model name in this example is yolov8s.onnx for yolo v8 model, and yolov7-tiny.onnx for yolo v7 model)</p>
-</li>
-<li>
-<p>Run the Holoscan container via
-    <div class="highlight"><pre><span></span><code># Update the ngc container image path as needed
-export NGC_CONTAINER_IMAGE_PATH=&quot;nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0&quot;
+<div align="center">
+    <img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/yolo_model_deployment/docs/meeting.gif?raw=true" width="500" height="363">
+</div>
 
-# DISPLAY env may be different due to different settings,
-# try DISPLAY=:1 if failure with &quot;Failed to open display :0&quot;
-export DISPLAY=:0
-xhost +local:docker
-
-# Find the nvidia_icd.json file which could reside at different paths
-# Needed due to https://github.com/NVIDIA/nvidia-container-toolkit/issues/16
-nvidia_icd_json=$(find /usr/share /etc -path &#39;*/vulkan/icd.d/nvidia_icd.json&#39; -type f 2&gt;/dev/null | grep .) || (echo &quot;nvidia_icd.json not found&quot; &gt;&amp;2 &amp;&amp; false)
-
-# Run the container
-docker run -it --rm --net host \
---runtime=nvidia \
--v /tmp/.X11-unix:/tmp/.X11-unix \
--v $nvidia_icd_json:$nvidia_icd_json:ro \
--v ${PWD}:/holohub-yolo \
--w /holohub-yolo \
--e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
--e DISPLAY=$DISPLAY \
-${NGC_CONTAINER_IMAGE_PATH}
-</code></pre></div></p>
-</li>
-<li>
-<p>Install necessary libraries inside the container via:
-    <em>This section is intended for the initial preparation of the model and video, and can be skipped once the model has been prepared.</em> <br />
-    <div class="highlight"><pre><span></span><code>apt update
-apt install ffmpeg
-pip3 install --upgrade setuptools
-
-cat requirement.txt | xargs -n 1 -L 1 pip3 install 
-</code></pre></div></p>
-</li>
-<li>
-<p>Update the model with input from NCHW format to NHWC format inside the container  <br />
-<em>This section is intended for the initial preparation of the model and video, and can be skipped once the model has been prepared.</em>      </p>
-<p>If you are converting your model from PyTorch to ONNX, chances are your input is NCHW and will need to be converted to NHWC. We provide an example <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#graph_surgeonpy">transformation script on Github</a> named <code>graph_surgeon.py</code> to do such conversion. You may need to modify the dimensions as needed before modifying your model. For this example, use below command to do the conversion. </p>
-<p><div class="highlight"><pre><span></span><code>python3 ./scripts/graph_surgeon_yolo.py [yolov8s.onnx] [yolov8-nms-update.onnx]
-</code></pre></div>
-NOTE: the yolov8s.onnx refer to input onnx model name, yolov8-nms-update.onnx is the updated model which will be used in yolo application for inference. The yolov8-nms-update.onnx will be used in yolo_detection.py, if the onnx model name changed, pls update yolo_detection.py <code>self.model_file_path</code> accordingly.</p>
-</li>
-<li>
-<p>Prepare the Video with gxf format inside the container  <br />
-<em>This section is intended for the initial preparation of the model and video, and can be skipped once the model has been prepared.</em> </p>
-<p>Video files need to be converted into a GXF replayable tensor format to be used as stream inputs. This step has already been done for the sample applications. To do so for your own video data, we provide a <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">utility script on GitHub</a> named <code>convert_video_to_gxf_entities.py</code>. This script should yield two files in .gxf_index and .gxf_entities formats, which can be used as inputs with Holoscan.</p>
-<p>Follow below procedures to convert the video. </p>
+<h2 id="model">Model</h2>
+<ul>
+<li>Yolo v8 model: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt</li>
+<li>Yolo v8 export repository: https://github.com/triple-Mu/YOLOv8-TensorRT</li>
+</ul>
+<p>In this application example, we use the YOLOv8s model, which is converted to ONNX format using the repository mentioned above. Note that if you provide your own ONNX model, ensure it includes the EfficientNMS_TRT layer. You can verify it using <a href="https://netron.app/">Netron</a>. Additionally, we employ the <code>graph_surgeon.py</code> script to modify the input shape. For more details on this script, refer to <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#graph_surgeonpy">graph_surgeonpy</a>.</p>
+<p>The detailed process is documented in the <code>CMakeLists.txt</code> file.</p>
+<h2 id="input-source">Input Source</h2>
+<p>This app currently supports two input options:</p>
 <ol>
-<li>Copy your video to the working directory. In this example to /holohub-yolo/example_video   </li>
-<li>
-<p>Take cars.mp4 from <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_cars_video">NGC</a> as an example. Download it to  /holohub-yolo/example_video
-    <div class="highlight"><pre><span></span><code>git clone https://github.com/nvidia-holoscan/holoscan-sdk.git
-cd ./example_video
-ffmpeg -i cars.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python3 ../holoscan-sdk/scripts/convert_video_to_gxf_entities.py --width 1920 --height 1080 --channels 3 --directory ./ --basename cars
-</code></pre></div></p>
-<p>NOTE:
-- <code>basename</code> will be used in VideoStreamReplayerOp, you can see yolo_detection.yaml, replayer section, the basename shall be defined as "cars" in this example, change the yaml file if needed.
-- <code>height</code> and <code>width</code> are the height and the width of the video. </p>
-</li>
+<li>v4l2 compatible input device</li>
+<li>Pre-recorded video</li>
 </ol>
-</li>
-<li>
-<p>Run the application inside the container
-    Please make sure that the yolov8-nms-update.onnx file exists under the specified data path.</p>
-<div class="highlight"><pre><span></span><code>python3 ./yolo_detection.py  --data=&lt;your data path&gt; --source=replayer --video_dir=./example_video
+<h2 id="data">Data</h2>
+<p>This application downloads a pre-recorded video from <a href="https://www.pexels.com/video/a-group-of-people-introduces-oneself-to-each-other-by-shaking-hands-3252919/">Pexels</a> when the application is built.  Please review the <a href="https://www.pexels.com/license/">license terms</a> from Pexels.</p>
+<h2 id="run">Run</h2>
+<p>Build and launch container. Note that this will use a v4l2 input source as default.</p>
+<div class="highlight"><pre><span></span><code>./dev_container build_and_run yolo_model_deployment
 </code></pre></div>
-</li>
-</ul>
-<h2 id="results">Results:</h2>
-<p><img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/yolo_model_deployment/docs/cars_yolo_v8.png?raw=true" /></p>
+<h3 id="video-replayer-support">Video Replayer Support</h3>
+<p>If you don't have a v4l2 compatible device plugged in, you can also run this application on a pre-recorded video. To launch the application using the Video Stream Replayer as the input source, run:</p>
+<div class="highlight"><pre><span></span><code>./dev_container build_and_run yolo_model_deployment --run_args &quot;--source replayer&quot;
+</code></pre></div>
+<h3 id="configuration">Configuration</h3>
+<p>For application configuration, please refer to the <code>yolo_detection.yaml</code>.</p>
 
 
 
