@@ -161,6 +161,12 @@ enum class AdvNetDirection : uint8_t {
 };
 
 /**
+ * @brief Loopback mode
+ *
+ */
+enum class LoopbackType { LOOPBACK_TYPE_SW, DISABLED };
+
+/**
  * @brief Manager Type
  *
  */
@@ -370,6 +376,7 @@ struct CommonConfig {
   int master_core_;
   AdvNetDirection dir;
   AnoMgrType manager_type;
+  LoopbackType loopback_;
 };
 
 struct AdvNetRxConfig {
