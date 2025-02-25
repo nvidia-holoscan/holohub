@@ -75,8 +75,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-async def main():
-    loop = asyncio.get_event_loop()
+async def main(loop):
     loop.add_signal_handler(signal.SIGINT, lambda: asyncio.create_task(signal_handler()))
 
     args = parse_arguments()
