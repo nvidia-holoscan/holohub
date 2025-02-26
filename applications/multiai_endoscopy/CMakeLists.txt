@@ -31,22 +31,26 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_WIDTH 854
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
+    ALL
   )
 
   holoscan_download_data(ssd_model
     URL nvidia/clara-holoscan/ssd_surgical_tool_detection_model:v0.1
     DOWNLOAD_NAME ssd_surgical_tool_detection_model_v0.1.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    ALL
   )
 
   holoscan_download_data(monai_tool_seg_model
     URL nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model:v0.1
     DOWNLOAD_NAME monai_endoscopic_tool_segmentation_model_v0.1.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    ALL
   )
+  
 endif()
 
-add_subdirectory(cpp)
+# add_subdirectory(cpp)
 
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)

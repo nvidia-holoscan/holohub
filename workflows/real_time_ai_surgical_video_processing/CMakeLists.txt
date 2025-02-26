@@ -16,6 +16,15 @@
 cmake_minimum_required(VERSION 3.20)
 project(real_time_ai_surgical_video_processing_workflow LANGUAGES NONE)
 
+# Create a custom target that runs the Python script
+add_custom_target(real_time_ai_surgical_video_processing
+    COMMAND Python3::Interpreter ${CMAKE_CURRENT_SOURCE_DIR}/python/main.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Make sure Python interpreter is found
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
@@ -31,21 +40,35 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_WIDTH 854
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
+    ALL
   )
 
-  holoscan_download_data(ssd_model
+  holoscan_download_data(detection_model
     URL nvidia/clara-holoscan/ssd_surgical_tool_detection_model:v0.1
     DOWNLOAD_NAME ssd_surgical_tool_detection_model_v0.1.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    ALL
   )
 
-  holoscan_download_data(monai_tool_seg_model
+  holoscan_download_data(segmentation_model
     URL nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model:v0.1
-    DOWNLOAD_NAME monai_endoscopic_tool_segmentation_model_v0.1.zip
+    DOWNLOAD_NAME ll.1.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    ALL
   )
-endif()
 
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
+  holoscan_download_data(out_of_body_model
+    URL nvidia/clara-holoscan/endoscopy_out_of_body_detection:20230127
+    DOWNLOAD_NAME endoscopy_out_of_body_detection_20230127.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 256
+    GXF_ENTITIES_WIDTH 256
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+    ALL
+  )
+  
+  add_dependencies(real_time_ai_surgical_video_processing endoscopy_data detection_model_data segmentation_model_data out_of_body_model_data)
+
 endif()
