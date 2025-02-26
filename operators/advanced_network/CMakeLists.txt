@@ -97,5 +97,5 @@ install(
         advanced_network_common
         advanced_network_rx
         advanced_network_tx
-    COMPONENT holoscan-networking
+    COMPONENT advanced_network-cpp
 )

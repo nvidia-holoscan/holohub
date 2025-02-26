@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# BINDINGS
+
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET advanced_network_rx
@@ -49,4 +51,12 @@ set_target_properties(${MODULE_NAME}_python PROPERTIES
 configure_file(
     ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
     ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/advanced_network_common/__init__.py
+)
+
+# UTILS
+
+install(FILES tune_system.py
+  DESTINATION bin
+  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+  COMPONENT advanced_network-utils
 )

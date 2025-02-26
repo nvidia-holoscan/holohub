@@ -59,6 +59,7 @@ function(holohub_configure_deb)
   endif()
 
   # standard configurations
+  set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/nvidia/holoscan")
   set(CPACK_STRIP_FILES TRUE)
   set(CPACK_GENERATOR DEB)
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
