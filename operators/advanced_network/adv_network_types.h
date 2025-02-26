@@ -173,7 +173,7 @@ enum class AnoMgrType {
 };
 
 static constexpr const char* ANO_MGR_STR__DPDK = "dpdk";
-static constexpr const char* ANO_MGR_STR__DOCA = "doca";
+static constexpr const char* ANO_MGR_STR__GPUNETIO = "gpunetio";
 static constexpr const char* ANO_MGR_STR__RIVERMAX = "rivermax";
 static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
 
@@ -185,10 +185,14 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
  */
 inline AnoMgrType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__DPDK) return AnoMgrType::DPDK;
-  if (str == ANO_MGR_STR__DOCA) return AnoMgrType::DOCA;
+  if (str == ANO_MGR_STR__GPUNETIO) return AnoMgrType::DOCA;
   if (str == ANO_MGR_STR__RIVERMAX) return AnoMgrType::RIVERMAX;
   if (str == ANO_MGR_STR__DEFAULT) return AnoMgrType::DEFAULT;
-  throw std::logic_error("Unrecognized manager type, available options dpdk/doca/rivermax/default");
+  throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
+                        ANO_MGR_STR__DPDK + "/" +
+                        ANO_MGR_STR__GPUNETIO + "/" +
+                        ANO_MGR_STR__RIVERMAX + "/" +
+                        ANO_MGR_STR__DEFAULT);
 }
 
 /**
@@ -202,7 +206,7 @@ inline std::string manager_type_to_string(AnoMgrType type) {
     case AnoMgrType::DPDK:
       return ANO_MGR_STR__DPDK;
     case AnoMgrType::DOCA:
-      return ANO_MGR_STR__DOCA;
+      return ANO_MGR_STR__GPUNETIO;
     case AnoMgrType::RIVERMAX:
       return ANO_MGR_STR__RIVERMAX;
     case AnoMgrType::DEFAULT:
