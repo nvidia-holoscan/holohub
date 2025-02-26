@@ -28,7 +28,7 @@ scheduler:
 advanced_network:
   cfg:
     version: 1
-    manager: "doca"
+    manager: "gpunetio"
     master_core: 0 # Master CPU core
     log_level: "warn"
     memory_regions:
