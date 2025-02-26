@@ -6,20 +6,17 @@ The model: [RT-DETR](https://github.com/lyuwenyu/RT-DETR) is trained on the [REA
 
 Compared to the `SSD` object detection model described in the [paper](https://www.nature.com/articles/s41597-024-03359-0), `RT-DETR` demonstrates improvements. The table below shows metrics for SSD obtained from Table 3 of the paper, and metrics for RT-DETR calculated on the same test set (using all test images from the `REAL-Colon` dataset).
 
+<div style="text-align: center;">
+
 | Method  | MAP@0.5 | MAP@0.5:0.95 |
 |---------|---------|--------------|
 | SSD     | 0.338   | 0.216        |
 | RT-DETR | 0.452   | 0.301        |
 
+</div>
 
-The operators applied in this operation including:
-- Video Stream Replayer (replayer as source) | AJASourceOp (AJA card is as source)
-- Format Converter (float32 + resize)
-- TensorRT Inference
-- Detection PostProcessor (customized Python Operator to extract Bounding Box)
-- HoloViz
 
-## Procedures
+## Run Instructions
 
 ### Step 1: Build and Launch Container
 
