@@ -38,7 +38,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 
 # add rmax_apps_lib with absolute path as a library
-# Initialize ANO_MGR with a default if not provided
 if(NOT DEFINED RAL_DIR_PATH)
     set(RAL_DIR_PATH "/opt/rivermax_sdk/rmax_apps_lib" CACHE STRING "Rmax Apps Lib absolute path")
 endif()

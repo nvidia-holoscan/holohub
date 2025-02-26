@@ -91,7 +91,7 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 ./operators/advanced_network/run_doca.sh
 
 # To build operator + app from main dir
-./run build adv_networking_bench --configure-args "-DANO_MGR=doca"
+./run build adv_networking_bench --configure-args "-DANO_MGR=gpunetio"
 
 # Run app
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
