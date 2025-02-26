@@ -20,14 +20,14 @@
 #if ANO_MGR_DPDK
 #include "adv_network_dpdk_mgr.h"
 #endif
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
 #include "adv_network_doca_mgr.h"
 #endif
 #if ANO_MGR_RIVERMAX
 #include "adv_network_rmax_mgr.h"
 #endif
 
-#if ANO_MGR_DPDK || ANO_MGR_DOCA
+#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
 #include <rte_common.h>
 #include <rte_malloc.h>
 #endif
@@ -46,7 +46,7 @@ AnoMgrType AnoMgrFactory::get_default_manager_type() {
   AnoMgrType mgr_type = AnoMgrType::UNKNOWN;
 #if ANO_MGR_DPDK
   mgr_type = AnoMgrType::DPDK;
-#elif ANO_MGR_DOCA
+#elif ANO_MGR_GPUNETIO
   mgr_type = AnoMgrType::DOCA;
 #elif ANO_MGR_RIVERMAX
   mgr_type = AnoMgrType::RIVERMAX;
@@ -64,7 +64,7 @@ std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
       _manager = std::make_unique<DpdkMgr>();
       break;
 #endif
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
     case AnoMgrType::DOCA:
       _manager = std::make_unique<DocaMgr>();
       break;
@@ -114,7 +114,7 @@ template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
 
 AdvNetStatus ANOMgr::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
-#if ANO_MGR_DPDK || ANO_MGR_DOCA
+#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
   for (auto& mr : cfg_.mrs_) {
     void* ptr;
     AllocRegion ar;

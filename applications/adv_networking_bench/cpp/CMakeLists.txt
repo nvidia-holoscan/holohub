@@ -45,7 +45,7 @@ target_link_libraries(adv_networking_bench
 )
 # Initialize ANO_MGR with a default if not provided
 if(NOT DEFINED ANO_MGR)
-    set(ANO_MGR "dpdk doca" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
 endif()
 
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})

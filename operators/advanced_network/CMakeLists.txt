@@ -45,7 +45,7 @@ set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${DPDK_PATH}/lib/${ARCH}-linux-g
 
 # Initialize ANO_MGR with a default if not provided
 if(NOT DEFINED ANO_MGR)
-    set(ANO_MGR "dpdk doca" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
 endif()
 
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})

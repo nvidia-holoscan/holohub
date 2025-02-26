@@ -42,5 +42,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "80;90")
 
 target_compile_options(${PROJECT_NAME} PUBLIC ${DOCA_CFLAGS})
 
-target_link_libraries(${PROJECT_NAME}  PRIVATE holoscan::core)
+target_link_libraries(${PROJECT_NAME} PRIVATE holoscan::core)
 target_link_libraries(${PROJECT_NAME} PRIVATE -L${DOCA_LIBRARY_DIRS} -ldoca_gpunetio libdoca_gpunetio_device.a -ldoca_common -ldoca_argp -ldoca_eth -ldoca_flow)
