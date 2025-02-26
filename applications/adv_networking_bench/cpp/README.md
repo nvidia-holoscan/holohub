@@ -9,7 +9,7 @@ designed to run on different systems, and may be configured independently.
 The performance of this application depends heavily on a properly-configured system and choosing the best
 tuning parameters that are acceptable for the workload. To configure the system please see the documentation
 for the advanced network operator. With the system tuned, the application performance will be dictated
-by batching size and whether GPUDirect is enabled. 
+by batching size and whether GPUDirect is enabled.
 
 At this time both the transmitter and receiver are written to handle an Ethernet+IP+UDP packet with a
 configurable payload. Other modes may be added in the future. Also, for simplicity, the transmitter and
@@ -19,7 +19,7 @@ receiver must be configured to a single packet size.
 
 The transmitter sends a UDP packet with an incrementing sequence of bytes after the UDP header. The batch
 size configured dictates how many packets the benchmark operator sends to the advanced network operator
-in each tick. Typically with the same number of CPU cores the transmitter will run faster than the receiver, 
+in each tick. Typically with the same number of CPU cores the transmitter will run faster than the receiver,
 so this parameter may be used to throttle the sender somewhat by making the batches very small.
 
 ## Receiver
@@ -29,7 +29,7 @@ will receive the packets in CPU memory, copy the payload contents to a host-pinn
 freed. In header-data split mode the user may configure a split point where the bytes before that point
 are sent to the CPU, and all bytes afterwards are sent to the GPU. Header-data split should achieve higher
 rates than CPU mode since the amount of data to the CPU can be orders of magnitude lower compared to running
-in CPU-only mode. 
+in CPU-only mode.
 
 ### Configuration
 
@@ -51,10 +51,10 @@ advanced networking operator on both transmit and receive per the instructions f
 #### Transmit Configuration
 
 - `batch_size`: integer
-  Size in packets for a single batch. This batch size is used to send to the advanced network TX operator, and 
+  Size in packets for a single batch. This batch size is used to send to the advanced network TX operator, and
   will loop sending that many packets for each burst.
 - `payload_size`: integer
-  Size of the payload to send after all L2-L4 headers 
+  Size of the payload to send after all L2-L4 headers
 
 ### Requirements
 
@@ -85,7 +85,7 @@ Or for the receiver:
 With DOCA:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
 ```
 
 With RIVERMAX RX:
