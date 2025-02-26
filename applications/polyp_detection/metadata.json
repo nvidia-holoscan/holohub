@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Polyp detection",
+		"name": "Polyp Detection Application",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "2.9.0",
 			"tested_versions": [
-				"0.5.0"
+				"2.9.0"
 			]
 		},
 		"platforms": [
@@ -24,14 +24,16 @@
 		],
 		"tags": [
 			"Colonoscopy",
-			"Detection"
+			"Detection",
+			"RT-DETR",
+			"bounding box"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"dependencies": {
 			"libraries": []
 		},
 		"run": {
-			"command": "python3 polyp_detection.py --data <holohub_data_dir>/polyp_detection",
+			"command": "python3 polyp_detection.py --data=./ --source=replayer --video_dir=./example_video",
 			"workdir": "holohub_app_source"
 		}
 	}

@@ -35,5 +35,6 @@ detection_inference:
       "polyp_det": ["pred_logits", "pred_boxes"]
 
 detection_postprocessor:
+    scores_threshold: 0.5
 
-# detection_visualizer:  # Holoviz
+detection_visualizer:  # Holoviz

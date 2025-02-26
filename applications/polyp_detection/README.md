@@ -4,50 +4,63 @@ This application demonstrates how to run polyp detection models on live video in
 
 The model: [RT-DETR](https://github.com/lyuwenyu/RT-DETR) is trained on the [REAL-Colon](https://www.nature.com/articles/s41597-024-03359-0) dataset.
 
-## Setup Instructions
+Compared to the `SSD` object detection model described in the [paper](https://www.nature.com/articles/s41597-024-03359-0), `RT-DETR` demonstrates improvements. The table below shows metrics for SSD obtained from Table 3 of the paper, and metrics for RT-DETR calculated on the same test set (using all test images from the `REAL-Colon` dataset).
 
-### Build Docker and Run
+| Method  | MAP@0.5 | MAP@0.5:0.95 |
+|---------|---------|--------------|
+| SSD     | 0.338   | 0.216        |
+| RT-DETR | 0.452   | 0.301        |
+
+
+The operators applied in this operation including:
+- Video Stream Replayer (replayer as source) | AJASourceOp (AJA card is as source)
+- Format Converter (float32 + resize)
+- TensorRT Inference
+- Detection PostProcessor (customized Python Operator to extract Bounding Box)
+- HoloViz
+
+## Procedures
+
+### Step 1: Build and Launch Container
+
+From the Holohub main directory run the following command to build the container:
 
 ```Bash
-docker build -t holoscan:polyp-det -f Dockerfile .
+./dev_container build
 ```
 
-Please mount the directory that contains `holohub/` into `/colon_workspace`. For example, my folder is under `/raid/colon_workspace`:
+Launch the container:
 
 ```Bash
-docker run --rm -it --gpus=all --ipc=host -v /raid/colon_workspace:/colon_workspace holoscan:polyp-det
+./dev_container launch
 ```
 
-### Get ONNX model
+### Step 2: Download the trained ONNX Model 
 
-(TODO) need to upload after license permission
+(TODO) need to upload after license permission.
 
-### Generate TensorRT model
+Download the ONNX Model `rtdetrv2_timm_r50_nvimagenet_pretrained_neg_finetune_bhwc.onnx` into the data path, for example: `./data`.
 
-```Bash
-trtexec --onnx=<path-to-onnx>/polyp_det_model.onnx --saveEngine=polyp_det_model.trt \
---minShapes=images:1x3x640x640,orig_target_sizes:1x2 \
---optShapes=images:32x3x640x640,orig_target_sizes:32x2 \
---maxShapes=images:32x3x640x640,orig_target_sizes:32x2 \
---allowGPUFallback
-```
+### Step 3: Prepare the Video
 
-### Get Example Video
+(TODO) need to upload sample video.
+    
+Video files need to be converted into a GXF replayable tensor format to be used as stream inputs. This step has already been done for the sample video. To do so for your own video data, we provide a [utility script on GitHub](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) named ```convert_video_to_gxf_entities.py```. This script should yield two files in .gxf_index and .gxf_entities formats, which can be used as inputs with Holoscan.
 
-(TODO) need to upload after license permission
-
-### Convert Video into GXF Entities
+Assume the video is in `./path-to-video/sample.mp4`, width and height are 1164 and 1034, follow below command to convert the video:
+Follow below procedures to convert the video.
 
 ```Bash
-apt-get update && apt-get install -y ffmpeg
 git clone https://github.com/nvidia-holoscan/holoscan-sdk.git
-mkdir /colon_workspace/polyp_detection_data
-ffmpeg -i <prepared video>.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 | python holoscan-sdk/scripts/convert_video_to_gxf_entities.py --width 1164 --height 1034 --channels 3 --framerate 30 --directory /colon_workspace/polyp_detection_data
+ffmpeg -i /path-to-video/sample.mp4 -pix_fmt rgb24 -f rawvideo pipe:1 |  python holoscan-sdk/scripts/convert_video_to_gxf_entities.py --width 1164 --height 1034 --channels 3 --framerate 30 --directory /path-to-video/
 ```
 
-### Run application
+### Step 4: Run application
+
+Ensure that the `rtdetrv2_timm_r50_nvimagenet_pretrained_neg_finetune_bhwc.onnx` file is located in the directory specified by the `data` argument.
+Verify that the generated video files (`.gxf_index` and `.gxf_entities` files) are in the directory specified by the `video_dir` argument.
+Specify the correct video width and height using the `video_size` argument.
 
 ```Bash
-cd /colon_workspace/holohub/applications/polyp_detection
-python polyp_detection.py --data  /colon_workspace/polyp_detection_data --model /colon_workspace/rtdetrv2_timm_r50_nvimagenet_pretrained_neg_finetune_bhwc.onnx
+python polyp_detection.py --data /path-to-model/ --video_dir /path-to-video/ --video_size "(1164, 1034)"
 ```
