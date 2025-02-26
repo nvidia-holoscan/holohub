@@ -702,6 +702,7 @@ build() {
   local benchmark=false
   local install=false
   local parallel_jobs=""
+  local pkg_generator="DEB"
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -736,6 +737,9 @@ build() {
       elif [ "$arg" = "--parallel" ]; then
          parallel_jobs="${ARGS[i+1]}"
          echo "Setting the number of parallel build jobs: ${ARGS[i+1]}"
+         skipnext=1
+      elif [ "$arg" = "--pkg" ]; then
+         pkg_generator="${ARGS[i+1]}"
          skipnext=1
       elif [[ $arg = -* ]]; then
         print_error "Unknown option $arg"
@@ -815,7 +819,7 @@ build() {
 
   if [ $is_pkg == true ]; then
     for cpack_config in $(find ${build_path}/pkg -name "CPackConfig-*.cmake"); do
-      run_command cpack --config "$cpack_config"
+      run_command cpack --config "$cpack_config" -G "${pkg_generator}"
     done
   fi
 
