@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * This is a modified version of several files from the Holoscan SDK
