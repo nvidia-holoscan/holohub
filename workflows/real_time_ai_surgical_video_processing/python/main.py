@@ -401,17 +401,23 @@ class Workflow(Application):
         # Main Branch: out of body detection application
         self.add_flow(source, out_of_body_preprocessor)
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
-        # self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "receivers")})
-        # self.add_flow(source, deidentification, {("", "image")})
         self.add_flow(out_of_body_inference, cond, {("transmitter", "detetion")})
         self.add_flow(source, cond, {("", "in")})
 
-        # Branch 1: deidentification application via conditional operator
+        # Create dynamic flow condition based on conditional oprator
         self.add_flow(cond, deidentification, {("out", "in")})
+        self.add_flow(cond, hub, {("out", "in")})
+        def dynamic_flow_callback(op):
+            if op.score:
+                op.add_dynamic_flow(deidentification)
+            else:
+                op.add_dynamic_flow(hub)
+        self.set_dynamic_flows(cond, dynamic_flow_callback)
+
+        # Branch 1: deidentification application
         self.add_flow(deidentification, holoviz, {("out", "receivers")})
 
-        # Branch 2: multi-ai detection and segmentation application via conditional operator
-        self.add_flow(cond, hub, {("out", "in")})
+        # Branch 2: multi-ai detection and segmentation application
         self.add_flow(hub, detection_preprocessor, {("out", "")})
         self.add_flow(hub, segmentation_preprocessor, {("out", "")})
         self.add_flow(hub, holoviz, {("out", "receivers")})
@@ -428,14 +434,7 @@ class Workflow(Application):
         self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
         self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
 
-        # create dynamic flow condition based on conditional oprator
-        def dynamic_flow_callback(op):
-            if op.score:
-                op.add_dynamic_flow(deidentification)
-            else:
-                op.add_dynamic_flow(hub)
 
-        self.set_dynamic_flows(cond, dynamic_flow_callback)
 
 
 if __name__ == "__main__":
