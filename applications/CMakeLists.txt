@@ -119,6 +119,8 @@ add_holohub_application(volume_rendering_xr DEPENDS
                                   XrFrameOp
                                   XrTransformOp)
 
+add_holohub_application(vpi_stereo)
+
 add_holohub_application(xr_hello_holoscan DEPENDS
                         OPERATORS volume_renderer # for nlohmann_json dependency
                                   XrFrameOp
@@ -128,6 +130,8 @@ add_holohub_application(xr_hello_holoscan DEPENDS
 add_holohub_application(video_deidentification)
 
 add_holohub_application(webrtc_video_server)
+
+add_holohub_application(yolo_model_deployment)
 
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)

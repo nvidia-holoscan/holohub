@@ -191,6 +191,7 @@ def validate_ano_benchmark(
 
     if not compare_metrics("q_rx_pkts", q_rx_pkts, expected_q_pkts):
         logger.info("Failed q_rx_pkts check")
+        return False
 
     exec_time = float(re.search(r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms", log).group(1))
     logger.debug("Transmit packets:", transmit_pkts)
@@ -261,6 +262,7 @@ def validate_ano_benchmark(
 def main():
     # Set up logging
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+    logger = logging.getLogger(__name__)
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run a bash command")
@@ -309,9 +311,13 @@ def main():
     args = parser.parse_args()
 
     # Run the bash command
-    result = run_bash_cmd(args.command, args.external_script)
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    try:
+        result = run_bash_cmd(args.command, args.external_script)
+        if result.returncode != 0:
+            sys.exit(result.returncode)
+    except Exception as e:
+        logger.error(f"Exiting due to external script error: {e}")
+        sys.exit(-1)
 
     # Validate the benchmark results
     success = validate_ano_benchmark(
