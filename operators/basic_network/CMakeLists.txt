@@ -31,7 +31,7 @@ target_link_libraries(basic_network holoscan::core)
 # Installation
 install(
     TARGETS basic_network
-    COMPONENT holoscan-networking
+    COMPONENT basic_network-cpp
 )
 
 # Python equivalent

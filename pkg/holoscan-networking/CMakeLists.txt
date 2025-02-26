@@ -19,6 +19,19 @@ holohub_configure_deb(
   VERSION "0.1.0"
   VENDOR "NVIDIA"
   CONTACT "Alexis Girault <agirault@nvidia.com>"
+  COMPONENTS
+    basic_network-cpp
+    basic_networking_ping-cpp
+    basic_networking_ping-configs
+    advanced_network-cpp
+    adv_networking_bench-cpp
+    adv_networking_bench-configs
+    advanced_network-utils
+    # advanced_network-rivermax # not ready for distribution
+    # basic_network-py          # COMPONENT does not exist, install defined in top level operators/CMakeLists.txt
+    # basic_networking_ping-py  # needs basic_network-py
+    # advanced_network-py       # not ready perf-wise AND COMPONENT does not exist (same as above)
+    # adv_networking_bench-py   # needs advanced_network-py
   DEPENDS "holoscan (>= 2.6), mlnx-dpdk, doca-sdk-gpunetio, doca-sdk-flow, doca-sdk-eth"
 )
 

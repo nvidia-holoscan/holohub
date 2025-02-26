@@ -32,3 +32,9 @@ add_custom_target(basic_networking_ping_tx_yaml_python
 
 add_dependencies(basic_networking_ping_python basic_networking_ping_rx_yaml_python)
 add_dependencies(basic_networking_ping_python basic_networking_ping_tx_yaml_python)
+
+install(
+  FILES basic_networking_ping.py
+  DESTINATION examples/basic_networking_ping
+  COMPONENT basic_networking_ping-py
+)
