@@ -22,9 +22,9 @@ extensions:
   # - libgxf_serialization.so
   # - libstream_playback.so
 
-source: "replayer2" # or "aja"
+source: "replayer"
 
-replayer1:
+replayer:
   basename: "surgical_video"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
@@ -43,6 +43,10 @@ aja: # AJASourceOp
   height: 1080
   rdma: true
   enable_overlay: false
+
+deidentification:
+  block_size_h: 16
+  block_size_w: 14
 
 out_of_body_preprocessor:
   out_tensor_name: out_of_body_preprocessed
@@ -69,16 +73,8 @@ out_of_body_inference:
   is_engine_path: false
 
 out_of_body_postprocessor:
-  process_operations:
-    "out_of_body_inferred": [
-        "print_custom_binary_classification,
-        Likely in-body,
-        Likely out-of-body",
-      ]
-  in_tensor_names: ["out_of_body_inferred"]
-  input_on_cuda: false
-  output_on_cuda: false
-  transmit_on_cuda: false
+  in_tensor_names: "out_of_body_inferred"
+  out_tensor_name: "decision"
 
 detection_preprocessor:
   out_tensor_name: ssd_preprocessed
