@@ -21,5 +21,7 @@
 
 install(
   FILES main.py
-  DESTINATION bin/adv_networking_bench/python
+  DESTINATION examples/adv_networking_bench/
+  RENAME adv_networking_bench.py
+  COMPONENT adv_networking_bench-py
 )

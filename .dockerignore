@@ -49,3 +49,8 @@ tmp/
 .wget-hsts
 .viminfo
 .lesshst
+
+# Version control
+.git/
+.gitignore
+.github/

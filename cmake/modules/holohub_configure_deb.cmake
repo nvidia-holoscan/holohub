@@ -50,18 +50,25 @@ function(holohub_configure_deb)
 
   if(ARG_COMPONENTS)
     # only packages installed components, in a single package
-    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if valid?
     set(CPACK_DEB_COMPONENT_INSTALL 1)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL 1)
+    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if components are valid?
     set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
   else()
     # package all installed targets
     set(CPACK_DEB_COMPONENT_INSTALL 0)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL 0)
   endif()
 
   # standard configurations
+  set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/nvidia/holoscan")
   set(CPACK_STRIP_FILES TRUE)
-  set(CPACK_GENERATOR DEB)
+  set(CPACK_GENERATOR DEB) # default, can be overridden with cpack -G <generator>
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  set(CPACK_ARCHIVE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CMAKE_SYSTEM_PROCESSOR}")
+  # Note: CPACK_ARCHIVE_FILE_NAME above does not work if there is no components:
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/20419
+  # Fixed in CMake 4.0: https://gitlab.kitware.com/cmake/cmake/-/blob/master/Help/release/4.0.rst
 
   # generate package specific CPack configs to allow for multi packages
   set(CPACK_OUTPUT_CONFIG_FILE "${CMAKE_BINARY_DIR}/pkg/CPackConfig-${ARG_NAME}.cmake")
