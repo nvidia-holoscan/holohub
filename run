@@ -360,6 +360,13 @@ setup() {
     apt install --no-install-recommends -y cmake cmake-curses-gui
   fi
 
+  # Install Ninja
+  ninja_version=$(dpkg --status ninja-build 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  if [[ $ninja_version == "" ]]; then
+    echo "Installing ninja-build"
+    apt install --no-install-recommends -y ninja-build
+  fi
+
   # Install python dev
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
@@ -795,6 +802,11 @@ build() {
 
   # We set the data directory to be outside the build directory
   cmake_extra_args="$cmake_extra_args $configure_args -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+
+  # Default to Ninja generator if available
+  if command -v ninja &>/dev/null; then
+    cmake_extra_args="${cmake_extra_args} -G Ninja"
+  fi
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
