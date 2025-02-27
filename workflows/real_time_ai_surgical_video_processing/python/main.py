@@ -21,8 +21,13 @@ from typing import Dict
 import cupy as cp
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.operators import (FormatConverterOp, HolovizOp, InferenceOp, SegmentationPostprocessorOp,
-                                VideoStreamReplayerOp)
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    InferenceOp,
+    SegmentationPostprocessorOp,
+    VideoStreamReplayerOp,
+)
 from holoscan.resources import UnboundedAllocator
 
 from holohub.aja_source import AJASourceOp
@@ -57,21 +62,45 @@ class ConditionalOp(Operator):
     """
 
     def __init__(self, *args, **kwargs):
-        self.score = False
+        self.decision = False
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
-        spec.input("detetion")
+        spec.input("decision")
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
-        inference_output = op_input.receive("detetion")
-        out_of_body_inferred = cp.array(inference_output["out_of_body_inferred"])
-        self.score = cp.argmax(out_of_body_inferred)
-        print("Is out of body? ", self.score)
+        decision_message = op_input.receive("decision")
+        self.decision = decision_message["decision"]
+        if self.decision:
+            print("**** Inside Body ****")
+        else:
+            print("**** Outside Body ****")
         op_output.emit(in_message, "out")
+
+
+class OutOfBodyPostprocessorOp(Operator):
+    """
+    This operator is used to postprocess the out of body inference output.
+    """
+
+    def __init__(self, *args, in_tensor_name: str = "out_of_body_inferred", out_tensor_name: str = "decision", **kwargs):
+        self.in_tensor_name = in_tensor_name
+        self.out_tensor_name = out_tensor_name
+        super().__init__(*args, **kwargs)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        in_message = op_input.receive("in")
+        out_of_body_inferred = cp.array(in_message[self.in_tensor_name])
+        is_out_of_body = cp.argmax(out_of_body_inferred).item() == 0
+        out_message = {self.out_tensor_name: is_out_of_body}
+        op_output.emit(out_message, "out")
 
 
 class DeidentificationOp(Operator):
@@ -79,7 +108,9 @@ class DeidentificationOp(Operator):
     This operator is used to deidentify the input image.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, block_size_h: int = 16, block_size_w: int = 16, **kwargs):
+        self.block_size_h = block_size_h
+        self.block_size_w = block_size_w
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -89,7 +120,24 @@ class DeidentificationOp(Operator):
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
         image = cp.asarray(in_message[""])
-        out_message = {"out": cp.zeros_like(image)}
+
+        # Pixelate the image by downsampling and upsampling
+        h, w = image.shape[:2]
+        small_h = h // self.block_size_h
+        small_w = w // self.block_size_w
+
+        # Reshape and mean across blocks to downsample
+        reshaped = image.reshape(small_h, self.block_size_h, small_w, self.block_size_w, -1)
+        downsampled = cp.mean(reshaped, axis=(1, 3))
+
+        # Repeat each pixel to upsample back to original size
+        upsampled = cp.repeat(cp.repeat(downsampled, self.block_size_h, axis=0), self.block_size_w, axis=1)
+
+        # Ensure output matches input dimensions and type
+        image = upsampled[:h, :w]
+        image = image.astype(np.uint8)
+
+        out_message = {"": image}
         op_output.emit(out_message, "out")
 
 
@@ -274,7 +322,7 @@ class Workflow(Application):
             source = AJASourceOp(self, name="aja_source", **source_kwargs)
         else:
             # For replayer, validate and set video directory
-            if self.source == "replayer1":
+            if self.source == "replayer":
                 video_dir = os.path.join(self.sample_data_path, "endoscopy")
             elif self.source == "replayer2":
                 video_dir = os.path.join(self.sample_data_path, "endoscopy_out_of_body_detection")
@@ -344,6 +392,9 @@ class Workflow(Application):
         )
 
         # Post-processing
+        out_of_body_postprocessor = OutOfBodyPostprocessorOp(
+            self, name="out_of_body_postprocessor", **self.kwargs("out_of_body_postprocessor")
+        )
         detection_postprocessor = DetectionPostprocessorOp(
             self,
             name="detection_postprocessor",
@@ -390,34 +441,37 @@ class Workflow(Application):
 
         # Holoviz operator for visualization
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"))
-        cond = ConditionalOp(self, name="conditional_op")  # conditional operator
+        condition = ConditionalOp(self, name="conditional_op")  # conditional operator
         hub = HubOp(self, name="hub_op")  # pass output of one operator to multiple operators
-        deidentification = DeidentificationOp(self, name="deidentification_op")
+        deidentification = DeidentificationOp(self, name="deidentification_op", **self.kwargs("deidentification"))
 
         # ------------------------------------------------------------
         # Create the pipeline
         # ------------------------------------------------------------
-        # TODO: This is only for replayer, need to add flow for Aja
         # Main Branch: out of body detection application
         self.add_flow(source, out_of_body_preprocessor)
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
-        self.add_flow(out_of_body_inference, cond, {("transmitter", "detetion")})
-        self.add_flow(source, cond, {("", "in")})
+        self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "in")})
+
+        # Feed the image and decision to the conditional operator
+        self.add_flow(out_of_body_postprocessor, condition, {("out", "decision")})
+        self.add_flow(source, condition, {("", "in")})
 
         # Create dynamic flow condition based on conditional oprator
-        self.add_flow(cond, deidentification, {("out", "in")})
-        self.add_flow(cond, hub, {("out", "in")})
+        self.add_flow(condition, deidentification, {("out", "in")})
+        self.add_flow(condition, hub, {("out", "in")})
+
         def dynamic_flow_callback(op):
-            if op.score:
+            if op.decision:
                 op.add_dynamic_flow(deidentification)
             else:
                 op.add_dynamic_flow(hub)
-        self.set_dynamic_flows(cond, dynamic_flow_callback)
+        self.set_dynamic_flows(condition, dynamic_flow_callback)
 
         # Branch 1: deidentification application
         self.add_flow(deidentification, holoviz, {("out", "receivers")})
 
-        # Branch 2: multi-ai detection and segmentation application
+        # # Branch 2: multi-ai detection and segmentation application
         self.add_flow(hub, detection_preprocessor, {("out", "")})
         self.add_flow(hub, segmentation_preprocessor, {("out", "")})
         self.add_flow(hub, holoviz, {("out", "receivers")})
@@ -433,8 +487,6 @@ class Workflow(Application):
         # prepare postprocessed output for visualization with holoviz
         self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
         self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
-
-
 
 
 if __name__ == "__main__":
