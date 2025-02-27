@@ -49,3 +49,6 @@ tmp/
 .wget-hsts
 .viminfo
 .lesshst
+
+# Licenses
+rti_license.dat
