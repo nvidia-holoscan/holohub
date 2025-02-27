@@ -60,7 +60,7 @@
 #define THRESHOLD_BUF_NUM 32768
 
 #define MPS_ENABLED 0
-#define RX_PERSISTENT_ENABLED 1
+#define RX_PERSISTENT_ENABLED 0
 
 struct adv_doca_rx_gpu_info {
   uint32_t num_pkts;
