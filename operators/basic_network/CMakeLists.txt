@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 cmake_minimum_required(VERSION 3.20)
 project(basic_network)
 
@@ -23,14 +24,32 @@ add_library(basic_network SHARED
   basic_network_operator_rx.cpp
 )
 
-add_library(holoscan::basic_network ALIAS basic_network)
-target_include_directories(basic_network PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
+# Create the aliases with the desired naming scheme
+add_library(holoscan::ops::basic_network ALIAS basic_network)
 target_link_libraries(basic_network holoscan::core)
+target_include_directories(basic_network
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
+set_target_properties(basic_network PROPERTIES
+    OUTPUT_NAME "holoscan_op_basic_network"
+    EXPORT_NAME ops::basic_network
+)
 
 # Installation
 install(
     TARGETS basic_network
+    EXPORT holoscan-networking-targets
+    COMPONENT basic_network-cpp
+)
+
+install(
+    FILES
+      basic_network_operator_tx.h
+      basic_network_operator_rx.h
+      basic_network_operator_common.h
+    DESTINATION include/holoscan/operators/basic_network
     COMPONENT basic_network-cpp
 )
 

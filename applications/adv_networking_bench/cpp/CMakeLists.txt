@@ -16,11 +16,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(adv_networking_bench CXX CUDA)
 
-find_package(holoscan 0.6 REQUIRED CONFIG
+# Dependencies
+find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-find_package(PkgConfig REQUIRED)
-
 include(FetchContent)
 FetchContent_Declare(
   MatX
@@ -29,34 +27,33 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(MatX)
 
+# Global variables
+set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
+
+# Create the executable
 add_executable(adv_networking_bench
   kernels.cu
   main.cpp
 )
-
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
-
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network_rx
-  holoscan::advanced_network_tx
+  holoscan::ops::advanced_network_rx
+  holoscan::ops::advanced_network_tx
   matx::matx
 )
-# Initialize ANO_MGR with a default if not provided
+
+# Configure manager support through compile definitions
 if(NOT DEFINED ANO_MGR)
+    # Initialize ANO_MGR with a default if not provided
+    # Note: rivermax not added to the default list yet since it requires licensing
     set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
 endif()
-
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
-
-# Define targets for each manager type
 foreach(MGR IN LISTS ANO_MGR_LIST)
     message(STATUS "Adding manager ${MGR} to the configuration")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR}=1")
 endforeach()
-
-set_target_properties(adv_networking_bench PROPERTIES CUDA_ARCHITECTURES "80;90")
 
 # Copy config file
 add_custom_target(adv_networking_bench_default_tx_rx_yaml

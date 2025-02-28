@@ -24,6 +24,10 @@
 #include <map>
 #include <set>
 #include <sys/time.h>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 

@@ -18,11 +18,13 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <unordered_set>
 #include <memory>
 #include <optional>
 #include <tuple>
 #include <stdint.h>
-#include "adv_network_types.h"
+#include <yaml-cpp/yaml.h>
+#include "./types.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -118,7 +120,7 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet
- * 
+ *
  * Retrieves the flow ID of a packet, or 0 if no flow was matched. The flow ID should match
  * the flow ID in the flow rule for the ANO config.
  *
