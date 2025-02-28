@@ -14,15 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
-  # These extensions are automatically loaded on import in the Python application
-  # - libgxf_std.so
-  # - libgxf_cuda.so
-  # - libgxf_multimedia.so
-  # - libgxf_serialization.so
-  # - libstream_playback.so
-
-source: "replayer_multi"
+source: 
+  name: replayer_multi
 
 replayer_multi:
   basename: "surgical_video"
@@ -30,6 +23,7 @@ replayer_multi:
   repeat: true # default: false
   realtime: false # default: true
   count: 0 # default: 0 (no frame count restriction)
+  directory: "endoscopy"
 
 replayer_oob:
   basename: "sample_clip_out_of_body_detection"
@@ -37,18 +31,15 @@ replayer_oob:
   repeat: true # default: false
   realtime: false # default: true
   count: 0 # default: 0 (no frame count restriction)
+  directory: "endoscopy_out_of_body_detection"
 
-replayer_orsi:  # VideoStreamReplayer
+replayer_orsi: # VideoStreamReplayer
   basename: "anonymization"
   frame_rate: 120 # as specified in timestamps
   repeat: true # default: false
   realtime: false # default: true
   count: 0 # default: 0 (no frame count restriction)
-
-
-deidentification:
-  block_size_h: 40
-  block_size_w: 40
+  directory: "orsi"
 
 out_of_body_preprocessor:
   out_tensor_name: out_of_body_preprocessed
@@ -78,6 +69,10 @@ out_of_body_postprocessor:
   in_tensor_names: "out_of_body_inferred"
   out_tensor_name: "decision"
 
+deidentification:
+  block_size_h: 40
+  block_size_w: 40
+
 detection_preprocessor:
   out_tensor_name: ssd_preprocessed
   out_dtype: "float32"
@@ -106,22 +101,44 @@ multi_ai_inference:
         "inference_output_detection_classes",
       ]
     "tool_seg": ["tool_seg_inferred"]
-  parallel_inference: true # optional param, default to true
-  infer_on_cpu: false # optional param, default to false
+  parallel_inference: true
+  infer_on_cpu: false
   enable_fp16: true
-  input_on_cuda: true # optional param, default to true
-  output_on_cuda: true # optional param, default to true
-  transmit_on_cuda: true # optional param, default to true
-  is_engine_path: false # optional param, default to false
+  input_on_cuda: true
+  output_on_cuda: true
+  transmit_on_cuda: true
+  is_engine_path: false
+
+detection_postprocessor:
+  label_text_size: 0.04
+  scores_threshold: 0.5
+  label_dict:
+    1:
+      "text": "Grasper"
+      "color": [1.0, 0.0, 1.0]
+    2:
+      "text": "Bipolar"
+      "color": [0.0, 1.0, 0.0]
+    3:
+      "text": "Hook"
+      "color": [1.0, 1.0, 1.0]
+    4:
+      "text": "Scissors"
+      "color": [0.0, 1.0, 1.0]
+    5:
+      "text": "Clipper"
+      "color": [1.0, 0.5, 1.0]
+    6:
+      "text": "Irrigator"
+      "color": [0.5, 0.5, 0.5]
+    7:
+      "text": "Spec.Bag"
+      "color": [1.0, 1.0, 0.0]
 
 segmentation_postprocessor:
   in_tensor_name: tool_seg_inferred
   network_output_type: softmax
   data_format: nchw
-
-detection_postprocessor:
-  label_text_size: 0.04
-  scores_threshold: 0.5
 
 holoviz:
   color_lut:

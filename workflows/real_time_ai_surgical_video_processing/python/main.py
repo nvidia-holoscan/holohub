@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import csv
 import os
 from argparse import ArgumentParser
-from typing import Dict
+from typing import Dict, Optional
 
 import cupy as cp
 import numpy as np
-from holoscan.core import Application, Operator, OperatorSpec, IOSpec
+from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -31,12 +30,6 @@ from holoscan.operators import (
 from holoscan.resources import UnboundedAllocator
 
 from holohub.aja_source import AJASourceOp
-
-# Constants
-DEFAULT_LABEL_TEXT_SIZE = 0.05
-DEFAULT_SCORE_THRESHOLD = 0.3
-DEFAULT_BBOX_LINE_WIDTH = 4
-DEFAULT_OPACITY = 0.7
 
 
 class AggregatorOp(Operator):
@@ -56,9 +49,9 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class DistributorOp(Operator):
+class ForwardOp(Operator):
     """
-    This operator is used to distribute the input to the output operator(s).
+    This operator is used to forward the input to the output operator(s).
     """
 
     def setup(self, spec: OperatorSpec):
@@ -70,9 +63,9 @@ class DistributorOp(Operator):
         op_output.emit(in_message, "out")
 
 
-class ConditionalOp(Operator):
+class ConditionOp(Operator):
     """
-    This operator is used to conditionally pass the input to the output based on the condition.
+    This operator set the dynamic flow condition based on the input decision and forward the input image.
     """
 
     def __init__(self, *args, **kwargs):
@@ -86,12 +79,14 @@ class ConditionalOp(Operator):
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
+        # receive the decision and update the decision attribute
         decision_message = op_input.receive("decision")
         self.decision = decision_message["decision"]
         if self.decision:
             print("**** Outside Body ****")
         else:
             print("**** Inside Body ****")
+        # forward the input to the output
         op_output.emit(in_message, "out")
 
 
@@ -119,16 +114,24 @@ class OutOfBodyPostprocessorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class DeidentificationOp(Operator):
+class DeIdentificationOp(Operator):
     """
     This operator is used to deidentify the input image.
     """
 
-    def __init__(self, *args, holoviz_tensors=None, block_size_h: int = 16, block_size_w: int = 16, **kwargs):
+    def __init__(
+        self,
+        *args,
+        detection_labels=None,
+        segmentation_shape=(1, 1, 1),
+        block_size_h: int = 16,
+        block_size_w: int = 16,
+        **kwargs,
+    ):
         self.block_size_h = block_size_h
         self.block_size_w = block_size_w
-        print(f"### {self.name} - holoviz_tensors: {holoviz_tensors}")
-        self.holoviz_tensors = holoviz_tensors if holoviz_tensors is not None else []
+        self.detection_labels = detection_labels if detection_labels is not None else []
+        self.segmentation_shape = segmentation_shape
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -156,12 +159,10 @@ class DeidentificationOp(Operator):
         image = image.astype(np.uint8)
         # add the holoviz tensors to the output message
         out_message = {}
-        for item in self.holoviz_tensors:
-            if item["name"].startswith("rectangles"):
-                out_message[item["name"]] = cp.zeros([1, 2, 2], dtype=cp.float32)
-            elif item["name"].startswith("label"):
-                out_message[item["name"]] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
-        out_message["out_tensor"] = cp.zeros((480, 736, 1), dtype=cp.uint8)
+        for label in self.detection_labels:
+            out_message[ "rectangles" + str(label)] = cp.zeros([1, 2, 2], dtype=cp.float32)
+            out_message["label" + str(label)] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
+        out_message["out_tensor"] = cp.zeros(self.segmentation_shape, dtype=cp.uint8)
         out_message[""] = image
         op_output.emit(out_message, "out")
 
@@ -182,8 +183,8 @@ class DetectionPostprocessorOp(Operator):
         self,
         *args,
         label_dict: Dict = {},
-        label_text_size: float = DEFAULT_LABEL_TEXT_SIZE,
-        scores_threshold: float = DEFAULT_SCORE_THRESHOLD,
+        label_text_size: float = 0.05,
+        scores_threshold: float = 0.3,
         **kwargs,
     ):
         self.label_text_size = label_text_size
@@ -248,8 +249,7 @@ class DetectionPostprocessorOp(Operator):
             if has_rect:
                 # there are bboxes and we want to colorize them as well as label text
                 for label in self.label_dict:
-                    curr_l_ix = output_labels == label
-
+                    curr_l_ix = output_labels == int(label)
                     if curr_l_ix.any():
                         bbox_coords[label] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
                         text_coords[label] = self.append_size_to_text_coord(
@@ -277,95 +277,50 @@ class DetectionPostprocessorOp(Operator):
 
 
 class Workflow(Application):
-    def __init__(self, data: str, source: str = "replayer", labelfile: str = ""):
+    def __init__(self, data: Optional[str] = None, source: Optional[str] = None):
         super().__init__()
-
-        # Validate inputs
-        if data == "none":
-            data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
-            if not os.path.exists(data):
-                raise ValueError(f"Data path does not exist: {data}")
-
-        # set name
+        # Set application name
         self.name = "Real-Time AI Surgical Video Processing"
-
-        # Optional parameters affecting the graph created by compose.
-        self.source = source.lower()
-        if self.source not in ["replayer", "aja"]:
-            raise ValueError(f"unsupported source: {self.source}. Please use 'replayer' or 'aja'.")
-        self.labelfile = labelfile
-        self.sample_data_path = data
-
-    def _parse_label_file(self, labelfile: str) -> dict:
-        """Parses the label CSV file into a dictionary.
-
-        Args:
-            labelfile: Path to CSV file containing label information
-
-        Returns:
-            Dictionary mapping label IDs to label information
-
-        Raises:
-            ValueError: If CSV file format is invalid
-        """
-        label_dict = {}
-        with open(labelfile, newline="") as labelcsv:
-            csvreader = csv.reader(labelcsv)
-            for row in csvreader:
-                try:
-                    label_id = int(row[0])
-                    label_dict[label_id] = {"text": str(row[1]), "color": [float(row[2]), float(row[3]), float(row[4])]}
-                except (IndexError, ValueError):
-                    raise ValueError(
-                        "Label file must have 5 columns: label ID (int), "
-                        "text (str), red (float), green (float), blue (float)"
-                    )
-        return label_dict
+        # Validate the path to the data directory
+        self.data_dir = data if data is not None else os.environ.get("HOLOHUB_DATA_PATH", "../data")
+        if not self.data_dir or not os.path.exists(self.data_dir):
+            raise ValueError(f"Data path does not exist: {self.data_dir}")
+        # Validate source
+        self.source = source.lower() if source is not None else "replayer"
+        self.supported_sources = ["replayer", "aja"]
 
     def compose(self):
-        # override source with config file
-        self.source = self.kwargs("source")["source"]
-
-        # Validate label file
-        if self.labelfile:
-            if not os.path.isfile(self.labelfile):
-                raise FileNotFoundError(f"Label file not found: {self.labelfile}")
-
-            try:
-                label_dict = self._parse_label_file(self.labelfile)
-            except (csv.Error, ValueError) as e:
-                raise ValueError(f"Failed to parse label file: {e}")
-        else:
-            label_dict = {}
-
-        # start constructing app
+        # ------------------------------------------------------------------------------------------
         # Configure video source (AJA capture card or video replay)
-        is_aja = self.source == "aja"  # Already lowercase from __init__
+        # -----------------------------------------------------------------------------------------
+        # override source with config file and validate
+        if self.kwargs("source"):
+            self.source = self.kwargs("source")["name"].lower()
+        print(f"### {self.name} - source: {self.source}")
+        # Set source operator
         source_kwargs = self.kwargs(self.source)
-
-        if is_aja:
+        if self.source == "aja":
+            in_dtype = "rgba8888"
             source = AJASourceOp(self, name="aja_source", **source_kwargs)
-        else:
-            # For replayer, validate and set video directory
-            if self.source == "replayer_multi":
-                video_dir = os.path.join(self.sample_data_path, "endoscopy")
-            elif self.source == "replayer_oob":
-                video_dir = os.path.join(self.sample_data_path, "endoscopy_out_of_body_detection")
-            elif self.source == "replayer_orsi":
-                video_dir = os.path.join(self.sample_data_path, "orsi")
-            else:
-                raise ValueError(f"Unsupported source: {self.source}")
+        elif self.source.startswith("replayer"):
+            in_dtype = "rgb888"
+            # Prifix the video directory with the data directory and validate
+            video_dir = os.path.join(self.data_dir, source_kwargs["directory"])
             if not os.path.exists(video_dir):
                 raise ValueError(f"Video directory not found: {video_dir}")
             source_kwargs["directory"] = video_dir
             source = VideoStreamReplayerOp(self, name="video_replayer", **source_kwargs)
-
+        else:
+            raise ValueError(f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}.")
+        # ------------------------------------------------------------------------------------------
         # Memory allocator for some operators
+        # ------------------------------------------------------------------------------------------
         pool = UnboundedAllocator(self, name="pool")
-        # input format for the preprocessors
-        in_dtype = "rgba8888" if is_aja else "rgb888"
 
-        # Preprocessors: ensures correct format for inference
+        # ------------------------------------------------------------------------------------------
+        # Out of Body Detection
+        # ------------------------------------------------------------------------------------------
+        # Preprocessor: ensures correct format for inference
         out_of_body_preprocessor = FormatConverterOp(
             self,
             name="out_of_body_preprocessor",
@@ -373,6 +328,20 @@ class Workflow(Application):
             in_dtype=in_dtype,
             **self.kwargs("out_of_body_preprocessor"),
         )
+        # Inference: Out of body detection
+        inference_kwargs = self.kwargs("out_of_body_inference")
+        inference_kwargs["model_path_map"] = {
+            "out_of_body": os.path.join(self.data_dir, "endoscopy_out_of_body_detection", "out_of_body_detection.onnx")
+        }
+        out_of_body_inference = InferenceOp(self, name="out_of_body_inference", allocator=pool, **inference_kwargs)
+        # Postprocessor: postprocesses the out of body inference output to a decision
+        out_of_body_postprocessor = OutOfBodyPostprocessorOp(
+            self, name="out_of_body_postprocessor", **self.kwargs("out_of_body_postprocessor")
+        )
+        # ------------------------------------------------------------------------------------------
+        # Multi-AI Detection and Segmentation
+        # ------------------------------------------------------------------------------------------
+        # Preprocessor: ensures correct format for inference
         detection_preprocessor = FormatConverterOp(
             self,
             name="detection_preprocessor",
@@ -387,21 +356,11 @@ class Workflow(Application):
             in_dtype=in_dtype,
             **self.kwargs("segmentation_preprocessor"),
         )
-
-        # Inference: Out of body detection
-        inference_kwargs = self.kwargs("out_of_body_inference")
-        inference_kwargs["model_path_map"] = {
-            "out_of_body": os.path.join(
-                self.sample_data_path, "endoscopy_out_of_body_detection", "out_of_body_detection.onnx"
-            )
-        }
-        out_of_body_inference = InferenceOp(self, name="out_of_body_inference", allocator=pool, **inference_kwargs)
-
-        # Inference: Multi-AI
+        # Inference: Multi-AI Detection and Segmentation
         model_path_map = {
-            "ssd": os.path.join(self.sample_data_path, "ssd_model", "epoch24_nms.onnx"),
+            "ssd": os.path.join(self.data_dir, "ssd_model", "epoch24_nms.onnx"),
             "tool_seg": os.path.join(
-                self.sample_data_path,
+                self.data_dir,
                 "monai_tool_seg_model",
                 "model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
             ),
@@ -417,15 +376,10 @@ class Workflow(Application):
             allocator=pool,
             **inference_kwargs,
         )
-
-        # Post-processing
-        out_of_body_postprocessor = OutOfBodyPostprocessorOp(
-            self, name="out_of_body_postprocessor", **self.kwargs("out_of_body_postprocessor")
-        )
+        # Post-processors: detection and segmentation
         detection_postprocessor = DetectionPostprocessorOp(
             self,
             name="detection_postprocessor",
-            label_dict=label_dict,
             allocator=pool,
             **self.kwargs("detection_postprocessor"),
         )
@@ -435,8 +389,11 @@ class Workflow(Application):
             allocator=pool,
             **self.kwargs("segmentation_postprocessor"),
         )
-
+        # ------------------------------------------------------------------------------------------
+        # Holoviz
+        # ------------------------------------------------------------------------------------------
         # Holoviz tensors for visualization
+        label_dict = detection_postprocessor.label_dict
         holoviz_tensors = [dict(name="", type="color"), dict(name="out_tensor", type="color_lut")]
         if len(label_dict) > 0:
             for label in label_dict:
@@ -460,22 +417,46 @@ class Workflow(Application):
                 dict(
                     name="rectangles",
                     type="rectangles",
-                    opacity=DEFAULT_OPACITY,
-                    line_width=DEFAULT_BBOX_LINE_WIDTH,
+                    opacity=0.7,
+                    line_width=4,
                     color=[1.0, 0.0, 0.0, 1.0],
                 )
             )
-
-        # Holoviz operator for visualization
+        # Holoviz operators for visualization
+        holoviz_delegate = ForwardOp(self, name="holoviz_delegate_op")
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"))
-        condition = ConditionalOp(self, name="conditional_op")  # conditional operator
-        deidentification = DeidentificationOp(
-            self, name="deidentification_op", holoviz_tensors=holoviz_tensors, **self.kwargs("deidentification")
-        )
-        distributor = DistributorOp(self, name="multiplexer_op")
-        holoviz_delegate = DistributorOp(self, name="holoviz_delegate_op")
+        # ------------------------------------------------------------------------------------------
+        # Auxiliary operators
+        # ------------------------------------------------------------------------------------------
+        # Conditional operator
+        condition = ConditionOp(self, name="condition_op")
+        # Distributor operator
+        distributor = ForwardOp(self, name="distributor_op")
+        # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
+        # Dynamic flow callback
+        def dynamic_flow_callback(op):
+            if op.decision:
+                op.add_dynamic_flow(deidentification)
+            else:
+                op.add_dynamic_flow(distributor)
+
+        # ------------------------------------------------------------------------------------------
+        # Deidentification
+        # ------------------------------------------------------------------------------------------
+        segmentation_shape = (
+            self.kwargs("segmentation_preprocessor")["resize_height"],
+            self.kwargs("segmentation_preprocessor")["resize_width"],
+            1
+        )
+        deidentification = DeIdentificationOp(
+            self,
+            name="deidentification_op",
+            detection_labels=list(label_dict.keys()),
+            segmentation_shape=segmentation_shape,
+            **self.kwargs("deidentification"),
+        )
         # ------------------------------------------------------------------------------------------
         # Create the pipeline
         # -----------------------------------------------------------------------------------------
@@ -484,51 +465,34 @@ class Workflow(Application):
         self.add_flow(source, out_of_body_preprocessor)
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
         self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "in")})
-
         # Feed the source and out of body detection decision to the conditional operator
         self.add_flow(out_of_body_postprocessor, condition, {("out", "decision")})
         self.add_flow(source, condition, {("", "in")})
-
         # ___________________________________________________________
         # Create dynamic flow condition based on conditional oprator
         self.add_flow(condition, deidentification, {("out", "in")})
         self.add_flow(condition, distributor, {("out", "in")})
-
-        def dynamic_flow_callback(op):
-            if op.decision:
-                op.add_dynamic_flow(deidentification)
-            else:
-                op.add_dynamic_flow(distributor)
-
         self.set_dynamic_flows(condition, dynamic_flow_callback)
-
         # _______________________________________________
         # Branch 1: rest of deidentification application
         # connect the deidentification output to the holoviz delegate
         self.add_flow(deidentification, holoviz_delegate)
-
         # __________________________________________________________________
         # Branch 2: rest of multi-ai detection and segmentation application
         self.add_flow(distributor, detection_preprocessor, {("out", "")})
         self.add_flow(distributor, segmentation_preprocessor, {("out", "")})
         self.add_flow(distributor, postprocessor_aggregator, {("out", "in")})
-
         # connect all pre-processor outputs to the inference operator
         self.add_flow(detection_preprocessor, multi_ai_inference, {("", "receivers")})
         self.add_flow(segmentation_preprocessor, multi_ai_inference, {("", "receivers")})
-
         # connect the inference output to the postprocessors
         self.add_flow(multi_ai_inference, detection_postprocessor, {("transmitter", "in")})
         self.add_flow(multi_ai_inference, segmentation_postprocessor, {("transmitter", "")})
-
         # connect postprocessed output to the postprocessor aggregator
         self.add_flow(detection_postprocessor, postprocessor_aggregator, {("out", "in")})
         self.add_flow(segmentation_postprocessor, postprocessor_aggregator, {("", "in")})
-
         # connect the postprocessor aggregator to the holoviz delegate
-        # self.add_flow(postprocessor_aggregator, holoviz_delegate, {("out", "branch")})
         self.add_flow(postprocessor_aggregator, holoviz_delegate)
-
         # ____________________________________________________________________
         # Branch 1&2: connect the holoviz delegate to the holoviz operator
         self.add_flow(holoviz_delegate, holoviz, {("out", "receivers")})
@@ -539,50 +503,27 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "replayer", "aja"],
+        choices=["replayer", "aja"],
         default="replayer",
-        help=(
-            "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
-            "capture card as the source (default: %(default)s)."
-        ),
+        help="If 'replayer', replay a prerecorded video. If 'aja' use an AJA capture card as the source.",
     )
     parser.add_argument(
         "-c",
         "--config",
-        default="none",
-        help=("Set config path to override the default config file location"),
+        help="Set config path to override the default config file location",
     )
     parser.add_argument(
         "-d",
         "--data",
-        default="none",
-        help=("Set the data path"),
-    )
-    parser.add_argument(
-        "-l",
-        "--labelfile",
-        default="none",
-        help=(
-            "Optional arg for a csv file path containing the class labels. There "
-            "should be 5 columns: [label value, label text, red, green, blue] "
-            "where label value = the model output value for each class to display and should be int, "
-            "label text = the text to display for this label, "
-            "red/green/blue should = values between 0 and 1 for the display color "
-            "for this class."
-        ),
+        help="Set the path the data directory. If not provided, use the HOLOHUB_DATA_PATH environment variable.",
     )
     args = parser.parse_args()
 
-    if args.config == "none":
-        config_file = os.path.join(os.path.dirname(__file__), "multi_ai.yaml")
-    else:
+    if args.config:
         config_file = args.config
-
-    if args.labelfile == "none":
-        labelfile = os.path.join(os.path.dirname(__file__), "endo_ref_data_labels.csv")
     else:
-        labelfile = args.labelfile
+        config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
 
-    app = Workflow(source=args.source, data=args.data, labelfile=labelfile)
+    app = Workflow(source=args.source, data=args.data)
     app.config(config_file)
     app.run()
