@@ -156,7 +156,7 @@ class DeIdentificationOp(Operator):
 
         # Ensure output matches input dimensions and type
         image = upsampled[:h, :w]
-        image = image.astype(np.uint8)
+        image = image.astype(cp.uint8)
         # add the holoviz tensors to the output message
         out_message = {}
         for label in self.detection_labels:
@@ -197,7 +197,7 @@ class DetectionPostprocessorOp(Operator):
         spec.input("in")
         spec.output("out")
 
-    def append_size_to_text_coord(self, text_coord: np.ndarray, size: float) -> np.ndarray:
+    def append_size_to_text_coord(self, text_coord: cp.ndarray, size: float) -> cp.ndarray:
         """Appends size information to text coordinates.
 
         Args:
@@ -211,9 +211,9 @@ class DetectionPostprocessorOp(Operator):
         # we want to add a third size number to each (x, y)
         # so the text_coord shape [1, -1, 3]
         # the size number determines the text display size in Holoviz
-        text_size = np.ones((1, text_coord.shape[1], 1)) * size
-        new_text_coord = np.append(text_coord, text_size, 2)
-        return new_text_coord.astype(np.float32)
+        text_size = cp.ones((1, text_coord.shape[1], 1)) * size
+        new_text_coord = cp.append(text_coord, text_size, 2)
+        return new_text_coord.astype(cp.float32)
 
     def compute(self, op_input, op_output, context):
         # Get input message which is a dictionary
@@ -233,34 +233,34 @@ class DetectionPostprocessorOp(Operator):
         output_bboxes = output_bboxes[:, ix, :]  # output_bboxes is of size [1, num_bbox, 4]
         output_labels = output_labels[:, ix].flatten()  # labels is of size [ num_bbox]
 
-        bbox_coords = np.zeros([1, 2, 2], dtype=np.float32)
+        bbox_coords = cp.zeros([1, 2, 2], dtype=cp.float32)
 
         if len(self.label_dict) > 0:
             # the label file isn't empty, we want to colorize the bbox and text colors
             bbox_coords = {}
             text_coords = {}
             for label in self.label_dict:
-                bbox_coords[label] = np.zeros([1, 2, 2], dtype=np.float32)
+                bbox_coords[label] = cp.zeros([1, 2, 2], dtype=cp.float32)
                 # coords tensor for text to display in Holoviz can be of shape [1, n, 2] or [1, n, 3]
                 # with each location having [x,y] coords or [x,y,s] coords where s = size of text
                 # to display
-                text_coords[label] = np.zeros([1, 1, 2], dtype=np.float32) - 1.0
+                text_coords[label] = cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0
 
             if has_rect:
                 # there are bboxes and we want to colorize them as well as label text
                 for label in self.label_dict:
                     curr_l_ix = output_labels == int(label)
                     if curr_l_ix.any():
-                        bbox_coords[label] = np.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
+                        bbox_coords[label] = cp.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
                         text_coords[label] = self.append_size_to_text_coord(
-                            np.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
+                            cp.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
                             self.label_text_size,
                         )
 
         else:
             # the label file is empty, just display bboxes in one color
             if has_rect:
-                bbox_coords = np.reshape(output_bboxes, (1, -1, 2))
+                bbox_coords = cp.reshape(output_bboxes, (1, -1, 2))
 
         # Create output message
         out_message = {}
