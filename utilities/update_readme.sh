@@ -15,3 +15,5 @@ ops_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"operators\"
 sed -i -E "s/Operators-([0-9]+)/Operators-$ops_count/" README.md
 tutorial_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"tutorials\"" | wc -l)
 sed -i -E "s/Tutorials-([0-9]+)/Tutorials-$tutorial_count/" README.md
+workflow_count=$(cat aggregate_metadata.json | grep "\"source_folder\": \"workflows\"" | wc -l)
+sed -i -E "s/Workflows-([0-9]+)/Workflows-$workflow_count/" README.md
