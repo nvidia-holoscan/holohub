@@ -18,7 +18,7 @@
 #ifndef RMAX_ANO_DATA_TYPES_H_
 #define RMAX_ANO_DATA_TYPES_H_
 
-#include "../../types.h"
+#include "advanced_network/types.h"
 
 namespace holoscan::ops {
 
