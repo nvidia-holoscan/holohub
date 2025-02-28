@@ -16,7 +16,7 @@
 holohub_configure_deb(
   NAME "holoscan-networking"
   DESCRIPTION "Holoscan Networking"
-  VERSION "0.1.0"
+  VERSION "0.0.1"
   VENDOR "NVIDIA"
   CONTACT "Alexis Girault <agirault@nvidia.com>"
   COMPONENTS
@@ -32,6 +32,7 @@ holohub_configure_deb(
     # basic_networking_ping-py  # needs basic_network-py
     # advanced_network-py       # not ready perf-wise AND COMPONENT does not exist (same as above)
     # adv_networking_bench-py   # needs advanced_network-py
+  EXPORT_NAME holoscan-networking-targets
   DEPENDS "holoscan (>= 2.6), mlnx-dpdk, doca-sdk-gpunetio, doca-sdk-flow, doca-sdk-eth"
 )
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include <stdio.h>
 #include <assert.h>
 

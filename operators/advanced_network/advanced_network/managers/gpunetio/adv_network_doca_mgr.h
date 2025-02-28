@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <tuple>
+#include <thread>
 #include <unordered_map>
 #include <thread>
 
@@ -45,8 +46,8 @@
 #include <doca_pe.h>
 #include <doca_eth_txq_gpu_data_path.h>
 
-#include "adv_network_mgr.h"
-#include "adv_network_common.h"
+#include "advanced_network/manager.h"
+#include "advanced_network/common.h"
 
 #define FLOW_NB_COUNTERS 524228 /* 1024 x 512 */
 #define MAX_SQ_DESCR_NUM 32768

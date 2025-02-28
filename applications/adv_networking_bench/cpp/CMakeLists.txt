@@ -39,8 +39,8 @@ set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network_rx
-  holoscan::advanced_network_tx
+  holoscan::ops::advanced_network_rx
+  holoscan::ops::advanced_network_tx
   matx::matx
 )
 # Initialize ANO_MGR with a default if not provided
