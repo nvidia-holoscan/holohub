@@ -41,7 +41,7 @@ DEFAULT_OPACITY = 0.7
 
 class AggregatorOp(Operator):
     """
-    This operator is used to aggregate the input messages into a single tensor map.
+    This operator is used to aggregate the messages form multiple operators into a single tensor map.
     """
 
     def setup(self, spec):
@@ -56,24 +56,18 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class DelegateOp(Operator):
+class DistributorOp(Operator):
     """
-    This operator is used to pass the input to the output.
+    This operator is used to distribute the input to the output operator(s).
     """
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
-        spec.input("branch")
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
-        # for k, v in in_message.items():
-        #     print(f"### {self.name} - {k}: {cp.array(v).shape}")
-        #     print(f"### {self.name} - {k}: {cp.array(v).dtype}")
-        branch_message = op_input.receive("branch")
-        combined_message = {**in_message, **branch_message}
-        op_output.emit(combined_message, "out")
+        op_output.emit(in_message, "out")
 
 
 class ConditionalOp(Operator):
@@ -478,7 +472,8 @@ class Workflow(Application):
         deidentification = DeidentificationOp(
             self, name="deidentification_op", holoviz_tensors=holoviz_tensors, **self.kwargs("deidentification")
         )
-        holoviz_delegate = DelegateOp(self, name="holoviz_delegate_op")
+        distributor = DistributorOp(self, name="multiplexer_op")
+        holoviz_delegate = DistributorOp(self, name="holoviz_delegate_op")
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
         # ------------------------------------------------------------------------------------------
@@ -497,25 +492,26 @@ class Workflow(Application):
         # ___________________________________________________________
         # Create dynamic flow condition based on conditional oprator
         self.add_flow(condition, deidentification, {("out", "in")})
-        self.add_flow(condition, detection_preprocessor, {("out", "")})
-        self.add_flow(condition, segmentation_preprocessor, {("out", "")})
+        self.add_flow(condition, distributor, {("out", "in")})
 
         def dynamic_flow_callback(op):
             if op.decision:
                 op.add_dynamic_flow(deidentification)
             else:
-                op.add_dynamic_flow(detection_preprocessor)
-                op.add_dynamic_flow(segmentation_preprocessor)
+                op.add_dynamic_flow(distributor)
 
         self.set_dynamic_flows(condition, dynamic_flow_callback)
 
         # _______________________________________________
         # Branch 1: rest of deidentification application
         # connect the deidentification output to the holoviz delegate
-        self.add_flow(deidentification, holoviz_delegate, {("out", "branch")})
+        self.add_flow(deidentification, holoviz_delegate)
 
         # __________________________________________________________________
         # Branch 2: rest of multi-ai detection and segmentation application
+        self.add_flow(distributor, detection_preprocessor, {("out", "")})
+        self.add_flow(distributor, segmentation_preprocessor, {("out", "")})
+        self.add_flow(distributor, postprocessor_aggregator, {("out", "in")})
 
         # connect all pre-processor outputs to the inference operator
         self.add_flow(detection_preprocessor, multi_ai_inference, {("", "receivers")})
@@ -528,14 +524,13 @@ class Workflow(Application):
         # connect postprocessed output to the postprocessor aggregator
         self.add_flow(detection_postprocessor, postprocessor_aggregator, {("out", "in")})
         self.add_flow(segmentation_postprocessor, postprocessor_aggregator, {("", "in")})
-        # self.add_flow(source, postprocessor_aggregator, {("", "in")})
 
         # connect the postprocessor aggregator to the holoviz delegate
-        self.add_flow(postprocessor_aggregator, holoviz_delegate, {("out", "branch")})
+        # self.add_flow(postprocessor_aggregator, holoviz_delegate, {("out", "branch")})
+        self.add_flow(postprocessor_aggregator, holoviz_delegate)
 
         # ____________________________________________________________________
         # Branch 1&2: connect the holoviz delegate to the holoviz operator
-        self.add_flow(source, holoviz_delegate, {("", "in")})
         self.add_flow(holoviz_delegate, holoviz, {("out", "receivers")})
 
 
