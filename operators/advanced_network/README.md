@@ -460,7 +460,7 @@ As mentioned above, the `pkts` and `pkt_lens` fields are opaque and should not b
 
 #### Example API Usage
 
-For an entire list of API functions, please see the `adv_network_common.h` header file.
+For an entire list of API functions, please see the `advanced_network/common.h` header file.
 
 ##### Receive
 

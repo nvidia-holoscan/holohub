@@ -18,7 +18,7 @@ function(holohub_configure_deb)
   set(options)
   set(requiredArgs NAME DESCRIPTION VERSION VENDOR CONTACT DEPENDS)
   list(APPEND oneValueArgs ${requiredArgs} SECTION PRIORITY)
-  set(multiValueArgs COMPONENTS)
+  set(multiValueArgs COMPONENTS EXPORT_NAME)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGV})
 
   # validate required args
@@ -48,11 +48,43 @@ function(holohub_configure_deb)
   set(CPACK_PACKAGE_SECTION "${ARG_SECTION}")
   set(CPACK_PACKAGE_PRIORITY "${ARG_PRIORITY}")
 
+  if(ARG_EXPORT_NAME)
+    set(config_install_dir "lib/cmake/${ARG_NAME}")
+    set(export_component ${ARG_NAME}-cmake)
+    # Install export files
+    install(
+      EXPORT ${ARG_EXPORT_NAME}
+      DESTINATION ${config_install_dir}
+      NAMESPACE holoscan::
+      COMPONENT ${export_component}
+    )
+    # Generate the config files that include the exports
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Config.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}Config.cmake"
+      INSTALL_DESTINATION ${config_install_dir}
+      NO_SET_AND_CHECK_MACRO
+      NO_CHECK_REQUIRED_COMPONENTS_MACRO
+    )
+    write_basic_package_version_file(
+      "${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}ConfigVersion.cmake"
+      VERSION "${ARG_VERSION}"
+      COMPATIBILITY AnyNewerVersion
+    )
+    # Install the config files
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}Config.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}ConfigVersion.cmake
+      DESTINATION ${config_install_dir}
+      COMPONENT ${export_component}
+    )
+  endif()
+
   if(ARG_COMPONENTS)
     # only packages installed components, in a single package
     set(CPACK_DEB_COMPONENT_INSTALL 1)
     set(CPACK_ARCHIVE_COMPONENT_INSTALL 1)
-    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if components are valid?
+    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS};${export_component}") # TODO: check if components are valid?
     set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
   else()
     # package all installed targets

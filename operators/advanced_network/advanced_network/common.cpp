@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-#include "adv_network_mgr.h"
-#include "adv_network_common.h"
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "./manager.h"
+#include "./common.h"
 #include "holoscan/holoscan.hpp"
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
 #include <rte_mbuf.h>

@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.20)
 
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp)
 
@@ -30,11 +30,26 @@ if(NOT DPDK_FOUND)
   target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
   target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
   target_compile_options(${PROJECT_NAME} PUBLIC ${DPDK_CFLAGS_OTHER})
-  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_LDFLAGS_OTHER} ${DPDK_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      ${DPDK_LDFLAGS_OTHER}
+      ${DPDK_LIBRARIES}
+    PRIVATE
+      holoscan::core
+      CUDA::cudart
+  )
 else() # Upstream DPDK
   set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
   target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
-  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      ${DPDK_LDFLAGS_OTHER}
+      ${DPDK_LIBRARIES}
+      ${DPDK_EXTRA_LIBS}
+    PRIVATE
+      holoscan::core
+      CUDA::cudart
+  )
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

@@ -16,7 +16,7 @@
  */
 
 #include "adv_network_tx.h"
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
 #include <queue>

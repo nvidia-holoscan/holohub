@@ -22,7 +22,7 @@
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
 #include <sys/time.h>

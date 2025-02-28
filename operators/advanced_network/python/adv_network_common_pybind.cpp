@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "../adv_network_common.h"
+#include "advanced_network/common.h"
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;

@@ -16,7 +16,7 @@
  */
 
 #include "adv_network_rx.h"
-#include "adv_network_mgr.h"
+#include "advanced_network/manager.h"
 #include <memory>
 #include <assert.h>
 

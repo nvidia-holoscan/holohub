@@ -20,7 +20,7 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 
-#include "adv_network_mgr.h"
+#include "../../manager.h"
 
 namespace holoscan::ops {
 
