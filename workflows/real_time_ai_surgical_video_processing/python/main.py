@@ -20,7 +20,7 @@ from typing import Dict
 
 import cupy as cp
 import numpy as np
-from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.core import Application, Operator, OperatorSpec, IOSpec
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -39,21 +39,41 @@ DEFAULT_BBOX_LINE_WIDTH = 4
 DEFAULT_OPACITY = 0.7
 
 
-class HubOp(Operator):
+class AggregatorOp(Operator):
     """
-    This operator is used to conditionally pass the input to the output based on the condition.
+    This operator is used to aggregate the input messages into a single tensor map.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setup(self, spec):
+        spec.input("in", size=IOSpec.ANY_SIZE)
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        in_messages = op_input.receive("in")
+
+        # Combine all tensors into a single dictionary with a dictionary comprehension
+        out_message = {k: v for message in in_messages for k, v in message.items()}
+        op_output.emit(out_message, "out")
+
+
+class DelegateOp(Operator):
+    """
+    This operator is used to pass the input to the output.
+    """
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
+        spec.input("branch")
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
-        op_output.emit(in_message, "out")
+        # for k, v in in_message.items():
+        #     print(f"### {self.name} - {k}: {cp.array(v).shape}")
+        #     print(f"### {self.name} - {k}: {cp.array(v).dtype}")
+        branch_message = op_input.receive("branch")
+        combined_message = {**in_message, **branch_message}
+        op_output.emit(combined_message, "out")
 
 
 class ConditionalOp(Operator):
@@ -75,9 +95,9 @@ class ConditionalOp(Operator):
         decision_message = op_input.receive("decision")
         self.decision = decision_message["decision"]
         if self.decision:
-            print("**** Inside Body ****")
-        else:
             print("**** Outside Body ****")
+        else:
+            print("**** Inside Body ****")
         op_output.emit(in_message, "out")
 
 
@@ -86,7 +106,9 @@ class OutOfBodyPostprocessorOp(Operator):
     This operator is used to postprocess the out of body inference output.
     """
 
-    def __init__(self, *args, in_tensor_name: str = "out_of_body_inferred", out_tensor_name: str = "decision", **kwargs):
+    def __init__(
+        self, *args, in_tensor_name: str = "out_of_body_inferred", out_tensor_name: str = "decision", **kwargs
+    ):
         self.in_tensor_name = in_tensor_name
         self.out_tensor_name = out_tensor_name
         super().__init__(*args, **kwargs)
@@ -98,7 +120,7 @@ class OutOfBodyPostprocessorOp(Operator):
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
         out_of_body_inferred = cp.array(in_message[self.in_tensor_name])
-        is_out_of_body = cp.argmax(out_of_body_inferred).item() == 0
+        is_out_of_body = cp.argmax(out_of_body_inferred).item() == 1
         out_message = {self.out_tensor_name: is_out_of_body}
         op_output.emit(out_message, "out")
 
@@ -108,9 +130,11 @@ class DeidentificationOp(Operator):
     This operator is used to deidentify the input image.
     """
 
-    def __init__(self, *args, block_size_h: int = 16, block_size_w: int = 16, **kwargs):
+    def __init__(self, *args, holoviz_tensors=None, block_size_h: int = 16, block_size_w: int = 16, **kwargs):
         self.block_size_h = block_size_h
         self.block_size_w = block_size_w
+        print(f"### {self.name} - holoviz_tensors: {holoviz_tensors}")
+        self.holoviz_tensors = holoviz_tensors if holoviz_tensors is not None else []
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -136,8 +160,15 @@ class DeidentificationOp(Operator):
         # Ensure output matches input dimensions and type
         image = upsampled[:h, :w]
         image = image.astype(np.uint8)
-
-        out_message = {"": image}
+        # add the holoviz tensors to the output message
+        out_message = {}
+        for item in self.holoviz_tensors:
+            if item["name"].startswith("rectangles"):
+                out_message[item["name"]] = cp.zeros([1, 2, 2], dtype=cp.float32)
+            elif item["name"].startswith("label"):
+                out_message[item["name"]] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
+        out_message["out_tensor"] = cp.zeros((480, 736, 1), dtype=cp.uint8)
+        out_message[""] = image
         op_output.emit(out_message, "out")
 
 
@@ -322,10 +353,12 @@ class Workflow(Application):
             source = AJASourceOp(self, name="aja_source", **source_kwargs)
         else:
             # For replayer, validate and set video directory
-            if self.source == "replayer":
+            if self.source == "replayer_multi":
                 video_dir = os.path.join(self.sample_data_path, "endoscopy")
-            elif self.source == "replayer2":
+            elif self.source == "replayer_oob":
                 video_dir = os.path.join(self.sample_data_path, "endoscopy_out_of_body_detection")
+            elif self.source == "replayer_orsi":
+                video_dir = os.path.join(self.sample_data_path, "orsi")
             else:
                 raise ValueError(f"Unsupported source: {self.source}")
             if not os.path.exists(video_dir):
@@ -442,39 +475,47 @@ class Workflow(Application):
         # Holoviz operator for visualization
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"))
         condition = ConditionalOp(self, name="conditional_op")  # conditional operator
-        hub = HubOp(self, name="hub_op")  # pass output of one operator to multiple operators
-        deidentification = DeidentificationOp(self, name="deidentification_op", **self.kwargs("deidentification"))
+        deidentification = DeidentificationOp(
+            self, name="deidentification_op", holoviz_tensors=holoviz_tensors, **self.kwargs("deidentification")
+        )
+        holoviz_delegate = DelegateOp(self, name="holoviz_delegate_op")
+        postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
-        # ------------------------------------------------------------
+        # ------------------------------------------------------------------------------------------
         # Create the pipeline
-        # ------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------
+        # _______________________________________________
         # Main Branch: out of body detection application
         self.add_flow(source, out_of_body_preprocessor)
         self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
         self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "in")})
 
-        # Feed the image and decision to the conditional operator
+        # Feed the source and out of body detection decision to the conditional operator
         self.add_flow(out_of_body_postprocessor, condition, {("out", "decision")})
         self.add_flow(source, condition, {("", "in")})
 
+        # ___________________________________________________________
         # Create dynamic flow condition based on conditional oprator
         self.add_flow(condition, deidentification, {("out", "in")})
-        self.add_flow(condition, hub, {("out", "in")})
+        self.add_flow(condition, detection_preprocessor, {("out", "")})
+        self.add_flow(condition, segmentation_preprocessor, {("out", "")})
 
         def dynamic_flow_callback(op):
             if op.decision:
                 op.add_dynamic_flow(deidentification)
             else:
-                op.add_dynamic_flow(hub)
+                op.add_dynamic_flow(detection_preprocessor)
+                op.add_dynamic_flow(segmentation_preprocessor)
+
         self.set_dynamic_flows(condition, dynamic_flow_callback)
 
-        # Branch 1: deidentification application
-        self.add_flow(deidentification, holoviz, {("out", "receivers")})
+        # _______________________________________________
+        # Branch 1: rest of deidentification application
+        # connect the deidentification output to the holoviz delegate
+        self.add_flow(deidentification, holoviz_delegate, {("out", "branch")})
 
-        # # Branch 2: multi-ai detection and segmentation application
-        self.add_flow(hub, detection_preprocessor, {("out", "")})
-        self.add_flow(hub, segmentation_preprocessor, {("out", "")})
-        self.add_flow(hub, holoviz, {("out", "receivers")})
+        # __________________________________________________________________
+        # Branch 2: rest of multi-ai detection and segmentation application
 
         # connect all pre-processor outputs to the inference operator
         self.add_flow(detection_preprocessor, multi_ai_inference, {("", "receivers")})
@@ -484,9 +525,18 @@ class Workflow(Application):
         self.add_flow(multi_ai_inference, detection_postprocessor, {("transmitter", "in")})
         self.add_flow(multi_ai_inference, segmentation_postprocessor, {("transmitter", "")})
 
-        # prepare postprocessed output for visualization with holoviz
-        self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
-        self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
+        # connect postprocessed output to the postprocessor aggregator
+        self.add_flow(detection_postprocessor, postprocessor_aggregator, {("out", "in")})
+        self.add_flow(segmentation_postprocessor, postprocessor_aggregator, {("", "in")})
+        # self.add_flow(source, postprocessor_aggregator, {("", "in")})
+
+        # connect the postprocessor aggregator to the holoviz delegate
+        self.add_flow(postprocessor_aggregator, holoviz_delegate, {("out", "branch")})
+
+        # ____________________________________________________________________
+        # Branch 1&2: connect the holoviz delegate to the holoviz operator
+        self.add_flow(source, holoviz_delegate, {("", "in")})
+        self.add_flow(holoviz_delegate, holoviz, {("out", "receivers")})
 
 
 if __name__ == "__main__":
