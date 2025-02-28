@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-source: 
+source:
   name: replayer_multi
 
 replayer_multi:
@@ -68,10 +68,6 @@ out_of_body_inference:
 out_of_body_postprocessor:
   in_tensor_names: "out_of_body_inferred"
   out_tensor_name: "decision"
-
-deidentification:
-  block_size_h: 40
-  block_size_w: 40
 
 detection_preprocessor:
   out_tensor_name: ssd_preprocessed
@@ -139,6 +135,10 @@ segmentation_postprocessor:
   in_tensor_name: tool_seg_inferred
   network_output_type: softmax
   data_format: nchw
+
+deidentification:
+  block_size_h: 40
+  block_size_w: 40
 
 holoviz:
   color_lut:
