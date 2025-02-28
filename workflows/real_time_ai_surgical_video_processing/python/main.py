@@ -539,7 +539,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer1", "replayer2", "aja"],
+        choices=["replayer", "replayer", "aja"],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. If 'aja' use an AJA "
