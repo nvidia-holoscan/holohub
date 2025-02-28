@@ -99,3 +99,20 @@ install(
         advanced_network_tx
     COMPONENT advanced_network-cpp
 )
+
+install(
+    FILES
+        adv_network_common.h
+        adv_network_kernels.h
+        adv_network_types.h
+    DESTINATION include/advanced_network
+    COMPONENT advanced_network-cpp
+)
+
+install(
+    FILES
+        adv_network_rx.h
+        adv_network_tx.h
+    DESTINATION include/holoscan/operators/advanced_network
+    COMPONENT advanced_network-cpp
+)
