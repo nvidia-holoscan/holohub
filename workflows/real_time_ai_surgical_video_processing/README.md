@@ -1,9 +1,11 @@
 # Real-Time AI Surgical Video Processing Workflow
 
+## Overview
+
 In this workflow, we demonstrate a comprehensive real-time AI pipeline for surgical video processing that includes:
 
 1. Out-of-body detection to determine if the endoscope is inside or outside the patient
-2. Conditional processing based on detection results:
+2. Dynamic flow condition based on out-of-body detection results:
    - Deidentification (pixelation) when outside the body
    - Multi-AI processing when inside the body
 3. Multi-AI processing with:
@@ -22,9 +24,9 @@ The application graph looks like:
 
 ## Models
 
-This workflow combines three AI models:
+This workflow utilizes three AI models:
 
-- [Out-of-body detection model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data): `out_of_body_detection.onnx`
+- [Out-of-body detection model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/endoscopy_out_of_body_detection): `out_of_body_detection.onnx`
 - [SSD model from NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model) with additional NMS op: `epoch24_nms.onnx`
 - [MONAI tool segmentation model from NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model): `model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx`
 
@@ -91,19 +93,15 @@ python3 main.py --data <DATA_DIR>
 The application accepts the following command line arguments:
 
 - `-s, --source`: Source of video input. Options are:
-  - `replayer1`: Use prerecorded video from the endoscopy dataset
-  - `replayer2`: Use prerecorded video from the out-of-body detection dataset
+  - `replayer`: Use prerecorded video from the endoscopy dataset
   - `aja`: Use an AJA capture card as the source
   Default: `replayer`
 
 - `-c, --config`: Path to a custom configuration file
-  Default: `multi_ai.yaml` in the application directory
+  Default: `config.yaml` in the application directory
 
 - `-d, --data`: Path to the data directory containing model and video files
   Default: Uses the HOLOHUB_DATA_PATH environment variable
-
-- `-l, --labelfile`: Path to a CSV file containing class labels for visualization
-  Default: `endo_ref_data_labels.csv` in the application directory
 
 ## Workflow Components
 
