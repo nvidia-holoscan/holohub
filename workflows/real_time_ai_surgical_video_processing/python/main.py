@@ -15,10 +15,8 @@
 
 import os
 from argparse import ArgumentParser
-from typing import Dict, Optional
 
 import cupy as cp
-import numpy as np
 from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.operators import (
     FormatConverterOp,
@@ -43,8 +41,7 @@ class AggregatorOp(Operator):
 
     def compute(self, op_input, op_output, context):
         in_messages = op_input.receive("in")
-
-        # Combine all tensors into a single dictionary with a dictionary comprehension
+        # Combine all tensors into a single dictionary
         out_message = {k: v for message in in_messages for k, v in message.items()}
         op_output.emit(out_message, "out")
 
@@ -79,14 +76,14 @@ class ConditionOp(Operator):
 
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
-        # receive the decision and update the decision attribute
+        # Receive the decision and update the decision attribute
         decision_message = op_input.receive("decision")
         self.decision = decision_message["decision"]
         if self.decision:
             print("**** Outside Body ****")
         else:
             print("**** Inside Body ****")
-        # forward the input to the output
+        # Forward the input to the output
         op_output.emit(in_message, "out")
 
 
@@ -122,15 +119,15 @@ class DeIdentificationOp(Operator):
     def __init__(
         self,
         *args,
-        detection_labels=None,
-        segmentation_shape=(1, 1, 1),
+        detection_labels: list | None = None,
+        segmentation_shape: tuple[int, int, int] = (1, 1, 1),
         block_size_h: int = 16,
         block_size_w: int = 16,
         **kwargs,
     ):
         self.block_size_h = block_size_h
         self.block_size_w = block_size_w
-        self.detection_labels = detection_labels if detection_labels is not None else []
+        self.detection_labels = detection_labels or []
         self.segmentation_shape = segmentation_shape
         super().__init__(*args, **kwargs)
 
@@ -141,27 +138,26 @@ class DeIdentificationOp(Operator):
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
         image = cp.asarray(in_message[""])
-
         # Pixelate the image by downsampling and upsampling
         h, w = image.shape[:2]
         small_h = h // self.block_size_h
         small_w = w // self.block_size_w
-
         # Reshape and mean across blocks to downsample
         reshaped = image.reshape(small_h, self.block_size_h, small_w, self.block_size_w, -1)
         downsampled = cp.mean(reshaped, axis=(1, 3))
-
         # Repeat each pixel to upsample back to original size
         upsampled = cp.repeat(cp.repeat(downsampled, self.block_size_h, axis=0), self.block_size_w, axis=1)
-
         # Ensure output matches input dimensions and type
         image = upsampled[:h, :w]
         image = image.astype(cp.uint8)
         # add the holoviz tensors to the output message
         out_message = {}
-        for label in self.detection_labels:
-            out_message[ "rectangles" + str(label)] = cp.zeros([1, 2, 2], dtype=cp.float32)
-            out_message["label" + str(label)] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
+        if len(self.detection_labels) > 0:
+            for label in self.detection_labels:
+                out_message["rectangles" + label] = cp.zeros([1, 2, 2], dtype=cp.float32)
+                out_message["label" + label] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
+        else:
+            out_message["rectangles"] = cp.zeros([1, 2, 2], dtype=cp.float32)
         out_message["out_tensor"] = cp.zeros(self.segmentation_shape, dtype=cp.uint8)
         out_message[""] = image
         op_output.emit(out_message, "out")
@@ -182,22 +178,22 @@ class DetectionPostprocessorOp(Operator):
     def __init__(
         self,
         *args,
-        label_dict: Dict = {},
+        label_dict: dict | None = None,
         label_text_size: float = 0.05,
         scores_threshold: float = 0.3,
         **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.label_text_size = label_text_size
         self.scores_threshold = scores_threshold
-        self.label_dict = label_dict
-
-        super().__init__(*args, **kwargs)
+        self.label_dict = label_dict or {}
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
         spec.output("out")
 
-    def append_size_to_text_coord(self, text_coord: cp.ndarray, size: float) -> cp.ndarray:
+    @staticmethod
+    def append_size_to_text_coord(text_coord: cp.ndarray, size: float) -> cp.ndarray:
         """Appends size information to text coordinates.
 
         Args:
@@ -207,77 +203,88 @@ class DetectionPostprocessorOp(Operator):
         Returns:
             Array of shape [1, N, 3] with size appended to each coordinate
         """
-        # text_coord should be of shape [1, -1, 2]
-        # we want to add a third size number to each (x, y)
-        # so the text_coord shape [1, -1, 3]
-        # the size number determines the text display size in Holoviz
         text_size = cp.ones((1, text_coord.shape[1], 1)) * size
-        new_text_coord = cp.append(text_coord, text_size, 2)
-        return new_text_coord.astype(cp.float32)
+        return cp.append(text_coord, text_size, 2).astype(cp.float32)
 
-    def compute(self, op_input, op_output, context):
-        # Get input message which is a dictionary
-        in_message = op_input.receive("in")
-        # Convert input to numpy array (using CuPy)
-        cp.asarray(in_message.get("inference_output_num_detections")).get()
-        output_bboxes = cp.asarray(in_message["inference_output_detection_boxes"]).get()
-        output_scores = cp.asarray(in_message["inference_output_detection_scores"]).get()
-        output_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
-        # can check the data type of the incoming tensors here
-        # print(output_labels.dtype)
+    def _process_detections(
+        self, inferred_bboxes: cp.ndarray, inferred_scores: cp.ndarray, inferred_labels: cp.ndarray
+    ):
+        """Process detection outputs and filter by confidence threshold.
 
-        # Threshold output_scores and prune boxes
-        ix = output_scores.flatten() >= self.scores_threshold
+        Args:
+            inferred_bboxes: Bounding box coordinates
+            inferred_scores: Detection confidence scores
+            inferred_labels: Class labels
+
+        Returns:
+            Tuple of filtered bboxes, labels and whether detections exist
+        """
+        ix = inferred_scores.flatten() >= self.scores_threshold
         has_rect = ix.any()
 
-        output_bboxes = output_bboxes[:, ix, :]  # output_bboxes is of size [1, num_bbox, 4]
-        output_labels = output_labels[:, ix].flatten()  # labels is of size [ num_bbox]
+        filtered_bboxes = inferred_bboxes[:, ix, :]  # shape [1, num_bbox, 4]
+        filtered_labels = inferred_labels[:, ix].flatten()  # shape [num_bbox]
 
-        bbox_coords = cp.zeros([1, 2, 2], dtype=cp.float32)
+        return filtered_bboxes, filtered_labels, has_rect
 
-        if len(self.label_dict) > 0:
-            # the label file isn't empty, we want to colorize the bbox and text colors
-            bbox_coords = {}
-            text_coords = {}
+    def _process_with_labels(self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool):
+        """Process detections when label dictionary is provided.
+
+        Args:
+            inferred_bboxes: Filtered bounding boxes
+            inferred_labels: Filtered class labels
+            has_rect: Whether any detections exist
+
+        Returns:
+            Dict of bbox coordinates and text coordinates per label
+        """
+        bbox_coords = {label: cp.zeros([1, 2, 2], dtype=cp.float32) for label in self.label_dict}
+        text_coords = {label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict}
+
+        if has_rect:
             for label in self.label_dict:
-                bbox_coords[label] = cp.zeros([1, 2, 2], dtype=cp.float32)
-                # coords tensor for text to display in Holoviz can be of shape [1, n, 2] or [1, n, 3]
-                # with each location having [x,y] coords or [x,y,s] coords where s = size of text
-                # to display
-                text_coords[label] = cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0
+                curr_l_ix = inferred_labels == int(label)
+                if curr_l_ix.any():
+                    bbox_coords[label] = cp.reshape(inferred_bboxes[0, curr_l_ix, :], (1, -1, 2))
+                    text_coords[label] = self.append_size_to_text_coord(
+                        cp.reshape(inferred_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
+                        self.label_text_size,
+                    )
 
-            if has_rect:
-                # there are bboxes and we want to colorize them as well as label text
-                for label in self.label_dict:
-                    curr_l_ix = output_labels == int(label)
-                    if curr_l_ix.any():
-                        bbox_coords[label] = cp.reshape(output_bboxes[0, curr_l_ix, :], (1, -1, 2))
-                        text_coords[label] = self.append_size_to_text_coord(
-                            cp.reshape(output_bboxes[0, curr_l_ix, :2], (1, -1, 2)),
-                            self.label_text_size,
-                        )
+        return bbox_coords, text_coords
 
-        else:
-            # the label file is empty, just display bboxes in one color
-            if has_rect:
-                bbox_coords = cp.reshape(output_bboxes, (1, -1, 2))
+    def compute(self, op_input, op_output, context):
+        in_message = op_input.receive("in")
 
-        # Create output message
+        # Get detection outputs
+        num_detections = cp.asarray(in_message.get("inference_output_num_detections")).get()
+        print(f"num_detections: {num_detections}")
+        inferred_bboxes = cp.asarray(in_message["inference_output_detection_boxes"]).get()
+        inferred_scores = cp.asarray(in_message["inference_output_detection_scores"]).get()
+        inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
+
+        # Process and filter detections
+        bboxes, labels, has_rect = self._process_detections(inferred_bboxes, inferred_scores, inferred_labels)
+
+        # Prepare output message
         out_message = {}
-        if len(self.label_dict) > 0:
-            # we have split bboxs and text labels into categories
+
+        if self.label_dict:
+            # Process with label categories
+            bbox_coords, text_coords = self._process_with_labels(bboxes, labels, has_rect)
             for label in self.label_dict:
-                out_message["rectangles" + str(label)] = bbox_coords[label]
-                out_message["label" + str(label)] = text_coords[label]
+                out_message[f"rectangles{label}"] = bbox_coords[label]
+                out_message[f"label{label}"] = text_coords[label]
         else:
-            # only transmit the bbox_coords
+            # Single category output
+            bbox_coords = cp.reshape(bboxes, (1, -1, 2)) if has_rect else cp.zeros([1, 2, 2], dtype=cp.float32)
             out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
 
 
 class Workflow(Application):
-    def __init__(self, data: Optional[str] = None, source: Optional[str] = None):
+    def __init__(self, data: str | None = None, source: str | None = None):
         super().__init__()
         # Set application name
         self.name = "Real-Time AI Surgical Video Processing"
@@ -393,35 +400,27 @@ class Workflow(Application):
         # Holoviz
         # ------------------------------------------------------------------------------------------
         # Holoviz tensors for visualization
+        holoviz_tensors = [
+            dict(name="", type="color"),  # source image
+            dict(name="out_tensor", type="color_lut"),  # segmentation output
+        ]
+        # Add label-specific tensors for each detection label
         label_dict = detection_postprocessor.label_dict
-        holoviz_tensors = [dict(name="", type="color"), dict(name="out_tensor", type="color_lut")]
-        if len(label_dict) > 0:
-            for label in label_dict:
-                color = label_dict[label]["color"]
-                color.append(1.0)
-                text = [label_dict[label]["text"]]
-                holoviz_tensors.append(
-                    dict(
-                        name="rectangles" + str(label),
-                        type="rectangles",
-                        opacity=0.7,
-                        line_width=4,
-                        color=color,
-                    )
-                )
-                holoviz_tensors.append(
-                    dict(name="label" + str(label), type="text", opacity=0.7, color=color, text=text)
-                )
+        rectangle_defaults = {"type": "rectangles", "opacity": 0.7, "line_width": 4}
+        text_defaults = {"type": "text", "opacity": 0.7}
+        if label_dict:
+            for label, label_info in label_dict.items():
+                # Prepare color with alpha
+                color = label_info["color"] + [1.0]
+                # Make text label a list
+                text = [label_info["text"]]
+                # Add rectangle tensor
+                holoviz_tensors.append({"name": f"rectangles{label}", "color": color, **rectangle_defaults})
+                # Add text label tensor
+                holoviz_tensors.append({"name": f"label{label}", "color": color, "text": text, **text_defaults})
         else:
-            holoviz_tensors.append(
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.7,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                )
-            )
+            # Add default red rectangle tensor if no labels
+            holoviz_tensors.append({**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]})
         # Holoviz operators for visualization
         holoviz_delegate = ForwardOp(self, name="holoviz_delegate_op")
         holoviz = HolovizOp(self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"))
@@ -448,7 +447,7 @@ class Workflow(Application):
         segmentation_shape = (
             self.kwargs("segmentation_preprocessor")["resize_height"],
             self.kwargs("segmentation_preprocessor")["resize_width"],
-            1
+            1,
         )
         deidentification = DeIdentificationOp(
             self,
