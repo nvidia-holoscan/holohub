@@ -20,7 +20,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include "adv_network_common.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
 

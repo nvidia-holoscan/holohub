@@ -16,7 +16,7 @@
  */
 
 #include "adv_network_rx.h"
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>

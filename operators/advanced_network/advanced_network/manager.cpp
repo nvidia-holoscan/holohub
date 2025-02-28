@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 #include <cuda.h>
-#include "adv_network_mgr.h"
+#include "./manager.h"
 // Include the appropriate headers based on which ANO_MGR types are defined
 #if ANO_MGR_DPDK
-#include "adv_network_dpdk_mgr.h"
+#include "./managers/dpdk/adv_network_dpdk_mgr.h"
 #endif
 #if ANO_MGR_GPUNETIO
-#include "adv_network_doca_mgr.h"
+#include "./managers/gpunetio/adv_network_doca_mgr.h"
 #endif
 #if ANO_MGR_RIVERMAX
-#include "adv_network_rmax_mgr.h"
+#include "./managers/rivermax/adv_network_rmax_mgr.h"
 #endif
 
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
