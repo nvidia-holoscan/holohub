@@ -24,7 +24,7 @@
 #include <tuple>
 #include <stdint.h>
 #include <yaml-cpp/yaml.h>
-#include "./types.h"
+#include "advanced_network/types.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
