@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "1.1.0",
+			"minimum_required_version": "3.0.0",
 			"tested_versions": [
-				"2.9.0"
+				"3.0.0"
 			]
 		},
 		"platforms": [
@@ -34,10 +34,10 @@
 		"dependencies": {
 			"data": [
 				{
-						"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
-						"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
-						"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
-						"version": "20230222"
+					"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+					"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+					"version": "20230222"
 				},
 				{
 					"name": "A SSD Detection model for Endoscopy Surgical Tools",
