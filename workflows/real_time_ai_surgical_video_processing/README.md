@@ -10,7 +10,7 @@ In this workflow, we demonstrate a comprehensive real-time AI pipeline for surgi
    - SSD detection for surgical tool detection
    - MONAI segmentation for endoscopic tool segmentation
 
-![](images/app_multiai_endoscopy.png)
+![](images/RAISV-sample-image.png)
 
 Fig. 1 Endoscopy (laparoscopy) image from a cholecystectomy (gallbladder removal surgery) showing tool detection and segmentation results from two concurrently executed AI models.
 Image courtesy of Research Group Camma, IHU Strasbourg and the University of Strasbourg ([NGC Resource](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data))
@@ -18,7 +18,7 @@ Image courtesy of Research Group Camma, IHU Strasbourg and the University of Str
 Please refer to the README under [./app_dev_process](./app_dev_process/README.md) to see the process of developing the applications.
 
 The application graph looks like:
-![RAISVP-workflow](./images/RAISVP-workflow.png)
+![RAISVP-workflow](./images/RAISVP-dynamic-workflow.png)
 
 ## Models
 
