@@ -40,7 +40,7 @@ add_library(advanced_network_common SHARED
   manager.cpp
 )
 target_include_directories(advanced_network_common
-    INTERFACE
+    PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..> # so we can find it under #include "advanced_network/..."
         $<INSTALL_INTERFACE:include>
 )
@@ -84,6 +84,7 @@ foreach(MGR IN LISTS ANO_MGR_LIST)
     add_library(${PROJECT_NAME} SHARED)
     add_subdirectory(managers/${MGR_LOWER})
     target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR_UPPER}=1")
+    target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         OUTPUT_NAME "holoscan_advanced_network_${MGR_LOWER}"
         EXPORT_NAME "advanced_network::${MGR_LOWER}"

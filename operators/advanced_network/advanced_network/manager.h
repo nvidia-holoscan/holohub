@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "./types.h"
+#include "advanced_network/types.h"
 #include <optional>
 
 namespace holoscan::ops {

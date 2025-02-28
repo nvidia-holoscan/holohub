@@ -24,7 +24,7 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
-#include "../../advanced_network/manager.h"
+#include "advanced_network/manager.h"
 #include "rmax_ano_data_types.h"
 #include "rmax_ipo_receiver_service.h"
 

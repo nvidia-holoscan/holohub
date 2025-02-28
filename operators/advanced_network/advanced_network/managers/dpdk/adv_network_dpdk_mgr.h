@@ -47,8 +47,8 @@
 #include <rte_gpudev.h>
 #include <atomic>
 #include <unordered_map>
-#include "../../manager.h"
-#include "../../common.h"
+#include "advanced_network/manager.h"
+#include "advanced_network/common.h"
 
 namespace holoscan::ops {
 

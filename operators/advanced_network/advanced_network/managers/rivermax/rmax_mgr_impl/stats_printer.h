@@ -22,7 +22,7 @@
 #include <sstream>
 #include <vector>
 
-#include "../../advanced_network/manager.h"
+#include "advanced_network/manager.h"
 #include "rmax_ipo_receiver_service.h"
 
 namespace holoscan::ops {

@@ -19,8 +19,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "./manager.h"
-#include "./common.h"
+#include "advanced_network/manager.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
 #include <rte_mbuf.h>
