@@ -65,7 +65,7 @@ def extract_application_name(metadata_filepath: str) -> str:
     - applications/my_application/metadata.json -> my_application
     - applications/nested/paths/my_application/cpp/metadata.json -> my_application
     - workflows/my_workflow/metadata.json -> my_workflow
-    
+
     """
     parts = metadata_filepath.split(os.sep)
     if parts[-2] in ["cpp", "python"]:
