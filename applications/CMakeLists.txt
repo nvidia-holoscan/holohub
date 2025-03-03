@@ -133,6 +133,8 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 
+add_holohub_application(polyp_detection)
+
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)

@@ -20,7 +20,6 @@ replayer:  # VideoStreamReplayer
   repeat: true # default: false
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
-  batch_size: 1
 
 detection_preprocessor:  # FormatConverter
     out_tensor_name: "source_video"
