@@ -12,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 cmake_minimum_required(VERSION 3.20)
 project(basic_network)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(basic_network SHARED
@@ -24,14 +25,17 @@ add_library(basic_network SHARED
 )
 
 # Create the aliases with the desired naming scheme
-add_library(holoscan::basic_network ALIAS basic_network)
-add_library(holoscan::ops::basic_network_rx ALIAS basic_network)
-add_library(holoscan::ops::basic_network_tx ALIAS basic_network)
+add_library(holoscan::ops::basic_network ALIAS basic_network)
 target_link_libraries(basic_network holoscan::core)
 target_include_directories(basic_network
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/holoscan/operators/basic_network>
+        # We'd prefer to avoid this last line, so that developers include the operator headers with
+        # #include "holoscan/operators/basic_network/basic_network_*x.h". However, this is needed
+        # for basic_networking_ping to find the operator in the install tree without modifying the
+        # #include of basic_network_*x.h in the application source code in holohub.
 )
 set_target_properties(basic_network PROPERTIES
     OUTPUT_NAME "holoscan_op_basic_network"
