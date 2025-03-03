@@ -360,6 +360,13 @@ setup() {
     apt install --no-install-recommends -y cmake cmake-curses-gui
   fi
 
+  # Install Ninja
+  ninja_version=$(dpkg --status ninja-build 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  if [[ $ninja_version == "" ]]; then
+    echo "Installing ninja-build"
+    apt install --no-install-recommends -y ninja-build
+  fi
+
   # Install python dev
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
@@ -685,11 +692,8 @@ resolve_sdk_install_path() {
 }
 
 build() {
-  # Holoscan SDK location
-  holoscan_sdk=""
-
   # CMake configuration args
-  configure_args=""
+  local configure_args=""
 
   # Parse the arguments
   ARGS=("$@")
@@ -703,6 +707,7 @@ build() {
   local install=false
   local parallel_jobs=""
   local pkg_generator="DEB"
+  local opt_prefix=""
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -710,17 +715,17 @@ build() {
          skipnext=0
       elif [ "$arg" = "--sdk" ]; then
          sdk_path=$( resolve_sdk_install_path "${ARGS[i+1]}" )
-         holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
+         configure_args="${configure_args} -D holoscan_ROOT=${sdk_path}"
          echo "Setting Holoscan SDK install path to ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--with" ]; then
          operators="${ARGS[i+1]}"
-         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
+         configure_args="${configure_args} -D HOLOHUB_BUILD_OPERATORS=\"${operators}\""
          echo "Building with operator(s) ${operators}"
          skipnext=1
       elif [ "$arg" = "--benchmark" ]; then
           benchmark=true
-          configure_args="${configure_args} -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
+          configure_args="${configure_args} -D CMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
           echo "Building for Holoscan Flow Benchmarking"
       elif [ "$arg" = "--install" ]; then
           install=true
@@ -730,6 +735,7 @@ build() {
          skipnext=1
       elif [ "$arg" = "--type" ]; then
          build_type=$(get_buildtype_str "${ARGS[i+1]}")
+         echo "Building in ${build_type} mode"
          skipnext=1
       elif [ "$arg" = "--buildpath" ]; then
          build_path="${ARGS[i+1]}"
@@ -756,24 +762,23 @@ build() {
     exit 1
   fi
   project=$(basename "$1")
-  opt_prefix=""
   is_app=false
   is_pkg=false
   if list_packages | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D PKG_"
+    opt_prefix="PKG"
     is_pkg=true
   elif list_apps | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D APP_"
+    opt_prefix="APP"
     is_app=true
   elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D OP_"
+    opt_prefix="OP"
   else
     print_error "Unknown package, application, or operator: $1"
     echo "You can run ./run list for a full list of options."
     exit 1
   fi
   echo "Building $project"
-  opt_flag="$opt_prefix$project:BOOL=1"
+  configure_args="${configure_args} -D ${opt_prefix}_${project}:BOOL=1"
 
   # Assign default build path
   if [ "$build_path" == "" ]; then
@@ -790,15 +795,23 @@ build() {
     fi
   fi
 
-  # We define the python path to make sure we grab the right one
-  cmake_extra_args="--no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+  # Set the build type
+  configure_args="${configure_args} -D CMAKE_BUILD_TYPE=${build_type}"
 
-  # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+  # Set the python path to make sure we grab the right one
+  configure_args="${configure_args} --no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+
+  # Set the data directory to be outside the build directory
+  configure_args="${configure_args} -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+
+  # Default to Ninja generator if available
+  if command -v ninja &>/dev/null; then
+    configure_args="${configure_args} -G Ninja"
+  fi
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
-  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -D CMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${opt_flag}
+  run_command cmake -S . -B ${build_path} ${configure_args}
   ret=$?
   check_exit_code $ret "Error building $project."
   # Job concurrency determined by the underlying build tool unless a number is specified
