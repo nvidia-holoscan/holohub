@@ -106,6 +106,35 @@ install(
         ../adv_networking_bench_rmax_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
+)
+
+install(
+  FILES CMakeLists.txt.install
+  RENAME CMakeLists.txt
+  DESTINATION examples/adv_networking_bench
+  COMPONENT adv_networking_bench-cppsrc
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
+)
+
+install(
+  FILES
+    main.cpp
+    kernels.cu
+    kernels.cuh
+    default_bench_op_rx.h
+    default_bench_op_tx.h
+    doca_bench_op_rx.h
+    doca_bench_op_tx.h
+  DESTINATION examples/adv_networking_bench
+  COMPONENT adv_networking_bench-cppsrc
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
 )
 
 

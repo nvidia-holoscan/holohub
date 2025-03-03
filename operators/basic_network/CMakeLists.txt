@@ -31,6 +31,11 @@ target_include_directories(basic_network
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/holoscan/operators/basic_network>
+        # We'd prefer to avoid this last line, so that developers include the operator headers with
+        # #include "holoscan/operators/basic_network/basic_network_*x.h". However, this is needed
+        # for basic_networking_ping to find the operator in the install tree without modifying the
+        # #include of basic_network_*x.h in the application source code in holohub.
 )
 set_target_properties(basic_network PROPERTIES
     OUTPUT_NAME "holoscan_op_basic_network"

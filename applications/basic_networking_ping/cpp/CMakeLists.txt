@@ -54,4 +54,27 @@ install(
     ../basic_networking_ping_tx.yaml
   DESTINATION examples/basic_networking_ping
   COMPONENT basic_networking_ping-configs
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
+)
+
+install(
+  FILES CMakeLists.txt.install
+  RENAME CMakeLists.txt
+  DESTINATION examples/basic_networking_ping
+  COMPONENT basic_networking_ping-cppsrc
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
+)
+
+install(
+  FILES
+    main.cpp
+  DESTINATION examples/basic_networking_ping
+  COMPONENT basic_networking_ping-cppsrc
+  PERMISSIONS OWNER_READ OWNER_WRITE
+              GROUP_READ GROUP_WRITE
+              WORLD_READ WORLD_WRITE
 )

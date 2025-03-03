@@ -30,6 +30,11 @@ target_include_directories(advanced_network_rx
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/holoscan/operators/advanced_network>
+        # We'd prefer to avoid this last line, so that developers include the operator headers with
+        # #include "holoscan/operators/advanced_network/adv_network_rx.h". However, this is needed
+        # for adv_networking_bench to find the operator in the install tree without modifying the
+        # #include of adv_network_rx.h in the application source code in holohub.
 )
 set_target_properties(advanced_network_rx PROPERTIES
     OUTPUT_NAME "holoscan_op_advanced_network_rx"
@@ -44,6 +49,11 @@ target_include_directories(advanced_network_tx
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/holoscan/operators/advanced_network>
+        # We'd prefer to avoid this last line, so that developers include the operator headers with
+        # #include "holoscan/operators/advanced_network/adv_network_tx.h". However, this is needed
+        # for adv_networking_bench to find the operator in the install tree without modifying the
+        # #include of adv_network_tx.h in the application source code in holohub.
 )
 set_target_properties(advanced_network_tx PROPERTIES
     OUTPUT_NAME "holoscan_op_advanced_network_tx"

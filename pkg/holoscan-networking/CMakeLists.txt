@@ -23,9 +23,11 @@ holohub_configure_deb(
     basic_network-cpp
     basic_networking_ping-cpp
     basic_networking_ping-configs
+    basic_networking_ping-cppsrc
     advanced_network-cpp
     adv_networking_bench-cpp
     adv_networking_bench-configs
+    adv_networking_bench-cppsrc
     advanced_network-utils
     # advanced_network-rivermax # not ready for distribution
     # basic_network-py          # COMPONENT does not exist, install defined in top level operators/CMakeLists.txt
