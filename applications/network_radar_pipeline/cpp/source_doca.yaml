@@ -47,7 +47,7 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
-    manager: "doca"
+    manager: "gpunetio"
     master_core: 16             # Master CPU core
     memory_regions:
     - name: "Data_TX_GPU"

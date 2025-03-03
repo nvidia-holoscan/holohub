@@ -28,7 +28,7 @@ scheduler:
 advanced_network:
   cfg:
     version: 1
-    manager: "doca"
+    manager: "gpunetio"
     master_core: 0 # Master CPU core
     log_level: "warn"
     memory_regions:
@@ -72,6 +72,7 @@ advanced_network:
               - "Data_RX_GPU"
           flows:
             - name: "ADC Samples"
+              id: 2
               action:
                 type: queue
                 id: 0

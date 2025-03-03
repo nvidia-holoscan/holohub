@@ -18,7 +18,7 @@
 #include "default_bench_op_rx.h"
 #include "default_bench_op_tx.h"
 #endif
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
@@ -66,7 +66,7 @@ class App : public holoscan::Application {
 #endif
 
     } else if (mgr_type == holoscan::ops::AnoMgrType::DOCA) {
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
       if (rx_en) {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));

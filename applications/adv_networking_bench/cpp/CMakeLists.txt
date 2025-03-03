@@ -45,7 +45,7 @@ target_link_libraries(adv_networking_bench
 )
 # Initialize ANO_MGR with a default if not provided
 if(NOT DEFINED ANO_MGR)
-    set(ANO_MGR "dpdk doca" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
 endif()
 
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
@@ -83,11 +83,11 @@ add_custom_target(adv_networking_bench_default_rx_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_default_rx_yaml)
 
-add_custom_target(adv_networking_bench_doca_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_doca_tx_rx.yaml"
+add_custom_target(adv_networking_bench_gpunetio_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_gpunetio_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_gpunetio_tx_rx.yaml"
 )
-add_dependencies(adv_networking_bench adv_networking_bench_doca_tx_rx_yaml)
+add_dependencies(adv_networking_bench adv_networking_bench_gpunetio_tx_rx_yaml)
 
 add_custom_target(adv_networking_bench_rmax_rx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rmax_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -105,7 +105,7 @@ install(
         ../adv_networking_bench_default_tx.yaml
         ../adv_networking_bench_default_tx_rx.yaml
         ../adv_networking_bench_default_rx_multi_q.yaml
-        ../adv_networking_bench_doca_tx_rx.yaml
+        ../adv_networking_bench_gpunetio_tx_rx.yaml
         ../adv_networking_bench_rmax_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
