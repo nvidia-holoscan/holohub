@@ -147,8 +147,15 @@ The following launch profiles are available:
 The following launch profiles are available:
 
 - **(compound) grpc_endoscopy_tool_tracking/python (cloud & edge)**: Launch both the gRPC server and the client.
-- **(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server.
-- **(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)**: Launch the gRPC client.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `pythoncpp`.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)**: Launch the gRPC client with `pythoncpp`.
+- **(debugpy) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `debugpy`.
+- **(debugpy) grpc_endoscopy_tool_tracking/python (edge)**:Launch the gRPC client with `debugpy`.
+
+> [!NOTE]
+> The `compound` profile uses the `debugpy` extension due to a limitation that prevents launching
+> the cloud and the edge apps together using `pythoncpp`.
+
 
 ## Limitations & Known Issues
 
