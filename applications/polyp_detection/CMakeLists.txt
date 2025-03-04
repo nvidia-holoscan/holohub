@@ -31,7 +31,7 @@ add_custom_target(install_python_dependencies ALL
 
 # Download and convert the video file
 add_custom_target(prepare_app_example_data ALL
-    COMMAND python3 prepare_app_example_data.py --download_dir "${HOLOHUB_DATA_DIR}/polyp_detection" --file_name "001-014_frames.tar.gz" --video_name "001-014_sample.mp4" --video_frames 900
+    COMMAND python3 prepare_app_example_data.py --download_dir "${HOLOHUB_DATA_DIR}/polyp_detection" --file_name "004-014_frames.tar.gz" --video_name "004-014_sample.mp4" --video_frames 900
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Downloading and converting video file"
     DEPENDS install_python_dependencies
@@ -40,7 +40,7 @@ add_custom_target(prepare_app_example_data ALL
 # Convert the video file to gxf_entities
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
                           "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_entities"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/001-014_sample.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
+    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/004-014_sample.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/polyp_detection" --basename tensor --width 1352 --height 1080 --channels 3 --framerate 30
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
@@ -68,8 +68,8 @@ if(BUILD_TESTING)
   add_test(NAME polyp_detection_python_test
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/polyp_detection.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/polyp_detection_testing.yaml
-                   --data "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data"
-                   --video_dir "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data"
+                   --data "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_rt_detr_model_v20250304"
+                   --video_dir "${HOLOHUB_DATA_DIR}/polyp_detection"
                    --source replayer
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_property(TEST polyp_detection_python_test PROPERTY ENVIRONMENT

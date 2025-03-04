@@ -54,5 +54,5 @@ If you want to manually run the application, please refer to the following instr
 
 For example:
 ```Bash
-python polyp_detection.py --data /path-to-onnx-model/ --video_dir /path-to-video/ --video_size "(1080, 1352)"
+python polyp_detection.py --data /path-to-onnx-model/ --video_dir /path-to-video/ --video_size "(width, height)"
 ```

@@ -73,10 +73,7 @@ def create_video_from_frames(num_frames, fps, output_name, frame_path):
     video = cv2.VideoWriter(output_name, fourcc, fps, (width, height))
 
     # Write the frames to the video
-    # In 001-014_frames, frames from 21219 has lesions.
-    # Therefore, we prepared a sample video from 21200 to 21200 + num_frames (defaults to 900)
-    # This is to ensure that the sample video has lesions.
-    start_frame = 21200
+    start_frame = 12200
     for i in range(start_frame, start_frame + num_frames):
         frame = cv2.imread(os.path.join(frame_path, frame_files[i]))
         video.write(frame)
@@ -103,11 +100,11 @@ def main():
     parser.add_argument(
         "--file_name",
         type=str,
-        default="001-014_frames.tar.gz",
+        default="004-014_frames.tar.gz",
         help="Name of the file to download.",
     )
     parser.add_argument(
-        "--video_name", type=str, default="001-014_sample.mp4", help="Name of the video to save."
+        "--video_name", type=str, default="004-014_sample.mp4", help="Name of the video to save."
     )
     parser.add_argument(
         "--video_frames", type=int, default=900, help="Number of frames to sample from the video."
