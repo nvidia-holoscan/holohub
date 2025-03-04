@@ -15,7 +15,7 @@
 
 import os
 
-#Function to parse output log and find the observed WCRT
+# Function to parse output log and find the observed WCRT
 def parselog(filepath):
 
     source = open(filepath, "r")
@@ -47,7 +47,8 @@ def main(graphs, numvars):
             else:
                 n = numvars
 
-            blank = allexectimes.readline()
+            # Blank line
+            allexectimes.readline()
             for var in range(n):
                 # Read the original file content
                 with open("experimentbase.yaml", 'r') as script:
@@ -86,7 +87,7 @@ def overheadmain():
     with open("experimentbase.yaml", 'r') as script:
         scriptbase = script.readlines()
 
-        #Create an experiment.yaml file for basic configuration
+        # Create an experiment.yaml file for basic configuration
         temp_file_path = 'build/experiment.yaml'
         with open(temp_file_path, 'w') as temp_file:
           temp_file.writelines(scriptbase)

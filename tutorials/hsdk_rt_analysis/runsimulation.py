@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import heapq
-import networkx as nx
 import argparse
+import heapq
+
+import networkx as nx
 
 queuesize = 1
 
@@ -89,7 +90,7 @@ def check_new_event(tag, eventqueue, time, period, source, operators):
                 operator.finishtimes.append(time)
 
                 #First check if successors can execute given the new output from the operator
-                if operator.successors != None:
+                if operator.successors is not None:
                     for successor in operator.successors:
 
                         #Check if there was queueing already in any queue of the successor operator
