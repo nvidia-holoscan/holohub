@@ -216,7 +216,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--video_size",
-        default="(1164, 1034)",
+        default="(1080, 1352)",
         help=("Set the video size"),
     )
     parser.add_argument(

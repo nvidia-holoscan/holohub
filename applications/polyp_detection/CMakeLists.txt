@@ -15,38 +15,43 @@
 
 project(polyp_detection NONE)
 
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-
-# download ngc data
-if(HOLOHUB_DOWNLOAD_DATASETS)
-  include(holoscan_download_data)
-  holoscan_download_data(polyp_detection_sample_app_data
-    URL nvstaging/holoscan/polyp_detection_sample_app_data:1.0.0
-    DOWNLOAD_NAME polyp_detection_sample_app_data_1.0.0.zip
-    DOWNLOAD_DIR "${HOLOHUB_DATA_DIR}/polyp_detection"
-    ALL
+# download model
+add_custom_target(download_polyp_detection_rt_detr_model ALL
+    COMMAND ngc registry model download-version "nvstaging/holoscan/polyp_detection_rt_detr_model:20250304" --dest "${HOLOHUB_DATA_DIR}/polyp_detection"
+    COMMENT "Downloading polyp detection model"
     )
-endif()
 
 # install extra dependencies
 add_custom_target(install_python_dependencies ALL
-    COMMAND python3 -m pip install torch torchvision
+    COMMAND python3 -m pip install -r requirements.txt
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    COMMENT "Installing python dependencies"
+    DEPENDS download_polyp_detection_rt_detr_model
+    )
 
-# Convert the video file
-add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/tensor.gxf_index"
-                          "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/tensor.gxf_entities"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/004-015_first_900_original.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
+# Download and convert the video file
+add_custom_target(prepare_app_example_data ALL
+    COMMAND python3 prepare_app_example_data.py --download_dir "${HOLOHUB_DATA_DIR}/polyp_detection" --file_name "001-014_frames.tar.gz" --video_name "001-014_sample.mp4" --video_frames 900
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Downloading and converting video file"
+    DEPENDS install_python_dependencies
+    )
+
+# Convert the video file to gxf_entities
+add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
+                          "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_entities"
+    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/001-014_sample.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
-            --directory "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data" --basename tensor --width 1164 --height 1034 --channels 3 --framerate 30
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/tensor.gxf_index"
-               "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/tensor.gxf_entities"
-    DEPENDS "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/004-015_first_900_original.mp4"
+            --directory "${HOLOHUB_DATA_DIR}/polyp_detection" --basename tensor --width 1352 --height 1080 --channels 3 --framerate 30
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
+               "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_entities"
+    COMMENT "Converting video file to gxf_entities"
+    DEPENDS prepare_app_example_data
     )
 
 add_custom_target(polyp_detection ALL
-    DEPENDS "${HOLOHUB_DATA_DIR}/polyp_detection/polyp_detection_sample_app_data/tensor.gxf_index")
+    COMMENT "Building polyp detection application"
+    DEPENDS "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index")
 
 # Add testing
 if(BUILD_TESTING)

@@ -30,7 +30,7 @@ Launch the container:
 
 ### Build the application
 
-[📦️ (NGC) Sample App Data for AI Polyp Detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/polyp_detection_sample_app_data)
+[📦️ (NGC) Sample App Model for AI Polyp Detection](https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/models/polyp_detection_rt_detr_model)
 
 The data will be automatically downloaded and converted to the correct format when building the application with the following command:
 
@@ -54,5 +54,5 @@ If you want to manually run the application, please refer to the following instr
 
 For example:
 ```Bash
-python polyp_detection.py --data /path-to-onnx-model/ --video_dir /path-to-video/ --video_size "(1164, 1034)"
+python polyp_detection.py --data /path-to-onnx-model/ --video_dir /path-to-video/ --video_size "(1080, 1352)"
 ```

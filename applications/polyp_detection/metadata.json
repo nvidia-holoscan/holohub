@@ -34,12 +34,12 @@
 				{
 					"name": "Holoscan Sample App Data for AI Polyp Detection",
 					"description": "This resource includes a polyp detection model designed for colonoscopy images, along with a sample video.",
-					"url": "https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/resources/polyp_detection_sample_app_data"
+					"url": "https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/models/polyp_detection_rt_detr_model"
 				}
 			]
 		},
 		"run": {
-			"command": "python3 polyp_detection.py --source=replayer --data <holohub_data_dir>/polyp_detection/polyp_detection_sample_app_data --video_dir <holohub_data_dir>/polyp_detection/polyp_detection_sample_app_data",
+			"command": "python3 polyp_detection.py --source=replayer --data <holohub_data_dir>/polyp_detection/polyp_detection_rt_detr_model_v20250304 --video_dir <holohub_data_dir>/polyp_detection",
 			"workdir": "holohub_app_source"
 		}
 	}
