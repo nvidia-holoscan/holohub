@@ -62,12 +62,12 @@ void spin2(uint64_t duration_ns, timespec& start_ts) {
   uint64_t elapsed_ns = 0;
 
   timespec curr_ts, diff_ts;
-  while(true) {
-    clock_gettime(CLOCK_REALTIME, &curr_ts); // Get the current time
-    timespecsub(&curr_ts, &start_ts, &diff_ts); // Calculate the time difference
-    elapsed_ns = SEC_TO_NS(diff_ts.tv_sec) + diff_ts.tv_nsec; // Convert elapsed time to nanoseconds
+  while (true) {
+    clock_gettime(CLOCK_REALTIME, &curr_ts);  // Get the current time
+    timespecsub(&curr_ts, &start_ts, &diff_ts);  // Calculate the time difference
+    elapsed_ns = SEC_TO_NS(diff_ts.tv_sec) + diff_ts.tv_nsec;  // Convert elapsed time to nanoseconds
     if (elapsed_ns >= duration_ns) {
-      break; // Exit the loop when the duration is met or exceeded
+      break;  // Exit the loop when the duration is met or exceeded
     }
   }
 }
@@ -83,20 +83,20 @@ void spin2(uint64_t duration_ns, timespec& start_ts) {
  */
 void spin(uint64_t duration_ns) {
   timespec start_ts;
-  clock_gettime(CLOCK_REALTIME, &start_ts); // Record the start time
-  spin2(duration_ns, start_ts); // Delegate to spin2 with the recorded start time
+  clock_gettime(CLOCK_REALTIME, &start_ts);  // Record the start time
+  spin2(duration_ns, start_ts);  // Delegate to spin2 with the recorded start time
 }
 
 namespace holoscan::ops {
 
 class PingTxOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingTxOp)
 
   PingTxOp() = default;
 
   void setup(OperatorSpec& spec) override {
-    spec.output<int>("out"); 
+    spec.output<int>("out");
   }
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
@@ -104,12 +104,12 @@ class PingTxOp : public Operator {
     op_output.emit(value, "out");
   };
 
- private:
+  private:
   int index_ = 1;
 };
 
 class PingMxOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxOp)
 
   PingMxOp() = default;
@@ -128,13 +128,13 @@ class PingMxOp : public Operator {
     op_output.emit(value);
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 
 class PingMxTwoOutputOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputOp)
 
   PingMxTwoOutputOp() = default;
@@ -155,21 +155,21 @@ class PingMxTwoOutputOp : public Operator {
     op_output.emit(value, "out2");
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 
 class PingMxTwoOutputDownstreamOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputDownstreamOp)
 
   PingMxTwoOutputDownstreamOp() = default;
 
   void setup(OperatorSpec& spec) override {
     spec.input<int>("in");
-    spec.output<int>("out1"); 
-    spec.output<int>("out2"); 
+    spec.output<int>("out1");
+    spec.output<int>("out2");
     spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
   }
 
@@ -182,13 +182,13 @@ class PingMxTwoOutputDownstreamOp : public Operator {
     op_output.emit(value, "out2");
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 
 class PingMxThreeOutputDownstreamOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxThreeOutputDownstreamOp)
 
   PingMxThreeOutputDownstreamOp() = default;
@@ -196,8 +196,8 @@ class PingMxThreeOutputDownstreamOp : public Operator {
   void setup(OperatorSpec& spec) override {
     spec.input<int>("in");
     spec.output<int>("out1");
-    spec.output<int>("out2"); 
-    spec.output<int>("out3"); 
+    spec.output<int>("out2");
+    spec.output<int>("out3");
     spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
   }
 
@@ -211,23 +211,23 @@ class PingMxThreeOutputDownstreamOp : public Operator {
     op_output.emit(value, "out3");
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 
 class PingMxFourOutputDownstreamOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxFourOutputDownstreamOp)
 
   PingMxFourOutputDownstreamOp() = default;
 
   void setup(OperatorSpec& spec) override {
     spec.input<int>("in");
-    spec.output<int>("out1"); 
-    spec.output<int>("out2"); 
+    spec.output<int>("out1");
+    spec.output<int>("out2");
     spec.output<int>("out3");
-    spec.output<int>("out4"); 
+    spec.output<int>("out4");
     spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
   }
 
@@ -242,13 +242,13 @@ class PingMxFourOutputDownstreamOp : public Operator {
     op_output.emit(value, "out4");
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 
 class PingMultiInputMxOp : public Operator {
-  public:
+    public:
     HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputMxOp)
 
     PingMultiInputMxOp() = default;
@@ -268,14 +268,14 @@ class PingMultiInputMxOp : public Operator {
       op_output.emit(value_vector[0]);
     };
 
-  private:
+    private:
     Parameter<std::vector<IOSpec*>> receivers_;
     Parameter<int> WCET_;
 };
 
 
 class PingMultiInputOutputMxOp : public Operator {
-  public:
+    public:
     HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputOutputMxOp)
 
     PingMultiInputOutputMxOp() = default;
@@ -297,13 +297,13 @@ class PingMultiInputOutputMxOp : public Operator {
       op_output.emit(value_vector[0], "out2");
     };
 
-  private:
+    private:
     Parameter<std::vector<IOSpec*>> receivers_;
     Parameter<int> WCET_;
 };
 
 class PingMxDownstreamOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxDownstreamOp)
 
   PingMxDownstreamOp() = default;
@@ -322,12 +322,12 @@ class PingMxDownstreamOp : public Operator {
     op_output.emit(value);
   };
 
- private:
+  private:
   Parameter<int> WCET_;
 };
 
 class PingRxOp : public Operator {
- public:
+  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(PingRxOp)
 
   PingRxOp() = default;
@@ -347,26 +347,22 @@ class PingRxOp : public Operator {
     std::cout << "Running... iteration " << value_vector[0] << " complete" <<  std::endl;
   };
 
- private:
+  private:
   Parameter<std::vector<IOSpec*>> receivers_;
   Parameter<int> WCET_;
 };
 
-} 
+}  // namespace holoscan::ops
 class MyPingApp : public holoscan::Application {
- public:
+  public:
   void compose() override {
-    using namespace holoscan;
-
-  // This is filled in by MakeVars.py when the scripts are run 
-
-
+    using namespace holoscan;  // This is filled in by MakeVars.py when the scripts are run 
   }
 };
 
 int main(int argc, char** argv) {
-  holoscan::set_log_level(holoscan::LogLevel::ERROR);  
-  
+  holoscan::set_log_level(holoscan::LogLevel::ERROR);
+
   auto app = holoscan::make_application<MyPingApp>();
 
   // Get the configuration
@@ -374,7 +370,7 @@ int main(int argc, char** argv) {
   config_path += "/experiment.yaml";
   app->config(config_path);
 
-  auto& tracker = app->track(); // Enable Data Flow Tracking
+  auto& tracker = app->track();  // Enable Data Flow Tracking
   tracker.enable_logging("logger.log");
 
   // set customizable application parameters via the YAML
@@ -384,7 +380,6 @@ int main(int argc, char** argv) {
     // use MultiThreadScheduler instead of the default GreedyScheduler
     app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
-
   }
 
   app->run();

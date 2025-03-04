@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import networkx as nx
 import argparse
-import matplotlib.pyplot as plt
 import random
+
+import matplotlib.pyplot as plt
+import networkx as nx
 
 def add_edges(graph, edgeset):
     for rawedge in edgeset.rstrip("\n").split(")"):

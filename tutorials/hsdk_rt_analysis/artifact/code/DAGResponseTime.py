@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import networkx as nx
-from code.processDAGs import construct_graphs
-from code.processDAGs import get_unique
-from code.processDAGs import propose_execution_times
 import timeit
+
+import networkx as nx
+
+from code.processDAGs import construct_graphs, get_unique, propose_execution_times
 
 def get_response_time(DG, source, sink):
 
@@ -26,7 +26,7 @@ def get_response_time(DG, source, sink):
 
     waitingtimes = {}
 
-    #For every node in the graph, find its worst-case inter-processing delay
+    # For every node in the graph, find its worst-case inter-processing delay
     for node in DG.nodes:
         if DG.out_degree(node) > 1:
             maxcost = 0
@@ -42,7 +42,7 @@ def get_response_time(DG, source, sink):
     WCRTcandidates = {}
 
 
-    #Find the path from the source to the sink with the greatest sum of execution times
+    # Find the path from the source to the sink with the greatest sum of execution times
     maxcost = 0
     paths = nx.all_simple_paths(DG, source, sink)
     for path in paths:
@@ -59,7 +59,7 @@ def get_response_time(DG, source, sink):
 
         sourcetobottle = (len(shortestsourcetonodepath)) * waitingtimes[node]
 
-        #Find the path from the node to the sink with the greatest sum of execution times
+        # Find the path from the node to the sink with the greatest sum of execution times
         maxcost = 0
         paths = nx.all_simple_paths(DG, node, sink)
         for path in paths:
@@ -67,21 +67,21 @@ def get_response_time(DG, source, sink):
             if maxcost < pathcost:
                 maxcost = pathcost
 
-        #Add the execution time of the sink operator, since it is encoded as an edge weight
+        # Add the execution time of the sink operator, since it is encoded as an edge weight
         bottletosink = maxcost + waitingtimes[sink]
 
         WCRTcandidates[node] = sourcetobottle + bottletosink
 
         if node not in longestpath:
-            #An edge case can occur in large graphs where the longest path through the graph does not 
-            #determine the response time.
-            #This is described in the paper in more detail
-            #For most graphs (including all practical examples) this below calculation results in
-            #significant execution time increases for no decrease in pessimism, so we disable it
-            #Note that the analysis is safe either way
+            # An edge case can occur in large graphs where the longest path through the graph does not 
+            # determine the response time.
+            # This is described in the paper in more detail
+            # For most graphs (including all practical examples) this below calculation results in
+            # significant execution time increases for no decrease in pessimism, so we disable it
+            # Note that the analysis is safe either way
 
             if False:
-                #Find the path from the source to the node with the greatest sum of execution times
+                # Find the path from the source to the node with the greatest sum of execution times
                 maxcost = 0
                 paths = nx.all_simple_paths(DG, source, node)
                 for path in paths:
@@ -89,9 +89,9 @@ def get_response_time(DG, source, sink):
                     if maxcost < pathcost:
                         maxcost = pathcost
 
-                greatestcostsourcetonodepathcost = maxcost
+                # greatestcostsourcetonodepathcost = maxcost
 
-                bottleneckpathcost = greatestcostsourcetonodepathcost + bottletosink
+                # bottleneckpathcost = greatestcostsourcetonodepathcost + bottletosink
 
             WCRTcandidates[node] += longestpathcost - nx.path_weight(DG, shortestsourcetonodepath, "weight")
 
@@ -136,7 +136,7 @@ def main(filepath, numvars, timing = False):
         generatedexectimes.write("Graph " + str(graphindex) + "\n")
         for i in range(n):
             for node in graph.nodes:
-                if saved == None:
+                if saved is None:
                     graph.nodes[node]["WCET"] = graph.nodes[node]["executiontimes" + str(i)]
                 else:
                     saved.readline()
@@ -146,7 +146,7 @@ def main(filepath, numvars, timing = False):
                 for send, to in graph.edges(node):
                     graph.edges[send, to]['weight'] = graph.nodes[node]["WCET"]
 
-            if saved != None:
+            if saved is not None:
                 saved.readline()
 
             if timing:
