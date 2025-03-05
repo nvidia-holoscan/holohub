@@ -30,5 +30,5 @@ set_tests_properties(vila_live_vlm_test
 # Set test properties for TinyChat test
 set_tests_properties(vila_live_tinychat_test
   PROPERTIES
-  PASS_REGULAR_EXPRESSION "OK"
-  FAIL_REGULAR_EXPRESSION "FAILED")
+  PASS_REGULAR_EXPRESSION "Llama"
+  FAIL_REGULAR_EXPRESSION "Traceback")

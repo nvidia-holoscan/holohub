@@ -29,13 +29,15 @@ class TestTinyChat(unittest.TestCase):
     def setUpClass(cls):
         """Start the TinyChat controller and model worker before running the tests"""
         # Start the controller
+        print("Starting controller process...")
         cls.controller_process = subprocess.Popen(
             ["python3", "-m", "tinychat.serve.controller", "--host", "0.0.0.0", "--port", "10000"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=None,  # Use None to inherit the parent's stdout
+            stderr=None,  # Use None to inherit the parent's stderr
             env=os.environ,
             preexec_fn=os.setsid,
         )
+        print(f"Controller process started with PID: {cls.controller_process.pid}")
         time.sleep(10)
         try:
             response = requests.get("http://localhost:10000")
@@ -47,6 +49,7 @@ class TestTinyChat(unittest.TestCase):
             raise Exception("Could not connect to controller")
 
         # Start the model worker
+        print("Starting model worker process...")
         model_path = "/workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/"
         quant_path = "/workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/llm/llama-3-vila1.5-8b-w4-g128-awq-v2.pt"
 
@@ -68,10 +71,11 @@ class TestTinyChat(unittest.TestCase):
                 "--quant-path",
                 quant_path,
             ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=None,  # Use None to inherit the parent's stdout
+            stderr=None,  # Use None to inherit the parent's stderr
             preexec_fn=os.setsid,
         )
+        print(f"Worker process started with PID: {cls.worker_process.pid}")
 
         # Give the worker a moment to start and register with the controller
         time.sleep(10)
@@ -85,18 +89,26 @@ class TestTinyChat(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """Stop the TinyChat controller and model worker after running the tests"""
+        print("\nShutting down test processes...")
+
         # Kill processes directly
         if hasattr(cls, "worker_process"):
             try:
+                print(f"Killing worker process (PID: {cls.worker_process.pid})...")
                 os.kill(cls.worker_process.pid, signal.SIGKILL)
-            except Exception:
-                pass
+                print("Worker process killed")
+            except Exception as e:
+                print(f"Error killing worker process: {e}")
 
         if hasattr(cls, "controller_process"):
             try:
+                print(f"Killing controller process (PID: {cls.controller_process.pid})...")
                 os.kill(cls.controller_process.pid, signal.SIGKILL)
-            except Exception:
-                pass
+                print("Controller process killed")
+            except Exception as e:
+                print(f"Error killing controller process: {e}")
+
+        print("Test cleanup complete")
 
 
 if __name__ == "__main__":
