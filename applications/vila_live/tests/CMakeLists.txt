@@ -20,5 +20,5 @@ add_test(NAME vila_live_vlm_test
 # Set test properties
 set_tests_properties(vila_live_vlm_test
   PROPERTIES
-  PASS_REGULAR_EXPRESSION "*"
+  PASS_REGULAR_EXPRESSION "OK"
   FAIL_REGULAR_EXPRESSION "FAILED")
