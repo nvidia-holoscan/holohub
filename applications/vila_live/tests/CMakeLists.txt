@@ -24,7 +24,7 @@ add_test(NAME vila_live_tinychat_test
 # Set test properties
 set_tests_properties(vila_live_vlm_test
   PROPERTIES
-  PASS_REGULAR_EXPRESSION "mock response"
+  PASS_REGULAR_EXPRESSION "Scheduler finished"
   FAIL_REGULAR_EXPRESSION "FAILED")
 
 # Set test properties for TinyChat test

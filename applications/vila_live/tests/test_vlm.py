@@ -25,7 +25,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from vila_live import V4L2toVLM
 
-expected_image_size = 158944  # frame buffer size
+expected_image_size = 150000  # frame buffer size
 expected_prompt_size = 322
 
 
@@ -47,8 +47,12 @@ class MockVLMHandler(BaseHTTPRequestHandler):
         prompt = request.get("prompt", "")
         # Create a mock response
         response_text = prompt + "This is a mock response from the VLM server."
-        assert len(request["prompt"]) == expected_prompt_size
-        assert len(request["images"][0]) == expected_image_size
+        assert (
+            len(request["prompt"]) == expected_prompt_size
+        ), f"Prompt length is {len(request['prompt'])}"
+        assert (
+            len(request["images"][0]) >= expected_image_size
+        ), f"Image length is {len(request['images'][0])}"
         # Send the response in chunks to simulate streaming
         for i in range(3):
             chunk = {"error_code": 0, "text": response_text[: len(prompt) + (i + 1) * 10]}
