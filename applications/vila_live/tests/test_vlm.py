@@ -14,16 +14,16 @@
 # limitations under the License.
 
 import json
-import threading
-import unittest
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import sys
 import os
+import sys
+import threading
 import time
+import unittest
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Add the parent directory to the path so we can import the VLM class
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from vlm import VLM
+from vila_live import V4L2toVLM
 
 expected_image_size = 158944  # frame buffer size
 expected_prompt_size = 322
@@ -35,28 +35,26 @@ class MockVLMHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests to /worker_generate_stream"""
         if self.path == "/worker_generate_stream":
-            content_length = int(self.headers['Content-Length'])
+            content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length)
-            request = json.loads(post_data.decode('utf-8'))
+            request = json.loads(post_data.decode("utf-8"))
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            self.send_header("Content-type", "application/json")
             self.end_headers()
 
             # Get the prompt from the request
-            prompt = request.get('prompt', '')
+            prompt = request.get("prompt", "")
             # Create a mock response
             response_text = prompt + "This is a mock response from the VLM server."
             assert len(request["prompt"]) == expected_prompt_size
             assert len(request["images"][0]) == expected_image_size
             # Send the response in chunks to simulate streaming
             for i in range(3):
-                chunk = {
-                    "error_code": 0,
-                    "text": response_text[:len(prompt) + (i+1)*10]
-                }
-                self.wfile.write(json.dumps(chunk).encode() + b'\0')
+                chunk = {"error_code": 0, "text": response_text[: len(prompt) + (i + 1) * 10]}
+                self.wfile.write(json.dumps(chunk).encode() + b"\0")
         else:
             assert False, "unknown request"
+
 
 class TestVLM(unittest.TestCase):
     """Test cases for the VLM class"""
@@ -64,7 +62,7 @@ class TestVLM(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Start a mock HTTP server before running the tests"""
-        cls.server = HTTPServer(('localhost', 40000), MockVLMHandler)
+        cls.server = HTTPServer(("localhost", 40000), MockVLMHandler)
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.daemon = True
         cls.server_thread.start()
@@ -80,14 +78,15 @@ class TestVLM(unittest.TestCase):
 
     def test_generate_response(self):
         """Test the generate_response method"""
-        from vila_live import V4L2toVLM
         app = V4L2toVLM("none", "replayer", "none")
         testing_yaml = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml")
+            os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml"
+        )
         if not os.path.exists(testing_yaml):
             raise FileNotFoundError(f"Testing YAML file not found: {testing_yaml}")
         app.config(testing_yaml)
         app.run()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
