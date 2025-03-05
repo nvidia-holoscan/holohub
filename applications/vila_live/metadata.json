@@ -34,8 +34,8 @@
 			}
 		},
 		"run": {
-			"command": "bash -c '<holohub_app_source>/run_vila_live.sh'",
-			"workdir": "holohub_bin"
+			"command": "<holohub_app_source>/run_vila_live.sh",
+			"workdir": "holohub_app_source"
 		}
 	}
 }

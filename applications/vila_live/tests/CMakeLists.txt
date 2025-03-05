@@ -1,5 +1,4 @@
-%YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-v4l2_source:
-  device: "/dev/video0"
 
-replayer_source:  # VideoStreamReplayer
-  # directory: "../data/ultrasound/video"
-  basename: "meeting"
-  frame_rate: 0 # as specified in timestamps
-  repeat: true # default: false
-  realtime: true # default: true
-  count: 0 # default: 0 (no frame count restriction)
+# Add the VLM unit test
+add_test(NAME vila_live_vlm_test
+  COMMAND python3 -m applications.vila_live.tests.test_vlm)
 
-holoviz:
-  tensors:
-    - name: ""
-      type: color
-      opacity: 1.0
-      priority: 0
+# Set test properties
+set_tests_properties(vila_live_vlm_test
+  PROPERTIES
+  PASS_REGULAR_EXPRESSION "OK"
+  FAIL_REGULAR_EXPRESSION "FAILED")

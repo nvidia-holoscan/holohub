@@ -96,9 +96,10 @@ class V4L2toVLM(Application):
         self.source = source
 
         if data == "none":
-            data = "/workspace/holohub/data/vila_live"
+            data = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "vila_live")
 
         self.sample_data_path = data
+        print(f"Sample data path: {self.sample_data_path}")
         self.video_device = video_device
 
     def compose(self):

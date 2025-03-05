@@ -62,7 +62,10 @@ RUN git clone https://github.com/mit-han-lab/llm-awq \
     # Remove torch and transformers from pyproject.toml to avoid conflicts with installed versions
     && sed -i '/torch/d' pyproject.toml \
     && sed -i '/transformers/d' pyproject.toml \
-    && python3 -m pip install --no-cache-dir --no-deps -e .
+    && python3 -m pip install --no-cache-dir --no-deps -e . \
+    # to further confirm any dependency changes
+    && python3 -m pip install -r /tmp/requirements.txt
+
 
 # Download the AWQ-quantized VILA model
 RUN huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ \
