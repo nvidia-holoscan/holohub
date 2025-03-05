@@ -54,7 +54,7 @@ if(BUILD_TESTING)
   file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/tests/vila_live_testing.yaml ${CONFIG_FILE})
 
   add_custom_target(vila_live_test ALL
-    DEPENDS "vila_live.py"
+    DEPENDS "vila_live"
   )
 
   # Add test
