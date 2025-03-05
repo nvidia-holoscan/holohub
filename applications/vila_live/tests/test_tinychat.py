@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
 import signal
 import subprocess
-import sys
 import time
 import unittest
 
@@ -27,8 +25,7 @@ import requests
 class TestTinyChat(unittest.TestCase):
     """Test cases for the TinyChat controller and model worker"""
 
-    @classmethod
-    def setUpClass(cls):
+    def test_tinychat(cls):
         """Start the TinyChat controller and model worker before running the tests"""
         # Start the controller
         cls.controller_process = subprocess.Popen(
