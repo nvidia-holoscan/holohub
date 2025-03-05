@@ -15,8 +15,8 @@
 
 import logging
 
-from holoscan.core import Operator, OperatorSpec
-from holoscan.resources import CudaStreamPool, UnboundedAllocator
+from holoscan.core import Fragment, Operator, OperatorSpec
+from holoscan.resources import Allocator, CudaStreamPool, UnboundedAllocator
 
 from operators.grpc_operators.python.common.conditional_variable_queue import ConditionVariableQueue
 from operators.grpc_operators.python.common.tensor_proto import TensorProto
@@ -25,19 +25,23 @@ from operators.grpc_operators.python.common.tensor_proto import TensorProto
 class GrpcServerRequestOp(Operator):
     def __init__(
         self,
-        fragment,
+        fragment: Fragment,
         request_queue: ConditionVariableQueue,
-        allocator,
-        cuda_stream_pool,
-        rpc_timeout=5000,
+        allocator: Allocator,
+        cuda_stream_pool: CudaStreamPool,
+        rpc_timeout: int = 5000,
         *args,
         **kwargs,
     ):
-        self.request_queue = request_queue
-        self._allocator = allocator
-        self._cuda_stream_pool = cuda_stream_pool
-        self._rpc_timeout = rpc_timeout
-        self.logger = logging.getLogger(__name__)
+        self.request_queue: ConditionVariableQueue = request_queue
+        self._allocator: Allocator = allocator
+        self._cuda_stream_pool: CudaStreamPool = cuda_stream_pool
+        self._rpc_timeout: int = rpc_timeout
+        self.logger: logging.Logger = logging.getLogger(__name__)
+
+        if not isinstance(request_queue, ConditionVariableQueue):
+            raise ValueError("request_queue must be a ConditionVariableQueue")
+
         super().__init__(fragment, *args, **kwargs)
 
     @property

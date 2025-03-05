@@ -15,11 +15,14 @@
 
 import asyncio
 import logging
-import queue
-from typing import AsyncIterable
+from queue import Queue
+from typing import AsyncIterable, Callable, Optional
+
+import grpc
 
 from holohub.grpc_operators.holoscan_pb2 import EntityRequest, EntityResponse
 from holohub.grpc_operators.holoscan_pb2_grpc import EntityServicer
+from operators.grpc_operators.python.server.grpc_application import HoloscanGrpcApplication
 
 
 class StreamingStatus:
@@ -29,18 +32,32 @@ class StreamingStatus:
 
 
 class HoloscanEntityServicer(EntityServicer):
-    def __init__(self, new_entity_stream_rpc, entity_stream_rpc_complete):
+    def __init__(
+        self,
+        application_name: str,
+    ):
+        self.application_name: str = application_name
+        self.new_entity_stream_rpc: Optional[
+            Callable[[str, Queue, Queue], HoloscanGrpcApplication]
+        ] = None
+        self.entity_stream_rpc_complete: Optional[Callable[[HoloscanGrpcApplication], None]] = None
+        self.logger: logging.Logger = logging.getLogger(__name__)
+
+    def configure_callbacks(
+        self,
+        new_entity_stream_rpc: Callable[[str, Queue, Queue], HoloscanGrpcApplication],
+        entity_stream_rpc_complete: Callable[[HoloscanGrpcApplication], None],
+    ):
         self.new_entity_stream_rpc = new_entity_stream_rpc
         self.entity_stream_rpc_complete = entity_stream_rpc_complete
-        self.logger = logging.getLogger(__name__)
 
     async def EntityStream(
-        self, request_iterator: AsyncIterable[EntityRequest], context
+        self, request_iterator: AsyncIterable[EntityRequest], context: grpc.aio.ServicerContext
     ) -> AsyncIterable[EntityResponse]:
-        incoming_request_queue = queue.Queue()
-        outgoing_response_queue = queue.Queue()
+        incoming_request_queue: Queue = Queue()
+        outgoing_response_queue: Queue = Queue()
         app = self.new_entity_stream_rpc(
-            "EndoscopyToolTracking", incoming_request_queue, outgoing_response_queue
+            self.application_name, incoming_request_queue, outgoing_response_queue
         )
 
         if app is None:
@@ -66,10 +83,15 @@ class HoloscanEntityServicer(EntityServicer):
         finally:
             self.entity_stream_rpc_complete(app)
 
-    async def _process_responses(self, app, context, status):
+    async def _process_responses(
+        self,
+        app: HoloscanGrpcApplication,
+        context: grpc.aio.ServicerContext,
+        status: StreamingStatus,
+    ):
         while True:
             if app.is_response_available():
-                response = app.dequeue_response()
+                response: EntityResponse = app.dequeue_response()
                 await context.write(response)
                 status.outgoing_frames += 1
                 self.logger.debug(

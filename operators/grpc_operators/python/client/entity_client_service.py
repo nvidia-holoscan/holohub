@@ -15,9 +15,13 @@
 
 import asyncio
 import logging
+from queue import Queue
+from threading import Thread
+from typing import Optional
 
 import grpc
 from holoscan.conditions import BooleanCondition
+from holoscan.core import Operator
 
 from holohub.grpc_operators import holoscan_pb2, holoscan_pb2_grpc
 
@@ -25,22 +29,22 @@ from holohub.grpc_operators import holoscan_pb2, holoscan_pb2_grpc
 class EntityClientService:
     def __init__(
         self,
-        server_address,
-        interrupt,
-        request_queue,
-        response_queue,
-        source_operator,
+        server_address: str,
+        interrupt: bool,
+        request_queue: Queue,
+        response_queue: Queue,
+        source_operator: Operator,
     ):
-        self.logger = logging.getLogger(__name__)
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.logger.info(f"Initializing Entity Client Service - address: {server_address}")
-        self.server_address = server_address
-        self.interrupt = interrupt
-        self.request_queue = request_queue
-        self.response_queue = response_queue
-        self.source_operator = source_operator
-        self.streaming_thread = None
-        self.streaming_status_thread = None
+        self.server_address: str = server_address
+        self.interrupt: bool = interrupt
+        self.request_queue: Queue = request_queue
+        self.response_queue: Queue = response_queue
+        self.source_operator: Operator = source_operator
+        self.streaming_thread: Optional[Thread] = None
+        self.streaming_status_thread: Optional[Thread] = None
         self.timeout_seconds = 5000
         self.abort_connection = False
 
@@ -70,7 +74,7 @@ class EntityClientService:
             asyncio.get_running_loop().stop()
             # call operator.executor().interrupt() to stop the application once the API is available
 
-    async def _check_connection_status(self, stream):
+    async def _check_connection_status(self, stream: grpc.aio.StreamStreamCall):
         try:
             self.logger.debug("grpc: Checking connection status")
             await stream.wait_for_connection()
@@ -88,7 +92,7 @@ class EntityClientService:
                 f"{type(self).__name__}: Timeout waiting for {self.timeout_seconds} seconds for channel to be ready."
             ) from e
 
-    async def _read_from_stream(self, channel, stream):
+    async def _read_from_stream(self, channel: grpc.aio.Channel, stream: grpc.aio.StreamStreamCall):
         max_retries = 3
         retry = 0
         while True:
@@ -113,7 +117,7 @@ class EntityClientService:
                 self.logger.error(f"grpc:_read_from_stream: Error reading from stream: {e}")
                 break
 
-    async def _write_to_stream(self, channel, stream):
+    async def _write_to_stream(self, channel: grpc.aio.Channel, stream: grpc.aio.StreamStreamCall):
         while True:
             try:
                 if self.abort_connection:
@@ -139,7 +143,7 @@ class EntityClientService:
             except Exception as e:
                 raise e
 
-    def _end_of_video_reached(self):
+    def _end_of_video_reached(self) -> bool:
         boolean_scheduling_term = next(
             (
                 condition

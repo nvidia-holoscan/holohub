@@ -16,21 +16,24 @@
 import asyncio
 import logging
 
-from holoscan.core import Operator, OperatorSpec
+from holoscan.core import Fragment, Operator, OperatorSpec
+from holoscan.resources import Allocator
 
+from operators.grpc_operators.python.common.asyncio_queue import AsyncIoQueue
 from operators.grpc_operators.python.common.tensor_proto import TensorProto
 
 
 class GrpcClientRequestOp(Operator):
-    @property
-    def cuda_stream_pool(self):
-        return self.cuda_stream_pool
+    def __init__(
+        self, fragment: Fragment, request_queue: AsyncIoQueue, allocator: Allocator, *args, **kwargs
+    ):
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.request_queue: AsyncIoQueue = request_queue
+        self.allocator: Allocator = allocator
+        self.frame_count: int = 0
 
-    def __init__(self, fragment, request_queue, allocator, *args, **kwargs):
-        self.logger = logging.getLogger(__name__)
-        self.request_queue = request_queue
-        self.allocator = allocator
-        self.frame_count = 0
+        if not isinstance(request_queue, AsyncIoQueue):
+            raise ValueError("request_queue must be a AsyncIoQueue")
 
         super().__init__(fragment, *args, **kwargs)
 

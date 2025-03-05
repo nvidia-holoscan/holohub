@@ -15,6 +15,8 @@
 
 import logging
 from concurrent import futures
+from queue import Queue
+from typing import List, Optional
 
 import grpc
 from grpc_health.v1 import health, health_pb2_grpc
@@ -22,6 +24,7 @@ from grpc_health.v1 import health, health_pb2_grpc
 import holohub.grpc_operators.holoscan_pb2_grpc
 from operators.grpc_operators.python.server.application_factory import ApplicationFactory
 from operators.grpc_operators.python.server.entity_servicer import HoloscanEntityServicer
+from operators.grpc_operators.python.server.grpc_application import HoloscanGrpcApplication
 
 
 class GrpcService:
@@ -37,23 +40,30 @@ class GrpcService:
     def __init__(self):
         if self.__initialized:
             return
-        self.server = None
-        self.service = None
-        self.logger = logging.getLogger(__name__)
-        self.__initialized = True
+        self.server: Optional[grpc.aio.Server] = None
+        self.services: Optional[List[HoloscanEntityServicer]] = None
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.__initialized: bool = True
 
-    def initialize(self, port, application_factory: ApplicationFactory):
-        self.server_address = f"0.0.0.0:{port}"
-        self.application_factory = application_factory
+    def initialize(self, port: int, application_factory: ApplicationFactory):
+        self.server_address: str = f"0.0.0.0:{port}"
+        self.application_factory: ApplicationFactory = application_factory
 
-    async def start(self, enable_health_check_service=True):
-        self.service = HoloscanEntityServicer(
-            self._create_application_instance, self._destroy_application_instance
-        )
+    async def start(
+        self, services: List[HoloscanEntityServicer], enable_health_check_service: bool = True
+    ):
+        if len(services) == 0:
+            raise ValueError("At least one service must be provided")
+
+        self.services = services
         self.server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
-        holohub.grpc_operators.holoscan_pb2_grpc.add_EntityServicer_to_server(
-            self.service, self.server
-        )
+        for service in self.services:
+            service.configure_callbacks(
+                self._create_application_instance, self._destroy_application_instance
+            )
+            holohub.grpc_operators.holoscan_pb2_grpc.add_EntityServicer_to_server(
+                service, self.server
+            )
         if enable_health_check_service:
             health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(), self.server)
 
@@ -67,11 +77,11 @@ class GrpcService:
         await self.server.stop(None)
 
     def _create_application_instance(
-        self, service_name, incoming_request_queue, outgoing_response_queue
+        self, service_name: str, incoming_request_queue: Queue, outgoing_response_queue: Queue
     ):
         return self.application_factory.create_new_application_instance(
             service_name, incoming_request_queue, outgoing_response_queue
         )
 
-    def _destroy_application_instance(self, application_instance):
+    def _destroy_application_instance(self, application_instance: HoloscanGrpcApplication):
         self.application_factory.destroy_application_instance(application_instance)

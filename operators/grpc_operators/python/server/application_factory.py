@@ -14,14 +14,18 @@
 # limitations under the License.
 
 import logging
+from queue import Queue
+from typing import Callable, Dict, Optional
 
 from holoscan.core import Tracker
 
+from operators.grpc_operators.python.server.grpc_application import HoloscanGrpcApplication
+
 
 class ApplicationInstance:
-    def __init__(self, instance, tracker=None):
-        self.instance = instance
-        self.tracker = tracker
+    def __init__(self, instance: HoloscanGrpcApplication, tracker: Optional[Tracker] = None):
+        self.instance: HoloscanGrpcApplication = instance
+        self.tracker: Optional[Tracker] = tracker
         self.future = None
 
     def start_application(self):
@@ -46,12 +50,14 @@ class ApplicationFactory(object):
         """
         if self.__initialized:
             return
-        self.applications = {}
-        self.instances = {}
+        self.applications: Dict[str, Callable[[Queue, Queue], HoloscanGrpcApplication]] = {}
+        self.instances: Dict[str, ApplicationInstance] = {}
         self.logger = logging.getLogger(__name__)
         self.__initialized = True
 
-    def register_application(self, name: str, application):
+    def register_application(
+        self, name: str, application: Callable[[Queue, Queue], HoloscanGrpcApplication]
+    ):
         """
         Register an application with the factory
         """
@@ -61,7 +67,9 @@ class ApplicationFactory(object):
 
         self.applications[name] = application
 
-    def create_new_application_instance(self, name: str, request_queue, response_queue):
+    def create_new_application_instance(
+        self, name: str, request_queue: Queue, response_queue: Queue
+    ):
         if name not in self.applications:
             self.logger.error(f"Application {name} not found in the registry.")
             return None
@@ -75,7 +83,7 @@ class ApplicationFactory(object):
         self.instances[name] = func(request_queue, response_queue)
         return self.instances[name].instance
 
-    def destroy_application_instance(self, application_instance):
+    def destroy_application_instance(self, application_instance: HoloscanGrpcApplication):
         """
         Destroy an application instance
         """

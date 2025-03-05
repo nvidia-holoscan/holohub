@@ -19,12 +19,16 @@ from holoscan.core import IOSpec, Operator, OperatorSpec
 
 from holohub.grpc_operators import holoscan_pb2 as holoscan_proto
 from operators.grpc_operators.python.common.tensor_proto import TensorProto
+from operators.grpc_operators.python.server.grpc_application import ConditionVariableQueue
 
 
 class GrpcServerResponseOp(Operator):
-    def __init__(self, fragment, response_queue, *args, **kwargs):
-        self.logger = logging.getLogger(__name__)
-        self.response_queue = response_queue
+    def __init__(self, fragment, response_queue: ConditionVariableQueue, *args, **kwargs):
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.response_queue: ConditionVariableQueue = response_queue
+        if not isinstance(response_queue, ConditionVariableQueue):
+            raise ValueError("response_queue must be a ConditionVariableQueue")
+
         super().__init__(fragment, *args, **kwargs)
 
     def setup(self, spec: OperatorSpec):

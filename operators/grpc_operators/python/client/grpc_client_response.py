@@ -15,22 +15,37 @@
 
 import logging
 
-from holoscan.conditions import AsynchronousEventState
-from holoscan.core import Operator, OperatorSpec
+from holoscan.conditions import AsynchronousCondition, AsynchronousEventState
+from holoscan.core import Fragment, Operator, OperatorSpec
 
+from holohub.grpc_operators import holoscan_pb2
+from operators.grpc_operators.python.common.asynchronous_condition_queue import (
+    AsynchronousConditionQueue,
+)
 from operators.grpc_operators.python.common.tensor_proto import TensorProto
 
 
 class GrpcClientResponseOp(Operator):
-    def __init__(self, fragment, response_queue, condition, *args, **kwargs):
-        self.logger = logging.getLogger(__name__)
-        self.response_queue = response_queue
-        self.condition = condition
+    def __init__(
+        self,
+        fragment: Fragment,
+        response_queue: AsynchronousConditionQueue,
+        condition: AsynchronousCondition,
+        *args,
+        **kwargs,
+    ):
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.response_queue: AsynchronousConditionQueue = response_queue
+        self.condition: AsynchronousCondition = condition
+        if not isinstance(condition, AsynchronousCondition):
+            raise ValueError("condition must be a holoscan.condition.AsynchronousCondition")
+        if not isinstance(response_queue, AsynchronousConditionQueue):
+            raise ValueError("response_queue must be a AsynchronousConditionQueue")
+
         super().__init__(fragment, *args, **kwargs)
 
     def initialize(self):
-        if self.condition:
-            self.add_arg(self.condition)
+        self.add_arg(self.condition)
         Operator.initialize(self)
 
     def setup(self, spec: OperatorSpec):
@@ -43,7 +58,7 @@ class GrpcClientResponseOp(Operator):
         self.condition.event_state = AsynchronousEventState.EVENT_NEVER
 
     def compute(self, op_input, op_output, context):
-        entity_response = self.response_queue.pop()
+        entity_response: holoscan_pb2.EntityResponse = self.response_queue.pop()
 
         if entity_response:
             gxf_entity = TensorProto.proto_to_tensor(entity_response, context)

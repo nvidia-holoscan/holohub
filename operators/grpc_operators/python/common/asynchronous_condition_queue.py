@@ -16,11 +16,11 @@
 from queue import Queue
 
 from holoscan.conditions import AsynchronousCondition, AsynchronousEventState
-from holoscan.core import Resource
+from holoscan.core import Fragment, Resource
 
 
 class AsynchronousConditionQueue(Resource):
-    def __init__(self, fragment, condition: AsynchronousCondition, *args, **kwargs):
+    def __init__(self, fragment: Fragment, condition: AsynchronousCondition, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.condition = condition
         self.queue = Queue()

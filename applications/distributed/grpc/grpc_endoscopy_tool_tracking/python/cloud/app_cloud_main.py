@@ -28,6 +28,7 @@ from operators.grpc_operators.python.server.application_factory import (
     ApplicationFactory,
     ApplicationInstance,
 )
+from operators.grpc_operators.python.server.entity_servicer import HoloscanEntityServicer
 from operators.grpc_operators.python.server.grpc_service import GrpcService
 
 logging.basicConfig(level=logging.INFO)
@@ -93,9 +94,15 @@ async def main(loop):
         ),
     )
 
+    # Initialize the gRPC service
     grpc_service = GrpcService()
     grpc_service.initialize(args.port, application_factory)
-    await grpc_service.start()
+
+    # Configure the gRPC services
+    servicer = HoloscanEntityServicer("EndoscopyToolTracking")
+
+    # Start the gRPC server and services
+    await grpc_service.start([servicer])
 
 
 if __name__ == "__main__":

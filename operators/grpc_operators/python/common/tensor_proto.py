@@ -100,12 +100,15 @@ class TensorProto:
                 tensor.type_str = TensorProto._get_numpy_type_str(gxf_tensor)
                 tensor.memory_storage_type = TensorProto._get_proto_storage_type(gxf_tensor)
 
-                if tensor.memory_storage_type == holoscan_proto.Tensor.MemoryStorageType.kHost:
-                    tensor.data = gxf_tensor.cpu().numpy().tobytes()
-                elif (
-                    holoscan_proto.Tensor.MemoryStorageType.kDevice
-                    or holoscan_proto.Tensor.MemoryStorageType.kSystem
+                if (
+                    tensor.memory_storage_type == holoscan_proto.Tensor.MemoryStorageType.kHost
+                    or tensor.memory_storage_type == holoscan_proto.Tensor.MemoryStorageType.kSystem
                 ):
+                    np_array = np.asarray(
+                        gxf_tensor, dtype=TensorProto.PRIMITIVE_TYPES[tensor.primitive_type]
+                    )
+                    tensor.data = np_array.tobytes()
+                elif tensor.memory_storage_type == holoscan_proto.Tensor.MemoryStorageType.kDevice:
                     cp_array = cp.asarray(
                         gxf_tensor, dtype=TensorProto.PRIMITIVE_TYPES[tensor.primitive_type]
                     )
@@ -124,6 +127,8 @@ class TensorProto:
                 if (
                     proto_tensor.memory_storage_type
                     == holoscan_proto.Tensor.MemoryStorageType.kHost
+                    or proto_tensor.memory_storage_type
+                    == holoscan_proto.Tensor.MemoryStorageType.kSystem
                 ):
                     tensor = as_tensor(
                         np.frombuffer(proto_tensor.data, dtype=dtype)
@@ -131,8 +136,8 @@ class TensorProto:
                         .copy()
                     )
                 elif (
-                    holoscan_proto.Tensor.MemoryStorageType.kDevice
-                    or holoscan_proto.Tensor.MemoryStorageType.kSystem
+                    proto_tensor.memory_storage_type
+                    == holoscan_proto.Tensor.MemoryStorageType.kDevice
                 ):
                     tensor = as_tensor(cp.asarray(ProtoTensorCudaArrayInterface(proto_tensor)))
 
