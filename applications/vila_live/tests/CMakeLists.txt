@@ -17,8 +17,18 @@
 add_test(NAME vila_live_vlm_test
   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/test_vlm.py)
 
+# Add the TinyChat unit test
+add_test(NAME vila_live_tinychat_test
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/test_tinychat.py)
+
 # Set test properties
 set_tests_properties(vila_live_vlm_test
+  PROPERTIES
+  PASS_REGULAR_EXPRESSION "OK"
+  FAIL_REGULAR_EXPRESSION "FAILED")
+
+# Set test properties for TinyChat test
+set_tests_properties(vila_live_tinychat_test
   PROPERTIES
   PASS_REGULAR_EXPRESSION "OK"
   FAIL_REGULAR_EXPRESSION "FAILED")
