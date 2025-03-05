@@ -51,7 +51,7 @@ if(BUILD_TESTING)
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/vila_live.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/vila_live_testing.yaml ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/tests/vila_live_testing.yaml ${CONFIG_FILE})
 
   add_custom_target(vila_live_test ALL
     DEPENDS "vila_live.py"

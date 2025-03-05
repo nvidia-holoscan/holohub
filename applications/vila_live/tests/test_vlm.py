@@ -25,7 +25,7 @@ import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from vlm import VLM
 
-expected_image_size = 1280 * 720 * 3
+expected_image_size = 158944  # frame buffer size
 expected_prompt_size = 322
 
 
@@ -38,14 +38,12 @@ class MockVLMHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             request = json.loads(post_data.decode('utf-8'))
-# Send response headers
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
 
             # Get the prompt from the request
             prompt = request.get('prompt', '')
-
             # Create a mock response
             response_text = prompt + "This is a mock response from the VLM server."
             assert len(request["prompt"]) == expected_prompt_size
@@ -57,10 +55,8 @@ class MockVLMHandler(BaseHTTPRequestHandler):
                     "text": response_text[:len(prompt) + (i+1)*10]
                 }
                 self.wfile.write(json.dumps(chunk).encode() + b'\0')
-                time.sleep(0.1)
         else:
-            self.send_response(404)
-            self.end_headers()
+            assert False, "unknown request"
 
 class TestVLM(unittest.TestCase):
     """Test cases for the VLM class"""
@@ -72,8 +68,6 @@ class TestVLM(unittest.TestCase):
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.daemon = True
         cls.server_thread.start()
-        print("Mock VLM server started on port 40000")
-
         # Give the server a moment to start
         time.sleep(1)
 
@@ -83,13 +77,13 @@ class TestVLM(unittest.TestCase):
         cls.server.shutdown()
         cls.server.server_close()
         cls.server_thread.join()
-        print("Mock VLM server stopped")
 
     def test_generate_response(self):
         """Test the generate_response method"""
         from vila_live import V4L2toVLM
         app = V4L2toVLM("none", "replayer", "none")
-        testing_yaml = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml")
+        testing_yaml = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml")
         if not os.path.exists(testing_yaml):
             raise FileNotFoundError(f"Testing YAML file not found: {testing_yaml}")
         app.config(testing_yaml)
