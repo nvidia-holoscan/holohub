@@ -30,17 +30,16 @@ COPY run /tmp/scripts/
 RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
-# Copy over app-specific requirements
-COPY applications/vila_live/requirements.txt /tmp/requirements.txt
-
 # Install setuptools prior to all other requirements to avoid install errors
 RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124 && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
+    python3 -m pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
 # MAX_JOBS is set to 4 to avoid running out of memory
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn~=2.5
+
+# Copy over app-specific requirements
+COPY applications/vila_live/requirements.txt /tmp/requirements.txt
 
 # Clone AWQ and VILA repositories and install them based on the GPU's compute capacity
 WORKDIR /workspace
@@ -63,7 +62,6 @@ RUN git clone https://github.com/mit-han-lab/llm-awq \
     && sed -i '/torch/d' pyproject.toml \
     && sed -i '/transformers/d' pyproject.toml \
     && python3 -m pip install --no-cache-dir --no-deps -e . \
-    # to further confirm any dependency changes
     && python3 -m pip install -r /tmp/requirements.txt
 
 

@@ -51,14 +51,14 @@ if(BUILD_TESTING)
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/vila_live.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  # add model path and quant path to the yaml file, see also Dockerfile
+  string(APPEND CONFIG_FILE "\nmodel_path: ${CMAKE_CURRENT_SOURCE_DIR}/models/Llama-3-VILA1.5-8b-AWQ/")
+  string(APPEND CONFIG_FILE "\nquant_path: ${CMAKE_CURRENT_SOURCE_DIR}/models/Llama-3-VILA1.5-8b-AWQ/llm/llama-3-vila1.5-8b-w4-g128-awq-v2.pt")
   file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/tests/vila_live_testing.yaml ${CONFIG_FILE})
 
   add_custom_target(vila_live_test ALL
     DEPENDS "vila_live"
   )
-
-  # Add test
-  # Include the tests directory
   add_subdirectory(tests)
 
 endif()

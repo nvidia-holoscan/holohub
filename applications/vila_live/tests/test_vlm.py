@@ -34,26 +34,25 @@ class MockVLMHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests to /worker_generate_stream"""
-        if self.path == "/worker_generate_stream":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            request = json.loads(post_data.decode("utf-8"))
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-
-            # Get the prompt from the request
-            prompt = request.get("prompt", "")
-            # Create a mock response
-            response_text = prompt + "This is a mock response from the VLM server."
-            assert len(request["prompt"]) == expected_prompt_size
-            assert len(request["images"][0]) == expected_image_size
-            # Send the response in chunks to simulate streaming
-            for i in range(3):
-                chunk = {"error_code": 0, "text": response_text[: len(prompt) + (i + 1) * 10]}
-                self.wfile.write(json.dumps(chunk).encode() + b"\0")
-        else:
+        if self.path != "/worker_generate_stream":
             assert False, "unknown request"
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+        request = json.loads(post_data.decode("utf-8"))
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+
+        # Get the prompt from the request
+        prompt = request.get("prompt", "")
+        # Create a mock response
+        response_text = prompt + "This is a mock response from the VLM server."
+        assert len(request["prompt"]) == expected_prompt_size
+        assert len(request["images"][0]) == expected_image_size
+        # Send the response in chunks to simulate streaming
+        for i in range(3):
+            chunk = {"error_code": 0, "text": response_text[: len(prompt) + (i + 1) * 10]}
+            self.wfile.write(json.dumps(chunk).encode() + b"\0")
 
 
 class TestVLM(unittest.TestCase):

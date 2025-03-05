@@ -17,10 +17,12 @@ import os
 import signal
 import subprocess
 import time
+import yaml
 import unittest
 
 import requests
 
+test_yaml = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml")
 
 class TestTinyChat(unittest.TestCase):
     """Test cases for the TinyChat controller and model worker"""
@@ -50,33 +52,24 @@ class TestTinyChat(unittest.TestCase):
 
         # Start the model worker
         print("Starting model worker process...")
-        model_path = "/workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/"
-        quant_path = "/workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/llm/llama-3-vila1.5-8b-w4-g128-awq-v2.pt"
+        with open(test_yaml, "r") as f:
+            config = yaml.safe_load(f)
+        model_path = config["model_path"]
+        quant_path = config["quant_path"]
 
+        cmd = (
+            "python3 -m tinychat.serve.model_worker_new "
+            "--host 0.0.0.0 --controller http://localhost:10000 --port 40000 "
+            "--worker http://localhost:40000 "
+            f"--model-path {model_path} --quant-path {quant_path}"
+        )
         cls.worker_process = subprocess.Popen(
-            [
-                "python3",
-                "-m",
-                "tinychat.serve.model_worker_new",
-                "--host",
-                "0.0.0.0",
-                "--controller",
-                "http://localhost:10000",
-                "--port",
-                "40000",
-                "--worker",
-                "http://localhost:40000",
-                "--model-path",
-                model_path,
-                "--quant-path",
-                quant_path,
-            ],
+            cmd.split(),
             stdout=None,  # Use None to inherit the parent's stdout
             stderr=None,  # Use None to inherit the parent's stderr
             preexec_fn=os.setsid,
         )
         print(f"Worker process started with PID: {cls.worker_process.pid}")
-
         # Give the worker a moment to start and register with the controller
         time.sleep(10)
 
@@ -89,12 +82,9 @@ class TestTinyChat(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """Stop the TinyChat controller and model worker after running the tests"""
-        print("\nShutting down test processes...")
-
         # Kill processes directly
         if hasattr(cls, "worker_process"):
             try:
-                print(f"Killing worker process (PID: {cls.worker_process.pid})...")
                 os.kill(cls.worker_process.pid, signal.SIGKILL)
                 print("Worker process killed")
             except Exception as e:
@@ -102,13 +92,10 @@ class TestTinyChat(unittest.TestCase):
 
         if hasattr(cls, "controller_process"):
             try:
-                print(f"Killing controller process (PID: {cls.controller_process.pid})...")
                 os.kill(cls.controller_process.pid, signal.SIGKILL)
                 print("Controller process killed")
             except Exception as e:
                 print(f"Error killing controller process: {e}")
-
-        print("Test cleanup complete")
 
 
 if __name__ == "__main__":
