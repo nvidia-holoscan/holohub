@@ -25,7 +25,8 @@ import requests
 class TestTinyChat(unittest.TestCase):
     """Test cases for the TinyChat controller and model worker"""
 
-    def test_tinychat(cls):
+    @classmethod
+    def setUpClass(cls):
         """Start the TinyChat controller and model worker before running the tests"""
         # Start the controller
         cls.controller_process = subprocess.Popen(
@@ -75,17 +76,27 @@ class TestTinyChat(unittest.TestCase):
         # Give the worker a moment to start and register with the controller
         time.sleep(10)
 
+    def test_tinychat(self):
+        """Test the TinyChat functionality"""
+        print(
+            f"Testing processes started...{self.controller_process.pid} {self.worker_process.pid}"
+        )
+
     @classmethod
     def tearDownClass(cls):
         """Stop the TinyChat controller and model worker after running the tests"""
-        # Kill the processes
+        # Kill processes directly
         if hasattr(cls, "worker_process"):
-            os.killpg(os.getpgid(cls.worker_process.pid), signal.SIGTERM)
-        if hasattr(cls, "controller_process"):
-            os.killpg(os.getpgid(cls.controller_process.pid), signal.SIGTERM)
+            try:
+                os.kill(cls.worker_process.pid, signal.SIGKILL)
+            except Exception:
+                pass
 
-        # Give them a moment to shut down
-        time.sleep(10)
+        if hasattr(cls, "controller_process"):
+            try:
+                os.kill(cls.controller_process.pid, signal.SIGKILL)
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
