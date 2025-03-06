@@ -129,7 +129,10 @@ def check_gpu_rdma():
 
     cudaDevAttrGPUDirectRDMASupported = 116
 
-    libcuda.cuInit(0)
+    result = libcuda.cuInit(0)
+    if result != 0:
+        logging.error(f"CUDA initialization failed with error code: {result}")
+        return
     count = c_int()
     libcuda.cuDeviceGetCount(byref(count))
 
