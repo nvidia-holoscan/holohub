@@ -16,6 +16,7 @@
 ---
 v4l2_source:
   device: "/dev/video0"
+  pixel_format: "YUYV"
 
 replayer_source:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
