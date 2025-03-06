@@ -411,11 +411,11 @@ def check_nvidia_gpu_clocks():
             # GPU to that frequency it will not report as that with nvidia-smi. For example:
             # nvidia-smi --lock-gpu-clocks 3105 --mode 1
             # GPU clocks set to "(gpuClkMin 3105, gpuClkMax 3105)" for GPU 00000005:09:00.0
-            # 
+            #
             # Clocks
             #  SM                                : 2730 MHz
             #
-            # Anecdotally if a user has not set their clocks at all the value will be very low, 
+            # Anecdotally if a user has not set their clocks at all the value will be very low,
             # around 100-300MHz. Having a check within 500MHz should be sufficient to catch this.
             if abs(sm_current - sm_max) > 500:
                 logging.warning(
