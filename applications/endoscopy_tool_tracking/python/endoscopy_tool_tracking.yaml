@@ -47,15 +47,15 @@ yuan:
   rdma: true
 
 replayer:
-  basename: "surgical_video"
-  frame_rate: 0   # as specified in timestamps
-  repeat: true    # default: false
-  realtime: true  # default: true
-  count: 0        # default: 0 (no frame count restriction)
+  basename: "anonymization"
+  frame_rate: 2 # as specified in timestamps
+  repeat: true # default: false
+  realtime: true # default: true
+  count: 0 # default: 0 (no frame count restriction)
 
 recorder_format_converter:
   in_dtype: "rgba8888"
-  out_dtype: "rgb888"
+  out_dtype: "gb888"
 
 recorder:
   directory: "/tmp"
@@ -66,6 +66,8 @@ format_converter_replayer:
   out_dtype: "float32"
   scale_min: 0.0
   scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
 
 format_converter_aja:
   in_dtype: "rgba8888"

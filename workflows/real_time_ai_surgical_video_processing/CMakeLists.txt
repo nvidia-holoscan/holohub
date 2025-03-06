@@ -42,33 +42,6 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_FRAMERATE 30
     ALL
   )
-
-  holoscan_download_data(detection_model
-    URL nvidia/clara-holoscan/ssd_surgical_tool_detection_model:v0.1
-    DOWNLOAD_NAME ssd_surgical_tool_detection_model_v0.1.zip
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
-    ALL
-  )
-
-  holoscan_download_data(segmentation_model
-    URL nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model:v0.1
-    DOWNLOAD_NAME ll.1.zip
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
-    ALL
-  )
-
-  holoscan_download_data(endoscopy_out_of_body_detection
-    URL nvidia/clara-holoscan/endoscopy_out_of_body_detection:20230127
-    DOWNLOAD_NAME endoscopy_out_of_body_detection_20230127.zip
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
-    GENERATE_GXF_ENTITIES
-    GXF_ENTITIES_HEIGHT 256
-    GXF_ENTITIES_WIDTH 256
-    GXF_ENTITIES_CHANNELS 3
-    GXF_ENTITIES_FRAMERATE 30
-    ALL
-  )
-
   holoscan_download_data(orsi
     URL  nvidia/clara-holoscan/holoscan_orsi_academy_sample_data:20240206
     DOWNLOAD_NAME orsi.zip
@@ -78,6 +51,30 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_WIDTH 1920
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
+    ALL
+  )
+  holoscan_download_data(endoscopy_out_of_body_detection
+    URL nvidia/clara-holoscan/endoscopy_out_of_body_detection:20230127
+    DOWNLOAD_NAME endoscopy_out_of_body_detection_20230127.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 1080
+    GXF_ENTITIES_WIDTH 1920
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+    ALL
+  )
+  holoscan_download_data(ssd_model
+    URL nvidia/clara-holoscan/ssd_surgical_tool_detection_model:v0.1
+    DOWNLOAD_NAME ssd_surgical_tool_detection_model_v0.1.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    ALL
+  )
+
+  holoscan_download_data(monai_tool_seg_model
+    URL nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model:v0.1
+    DOWNLOAD_NAME monai_endoscopic_tool_segmentation_model_v0.1.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     ALL
   )
 endif()
