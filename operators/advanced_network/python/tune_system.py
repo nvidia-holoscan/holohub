@@ -407,14 +407,26 @@ def check_nvidia_gpu_clocks():
 
             logging.debug(f"GPU {idx}: Checking clocks...")
 
-            if sm_current != sm_max:
+            # Some GPUs have a boost clock that appears as the "max clock", but when you set the
+            # GPU to that frequency it will not report as that with nvidia-smi. For example:
+            # nvidia-smi --lock-gpu-clocks 3105 --mode 1
+            # GPU clocks set to "(gpuClkMin 3105, gpuClkMax 3105)" for GPU 00000005:09:00.0
+            # 
+            # Clocks
+            #  SM                                : 2730 MHz
+            #
+            # Anecdotally if a user has not set their clocks at all the value will be very low, 
+            # around 100-300MHz. Having a check within 500MHz should be sufficient to catch this.
+            if abs(sm_current - sm_max) > 500:
                 logging.warning(
                     f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
                 )
             else:
-                logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_max} MHz.")
+                logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_current} MHz.")
 
-            if mem_current != mem_max:
+            # nvidia-smi has a bug where the memory clock is reported as 1 MHz less than the max in
+            # some cases
+            if abs(mem_current - mem_max) > 1:
                 logging.warning(
                     f"GPU {idx}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
                 )
