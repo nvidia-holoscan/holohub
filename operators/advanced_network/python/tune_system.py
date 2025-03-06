@@ -21,8 +21,8 @@ import os
 import re
 import subprocess
 import sys
-import ctypes
-from ctypes import *
+from ctypes import CDLL, byref, c_int, create_string_buffer
+
 
 def setup_logging():
     """
@@ -95,37 +95,36 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def is_nvidia_peermem_enabled():
     """
     Check if the nvidia-peermem module is loaded in the kernel.
-    
+
     Returns:
         bool: True if nvidia-peermem is loaded, False otherwise
     """
     try:
         # Also check for nvidia_peermem (with underscore)
         result = subprocess.run(
-            ["lsmod | grep peermem"],
-            shell=True,
-            capture_output=True,
-            text=True
+            ["lsmod | grep peermem"], shell=True, capture_output=True, text=True
         )
-        
+
         if bool(result.stdout.strip()):
             logging.info("nvidia-peermem module is loaded.")
         else:
             logging.warning("nvidia-peermem module is not loaded. GPUDirect RDMA may not work.")
-    
+
     except Exception as e:
         print(f"Error checking for nvidia-peermem module: {e}")
         return False
+
 
 def check_gpu_rdma():
     """
     Checks if NVIDIA GPUs have access to GPUDirect RDMA.
     """
     # Load CUDA Runtime API
-    libcuda = ctypes.CDLL('libcuda.so')
+    libcuda = CDLL("libcuda.so")
 
     cudaDevAttrGPUDirectRDMASupported = 116
 
@@ -139,18 +138,18 @@ def check_gpu_rdma():
     for i in range(count.value):
         device = c_int()
         libcuda.cuDeviceGet(byref(device), i)
-        
+
         name = create_string_buffer(100)
         libcuda.cuDeviceGetName(name, 100, device)
-        
+
         supported = c_int()
         libcuda.cuDeviceGetAttribute(byref(supported), cudaDevAttrGPUDirectRDMASupported, device)
-        
+
         if bool(supported.value):
             logging.info(f"GPU {i}: {name.value.decode()} has GPUDirect RDMA support.")
         else:
             logging.warning(f"GPU {i}: {name.value.decode()} does not have GPUDirect RDMA support.")
-    
+
 
 def get_nic_info():
     """
