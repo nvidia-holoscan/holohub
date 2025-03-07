@@ -537,7 +537,6 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
       try {
         const auto& intfs = node["interfaces"];
-        uint16_t port = 0;
         for (const auto& intf : intfs) {
           holoscan::ops::AdvNetConfigInterface ifcfg;
 
@@ -546,8 +545,6 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
           try {
             ifcfg.flow_isolation_ = intf["flow_isolation"].as<bool>();
           } catch (const std::exception& e) { ifcfg.flow_isolation_ = false; }
-
-          ifcfg.port_id_ = port++;
 
           const auto& rx = intf["rx"];
           for (const auto& rx_item : rx) {
