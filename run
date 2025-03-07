@@ -117,7 +117,6 @@ get_app_source_root_dir() {
   # Usage: ./run get_app_source_root_dir <app_name> [is_workflow]
   local appname="$1"
   local is_workflow="$2"
-
   if [[ -z "${appname}" ]]; then
     echo "Missing app name argument for get_app_source_root_dir"
     exit 1
@@ -135,11 +134,8 @@ get_app_source_root_dir() {
 
   # Check if the application is in a subdirectory
   if [ ! -d "$holohub_app_source" ]; then
-    sub_app_path=$(find ${holohub_app_source} -type d -name "${appname}")
-    app_rel_path=${sub_app_path#"${holohub_app_source}/"}
-    if [[ -n "$app_rel_path" ]]; then
-      holohub_app_source="${holohub_app_source}/${app_rel_path}"
-    fi
+    app_parent=${holohub_app_source/${appname}/}
+    holohub_app_source=$(find ${app_parent} -type d -name "${appname}")
   fi
 
   # Check if the application is in the benchmarks folder
@@ -167,7 +163,6 @@ get_app_source_lang_dir() {
   if [[ -z "${is_workflow}" ]]; then
     is_workflow=false
   fi
-
   local holohub_app_source=$(get_app_source_root_dir "${appname}" "${is_workflow}")
   if [[ -n "${holohub_app_source}" ]] && [[ -d "${holohub_app_source}/${language}" ]]; then
     holohub_app_source="${holohub_app_source}/${language}"
@@ -874,7 +869,7 @@ launch_desc() {
 
 
 launch() {
-   local target=""
+   local appname=""
    local language=""
    local extra_args=""
    local nsys_profile=false
