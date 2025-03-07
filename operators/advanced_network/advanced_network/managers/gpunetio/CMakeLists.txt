@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.20)
 
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_sources(${PROJECT_NAME} PRIVATE
   adv_network_doca_mgr.cpp
   adv_network_doca_mgr_obj.cpp
