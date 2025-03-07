@@ -98,9 +98,9 @@ class EndoscopyApp(Application):
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
         else:
-            width = 1920
-            height = 1080
-            video_dir = os.path.join(self.sample_data_path, "..", "orsi")
+            width = 854
+            height = 480
+            video_dir = self.sample_data_path
             if not os.path.exists(video_dir):
                 raise ValueError(f"Could not find video data: {video_dir=}")
             source = VideoStreamReplayerOp(
@@ -277,7 +277,7 @@ class EndoscopyApp(Application):
 
 
 if __name__ == "__main__":
-    default_data_path = f"{os.getcwd()}/data/orsi"
+    default_data_path = f"{os.getcwd()}/data/endoscopy"
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
     parser.add_argument(
