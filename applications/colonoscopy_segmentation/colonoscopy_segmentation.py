@@ -16,7 +16,10 @@
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application
+import cupy as cp
+from cupyx.scipy import ndimage
+
+from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -28,6 +31,48 @@ from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageTyp
 
 from holohub.aja_source import AJASourceOp
 
+class ContourOp(Operator):
+    """Operator to format input image for inference"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.structure = cp.array([[0,1,0],
+                                   [1,1,1],
+                                   [0,1,0]], dtype=cp.bool_)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def gpu_contour_categorical(self, mask):
+        """GPU-accelerated contour detection for categorical masks"""
+        num_classes = int(cp.max(mask)) + 1
+        contours = cp.zeros_like(mask)
+        i = cp.uint8(1)
+
+        for class_id in range(1, num_classes):
+            class_mask = (mask == class_id)
+            eroded = cp.zeros_like(class_mask)
+
+            ndimage.binary_erosion(
+                class_mask, structure=self.structure,
+                output=eroded, border_value=0
+            )
+
+            contours += (class_mask ^ eroded) * i
+            i += 1
+
+        return contours
+
+    def compute(self, op_input, op_output, context):
+        # Get input message
+        in_message = op_input.receive("in")
+
+        # To cupy array
+        tensor = cp.asarray(in_message.get("out_tensor"), cp.uint8)
+        tensor[:, :, 0] = self.gpu_contour_categorical(tensor[:, :, 0])
+
+        op_output.emit({"out_tensor": tensor}, "out")
 
 class ColonoscopyApp(Application):
     def __init__(self, data, source="replayer"):
@@ -143,6 +188,12 @@ class ColonoscopyApp(Application):
             transmit_on_cuda=True,
         )
 
+        contour_op = ContourOp(
+            self,
+            name="contour_op",
+            pool=cuda_stream_pool,
+        )
+
         postprocessor_block_size = width_inference * height_inference
         postprocessor_num_blocks = 2
         segmentation_postprocessor = SegmentationPostprocessorOp(
@@ -173,11 +224,15 @@ class ColonoscopyApp(Application):
             self.add_flow(source, segmentation_preprocessor)
         self.add_flow(segmentation_preprocessor, segmentation_inference, {("", "receivers")})
         self.add_flow(segmentation_inference, segmentation_postprocessor, {("transmitter", "")})
-        self.add_flow(
-            segmentation_postprocessor,
-            segmentation_visualizer,
-            {("", "receivers")},
-        )
+
+        self.add_flow(segmentation_postprocessor, contour_op, {("", "in")})
+        self.add_flow(contour_op, segmentation_visualizer, {("out", "receivers")})
+
+        # self.add_flow(
+        #     segmentation_postprocessor,
+        #     segmentation_visualizer,
+        #     {("", "receivers")},
+        # )
 
 
 if __name__ == "__main__":
