@@ -36,10 +36,7 @@ class ContourOp(Operator):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.structure = cp.array([[0,1,0],
-                                   [1,1,1],
-                                   [0,1,0]],
-                                   dtype=cp.bool_)
+        self.structure = cp.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=cp.bool_)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
@@ -52,12 +49,11 @@ class ContourOp(Operator):
         class_counter = cp.uint8(1)
 
         for class_id in range(1, num_classes):
-            class_mask = (mask == class_id)
+            class_mask = mask == class_id
             eroded = cp.zeros_like(class_mask)
 
             ndimage.binary_erosion(
-                class_mask, structure=self.structure,
-                output=eroded, border_value=0
+                class_mask, structure=self.structure, output=eroded, border_value=0
             )
 
             contours += (class_mask ^ eroded) * class_counter
