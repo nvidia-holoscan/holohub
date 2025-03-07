@@ -34,6 +34,15 @@ If resolution is updated in entity generation, it must be updated in the followi
 <data_dir>/object_detection_torch/frcnn_resnet50_t.yaml
 <data_dir>/object_detection_torch/postprocessing.yaml
 
+## Quick start
+If you want to quickly run this application, you can use the `./dev_container build_and_run` command.
+
+```sh
+./dev_container build_and_run object_detection_torch
+```
+
+Otherwise, you can build and run the application using the commands below.
+
 ## Building the application
 
 The best way to run this application is inside the container, as it would provide all the required third-party packages:
