@@ -48,7 +48,7 @@ Next, run the commands of your choice:
     cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
     python3 colonoscopy_segmentation.py --source=aja --no-contours
     ```
-Note that segmentation contours can be shown (instead of segmentation masks) by changing the `--no-contours` to `--contours`.
+Note that segmentation contours can be shown (instead of segmentation masks) by changing `--no-contours` to `--contours`.
 
 ### Holoscan SDK version
 
