@@ -87,7 +87,7 @@ def generate_build_and_run_command(metadata: dict) -> str:
 
 def gather_metadata(repo_path, exclude_files: None) -> dict:
     """Collect project metadata from JSON files into a single dictionary"""
-    SCHEMA_TYPES = ["application", "operator", "gxf_extension", "tutorial"]
+    SCHEMA_TYPES = ["workflow", "application", "operator", "gxf_extension", "tutorial"]
 
     metadata_files = find_metadata_files(repo_path)
     metadata = []

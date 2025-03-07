@@ -86,7 +86,7 @@ We do not require that community members conduct formal Software Quality Assuran
 Every application and operator should have an associated *metadata.json* file which describes the features
 and dependencies.
 
-`metadata.json` schemas differ slightly for [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
+`metadata.json` schemas differ slightly for [workflows](./workflows/metadata.schema.json), [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
 
 ```json
 // Main json definition for application or operator
