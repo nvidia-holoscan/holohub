@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 import cupy as cp
 from cupyx.scipy import ndimage
-
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import (
     FormatConverterOp,
@@ -31,6 +30,7 @@ from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageTyp
 
 from holohub.aja_source import AJASourceOp
 
+
 class ContourOp(Operator):
     """Operator to format input image for inference"""
 
@@ -38,7 +38,8 @@ class ContourOp(Operator):
         super().__init__(*args, **kwargs)
         self.structure = cp.array([[0,1,0],
                                    [1,1,1],
-                                   [0,1,0]], dtype=cp.bool_)
+                                   [0,1,0]],
+                                   dtype=cp.bool_)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
@@ -46,9 +47,9 @@ class ContourOp(Operator):
 
     def gpu_contour_categorical(self, mask):
         """GPU-accelerated contour detection for categorical masks"""
-        num_classes = int(cp.max(mask)) + 1
+        num_classes = 1 if mask.size == 0 else int(cp.max(mask)) + 1
         contours = cp.zeros_like(mask)
-        i = cp.uint8(1)
+        class_counter = cp.uint8(1)
 
         for class_id in range(1, num_classes):
             class_mask = (mask == class_id)
@@ -59,8 +60,8 @@ class ContourOp(Operator):
                 output=eroded, border_value=0
             )
 
-            contours += (class_mask ^ eroded) * i
-            i += 1
+            contours += (class_mask ^ eroded) * class_counter
+            class_counter += 1
 
         return contours
 
@@ -73,6 +74,7 @@ class ContourOp(Operator):
         tensor[:, :, 0] = self.gpu_contour_categorical(tensor[:, :, 0])
 
         op_output.emit({"out_tensor": tensor}, "out")
+
 
 class ColonoscopyApp(Application):
     def __init__(self, data, source="replayer"):
