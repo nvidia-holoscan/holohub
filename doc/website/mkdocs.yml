@@ -79,6 +79,8 @@ plugins:
 markdown_extensions:
   - attr_list
   - md_in_html
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.snippets:
@@ -95,6 +97,8 @@ markdown_extensions:
       alternate_style: true
   - toc:
       title: On this page
+      permalink: true
+      toc_depth: '1-4'
   - def_list
   - admonition
   - footnotes
