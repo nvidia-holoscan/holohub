@@ -56,7 +56,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/main.py --config <holohub_app_source>/config.yaml --data <holohub_data_dir>/",
+			"command": "python3 <holohub_app_source>/main.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>/",
 			"workdir": "holohub_bin"
 		}
 	}

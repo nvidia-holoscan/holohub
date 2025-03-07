@@ -20,7 +20,9 @@ from argparse import ArgumentParser
 
 import cupy as cp
 import hololink as hololink_module
-from cuda import cuda
+import cuda
+
+from holoscan.conditions import BooleanCondition, CountCondition
 from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.operators import (
     FormatConverterOp,
@@ -29,8 +31,7 @@ from holoscan.operators import (
     SegmentationPostprocessorOp,
     VideoStreamReplayerOp,
 )
-from holoscan.conditions import BooleanCondition, CountCondition
-from holoscan.resources import UnboundedAllocator, BlockMemoryPool
+from holoscan.resources import BlockMemoryPool, UnboundedAllocator
 
 from holohub.aja_source import AJASourceOp
 
@@ -292,21 +293,21 @@ class DetectionPostprocessorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class Workflow(Application):
+class RealTimeAISurgicalVideoProcessingWorkflow(Application):
     def __init__(
         self,
-        headless: bool,
-        fullscreen: bool,
-        cuda_context,
-        cuda_device_ordinal,
-        hololink_channel,
-        ibv_name,
-        ibv_port,
-        camera,
-        camera_mode,
-        frame_limit,
-        source: str | None = None,
-        data: str | None = None,
+        source=None,
+        data=None,
+        headless=False,
+        fullscreen=False,
+        cuda_context=None,
+        cuda_device_ordinal=None,
+        hololink_channel=None,
+        ibv_name=None,
+        ibv_port=None,
+        camera=None,
+        camera_mode=None,
+        frame_limit=None,
     ):
         super().__init__()
         # Set application name
@@ -334,30 +335,31 @@ class Workflow(Application):
         logging.info("Setup source and camera")
         # Memory allocator for some operators
         pool = UnboundedAllocator(self, name="pool")
-
-        # ------------------------------------------------------------------------------------------
-        # Configure video source (AJA capture card, video replay, or Holoscan Sensor Bridge)
-        # -----------------------------------------------------------------------------------------
-        # override source with config file and validate
-        if self.kwargs("source"):
-            self.source = self.kwargs("source")["name"].lower()
         print(f"### {self.name} - source: {self.source}")
-        source_kwargs = self.kwargs(self.source)
+        # ------------------------------------------------------------------------------------------
+        # Configure AJA capture card
+        # ------------------------------------------------------------------------------------------
         if self.source == "aja":
             in_dtype = "rgba8888"
-            aja = AJASourceOp(self, name="aja_source", **source_kwargs)
+            aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
+        # ------------------------------------------------------------------------------------------
+        # Setup video replay
+        # ------------------------------------------------------------------------------------------
         elif self.source.startswith("replayer"):
+            replayer_kwargs = self.kwargs("replayer")
             in_dtype = "rgb888"
             # Prifix the video directory with the data directory and validate
-            video_dir = os.path.join(self.data_dir, source_kwargs["directory"])
+            video_dir = os.path.join(self.data_dir, replayer_kwargs["directory"])
             if not os.path.exists(video_dir):
                 raise ValueError(f"Video directory not found: {video_dir}")
-            source_kwargs["directory"] = video_dir
-            replayer = VideoStreamReplayerOp(self, name="video_replayer", **source_kwargs)
+            replayer_kwargs["directory"] = video_dir
+            replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
+        # ------------------------------------------------------------------------------------------
+        # Setup Holoscan Sensor Bridge
+        # ------------------------------------------------------------------------------------------
         elif self.source == "hsb":
-            # ------------------------------------------------------------------------------------------
-            # Holoscan Sensor Bridge
-            # ------------------------------------------------------------------------------------------
+            in_dtype = "rgba8888"
+
             if self._frame_limit:
                 self._count = CountCondition(self, name="count", count=self._frame_limit)
                 condition = self._count
@@ -386,7 +388,7 @@ class Workflow(Application):
             # converter accordingly.
             self._camera.configure_converter(hsb_csi_to_bayer)
 
-            # csi_to_bayer_operator now knows the image dimensions and bytes per pixel,
+            # hsb_csi_to_bayer now knows the image dimensions and bytes per pixel,
             # and can compute the overall size of the received image data.
             frame_size = hsb_csi_to_bayer.get_csi_length()
             frame_context = self._cuda_context
@@ -405,9 +407,6 @@ class Workflow(Application):
                 hololink_channel=self._hololink_channel,
                 device=self._camera,
             )
-
-            # ____________________
-
             bayer_format = self._camera.bayer_format()
             pixel_format = self._camera.pixel_format()
             hsb_image_processor = hololink_module.operators.ImageProcessorOp(
@@ -543,7 +542,15 @@ class Workflow(Application):
             holoviz_tensors.append({**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]})
         # Holoviz operators for visualization
         holoviz_delegate = ForwardOp(self, name="holoviz_delegate_op")
-        holoviz = HolovizOp(self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"))
+        holoviz = HolovizOp(
+            self,
+            allocator=pool,
+            name="holoviz",
+            tensors=holoviz_tensors,
+            fullscreen=self._fullscreen,
+            headless=self._headless,
+            **self.kwargs("holoviz"),
+        )
         # ------------------------------------------------------------------------------------------
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
@@ -592,7 +599,7 @@ class Workflow(Application):
             self.add_flow(aja, source, {("video_buffer_output", "in")})
         else:
             self.add_flow(replayer, source)
-        # _______________________________________________
+        # __________________________________________________________________
         # Main Branch
         # Out of body detection application
         self.add_flow(source, out_of_body_preprocessor)
@@ -601,12 +608,12 @@ class Workflow(Application):
         # Feed the source and out of body detection decision to the conditional operator
         self.add_flow(out_of_body_postprocessor, condition, {("out", "decision")})
         self.add_flow(source, condition, {("out", "in")})
-        # ___________________________________________________________
+        # __________________________________________________________________
         # Dynamic flow condition based on conditional operator
         self.add_flow(condition, deidentification, {("out", "in")})
         self.add_flow(condition, distributor, {("out", "in")})
         self.set_dynamic_flows(condition, dynamic_flow_callback)
-        # _______________________________________________
+        # __________________________________________________________________
         # Branch 1: rest of deidentification application
         # connect the deidentification output to the holoviz delegate
         self.add_flow(deidentification, holoviz_delegate)
@@ -632,69 +639,91 @@ class Workflow(Application):
 
 
 def main(args):
-    # Get handles to GPU
-    cuda.cuInit(0)
-    cu_device_ordinal = 0
-    cu_device = cuda.cuDeviceGet(cu_device_ordinal)
-    cu_context = cuda.cuDevicePrimaryCtxRetain(cu_device)
+    # __________________________________________________________________
+    # Set up the sensor bridge device
+    if args.source == "hsb":
+        # Get handles to GPU
+        cuda.cuInit(0)
+        cu_device_ordinal = 0
+        cu_device = cuda.cuDeviceGet(cu_device_ordinal)
+        cu_context = cuda.cuDevicePrimaryCtxRetain(cu_device)
 
-    # Look for sensor bridge enumeration messages; return only the one we're looking for
-    channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
-    logging.info(f"{channel_metadata=}")
+        # Look for sensor bridge enumeration messages; return only the one we're looking for
+        channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
+        logging.info(f"{channel_metadata=}")
 
-    # Use that enumeration data to instantiate a data receiver object
-    hololink_channel = hololink_module.DataChannel(channel_metadata)
+        # Use that enumeration data to instantiate a data receiver object
+        hololink_channel = hololink_module.DataChannel(channel_metadata)
 
-    # Now that we can communicate, create the camera controller
-    camera = hololink_module.sensors.imx274.dual_imx274.Imx274Cam(
-        hololink_channel, expander_configuration=args.expander_configuration
-    )
-    camera_mode = hololink_module.sensors.imx274.imx274_mode.Imx274_Mode(args.camera_mode)
+        # Now that we can communicate, create the camera controller
+        camera = hololink_module.sensors.imx274.dual_imx274.Imx274Cam(
+            hololink_channel, expander_configuration=args.expander_configuration
+        )
+        camera_mode = hololink_module.sensors.imx274.imx274_mode.Imx274_Mode(args.camera_mode)
 
-    # Set up our Holoscan pipeline
-    application = Workflow(
-        args.headless,
-        args.fullscreen,
-        cu_context,
-        cu_device_ordinal,
-        hololink_channel,
-        args.ibv_name,
-        args.ibv_port,
-        camera,
-        camera_mode,
-        args.frame_limit,
-        source=args.source,
-        data=args.data,
-    )
-    application.config(args.config)
+        if args.ibv_name is None:
+            args.ibv_name = hololink_module.infiniband_devices()[0]
 
-    # Connect and initialize the sensor bridge device
-    hololink = hololink_channel.hololink()
-    hololink.start()  # Establish a connection to the sensor bridge device
-    if not args.skip_reset:
-        hololink.reset()  # Drive the sensor bridge to a known state
-    if args.ptp_sync:
-        ptp_sync_timeout_s = 10
-        ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
-        logging.debug("Waiting for PTP sync.")
-        if not hololink.ptp_synchronize(ptp_sync_timeout):
-            logging.error(f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring.")
-        else:
-            logging.debug("PTP synchronized.")
+        # __________________________________________________________________
+        # Set up our Holoscan pipeline
+        application = RealTimeAISurgicalVideoProcessingWorkflow(
+            source=args.source,
+            data=args.data,
+            headless=args.headless,
+            fullscreen=args.fullscreen,
+            cuda_context=cu_context,
+            cuda_device_ordinal=cu_device_ordinal,
+            hololink_channel=hololink_channel,
+            ibv_name=args.ibv_name,
+            ibv_port=args.ibv_port,
+            camera=camera,
+            camera_mode=camera_mode,
+            frame_limit=args.frame_limit,
+        )
+        application.config(args.config)
 
-    # Configure the camera for 4k at 60 frames per second
-    if not args.skip_reset:
-        camera.setup_clock()
-    camera.configure(camera_mode)
-    camera.set_digital_gain_reg(0x4)
-    if args.pattern is not None:
-        camera.test_pattern(args.pattern)
+        # Connect and initialize the sensor bridge device
+        hololink = hololink_channel.hololink()
+        hololink.start()  # Establish a connection to the sensor bridge device
+        if not args.skip_reset:
+            hololink.reset()  # Drive the sensor bridge to a known state
+        if args.ptp_sync:
+            ptp_sync_timeout_s = 10
+            ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
+            logging.debug("Waiting for PTP sync.")
+            if not hololink.ptp_synchronize(ptp_sync_timeout):
+                logging.error(f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring.")
+            else:
+                logging.debug("PTP synchronized.")
 
-    # Run our Holoscan pipeline
-    logging.info("Calling run")
-    application.run()  # we don't usually return from this call.
-    hololink.stop()
-    cuda.cuDevicePrimaryCtxRelease(cu_device)
+        # Configure the camera for 4k at 60 frames per second
+        if not args.skip_reset:
+            camera.setup_clock()
+        camera.configure(camera_mode)
+        camera.set_digital_gain_reg(0x4)
+        if args.pattern is not None:
+            camera.test_pattern(args.pattern)
+
+        # __________________________________________________________________
+        # Run our Holoscan pipeline
+        logging.info("Calling run")
+        application.run()  # we don't usually return from this call.
+
+        # __________________________________________________________________
+        # Clean up the sensor bridge device
+        hololink.stop()
+        cuda.cuDevicePrimaryCtxRelease(cu_device)
+
+    else:
+        application = RealTimeAISurgicalVideoProcessingWorkflow(
+            source=args.source,
+            data=args.data,
+            headless=args.headless,
+            fullscreen=args.fullscreen,
+            frame_limit=args.frame_limit,
+        )
+        application.config(args.config)
+        application.run()
 
 
 if __name__ == "__main__":
@@ -720,17 +749,14 @@ if __name__ == "__main__":
         "--data",
         help="Set the path the data directory. If not provided, use the HOLOHUB_DATA_PATH environment variable.",
     )
-    modes = hololink_module.sensors.imx274.imx274_mode.Imx274_Mode
-    mode_choices = [mode.value for mode in modes]
+    parser.add_argument("--headless", action="store_true", help="Run in headless mode")
+    parser.add_argument("--fullscreen", action="store_true", help="Run in fullscreen mode")
     parser.add_argument(
         "--camera-mode",
         type=int,
-        choices=mode_choices,
-        default=mode_choices[0],
-        help=" ".join([f"{mode.value}:{mode.name}" for mode in modes]),
+        default=0,
+        help="Camera mode to use [0,1,2,3]",
     )
-    parser.add_argument("--headless", action="store_true", help="Run in headless mode")
-    parser.add_argument("--fullscreen", action="store_true", help="Run in fullscreen mode")
     parser.add_argument(
         "--frame-limit",
         type=int,
@@ -748,10 +774,8 @@ if __name__ == "__main__":
         default=20,
         help="Logging level to display",
     )
-    infiniband_devices = hololink_module.infiniband_devices()
     parser.add_argument(
         "--ibv-name",
-        default=hololink_module.infiniband_devices()[0],
         help="IBV device to use",
     )
     parser.add_argument(
