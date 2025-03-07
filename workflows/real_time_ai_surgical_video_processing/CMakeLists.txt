@@ -22,9 +22,6 @@ add_custom_target(real_time_ai_surgical_video_processing
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Make sure Python interpreter is found
-find_package(Python3 COMPONENTS Interpreter REQUIRED)
-
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 

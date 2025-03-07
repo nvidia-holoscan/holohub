@@ -3,7 +3,7 @@
   "$id": "holohub/workflow/v1",
   "type": "object",
   "properties": {
-    "workflow": {
+    "application": {
       "type": "object",
       "properties": {
         "name": {
@@ -65,7 +65,7 @@
   "oneOf": [
     {
         "required": [
-            "workflow"
+            "application"
         ]
     },
     {
