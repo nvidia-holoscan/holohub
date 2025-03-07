@@ -47,7 +47,7 @@ The directory specified by `--data` at app runtime is assumed to contain three s
 The workflow requires the use of the Holoscan Sensor Bridge. Thus you need a Holoscan Sensor Bridge container, which can be built using the following command:
 
 ```sh
-git clone https://github.com/NVIDIA/holoscan-sensor-bridge.git
+git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 cd holoscan-sensor-bridge
 ./docker/build.sh
 ```

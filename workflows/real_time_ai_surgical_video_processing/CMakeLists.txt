@@ -15,13 +15,6 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(real_time_ai_surgical_video_processing_workflow LANGUAGES NONE)
-
-# Create a custom target that runs the Python script
-add_custom_target(real_time_ai_surgical_video_processing
-    COMMAND Python3::Interpreter ${CMAKE_CURRENT_SOURCE_DIR}/python/main.py
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
