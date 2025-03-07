@@ -116,7 +116,7 @@ The application accepts the following command line arguments:
 - `-s, --source`: Source of video input. Options are:
   - `replayer`: Use prerecorded video from the endoscopy dataset
   - `aja`: Use an AJA capture card as the source
-  - `hsb`: Use the Holoscan Sensor Bridge as the sourcee
+  - `hsb`: Use the Holoscan Sensor Bridge as the source
   Default: `replayer`
 
 - `-c, --config`: Path to a custom configuration file
