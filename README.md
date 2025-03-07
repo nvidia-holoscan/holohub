@@ -86,13 +86,13 @@ The easiest way to build and run Holohub applications is to use the `./dev_conta
 $ ./dev_container build_and_run <application_name>
 ```
 
-If you want need to use a specific based image for the application, you can use the `--base_img` option.
+If you want to use a specific based image for the application, you can use the `--base_img` option.
 
 ```sh
 $ ./dev_container build_and_run --base_img <base_image> <application_name>
 ```
 
-> **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires specific configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
+> **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires manual configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
 
 If you want a more detailed command to build and run a specific application, please follow the instructions below.
 
