@@ -185,6 +185,10 @@
          <lastmod>2025-03-07</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/</loc>
+         <lastmod>2025-03-07</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/cpp/</loc>
          <lastmod>2025-03-07</lastmod>
     </url>
