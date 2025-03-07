@@ -16,12 +16,10 @@
 import ctypes
 import logging
 import os
+import sys
 from argparse import ArgumentParser
 
 import cupy as cp
-import hololink as hololink_module
-import cuda
-
 from holoscan.conditions import BooleanCondition, CountCondition
 from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.operators import (
@@ -34,6 +32,12 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, UnboundedAllocator
 
 from holohub.aja_source import AJASourceOp
+
+sys.path.append("../../..")
+from holohub.utilities.import_utils import lazy_import
+
+cuda = lazy_import("cuda.cuda")
+hololink_module = lazy_import("hololink")
 
 
 class AggregatorOp(Operator):
@@ -645,14 +649,12 @@ def main(args):
         # Get handles to GPU
         cuda.cuInit(0)
         cu_device_ordinal = 0
-        cu_device = cuda.cuDeviceGet(cu_device_ordinal)
-        cu_context = cuda.cuDevicePrimaryCtxRetain(cu_device)
+        _, cu_device = cuda.cuDeviceGet(cu_device_ordinal)
+        _, cu_context = cuda.cuDevicePrimaryCtxRetain(cu_device)
 
-        # Look for sensor bridge enumeration messages; return only the one we're looking for
+        # Get a handle to the data source
         channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
         logging.info(f"{channel_metadata=}")
-
-        # Use that enumeration data to instantiate a data receiver object
         hololink_channel = hololink_module.DataChannel(channel_metadata)
 
         # Now that we can communicate, create the camera controller
@@ -661,6 +663,7 @@ def main(args):
         )
         camera_mode = hololink_module.sensors.imx274.imx274_mode.Imx274_Mode(args.camera_mode)
 
+        # If the InfiniBand device is not specified, use the first available InfiniBand device
         if args.ibv_name is None:
             args.ibv_name = hololink_module.infiniband_devices()[0]
 
@@ -682,6 +685,7 @@ def main(args):
         )
         application.config(args.config)
 
+        # __________________________________________________________________
         # Connect and initialize the sensor bridge device
         hololink = hololink_channel.hololink()
         hololink.start()  # Establish a connection to the sensor bridge device
@@ -696,7 +700,8 @@ def main(args):
             else:
                 logging.debug("PTP synchronized.")
 
-        # Configure the camera for 4k at 60 frames per second
+        # __________________________________________________________________
+        # Configure the camera
         if not args.skip_reset:
             camera.setup_clock()
         camera.configure(camera_mode)
