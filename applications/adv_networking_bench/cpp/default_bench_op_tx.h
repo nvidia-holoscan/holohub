@@ -79,8 +79,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
-    // port_id_ = adv_net_address_to_port(address_.get());
-    port_id_ = 0;
+    port_id_ = adv_net_address_to_port(address_.get());
 
     size_t buf_size = batch_size_.get() * payload_size_.get();
     if (!gpu_direct_.get()) {
@@ -100,10 +99,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     inet_pton(AF_INET, ip_src_addr_.get().c_str(), &ip_src_);
     inet_pton(AF_INET, ip_dst_addr_.get().c_str(), &ip_dst_);
 
-    // ANO expects host order when setting
-    ip_src_ = ntohl(ip_src_);
-    ip_dst_ = ntohl(ip_dst_);
-
     if (gpu_direct_.get()) {
       for (int n = 0; n < num_concurrent; n++) {
         cudaMallocHost(&gpu_bufs[n], sizeof(uint8_t**) * batch_size_.get());
@@ -118,10 +113,14 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
     if (gpu_direct_.get() && hds_.get() == 0) {
+
       cudaMalloc(&gds_header_, header_size_.get());
       cudaMemset(gds_header_, 0, header_size_.get());
 
       populate_dummy_headers(pkt);
+      // ANO expects host order when setting
+      ip_src_ = ntohl(ip_src_);
+      ip_dst_ = ntohl(ip_dst_);
 
       // Copy the pre-made header to GPU
       cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
@@ -191,7 +190,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
     }
-
+    
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       if (!gpu_direct_.get() || hds_.get() > 0) {
