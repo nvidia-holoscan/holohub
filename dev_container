@@ -923,7 +923,7 @@ build_and_run() {
     local app_language=""
     local container_build_args=()
     local container_launch_args=""
-    local docker_opts="--entrypoint=bash"
+    local docker_opts="--entrypoint=bash "
     local build_app=1
     local image_name=""
     local docker_file=""
