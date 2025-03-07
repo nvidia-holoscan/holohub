@@ -230,7 +230,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   UDPIPV4Pkt pkt;
   void* pkt_header_;
   int cur_idx = 0;
-  uint16_t port_id_ = 0;
+  uint16_t port_id_;
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
   Parameter<uint16_t> payload_size_;
