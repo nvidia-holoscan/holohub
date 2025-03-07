@@ -160,7 +160,9 @@ class DeIdentificationOp(Operator):
         reshaped = image.reshape(small_h, self.block_size_h, small_w, self.block_size_w, -1)
         downsampled = cp.mean(reshaped, axis=(1, 3))
         # Repeat each pixel to upsample back to original size
-        upsampled = cp.repeat(cp.repeat(downsampled, self.block_size_h, axis=0), self.block_size_w, axis=1)
+        upsampled = cp.repeat(
+            cp.repeat(downsampled, self.block_size_h, axis=0), self.block_size_w, axis=1
+        )
         # Ensure output matches input dimensions and type
         image = upsampled[:h, :w]
         image = image.astype(cp.uint8)
@@ -241,7 +243,9 @@ class DetectionPostprocessorOp(Operator):
 
         return filtered_bboxes, filtered_labels, has_rect
 
-    def _process_with_labels(self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool):
+    def _process_with_labels(
+        self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool
+    ):
         """Process detections when label dictionary is provided.
 
         Args:
@@ -253,7 +257,9 @@ class DetectionPostprocessorOp(Operator):
             Dict of bbox coordinates and text coordinates per label
         """
         bbox_coords = {label: cp.zeros([1, 2, 2], dtype=cp.float32) for label in self.label_dict}
-        text_coords = {label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict}
+        text_coords = {
+            label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict
+        }
 
         if has_rect:
             for label in self.label_dict:
@@ -278,7 +284,9 @@ class DetectionPostprocessorOp(Operator):
         inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
 
         # Process and filter detections
-        bboxes, labels, has_rect = self._process_detections(inferred_bboxes, inferred_scores, inferred_labels)
+        bboxes, labels, has_rect = self._process_detections(
+            inferred_bboxes, inferred_scores, inferred_labels
+        )
 
         # Prepare output message
         out_message = {}
@@ -291,7 +299,11 @@ class DetectionPostprocessorOp(Operator):
                 out_message[f"label{label}"] = text_coords[label]
         else:
             # Single category output
-            bbox_coords = cp.reshape(bboxes, (1, -1, 2)) if has_rect else cp.zeros([1, 2, 2], dtype=cp.float32)
+            bbox_coords = (
+                cp.reshape(bboxes, (1, -1, 2))
+                if has_rect
+                else cp.zeros([1, 2, 2], dtype=cp.float32)
+            )
             out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
@@ -378,7 +390,9 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
                 name="pool",
                 # storage_type of 1 is device memory
                 storage_type=1,
-                block_size=self._camera._width * ctypes.sizeof(ctypes.c_uint16) * self._camera._height,
+                block_size=self._camera._width
+                * ctypes.sizeof(ctypes.c_uint16)
+                * self._camera._height,
                 num_blocks=2,
             )
             hsb_csi_to_bayer = hololink_module.operators.CsiToBayerOp(
@@ -443,9 +457,13 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
                 interpolation_mode=0,
             )
 
-            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(self, name="image_shift", shift=8)
+            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(
+                self, name="image_shift", shift=8
+            )
         else:
-            raise ValueError(f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}.")
+            raise ValueError(
+                f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}."
+            )
 
         # ------------------------------------------------------------------------------------------
         # Out of Body Detection
@@ -461,9 +479,13 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # Inference: Out of body detection
         inference_kwargs = self.kwargs("out_of_body_inference")
         inference_kwargs["model_path_map"] = {
-            "out_of_body": os.path.join(self.data_dir, "endoscopy_out_of_body_detection", "out_of_body_detection.onnx")
+            "out_of_body": os.path.join(
+                self.data_dir, "endoscopy_out_of_body_detection", "out_of_body_detection.onnx"
+            )
         }
-        out_of_body_inference = InferenceOp(self, name="out_of_body_inference", allocator=pool, **inference_kwargs)
+        out_of_body_inference = InferenceOp(
+            self, name="out_of_body_inference", allocator=pool, **inference_kwargs
+        )
         # Postprocessor: postprocesses the out of body inference output to a decision
         out_of_body_postprocessor = OutOfBodyPostprocessorOp(
             self, name="out_of_body_postprocessor", **self.kwargs("out_of_body_postprocessor")
@@ -538,12 +560,18 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
                 # Make text label a list
                 text = [label_info["text"]]
                 # Add rectangle tensor
-                holoviz_tensors.append({"name": f"rectangles{label}", "color": color, **rectangle_defaults})
+                holoviz_tensors.append(
+                    {"name": f"rectangles{label}", "color": color, **rectangle_defaults}
+                )
                 # Add text label tensor
-                holoviz_tensors.append({"name": f"label{label}", "color": color, "text": text, **text_defaults})
+                holoviz_tensors.append(
+                    {"name": f"label{label}", "color": color, "text": text, **text_defaults}
+                )
         else:
             # Add default red rectangle tensor if no labels
-            holoviz_tensors.append({**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]})
+            holoviz_tensors.append(
+                {**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]}
+            )
         # Holoviz operators for visualization
         holoviz_delegate = ForwardOp(self, name="holoviz_delegate_op")
         holoviz = HolovizOp(
@@ -696,7 +724,9 @@ def main(args):
             ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
             logging.debug("Waiting for PTP sync.")
             if not hololink.ptp_synchronize(ptp_sync_timeout):
-                logging.error(f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring.")
+                logging.error(
+                    f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring."
+                )
             else:
                 logging.debug("PTP synchronized.")
 

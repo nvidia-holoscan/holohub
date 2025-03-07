@@ -1,11 +1,12 @@
 import importlib
 from typing import Any, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class LazyRaise:
     """A proxy object that raises the stored exception when accessed."""
-    
+
     def __init__(self, exception: Exception):
         self._exception = exception
 
@@ -25,10 +26,15 @@ class LazyRaise:
         """Raises the stored exception when iterated."""
         raise self._exception
 
+    def __repr__(self) -> str:
+        """Returns a string representation of the stored exception."""
+        return f"LazyRaise({self._exception})"
+
+
 def lazy_import(module_name: str) -> Any:
     """
     Import an optional module specified by module_name.
-    
+
     If the module cannot be imported, returns a proxy object that raises
     the ImportError when accessed.
 
