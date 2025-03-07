@@ -113,7 +113,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
     if (gpu_direct_.get() && hds_.get() == 0) {
-
       cudaMalloc(&gds_header_, header_size_.get());
       cudaMemset(gds_header_, 0, header_size_.get());
 
@@ -190,7 +189,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
     }
-    
+
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < adv_net_get_num_pkts(msg); num_pkt++) {
       if (!gpu_direct_.get() || hds_.get() > 0) {
