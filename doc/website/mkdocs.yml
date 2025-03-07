@@ -76,6 +76,12 @@ plugins:
       nav_file: SUMMARY.md
   - site-urls
 
+watch:
+  - ../holohub/applications
+  - ../holohub/operators
+  - ../holohub/tutorials
+  - ../holohub/benchmarks
+
 markdown_extensions:
   - attr_list
   - md_in_html
