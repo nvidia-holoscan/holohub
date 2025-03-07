@@ -2,7 +2,7 @@
 
 ## Overview
 
-In this workflow, we demonstrate a comprehensive real-time AI pipeline for surgical video processing that includes:
+In this workflow, we demonstrate a comprehensive real-time AI surgical video processing workflow that includes:
 
 1. Out-of-body detection to determine if the endoscope is inside or outside the patient
 2. Dynamic flow condition based on out-of-body detection results:
@@ -42,50 +42,71 @@ Ensure you have installed the Holoscan SDK via one of the methods specified in [
 
 The directory specified by `--data` at app runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in [Model](#models) and [Data](#data): `endoscopy`, `endoscopy_out_of_body_detection`, `monai_tool_seg_model` and `ssd_model`. These resources will be automatically downloaded to the holohub data directory when building the application.
 
-## Building the application
+## Building the docker image for workflow (using Holoscan Sensor Bridge)
 
-The repo level build command
+The workflow requires the use of the Holoscan Sensor Bridge. Thus you need a Holoscan Sensor Bridge container, which can be built using the following command:
 
 ```sh
-./run build real_time_ai_surgical_video_processing
+git clone https://github.com/NVIDIA/holoscan-sensor-bridge.git
+cd holoscan-sensor-bridge
+./docker/build.sh
 ```
 
-will build the application.
+Once you have built the Holoscan Sensor Bridge container, you can build the holohub container using the following command:
+
+```sh
+./dev_container build --base_img hololink-demo:2.0.0 --img holohub:link
+```
+
+## Building the workflow
+
+First you need to run the holohub container:
+
+```sh
+./dev_container launch --img holohub:link 
+```
+
+Then, you can build the workflow using the following command:
+
+```sh
+./run build real_time_surgical_edge_ai
+```
 
 ## Running the application
 
-### Python App
+### Use holohub container from outside of the container
+
+Using the holohub container, you can run the workflow without building it again:
+
+```sh
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build real_time_surgical_edge_ai
+```
+
+However, if you want to build the workflow, you can just remove the `--no_build` flag:
+
+```sh
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_surgical_edge_ai
+```
+
+### Use holohub container from inside the container
+
+First you need to run the holohub container:
+
+```sh
+./dev_container launch --img holohub:link 
+```
 
 To run the Python application, you can make use of the run script
 
 ```sh
-./run launch real_time_ai_surgical_video_processing python
+./run launch real_time_surgical_edge_ai python
 ```
 
-Alternatively, to run this application, you'll need to configure your PYTHONPATH environment variable to locate the
-necessary python libraries based on your Holoscan SDK installation type.
-
-You should refer to the [glossary](../../README.md#Glossary) for the terms defining specific locations within HoloHub.
-
-If your Holoscan SDK installation type is:
-
-- python wheels:
-
-  ```bash
-  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
-  ```
-
-- otherwise:
-
-  ```bash
-  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-  ```
-
-Next, run the application:
+Alternatively, you can run the application directly:
 
 ```sh
-cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_ai_surgical_video_processing/python
-python3 main.py --data <DATA_DIR>
+cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_surgical_edge_ai/python
+python3 main.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 
 ### Command Line Arguments
@@ -95,6 +116,7 @@ The application accepts the following command line arguments:
 - `-s, --source`: Source of video input. Options are:
   - `replayer`: Use prerecorded video from the endoscopy dataset
   - `aja`: Use an AJA capture card as the source
+  - `hsb`: Use the Holoscan Sensor Bridge as the sourcee
   Default: `replayer`
 
 - `-c, --config`: Path to a custom configuration file
