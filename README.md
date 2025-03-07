@@ -30,7 +30,7 @@ The following directories make up the core of this repo:
   reusable Holoscan modules.
 - **Package configurations**: Visit [`pkg`](./pkg/) for a list of debian package to generate, to distribute operators and applications for easier development.
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
-- **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks and tools to evaluate the performance of Holoscan applications.
+- **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
 
 
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
@@ -92,7 +92,7 @@ If you want need to use a specific based image for the application, you can use 
 $ ./dev_container build_and_run --base_img <base_image> <application_name>
 ```
 
-> **NOTE:** The build_and_run command is not supported for all applications and operators, espectially applications that requires specific configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
+> **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires specific configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
 
 If you want a more detailed command to build and run a specific application, please follow the instructions below.
 
