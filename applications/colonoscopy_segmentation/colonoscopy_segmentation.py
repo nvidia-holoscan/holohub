@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import os
-from argparse import ArgumentParser
+import argparse
 
 import cupy as cp
 from cupyx.scipy import ndimage
@@ -73,7 +73,7 @@ class ContourOp(Operator):
 
 
 class ColonoscopyApp(Application):
-    def __init__(self, data, source="replayer"):
+    def __init__(self, data, source="replayer", contours=False):
         """Initialize the colonoscopy segmentation application
 
         Parameters
@@ -82,12 +82,15 @@ class ColonoscopyApp(Application):
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA
             capture card is used.
+        contours : bool
+            Show segmentation contours instead of mask (default: False).
         """
 
         super().__init__()
 
         # set name
         self.name = "Colonoscopy App"
+        self.contours = contours
 
         # Optional parameters affecting the graph created by compose.
         self.source = source
@@ -186,11 +189,12 @@ class ColonoscopyApp(Application):
             transmit_on_cuda=True,
         )
 
-        contour_op = ContourOp(
-            self,
-            name="contour_op",
-            pool=cuda_stream_pool,
-        )
+        if self.contours:
+            contour_op = ContourOp(
+                self,
+                name="contour_op",
+                pool=cuda_stream_pool,
+            )
 
         postprocessor_block_size = width_inference * height_inference
         postprocessor_num_blocks = 2
@@ -222,20 +226,20 @@ class ColonoscopyApp(Application):
             self.add_flow(source, segmentation_preprocessor)
         self.add_flow(segmentation_preprocessor, segmentation_inference, {("", "receivers")})
         self.add_flow(segmentation_inference, segmentation_postprocessor, {("transmitter", "")})
-
-        self.add_flow(segmentation_postprocessor, contour_op, {("", "in")})
-        self.add_flow(contour_op, segmentation_visualizer, {("out", "receivers")})
-
-        # self.add_flow(
-        #     segmentation_postprocessor,
-        #     segmentation_visualizer,
-        #     {("", "receivers")},
-        # )
+        if self.contours:
+            self.add_flow(segmentation_postprocessor, contour_op, {("", "in")})
+            self.add_flow(contour_op, segmentation_visualizer, {("out", "receivers")})
+        else:
+            self.add_flow(
+                segmentation_postprocessor,
+                segmentation_visualizer,
+                {("", "receivers")},
+            )
 
 
 if __name__ == "__main__":
     # Parse args
-    parser = ArgumentParser(description="Colonoscopy segmentation demo application.")
+    parser = argparse.ArgumentParser(description="Colonoscopy segmentation demo application.")
     parser.add_argument(
         "-s",
         "--source",
@@ -258,6 +262,12 @@ if __name__ == "__main__":
         default="none",
         help=("Set the data path"),
     )
+    parser.add_argument(
+        '--contours',
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help=("Show segmentation contours instead of mask (default: False)"),
+    )
     args = parser.parse_args()
 
     if args.config == "none":
@@ -265,6 +275,6 @@ if __name__ == "__main__":
     else:
         config_file = args.config
 
-    app = ColonoscopyApp(source=args.source, data=args.data)
+    app = ColonoscopyApp(source=args.source, data=args.data, contours=args.contours)
     app.config(config_file)
     app.run()
