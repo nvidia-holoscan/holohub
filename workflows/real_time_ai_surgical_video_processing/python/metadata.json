@@ -1,6 +1,6 @@
 {
-	"workflow": {
-		"name": "Real-Time Surgical Edge AI Workflow",
+	"application": {
+		"name": "Real-Time AI Surgical Video Processing Workflow",
 		"authors": [
 			{
 				"name": "Holoscan Team",
