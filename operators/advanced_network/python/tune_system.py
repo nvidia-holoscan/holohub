@@ -419,7 +419,7 @@ def check_nvidia_gpu_clocks():
             # around 100-300MHz. Having a check within 500MHz should be sufficient to catch this.
             if abs(sm_current - sm_max) > 500:
                 logging.warning(
-                    f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
+                    f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be within {sm_margin} MHz of the {sm_max} MHz theoretical Max."
                 )
             else:
                 logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_current} MHz.")
