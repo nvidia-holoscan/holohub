@@ -44,6 +44,7 @@ class ProjectType(Enum):
     APPLICATION = 0
     GXF_EXTENSION = 1
     OPERATOR = 2
+    WORKFLOW = 3
 
 
 @dataclass
@@ -68,9 +69,9 @@ class ProjectTypeData:
 
 project_type_data = [
     ProjectTypeData(ProjectType.APPLICATION, "applications", "application"),
-    ProjectTypeData(ProjectType.APPLICATION, "workflows", "workflow"),
     ProjectTypeData(ProjectType.GXF_EXTENSION, "gxf_extensions", "gxf_extension"),
     ProjectTypeData(ProjectType.OPERATOR, "operators", "operator"),
+    ProjectTypeData(ProjectType.WORKFLOW, "workflows", "workflow"),
 ]
 
 

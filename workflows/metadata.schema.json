@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holohub/application/v1",
+  "$id": "holohub/workflow/v1",
   "type": "object",
   "properties": {
-    "application": {
+    "workflow": {
       "type": "object",
       "properties": {
         "name": {
@@ -30,6 +30,9 @@
         "holoscan_sdk": {
           "$ref": "holohub/project/v1#/$defs/sdk_version"
         },
+        "holoscscan_sensor_bridge": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
         "ranking": {
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
@@ -51,6 +54,7 @@
         "platforms",
         "tags",
         "holoscan_sdk",
+        "holoscscan_sensor_bridge",
         "ranking",
         "dependencies"
       ]
@@ -59,11 +63,6 @@
     "$ref": "holohub/gxf_extension/v1#/properties/gxf_extension"
   },
   "oneOf": [
-    {
-      "required": [
-          "workflow"
-      ]
-    },
     {
         "required": [
             "workflow"
