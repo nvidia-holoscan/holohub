@@ -70,7 +70,7 @@ advanced_network:
           batch_size: 10240
           output_port: "bench_rx_out"
           memory_regions:
-            - "Data_RX_CPU"
+            - "Data_RX_GPU"
         flows:
         - name: "ADC Samples"
           id: 2
