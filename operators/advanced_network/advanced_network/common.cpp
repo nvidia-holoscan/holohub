@@ -353,7 +353,11 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
-    tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+    try {
+      tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+    } catch (const std::exception& e) {
+      tmr.access_ = holoscan::ops::MEM_ACCESS_LOCAL;
+    }
     tmr.owned_ = mr["owned"].template as<bool>(true);
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing MemoryRegion: {}", e.what());
