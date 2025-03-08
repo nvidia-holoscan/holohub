@@ -15,6 +15,11 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(real_time_ai_surgical_video_processing_workflow LANGUAGES NONE)
+
+# Holoscan
+find_package(holoscan 3.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 

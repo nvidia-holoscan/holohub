@@ -14,4 +14,9 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
-add_holohub_application(real_time_ai_surgical_video_processing DEPENDS OPERATORS aja_source)
+set(HOLOSCAN_OPERATORS
+        aja_source
+        orsi_format_converter
+        orsi_segmentation_preprocessor
+)
+add_holohub_application(real_time_ai_surgical_video_processing DEPENDS OPERATORS ${HOLOSCAN_OPERATORS})
