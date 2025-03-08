@@ -106,7 +106,7 @@ Alternatively, you can run the application directly:
 
 ```sh
 cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_surgical_edge_ai/python
-python3 main.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
+python3 real_time_ai_surgical_video_processing.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 
 ### Command Line Arguments
