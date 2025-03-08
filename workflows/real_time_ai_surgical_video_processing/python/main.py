@@ -32,6 +32,8 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, UnboundedAllocator
 
 from holohub.aja_source import AJASourceOp
+from holohub.orsi_format_converter import OrsiFormatConverterOp
+from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
 
 sys.path.append("../../..")
 from holohub.utilities.import_utils import lazy_import
@@ -89,10 +91,6 @@ class ConditionOp(Operator):
         # Receive the decision and update the decision attribute
         decision_message = op_input.receive("decision")
         self.decision = decision_message["decision"]
-        if self.decision:
-            print("**** Outside Body ****")
-        else:
-            print("**** Inside Body ****")
         # Forward the input to the output
         op_output.emit(in_message, "out")
 
@@ -120,7 +118,7 @@ class OutOfBodyPostprocessorOp(Operator):
     def compute(self, op_input, op_output, context):
         in_message = op_input.receive("in")
         out_of_body_inferred = cp.array(in_message[self.in_tensor_name])
-        is_out_of_body = cp.argmax(out_of_body_inferred).item() == 1
+        is_out_of_body = out_of_body_inferred.item() > 1
         out_message = {self.out_tensor_name: is_out_of_body}
         op_output.emit(out_message, "out")
 
@@ -277,8 +275,8 @@ class DetectionPostprocessorOp(Operator):
         in_message = op_input.receive("in")
 
         # Get detection outputs
-        num_detections = cp.asarray(in_message.get("inference_output_num_detections")).get()
-        print(f"num_detections: {num_detections}")
+        # num_detections = cp.asarray(in_message.get("inference_output_num_detections")).get()
+        # print(f"num_detections: {num_detections}")
         inferred_bboxes = cp.asarray(in_message["inference_output_detection_boxes"]).get()
         inferred_scores = cp.asarray(in_message["inference_output_detection_scores"]).get()
         inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
@@ -469,22 +467,29 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # Out of Body Detection
         # ------------------------------------------------------------------------------------------
         # Preprocessor: ensures correct format for inference
-        out_of_body_preprocessor = FormatConverterOp(
+        # Orsi operators
+        out_of_body_format_converter = OrsiFormatConverterOp(
             self,
-            name="out_of_body_preprocessor",
-            pool=pool,
-            in_dtype=in_dtype,
-            **self.kwargs("out_of_body_preprocessor"),
+            name="out_of_body_format_converter",
+            allocator=pool,
+            **self.kwargs("out_of_body_format_converter"),
         )
-        # Inference: Out of body detection
-        inference_kwargs = self.kwargs("out_of_body_inference")
-        inference_kwargs["model_path_map"] = {
-            "out_of_body": os.path.join(
-                self.data_dir, "endoscopy_out_of_body_detection", "out_of_body_detection.onnx"
-            )
-        }
+        out_of_body_normalizer = OrsiSegmentationPreprocessorOp(
+            self,
+            name="out_of_body_normalizer",
+            allocator=pool,
+            **self.kwargs("out_of_body_normalizer"),
+        )
         out_of_body_inference = InferenceOp(
-            self, name="out_of_body_inference", allocator=pool, **inference_kwargs
+            self,
+            name="out_of_body_inference",
+            allocator=pool,
+            model_path_map={
+                "out_of_body": os.path.join(
+                    self.data_dir, "orsi", "models", "anonymization_model.onnx"
+                )
+            },
+            **self.kwargs("out_of_body_inference"),
         )
         # Postprocessor: postprocesses the out of body inference output to a decision
         out_of_body_postprocessor = OutOfBodyPostprocessorOp(
@@ -634,8 +639,9 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # __________________________________________________________________
         # Main Branch
         # Out of body detection application
-        self.add_flow(source, out_of_body_preprocessor)
-        self.add_flow(out_of_body_preprocessor, out_of_body_inference, {("", "receivers")})
+        self.add_flow(source, out_of_body_format_converter)
+        self.add_flow(out_of_body_format_converter, out_of_body_normalizer)
+        self.add_flow(out_of_body_normalizer, out_of_body_inference, {("", "receivers")})
         self.add_flow(out_of_body_inference, out_of_body_postprocessor, {("transmitter", "in")})
         # Feed the source and out of body detection decision to the conditional operator
         self.add_flow(out_of_body_postprocessor, condition, {("out", "decision")})

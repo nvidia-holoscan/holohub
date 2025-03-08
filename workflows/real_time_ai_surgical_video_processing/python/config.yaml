@@ -16,7 +16,7 @@
 ---
 replayer: # VideoStreamReplayer
   basename: "anonymization"
-  frame_rate: 30 # as specified in timestamps
+  frame_rate: 60 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
@@ -28,25 +28,30 @@ aja: # AJASourceOp
   rdma: true
   enable_overlay: false
 
-out_of_body_preprocessor:
-  out_tensor_name: out_of_body_preprocessed
+out_of_body_format_converter:
+  out_tensor_name: source_video
   out_dtype: "float32"
-  resize_width: 256
-  resize_height: 256
+  src_roi_rect: [328, 36, 1264, 1008]
+  output_img_size: [224, 224]
+
+out_of_body_normalizer:
+  in_tensor_name: source_video
+  out_tensor_name: out_of_body_preprocessed
+  data_format: hwc
+  normalize_means: [0.485, 0.456, 0.406]
+  normalize_stds: [0.229, 0.224, 0.225]
 
 out_of_body_inference:
   backend: "trt"
-  model_path_map:
-    "out_of_body": "out_of_body_detection.onnx"
   pre_processor_map:
     "out_of_body": ["out_of_body_preprocessed"]
   inference_map:
     "out_of_body": ["out_of_body_inferred"]
   in_tensor_names: ["out_of_body_preprocessed"]
   out_tensor_names: ["out_of_body_inferred"]
+  enable_fp16: true
   parallel_inference: false
   infer_on_cpu: false
-  enable_fp16: false
   input_on_cuda: true
   output_on_cuda: true
   transmit_on_cuda: true
