@@ -37,15 +37,11 @@ advanced_network:
     - name: "Data_RX_CPU"
       kind: "huge"
       affinity: 0
-      access:
-        - local
       num_bufs: 30720
       buf_size: 64
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 30720
       buf_size: 1064
 
