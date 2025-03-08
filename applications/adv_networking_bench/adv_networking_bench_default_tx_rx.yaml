@@ -38,15 +38,11 @@ advanced_network:
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
       buf_size: 9000
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
       buf_size: 9000
 

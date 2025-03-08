@@ -37,8 +37,6 @@ advanced_network:
     - name: "Data_TX_CPU"
       kind: "huge"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
       buf_size: 1064
 
