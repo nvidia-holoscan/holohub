@@ -284,12 +284,14 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
     for (const YAML::Node& node : yaml_nodes) {
       const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
       for (const auto& intf : intfs) {
-        const auto& intf_dir = intf[dir];
-        for (const auto& dir_item : intf_dir) {
-          for (const auto& q_item : dir_item["queues"]) {
+        try {
+          const auto& intf_dir = intf[dir];
+          for (const auto& q_item : intf_dir["queues"]) {
             auto out_port_name = q_item["output_port"].as<std::string>(default_output_name);
             output_ports.insert(out_port_name);
           }
+        } catch (const std::exception& e) {
+          continue;  // No queues defined for this direction
         }
       }
     }
@@ -349,7 +351,11 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
-    tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+    try {
+      tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+    } catch (const std::exception& e) {
+      tmr.access_ = holoscan::ops::MEM_ACCESS_LOCAL;
+    }
     tmr.owned_ = mr["owned"].template as<bool>(true);
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing MemoryRegion: {}", e.what());
