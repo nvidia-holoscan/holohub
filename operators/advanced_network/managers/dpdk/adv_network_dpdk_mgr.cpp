@@ -325,7 +325,6 @@ void DpdkMgr::create_dummy_rx_q() {
 
 void DpdkMgr::initialize() {
   int ret;
-  uint16_t portid;
 
   static struct rte_eth_conf conf_eth_port = {
       .rxmode = {
@@ -342,9 +341,6 @@ void DpdkMgr::initialize() {
   };
 
   for (auto& conf : local_port_conf) { conf = conf_eth_port; }
-
-  // Initialize the mapping to determine how many RX queues per core
-  this->init_rx_core_q_map();
 
   /* Initialize DPDK params */
   constexpr int max_nargs = 32;
@@ -407,9 +403,22 @@ void DpdkMgr::initialize() {
     return;
   }
 
+  // Set up the port IDs to map to DPDK port IDs
+  for (auto& intf : cfg_.ifs_) {
+    if (rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_) < 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_);
+      return;
+    } else {
+      HOLOSCAN_LOG_INFO("Port {} found for {}", intf.port_id_, intf.name_);
+    }
+  }
+
   for (int i = 0; i < num_ports; i++) {
     rte_eth_macaddr_get(i, &mac_addrs[i]);
   }
+
+  // Initialize the mapping to determine how many RX queues per core
+  this->init_rx_core_q_map();
 
   create_dummy_rx_q();
 
@@ -692,7 +701,7 @@ void DpdkMgr::initialize() {
 
     rte_eth_macaddr_get(intf.port_id_, &conf_ports_eth_addr[intf.port_id_]);
 
-    if (intf.flow_isolation_) {
+    if (intf.rx_.flow_isolation_) {
       struct rte_flow_error error;
       ret = rte_flow_isolate(intf.port_id_, 1, &error);
       if (ret < 0) {
@@ -757,7 +766,7 @@ void DpdkMgr::initialize() {
       }
     }
 
-    if (!intf.flow_isolation_) {
+    if (!intf.rx_.flow_isolation_) {
       HOLOSCAN_LOG_INFO("Enabling promiscuous mode for port {}", intf.port_id_);
       rte_eth_promiscuous_enable(intf.port_id_);
     } else {
