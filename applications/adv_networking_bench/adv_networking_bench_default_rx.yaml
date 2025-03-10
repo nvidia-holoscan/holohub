@@ -60,8 +60,8 @@ advanced_network:
               type: queue
               id: 0
             match:
-              udp_src: 4096 #12288
-              udp_dst: 4096 #12288
+              udp_src: 4096
+              udp_dst: 4096
 
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
