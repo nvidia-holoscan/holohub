@@ -950,7 +950,7 @@ launch() {
    if [ "$is_workflow" = true ]; then
      holohub_app_bin="${holohub_app_bin/workflows/applications/}"
    fi
-   
+
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
@@ -963,7 +963,7 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-project_type = "benchmark" if "benchmark" in obj.keys() else "application"
+project_type = "benchmark" if "benchmark" in obj.keys() else "application" if "application" in obj.keys() else "workflow"
 for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')

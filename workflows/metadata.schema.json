@@ -3,7 +3,7 @@
   "$id": "holohub/workflow/v1",
   "type": "object",
   "properties": {
-    "application": {
+    "workflow": {
       "type": "object",
       "properties": {
         "name": {
