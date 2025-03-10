@@ -51,38 +51,38 @@ advanced_network:
       address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       flow_isolation: true
       rx:
-        - queues:
-          - name: "Data"
+        queues:
+        - name: "Data"
+          id: 0
+          cpu_core: 9
+          batch_size: 10240
+          output_port: "bench_rx_out"
+          memory_regions:
+            - "Data_RX_GPU"
+        - name: "Data"
+          id: 1
+          cpu_core: 9
+          batch_size: 10240
+          output_port: "bench_rx_out"
+          memory_regions:
+            - "Data_RX_GPU2"
+        flows:
+        - name: "ADC Samples"
+          id: 0
+          action:
+            type: queue
             id: 0
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU"
-          - name: "Data"
+          match:
+            udp_src: 4096 #12288
+            udp_dst: 4096 #12288
+        - name: "ADC Samples"
+          id: 1
+          action:
+            type: queue
             id: 1
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU2"              
-          flows:
-          - name: "ADC Samples"
-            id: 0
-            action:
-              type: queue
-              id: 0
-            match:
-              udp_src: 4096 #12288
-              udp_dst: 4096 #12288
-          - name: "ADC Samples"
-            id: 1
-            action:
-              type: queue
-              id: 1
-            match:
-              udp_src: 4095 #12288
-              udp_dst: 4095 #12288           
+          match:
+            udp_src: 4095 #12288
+            udp_dst: 4095 #12288
 
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
