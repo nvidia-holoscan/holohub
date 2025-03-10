@@ -66,7 +66,7 @@ RUN apt update \
     graphviz\
     ninja-build
 
-RUN pip install meson
+RUN pip install meson pygobject==3.50.0
 
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
