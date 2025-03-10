@@ -48,8 +48,8 @@ advanced_network:
     interfaces:
     - name: data2
       address: 0005:03:00.0
-      flow_isolation: true
       rx:
+        flow_isolation: true
         queues:
         - name: "Data"
           id: 0

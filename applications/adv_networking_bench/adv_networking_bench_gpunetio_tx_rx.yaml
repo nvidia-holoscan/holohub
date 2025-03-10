@@ -46,7 +46,6 @@ advanced_network:
     interfaces:
     - name: data1
       address: 0000:ca:00.0
-      flow_isolation: true
       tx:
         queues:
         - name: "ADC Samples"
@@ -58,6 +57,7 @@ advanced_network:
           offloads:
             - "tx_eth_src"
       rx:
+        flow_isolation: true
         queues:
         - name: "Data"
           id: 0
