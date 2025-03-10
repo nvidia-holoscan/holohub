@@ -542,13 +542,14 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
-          try {
-            ifcfg.flow_isolation_ = intf["flow_isolation"].as<bool>();
-          } catch (const std::exception& e) { ifcfg.flow_isolation_ = false; }
 
           try {
             const auto& rx = intf["rx"];
             holoscan::ops::AdvNetRxConfig rx_cfg;
+
+            try {
+              rx_cfg.flow_isolation_ = rx["flow_isolation"].as<bool>();
+            } catch (const std::exception& e) { rx_cfg.flow_isolation_ = false; }
 
             for (const auto& q_item : rx["queues"]) {
               holoscan::ops::RxQueueConfig q;

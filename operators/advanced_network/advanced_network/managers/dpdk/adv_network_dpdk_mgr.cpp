@@ -705,7 +705,7 @@ void DpdkMgr::initialize() {
 
     rte_eth_macaddr_get(intf.port_id_, &conf_ports_eth_addr[intf.port_id_]);
 
-    if (intf.flow_isolation_) {
+    if (intf.rx_.flow_isolation_) {
       struct rte_flow_error error;
       ret = rte_flow_isolate(intf.port_id_, 1, &error);
       if (ret < 0) {
@@ -770,7 +770,7 @@ void DpdkMgr::initialize() {
       }
     }
 
-    if (!intf.flow_isolation_) {
+    if (!intf.rx_.flow_isolation_) {
       HOLOSCAN_LOG_INFO("Enabling promiscuous mode for port {}", intf.port_id_);
       rte_eth_promiscuous_enable(intf.port_id_);
     } else {
