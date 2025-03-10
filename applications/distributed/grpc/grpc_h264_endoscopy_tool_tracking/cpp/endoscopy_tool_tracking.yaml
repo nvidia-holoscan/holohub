@@ -27,6 +27,7 @@ grpc_server:
 grpc_client:
   server_address: localhost:50051
   rpc_timeout: 5
+  interrupt: true
 
 scheduler:
   worker_thread_number: 8

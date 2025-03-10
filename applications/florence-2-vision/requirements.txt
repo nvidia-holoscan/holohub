@@ -1,7 +1,6 @@
 pillow==10.3.0
-torchvision==0.16
 timm==1.0.7
-einops==0.8.0
+einops
 transformers
 huggingface_hub[cli]
 PySide6

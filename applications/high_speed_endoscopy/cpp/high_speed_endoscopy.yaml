@@ -17,13 +17,12 @@
 extensions:
   - lib/gxf_extensions/libgxf_emergent_source.so
 
-# Modify the width/height and framerate for the camera used
-# Current is for Emergent HB-5000-SB
 emergent:
-  width: 2464
-  height: 2064
-  framerate: 240
-  rdma: true 
+  width: 4200
+  height: 2160
+  framerate: 30
+  rdma: true
+  exposure: 10000
 
 demosaic:
   generate_alpha: false
@@ -32,9 +31,8 @@ demosaic:
 
 holoviz:
   # display_name: DP-2
-  width: 2464
-  height: 2064
-  framerate: 240
-  #use_exclusive_display: true
+  width: 2560
+  height: 1440
+  # use_exclusive_display: true
   fullscreen: true
 

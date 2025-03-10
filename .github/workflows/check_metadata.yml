@@ -1,10 +1,14 @@
 name: Check metadata validity
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, holoscan-sdk-lws2]
 
 jobs:
   check-metadata:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository

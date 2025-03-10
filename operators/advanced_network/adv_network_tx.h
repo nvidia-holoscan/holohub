@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memory>
-#include "adv_network_common.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -40,6 +40,7 @@ class AdvNetworkOpTx : public Operator {
   int FreeBurst(AdvNetBurstParams* burst);
 
   // Holoscan functions
+  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 

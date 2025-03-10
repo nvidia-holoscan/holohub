@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@ class VolumeRendererOp : public Operator {
 
   void initialize() override;
   void start() override;
-  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 

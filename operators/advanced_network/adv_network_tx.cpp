@@ -16,7 +16,7 @@
  */
 
 #include "adv_network_tx.h"
-#include "adv_network_mgr.h"
+#include "advanced_network/manager.h"
 #include <memory>
 #include <assert.h>
 
@@ -35,6 +35,11 @@ void AdvNetworkOpTx::setup(OperatorSpec& spec) {
              "Configuration",
              "Configuration for the advanced network operator",
              AdvNetConfigYaml());
+}
+
+void AdvNetworkOpTx::stop() {
+  HOLOSCAN_LOG_INFO("AdvNetworkOpTx::stop()");
+  impl->mgr->shutdown();
 }
 
 void AdvNetworkOpTx::initialize() {

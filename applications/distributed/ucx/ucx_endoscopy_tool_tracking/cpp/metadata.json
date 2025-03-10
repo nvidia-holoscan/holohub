@@ -32,7 +32,7 @@
 			]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/ucx_endoscopy_tool_tracking",
+			"command": "<holohub_app_bin>/ucx_endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
 		}
 	}

@@ -22,13 +22,13 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 **If running local LLM**:
 - **GPU**: NVIDIA dGPU w/ >= 28 GB VRAM
 - **Memory**: \>= 28 GB of available disk memory
-  - Needed to download [fine-tuned Code Llama 34B](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/phind-codellama-34b-v2-q5_k_m) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
+  - Needed to download [fine-tuned Code Llama 34B](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
 
 *Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and [Dell Precision 5820 Workstation](https://www.dell.com/en-us/shop/desktop-computers/precision-5820-tower-workstation/spd/precision-5820-workstation/xctopt5820us) w/ RTX A6000
 
 ## Running HoloChat: 🏃💨
 **When running HoloChat, you have two LLM options:**
-- Local: Uses [Phind-CodeLlama-34B-v2]((https://huggingface.co/Phind/Phind-CodeLlama-34B-v2)) running on your local machine using Llama.cpp
+- Local: Uses [Phind-CodeLlama-34B-v2](https://huggingface.co/Phind/Phind-CodeLlama-34B-v2) running on your local machine using Llama.cpp
 - Remote: Uses [Llama-3-70b-Instruct](https://build.nvidia.com/meta/llama3-70b) using the [NVIDIA NIM API](https://build.nvidia.com/explore/discover)
 
 ### TLDR; 🥱
@@ -46,7 +46,7 @@ echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
 ### Build Notes: ⚙️
 
 **Build Time:**
-- HoloChat uses a [PyTorch container](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch) from [NGC](https://catalog.ngc.nvidia.com/?filters=&orderBy=weightPopularDESC&query=) and may also download the [~23 GB Phind LLM](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/phind-codellama-34b-v2-q5_k_m) from NGC. As such, the first time building this application **will likely take ~45 minutes** depending on your internet speeds. However, this is a one-time set-up and subsequent runs of HoloChat should take seconds to launch.
+- HoloChat uses a [PyTorch container](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch) from [NGC](https://catalog.ngc.nvidia.com/?filters=&orderBy=weightPopularDESC&query=) and may also download the [~23 GB Phind LLM](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) from HuggingFace. As such, the first time building this application **will likely take ~45 minutes** depending on your internet speeds. However, this is a one-time set-up and subsequent runs of HoloChat should take seconds to launch.
 
 **Build Location:**
 

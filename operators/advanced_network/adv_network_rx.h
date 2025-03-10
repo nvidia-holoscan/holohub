@@ -20,7 +20,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include "adv_network_common.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
 
@@ -50,6 +50,7 @@ class AdvNetworkOpRx : public Operator {
   int FreeBurst(AdvNetBurstParams* burst);
 
   // Holoscan functions
+  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 

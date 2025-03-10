@@ -16,7 +16,7 @@ but raw headers can also be constructed.
 #### Requirements
 
 - Linux
-- A DPDK-compatible network card. For GPUDirect only NVIDIA NICs are supported
+- An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described below
 - DPDK 22.11
 - MOFED 5.8-1.0.1.1 or later
@@ -91,10 +91,10 @@ To build and run the ANO Dockerfile with DOCA support, please follow the steps b
 ./operators/advanced_network/run_doca.sh
 
 # To build operator + app from main dir
-./run build adv_networking_bench --configure-args "-DANO_MGR=doca"
+./run build adv_networking_bench --configure-args "-DANO_MGR=gpunetio"
 
 # Run app
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_doca_tx_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
 ```
 
 <mark>Receiver side, CUDA Persistent kernel note</mark>
@@ -124,14 +124,14 @@ Frequently asked questions, customers product highlights, Video link and more ar
 While the Rivermax interface is abstracted away from users of the advanced network operator, the method in which Rivermax integrates with Holoscan
 is important for understanding how to achieve the highest performance and for debugging.
 
-When the advanced network operator is compiled/linked against a Holoscan application, an instance of the Rivermax manager is created, waiting to accept configuration. 
+When the advanced network operator is compiled/linked against a Holoscan application, an instance of the Rivermax manager is created, waiting to accept configuration.
 When either an RX or TX advanced network operator is defined in aHoloscan application, their configuration is sent to the Rivermax manager.
 Once all advanced network operators have initialized, the Rivermax manager is told to initialize Rivermax. At this point the NIC is configured using all parameters given by the operators.
-This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal threads. 
-The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible. 
+This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal threads.
+The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible.
 They act as a proxy between the advanced network operators and Rivermax by handling packets faster than the operators may be able to.
 
-To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above. 
+To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above.
 When the user receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU memory.
 This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
 Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.
@@ -188,18 +188,14 @@ sudo sh -c "echo nodev /mnt/huge hugetlbfs pagesize=1GB 0 0 >> /etc/fstab"
 ##### Linux Boot Command Line
 
 The Linux boot command line allows configuration to be injected into Linux before booting. Some configuration options are
-only available at the boot command since they must be provided before the kernel has started. On the Clara AGX and Orin IGX
+only available at the boot command since they must be provided before the kernel has started. On the Orin IGX
 editing the boot command can be done with the following configuration:
 
 ```
-sudo vim /boot/extlinux/extlinux.conf
+sudo vim /etc/default/grub
 # Find the line starting with APPEND and add the following
 
-# For Orin IGX:
 isolcpus=6-11 nohz_full=6-11 irqaffinity=0-5 rcu_nocbs=6-11 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
-
-# For Clara AGX:
-isolcpus=4-7 nohz_full=4=7 irqaffinity=0-3 rcu_nocbs=4-7 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
 ```
 
 The settings above isolate CPU cores 6-11 on the Orin and 4-7 on the Clara, and turn 1GB hugepages on.
@@ -229,7 +225,7 @@ can be done as part of the `docker run` command by adding the following flags:
 ```
 -v /mnt/huge:/mnt/huge \
 --privileged \
-```    
+```
 
 #### Configuration Parameters
 
@@ -270,7 +266,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   - type: `integer`
 
 ##### Interfaces
-- **`interfaces`**:  List and configure ethernet interfaces 
+- **`interfaces`**:  List and configure ethernet interfaces
 	full path: `cfg\interfaces\`
 	- **`name`**: Name of the interfaca
 	  - type: `string`
@@ -301,12 +297,16 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `string`
 	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
 		type: `list`
+	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
+  		- type: `integer`
 
 - **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
   type: `list`
   full path: `cfg\interfaces\[rx|tx]\flows`
 	- **`name`**: Name of the flow
 	  - type: `string`
+	- **`id`**: ID of the flow
+	  - type: `integer`
 	- **`action`**: Action section of flow (what happens. Currently only supports steering to a given queue)
 	  - type: `sequence`
 		- **`type`**: Type of action. Only `queue` is supported currently.
@@ -318,6 +318,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 		- **`udp_src`**: UDP source port
 	  	- type: `integer`
 		- **`udp_dst`**: UDP destination port
+	  	- type: `integer`
+		- **`ipv4_len`**: IPv4 payload length
 	  	- type: `integer`
 
 ##### Extended Receive Configuration for Rivermax manager
@@ -356,8 +358,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- default:`true`
 
 - Example of the Rivermax queue configuration for redundant stream using HDS and GPU
-  This example demonstrates receiving a redundant stream sent from a sender with source addresses 192.168.100.4 and 192.168.100.3. 
-  The stream is received via NIC which have local IP (same) 192.168.100.5 (listed twice, once per stream). 
+  This example demonstrates receiving a redundant stream sent from a sender with source addresses 192.168.100.4 and 192.168.100.3.
+  The stream is received via NIC which have local IP (same) 192.168.100.5 (listed twice, once per stream).
   The multicast addresses and UDP ports on which the stream is being received are 224.1.1.1:5001 and 224.1.1.2:5001
  The incoming packets are of size 1152 bytes. The initial 20 bytes are stripped from the payload as an  application header and placed in buffers allocated in RAM.
  The remaining 1132 bytes are placed in dedicated payload buffers.  In this case, the payload buffers are allocated in GPU 0 memory.
@@ -386,13 +388,13 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
           id: 1
           cpu_core: '11'
           batch_size: 4320
-          output_port: bench_rx_out_1    
+          output_port: bench_rx_out_1
           rmax_rx_settings:
             memory_registration: true
             max_path_diff_us: 100
             ext_seq_num: true
             sleep_between_operations_us: 100
-            memory_regions: 
+            memory_regions:
             - "Data_RX_CPU"
             - "Data_RX_GPU"
             local_ip_addresses:
@@ -409,7 +411,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
             - 50001
             rx_stats_period_report_ms: 3000
             send_packet_ext_info: true
-          
+
 ```
 
 ##### Transmit Configuration (tx)
@@ -458,7 +460,7 @@ As mentioned above, the `pkts` and `pkt_lens` fields are opaque and should not b
 
 #### Example API Usage
 
-For an entire list of API functions, please see the `adv_network_common.h` header file.
+For an entire list of API functions, please see the `advanced_network/common.h` header file.
 
 ##### Receive
 
@@ -513,7 +515,7 @@ change often.
 Similar to the receive, the transmit operator needs to connect to `burst_in` on the advanced network operator transmitter:
 
 ```
-auto my_transmitter  = make_operator<ops::MyTransmitter>("my_transmitter", from_config("my_transmitter"), make_condition<BooleanCondition>("is_alive", true));  
+auto my_transmitter  = make_operator<ops::MyTransmitter>("my_transmitter", from_config("my_transmitter"), make_condition<BooleanCondition>("is_alive", true));
 auto adv_net_tx       = make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("adv_network_common"), from_config("adv_network_tx"));
 add_flow(my_transmitter, adv_net_tx, {{"burst_out", "burst_in"}});
 ```

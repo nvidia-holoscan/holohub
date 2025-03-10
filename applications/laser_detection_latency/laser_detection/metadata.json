@@ -1,0 +1,51 @@
+{
+	"application": {
+		"name": "Laser detection",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.1.0",
+			"tested_versions": [
+				"2.2.0"
+			]
+		},
+		"platforms": [
+			"arm64"
+		],
+		"tags": [],
+		"ranking": 1,
+		"dependencies": {
+			"gxf_extensions": [
+				{
+					"name": "emergent_source",
+					"version": "1.0"
+				}
+			],
+			"hardware": [
+				{
+					"name": "USB Camera",
+					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
+					"required": true
+				},
+				{
+					"name": "EVT Camera",
+					"description": "This application requires an EVT camera as input.",
+					"required": true
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/laser_detection.py",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

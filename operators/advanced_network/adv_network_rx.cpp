@@ -16,7 +16,7 @@
  */
 
 #include "adv_network_rx.h"
-#include "adv_network_mgr.h"
+#include "advanced_network/manager.h"
 #include <memory>
 #include <assert.h>
 
@@ -40,6 +40,11 @@ void AdvNetworkOpRx::setup(OperatorSpec& spec) {
              "Configuration",
              "Configuration for the advanced network operator",
              AdvNetConfigYaml());
+}
+
+void AdvNetworkOpRx::stop() {
+  HOLOSCAN_LOG_INFO("AdvNetworkOpRx::stop()");
+  impl->mgr->shutdown();
 }
 
 void AdvNetworkOpRx::initialize() {
@@ -85,13 +90,8 @@ void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_o
 
   if (res != AdvNetStatus::SUCCESS) { return; }
 
-  auto adv_burst = std::make_shared<AdvNetBurstParams>();
-  memcpy(adv_burst.get(), burst, sizeof(*burst));
-
-  impl->mgr->free_rx_meta(burst);
-
-  const auto port_str = pq_map_[(adv_burst->hdr.hdr.port_id << 16) | adv_burst->hdr.hdr.q_id];
-  op_output.emit(adv_burst, port_str.c_str());
+  const auto port_str = pq_map_[(burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id];
+  op_output.emit(burst, port_str.c_str());
 }
 
 };  // namespace holoscan::ops

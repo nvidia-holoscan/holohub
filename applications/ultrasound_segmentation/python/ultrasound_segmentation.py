@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -26,6 +25,8 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+
+from holohub.aja_source import AJASourceOp
 
 
 class UltrasoundApp(Application):

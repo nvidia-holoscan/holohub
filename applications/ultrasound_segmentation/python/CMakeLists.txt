@@ -33,7 +33,6 @@ if(BUILD_TESTING)
 
   # Patch the current example to enable recording the rendering window
   add_custom_command(OUTPUT ultrasound_segmentation_test.py
-  PRE_LINK
   COMMAND patch -u -o ultrasound_segmentation_test.py ${CMAKE_CURRENT_SOURCE_DIR}/ultrasound_segmentation.py
       ${CMAKE_SOURCE_DIR}/applications/ultrasound_segmentation/testing/python_ultrasound_segmentation.patch
   COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" ultrasound_segmentation_test.py
@@ -51,7 +50,7 @@ if(BUILD_TESTING)
                    --data "${HOLOHUB_DATA_DIR}/ultrasound_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_property(TEST ultrasound_segmentation_python_test PROPERTY ENVIRONMENT
-               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(ultrasound_segmentation_python_test
                  PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"

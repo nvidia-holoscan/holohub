@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,8 @@
 set -e
 
 GIT_ROOT=$(readlink -f ./$(git rev-parse --show-cdup))
-APP_PATH="$GIT_ROOT/install/bin/endoscopy_tool_tracking/python"
+INSTALL_DIR="$GIT_ROOT/install"
+APP_PATH="$INSTALL_DIR/bin/endoscopy_tool_tracking/python"
 
 . $GIT_ROOT/utilities/bash_utils.sh
 
@@ -26,24 +27,17 @@ if [ ! -d $APP_PATH ]; then
     exit -1
 fi
 
-PLATFORM=x64-workstation
-GPU=$(get_host_gpu)
-if [ $(get_host_arch) == "aarch64" ]; then
-    PLATFORM=igx-orin-devkit
-fi
+PLATFORM=$(get_platform_example_for_cli)
 
-echo -e "Copying the required files to the application directory..."
-cp -rf "$GIT_ROOT/install/lib/." "$APP_PATH"
-cp -rf "$GIT_ROOT/install/lib/gxf_extensions/." "$APP_PATH"
-cp -rf "$GIT_ROOT/install/python/lib/holohub" "$APP_PATH"
+echo -e "Updating application configuration file..."
 sed -i 's|lib/gxf_extensions/||' "$APP_PATH/endoscopy_tool_tracking.yaml"
 echo -e "done\n"
 
 echo -e Install Holoscan CLI and then use the following commands to package and run the Endoscopy Tool Tracking application:
 echo -e "Package the application:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform [igx-orin-devkit | jetson-agx-orin-devkit | sbsa, x64-workstation] --platform-config [igpu | dgpu] -t holohub-endoscopy-tool-tracking-python $APP_PATH/endoscopy_tool_tracking.py --include onnx holoviz${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform [jetson | igx-igpu | igx-dgpu | sbsa | x86_64] -t holohub-endoscopy-tool-tracking-python --include onnx holoviz --add $INSTALL_DIR/lib/ --add $INSTALL_DIR/python/lib/ $APP_PATH/endoscopy_tool_tracking.py${NOCOLOR}"
 echo -e "\nFor example:"
-echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform ${PLATFORM} --platform-config ${GPU} -t holohub-endoscopy-tool-tracking-python $APP_PATH/endoscopy_tool_tracking.py --include onnx holoviz${NOCOLOR}"
+echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform ${PLATFORM}  -t holohub-endoscopy-tool-tracking-python --include onnx holoviz --add $INSTALL_DIR/lib/ --add $INSTALL_DIR/python/lib/ $APP_PATH/endoscopy_tool_tracking.py${NOCOLOR}"
 echo -e "\nRun the application:"
 echo -e "${YELLOW}holoscan run -r \$(docker images | grep "holohub-endoscopy-tool-tracking-python" | awk '{print \$1\":\"\$2}') -i $GIT_ROOT/data/endoscopy${NOCOLOR}"
 echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."

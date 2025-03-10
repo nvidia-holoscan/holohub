@@ -18,11 +18,11 @@
 #include "default_bench_op_rx.h"
 #include "default_bench_op_tx.h"
 #endif
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
 #include <sys/time.h>
@@ -66,7 +66,7 @@ class App : public holoscan::Application {
 #endif
 
     } else if (mgr_type == holoscan::ops::AnoMgrType::DOCA) {
-#if ANO_MGR_DOCA
+#if ANO_MGR_GPUNETIO
       if (rx_en) {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
-  holoscan::ops::adv_net_print_stats();
+
   holoscan::ops::adv_net_shutdown();
   return 0;
 }

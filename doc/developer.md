@@ -23,19 +23,22 @@ Install the package dependencies for HoloHub on your host system. The easiest wa
   sudo ./run setup
 ```
 
-If you prefer you can also install the dependencies manually:
+If you prefer you can also install the dependencies manually, typically including the following:
 - [CMake](https://www.cmake.org): 3.24.0+
-- Python interpreter: 3.8 to 3.11
-- Python dev: 3.8 to 3.11 (matching version of the interpreter)
+- Python interpreter: 3.9 to 3.12
+- Python dev: 3.9 to 3.12 (matching version of the interpreter)
 - ffmpeg runtime
 - [ngc-cli](https://ngc.nvidia.com/setup/installers/cli)
 - wget
-- CUDA: 11.6 or 11.8 (CUDA 12 is not supported yet)
-- libcudnn8
-- libcudnn8-dev
+- CUDA Toolkit: 12.6
+- libcudnn9-cuda-12
+- libcudnn9-dev-cuda-12
 - libnvinfer-dev
 - libnvinfer-plugin-dev
 - libnvonnxparsers-dev
+
+Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html) for the latest
+details on dependency versions and custom installation.
 
 *Note: the run script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
 

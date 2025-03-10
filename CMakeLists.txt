@@ -29,12 +29,18 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install" CACHE PATH "Installation directory" FORCE)
 endif()
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 # Enable Testing
 include(CTest)
 
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
+option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
@@ -43,10 +49,27 @@ if(FLOW_BENCHMARKING)
   file(MAKE_DIRECTORY "${FLOW_BENCHMARK_DIR}")
 endif()
 
+if(HOLOHUB_BUILD_PYTHON)
+  # Define and create a directory to store python operators under the holohub python module
+  if(NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR lib)
+  endif()
+  set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+endif()
+
 # Set the default data directory
 set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download directory")
 set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib:\$ORIGIN/../../lib:/opt/nvidia/holoscan/lib/")
+
+# Set the default CUDA target platforms
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "native")
+endif()
+
+# Build packaging
+add_subdirectory(pkg)
 
 # Build the applications
 add_subdirectory(applications)

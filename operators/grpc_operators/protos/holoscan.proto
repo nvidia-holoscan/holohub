@@ -27,12 +27,15 @@ message EntityRequest {
   Timestamp timestamp = 2;
   map<string, string> parameters = 3;
   map<string, Tensor> tensors = 4;
+  int64 frame_no = 5;
+  bool end_of_stream = 6;
 }
 
 message EntityResponse {
   Timestamp timestamp = 1;
   map<string, string> parameters = 2;
   map<string, Tensor> tensors = 3;
+  bool end_of_stream = 4;
 }
 
 message Timestamp {
@@ -50,12 +53,25 @@ message Tensor {
     kSystem = 2;
   }
   enum PrimitiveType {
-    kUnsigned8 = 0;
-    kUnsigned16 = 4;
-    kFloat32 = 9;
+    kCustom = 0;
+    kInt8 = 1;
+    kUnsigned8= 2;
+    kInt16 = 3;
+    kUnsigned16= 4;
+    kInt32 = 5;
+    kUnsigned32 = 6;
+    kInt64  = 7;
+    kUnsigned64 = 8;
+    kFloat32= 9;
+    kFloat64  = 10;
+    kComplex64  = 11;
+    kComplex128 = 12;
+    kFloat16  = 13;
   }
   PrimitiveType primitive_type = 1;
   MemoryStorageType memory_storage_type = 2;
-  repeated int32 dimensions = 3;
-  bytes data = 4;
+  string type_str = 3;
+  repeated int32 dimensions = 4;
+  repeated int32 strides = 5;
+  bytes data = 6;
 }
