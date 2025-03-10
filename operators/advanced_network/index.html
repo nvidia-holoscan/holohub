@@ -7960,7 +7960,7 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 <p>Starting from the top, the <code>hdr</code> field contains metadata about the batch of packets. The <code>pkts</code> array stores opaque pointers to packet memory locations (e.g., CPU or GPU) across multiple segments, and <code>pkt_lens</code> stores the lengths of these packets. <code>pkt_extra_info</code> contains additional metadata about each packet, and <code>event</code> is a CUDA event used for synchronization.</p>
 <p>As mentioned above, the <code>pkts</code> and <code>pkt_lens</code> fields are opaque and should not be accessed directly. Instead, refer to the helper functions in the next section for interacting with these fields to ensure compatibility with future versions.</p>
 <h4 id="example-api-usage">Example API Usage</h4>
-<p>For an entire list of API functions, please see the <code>adv_network_common.h</code> header file.</p>
+<p>For an entire list of API functions, please see the <code>advanced_network/common.h</code> header file.</p>
 <h5 id="receive">Receive</h5>
 <p>The section below describes a workflowusing GPUDirect to receive packets using header-data split. The job of the user's operator(s)
 is to process and free the buffers as quickly as possible. This might be copying to interim buffers or freeing before the entire
