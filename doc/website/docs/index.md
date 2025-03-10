@@ -4,7 +4,7 @@ hide:
   - footer
 ---
 
-**NVIDIA Holohub** is a central repository for the [NVIDIA Holoscan](https://www.nvidia.com/en-us/clara/holoscan/) AI sensor processing community 
+**Holoscan Reference Applications** is a central repository for the [NVIDIA Holoscan](https://www.nvidia.com/en-us/clara/holoscan/) AI sensor processing community 
 to share reference applications, operators, tutorials and benchmarks.
 The repository hosts a variety of applications that demonstrate how to use Holoscan for streaming, imaging, and other AI-driven tasks across embedded, edge, and cloud environments. These applications serve as reference implementations, providing developers with examples of best practices and efficient coding techniques to build high-performance, low-latency AI applications. The repository is open to contributions from the community, encouraging developers to share their own applications and extensions to enhance the Holoscan ecosystem.
 
