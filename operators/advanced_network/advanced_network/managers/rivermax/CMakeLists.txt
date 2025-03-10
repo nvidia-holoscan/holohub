@@ -18,7 +18,7 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 enable_language(CUDA)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(rmax_service)
 

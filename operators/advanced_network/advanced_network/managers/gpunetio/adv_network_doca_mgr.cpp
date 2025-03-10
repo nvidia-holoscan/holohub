@@ -24,6 +24,8 @@
 #include <set>
 #include <sys/time.h>
 #include <unistd.h>
+#include <thread>
+#include <unordered_map>
 #include "adv_network_doca_mgr.h"
 #include "adv_network_doca_kernels.h"
 #include "holoscan/holoscan.hpp"
