@@ -288,12 +288,14 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
     for (const YAML::Node& node : yaml_nodes) {
       const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
       for (const auto& intf : intfs) {
-        const auto& intf_dir = intf[dir];
-        for (const auto& dir_item : intf_dir) {
-          for (const auto& q_item : dir_item["queues"]) {
+        try {
+          const auto& intf_dir = intf[dir];
+          for (const auto& q_item : intf_dir["queues"]) {
             auto out_port_name = q_item["output_port"].as<std::string>(default_output_name);
             output_ports.insert(out_port_name);
           }
+        } catch (const std::exception& e) {
+          continue;  // No queues defined for this direction
         }
       }
     }

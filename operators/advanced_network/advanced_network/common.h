@@ -546,11 +546,11 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             ifcfg.flow_isolation_ = intf["flow_isolation"].as<bool>();
           } catch (const std::exception& e) { ifcfg.flow_isolation_ = false; }
 
-          const auto& rx = intf["rx"];
-          for (const auto& rx_item : rx) {
+          try {
+            const auto& rx = intf["rx"];
             holoscan::ops::AdvNetRxConfig rx_cfg;
 
-            for (const auto& q_item : rx_item["queues"]) {
+            for (const auto& q_item : rx["queues"]) {
               holoscan::ops::RxQueueConfig q;
               if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
@@ -564,7 +564,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
               rx_cfg.queues_.emplace_back(std::move(q));
             }
 
-            for (const auto& flow_item : rx_item["flows"]) {
+            for (const auto& flow_item : rx["flows"]) {
               holoscan::ops::FlowConfig flow;
               if (!parse_flow_config(flow_item, flow)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse FlowConfig");
@@ -574,17 +574,17 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             }
 
             ifcfg.rx_ = rx_cfg;
-          }
+          } catch (const std::exception& e) {}  // No RX queues defined for this interface.
 
-          const auto& tx = intf["tx"];
-          for (const auto& tx_item : tx) {
+          try {
+            const auto& tx = intf["tx"];
             holoscan::ops::AdvNetTxConfig tx_cfg;
 
             try {
-              tx_cfg.accurate_send_ = tx_item["accurate_send"].as<bool>();
+              tx_cfg.accurate_send_ = tx["accurate_send"].as<bool>();
             } catch (const std::exception& e) { tx_cfg.accurate_send_ = false; }
 
-            for (const auto& q_item : tx_item["queues"]) {
+            for (const auto& q_item : tx["queues"]) {
               holoscan::ops::TxQueueConfig q;
               if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse TxQueueConfig");
@@ -594,7 +594,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             }
 
             ifcfg.tx_ = tx_cfg;
-          }
+          } catch (const std::exception& e) {}  // No TX queues defined for this interface.
 
           input_spec.ifs_.push_back(ifcfg);
         }
