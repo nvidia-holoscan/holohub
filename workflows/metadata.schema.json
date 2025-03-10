@@ -77,6 +77,11 @@
       "required": [
           "gxf_extension"
       ]
+    },
+    {
+      "required": [
+          "workflow"
+      ]
     }
   ]
 }
