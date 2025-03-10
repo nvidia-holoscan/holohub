@@ -44,15 +44,15 @@ advanced_network:
     - name: data1
       address: 0005:03:00.0
       tx:
-        - queues:
-          - name: "ADC Samples"
-            id: 0
-            batch_size: 10240
-            cpu_core: 4
-            memory_regions:
-              - "Data_TX_CPU"
-            offloads:
-              - "tx_eth_src"
+        queues:
+        - name: "ADC Samples"
+          id: 0
+          batch_size: 10240
+          cpu_core: 4
+          memory_regions:
+            - "Data_TX_CPU"
+          offloads:
+            - "tx_eth_src"
 
 bench_tx:
   gpu_direct: false       # Set to true if using a GPU region for the Tx queues.
