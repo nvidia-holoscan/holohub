@@ -6450,6 +6450,8 @@
       
         
       
+        
+      
     
     
       
@@ -6614,6 +6616,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7086,27 +7110,27 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-<h1 id="high-rate-psd-operator">High Rate PSD Operator</h1>
-<h2 id="overview">Overview</h2>
+<h1 id="high-rate-psd-operator">High Rate PSD Operator<a class="headerlink" href="#high-rate-psd-operator" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>A thin wrapper over the MatX <a href="https://nvidia.github.io/MatX/api/math/misc/abs2.html"><code>abs2()</code></a>
 executor.</p>
-<h2 id="description">Description</h2>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The high rate PSD operator...
 - takes in a tensor of complex float data,
 - performs a squared absolute value operation on the tensor: real(t)^2 + imag(t)^2,
 - divides by the number of input elements
 - emits the resultant tensor</p>
-<h2 id="requirements">Requirements</h2>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://github.com/NVIDIA/MatX">MatX</a> (dependency)</li>
 </ul>
-<h2 id="example-usage">Example Usage</h2>
+<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
 <p>For an example of how to use this operator, see the
 <a href="../../applications/psd_pipeline"><code>psd_pipeline</code></a> application.</p>
-<h2 id="multiple-channels">Multiple Channels</h2>
+<h2 id="multiple-channels">Multiple Channels<a class="headerlink" href="#multiple-channels" title="Permanent link">&para;</a></h2>
 <p>The zero-indexed <code>channel_number</code> key will be looked up in <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#dynamic-application-metadata"><code>metadata()</code></a>
 on each <code>compute()</code> run. If no value is found, the default channel number is <code>0</code>.</p>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <p>The operator only takes the following parameters:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">high_rate_psd</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">burst_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1280</span>

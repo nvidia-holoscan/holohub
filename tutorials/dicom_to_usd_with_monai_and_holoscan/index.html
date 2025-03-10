@@ -6350,6 +6350,8 @@
       
         
       
+        
+      
     
     
       
@@ -6653,6 +6655,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7189,21 +7213,21 @@
 
 
 
-<h1 id="processing-dicom-to-usd-with-monai-deploy-and-holoscan"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/dicom_to_usd_with_monai_and_holoscan">Processing DICOM to USD with MONAI Deploy and Holoscan</a></h1>
+<h1 id="processing-dicom-to-usd-with-monai-deploy-and-holoscan"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/dicom_to_usd_with_monai_and_holoscan">Processing DICOM to USD with MONAI Deploy and Holoscan</a><a class="headerlink" href="#processing-dicom-to-usd-with-monai-deploy-and-holoscan" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Rahul Choudhury (NVIDIA), Andreas Heumann (NVIDIA), Cristiana Dinea (NVIDIA), Gregory Lee (NVIDIA), Jeroen Stinstra (NVIDIA), Ming Melvin Qi (NVIDIA), Tom Birdsong (NVIDIA), Wendell Hom (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 20, 2024<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br></p>
 <p><img alt="USD Composer Liver Segmentation Mesh" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/dicom_to_usd_with_monai_and_holoscan/doc/spleen-seg.png?raw=true" /></p>
 <p>In this tutorial we demonstrate a method leveraging a combined MONAI Deploy and Holoscan pipeline to process DICOM input data and write a resulting mesh to disk in the OpenUSD file format.</p>
-<h2 id="demonstrated-technologies">Demonstrated Technologies</h2>
-<h3 id="dicom">DICOM</h3>
+<h2 id="demonstrated-technologies">Demonstrated Technologies<a class="headerlink" href="#demonstrated-technologies" title="Permanent link">&para;</a></h2>
+<h3 id="dicom">DICOM<a class="headerlink" href="#dicom" title="Permanent link">&para;</a></h3>
 <p>The <a href="https://www.dicomstandard.org/">Digital Imaging and Communications in Medicine (DICOM) standard</a> is a comprehensive standard for medical imaging. DICOM covers a wide variety of medical imaging modalities and defines standards for both image storage and communications in medicine. DICOM data often represent 2D or 3D volumes or series of volumes.</p>
-<h3 id="openusd">OpenUSD</h3>
+<h3 id="openusd">OpenUSD<a class="headerlink" href="#openusd" title="Permanent link">&para;</a></h3>
 <p><a href="https://openusd.org/release/index.html">Universal Scene Description (OpenUSD)</a> is an extensible ecosystem of file formats, compositors, renderers, and other plugins for comprehensive 3D scene description.</p>
 <p>OpenUSD serves as the backbone of the <a href="https://www.nvidia.com/en-us/omniverse/">NVIDIA Omniverse</a> cloud computing platform. Omniverse includes a variety of applications such as <a href="https://docs.omniverse.nvidia.com/composer/latest/index.html">USD Composer</a> for viewing and manipulating OpenUSD scenes, with features such as:
 - State-of-the-art cloud rendering
 - Live collaborative scene editing
 - Multi-user mixed reality</p>
 <p>Download the <a href="https://www.nvidia.com/en-us/omniverse/foundation-apps/">NVIDIA Omniverse</a> launcher to get started with Omniverse. See <a href="https://developer.nvidia.com/usd/tutorials">NVIDIA OpenUSD Tutorials</a> for getting started with the OpenUSD Python libraries we use in this tutorial.</p>
-<h3 id="monai-deploy-holoscan-pipeline"><a href="https://monai.io/deploy.html">MONAI Deploy</a> + <a href="https://developer.nvidia.com/holoscan-sdk">Holoscan</a> Pipeline</h3>
+<h3 id="monai-deploy-holoscan-pipeline"><a href="https://monai.io/deploy.html">MONAI Deploy</a> + <a href="https://developer.nvidia.com/holoscan-sdk">Holoscan</a> Pipeline<a class="headerlink" href="#monai-deploy-holoscan-pipeline" title="Permanent link">&para;</a></h3>
 <p>The MONAI Deploy App SDK provides a series of operators to load and select DICOM instances and then decode the pixel data into in-memory NumPy data objects. MONAI Deploy integrates seamlessly with Holoscan pipelines.</p>
 <ol>
 <li>The DICOM Loader operator parses a set of DICOM instance files, and loads them into a set of objects representing the logical hierarchical structure of DICOM Study, Series, and Instance. Key DICOM metadata is extracted, while the image pixel data is not loaded in memory or decoded.</li>
@@ -7213,22 +7237,22 @@
 <li>The MONAI STL Conversion Operator converts the output label volume to a mesh in STL format.</li>
 <li>The Holoscan "Send Mesh to USD" operator writes the mesh to disk in the OpenUSD format.</li>
 </ol>
-<h2 id="requirements">Requirements</h2>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <p>Please review the <a href="../../README.md">HoloHub README</a> to get started with HoloHub general requirements before continuing.</p>
-<h3 id="hardware">Hardware</h3>
+<h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h3>
 <p>This tutorial may run on an <code>amd64</code> or <code>arm64</code> workstation.
 - For <code>amd64</code> we rely on <code>usd-core</code> Python wheels from PyPI for OpenUSD support.
 - For <code>arm64</code> we rely on NVIDIA Omniverse Python libraries for OpenUSD support.</p>
-<h3 id="host-software">Host Software</h3>
+<h3 id="host-software">Host Software<a class="headerlink" href="#host-software" title="Permanent link">&para;</a></h3>
 <p>This tutorial should run in a <code>docker</code> container:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>docker
 </code></pre></div>
-<h2 id="building-the-tutorial-container">Building the tutorial container</h2>
+<h2 id="building-the-tutorial-container">Building the tutorial container<a class="headerlink" href="#building-the-tutorial-container" title="Permanent link">&para;</a></h2>
 <p>Run the command below from the top-level HoloHub directory to build the tutorial container on the host workstation:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">&quot;nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu&quot;</span>
 ./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile<span class="w"> </span>--base_img<span class="w"> </span><span class="si">${</span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="si">}</span><span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd
 </code></pre></div>
-<h2 id="running-the-application">Running the application</h2>
+<h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">&para;</a></h2>
 <p>Run the commands below on the host workstation to launch the container and run the tutorial. The application will run the MONAI Deploy + Holoscan pipeline for AI segmentation and write results to the <code>.usd</code> output file. The mesh will also be available as a <code>mesh.stl</code> file on disk.</p>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd<span class="w"> </span><span class="c1"># start the container</span>
 <span class="nb">cd</span><span class="w"> </span>./tutorials/dicom_to_usd_with_monai_and_holoscan

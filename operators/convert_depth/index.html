@@ -5496,30 +5496,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::ConvertDepthToScreenSpaceOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6440,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6604,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7000,30 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::ConvertDepthToScreenSpaceOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7071,18 +7047,18 @@
 
   <h1>Convert Depth to Screen Space</h1>
 
-<h3 id="convert-depth-to-screen-space-operator">Convert Depth To Screen Space Operator</h3>
+<h3 id="convert-depth-to-screen-space-operator">Convert Depth To Screen Space Operator<a class="headerlink" href="#convert-depth-to-screen-space-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>ConvertDepthToScreenSpaceOp</code> operator remaps the depth buffer from Clara Viz to an OpenXR specific range. The depth buffer is converted in place.</p>
-<h4 id="holoscanopenxrconvertdepthtoscreenspaceop"><code>holoscan::openxr::ConvertDepthToScreenSpaceOp</code></h4>
+<h4 id="holoscanopenxrconvertdepthtoscreenspaceop"><code>holoscan::openxr::ConvertDepthToScreenSpaceOp</code><a class="headerlink" href="#holoscanopenxrconvertdepthtoscreenspaceop" title="Permanent link">&para;</a></h4>
 <p>Converts a depth buffer from linear world units to screen space ([0,1])</p>
-<h5 id="inputs">Inputs</h5>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>depth_buffer_in</code></strong>: input depth buffer to be remapped</li>
 <li>type: <code>holoscan::gxf::VideoBuffer</code></li>
 <li><strong><code>depth_range</code></strong>: Allocator used to allocate the volume data</li>
 <li>type: <code>nvidia::gxf::Vector2f</code></li>
 </ul>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>depth_buffer_out</code></strong>: output depth buffer </li>
 <li>type: <code>holoscan::gxf::Entity</code></li>

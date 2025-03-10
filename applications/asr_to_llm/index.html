@@ -6507,6 +6507,8 @@
       
         
       
+        
+      
     
     
       
@@ -6671,6 +6673,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7207,16 +7231,16 @@
 
 
 
-<h1 id="real-time-asr-to-local-llm"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/asr_to_llm">Real-time ASR to local-LLM</a></h1>
+<h1 id="real-time-asr-to-local-llm"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/asr_to_llm">Real-time ASR to local-LLM</a><a class="headerlink" href="#real-time-asr-to-local-llm" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Nigel Nelson (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> February 19, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 4 - Experimental<br></p>
 <p>This application streams microphone input to <a href="https://www.nvidia.com/en-us/ai-data-science/products/riva/">NVIDIA Riva</a> Automatic Speech Recognition (ASR), which once the user specifies they are done speaking, passes the transcribed text to an LLM running locally that then summarizes this text.</p>
 <p>While this workflow in principle could be used for a number of domains, the app is currently configured to be healthcare specific. The current LLM prompt is created for radiology interpretation, but this can be easily changed in the YAML file to tailor the LLM's output to a wide array of potential use cases.</p>
-<h2 id="example-output">Example output</h2>
+<h2 id="example-output">Example output<a class="headerlink" href="#example-output" title="Permanent link">&para;</a></h2>
 <p>Example output can be found at <a href="./example_output.md">example_output.md</a><br />
 <em> Description of output fields:<br />
 </em><em>Final Transcription:</em><em> Riva's transcription of the provided mic input<br />
 </em><em>LLM Summary:</em>* The LLM's output summarization</p>
-<h2 id="yaml-configuration">YAML Configuration</h2>
+<h2 id="yaml-configuration">YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Permanent link">&para;</a></h2>
 <p>The directions for the LLM are determined by the <code>stt_to_nlp.yaml</code> file. As you see from our example, the directions for the LLM are made via natural language, and can result in very different applications.</p>
 <p>With the current YAML configuration, the resulting prompt to the LLM is:</p>
 <div class="highlight"><pre><span></span><code>&lt;|system|&gt;
@@ -7234,8 +7258,8 @@ Suggest follow-up steps.
 
 &lt;|assistant|&gt;
 </code></pre></div>
-<h2 id="setup-instructions">Setup Instructions</h2>
-<h3 id="install-riva">Install Riva:</h3>
+<h2 id="setup-instructions">Setup Instructions<a class="headerlink" href="#setup-instructions" title="Permanent link">&para;</a></h2>
+<h3 id="install-riva">Install Riva:<a class="headerlink" href="#install-riva" title="Permanent link">&para;</a></h3>
 <p>First, you must follow the <a href="https://docs.nvidia.com/deeplearning/riva/user-guide/docs/quick-start-guide.html#local-deployment-using-quick-start-scripts">Riva local deployment quickstart guide</a>. For x86 and ARM64 devices with dGPU follow the "Data Center" instructions, for ARM64 devices with iGPU follow the "Embedded" instructions.</p>
 <ul>
 <li>Note: to minimize the Riva install size you can change the <code>config.sh</code> file in the <code>riva_quickstart_vX.XX.X</code> directory such that it specifies to only install the ASR models (Riva has more features but only ASR is needed for this app). To do this, find the <code>sevice_enabled_*</code> variables and set them as shown below:
@@ -7260,14 +7284,14 @@ Then in <code>riva_start.sh</code> make the changes below to ensure your Riva se
 <span class="gi">+if [[ $riva_target_gpu_family == &quot;non-tegra&quot; ]]; then</span>
 <span class="w"> </span>   docker_run_args=&quot;-p 8000:8000 -p 8001:8001 -p 8002:8002 -p 8888:8888 --device /dev/bus/usb --device /dev/snd&quot;
 </code></pre></div></p>
-<h3 id="setup-instructions_1">Setup Instructions:</h3>
+<h3 id="setup-instructions_1">Setup Instructions:<a class="headerlink" href="#setup-instructions_1" title="Permanent link">&para;</a></h3>
 <p>Download the <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">quantized Mistral 7B LLM</a> from HugginFace.co:
 <div class="highlight"><pre><span></span><code>wget<span class="w"> </span>-nc<span class="w"> </span>-P<span class="w"> </span>&lt;your_model_dir&gt;<span class="w"> </span>https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF/resolve/main/mistral-7b-openorca.Q8_0.gguf
 </code></pre></div></p>
 <p>From the Holohub main directory run the following command:
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>applications/asr_to_llm/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:asr_to_llm
 </code></pre></div></p>
-<h2 id="run-instructions">Run instructions</h2>
+<h2 id="run-instructions">Run instructions<a class="headerlink" href="#run-instructions" title="Permanent link">&para;</a></h2>
 <p>Launch the <code>holohub:asr_to_llm</code> container:
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:asr_to_llm<span class="w"> </span>--add-volume<span class="w"> </span>&lt;your_model_dir&gt;
 </code></pre></div>
@@ -7278,27 +7302,27 @@ Then run the application with the <code>--input-device</code> arg to specify the
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>&lt;streaming_asr_to_llm_dir&gt;/asr_to_llm.py<span class="w"> </span>--input-device<span class="w"> </span>&lt;device-index&gt;
 </code></pre></div></p>
 <p>Once <code>asr_to_llm.py</code> is running, you will see output from ALSA for loading the selected audio device and also from llama_cpp for loading the LLM onto GPU memory. Once this is complete it will immediately begin printing out the transcribed text. <strong>To signal that the audio you wish to transcribe is complete, enter <code>x</code> on the keyboard</strong>. This will terminate the ASR and microphone instance, and feed the complete transcribed text into the LLM for summarization.</p>
-<h2 id="stopping-instructions">Stopping Instructions</h2>
+<h2 id="stopping-instructions">Stopping Instructions<a class="headerlink" href="#stopping-instructions" title="Permanent link">&para;</a></h2>
 <p>Note: The <code>python asr_to_llm.py</code> command will complete on its own once the LLM is finished summarizing the transcription
 * Stopping Riva services:
 <div class="highlight"><pre><span></span><code>bash<span class="w"> </span>&lt;Riva_install_dir&gt;riva_stop.sh
 </code></pre></div></p>
-<h2 id="asr_to_llm-application-arguments">ASR_To_LLM Application arguments</h2>
+<h2 id="asr_to_llm-application-arguments">ASR_To_LLM Application arguments<a class="headerlink" href="#asr_to_llm-application-arguments" title="Permanent link">&para;</a></h2>
 <p>The <code>asr_to_llm.py</code> can receive several cli arguments:</p>
 <p><code>--input-device</code>: The index of the input audio device to use.
 <code>--list-devices</code>: List input audio device indices.
 <code>--sample-rate-hz</code>: The number of frames per second in audio streamed from the selected microphone.
 <code>--file-streaming-chunk</code>: A maximum number of frames in a audio chunk sent to server.</p>
-<h2 id="implementation-details">Implementation Details</h2>
+<h2 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h2>
 <p>This application adapted the <a href="../speech_to_text_llm/">speech_to_text_llm</a> Holohub application to transcribe audio in real-time using Riva ASR, as well as ensure that the complete app runs 100% locally.</p>
 <p>The LLM currently used in this application is <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">Mistral-7B-OpenOrca-GGUF</a>, which is a quantized <a href="https://mistral.ai/news/announcing-mistral-7b/">Mistal 7B model</a> that is finetuned on the <a href="https://huggingface.co/datasets/Open-Orca/OpenOrca">OpenOrca dataset</a>. However, any model in the GGUF file format will work as long as it can fit within your device's VRAM constraints.</p>
 <p>The inference engine used to run the LLM is <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>, which is a Python binding for <a href="https://github.com/ggerganov/llama.cpp">llama.cpp</a>. The reason for this is that the underlying llama.cpp library is hardware agnostic, dependency free, and it runs <strong>quantized</strong> LLMs with very high throughput.</p>
 <p>The RivaStreamingOp is a Holoscan SDK adaptation of the <a href="https://github.com/nvidia-riva/python-clients/blob/main/scripts/asr/transcribe_mic.py">transcribe_mic.py</a> script that is part of the <a href="https://github.com/nvidia-riva/python-clients/tree/main">Riva python-clients</a> repository.</p>
-<h2 id="dev-container">Dev Container</h2>
+<h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">&para;</a></h2>
 <p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>vscode<span class="w"> </span>asr_to_llm
 </code></pre></div>
-<h3 id="vs-code-launch-profiles">VS Code Launch Profiles</h3>
+<h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">&para;</a></h3>
 <p>There are two launch profiles configured for this application:</p>
 <ol>
 <li><strong>(debugpy) asr_to_llm/python</strong>: Launch asr_to_llm using a launch profile that enables debugging of Python code.</li>

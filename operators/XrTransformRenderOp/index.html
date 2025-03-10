@@ -5342,39 +5342,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrTransformRenderOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6449,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6613,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7009,39 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrTransformRenderOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7083,17 +7041,17 @@
 
   <h1>XrTransformRenderOp</h1>
 
-<h3 id="user-interface-render-operator">User interface Render Operator</h3>
+<h3 id="user-interface-render-operator">User interface Render Operator<a class="headerlink" href="#user-interface-render-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>XrTransformRenderOp</code> renders the mixed reality user interface of the volumetric rendering application. It consumes interface widget state structures as well as render buffers into which to overlay the interface widgets. The operator is application specific and will grow over time to include additional user interface widgets.</p>
-<h4 id="holoscanopenxrxrtransformrenderop"><code>holoscan::openxr::XrTransformRenderOp</code></h4>
-<h5 id="parameters">Parameters</h5>
+<h4 id="holoscanopenxrxrtransformrenderop"><code>holoscan::openxr::XrTransformRenderOp</code><a class="headerlink" href="#holoscanopenxrxrtransformrenderop" title="Permanent link">&para;</a></h4>
+<h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>display_width</code></strong>: pixel height of display</li>
 <li>type: <code>int</code></li>
 <li><strong><code>display_height</code></strong>: pixel width of display</li>
 <li>type: <code>int</code></li>
 </ul>
-<h5 id="inputs">Inputs</h5>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <p>Camera state for stereo view
 - <strong><code>left_camera_pose</code></strong>: world space pose of the left eye
   - type: <code>nvidia::gxf::Pose3D</code>
@@ -7114,7 +7072,7 @@
   - type: <code>holoscan::gxf::VideoBuffer</code>
 - <strong><code>Depth buffer_in</code></strong>: depth buffer
   - type: <code>holoscan::gxf::VideoBuffer</code></p>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <p>Render buffers including interface widgets
 - <strong><code>color_buffer_out</code></strong>: color buffer
   - type: <code>holoscan::gxf::VideoBuffer</code>

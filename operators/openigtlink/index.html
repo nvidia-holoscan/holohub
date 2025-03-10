@@ -5914,30 +5914,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="nvidia::holoscan::openigtlink">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#receiver-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Receiver Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6440,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6604,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7000,30 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="nvidia::holoscan::openigtlink">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#receiver-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Receiver Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7071,12 +7047,12 @@
 
   <h1>openigtlink</h1>
 
-<h3 id="openigtlink-operator">OpenIGTLink operator</h3>
+<h3 id="openigtlink-operator">OpenIGTLink operator<a class="headerlink" href="#openigtlink-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>openigtlink</code> operator provides a way to send and receive imaging data using the <a href="http://openigtlink.org/">OpenIGTLink</a> library. The <code>openigtlink</code> operator contains separate operators for transmit and receive. Users may choose one or the other, or use both in applications requiring bidirectional traffic.</p>
 <p>The <code>openigtlink</code> operators use class names: <code>OpenIGTLinkTxOp</code> and <code>OpenIGTLinkRxOp</code></p>
-<h4 id="nvidiaholoscanopenigtlink"><code>nvidia::holoscan::openigtlink</code></h4>
+<h4 id="nvidiaholoscanopenigtlink"><code>nvidia::holoscan::openigtlink</code><a class="headerlink" href="#nvidiaholoscanopenigtlink" title="Permanent link">&para;</a></h4>
 <p>Operator class to send and transmit data using the OpenIGTLink protocol.</p>
-<h5 id="receiver-configuration-parameters">Receiver Configuration Parameters</h5>
+<h5 id="receiver-configuration-parameters">Receiver Configuration Parameters<a class="headerlink" href="#receiver-configuration-parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>port</code></strong>: Port number of server</li>
 <li>type: <code>integer</code></li>
@@ -7085,7 +7061,7 @@
 <li><strong><code>flip_width_height</code></strong>: Flip width and height (necessary for receiving from 3D Slicer)</li>
 <li>type: <code>bool</code></li>
 </ul>
-<h5 id="transmitter-configuration-parameters">Transmitter Configuration Parameters</h5>
+<h5 id="transmitter-configuration-parameters">Transmitter Configuration Parameters<a class="headerlink" href="#transmitter-configuration-parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>device_name</code></strong>: OpenIGTLink device name</li>
 <li>type: <code>string</code></li>

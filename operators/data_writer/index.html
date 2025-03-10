@@ -6441,6 +6441,8 @@
       
         
       
+        
+      
     
     
       
@@ -6605,6 +6607,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7068,11 +7092,11 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-<h1 id="data-writer-operator">Data Writer Operator</h1>
-<h2 id="overview">Overview</h2>
+<h1 id="data-writer-operator">Data Writer Operator<a class="headerlink" href="#data-writer-operator" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Writes binary data from its input to an output file. This operator is intened
 for use as a debugging aid.</p>
-<h2 id="description">Description</h2>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The data writer operator takes in a <code>std::tuple&lt;tensor_t&lt;complex, 2&gt;, cuda_stream_t&gt;</code>,
 copies the data to a host tensor, then writes the data out to a binary file.</p>
 <p>The file path is determined based on input metadata with the following
@@ -7083,11 +7107,11 @@ keys:</p>
 <li><code>rf_ref_freq_hz</code> (default <code>0.0</code>)</li>
 </ol>
 <p>With this, it creates: <code>data_writer_out_ch{channel_number}_bw{bandwidth_hz}_freq{rf_ref_freq_hz}.dat</code>.</p>
-<h2 id="requirements">Requirements</h2>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://github.com/NVIDIA/MatX">MatX</a></li>
 </ul>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <p>The data writer operator takes in a few parameters:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">data_writer</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">burst_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1280</span>
@@ -7097,7 +7121,7 @@ keys:</p>
 <li><code>burst_size</code>: Number of samples contained in each burst</li>
 <li><code>num_bursts</code>: Number of bursts to process at once</li>
 </ul>
-<h2 id="example-usage">Example Usage</h2>
+<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
 <p>For an example of how to use this operator, see the
 <a href="../../psd_pipeline"><code>psd_pipeline</code></a> application.</p>
 <p>Usually, you'd just want to write one burst of data to a file. To

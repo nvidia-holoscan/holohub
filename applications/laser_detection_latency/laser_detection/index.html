@@ -6590,6 +6590,8 @@
       
         
       
+        
+      
     
     
       
@@ -6754,6 +6756,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7343,9 +7367,9 @@
 
 
 
-<h1 id="laser-detection-latency"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/laser_detection_latency/laser_detection">Laser Detection Latency</a></h1>
+<h1 id="laser-detection-latency"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/laser_detection_latency/laser_detection">Laser Detection Latency</a><a class="headerlink" href="#laser-detection-latency" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> December 6, 2024<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.2.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br></p>
-<h2 id="introduction">Introduction</h2>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
 <p>The laser detection latency application demonstrates the latency differences between two different cameras visually.</p>
 <p><center> <img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/laser_detection_latency/images/demo.png?raw=true"></center></p>
 <p>This folder contains three applications, please refer to the respective application folder for application and configuration file.</p>
@@ -7366,33 +7390,33 @@
 <li><strong><a href="./laser_detection">Laser Detection app</a>:</strong>
     The laser detection is the app that is run after the calibration apps detected the monitor successfully. This app uses two camera sources: one is EVT camera and other is USB camera. The video feed from both camera is used to detect laser pointed at the monitor. There are two icons that will be shown on the display. The white icon represents USB camera and the green icon represents the EVT camera. When the laser is detected the respective icons move to the coordinates. The laser detection algorithm is same for both camera sources.</li>
 </ol>
-<h2 id="hardware-requirements">Hardware requirements</h2>
-<h3 id="1-usb-camera">1. USB camera</h3>
+<h2 id="hardware-requirements">Hardware requirements<a class="headerlink" href="#hardware-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="1-usb-camera">1. USB camera<a class="headerlink" href="#1-usb-camera" title="Permanent link">&para;</a></h3>
 <p>The app is designed using <a href="https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&amp;utm_source=Google&amp;utm_medium=Paid-Search&amp;utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&amp;gad_source=1&amp;gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB">Logitech 4k Pro Webcam</a>. A different webcam can also be used, but if resolution settings are different the application code and yaml file will need to be updated accordingly.</p>
-<h3 id="2-evt-camera">2. EVT camera</h3>
+<h3 id="2-evt-camera">2. EVT camera<a class="headerlink" href="#2-evt-camera" title="Permanent link">&para;</a></h3>
 <p>Visit <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html">Holoscan SDK user guide</a> to check the hardware requirements for EVT camera.</p>
-<h3 id="3-monitor">3. Monitor</h3>
+<h3 id="3-monitor">3. Monitor<a class="headerlink" href="#3-monitor" title="Permanent link">&para;</a></h3>
 <p>Any matte screen monitor with a refresh rate of at least 120fps is required to see the performance differences between the two camera sources.</p>
-<h3 id="4-laser-pointer">4. Laser pointer</h3>
+<h3 id="4-laser-pointer">4. Laser pointer<a class="headerlink" href="#4-laser-pointer" title="Permanent link">&para;</a></h3>
 <p>Please make sure to only buy laser pointers that are safe to use for viewing purposes.</p>
-<h2 id="setting-up-igx-development-kit">Setting up IGX Development Kit</h2>
-<h3 id="1-setup-the-evt-camera">1. Setup the EVT camera</h3>
+<h2 id="setting-up-igx-development-kit">Setting up IGX Development Kit<a class="headerlink" href="#setting-up-igx-development-kit" title="Permanent link">&para;</a></h2>
+<h3 id="1-setup-the-evt-camera">1. Setup the EVT camera<a class="headerlink" href="#1-setup-the-evt-camera" title="Permanent link">&para;</a></h3>
 <p>To setup the EVT camera, refer to <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html">Holoscan SDK user guide</a>.</p>
-<h3 id="2-build-holohub-app-natively">2. Build Holohub app natively</h3>
+<h3 id="2-build-holohub-app-natively">2. Build Holohub app natively<a class="headerlink" href="#2-build-holohub-app-natively" title="Permanent link">&para;</a></h3>
 <p>Currently EVT camera based apps are only available for native environment. To build the setup natively, download the Holohub repo and run following.</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./run<span class="w"> </span>setup
 </code></pre></div>
-<h3 id="3-install-python3-requirements">3. Install Python3 requirements</h3>
+<h3 id="3-install-python3-requirements">3. Install Python3 requirements<a class="headerlink" href="#3-install-python3-requirements" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>applications/laser_detection_app/requirements.txt
 </code></pre></div>
-<h3 id="4-install-cvcuda">4. Install CVCUDA</h3>
+<h3 id="4-install-cvcuda">4. Install CVCUDA<a class="headerlink" href="#4-install-cvcuda" title="Permanent link">&para;</a></h3>
 <p>Download and install the latest <a href="https://github.com/CVCUDA/CV-CUDA/releases">CVCUDA package</a>. Replace the latest version in the below commands.
 <div class="highlight"><pre><span></span><code>wget<span class="w"> </span>-O<span class="w"> </span>cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb<span class="w"> </span>https://github.com/CVCUDA/CV-CUDA/releases/download/v0.10.1-beta/cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb
 wget<span class="w"> </span>-O<span class="w"> </span>cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb<span class="w"> </span>https://github.com/CVCUDA/CV-CUDA/releases/download/v0.10.1-beta/cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb
 sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cvcuda-lib-0.10.1_beta-cuda12-aarch64-linux.deb
 sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cvcuda-python3.10-0.10.1_beta-cuda12-aarch64-linux.deb
 </code></pre></div></p>
-<h3 id="5-setup-cuapriltags">5. Setup cuApriltags</h3>
+<h3 id="5-setup-cuapriltags">5. Setup cuApriltags<a class="headerlink" href="#5-setup-cuapriltags" title="Permanent link">&para;</a></h3>
 <p>Download the latest <a href="https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_nitros/tree/main/isaac_ros_nitros/lib/cuapriltags">cuApriltags library and header file</a>, and set it up on IGX Orin as follows:
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>mkdir<span class="w"> </span>/opt/nvidia/cu-april-tags
 sudo<span class="w"> </span>mkdir<span class="w"> </span>/opt/nvidia/cu-april-tags/include
@@ -7400,27 +7424,27 @@ sudo<span class="w"> </span>mkdir<span class="w"> </span>/opt/nvidia/cu-april-ta
 sudo<span class="w"> </span>cp<span class="w"> </span>libcuapriltags.a<span class="w"> </span>/opt/nvidia/cu-april-tags/lib/.
 sudo<span class="w"> </span>cp<span class="w"> </span>cuAprilTags.h<span class="w"> </span>/opt/nvidia/cu-april-tags/include/.
 </code></pre></div></p>
-<h2 id="running-the-sample-apps">Running the sample apps</h2>
-<h3 id="1-build-and-run-usb_cam_calibration">1. Build and run <code>usb_cam_calibration</code></h3>
+<h2 id="running-the-sample-apps">Running the sample apps<a class="headerlink" href="#running-the-sample-apps" title="Permanent link">&para;</a></h2>
+<h3 id="1-build-and-run-usb_cam_calibration">1. Build and run <code>usb_cam_calibration</code><a class="headerlink" href="#1-build-and-run-usb_cam_calibration" title="Permanent link">&para;</a></h3>
 <p>Before running the app, make sure that the USB camera can see all the corners of the monitor. The <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera"><code>v4l2_camera</code></a> app can be used to verify it visually.</p>
 <p><div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>usb_cam_calibration
 <span class="nv">LD_PRELOAD</span><span class="o">=</span>/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>usb_cam_calibration
 </code></pre></div>
 This will output a file <code>usb-cali.npy</code> in the build directory.</p>
-<h3 id="2-build-and-run-evt_cam_calibration">2. Build and run <code>evt_cam_calibration</code></h3>
+<h3 id="2-build-and-run-evt_cam_calibration">2. Build and run <code>evt_cam_calibration</code><a class="headerlink" href="#2-build-and-run-evt_cam_calibration" title="Permanent link">&para;</a></h3>
 <p>Before running the app, make sure that the EVT camera can see all the corners of the monitor. The <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/high_speed_endoscopy"><code>high_speed_endoscopy</code></a> app can be used to verify it visually.
 <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>evt_cam_calibration
 sudo<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>evt_cam_calibration
 </code></pre></div>
 This will output a file <code>evt-cali.npy</code> in the build directory.</p>
-<h4 id="note">note:</h4>
+<h4 id="note">note:<a class="headerlink" href="#note" title="Permanent link">&para;</a></h4>
 <p>Use <code>sudo</code> when running the application with EVT camera.</p>
-<h3 id="3-build-and-run-laser_detection">3. Build and run <code>laser_detection</code></h3>
+<h3 id="3-build-and-run-laser_detection">3. Build and run <code>laser_detection</code><a class="headerlink" href="#3-build-and-run-laser_detection" title="Permanent link">&para;</a></h3>
 <p><div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>laser_detection
 sudo<span class="w"> </span><span class="nv">LD_PRELOAD</span><span class="o">=</span>/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>laser_detection
 </code></pre></div>
 Now you can use the laser pointer and point it to the monitor. If the icons are not detecting the laser or they are moving in random fashion, then redo the calibration steps.</p>
-<h4 id="note_1">note:</h4>
+<h4 id="note_1">note:<a class="headerlink" href="#note_1" title="Permanent link">&para;</a></h4>
 <ul>
 <li>Please make sure that the monitor that is being used has matte screen. The glossy screen can create specular reflections and could damage the eye of the person looking at the monitor at certain angles.</li>
 <li>Please make sure to only buy laser pointers that are safe to use for viewing purposes.</li>

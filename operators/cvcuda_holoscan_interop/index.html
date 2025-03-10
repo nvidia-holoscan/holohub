@@ -5540,30 +5540,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::CvCudaToHoloscan">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -5572,30 +5548,6 @@
       holoscan::ops::HoloscanToCvCuda
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="holoscan::ops::HoloscanToCvCuda">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -6473,6 +6425,8 @@
       
         
       
+        
+      
     
     
       
@@ -6637,6 +6591,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7033,30 +7009,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::CvCudaToHoloscan">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -7065,30 +7017,6 @@
       holoscan::ops::HoloscanToCvCuda
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="holoscan::ops::HoloscanToCvCuda">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -7137,28 +7065,28 @@
 
   <h1>cvcuda_holoscan_interop</h1>
 
-<h3 id="cvcuda-holoscan-interoperability-operators">CVCUDA Holoscan Interoperability Operators</h3>
+<h3 id="cvcuda-holoscan-interoperability-operators">CVCUDA Holoscan Interoperability Operators<a class="headerlink" href="#cvcuda-holoscan-interoperability-operators" title="Permanent link">&para;</a></h3>
 <p>This directory contains two operators to enable interoperability between the <a href="https://github.com/CVCUDA/CV-CUDA">CVCUDA</a> and Holoscan
 tensors: <code>holoscan::ops::CvCudaToHoloscan</code> and <code>holoscan::ops::HoloscanToCvCuda</code>.</p>
-<h4 id="holoscanopscvcudatoholoscan"><code>holoscan::ops::CvCudaToHoloscan</code></h4>
+<h4 id="holoscanopscvcudatoholoscan"><code>holoscan::ops::CvCudaToHoloscan</code><a class="headerlink" href="#holoscanopscvcudatoholoscan" title="Permanent link">&para;</a></h4>
 <p>Operator class to convert a <code>nvcv::Tensor</code> to a <code>holoscan::Tensor</code>.</p>
-<h5 id="inputs">Inputs</h5>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>input</code></strong>: a CV-CUDA tensor</li>
 <li>type: <code>nvcv::Tensor</code></li>
 </ul>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>output</code></strong>: a Holoscan tensor as <code>holoscan::Tensor</code> in <code>holoscan::TensorMap</code></li>
 <li>type: <code>holoscan::TensorMap</code></li>
 </ul>
-<h4 id="holoscanopsholoscantocvcuda"><code>holoscan::ops::HoloscanToCvCuda</code></h4>
-<h5 id="inputs_1">Inputs</h5>
+<h4 id="holoscanopsholoscantocvcuda"><code>holoscan::ops::HoloscanToCvCuda</code><a class="headerlink" href="#holoscanopsholoscantocvcuda" title="Permanent link">&para;</a></h4>
+<h5 id="inputs_1">Inputs<a class="headerlink" href="#inputs_1" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>input</code></strong>: a <code>gxf::Entity</code> containing a Holoscan tensor as <code>holoscan::Tensor</code></li>
 <li>type: <code>gxf::Entity</code></li>
 </ul>
-<h5 id="outputs_1">Outputs</h5>
+<h5 id="outputs_1">Outputs<a class="headerlink" href="#outputs_1" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>output</code></strong>: a CV-CUDA tensor</li>
 <li>type: <code>nvcv::Tensor</code></li>

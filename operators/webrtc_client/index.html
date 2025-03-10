@@ -6419,6 +6419,8 @@
       
         
       
+        
+      
     
     
       
@@ -6583,6 +6585,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7035,9 +7059,9 @@
 
   <h1>webrtc_client</h1>
 
-<h3 id="webrtc-client-operator">WebRTC Client Operator</h3>
+<h3 id="webrtc-client-operator">WebRTC Client Operator<a class="headerlink" href="#webrtc-client-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>webrtc_client</code> operator receives video frames through a WebRTC connection. The application using this operator needs to call the <code>offer</code> method of the operator when a new WebRTC connection is available.</p>
-<h3 id="methods">Methods</h3>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>async def offer(self, sdp, type) -&gt; (local_sdp, local_type)</code></strong>
   Start a connection between the local computer and the peer.</li>
@@ -7048,7 +7072,7 @@
 <p><strong>Return values</strong>
   - <strong>sdp</strong> local Session Description Protocol object
   - <strong>type</strong> local session type</p>
-<h3 id="outputs">Outputs</h3>
+<h3 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>output</code></strong>: Tensor with 8 bit per component RGB data</li>
 <li>type: <code>Tensor</code></li>

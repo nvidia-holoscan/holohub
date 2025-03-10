@@ -5716,30 +5716,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrEndFrameOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6440,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6604,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7000,30 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrEndFrameOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7065,15 +7041,15 @@
 
   <h1>XrEndFrameOp</h1>
 
-<h3 id="xrendframe-operator">XrEndFrame Operator</h3>
+<h3 id="xrendframe-operator">XrEndFrame Operator<a class="headerlink" href="#xrendframe-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>XrEndFrameOp</code> operator completes the rendering of a single OpenXR frame by passing populated color and depth buffer for the left and right eye to the OpenXR device. Note that a single connection <code>xr_frame</code> from <code>XrBeginFrameOp</code> to <code>XrEndFrameOp</code> is required to synchronize the OpenXR calls issued by the two operators.</p>
-<h4 id="holoscanopenxrxrendframeop"><code>holoscan::openxr::XrEndFrameOp</code></h4>
-<h5 id="parameters">Parameters</h5>
+<h4 id="holoscanopenxrxrendframeop"><code>holoscan::openxr::XrEndFrameOp</code><a class="headerlink" href="#holoscanopenxrxrendframeop" title="Permanent link">&para;</a></h4>
+<h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>XrSession</code></strong>: A class that encapsulates a single OpenXR session</li>
 <li>type: <code>holoscan::openxr::XrSession</code></li>
 </ul>
-<h5 id="inputs">Inputs</h5>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <p>Render buffers populated by application
 - <strong><code>color_buffer</code></strong>: color buffer
   - type: <code>holoscan::gxf::VideoBuffer</code>

@@ -6434,6 +6434,8 @@
       
         
       
+        
+      
     
     
       
@@ -6598,6 +6600,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7053,10 +7077,10 @@
 
   <h1>Speech-to-text + Large Language Model</h1>
 
-<h2 id="speech-to-text-large-language-model">Speech-to-text + Large Language Model</h2>
+<h2 id="speech-to-text-large-language-model">Speech-to-text + Large Language Model<a class="headerlink" href="#speech-to-text-large-language-model" title="Permanent link">&para;</a></h2>
 <p>This application transcribes an audio file using a speech-to-text model (STT), then uses a large language model (LLM) to summarize and generate new relevant information. </p>
 <p>While this workflow in principle could be used for a number of domains, here we provide a healthcare specific example. A <code>sample.wav</code> file is provided which is an example of a radiology interpretation. An OpenAI whisper model is used to transform the audio into text, then an API call is made to either the GPT3.5-turbo or GPT4 LLM. </p>
-<h3 id="yaml-configuration">YAML Configuration</h3>
+<h3 id="yaml-configuration">YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Permanent link">&para;</a></h3>
 <p>The input (either audio or video file), specific Whisper model (tiny, small, medium, or large), LLM model, and directions for the LLM are all determined by the <code>stt_to_nlp.yaml</code> file. As you see from our example, the directions for the LLM are made via natural language, and can result in very different applications. </p>
 <p>For our purposes we specify the directions as:</p>
 <div class="highlight"><pre><span></span><code>  context: &#39;Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n 
@@ -7088,7 +7112,7 @@ Suggested Follow-up Steps:
 1. For the foot issues, the patient may benefit from a consultation with a podiatrist or orthopedic specialist to discuss treatment options, which may include physical therapy, orthotics, or surgery.
 2. For the gallbladder polyps, the patient should consult with a gastroenterologist to determine the need for further evaluation, monitoring, or possible surgical intervention. Regular ultrasound examinations may be recommended to monitor the growth of the polyps.
 </code></pre></div>
-<h3 id="run-instructions">Run Instructions</h3>
+<h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">&para;</a></h3>
 <p>Note: To run this application you will need to <a href="https://platform.openai.com/signup">create an OpenAI account</a> and obtain your own <a href="https://platform.openai.com/account/api-keys">API key</a> with active credits.</p>
 <p>You should refer to the <a href="../../README.md#Glossary">glossary</a> for the terms defining specific locations within HoloHub.</p>
 <ul>
@@ -7109,7 +7133,7 @@ source .venv/bin/activate
 <span class="nb">cd</span><span class="w"> </span>applications/speech_to_text_llm<span class="w"> </span>
 python3<span class="w"> </span>stt_to_nlp.py
 </code></pre></div>
-<h3 id="sample-audio-file">Sample Audio File</h3>
+<h3 id="sample-audio-file">Sample Audio File<a class="headerlink" href="#sample-audio-file" title="Permanent link">&para;</a></h3>
 <p>Please note the sample audio file included is licensed as CC-BY-4.0 International, copyright NVIDIA 2023. </p>
 
 

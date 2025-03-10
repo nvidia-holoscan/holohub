@@ -5320,30 +5320,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrTransformControlOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6440,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6604,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7000,30 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::openxr::XrTransformControlOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7065,10 +7041,10 @@
 
   <h1>XrTransformOp</h1>
 
-<h3 id="user-interface-control-operator">User interface Control Operator</h3>
+<h3 id="user-interface-control-operator">User interface Control Operator<a class="headerlink" href="#user-interface-control-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>XrTransformControlOp</code> maintains the state of the mixed reality user interface for the volumetric rendering application. It consumes controller events and produces user interface state structures as well as parameters for the volume rendering operator. The operator is application specific and will grow over time to include additional user interface widgets.</p>
-<h4 id="holoscanopenxrxrtransformcontrolop"><code>holoscan::openxr::XrTransformControlOp</code></h4>
-<h5 id="inputs">Inputs</h5>
+<h4 id="holoscanopenxrxrtransformcontrolop"><code>holoscan::openxr::XrTransformControlOp</code><a class="headerlink" href="#holoscanopenxrxrtransformcontrolop" title="Permanent link">&para;</a></h4>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <p>Controller state
 - <strong><code>trigger_click</code></strong>: trigger button state
   - type: <code>bool</code>
@@ -7086,7 +7062,7 @@
 <p>Volume state
 - <strong><code>extent</code></strong>: size of bounding box containing volume
   - type: <code>std::array&lt;float, 3&gt;</code></p>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <p>User interface widget state structures
 - <strong><code>ux_box</code></strong>: bounding box state structure
   - type: <code>UxBoundingBox</code>

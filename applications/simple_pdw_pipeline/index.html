@@ -6450,6 +6450,8 @@
       
         
       
+        
+      
     
     
       
@@ -6614,6 +6616,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7093,7 +7117,7 @@
 
 
 
-<h1 id="simple-pdw-pipeline">Simple PDW Pipeline</h1>
+<h1 id="simple-pdw-pipeline">Simple PDW Pipeline<a class="headerlink" href="#simple-pdw-pipeline" title="Permanent link">&para;</a></h1>
 <p>This is a Holoscan pipeline that shows the possibility of using Holoscan as a
 Pulse Description Word (PDW) generator. This is a process that takes in IQ
 samples (signals represented using time-series complex numbers) and picks out
@@ -7102,25 +7126,25 @@ processors are used to see what is transmitting in your area, be they radio
 towers or radars.</p>
 <p>siggen.c a signal generator written in C that will transmit
 the input to this pipeline. </p>
-<h2 id="basicnetworkoprx">BasicNetworkOpRx</h2>
+<h2 id="basicnetworkoprx">BasicNetworkOpRx<a class="headerlink" href="#basicnetworkoprx" title="Permanent link">&para;</a></h2>
 <p>This uses the Basic Network Operator to read udp packets this operator is
 documented elsewhere. </p>
-<h2 id="packettotensorop">PacketToTensorOp</h2>
+<h2 id="packettotensorop">PacketToTensorOp<a class="headerlink" href="#packettotensorop" title="Permanent link">&para;</a></h2>
 <p>This converts the bytes from the Basic Network Operator into the packets used
 in the rest of the pipeline. The format of the incoming packets is a 16-bit id
 followed by 8192 IQ samples each sample has the following format:
 16 bits (I)
 16 bits (Q)</p>
-<h2 id="fftop">FFTOp</h2>
+<h2 id="fftop">FFTOp<a class="headerlink" href="#fftop" title="Permanent link">&para;</a></h2>
 <p>Does what it says on the tin. Takes an FFT of the input data. Also shifts data
 so that 0 Hz is centered.</p>
-<h2 id="thresholdingop">ThresholdingOp:</h2>
+<h2 id="thresholdingop">ThresholdingOp:<a class="headerlink" href="#thresholdingop" title="Permanent link">&para;</a></h2>
 <p>Detects samples over a threshold and then packetizes the runs of samples that
 are above the threshold as a “pulse”.</p>
-<h2 id="pulsedescriptiorop">PulseDescriptiorOp</h2>
+<h2 id="pulsedescriptiorop">PulseDescriptiorOp<a class="headerlink" href="#pulsedescriptiorop" title="Permanent link">&para;</a></h2>
 <p>Takes simple statistics of input pulses. This is where I am most excited for
 future work, but that is not the point of this particular project.</p>
-<h2 id="pulseprinterop">PulsePrinterOp</h2>
+<h2 id="pulseprinterop">PulsePrinterOp<a class="headerlink" href="#pulseprinterop" title="Permanent link">&para;</a></h2>
 <p>Prints the pulse to screen. Also optionally sends packets to a BasicNetworkOpTx. 
 The transmitted network packets have the following format:
 Each of the following fields are 16bit unsigned integers

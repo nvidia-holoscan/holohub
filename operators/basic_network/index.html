@@ -5452,39 +5452,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="nvidia::holoscan::basic_network_operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#receiver-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Receiver Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-and-receiver-operator-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter and Receiver Operator Parameters
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6449,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6613,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7009,39 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="nvidia::holoscan::basic_network_operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#receiver-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Receiver Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-configuration-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter Configuration Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transmitter-and-receiver-operator-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transmitter and Receiver Operator Parameters
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7107,7 +7065,7 @@
 
   <h1>basic_network</h1>
 
-<h3 id="basic-networking-operator">Basic networking operator</h3>
+<h3 id="basic-networking-operator">Basic networking operator<a class="headerlink" href="#basic-networking-operator" title="Permanent link">&para;</a></h3>
 <p>The <code>basic_network_operator</code> operator provides a way to send and receive data over Linux sockets. The
 destination can be on the same machine or over a network. The basic network operator contains separate
 operators for transmit and receive. Users may choose one or the other, or use both in applications 
@@ -7115,9 +7073,9 @@ requiring bidirectional traffic.</p>
 <p>For TCP sockets the basic network operator only supports a single stream currently. Future versions
 may expand this to launch multiple threads to listen on different streams.</p>
 <p>The basic networking operators use class names: <code>BasicNetworkOpTx</code> and <code>BasicNetworkOpRx</code></p>
-<h4 id="nvidiaholoscanbasic_network_operator"><code>nvidia::holoscan::basic_network_operator</code></h4>
+<h4 id="nvidiaholoscanbasic_network_operator"><code>nvidia::holoscan::basic_network_operator</code><a class="headerlink" href="#nvidiaholoscanbasic_network_operator" title="Permanent link">&para;</a></h4>
 <p>Basic networking operator</p>
-<h5 id="receiver-configuration-parameters">Receiver Configuration Parameters</h5>
+<h5 id="receiver-configuration-parameters">Receiver Configuration Parameters<a class="headerlink" href="#receiver-configuration-parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>batch_size</code></strong>: Bytes in batch</li>
 <li>type: <code>integer</code></li>
@@ -7130,7 +7088,7 @@ may expand this to launch multiple threads to listen on different streams.</p>
 <li><strong><code>ip_addr</code></strong>: Destination IP address</li>
 <li>type: <code>string</code>    </li>
 </ul>
-<h5 id="transmitter-configuration-parameters">Transmitter Configuration Parameters</h5>
+<h5 id="transmitter-configuration-parameters">Transmitter Configuration Parameters<a class="headerlink" href="#transmitter-configuration-parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>max_payload_size</code></strong>: Maximum payload size for a single packet</li>
 <li>type: <code>integer</code></li>
@@ -7143,7 +7101,7 @@ may expand this to launch multiple threads to listen on different streams.</p>
 <li><strong><code>min_ipg_ns</code></strong>: Minimum inter-packet gap in nanoseconds</li>
 <li>type: <code>integer</code>  </li>
 </ul>
-<h5 id="transmitter-and-receiver-operator-parameters">Transmitter and Receiver Operator Parameters</h5>
+<h5 id="transmitter-and-receiver-operator-parameters">Transmitter and Receiver Operator Parameters<a class="headerlink" href="#transmitter-and-receiver-operator-parameters" title="Permanent link">&para;</a></h5>
 <p>The transmitter and receiver operator both use the <code>NetworkOpBurstParams</code> structure as input
 and output to their ports, respectively. <code>NetworkOpBurstParams</code> contains the following fields:</p>
 <ul>

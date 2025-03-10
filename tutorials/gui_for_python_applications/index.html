@@ -14,7 +14,7 @@
         <link rel="prev" href="../gpu_direct_storage_on_holoscan/">
       
       
-        <link rel="next" href="../holoscan-bootcamp/">
+        <link rel="next" href="../high_performance_networking/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -6350,6 +6350,8 @@
       
         
       
+        
+      
     
     
       
@@ -6643,6 +6645,28 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -7135,7 +7159,7 @@
 
 
 
-<h1 id="adding-a-gui-to-holoscan-python-applications"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/gui_for_python_applications">Adding a GUI to Holoscan Python Applications</a></h1>
+<h1 id="adding-a-gui-to-holoscan-python-applications"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/gui_for_python_applications">Adding a GUI to Holoscan Python Applications</a><a class="headerlink" href="#adding-a-gui-to-holoscan-python-applications" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Wendell Hom (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> September 3, 2024<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.3.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br></p>
 <p>When developing Holoscan applications, incorporating a graphical user interface (GUI) can enhance usability and allow modification of the application's behavior at runtime.</p>
 <p>This tutorial demonstrates how GUI controls were integrated into the <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/florence-2-vision">Florence-2</a> Python application using <a href="https://doc.qt.io/qtforpython-6/">PySide6</a>. This addition enables users to dynamically change the vision task performed by the application.</p>
@@ -7143,7 +7167,7 @@
   <img src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/gui_for_python_applications/demo.gif?raw=true" alt="Holoscan VILA Live">
 </p>
 
-<h2 id="table-of-contents">Table of Contents</h2>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
 <ol>
 <li><a href="#overview">Overview</a><ol>
 <li><a href="#dockerfile">Dockerfile</a></li>
@@ -7155,7 +7179,7 @@
 <li><a href="#starting-the-holoscan-application-thread">Starting the Holoscan Application Thread</a></li>
 <li><a href="#adding-a-gui-to-your-own-application">Adding a GUI to Your Own Application</a></li>
 </ol>
-<h2 id="overview">Overview</h2>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The Florence-2 application includes the typical components of a Holohub application, with the addition of a GUI component. 
 The main components are:</p>
 <ul>
@@ -7163,14 +7187,14 @@ The main components are:</p>
 <li><b>Application Code</b>: Defines the Holoscan application and its operators.</li>
 <li><b>GUI Code</b>: Utilizes PySide6 to add UI controls.</li>
 </ul>
-<h3 id="dockerfile">Dockerfile</h3>
+<h3 id="dockerfile">Dockerfile<a class="headerlink" href="#dockerfile" title="Permanent link">&para;</a></h3>
 <p>The Dockerfile is used in Holohub when the application requires additional dependencies. For GUI functionality, this application's 
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/Dockerfile">Dockerfile</a> installs:</p>
 <ul>
 <li><code>qt6-base-dev</code> for Qt6 framework</li>
 <li><code>PySide6</code> for Python bindings for Qt6 (as specified in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/requirements.txt">requirements.txt</a>)</li>
 </ul>
-<h3 id="application-code">Application Code</h3>
+<h3 id="application-code">Application Code<a class="headerlink" href="#application-code" title="Permanent link">&para;</a></h3>
 <p>The Florence-2 application code is organized across several files:</p>
 <ul>
 <li><code>florence2_app.py</code>: Main application code.</li>
@@ -7187,7 +7211,7 @@ The main components are:</p>
             <span class="bp">self</span><span class="o">.</span><span class="n">florence_op</span><span class="o">.</span><span class="n">prompt</span> <span class="o">=</span> <span class="n">prompt</span>
 </code></pre></div>
 <p>These updated parameters are passed to the model during the next <code>compute()</code> method execution of the Florence-2 operator.</p>
-<h3 id="gui-code">GUI Code</h3>
+<h3 id="gui-code">GUI Code<a class="headerlink" href="#gui-code" title="Permanent link">&para;</a></h3>
 <p>The GUI code resides in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/qt_app.py">qt_app.py</a>.
 The code in this file defines a class for the main window which calls <code>setupUi()</code> and <code>runHoloscanApp()</code> when the instance is initialized.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Window</span><span class="p">(</span><span class="n">QMainWindow</span><span class="p">):</span>
@@ -7199,7 +7223,7 @@ The code in this file defines a class for the main window which calls <code>setu
 <p>At a high level, this is all we need to launch a Python Holoscan application with a GUI.
 The <code>setupUi()</code> method defines the GUI widgets and layout, while <code>runHoloscanApp()</code> runs the Florence-2 application in a separate thread within the process.
 Details of these methods are explored in the following sections.</p>
-<h2 id="creating-the-gui-widgets-and-layout">Creating the GUI Widgets and Layout</h2>
+<h2 id="creating-the-gui-widgets-and-layout">Creating the GUI Widgets and Layout<a class="headerlink" href="#creating-the-gui-widgets-and-layout" title="Permanent link">&para;</a></h2>
 <p>The <code>setupUi()</code> method creates the GUI with a few simple widgets using PySide6 APIs. 
 For those unfamiliar with PySide6, this <a href="https://www.pythonguis.com/pyside6-tutorial/">tutorial</a> provides an introduction.</p>
 <div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -7263,7 +7287,7 @@ in the <code>FlorenceApp</code> class to update the operator's parameters.</p>
         <span class="k">if</span> <span class="n">gApp</span><span class="p">:</span>
             <span class="n">gApp</span><span class="o">.</span><span class="n">set_parameters</span><span class="p">(</span><span class="n">selected_option</span><span class="p">,</span> <span class="n">entered_text</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="starting-the-holoscan-application-thread">Starting the Holoscan Application Thread</h2>
+<h2 id="starting-the-holoscan-application-thread">Starting the Holoscan Application Thread<a class="headerlink" href="#starting-the-holoscan-application-thread" title="Permanent link">&para;</a></h2>
 <p>The <code>runHoloscanApp()</code> method starts the Florence-2 application by creating an instance of <code>FlorenceWorker</code> 
 and running it in a thread.</p>
 <div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">runHoloscanApp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -7294,7 +7318,7 @@ which creates and runs the Holoscan application.</p>
 </code></pre></div>
 <p>This covers the essential steps for creating a GUI to control your Python Holoscan applications. 
 To try out the application, follow the instructions provided <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/florence-2-vision#-build-and-run-instructions">here</a>.</p>
-<h2 id="adding-a-gui-to-your-own-application">Adding a GUI to Your Own Application</h2>
+<h2 id="adding-a-gui-to-your-own-application">Adding a GUI to Your Own Application<a class="headerlink" href="#adding-a-gui-to-your-own-application" title="Permanent link">&para;</a></h2>
 <p>To integrate a GUI into your Python application using PySide6, follow these steps:</p>
 <ol>
 <li>Ensure Qt and PySide6 dependencies are included in your Dockerfile. Verify that Qt and PySide6 package licenses meet your project requirements.</li>
@@ -7360,13 +7384,13 @@ Update the import statement <code>from florence2_app import FlorenceApp</code> a
         
         
           
-          <a href="../holoscan-bootcamp/" class="md-footer__link md-footer__link--next" aria-label="Next: NVIDIA Holoscan Bootcamp lab materials">
+          <a href="../high_performance_networking/" class="md-footer__link md-footer__link--next" aria-label="Next: Achieving High Performance Networking with Holoscan">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                NVIDIA Holoscan Bootcamp lab materials
+                Achieving High Performance Networking with Holoscan
               </div>
             </div>
             <div class="md-footer__button md-icon">

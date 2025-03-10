@@ -6350,6 +6350,8 @@
       
         
       
+        
+      
     
     
       
@@ -6517,6 +6519,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7172,23 +7196,23 @@
 <img src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/local-llama/IGX_w_llama.png?raw=true" width=50% style="border: 2px solid black;">
 </div>
 
-<h2 id="introduction">Introduction:</h2>
+<h2 id="introduction">Introduction:<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>With the recent release of the <a href="https://about.fb.com/news/2023/07/llama-2/">Llama-2</a> family of models, there has been an excess of excitement in the LLM community due to these models being released freely for research and commercial use. Upon their release, the 70b version of the Llama-2 model quickly rose to the top place on HuggingFace's <a href="https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard">Open LLM Leaderboard</a>. Additionally, thanks to the publishing of the model weights, fine-tuned versions of these models are consistently being released and raising the bar for the top performing open-LLM. This most recent release of Llama-2 provides some of the first legitimate open-source alternatives to the previously unparalleled performance of closed-source LLMs. This enables developers to deploy these Llama-2 models locally, and benefit from being able to use some of the most advanced LLMs ever created, while also keeping all of their data on their own host machines.</p>
 <p>The only edge device that is capable of running the Llama-2 70b locally is the <a href="https://www.nvidia.com/en-us/edge-computing/products/igx/">NVIDIA IGX Orin</a>. In order to get the Llama-2 70b model running inference, all you need is an IGX Orin, a mouse, a keyboard, and to follow the tutorial below.</p>
 </blockquote>
-<h2 id="overview">Overview:</h2>
+<h2 id="overview">Overview:<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>This tutorial will walk you through how to run a quantized version of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin. Specifically, we will use <a href="https://github.com/ggerganov/llama.cpp">Llama.cpp</a>, a project that ports Llama models into C and C++ with CUDA acceleration, to load and run the quantized Llama-2 models. We will setup Llama.cpp's <code>api_like_OAI.py</code> Flask app that emulates the OpenAI API. This will then enable us to create a Gradio chatbot app that utilizes the popular OpenAI API Python library to interact with our local Llama-2 model. Thus, at the conclusion of this tutorial you will have a chatbot app that rivals the performance of closed-source models, while keeping all of your data local and running everything self-contained on an NVIDIA IGX Orin.</p>
 </blockquote>
 <hr />
-<h2 id="hardware-requirements">Hardware Requirements: 👉💻</h2>
+<h2 id="hardware-requirements">Hardware Requirements: 👉💻<a class="headerlink" href="#hardware-requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://www.nvidia.com/en-us/edge-computing/products/igx/">NVIDIA IGX Orin</a> with:</li>
 <li>RTX A6000 dGPU</li>
 <li>500 GB SSD</li>
 </ul>
-<h2 id="dependencies">Dependencies: 📦</h2>
+<h2 id="dependencies">Dependencies: 📦<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://www.nvidia.com/download/index.aspx">NVIDIA Drivers</a></li>
 <li><a href="https://developer.nvidia.com/cuda-downloads">CUDA Toolkit</a> &gt;= 11.8</li>
@@ -7196,7 +7220,7 @@
 <li><a href="https://packages.ubuntu.com/focal/build-essential"><code>build-essential</code></a> apt package (gcc, g++, etc.)</li>
 <li><a href="https://apt.kitware.com/">Cmake</a> &gt;= 3.17</li>
 </ul>
-<h2 id="cloning-and-building-llamacpp">Cloning and building Llama.cpp ⚒️:</h2>
+<h2 id="cloning-and-building-llamacpp">Cloning and building Llama.cpp ⚒️:<a class="headerlink" href="#cloning-and-building-llamacpp" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
 <p>Clone Llama.cpp:
@@ -7220,7 +7244,7 @@ Using <code>make</code>:
 </li>
 </ol>
 <p>By successfully executing these commands you will now be able to run Llama models on your local machine with BLAS acceleration!</p>
-<h2 id="downloading-llama-2-70b">Downloading Llama-2 70B ⬇️💾:</h2>
+<h2 id="downloading-llama-2-70b">Downloading Llama-2 70B ⬇️💾:<a class="headerlink" href="#downloading-llama-2-70b" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>In order to use Llama-2 70b as it is provided by Meta, you’d need 140 GB of VRAM (70b params x 2 bytes = 140 GB in FP16). However, by utilizing model quantization, we can reduce the computational and memory costs of running inference by representing the weights and activations as low-precision data types, like int8 and int4, instead of higher-precision data types like FP16 and FP32. To learn more about quantization, check out: The <a href="https://deci.ai/quantization-and-quantization-aware-training/">Ultimate Guide to Deep Learning Model Quantization</a>.</p>
 <p>Llama.cpp uses quantized models that are stored in the GGUF format. Browse to <a href="https://huggingface.co/TheBloke">TheBloke</a> on <a href="https://huggingface.co/">Huggingface.co</a>, who provides hundred of the latest quantized models. Feel free to choose a GGUF model that suits your needs. However, for this tutorial, we will use <a href="https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF"><em>TheBloke's</em> 4-bit medium GGUF quantization</a> of Meta’s LLama-2-70B-Chat model.
@@ -7232,7 +7256,7 @@ mkdir<span class="w"> </span>models<span class="w"> </span><span class="c1"># Cr
 <span class="nb">cd</span><span class="w"> </span>models
 wget<span class="w"> </span>https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF/resolve/main/llama-2-70b-chat.Q4_K_M.gguf
 </code></pre></div></p>
-<h2 id="running-llama-2-70b">Running Llama-2 70B 🤖:</h2>
+<h2 id="running-llama-2-70b">Running Llama-2 70B 🤖:<a class="headerlink" href="#running-llama-2-70b" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
 <p>Return to the home directory of Llama.cpp:
@@ -7308,7 +7332,7 @@ llama<span class="w"> </span>server<span class="w"> </span>listening<span class=
 <img src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/local-llama/llama_cpp_api.png?raw=true" width=40% style="border: 2px solid black;">
 </div>
 
-<h2 id="setting-up-a-local-openai-server">Setting up a local OpenAI server 🖥️:</h2>
+<h2 id="setting-up-a-local-openai-server">Setting up a local OpenAI server 🖥️:<a class="headerlink" href="#setting-up-a-local-openai-server" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Llama.cpp includes a nifty Flask app <code>api_like_OAI.py</code>. This Flask app sets up a server that emulates the OpenAI API. Its trick is that it converts the OpenAI API requests into the format expected by the Llama model, and forwards the captured requests to our local Llama-2 model. This allows you to use the popular OpenAI Python backend, and thus, countless powerful LLM libraries like <a href="https://python.langchain.com/docs/get_started/introduction.html">LangChain</a>, <a href="https://github.com/iryna-kondr/scikit-llm">Scikit-LLM</a>, <a href="https://haystack.deepset.ai/">Haystack</a>, and more. However, instead of your data being sent to OpenAI’s servers, it is all processed locally on your machine!
 1. In order to run the OpenAI API server and our eventual Gradio chat app, we need to open a new terminal and install a few Python dependencies:
@@ -7325,7 +7349,7 @@ python<span class="w"> </span>api_like_OAI.py
 <img src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/local-llama/api_like_OAI.png?raw=true" width=70% style="border: 2px solid black;">
 </div>
 
-<h2 id="creating-the-gradio-chat-app">Creating the Gradio Chat App 💬📱:</h2>
+<h2 id="creating-the-gradio-chat-app">Creating the Gradio Chat App 💬📱:<a class="headerlink" href="#creating-the-gradio-chat-app" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Create a new project directory and a <code>chatbot.py</code> file that contains the following code:</li>
 </ol>
@@ -7420,7 +7444,7 @@ python<span class="w"> </span>api_like_OAI.py
 </div>
 
 <p>You're now set up to interact with the Llama-2 70b model, with everything running locally! If you want to take this project further, you can experiment with different system messages to suit your needs or add the ability to interact with your local documents using frameworks like LangChain. Enjoy experimenting!</p>
-<h2 id="sources">Sources:</h2>
+<h2 id="sources">Sources:<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h2>
 <ul>
 <li>https://huggingface.co/meta-llama/Llama-2-70b-chat-hf/tree/main</li>
 <li>https://huggingface.co/docs/optimum/concept_guides/quantization</li>

@@ -5584,30 +5584,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::DDSShapesSubscriberOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6440,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6604,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7000,30 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::DDSShapesSubscriberOp">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7071,22 +7047,22 @@
 
   <h1>dds_shapes</h1>
 
-<h3 id="dds-shape-subscriber-operator">DDS Shape Subscriber Operator</h3>
+<h3 id="dds-shape-subscriber-operator">DDS Shape Subscriber Operator<a class="headerlink" href="#dds-shape-subscriber-operator" title="Permanent link">&para;</a></h3>
 <p>The DDS Shape Subscriber Operator subscribes to and reads from the <code>Square</code>, <code>Circle</code>, and
 <code>Triangle</code> shape topics as used by the <a href="https://www.rti.com/free-trial/shapes-demo">RTI Shapes Demo</a>.
 It will then translate the received shape data to an internal <code>Shape</code> datatype for output
 to downstream operators.</p>
 <p>This operator requires an installation of <a href="https://content.rti.com/l/983311/2024-04-30/pz1wms">RTI Connext</a>
 to provide access to the DDS domain, as specified by the <a href="https://www.omg.org/omg-dds-portal/">OMG Data-Distribution Service</a></p>
-<h4 id="holoscanopsddsshapessubscriberop"><code>holoscan::ops::DDSShapesSubscriberOp</code></h4>
+<h4 id="holoscanopsddsshapessubscriberop"><code>holoscan::ops::DDSShapesSubscriberOp</code><a class="headerlink" href="#holoscanopsddsshapessubscriberop" title="Permanent link">&para;</a></h4>
 <p>Operator class for the DDS Shapes Subscriber.</p>
 <p>This operator also inherits the parameters from <a href="../base/README.md">DDSOperatorBase</a>.</p>
-<h5 id="parameters">Parameters</h5>
+<h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>reader_qos</code></strong>: The name of the QoS profile to use for the DDS DataReader</li>
 <li>type: <code>std::string</code></li>
 </ul>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>output</code></strong>: Output shapes, translated from those read from DDS</li>
 <li>type: <code>holoscan::ops::DDSShapesSubscriberOp::Shape</code></li>

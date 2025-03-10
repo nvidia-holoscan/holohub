@@ -6350,6 +6350,8 @@
       
         
       
+        
+      
     
     
       
@@ -6866,6 +6868,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7603,11 +7627,11 @@
 
 
 
-<h1 id="interactively-debugging-a-holoscan-application"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/cli_debugging">Interactively Debugging a Holoscan Application</a></h1>
+<h1 id="interactively-debugging-a-holoscan-application"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/cli_debugging">Interactively Debugging a Holoscan Application</a><a class="headerlink" href="#interactively-debugging-a-holoscan-application" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Tom Birdsong (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> August 15, 2024<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.2.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.2.0, 2.3.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br></p>
 <p>Holoscan SDK is a platform for rapidly developing low-latency AI pipelines. As part of software development we often find it useful to inspect pipeline operations and data contexts during execution. This tutorial walks
 through a few common scenarios to illustrate how common command line interface tools can be used in debugging an application based on Holoscan SDK.</p>
-<h2 id="tutorial-sections">Tutorial Sections</h2>
+<h2 id="tutorial-sections">Tutorial Sections<a class="headerlink" href="#tutorial-sections" title="Permanent link">&para;</a></h2>
 <ol>
 <li><a href="#prerequisites">Prerequisites</a></li>
 <li><a href="#debugging-a-c-application-with-gdb">Debugging a C++ or Python application with <code>gdb</code></a></li>
@@ -7615,8 +7639,8 @@ through a few common scenarios to illustrate how common command line interface t
 <li><a href="#debugging-symbols-for-legacy-holoscan-sdk-versions">Debugging Symbols for Legacy Holoscan SDK</a></li>
 <li><a href="#logging">Logging</a></li>
 </ol>
-<h2 id="background">Background</h2>
-<h3 id="what-is-debugging">What is Debugging?</h3>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-debugging">What is Debugging?<a class="headerlink" href="#what-is-debugging" title="Permanent link">&para;</a></h3>
 <p>Software debugging is the process of identifying and rectifying issues in software.
 - <strong>Just-in-time debugging</strong> lets us pause execution and inspect the state while a program is running.
   For a C++ library such as Holoscan SDK, we rely on debugging symbols generated by the compiler
@@ -7628,7 +7652,7 @@ through a few common scenarios to illustrate how common command line interface t
   state and flow that is limited to the messages the developer chooses to log. Holoscan SDK supports
   logging based on popular libraries such as <code>spdlog</code> and the Python <code>logging</code> module.</p>
 <p>In general, both <strong>logging</strong> and <strong>just-in-time debugging</strong> are useful tools for prototyping and general development, while <strong>logging</strong> is usually better suited for application deployment. In this guide, we focus on using <strong>just-in-time debugging</strong> tools to inspect applications built on Holoscan SDK.</p>
-<h3 id="what-are-debugging-symbols">What are debugging symbols?</h3>
+<h3 id="what-are-debugging-symbols">What are debugging symbols?<a class="headerlink" href="#what-are-debugging-symbols" title="Permanent link">&para;</a></h3>
 <p>Debugging symbols are generated by a C++ compiler at build time to provide additional information
 for application debugging such as file names and line numbers. Debugging symbols must be present for
 debugging tools to provide meaningful information to a developer when inspecting an application's
@@ -7639,7 +7663,7 @@ execution state.</p>
 - <code>debug</code>: Instructs the C++ compiler to minimize optimizations and prioritize debugging symbol accuracy.
 As of v2.3, we do not release Holoscan SDK builds of this type, but we do provide a <code>run</code> script to help
 developers generate their own <code>debug</code> builds on demand.</p>
-<h2 id="what-are-some-common-tools-i-can-use-for-debugging-my-application">What are some common tools I can use for debugging my application?</h2>
+<h2 id="what-are-some-common-tools-i-can-use-for-debugging-my-application">What are some common tools I can use for debugging my application?<a class="headerlink" href="#what-are-some-common-tools-i-can-use-for-debugging-my-application" title="Permanent link">&para;</a></h2>
 <p>There are a wide variety of free and/or open source software tools available for general C++ and Python debugging, including:
 - <a href="https://developer.nvidia.com/debugging-solutions">NVIDIA's debugging solutions</a>, including NVIDIA NSight and CUDA-GDB;
 - The <a href="https://sourceware.org/gdb/">GNU project DeBugger (GDB)</a>;
@@ -7648,7 +7672,7 @@ developers generate their own <code>debug</code> builds on demand.</p>
 <p>In this tutorial we will focus on the <code>GDB</code> and <code>pdb</code> command line tools. These require minimal setup and can be run via a simple
 terminal without a dedicated display ("headless"). For advanced development we recommend reviewing Visual Studio Code Development Containers
 with custom launch profiles, with HoloHub support coming soon.</p>
-<h3 id="references">References</h3>
+<h3 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h3>
 <p>To get started with debugging your Holoscan SDK application, visit the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html">Debugging</a> user guide section for common topics, including:
 - Generating debug symbols with VSCode
 - Live debugging for C++ and Python applications
@@ -7656,7 +7680,7 @@ with custom launch profiles, with HoloHub support coming soon.</p>
 - Profiling and code coverage</p>
 <p>Visit the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html">Logging</a> user guide
 section for a thorough overview on how to set up Holoscan SDK logging in your C++ or Python application.</p>
-<h2 id="prerequisites">Prerequisites</h2>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>The steps for getting started with <code>gdb</code> depend on how you are consuming Holoscan SDK.
 - We encourage using Holoscan SDK containers from NGC for development and we take this approach for most of the tutorial. If you are using an NGC container for <strong>Holoscan SDK v2.3.0 or later</strong>, you already have access
   to debug symbols and can get started right away.
@@ -7667,11 +7691,11 @@ Holoscan SDK with debugging symbols in order to step through Holoscan SDK code d
 <p>If you have previously built the Endoscopy Tool Tracking application, you should clear your build directory before proceeding.
 <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>clear-cache
 </code></pre></div></p>
-<h2 id="debugging-a-c-application-with-gdb">Debugging a C++ Application with <code>gdb</code></h2>
-<h3 id="background_1">Background</h3>
+<h2 id="debugging-a-c-application-with-gdb">Debugging a C++ Application with <code>gdb</code><a class="headerlink" href="#debugging-a-c-application-with-gdb" title="Permanent link">&para;</a></h2>
+<h3 id="background_1">Background<a class="headerlink" href="#background_1" title="Permanent link">&para;</a></h3>
 <p><a href="https://sourceware.org/gdb/">GDB</a> (the GNU project DeBugger) is a widely used tool for headless just-in-time debugging of C++ applications. GDB distributions are available for most Holoscan SDK supported platforms and do not require a display to set up. Refer to the <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/">GDB User Manual</a>
 to get started.</p>
-<h3 id="getting-started">Getting Started</h3>
+<h3 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
 <p>For this tutorial we will debug the Endoscopy Tool Tracking application. The tutorial <a href="./debug_gdb.sh"><code>debug_gdb.sh</code></a> script
 is a self-contained example that will build the C++ application and launch into a <code>gdb</code> debugging session.</p>
 <p>Run the script to get started:
@@ -7698,8 +7722,8 @@ and initiates debugging with GDB from the Python script entrypoint. Once symbols
 and inspect the underlying state of Holoscan SDK C++ operator implementations at runtime.</p>
 <p>From this point we recommend referring to the <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/">GDB Manual</a> or
 online tutorials to get started with interactive debugging commands.</p>
-<h3 id="frequently-asked-questions-and-troubleshooting">Frequently Asked Questions and Troubleshooting</h3>
-<h4 id="how-can-i-verify-that-holoscan-sdk-debugging-symbols-have-been-loaded-in-gdb">How can I verify that Holoscan SDK debugging symbols have been loaded in <code>gdb</code>?</h4>
+<h3 id="frequently-asked-questions-and-troubleshooting">Frequently Asked Questions and Troubleshooting<a class="headerlink" href="#frequently-asked-questions-and-troubleshooting" title="Permanent link">&para;</a></h3>
+<h4 id="how-can-i-verify-that-holoscan-sdk-debugging-symbols-have-been-loaded-in-gdb">How can I verify that Holoscan SDK debugging symbols have been loaded in <code>gdb</code>?<a class="headerlink" href="#how-can-i-verify-that-holoscan-sdk-debugging-symbols-have-been-loaded-in-gdb" title="Permanent link">&para;</a></h4>
 <p><code>gdb</code> loads debugging symbols for Holoscan SDK only when the application loads Holoscan SDK binaries. Before that time, we can set breakpoints in Holoscan SDK files, but <code>gdb</code> will not understand them yet.</p>
 <p>We can use <code>info sharedlibrary</code> to inspect the shared libraries that have been dynamically loaded for execution.</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>info<span class="w"> </span>sharedlibrary
@@ -7719,10 +7743,10 @@ may not reflect your filesystem if you have mounted <code>holoscan-sdk</code> so
 /workspace/holoscan-sdk/src/core/services/generated/result.grpc.pb.cc,<span class="w"> </span>/workspace/holoscan-sdk/src/core/services/generated/result.pb.h,
 ...
 </code></pre></div>
-<h4 id="how-can-i-pause-a-running-holoscan-sdk-application-for-debugging">How can I pause a running Holoscan SDK application for debugging?</h4>
+<h4 id="how-can-i-pause-a-running-holoscan-sdk-application-for-debugging">How can I pause a running Holoscan SDK application for debugging?<a class="headerlink" href="#how-can-i-pause-a-running-holoscan-sdk-application-for-debugging" title="Permanent link">&para;</a></h4>
 <p>After launching the application with <code>gdb</code> as done in <a href="./debug_gdb.sh"><code>debug_gdb.sh</code></a>, use <code>continue</code> to allow the application to run. Then, press <code>Ctrl+C</code> to force the application to pause when you want to enter interactive debugging.
 Use <code>backtrace</code> to view stack frames at the point where the application paused.</p>
-<h4 id="how-can-i-manage-breakpoints-to-pause-the-application-sometime-in-the-future">How can I manage breakpoints to pause the application sometime in the future?</h4>
+<h4 id="how-can-i-manage-breakpoints-to-pause-the-application-sometime-in-the-future">How can I manage breakpoints to pause the application sometime in the future?<a class="headerlink" href="#how-can-i-manage-breakpoints-to-pause-the-application-sometime-in-the-future" title="Permanent link">&para;</a></h4>
 <ol>
 <li>To add a breakpoint <code>in holoscan/operators/format_converter/format_converter</code>:
 <div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span><span class="k">break</span><span class="w"> </span>/workspace/holoscan-sdk/src/operators/format_converter/format_converter.cpp:compute<span class="s2">&quot;</span>
@@ -7734,11 +7758,11 @@ Use <code>backtrace</code> to view stack frames at the point where the applicati
 <div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>delete<span class="w"> </span>&lt;number<span class="o">(</span>s<span class="o">)</span><span class="w"> </span>of<span class="w"> </span>breakpoint<span class="o">(</span>s<span class="o">)</span>&gt;
 </code></pre></div></li>
 </ol>
-<h2 id="how-can-i-inspect-local-variables">How can I inspect local variables?</h2>
+<h2 id="how-can-i-inspect-local-variables">How can I inspect local variables?<a class="headerlink" href="#how-can-i-inspect-local-variables" title="Permanent link">&para;</a></h2>
 <p>Use the <code>info</code> command to inspect the values of local variables.</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>info<span class="w"> </span>locals
 </code></pre></div>
-<h4 id="how-can-i-attach-to-a-running-holoscan-sdk-session">How can I attach to a running Holoscan SDK session?</h4>
+<h4 id="how-can-i-attach-to-a-running-holoscan-sdk-session">How can I attach to a running Holoscan SDK session?<a class="headerlink" href="#how-can-i-attach-to-a-running-holoscan-sdk-session" title="Permanent link">&para;</a></h4>
 <p>Do the following to attach to a HoloHub application (C++ or Python):</p>
 <ol>
 <li>
@@ -7768,25 +7792,25 @@ user+<span class="w">     </span><span class="m">292</span><span class="w">     
 </ol>
 <p>From this point you can use Ctrl+C to pause application execution, then use the interactive GDB console to
 set breakpoints and inspect application state as usual.</p>
-<h4 id="i-see-a-gdb-python-exception-in-the-gdb-log">I see a <code>gdb</code> Python Exception in the <code>gdb</code> log.</h4>
+<h4 id="i-see-a-gdb-python-exception-in-the-gdb-log">I see a <code>gdb</code> Python Exception in the <code>gdb</code> log.<a class="headerlink" href="#i-see-a-gdb-python-exception-in-the-gdb-log" title="Permanent link">&para;</a></h4>
 <p><code>gdb</code> relies on a Python module for operations such as unwinding. If the Python module is not properly referenced in the container, you may see <code>gdb</code> errors appear in the console log such as the following:
 <div class="highlight"><pre><span></span><code><span class="s2">&quot;Python Exception &lt;class &#39;NameError&#39;&gt;: Installation error: gdb._execute_unwinders function is missing&quot;</span>
 </code></pre></div>
 To resolve the error, update your <code>PYTHONPATH</code> variable to include your GDB Python directory:
 <div class="highlight"><pre><span></span><code><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="si">${</span><span class="nv">PYTHONPATH</span><span class="si">}</span>:/usr/share/gdb/python
 </code></pre></div></p>
-<h2 id="debugging-a-python-application-with-pdb">Debugging a Python application with <code>pdb</code></h2>
-<h3 id="background_2">Background</h3>
+<h2 id="debugging-a-python-application-with-pdb">Debugging a Python application with <code>pdb</code><a class="headerlink" href="#debugging-a-python-application-with-pdb" title="Permanent link">&para;</a></h2>
+<h3 id="background_2">Background<a class="headerlink" href="#background_2" title="Permanent link">&para;</a></h3>
 <p>The <a href="https://docs.python.org/3/library/pdb.html">Python Debugger</a> module is a built-in interactive debugging tool for Python programs. Similar to <code>gdb</code>, it supports setting breakpoints for interactive, headless, just-in-time debugging. You can use
 <code>pdb</code> to debug Holoscan SDK Python programs on any platform supported by Holoscan SDK.</p>
 <p>Holoscan SDK Python libraries serve as wrappers around Holoscan SDK C++ libraries. While <code>pdb</code> may load C++ symbols, it is
 not well suited for setting breakpoints or stepping into underlying C++ code. <code>pdb</code> is best suited for debugging Holoscan
 SDK operators whose implementation lies in a Python-native <code>compute</code> method.</p>
-<h3 id="prerequisites_1">Prerequisites</h3>
+<h3 id="prerequisites_1">Prerequisites<a class="headerlink" href="#prerequisites_1" title="Permanent link">&para;</a></h3>
 <p>The <code>pdb</code> module is built in to modern Python versions. No additional installation is required.</p>
 <p>We will continue to use the <strong>Holoscan SDK v2.3 development container</strong> from NGC for this section, which includes
 pre-installed versions of Python and Holoscan SDK.</p>
-<h3 id="getting-started_1">Getting Started</h3>
+<h3 id="getting-started_1">Getting Started<a class="headerlink" href="#getting-started_1" title="Permanent link">&para;</a></h3>
 <p>We will continue to debug the Endoscopy Tool Tracking application. The tutorial <a href="./debug_pdb.sh"><code>debug_pdb.sh</code></a> script
 is a self-contained example that will build the application and launch into a <code>pdb</code> debugging session.</p>
 <p>Run the script to get started:
@@ -7818,7 +7842,7 @@ pipeline setup in the app <code>compose</code> method:
 <p>You can also add a breakpoint directly in the <code>.py</code> source code before running a program by adding a <code>breakpoint()</code> statement.</p>
 <p>From here we recommend referring to <a href="https://docs.python.org/3/library/pdb.html"><code>pdb</code> documentation</a> for common
 commands and debugging strategies.</p>
-<h2 id="debugging-symbols-for-legacy-holoscan-sdk-versions">Debugging Symbols for Legacy Holoscan SDK Versions</h2>
+<h2 id="debugging-symbols-for-legacy-holoscan-sdk-versions">Debugging Symbols for Legacy Holoscan SDK Versions<a class="headerlink" href="#debugging-symbols-for-legacy-holoscan-sdk-versions" title="Permanent link">&para;</a></h2>
 <p>Starting from Holoscan SDK v2.3, we package debugging symbols as part of the libraries distributed in
 <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan">NGC Holoscan Containers</a>, with the goal
 of improving ease of development and debugging. This change comes at a small cost to size and performance of the Holoscan SDK
@@ -7840,8 +7864,8 @@ set up for debugging with <code>gdb</code>:</p>
 <code>/opt/nvidia/holoscan</code>, the default library path in the Holoscan SDK container. This effectively hides the Holoscan SDK
 build otherwise distributed inside the container and instead makes your custom debugging build available to build downstream
 applications.</p>
-<h3 id="frequently-asked-questions-and-troubleshooting_1">Frequently Asked Questions and Troubleshooting</h3>
-<h4 id="how-can-i-use-a-custom-container-path-for-my-holoscan-sdk-debugging-build-other-than-optnvidiaholoscan">How can I use a custom container path for my Holoscan SDK debugging build other than <code>/opt/nvidia/holoscan</code>?</h4>
+<h3 id="frequently-asked-questions-and-troubleshooting_1">Frequently Asked Questions and Troubleshooting<a class="headerlink" href="#frequently-asked-questions-and-troubleshooting_1" title="Permanent link">&para;</a></h3>
+<h4 id="how-can-i-use-a-custom-container-path-for-my-holoscan-sdk-debugging-build-other-than-optnvidiaholoscan">How can I use a custom container path for my Holoscan SDK debugging build other than <code>/opt/nvidia/holoscan</code>?<a class="headerlink" href="#how-can-i-use-a-custom-container-path-for-my-holoscan-sdk-debugging-build-other-than-optnvidiaholoscan" title="Permanent link">&para;</a></h4>
 <p>You can choose to mount your custom Holoscan SDK debugging build at another path in the container with
 the Docker <code>-v</code> option or the HoloHub <code>dev_container</code> script <code>--local_sdk_root</code> or <code>--mount-volume</code> options. If you
 are mounting your build at a custom path in the Holoscan SDK container for general development, consider the following
@@ -7853,7 +7877,7 @@ details when building and debugging:
 - <code>RPATH</code> or <code>RUNPATH</code> is an <a href="https://man7.org/linux/man-pages/man5/elf.5.html">ELF header field</a> that embeds shared library lookup locations in an executable.
   HoloHub applications set <code>RPATH</code> to include <code>/opt/nvidia/holoscan</code> by default. Edit the value of <code>CMAKE_INSTALL_RPATH</code> in
  <code>CMakeLists.txt</code> to remove the reference to <code>/opt/nvidia/holoscan</code> or reference your preferred mount path.</p>
-<h4 id="how-can-i-launch-the-tutorial-application">How can I launch the tutorial application?</h4>
+<h4 id="how-can-i-launch-the-tutorial-application">How can I launch the tutorial application?<a class="headerlink" href="#how-can-i-launch-the-tutorial-application" title="Permanent link">&para;</a></h4>
 <p>You can simply re-run the tutorial script to rebuild and relaunch the application:</p>
 <div class="highlight"><pre><span></span><code>./tutorials/cli_debugging/debug_legacy.sh
 </code></pre></div>
@@ -7872,12 +7896,12 @@ details when building and debugging:
 <span class="w">    </span>/workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div></p>
 <p>Refer to the <a href="./debug_legacy.sh"><code>debug_legacy.sh</code></a> script for more details.</p>
-<h2 id="logging">Logging</h2>
+<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
 <p>Just-in-time debugging is not well suited to problems that require real-time performance analysis. Logging is usually the better
 choice to debug performance related issues in your Holoscan application.</p>
 <p>The <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html">Holoscan SDK User Guide Logging section</a>
 presents a detailed overview of how to get started with logging from your application.</p>
-<h3 id="logging-from-a-c-application">Logging from a C++ application</h3>
+<h3 id="logging-from-a-c-application">Logging from a C++ application<a class="headerlink" href="#logging-from-a-c-application" title="Permanent link">&para;</a></h3>
 <p>C++ applications based on Holoscan should use the <code>HOLOSCAN_LOG_LEVEL</code> environment variable or <code>holoscan::set_log_level</code>
 function to set the global level of detail to log in the application. You can add inline macros such as
 <code>HOLOSCAN_LOG_INFO</code> AND <code>HOLOSCAN_LOG_TRACE</code> in your application code to print out log messages at runtime
@@ -7885,7 +7909,7 @@ according to the current logging level of detail.</p>
 <div class="highlight"><pre><span></span><code>export HOLOSCAN_LOG_LEVEL=&quot;Debug&quot;
 ./run launch endoscopy_tool_tracking
 </code></pre></div>
-<h3 id="logging-from-a-python-application">Logging from a Python application</h3>
+<h3 id="logging-from-a-python-application">Logging from a Python application<a class="headerlink" href="#logging-from-a-python-application" title="Permanent link">&para;</a></h3>
 <p>Python applications based on Holoscan should use the <a href="https://docs.python.org/3/library/logging.html">Python <code>logging</code> module</a>.
 Holoscan observes the standard logging module interface with statements such as <code>logger.info</code> and <code>logger.debug</code>. Refer to the
 <a href="https://docs.python.org/3/library/logging.html">Python <code>logging</code> module</a> for more information.</p>

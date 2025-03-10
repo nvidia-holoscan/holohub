@@ -6494,6 +6494,8 @@
       
         
       
+        
+      
     
     
       
@@ -6658,6 +6660,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7185,14 +7209,14 @@
 
 
 
-<h1 id="velodyne-vlp-16-lidar-viewer-application"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/velodyne_lidar_app/cpp">Velodyne VLP-16 Lidar Viewer Application</a></h1>
+<h1 id="velodyne-vlp-16-lidar-viewer-application"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/velodyne_lidar_app/cpp">Velodyne VLP-16 Lidar Viewer Application</a><a class="headerlink" href="#velodyne-vlp-16-lidar-viewer-application" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA), nvMap Team (NVIDIA), nvMap Embedded Team (NVIDIA), Tom Birdsong (NVIDIA), Julien Jomier (NVIDIA), Jiahao Yin (NVIDIA), Marlene Wan (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> April 29, 2024<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 4 - Experimental<br></p>
 <p><img alt="HoloViz Visual of Highway Sample Lidar Data" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/doc/VLP10HzMontereyHighway.gif?raw=true" /></p>
-<h2 id="overview">Overview</h2>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>In this application we demonstrate how to use Holoscan SDK for low-latency lidar processing.
 We receive lidar packets from a Velodyne VLP-16 lidar sensor, convert packet information to
 a rolling Cartesian point cloud on GPU, then visualize the results with HoloViz.</p>
-<h2 id="background">Background</h2>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
 <p>"Lidar" (LIght Detection And Ranging) is a technique by which "light", typically of
 wavelengths in the infrared spectrum, is used to determine the position of reflective
 surfaces surrounding a sensor. A 3D lidar sensor often employs a stacked vertical array of
@@ -7203,7 +7227,7 @@ environment, with each point corresponding to an estimated point of reflection.<
 We adapted existing packet processing code from NVIDIA DeepMap SDK into a custom Holoscan operator,
 <code>VelodyneLidarOp</code>, and connected it with the existing <code>BasicNetworkOp</code> and <code>HoloVizOp</code> operators
 to provide a complete viewing pipeline. We performed initial benchmarking on an NVIDIA IGX devkit.</p>
-<h2 id="requirements">Requirements</h2>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <p>This application is intended to run on a Holoscan SDK support platform, namely a Linux x64
 system or an NVIDIA IGX developer kit.</p>
 <p>To run the application you need a live or replayer source to stream Velodyne VLP-16 packet
@@ -7212,13 +7236,13 @@ data to the application. That may be either:
 - A VLP-16 <code>.pcap</code> recording file and a packet replayer software.
   - Visit Kitware's VeloView <a href="https://www.paraview.org/veloview/#download">Velodyne Lidar collection</a> for sample VLP-16 <code>.pcap</code> files.
   - Visit the third party <a href="https://gitlab.com/wireshark/wireshark/-/wikis/Tools#traffic-generators">Wireshark wiki</a> for a curated list of software options for generating traffic from <code>.pcap</code> files.</p>
-<h2 id="running-the-application">Running the Application</h2>
+<h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">&para;</a></h2>
 <p>First, start your lidar stream source. If you are using a VLP-16 lidar sensor, review the <a href="https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf">VLP-16
 user manual</a> for instructions on how to properly set up your network configuration.</p>
 <p>Then, build and start the Holoscan lidar viewing application:</p>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>velodyne_lidar_app
 </code></pre></div>
-<h2 id="benchmarks">Benchmarks</h2>
+<h2 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h2>
 <p>We performed benchmarking on an NVIDIA IGX developer kit with an A4000 GPU. (Note that an A6000 GPU is standard for IGX.) We used the <a href="../../../benchmarks/holoscan_flow_benchmarking/">holoscan_flow_benchmarking</a> project to collect and summarize performance. The performance for each component in the Holoscan SDK pipeline is shown in the image below.</p>
 <p>Key statistics:</p>
 <table>
@@ -7246,8 +7270,8 @@ user manual</a> for instructions on how to properly set up your network configur
 <p>By comparison, the VLP-16 lidar publishes packets at a rate of approximately 1.33 milliseconds per packet.</p>
 <p><img alt="Latency Flow Diagram" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/doc/latency.png?raw=true" /></p>
 <p><img alt="Cumulative Density Function" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/doc/cdf.png?raw=true" /></p>
-<h2 id="frequently-asked-questions-faq">Frequently Asked Questions (FAQ)</h2>
-<h3 id="how-does-the-application-work">How does the application work?</h3>
+<h2 id="frequently-asked-questions-faq">Frequently Asked Questions (FAQ)<a class="headerlink" href="#frequently-asked-questions-faq" title="Permanent link">&para;</a></h2>
+<h3 id="how-does-the-application-work">How does the application work?<a class="headerlink" href="#how-does-the-application-work" title="Permanent link">&para;</a></h3>
 <p>The application flow is as follows:</p>
 <ol>
 <li>A UDP packet is emitted from the Velodyne VLP-16 lidar sensor and received on port 2368 in the Holoscan <code>BasicNetworkOp</code> operator.</li>
@@ -7255,14 +7279,14 @@ user manual</a> for instructions on how to properly set up your network configur
 according to the Velodyne lidar specification, where the VLP-16 packet defines 384 spherical points from laser firings. The operator converts the spherical points to Cartesian points on the GPU device and adds the resulting cloud to a rolling, accumulated point cloud.</li>
 <li>The Velodyne operator forwards the rolling point cloud to HoloViz, which renders the GPU point cloud to the screen.</li>
 </ol>
-<h3 id="what-are-some-limitations-of-the-application">What are some limitations of the application?</h3>
+<h3 id="what-are-some-limitations-of-the-application">What are some limitations of the application?<a class="headerlink" href="#what-are-some-limitations-of-the-application" title="Permanent link">&para;</a></h3>
 <p>This application is intended as a simple demonstration of how a lidar sensor can be integrated for input to Holoscan SDK for low latency processing. It does not propose any novel features. Some limitations compared with more complete lidar solutions are:
 - No cloud filtering -- all zero-ranged points are kept in the buffer and visualized.
 - No advanced inference techniques -- the cloud is simply translated and visualized.
 - No RDMA -- VLP-16 lidar packets are received via the host ethernet interface on the IGX or x86_64 machine and then copied to the GPU device.
 - Monochrome visual -- HoloViz operator cloud support is currently limited to one color.</p>
 <p>Each of these limitations is merely a result of our scope of work, and could be overcome with additional attention.</p>
-<h3 id="why-is-holoviz-not-responding">Why is HoloViz not responding?</h3>
+<h3 id="why-is-holoviz-not-responding">Why is HoloViz not responding?<a class="headerlink" href="#why-is-holoviz-not-responding" title="Permanent link">&para;</a></h3>
 <p>In most cases this indicates that the Holoscan application is not receiving UDP packets.
 There are several reasons that this could be the case:
 - The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
@@ -7272,7 +7296,7 @@ There are several reasons that this could be the case:
   user manual</a> for troubleshooting.
 - The HoloHub application is not properly configured. Review the <a href="lidar.yaml"><code>lidar.yaml</code></a> configuration
   and confirm that the port and IP address match the VLP-16 configuration.</p>
-<h2 id="acknowledgements">Acknowledgements</h2>
+<h2 id="acknowledgements">Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">&para;</a></h2>
 <p>This operator was developed in part with support from the NVIDIA nvMap team and adapts portions
 of the NVIDIA DeepMap SDK.</p>
 

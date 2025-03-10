@@ -5892,39 +5892,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::NppFilter">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -6449,6 +6416,8 @@
       
         
       
+        
+      
     
     
       
@@ -6613,6 +6582,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7009,39 +7000,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="holoscan::ops::NppFilter">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Inputs
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Outputs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -7095,11 +7053,11 @@
 
   <h1>npp_filter</h1>
 
-<h3 id="npp-filter">NPP Filter</h3>
+<h3 id="npp-filter">NPP Filter<a class="headerlink" href="#npp-filter" title="Permanent link">&para;</a></h3>
 <p>The <code>npp_filter</code> operator uses <a href="https://developer.nvidia.com/npp">NPP</a> to apply a filters to a Tensor or VideBuffer.</p>
-<h4 id="holoscanopsnppfilter"><code>holoscan::ops::NppFilter</code></h4>
+<h4 id="holoscanopsnppfilter"><code>holoscan::ops::NppFilter</code><a class="headerlink" href="#holoscanopsnppfilter" title="Permanent link">&para;</a></h4>
 <p>Operator class to apply a filter of the <a href="">NPP library</a> to a Tensor or VideBuffer.</p>
-<h5 id="parameters">Parameters</h5>
+<h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>filter</code></strong>: Name of the filter to apply (supported Gauss, SobelHoriz, SobelVert)</li>
 <li>type: <code>std::string</code></li>
@@ -7108,12 +7066,12 @@
 <li><strong><code>allocator</code></strong>: Allocator used to allocate the output data</li>
 <li>type: <code>std::shared_ptr&lt;Allocator&gt;</code></li>
 </ul>
-<h5 id="inputs">Inputs</h5>
+<h5 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>input</code></strong>: Input frame data</li>
 <li>type: <code>nvidia::gxf::Tensor</code> or <code>nvidia::gxf::VideoBuffer</code></li>
 </ul>
-<h5 id="outputs">Outputs</h5>
+<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong><code>input</code></strong>: Output frame data</li>
 <li>type: <code>nvidia::gxf::Tensor</code> or <code>nvidia::gxf::VideoBuffer</code></li>

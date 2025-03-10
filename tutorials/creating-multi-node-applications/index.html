@@ -6350,6 +6350,8 @@
       
         
       
+        
+      
     
     
       
@@ -6731,6 +6733,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7315,7 +7339,7 @@
 
 
 
-<h1 id="creating-multi-node-applications"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/creating-multi-node-applications">Creating Multi Node Applications</a></h1>
+<h1 id="creating-multi-node-applications"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/creating-multi-node-applications">Creating Multi Node Applications</a><a class="headerlink" href="#creating-multi-node-applications" title="Permanent link">&para;</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Jin Li (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> February 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br></p>
 <p>In this tutorial, we will walk through the process in two scenarios of creating a multi node application from existing applications. We will demonstrate the process with Python applications but it's similar for C++ applications as well.</p>
 <ol>
@@ -7329,16 +7353,16 @@
 <p>The SDK documentation on <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html">Creating a Distributed Application</a> contains the necessary core concepts and description for distributed applications, please familiarize yourself with the documentation before proceeding to this tutorial.</p>
 <p>Please also see two SDK examples <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/ping_distributed">ping_distributed</a> and <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/video_replayer_distributed">video_replayer_distributed</a> on simple examples of creating distributed applications.</p>
 <p>In this tutorial, we will focus on modifying existing applications you have created into distributed applications.</p>
-<h2 id="scenario-1-divide-an-application-into-two-fragments">Scenario 1 - Divide an application into two fragments</h2>
+<h2 id="scenario-1-divide-an-application-into-two-fragments">Scenario 1 - Divide an application into two fragments<a class="headerlink" href="#scenario-1-divide-an-application-into-two-fragments" title="Permanent link">&para;</a></h2>
 <p>The <a href="../../applications/multiai_endoscopy/"><code>multiai_endoscopy</code></a> application has its app graph like below:</p>
 <p><img alt="multiai_endoscopy_app_graph" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/creating-multi-node-applications/images/multiai_endoscopy_app_graph.png?raw=true" /></p>
 <p>We will divide it into two fragments. The first fragment will include all operators excluding the visualizer and the second fragment will include the visualizer, as illustrated below:</p>
 <p><img alt="multiai_endoscopy_distributed_app_graph" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/creating-multi-node-applications/images/multiai_endoscopy_distributed_app_graph.png?raw=true" /></p>
-<h3 id="changes-in-scenario-1-extra-imports">Changes in scenario 1 - Extra Imports</h3>
+<h3 id="changes-in-scenario-1-extra-imports">Changes in scenario 1 - Extra Imports<a class="headerlink" href="#changes-in-scenario-1-extra-imports" title="Permanent link">&para;</a></h3>
 <p>To created a distributed application, we will need to import the Fragment object.  </p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fragment</span>
 </code></pre></div>
-<h3 id="changes-in-scenario-1-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 1 - Changing the way command-line arguments are parsed</h3>
+<h3 id="changes-in-scenario-1-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 1 - Changing the way command-line arguments are parsed<a class="headerlink" href="#changes-in-scenario-1-changing-the-way-command-line-arguments-are-parsed" title="Permanent link">&para;</a></h3>
 <p>As seen in the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html#adding-user-defined-command-line-arguments">documentation</a>, it is recommended to parse user-defined arguments from the <code>argv ((C++/Python))</code> method/property of the application. To parse in user-defined command line arguments (such as <code>--data</code>, <code>--source</code>, <code>--labelfile</code> in this app), let's make sure to avoid arguments that are unique to the multi-fragment applications, such as  <code>--driver</code>, <code>--worker</code>, <code>--address</code>, <code>--worker-address</code>, <code>--fragments</code> (see the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html#adding-user-defined-command-line-arguments">documentation</a> for more details on using those arguments).
 <br>
 In the <a href="../../applications/multiai_endoscopy/">non-distributed application</a>, we would have 
@@ -7422,7 +7446,7 @@ Now we will define two fragments, and add and connect them in the application's<
         <span class="c1"># (3) from the segmentation postprocessor to Holoviz</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;segmentation_postprocessor.out_tensor&quot;</span> <span class="p">,</span> <span class="s2">&quot;holoviz.receivers&quot;</span><span class="p">)})</span>
 </code></pre></div></p>
-<h3 id="changes-in-scenario-1-defining-objects-shared-among-fragments">Changes in scenario 1 - Defining objects shared among fragments</h3>
+<h3 id="changes-in-scenario-1-defining-objects-shared-among-fragments">Changes in scenario 1 - Defining objects shared among fragments<a class="headerlink" href="#changes-in-scenario-1-defining-objects-shared-among-fragments" title="Permanent link">&para;</a></h3>
 <p>When creating your fragments, first make a list of all the objects each fragment's operators will need. If there are objects that are needed across multiple fragments (such as <code>self.label_dict</code> in this case), before passing them into fragments in the application's <code>compose()</code> method, create such objects in the app's <code>__init()__</code> method ideally. In the non-distributed application, in the app's <code>compose()</code> method we define <code>label_dict</code> from <code>self.labelfile</code>, and continue using <code>label_dict</code> while composing the application. In the distributed application, we move the definition of <code>label_dict</code> from <code>self.labelfile</code> into the application's <code>__init()__</code> method, and refer to <code>self.label_dict</code> in the application's <code>compose()</code> method and each fragment's <code>__init__()</code>/<code>compose()</code> methods.</p>
 <p>Non distributed application:
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MultiAIDetectionSegmentation</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
@@ -7462,7 +7486,7 @@ Now we will define two fragments, and add and connect them in the application's<
         <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment2&quot;</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
         <span class="o">...</span>
 </code></pre></div></p>
-<h3 id="changes-in-scenario-1-adding-operators-to-app-graph">Changes in scenario 1 - Adding Operators to App Graph</h3>
+<h3 id="changes-in-scenario-1-adding-operators-to-app-graph">Changes in scenario 1 - Adding Operators to App Graph<a class="headerlink" href="#changes-in-scenario-1-adding-operators-to-app-graph" title="Permanent link">&para;</a></h3>
 <p>When composing a non-distributed application, operators are created in the <code>compose()</code> method, then added to the app graph one of two ways:
    1. For applications with a single operator (rare), <code>add_operator()</code> should be called.
    1. for applications with multiple operators, using <code>add_flow()</code> will take care of adding each operator to the app graph on top of connecting them.
@@ -7493,9 +7517,9 @@ class Fragment1(Fragment):
         multi_ai_inference = InferenceOp(...)
         detection_postprocessor = DetectionPostprocessorOp(...)
         segmentation_postprocessor = SegmentationPostprocessorOp(...)</p>
-<pre><code>    # add flow between operators
+<div class="highlight"><pre><span></span><code>    # add flow between operators
     ...
-</code></pre>
+</code></pre></div>
 <p>class Fragment2(Fragment):
     def compose(self):
         holoviz = HolovizOp(...)
@@ -7520,7 +7544,7 @@ class MultiAIDetectionSegmentation(Application):
         <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pool&quot;</span><span class="p">)</span>
         <span class="c1"># ... operator definitions in fragment2 with parameter pool=pool,</span>
 </code></pre></div></p>
-<h3 id="changes-in-scenario-1-running-the-application">Changes in scenario 1 - Running the application</h3>
+<h3 id="changes-in-scenario-1-running-the-application">Changes in scenario 1 - Running the application<a class="headerlink" href="#changes-in-scenario-1-running-the-application" title="Permanent link">&para;</a></h3>
 <p>Previously for a non distributed application, the command to launch is <code>python3 multi_ai.py --data &lt;DATA_DIR&gt;</code>, now in the distributed application we will have the option to specify a few more things:
 <div class="highlight"><pre><span></span><code><span class="c1"># To run fragment 1 on current node as driver and worker:</span>
 python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--data<span class="w"> </span>/workspace/holohub/data/<span class="w"> </span>--driver<span class="w"> </span>--worker<span class="w"> </span>--address<span class="w"> </span>&lt;node<span class="w"> </span><span class="m">1</span><span class="w"> </span>IP<span class="w"> </span>address&gt;:&lt;port&gt;<span class="w"> </span>--fragments<span class="w"> </span>fragment1
@@ -7529,7 +7553,7 @@ python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--data<span cl
 </code></pre></div></p>
 <p>For more details on the commandline arguments for multi fragment apps, see the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html">documentation</a>.</p>
 <p>To run the app we create in scenario 1, please see <a href="#running-the-applications">Running the Applications</a>.</p>
-<h2 id="scenario-2-connect-two-applications-into-a-multi-node-application-with-two-fragments">Scenario 2 - Connect two applications into a multi-node application with two fragments</h2>
+<h2 id="scenario-2-connect-two-applications-into-a-multi-node-application-with-two-fragments">Scenario 2 - Connect two applications into a multi-node application with two fragments<a class="headerlink" href="#scenario-2-connect-two-applications-into-a-multi-node-application-with-two-fragments" title="Permanent link">&para;</a></h2>
 <p>In this scenario, we will combine the existing application <a href="../../applications/endoscopy_tool_tracking/python/">endoscopy_tool_tracking</a> and <a href="../../applications/endoscopy_out_of_body_detection/">endoscopy_out_of_body_detection</a> into a distributed application with 2 fragments.</p>
 <p>Since <a href="../../applications/endoscopy_out_of_body_detection/">endoscopy_out_of_body_detection</a> is implemented in C++, we will quickly implement the Python version of the app for our Fragment2.</p>
 <p>The app graph for <code>endoscopy_tool_tracking</code>:
@@ -7538,7 +7562,7 @@ The app graph for <code>endoscopy_out_of_body_detection</code>:
 <img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/creating-multi-node-applications/images/endoscopy_out_of_body_app_graph.png?raw=true" />
 The distributed app graph we want to create:
 <img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/creating-multi-node-applications/images/scenario2_distributed_app_graph.png?raw=true" /></p>
-<h3 id="changes-in-scenario-2-extra-imports">Changes in scenario 2  - Extra Imports</h3>
+<h3 id="changes-in-scenario-2-extra-imports">Changes in scenario 2  - Extra Imports<a class="headerlink" href="#changes-in-scenario-2-extra-imports" title="Permanent link">&para;</a></h3>
 <p>Similar to scenario 1, to created a distributed application, we will need to import the Fragment object. When combining two non distributed apps into a multi-fragment application, remember to import all prebuilt Holoscan operators needed in both fragments.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fragment</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.operators</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -7551,7 +7575,7 @@ The distributed app graph we want to create:
     <span class="n">InferenceProcessorOp</span>
 <span class="p">)</span>
 </code></pre></div>
-<h3 id="changes-in-scenario-2-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 2 - Changing the way command-line arguments are parsed</h3>
+<h3 id="changes-in-scenario-2-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 2 - Changing the way command-line arguments are parsed<a class="headerlink" href="#changes-in-scenario-2-changing-the-way-command-line-arguments-are-parsed" title="Permanent link">&para;</a></h3>
 <p>Similar to <a href="#changes-in-scenario-1---changing-the-way-command-line-arguments-are-parsed">Changing the way command-line arguments are parse in scenario 1</a>, instead of the following for the non distributed app:
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="o">...</span>
@@ -7565,7 +7589,7 @@ For the distributed app we will have:
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">apps_argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
     <span class="o">...</span>
 </code></pre></div></p>
-<h3 id="changes-in-scenario-2-modifying-non-distributed-applications-into-a-distributed-application">Changes in scenario 2 - Modifying non-distributed application(s) into a distributed application</h3>
+<h3 id="changes-in-scenario-2-modifying-non-distributed-applications-into-a-distributed-application">Changes in scenario 2 - Modifying non-distributed application(s) into a distributed application<a class="headerlink" href="#changes-in-scenario-2-modifying-non-distributed-applications-into-a-distributed-application" title="Permanent link">&para;</a></h3>
 <p>In the new distributed app, we will define the app graph in <code>endoscopy_tool_tracking</code> as the new app's fragment 1. 
 The non distributed app <code>endoscopy_tool_tracking</code> had its <code>__init__()</code> and <code>compose()</code> methods structured like following:
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">EndoscopyApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
@@ -7678,7 +7702,7 @@ We can then define our distributed application with the following structure. Not
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;aja.video_buffer_output&quot;</span> <span class="k">if</span> <span class="n">is_aja</span> <span class="k">else</span> <span class="s2">&quot;replayer.output&quot;</span><span class="p">,</span> <span class="s2">&quot;out_of_body_preprocessor&quot;</span><span class="p">)})</span>
 </code></pre></div>
-<h3 id="changes-in-scenario-2-combining-objects-needed-by-each-fragments-in-distributed-app-init-time">Changes in scenario 2 - Combining objects needed by each fragments in distributed app init time</h3>
+<h3 id="changes-in-scenario-2-combining-objects-needed-by-each-fragments-in-distributed-app-init-time">Changes in scenario 2 - Combining objects needed by each fragments in distributed app init time<a class="headerlink" href="#changes-in-scenario-2-combining-objects-needed-by-each-fragments-in-distributed-app-init-time" title="Permanent link">&para;</a></h3>
 <p>Note how the <code>__init__()</code> method in the distributed app structured above is now the place to get parameters for the app graph composition for both fragment1 and fragment 2. In this case, Fragment1 needs the following objects at <code>__init__()</code> time: 
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Fragment1</span><span class="p">(</span><span class="n">Fragment</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sample_data_path</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">record_type</span><span class="p">):</span>
@@ -7698,9 +7722,9 @@ and Fragment 2 needs the following objects at <code>__init__()</code> time:
         <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="n">model_path</span>
 </code></pre></div>
 We need to make sure in the distributed app's <code>__init__()</code> method, we are creating the corresponding objects to pass in to each fragment's <code>__init__()</code> time.</p>
-<h3 id="changes-in-scenario-2-configuration-file">Changes in scenario 2 - Configuration File</h3>
+<h3 id="changes-in-scenario-2-configuration-file">Changes in scenario 2 - Configuration File<a class="headerlink" href="#changes-in-scenario-2-configuration-file" title="Permanent link">&para;</a></h3>
 <p>If you had two <code>yaml</code> files for configuring each of the non distributed applications, now in the combined distributed application you will need to combine the content of both in a <code>yaml</code> file.</p>
-<h3 id="changes-in-scenario-2-running-the-application">Changes in scenario 2 - Running the application</h3>
+<h3 id="changes-in-scenario-2-running-the-application">Changes in scenario 2 - Running the application<a class="headerlink" href="#changes-in-scenario-2-running-the-application" title="Permanent link">&para;</a></h3>
 <p>In the newly created distributed application we will launch the application like below:
 <div class="highlight"><pre><span></span><code><span class="c1"># To run fragment 1 on current node as driver and worker:</span>
 python3<span class="w"> </span>/workspace/holohub/applications/distributed_app/python/endoscopy_tool_tracking.py<span class="w"> </span>--source<span class="w"> </span>replayer<span class="w"> </span>--data<span class="w"> </span>/workspace/holohub/data<span class="w"> </span>--driver<span class="w"> </span>--worker<span class="w"> </span>--fragments<span class="w"> </span>fragment1<span class="w"> </span>--address<span class="w"> </span>&lt;node<span class="w"> </span><span class="m">1</span><span class="w"> </span>IP<span class="w"> </span>address&gt;:&lt;port&gt;
@@ -7713,15 +7737,15 @@ python3<span class="w"> </span>/workspace/holohub/applications/distributed_app/p
 </code></pre></div></p>
 <p>For more details on the commandline arguments for multi fragment apps, see the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html">documentation</a>.</p>
 <p>To run the app we create in scenario 2, please see <a href="#running-the-applications">Running the Applications</a>.</p>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <p>You can run a distributed application across any combination of hardware that are compatible with the Holoscan SDK. Please see <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites">SDK Installation Prerequisites</a> for a list of compatible hardware. </p>
 <p>If you would like the distributed application fragments to communicate through high speed ConnectX NICs, enable the ConnectX NIC for GPU Direct RDMA, for example the ConnectX-7 NIC on the IGX Orin Developer Kit, follow <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/set_up_gpudirect_rdma.html">these instructions</a>. Enabling ConnectX NICs could bring significant speedup to your distributed app connection, for example, the RJ45 ports on IGX Orin Developer Kit supports 1GbE while the QSFP28 ports connected to ConnectX-7 support up to 100 GbE.</p>
 <p>If connecting together two IGX Orin Developer Kits with dGPU, follow the above instructions on each devkit to enable GPU Direct RDMA through ConnectX-7, and make the hardware connection through the QSFP28 ports on the back panel. A QSFP-QSFP cable should be included in your devkit box alongside power cables etc in the inner small box. Use either one of the two port on the devkit, and make sure to find out the logical name of the port as detailed in the instructions.</p>
 <p><img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/creating-multi-node-applications/images/Two%20IGX%20Connection.png?raw=true" /></p>
 <p>On each machine, make sure to specify an address for the network logical name that has the QSFP cable connected, and when running your distributed application, make sure to specify that address for the <code>--driver</code> machine.</p>
-<h2 id="running-the-applications">Running the Applications</h2>
+<h2 id="running-the-applications">Running the Applications<a class="headerlink" href="#running-the-applications" title="Permanent link">&para;</a></h2>
 <p>Follow <a href="https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#container-build-recommended">Container Build</a> instructions to build and launch the HoloHub dev container.</p>
-<h3 id="scenario-1-application">Scenario 1 Application</h3>
+<h3 id="scenario-1-application">Scenario 1 Application<a class="headerlink" href="#scenario-1-application" title="Permanent link">&para;</a></h3>
 <p>Before we start to launch the application, let's first run the original application. In the dev container, make sure to build and launch the <a href="../../applications/multiai_endoscopy/"><code>multiai_endoscopy</code></a> app, this will convert the downloaded ONNX model file into a TensorRT engine at first run. </p>
 <blockquote>
 <p>Build and run instructions may change in the future, please refer to the original application.
@@ -7748,7 +7772,7 @@ python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--source<span 
 python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--source<span class="w"> </span>aja<span class="w">  </span>--data<span class="w"> </span>/workspace/holohub/data/<span class="w"> </span>
 </code></pre></div></p>
 </blockquote>
-<h3 id="scenario-2-application">Scenario 2 Application</h3>
+<h3 id="scenario-2-application">Scenario 2 Application<a class="headerlink" href="#scenario-2-application" title="Permanent link">&para;</a></h3>
 <p>Let's first run the original applications. In the dev container, make sure to build and launch the <a href="../../applications/endoscopy_tool_tracking/"><code>endoscopy_tool_tracking</code></a> and <a href="../../applications/endoscopy_out_of_body_detection/"><code>endoscopy_out_of_body_detection</code></a> apps, this will convert the downloaded ONNX models into TensorRT engines at first run. </p>
 <blockquote>
 <p>Build and run instructions may change in the future, please refer to the original applications.

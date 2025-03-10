@@ -6489,6 +6489,8 @@
       
         
       
+        
+      
     
     
       
@@ -6653,6 +6655,28 @@
   
   <span class="md-ellipsis">
     Adding a GUI to Holoscan Python Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/high_performance_networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achieving High Performance Networking with Holoscan
     
   </span>
   
@@ -7194,15 +7218,15 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-<h1 id="psd-pipeline">PSD Pipeline</h1>
-<h2 id="overview">Overview</h2>
+<h1 id="psd-pipeline">PSD Pipeline<a class="headerlink" href="#psd-pipeline" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The PSD pipeline takes in a VITA49 data stream from the advanced network
 operator, then performs an FFT, PSD, and averaging operation before
 generating a VITA 49.2 spectral data packet which gets sent to a
 destination UDP socket.</p>
 <p><img alt="Diagram of the PSD pipeline showing each operator and the flow
   of GPU and CPU data" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/psd_pipeline/imgs/psd_pipeline_diagram.png?raw=true" /></p>
-<h3 id="acronyms">Acronyms</h3>
+<h3 id="acronyms">Acronyms<a class="headerlink" href="#acronyms" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -7233,13 +7257,13 @@ destination UDP socket.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="requirements">Requirements</h2>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>ConnectX 6 or 7 NIC for GPUDirect RDMA with packet size steering</li>
 <li><a href="https://github.com/NVIDIA/MatX">MatX</a> (dependency)</li>
 <li><a href="https://github.com/Geontech/vrtgen">vrtgen</a> (dependency)</li>
 </ul>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>[!IMPORTANT]
 The settings in <code>config.yaml</code> need to be tailored to your system/radio.</p>
@@ -7259,13 +7283,13 @@ and their meaning are defined in each operator's own README:</p>
 <li><code>num_psds</code>: Number of PSDs to produce out of the pipeline before exiting.
                Passing <code>-1</code> here will cause the pipeline to run indefinitely.</li>
 </ol>
-<h3 id="metadata">Metadata</h3>
+<h3 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h3>
 <p>This pipeline leverages Holoscan's operator metadata dictionaries to pass
 VITA 49-adjacent metadata through the pipeline.</p>
 <p>Each operator in the pipeline adds its own metadata to the dictionary.
 At the end of the pipeline, the packetizer operator uses the metadata
 to construct VITA 49 context packets to send alongside the spectral data.</p>
-<h3 id="memory-layout">Memory Layout</h3>
+<h3 id="memory-layout">Memory Layout<a class="headerlink" href="#memory-layout" title="Permanent link">&para;</a></h3>
 <p>The ANO operates using memory regions that it directs data to. Since VITA49
 is somewhat unusual in that signal data packets and context packets arrive
 at the same IP/port, we want to use the ANO's packet length steering feature
@@ -7327,7 +7351,7 @@ your radio!</p>
 the data to downstream operators. In our case, 12,500 packets represents
 100ms worth of data and that's how much we want to process on each run of
 the pipeline.</p>
-<h3 id="multiple-channels">Multiple Channels</h3>
+<h3 id="multiple-channels">Multiple Channels<a class="headerlink" href="#multiple-channels" title="Permanent link">&para;</a></h3>
 <p>When working with multiple channels, this pipeline expects all context
 packets (from every channel) to flow to one queue, but each data channel
 flows to its own queue.</p>
@@ -7341,7 +7365,7 @@ flows to its own queue.</p>
 <li>The <code>batch_size</code> of the context queue is equal to the number of
    channels.</li>
 </ol>
-<h3 id="ingest-nic">Ingest NIC</h3>
+<h3 id="ingest-nic">Ingest NIC<a class="headerlink" href="#ingest-nic" title="Permanent link">&para;</a></h3>
 <p>The PCIe address of your ingest NIC needs to be specified in <code>config.yaml</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">interfaces</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sdr_data</span>
@@ -7359,7 +7383,7 @@ usb@1:14.2        usb0       network        Ethernet interface
 </code></pre></div>
 <p>In this example, if you wanted to use the <code>ens3f1np1</code> interface, you'd pass
 <code>0000:51:00.1</code>.</p>
-<h2 id="build-run">Build &amp; Run</h2>
+<h2 id="build-run">Build &amp; Run<a class="headerlink" href="#build-run" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Build</strong> the development container from the ANO operator's directory:
    <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./operators/advanced_network/Dockerfile
