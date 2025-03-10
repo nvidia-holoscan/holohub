@@ -61,8 +61,8 @@ advanced_network:
             - "tx_eth_src"
     - name: data2
       address: <0000:00:00.0>       # The BUS address of the interface doing Rx
-      flow_isolation: true
       rx:
+        flow_isolation: true
         queues:
         - name: "Data"
           id: 0

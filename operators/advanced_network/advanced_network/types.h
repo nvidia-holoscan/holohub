@@ -377,6 +377,7 @@ struct CommonConfig {
 };
 
 struct AdvNetRxConfig {
+  bool flow_isolation_;
   std::vector<RxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
 };
@@ -391,7 +392,6 @@ struct AdvNetConfigInterface {
   std::string name_;
   std::string address_;
   uint16_t port_id_;
-  bool flow_isolation_;
   AdvNetRxConfig rx_;
   AdvNetTxConfig tx_;
 };
