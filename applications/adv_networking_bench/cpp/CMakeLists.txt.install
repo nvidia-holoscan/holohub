@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
+
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "native")
+endif()
+
 project(adv_networking_bench CXX CUDA)
 
 # Dependencies
@@ -26,9 +31,6 @@ FetchContent_Declare(
   GIT_TAG v0.8.0
 )
 FetchContent_MakeAvailable(MatX)
-
-# Global variables
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 
 # Create the executable
 add_executable(adv_networking_bench
