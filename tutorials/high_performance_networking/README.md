@@ -1446,13 +1446,12 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
     Both located under `/opt/nvidia/holoscan/examples/adv_networking_bench/`:
 
-    ```bash hl_lines="2 5"
+    ```bash hl_lines="2 4"
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_rx.yaml
     adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench_default_tx.yaml
+    adv_networking_bench_default_tx_rx_hds.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench_rmax_rx.yaml
     CMakeLists.txt
@@ -1469,13 +1468,12 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
     Both located under `install/examples/adv_networking_bench/`
 
-    ```bash hl_lines="2 5"
+    ```bash hl_lines="2 4"
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_rx.yaml
     adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench_default_tx.yaml
+    adv_networking_bench_default_tx_rx_hds.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench.py
     adv_networking_bench_rmax_rx.yaml
