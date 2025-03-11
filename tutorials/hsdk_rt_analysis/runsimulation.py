@@ -18,6 +18,7 @@ import heapq
 
 import networkx as nx
 
+
 queuesize = 1
 
 class operator(object):

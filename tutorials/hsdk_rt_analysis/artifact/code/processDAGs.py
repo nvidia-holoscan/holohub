@@ -19,6 +19,7 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 
+
 def add_edges(graph, edgeset):
     for rawedge in edgeset.rstrip("\n").split(")"):
         if rawedge != '':

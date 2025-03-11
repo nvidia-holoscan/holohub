@@ -17,6 +17,7 @@ import heapq
 
 from code.processDAGs import construct_graphs, get_unique
 
+
 queuesize = 1
 
 class operator(object):

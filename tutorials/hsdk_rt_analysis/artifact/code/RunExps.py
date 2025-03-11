@@ -15,6 +15,7 @@
 
 import os
 
+
 # Function to parse output log and find the observed WCRT
 def parselog(filepath):
 

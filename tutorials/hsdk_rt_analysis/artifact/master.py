@@ -16,11 +16,8 @@
 import os
 import argparse
 
-from code import DAGResponseTime
-from code import MakeVars
-from code import RunExps
-from code import simulator
-from code import visualize
+from code import DAGResponseTime, MakeVars, RunExps, simulator, visualize
+
 
 def main():
 

@@ -65,7 +65,7 @@ void spin2(uint64_t duration_ns, timespec& start_ts) {
   while (true) {
     clock_gettime(CLOCK_REALTIME, &curr_ts);  // Get the current time
     timespecsub(&curr_ts, &start_ts, &diff_ts);  // Calculate the time difference
-    elapsed_ns = SEC_TO_NS(diff_ts.tv_sec) + diff_ts.tv_nsec;  // Convert elapsed time to nanoseconds
+    elapsed_ns = SEC_TO_NS(diff_ts.tv_sec) + diff_ts.tv_nsec;  // Convert to nanoseconds
     if (elapsed_ns >= duration_ns) {
       break;  // Exit the loop when the duration is met or exceeded
     }
@@ -91,273 +91,273 @@ namespace holoscan::ops {
 
 class PingTxOp : public Operator {
   public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingTxOp)
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingTxOp)
 
-  PingTxOp() = default;
+    PingTxOp() = default;
 
-  void setup(OperatorSpec& spec) override {
-    spec.output<int>("out");
-  }
+    void setup(OperatorSpec& spec) override {
+      spec.output<int>("out");
+    }
 
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    int value = index_++;
-    op_output.emit(value, "out");
-  };
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      int value = index_++;
+      op_output.emit(value, "out");
+    };
 
   private:
-  int index_ = 1;
+    int index_ = 1;
 };
 
 class PingMxOp : public Operator {
   public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxOp)
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxOp)
 
-  PingMxOp() = default;
+    PingMxOp() = default;
 
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out").condition(ConditionType::kNone);
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
+    void setup(OperatorSpec& spec) override {
+      spec.input<int>("in");
+      spec.output<int>("out").condition(ConditionType::kNone);
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
 
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
 
-    spin((WCET_ * static_cast<double>(1000000)));
+      spin((WCET_ * static_cast<double>(1000000)));
 
-    op_output.emit(value);
-  };
+      op_output.emit(value);
+    };
 
   private:
-  Parameter<int> WCET_;
+    Parameter<int> WCET_;
 };
 
 
 class PingMxTwoOutputOp : public Operator {
   public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputOp)
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputOp)
 
-  PingMxTwoOutputOp() = default;
+    PingMxTwoOutputOp() = default;
 
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out1").condition(ConditionType::kNone);
-    spec.output<int>("out2").condition(ConditionType::kNone);
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
+    void setup(OperatorSpec& spec) override {
+      spec.input<int>("in");
+      spec.output<int>("out1").condition(ConditionType::kNone);
+      spec.output<int>("out2").condition(ConditionType::kNone);
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
 
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
 
-    spin((WCET_ * static_cast<double>(1000000)));
+      spin((WCET_ * static_cast<double>(1000000)));
 
-    op_output.emit(value, "out1");
-    op_output.emit(value, "out2");
-  };
+      op_output.emit(value, "out1");
+      op_output.emit(value, "out2");
+    };
 
   private:
-  Parameter<int> WCET_;
+    Parameter<int> WCET_;
 };
 
 
 class PingMxTwoOutputDownstreamOp : public Operator {
   public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputDownstreamOp)
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxTwoOutputDownstreamOp)
 
-  PingMxTwoOutputDownstreamOp() = default;
-
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out1");
-    spec.output<int>("out2");
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
-
-    spin((WCET_ * static_cast<double>(1000000)));
-
-    op_output.emit(value, "out1");
-    op_output.emit(value, "out2");
-  };
-
-  private:
-  Parameter<int> WCET_;
-};
-
-
-class PingMxThreeOutputDownstreamOp : public Operator {
-  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxThreeOutputDownstreamOp)
-
-  PingMxThreeOutputDownstreamOp() = default;
-
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out1");
-    spec.output<int>("out2");
-    spec.output<int>("out3");
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
-
-    spin((WCET_ * static_cast<double>(1000000)));
-
-    op_output.emit(value, "out1");
-    op_output.emit(value, "out2");
-    op_output.emit(value, "out3");
-  };
-
-  private:
-  Parameter<int> WCET_;
-};
-
-
-class PingMxFourOutputDownstreamOp : public Operator {
-  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxFourOutputDownstreamOp)
-
-  PingMxFourOutputDownstreamOp() = default;
-
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out1");
-    spec.output<int>("out2");
-    spec.output<int>("out3");
-    spec.output<int>("out4");
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
-
-    spin((WCET_ * static_cast<double>(1000000)));
-
-    op_output.emit(value, "out1");
-    op_output.emit(value, "out2");
-    op_output.emit(value, "out3");
-    op_output.emit(value, "out4");
-  };
-
-  private:
-  Parameter<int> WCET_;
-};
-
-
-class PingMultiInputMxOp : public Operator {
-    public:
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputMxOp)
-
-    PingMultiInputMxOp() = default;
+    PingMxTwoOutputDownstreamOp() = default;
 
     void setup(OperatorSpec& spec) override {
-      spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
-      spec.output<int>("out");
-      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-    }
-
-    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-      auto value_vector =
-        op_input.receive<std::vector<int>>("receivers").value();
-
-      spin((WCET_ * static_cast<double>(1000000)));
-
-      op_output.emit(value_vector[0]);
-    };
-
-    private:
-    Parameter<std::vector<IOSpec*>> receivers_;
-    Parameter<int> WCET_;
-};
-
-
-class PingMultiInputOutputMxOp : public Operator {
-    public:
-    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputOutputMxOp)
-
-    PingMultiInputOutputMxOp() = default;
-
-    void setup(OperatorSpec& spec) override {
-      spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
+      spec.input<int>("in");
       spec.output<int>("out1");
       spec.output<int>("out2");
       spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
     }
 
     void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
+
+      spin((WCET_ * static_cast<double>(1000000)));
+
+      op_output.emit(value, "out1");
+      op_output.emit(value, "out2");
+    };
+
+  private:
+    Parameter<int> WCET_;
+};
+
+
+class PingMxThreeOutputDownstreamOp : public Operator {
+  public:
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxThreeOutputDownstreamOp)
+
+    PingMxThreeOutputDownstreamOp() = default;
+
+    void setup(OperatorSpec& spec) override {
+      spec.input<int>("in");
+      spec.output<int>("out1");
+      spec.output<int>("out2");
+      spec.output<int>("out3");
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
+
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
+
+      spin((WCET_ * static_cast<double>(1000000)));
+
+      op_output.emit(value, "out1");
+      op_output.emit(value, "out2");
+      op_output.emit(value, "out3");
+    };
+
+  private:
+    Parameter<int> WCET_;
+};
+
+
+class PingMxFourOutputDownstreamOp : public Operator {
+  public:
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxFourOutputDownstreamOp)
+
+    PingMxFourOutputDownstreamOp() = default;
+
+    void setup(OperatorSpec& spec) override {
+      spec.input<int>("in");
+      spec.output<int>("out1");
+      spec.output<int>("out2");
+      spec.output<int>("out3");
+      spec.output<int>("out4");
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
+
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
+
+      spin((WCET_ * static_cast<double>(1000000)));
+
+      op_output.emit(value, "out1");
+      op_output.emit(value, "out2");
+      op_output.emit(value, "out3");
+      op_output.emit(value, "out4");
+    };
+
+  private:
+    Parameter<int> WCET_;
+};
+
+
+class PingMultiInputMxOp : public Operator {
+    public:
+      HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputMxOp)
+
+      PingMultiInputMxOp() = default;
+
+      void setup(OperatorSpec& spec) override {
+        spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
+        spec.output<int>("out");
+        spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+      }
+
+      void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+        auto value_vector =
+          op_input.receive<std::vector<int>>("receivers").value();
+
+        spin((WCET_ * static_cast<double>(1000000)));
+
+        op_output.emit(value_vector[0]);
+      };
+
+    private:
+      Parameter<std::vector<IOSpec*>> receivers_;
+      Parameter<int> WCET_;
+};
+
+
+class PingMultiInputOutputMxOp : public Operator {
+    public:
+      HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMultiInputOutputMxOp)
+
+      PingMultiInputOutputMxOp() = default;
+
+      void setup(OperatorSpec& spec) override {
+        spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
+        spec.output<int>("out1");
+        spec.output<int>("out2");
+        spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+      }
+
+      void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+        auto value_vector =
+          op_input.receive<std::vector<int>>("receivers").value();
+
+        spin((WCET_ * static_cast<double>(1000000)));
+
+        op_output.emit(value_vector[0], "out1");
+        op_output.emit(value_vector[0], "out2");
+      };
+
+    private:
+      Parameter<std::vector<IOSpec*>> receivers_;
+      Parameter<int> WCET_;
+};
+
+class PingMxDownstreamOp : public Operator {
+  public:
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxDownstreamOp)
+
+    PingMxDownstreamOp() = default;
+
+    void setup(OperatorSpec& spec) override {
+      spec.input<int>("in");
+      spec.output<int>("out");
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
+
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
+      auto value = op_input.receive<int>("in").value();
+
+      spin((WCET_ * static_cast<double>(1000000)));
+
+      op_output.emit(value);
+    };
+
+  private:
+    Parameter<int> WCET_;
+};
+
+class PingRxOp : public Operator {
+  public:
+    HOLOSCAN_OPERATOR_FORWARD_ARGS(PingRxOp)
+
+    PingRxOp() = default;
+
+    void setup(OperatorSpec& spec) override {
+      spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
+      spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
+    }
+
+    void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
       auto value_vector =
         op_input.receive<std::vector<int>>("receivers").value();
 
       spin((WCET_ * static_cast<double>(1000000)));
 
-      op_output.emit(value_vector[0], "out1");
-      op_output.emit(value_vector[0], "out2");
+
+      std::cout << "Running... iteration " << value_vector[0] << " complete" <<  std::endl;
     };
 
-    private:
+  private:
     Parameter<std::vector<IOSpec*>> receivers_;
     Parameter<int> WCET_;
-};
-
-class PingMxDownstreamOp : public Operator {
-  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingMxDownstreamOp)
-
-  PingMxDownstreamOp() = default;
-
-  void setup(OperatorSpec& spec) override {
-    spec.input<int>("in");
-    spec.output<int>("out");
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value = op_input.receive<int>("in").value();
-
-    spin((WCET_ * static_cast<double>(1000000)));
-
-    op_output.emit(value);
-  };
-
-  private:
-  Parameter<int> WCET_;
-};
-
-class PingRxOp : public Operator {
-  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PingRxOp)
-
-  PingRxOp() = default;
-
-  void setup(OperatorSpec& spec) override {
-    spec.param(receivers_, "receivers", "Input Receivers", "List of input receivers.", {});
-    spec.param(WCET_, "WCET", "WCET", "Worst case execution time in milliseconds", 0);
-  }
-
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext&) override {
-    auto value_vector =
-      op_input.receive<std::vector<int>>("receivers").value();
-
-    spin((WCET_ * static_cast<double>(1000000)));
-
-
-    std::cout << "Running... iteration " << value_vector[0] << " complete" <<  std::endl;
-  };
-
-  private:
-  Parameter<std::vector<IOSpec*>> receivers_;
-  Parameter<int> WCET_;
 };
 
 }  // namespace holoscan::ops
 class MyPingApp : public holoscan::Application {
   public:
-  void compose() override {
-    using namespace holoscan;  // This is filled in by MakeVars.py when the scripts are run 
-  }
+    void compose() override {
+      using namespace holoscan;  // This is filled in by MakeVars.py when the scripts are run
+    }
 };
 
 int main(int argc, char** argv) {
