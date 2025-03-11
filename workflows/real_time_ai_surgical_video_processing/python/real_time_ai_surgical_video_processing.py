@@ -21,8 +21,9 @@ from argparse import ArgumentParser
 
 import cupy as cp
 from holoscan.conditions import BooleanCondition, CountCondition
-from holoscan.core import Application, IOSpec, Operator, OperatorSpec
+from holoscan.core import Application, IOSpec, Operator, OperatorSpec, MetadataPolicy
 from holoscan.operators import (
+    BayerDemosaicOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -446,7 +447,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
                 * self._camera._height,
                 num_blocks=2,
             )
-            hsb_demosaic = hololink_module.operators.BayerDemosaicOp(
+            hsb_demosaic = BayerDemosaicOp(
                 self,
                 name="demosaic",
                 pool=bayer_pool,
@@ -595,6 +596,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         source = ForwardOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
+        condition.metadata_policy = MetadataPolicy.UPDATE
         # Distributor operator
         distributor = ForwardOp(self, name="distributor_op")
         # Postprocessor aggregator operator
