@@ -62,38 +62,54 @@ Which backend is best for your use case will depend on multiple factors, such as
 
 We'll start with installing the `holoscan-networking` package, as it provides some utilities to help tune the system, and requires some dependencies which will help us with the system setup.
 
+First, add the [DOCA apt repository](https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&deployment_package=DOCA-Host&target_os=Linux) which holds some of its dependencies:
+
 === "IGX OS 1.1"
 
-    !!! tip "COMING SOON - GTC 2025"
-
     ```bash
-    # DOCA repository: https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&deployment_package=DOCA-Host&target_os=Linux
     export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/"
     wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
     echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
 
-    # Install
-    sudo apt-get update
-    sudo apt-get install -y holoscan-networking
+    sudo apt update
     ```
 
-=== "x86_64 - Ubuntu 22.04"
-
-    !!! tip "COMING SOON - GTC 2025"
+=== "SBSA (Ubuntu 22.04)"
 
     ```bash
-    # DOCA repository: https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&deployment_package=DOCA-Host&target_os=Linux
+    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/"
+    wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
+    echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
+
+    # Also need the CUDA repository for holoscan: https://developer.nvidia.com/cuda-downloads?target_os=Linux
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/sbsa/cuda-keyring_1.1-1_all.deb
+    sudo dpkg -i cuda-keyring_1.1-1_all.deb
+
+    sudo apt update
+    ```
+
+=== "x86_64 (Ubuntu 22.04)"
+
+    ```bash
     export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/x86_64/"
     wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
     echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
 
-    # CUDA repository: https://developer.nvidia.com/cuda-downloads?target_os=Linux
+    # Also need the CUDA repository for holoscan: https://developer.nvidia.com/cuda-downloads?target_os=Linux
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
     sudo dpkg -i cuda-keyring_1.1-1_all.deb
 
-    # Install
-    sudo apt-get update
-    sudo apt-get install -y holoscan-networking
+    sudo apt update
+    ```
+
+You can then install `holoscan-networking`:
+
+=== "Debian installation"
+
+    !!! tip "COMING SOON - GTC 2025"
+
+    ```bash
+    sudo apt install -y holoscan-networking
     ```
 
 === "From source"
@@ -103,14 +119,14 @@ We'll start with installing the `holoscan-networking` package, as it provides so
     ```bash
     git clone git@github.com:nvidia-holoscan/holohub.git
     cd holohub
-    ./dev_container build_and_install holoscan-networking # Installed in ./install
+    ./dev_container build_and_install holoscan-networking   # Installed in ./install
     ```
 
-    If you'd like to generate and install it as a debian package build from source, you can run:
+    If you'd like to generate the debian package from source and install it to ensure all dependencies are then present on your system, you can run:
 
     ```bash
     ./dev_container build_and_package holoscan-networking
-    sudo apt-get install ./holoscan-networking_*.deb # Installed in /opt/nvidia/holoscan
+    sudo apt-get install ./holoscan-networking_*.deb        # Installed in /opt/nvidia/holoscan
     ```
 
     Refer to the [HoloHub README](https://github.com/nvidia-holoscan/holohub/blob/main/README.md) for more information.
@@ -415,7 +431,7 @@ Before diving in each of the setups below, we provide a utility script as part o
     sudo /opt/nvidia/holoscan/bin/tune_system.py --check all
     ```
 
-=== "HoloHub sources"
+=== "From source"
 
     ```bash
     cd holohub
@@ -472,7 +488,7 @@ Run the following command to check the GPUDirect communication matrix. **You are
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check topology
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -563,7 +579,7 @@ lspci -tv
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check mps
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -616,7 +632,7 @@ Check current MRRS:
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check mrrs
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -645,7 +661,7 @@ Check current MRRS:
     Check current MRRS:
 
     ```bash
-    sudo lspci -vv -s $bus_addr | grep DevCtl: -A2 | grep -oE "MaxReadReq [0-9]+"
+    sudo lspci -vv -s $nic_pci | grep DevCtl: -A2 | grep -oE "MaxReadReq [0-9]+"
     ```
 
 Update MRRS:
@@ -656,7 +672,7 @@ Update MRRS:
     sudo /opt/nvidia/holoscan/bin/tune_system.py --set mrrs
     ```
 
-=== "HoloHub sources"
+=== "From source"
 
     ```bash
     cd holohub
@@ -848,7 +864,7 @@ You can first check if any of the recommended flags were already set on the last
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check cmdline
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -935,7 +951,7 @@ Check the current governor for each of your cores:
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check cpu-freq
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -1145,7 +1161,7 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check bar1
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -1303,7 +1319,7 @@ Jumbo frames are Ethernet frames that carry a payload larger than the standard 1
         sudo /opt/nvidia/holoscan/bin/tune_system.py --check mtu
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         cd holohub
@@ -1872,7 +1888,7 @@ This section will guide you through building your own application using the `adv
         /opt/nvidia/holoscan/examples/adv_networking_bench/main.cpp
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         ./applications/adv_networking_bench/cpp/main.cpp
@@ -2021,7 +2037,7 @@ bench_tx: # (32)!
         /opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_rx.h
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         ./applications/adv_networking_bench/cpp/default_bench_op_rx.h
@@ -2043,7 +2059,7 @@ bench_tx: # (32)!
         /opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_tx.h
         ```
 
-    === "HoloHub sources"
+    === "From source"
 
         ```bash
         ./applications/adv_networking_bench/cpp/default_bench_op_tx.h
@@ -2122,9 +2138,9 @@ bench_tx: # (32)!
         "./$build_dir/my_app my_app_config.yaml"
         ```
 
-=== "HoloHub sources"
+=== "From source"
 
-    1. Create an application directory under [`applications/`](https://github.com/nvidia-holoscan/holohub/tree/main/applications) and write your source file(s) for your application (and custom operators if needed).
+    1. Create an application directory under [`applications/`](https://github.com/nvidia-holoscan/holohub/tree/main/applications) in your clone of the HoloHub repository, and write your source file(s) for your application (and custom operators if needed).
     2. Add the following to the [`application/CMakeLists.txt`](https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench/CMakeLists.txt) file:
 
         ```cmake
