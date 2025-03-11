@@ -1966,17 +1966,17 @@ advanced_network: # (2)!
     - name: "Data_TX_GPU" # (6)!
       kind: "device" # (7)!
       affinity: 0 # (8)!
-      num_bufs: 30720 # (9)!
+      num_bufs: 51200 # (9)!
       buf_size: 1064 # (10)!
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
-      num_bufs: 30720
+      num_bufs: 51200
       buf_size: 1000
     - name: "Data_RX_CPU"
       kind: "huge"
       affinity: 0
-      num_bufs: 30720
+      num_bufs: 51200
       buf_size: 64
 
     interfaces: # (11)!
@@ -2045,7 +2045,7 @@ bench_tx: # (32)!
 6. A descriptive name for that memory region to refer to later in the `interfaces` section.
 7. The type of memory region. Best options are `device` (GPU), or `huge` (pages - CPU). Also supported but not recommended are `malloc` (CPU) and `pinned` (CPU).
 8. The GPU ID for `device` memory regions. The NUMA node ID for CPU memory regions.
-9. The number of buffers in the memory region. A higher value means more time to process the data, but it takes additional space on the GPU BAR1. Too low increases the risk of dropping packets from the NIC having nowhere to write (Rx) or the risk of higher latency from buffering (Tx). Need a rule of thumb 👍? 3x the `batch_size` below is a good starting point.
+9. The number of buffers in the memory region. A higher value means more time to process the data, but it takes additional space on the GPU BAR1. Too low increases the risk of dropping packets from the NIC having nowhere to write (Rx) or the risk of higher latency from buffering (Tx). Need a rule of thumb 👍? 5x the `batch_size` below is a good starting point.
 10. The size of each buffer in the memory region. These should be equal to your maximum packet size, or less if breaking down packets (ex: header data split, see the `rx` queue below).
 11. The `interfaces` section lists the NIC interfaces that will be configured for the application.
 12. A descriptive name for that interface, currently only used for logging.

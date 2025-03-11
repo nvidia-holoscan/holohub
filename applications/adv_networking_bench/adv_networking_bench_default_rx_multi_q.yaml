@@ -34,12 +34,12 @@ advanced_network:
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
     - name: "Data_RX_GPU2"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
 
     interfaces:
     - name: data2
