@@ -2,39 +2,62 @@
 
 ## Overview
 
-In this workflow, we demonstrate a comprehensive real-time AI surgical video processing workflow that includes:
+Holoscan Workflows are end-to-end reference applications that may include Holoscan Sensor Bridge.
+In this workflow, we demonstrate a comprehensive real-time AI surgical video processing pipeline that includes:
 
-1. Out-of-body detection to determine if the endoscope is inside or outside the patient
-2. Dynamic flow condition based on out-of-body detection results:
+1. Integration with [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html), which enables an end-to-end pipeline.
+2. Out-of-body detection to determine if the endoscope is inside or outside the patient's body.
+3. Dynamic flow condition based on out-of-body detection results:
    - Deidentification (pixelation) when outside the body
    - Multi-AI processing when inside the body
-3. Multi-AI processing with:
+4. Multi-AI Surgical Tool processing with:
    - SSD detection for surgical tool detection
    - MONAI segmentation for endoscopic tool segmentation
 
-![Sample Endoscopy Image](images/RAISVP-sample-image.png)
+![Sample Output Images](images/RAISVP-sample-images.png)
 
-Fig. 1 Endoscopy (laparoscopy) image from a cholecystectomy (gallbladder removal surgery) showing tool detection and segmentation results from two concurrently executed AI models.
+Fig.1: Endoscopy image from a partial nephrectomy procedures (surgical removal of the diseased portion of the kidney) showing AI tool segmentation results when the camera is inside the body and a deidenfied (pixelated) output image when the camera is outside of the body.
 Image courtesy of Research Group Camma, IHU Strasbourg and the University of Strasbourg ([NGC Resource](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data))
 
-Please refer to the README under [./app_dev_process](./app_dev_process/README.md) to see the process of developing the applications.
-
-The application graph looks like:
+## Workflow Components
 ![RAISVP-workflow](./images/RAISVP-dynamic-workflow.png)
+Fig.2: The workflow diagram representing all the holoscan operators (in green) and holoscan sensor bridge operators (in yellow). The source can be a Holoscan Sensor Bridge, an AJA Card and a video replayer.
+
+### 1. Out-of-Body Detection
+
+The workflow first determines if the endoscope is inside or outside the patient's body using an AI model.
+
+### 2. Conditional Processing
+
+- If outside the body: The video is deidentified through pixelation to protect privacy
+- If inside the body: The video is processed by the multi-AI pipeline
+
+### 3. Multi-AI Processing
+
+When inside the body, two AI models run concurrently:
+
+- SSD detection model identifies surgical tools with bounding boxes
+- MONAI segmentation model provides pixel-level segmentation of tools
+
+### 4. Visualization
+
+The HolovizOp displays the processed video with overlaid AI results, including:
+
+- Bounding boxes around detected tools
+- Segmentation masks for tools
+- Text labels for detected tools
 
 ## Models
 
 This workflow utilizes three AI models:
 
-- [Out-of-body detection model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/endoscopy_out_of_body_detection): `out_of_body_detection.onnx`
-- [SSD model from NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model) with additional NMS op: `epoch24_nms.onnx`
-- [MONAI tool segmentation model from NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model): `model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx`
+- [Out-of-body Detection Model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_orsi_academy_sample_data): `anonymization_model.onnx`
+- [SSD Detection for Endoscopy Surgical Tools](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model) with additional NMS op: `epoch24_nms.onnx`
+- [MONAI Endoscopic Tool Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model): `model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx`
 
 ## Data
 
-[📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
-
-[📦️ (NGC) Sample App Data for Out-of-Body Detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
+[📦️ (NGC) Orsi partial nephrectomy procedures](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
 
 ## Requirements
 
@@ -52,6 +75,7 @@ cd holoscan-sensor-bridge
 ./docker/build.sh
 ```
 
+This will build a docker image called `hololink-demo:{HSB_VERSION}`
 Once you have built the Holoscan Sensor Bridge container, you can build the holohub container using the following command:
 
 ```sh
@@ -150,3 +174,6 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 - Bounding boxes around detected tools
 - Segmentation masks for tools
 - Text labels for detected tools
+
+## Benchmarking
+![Latency Profiling](./images/RAISVP_latency.png)
