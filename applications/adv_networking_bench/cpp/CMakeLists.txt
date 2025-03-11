@@ -68,17 +68,11 @@ add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
 
-add_custom_target(adv_networking_bench_default_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx.yaml"
+add_custom_target(adv_networking_bench_default_tx_rx_hds_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml"
 )
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_yaml)
-
-add_custom_target(adv_networking_bench_default_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_rx_yaml)
+add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_hds_yaml)
 
 add_custom_target(adv_networking_bench_gpunetio_tx_rx_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_gpunetio_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -98,12 +92,12 @@ install(TARGETS adv_networking_bench
         COMPONENT adv_networking_bench-cpp)
 
 install(
-  FILES ../adv_networking_bench_default_rx.yaml
-        ../adv_networking_bench_default_tx.yaml
-        ../adv_networking_bench_default_tx_rx.yaml
-        ../adv_networking_bench_default_rx_multi_q.yaml
-        ../adv_networking_bench_gpunetio_tx_rx.yaml
-        ../adv_networking_bench_rmax_rx.yaml
+  FILES
+    ../adv_networking_bench_default_tx_rx_hds.yaml
+    ../adv_networking_bench_default_tx_rx.yaml
+    ../adv_networking_bench_default_rx_multi_q.yaml
+    ../adv_networking_bench_gpunetio_tx_rx.yaml
+    ../adv_networking_bench_rmax_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE

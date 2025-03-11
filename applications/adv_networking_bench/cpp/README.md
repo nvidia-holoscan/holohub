@@ -70,16 +70,10 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ### Run Instructions
 
-First, go in your `build` or `install` directory, then for the transmitter run:
+First, go in your `build` or `install` directory, then:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_tx.yaml
-```
-
-Or for the receiver:
-
-```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_rx.yaml
+./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
 ```
 
 With DOCA:
