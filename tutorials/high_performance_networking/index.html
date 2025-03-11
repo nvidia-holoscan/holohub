@@ -8879,9 +8879,8 @@ maxmtu<span class="w"> </span><span class="m">9978</span>
 <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-1<span class="w"> </span>/opt/nvidia/holoscan/examples/adv_networking_bench/
 <span class="hll">adv_networking_bench
 </span>adv_networking_bench_default_rx_multi_q.yaml
-adv_networking_bench_default_rx.yaml
 <span class="hll">adv_networking_bench_default_tx_rx.yaml
-</span>adv_networking_bench_default_tx.yaml
+</span>adv_networking_bench_default_tx_rx_hds.yaml
 adv_networking_bench_gpunetio_tx_rx.yaml
 adv_networking_bench_rmax_rx.yaml
 CMakeLists.txt
@@ -8899,9 +8898,8 @@ main.cpp
 <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-1<span class="w"> </span>/opt/nvidia/holoscan/examples/adv_networking_bench/
 <span class="hll">adv_networking_bench
 </span>adv_networking_bench_default_rx_multi_q.yaml
-adv_networking_bench_default_rx.yaml
 <span class="hll">adv_networking_bench_default_tx_rx.yaml
-</span>adv_networking_bench_default_tx.yaml
+</span>adv_networking_bench_default_tx_rx_hds.yaml
 adv_networking_bench_gpunetio_tx_rx.yaml
 adv_networking_bench.py
 adv_networking_bench_rmax_rx.yaml
@@ -8944,15 +8942,15 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 <h5 id="configure-the-nic-for-tx-and-rx">Configure the NIC for Tx and Rx<a class="headerlink" href="#configure-the-nic-for-tx-and-rx" title="Permanent link">&para;</a></h5>
 <p>Set the NIC addresses in the <code>interfaces</code> section of the <code>advanced_network</code> section. This configures your NIC independently of your application:</p>
 <ul>
-<li>Set the <code>address</code> field of the <code>data1</code> interface to one of these addresses. That interface will be able to transmit ethernet packets.</li>
-<li>Set the <code>address</code> field of the <code>data2</code> interface to the other address. This interface will be able to receive ethernet packets.</li>
+<li>Set the <code>address</code> field of the <code>tx_port</code> interface to one of these addresses. That interface will be able to transmit ethernet packets.</li>
+<li>Set the <code>address</code> field of the <code>rx_port</code> interface to the other address. This interface will be able to receive ethernet packets.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="nt">interfaces</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_port&quot;</span>
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;0000:00:00.0&gt;</span><span class="w">       </span><span class="c1"># The BUS address of the interface doing Tx</span>
 </span><span class="w">    </span><span class="nt">tx</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data2</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rx_port&quot;</span>
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;0000:00:00.0&gt;</span><span class="w">       </span><span class="c1"># The BUS address of the interface doing Rx</span>
 </span><span class="w">    </span><span class="nt">rx</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
@@ -8960,11 +8958,11 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 <details class="abstract">
 <summary>See an example yaml</summary>
 <div class="highlight"><pre><span></span><code><span class="nt">interfaces</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_port&quot;</span>
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0005:03:00.0</span><span class="w">       </span><span class="c1"># The BUS address of the interface doing Tx</span>
 </span><span class="w">    </span><span class="nt">tx</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data2</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rx_port&quot;</span>
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0005:03:00.1</span><span class="w">       </span><span class="c1"># The BUS address of the interface doing Rx</span>
 </span><span class="w">    </span><span class="nt">rx</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
@@ -8974,7 +8972,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 <p>Modify the <code>bench_tx</code> section which configures the application itself, to create the packet headers and direct them to the NIC:</p>
 <ul>
 <li><code>eth_dst_addr</code> with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your <code>if_name</code> interface with <code class="highlight">cat<span class="w"> </span>/sys/class/net/<span class="nv">$if_name</span>/address</code>:</li>
-<li>Replacing <code>address</code> with the PCIe address of the NIC interface you want to use for Tx (same as <code>data1</code>'s address above).</li>
+<li>Replacing <code>address</code> with the PCIe address of the NIC interface you want to use for Tx (same as <code>tx_port</code>'s address above).</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="nt">bench_tx</span><span class="p">:</span>
 <span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
@@ -9357,25 +9355,25 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data_TX_GPU&quot;</span><span class="w"> </span><span class="c1"># (6)!</span>
 <span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;device&quot;</span><span class="w"> </span><span class="c1"># (7)!</span>
 <span class="w">      </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># (8)!</span>
-<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30720</span><span class="w"> </span><span class="c1"># (9)!</span>
+<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">51200</span><span class="w"> </span><span class="c1"># (9)!</span>
 <span class="w">      </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1064</span><span class="w"> </span><span class="c1"># (10)!</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data_RX_GPU&quot;</span>
 <span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;device&quot;</span>
 <span class="w">      </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
-<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30720</span>
+<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">51200</span>
 <span class="w">      </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data_RX_CPU&quot;</span>
 <span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;huge&quot;</span>
 <span class="w">      </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
-<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30720</span>
+<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">51200</span>
 <span class="w">      </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span>
 
 <span class="w">    </span><span class="nt">interfaces</span><span class="p">:</span><span class="w"> </span><span class="c1"># (11)!</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data1</span><span class="w"> </span><span class="c1"># (12)!</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_port&quot;</span><span class="w"> </span><span class="c1"># (12)!</span>
 <span class="w">      </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;0000:00:00.0&gt;</span><span class="w"> </span><span class="c1"># (13)! # The BUS address of the interface doing Tx</span>
 <span class="w">      </span><span class="nt">tx</span><span class="p">:</span><span class="w"> </span><span class="c1"># (14)!</span>
 <span class="w">        </span><span class="nt">queues</span><span class="p">:</span><span class="w"> </span><span class="c1"># (15)!</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ADC</span><span class="nv"> </span><span class="s">Samples&quot;</span><span class="w"> </span><span class="c1"># (16)!</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_q_0&quot;</span><span class="w"> </span><span class="c1"># (16)!</span>
 <span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># (17)!</span>
 <span class="w">          </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10240</span><span class="w"> </span><span class="c1"># (18)!</span>
 <span class="w">          </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span><span class="w"> </span><span class="c1"># (19)!</span>
@@ -9383,12 +9381,12 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_TX_GPU&quot;</span>
 <span class="w">          </span><span class="nt">offloads</span><span class="p">:</span><span class="w"> </span><span class="c1"># (21)!</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;tx_eth_src&quot;</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data2</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rx_port&quot;</span>
 <span class="w">      </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;0000:00:00.0&gt;</span><span class="w"> </span><span class="c1"># (22)! # The BUS address of the interface doing Rx</span>
 <span class="w">      </span><span class="nt">rx</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">flow_isolation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># (23)!</span>
 <span class="w">        </span><span class="nt">queues</span><span class="p">:</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data&quot;</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rx_q_0&quot;</span>
 <span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <span class="w">          </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9</span>
 <span class="w">          </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10240</span>
@@ -9397,8 +9395,8 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_RX_CPU&quot;</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_RX_GPU&quot;</span>
 <span class="w">        </span><span class="nt">flows</span><span class="p">:</span><span class="w"> </span><span class="c1"># (26)!</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ADC</span><span class="nv"> </span><span class="s">Samples&quot;</span><span class="w"> </span><span class="c1"># (27)!</span>
-<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1"># (28)!</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;flow_0&quot;</span><span class="w"> </span><span class="c1"># (27)!</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># (28)!</span>
 <span class="w">          </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="c1"># (29)!</span>
 <span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">queue</span>
 <span class="w">            </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
@@ -9436,7 +9434,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <li>A descriptive name for that memory region to refer to later in the <code>interfaces</code> section.</li>
 <li>The type of memory region. Best options are <code>device</code> (GPU), or <code>huge</code> (pages - CPU). Also supported but not recommended are <code>malloc</code> (CPU) and <code>pinned</code> (CPU).</li>
 <li>The GPU ID for <code>device</code> memory regions. The NUMA node ID for CPU memory regions.</li>
-<li>The number of buffers in the memory region. A higher value means more time to process the data, but it takes additional space on the GPU BAR1. Too low increases the risk of dropping packets from the NIC having nowhere to write (Rx) or the risk of higher latency from buffering (Tx). Need a rule of thumb 👍? 3x the <code>batch_size</code> below is a good starting point.</li>
+<li>The number of buffers in the memory region. A higher value means more time to process the data, but it takes additional space on the GPU BAR1. Too low increases the risk of dropping packets from the NIC having nowhere to write (Rx) or the risk of higher latency from buffering (Tx). Need a rule of thumb 👍? 5x the <code>batch_size</code> below is a good starting point.</li>
 <li>The size of each buffer in the memory region. These should be equal to your maximum packet size, or less if breaking down packets (ex: header data split, see the <code>rx</code> queue below).</li>
 <li>The <code>interfaces</code> section lists the NIC interfaces that will be configured for the application.</li>
 <li>A descriptive name for that interface, currently only used for logging.</li>
@@ -9449,7 +9447,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <li>The ID of the CPU core that this queue will use to poll the NIC. Ideally one <a href="#35-isolate-cpu-cores">isolated core</a> per queue.</li>
 <li>The list of memory regions where this queue will write/read packets from/to. The order matters: the first memory region will be used first to read/write from until it fills up one buffer (<code>buf_size</code>), after which it will move to the next region in the list and so on until the packet is fully written/read. See the <code>memory_regions</code> for the <code>rx</code> queue below for an example.</li>
 <li>The <code>offloads</code> section (Tx queues only) lists optional tasks that can be offloaded to the NIC. The only value currently supported is <code>tx_eth_src</code>, that lets the NIC insert the ethernet source mac address in the packet headers. Note: IP, UDP, and Ethernet Checksums or CRC are always done by the NIC currently and are not optional.</li>
-<li>Same as for <code>data1</code>. Each interface in this list should have a unique mac address. This one will do <code>rx</code> per config below.</li>
+<li>Same as for <code>tx_port</code>. Each interface in this list should have a unique mac address. This one will do <code>rx</code> per config below.</li>
 <li>Whether to isolate the Rx flow. If true, any incoming packets that does not match the MAC address of this interface - or isn't directed to a queue when the <code>flows</code> section below is used - will be delegated back to Linux for processing (no kernel bypass). This is useful to let this interface handle ARP, ICMP, etc. Otherwise, any packets sent to this interface (ex: ping) will need to be processed (or dropped) by your application.</li>
 <li><code>rx</code> queues have an <code>output_port</code> parameter so you can attach a downstream operator to receive data from this specific queue, as can be seen in the <code class="highlight"><span class="n">Application</span><span class="o">::</span><span class="n">compose</span><span class="p">()</span></code> function of the sample application. Multiple <code>rx</code> queues can share the same <code>output_port</code>. In contrast, <code>tx</code> queues have a single non-configurable port (name: <code>burst_in</code>) to which upstream operators will send all packets, which are then routed to the correct queue based on the port/queue in the burst header.</li>
 <li>This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the <code>Data_RX_CPU</code> memory region, filling its <code>buf_size</code> of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the <code>Data_RX_GPU</code> memory region. Its <code>buf_size</code> of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!</li>
