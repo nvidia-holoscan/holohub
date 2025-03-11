@@ -7617,7 +7617,7 @@
 </div>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Achieving High Performance Networking with Holoscan requires a system with an <a href="https://www.nvidia.com/en-us/networking/ethernet-adapters/"><strong>NVIDIA SmartNIC</strong></a> and a <a href="https://www.nvidia.com/en-us/design-visualization/desktop-graphics/"><strong>discrete GPU</strong></a>. That is the case of <a href="https://www.nvidia.com/en-us/data-center/">NVIDIA Data Center</a> systems, or edge systems like the <a href="https://www.nvidia.com/en-us/edge-computing/products/igx/">NVIDIA IGX</a> platform and the <a href="https://www.nvidia.com/en-us/project-digits/">NVIDIA Project DIGITS</a>. <code>x86_64</code> systems equipped with these components are also supported, though the performance will vary greatly depending on the PCIe topology of the system (more on this <a href="#31-ensure-ideal-pcie-topology">below</a>).</p>
-<p>In this tutorial, we will be developing on an <strong>NVIDIA IGX Orin platform</strong> with <a href="https://docs.nvidia.com/igx-orin/user-guide/latest/base-os.html">IGX SW 1.1</a> and an <a href="https://www.nvidia.com/en-us/design-visualization/rtx-6000/">NVIDIA RTX 6000 ADA GPU</a>, but the concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.</p>
+<p>In this tutorial, we will be developing on an <strong>NVIDIA IGX Orin platform</strong> with <a href="https://docs.nvidia.com/igx-orin/user-guide/latest/base-os.html">IGX SW 1.1</a> and an <a href="https://www.nvidia.com/en-us/design-visualization/rtx-6000/">NVIDIA RTX 6000 ADA GPU</a>, which is the configuration that is currently actively tested. The concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.</p>
 <h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
 <p>Achieving high performance networking is a complex problem that involves many system components and configurations which we will cover in this tutorial. Two of the core concepts to achieve this are named Kernel Bypass, and GPUDirect.</p>
 <h3 id="kernel-bypass">Kernel Bypass<a class="headerlink" href="#kernel-bypass" title="Permanent link">&para;</a></h3>
@@ -7660,49 +7660,62 @@
 </details>
 <h2 id="1-installing-holoscan-networking">1. Installing Holoscan Networking<a class="headerlink" href="#1-installing-holoscan-networking" title="Permanent link">&para;</a></h2>
 <p>We'll start with installing the <code>holoscan-networking</code> package, as it provides some utilities to help tune the system, and requires some dependencies which will help us with the system setup.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">IGX OS 1.1</label><label for="__tabbed_1_2">x86_64 - Ubuntu 22.04</label><label for="__tabbed_1_3">From source</label></div>
+<p>First, add the <a href="https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&amp;deployment_package=DOCA-Host&amp;target_os=Linux">DOCA apt repository</a> which holds some of its dependencies:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">IGX OS 1.1</label><label for="__tabbed_1_2">SBSA (Ubuntu 22.04)</label><label for="__tabbed_1_3">x86_64 (Ubuntu 22.04)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DOCA_URL</span><span class="o">=</span><span class="s2">&quot;https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/&quot;</span>
+wget<span class="w"> </span>-qO-<span class="w"> </span>https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub<span class="w"> </span><span class="p">|</span><span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] </span><span class="nv">$DOCA_URL</span><span class="s2"> ./&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/doca.list<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DOCA_URL</span><span class="o">=</span><span class="s2">&quot;https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/&quot;</span>
+wget<span class="w"> </span>-qO-<span class="w"> </span>https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub<span class="w"> </span><span class="p">|</span><span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] </span><span class="nv">$DOCA_URL</span><span class="s2"> ./&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/doca.list<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+
+<span class="c1"># Also need the CUDA repository for holoscan: https://developer.nvidia.com/cuda-downloads?target_os=Linux</span>
+wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/sbsa/cuda-keyring_1.1-1_all.deb
+sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cuda-keyring_1.1-1_all.deb
+
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DOCA_URL</span><span class="o">=</span><span class="s2">&quot;https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/x86_64/&quot;</span>
+wget<span class="w"> </span>-qO-<span class="w"> </span>https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub<span class="w"> </span><span class="p">|</span><span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] </span><span class="nv">$DOCA_URL</span><span class="s2"> ./&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/doca.list<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+
+<span class="c1"># Also need the CUDA repository for holoscan: https://developer.nvidia.com/cuda-downloads?target_os=Linux</span>
+wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cuda-keyring_1.1-1_all.deb
+
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>You can then install <code>holoscan-networking</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Debian installation</label><label for="__tabbed_2_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="admonition tip">
 <p class="admonition-title">COMING SOON - GTC 2025</p>
 </div>
-<div class="highlight"><pre><span></span><code><span class="c1"># DOCA repository: https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&amp;deployment_package=DOCA-Host&amp;target_os=Linux</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DOCA_URL</span><span class="o">=</span><span class="s2">&quot;https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/&quot;</span>
-wget<span class="w"> </span>-qO-<span class="w"> </span>https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub<span class="w"> </span><span class="p">|</span><span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] </span><span class="nv">$DOCA_URL</span><span class="s2"> ./&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/doca.list<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
-
-<span class="c1"># Install</span>
-sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>holoscan-networking
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="admonition tip">
-<p class="admonition-title">COMING SOON - GTC 2025</p>
-</div>
-<div class="highlight"><pre><span></span><code><span class="c1"># DOCA repository: https://developer.nvidia.com/doca-downloads?deployment_platform=Host-Server&amp;deployment_package=DOCA-Host&amp;target_os=Linux</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DOCA_URL</span><span class="o">=</span><span class="s2">&quot;https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/x86_64/&quot;</span>
-wget<span class="w"> </span>-qO-<span class="w"> </span>https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub<span class="w"> </span><span class="p">|</span><span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] </span><span class="nv">$DOCA_URL</span><span class="s2"> ./&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/doca.list<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
-
-<span class="c1"># CUDA repository: https://developer.nvidia.com/cuda-downloads?target_os=Linux</span>
-wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cuda-keyring_1.1-1_all.deb
-
-<span class="c1"># Install</span>
-sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>holoscan-networking
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>holoscan-networking
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <p>You can build the Holoscan Networking libraries and sample applications from source on HoloHub:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:nvidia-holoscan/holohub.git
 <span class="nb">cd</span><span class="w"> </span>holohub
-./dev_container<span class="w"> </span>build_and_install<span class="w"> </span>holoscan-networking<span class="w"> </span><span class="c1"># Installed in ./install</span>
+./dev_container<span class="w"> </span>build_and_install<span class="w"> </span>holoscan-networking<span class="w">   </span><span class="c1"># Installed in ./install</span>
 </code></pre></div>
-<p>If you'd like to generate and install it as a debian package build from source, you can run:</p>
+<p>If you'd like to generate the debian package from source and install it to ensure all dependencies are then present on your system, you can run:</p>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_package<span class="w"> </span>holoscan-networking
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>./holoscan-networking_*.deb<span class="w"> </span><span class="c1"># Installed in /opt/nvidia/holoscan</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>./holoscan-networking_*.deb<span class="w">        </span><span class="c1"># Installed in /opt/nvidia/holoscan</span>
 </code></pre></div>
 <p>Refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md">HoloHub README</a> for more information.</p>
 </div>
@@ -7720,15 +7733,19 @@ sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w
 mlx_compat<span class="w">             </span><span class="m">20480</span><span class="w">  </span><span class="m">11</span><span class="w"> </span>rdma_cm,ib_ipoib,mlxdevm,iw_cm,ib_umad,ib_core,rdma_ucm,ib_uverbs,mlx5_ib,ib_cm,mlx5_core
 </code></pre></div>
 </details>
-<p>If this is empty, install OFED drivers from DOCA (the DOCA APT repository should already be configured from the <a href="#1-installing-holoscan-networking">Holoscan Networking installation above</a>), and reboot your system:</p>
+<p>If this is empty, install the latest OFED drivers from DOCA (the DOCA APT repository should already be configured from the <a href="#1-installing-holoscan-networking">Holoscan Networking installation above</a>), and reboot your system:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>doca-ofed
 sudo<span class="w"> </span>reboot
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This will also install the <code>ibv_devinfo</code> utility as part of the <code>ibverbs-utils</code> package. You can run this now to confirm that your NIC is found.</p>
+<p>If this is not empty, you can still install the newest OFED drivers from <code>doca-ofed</code> above. If you choose to keep your current drivers, install the following utilities for convenience later on. They include tools like <code>ibstat</code>, <code>ibv_devinfo</code>, <code>ibdev2netdev</code>, <code>mlxconfig</code>:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>infiniband-diags<span class="w"> </span>ibverbs-utils<span class="w"> </span>mlnx-ofed-kernel-utils<span class="w"> </span>mft
+</code></pre></div>
 </div>
+<p>Running <code>ibstat</code> or <code>ibv_devinfo</code> will confirm your NIC interfaces are recognized by your drivers.</p>
 <h3 id="22-switch-your-nic-link-layers-to-ethernet">2.2 Switch your NIC Link Layers to Ethernet<a class="headerlink" href="#22-switch-your-nic-link-layers-to-ethernet" title="Permanent link">&para;</a></h3>
 <p>NVIDIA SmartNICs can function in two separate modes (called link layer):</p>
 <ul>
@@ -7758,8 +7775,8 @@ sudo<span class="w"> </span>reboot
 <span class="w">                        </span>sm_lid:<span class="w">                 </span><span class="m">0</span>
 <span class="w">                        </span>port_lid:<span class="w">               </span><span class="m">0</span>
 <span class="w">                        </span>port_lmc:<span class="w">               </span>0x00
-<span class="w">                        </span>link_layer:<span class="w">             </span>Ethernet
-
+<span class="hll"><span class="w">                        </span>link_layer:<span class="w">             </span>Ethernet
+</span>
 hca_id:<span class="w"> </span>mlx5_1
 <span class="w">        </span>transport:<span class="w">                      </span>InfiniBand<span class="w"> </span><span class="o">(</span><span class="m">0</span><span class="o">)</span>
 <span class="w">        </span>fw_ver:<span class="w">                         </span><span class="m">28</span>.38.1002
@@ -7777,8 +7794,8 @@ hca_id:<span class="w"> </span>mlx5_1
 <span class="w">                        </span>sm_lid:<span class="w">                 </span><span class="m">0</span>
 <span class="w">                        </span>port_lid:<span class="w">               </span><span class="m">0</span>
 <span class="w">                        </span>port_lmc:<span class="w">               </span>0x00
-<span class="w">                        </span>link_layer:<span class="w">             </span>InfiniBand
-</code></pre></div>
+<span class="hll"><span class="w">                        </span>link_layer:<span class="w">             </span>InfiniBand
+</span></code></pre></div>
 </details>
 <p><strong>For Holoscan Networking, we want the NIC to use the ETH link layer.</strong> To switch the link layer mode, there are two possible options:</p>
 <ol>
@@ -7788,16 +7805,17 @@ hca_id:<span class="w"> </span>mlx5_1
 <ol>
 <li>
 <p>Identify the PCI address of your NVIDIA NIC</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">ibdev2netdev</label><label for="__tabbed_2_2">lspci</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">ibdev2netdev</label><label for="__tabbed_3_2">lspci</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>sudo<span class="w"> </span>ibdev2netdev<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="c1"># `0200` is the PCI-SIG class code for NICs</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># `0200` is the PCI-SIG class code for Ethernet controllers</span>
+<span class="c1"># `0207` is the PCI-SIG class code for Infiniband controllers</span>
 <span class="c1"># `15b3` is the Vendor ID for Mellanox</span>
-<span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;$2 == &quot;0200:&quot; &amp;&amp; $3 ~ /^15b3:/ {print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
+<span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;($2 == &quot;0200:&quot; || $2 == &quot;0207:&quot;) &amp;&amp; $3 ~ /^15b3:/ {print $1; exit}&#39;</span><span class="k">)</span>
 </code></pre></div>
 </div>
 </div>
@@ -7870,7 +7888,7 @@ mlx5_1<span class="w"> </span>port<span class="w"> </span><span class="nv">1</sp
 ip<span class="w"> </span>-f<span class="w"> </span>inet<span class="w"> </span>addr<span class="w"> </span>show<span class="w"> </span>eth1
 </code></pre></div>
 <p>If nothing appears, or you'd like to change the address, you can set an IP address through the Network Manager user interface, CLI (<code>nmcli</code>), or other IP configuration tools. In the example below, we configure the <code>eth0</code> interface with an address of <code>1.1.1.1/24</code>, and the <code>eth1</code> interface with an address of <code>2.2.2.2/24</code>.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">One-time</label><label for="__tabbed_3_2">Persistent</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">One-time</label><label for="__tabbed_4_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>ip<span class="w"> </span>addr<span class="w"> </span>add<span class="w"> </span><span class="m">1</span>.1.1.1/24<span class="w"> </span>dev<span class="w"> </span>eth0
@@ -7882,7 +7900,7 @@ sudo<span class="w"> </span>ip<span class="w"> </span>addr<span class="w"> </spa
 <div class="highlight"><pre><span></span><code><span class="nv">if_name</span><span class="o">=</span>eth0
 <span class="nv">if_static_ip</span><span class="o">=</span><span class="m">1</span>.1.1.1/24
 </code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">NetworkManager</label><label for="__tabbed_4_2">systemd-networkd</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">NetworkManager</label><label for="__tabbed_5_2">systemd-networkd</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Update the IP with <code>nmcli</code>:</p>
@@ -7919,7 +7937,7 @@ For example, to communicate with <code>1.1.1.1/24</code> above (<code>/24</code>
 <div class="highlight"><pre><span></span><code>lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvidia_peermem
 </code></pre></div>
 <p>If it's not loaded, run the following command, then check again:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">One-time</label><label for="__tabbed_5_2">Persistent</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">One-time</label><label for="__tabbed_6_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>modprobe<span class="w"> </span>nvidia_peermem
@@ -7951,14 +7969,17 @@ sudo<span class="w"> </span>modprobe<span class="w"> </span>nvidia_peermem
 <p><code>peermem</code> is currently the only GPUDirect interface supported by all our <a href="#kernel-bypass">networking backends</a>. This section will therefore provide instructions for <code>peermem</code> and not <code>dma buf</code>.</p>
 </details>
 <h2 id="3-optimal-system-configurations">3. Optimal system configurations<a class="headerlink" href="#3-optimal-system-configurations" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Advanced</p>
+<p>The section below is for advanced users looking to extract more performance out of their system. You can choose to skip this section and return to it later if performance if your application is not satisfactory.</p>
+</div>
 <p>While the configurations above are the minimum requirements to get a NIC and a NVIDIA GPU to communicate while bypassing the OS kernel stack, performance can be further improved in most scenarios by tuning the system as described below.</p>
-<p>You can choose to skip this section and return to it later if performance of your application is not satisfactory.</p>
 <p>Before diving in each of the setups below, we provide a utility script as part of the <code>holoscan-networking</code> package which provides an overview of the configurations that potentially need to be tuned on your system.</p>
 <details class="example">
 <summary>Work In Progress</summary>
 <p>This utility script is under active development and will be updated in future releases with additional checks, more actionable recommendations, and automated tuning.</p>
 </details>
-<div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Debian installation</label><label for="__tabbed_6_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">Debian installation</label><label for="__tabbed_7_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>all
@@ -8008,18 +8029,18 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 <h3 id="31-ensure-ideal-pcie-topology">3.1 Ensure ideal PCIe topology<a class="headerlink" href="#31-ensure-ideal-pcie-topology" title="Permanent link">&para;</a></h3>
 <p>Kernel bypass and GPUDirect rely on PCIe to communicate between the GPU and the NIC at high speeds. As-such, the topology of the PCIe tree on a system is critical to ensure optimal performance.</p>
 <p>Run the following command to check the GPUDirect communication matrix. <strong>You are looking for a <code>PXB</code> or <code>PIX</code> connection between the GPU and the NIC interfaces to get the best performance.</strong></p>
-<div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">tune_system.py</label><label for="__tabbed_7_2">nvidia-smi</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">tune_system.py</label><label for="__tabbed_8_2">nvidia-smi</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">Debian installation</label><label for="__tabbed_8_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">Debian installation</label><label for="__tabbed_9_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>topology
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>topo
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>holohub
-sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<span class="w"> </span>--check<span class="w"> </span>topology
+sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<span class="w"> </span>--check<span class="w"> </span>topo
 </code></pre></div>
 </div>
 </div>
@@ -8032,7 +8053,7 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </details>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>nvidia-smi<span class="w"> </span>topo<span class="w"> </span>--matrix_pci
+<div class="highlight"><pre><span></span><code>nvidia-smi<span class="w"> </span>topo<span class="w"> </span>-mp
 </code></pre></div>
 <details class="abstract">
 <summary>See an example output</summary>
@@ -8066,13 +8087,12 @@ NIC1: mlx5_1
 <details class="abstract">
 <summary>See an example output</summary>
 <p>Here is the PCIe tree of an IGX system. Note how the ConnectX-7 and RTX A6000 are connected to the same branch.
-<div class="highlight"><pre><span></span><code>lspci -tv
--+-[0007:00]---00.0-[01-ff]----00.0  Marvell Technology Group Ltd. 88SE9235 PCIe 2.0 x2 4-port SATA 6 Gb/s Controller
-+-[0005:00]---00.0-[01-ff]----00.0-[02-09]--+-00.0-[03]--+-00.0  Mellanox Technologies MT2910 Family [ConnectX-7]
-|                                           |            \-00.1  Mellanox Technologies MT2910 Family [ConnectX-7]
-|                                           +-01.0-[04-06]----00.0-[05-06]----08.0-[06]--
-|                                           \-02.0-[07-09]----00.0-[08-09]----00.0-[09]--+-00.0  NVIDIA Corporation GA102GL [RTX A6000]
-|                                                                                        \-00.1  NVIDIA Corporation GA102 High Definition Audio Controller
+<div class="highlight"><pre><span></span><code>-+-[0007:00]---00.0-[01-ff]----00.0  Marvell Technology Group Ltd. 88SE9235 PCIe 2.0 x2 4-port SATA 6 Gb/s Controller
+<span class="hll">+-[0005:00]---00.0-[01-ff]----00.0-[02-09]--+-00.0-[03]--+-00.0  Mellanox Technologies MT2910 Family [ConnectX-7]
+</span><span class="hll">|                                           |            \-00.1  Mellanox Technologies MT2910 Family [ConnectX-7]
+</span>|                                           +-01.0-[04-06]----00.0-[05-06]----08.0-[06]--
+<span class="hll">|                                           \-02.0-[07-09]----00.0-[08-09]----00.0-[09]--+-00.0  NVIDIA Corporation GA102GL [RTX A6000]
+</span>|                                                                                        \-00.1  NVIDIA Corporation GA102 High Definition Audio Controller
 +-[0004:00]---00.0-[01-ff]----00.0  Sandisk Corp WD PC SN810 / Black SN850 NVMe SSD
 +-[0001:00]---00.0-[01-ff]----00.0-[02-fc]--+-01.0-[03-34]----00.0  Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller
 |                                           +-02.0-[35-66]----00.0  Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller
@@ -8088,14 +8108,16 @@ NIC1: mlx5_1
 <p>Most x86_64 systems are not designed for this topology as they lack a discrete PCIe switch. In that case, the best connection they can achieve is <code>NODE</code>.</p>
 </div>
 <h3 id="32-check-the-nics-pcie-configuration">3.2 Check the NIC's PCIe configuration<a class="headerlink" href="#32-check-the-nics-pcie-configuration" title="Permanent link">&para;</a></h3>
-<details class="example">
-<summary>WIP</summary>
-<p>See <a href="https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance">https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance</a></p>
-</details>
-<div class="tabbed-set tabbed-alternate" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">tune_system.py</label><label for="__tabbed_9_2">manual</label></div>
+<div class="admonition quote">
+<p class="admonition-title"><a href="https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance">Understanding PCIe Configuration for Maximum Performance - May 27, 2022</a></p>
+<p>PCIe is used in any system for communication between different modules [including the NIC and the GPU]. This means that in order to process network traffic, the different devices communicating via the PCIe should be well configured. When connecting the network adapter to the PCIe, it auto-negotiates for the maximum capabilities supported between the network adapter and the CPU.</p>
+</div>
+<p>The instructions below are meant to understand if your system is able to extract the maximum capabilities of your NIC, but they're not configurable. The two values that we are looking at here are the Max Payload Size (MPS - the maximum size of a PCIe packet) and the Speed (or PCIe generation).</p>
+<h5 id="max-payload-size-mps">Max Payload Size (MPS)<a class="headerlink" href="#max-payload-size-mps" title="Permanent link">&para;</a></h5>
+<div class="tabbed-set tabbed-alternate" data-tabs="10:2"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><div class="tabbed-labels"><label for="__tabbed_10_1">tune_system.py</label><label for="__tabbed_10_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="10:2"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><div class="tabbed-labels"><label for="__tabbed_10_1">Debian installation</label><label for="__tabbed_10_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="11:2"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><input id="__tabbed_11_2" name="__tabbed_11" type="radio" /><div class="tabbed-labels"><label for="__tabbed_11_1">Debian installation</label><label for="__tabbed_11_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>mps
@@ -8108,10 +8130,17 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </div>
 </div>
 </div>
+<details class="abstract">
+<summary>See an example output</summary>
+<p>The PCIe configuration on the IGX Orin developer kit is not able to leverage the max payload size of the NIC:</p>
+<div class="highlight"><pre><span></span><code>2025-03-10 16:15:54 - WARNING - cx7_0/0005:03:00.0: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
+2025-03-10 16:15:54 - WARNING - cx7_1/0005:03:00.1: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
+</code></pre></div>
+</details>
 </div>
 <div class="tabbed-block">
 <p>Identify the PCIe address of your NVIDIA NIC:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="11:2"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><input id="__tabbed_11_2" name="__tabbed_11" type="radio" /><div class="tabbed-labels"><label for="__tabbed_11_1">ibdev2netdev</label><label for="__tabbed_11_2">lspci</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="12:2"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><input id="__tabbed_12_2" name="__tabbed_12" type="radio" /><div class="tabbed-labels"><label for="__tabbed_12_1">ibdev2netdev</label><label for="__tabbed_12_2">lspci</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>sudo<span class="w"> </span>ibdev2netdev<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
@@ -8125,25 +8154,59 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </div>
 </div>
 </div>
-<p>Check current MPS:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$bus_addr</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>DevCtl:<span class="w"> </span>-A2<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s2">&quot;MaxPayload [0-9]+&quot;</span>
+<p>Check current and max MPS:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$nic_pci</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/DevCap/{s=1} /DevCtl/{s=0} /MaxPayload /{match($0, /MaxPayload [0-9]+/, m); if(s){print &quot;Max &quot; m[0]} else{print &quot;Current &quot; m[0]}}&#39;</span>
 </code></pre></div>
-<p>And max MPS:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$bus_addr</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>DevCap:<span class="w"> </span>-A1<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s2">&quot;MaxPayload [0-9]+&quot;</span>
+<details class="abstract">
+<summary>See an example output</summary>
+<p>The PCIe configuration on the IGX Orin developer kit is not able to leverage the max payload size of the NIC:</p>
+<div class="highlight"><pre><span></span><code>Max MaxPayload 512
+Current MaxPayload 128
 </code></pre></div>
-</div>
-</div>
-</div>
-<h3 id="33-maximize-the-nics-max-read-request-size-mrrs">3.3 Maximize the NIC's Max Read Request Size (MRRS)<a class="headerlink" href="#33-maximize-the-nics-max-read-request-size-mrrs" title="Permanent link">&para;</a></h3>
-<details class="example">
-<summary>WIP</summary>
-<p>See <a href="https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance">https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance</a></p>
 </details>
-<p>Check current MRRS:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="12:2"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><input id="__tabbed_12_2" name="__tabbed_12" type="radio" /><div class="tabbed-labels"><label for="__tabbed_12_1">tune_system.py</label><label for="__tabbed_12_2">manual</label></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While your NIC might be capable of more, 256 bytes is generally the largest supported by any switch/CPU at this time.</p>
+</div>
+</div>
+</div>
+</div>
+<h5 id="pcie-speedgeneration">PCIe Speed/Generation<a class="headerlink" href="#pcie-speedgeneration" title="Permanent link">&para;</a></h5>
+<p>Identify the PCIe address of your NVIDIA NIC:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="13:2"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><input id="__tabbed_13_2" name="__tabbed_13" type="radio" /><div class="tabbed-labels"><label for="__tabbed_13_1">ibdev2netdev</label><label for="__tabbed_13_2">lspci</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="13:2"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><input id="__tabbed_13_2" name="__tabbed_13" type="radio" /><div class="tabbed-labels"><label for="__tabbed_13_1">Debian installation</label><label for="__tabbed_13_2">HoloHub sources</label></div>
+<div class="highlight"><pre><span></span><code><span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>sudo<span class="w"> </span>ibdev2netdev<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1"># `0200` is the PCI-SIG class code for NICs</span>
+<span class="c1"># `15b3` is the Vendor ID for Mellanox</span>
+<span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;$2 == &quot;0200:&quot; &amp;&amp; $3 ~ /^15b3:/ {print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>Check current and max Speeds:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$nic_pci</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/LnkCap/{s=1} /LnkSta/{s=0} /Speed /{match($0, /Speed [0-9]+GT\/s/, m); if(s){print &quot;Max &quot; m[0]} else{print &quot;Current &quot; m[0]}}&#39;</span>
+</code></pre></div>
+<details class="abstract">
+<summary>See an example output</summary>
+<p>On IGX, the switch is able to maximize the NIC speed, both being PCIe 5.0:</p>
+<div class="highlight"><pre><span></span><code>Max Speed 32GT/s
+Current Speed 32GT/s
+</code></pre></div>
+</details>
+<h3 id="33-maximize-the-nics-max-read-request-size-mrrs">3.3 Maximize the NIC's Max Read Request Size (MRRS)<a class="headerlink" href="#33-maximize-the-nics-max-read-request-size-mrrs" title="Permanent link">&para;</a></h3>
+<div class="admonition quote">
+<p class="admonition-title"><a href="https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance">Understanding PCIe Configuration for Maximum Performance - May 27, 2022</a></p>
+<p>PCIe Max Read Request determines the maximal PCIe read request allowed. A PCIe device usually keeps track of the number of pending read requests due to having to prepare buffers for an incoming response. The size of the PCIe max read request may affect the number of pending requests (when using data fetch larger than the PCIe MTU).</p>
+</div>
+<p>Unlike the PCIe properties queried in the previous section, the MRRS is configurable. <strong>We recommend maxing it to 4096 bytes</strong>. Run the following to check your current settings:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="14:2"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><input id="__tabbed_14_2" name="__tabbed_14" type="radio" /><div class="tabbed-labels"><label for="__tabbed_14_1">tune_system.py</label><label for="__tabbed_14_2">manual</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="tabbed-set tabbed-alternate" data-tabs="15:2"><input checked="checked" id="__tabbed_15_1" name="__tabbed_15" type="radio" /><input id="__tabbed_15_2" name="__tabbed_15" type="radio" /><div class="tabbed-labels"><label for="__tabbed_15_1">Debian installation</label><label for="__tabbed_15_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>mrrs
@@ -8159,7 +8222,7 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </div>
 <div class="tabbed-block">
 <p>Identify the PCIe address of your NVIDIA NIC:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="14:2"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><input id="__tabbed_14_2" name="__tabbed_14" type="radio" /><div class="tabbed-labels"><label for="__tabbed_14_1">ibdev2netdev</label><label for="__tabbed_14_2">lspci</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="16:2"><input checked="checked" id="__tabbed_16_1" name="__tabbed_16" type="radio" /><input id="__tabbed_16_2" name="__tabbed_16" type="radio" /><div class="tabbed-labels"><label for="__tabbed_16_1">ibdev2netdev</label><label for="__tabbed_16_2">lspci</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="nv">nic_pci</span><span class="o">=</span><span class="k">$(</span>sudo<span class="w"> </span>ibdev2netdev<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n1<span class="k">)</span>
@@ -8174,13 +8237,13 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </div>
 </div>
 <p>Check current MRRS:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$bus_addr</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>DevCtl:<span class="w"> </span>-A2<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s2">&quot;MaxReadReq [0-9]+&quot;</span>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="nv">$nic_pci</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>DevCtl:<span class="w"> </span>-A2<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s2">&quot;MaxReadReq [0-9]+&quot;</span>
 </code></pre></div>
 </div>
 </div>
 </div>
 <p>Update MRRS:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="15:2"><input checked="checked" id="__tabbed_15_1" name="__tabbed_15" type="radio" /><input id="__tabbed_15_2" name="__tabbed_15" type="radio" /><div class="tabbed-labels"><label for="__tabbed_15_1">Debian installation</label><label for="__tabbed_15_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="17:2"><input checked="checked" id="__tabbed_17_1" name="__tabbed_17" type="radio" /><input id="__tabbed_17_2" name="__tabbed_17" type="radio" /><div class="tabbed-labels"><label for="__tabbed_17_1">Debian installation</label><label for="__tabbed_17_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--set<span class="w"> </span>mrrs
@@ -8200,7 +8263,7 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 <h3 id="34-enable-huge-pages">3.4 Enable Huge pages<a class="headerlink" href="#34-enable-huge-pages" title="Permanent link">&para;</a></h3>
 <p>Huge pages are a memory management feature that allows the OS to allocate large blocks of memory (typically 2MB or 1GB) instead of the default 4KB pages. This reduces the number of page table entries and the amount of memory used for translation, improving cache performance and reducing TLB (Translation Lookaside Buffer) misses, which leads to lower latencies.</p>
 <p>While it is naturally beneficial for CPU packets, it is also needed when routing data packets to the GPU in order to handle metadata (mbufs) on the CPU.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="16:2"><input checked="checked" id="__tabbed_16_1" name="__tabbed_16" type="radio" /><input id="__tabbed_16_2" name="__tabbed_16" type="radio" /><div class="tabbed-labels"><label for="__tabbed_16_1">hugeadm</label><label for="__tabbed_16_2">vanilla</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="18:2"><input checked="checked" id="__tabbed_18_1" name="__tabbed_18" type="radio" /><input id="__tabbed_18_2" name="__tabbed_18" type="radio" /><div class="tabbed-labels"><label for="__tabbed_18_1">hugeadm</label><label for="__tabbed_18_2">vanilla</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>We recommend installing the <code>libhugetlbfs-bin</code> package for the <code>hugeadm</code> utility:</p>
@@ -8271,7 +8334,7 @@ Hugetlb:               0 kB
 <li>dynamically at runtime (risk of fragmentation for large page sizes)</li>
 </ul>
 <p>The example below allocates 3 huge pages of 1GB each.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="17:2"><input checked="checked" id="__tabbed_17_1" name="__tabbed_17" type="radio" /><input id="__tabbed_17_2" name="__tabbed_17" type="radio" /><div class="tabbed-labels"><label for="__tabbed_17_1">Kernel bootline</label><label for="__tabbed_17_2">Runtime</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="19:2"><input checked="checked" id="__tabbed_19_1" name="__tabbed_19" type="radio" /><input id="__tabbed_19_2" name="__tabbed_19" type="radio" /><div class="tabbed-labels"><label for="__tabbed_19_1">Kernel bootline</label><label for="__tabbed_19_2">Runtime</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Add the flags below to the <code>GRUB_CMDLINE_LINUX</code> variable in <code>/etc/default/grub</code>:</p>
@@ -8292,7 +8355,7 @@ sudo<span class="w"> </span>reboot
 </div>
 <div class="tabbed-block">
 <p>Allocate the 3x 1GB huge pages:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="18:2"><input checked="checked" id="__tabbed_18_1" name="__tabbed_18" type="radio" /><input id="__tabbed_18_2" name="__tabbed_18" type="radio" /><div class="tabbed-labels"><label for="__tabbed_18_1">hugeadm</label><label for="__tabbed_18_2">vanilla</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="20:2"><input checked="checked" id="__tabbed_20_1" name="__tabbed_20" type="radio" /><input id="__tabbed_20_2" name="__tabbed_20" type="radio" /><div class="tabbed-labels"><label for="__tabbed_20_1">hugeadm</label><label for="__tabbed_20_2">vanilla</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>hugeadm<span class="w"> </span>--pool-pages-min<span class="w"> </span><span class="m">1073741824</span>:3
@@ -8305,7 +8368,7 @@ sudo<span class="w"> </span>reboot
 </div>
 </div>
 <p>Create a mount point to access the 1GB huge pages pool since that is not the default size on that system. We will name it <code>/mnt/huge</code> here.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="19:2"><input checked="checked" id="__tabbed_19_1" name="__tabbed_19" type="radio" /><input id="__tabbed_19_2" name="__tabbed_19" type="radio" /><div class="tabbed-labels"><label for="__tabbed_19_1">One-time</label><label for="__tabbed_19_2">Persistent</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="21:2"><input checked="checked" id="__tabbed_21_1" name="__tabbed_21" type="radio" /><input id="__tabbed_21_2" name="__tabbed_21" type="radio" /><div class="tabbed-labels"><label for="__tabbed_21_1">One-time</label><label for="__tabbed_21_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/mnt/huge
@@ -8335,10 +8398,10 @@ sudo<span class="w"> </span>mount<span class="w"> </span>/mnt/huge
 <p>The CPU interacting with the NIC to route packets is sensitive to perturbations, especially with smaller packet/batch sizes requiring more frequent work. Isolating a CPU in Linux prevents unwanted user or kernel threads from running on it, reducing context switching and latency spikes from noisy neighbors.</p>
 <p>We recommend isolating the CPU cores you will select to interact with the NIC (defined in the <code>advanced_network</code> configuration <a href="#51-understand-the-configuration-parameters">described later</a> in this tutorial). This is done by setting additional flags on the kernel bootline.</p>
 <p>You can first check if any of the recommended flags were already set on the last boot:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="20:2"><input checked="checked" id="__tabbed_20_1" name="__tabbed_20" type="radio" /><input id="__tabbed_20_2" name="__tabbed_20" type="radio" /><div class="tabbed-labels"><label for="__tabbed_20_1">tune_system.py</label><label for="__tabbed_20_2">manual</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="22:2"><input checked="checked" id="__tabbed_22_1" name="__tabbed_22" type="radio" /><input id="__tabbed_22_2" name="__tabbed_22" type="radio" /><div class="tabbed-labels"><label for="__tabbed_22_1">tune_system.py</label><label for="__tabbed_22_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="21:2"><input checked="checked" id="__tabbed_21_1" name="__tabbed_21" type="radio" /><input id="__tabbed_21_2" name="__tabbed_21" type="radio" /><div class="tabbed-labels"><label for="__tabbed_21_1">Debian installation</label><label for="__tabbed_21_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="23:2"><input checked="checked" id="__tabbed_23_1" name="__tabbed_23" type="radio" /><input id="__tabbed_23_2" name="__tabbed_23" type="radio" /><div class="tabbed-labels"><label for="__tabbed_23_1">Debian installation</label><label for="__tabbed_23_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>cmdline
@@ -8431,10 +8494,10 @@ sudo<span class="w"> </span>reboot
 <p>We have witnessed instances where setting the governor to <code>performance</code> on only the isolated cores (dedicated to polling the NIC) does not lead to the performance gains expected. As such, we currently recommend setting the governor to <code>performance</code> for all cores which has shown to be reliably effective.</p>
 </div>
 <p>Check the current governor for each of your cores:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="22:2"><input checked="checked" id="__tabbed_22_1" name="__tabbed_22" type="radio" /><input id="__tabbed_22_2" name="__tabbed_22" type="radio" /><div class="tabbed-labels"><label for="__tabbed_22_1">tune_system.py</label><label for="__tabbed_22_2">manual</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="24:2"><input checked="checked" id="__tabbed_24_1" name="__tabbed_24" type="radio" /><input id="__tabbed_24_2" name="__tabbed_24" type="radio" /><div class="tabbed-labels"><label for="__tabbed_24_1">tune_system.py</label><label for="__tabbed_24_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="23:2"><input checked="checked" id="__tabbed_23_1" name="__tabbed_23" type="radio" /><input id="__tabbed_23_2" name="__tabbed_23" type="radio" /><div class="tabbed-labels"><label for="__tabbed_23_1">Debian installation</label><label for="__tabbed_23_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="25:2"><input checked="checked" id="__tabbed_25_1" name="__tabbed_25" type="radio" /><input id="__tabbed_25_2" name="__tabbed_25" type="radio" /><div class="tabbed-labels"><label for="__tabbed_25_1">Debian installation</label><label for="__tabbed_25_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>cpu-freq
@@ -8492,7 +8555,7 @@ powersave
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>linux-tools-<span class="k">$(</span>uname<span class="w"> </span>-r<span class="k">)</span>
 </code></pre></div>
 <p>Set the governor to <code>performance</code> for all cores:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="24:2"><input checked="checked" id="__tabbed_24_1" name="__tabbed_24" type="radio" /><input id="__tabbed_24_2" name="__tabbed_24" type="radio" /><div class="tabbed-labels"><label for="__tabbed_24_1">One-time</label><label for="__tabbed_24_2">Persistent</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="26:2"><input checked="checked" id="__tabbed_26_1" name="__tabbed_26" type="radio" /><input id="__tabbed_26_2" name="__tabbed_26" type="radio" /><div class="tabbed-labels"><label for="__tabbed_26_1">One-time</label><label for="__tabbed_26_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>cpupower<span class="w"> </span>frequency-set<span class="w"> </span>-g<span class="w"> </span>performance
@@ -8520,28 +8583,43 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w
 <p>Running the checks above should now list <code>performance</code> as the governor for all cores. You can also run <code>sudo cpupower -c all frequency-info</code> for more details.</p>
 <h3 id="37-prevent-the-gpu-from-going-idle">3.7 Prevent the GPU from going idle<a class="headerlink" href="#37-prevent-the-gpu-from-going-idle" title="Permanent link">&para;</a></h3>
 <p>Similarly to the above, we want to maximize the GPU's clock speed and prevent it from going idle.</p>
-<p>Enable persistence mode on your GPU:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>nvidia-smi<span class="w"> </span>-pm<span class="w"> </span><span class="m">1</span>
+<p>Run the following command to check your current clocks and whether they're locked (persistence mode):</p>
+<div class="highlight"><pre><span></span><code>nvidia-smi -q | grep -i &quot;Persistence Mode&quot;
+nvidia-smi -q -d CLOCK
 </code></pre></div>
 <details class="abstract">
 <summary>See an example output</summary>
-<div class="highlight"><pre><span></span><code>Enabled persistence mode for GPU 00000005:09:00.0.
-All done.
+<div class="highlight"><pre><span></span><code><span class="hll">    Persistence Mode: Enabled
+</span>...
+Attached GPUs                             : 1
+GPU 00000005:09:00.0
+    Clocks
+        Graphics                          : 420 MHz
+<span class="hll">        SM                                : 420 MHz
+</span><span class="hll">        Memory                            : 405 MHz
+</span>        Video                             : 1680 MHz
+    Applications Clocks
+        Graphics                          : 1800 MHz
+        Memory                            : 8001 MHz
+    Default Applications Clocks
+        Graphics                          : 1800 MHz
+        Memory                            : 8001 MHz
+    Deferred Clocks
+        Memory                            : N/A
+    Max Clocks
+        Graphics                          : 2100 MHz
+<span class="hll">        SM                                : 2100 MHz
+</span><span class="hll">        Memory                            : 8001 MHz
+</span>        Video                             : 1950 MHz
+    ...
 </code></pre></div>
 </details>
-<p>You can confirm that the persistence mode is enabled with:</p>
-<div class="highlight"><pre><span></span><code>nvidia-smi<span class="w"> </span>-q<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;Persistence Mode&quot;</span>
-</code></pre></div>
-<details class="abstract">
-<summary>See an example output</summary>
-<div class="highlight"><pre><span></span><code>Persistence Mode: Enabled
-</code></pre></div>
-</details>
-<p>We then lock the GPU's clocks to the max values:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="25:2"><input checked="checked" id="__tabbed_25_1" name="__tabbed_25" type="radio" /><input id="__tabbed_25_2" name="__tabbed_25" type="radio" /><div class="tabbed-labels"><label for="__tabbed_25_1">One-time</label><label for="__tabbed_25_2">Persistent</label></div>
+<p>To lock the GPU's clocks to their max values:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="27:2"><input checked="checked" id="__tabbed_27_1" name="__tabbed_27" type="radio" /><input id="__tabbed_27_2" name="__tabbed_27" type="radio" /><div class="tabbed-labels"><label for="__tabbed_27_1">One-time</label><label for="__tabbed_27_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>nvidia-smi<span class="w"> </span>-lgc<span class="o">=</span><span class="k">$(</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>clocks.max.sm<span class="w"> </span>--format<span class="o">=</span>csv,noheader,nounits<span class="k">)</span>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>nvidia-smi<span class="w"> </span>-pm<span class="w"> </span><span class="m">1</span>
+sudo<span class="w"> </span>nvidia-smi<span class="w"> </span>-lgc<span class="o">=</span><span class="k">$(</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>clocks.max.sm<span class="w"> </span>--format<span class="o">=</span>csv,noheader,nounits<span class="k">)</span>
 sudo<span class="w"> </span>nvidia-smi<span class="w"> </span>-lmc<span class="o">=</span><span class="k">$(</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>clocks.max.mem<span class="w"> </span>--format<span class="o">=</span>csv,noheader,nounits<span class="k">)</span>
 </code></pre></div>
 </div>
@@ -8570,7 +8648,7 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w
 </div>
 <details class="info">
 <summary>Show explanation</summary>
-<p>This queries the max clocks for the GPU SM (<code>clocks.max.sm</code>) and memory (<code>clocks.max.mem</code>) and sets them to the current clocks (<code>lock-gpu-clocks</code> and <code>lock-memory-clocks</code> respectively).</p>
+<p>This queries the max clocks for the GPU SM (<code>clocks.max.sm</code>) and memory (<code>clocks.max.mem</code>) and sets them to the current clocks (<code>lock-gpu-clocks</code> and <code>lock-memory-clocks</code> respectively). <code>-pm 1</code> (or <code>--persistence-mode=1</code>) enables persistence mode to lock these values.</p>
 </details>
 <details class="abstract">
 <summary>See an example output</summary>
@@ -8580,44 +8658,18 @@ Memory clocks set to &quot;(memClkMin 8001, memClkMax 8001)&quot; for GPU 000000
 All done.
 </code></pre></div>
 </details>
-<p>You can confirm that the clocks are set to the max values with:</p>
-<div class="highlight"><pre><span></span><code>nvidia-smi -q -d CLOCK
-</code></pre></div>
-<details class="abstract">
-<summary>See an example output</summary>
-<div class="highlight"><pre><span></span><code>Attached GPUs                             : 1
-GPU 00000005:09:00.0
-    Clocks
-        Graphics                          : 1920 MHz
-        SM                                : 1920 MHz
-        Memory                            : 8000 MHz
-        Video                             : 1680 MHz
-    Applications Clocks
-        Graphics                          : 1800 MHz
-        Memory                            : 8001 MHz
-    Default Applications Clocks
-        Graphics                          : 1800 MHz
-        Memory                            : 8001 MHz
-    Deferred Clocks
-        Memory                            : N/A
-    Max Clocks
-        Graphics                          : 2100 MHz
-        SM                                : 2100 MHz
-        Memory                            : 8001 MHz
-        Video                             : 1950 MHz
-</code></pre></div>
+<p>You can confirm that the clocks are set to the max values by running <code>nvidia-smi -q -d CLOCK</code> again.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>As-is the case above, some max clocks might not be achievable in certain configurations despite the lock commands indicating it worked. We'll still consider this configuration as a fairly optimal one compared to the default configuration.</p>
+<p>Some max clocks might not be achievable in certain configurations, or due to boost clocks (SM) or rounding errors (Memory),  despite the lock commands indicating it worked. For example - on IGX - the max non-boot SM clock will be 1920 MHz, and the max memory clock will show 8000 MHz, which are satisfying compared to the initial mode.</p>
 </div>
-</details>
 <h3 id="38-maximize-gpu-bar1-size">3.8 Maximize GPU BAR1 size<a class="headerlink" href="#38-maximize-gpu-bar1-size" title="Permanent link">&para;</a></h3>
 <p>The GPU BAR1 memory is the primary resource consumed by <code>GPUDirect</code>. It allows other PCIe devices (like the CPU and the NIC) to access the GPU's memory space. The larger the BAR1 size, the more memory the GPU can expose to these devices in a single PCIe transaction, reducing the number of transactions needed and improving performance.</p>
 <p><strong>We recommend a BAR1 size of 1GB or above.</strong> Check the current BAR1 size:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="26:2"><input checked="checked" id="__tabbed_26_1" name="__tabbed_26" type="radio" /><input id="__tabbed_26_2" name="__tabbed_26" type="radio" /><div class="tabbed-labels"><label for="__tabbed_26_1">tune_system.py</label><label for="__tabbed_26_2">manual</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="28:2"><input checked="checked" id="__tabbed_28_1" name="__tabbed_28" type="radio" /><input id="__tabbed_28_2" name="__tabbed_28" type="radio" /><div class="tabbed-labels"><label for="__tabbed_28_1">tune_system.py</label><label for="__tabbed_28_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="27:2"><input checked="checked" id="__tabbed_27_1" name="__tabbed_27" type="radio" /><input id="__tabbed_27_2" name="__tabbed_27" type="radio" /><div class="tabbed-labels"><label for="__tabbed_27_1">Debian installation</label><label for="__tabbed_27_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="29:2"><input checked="checked" id="__tabbed_29_1" name="__tabbed_29" type="radio" /><input id="__tabbed_29_2" name="__tabbed_29" type="radio" /><div class="tabbed-labels"><label for="__tabbed_29_1">Debian installation</label><label for="__tabbed_29_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>bar1
@@ -8744,10 +8796,10 @@ rmmod<span class="w"> </span>nvidia_uvm<span class="w"> </span>nvidia_drm<span c
 <h3 id="39-enable-jumbo-frames">3.9 Enable Jumbo Frames<a class="headerlink" href="#39-enable-jumbo-frames" title="Permanent link">&para;</a></h3>
 <p>Jumbo frames are Ethernet frames that carry a payload larger than the standard 1500 bytes MTU (Maximum Transmission Unit). They can significantly improve network performance when transferring large amounts of data by reducing the overhead of packet headers and the number of packets that need to be processed.</p>
 <p><strong>We recommend an MTU of 9000 bytes on all interfaces involved in the data path.</strong> You can check the current MTU of your interfaces:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="28:2"><input checked="checked" id="__tabbed_28_1" name="__tabbed_28" type="radio" /><input id="__tabbed_28_2" name="__tabbed_28" type="radio" /><div class="tabbed-labels"><label for="__tabbed_28_1">tune_system.py</label><label for="__tabbed_28_2">manual</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="30:2"><input checked="checked" id="__tabbed_30_1" name="__tabbed_30" type="radio" /><input id="__tabbed_30_2" name="__tabbed_30" type="radio" /><div class="tabbed-labels"><label for="__tabbed_30_1">tune_system.py</label><label for="__tabbed_30_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="29:2"><input checked="checked" id="__tabbed_29_1" name="__tabbed_29" type="radio" /><input id="__tabbed_29_2" name="__tabbed_29" type="radio" /><div class="tabbed-labels"><label for="__tabbed_29_1">Debian installation</label><label for="__tabbed_29_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="31:2"><input checked="checked" id="__tabbed_31_1" name="__tabbed_31" type="radio" /><input id="__tabbed_31_2" name="__tabbed_31" type="radio" /><div class="tabbed-labels"><label for="__tabbed_31_1">Debian installation</label><label for="__tabbed_31_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/bin/tune_system.py<span class="w"> </span>--check<span class="w"> </span>mtu
@@ -8781,14 +8833,14 @@ ip<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </spa
 </div>
 </div>
 <p>You can set the MTU for each interface like so, for a given <code>if_name</code> name identified <a href="#23-configure-the-ip-addresses-of-the-nic-ports">above</a>:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="30:2"><input checked="checked" id="__tabbed_30_1" name="__tabbed_30" type="radio" /><input id="__tabbed_30_2" name="__tabbed_30" type="radio" /><div class="tabbed-labels"><label for="__tabbed_30_1">One-time</label><label for="__tabbed_30_2">Persistent</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="32:2"><input checked="checked" id="__tabbed_32_1" name="__tabbed_32" type="radio" /><input id="__tabbed_32_2" name="__tabbed_32" type="radio" /><div class="tabbed-labels"><label for="__tabbed_32_1">One-time</label><label for="__tabbed_32_2">Persistent</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>dev<span class="w"> </span><span class="nv">$if_name</span><span class="w"> </span>mtu<span class="w"> </span><span class="m">9000</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="31:2"><input checked="checked" id="__tabbed_31_1" name="__tabbed_31" type="radio" /><input id="__tabbed_31_2" name="__tabbed_31" type="radio" /><div class="tabbed-labels"><label for="__tabbed_31_1">NetworkManager</label><label for="__tabbed_31_2">systemd-networkd</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="33:2"><input checked="checked" id="__tabbed_33_1" name="__tabbed_33" type="radio" /><input id="__tabbed_33_2" name="__tabbed_33" type="radio" /><div class="tabbed-labels"><label for="__tabbed_33_1">NetworkManager</label><label for="__tabbed_33_2">systemd-networkd</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>nmcli<span class="w"> </span>connection<span class="w"> </span>modify<span class="w"> </span><span class="nv">$if_name</span><span class="w"> </span>ipv4.mtu<span class="w"> </span><span class="m">9000</span>
@@ -8820,7 +8872,7 @@ maxmtu<span class="w"> </span><span class="m">9978</span>
 <h3 id="41-update-the-loopback-configuration">4.1 Update the loopback configuration<a class="headerlink" href="#41-update-the-loopback-configuration" title="Permanent link">&para;</a></h3>
 <h5 id="find-the-application-files">Find the application files<a class="headerlink" href="#find-the-application-files" title="Permanent link">&para;</a></h5>
 <p>Identify the location of the <code>adv_networking_bench</code> executable, and of the configuration file named <code>adv_networking_bench_default_tx_rx.yaml</code>, for your installation:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="32:2"><input checked="checked" id="__tabbed_32_1" name="__tabbed_32" type="radio" /><input id="__tabbed_32_2" name="__tabbed_32" type="radio" /><div class="tabbed-labels"><label for="__tabbed_32_1">Debian installation</label><label for="__tabbed_32_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="34:2"><input checked="checked" id="__tabbed_34_1" name="__tabbed_34" type="radio" /><input id="__tabbed_34_2" name="__tabbed_34" type="radio" /><div class="tabbed-labels"><label for="__tabbed_34_1">Debian installation</label><label for="__tabbed_34_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Both located under <code>/opt/nvidia/holoscan/examples/adv_networking_bench/</code>:</p>
@@ -8869,7 +8921,7 @@ However, modifying this file will not affect the configuration used by the appli
 </div>
 <h5 id="identify-your-nics-pcie-addresses">Identify your NIC's PCIe addresses<a class="headerlink" href="#identify-your-nics-pcie-addresses" title="Permanent link">&para;</a></h5>
 <p>Retrieve the PCIe addresses of both ports of your NIC. We'll arbitrarily use the first for Tx and the second for Rx here:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="33:2"><input checked="checked" id="__tabbed_33_1" name="__tabbed_33" type="radio" /><input id="__tabbed_33_2" name="__tabbed_33" type="radio" /><div class="tabbed-labels"><label for="__tabbed_33_1">ibdev2netdev</label><label for="__tabbed_33_2">lspci</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="35:2"><input checked="checked" id="__tabbed_35_1" name="__tabbed_35" type="radio" /><input id="__tabbed_35_2" name="__tabbed_35" type="radio" /><div class="tabbed-labels"><label for="__tabbed_35_1">ibdev2netdev</label><label for="__tabbed_35_2">lspci</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>ibdev2netdev<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span>
@@ -8955,7 +9007,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </span></code></pre></div>
 </details>
 <h3 id="42-run-the-loopback-test">4.2 Run the loopback test<a class="headerlink" href="#42-run-the-loopback-test" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="34:2"><input checked="checked" id="__tabbed_34_1" name="__tabbed_34" type="radio" /><input id="__tabbed_34_2" name="__tabbed_34" type="radio" /><div class="tabbed-labels"><label for="__tabbed_34_1">Debian installation</label><label for="__tabbed_34_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="36:2"><input checked="checked" id="__tabbed_36_1" name="__tabbed_36" type="radio" /><input id="__tabbed_36_2" name="__tabbed_36" type="radio" /><div class="tabbed-labels"><label for="__tabbed_36_1">Debian installation</label><label for="__tabbed_36_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/opt/nvidia/holoscan/examples/adv_networking_bench/adv_networking_bench<span class="w"> </span>adv_networking_bench_default_tx_rx.yaml
@@ -9268,7 +9320,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The configuration below will be analyzed in the context of the application consuming it, as defined in the <code>main.cpp</code> file. You can look it up when the "sample application code" is referenced.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="35:2"><input checked="checked" id="__tabbed_35_1" name="__tabbed_35" type="radio" /><input id="__tabbed_35_2" name="__tabbed_35" type="radio" /><div class="tabbed-labels"><label for="__tabbed_35_1">Debian installation</label><label for="__tabbed_35_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="37:2"><input checked="checked" id="__tabbed_37_1" name="__tabbed_37" type="radio" /><input id="__tabbed_37_2" name="__tabbed_37" type="radio" /><div class="tabbed-labels"><label for="__tabbed_37_1">Debian installation</label><label for="__tabbed_37_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/main.cpp
@@ -9413,7 +9465,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <div class="admonition example">
 <p class="admonition-title">Under construction</p>
 <p>This section is under construction. Refer to the implementation of the <code>AdvNetworkingBenchDefaultRxOp</code> for an example.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="36:2"><input checked="checked" id="__tabbed_36_1" name="__tabbed_36" type="radio" /><input id="__tabbed_36_2" name="__tabbed_36" type="radio" /><div class="tabbed-labels"><label for="__tabbed_36_1">Debian installation</label><label for="__tabbed_36_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="38:2"><input checked="checked" id="__tabbed_38_1" name="__tabbed_38" type="radio" /><input id="__tabbed_38_2" name="__tabbed_38" type="radio" /><div class="tabbed-labels"><label for="__tabbed_38_1">Debian installation</label><label for="__tabbed_38_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_rx.h
@@ -9434,7 +9486,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <div class="admonition example">
 <p class="admonition-title">Under construction</p>
 <p>This section is under construction. Refer to the implementation of the <code>AdvNetworkingBenchDefaultTxOp</code> for an example.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="37:2"><input checked="checked" id="__tabbed_37_1" name="__tabbed_37" type="radio" /><input id="__tabbed_37_2" name="__tabbed_37" type="radio" /><div class="tabbed-labels"><label for="__tabbed_37_1">Debian installation</label><label for="__tabbed_37_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="39:2"><input checked="checked" id="__tabbed_39_1" name="__tabbed_39" type="radio" /><input id="__tabbed_39_2" name="__tabbed_39" type="radio" /><div class="tabbed-labels"><label for="__tabbed_39_1">Debian installation</label><label for="__tabbed_39_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_tx.h
@@ -9452,7 +9504,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <p>Designs investigations are expected soon for a generic way to prepare packets to send to the NIC.</p>
 </div>
 <h3 id="54-build-with-cmake">5.4 Build with CMake<a class="headerlink" href="#54-build-with-cmake" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="38:2"><input checked="checked" id="__tabbed_38_1" name="__tabbed_38" type="radio" /><input id="__tabbed_38_2" name="__tabbed_38" type="radio" /><div class="tabbed-labels"><label for="__tabbed_38_1">Debian installation</label><label for="__tabbed_38_2">HoloHub sources</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="40:2"><input checked="checked" id="__tabbed_40_1" name="__tabbed_40" type="radio" /><input id="__tabbed_40_2" name="__tabbed_40" type="radio" /><div class="tabbed-labels"><label for="__tabbed_40_1">Debian installation</label><label for="__tabbed_40_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <ol>
@@ -9520,7 +9572,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span><span class="s2">&qu
 </div>
 <div class="tabbed-block">
 <ol>
-<li>Create an application directory under <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications"><code>applications/</code></a> and write your source file(s) for your application (and custom operators if needed).</li>
+<li>Create an application directory under <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications"><code>applications/</code></a> in your clone of the HoloHub repository, and write your source file(s) for your application (and custom operators if needed).</li>
 <li>
 <p>Add the following to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench/CMakeLists.txt"><code>application/CMakeLists.txt</code></a> file:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">add_holohub_application</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">DEPENDS</span><span class="w"> </span><span class="s">OPERATORS</span><span class="w"> </span><span class="s">advanced_network</span><span class="p">)</span>
