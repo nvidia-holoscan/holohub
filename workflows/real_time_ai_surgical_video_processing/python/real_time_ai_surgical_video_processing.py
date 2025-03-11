@@ -21,7 +21,7 @@ from argparse import ArgumentParser
 
 import cupy as cp
 from holoscan.conditions import BooleanCondition, CountCondition
-from holoscan.core import Application, IOSpec, MetadataPolicy, Operator, OperatorSpec
+from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.operators import (
     BayerDemosaicOp,
     FormatConverterOp,
@@ -596,7 +596,6 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         source = ForwardOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
-        condition.metadata_policy = MetadataPolicy.UPDATE
         # Broadcaster operator
         broadcaster = ForwardOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
@@ -743,13 +742,14 @@ def main(args):
         if not args.skip_reset:
             camera.setup_clock()
         camera.configure(camera_mode)
-        camera.set_digital_gain_reg(0x4)
+        camera.set_digital_gain_reg(0xF)
         if args.pattern is not None:
             camera.test_pattern(args.pattern)
 
         # __________________________________________________________________
         # Run our Holoscan pipeline
         logging.info("Calling run")
+        application.is_metadata_enabled = False  # disable metadata
         application.run()  # we don't usually return from this call.
 
         # __________________________________________________________________
