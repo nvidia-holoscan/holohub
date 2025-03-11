@@ -30,7 +30,7 @@ advanced_network:
     log_level: "info"
 
     memory_regions:
-    - name: "Data_RX_GPU"
+    - name: "Data_RX_GPU1"
       kind: "device"
       affinity: 0
       num_bufs: 51200
@@ -42,19 +42,19 @@ advanced_network:
       buf_size: 1064
 
     interfaces:
-    - name: data2
+    - name: "rx_port"
       address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true
         queues:
-        - name: "Data"
+        - name: "rx_q_0"
           id: 0
           cpu_core: 9
           batch_size: 10240
           output_port: "bench_rx_out"
           memory_regions:
-            - "Data_RX_GPU"
-        - name: "Data"
+            - "Data_RX_GPU1"
+        - name: "rx_q_1"
           id: 1
           cpu_core: 9
           batch_size: 10240
@@ -62,7 +62,7 @@ advanced_network:
           memory_regions:
             - "Data_RX_GPU2"
         flows:
-        - name: "ADC Samples"
+        - name: "flow_4096"
           id: 0
           action:
             type: queue
@@ -70,7 +70,7 @@ advanced_network:
           match:
             udp_src: 4096
             udp_dst: 4096
-        - name: "ADC Samples"
+        - name: "flow_4095"
           id: 1
           action:
             type: queue

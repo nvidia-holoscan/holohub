@@ -46,7 +46,7 @@ advanced_network:
       rx:
         flow_isolation: true
         queues:
-        - name: "Data"
+        - name: "rx_q_0"
           id: 0
           cpu_core: 8
           batch_size: 10240
@@ -55,7 +55,8 @@ advanced_network:
             - "Data_RX_CPU"
             - "Data_RX_GPU"
         flows:
-          - name: "ADC Samples"
+          - name: "flow_0"
+            id: 0
             action:
               type: queue
               id: 0

@@ -36,14 +36,14 @@ advanced_network:
       buf_size: 1064
 
     interfaces:
-    - name: data1
-      address: 0005:03:00.0
+    - name: "tx_port"
+      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
       tx:
         queues:
-        - name: "ADC Samples"
+        - name: "tx_q_0"
           id: 0
           batch_size: 10240
-          cpu_core: 4
+          cpu_core: 9
           memory_regions:
             - "Data_TX_CPU"
           offloads:
