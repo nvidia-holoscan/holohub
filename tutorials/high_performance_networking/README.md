@@ -150,7 +150,7 @@ lsmod | grep ib_core
     mlx_compat             20480  11 rdma_cm,ib_ipoib,mlxdevm,iw_cm,ib_umad,ib_core,rdma_ucm,ib_uverbs,mlx5_ib,ib_cm,mlx5_core
     ```
 
-If this is empty, install OFED drivers from DOCA (the DOCA APT repository should already be configured from the [Holoscan Networking installation above](#1-installing-holoscan-networking)), and reboot your system:
+If this is empty, install the latest OFED drivers from DOCA (the DOCA APT repository should already be configured from the [Holoscan Networking installation above](#1-installing-holoscan-networking)), and reboot your system:
 
 ```bash
 sudo apt update
@@ -160,7 +160,14 @@ sudo reboot
 
 !!! note
 
-    This will also install the `ibv_devinfo` utility as part of the `ibverbs-utils` package. You can run this now to confirm that your NIC is found.
+    If this is not empty, you can still install the newest OFED drivers from `doca-ofed` above. If you choose to keep your current drivers, install the following utilities for convenience later on. They include tools like `ibstat`, `ibv_devinfo`, `ibdev2netdev`, `mlxconfig`:
+
+    ```bash
+    sudo apt update
+    sudo apt install infiniband-diags ibverbs-utils mlnx-ofed-kernel-utils mft
+    ```
+
+Running `ibstat` or `ibv_devinfo` will confirm your NIC interfaces are recognized by your drivers.
 
 
 ### 2.2 Switch your NIC Link Layers to Ethernet
