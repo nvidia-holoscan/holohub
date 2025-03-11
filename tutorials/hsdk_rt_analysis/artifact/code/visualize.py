@@ -16,7 +16,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 colors = ['brown', 'green', 'purple', 'red', 'olive', 'darkslategray', 'deeppink', 'blue']
 markers = ['x', 'o', '^', 's', 'D', 'P', '*', '1']
 labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']

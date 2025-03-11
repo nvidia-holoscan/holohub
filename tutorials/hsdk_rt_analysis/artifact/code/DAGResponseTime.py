@@ -14,10 +14,9 @@
 # limitations under the License.
 
 import timeit
+from code.processDAGs import construct_graphs, get_unique, propose_execution_times
 
 import networkx as nx
-
-from code.processDAGs import construct_graphs, get_unique, propose_execution_times
 
 
 def get_response_time(DG, source, sink):

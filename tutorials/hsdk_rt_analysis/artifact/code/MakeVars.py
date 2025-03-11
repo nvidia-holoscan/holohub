@@ -15,7 +15,6 @@
 
 import os
 
-
 iter = 100
 
 def main(COUNT, overhead):
