@@ -21,7 +21,7 @@ from argparse import ArgumentParser
 
 import cupy as cp
 from holoscan.conditions import BooleanCondition, CountCondition
-from holoscan.core import Application, IOSpec, Operator, OperatorSpec, MetadataPolicy
+from holoscan.core import Application, IOSpec, MetadataPolicy, Operator, OperatorSpec
 from holoscan.operators import (
     BayerDemosaicOp,
     FormatConverterOp,
