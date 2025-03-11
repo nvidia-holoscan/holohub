@@ -45,7 +45,7 @@ hololink_module = lazy_import("hololink")
 
 class AggregatorOp(Operator):
     """
-    This operator is used to aggregate the messages form multiple operators into a single tensor map.
+    This operator is used to aggregate the messages from multiple operators into a single tensor map.
     """
 
     def setup(self, spec):
@@ -62,6 +62,7 @@ class AggregatorOp(Operator):
 class ForwardOp(Operator):
     """
     This operator is used to forward the input to the following operator(s).
+    This is specially useful to abstract different possible conditional flows when one flow is broadcasted to multiple operators.
     """
 
     def setup(self, spec: OperatorSpec):
