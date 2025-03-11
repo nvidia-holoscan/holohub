@@ -276,8 +276,6 @@ class DetectionPostprocessorOp(Operator):
         in_message = op_input.receive("in")
 
         # Get detection outputs
-        # num_detections = cp.asarray(in_message.get("inference_output_num_detections")).get()
-        # print(f"num_detections: {num_detections}")
         inferred_bboxes = cp.asarray(in_message["inference_output_detection_boxes"]).get()
         inferred_scores = cp.asarray(in_message["inference_output_detection_scores"]).get()
         inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
@@ -309,6 +307,22 @@ class DetectionPostprocessorOp(Operator):
 
 
 class RealTimeAISurgicalVideoProcessingWorkflow(Application):
+    """
+    Real-Time AI Surgical Video Processing Workflow
+
+    This class defines the workflow for processing surgical video streams with AI models.
+    It supports three different sources:
+        - Holoscan Sensor Bridge (HSB)
+        - AJA Card
+        - Video Replayer
+    The workflow is composed of the following overall components:
+        - Out-of-Body Detection
+        - Conditional Flow Control
+        - Multi-AI Surgical Instrument Detection and Segmentation
+        - Deidentification
+        - Visualization.
+    """
+
     def __init__(
         self,
         source=None,
@@ -350,7 +364,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         logging.info("Setup source and camera")
         # Memory allocator for some operators
         pool = UnboundedAllocator(self, name="pool")
-        print(f"### {self.name} - source: {self.source}")
+        logging.info(f"{self.source=}")
         # ------------------------------------------------------------------------------------------
         # Configure AJA capture card
         # ------------------------------------------------------------------------------------------

@@ -63,7 +63,7 @@ This workflow utilizes three AI models:
 
 Ensure you have installed the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
 
-The directory specified by `--data` at app runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in [Model](#models) and [Data](#data): `endoscopy`, `endoscopy_out_of_body_detection`, `monai_tool_seg_model` and `ssd_model`. These resources will be automatically downloaded to the holohub data directory when building the application.
+The directory specified by `--data` at app runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in [Model](#models) and [Data](#data): `endoscopy`, `endoscopy_out_of_body_detection`, `monai_tool_seg_model` and `ssd_model`. These resources will be automatically downloaded to the Holohub data directory when building the application.
 
 ## Building the docker image for workflow (using Holoscan Sensor Bridge)
 
@@ -76,7 +76,7 @@ cd holoscan-sensor-bridge
 ```
 
 This will build a docker image called `hololink-demo:{HSB_VERSION}`
-Once you have built the Holoscan Sensor Bridge container, you can build the holohub container using the following command:
+Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:
 
 ```sh
 ./dev_container build --base_img hololink-demo:2.0.0 --img holohub:link
@@ -84,7 +84,7 @@ Once you have built the Holoscan Sensor Bridge container, you can build the holo
 
 ## Building the workflow
 
-First you need to run the holohub container:
+First you need to run the Holohub container:
 
 ```sh
 ./dev_container launch --img holohub:link 
@@ -93,28 +93,28 @@ First you need to run the holohub container:
 Then, you can build the workflow using the following command:
 
 ```sh
-./run build real_time_surgical_edge_ai
+./run build real_time_ai_surgical_video_processing
 ```
 
 ## Running the application
 
-### Use holohub container from outside of the container
+### Use Holohub container from outside of the container
 
-Using the holohub container, you can run the workflow without building it again:
+Using the Holohub container, you can run the workflow without building it again:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build real_time_surgical_edge_ai
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build real_time_ai_surgical_video_processing
 ```
 
 However, if you want to build the workflow, you can just remove the `--no_build` flag:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_surgical_edge_ai
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_ai_surgical_video_processing
 ```
 
-### Use holohub container from inside the container
+### Use Holohub container from inside the container
 
-First you need to run the holohub container:
+First you need to run the Holohub container:
 
 ```sh
 ./dev_container launch --img holohub:link 
@@ -123,13 +123,13 @@ First you need to run the holohub container:
 To run the Python application, you can make use of the run script
 
 ```sh
-./run launch real_time_surgical_edge_ai python
+./run launch real_time_ai_surgical_video_processing python
 ```
 
 Alternatively, you can run the application directly:
 
 ```sh
-cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_surgical_edge_ai/python
+cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_ai_surgical_video_processing/python
 python3 real_time_ai_surgical_video_processing.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 

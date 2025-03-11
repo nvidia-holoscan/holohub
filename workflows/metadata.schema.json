@@ -30,7 +30,7 @@
         "holoscan_sdk": {
           "$ref": "holohub/project/v1#/$defs/sdk_version"
         },
-        "holoscscan_sensor_bridge": {
+        "holoscan_sensor_bridge": {
           "$ref": "holohub/project/v1#/$defs/sdk_version"
         },
         "ranking": {
@@ -54,7 +54,7 @@
         "platforms",
         "tags",
         "holoscan_sdk",
-        "holoscscan_sensor_bridge",
+        "holoscan_sensor_bridge",
         "ranking",
         "dependencies"
       ]
