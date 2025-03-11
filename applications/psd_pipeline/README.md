@@ -28,7 +28,7 @@ destination UDP socket.
 
 - ConnectX 6 or 7 NIC for GPUDirect RDMA with packet size steering
 - [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
-- [vrtgen](https://github.com/Geontech/vrtgen) (dependency)
+- [vita49-rs](https://github.com/voyager-tech-inc/vita49-rs) (dependency)
 
 ## Configuration
 

@@ -17,14 +17,15 @@ and format it into VITA 49.2 Spectral Data packets.
 After creating the VRT packets, it will send the packets to the configured
 UDP IP/port.
 
-> [!NOTE]
-> This operator pulls in projects that contain LGPL-3.0 code.
-
 ## Requirements
 
 - [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
-- [vrtgen](https://github.com/Geontech/vrtgen) (dependency, LGPL-3.0)
-- [vita49-psd](https://github.com/vts-i/vita49-psd) (dependency, LGPL-3.0)
+- [Rust](https://www.rust-lang.org/) (language dependency)
+- [vita49](https://github.com/voyager-tech-inc/vita49-rs) (Rust library dependency)
+
+Note: this operator depends on a Rust component. The `Dockerfile` provided
+in this directory will install Rust in the dev container from the official
+Ubuntu repos.
 
 ## Multiple Channels
 

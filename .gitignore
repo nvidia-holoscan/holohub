@@ -36,6 +36,7 @@ CTestConfig.cmake
 
 # Cache and temporary directories
 .cache/
+.cargo/
 .cupy/
 .cmake/
 .docker/

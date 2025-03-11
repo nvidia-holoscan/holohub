@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 cmake_minimum_required(VERSION 3.20)
@@ -11,41 +11,18 @@ find_package(matx CONFIG REQUIRED)
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
 
-include(FetchContent)
-FetchContent_Declare(
-    vrtgen
-    GIT_REPOSITORY https://github.com/Geontech/vrtgen.git
-    GIT_TAG v0.7.14
-)
-FetchContent_MakeAvailable(vrtgen)
-
-include(FetchContent)
-FetchContent_Declare(
-    vita49_psd
-    GIT_REPOSITORY https://github.com/vts-i/vita49-psd.git
-    GIT_TAG v0.1.0
-)
-FetchContent_MakeAvailable(vita49_psd)
-
-add_library(packetlib
-    packet_sender.cpp
-)
-target_include_directories(packetlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(packetlib PRIVATE
-    holoscan::core
-    vrtgen::vrtgen
-    vita49_psd::vita49_psd
-)
-
-add_library(vita49_psd_packetizer
+add_subdirectory(packet_sender)
+add_library(vita49_psd_packetizer STATIC
     vita49_psd_packetizer.cu
 )
 add_library(holoscan::ops::vita49_psd_packetizer ALIAS vita49_psd_packetizer)
 
-target_link_libraries(vita49_psd_packetizer PRIVATE
+target_link_libraries(vita49_psd_packetizer
+    PUBLIC
+    packet_sender
+    PRIVATE
     matx::matx
     holoscan::core
-    packetlib
 )
 
 target_include_directories(vita49_psd_packetizer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
