@@ -27,6 +27,7 @@ advanced_network:
     master_core: 5              # Master CPU core
     debug: 1
     log_level: "warn"
+
     memory_regions:
     - name: "Data_RX_CPU"
       kind: "huge"
@@ -38,12 +39,13 @@ advanced_network:
       affinity: 0
       num_bufs: 43200
       buf_size: 1200
+
     interfaces:
-    - name: data1
-      address:  cc:00.1
+    - name: "rx_port"
+      address: cc:00.1
       rx:
         queues:
-        - name: "Data"
+        - name: "rx_q_1"
           id: 1
           cpu_core:  "11,12,13"
           batch_size: 4320
@@ -72,6 +74,7 @@ advanced_network:
               - 50001
             rx_stats_period_report_ms: 3000
             send_packet_ext_info: true
+
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
   split_boundary: true    # Whether header and data is split (Header to CPU)

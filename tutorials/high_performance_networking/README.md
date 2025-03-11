@@ -1521,16 +1521,16 @@ Retrieve the PCIe addresses of both ports of your NIC. We'll arbitrarily use the
 
 Set the NIC addresses in the `interfaces` section of the `advanced_network` section. This configures your NIC independently of your application:
 
-- Set the `address` field of the `data1` interface to one of these addresses. That interface will be able to transmit ethernet packets.
-- Set the `address` field of the `data2` interface to the other address. This interface will be able to receive ethernet packets.
+- Set the `address` field of the `tx_port` interface to one of these addresses. That interface will be able to transmit ethernet packets.
+- Set the `address` field of the `rx_port` interface to the other address. This interface will be able to receive ethernet packets.
 
 ```yaml hl_lines="3 7"
 interfaces:
-    - name: data1
+    - name: "tx_port"
     address: <0000:00:00.0>       # The BUS address of the interface doing Tx
     tx:
         ...
-    - name: data2
+    - name: "rx_port"
     address: <0000:00:00.0>       # The BUS address of the interface doing Rx
     rx:
         ...
@@ -1540,11 +1540,11 @@ interfaces:
 
     ```yaml hl_lines="3 7"
     interfaces:
-        - name: data1
+        - name: "tx_port"
         address: 0005:03:00.0       # The BUS address of the interface doing Tx
         tx:
             ...
-        - name: data2
+        - name: "rx_port"
         address: 0005:03:00.1       # The BUS address of the interface doing Rx
         rx:
             ...
@@ -1555,7 +1555,7 @@ interfaces:
 Modify the `bench_tx` section which configures the application itself, to create the packet headers and direct them to the NIC:
 
 -  `eth_dst_addr` with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your `if_name` interface with `#!bash cat /sys/class/net/$if_name/address`:
-- Replacing `address` with the PCIe address of the NIC interface you want to use for Tx (same as `data1`'s address above).
+- Replacing `address` with the PCIe address of the NIC interface you want to use for Tx (same as `tx_port`'s address above).
 
 ```yaml hl_lines="3 8"
 bench_tx:
@@ -1980,11 +1980,11 @@ advanced_network: # (2)!
       buf_size: 64
 
     interfaces: # (11)!
-    - name: data1 # (12)!
+    - name: "tx_port" # (12)!
       address: <0000:00:00.0> # (13)! # The BUS address of the interface doing Tx
       tx: # (14)!
         queues: # (15)!
-        - name: "ADC Samples" # (16)!
+        - name: "tx_q_0" # (16)!
           id: 0 # (17)!
           batch_size: 10240 # (18)!
           cpu_core: 11 # (19)!
@@ -1992,12 +1992,12 @@ advanced_network: # (2)!
             - "Data_TX_GPU"
           offloads: # (21)!
             - "tx_eth_src"
-    - name: data2
+    - name: "rx_port"
       address: <0000:00:00.0> # (22)! # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true # (23)!
         queues:
-        - name: "Data"
+        - name: "rx_q_0"
           id: 0
           cpu_core: 9
           batch_size: 10240
@@ -2006,8 +2006,8 @@ advanced_network: # (2)!
             - "Data_RX_CPU"
             - "Data_RX_GPU"
         flows: # (26)!
-        - name: "ADC Samples" # (27)!
-          id: 2 # (28)!
+        - name: "flow_0" # (27)!
+          id: 0 # (28)!
           action: # (29)!
             type: queue
             id: 0
@@ -2058,7 +2058,7 @@ bench_tx: # (32)!
 19. The ID of the CPU core that this queue will use to poll the NIC. Ideally one [isolated core](#35-isolate-cpu-cores) per queue.
 20. The list of memory regions where this queue will write/read packets from/to. The order matters: the first memory region will be used first to read/write from until it fills up one buffer (`buf_size`), after which it will move to the next region in the list and so on until the packet is fully written/read. See the `memory_regions` for the `rx` queue below for an example.
 21. The `offloads` section (Tx queues only) lists optional tasks that can be offloaded to the NIC. The only value currently supported is `tx_eth_src`, that lets the NIC insert the ethernet source mac address in the packet headers. Note: IP, UDP, and Ethernet Checksums or CRC are always done by the NIC currently and are not optional.
-22. Same as for `data1`. Each interface in this list should have a unique mac address. This one will do `rx` per config below.
+22. Same as for `tx_port`. Each interface in this list should have a unique mac address. This one will do `rx` per config below.
 23. Whether to isolate the Rx flow. If true, any incoming packets that does not match the MAC address of this interface - or isn't directed to a queue when the `flows` section below is used - will be delegated back to Linux for processing (no kernel bypass). This is useful to let this interface handle ARP, ICMP, etc. Otherwise, any packets sent to this interface (ex: ping) will need to be processed (or dropped) by your application.
 24. `rx` queues have an `output_port` parameter so you can attach a downstream operator to receive data from this specific queue, as can be seen in the `#!cpp Application::compose()` function of the sample application. Multiple `rx` queues can share the same `output_port`. In contrast, `tx` queues have a single non-configurable port (name: `burst_in`) to which upstream operators will send all packets, which are then routed to the correct queue based on the port/queue in the burst header.
 25. This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the `Data_RX_CPU` memory region, filling its `buf_size` of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the `Data_RX_GPU` memory region. Its `buf_size` of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!
