@@ -577,9 +577,13 @@ lspci -tv
 
 ### 3.2 Check the NIC's PCIe configuration
 
-??? example "WIP"
+!!! quote "[Understanding PCIe Configuration for Maximum Performance - May 27, 2022](https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance)"
 
-    See <https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance>
+    PCIe is used in any system for communication between different modules [including the NIC and the GPU]. This means that in order to process network traffic, the different devices communicating via the PCIe should be well configured. When connecting the network adapter to the PCIe, it auto-negotiates for the maximum capabilities supported between the network adapter and the CPU.
+
+The instructions below are meant to understand if your system is able to extract the maximum capabilities of your NIC, but they're not configurable. The two values that we are looking at here are the Max Payload Size (MPS - the maximum size of a PCIe packet) and the Speed (or PCIe generation).
+
+##### Max Payload Size (MPS)
 
 === "tune_system.py"
 
@@ -594,6 +598,15 @@ lspci -tv
         ```bash
         cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check mps
+        ```
+
+    ??? abstract "See an example output"
+
+        The PCIe configuration on the IGX Orin developer kit is not able to leverage the max payload size of the NIC:
+
+        ```log
+        2025-03-10 16:15:54 - WARNING - cx7_0/0005:03:00.0: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
+        2025-03-10 16:15:54 - WARNING - cx7_1/0005:03:00.1: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
         ```
 
 === "manual"
@@ -614,25 +627,66 @@ lspci -tv
         nic_pci=$(lspci -n | awk '$2 == "0200:" && $3 ~ /^15b3:/ {print $1}' | head -n1)
         ```
 
-    Check current MPS:
+    Check current and max MPS:
 
     ```bash
-    sudo lspci -vv -s $bus_addr | grep DevCtl: -A2 | grep -oE "MaxPayload [0-9]+"
+    sudo lspci -vv -s $nic_pci | awk '/DevCap/{s=1} /DevCtl/{s=0} /MaxPayload /{match($0, /MaxPayload [0-9]+/, m); if(s){print "Max " m[0]} else{print "Current " m[0]}}'
     ```
 
-    And max MPS:
+    ??? abstract "See an example output"
+
+        The PCIe configuration on the IGX Orin developer kit is not able to leverage the max payload size of the NIC:
+
+        ```log
+        Max MaxPayload 512
+        Current MaxPayload 128
+        ```
+
+    !!! note
+
+        While your NIC might be capable of more, 256 bytes is generally the largest supported by any switch/CPU at this time.
+
+
+##### PCIe Speed/Generation
+
+Identify the PCIe address of your NVIDIA NIC:
+
+=== "ibdev2netdev"
 
     ```bash
-    sudo lspci -vv -s $bus_addr | grep DevCap: -A1 | grep -oE "MaxPayload [0-9]+"
+    nic_pci=$(sudo ibdev2netdev -v | awk '{print $1}' | head -n1)
+    ```
+
+=== "lspci"
+
+    ```bash
+    # `0200` is the PCI-SIG class code for NICs
+    # `15b3` is the Vendor ID for Mellanox
+    nic_pci=$(lspci -n | awk '$2 == "0200:" && $3 ~ /^15b3:/ {print $1}' | head -n1)
+    ```
+
+Check current and max Speeds:
+
+```bash
+sudo lspci -vv -s $nic_pci | awk '/LnkCap/{s=1} /LnkSta/{s=0} /Speed /{match($0, /Speed [0-9]+GT\/s/, m); if(s){print "Max " m[0]} else{print "Current " m[0]}}'
+```
+
+??? abstract "See an example output"
+
+    On IGX, the switch is able to maximize the NIC speed, both being PCIe 5.0:
+
+    ```log
+    Max Speed 32GT/s
+    Current Speed 32GT/s
     ```
 
 ### 3.3 Maximize the NIC's Max Read Request Size (MRRS)
 
-??? example "WIP"
+!!! quote "[Understanding PCIe Configuration for Maximum Performance - May 27, 2022](https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance)"
 
-    See <https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance>
+    PCIe Max Read Request determines the maximal PCIe read request allowed. A PCIe device usually keeps track of the number of pending read requests due to having to prepare buffers for an incoming response. The size of the PCIe max read request may affect the number of pending requests (when using data fetch larger than the PCIe MTU).
 
-Check current MRRS:
+Unlike the PCIe properties queried in the previous section, the MRRS is configurable. **We recommend maxing it to 4096 bytes**. Run the following to check your current settings:
 
 === "tune_system.py"
 
