@@ -187,7 +187,7 @@ ibv_devinfo
 
     In the example below, the `mlx5_0` interface is in Ethernet mode, while the `mlx5_1` interface is in Infiniband mode. Do not pay attention to the `transport` value which is always `InfiniBand`.
 
-    ```sh
+    ```sh hl_lines="18 37"
     hca_id: mlx5_0
             transport:                      InfiniBand (0)
             fw_ver:                         28.38.1002
@@ -552,8 +552,7 @@ lspci -tv
 ??? abstract "See an example output"
 
     Here is the PCIe tree of an IGX system. Note how the ConnectX-7 and RTX A6000 are connected to the same branch.
-    ```
-    lspci -tv
+    ``` hl_lines="2 3 5"
     -+-[0007:00]---00.0-[01-ff]----00.0  Marvell Technology Group Ltd. 88SE9235 PCIe 2.0 x2 4-port SATA 6 Gb/s Controller
     +-[0005:00]---00.0-[01-ff]----00.0-[02-09]--+-00.0-[03]--+-00.0  Mellanox Technologies MT2910 Family [ConnectX-7]
     |                                           |            \-00.1  Mellanox Technologies MT2910 Family [ConnectX-7]
@@ -1113,7 +1112,7 @@ nvidia-smi -q -d CLOCK
 
 ??? abstract "See an example output"
 
-    ```
+    ``` hl_lines="1 7 8 20 21"
         Persistence Mode: Enabled
     ...
     Attached GPUs                             : 1
