@@ -495,14 +495,14 @@ Run the following command to check the GPUDirect communication matrix. **You are
     === "Debian installation"
 
         ```bash
-        sudo /opt/nvidia/holoscan/bin/tune_system.py --check topology
+        sudo /opt/nvidia/holoscan/bin/tune_system.py --check topo
         ```
 
     === "From source"
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check topology
+        sudo ./operators/advanced_network/python/tune_system.py --check topo
         ```
 
     ??? abstract "See an example output"
@@ -516,7 +516,7 @@ Run the following command to check the GPUDirect communication matrix. **You are
 === "nvidia-smi"
 
     ```bash
-    nvidia-smi topo --matrix_pci
+    nvidia-smi topo -mp
     ```
 
     ??? abstract "See an example output"
