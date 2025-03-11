@@ -67,7 +67,7 @@ Holohub command takes care of this dependency when using Holohub container. Howe
 
 ## Quick start guide
 
-when using the workflow with `--source hsb`, it requires the Holoscan Sensor Bridge software to be installed. you can build a Holoscan Sensor Bridge container using the following command:
+When using the workflow with `--source hsb`, it requires the Holoscan Sensor Bridge software to be installed. you can build a Holoscan Sensor Bridge container using the following command:
 
 ```sh
 git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
@@ -80,7 +80,7 @@ This will build a docker image called `hololink-demo:2.0.0`
 Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build real_time_ai_surgical_video_processing
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_ai_surgical_video_processing
 ```
 
 ## Advanced usage
@@ -133,6 +133,8 @@ Alternatively, you can run the application directly:
 cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_ai_surgical_video_processing/python
 python3 real_time_ai_surgical_video_processing.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
+
+> **TIP:** You can get the exact command by executing `./run launch real_time_ai_surgical_video_processing python --dryrun`
 
 ### Command Line Arguments
 
