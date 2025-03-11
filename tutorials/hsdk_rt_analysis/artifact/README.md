@@ -237,7 +237,7 @@ Reads the output in the `data` folder in order to produce visualizations: the gr
 
 A discrete-event simulator that mimics the behavior of Holoscan applications, used for the main and scalability experiments. Takes the graph 
 representations constructed by `processDAGs.py` and the execution times in `generatedexectimes.txt` as input. The simulation works by 
-continously emptying an event queue, with the possible events being either a new arrival to the system or an operator finishing execution. 
+continuously emptying an event queue, with the possible events being either a new arrival to the system or an operator finishing execution. 
 At each event, new events that are activated by the previous completion are enqueued, and the simulation continues until the time limit is 
 reached (corresponding to approximately an hour of real execution time). The results are recorded in the file `simulatedresponsetimes.txt`.    
 

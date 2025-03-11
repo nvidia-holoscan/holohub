@@ -30,17 +30,18 @@ def parselog(filepath):
             parsed = line.split(",")
             start = parsed[1]
             end = parsed[-1][:-3]
-            delay = (int(end) - int(start))/1000
+            delay = (int(end) - int(start)) / 1000
             delays.append(delay)
 
     source.close()
 
     return max(delays)
 
+
 def main(graphs, numvars):
     dest = open("observedresponsetimes.txt", "w")
 
-    with open("generatedexectimes.txt", 'r') as allexectimes:
+    with open("generatedexectimes.txt", "r") as allexectimes:
         for i, data in enumerate(graphs[0]):
 
             if numvars == 0:
@@ -52,58 +53,65 @@ def main(graphs, numvars):
             allexectimes.readline()
             for var in range(n):
                 # Read the original file content
-                with open("experimentbase.yaml", 'r') as script:
+                with open("experimentbase.yaml", "r") as script:
                     scriptbase = script.readlines()
                     exectimes = []
-                    for line in range((2*data[0])+1):
+                    for line in range((2 * data[0]) + 1):
                         exectimes.append(allexectimes.readline())
 
                     # Add the execution times
                     modified_content = scriptbase[:31] + exectimes + scriptbase[32:]
 
                     # Write the modified content to a temporary file
-                    temp_file_path = 'build/experiment.yaml'
-                    with open(temp_file_path, 'w') as temp_file:
+                    temp_file_path = "build/experiment.yaml"
+                    with open(temp_file_path, "w") as temp_file:
                         temp_file.writelines(modified_content)
 
                     # Compile the temporary file
-                    os.system(f'./build/graph{i+1}')
+                    os.system(f"./build/graph{i+1}")
 
                     print("")
-                    print("Graph " + str(i+1) + " variation " + str(var) + " complete")
+                    print("Graph " + str(i + 1) + " variation " + str(var) + " complete")
                     print("")
 
-                    dest.write("Graph " + str(i+1) + " variation " + str(var) + " observed WCET = " + str(parselog("logger.log")) + "\n")
-
+                    dest.write(
+                        "Graph "
+                        + str(i + 1)
+                        + " variation "
+                        + str(var)
+                        + " observed WCET = "
+                        + str(parselog("logger.log"))
+                        + "\n"
+                    )
 
                     # Clean up the temporary file if needed
                     os.remove(temp_file_path)
 
     dest.close
 
+
 def overheadmain():
     dest = open("observedoverheads.txt", "w")
 
-
-    with open("experimentbase.yaml", 'r') as script:
+    with open("experimentbase.yaml", "r") as script:
         scriptbase = script.readlines()
 
         # Create an experiment.yaml file for basic configuration
-        temp_file_path = 'build/experiment.yaml'
-        with open(temp_file_path, 'w') as temp_file:
-          temp_file.writelines(scriptbase)
-
+        temp_file_path = "build/experiment.yaml"
+        with open(temp_file_path, "w") as temp_file:
+            temp_file.writelines(scriptbase)
 
     for i in range(11):
 
         # Run the experiment
-        os.system(f'./build/overheadgraph{i+1}')
+        os.system(f"./build/overheadgraph{i+1}")
 
         print("")
-        print("Overhead graph " + str(i+1) + " complete")
+        print("Overhead graph " + str(i + 1) + " complete")
         print("")
 
-        dest.write("Chain Length " + str(i+1) + " observed WCRT = " + str(parselog("logger.log")) + "\n")
+        dest.write(
+            "Chain Length " + str(i + 1) + " observed WCRT = " + str(parselog("logger.log")) + "\n"
+        )
 
     dest.close
-

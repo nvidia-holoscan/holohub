@@ -21,7 +21,7 @@ import networkx as nx
 
 def get_response_time(DG, source, sink):
 
-    #Find immediate postdominators for every node by finding dominators of the edge reversed graph
+    # Find immediate postdominators for every node by finding dominators of the edge reversed graph
     postdominators = nx.algorithms.immediate_dominators(DG.reverse(), sink)
 
     waitingtimes = {}
@@ -37,10 +37,9 @@ def get_response_time(DG, source, sink):
                     maxcost = pathcost
             waitingtimes[node] = maxcost
         else:
-            waitingtimes[node] = DG.nodes[node]['WCET']
+            waitingtimes[node] = DG.nodes[node]["WCET"]
 
     WCRTcandidates = {}
-
 
     # Find the path from the source to the sink with the greatest sum of execution times
     maxcost = 0
@@ -73,7 +72,7 @@ def get_response_time(DG, source, sink):
         WCRTcandidates[node] = sourcetobottle + bottletosink
 
         if node not in longestpath:
-            # An edge case can occur in large graphs where the longest path through the graph does not 
+            # An edge case can occur in large graphs where the longest path through the graph does not
             # determine the response time.
             # This is described in the paper in more detail
             # For most graphs (including all practical examples) this below calculation results in
@@ -93,7 +92,9 @@ def get_response_time(DG, source, sink):
 
                 # bottleneckpathcost = greatestcostsourcetonodepathcost + bottletosink
 
-            WCRTcandidates[node] += longestpathcost - nx.path_weight(DG, shortestsourcetonodepath, "weight")
+            WCRTcandidates[node] += longestpathcost - nx.path_weight(
+                DG, shortestsourcetonodepath, "weight"
+            )
 
     WCRT = max(WCRTcandidates.values())
 
@@ -104,10 +105,10 @@ def get_response_time(DG, source, sink):
     return WCRT + overhead
 
 
-def main(filepath, numvars, timing = False):
+def main(filepath, numvars, timing=False):
     source = open(filepath, "r")
-    #For if you want to run with a saved set of execution times
-    saved = None #open("savedgeneratedexectimes.txt", "r")
+    # For if you want to run with a saved set of execution times
+    saved = None  # open("savedgeneratedexectimes.txt", "r")
     generatedexectimes = open("generatedexectimes.txt", "w")
     predictedresponsetimes = open("predictedresponsetimes.txt", "w")
 
@@ -132,7 +133,6 @@ def main(filepath, numvars, timing = False):
         source = next(sorted)
         *_, sink = sorted
 
-
         generatedexectimes.write("Graph " + str(graphindex) + "\n")
         for i in range(n):
             for node in graph.nodes:
@@ -142,9 +142,11 @@ def main(filepath, numvars, timing = False):
                     saved.readline()
                     graph.nodes[node]["WCET"] = int(saved.readline().lstrip("   WCET: "))
                 generatedexectimes.write(node + ": " + "\n")
-                generatedexectimes.write("  WCET: " + str(graph.nodes[node]["executiontimes" + str(i)]) + "\n")
+                generatedexectimes.write(
+                    "  WCET: " + str(graph.nodes[node]["executiontimes" + str(i)]) + "\n"
+                )
                 for send, to in graph.edges(node):
-                    graph.edges[send, to]['weight'] = graph.nodes[node]["WCET"]
+                    graph.edges[send, to]["weight"] = graph.nodes[node]["WCET"]
 
             if saved is not None:
                 saved.readline()
@@ -159,12 +161,27 @@ def main(filepath, numvars, timing = False):
                 global testsink
                 testsink = sink
 
-                test = timeit.timeit("get_response_time(testgraph, testsource, testsink)", number= 10, globals=globals())/10
+                test = (
+                    timeit.timeit(
+                        "get_response_time(testgraph, testsource, testsink)",
+                        number=10,
+                        globals=globals(),
+                    )
+                    / 10
+                )
                 analysistimes.write(str(len(graph.nodes)) + " " + str(test) + "\n")
 
             rt = get_response_time(graph, source, sink)
 
-            predictedresponsetimes.write("Graph " + str(graphindex) + " variation " + str(i) + " predicted WCET = " + str(rt) + "\n")
+            predictedresponsetimes.write(
+                "Graph "
+                + str(graphindex)
+                + " variation "
+                + str(i)
+                + " predicted WCET = "
+                + str(rt)
+                + "\n"
+            )
             generatedexectimes.write("\n")
         graphindex += 1
 
@@ -173,4 +190,3 @@ def main(filepath, numvars, timing = False):
 
 if __name__ == "__main__":
     main("backgroundexps.txt", 10, True)
-

@@ -18,6 +18,7 @@ from code.processDAGs import construct_graphs, get_unique
 
 queuesize = 1
 
+
 class operator(object):
     def __init__(self, name, predecessors, successors, WCET, sink):
         self.name = name
@@ -30,12 +31,14 @@ class operator(object):
         self.starttimes = []
         self.finishtimes = []
 
+
 # Pushes the completion event for an operator's execution onto the heap, sets it to working, and removes the first item from its queue
 def add_operator_exec(operator, eventqueue, time, source):
     heapq.heappush(eventqueue, (time + operator.WCET, operator.name))
     operator.working = True
     for port in operator.queue:
         operator.queue[port] -= 1
+
 
 # Checks if an operator can execute, based on whether it is working and its queue + successor queues (downstream)
 def can_op_execute(tag, operators):
@@ -47,7 +50,7 @@ def can_op_execute(tag, operators):
     if operator.working == True:
         return False
 
-    #O wn queue must be full and corresponding output queues must be empty
+    # O wn queue must be full and corresponding output queues must be empty
     if 0 not in operator.queue.values():
         if operator.sink:
             return True
@@ -55,6 +58,7 @@ def can_op_execute(tag, operators):
             if operators[successor].queue[operator.name] == queuesize:
                 return False
         return True
+
 
 # Recursively checks whether predecessors can now execute
 def recursive_predecessor_check(operator, eventqueue, time, source, operators):
@@ -64,6 +68,7 @@ def recursive_predecessor_check(operator, eventqueue, time, source, operators):
         if can_op_execute(predecessor, operators):
             add_operator_exec(operators[predecessor], eventqueue, time, source)
             recursive_predecessor_check(operators[predecessor], eventqueue, time, source, operators)
+
 
 # Given a tag corresponding to an operator that has completed execution, checks to see what new completion events should be added to the heap
 def check_new_event(tag, eventqueue, time, period, source, operators):
@@ -102,15 +107,18 @@ def check_new_event(tag, eventqueue, time, period, source, operators):
                     for successor in operator.successors:
                         if can_op_execute(successor, operators):
                             add_operator_exec(operators[successor], eventqueue, time, source)
-                            #Recursively check predecessors of successors in case of different paths to successor
-                            recursive_predecessor_check(operators[successor], eventqueue, time, source, operators)
+                            # Recursively check predecessors of successors in case of different paths to successor
+                            recursive_predecessor_check(
+                                operators[successor], eventqueue, time, source, operators
+                            )
 
                 # Next check if the operator can execute again
                 if can_op_execute(operator.name, operators):
-                        add_operator_exec(operator, eventqueue, time, source)
+                    add_operator_exec(operator, eventqueue, time, source)
 
                 # Finally, recursively check predecessors
                 recursive_predecessor_check(operator, eventqueue, time, source, operators)
+
 
 def run(stoptime, period, source, operators):
     clock = 0
@@ -193,7 +201,16 @@ def runwithfile(filepath, numvars):
             for i in range(len(sink.finishtimes)):
                 itemresponsetimes.append(sink.finishtimes[i] - source.starttimes[i])
 
-            dest.write(str(len(graph.edges)) + " Graph " + str(count) + " variation " + str(var) + " observed WCET = " + str(max(itemresponsetimes)) + "\n")
+            dest.write(
+                str(len(graph.edges))
+                + " Graph "
+                + str(count)
+                + " variation "
+                + str(var)
+                + " observed WCET = "
+                + str(max(itemresponsetimes))
+                + "\n"
+            )
 
             sink.finishtimes = []
             source.starttimes = []
@@ -202,4 +219,3 @@ def runwithfile(filepath, numvars):
 if __name__ == "__main__":
 
     runwithfile("backgroundexps.txt", 10)
-
