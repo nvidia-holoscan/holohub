@@ -1104,37 +1104,48 @@ Running the checks above should now list `performance` as the governor for all c
 
 Similarly to the above, we want to maximize the GPU's clock speed and prevent it from going idle.
 
-Enable persistence mode on your GPU:
+Run the following command to check your current clocks and whether they're locked (persistence mode):
 
-```bash
-sudo nvidia-smi -pm 1
 ```
-
-??? abstract "See an example output"
-
-    ```
-    Enabled persistence mode for GPU 00000005:09:00.0.
-    All done.
-    ```
-
-You can confirm that the persistence mode is enabled with:
-
-```bash
 nvidia-smi -q | grep -i "Persistence Mode"
+nvidia-smi -q -d CLOCK
 ```
 
 ??? abstract "See an example output"
 
     ```
-    Persistence Mode: Enabled
+        Persistence Mode: Enabled
+    ...
+    Attached GPUs                             : 1
+    GPU 00000005:09:00.0
+        Clocks
+            Graphics                          : 420 MHz
+            SM                                : 420 MHz
+            Memory                            : 405 MHz
+            Video                             : 1680 MHz
+        Applications Clocks
+            Graphics                          : 1800 MHz
+            Memory                            : 8001 MHz
+        Default Applications Clocks
+            Graphics                          : 1800 MHz
+            Memory                            : 8001 MHz
+        Deferred Clocks
+            Memory                            : N/A
+        Max Clocks
+            Graphics                          : 2100 MHz
+            SM                                : 2100 MHz
+            Memory                            : 8001 MHz
+            Video                             : 1950 MHz
+        ...
     ```
 
-We then lock the GPU's clocks to the max values:
 
+To lock the GPU's clocks to their max values:
 
 === "One-time"
 
     ```bash
+    sudo nvidia-smi -pm 1
     sudo nvidia-smi -lgc=$(nvidia-smi --query-gpu=clocks.max.sm --format=csv,noheader,nounits)
     sudo nvidia-smi -lmc=$(nvidia-smi --query-gpu=clocks.max.mem --format=csv,noheader,nounits)
     ```
@@ -1164,7 +1175,7 @@ We then lock the GPU's clocks to the max values:
 
 ??? info "Show explanation"
 
-    This queries the max clocks for the GPU SM (`clocks.max.sm`) and memory (`clocks.max.mem`) and sets them to the current clocks (`lock-gpu-clocks` and `lock-memory-clocks` respectively).
+    This queries the max clocks for the GPU SM (`clocks.max.sm`) and memory (`clocks.max.mem`) and sets them to the current clocks (`lock-gpu-clocks` and `lock-memory-clocks` respectively). `-pm 1` (or `--persistence-mode=1`) enables persistence mode to lock these values.
 
 ??? abstract "See an example output"
 
@@ -1175,40 +1186,11 @@ We then lock the GPU's clocks to the max values:
     All done.
     ```
 
-You can confirm that the clocks are set to the max values with:
+You can confirm that the clocks are set to the max values by running `nvidia-smi -q -d CLOCK` again.
 
-```
-nvidia-smi -q -d CLOCK
-```
+!!! note
 
-??? abstract "See an example output"
-
-    ```
-    Attached GPUs                             : 1
-    GPU 00000005:09:00.0
-        Clocks
-            Graphics                          : 1920 MHz
-            SM                                : 1920 MHz
-            Memory                            : 8000 MHz
-            Video                             : 1680 MHz
-        Applications Clocks
-            Graphics                          : 1800 MHz
-            Memory                            : 8001 MHz
-        Default Applications Clocks
-            Graphics                          : 1800 MHz
-            Memory                            : 8001 MHz
-        Deferred Clocks
-            Memory                            : N/A
-        Max Clocks
-            Graphics                          : 2100 MHz
-            SM                                : 2100 MHz
-            Memory                            : 8001 MHz
-            Video                             : 1950 MHz
-    ```
-
-    !!! note
-
-        As-is the case above, some max clocks might not be achievable in certain configurations despite the lock commands indicating it worked. We'll still consider this configuration as a fairly optimal one compared to the default configuration.
+    Some max clocks might not be achievable in certain configurations, or due to boost clocks (SM) or rounding errors (Memory),  despite the lock commands indicating it worked. For example - on IGX - the max non-boot SM clock will be 1920 MHz, and the max memory clock will show 8000 MHz, which are satisfying compared to the initial mode.
 
 
 ### 3.8 Maximize GPU BAR1 size
