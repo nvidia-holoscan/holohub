@@ -236,9 +236,10 @@ ibv_devinfo
         === "lspci"
 
             ```bash
-            # `0200` is the PCI-SIG class code for NICs
+            # `0200` is the PCI-SIG class code for Ethernet controllers
+            # `0207` is the PCI-SIG class code for Infiniband controllers
             # `15b3` is the Vendor ID for Mellanox
-            nic_pci=$(lspci -n | awk '$2 == "0200:" && $3 ~ /^15b3:/ {print $1}' | head -n1)
+            nic_pci=$(lspci -n | awk '($2 == "0200:" || $2 == "0207:") && $3 ~ /^15b3:/ {print $1; exit}')
             ```
 
     2. Set both link layers to Ethernet. `LINK_TYPE_P1` and `LINK_TYPE_P2` are for `mlx5_0` and `mlx5_1` respectively. You can choose to only set one of them. `ETH` or `2` is Ethernet mode, and `IB` or `1` is for InfiniBand.
