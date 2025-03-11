@@ -34,12 +34,12 @@ advanced_network:
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
 
     interfaces:
     - name: data1
@@ -87,7 +87,7 @@ bench_rx:
 bench_tx:
   gpu_direct: true        # Set to true if using a GPU region for the Tx queues.
   split_boundary: 0       # Byte boundary where header and data is split, 0 if no split
-  batch_size: 10000
+  batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
