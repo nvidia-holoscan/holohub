@@ -61,7 +61,7 @@ class AggregatorOp(Operator):
 
 class ForwardOp(Operator):
     """
-    This operator is used to forward the input to the output operator(s).
+    This operator is used to forward the input to the following operator(s).
     """
 
     def setup(self, spec: OperatorSpec):
@@ -373,7 +373,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # Setup Holoscan Sensor Bridge
         # ------------------------------------------------------------------------------------------
         elif self.source == "hsb":
-            in_dtype = "rgba8888"
+            in_dtype = "rgb888"
 
             if self._frame_limit:
                 self._count = CountCondition(self, name="count", count=self._frame_limit)
@@ -597,8 +597,8 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
         condition.metadata_policy = MetadataPolicy.UPDATE
-        # Distributor operator
-        distributor = ForwardOp(self, name="distributor_op")
+        # Broadcaster operator
+        broadcaster = ForwardOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
@@ -607,7 +607,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
             if op.decision:
                 op.add_dynamic_flow(deidentification)
             else:
-                op.add_dynamic_flow(distributor)
+                op.add_dynamic_flow(broadcaster)
 
         # ------------------------------------------------------------------------------------------
         # Deidentification
@@ -651,7 +651,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         # __________________________________________________________________
         # Dynamic flow condition based on conditional operator
         self.add_flow(condition, deidentification, {("out", "in")})
-        self.add_flow(condition, distributor, {("out", "in")})
+        self.add_flow(condition, broadcaster, {("out", "in")})
         self.set_dynamic_flows(condition, dynamic_flow_callback)
         # __________________________________________________________________
         # Branch 1: rest of deidentification application
@@ -659,9 +659,9 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
         self.add_flow(deidentification, holoviz_delegate)
         # __________________________________________________________________
         # Branch 2: rest of multi-ai detection and segmentation application
-        self.add_flow(distributor, detection_preprocessor, {("out", "")})
-        self.add_flow(distributor, segmentation_preprocessor, {("out", "")})
-        self.add_flow(distributor, postprocessor_aggregator, {("out", "in")})
+        self.add_flow(broadcaster, detection_preprocessor, {("out", "")})
+        self.add_flow(broadcaster, segmentation_preprocessor, {("out", "")})
+        self.add_flow(broadcaster, postprocessor_aggregator, {("out", "in")})
         # connect all pre-processor outputs to the inference operator
         self.add_flow(detection_preprocessor, multi_ai_inference, {("", "receivers")})
         self.add_flow(segmentation_preprocessor, multi_ai_inference, {("", "receivers")})
