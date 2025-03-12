@@ -5,7 +5,7 @@
 
 ## Overview
 
-This reference application offers developers a modular, end-to-end pipeline that spans the entire sensor processing workflow—from sensor data ingestion and accelerated computing to AI inference, real-time visualization, actuation, and data stream output.
+This reference application offers developers a modular, end-to-end pipeline that spans the entire sensor processing workflow—from sensor data ingestion and accelerated computing to AI inference, real-time visualization, and data stream output.
 
 Specifically, we demonstrate a comprehensive real-time AI surgical video processing pipeline that includes:
 
