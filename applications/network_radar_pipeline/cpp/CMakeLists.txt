@@ -50,9 +50,8 @@ add_subdirectory(basic_network_connectors)
 target_link_libraries(network_radar_pipeline PRIVATE
   matx::matx
   holoscan::core
-  holoscan::basic_network
-  holoscan::advanced_network_rx
-  holoscan::advanced_network_tx
+  holoscan::ops::basic_network
+  holoscan::advanced_network
   advanced_network_connectors
   basic_network_connectors
 )
