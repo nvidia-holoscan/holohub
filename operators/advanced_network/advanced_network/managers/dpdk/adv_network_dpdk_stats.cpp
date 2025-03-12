@@ -194,7 +194,7 @@ void DpdkStats::Run() {
     // Poll xstats for each port
     for (const auto &port : cfg_.ifs_) {
       int port_id = port.port_id_;
-      const auto port_name = port.name_;
+      const auto interface_name = port.name_;
 
       // Skip ports that weren't initialized
       auto port_it = xstats_.find(port_id);
@@ -227,7 +227,7 @@ void DpdkStats::Run() {
           const auto alloc_err_since_last_check = rx_mbuf_alloc_err - old_rx_mbuf_alloc_err;
           HOLOSCAN_LOG_DEBUG("Port {}: Buffer allocation errors since last poll "\
           "{}ms ago: {}, total {}. Software is not keeping up with the NIC RX rate.",
-          port_name, POLLING_INTERVAL_MS, alloc_err_since_last_check, rx_mbuf_alloc_err);
+          interface_name, POLLING_INTERVAL_MS, alloc_err_since_last_check, rx_mbuf_alloc_err);
         }
       }
 
@@ -251,7 +251,7 @@ void DpdkStats::Run() {
           "Packets to '{}' might get dropped. Either CPU #{} couldn't read from the NIC fast "
           "enough, downstream software was not processing and freeing packets fast enough, "
           "or not enough buffers were allocated in this memory region to begin with.",
-          port_name, port_id, q_cfg.name_, queue_id, mr_names, q_cfg.cpu_core_);
+          interface_name, port_id, q_cfg.name_, queue_id, mr_names, q_cfg.cpu_core_);
         }
       }
 
@@ -264,7 +264,7 @@ void DpdkStats::Run() {
           const auto missed_since_last_check = rx_missed - old_rx_missed;
           HOLOSCAN_LOG_ERROR(
             "'{}' interface ({}), Rx: Dropped {} packets since last poll {}ms ago (total: {})",
-            port_name, port_id, missed_since_last_check, POLLING_INTERVAL_MS, rx_missed);
+            interface_name, port_id, missed_since_last_check, POLLING_INTERVAL_MS, rx_missed);
         }
       }
 

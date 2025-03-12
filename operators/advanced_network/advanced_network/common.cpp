@@ -32,17 +32,9 @@
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
-  assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
+  assert(g_ano_mgr != nullptr && "Advanced Network Manager is not initialized")
 namespace holoscan::advanced_network {
 
-/**
- * @brief Structure for passing packets to/from advanced network operator
- *
- * BurstParams is populated by the RX advanced network operator before arriving at the user's
- * operator, and the user populates it prior to sending to the TX advanced network operator. The
- * structure describes metadata about a packet batch and its packet pointers.
- *
- */
 // Declare a static global variable for the manager
 static Manager* g_ano_mgr = nullptr;
 
@@ -280,42 +272,47 @@ void shutdown() {
   g_ano_mgr->shutdown();
 }
 
+Status send_tx_burst(BurstParams* burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->send_tx_burst(burst);
+}
+
+Status get_rx_burst(BurstParams** burst, int port, int q) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, port, q);
+}
+
+uint16_t get_num_rx_queues(int port_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_num_rx_queues(port_id);
+}
+
 void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();
 }
 
-std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir) {
-  std::unordered_set<std::string> output_ports;
-  std::string default_output_name;
+Status adv_net_init(NetworkConfig &config) {
+  ManagerFactory::set_manager_type(config.common_.manager_type);
 
-  if (dir == "rx") {
-    default_output_name = "bench_rx_out";
-  } else if (dir == "tx") {
-    default_output_name = "bench_tx_out";
-  } else {
-    return output_ports;
+  auto mgr = &(ManagerFactory::get_active_manager());
+
+  if (!mgr->set_config_and_initialize(config)) {
+    return Status::INTERNAL_ERROR;
   }
 
-  try {
-    auto& yaml_nodes = conf.yaml_nodes();
-    for (const YAML::Node& node : yaml_nodes) {
-      const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
-      for (const auto& intf : intfs) {
-        try {
-          const auto& intf_dir = intf[dir];
-          for (const auto& q_item : intf_dir["queues"]) {
-            auto out_port_name = q_item["output_port"].as<std::string>(default_output_name);
-            output_ports.insert(out_port_name);
-          }
-        } catch (const std::exception& e) {
-          continue;  // No queues defined for this direction
-        }
-      }
+  for (const auto& intf : config.ifs_) {
+    const auto& rx = intf.rx_;
+    auto port = mgr->address_to_port(intf.address_);
+    if (port < 0) {
+      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
+      return Status::INVALID_PARAMETER;
     }
-  } catch (const std::exception& e) { GXF_LOG_ERROR(e.what()); }
-  return output_ports;
+  }
+
+  return Status::SUCCESS;
 }
+
 
 };  // namespace holoscan::advanced_network
 
@@ -424,12 +421,6 @@ bool parse_common_queue_config(const YAML::Node& q_item,
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
-  try {
-    q.output_port_ = q_item["output_port"].as<std::string>();
-  } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing RxQueueConfig: {}", e.what());
-    return false;
-  }
   return true;
 }
 
