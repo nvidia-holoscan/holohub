@@ -60,10 +60,10 @@ const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::strin
 };
 
 /**
- * A map of Ano log level to Rmax log level.
+ * A map of advanced_network log level to Rmax log level.
  */
 const std::unordered_map<LogLevel::Level, RmaxLogLevel::Level>
-    RmaxLogLevel::ano_to_rmax_log_level_map = {
+    RmaxLogLevel::adv_net_to_rmax_log_level_map = {
         {LogLevel::TRACE, TRACE},
         {LogLevel::DEBUG, DEBUG},
         {LogLevel::INFO, INFO},
@@ -166,7 +166,7 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
     t.join();
 
     if (!this->initialized_) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax ANO Manager");
+      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax advanced_network Manager");
       return false;
     }
     run();
@@ -196,7 +196,7 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
 
   bool res = config_manager.parse_configuration(cfg_);
   if (!res) {
-    HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
+    HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax advanced_network Manager");
     return;
   }
   HOLOSCAN_LOG_INFO("Setting Rivermax Log Level to: {}",
@@ -661,7 +661,7 @@ void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
     print_stats();
 
-    HOLOSCAN_LOG_INFO("ANO Rivermax manager shutting down");
+    HOLOSCAN_LOG_INFO("advanced_network Rivermax manager shutting down");
     force_quit.store(false);
     std::raise(SIGINT);
   }

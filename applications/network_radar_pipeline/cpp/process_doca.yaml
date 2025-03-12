@@ -71,7 +71,6 @@ advanced_network:
             cpu_core: 10
             max_packet_size: 16384          # Maximum payload size
             batch_size: 1                   # Number of packets in a batch
-            output_port: "bench_rx_out"
             memory_regions:
               - "Default_RX_GPU"
           - name: "ADC Samples"
@@ -79,7 +78,6 @@ advanced_network:
             cpu_core: 11
             max_packet_size: 16384       # Maximum payload size
             batch_size: 8192            # Number of packets in a batch
-            output_port: "bench_rx_out"
             memory_regions:
               - "Data_RX_GPU"
           flows:

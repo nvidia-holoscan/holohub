@@ -18,7 +18,7 @@
 
 #include "holoscan/holoscan.hpp"
 #include "matx.h"
-#include "adv_network_rx.h"
+#include "advanced_network/common.h"
 
 using namespace matx;
 using complex = cuda::std::complex<float>;
@@ -87,6 +87,8 @@ class Vita49ConnectorOpRx : public Operator {
   Parameter<uint16_t> num_ffts_per_batch_;
   Parameter<uint16_t> num_simul_batches_;
   Parameter<uint16_t> num_channels_;
+  Parameter<std::string> interface_name_;
+  int port_id_;
   uint32_t num_packets_per_batch;
 
   // Holds burst buffers that cannot be freed yet

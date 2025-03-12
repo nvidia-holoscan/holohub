@@ -86,7 +86,7 @@ struct RxDocaWorkerParams {
 };
 
 const std::unordered_map<LogLevel::Level, doca_log_level>
-    DocaLogLevel::ano_to_doca_log_level_map = {
+    DocaLogLevel::adv_net_to_doca_log_level_map = {
         {LogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
         {LogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
         {LogLevel::INFO, DOCA_LOG_LEVEL_INFO},
@@ -243,7 +243,7 @@ doca_error_t DocaMgr::init_doca_devices() {
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
   }
 
-  auto log_level = DocaLogLevel::from_ano_log_level(cfg_.log_level_);
+  auto log_level = DocaLogLevel::from_adv_net_log_level(cfg_.log_level_);
   if (log_level != DOCA_LOG_LEVEL_DISABLE) {
     struct doca_log_backend* stdout_logger = nullptr;
 
@@ -1564,8 +1564,7 @@ int DocaMgr::tx_core(void* arg) {
   return 0;
 }
 
-/* ANO INTERFACE TO BE REMOVED */
-/* ANO interface implementations */
+/* advanced_network interface implementations */
 
 void* DocaMgr::get_packet_ptr(BurstParams* burst, int idx) {
   uint32_t pkt = burst->hdr.hdr.gpu_pkt0_idx + idx;
@@ -1714,7 +1713,8 @@ void DocaMgr::free_tx_burst(BurstParams* burst) {
   return;
 }
 
-Status DocaMgr::get_rx_burst(BurstParams** burst) {
+Status DocaMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  // Update to allow multiple ports and queues!
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) { return Status::NOT_READY; }
 
   return Status::SUCCESS;
@@ -1770,12 +1770,12 @@ Status DocaMgr::send_tx_burst(BurstParams* burst) {
 void DocaMgr::shutdown() {
   int icore = 0;
 
-  HOLOSCAN_LOG_INFO("ANO DOCA manager shutting down");
+  HOLOSCAN_LOG_INFO("advanced_network DOCA manager shutting down");
 
   if (force_quit_doca.load() == false) {
     print_stats();
 
-    HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
+    HOLOSCAN_LOG_INFO("advanced_network DOCA manager stopping cores");
     force_quit_doca.store(true);
     for (int i = 0; i < worker_th_idx; i++) {
       HOLOSCAN_LOG_INFO("Waiting on thread {}", i);
@@ -1792,7 +1792,7 @@ void DocaMgr::shutdown() {
 }
 
 void DocaMgr::print_stats() {
-  HOLOSCAN_LOG_INFO("ANO DOCA manager stats");
+  HOLOSCAN_LOG_INFO("advanced_network DOCA manager stats");
   HOLOSCAN_LOG_INFO("Total Rx packets {}", stats_rx_tot_pkts);
   HOLOSCAN_LOG_INFO("Total Rx bytes {}", stats_rx_tot_bytes);
   HOLOSCAN_LOG_INFO("Total Rx batch processed {}", stats_rx_tot_batch);
