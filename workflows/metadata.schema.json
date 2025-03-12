@@ -54,7 +54,6 @@
         "platforms",
         "tags",
         "holoscan_sdk",
-        "holoscan_sensor_bridge",
         "ranking",
         "dependencies"
       ]
