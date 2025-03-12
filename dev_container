@@ -607,6 +607,7 @@ Usage: ./dev_container launch [options]
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
+    --mps : If MPS is enabled on the host, mount MPS host directories into the container
     --docker_opts : Additional options to pass to the Docker launch
     -- : Any trailing arguments after "--" are forwarded to `docker run`
     '
@@ -702,6 +703,10 @@ launch() {
                 launch_desc
                 exit 1
             fi
+            ;;
+        --mps)
+            additional_volumes+="-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log "
+            shift
             ;;
         --docker_opts)
             if [[ -n "$2" ]]; then
