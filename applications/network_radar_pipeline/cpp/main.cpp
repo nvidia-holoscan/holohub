@@ -47,12 +47,8 @@ class App : public holoscan::Application {
         from_config("radar_pipeline"),
         from_config("tx_params"),
         make_condition<BooleanCondition>("is_alive", true));
-      auto adv_net_tx = make_operator<ops::AdvNetworkOpTx>(
-        "adv_network_tx",
-        from_config("advanced_network"));
 
       add_flow(target_sim, adv_packet_gen, {{"rf_out", "rf_in"}});
-      add_flow(adv_packet_gen, adv_net_tx, {{"burst_out", "burst_in"}});
     } else {
       // Basic
       auto bas_packet_gen = make_operator<ops::BasicConnectorOpTx>(
@@ -89,15 +85,11 @@ class App : public holoscan::Application {
     // Network operators
     if (from_config("rx_params.use_ano").as<bool>()) {
       // Advanced
-      auto adv_net_rx = make_operator<ops::AdvNetworkOpRx>(
-        "adv_network_rx",
-        from_config("advanced_network"),
-        make_condition<BooleanCondition>("is_alive", true));
       auto adv_rx_pkt = make_operator<ops::AdvConnectorOpRx>(
         "bench_rx",
         from_config("rx_params"),
-        from_config("radar_pipeline"));
-      add_flow(adv_net_rx, adv_rx_pkt, {{"bench_rx_out", "burst_in"}});
+        from_config("radar_pipeline"),
+        make_condition<BooleanCondition>("is_alive", true));
       add_flow(adv_rx_pkt, pc,         {{"rf_out", "rf_in"}});
     } else {
       // Basic

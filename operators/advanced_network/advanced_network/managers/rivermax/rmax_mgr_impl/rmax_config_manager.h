@@ -565,15 +565,15 @@ class RmaxConfigContainer {
   int parse_tx_queues(uint16_t port_id, const std::vector<TxQueueConfig>& queues);
 
   /**
-   * @brief Sets the Rmax log level based on the provided Ano log level.
+   * @brief Sets the Rmax log level based on the provided advanced_network log level.
    *
-   * This function converts the provided Ano log level to the corresponding Rmax log level
-   * and sets it as the current log level for Rmax.
+   * This function converts the provided advanced_network log level to the corresponding
+   * Rmax log level and sets it as the current log level for Rmax.
    *
-   * @param level The Ano log level to be converted and set.
+   * @param level The advanced_network log level to be converted and set.
    */
   void set_rmax_log_level(LogLevel::Level level) {
-    rmax_log_level_ = RmaxLogLevel::from_ano_log_level(level);
+    rmax_log_level_ = RmaxLogLevel::from_adv_net_log_level(level);
   }
 
  private:

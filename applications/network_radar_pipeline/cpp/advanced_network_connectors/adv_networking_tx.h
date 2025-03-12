@@ -17,11 +17,13 @@
 #pragma once
 
 #include "common.h"
-#include "adv_network_tx.h"
+#include "advanced_network/common.h"
 
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdint.h>
+
+using namespace holoscan::advanced_network;
 
 namespace holoscan::ops {
 
@@ -81,7 +83,8 @@ class AdvConnectorOpTx : public Operator {
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
-  Parameter<uint16_t> port_id_;
+  Parameter<std::string> interface_name_;  // Port name from advanced_network config to poll on
+  int port_id_;                            // Port ID to poll on
   uint16_t payload_size_;
   uint32_t batch_size_;
   int hds_;

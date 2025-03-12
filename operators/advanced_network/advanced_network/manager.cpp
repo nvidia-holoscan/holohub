@@ -51,7 +51,7 @@ ManagerType ManagerFactory::get_default_manager_type() {
 #elif ANO_MGR_RIVERMAX
   mgr_type = ManagerType::RIVERMAX;
 #else
-#error "No advanced network operator manager defined"
+#error "No Advanced Network manager defined"
 #endif
   return mgr_type;
 }
@@ -201,9 +201,8 @@ Status Manager::allocate_memory_regions() {
  */
 int Manager::address_to_port(const std::string& addr) {
   for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) {
-      return intf.port_id_;
-    }
+    if (intf.address_ == addr) { return intf.port_id_; }
+    if (intf.name_ == addr) { return intf.port_id_; }
   }
   return -1;
 }
@@ -255,6 +254,10 @@ void Manager::init_rx_core_q_map() {
       }
     }
   }
+}
+
+uint16_t Manager::get_num_rx_queues(int port_id) const {
+  return cfg_.ifs_[port_id].rx_.queues_.size();
 }
 
 };  // namespace holoscan::advanced_network

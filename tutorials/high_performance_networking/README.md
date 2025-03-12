@@ -1,6 +1,6 @@
 # High Performance Networking with Holoscan
 
-This tutorial demonstrates how to use the advanced networking Holoscan operator (often referred to as ANO or `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the advanced network operator can achieve hundreds of Gbps with latencies in the low microseconds.
+This tutorial demonstrates how to use the Advanced Network library (referred to as `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the Advanced Network library can achieve hundreds of Gbps with latencies in the low microseconds.
 
 !!! note
 
@@ -25,7 +25,7 @@ Achieving high performance networking is a complex problem that involves many sy
 
 ### Kernel Bypass
 
-In this context, Kernel Bypass refers to bypassing the operating system's kernel to directly communicate with the network interface (NIC), greatly reducing the latency and overhead of the Linux network stack. There are multiple technologies that achieve this in different fashions. They're all Ethernet-based, but differ in their implementation and features. The goal of the `advanced_network` operator in Holoscan Networking is to provide a common higher-level interface to all these backends:
+In this context, Kernel Bypass refers to bypassing the operating system's kernel to directly communicate with the network interface (NIC), greatly reducing the latency and overhead of the Linux network stack. There are multiple technologies that achieve this in different fashions. They're all Ethernet-based, but differ in their implementation and features. The goal of the Advanced Network library in Holoscan Networking is to provide a common higher-level interface to all these backends:
 
 - **RDMA**: Remote Direct Memory Access, using the open-source [`rdma-core`](https://github.com/linux-rdma/rdma-core) library. It differs from the other Ethernet-based backends with its server/client model and RoCE (RDMA over Ethernet) protocol. Given the extra cost and complexity to setup on both ends, it offers a simpler user interface, orders packets on arrival, and is the only one to offer a high reliability mode.
 - **DPDK**: the Data Plane Development Kit is an open-source project part of the Linux Foundation with a strong and long-lasting community support. Its RTE Flow capability is generally considered the most flexible solution to split packets ingress and egress data.
@@ -34,14 +34,14 @@ In this context, Kernel Bypass refers to bypassing the operating system's kernel
 
 ??? example "Work In Progress"
 
-    The Holoscan Advanced Networking Operator integration testing infrastructure is under active development. As such:
+    The Holoscan Advanced Network library integration testing infrastructure is under active development. As such:
 
     - The **DPDK** backend is supported and distributed with the `holoscan-networking` package, and is the only backend actively tested at this time.
     - The **DOCA GPUNetIO** backend is supported and distributed with the `holoscan-networking` package, with testing infrastructure under development.
     - The **NVIDIA Rivermax** backend is supported for Rx only when building from source, but not yet distributed nor actively tested. Tx support is under development.
     - The **RDMA** backend is under active development and should be available soon.
 
-Which backend is best for your use case will depend on multiple factors, such as packet size, batch size, data type, and more. The goal of the Advanced Networking Operator is to abstract the interface to these backends, allowing developers to focus on the application logic and experiment with different configurations to identify the best technology for their use case.
+Which backend is best for your use case will depend on multiple factors, such as packet size, batch size, data type, and more. The goal of the Advanced Network library is to abstract the interface to these backends, allowing developers to focus on the application logic and experiment with different configurations to identify the best technology for their use case.
 
 ### GPUDirect
 
@@ -1613,41 +1613,33 @@ interfaces:
 
 ##### Configure the application
 
-Modify the `bench_tx` section which configures the application itself, to create the packet headers and direct them to the NIC. Make sure to remove the template brackets `< >`.
+To run the benchmarking application to run a loopback on your system, you'll need to modify the `bench_tx` section which configures the application itself, to create the packet headers and direct the packets to the NIC. Make sure to remove the template brackets `< >`.
 
 -  `eth_dst_addr` with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your `if_name` interface with `#!bash cat /sys/class/net/$if_name/address`:
-- Replacing `address` with the PCIe address of the NIC interface you want to use for Tx (same as `tx_port`'s address above).
 
-```yaml hl_lines="3 8"
+```yaml hl_lines="4"
 bench_tx:
+    interface_name: "tx_port" # Name of the TX port from the advanced_network config
     ...
     eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
-    ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
-    ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
-    udp_src_port: 4096      # UDP source port
-    udp_dst_port: 4096      # UDP destination port
-    address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
+    ...
 ```
 
 ???+ abstract "See an example yaml"
 
-    ```yaml hl_lines="3 8"
+    ```yaml hl_lines="4"
     bench_tx:
+        interface_name: "tx_port" # Name of the TX port from the advanced_network config
         ...
         eth_dst_addr: 48:b0:2d:ee:83:ad # Destination MAC address - required when Rx flow_isolation=true
-        ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
-        ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
-        udp_src_port: 4096      # UDP source port
-        udp_dst_port: 4096      # UDP destination port
-        address: 0005:03:00.0  # Source NIC Bus ID. Should match the address of the Tx interface above
+        ...
     ```
 
 ??? info "Show explanation"
 
     - `eth_dst_addr` - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has `flow_isolation: true` (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.
     - We ignore the IP fields (`ip_src_addr`, `ip_dst_addr`) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.
-    - `address` - the source PCIe address - needs to be defined again to tell the application itself to route the packets to the NIC interface we have configured previously for Tx.
-    - You might have noted the lack of a `eth_src_addr` field in the `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically from the PCIe address of the Tx interface (below).
+    - You might have noted the lack of a `eth_src_addr` field in this `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically by the Advanced Network library from the PCIe address of the Tx interface referenced above.
 
 ### 4.2 Run the loopback test
 
@@ -2077,44 +2069,44 @@ advanced_network: # (2)!
           id: 0
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out" # (24)!
-          memory_regions: # (25)!
+          memory_regions: # (24)!
             - "Data_RX_CPU"
             - "Data_RX_GPU"
-        flows: # (26)!
-        - name: "flow_0" # (27)!
-          id: 0 # (28)!
-          action: # (29)!
+        flows: # (25)!
+        - name: "flow_0" # (26)!
+          id: 0 # (27)!
+          action: # (28)!
             type: queue
             id: 0
-          match: # (30)!
+          match: # (29)!
             udp_src: 4096
             udp_dst: 4096
             ipv4_len: 1050
 
-bench_rx: # (31)!
-  gpu_direct: true       # Set to true if using a GPU region for the Rx queues.
-  split_boundary: true   # Whether header and data are split for Rx (Header to CPU)
+bench_rx: # (30)!
+  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
+  split_boundary: true      # Whether header and data are split for Rx (Header to CPU)
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
 
-bench_tx: # (32)!
-  gpu_direct: true        # Set to true if using a GPU region for the Tx queues.
-  split_boundary: 0       # Byte boundary where header and data are split for Tx, 0 if no split
+bench_tx: # (31)!
+  interface_name: "tx_port" # Name of the TX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
+  split_boundary: 0         # Byte boundary where header and data are split for Tx, 0 if no split
   batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
-  ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
-  ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
-  udp_src_port: 4096      # UDP source port
-  udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
+  ip_src_addr: <1.2.3.4>    # Source IP address - required on layer 3 network
+  ip_dst_addr: <5.6.7.8>    # Destination IP address - required on layer 3 network
+  udp_src_port: 4096        # UDP source port
+  udp_dst_port: 4096        # UDP destination port
 ```
 
 1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html) and [API docs](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1multithreadscheduler.html) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
-2. The `advanced_network` section is passed to the `AdvNetworkOpRx` and `AdvNetworkOpTx` operators which are responsible for setting up the NIC.
+2. The `advanced_network` section is passed to the `advanced_network::adv_net_init` which is responsible for setting up the NIC. That function should be called in your `#!cpp Application::compose()` function.
 3. `manager` is the backend networking library. default: `dpdk`. Other: `gpunetio` (DOCA GPUNet IO + DOCA Ethernet & Flow). Coming soon: `rivermax`, `rdma`.
 4. `master_core` is the ID of the CPU core used for setup. It does not need to be isolated, and is recommended to differ differ from the `cpu_core` fields below used for polling the NIC.
 5. The `memory_regions` section lists where the NIC will write/read data from/to when bypassing the OS kernel. Tip: when using GPU buffer regions, keeping the sum of their buffer sizes lower than 80% of your BAR1 size is generally a good rule of thumb 👍.
@@ -2130,21 +2122,20 @@ bench_tx: # (32)!
 15. The `queues` section lists the queues for that interface. Queues are a core concept of NICs: they handle the actual receiving or transmitting of network packets. Rx queues buffer incoming packets until they can be processed by the application, while Tx queues hold outgoing packets waiting to be sent on the network. The simplest setup uses only one receive and one transmit queue. Using more queues allows multiple streams of network traffic to be processed in parallel, as each queue can be assigned to a specific CPU core, and are assigned their own memory regions that are not shared.
 16. A descriptive name for that queue, currently only used for logging.
 17. The ID of that queue, which can be referred to later in the `flows` section.
-18. The number of packets per batch. The `advanced_network` Rx operator will forward packets on a timer, or when the NIC receives enough packets for a whole batch per this number. The `advanced_network` Tx operator needs to ensure it does not send more packets than this value on each `#!cpp Operator::compute()` call.
+18. The number of packets per batch (or burst). Your Rx operator will have access to packets from the NIC when it receives enough packets for a whole batch/burst. Your Tx operator needs to ensure it does not send more packets than this value on each `#!cpp Operator::compute()` call.
 19. The ID of the CPU core that this queue will use to poll the NIC. Ideally one [isolated core](#35-isolate-cpu-cores) per queue.
 20. The list of memory regions where this queue will write/read packets from/to. The order matters: the first memory region will be used first to read/write from until it fills up one buffer (`buf_size`), after which it will move to the next region in the list and so on until the packet is fully written/read. See the `memory_regions` for the `rx` queue below for an example.
 21. The `offloads` section (Tx queues only) lists optional tasks that can be offloaded to the NIC. The only value currently supported is `tx_eth_src`, that lets the NIC insert the ethernet source mac address in the packet headers. Note: IP, UDP, and Ethernet Checksums or CRC are always done by the NIC currently and are not optional.
 22. Same as for `tx_port`. Each interface in this list should have a unique mac address. This one will do `rx` per config below.
 23. Whether to isolate the Rx flow. If true, any incoming packets that does not match the MAC address of this interface - or isn't directed to a queue when the `flows` section below is used - will be delegated back to Linux for processing (no kernel bypass). This is useful to let this interface handle ARP, ICMP, etc. Otherwise, any packets sent to this interface (ex: ping) will need to be processed (or dropped) by your application.
-24. `rx` queues have an `output_port` parameter so you can attach a downstream operator to receive data from this specific queue, as can be seen in the `#!cpp Application::compose()` function of the sample application. Multiple `rx` queues can share the same `output_port`. In contrast, `tx` queues have a single non-configurable port (name: `burst_in`) to which upstream operators will send all packets, which are then routed to the correct queue based on the port/queue in the burst header.
-25. This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the `Data_RX_CPU` memory region, filling its `buf_size` of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the `Data_RX_GPU` memory region. Its `buf_size` of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!
-26. The list of flows. Flows are responsible for routing packets to the correct queue based on various properties. If this field is missing, all packets will be routed to the first queue.
-27. The flow name, currently only used for logging.
-28. The flow `id` is used to tag the packets with what flow it arrived on. This is useful when sending multiple flows to a single queue, as the user application can differentiate which flow (i.e. rules) matched the packet based on this ID.
-29. What to do with packets that match this flow. The only supported action currently is `type: queue` to send the packet to a queue given its `id`.
-30. List of rules to match packets against. All rules must be met for a packet to match the flow. Currently supported rules include `udp_src` and `udp_dst` (port numbers), `ipv4_len` (#TODO#) etc.
-31. The `bench_rx` section is passed to the `AdvNetworkingBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that aggregates packets received from the NIC. The parameters in this section are specific to this operator, and should align with how `memory_regions` and `queues` were configured for the `rx` interface.
-32. The `bench_tx` section is passed to the `AdvNetworkingBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC. The parameters in this section up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The following parameters up to `udp_dst_port` are used to fill-in the ethernet header of the packets. The last parameter, `address`, is used to specify which NIC interface to use for the Tx operation.
+24. This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the `Data_RX_CPU` memory region, filling its `buf_size` of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the `Data_RX_GPU` memory region. Its `buf_size` of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!
+25. The list of flows. Flows are responsible for routing packets to the correct queue based on various properties. If this field is missing, all packets will be routed to the first queue.
+26. The flow name, currently only used for logging.
+27. The flow `id` is used to tag the packets with what flow it arrived on. This is useful when sending multiple flows to a single queue, as the user application can differentiate which flow (i.e. rules) matched the packet based on this ID.
+28. What to do with packets that match this flow. The only supported action currently is `type: queue` to send the packet to a queue given its `id`.
+29. List of rules to match packets against. All rules must be met for a packet to match the flow. Currently supported rules include `udp_src` and `udp_dst` (port numbers), `ipv4_len` (#TODO#) etc.
+30. The `bench_rx` section is passed to the `AdvNetworkingBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that pulls and aggregates packets received from the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Rx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Rx operation. The following parameters are should align with how `memory_regions` and `queues` were configured for the `rx` interface.
+31. The `bench_tx` section is passed to the `AdvNetworkingBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Tx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Tx operation. The following parameters up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The remaining parameters are used to fill-in the ethernet header of the packets (ETH, IP, UDP).
 
 ### 5.2 Create your own Rx operator
 
@@ -2194,7 +2185,7 @@ bench_tx: # (32)!
 
 === "Debian installation"
 
-    1. Create a source directory and write your source file(s) for your application (and custom operators if needed)
+    1. Create a source directory and write your source file(s) for your application and custom operators.
     2. Create a `CMakeLists.txt` file in your source directory like this one:
 
         ```cmake
@@ -2261,7 +2252,7 @@ bench_tx: # (32)!
 
 === "From source"
 
-    1. Create an application directory under [`applications/`](https://github.com/nvidia-holoscan/holohub/tree/main/applications) in your clone of the HoloHub repository, and write your source file(s) for your application (and custom operators if needed).
+    1. Create an application directory under [`applications/`](https://github.com/nvidia-holoscan/holohub/tree/main/applications) in your clone of the HoloHub repository, and write your source file(s) for your application and custom operators.
     2. Add the following to the [`application/CMakeLists.txt`](https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench/CMakeLists.txt) file:
 
         ```cmake
