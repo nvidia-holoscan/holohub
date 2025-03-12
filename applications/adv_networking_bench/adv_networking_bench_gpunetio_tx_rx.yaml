@@ -26,24 +26,25 @@ advanced_network:
     manager: "gpunetio"
     master_core: 0 # Master CPU core
     log_level: "warn"
+
     memory_regions:
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
 
     interfaces:
-    - name: data1
+    - name: "tx_port"
       address: 0000:ca:00.0
       tx:
         queues:
-        - name: "ADC Samples"
+        - name: "tx_q_0"
           id: 0
           batch_size: 10240
           cpu_core: 8
@@ -54,7 +55,7 @@ advanced_network:
       rx:
         flow_isolation: true
         queues:
-        - name: "Data"
+        - name: "rx_q_0"
           id: 0
           cpu_core: 10
           batch_size: 10240
@@ -62,8 +63,8 @@ advanced_network:
           memory_regions:
             - "Data_RX_GPU"
         flows:
-          - name: "ADC Samples"
-            id: 2
+          - name: "flow_0"
+            id: 0
             action:
               type: queue
               id: 0
@@ -77,7 +78,7 @@ bench_rx:
   header_size: 64
 
 bench_tx:
-  batch_size: 10000
+  batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true

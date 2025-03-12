@@ -132,7 +132,12 @@ bool DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
     std::thread t(&DpdkMgr::initialize, this);
     t.join();
 
-    this->initialized_ = true;
+    // Our thread should have set the flag if it succeeded
+    if (!this->initialized_) {
+      HOLOSCAN_LOG_CRITICAL("Failed to initialize DPDK");
+      return false;
+    }
+
     if (!validate_config()) {
       HOLOSCAN_LOG_CRITICAL("Config validation failed");
       return false;
@@ -812,6 +817,8 @@ void DpdkMgr::initialize() {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
     return;
   }
+
+  this->initialized_ = true;
 }
 
 int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {

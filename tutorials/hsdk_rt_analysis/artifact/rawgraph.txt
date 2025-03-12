@@ -1,0 +1,31 @@
+('postprocessor', 'visualizer')
+('replayer', 'clahe', 8)('clahe', 'preprocessor', 8)('preprocessor', 'inference', 8)('replayer', 'viz_preprocessor', 8)('inference', 'postprocessor', 8)('viz_preprocessor', 'postprocessor', 8)
+('replayer', 'preprocessor', 8)('preprocessor', 'inference', 8)('inference', 'postprocessor', 8)('preprocessor', 'postprocessor', 8)
+('source', 'holoviz')('source', 'preprocessor')('preprocessor', 'format_input')('format_input', 'inference')('inference', 'postprocessor')('postprocessor', 'holoviz')
+
+
+('segmentation_preprocessor', 'segmentation_inference')('segmentation_inference', 'segmentation_postprocessor')('segmentation_postprocessor', 'segmentation_visualizer')
+('source', 'segmentation_visualizer', 4)('source', 'drop_alpha_channel', 4)('drop_alpha_channel', 'segmentation_preprocessor', 4)
+('source', 'segmentation_visualizer', 4)('source', 'segmentation_preprocessor', 4)
+('out_of_body_preprocessor', 'out_of_body_inference')('out_of_body_inference', 'out_of_body_postprocessor')
+('source', 'out_of_body_preprocessor', 3)
+('source', 'out_of_body_preprocessor', 3)
+('video_decoder_response', 'decoder_output_format_converter')('decoder_output_format_converter', 'visualizer')('decoder_output_format_converter', 'rgb_float_format_converter')('rgb_float_format_converter', 'lstm_inferer')('lstm_inferer', 'tool_tracking_postprocessor')('tool_tracking_postprocessor', 'visualizer')('visualizer', 'holoviz_output_format_converter')('holoviz_output_format_converter', 'encoder_input_format_converter')('encoder_input_format_converter', 'tensor_to_video_buffer')('tensor_to_video_buffer', 'video_encoder_request')('video_encoder_response', 'bitstream_writer')
+
+
+('segmentation_preprocessor', 'segmentation_inference')('segmentation_inference', 'segmentation_postprocessor')('segmentation_postprocessor', 'segmentation_visualizer')
+('source', 'segmentation_visualizer', 4)('source', 'drop_alpha_channel', 4)('drop_alpha_channel', 'segmentation_preprocessor', 4)
+('source', 'segmentation_visualizer', 4)('source', 'segmentation_preprocessor', 4)
+('replayer', 'uint8_preprocessor')('uint8_preprocessor', 'openigtlink_tx_slicer_img')('openigtlink_rx_slicer_img', 'segmentation_visualizer')('openigtlink_rx_slicer_img, segmentation_preprocessor')('segmentation_preprocessor', 'segmentation_inference')('segmentation_inference', 'segmentation_postprocessor')('segmentation_postprocessor', 'segmentation_visualizer')('segmentation_visualizer', 'openigtlink_tx_slicer_holoscan')
+
+
+('source', 'orsi_visualizer')('source', 'format_converter')('source', 'format_converter_anonymization')('format_converter_anonymization', 'anonymization_preprocessor')('anonymization_preprocessor', 'multi_ai_inference')('multi_ai_inference', 'orsi_visualizer')('format_converter', 'segmentation_preprocessor')('segmentation_preprocessor', 'multi_ai_inference')('multi_ai_inference', 'segmentation_postprocessor')('segmentation_postprocessor', 'orsi_visualizer')
+
+
+('detection_preprocessor', 'inference')('inference', 'detection_postprocessor')('detection_postprocessor', 'holoviz')('segmentation_preprocessor', 'inference')('inference', 'segmentation_postprocessor')('segmentation_postprocessor', 'holoviz')
+('source', 'holoviz', 7)('source', 'detection_preprocessor', 7)('source', 'segmentation_preprocessor', 7)
+('source', 'holoviz', 7)('source', 'detection_preprocessor', 7)('source', 'segmentation_preprocessor', 7)
+('plax_cham_resized', 'holoviz')('plax_cham_pre', 'multiai_inference')('aortic_ste_pre', 'multiai_inference')('b_mode_pers_pre', 'multiai_inference')('multiai_inference', 'multiai_postprocessor')('multiai_postprocessor', 'visualizer_icardio')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')('visualizer_icardio', 'holoviz')
+('source', 'plax_cham_resized', 3)('source', 'plax_cham_pre', 3)('source', 'aortic_ste_pre', 3)('source', 'b_mode_pers_pre', 3)
+('source', 'plax_cham_resized', 3)('source', 'plax_cham_pre', 3)('source', 'aortic_ste_pre', 3)('source', 'b_mode_pers_pre', 3)
+

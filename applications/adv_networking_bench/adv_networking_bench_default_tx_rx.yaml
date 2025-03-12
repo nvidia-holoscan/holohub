@@ -34,19 +34,19 @@ advanced_network:
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
     - name: "Data_RX_GPU"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
 
     interfaces:
-    - name: data1
+    - name: "tx_port"
       address: <0000:00:00.0>       # The BUS address of the interface doing Tx
       tx:
         queues:
-        - name: "ADC Samples"
+        - name: "tx_q_0"
           id: 0
           batch_size: 10240
           cpu_core: 11
@@ -54,12 +54,12 @@ advanced_network:
             - "Data_TX_GPU"
           offloads:
             - "tx_eth_src"
-    - name: data2
+    - name: "rx_port"
       address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true
         queues:
-        - name: "Data"
+        - name: "rq_q_0"
           id: 0
           cpu_core: 9
           batch_size: 10240
@@ -67,8 +67,8 @@ advanced_network:
           memory_regions:
             - "Data_RX_GPU"
         flows:
-        - name: "ADC Samples"
-          id: 2
+        - name: "flow_0"
+          id: 0
           action:
             type: queue
             id: 0
@@ -87,7 +87,7 @@ bench_rx:
 bench_tx:
   gpu_direct: true        # Set to true if using a GPU region for the Tx queues.
   split_boundary: 0       # Byte boundary where header and data is split, 0 if no split
-  batch_size: 10000
+  batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true

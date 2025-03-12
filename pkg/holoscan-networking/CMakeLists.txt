@@ -36,6 +36,8 @@ holohub_configure_deb(
     # adv_networking_bench-py   # needs advanced_network-py
   EXPORT_NAME holoscan-networking-targets
   DEPENDS "holoscan (>= 2.6), mlnx-dpdk, doca-sdk-gpunetio, doca-sdk-flow, doca-sdk-eth"
+  RECOMMENDS "infiniband-diags, ibverbs-utils, mlnx-ofed-kernel-utils, mft, libhugetlbfs-bin"
+  SUGGESTS "doca-ofed"
 )
 
 # NOTE: could be broken down in

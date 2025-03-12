@@ -33,9 +33,15 @@ def get_last_modified_date(path: str) -> str:
     try:
         # Get the last commit date for the path
         cmd = ["git", "log", "-1", "--format=%ad", "--date=short", path]
-        result = subprocess.run(cmd, cwd=path, capture_output=True, text=True, check=True)
-        # Convert YYYY-MM-DD to Month DD, YYYY format
+        result = subprocess.run(
+            cmd, cwd=path, capture_output=True, text=True, check=True
+        )  # Convert YYYY-MM-DD to Month DD, YYYY format
         date = result.stdout.strip()
+        if date == "":
+            # If git date is empty, try using stat instead
+            cmd = ["stat", "-c", "%y", path]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            date = result.stdout.split()[0].strip()  # Get just the date portion
         try:
             year, month, day = date.split("-")
             months = [
