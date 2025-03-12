@@ -65,6 +65,18 @@ inline int EnabledDirections(const std::string& dir) {
   return 0;
 }
 
+/** 
+ * @brief Initialize the advanced network operator. This function will initialize the backend
+ *        manager and any other resources needed based on the configuration.
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Initialization successful
+ *    INVALID_CONFIG: Invalid configuration
+ *    INTERNAL_ERROR: Internal error
+ */
+AdvNetStatus adv_net_init(AdvNetConfigYaml &config);
+
 /**
  * @brief Returns a manager type
  *

@@ -290,6 +290,23 @@ void print_stats() {
   g_ano_mgr->print_stats();
 }
 
+AdvNetStatus adv_net_init(AdvNetConfigYaml &config) {
+  AnoMgrFactory::set_manager_type(config.common_.manager_type);
+
+  auto mgr = &(AnoMgrFactory::get_active_manager());
+
+  if (!mgr->set_config_and_initialize(config)) { return AdvNetStatus::INTERNAL_ERROR; }
+
+  for (const auto& intf : config.ifs_) {
+    const auto& rx = intf.rx_;
+    auto port_opt = impl->mgr->get_port_from_ifname(intf.address_);
+    if (!port_opt.has_value()) {
+      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
+      return -1;
+    }
+  }  
+}
+
 std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir) {
   std::unordered_set<std::string> output_ports;
   std::string default_output_name;
