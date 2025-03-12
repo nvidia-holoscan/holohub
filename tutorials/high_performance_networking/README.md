@@ -167,6 +167,12 @@ sudo reboot
     sudo apt install infiniband-diags ibverbs-utils mlnx-ofed-kernel-utils mft
     ```
 
+    Also upgrade the user space libraries to make sure your tools have all the symbols they need:
+
+    ```bash
+    sudo apt install libibverbs1 librdmacm1 rdma-core
+    ```
+
 Running `ibstat` or `ibv_devinfo` will confirm your NIC interfaces are recognized by your drivers.
 
 
@@ -182,6 +188,15 @@ To identify the current mode, run `ibstat` or `ibv_devinfo` and look for the `Li
 ```bash
 ibv_devinfo
 ```
+
+??? failure "Couldn't load driver 'libmlx5-rdmav34.so'"
+
+    If you see an error like this, you might have different versions for your OFED tools and libraries. Attempt after upgrading your user space libraries to match the version of your OFED tools like so:
+
+    ```bash
+    sudo apt update
+    sudo apt install libibverbs1 librdmacm1 rdma-core
+    ```
 
 ??? abstract "See an example output"
 
