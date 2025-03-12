@@ -1,27 +1,28 @@
 # Real-Time AI Surgical Video Processing Workflow
 
-![Sample Output Images](images/RAISVP-sample-images.png)
-Fig.1: Endoscopy image from a partial nephrectomy procedures (surgical removal of the diseased portion of the kidney) showing AI tool segmentation results when the camera is inside the body and a deidenfied (pixelated) output image when the camera is outside of the body.
+![Overll Diagram](images/RAISVP_overall_diagram.png)
+Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video processing.
 
 ## Overview
 
-Holoscan Workflows are end-to-end reference applications that may include Holoscan Sensor Bridge.
-In this workflow, we demonstrate a comprehensive real-time AI surgical video processing pipeline that includes:
+This reference application offers developers a modular, end-to-end pipeline that spans the entire sensor processing workflow—from sensor data ingestion and accelerated computing to AI inference, real-time visualization, actuation, and data stream output.
+Specifically, we demonstrate a comprehensive real-time AI surgical video processing pipeline that includes:
 
-1. Integration with [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html), which enables an end-to-end pipeline.
-2. Out-of-body detection to determine if the endoscope is inside or outside the patient's body.
-3. Dynamic flow condition based on out-of-body detection results:
-   - Deidentification (pixelation) when outside the body
-   - Multi-AI processing when inside the body
+1. Sensor I/O: Integration with [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html), enabling GPU Direct data ingestion for ultra low-latency input of surgical video feeds.
+2. Out-of-body detection to determine if the endoscope is inside or outside the patient's body, ensuring patient privacy by removing identifiable information.
+3. Dynamic flow condition based on out-of-body detection results.
 4. De-identification: pixelate the image to anonymize outside of body elements like people's faces.
-5. Multi-AI Surgical Tool processing with:
+5. Multi-AI: Enabling simultaneous execution of multiple models at inference. Surgical Tool processing with:
    - SSD detection for surgical tool detection
    - MONAI segmentation for endoscopic tool segmentation
 
-### Workflow Components
+## Architectural diagram
 
-![RAISVP-workflow](./images/RAISVP-dynamic-workflow.png)
-Fig.2: The workflow diagram representing all the holoscan operators (in green) and holoscan sensor bridge operators (in yellow). The source can be a Holoscan Sensor Bridge, an AJA Card and a video replayer.
+![RAISVP-workflow](./images/RAISVP_dynamic_workflow.png)
+Fig.2: The workflow diagram representing all the holoscan operators (in green) and holoscan sensor bridge operators (in yellow). The source can be a Holoscan Sensor Bridge, an AJA Card or a video replayer.
+
+![Sample Output Images](images/RAISVP_sample_images.png)
+Fig.3: Endoscopy image from a partial nephrectomy procedures (surgical removal of the diseased portion of the kidney) showing AI tool segmentation results when the camera is inside the body and a deidenfied (pixelated) output image when the camera is outside of the body.
 
 ### 1. Out-of-Body Detection
 
@@ -51,7 +52,7 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 
 - **Holoscan SDK `v3.0`**:
 Holohub command takes care of this dependency when using Holohub container. However, you can install the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
-- **Holoscan Sensor Bridge `v2.0`**
+- **Holoscan Sensor Bridge `v2.0`**: Please see the [Quick start guide](#quick-start-guide) for building the Holoscan Sensor Bridge docker container.
 
 - **Models**: This workflow utilizes the following three AI models.
 
@@ -66,6 +67,14 @@ Holohub command takes care of this dependency when using Holohub container. Howe
 > **Note:** The directory specified by `--data` at the runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in Models and Data: `orsi`, `monai_tool_seg_model` and `ssd_model`. These resources will be automatically downloaded to the Holohub data directory when building the application.
 
 ## Quick start guide
+
+### Using AJA Card or Replayer as I/O
+
+```sh
+./dev_container build_and_run real_time_ai_surgical_video_processing
+```
+
+### Using Holoscan Sensor Bridge as I/O
 
 When using the workflow with `--source hsb`, it requires the Holoscan Sensor Bridge software to be installed. you can build a Holoscan Sensor Bridge container using the following command:
 
@@ -84,6 +93,8 @@ Once you have built the Holoscan Sensor Bridge container, you can build the Holo
 ```
 
 ## Advanced usage
+
+### Building the application
 
 First you need to run the Holohub container:
 
