@@ -15,8 +15,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(advanced_network)
 
+
 find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install") # Remove if holoscan logger dependency removed
+
 find_package(PkgConfig)
 
 enable_language(CUDA)
@@ -45,7 +47,7 @@ target_include_directories(advanced_network_common
         $<INSTALL_INTERFACE:include>
 )
 add_library(holoscan::advanced_network ALIAS advanced_network_common)
-target_link_libraries(advanced_network_common PUBLIC holoscan::core) # Remove if holoscan logger dependency removed
+target_link_libraries(advanced_network_common PUBLIC holoscan::core) 
 set_target_properties(advanced_network_common PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
