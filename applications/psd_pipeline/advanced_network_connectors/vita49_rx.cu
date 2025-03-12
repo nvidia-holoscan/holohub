@@ -143,6 +143,12 @@ void Vita49ConnectorOpRx::setup(OperatorSpec& spec) {
 void Vita49ConnectorOpRx::initialize() {
   holoscan::Operator::initialize();
 
+  port_id_ = address_to_port(interface_name_.get());
+  if (port_id_ == -1) {
+    HOLOSCAN_LOG_ERROR("Invalid RX port {} specified in the config", interface_name_.get());
+    exit(1);
+  }
+
   num_packets_per_batch = num_ffts_per_batch_.get() * num_packets_per_fft_.get();
 
   for (uint16_t channel_num = 0; channel_num < num_channels_.get(); channel_num++) {
@@ -226,14 +232,12 @@ void Vita49ConnectorOpRx::compute(
         InputContext& op_input,
         OutputContext& op_output,
         ExecutionContext& context) {
-  auto burst_opt = op_input.receive<in_t>("in");
-  if (!burst_opt) {
-    return;
-  }
-  auto burst = burst_opt.value();
+  // Check for a context packet first
+  BurstParams *burst;
+  auto status = get_rx_burst(&burst, port_id_, CONTEXT_QUEUE_ID);
 
   // If we have a new context packet, get the metadata out and free
-  if (get_q_id(burst) == CONTEXT_QUEUE_ID) {
+  if (status == Status::SUCCESS) {
     for (int p = 0; p < get_num_packets(burst); p++) {
       // Assume channel 0 context comes in on flow 0, channel 1 on flow 1, etc.
       auto channel_num = get_packet_flow_id(burst, p);
@@ -287,8 +291,14 @@ void Vita49ConnectorOpRx::compute(
   }
 
   // Assumes that channel 0 is queue 1, channel 1 is queue 2, etc.
-  uint16_t channel_num = get_q_id(burst) - 1;
-  process_channel_data(op_output, burst, channel_num);
+  const auto num_rx_queues = get_num_rx_queues(port_id_);
+  for (uint16_t q = CONTEXT_QUEUE_ID + 1; q < num_rx_queues; q++) {
+    auto status = get_rx_burst(&burst, port_id_, q);
+    if (status == Status::SUCCESS) {
+      uint16_t channel_num = q - 1;  // Should never be negative since CONTEXT_QUEUE_ID is 0
+      process_channel_data(op_output, burst, channel_num);
+    }
+  }
 }
 
 void Vita49ConnectorOpRx::process_channel_data(

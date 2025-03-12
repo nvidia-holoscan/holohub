@@ -68,7 +68,7 @@ struct RxWorkerMultiQPerQParams {
 
 struct RxWorkerMultiQParams {
   std::vector<RxWorkerMultiQPerQParams> q_params;
-  struct rte_ring* ring;
+  RxRings rings;
   struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
@@ -104,7 +104,7 @@ const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::strin
                                       {DEBUG, {"Debug", "debug"}}};
 
 const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
-    DpdkLogLevel::ano_to_dpdk_log_level_map = {
+    DpdkLogLevel::adv_net_to_dpdk_log_level_map = {
         {LogLevel::TRACE, DEBUG},
         {LogLevel::DEBUG, DEBUG},
         {LogLevel::INFO, INFO},
@@ -302,7 +302,6 @@ void DpdkMgr::create_dummy_rx_q() {
       HOLOSCAN_LOG_INFO("Port {} has no RX queues. Creating dummy queue.", intf.port_id_);
       const std::string mr_name = "MR_Unused_P" + std::to_string(intf.port_id_);
       RxQueueConfig tmp_q;
-      tmp_q.output_port_ = "none";
       tmp_q.common_.name_ = "UNUSED_P" + std::to_string(intf.port_id_) + "_Q0";
       tmp_q.common_.id_ = 0;
       tmp_q.common_.batch_size_ = 1;
@@ -381,7 +380,7 @@ void DpdkMgr::initialize() {
 
   HOLOSCAN_LOG_INFO(
       "Setting DPDK log level to: {}",
-      DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
+      DpdkLogLevel::to_description_string(DpdkLogLevel::from_adv_net_log_level(cfg_.log_level_)));
 
   DpdkLogLevelCommandBuilder cmd(cfg_.log_level_);
   for (auto& c : cmd.get_cmd_flags_strings()) {
@@ -811,11 +810,17 @@ void DpdkMgr::initialize() {
 
 int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   HOLOSCAN_LOG_DEBUG("Setting up RX ring");
-  rx_ring =
-      rte_ring_create("RX_RING", 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-  if (rx_ring == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate ring!");
-    return -1;
+  for (int i = 0; i < cfg_.ifs_.size(); i++) {
+    for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
+      std::string ring_name = "RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
+      rx_rings_[i][j] =
+          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (rx_rings_[i][j] == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate ring {}!", ring_name);
+        return -1;
+      }
+    }
   }
 
   auto num_rx_ptrs_buffers = (1UL << 13) - 1;
@@ -1221,10 +1226,11 @@ void DpdkMgr::run() {
       if (q->common_.name_.find("UNUSED") == 0) {
         continue;
       }
+
       auto params = new RxWorkerParams;
       params->port = port_id;
       params->num_segs = q->common_.mrs_.size();
-      params->ring = rx_ring;
+      params->ring = rx_rings_[port_id][q_id];
       params->queue = q_id;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
@@ -1245,7 +1251,7 @@ void DpdkMgr::run() {
                     (int)q->common_.mrs_.size(), q->common_.batch_size_});
       }
 
-      params->ring = rx_ring;
+      params->rings = rx_rings_;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
       params->meta_pool = rx_metadata;
@@ -1450,7 +1456,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
       if (burst->hdr.hdr.num_pkts == cur_batch_size) {
         cur_pkt_in_batch[cur_idx] = 0;
-        rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+        rte_ring_enqueue(tparams->rings[cur_port][cur_q], reinterpret_cast<void*>(burst));
 
         // Don't move to the next queue yet since there may be some packets left over in the array
         break;
@@ -1665,17 +1671,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
       }
     }
 
-    //     if (msg->pkts[0] != nullptr) {
-    //       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-    //         auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->pkts[0][p]);
-    //         auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-    // #pragma GCC diagnostic push
-    // #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-    //         rte_ether_addr_copy(&tparams->mac_addr, reinterpret_cast<rte_ether_addr *>(pkt + 6));
-    // #pragma GCC diagnostic pop
-    //       }
-    //     }
-
     auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
 
     size_t pkts_tx = 0;
@@ -1711,7 +1706,7 @@ int DpdkMgr::tx_core_worker(void* arg) {
   return 0;
 }
 
-/* ANO interface implementations */
+/* advanced_network interface implementations */
 void* DpdkMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx]), void*);
 }
@@ -1887,8 +1882,8 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
   rte_mempool_put(tx_metadata, burst);
 }
 
-Status DpdkMgr::get_rx_burst(BurstParams** burst) {
-  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
+Status DpdkMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  if (rte_ring_dequeue(rx_rings_[port][q], reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;
   }
 
@@ -1934,12 +1929,12 @@ Status DpdkMgr::send_tx_burst(BurstParams* burst) {
 }
 
 void DpdkMgr::shutdown() {
-  HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
+  HOLOSCAN_LOG_INFO("advanced_network DPDK manager shutdown called {}", num_init);
 
   if (--num_init == 0) {
     print_stats();
 
-    HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
+    HOLOSCAN_LOG_INFO("advanced_network DPDK manager shutting down");
     force_quit.store(true);
 
     stats_.Shutdown();
@@ -1948,6 +1943,7 @@ void DpdkMgr::shutdown() {
 }
 
 void DpdkMgr::print_stats() {
+  HOLOSCAN_LOG_INFO("advanced_network DPDK manager stats");
   int portid;
   RTE_ETH_FOREACH_DEV(portid) {
     PrintDpdkStats(portid);

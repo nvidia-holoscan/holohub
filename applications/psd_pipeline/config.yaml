@@ -123,7 +123,6 @@ advanced_network:
               id: 0
               cpu_core: 4
               batch_size: 4  # Should be equal to num_channels
-              output_port: "bench_rx_out"
               memory_regions:
                 - "Headers_RX_CPU"
                 - "Context_RX_CPU"
@@ -135,7 +134,6 @@ advanced_network:
               # 20 data packets is 20480 samples and
               # we want 625 of them, so 12,500
               batch_size: 12500
-              output_port: "bench_rx_out"
               memory_regions:
                 - "Headers_RX_CPU"
                 - "CH1_VRT_Headers_RX_CPU"
@@ -148,7 +146,6 @@ advanced_network:
               # 20 data packets is 20480 samples and
               # we want 625 of them, so 12,500
               batch_size: 12500
-              output_port: "bench_rx_out"
               memory_regions:
                 - "Headers_RX_CPU"
                 - "CH2_VRT_Headers_RX_CPU"
@@ -161,7 +158,6 @@ advanced_network:
               # 20 data packets is 20480 samples and
               # we want 625 of them, so 12,500
               batch_size: 12500
-              output_port: "bench_rx_out"
               memory_regions:
                 - "Headers_RX_CPU"
                 - "CH3_VRT_Headers_RX_CPU"
@@ -174,7 +170,6 @@ advanced_network:
               # 20 data packets is 20480 samples and
               # we want 625 of them, so 12,500
               batch_size: 12500
-              output_port: "bench_rx_out"
               memory_regions:
                 - "Headers_RX_CPU"
                 - "CH4_VRT_Headers_RX_CPU"
@@ -270,6 +265,7 @@ advanced_network:
                 ipv4_len: 4148
 
 vita_connector:
+  interface_name: sdr_data
   num_complex_samples_per_packet: 1024
   num_packets_per_fft: 20
   num_ffts_per_batch: 625

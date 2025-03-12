@@ -28,7 +28,7 @@ struct AllocRegion {
 };
 
 /**
- * @brief (Almost) ABC representing an interface into an ANO backend implementation
+ * @brief (Almost) ABC representing an interface into an advanced_network backend implementation
  *
  */
 class Manager {
@@ -69,9 +69,7 @@ class Manager {
   virtual void print_stats() = 0;
   virtual uint64_t get_burst_tot_byte(BurstParams* burst) = 0;
   virtual BurstParams* create_tx_burst_params() = 0;
-
-  /* Internal functions used by ANO operators */
-  virtual Status get_rx_burst(BurstParams** burst) = 0;
+  virtual Status get_rx_burst(BurstParams** burst, int port, int q) = 0;
   virtual void free_rx_metadata(BurstParams* burst) = 0;
   virtual void free_tx_metadata(BurstParams* burst) = 0;
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;
@@ -79,6 +77,7 @@ class Manager {
   virtual Status get_mac_addr(int port, char* mac) = 0;
   virtual int address_to_port(const std::string& addr) final;  // NOLINT(readability/inheritance)
   virtual bool validate_config() const;
+  virtual uint16_t get_num_rx_queues(int port_id) const;
 
   virtual ~Manager() = default;
 

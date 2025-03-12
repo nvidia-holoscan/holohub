@@ -220,14 +220,14 @@ class RmaxLogLevel {
         "debug/info/notice/warn/error/critical/alert/emergency/off");
   }
   /**
-   * @brief Converts an Ano log level to an Rmax log level.
+   * @brief Converts an advanced_network log level to an Rmax log level.
    *
-   * @param ano_level The Ano log level to convert.
+   * @param level The advanced_network log level to convert.
    * @return The corresponding Rmax log level.
    */
-  static Level from_ano_log_level(LogLevel::Level ano_level) {
-    auto it = ano_to_rmax_log_level_map.find(ano_level);
-    if (it != ano_to_rmax_log_level_map.end()) { return it->second; }
+  static Level from_adv_net_log_level(LogLevel::Level level) {
+    auto it = adv_net_to_rmax_log_level_map.find(level);
+    if (it != adv_net_to_rmax_log_level_map.end()) { return it->second; }
     return OFF;
   }
 
@@ -237,9 +237,9 @@ class RmaxLogLevel {
    */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
   /**
-   * A map of Ano log level to Rmax log level.
+   * A map of advanced_network log level to Rmax log level.
    */
-  static const std::unordered_map<LogLevel::Level, Level> ano_to_rmax_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> adv_net_to_rmax_log_level_map;
 };
 
 }  // namespace holoscan::advanced_network
