@@ -410,7 +410,6 @@ Assuming you already have [NVIDIA drivers](https://docs.nvidia.com/datacenter/te
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check gpudirect
         sudo ./operators/advanced_network/python/tune_system.py --check peermem
         ```
@@ -497,7 +496,6 @@ Before diving in each of the setups below, we provide a utility script as part o
 === "From source"
 
     ```bash
-    cd holohub
     sudo ./operators/advanced_network/python/tune_system.py --check all
     ```
 
@@ -558,7 +556,6 @@ Run the following command to check the GPUDirect communication matrix. **You are
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check topo
         ```
 
@@ -652,7 +649,6 @@ The instructions below are meant to understand if your system is able to extract
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check mps
         ```
 
@@ -755,7 +751,6 @@ Unlike the PCIe properties queried in the previous section, the MRRS is configur
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check mrrs
         ```
 
@@ -795,7 +790,6 @@ Update MRRS:
 === "From source"
 
     ```bash
-    cd holohub
     sudo ./operators/advanced_network/python/tune_system.py --set mrrs
     ```
 
@@ -987,7 +981,6 @@ You can first check if any of the recommended flags were already set on the last
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check cmdline
         ```
 
@@ -1074,7 +1067,6 @@ Check the current governor for each of your cores:
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check cpu-freq
         ```
 
@@ -1266,7 +1258,6 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check bar1
         ```
 
@@ -1424,7 +1415,6 @@ Jumbo frames are Ethernet frames that carry a payload larger than the standard 1
     === "From source"
 
         ```bash
-        cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check mtu
         ```
 
