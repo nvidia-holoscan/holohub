@@ -7744,6 +7744,9 @@ sudo<span class="w"> </span>reboot
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>infiniband-diags<span class="w"> </span>ibverbs-utils<span class="w"> </span>mlnx-ofed-kernel-utils<span class="w"> </span>mft
 </code></pre></div>
+<p>Also upgrade the user space libraries to make sure your tools have all the symbols they need:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libibverbs1<span class="w"> </span>librdmacm1<span class="w"> </span>rdma-core
+</code></pre></div>
 </div>
 <p>Running <code>ibstat</code> or <code>ibv_devinfo</code> will confirm your NIC interfaces are recognized by your drivers.</p>
 <h3 id="22-switch-your-nic-link-layers-to-ethernet">2.2 Switch your NIC Link Layers to Ethernet<a class="headerlink" href="#22-switch-your-nic-link-layers-to-ethernet" title="Permanent link">&para;</a></h3>
@@ -7755,6 +7758,13 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <p>To identify the current mode, run <code>ibstat</code> or <code>ibv_devinfo</code> and look for the <code>Link Layer</code> value.</p>
 <div class="highlight"><pre><span></span><code>ibv_devinfo
 </code></pre></div>
+<details class="failure">
+<summary>Couldn't load driver 'libmlx5-rdmav34.so'</summary>
+<p>If you see an error like this, you might have different versions for your OFED tools and libraries. Attempt after upgrading your user space libraries to match the version of your OFED tools like so:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libibverbs1<span class="w"> </span>librdmacm1<span class="w"> </span>rdma-core
+</code></pre></div>
+</details>
 <details class="abstract">
 <summary>See an example output</summary>
 <p>In the example below, the <code>mlx5_0</code> interface is in Ethernet mode, while the <code>mlx5_1</code> interface is in Infiniband mode. Do not pay attention to the <code>transport</code> value which is always <code>InfiniBand</code>.</p>
