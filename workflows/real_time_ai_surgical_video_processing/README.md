@@ -135,7 +135,7 @@ First you need to run the Holohub container:
 To run the Python application, you can make use of the run script
 
 ```sh
-./run launch real_time_ai_surgical_video_processing python
+./run launch real_time_ai_surgical_video_processing
 ```
 
 Alternatively, you can run the application directly:
@@ -145,7 +145,11 @@ cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_ai_surgical_video_processing/python
 python3 real_time_ai_surgical_video_processing.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 
-> **TIP:** You can get the exact command by executing `./run launch real_time_ai_surgical_video_processing python --dryrun`
+> **TIP:** You can get the exact "Run command" along with "Run environment" and "Run workdir" by executing:
+>
+> ```bash
+> ./run launch real_time_ai_surgical_video_processing --dryrun
+>  ```
 
 ### Command Line Arguments
 
