@@ -1,13 +1,13 @@
-# Real-Time End-to-end AI Surgical Video Processing
+# Real-Time End-to-end AI Surgical Video Workflow
 
-![Overall Diagram](images/RAISVP_diagram_with_latency.png)
-*Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video processing. The end-to-end latency and its breakdown also depicted below the diagram.*
+![Overall Diagram](images/RAISVP_overall_diagram.png)
+*Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video. The end-to-end latency for this workflow on average is 37ms with maximum of 54ms, and its breakdown also depicted below the diagram is HSB Latency (Avg=21ms, Max=28ms), and AI Application Latency (Avg=16ms, Max=26ms).*
 
 ## Overview
 
 This reference application offers developers a modular, end-to-end pipeline that spans the entire sensor processing workflow—from sensor data ingestion and accelerated computing to AI inference, real-time visualization, and data stream output.
 
-Specifically, we demonstrate a comprehensive real-time AI surgical video processing pipeline that includes:
+Specifically, we demonstrate a comprehensive real-time end-to-end AI surgical video pipeline that includes:
 
 1. **Sensor I/O**: Integration with [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html), enabling GPU Direct data ingestion for ultra low-latency input of surgical video feeds.
 2. **Out-of-body detection** to determine if the endoscope is inside or outside the patient's body, ensuring patient privacy by removing identifiable information.
@@ -29,7 +29,7 @@ Specifically, we demonstrate a comprehensive real-time AI surgical video process
 
 The workflow first determines if the endoscope is inside or outside the patient's body using an AI model.
 
-### 2. Conditional Processing
+### 2. Dynamic Flow Control
 
 - **If outside the body**: The video is deidentified through pixelation to protect privacy
 - **If inside the body**: The video is processed by the multi-AI pipeline
