@@ -1,4 +1,4 @@
-## High Performance Networking with Holoscan
+# High Performance Networking with Holoscan
 
 This tutorial demonstrates how to use the advanced networking Holoscan operator (often referred to as ANO or `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the advanced network operator can achieve hundreds of Gbps with latencies in the low microseconds.
 
@@ -398,6 +398,29 @@ If nothing appears, or you'd like to change the address, you can set an IP addre
 
 Assuming you already have [NVIDIA drivers](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/index.html#ubuntu-installation-network) installed, check if the `nvidia_peermem` kernel module is loaded:
 
+=== "tune_system.py"
+
+    === "Debian installation"
+
+        ```bash
+        sudo /opt/nvidia/holoscan/bin/tune_system.py --check topo
+        ```
+
+    === "From source"
+
+        ```bash
+        cd holohub
+        sudo ./operators/advanced_network/python/tune_system.py --check topo
+
+        ```
+
+    ??? abstract "See an example output"
+
+        ```log
+        2025-03-12 14:15:07 - INFO - GPU 0: NVIDIA RTX A6000 has GPUDirect support.
+        2025-03-12 14:15:27 - INFO - nvidia-peermem module is loaded.
+        ```
+
 ```bash
 lsmod | grep nvidia_peermem
 ```
@@ -465,36 +488,40 @@ Before diving in each of the setups below, we provide a utility script as part o
 
 ??? abstract "See an example output"
 
+    Our tuned-up IGX system with A6000 can optimize most settings:
+
     ```log
-    2025-03-04 16:59:56 - INFO - CPU 0: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 1: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 2: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 3: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 4: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 5: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 6: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 7: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 8: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 9: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 10: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - INFO - CPU 11: Governor is correctly set to 'performance'.
-    2025-03-04 16:59:56 - WARNING - eth0/0005:03:00.0: MRRS is set to 512, not 4096.
-    2025-03-04 16:59:56 - WARNING - eth1/0005:03:00.1: MRRS is set to 512, not 4096.
-    2025-03-04 16:59:56 - WARNING - eth0/0005:03:00.0: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
-    2025-03-04 16:59:56 - WARNING - eth1/0005:03:00.1: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
-    2025-03-04 16:59:56 - INFO - HugePages_Total: 3
-    2025-03-04 16:59:56 - INFO - HugePage Size: 1024.00 MB
-    2025-03-04 16:59:56 - INFO - Total Allocated HugePage Memory: 3072.00 MB
-    2025-03-04 16:59:56 - INFO - Hugepages are sufficiently allocated with at least 500 MB.
-    2025-03-04 16:59:56 - WARNING - GPU 0: SM Clock is set to 1920 MHz, but should be 2100 MHz.
-    2025-03-04 16:59:56 - WARNING - GPU 0: Memory Clock is set to 8000 MHz, but should be 8001 MHz.
-    2025-03-04 16:59:56 - INFO - GPU 00000005:09:00.0: BAR1 size is 8192 MiB.
-    2025-03-04 16:59:56 - INFO - GPU GPU0 has at least one PIX/PXB connection to a NIC
-    2025-03-04 16:59:56 - INFO - isolcpus found in kernel boot line
-    2025-03-04 16:59:56 - INFO - rcu_nocbs found in kernel boot line
-    2025-03-04 16:59:56 - INFO - irqaffinity found in kernel boot line
-    2025-03-04 16:59:57 - INFO - Interface eth0 has an acceptable MTU of 9000 bytes.
-    2025-03-04 16:59:57 - INFO - Interface eth1 has an acceptable MTU of 9000 bytes.
+    2025-03-12 14:16:06 - INFO - CPU 0: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 1: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 2: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 3: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 4: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 5: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 6: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 7: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 8: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 9: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 10: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - CPU 11: Governor is correctly set to 'performance'.
+    2025-03-12 14:16:06 - INFO - cx7_0/0005:03:00.0: MRRS is correctly set to 4096.
+    2025-03-12 14:16:06 - INFO - cx7_1/0005:03:00.1: MRRS is correctly set to 4096.
+    2025-03-12 14:16:06 - WARNING - cx7_0/0005:03:00.0: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
+    2025-03-12 14:16:06 - WARNING - cx7_1/0005:03:00.1: PCIe Max Payload Size is not set to 256 bytes. Found: 128 bytes.
+    2025-03-12 14:16:06 - INFO - HugePages_Total: 3
+    2025-03-12 14:16:06 - INFO - HugePage Size: 1024.00 MB
+    2025-03-12 14:16:06 - INFO - Total Allocated HugePage Memory: 3072.00 MB
+    2025-03-12 14:16:06 - INFO - Hugepages are sufficiently allocated with at least 500 MB.
+    2025-03-12 14:16:06 - INFO - GPU 0: SM Clock is correctly set to 1920 MHz (within 500 of the 2100 MHz theoretical Max).
+    2025-03-12 14:16:06 - INFO - GPU 0: Memory Clock is correctly set to 8000 MHz.
+    2025-03-12 14:16:06 - INFO - GPU 00000005:09:00.0: BAR1 size is 8192 MiB.
+    2025-03-12 14:16:06 - INFO - GPU GPU0 has at least one PIX/PXB connection to a NIC
+    2025-03-12 14:16:06 - INFO - isolcpus found in kernel boot line
+    2025-03-12 14:16:06 - INFO - rcu_nocbs found in kernel boot line
+    2025-03-12 14:16:06 - INFO - irqaffinity found in kernel boot line
+    2025-03-12 14:16:06 - INFO - Interface cx7_0 has an acceptable MTU of 9000 bytes.
+    2025-03-12 14:16:06 - INFO - Interface cx7_1 has an acceptable MTU of 9000 bytes.
+    2025-03-12 14:16:06 - INFO - GPU 0: NVIDIA RTX A6000 has GPUDirect support.
+    2025-03-12 14:16:06 - INFO - nvidia-peermem module is loaded.
     ```
 
 Based on the results, you can figure out which of the sections below are appropriate to update configurations on your system.
@@ -1218,14 +1245,14 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
     === "Debian installation"
 
         ```bash
-        sudo /opt/nvidia/holoscan/bin/tune_system.py --check bar1
+        sudo /opt/nvidia/holoscan/bin/tune_system.py --check bar1-size
         ```
 
     === "From source"
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check bar1
+        sudo ./operators/advanced_network/python/tune_system.py --check bar1-size
         ```
 
     ??? abstract "See an example output"
@@ -1461,12 +1488,12 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
     Both located under `/opt/nvidia/holoscan/examples/adv_networking_bench/`:
 
-    ```bash hl_lines="2 4"
+    ```bash hl_lines="2 5"
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench_rmax_rx.yaml
     CMakeLists.txt
@@ -1481,17 +1508,25 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
 === "From source"
 
-    Both located under `install/examples/adv_networking_bench/`
+    Both located under `./install/examples/adv_networking_bench/`
 
-    ```bash hl_lines="2 4"
-    ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
+    ```bash hl_lines="2 5"
+    ls -1 ./install/examples/adv_networking_bench
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench.py
     adv_networking_bench_rmax_rx.yaml
+    CMakeLists.txt
+    default_bench_op_rx.h
+    default_bench_op_tx.h
+    doca_bench_op_rx.h
+    doca_bench_op_tx.h
+    kernels.cu
+    kernels.cuh
+    main.cpp
     ```
 
     !!! warning
@@ -1616,7 +1651,7 @@ bench_tx:
     sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
     ```
 
-The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration fil eto limit the duration of the run automatically.
+The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration file to limit the duration of the run automatically.
 
 ??? abstract "See an example output"
 
