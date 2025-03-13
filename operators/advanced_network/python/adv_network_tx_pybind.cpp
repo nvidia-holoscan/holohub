@@ -87,12 +87,20 @@ PYBIND11_MODULE(_advanced_network_tx, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<holoscan::ops::AdvNetworkOpTx, holoscan::ops::PyAdvNetworkOpTx, holoscan::Operator, std::shared_ptr<holoscan::ops::AdvNetworkOpTx>>(
+  py::class_<holoscan::ops::AdvNetworkOpTx,
+             holoscan::ops::PyAdvNetworkOpTx,
+             holoscan::Operator,
+             std::shared_ptr<holoscan::ops::AdvNetworkOpTx>>(
       m, "AdvNetworkOpTx", holoscan::doc::AdvNetworkOpTx::doc_AdvNetworkOpTx)
       .def(py::init<holoscan::Fragment*, const py::args&, const std::string&>(),
            "fragment"_a,
            "name"_a = "advanced_network_tx"s,
            holoscan::doc::AdvNetworkOpTx::doc_AdvNetworkOpTx_python)
-      .def("initialize", &holoscan::ops::AdvNetworkOpTx::initialize, holoscan::doc::AdvNetworkOpTx::doc_initialize)
-      .def("setup", &holoscan::ops::AdvNetworkOpTx::setup, "spec"_a, holoscan::doc::AdvNetworkOpTx::doc_setup);
+      .def("initialize",
+           &holoscan::ops::AdvNetworkOpTx::initialize,
+           holoscan::doc::AdvNetworkOpTx::doc_initialize)
+      .def("setup",
+           &holoscan::ops::AdvNetworkOpTx::setup,
+           "spec"_a,
+           holoscan::doc::AdvNetworkOpTx::doc_setup);
 }  // PYBIND11_MODULE NOLINT

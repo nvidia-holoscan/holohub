@@ -47,7 +47,7 @@ class AdvNetworkOpRx : public Operator {
 
   void initialize() override;
   int Init();
-  int FreeBurst(holoscan::advanced_network::AdvNetBurstParams* burst);
+  int FreeBurst(holoscan::advanced_network::BurstParams* burst);
 
   // Holoscan functions
   void stop() override;
@@ -69,7 +69,7 @@ class AdvNetworkOpRx : public Operator {
   Parameter<int> batch_size_;
   Parameter<int> max_packet_size_;
   Parameter<uint32_t> num_concurrent_batches_;
-  Parameter<holoscan::advanced_network::AdvNetConfigYaml> cfg_;
+  Parameter<holoscan::advanced_network::NetworkConfig> cfg_;
 };
 
 };  // namespace holoscan::ops

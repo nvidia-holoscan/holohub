@@ -146,7 +146,7 @@ int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
  * @param cfg The configuration YAML.
  * @return True if the configuration was successfully parsed, false otherwise.
  */
-bool RmaxConfigContainer::parse_configuration(const AdvNetConfigYaml& cfg) {
+bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   int rmax_rx_config_found = 0;
   int rmax_tx_config_found = 0;
 
@@ -299,7 +299,7 @@ bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
  */
 bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
                                                               const RxQueueConfig& q,
-                                                              const MemoryRegion& mr) {
+                                                              const MemoryRegionConfig& mr) {
   rmax_rx_config.split_boundary = 0;
   rmax_rx_config.max_packet_size = mr.buf_size_;
   rmax_rx_config.packets_buffers_size = mr.num_bufs_;
@@ -327,8 +327,8 @@ bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig&
  */
 bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
                                                             const RxQueueConfig& q,
-                                                            const MemoryRegion& mr_header,
-                                                            const MemoryRegion& mr_payload) {
+                                                            const MemoryRegionConfig& mr_header,
+                                                            const MemoryRegionConfig& mr_payload) {
   rmax_rx_config.split_boundary = mr_header.buf_size_;
   rmax_rx_config.max_packet_size = mr_payload.buf_size_;
   rmax_rx_config.packets_buffers_size = mr_payload.num_bufs_;
@@ -350,7 +350,7 @@ bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& r
  * @return true if the GPU memory configuration is set, false otherwise.
  */
 bool RxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
-                                                      const MemoryRegion& mr) {
+                                                      const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::DEVICE || mr.kind_ == MemoryKind::HOST_PINNED) {
 #else
@@ -380,7 +380,7 @@ void RxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
  * @param mr The memory region.
  */
 void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
-                                             const MemoryRegion& mr) {
+                                             const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::HOST) {
 #else
@@ -443,7 +443,7 @@ bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
  * @return True if the configuration is valid, false otherwise.
  */
 bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
-    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr) {
+    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegionConfig& mr) {
   return true;
 }
 
@@ -457,8 +457,8 @@ bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
  * @return True if the configuration is valid, false otherwise.
  */
 bool RxConfigManager::validate_memory_regions_config_from_dual_mrs(
-    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr_header,
-    const MemoryRegion& mr_payload) {
+    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config,
+    const MemoryRegionConfig& mr_header, const MemoryRegionConfig& mr_payload) {
   if (mr_payload.kind_ != MemoryKind::DEVICE && mr_header.kind_ != mr_payload.kind_) {
     HOLOSCAN_LOG_ERROR(
         "Memory region kind mismatch: {} != {}", (int)(mr_header.kind_), (int)mr_payload.kind_);
@@ -708,15 +708,15 @@ bool TxConfigManager::append_candidate_for_tx_queue(uint16_t port_id, const TxQu
  *
  * @param q_item The YAML node containing the RX queue configuration.
  * @param q The RxQueueConfig structure to be populated.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
-                                                              RxQueueConfig& q) {
+Status RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
+                                                        RxQueueConfig& q) {
   const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
 
   if (!rmax_rx_settings) {
     HOLOSCAN_LOG_ERROR("Rmax RX settings not found");
-    return AdvNetStatus::INVALID_PARAMETER;
+    return Status::INVALID_PARAMETER;
   }
 
   q.common_.extra_queue_config_ = new RmaxRxQueueConfig();
@@ -750,7 +750,7 @@ AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& 
   rmax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
   rmax_rx_config.rx_stats_period_report_ms =
       rmax_rx_settings["rx_stats_period_report_ms"].as<uint32_t>(0);
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 /**
@@ -758,11 +758,11 @@ AdvNetStatus RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& 
  *
  * @param q_item The YAML node containing the queue item.
  * @param q The TX queue configuration to be populated.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
-                                                              TxQueueConfig& q) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
+                                                        TxQueueConfig& q) {
+  return Status::SUCCESS;
 }
 
 void RmaxRxQueueConfig::dump_parameters() const {

@@ -38,15 +38,15 @@ namespace holoscan::advanced_network {
 /**
  * @brief Structure for passing packets to/from advanced network operator
  *
- * AdvNetBurstParams is populated by the RX advanced network operator before arriving at the user's
+ * BurstParams is populated by the RX advanced network operator before arriving at the user's
  * operator, and the user populates it prior to sending to the TX advanced network operator. The
  * structure describes metadata about a packet batch and its packet pointers.
  *
  */
 // Declare a static global variable for the manager
-static ANOMgr* g_ano_mgr = nullptr;
+static Manager* g_ano_mgr = nullptr;
 
-const std::unordered_map<AnoLogLevel::Level, std::string> AnoLogLevel::level_to_string_map = {
+const std::unordered_map<LogLevel::Level, std::string> LogLevel::level_to_string_map = {
     {TRACE, "trace"},
     {DEBUG, "debug"},
     {INFO, "info"},
@@ -56,7 +56,7 @@ const std::unordered_map<AnoLogLevel::Level, std::string> AnoLogLevel::level_to_
     {OFF, "off"},
 };
 
-const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to_level_map = {
+const std::unordered_map<std::string, LogLevel::Level> LogLevel::string_to_level_map = {
     {"trace", TRACE},
     {"debug", DEBUG},
     {"info", INFO},
@@ -66,97 +66,95 @@ const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to
     {"off", OFF},
 };
 
-[[deprecated("Use adv_net_create_tx_burst_params() instead")]]
-AdvNetBurstParams* adv_net_create_burst_params() {
+[[deprecated("Use create_tx_burst_params() instead")]]
+BurstParams* create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_tx_burst_params();
 }
 
-AdvNetBurstParams* adv_net_create_tx_burst_params() {
+BurstParams* create_tx_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_tx_burst_params();
 }
 
-void adv_net_initialize_manager(ANOMgr* manager) {
+void initialize_manager(Manager* manager) {
   g_ano_mgr = manager;
 }
 
-ANOMgr* adv_net_get_active_manager() {
+Manager* get_active_manager() {
   return g_ano_mgr;
 }
 
-AnoMgrType adv_net_get_manager_type() {
-  return AnoMgrFactory::get_manager_type();
+ManagerType get_manager_type() {
+  return ManagerFactory::get_manager_type();
 }
 
 template <typename Config>
-AnoMgrType adv_net_get_manager_type(const Config& config) {
-  return AnoMgrFactory::get_manager_type(config);
+ManagerType get_manager_type(const Config& config) {
+  return ManagerFactory::get_manager_type(config);
 }
 
-template AnoMgrType adv_net_get_manager_type<Config>(const Config&);
+template ManagerType get_manager_type<Config>(const Config&);
 
-void adv_net_free_pkt(AdvNetBurstParams* burst, int pkt) {
+void free_packet(BurstParams* burst, int pkt) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_pkt(burst, pkt);
+  g_ano_mgr->free_packet(burst, pkt);
 }
 
-void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
+void free_packet_segment(BurstParams* burst, int seg, int pkt) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_pkt_seg(burst, seg, pkt);
+  g_ano_mgr->free_packet_segment(burst, seg, pkt);
 }
 
-uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx) {
+uint16_t get_packet_length(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_pkt_len(burst, idx);
+  return g_ano_mgr->get_packet_length(burst, idx);
 }
 
-
-uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+uint16_t get_packet_flow_id(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_pkt_flow_id(burst, idx);
+  return g_ano_mgr->get_packet_flow_id(burst, idx);
 }
 
-
-uint64_t adv_net_get_burst_tot_byte(AdvNetBurstParams* burst) {
+uint64_t get_burst_tot_byte(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_burst_tot_byte(burst);
 }
 
-uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
+uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_seg_pkt_len(burst, seg, idx);
+  return g_ano_mgr->get_segment_packet_length(burst, seg, idx);
 }
 
-void adv_net_free_all_seg_pkts(AdvNetBurstParams* burst, int seg) {
+void free_all_segment_packets(BurstParams* burst, int seg) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_all_seg_pkts(burst, seg);
+  g_ano_mgr->free_all_segment_packets(burst, seg);
 }
 
-void adv_net_free_all_burst_pkts(AdvNetBurstParams* burst) {
+void free_all_burst_packets(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_all_pkts(burst);
+  g_ano_mgr->free_all_packets(burst);
 }
 
-void adv_net_free_all_pkts_and_burst_rx(AdvNetBurstParams* burst) {
-  adv_net_free_all_burst_pkts(burst);
+void free_all_packets_and_burst_rx(BurstParams* burst) {
+  free_all_burst_packets(burst);
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_rx_burst(burst);
 }
 
-void adv_net_free_all_pkts_and_burst_tx(AdvNetBurstParams* burst) {
-  adv_net_free_all_burst_pkts(burst);
+void free_all_packets_and_burst_tx(BurstParams* burst) {
+  free_all_burst_packets(burst);
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_tx_burst(burst);
 }
 
-void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) {
+void free_segment_packets_and_burst(BurstParams* burst, int seg) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_all_seg_pkts(burst, seg);
+  g_ano_mgr->free_all_segment_packets(burst, seg);
   g_ano_mgr->free_rx_burst(burst);
 }
 
-void adv_net_format_eth_addr(char* dst, std::string addr) {
+void format_eth_addr(char* dst, std::string addr) {
   std::istringstream iss(addr);
   std::string byteString;
 
@@ -172,75 +170,74 @@ void adv_net_format_eth_addr(char* dst, std::string addr) {
   }
 }
 
-AdvNetStatus adv_net_get_mac(int port, char* mac) {
+Status get_mac_addr(int port, char* mac) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_mac(port, mac);
+  return g_ano_mgr->get_mac_addr(port, mac);
 }
 
-bool adv_net_tx_burst_available(AdvNetBurstParams* burst) {
+bool is_tx_burst_available(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->tx_burst_available(burst);
+  return g_ano_mgr->is_tx_burst_available(burst);
 }
 
-int adv_net_address_to_port(const std::string& addr) {
+int address_to_port(const std::string& addr) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->address_to_port(addr);
 }
 
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams* burst) {
+Status get_tx_packet_burst(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  if (!g_ano_mgr->tx_burst_available(burst)) return AdvNetStatus::NO_FREE_BURST_BUFFERS;
-  return g_ano_mgr->get_tx_pkt_burst(burst);
+  if (!g_ano_mgr->is_tx_burst_available(burst)) return Status::NO_FREE_BURST_BUFFERS;
+  return g_ano_mgr->get_tx_packet_burst(burst);
 }
 
-AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) {
+Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->set_eth_hdr(burst, idx, dst_addr);
+  return g_ano_mgr->set_eth_header(burst, idx, dst_addr);
 }
 
-AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                  unsigned int src_host, unsigned int dst_host) {
+Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
+                       unsigned int src_host, unsigned int dst_host) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->set_ipv4_hdr(burst, idx, ip_len, proto, src_host, dst_host);
+  return g_ano_mgr->set_ipv4_header(burst, idx, ip_len, proto, src_host, dst_host);
 }
 
-AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                                 uint16_t dst_port) {
+Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                      uint16_t dst_port) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->set_udp_hdr(burst, idx, udp_len, src_port, dst_port);
+  return g_ano_mgr->set_udp_header(burst, idx, udp_len, src_port, dst_port);
 }
 
-AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) {
+Status set_udp_payload(BurstParams* burst, int idx, void* data, int len) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->set_udp_payload(burst, idx, data, len);
 }
 
-AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams* burst, int idx,
-                                  const std::initializer_list<int>& lens) {
+Status set_packet_lengths(BurstParams* burst, int idx, const std::initializer_list<int>& lens) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->set_pkt_lens(burst, idx, lens);
+  return g_ano_mgr->set_packet_lengths(burst, idx, lens);
 }
 
-AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t time) {
+Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t time) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->set_pkt_tx_time(burst, idx, time);
+  return g_ano_mgr->set_packet_tx_time(burst, idx, time);
 }
 
-int64_t adv_net_get_num_pkts(AdvNetBurstParams* burst) {
+int64_t get_num_packets(BurstParams* burst) {
   return burst->hdr.hdr.num_pkts;
 }
 
-int64_t adv_net_get_q_id(AdvNetBurstParams* burst) {
+int64_t get_q_id(BurstParams* burst) {
   assert(burst != nullptr && "burst is null");
   return burst->hdr.hdr.q_id;
 }
 
-void adv_net_set_num_pkts(AdvNetBurstParams* burst, int64_t num) {
+void set_num_packets(BurstParams* burst, int64_t num) {
   assert(burst != nullptr && "burst is null");
   burst->hdr.hdr.num_pkts = num;
 }
 
-void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs) {
+void set_header(BurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs) {
   assert(burst != nullptr && "burst is null");
   burst->hdr.hdr.num_pkts = num;
   burst->hdr.hdr.port_id = port;
@@ -248,53 +245,52 @@ void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_
   burst->hdr.hdr.num_segs = segs;
 }
 
-void adv_net_free_tx_burst(AdvNetBurstParams* burst) {
+void free_tx_burst(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_tx_burst(burst);
 }
 
-void adv_net_free_tx_meta(AdvNetBurstParams* burst) {
+void free_tx_metadata(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_tx_meta(burst);
+  g_ano_mgr->free_tx_metadata(burst);
 }
 
-
-void adv_net_free_rx_burst(AdvNetBurstParams* burst) {
+void free_rx_burst(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_rx_burst(burst);
 }
 
-void adv_net_free_rx_meta(AdvNetBurstParams* burst) {
+void free_rx_metadata(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  g_ano_mgr->free_rx_meta(burst);
+  g_ano_mgr->free_rx_metadata(burst);
 }
 
-void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
+void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_seg_pkt_ptr(burst, seg, idx);
+  return g_ano_mgr->get_segment_packet_ptr(burst, seg, idx);
 }
 
-void* adv_net_get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
+void* get_packet_ptr(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_pkt_ptr(burst, idx);
+  return g_ano_mgr->get_packet_ptr(burst, idx);
 }
 
-std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string& name) {
+std::optional<uint16_t> get_port_from_ifname(const std::string& name) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_port_from_ifname(name);
 }
 
-void adv_net_shutdown() {
+void shutdown() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->shutdown();
 }
 
-void adv_net_print_stats() {
+void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();
 }
 
-std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir) {
+std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir) {
   std::unordered_set<std::string> output_ports;
   std::string default_output_name;
 
@@ -335,7 +331,7 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
  * @param flow The FlowConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_flow_config(
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config(
     const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow) {
   try {
     flow.name_ = flow_item["name"].as<std::string>();
@@ -367,14 +363,15 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_flow_con
  * @brief Parse memory region configuration from a YAML node.
  *
  * @param mr The YAML node containing the memory region configuration.
- * @param tmr The MemoryRegion object to populate.
+ * @param tmr The MemoryRegionConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_memory_region_config(
-    const YAML::Node& mr, holoscan::advanced_network::MemoryRegion& tmr) {
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_memory_region_config(
+    const YAML::Node& mr, holoscan::advanced_network::MemoryRegionConfig& tmr) {
   try {
     tmr.name_ = mr["name"].as<std::string>();
-    tmr.kind_ = holoscan::advanced_network::GetMemoryKindFromString(mr["kind"].template as<std::string>());
+    tmr.kind_ =
+        holoscan::advanced_network::GetMemoryKindFromString(mr["kind"].template as<std::string>());
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
@@ -385,7 +382,7 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_memory_r
     }
     tmr.owned_ = mr["owned"].template as<bool>(true);
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing MemoryRegion: {}", e.what());
+    HOLOSCAN_LOG_ERROR("Error parsing MemoryRegionConfig: {}", e.what());
     return false;
   }
   return true;
@@ -398,7 +395,8 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_memory_r
  * @param common The CommonQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool parse_common_queue_config(const YAML::Node& q_item, holoscan::advanced_network::CommonQueueConfig& common) {
+bool parse_common_queue_config(const YAML::Node& q_item,
+                               holoscan::advanced_network::CommonQueueConfig& common) {
   try {
     common.name_ = q_item["name"].as<std::string>();
     common.id_ = q_item["id"].as<int>();
@@ -428,7 +426,7 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::advanced_netw
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue_common_config(
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
@@ -448,22 +446,22 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue_config(
-    const YAML::Node& q_item, const holoscan::advanced_network::AnoMgrType& manager_type,
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_config(
+    const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
     holoscan::advanced_network::RxQueueConfig& q) {
   try {
-    holoscan::advanced_network::AnoMgrType _manager_type = manager_type;
+    holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
     if (!parse_rx_queue_common_config(q_item, q)) { return false; }
 
-    if (manager_type == holoscan::advanced_network::AnoMgrType::DEFAULT) {
-      _manager_type = holoscan::advanced_network::AnoMgrFactory::get_default_manager_type();
+    if (manager_type == holoscan::advanced_network::ManagerType::DEFAULT) {
+      _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
     }
 #if ANO_MGR_RIVERMAX
-    if (_manager_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
-      holoscan::advanced_network::AdvNetStatus status =
+    if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
+      holoscan::advanced_network::Status status =
           holoscan::advanced_network::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
-      if (status != holoscan::advanced_network::AdvNetStatus::SUCCESS) {
+      if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
       }
@@ -483,7 +481,7 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_tx_queue_common_config(
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
@@ -505,23 +503,23 @@ bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_tx_queue
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_tx_queue_config(
-    const YAML::Node& q_item, const holoscan::advanced_network::AnoMgrType& manager_type,
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_config(
+    const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
     holoscan::advanced_network::TxQueueConfig& q) {
   try {
-    holoscan::advanced_network::AnoMgrType _manager_type = manager_type;
+    holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
-    if (manager_type == holoscan::advanced_network::AnoMgrType::DEFAULT) {
-      _manager_type = holoscan::advanced_network::AnoMgrFactory::get_default_manager_type();
+    if (manager_type == holoscan::advanced_network::ManagerType::DEFAULT) {
+      _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
     }
 
     if (!parse_tx_queue_common_config(q_item, q)) { return false; }
 
 #if ANO_MGR_RIVERMAX
-    if (_manager_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
-      holoscan::advanced_network::AdvNetStatus status =
+    if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
+      holoscan::advanced_network::Status status =
           holoscan::advanced_network::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
-      if (status != holoscan::advanced_network::AdvNetStatus::SUCCESS) {
+      if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;
       }

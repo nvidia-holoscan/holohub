@@ -43,10 +43,10 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
 
 
 /**
- * @brief Header of AdvNetBurstParams
+ * @brief Header of BurstParams
  *
  */
-struct AdvNetBurstHdrParams {
+struct BurstHeaderParams {
   size_t num_pkts;
   uint16_t port_id;
   uint16_t q_id;
@@ -59,18 +59,18 @@ struct AdvNetBurstHdrParams {
   uintptr_t gpu_pkt0_addr;
 };
 
-struct AdvNetBurstHdr {
-  AdvNetBurstHdrParams hdr;
+struct BurstHeader {
+  BurstHeaderParams hdr;
 
   // Pad without union to make bindings readable
   void* extra_burst_data;
   uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) -
-                            sizeof(AdvNetBurstHdrParams)];
+                            sizeof(BurstHeaderParams)];
 };
 
 static inline constexpr int MAX_NUM_SEGS = 4;
-struct AdvNetBurstParams {
-  AdvNetBurstHdr hdr;
+struct BurstParams {
+  BurstHeader hdr;
 
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
@@ -130,7 +130,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
  * @brief Return status codes from advanced network operators
  *
  */
-enum class AdvNetStatus {
+enum class Status {
   SUCCESS,
   NULL_PTR,
   NO_FREE_BURST_BUFFERS,
@@ -145,7 +145,7 @@ enum class AdvNetStatus {
  * @brief Location of packet buffers
  *
  */
-enum class AdvNetBufferLocation : uint8_t {
+enum class BufferLocation : uint8_t {
   CPU = 0,
   GPU = 1,
   CPU_GPU_SPLIT = 2,
@@ -155,7 +155,7 @@ enum class AdvNetBufferLocation : uint8_t {
  * @brief Direction of operator
  *
  */
-enum class AdvNetDirection : uint8_t {
+enum class Direction : uint8_t {
   RX = 0,
   TX = 1,
   TX_RX = 2,
@@ -165,7 +165,7 @@ enum class AdvNetDirection : uint8_t {
  * @brief Manager Type
  *
  */
-enum class AnoMgrType {
+enum class ManagerType {
   UNKNOWN = -1,
   DEFAULT,
   DPDK,
@@ -182,13 +182,13 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
  * @brief Convert string to manager type
  *
  * @param str
- * @return AnoMgrType
+ * @return ManagerType
  */
-inline AnoMgrType manager_type_from_string(const std::string& str) {
-  if (str == ANO_MGR_STR__DPDK) return AnoMgrType::DPDK;
-  if (str == ANO_MGR_STR__GPUNETIO) return AnoMgrType::DOCA;
-  if (str == ANO_MGR_STR__RIVERMAX) return AnoMgrType::RIVERMAX;
-  if (str == ANO_MGR_STR__DEFAULT) return AnoMgrType::DEFAULT;
+inline ManagerType manager_type_from_string(const std::string& str) {
+  if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
+  if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
+  if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
+  if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
   throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
                         ANO_MGR_STR__DPDK + "/" +
                         ANO_MGR_STR__GPUNETIO + "/" +
@@ -202,21 +202,21 @@ inline AnoMgrType manager_type_from_string(const std::string& str) {
  * @param type
  * @return std::string
  */
-inline std::string manager_type_to_string(AnoMgrType type) {
+inline std::string manager_type_to_string(ManagerType type) {
   switch (type) {
-    case AnoMgrType::DPDK:
+    case ManagerType::DPDK:
       return ANO_MGR_STR__DPDK;
-    case AnoMgrType::DOCA:
+    case ManagerType::DOCA:
       return ANO_MGR_STR__GPUNETIO;
-    case AnoMgrType::RIVERMAX:
+    case ManagerType::RIVERMAX:
       return ANO_MGR_STR__RIVERMAX;
-    case AnoMgrType::DEFAULT:
+    case ManagerType::DEFAULT:
       return ANO_MGR_STR__DEFAULT;
     default:
       return "unknown";
   }
 }
-class AnoLogLevel {
+class LogLevel {
  public:
   enum Level {
     TRACE,
@@ -278,24 +278,6 @@ class ManagerLogLevelCommandBuilder {
 };
 
 /**
- * @brief Parameters to configure advanced network operators
- *
- */
-struct AdvNetConfig {
-  AdvNetBufferLocation rx_loc;
-  uint16_t max_packet_size = 0;
-  size_t batch_size = 0;
-  uint32_t num_concurrent_batches;
-  std::vector<std::string> if_names;
-  std::string cpu_core = "";
-  std::string master_core = "";
-  int hds = 0;
-  int gpu_dev = -1;
-  bool use_network = false;
-  bool enabled = false;
-};
-
-/**
  * @brief Base class for additional queue configuration.
  *
  * This class serves as a base class for any additional queue configuration
@@ -303,12 +285,12 @@ struct AdvNetConfig {
  * inherited by the derived class that will hold the additional configuration
  * for a specific manager type.
  */
-class AnoMgrExtraQueueConfig {
+class ManagerExtraQueueConfig {
  public:
   /**
    * @brief Virtual destructor for proper cleanup of derived class objects.
    */
-  virtual ~AnoMgrExtraQueueConfig() = default;
+  virtual ~ManagerExtraQueueConfig() = default;
 };
 
 struct CommonQueueConfig {
@@ -319,10 +301,10 @@ struct CommonQueueConfig {
   std::string cpu_core_;
   std::vector<std::string> mrs_;
   std::vector<std::string> offloads_;
-  AnoMgrExtraQueueConfig* extra_queue_config_;
+  ManagerExtraQueueConfig* extra_queue_config_;
 };
 
-struct MemoryRegion {
+struct MemoryRegionConfig {
   std::string name_;
   MemoryKind kind_;
   uint16_t affinity_;
@@ -373,40 +355,40 @@ struct FlowConfig {
 struct CommonConfig {
   int version;
   int master_core_;
-  AdvNetDirection dir;
-  AnoMgrType manager_type;
+  Direction dir;
+  ManagerType manager_type;
 };
 
-struct AdvNetRxConfig {
+struct RxConfig {
   bool flow_isolation_;
   std::vector<RxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
 };
 
-struct AdvNetTxConfig {
+struct TxConfig {
   bool accurate_send_ = false;
   std::vector<TxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
 };
 
-struct AdvNetConfigInterface {
+struct InterfaceConfig {
   std::string name_;
   std::string address_;
   uint16_t port_id_;
-  AdvNetRxConfig rx_;
-  AdvNetTxConfig tx_;
+  RxConfig rx_;
+  TxConfig tx_;
 };
 
-struct AdvNetConfigYaml {
+struct NetworkConfig {
   CommonConfig common_;
-  std::unordered_map<std::string, MemoryRegion> mrs_;
-  std::vector<AdvNetConfigInterface> ifs_;
+  std::unordered_map<std::string, MemoryRegionConfig> mrs_;
+  std::vector<InterfaceConfig> ifs_;
   uint16_t debug_;
-  AnoLogLevel::Level log_level_;
+  LogLevel::Level log_level_;
 };
 
 template <typename Config>
-auto adv_net_get_rx_tx_cfg_en(const Config& config) {
+auto get_rx_tx_configs_enabled(const Config& config) {
   bool rx = false;
   bool tx = false;
 

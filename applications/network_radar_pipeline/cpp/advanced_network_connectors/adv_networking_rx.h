@@ -121,8 +121,8 @@ class AdvConnectorOpRx : public Operator {
   ~AdvConnectorOpRx() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
       ttl_bytes_recv_, ttl_pkts_recv_);
-    adv_net_shutdown();
-    adv_net_print_stats();
+    shutdown();
+    print_stats();
   }
 
   void setup(OperatorSpec& spec) override;
@@ -150,7 +150,7 @@ class AdvConnectorOpRx : public Operator {
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
+    std::array<std::shared_ptr<BurstParams>, MAX_ANO_BATCHES> msg;
     int num_batches;
     cudaStream_t stream;
     cudaEvent_t evt;

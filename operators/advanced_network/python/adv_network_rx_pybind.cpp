@@ -90,7 +90,10 @@ PYBIND11_MODULE(_advanced_network_rx, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<holoscan::ops::AdvNetworkOpRx, holoscan::ops::PyAdvNetworkOpRx, holoscan::Operator, std::shared_ptr<holoscan::ops::AdvNetworkOpRx>>(
+  py::class_<holoscan::ops::AdvNetworkOpRx,
+             holoscan::ops::PyAdvNetworkOpRx,
+             holoscan::Operator,
+             std::shared_ptr<holoscan::ops::AdvNetworkOpRx>>(
       m, "AdvNetworkOpRx", holoscan::doc::AdvNetworkOpRx::doc_AdvNetworkOpRx)
       .def(py::init<holoscan::Fragment*,
                     const py::args&,
@@ -100,6 +103,11 @@ PYBIND11_MODULE(_advanced_network_rx, m) {
            "output_ports_list"_a = std::unordered_set<std::string>{},
            "name"_a = "advanced_network_rx"s,
            holoscan::doc::AdvNetworkOpRx::doc_AdvNetworkOpRx_python)
-      .def("initialize", &holoscan::ops::AdvNetworkOpRx::initialize, holoscan::doc::AdvNetworkOpRx::doc_initialize)
-      .def("setup", &holoscan::ops::AdvNetworkOpRx::setup, "spec"_a, holoscan::doc::AdvNetworkOpRx::doc_setup);
+      .def("initialize",
+           &holoscan::ops::AdvNetworkOpRx::initialize,
+           holoscan::doc::AdvNetworkOpRx::doc_initialize)
+      .def("setup",
+           &holoscan::ops::AdvNetworkOpRx::setup,
+           "spec"_a,
+           holoscan::doc::AdvNetworkOpRx::doc_setup);
 }  // PYBIND11_MODULE NOLINT

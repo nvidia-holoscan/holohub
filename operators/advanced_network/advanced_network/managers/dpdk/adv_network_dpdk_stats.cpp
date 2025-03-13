@@ -22,7 +22,7 @@
 
 namespace holoscan::advanced_network {
 
-void AdvNetworkDpdkStats::Init(const AdvNetConfigYaml &cfg) {
+void DpdkStats::Init(const NetworkConfig &cfg) {
   cfg_ = cfg;
   init_ = true;
 
@@ -164,7 +164,7 @@ void AdvNetworkDpdkStats::Init(const AdvNetConfigYaml &cfg) {
   HOLOSCAN_LOG_INFO("Initialized DPDK stats");
 }
 
-void AdvNetworkDpdkStats::Shutdown() {
+void DpdkStats::Shutdown() {
   init_ = false;
 
   force_quit_.store(true);
@@ -174,7 +174,7 @@ void AdvNetworkDpdkStats::Shutdown() {
  * @brief Constantly polls and updates the stats for the DPDK manager. The result of this polling
    can be used by the user's application to check for errors or other issues.
  */
-void AdvNetworkDpdkStats::Run() {
+void DpdkStats::Run() {
   cpu_set_t cpuset;
 
   auto thread = pthread_self();

@@ -25,15 +25,15 @@ using namespace holoscan::advanced_network;
 namespace holoscan::ops {
 
 struct AdvNetworkOpRx::AdvNetworkOpRxImpl {
-  AdvNetConfigYaml cfg;
-  ANOMgr* mgr;
+  NetworkConfig cfg;
+  Manager* mgr;
 };
 
 void AdvNetworkOpRx::setup(OperatorSpec& spec) {
   if (output_ports.empty()) { output_ports.insert("bench_rx_out"); }
 
   for (const auto& port : output_ports) {
-    spec.output<std::shared_ptr<AdvNetBurstParams>>(port);
+    spec.output<std::shared_ptr<BurstParams>>(port);
     HOLOSCAN_LOG_INFO("Adding output port {}", port);
   }
 
@@ -41,7 +41,7 @@ void AdvNetworkOpRx::setup(OperatorSpec& spec) {
              "cfg",
              "Configuration",
              "Configuration for the advanced network operator",
-             AdvNetConfigYaml());
+             NetworkConfig());
 }
 
 void AdvNetworkOpRx::stop() {
@@ -51,7 +51,7 @@ void AdvNetworkOpRx::stop() {
 
 void AdvNetworkOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvNetworkOpRx::initialize()");
-  register_converter<holoscan::advanced_network::AdvNetConfigYaml>();
+  register_converter<holoscan::advanced_network::NetworkConfig>();
 
   holoscan::Operator::initialize();
   if (Init() < 0) { throw std::runtime_error("ANO initialization failed"); }
@@ -60,9 +60,9 @@ void AdvNetworkOpRx::initialize() {
 int AdvNetworkOpRx::Init() {
   impl = new AdvNetworkOpRxImpl();
   impl->cfg = cfg_.get();
-  AnoMgrFactory::set_manager_type(impl->cfg.common_.manager_type);
+  ManagerFactory::set_manager_type(impl->cfg.common_.manager_type);
 
-  impl->mgr = &(AnoMgrFactory::get_active_manager());
+  impl->mgr = &(ManagerFactory::get_active_manager());
   assert(impl->mgr != nullptr && "ANO Manager is not initialized");
 
   if (!impl->mgr->set_config_and_initialize(impl->cfg)) { return -1; }
@@ -86,11 +86,11 @@ int AdvNetworkOpRx::Init() {
 void AdvNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op_output,
                              [[maybe_unused]] ExecutionContext&) {
   int n;
-  AdvNetBurstParams* burst;
+  BurstParams* burst;
 
   const auto res = impl->mgr->get_rx_burst(&burst);
 
-  if (res != AdvNetStatus::SUCCESS) { return; }
+  if (res != Status::SUCCESS) { return; }
 
   const auto port_str = pq_map_[(burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id];
   op_output.emit(burst, port_str.c_str());

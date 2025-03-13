@@ -30,10 +30,10 @@
 namespace holoscan::advanced_network {
 
 // this part is purely optional, just a helper for the user
-AdvNetBurstParams* adv_net_create_burst_params();
-AdvNetBurstParams* adv_net_create_tx_burst_params();
+BurstParams* create_burst_params();
+BurstParams* create_tx_burst_params();
 
-enum class AdvNetErrorGlobalStats {
+enum class ErrorGlobalStats {
   OUT_OF_RX_BUFFERS = 0,
   RX_QUEUE_FULL = 1,
   METADATA_BUF_DEPLETED = 2,
@@ -41,16 +41,15 @@ enum class AdvNetErrorGlobalStats {
   SENTINEL = 3,
 };
 
-
 namespace detail {
-inline AdvNetDirection DirectionStringToType(const std::string& dir) {
+inline Direction DirectionStringToType(const std::string& dir) {
   if (dir == "rx") {
-    return AdvNetDirection::RX;
+    return Direction::RX;
   } else if (dir == "tx") {
-    return AdvNetDirection::TX;
+    return Direction::TX;
   }
 
-  return AdvNetDirection::TX_RX;
+  return Direction::TX_RX;
 }
 };  // namespace detail
 
@@ -71,21 +70,21 @@ inline int EnabledDirections(const std::string& dir) {
  *
  * @return Manager type
  */
-AnoMgrType adv_net_get_manager_type();
+ManagerType get_manager_type();
 
 /**
  * @brief Returns a manager type
  *
- * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @param config YML Configuration structure (e.g. NetworkConfig)
  * @return Manager type
  */
 template <typename Config>
-AnoMgrType adv_net_get_manager_type(const Config& config);
+ManagerType get_manager_type(const Config& config);
 
 /**
- * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
+ * @brief Returns a raw packet pointer from a pointer in BurstParams
  *
- * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
+ * The BurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the CPU packet pointer at index idx
  * from the burst.
  *
@@ -94,12 +93,12 @@ AnoMgrType adv_net_get_manager_type(const Config& config);
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx);
+void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx);
 
 /**
- * @brief Returns a raw packet pointer from a pointer in AdvNetBurstParams
+ * @brief Returns a raw packet pointer from a pointer in BurstParams
  *
- * The AdvNetBurstParams structure contains pointers to opaque packets which are not accessible
+ * The BurstParams structure contains pointers to opaque packets which are not accessible
  * directly by the user. This function fetches the GPU packet pointer at index idx
  * from the burst.
  *
@@ -107,7 +106,7 @@ void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx);
  * @param idx Index of packet
  * @return Pointer to packet data
  */
-void* adv_net_get_pkt_ptr(AdvNetBurstParams* burst, int idx);
+void* get_packet_ptr(BurstParams* burst, int idx);
 
 /**
  * @brief Get packet length of a segment of a packet
@@ -117,7 +116,7 @@ void* adv_net_get_pkt_ptr(AdvNetBurstParams* burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx);
+uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
 
 /**
  * @brief Get packet length of an entire packet
@@ -126,7 +125,7 @@ uint16_t adv_net_get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
+uint16_t get_packet_length(BurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet
@@ -138,7 +137,7 @@ uint16_t adv_net_get_pkt_len(AdvNetBurstParams* burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Flow ID
  */
-uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx);
+uint16_t get_packet_flow_id(BurstParams* burst, int idx);
 
 /**
  * @brief Populate a TX packet burst buffer
@@ -147,13 +146,13 @@ uint16_t adv_net_get_pkt_flow_id(AdvNetBurstParams* burst, int idx);
  * allocated packets and fill with the desired data/headers.
  *
  * @param burst Burst structure to populate
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packets allocated
  *    NULL_PTR: Burst or packet pools uninitialized
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
  */
-AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams* burst);
+Status get_tx_packet_burst(BurstParams* burst);
 
 /**
  * @brief Set IPv4 header in packet
@@ -161,10 +160,10 @@ AdvNetStatus adv_net_get_tx_pkt_burst(AdvNetBurstParams* burst);
  * @param burst Burst structure to populate
  * @param idx Index of packet
  * @param dst_addr Ethernet destination address
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr);
+Status set_eth_header(BurstParams* burst, int idx, char* dst_addr);
 
 /**
  * @brief Set IPv4 header in packet
@@ -175,11 +174,11 @@ AdvNetStatus adv_net_set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_ad
  * @param proto L4 protocol
  * @param src_host Source host in host byte order
  * @param dst_host Destination host in host byte order
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                  unsigned int src_host, unsigned int dst_host);
+Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
+                       unsigned int src_host, unsigned int dst_host);
 
 /**
  * @brief Set UDP header in packet
@@ -189,11 +188,11 @@ AdvNetStatus adv_net_set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len,
  * @param udp_len Length of packet after UDP header
  * @param src_port Source port
  * @param dst_port Destination port
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                                 uint16_t dst_port);
+Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                      uint16_t dst_port);
 
 /**
  * @brief Set UDP payload in packet
@@ -202,10 +201,10 @@ AdvNetStatus adv_net_set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len,
  * @param idx Index of packet
  * @param data Payload data after UDP header
  * @param len Length of payload
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len);
+Status set_udp_payload(BurstParams* burst, int idx, void* data, int len);
 
 /**
  * @brief Test if a TX burst is available
@@ -219,7 +218,7 @@ AdvNetStatus adv_net_set_udp_payload(AdvNetBurstParams* burst, int idx, void* da
  * @return true Burst is available
  * @return false Burst is not available
  */
-bool adv_net_tx_burst_available(AdvNetBurstParams* burst);
+bool is_tx_burst_available(BurstParams* burst);
 
 /**
  * @brief Free all packets and burst from one segment
@@ -229,7 +228,7 @@ bool adv_net_tx_burst_available(AdvNetBurstParams* burst);
  *
  * @param burst Burst to free
  */
-void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg);
+void free_segment_packets_and_burst(BurstParams* burst, int seg);
 
 /**
  * @brief Free all packets and an RX burst
@@ -238,7 +237,7 @@ void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_pkts_and_burst_rx(AdvNetBurstParams* burst);
+void free_all_packets_and_burst_rx(BurstParams* burst);
 
 /**
  * @brief Free all packets and a TX burst
@@ -247,7 +246,7 @@ void adv_net_free_all_pkts_and_burst_rx(AdvNetBurstParams* burst);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_pkts_and_burst_tx(AdvNetBurstParams* burst);
+void free_all_packets_and_burst_tx(BurstParams* burst);
 
 /**
  * @brief Set packet lengths in metadata
@@ -257,11 +256,10 @@ void adv_net_free_all_pkts_and_burst_tx(AdvNetBurstParams* burst);
  * @param burst Burst structure containing packet lists
  * @param idx Index of packet
  * @param lens Lengths of each segment
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Packet populated successfully
  */
-AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams* burst, int idx,
-                                  const std::initializer_list<int>& lens);
+Status set_packet_lengths(BurstParams* burst, int idx, const std::initializer_list<int>& lens);
 
 /**
  * @brief Set packet TX time
@@ -274,13 +272,12 @@ AdvNetStatus adv_net_set_pkt_lens(AdvNetBurstParams* burst, int idx,
  * @param burst Burst structure containing packet lists
  * @param idx Index of packet
  * @param time PTP time to transmit
- * @return AdvNetStatus indicating status. Valid values are:
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Time set successfully
  */
-AdvNetStatus adv_net_set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t time);
+Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t time);
 
-
-uint64_t adv_net_get_burst_tot_byte(AdvNetBurstParams* burst);
+uint64_t get_burst_tot_byte(BurstParams* burst);
 
 /**
  * @brief Frees all segments of a single packet
@@ -288,8 +285,7 @@ uint64_t adv_net_get_burst_tot_byte(AdvNetBurstParams* burst);
  * @param burst Burst structure containing packet lists
  * @param idx Index of packet
  */
-void adv_net_free_pkt(AdvNetBurstParams* burst, int idx);
-
+void free_packet(BurstParams* burst, int idx);
 
 /**
  * @brief Frees a single segment from a single packet
@@ -298,7 +294,7 @@ void adv_net_free_pkt(AdvNetBurstParams* burst, int idx);
  * @param seg Segment of packet in scatter list
  * @param idx Index of packet
  */
-void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
+void free_packet_segment(BurstParams* burst, int seg, int idx);
 
 /**
  * @brief Free all packets for a single segment in a burst
@@ -307,7 +303,7 @@ void adv_net_free_pkt_seg(AdvNetBurstParams* burst, int seg, int idx);
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_seg_pkts(AdvNetBurstParams* burst, int seg);
+void free_all_segment_packets(BurstParams* burst, int seg);
 
 /**
  * @brief Free a receive burst
@@ -317,7 +313,7 @@ void adv_net_free_all_seg_pkts(AdvNetBurstParams* burst, int seg);
  *
  * @param burst
  */
-void adv_net_free_rx_burst(AdvNetBurstParams* burst);
+void free_rx_burst(BurstParams* burst);
 
 /**
  * @brief Free a transmit burst buffer
@@ -327,7 +323,7 @@ void adv_net_free_rx_burst(AdvNetBurstParams* burst);
  *
  * @param burst Burst structure to free
  */
-void adv_net_free_tx_burst(AdvNetBurstParams* burst);
+void free_tx_burst(BurstParams* burst);
 
 /**
  * @brief Free a receive TX meta buffer
@@ -337,7 +333,7 @@ void adv_net_free_tx_burst(AdvNetBurstParams* burst);
  *
  * @param burst Burst structure to free
  */
-void adv_net_free_tx_meta(AdvNetBurstParams* burst);
+void free_tx_metadata(BurstParams* burst);
 
 /**
  * @brief Free a receive RX meta buffer
@@ -347,21 +343,21 @@ void adv_net_free_tx_meta(AdvNetBurstParams* burst);
  *
  * @param burst Burst structure to free
  */
-void adv_net_free_rx_meta(AdvNetBurstParams* burst);
+void free_rx_metadata(BurstParams* burst);
 
 /**
  * @brief Get the number of packets in a burst
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_num_pkts(AdvNetBurstParams* burst);
+int64_t get_num_packets(BurstParams* burst);
 
 /**
  * @brief Get the queue ID of a burst
  *
  * @param burst Burst structure with packets
  */
-int64_t adv_net_get_q_id(AdvNetBurstParams* burst);
+int64_t get_q_id(BurstParams* burst);
 
 /**
  * @brief Get mac address of an interface
@@ -369,9 +365,9 @@ int64_t adv_net_get_q_id(AdvNetBurstParams* burst);
  * @param addr Address of interface from config file
  * @param port Port ID of interface
  *
- * @returns AdvNetStatus::SUCCESS on success
+ * @returns Status::SUCCESS on success
  */
-AdvNetStatus adv_net_get_mac(int port, char* mac);
+Status get_mac_addr(int port, char* mac);
 
 /**
  * @brief Get mac address of an interface
@@ -380,7 +376,7 @@ AdvNetStatus adv_net_get_mac(int port, char* mac);
  *
  * @returns Port number or -1 for not found
  */
-int adv_net_address_to_port(const std::string& addr);
+int address_to_port(const std::string& addr);
 
 /**
  * @brief Set the number of packets in a burst
@@ -388,7 +384,7 @@ int adv_net_address_to_port(const std::string& addr);
  * @param burst Burst structure
  * @param num Number of packets
  */
-void adv_net_set_num_pkts(AdvNetBurstParams* burst, int64_t num);
+void set_num_packets(BurstParams* burst, int64_t num);
 
 /**
  * @brief Set the header fields in a burst
@@ -399,7 +395,7 @@ void adv_net_set_num_pkts(AdvNetBurstParams* burst, int64_t num);
  * @param num Number of packets
  * @param segs Number of segments
  */
-void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs);
+void set_header(BurstParams* burst, uint16_t port, uint16_t q, int64_t num, int segs);
 
 /**
  * @brief First MAC address string to char buffer
@@ -407,22 +403,22 @@ void adv_net_set_hdr(AdvNetBurstParams* burst, uint16_t port, uint16_t q, int64_
  * @param dst Destination buffer
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
-void adv_net_format_eth_addr(char* dst, std::string addr);
+void format_eth_addr(char* dst, std::string addr);
 
-std::optional<uint16_t> adv_net_get_port_from_ifname(const std::string& name);
+std::optional<uint16_t> get_port_from_ifname(const std::string& name);
 
 /**
  * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
  * in the manager's destructor.
  *
  */
-void adv_net_shutdown();
+void shutdown();
 
 /**
  * @brief Print port statistics
  *
  */
-void adv_net_print_stats();
+void print_stats();
 
 /**
  * @brief Get the list (set) of rx/tx ports from a node
@@ -432,13 +428,13 @@ void adv_net_print_stats();
  *
  * @returns unordered set of rx/tx port names
  */
-std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir);
+std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir);
 
 };  // namespace holoscan::advanced_network
 
 template <>
-struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
-  static Node encode(const holoscan::advanced_network::AdvNetConfigYaml& input_spec) {
+struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
+  static Node encode(const holoscan::advanced_network::NetworkConfig& input_spec) {
     Node node;
     // node["type"] = inputTypeToString(input_spec.type_);
     // node["name"] = input_spec.tensor_name_;
@@ -459,17 +455,18 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
    * @param flow The FlowConfig object to populate.
    * @return true if parsing was successful, false otherwise.
    */
-  static bool parse_flow_config(const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow);
+  static bool parse_flow_config(const YAML::Node& flow_item,
+                                holoscan::advanced_network::FlowConfig& flow);
 
   /**
    * @brief Parse memory region configuration from a YAML node.
    *
    * @param mr The YAML node containing the memory region configuration.
-   * @param tmr The MemoryRegion object to populate.
+   * @param tmr The MemoryRegionConfig object to populate.
    * @return true if parsing was successful, false otherwise.
    */
-  static bool parse_memory_region_config(const YAML::Node& mr,
-                                         holoscan::advanced_network::MemoryRegion& memory_region);
+  static bool parse_memory_region_config(
+      const YAML::Node& mr, holoscan::advanced_network::MemoryRegionConfig& memory_region);
 
   /**
    * @brief Parse common RX queue configuration from a YAML node.
@@ -479,7 +476,7 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_config(const YAML::Node& q_item,
-                                    const holoscan::advanced_network::AnoMgrType& manager_type,
+                                    const holoscan::advanced_network::ManagerType& manager_type,
                                     holoscan::advanced_network::RxQueueConfig& rx_queue_config);
 
   /**
@@ -490,8 +487,8 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
    * @param q The RxQueueConfig object to populate.
    * @return true if parsing was successful, false otherwise.
    */
-  static bool parse_rx_queue_common_config(const YAML::Node& q_item,
-                                           holoscan::advanced_network::RxQueueConfig& rx_queue_config);
+  static bool parse_rx_queue_common_config(
+      const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& rx_queue_config);
 
   /**
    * @brief Parse common TX queue configuration from a YAML node.
@@ -501,7 +498,7 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_config(const YAML::Node& q_item,
-                                    const holoscan::advanced_network::AnoMgrType& manager_type,
+                                    const holoscan::advanced_network::ManagerType& manager_type,
                                     holoscan::advanced_network::TxQueueConfig& tx_queue_config);
 
   /**
@@ -512,21 +509,21 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
    * @param q The TxQueueConfig object to populate.
    * @return true if parsing was successful, false otherwise.
    */
-  static bool parse_tx_queue_common_config(const YAML::Node& q_item,
-                                           holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+  static bool parse_tx_queue_common_config(
+      const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
 
   /**
-   * @brief Decode the YAML node into an AdvNetConfigYaml object.
+   * @brief Decode the YAML node into an NetworkConfig object.
    *
-   * This function parses the provided YAML node and populates the given AdvNetConfigYaml object.
+   * This function parses the provided YAML node and populates the given NetworkConfig object.
    * It handles various configurations such as version, master core, manager type, debug flag,
    * memory regions, interfaces, RX queues, TX queues, and flows.
    *
    * @param node The YAML node containing the configuration.
-   * @param input_spec The AdvNetConfigYaml object to populate.
+   * @param input_spec The NetworkConfig object to populate.
    * @return true if decoding was successful, false otherwise.
    */
-  static bool decode(const Node& node, holoscan::advanced_network::AdvNetConfigYaml& input_spec) {
+  static bool decode(const Node& node, holoscan::advanced_network::NetworkConfig& input_spec) {
     if (!node.IsMap()) {
       GXF_LOG_ERROR("InputSpec: expected a map");
       return false;
@@ -540,7 +537,7 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
         input_spec.common_.manager_type = holoscan::advanced_network::manager_type_from_string(
             node["manager"].as<std::string>(holoscan::advanced_network::ANO_MGR_STR__DEFAULT));
       } catch (const std::exception& e) {
-        input_spec.common_.manager_type = holoscan::advanced_network::AnoMgrType::DEFAULT;
+        input_spec.common_.manager_type = holoscan::advanced_network::ManagerType::DEFAULT;
       }
 
       try {
@@ -548,17 +545,17 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
       } catch (const std::exception& e) { input_spec.debug_ = false; }
 
       try {
-        input_spec.log_level_ =
-            holoscan::advanced_network::AnoLogLevel::from_string(node["log_level"].as<std::string>(
-                holoscan::advanced_network::AnoLogLevel::to_string(holoscan::advanced_network::AnoLogLevel::WARN)));
+        input_spec.log_level_ = holoscan::advanced_network::LogLevel::from_string(
+            node["log_level"].as<std::string>(holoscan::advanced_network::LogLevel::to_string(
+                holoscan::advanced_network::LogLevel::WARN)));
       } catch (const std::exception& e) {
-        input_spec.log_level_ = holoscan::advanced_network::AnoLogLevel::WARN;
+        input_spec.log_level_ = holoscan::advanced_network::LogLevel::WARN;
       }
 
       try {
         const auto& mrs = node["memory_regions"];
         for (const auto& mr : mrs) {
-          holoscan::advanced_network::MemoryRegion tmr;
+          holoscan::advanced_network::MemoryRegionConfig tmr;
           if (!parse_memory_region_config(mr, tmr)) {
             HOLOSCAN_LOG_ERROR("Failed to parse memory region config");
             return false;
@@ -577,14 +574,14 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
       try {
         const auto& intfs = node["interfaces"];
         for (const auto& intf : intfs) {
-          holoscan::advanced_network::AdvNetConfigInterface ifcfg;
+          holoscan::advanced_network::InterfaceConfig ifcfg;
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
 
           try {
             const auto& rx = intf["rx"];
-            holoscan::advanced_network::AdvNetRxConfig rx_cfg;
+            holoscan::advanced_network::RxConfig rx_cfg;
 
             try {
               rx_cfg.flow_isolation_ = rx["flow_isolation"].as<bool>();
@@ -618,7 +615,7 @@ struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
 
           try {
             const auto& tx = intf["tx"];
-            holoscan::advanced_network::AdvNetTxConfig tx_cfg;
+            holoscan::advanced_network::TxConfig tx_cfg;
 
             try {
               tx_cfg.accurate_send_ = tx["accurate_send"].as<bool>();

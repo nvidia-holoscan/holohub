@@ -38,7 +38,7 @@ using namespace ral::services::rmax_ipo_receiver;
  * This structure holds the configuration settings for an Rmax RX queue,
  * including packet size, chunk size, IP addresses, ports, and other parameters.
  */
-struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
+struct RmaxRxQueueConfig : public ManagerExtraQueueConfig {
   uint16_t max_packet_size = 0;
   size_t max_chunk_size;
   size_t packets_buffers_size;
@@ -64,7 +64,7 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
   ~RmaxRxQueueConfig() = default;
 
   RmaxRxQueueConfig(const RmaxRxQueueConfig& other)
-      : AnoMgrExtraQueueConfig(other),
+      : ManagerExtraQueueConfig(other),
         max_packet_size(other.max_packet_size),
         max_chunk_size(other.max_chunk_size),
         packets_buffers_size(other.packets_buffers_size),
@@ -87,7 +87,7 @@ struct RmaxRxQueueConfig : public AnoMgrExtraQueueConfig {
 
   RmaxRxQueueConfig& operator=(const RmaxRxQueueConfig& other) {
     if (this != &other) {
-      AnoMgrExtraQueueConfig::operator=(other);
+      ManagerExtraQueueConfig::operator=(other);
       max_packet_size = other.max_packet_size;
       max_chunk_size = other.max_chunk_size;
       packets_buffers_size = other.packets_buffers_size;
@@ -143,7 +143,7 @@ class IConfigManager {
    * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
    * @return True if the configuration was successfully set, false otherwise.
    */
-  virtual bool set_configuration(const AdvNetConfigYaml& cfg,
+  virtual bool set_configuration(const NetworkConfig& cfg,
                                  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) = 0;
 };
 
@@ -235,7 +235,7 @@ class RxConfigManager : public IRxConfigManager {
    * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
    * @return True if the configuration was successfully set, false otherwise.
    */
-  bool set_configuration(const AdvNetConfigYaml& cfg,
+  bool set_configuration(const NetworkConfig& cfg,
                          std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
     cfg_ = cfg;
     rmax_apps_lib_ = rmax_apps_lib;
@@ -300,7 +300,8 @@ class RxConfigManager : public IRxConfigManager {
    * @return true if the configuration is successful, false otherwise.
    */
   bool config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
-                                               const RxQueueConfig& q, const MemoryRegion& mr);
+                                               const RxQueueConfig& q,
+                                               const MemoryRegionConfig& mr);
 
   /**
    * @brief Configures the memory allocator for dual memory regions.
@@ -317,8 +318,9 @@ class RxConfigManager : public IRxConfigManager {
    */
 
   bool config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
-                                             const RxQueueConfig& q, const MemoryRegion& mr_header,
-                                             const MemoryRegion& mr_payload);
+                                             const RxQueueConfig& q,
+                                             const MemoryRegionConfig& mr_header,
+                                             const MemoryRegionConfig& mr_payload);
   /**
    * @brief Sets the GPU memory configuration if applicable.
    *
@@ -326,7 +328,8 @@ class RxConfigManager : public IRxConfigManager {
    * @param mr The memory region.
    * @return true if the GPU memory configuration is set, false otherwise.
    */
-  bool set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr);
+  bool set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
+                                       const MemoryRegionConfig& mr);
 
   /**
    * @brief Sets the CPU memory configuration.
@@ -341,7 +344,7 @@ class RxConfigManager : public IRxConfigManager {
    * @param rmax_rx_config The RMAX RX queue configuration.
    * @param mr The memory region.
    */
-  void set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config, const MemoryRegion& mr);
+  void set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config, const MemoryRegionConfig& mr);
 
   /**
    * @brief Validates the RX queue memory regions configuration.
@@ -363,7 +366,7 @@ class RxConfigManager : public IRxConfigManager {
    */
   bool validate_memory_regions_config_from_single_mrs(const RxQueueConfig& q,
                                                       const RmaxRxQueueConfig& rmax_rx_config,
-                                                      const MemoryRegion& mr);
+                                                      const MemoryRegionConfig& mr);
 
   /**
    * @brief Validates the RX queue memory regions configuration for dual memory regions.
@@ -376,8 +379,8 @@ class RxConfigManager : public IRxConfigManager {
    */
   bool validate_memory_regions_config_from_dual_mrs(const RxQueueConfig& q,
                                                     const RmaxRxQueueConfig& rmax_rx_config,
-                                                    const MemoryRegion& mr_header,
-                                                    const MemoryRegion& mr_payload);
+                                                    const MemoryRegionConfig& mr_header,
+                                                    const MemoryRegionConfig& mr_payload);
 
   /**
    * @brief Sets common application settings for an RX service.
@@ -426,7 +429,7 @@ class RxConfigManager : public IRxConfigManager {
 
  private:
   std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig> rx_service_configs_;
-  AdvNetConfigYaml cfg_;
+  NetworkConfig cfg_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   bool is_configuration_set_ = false;
 };
@@ -451,7 +454,7 @@ class TxConfigManager : public ITxConfigManager {
    * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
    * @return True if the configuration was successfully set, false otherwise.
    */
-  bool set_configuration(const AdvNetConfigYaml& cfg,
+  bool set_configuration(const NetworkConfig& cfg,
                          std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
     cfg_ = cfg;
     rmax_apps_lib_ = rmax_apps_lib;
@@ -471,7 +474,7 @@ class TxConfigManager : public ITxConfigManager {
 
  private:
   std::unordered_map<uint32_t, RmaxBaseServiceConfig> tx_service_configs_;
-  AdvNetConfigYaml cfg_;
+  NetworkConfig cfg_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   bool is_configuration_set_ = false;
 };
@@ -506,7 +509,7 @@ class RmaxConfigContainer {
    * @param cfg The configuration YAML.
    * @return True if the configuration was successfully parsed, false otherwise.
    */
-  bool parse_configuration(const AdvNetConfigYaml& cfg);
+  bool parse_configuration(const NetworkConfig& cfg);
 
   std::shared_ptr<IConfigManager> get_config_manager(ConfigType type) const {
     auto it = config_managers_.find(type);
@@ -569,7 +572,7 @@ class RmaxConfigContainer {
    *
    * @param level The Ano log level to be converted and set.
    */
-  void set_rmax_log_level(AnoLogLevel::Level level) {
+  void set_rmax_log_level(LogLevel::Level level) {
     rmax_log_level_ = RmaxLogLevel::from_ano_log_level(level);
   }
 
@@ -577,7 +580,7 @@ class RmaxConfigContainer {
   RmaxLogLevel::Level rmax_log_level_ = RmaxLogLevel::OFF;
   std::unordered_map<ConfigType, std::shared_ptr<IConfigManager>> config_managers_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
-  AdvNetConfigYaml cfg_;
+  NetworkConfig cfg_;
   bool is_configured_ = false;
 };
 
@@ -596,18 +599,18 @@ class RmaxConfigParser {
    *
    * @param q_item The YAML node containing the RX queue configuration.
    * @param q The RxQueueConfig structure to be populated.
-   * @return AdvNetStatus indicating the success or failure of the operation.
+   * @return Status indicating the success or failure of the operation.
    */
-  static AdvNetStatus parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q);
+  static Status parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q);
 
   /**
    * @brief Parses the TX queue Rivermax configuration.
    *
    * @param q_item The YAML node containing the queue item.
    * @param q The TX queue configuration to be populated.
-   * @return AdvNetStatus indicating the success or failure of the operation.
+   * @return Status indicating the success or failure of the operation.
    */
-  static AdvNetStatus parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
+  static Status parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
 };
 
 }  // namespace holoscan::advanced_network

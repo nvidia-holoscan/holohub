@@ -37,59 +37,59 @@
 namespace holoscan::advanced_network {
 
 // Initialize static members
-std::unique_ptr<ANOMgr> AnoMgrFactory::AnoMgrInstance_ = nullptr;  // Initialize static members
-AnoMgrType AnoMgrFactory::AnoMgrType_ = AnoMgrType::UNKNOWN;
+std::unique_ptr<Manager> ManagerFactory::ManagerInstance_ = nullptr;  // Initialize static members
+ManagerType ManagerFactory::ManagerType_ = ManagerType::UNKNOWN;
 
-extern void adv_net_initialize_manager(ANOMgr* _manager);
+extern void initialize_manager(Manager* _manager);
 
-AnoMgrType AnoMgrFactory::get_default_manager_type() {
-  AnoMgrType mgr_type = AnoMgrType::UNKNOWN;
+ManagerType ManagerFactory::get_default_manager_type() {
+  ManagerType mgr_type = ManagerType::UNKNOWN;
 #if ANO_MGR_DPDK
-  mgr_type = AnoMgrType::DPDK;
+  mgr_type = ManagerType::DPDK;
 #elif ANO_MGR_GPUNETIO
-  mgr_type = AnoMgrType::DOCA;
+  mgr_type = ManagerType::DOCA;
 #elif ANO_MGR_RIVERMAX
-  mgr_type = AnoMgrType::RIVERMAX;
+  mgr_type = ManagerType::RIVERMAX;
 #else
 #error "No advanced network operator manager defined"
 #endif
   return mgr_type;
 }
 
-std::unique_ptr<ANOMgr> AnoMgrFactory::create_instance(AnoMgrType type) {
-  std::unique_ptr<ANOMgr> _manager;
+std::unique_ptr<Manager> ManagerFactory::create_instance(ManagerType type) {
+  std::unique_ptr<Manager> _manager;
   switch (type) {
 #if ANO_MGR_DPDK
-    case AnoMgrType::DPDK:
+    case ManagerType::DPDK:
       _manager = std::make_unique<DpdkMgr>();
       break;
 #endif
 #if ANO_MGR_GPUNETIO
-    case AnoMgrType::DOCA:
+    case ManagerType::DOCA:
       _manager = std::make_unique<DocaMgr>();
       break;
 #endif
 #if ANO_MGR_RIVERMAX
-    case AnoMgrType::RIVERMAX:
+    case ManagerType::RIVERMAX:
       _manager = std::make_unique<RmaxMgr>();
       break;
 #endif
-    case AnoMgrType::DEFAULT:
+    case ManagerType::DEFAULT:
       _manager = create_instance(get_default_manager_type());
       return _manager;
-    case AnoMgrType::UNKNOWN:
+    case ManagerType::UNKNOWN:
       throw std::invalid_argument("Unknown manager type");
     default:
       throw std::invalid_argument("Invalid type");
   }
 
   // Initialize the ADV Net Common API
-  adv_net_initialize_manager(_manager.get());
+  initialize_manager(_manager.get());
   return _manager;
 }
 
 template <typename Config>
-AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
+ManagerType ManagerFactory::get_manager_type(const Config& config) {
   // Ensure that Config has a method yaml_nodes() that returns a collection
   // of YAML nodes
   static_assert(
@@ -110,9 +110,9 @@ AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
   return manager_type_from_string(holoscan::advanced_network::ANO_MGR_STR__DEFAULT);
 }
 
-template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
+template ManagerType ManagerFactory::get_manager_type<Config>(const Config&);
 
-AdvNetStatus ANOMgr::allocate_memory_regions() {
+Status Manager::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
   for (auto& mr : cfg_.mrs_) {
@@ -128,7 +128,7 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
         case MemoryKind::HOST_PINNED:
           if (cudaHostAlloc(&ptr, mr.second.ttl_size_, 0) != cudaSuccess) {
             HOLOSCAN_LOG_CRITICAL("Failed to allocate CUDA pinned host memory!");
-            return AdvNetStatus::NULL_PTR;
+            return Status::NULL_PTR;
           }
           break;
         case MemoryKind::HUGE:
@@ -149,7 +149,7 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
             HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory. Error: {}",
                                   align / 1e6,
                                   err_str);
-            return AdvNetStatus::NULL_PTR;
+            return Status::NULL_PTR;
           }
 
           ptr = reinterpret_cast<void*>(cuptr);
@@ -158,20 +158,20 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
               cuPointerSetAttribute(&flag, CU_POINTER_ATTRIBUTE_SYNC_MEMOPS, cuptr);
           if (attr_res != CUDA_SUCCESS) {
             HOLOSCAN_LOG_CRITICAL("Could not set pointer attributes");
-            return AdvNetStatus::NULL_PTR;
+            return Status::NULL_PTR;
           }
           break;
         }
         default:
           HOLOSCAN_LOG_ERROR("Unknown memory type {}!", static_cast<int>(mr.second.kind_));
-          return AdvNetStatus::INVALID_PARAMETER;
+          return Status::INVALID_PARAMETER;
       }
 
       if (ptr == nullptr) {
         HOLOSCAN_LOG_CRITICAL("Fatal to allocate {} of type {} for MR",
                               mr.second.ttl_size_,
                               static_cast<int>(mr.second.kind_));
-        return AdvNetStatus::NULL_PTR;
+        return Status::NULL_PTR;
       }
     }
 
@@ -189,10 +189,10 @@ AdvNetStatus ANOMgr::allocate_memory_regions() {
   }
 #endif
   HOLOSCAN_LOG_INFO("Finished allocating memory regions");
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-bool ANOMgr::validate_config() const {
+bool Manager::validate_config() const {
   bool pass = true;
   std::set<std::string> mr_names;
   std::set<std::string> q_mr_names;
@@ -228,7 +228,7 @@ bool ANOMgr::validate_config() const {
   return pass;
 }
 
-void ANOMgr::init_rx_core_q_map() {
+void Manager::init_rx_core_q_map() {
   for (const auto& intf : cfg_.ifs_) {
     for (const auto& q : intf.rx_.queues_) {
       int cpu_core = strtol(q.common_.cpu_core_.c_str(), nullptr, 10);
