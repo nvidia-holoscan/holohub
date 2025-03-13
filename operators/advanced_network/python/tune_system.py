@@ -521,11 +521,15 @@ def check_topology_connections():
             return
 
         # Extract labels (e.g., GPU0, NIC0, etc.)
-        labels = topo_output[header_index].split()
+        header = topo_output[header_index].strip()
+        labels = []
+        for label in header.split():
+            if label.startswith("GPU") or label.startswith("NIC"):
+                labels.append(label)
 
         # Parse the topology table rows
         gpu_to_nic_connections = {}
-        for row in topo_output[header_index + 1 :]:
+        for row_idx, row in enumerate(topo_output[header_index + 1:]):
             row = row.strip()
             if not row:
                 continue  # Skip empty lines
@@ -536,28 +540,30 @@ def check_topology_connections():
 
             # Check connections for GPUs only
             if "GPU" in device_label:
-                for col_index, connection_type in enumerate(columns[1:], start=1):
-                    target_label = labels[col_index]
+                # We need to align the columns with the labels
+                # The first column after the device label corresponds to the first label
+                for label_idx, label in enumerate(labels):
+                    if "NIC" in label:
+                        # label_idx + 1 because columns[0] is the device label
+                        connection_type = columns[label_idx + 1]
 
-                    # Check if it's a GPU-NIC pair
-                    if "NIC" in target_label:
                         if device_label not in gpu_to_nic_connections:
                             gpu_to_nic_connections[device_label] = []
-                        gpu_to_nic_connections[device_label].append((target_label, connection_type))
+                        gpu_to_nic_connections[device_label].append((label, connection_type))
 
         # Verify that each GPU has at least one PIX or PXB connection to a NIC
         for gpu, connections in gpu_to_nic_connections.items():
             has_valid_connection = False
             for nic, connection_type in connections:
                 if connection_type in {"PIX", "PXB"}:
-                    logging.info(f"GPU {gpu} has at least one PIX/PXB connection to a NIC")
+                    logging.info(f"{gpu} has a {connection_type} connection to {nic}")
                     has_valid_connection = True
                     break
 
             if not has_valid_connection:
                 for nic, connection_type in connections:
-                    logging.error(
-                        f"GPU {gpu} does not have a PIX or PXB connection to NIC {nic}. "
+                    logging.warning(
+                        f"{gpu} does not have a PIX or PXB connection to {nic}. "
                         f"Current connection type: {connection_type}."
                     )
 
