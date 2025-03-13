@@ -1,4 +1,4 @@
-# Real-Time AI Surgical Video Processing Workflow
+# Real-Time End-to-end AI Surgical Video Processing
 
 ![Overall Diagram](images/RAISVP_overall_diagram.png)
 *Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video processing.*
