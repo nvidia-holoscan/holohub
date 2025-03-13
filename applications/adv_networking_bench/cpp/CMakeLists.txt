@@ -38,7 +38,8 @@ add_executable(adv_networking_bench
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network
+  holoscan::ops::advanced_network_rx
+  holoscan::ops::advanced_network_tx
   matx::matx
 )
 

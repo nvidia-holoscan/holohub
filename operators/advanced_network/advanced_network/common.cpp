@@ -299,7 +299,7 @@ AdvNetStatus adv_net_init(AdvNetConfigYaml &config) {
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
-    auto port_opt = impl->mgr->get_port_from_ifname(intf.address_);
+    auto port_opt = mgr->get_port_from_ifname(intf.address_);
     if (!port_opt.has_value()) {
       HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
       return -1;
