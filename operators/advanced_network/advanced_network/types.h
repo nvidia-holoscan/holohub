@@ -41,6 +41,7 @@ static inline constexpr uint32_t MAX_NUM_RX_QUEUES = 32;
 static inline constexpr uint32_t MAX_NUM_TX_QUEUES = 32;
 static inline constexpr uint32_t MAX_INTERFACES = 4;
 
+
 /**
  * @brief Header of AdvNetBurstParams
  *

@@ -129,14 +129,17 @@ bool DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
 
     // Start Initialize in a separate thread so it doesn't set the affinity for the
     // whole application
-    std::thread t(&DpdkMgr::initialize, this);
-    t.join();
+    std::thread proc_thread(&DpdkMgr::initialize, this);
+    proc_thread.join();
 
     // Our thread should have set the flag if it succeeded
     if (!this->initialized_) {
       HOLOSCAN_LOG_CRITICAL("Failed to initialize DPDK");
       return false;
     }
+
+    stats_.Init(cfg_);
+    stats_thread_ = std::thread(&AdvNetworkDpdkStats::Run, &stats_);
 
     if (!validate_config()) {
       HOLOSCAN_LOG_CRITICAL("Config validation failed");
@@ -871,7 +874,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_meta = rte_mempool_create("RX_META_POOL",
-                               (1U << 6) - 1U,
+                               (1U << 8) - 1U,
                                sizeof(AdvNetBurstParams),
                                0,
                                0,
@@ -927,7 +930,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 
   HOLOSCAN_LOG_DEBUG("Setting up TX meta pool");
   tx_meta = rte_mempool_create("TX_META_POOL",
-                               (1U << 6) - 1U,
+                               (1U << 8) - 1U,
                                sizeof(AdvNetBurstParams),
                                0,
                                0,
@@ -1874,11 +1877,17 @@ void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
 }
 
 void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
-  rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
-  rte_mempool_put(rx_meta, burst);
+  if (burst->pkt_extra_info != nullptr) {
+    rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(rx_burst_buffer, (void*)burst->pkts[seg]);
   }
+
+  burst->hdr.hdr.num_pkts = 0;
+  burst->pkt_extra_info = nullptr;
+  rte_mempool_put(rx_meta, burst);
 }
 
 void DpdkMgr::free_tx_burst(AdvNetBurstParams* burst) {
@@ -1888,6 +1897,9 @@ void DpdkMgr::free_tx_burst(AdvNetBurstParams* burst) {
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(burst_pool->second, (void*)burst->pkts[seg]);
   }
+
+  burst->hdr.hdr.num_pkts = 0;
+  rte_mempool_put(tx_meta, burst);
 }
 
 std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
@@ -1946,6 +1958,7 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
 
 void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
+
   if (--num_init == 0) {
     int portid;
     RTE_ETH_FOREACH_DEV(portid) {
@@ -1954,6 +1967,9 @@ void DpdkMgr::shutdown() {
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
     force_quit.store(true);
+
+    stats_.Shutdown();
+    stats_thread_.join();
   }
 }
 
@@ -1968,8 +1984,13 @@ uint64_t DpdkMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
   return 0;
 }
 
-AdvNetBurstParams* DpdkMgr::create_burst_params() {
-  return new AdvNetBurstParams();
+AdvNetBurstParams* DpdkMgr::create_tx_burst_params() {
+  AdvNetBurstParams* burst = nullptr;
+  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(&burst)) != 0) {
+    HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
+    return nullptr;
+  }
+  return burst;
 }
 
 };  // namespace holoscan::ops

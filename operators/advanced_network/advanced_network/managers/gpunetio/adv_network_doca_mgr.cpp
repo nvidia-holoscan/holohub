@@ -1759,10 +1759,11 @@ void DocaMgr::free_tx_meta(AdvNetBurstParams* burst) {
   rte_mempool_put(tx_meta, burst);
 }
 
-AdvNetBurstParams* DocaMgr::create_burst_params() {
+AdvNetBurstParams* DocaMgr::create_tx_burst_params() {
   auto burst_idx = burst_tx_idx.fetch_add(1);
   HOLOSCAN_LOG_DEBUG(
-      "create_burst_params burst_idx {} MAX_TX_BURST {}", burst_idx % MAX_TX_BURST, MAX_TX_BURST);
+      "create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
+        burst_idx % MAX_TX_BURST, MAX_TX_BURST);
   return &(burst[burst_idx % MAX_TX_BURST]);
 }
 

@@ -18,7 +18,7 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp)
+target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp)
 
 pkg_check_modules(DPDK QUIET libdpdk)
 

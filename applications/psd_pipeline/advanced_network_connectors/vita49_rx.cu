@@ -183,7 +183,7 @@ std::vector<Vita49ConnectorOpRx::RxMsg> Vita49ConnectorOpRx::free_bufs(
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_pkts_and_burst(first.msg[m]);
+        adv_net_free_all_pkts_and_burst_rx(first.msg[m]);
       }
       channel->out_q.pop();
     } else {
@@ -281,7 +281,7 @@ void Vita49ConnectorOpRx::compute(
       channel->context_received = true;
       // TODO: when context changes, we should flush data
     }
-    adv_net_free_all_pkts_and_burst(burst);
+    adv_net_free_all_pkts_and_burst_rx(burst);
     return;
   }
 
@@ -299,7 +299,7 @@ void Vita49ConnectorOpRx::process_channel_data(
   if (!channel->context_received) {
     HOLOSCAN_LOG_INFO("Waiting to process channel {} data until context is received",
                       channel->channel_num);
-    adv_net_free_all_pkts_and_burst(burst);
+    adv_net_free_all_pkts_and_burst_rx(burst);
     return;
   }
 
