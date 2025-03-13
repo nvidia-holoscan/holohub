@@ -33,7 +33,7 @@
 
 using namespace std::chrono;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 std::atomic<bool> force_quit = false;
 
@@ -1993,4 +1993,4 @@ AdvNetBurstParams* DpdkMgr::create_tx_burst_params() {
   return burst;
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

@@ -90,7 +90,7 @@ void AdvConnectorOpTx::populate_dummy_headers(UDPIPV4Pkt& pkt) {
 
 void AdvConnectorOpTx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpTx::initialize()");
-  register_converter<holoscan::ops::AdvNetConfigYaml>();
+  register_converter<holoscan::advanced_network::AdvNetConfigYaml>();
   holoscan::Operator::initialize();
 
   // Read some parameters from config

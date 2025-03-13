@@ -28,7 +28,7 @@
 
 using namespace std::chrono;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
                          struct doca_flow_port* df_port_, uint16_t qid_, int max_pkt_num_,
@@ -523,4 +523,4 @@ DocaTxQueue::~DocaTxQueue() {
   HOLOSCAN_LOG_INFO("DocaTxQueue destroyed\n");
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

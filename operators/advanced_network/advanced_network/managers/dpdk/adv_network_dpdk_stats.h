@@ -22,6 +22,8 @@
 #include <vector>
 #include <array>
 
+namespace holoscan::advanced_network {
+
 class AdvNetworkDpdkStats {
  public:
     AdvNetworkDpdkStats() = default;
@@ -43,7 +45,7 @@ class AdvNetworkDpdkStats {
       force_quit_.store(true);
     }
 
-    void Init(const holoscan::ops::AdvNetConfigYaml &cfg);
+    void Init(const AdvNetConfigYaml &cfg);
     void Shutdown();
 
  private:
@@ -66,7 +68,7 @@ class AdvNetworkDpdkStats {
       }
     };
 
-    holoscan::ops::AdvNetConfigYaml cfg_;
+    AdvNetConfigYaml cfg_;
     bool init_ = false;
     int core_;
     std::unordered_map<int, PortXStats> xstats_;  // Map from port_id to xstats
@@ -77,3 +79,5 @@ class AdvNetworkDpdkStats {
     // Key: (port_id << 16) | queue_id, Value: comma-separated list of memory region names
     std::unordered_map<uint32_t, std::string> port_queue_memory_regions_;
 };
+
+}  // namespace holoscan::advanced_network

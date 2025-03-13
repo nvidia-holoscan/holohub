@@ -18,7 +18,7 @@
 #include "swap.h"
 #include "swap.cuh"
 
-using in_t = holoscan::ops::AdvNetBurstParams*;
+using in_t = holoscan::advanced_network::AdvNetBurstParams*;
 using out_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 
 constexpr uint32_t CONTEXT_QUEUE_ID = 0;

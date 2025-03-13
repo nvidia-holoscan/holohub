@@ -33,14 +33,14 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     HOLOSCAN_LOG_INFO("Initializing advanced network operator");
-    const auto [rx_en, tx_en] = holoscan::ops::adv_net_get_rx_tx_cfg_en(config());
-    const auto mgr_type = holoscan::ops::adv_net_get_manager_type(config());
-    auto output_rx_ports = holoscan::ops::adv_net_get_port_names(config(), "rx");
+    const auto [rx_en, tx_en] = holoscan::advanced_network::adv_net_get_rx_tx_cfg_en(config());
+    const auto mgr_type = holoscan::advanced_network::adv_net_get_manager_type(config());
+    auto output_rx_ports = holoscan::advanced_network::adv_net_get_port_names(config(), "rx");
 
-    HOLOSCAN_LOG_INFO("Using ANO manager {}", holoscan::ops::manager_type_to_string(mgr_type));
+    HOLOSCAN_LOG_INFO("Using ANO manager {}", holoscan::advanced_network::manager_type_to_string(mgr_type));
 
     // DPDK is the default manager backend
-    if (mgr_type == holoscan::ops::AnoMgrType::DPDK) {
+    if (mgr_type == holoscan::advanced_network::AnoMgrType::DPDK) {
 #if ANO_MGR_DPDK
       if (rx_en) {
         auto adv_net_rx =
@@ -65,7 +65,7 @@ class App : public holoscan::Application {
       exit(1);
 #endif
 
-    } else if (mgr_type == holoscan::ops::AnoMgrType::DOCA) {
+    } else if (mgr_type == holoscan::advanced_network::AnoMgrType::DOCA) {
 #if ANO_MGR_GPUNETIO
       if (rx_en) {
         auto bench_rx =
@@ -89,10 +89,10 @@ class App : public holoscan::Application {
       HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
       exit(1);
 #endif
-    } else if (mgr_type == holoscan::ops::AnoMgrType::RIVERMAX) {
+    } else if (mgr_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
 #if ANO_MGR_RIVERMAX
       if (rx_en) {
-        auto adv_net_rx = make_operator<holoscan::ops::AdvNetworkOpRx>(
+        auto adv_net_rx = make_operator<ops::AdvNetworkOpRx>(
             "adv_network_rx",
             output_rx_ports,
             from_config("advanced_network"),
@@ -136,6 +136,6 @@ int main(int argc, char** argv) {
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
-  holoscan::ops::adv_net_shutdown();
+  holoscan::advanced_network::adv_net_shutdown();
   return 0;
 }

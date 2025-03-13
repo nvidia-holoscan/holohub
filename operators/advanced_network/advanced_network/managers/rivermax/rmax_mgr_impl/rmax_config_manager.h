@@ -28,7 +28,7 @@
 #include "rmax_ano_data_types.h"
 #include "rmax_ipo_receiver_service.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 using namespace ral::services::rmax_ipo_receiver;
 
@@ -610,6 +610,6 @@ class RmaxConfigParser {
   static AdvNetStatus parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
 };
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::advanced_network
 
 #endif  // RMAX_CONFIG_MANAGER_H_

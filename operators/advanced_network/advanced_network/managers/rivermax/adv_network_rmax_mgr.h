@@ -22,7 +22,7 @@
 
 #include "advanced_network/manager.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 class RmaxMgr : public ANOMgr {
  public:
@@ -79,4 +79,4 @@ class RmaxMgr : public ANOMgr {
   std::unique_ptr<RmaxMgr::RmaxMgrImpl> pImpl;
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

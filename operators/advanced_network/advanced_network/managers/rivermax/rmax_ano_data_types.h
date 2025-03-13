@@ -20,9 +20,8 @@
 
 #include "advanced_network/types.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
-// using namespace holoscan::ops;
 class RmaxBurst;
 
 class IAnoBurstsCollection {
@@ -243,6 +242,6 @@ class RmaxLogLevel {
   static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_rmax_log_level_map;
 };
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::advanced_network
 
 #endif  // RMAX_ANO_DATA_TYPES_H_

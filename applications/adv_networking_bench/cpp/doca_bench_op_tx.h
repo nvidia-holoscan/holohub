@@ -24,6 +24,9 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 /*

@@ -20,7 +20,9 @@
 #include <thread>
 #include <chrono>
 
-void AdvNetworkDpdkStats::Init(const holoscan::ops::AdvNetConfigYaml &cfg) {
+namespace holoscan::advanced_network {
+
+void AdvNetworkDpdkStats::Init(const AdvNetConfigYaml &cfg) {
   cfg_ = cfg;
   init_ = true;
 
@@ -275,3 +277,5 @@ void AdvNetworkDpdkStats::Run() {
     std::this_thread::sleep_for(std::chrono::milliseconds(POLLING_INTERVAL_MS));
   }
 }
+
+}  // namespace holoscan::advanced_network

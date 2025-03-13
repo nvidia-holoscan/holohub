@@ -36,7 +36,7 @@
 using namespace ral::lib::core;
 using namespace ral::lib::services;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 /**
  * @brief A non-blocking queue implementation.
@@ -536,4 +536,4 @@ RxBurstsManager::~RxBurstsManager() {
   }
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
