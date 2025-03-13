@@ -31,7 +31,9 @@
 			"GPUNetIO",
 			"GPUDirect",
 			"ConnectX",
-			"Networking"
+			"Networking",
+			"NIC",
+			"HPC"
 		],
 		"ranking": 3,
 		"dependencies": {
