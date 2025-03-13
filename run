@@ -969,7 +969,7 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-project_type = "benchmark" if "benchmark" in obj.keys() else "application" if "application" in obj.keys() else "workflow"
+project_type = "benchmark" if "benchmark" in obj.keys() else "workflow" if "workflow" in obj.keys() else "application"
 for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')
