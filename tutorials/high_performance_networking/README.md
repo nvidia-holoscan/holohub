@@ -1,4 +1,4 @@
-## High Performance Networking with Holoscan
+# High Performance Networking with Holoscan
 
 This tutorial demonstrates how to use the advanced networking Holoscan operator (often referred to as ANO or `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the advanced network operator can achieve hundreds of Gbps with latencies in the low microseconds.
 
@@ -1245,14 +1245,14 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
     === "Debian installation"
 
         ```bash
-        sudo /opt/nvidia/holoscan/bin/tune_system.py --check bar1
+        sudo /opt/nvidia/holoscan/bin/tune_system.py --check bar1-size
         ```
 
     === "From source"
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check bar1
+        sudo ./operators/advanced_network/python/tune_system.py --check bar1-size
         ```
 
     ??? abstract "See an example output"
@@ -1488,12 +1488,12 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
     Both located under `/opt/nvidia/holoscan/examples/adv_networking_bench/`:
 
-    ```bash hl_lines="2 4"
+    ```bash hl_lines="2 5"
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench_rmax_rx.yaml
     CMakeLists.txt
@@ -1508,17 +1508,25 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
 === "From source"
 
-    Both located under `install/examples/adv_networking_bench/`
+    Both located under `./install/examples/adv_networking_bench/`
 
-    ```bash hl_lines="2 4"
-    ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
+    ```bash hl_lines="2 5"
+    ls -1 ./install/examples/adv_networking_bench
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench.py
     adv_networking_bench_rmax_rx.yaml
+    CMakeLists.txt
+    default_bench_op_rx.h
+    default_bench_op_tx.h
+    doca_bench_op_rx.h
+    doca_bench_op_tx.h
+    kernels.cu
+    kernels.cuh
+    main.cpp
     ```
 
     !!! warning
@@ -1643,7 +1651,7 @@ bench_tx:
     sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
     ```
 
-The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration fil eto limit the duration of the run automatically.
+The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration file to limit the duration of the run automatically.
 
 ??? abstract "See an example output"
 
