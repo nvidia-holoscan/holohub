@@ -16,8 +16,7 @@
 ---
 v4l2_source:
   device: "/dev/video0"
-  # please consider `pixel_format: "YUYV"` if facing
-  # RuntimeError: Unsupported pixel format NV12
+  pixel_format: "YUYV"    # please update to "auto" if your webcam does not support YUYV
 
 replayer_source:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
