@@ -62,15 +62,15 @@ const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::strin
 /**
  * A map of Ano log level to Rmax log level.
  */
-const std::unordered_map<AnoLogLevel::Level, RmaxLogLevel::Level>
+const std::unordered_map<LogLevel::Level, RmaxLogLevel::Level>
     RmaxLogLevel::ano_to_rmax_log_level_map = {
-        {AnoLogLevel::TRACE, TRACE},
-        {AnoLogLevel::DEBUG, DEBUG},
-        {AnoLogLevel::INFO, INFO},
-        {AnoLogLevel::WARN, WARN},
-        {AnoLogLevel::ERROR, ERROR},
-        {AnoLogLevel::CRITICAL, CRITICAL},
-        {AnoLogLevel::OFF, OFF},
+        {LogLevel::TRACE, TRACE},
+        {LogLevel::DEBUG, DEBUG},
+        {LogLevel::INFO, INFO},
+        {LogLevel::WARN, WARN},
+        {LogLevel::ERROR, ERROR},
+        {LogLevel::CRITICAL, CRITICAL},
+        {LogLevel::OFF, OFF},
 };
 
 /**
@@ -84,45 +84,44 @@ class RmaxMgr::RmaxMgrImpl {
   RmaxMgrImpl() = default;
   ~RmaxMgrImpl();
 
-  bool set_config_and_initialize(const AdvNetConfigYaml& cfg);
+  bool set_config_and_initialize(const NetworkConfig& cfg);
   void initialize();
   void run();
 
-  void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx);
-  void* get_pkt_ptr(AdvNetBurstParams* burst, int idx);
-  uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx);
-  uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx);
-  void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx);
-  AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst);
-  AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr);
-  AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
-                            unsigned int src_host, unsigned int dst_host);
-  AdvNetStatus set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                           uint16_t dst_port);
-  AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len);
-  bool tx_burst_available(AdvNetBurstParams* burst);
+  void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx);
+  void* get_packet_ptr(BurstParams* burst, int idx);
+  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
+  uint16_t get_packet_length(BurstParams* burst, int idx);
+  void* get_packet_extra_info(BurstParams* burst, int idx);
+  Status get_tx_packet_burst(BurstParams* burst);
+  Status set_eth_header(BurstParams* burst, int idx, char* dst_addr);
+  Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
+                         unsigned int src_host, unsigned int dst_host);
+  Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                        uint16_t dst_port);
+  Status set_udp_payload(BurstParams* burst, int idx, void* data, int len);
+  bool is_tx_burst_available(BurstParams* burst);
 
-  AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
-                            const std::initializer_list<int>& lens);
-  void free_all_seg_pkts(AdvNetBurstParams* burst, int seg);
-  void free_all_pkts(AdvNetBurstParams* burst);
-  void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt);
-  void free_pkt(AdvNetBurstParams* burst, int pkt);
-  void free_rx_burst(AdvNetBurstParams* burst);
-  void free_tx_burst(AdvNetBurstParams* burst);
+  Status set_packet_lengths(BurstParams* burst, int idx, const std::initializer_list<int>& lens);
+  void free_all_segment_packets(BurstParams* burst, int seg);
+  void free_all_packets(BurstParams* burst);
+  void free_packet_segment(BurstParams* burst, int seg, int pkt);
+  void free_packet(BurstParams* burst, int pkt);
+  void free_rx_burst(BurstParams* burst);
+  void free_tx_burst(BurstParams* burst);
   void format_eth_addr(char* dst, std::string addr);
   std::optional<uint16_t> get_port_from_ifname(const std::string& name);
-  AdvNetStatus get_rx_burst(AdvNetBurstParams** burst);
-  AdvNetStatus set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp);
-  void free_rx_meta(AdvNetBurstParams* burst);
-  void free_tx_meta(AdvNetBurstParams* burst);
-  AdvNetStatus get_tx_meta_buf(AdvNetBurstParams** burst);
-  AdvNetStatus send_tx_burst(AdvNetBurstParams* burst);
+  Status get_rx_burst(BurstParams** burst);
+  Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
+  void free_rx_metadata(BurstParams* burst);
+  void free_tx_metadata(BurstParams* burst);
+  Status get_tx_metadata_buffer(BurstParams** burst);
+  Status send_tx_burst(BurstParams* burst);
   void shutdown();
   void print_stats();
-  uint64_t get_burst_tot_byte(AdvNetBurstParams* burst);
-  AdvNetBurstParams* create_tx_burst_params();
-  AdvNetStatus get_mac(int port, char* mac);
+  uint64_t get_burst_tot_byte(BurstParams* burst);
+  BurstParams* create_tx_burst_params();
+  Status get_mac_addr(int port, char* mac);
   int address_to_port(const std::string& addr);
 
  private:
@@ -134,7 +133,7 @@ class RmaxMgr::RmaxMgrImpl {
  private:
   static constexpr int DEFAULT_NUM_RX_BURST = 64;
 
-  AdvNetConfigYaml cfg_;
+  NetworkConfig cfg_;
   std::unordered_map<uint32_t,
                      std::unique_ptr<ral::services::rmax_ipo_receiver::RmaxIPOReceiverService>>
       rx_services;
@@ -159,7 +158,7 @@ std::atomic<bool> force_quit = false;
  * @param cfg The configuration YAML.
  * @return True if the initialization was successful, false otherwise.
  */
-bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
   if (!this->initialized_) {
     cfg_ = cfg;
 
@@ -196,12 +195,13 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
     HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
     return;
   }
-  HOLOSCAN_LOG_INFO(
-      "Setting Rivermax Log Level to: {}",
-      holoscan::advanced_network::RmaxLogLevel::to_description_string(config_manager.get_rmax_log_level()));
-  rivermax_setparam("RIVERMAX_LOG_LEVEL",
-                    holoscan::advanced_network::RmaxLogLevel::to_cmd_string(config_manager.get_rmax_log_level()),
-                    true);
+  HOLOSCAN_LOG_INFO("Setting Rivermax Log Level to: {}",
+                    holoscan::advanced_network::RmaxLogLevel::to_description_string(
+                        config_manager.get_rmax_log_level()));
+  rivermax_setparam(
+      "RIVERMAX_LOG_LEVEL",
+      holoscan::advanced_network::RmaxLogLevel::to_cmd_string(config_manager.get_rmax_log_level()),
+      true);
 
   auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
       config_manager.get_config_manager(RmaxConfigContainer::ConfigType::RX));
@@ -386,7 +386,7 @@ void RmaxMgr::RmaxMgrImpl::flush_packets(int port) {
  * @param idx The packet index within the segment.
  * @return Pointer to the packet.
  */
-void* RmaxMgr::RmaxMgrImpl::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
+void* RmaxMgr::RmaxMgrImpl::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   return burst->pkts[seg][idx];
 }
 
@@ -397,7 +397,7 @@ void* RmaxMgr::RmaxMgrImpl::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, i
  * @param idx The packet index.
  * @return Pointer to the packet.
  */
-void* RmaxMgr::RmaxMgrImpl::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
+void* RmaxMgr::RmaxMgrImpl::get_packet_ptr(BurstParams* burst, int idx) {
   return burst->pkts[0][idx];
 }
 
@@ -409,7 +409,7 @@ void* RmaxMgr::RmaxMgrImpl::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
  * @param idx The packet index within the segment.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::RmaxMgrImpl::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
+uint16_t RmaxMgr::RmaxMgrImpl::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return burst->pkt_lens[seg][idx];
 }
 
@@ -420,7 +420,7 @@ uint16_t RmaxMgr::RmaxMgrImpl::get_seg_pkt_len(AdvNetBurstParams* burst, int seg
  * @param idx The packet index.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::RmaxMgrImpl::get_pkt_len(AdvNetBurstParams* burst, int idx) {
+uint16_t RmaxMgr::RmaxMgrImpl::get_packet_length(BurstParams* burst, int idx) {
   return burst->pkt_lens[0][idx];
 }
 
@@ -431,7 +431,7 @@ uint16_t RmaxMgr::RmaxMgrImpl::get_pkt_len(AdvNetBurstParams* burst, int idx) {
  * @param idx The packet index.
  * @return Pointer to the extra information.
  */
-void* RmaxMgr::RmaxMgrImpl::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+void* RmaxMgr::RmaxMgrImpl::get_packet_extra_info(BurstParams* burst, int idx) {
   RmaxBurst* rmax_burst = static_cast<RmaxBurst*>(burst);
   if (rmax_burst->is_packet_info_per_packet()) return burst->pkt_extra_info[idx];
   return nullptr;
@@ -443,21 +443,20 @@ void* RmaxMgr::RmaxMgrImpl::get_pkt_extra_info(AdvNetBurstParams* burst, int idx
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param timestamp The transmission timestamp.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_pkt_tx_time(AdvNetBurstParams* burst, int idx,
-                                                   uint64_t timestamp) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
+  return Status::SUCCESS;
 }
 
 /**
  * @brief Gets a burst of TX packets.
  *
  * @param burst The burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::get_tx_pkt_burst(AdvNetBurstParams* burst) {
-  return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+Status RmaxMgr::RmaxMgrImpl::get_tx_packet_burst(BurstParams* burst) {
+  return Status::NO_FREE_BURST_BUFFERS;
 }
 
 /**
@@ -466,10 +465,10 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::get_tx_pkt_burst(AdvNetBurstParams* burst) {
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param dst_addr The destination address.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
+  return Status::SUCCESS;
 }
 
 /**
@@ -481,12 +480,11 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::set_eth_hdr(AdvNetBurstParams* burst, int idx
  * @param proto The protocol.
  * @param src_host The source host address.
  * @param dst_host The destination host address.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len,
-                                                uint8_t proto, unsigned int src_host,
-                                                unsigned int dst_host) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
+                                             unsigned int src_host, unsigned int dst_host) {
+  return Status::SUCCESS;
 }
 
 /**
@@ -497,11 +495,11 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::set_ipv4_hdr(AdvNetBurstParams* burst, int id
  * @param udp_len The length of the UDP packet.
  * @param src_port The source port.
  * @param dst_port The destination port.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len,
-                                               uint16_t src_port, uint16_t dst_port) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::set_udp_header(BurstParams* burst, int idx, int udp_len,
+                                            uint16_t src_port, uint16_t dst_port) {
+  return Status::SUCCESS;
 }
 
 /**
@@ -511,11 +509,10 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::set_udp_hdr(AdvNetBurstParams* burst, int idx
  * @param idx The packet index.
  * @param data The payload data.
  * @param len The length of the payload data.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_udp_payload(AdvNetBurstParams* burst, int idx, void* data,
-                                                   int len) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::set_udp_payload(BurstParams* burst, int idx, void* data, int len) {
+  return Status::SUCCESS;
 }
 
 /**
@@ -524,7 +521,7 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::set_udp_payload(AdvNetBurstParams* burst, int
  * @param burst The burst parameters.
  * @return True if a TX burst is available, false otherwise.
  */
-bool RmaxMgr::RmaxMgrImpl::tx_burst_available(AdvNetBurstParams* burst) {
+bool RmaxMgr::RmaxMgrImpl::is_tx_burst_available(BurstParams* burst) {
   return false;
 }
 
@@ -534,11 +531,11 @@ bool RmaxMgr::RmaxMgrImpl::tx_burst_available(AdvNetBurstParams* burst) {
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param lens The list of lengths.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::set_pkt_lens(AdvNetBurstParams* burst, int idx,
+Status RmaxMgr::RmaxMgrImpl::set_packet_lengths(BurstParams* burst, int idx,
                                                 const std::initializer_list<int>& lens) {
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 /**
@@ -547,14 +544,14 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::set_pkt_lens(AdvNetBurstParams* burst, int id
  * @param burst The burst parameters.
  * @param seg The segment index.
  */
-void RmaxMgr::RmaxMgrImpl::free_all_seg_pkts(AdvNetBurstParams* burst, int seg) {}
+void RmaxMgr::RmaxMgrImpl::free_all_segment_packets(BurstParams* burst, int seg) {}
 
 /**
  * @brief Frees all packets.
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::RmaxMgrImpl::free_all_pkts(AdvNetBurstParams* burst) {}
+void RmaxMgr::RmaxMgrImpl::free_all_packets(BurstParams* burst) {}
 
 /**
  * @brief Frees a specific packet in a segment.
@@ -563,7 +560,7 @@ void RmaxMgr::RmaxMgrImpl::free_all_pkts(AdvNetBurstParams* burst) {}
  * @param seg The segment index.
  * @param pkt The packet index within the segment.
  */
-void RmaxMgr::RmaxMgrImpl::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {}
+void RmaxMgr::RmaxMgrImpl::free_packet_segment(BurstParams* burst, int seg, int pkt) {}
 
 /**
  * @brief Frees a specific packet.
@@ -571,14 +568,14 @@ void RmaxMgr::RmaxMgrImpl::free_pkt_seg(AdvNetBurstParams* burst, int seg, int p
  * @param burst The burst parameters.
  * @param pkt The packet index.
  */
-void RmaxMgr::RmaxMgrImpl::free_pkt(AdvNetBurstParams* burst, int pkt) {}
+void RmaxMgr::RmaxMgrImpl::free_packet(BurstParams* burst, int pkt) {}
 
 /**
  * @brief Frees the RX burst.
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::RmaxMgrImpl::free_rx_burst(AdvNetBurstParams* burst) {
+void RmaxMgr::RmaxMgrImpl::free_rx_burst(BurstParams* burst) {
   uint32_t key =
       RmaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
 
@@ -604,7 +601,7 @@ void RmaxMgr::RmaxMgrImpl::free_rx_burst(AdvNetBurstParams* burst) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::RmaxMgrImpl::free_tx_burst(AdvNetBurstParams* burst) {}
+void RmaxMgr::RmaxMgrImpl::free_tx_burst(BurstParams* burst) {}
 
 /**
  * @brief Gets the port number from an interface name.
@@ -627,13 +624,13 @@ std::optional<uint16_t> RmaxMgr::RmaxMgrImpl::get_port_from_ifname(const std::st
  * @brief Dequeues an RX burst.
  *
  * @param burst Pointer to the burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::get_rx_burst(AdvNetBurstParams** burst) {
+Status RmaxMgr::RmaxMgrImpl::get_rx_burst(BurstParams** burst) {
   auto out_burst = rx_bursts_out_queue->dequeue_burst().get();
-  *burst = static_cast<AdvNetBurstParams*>(out_burst);
-  if (*burst == nullptr) { return AdvNetStatus::NOT_READY; }
-  return AdvNetStatus::SUCCESS;
+  *burst = static_cast<BurstParams*>(out_burst);
+  if (*burst == nullptr) { return Status::NOT_READY; }
+  return Status::SUCCESS;
 }
 
 /**
@@ -641,33 +638,33 @@ AdvNetStatus RmaxMgr::RmaxMgrImpl::get_rx_burst(AdvNetBurstParams** burst) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::RmaxMgrImpl::free_rx_meta(AdvNetBurstParams* burst) {}
+void RmaxMgr::RmaxMgrImpl::free_rx_metadata(BurstParams* burst) {}
 
 /**
  * @brief Frees the TX metadata.
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::RmaxMgrImpl::free_tx_meta(AdvNetBurstParams* burst) {}
+void RmaxMgr::RmaxMgrImpl::free_tx_metadata(BurstParams* burst) {}
 
 /**
  * @brief Gets the TX metadata buffer.
  *
  * @param burst Pointer to the burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::get_tx_meta_buf(AdvNetBurstParams** burst) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::get_tx_metadata_buffer(BurstParams** burst) {
+  return Status::SUCCESS;
 }
 
 /**
  * @brief Sends a TX burst.
  *
  * @param burst The burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::send_tx_burst(AdvNetBurstParams* burst) {
-  return AdvNetStatus::SUCCESS;
+Status RmaxMgr::RmaxMgrImpl::send_tx_burst(BurstParams* burst) {
+  return Status::SUCCESS;
 }
 
 /**
@@ -696,7 +693,7 @@ void RmaxMgr::RmaxMgrImpl::print_stats() {
  * @param burst The burst parameters.
  * @return Total byte count of the burst.
  */
-uint64_t RmaxMgr::RmaxMgrImpl::get_burst_tot_byte(AdvNetBurstParams* burst) {
+uint64_t RmaxMgr::RmaxMgrImpl::get_burst_tot_byte(BurstParams* burst) {
   return 0;
 }
 
@@ -705,8 +702,8 @@ uint64_t RmaxMgr::RmaxMgrImpl::get_burst_tot_byte(AdvNetBurstParams* burst) {
  *
  * @return Pointer to the created burst parameters.
  */
-AdvNetBurstParams* RmaxMgr::RmaxMgrImpl::create_tx_burst_params() {
-  return new AdvNetBurstParams();
+BurstParams* RmaxMgr::RmaxMgrImpl::create_tx_burst_params() {
+  return new BurstParams();
 }
 
 /**
@@ -714,10 +711,10 @@ AdvNetBurstParams* RmaxMgr::RmaxMgrImpl::create_tx_burst_params() {
  *
  * @param port The port number.
  * @param mac Pointer to the MAC address buffer.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::RmaxMgrImpl::get_mac(int port, char* mac) {
-  return AdvNetStatus::NOT_SUPPORTED;
+Status RmaxMgr::RmaxMgrImpl::get_mac_addr(int port, char* mac) {
+  return Status::NOT_SUPPORTED;
 }
 
 /**
@@ -751,7 +748,7 @@ RmaxMgr::~RmaxMgr() = default;
  * @param cfg The configuration YAML.
  * @return True if the initialization was successful, false otherwise.
  */
-bool RmaxMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+bool RmaxMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   bool res = true;
   if (!this->initialized_) {
     res = pImpl->set_config_and_initialize(cfg);
@@ -782,9 +779,9 @@ void RmaxMgr::run() {
  *
  * @param q_item The YAML node containing the RX queue configuration.
  * @param q The RxQueueConfig structure to be populated.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q) {
+Status RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q) {
   return RmaxConfigParser::parse_rx_queue_rivermax_config(q_item, q);
 }
 
@@ -793,9 +790,9 @@ AdvNetStatus RmaxMgr::parse_rx_queue_rivermax_config(const YAML::Node& q_item, R
  *
  * @param q_item The YAML node containing the queue item.
  * @param q The TX queue configuration to be populated.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q) {
+Status RmaxMgr::parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q) {
   return RmaxConfigParser::parse_tx_queue_rivermax_config(q_item, q);
 }
 
@@ -807,8 +804,8 @@ AdvNetStatus RmaxMgr::parse_tx_queue_rivermax_config(const YAML::Node& q_item, T
  * @param idx The packet index within the segment.
  * @return Pointer to the packet.
  */
-void* RmaxMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
-  return pImpl->get_seg_pkt_ptr(burst, seg, idx);
+void* RmaxMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
+  return pImpl->get_segment_packet_ptr(burst, seg, idx);
 }
 
 /**
@@ -818,8 +815,8 @@ void* RmaxMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
  * @param idx The packet index.
  * @return Pointer to the packet.
  */
-void* RmaxMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
-  return pImpl->get_pkt_ptr(burst, idx);
+void* RmaxMgr::get_packet_ptr(BurstParams* burst, int idx) {
+  return pImpl->get_packet_ptr(burst, idx);
 }
 
 /**
@@ -830,8 +827,8 @@ void* RmaxMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
  * @param idx The packet index within the segment.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
-  return pImpl->get_seg_pkt_len(burst, seg, idx);
+uint16_t RmaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+  return pImpl->get_segment_packet_length(burst, seg, idx);
 }
 
 /**
@@ -841,8 +838,8 @@ uint16_t RmaxMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
  * @param idx The packet index.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
-  return pImpl->get_pkt_len(burst, idx);
+uint16_t RmaxMgr::get_packet_length(BurstParams* burst, int idx) {
+  return pImpl->get_packet_length(burst, idx);
 }
 
 /**
@@ -852,7 +849,7 @@ uint16_t RmaxMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
  * @param idx The packet index.
  * @return Flow ID of the packet
  */
-uint16_t RmaxMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+uint16_t RmaxMgr::get_packet_flow_id(BurstParams* burst, int idx) {
   return 0;
 }
 
@@ -863,18 +860,18 @@ uint16_t RmaxMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
  * @param idx The packet index.
  * @return Pointer to the extra information.
  */
-void* RmaxMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
-  return pImpl->get_pkt_extra_info(burst, idx);
+void* RmaxMgr::get_packet_extra_info(BurstParams* burst, int idx) {
+  return pImpl->get_packet_extra_info(burst, idx);
 }
 
 /**
  * @brief Gets a burst of TX packets.
  *
  * @param burst The burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
-  return pImpl->get_tx_pkt_burst(burst);
+Status RmaxMgr::get_tx_packet_burst(BurstParams* burst) {
+  return pImpl->get_tx_packet_burst(burst);
 }
 
 /**
@@ -883,10 +880,10 @@ AdvNetStatus RmaxMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param dst_addr The destination address.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) {
-  return pImpl->set_eth_hdr(burst, idx, dst_addr);
+Status RmaxMgr::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
+  return pImpl->set_eth_header(burst, idx, dst_addr);
 }
 
 /**
@@ -898,11 +895,11 @@ AdvNetStatus RmaxMgr::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_a
  * @param proto The protocol.
  * @param src_host The source host address.
  * @param dst_host The destination host address.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                   unsigned int src_host, unsigned int dst_host) {
-  return pImpl->set_ipv4_hdr(burst, idx, ip_len, proto, src_host, dst_host);
+Status RmaxMgr::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
+                                unsigned int src_host, unsigned int dst_host) {
+  return pImpl->set_ipv4_header(burst, idx, ip_len, proto, src_host, dst_host);
 }
 
 /**
@@ -913,11 +910,11 @@ AdvNetStatus RmaxMgr::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len
  * @param udp_len The length of the UDP packet.
  * @param src_port The source port.
  * @param dst_port The destination port.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                                  uint16_t dst_port) {
-  return pImpl->set_udp_hdr(burst, idx, udp_len, src_port, dst_port);
+Status RmaxMgr::set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                               uint16_t dst_port) {
+  return pImpl->set_udp_header(burst, idx, udp_len, src_port, dst_port);
 }
 
 /**
@@ -927,9 +924,9 @@ AdvNetStatus RmaxMgr::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len
  * @param idx The packet index.
  * @param data The payload data.
  * @param len The length of the payload data.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) {
+Status RmaxMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len) {
   return pImpl->set_udp_payload(burst, idx, data, len);
 }
 
@@ -939,8 +936,8 @@ AdvNetStatus RmaxMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* d
  * @param burst The burst parameters.
  * @return True if a TX burst is available, false otherwise.
  */
-bool RmaxMgr::tx_burst_available(AdvNetBurstParams* burst) {
-  return pImpl->tx_burst_available(burst);
+bool RmaxMgr::is_tx_burst_available(BurstParams* burst) {
+  return pImpl->is_tx_burst_available(burst);
 }
 
 /**
@@ -949,11 +946,11 @@ bool RmaxMgr::tx_burst_available(AdvNetBurstParams* burst) {
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param lens The list of lengths.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
+Status RmaxMgr::set_packet_lengths(BurstParams* burst, int idx,
                                    const std::initializer_list<int>& lens) {
-  return pImpl->set_pkt_lens(burst, idx, lens);
+  return pImpl->set_packet_lengths(burst, idx, lens);
 }
 
 /**
@@ -962,8 +959,8 @@ AdvNetStatus RmaxMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
  * @param burst The burst parameters.
  * @param seg The segment index.
  */
-void RmaxMgr::free_all_seg_pkts(AdvNetBurstParams* burst, int seg) {
-  pImpl->free_all_seg_pkts(burst, seg);
+void RmaxMgr::free_all_segment_packets(BurstParams* burst, int seg) {
+  pImpl->free_all_segment_packets(burst, seg);
 }
 
 /**
@@ -971,8 +968,8 @@ void RmaxMgr::free_all_seg_pkts(AdvNetBurstParams* burst, int seg) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::free_all_pkts(AdvNetBurstParams* burst) {
-  pImpl->free_all_pkts(burst);
+void RmaxMgr::free_all_packets(BurstParams* burst) {
+  pImpl->free_all_packets(burst);
 }
 
 /**
@@ -982,8 +979,8 @@ void RmaxMgr::free_all_pkts(AdvNetBurstParams* burst) {
  * @param seg The segment index.
  * @param pkt The packet index within the segment.
  */
-void RmaxMgr::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
-  pImpl->free_pkt_seg(burst, seg, pkt);
+void RmaxMgr::free_packet_segment(BurstParams* burst, int seg, int pkt) {
+  pImpl->free_packet_segment(burst, seg, pkt);
 }
 
 /**
@@ -992,8 +989,8 @@ void RmaxMgr::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
  * @param burst The burst parameters.
  * @param pkt The packet index.
  */
-void RmaxMgr::free_pkt(AdvNetBurstParams* burst, int pkt) {
-  pImpl->free_pkt(burst, pkt);
+void RmaxMgr::free_packet(BurstParams* burst, int pkt) {
+  pImpl->free_packet(burst, pkt);
 }
 
 /**
@@ -1001,7 +998,7 @@ void RmaxMgr::free_pkt(AdvNetBurstParams* burst, int pkt) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::free_rx_burst(AdvNetBurstParams* burst) {
+void RmaxMgr::free_rx_burst(BurstParams* burst) {
   pImpl->free_rx_burst(burst);
 }
 
@@ -1010,7 +1007,7 @@ void RmaxMgr::free_rx_burst(AdvNetBurstParams* burst) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::free_tx_burst(AdvNetBurstParams* burst) {
+void RmaxMgr::free_tx_burst(BurstParams* burst) {
   pImpl->free_tx_burst(burst);
 }
 
@@ -1028,9 +1025,9 @@ std::optional<uint16_t> RmaxMgr::get_port_from_ifname(const std::string& name) {
  * @brief Gets an RX burst.
  *
  * @param burst Pointer to the burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::get_rx_burst(AdvNetBurstParams** burst) {
+Status RmaxMgr::get_rx_burst(BurstParams** burst) {
   return pImpl->get_rx_burst(burst);
 }
 
@@ -1040,10 +1037,10 @@ AdvNetStatus RmaxMgr::get_rx_burst(AdvNetBurstParams** burst) {
  * @param burst The burst parameters.
  * @param idx The packet index.
  * @param timestamp The transmission timestamp.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp) {
-  return pImpl->set_pkt_tx_time(burst, idx, timestamp);
+Status RmaxMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
+  return pImpl->set_packet_tx_time(burst, idx, timestamp);
 }
 
 /**
@@ -1051,8 +1048,8 @@ AdvNetStatus RmaxMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::free_rx_meta(AdvNetBurstParams* burst) {
-  pImpl->free_rx_meta(burst);
+void RmaxMgr::free_rx_metadata(BurstParams* burst) {
+  pImpl->free_rx_metadata(burst);
 }
 
 /**
@@ -1060,27 +1057,27 @@ void RmaxMgr::free_rx_meta(AdvNetBurstParams* burst) {
  *
  * @param burst The burst parameters.
  */
-void RmaxMgr::free_tx_meta(AdvNetBurstParams* burst) {
-  pImpl->free_tx_meta(burst);
+void RmaxMgr::free_tx_metadata(BurstParams* burst) {
+  pImpl->free_tx_metadata(burst);
 }
 
 /**
  * @brief Gets the TX metadata buffer.
  *
  * @param burst Pointer to the burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::get_tx_meta_buf(AdvNetBurstParams** burst) {
-  return pImpl->get_tx_meta_buf(burst);
+Status RmaxMgr::get_tx_metadata_buffer(BurstParams** burst) {
+  return pImpl->get_tx_metadata_buffer(burst);
 }
 
 /**
  * @brief Sends a TX burst.
  *
  * @param burst The burst parameters.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::send_tx_burst(AdvNetBurstParams* burst) {
+Status RmaxMgr::send_tx_burst(BurstParams* burst) {
   return pImpl->send_tx_burst(burst);
 }
 
@@ -1104,7 +1101,7 @@ void RmaxMgr::print_stats() {
  * @param burst The burst parameters.
  * @return Total byte count of the burst.
  */
-uint64_t RmaxMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
+uint64_t RmaxMgr::get_burst_tot_byte(BurstParams* burst) {
   return pImpl->get_burst_tot_byte(burst);
 }
 
@@ -1113,7 +1110,7 @@ uint64_t RmaxMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
  *
  * @return Pointer to the created burst parameters.
  */
-AdvNetBurstParams* RmaxMgr::create_tx_burst_params() {
+BurstParams* RmaxMgr::create_tx_burst_params() {
   return pImpl->create_tx_burst_params();
 }
 
@@ -1122,10 +1119,10 @@ AdvNetBurstParams* RmaxMgr::create_tx_burst_params() {
  *
  * @param port The port number.
  * @param mac Pointer to the MAC address buffer.
- * @return AdvNetStatus indicating the success or failure of the operation.
+ * @return Status indicating the success or failure of the operation.
  */
-AdvNetStatus RmaxMgr::get_mac(int port, char* mac) {
-  return pImpl->get_mac(port, mac);
+Status RmaxMgr::get_mac_addr(int port, char* mac) {
+  return pImpl->get_mac_addr(port, mac);
 }
 
 /**

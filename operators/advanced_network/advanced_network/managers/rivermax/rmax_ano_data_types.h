@@ -225,7 +225,7 @@ class RmaxLogLevel {
    * @param ano_level The Ano log level to convert.
    * @return The corresponding Rmax log level.
    */
-  static Level from_ano_log_level(AnoLogLevel::Level ano_level) {
+  static Level from_ano_log_level(LogLevel::Level ano_level) {
     auto it = ano_to_rmax_log_level_map.find(ano_level);
     if (it != ano_to_rmax_log_level_map.end()) { return it->second; }
     return OFF;
@@ -239,7 +239,7 @@ class RmaxLogLevel {
   /**
    * A map of Ano log level to Rmax log level.
    */
-  static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_rmax_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> ano_to_rmax_log_level_map;
 };
 
 }  // namespace holoscan::advanced_network

@@ -24,11 +24,11 @@
 
 namespace holoscan::advanced_network {
 
-class AdvNetworkDpdkStats {
+class DpdkStats {
  public:
-    AdvNetworkDpdkStats() = default;
+    DpdkStats() = default;
     void Run();
-    ~AdvNetworkDpdkStats() {
+    ~DpdkStats() {
       // Free allocated memory for xstats
       for (auto& [port_id, port_stats] : xstats_) {
         if (port_stats.xstats) {
@@ -45,7 +45,7 @@ class AdvNetworkDpdkStats {
       force_quit_.store(true);
     }
 
-    void Init(const AdvNetConfigYaml &cfg);
+    void Init(const NetworkConfig &cfg);
     void Shutdown();
 
  private:
@@ -68,7 +68,7 @@ class AdvNetworkDpdkStats {
       }
     };
 
-    AdvNetConfigYaml cfg_;
+    NetworkConfig cfg_;
     bool init_ = false;
     int core_;
     std::unordered_map<int, PortXStats> xstats_;  // Map from port_id to xstats

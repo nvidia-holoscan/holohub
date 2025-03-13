@@ -85,15 +85,15 @@ struct RxDocaWorkerParams {
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
-const std::unordered_map<AnoLogLevel::Level, doca_log_level>
+const std::unordered_map<LogLevel::Level, doca_log_level>
     DocaLogLevel::ano_to_doca_log_level_map = {
-        {AnoLogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
-        {AnoLogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
-        {AnoLogLevel::INFO, DOCA_LOG_LEVEL_INFO},
-        {AnoLogLevel::WARN, DOCA_LOG_LEVEL_WARNING},
-        {AnoLogLevel::ERROR, DOCA_LOG_LEVEL_ERROR},
-        {AnoLogLevel::CRITICAL, DOCA_LOG_LEVEL_CRIT},
-        {AnoLogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
+        {LogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
+        {LogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
+        {LogLevel::INFO, DOCA_LOG_LEVEL_INFO},
+        {LogLevel::WARN, DOCA_LOG_LEVEL_WARNING},
+        {LogLevel::ERROR, DOCA_LOG_LEVEL_ERROR},
+        {LogLevel::CRITICAL, DOCA_LOG_LEVEL_CRIT},
+        {LogLevel::OFF, DOCA_LOG_LEVEL_DISABLE},
 };
 
 const std::unordered_map<doca_log_level, std::string>
@@ -403,8 +403,8 @@ struct doca_flow_port* DocaMgr::init_doca_flow(uint16_t port_id, uint8_t rxq_num
 }
 
 int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
-  AdvNetBurstParams* bursts_rx[(1U << 6) - 1U];
-  AdvNetBurstParams* bursts_tx[(1U << 7) - 1U];
+  BurstParams* bursts_rx[(1U << 6) - 1U];
+  BurstParams* bursts_tx[(1U << 7) - 1U];
   int idx = 0;
 
   HOLOSCAN_LOG_DEBUG("Setting up RX ring");
@@ -416,9 +416,9 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
   }
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
-  rx_meta = rte_mempool_create("RX_META_POOL",
+  rx_metadata = rte_mempool_create("RX_META_POOL",
                                (1U << 6) - 1U,
-                               sizeof(AdvNetBurstParams),
+                               sizeof(BurstParams),
                                0,
                                0,
                                nullptr,
@@ -427,18 +427,18 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
                                nullptr,
                                rte_socket_id(),
                                0);
-  if (rx_meta == nullptr) {
+  if (rx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX meta pool!");
     return -1;
   }
 
   while (idx < (1U << 6) - 1U &&
-         rte_mempool_get(rx_meta, reinterpret_cast<void**>(&bursts_rx[idx])) == 0) {
+         rte_mempool_get(rx_metadata, reinterpret_cast<void**>(&bursts_rx[idx])) == 0) {
     bursts_rx[idx]->pkts[0] = (void**)calloc(CUDA_MAX_RX_NUM_PKTS, sizeof(void*));
     idx++;
   }
 
-  rte_mempool_put_bulk(rx_meta, reinterpret_cast<void**>(&bursts_rx), idx);
+  rte_mempool_put_bulk(rx_metadata, reinterpret_cast<void**>(&bursts_rx), idx);
 
   for (const auto& intf : cfg_.ifs_) {
     for (const auto& q : intf.tx_.queues_) {
@@ -457,9 +457,9 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
   }
 
   HOLOSCAN_LOG_INFO("Setting up TX meta pool");
-  tx_meta = rte_mempool_create("TX_META_POOL",
+  tx_metadata = rte_mempool_create("TX_META_POOL",
                                (1U << 7) - 1U,
-                               sizeof(AdvNetBurstParams),
+                               sizeof(BurstParams),
                                0,
                                0,
                                nullptr,
@@ -468,26 +468,26 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
                                nullptr,
                                rte_socket_id(),
                                0);
-  if (tx_meta == nullptr) {
+  if (tx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX meta pool!");
     return -1;
   }
 
   idx = 0;
   while (idx < (1U << 7) - 1U &&
-         rte_mempool_get(tx_meta, reinterpret_cast<void**>(&bursts_tx[idx])) == 0) {
+         rte_mempool_get(tx_metadata, reinterpret_cast<void**>(&bursts_tx[idx])) == 0) {
     bursts_tx[idx]->pkts[0] = (void**)calloc(1, sizeof(void*));
     cudaMallocHost(&bursts_tx[idx]->pkt_lens[0], max_tx_batch * sizeof(uint32_t));
     memset(bursts_tx[idx]->pkt_lens[0], 0, max_tx_batch * sizeof(uint32_t));
     idx++;
   }
 
-  rte_mempool_put_bulk(tx_meta, reinterpret_cast<void**>(&bursts_tx), idx);
+  rte_mempool_put_bulk(tx_metadata, reinterpret_cast<void**>(&bursts_tx), idx);
 
   return 0;
 }
 
-bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+bool DocaMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   if (!this->initialized_) {
     cfg_ = cfg;
     cpu_set_t mask;
@@ -512,7 +512,7 @@ bool DocaMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
 }
 
 bool DocaMgr::validate_config() const {
-  if (!ANOMgr::validate_config()) { return false; }
+  if (!Manager::validate_config()) { return false; }
 
   // Don't allow buffer splitting
   for (const auto& intf : cfg_.ifs_) {
@@ -1093,7 +1093,7 @@ void DocaMgr::run() {
       params_rx = new RxDocaWorkerParams;
 
       params_rx->ring = rx_ring;
-      params_rx->meta_pool = rx_meta;
+      params_rx->meta_pool = rx_metadata;
       params_rx->gpu_id = gpu_idx;  // cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
       params_rx->gdev = gdev[params_rx->gpu_id];
       params_rx->rxqn = 0;
@@ -1128,7 +1128,7 @@ void DocaMgr::run() {
     for (const auto gpu_idx : gpu_mr_devs) {
       params_tx = new TxDocaWorkerParams;
 
-      params_tx->meta_pool = tx_meta;
+      params_tx->meta_pool = tx_metadata;
       params_tx->gpu_id = gpu_idx;  // cfg_.mrs_[tx.queues_[0].common_.mrs_[0]].affinity_;
       params_tx->gdev = gdev[params_tx->gpu_id];
       params_tx->txqn = 0;
@@ -1188,7 +1188,7 @@ int DocaMgr::rx_core(void* arg) {
   uint32_t *cpu_exit_condition, *gpu_exit_condition;
   // int sem_idx[MAX_NUM_RX_QUEUES] = {0};
   struct adv_doca_rx_gpu_info* packets_stats;
-  AdvNetBurstParams* burst;
+  BurstParams* burst;
 #if MPS_ENABLED == 1
   CUdevice cuDevice;
   CUcontext cuContext;
@@ -1463,7 +1463,7 @@ int DocaMgr::tx_core(void* arg) {
   enum doca_gpu_semaphore_status status;
   cudaStream_t tx_stream[MAX_DEFAULT_QUEUES];
   cudaError_t res_cuda = cudaSuccess;
-  AdvNetBurstParams* burst;
+  BurstParams* burst;
   uint64_t cnt_pkts[MAX_DEFAULT_QUEUES] = {0};
   bool set_completion[MAX_DEFAULT_QUEUES] = {false};
 #if MPS_ENABLED == 1
@@ -1579,7 +1579,7 @@ int DocaMgr::tx_core(void* arg) {
 /* ANO INTERFACE TO BE REMOVED */
 /* ANO interface implementations */
 
-void* DocaMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
+void* DocaMgr::get_packet_ptr(BurstParams* burst, int idx) {
   uint32_t pkt = burst->hdr.hdr.gpu_pkt0_idx + idx;
 
   // HOLOSCAN_LOG_INFO("get_gpu_pkt_ptr pkt {} gpu_pkt0_idx {} idx {} addr {}\n",
@@ -1592,43 +1592,43 @@ void* DocaMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
                    ((pkt % burst->hdr.hdr.max_pkt) * burst->hdr.hdr.max_pkt_size));
 }
 
-void* DocaMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
+void* DocaMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   if (seg > 0) {
     HOLOSCAN_LOG_CRITICAL("DOCA GPU comms doesn't support multiple segments yet!");
     return nullptr;
   }
 
-  return get_pkt_ptr(burst, idx);
+  return get_packet_ptr(burst, idx);
 }
 
-void* DocaMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+void* DocaMgr::get_packet_extra_info(BurstParams* burst, int idx) {
   return nullptr;
 }
 
-uint64_t DocaMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
+uint64_t DocaMgr::get_burst_tot_byte(BurstParams* burst) {
   return burst->hdr.hdr.nbytes;
 }
 
-uint16_t DocaMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
+uint16_t DocaMgr::get_packet_length(BurstParams* burst, int idx) {
   return 0;
 }
 
-uint16_t DocaMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+uint16_t DocaMgr::get_packet_flow_id(BurstParams* burst, int idx) {
   return 0;
 }
 
-uint16_t DocaMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
+uint16_t DocaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return 0;
 }
 
-AdvNetStatus DocaMgr::get_mac(int port, char* mac) {
+Status DocaMgr::get_mac_addr(int port, char* mac) {
   if (port > 0) {
-    HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac() lookup");
-    return AdvNetStatus::INVALID_PARAMETER;
+    HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac_addr() lookup");
+    return Status::INVALID_PARAMETER;
   }
 
   memcpy(mac, reinterpret_cast<char*>(&mac_addrs[port]), sizeof(mac_addrs[port]));
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 int DocaMgr::address_to_port(const std::string& addr) {
@@ -1639,11 +1639,11 @@ int DocaMgr::address_to_port(const std::string& addr) {
   return -1;
 }
 
-AdvNetStatus DocaMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp) {
-  return AdvNetStatus::SUCCESS;
+Status DocaMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DocaMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
+Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
   int buf_idx = 0;
 
   // Check if burst->hdr.hdr.num_pkts > max_tx_batch_size
@@ -1677,28 +1677,28 @@ AdvNetStatus DocaMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
     }
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DocaMgr::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) {
-  return AdvNetStatus::NOT_SUPPORTED;
+Status DocaMgr::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
+  return Status::NOT_SUPPORTED;
 }
 
-AdvNetStatus DocaMgr::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+Status DocaMgr::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
                                    unsigned int src_host, unsigned int dst_host) {
-  return AdvNetStatus::NOT_SUPPORTED;
+  return Status::NOT_SUPPORTED;
 }
 
-AdvNetStatus DocaMgr::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+Status DocaMgr::set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
                                   uint16_t dst_port) {
-  return AdvNetStatus::NOT_SUPPORTED;
+  return Status::NOT_SUPPORTED;
 }
 
-AdvNetStatus DocaMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) {
-  return AdvNetStatus::NOT_SUPPORTED;
+Status DocaMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len) {
+  return Status::NOT_SUPPORTED;
 }
 
-bool DocaMgr::tx_burst_available(AdvNetBurstParams* burst) {
+bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
   for (const auto& intf : cfg_.ifs_) {
     if (burst->hdr.hdr.port_id != intf.port_id_) { continue; }
 
@@ -1720,17 +1720,17 @@ bool DocaMgr::tx_burst_available(AdvNetBurstParams* burst) {
   return true;
 }
 
-AdvNetStatus DocaMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
+Status DocaMgr::set_packet_lengths(BurstParams* burst, int idx,
                                    const std::initializer_list<int>& lens) {
   burst->pkt_lens[0][idx] = *(lens.begin());
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-void DocaMgr::free_rx_burst(AdvNetBurstParams* burst) {
-  rte_mempool_put(rx_meta, burst);
+void DocaMgr::free_rx_burst(BurstParams* burst) {
+  rte_mempool_put(rx_metadata, burst);
 }
 
-void DocaMgr::free_tx_burst(AdvNetBurstParams* burst) {
+void DocaMgr::free_tx_burst(BurstParams* burst) {
   return;
 }
 
@@ -1743,23 +1743,23 @@ std::optional<uint16_t> DocaMgr::get_port_from_ifname(const std::string& name) {
   return -1;
 }
 
-AdvNetStatus DocaMgr::get_rx_burst(AdvNetBurstParams** burst) {
+Status DocaMgr::get_rx_burst(BurstParams** burst) {
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
-    return AdvNetStatus::NOT_READY;
+    return Status::NOT_READY;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-void DocaMgr::free_rx_meta(AdvNetBurstParams* burst) {
-  rte_mempool_put(rx_meta, burst);
+void DocaMgr::free_rx_metadata(BurstParams* burst) {
+  rte_mempool_put(rx_metadata, burst);
 }
 
-void DocaMgr::free_tx_meta(AdvNetBurstParams* burst) {
-  rte_mempool_put(tx_meta, burst);
+void DocaMgr::free_tx_metadata(BurstParams* burst) {
+  rte_mempool_put(tx_metadata, burst);
 }
 
-AdvNetBurstParams* DocaMgr::create_tx_burst_params() {
+BurstParams* DocaMgr::create_tx_burst_params() {
   auto burst_idx = burst_tx_idx.fetch_add(1);
   HOLOSCAN_LOG_DEBUG(
       "create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
@@ -1767,17 +1767,17 @@ AdvNetBurstParams* DocaMgr::create_tx_burst_params() {
   return &(burst[burst_idx % MAX_TX_BURST]);
 }
 
-AdvNetStatus DocaMgr::get_tx_meta_buf(AdvNetBurstParams** burst) {
-  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(burst)) != 0) {
+Status DocaMgr::get_tx_metadata_buffer(BurstParams** burst) {
+  if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(burst)) != 0) {
     fprintf(stderr, "Failed to get TX meta descriptor\n");
     HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
-    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+    return Status::NO_FREE_BURST_BUFFERS;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DocaMgr::send_tx_burst(AdvNetBurstParams* burst) {
+Status DocaMgr::send_tx_burst(BurstParams* burst) {
   uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto ring = tx_rings.find(key);
 
@@ -1785,17 +1785,17 @@ AdvNetStatus DocaMgr::send_tx_burst(AdvNetBurstParams* burst) {
     HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}",
                        burst->hdr.hdr.port_id,
                        burst->hdr.hdr.q_id);
-    return AdvNetStatus::INVALID_PARAMETER;
+    return Status::INVALID_PARAMETER;
   }
 
   if (rte_ring_enqueue(ring->second, reinterpret_cast<void*>(burst)) != 0) {
-    fprintf(stderr, "calling DOCA free_tx_meta\n");
-    free_tx_meta(burst);
+    fprintf(stderr, "calling DOCA free_tx_metadata\n");
+    free_tx_metadata(burst);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
-    return AdvNetStatus::NO_SPACE_AVAILABLE;
+    return Status::NO_SPACE_AVAILABLE;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 void DocaMgr::shutdown() {

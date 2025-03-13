@@ -89,7 +89,7 @@ class DpdkLogLevel {
         "debug/info/notice/warn/error/critical/alert/emergency/off");
   }
 
-  static Level from_ano_log_level(AnoLogLevel::Level ano_level) {
+  static Level from_ano_log_level(LogLevel::Level ano_level) {
     auto it = ano_to_dpdk_log_level_map.find(ano_level);
     if (it != ano_to_dpdk_log_level_map.end()) { return it->second; }
     return OFF;
@@ -100,7 +100,7 @@ class DpdkLogLevel {
    * A map of log level to a tuple of the description and command strings.
    */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
-  static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_dpdk_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> ano_to_dpdk_log_level_map;
 };
 
 /**
@@ -115,9 +115,9 @@ class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
   /**
    * @brief Constructor for DpdkLogLevelCommandBuilder.
    *
-   * @param ano_level The log level from AnoLogLevel to be converted to DPDK log level.
+   * @param ano_level The log level from LogLevel to be converted to DPDK log level.
    */
-  explicit DpdkLogLevelCommandBuilder(AnoLogLevel::Level ano_level)
+  explicit DpdkLogLevelCommandBuilder(LogLevel::Level ano_level)
       : level_(DpdkLogLevel::from_ano_log_level(ano_level)) {}
 
   /**
@@ -137,13 +137,13 @@ class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
   DpdkLogLevel::Level level_;  ///< The DPDK log level.
 };
 
-class DpdkMgr : public ANOMgr {
+class DpdkMgr : public Manager {
  public:
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
 
   DpdkMgr() = default;
   ~DpdkMgr();
-  bool set_config_and_initialize(const AdvNetConfigYaml& cfg) override;
+  bool set_config_and_initialize(const NetworkConfig& cfg) override;
   void initialize() override;
   void run() override;
   static constexpr int JUMBOFRAME_SIZE = 9100;
@@ -162,44 +162,44 @@ class DpdkMgr : public ANOMgr {
   static constexpr int BUFFER_SPLIT_SEGS = 2;
   static constexpr int MAX_ETH_HDR_SIZE = 18;
 
-  void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) override;
-  void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
-  uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
-  uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
-  uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) override;
-  void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) override;
-  AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams* burst) override;
-  AdvNetStatus set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) override;
-  AdvNetStatus set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+  void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
+  void* get_packet_ptr(BurstParams* burst, int idx) override;
+  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+  uint16_t get_packet_length(BurstParams* burst, int idx) override;
+  uint16_t get_packet_flow_id(BurstParams* burst, int idx) override;
+  void* get_packet_extra_info(BurstParams* burst, int idx) override;
+  Status get_tx_packet_burst(BurstParams* burst) override;
+  Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) override;
+  Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
                             unsigned int src_host, unsigned int dst_host) override;
-  AdvNetStatus set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+  Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
                            uint16_t dst_port) override;
-  AdvNetStatus set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) override;
-  bool tx_burst_available(AdvNetBurstParams* burst) override;
+  Status set_udp_payload(BurstParams* burst, int idx, void* data, int len) override;
+  bool is_tx_burst_available(BurstParams* burst) override;
 
-  AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
+  Status set_packet_lengths(BurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
-  void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override;
-  void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override;
-  void free_pkt(AdvNetBurstParams* burst, int pkt) override;
-  void free_all_pkts(AdvNetBurstParams* burst) override;
-  void free_rx_burst(AdvNetBurstParams* burst) override;
-  void free_tx_burst(AdvNetBurstParams* burst) override;
+  void free_all_segment_packets(BurstParams* burst, int seg) override;
+  void free_packet_segment(BurstParams* burst, int seg, int pkt) override;
+  void free_packet(BurstParams* burst, int pkt) override;
+  void free_all_packets(BurstParams* burst) override;
+  void free_rx_burst(BurstParams* burst) override;
+  void free_tx_burst(BurstParams* burst) override;
   std::optional<uint16_t> get_port_from_ifname(const std::string& name) override;
 
-  AdvNetStatus get_rx_burst(AdvNetBurstParams** burst) override;
-  AdvNetStatus set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp);
-  void free_rx_meta(AdvNetBurstParams* burst) override;
-  void free_tx_meta(AdvNetBurstParams* burst) override;
-  AdvNetStatus get_tx_meta_buf(AdvNetBurstParams** burst) override;
-  AdvNetStatus send_tx_burst(AdvNetBurstParams* burst) override;
+  Status get_rx_burst(BurstParams** burst) override;
+  Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
+  void free_rx_metadata(BurstParams* burst) override;
+  void free_tx_metadata(BurstParams* burst) override;
+  Status get_tx_metadata_buffer(BurstParams** burst) override;
+  Status send_tx_burst(BurstParams* burst) override;
   int address_to_port(const std::string& addr) override;
-  AdvNetStatus get_mac(int port, char* mac) override;
+  Status get_mac_addr(int port, char* mac) override;
   void shutdown() override;
   void print_stats() override;
   void adjust_memory_regions() override;
-  uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
-  AdvNetBurstParams* create_tx_burst_params() override;
+  uint64_t get_burst_tot_byte(BurstParams* burst) override;
+  BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
 
  private:
@@ -212,12 +212,12 @@ class DpdkMgr : public ANOMgr {
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
-  AdvNetStatus register_mrs();
-  AdvNetStatus map_mrs();
+  Status register_mrs();
+  Status map_mrs();
   void create_dummy_rx_q();
-  int numa_from_mem(const MemoryRegion& mr);
+  int numa_from_mem(const MemoryRegionConfig& mr);
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
-                                       AdvNetDirection direction);
+                                       Direction direction);
 
   void apply_tx_offloads(int port);
 
@@ -235,12 +235,12 @@ class DpdkMgr : public ANOMgr {
   struct rte_mempool* pkt_len_buffer;
   struct rte_mempool* rx_burst_buffer;
   struct rte_mempool* rx_flow_id_buffer;
-  struct rte_mempool* rx_meta;
-  struct rte_mempool* tx_meta;
+  struct rte_mempool* rx_metadata;
+  struct rte_mempool* tx_metadata;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
-  AdvNetworkDpdkStats stats_;
+  DpdkStats stats_;
   std::thread stats_thread_;
   int num_init = 0;
 };

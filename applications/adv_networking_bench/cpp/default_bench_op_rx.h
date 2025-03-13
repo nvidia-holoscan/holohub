@@ -119,7 +119,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    spec.input<std::shared_ptr<BurstParams>>("burst_in");
     spec.param<bool>(hds_,
                      "split_boundary",
                      "Header-data split boundary",
@@ -155,7 +155,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       // If CUDA processing/copy is complete, free the packets for all bursts in this batch
       if (cudaEventQuery(batch.evt) == cudaSuccess) {
         for (auto m = 0; m < batch.num_bursts; m++) {
-          adv_net_free_all_pkts_and_burst_rx(batch.bursts[m]);
+          free_all_packets_and_burst_rx(batch.bursts[m]);
         }
         batch_q_.pop();
       } else {
@@ -173,12 +173,12 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     free_processed_packets();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
+    auto burst_opt = op_input.receive<BurstParams*>("burst_in");
     if (!burst_opt) { return; }
 
     auto burst = burst_opt.value();
 
-    auto burst_size = adv_net_get_num_pkts(burst);
+    auto burst_size = get_num_packets(burst);
 
     // Count packets received
     ttl_pkts_recv_ += burst_size;
@@ -205,9 +205,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = burst->pkts[1][p];
           ttl_bytes_recv_ += burst->pkt_lens[0][p] + burst->pkt_lens[1][p];
 #else
-          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+          h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] = get_segment_packet_ptr(burst, 1, p);
           ttl_bytes_recv_ +=
-              adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+              get_segment_packet_length(burst, 0, p) + get_segment_packet_length(burst, 1, p);
 #endif
         }
       } else {
@@ -217,8 +217,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           // NOTE: currently ordering pointers in the order packets come in. If headers had segment
           //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
           h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_ + p] =
-              reinterpret_cast<uint8_t*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + header_size_.get();
-          ttl_bytes_recv_ += adv_net_get_seg_pkt_len(burst, 0, p);
+              reinterpret_cast<uint8_t*>(get_segment_packet_ptr(burst, 0, p)) + header_size_.get();
+          ttl_bytes_recv_ += get_segment_packet_length(burst, 0, p);
         }
       }
     } else {
@@ -243,11 +243,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         //       packets in this sample app
         auto pkt_len = burst->pkt_lens[0][p];
 #else
-        auto payload_ptr = static_cast<UDPIPV4Pkt*>(adv_net_get_seg_pkt_ptr(burst, 0, p)) + 1;
+        auto payload_ptr = static_cast<UDPIPV4Pkt*>(get_segment_packet_ptr(burst, 0, p)) + 1;
         // Payload length (packet length minus header length)
         // NOTE: this should be equal to nom_payload_size_ as we assume the same length for all
         //       packets in this sample app
-        auto pkt_len = adv_net_get_seg_pkt_len(burst, 0, p);
+        auto pkt_len = get_segment_packet_length(burst, 0, p);
 #endif
         auto payload_len = pkt_len - header_size_.get();
 
@@ -291,8 +291,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         // Not enough buffers available to process the packets, drop the packets from this burst
         HOLOSCAN_LOG_ERROR("Fell behind putting packet data in contiguous memory on GPU!");
         for (auto m = 0; m < cur_batch_.num_bursts; m++) {
-          ttl_packets_dropped_ += adv_net_get_num_pkts(cur_batch_.bursts[m]);
-          adv_net_free_all_pkts_and_burst_rx(cur_batch_.bursts[m]);
+          ttl_packets_dropped_ += get_num_packets(cur_batch_.bursts[m]);
+          free_all_packets_and_burst_rx(cur_batch_.bursts[m]);
         }
         cur_batch_.num_bursts = 0;
         CUDA_TRY(cudaDeviceSynchronize());
@@ -362,7 +362,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
   // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
   struct BatchAggregationParams {
-    std::array<AdvNetBurstParams*, MAX_ANO_BURSTS> bursts;
+    std::array<BurstParams*, MAX_ANO_BURSTS> bursts;
     int num_bursts;
     cudaEvent_t evt;
   };

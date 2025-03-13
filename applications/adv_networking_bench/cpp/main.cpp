@@ -33,14 +33,14 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     HOLOSCAN_LOG_INFO("Initializing advanced network operator");
-    const auto [rx_en, tx_en] = holoscan::advanced_network::adv_net_get_rx_tx_cfg_en(config());
-    const auto mgr_type = holoscan::advanced_network::adv_net_get_manager_type(config());
-    auto output_rx_ports = holoscan::advanced_network::adv_net_get_port_names(config(), "rx");
+    const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
+    const auto mgr_type = advanced_network::get_manager_type(config());
+    auto output_rx_ports = advanced_network::get_port_names(config(), "rx");
 
-    HOLOSCAN_LOG_INFO("Using ANO manager {}", holoscan::advanced_network::manager_type_to_string(mgr_type));
+    HOLOSCAN_LOG_INFO("Using ANO manager {}", advanced_network::manager_type_to_string(mgr_type));
 
     // DPDK is the default manager backend
-    if (mgr_type == holoscan::advanced_network::AnoMgrType::DPDK) {
+    if (mgr_type == advanced_network::ManagerType::DPDK) {
 #if ANO_MGR_DPDK
       if (rx_en) {
         auto adv_net_rx =
@@ -65,7 +65,7 @@ class App : public holoscan::Application {
       exit(1);
 #endif
 
-    } else if (mgr_type == holoscan::advanced_network::AnoMgrType::DOCA) {
+    } else if (mgr_type == advanced_network::ManagerType::DOCA) {
 #if ANO_MGR_GPUNETIO
       if (rx_en) {
         auto bench_rx =
@@ -89,19 +89,19 @@ class App : public holoscan::Application {
       HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
       exit(1);
 #endif
-    } else if (mgr_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
+    } else if (mgr_type == advanced_network::ManagerType::RIVERMAX) {
 #if ANO_MGR_RIVERMAX
       if (rx_en) {
-        auto adv_net_rx = make_operator<ops::AdvNetworkOpRx>(
-            "adv_network_rx",
-            output_rx_ports,
-            from_config("advanced_network"),
-            make_condition<BooleanCondition>("is_alive", true));
+        auto adv_net_rx =
+            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
+                                               output_rx_ports,
+                                               from_config("advanced_network"),
+                                               make_condition<BooleanCondition>("is_alive", true));
         int index = 0;
         for (const auto& port : output_rx_ports) {
           std::string bench_rx_name = "bench_rx_" + std::to_string(index++);
-          auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
-                                                                         from_config("bench_rx"));
+          auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(
+              bench_rx_name, from_config("bench_rx"));
           add_flow(adv_net_rx, bench_rx, {{ port, "burst_in" }});
         }
       }
@@ -121,7 +121,8 @@ class App : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  auto app = holoscan::make_application<App>();
+  using namespace holoscan;
+  auto app = make_application<App>();
 
   // Get the configuration
   if (argc < 2) {
@@ -132,10 +133,10 @@ int main(int argc, char** argv) {
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path += "/" + std::string(argv[1]);
   app->config(config_path);
-  app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
+  app->scheduler(app->make_scheduler<MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
-  holoscan::advanced_network::adv_net_shutdown();
+  advanced_network::shutdown();
   return 0;
 }

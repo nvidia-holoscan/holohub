@@ -103,15 +103,15 @@ const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::strin
                                       {INFO, {"Info", "info"}},
                                       {DEBUG, {"Debug", "debug"}}};
 
-const std::unordered_map<AnoLogLevel::Level, DpdkLogLevel::Level>
+const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
     DpdkLogLevel::ano_to_dpdk_log_level_map = {
-        {AnoLogLevel::TRACE, DEBUG},
-        {AnoLogLevel::DEBUG, DEBUG},
-        {AnoLogLevel::INFO, INFO},
-        {AnoLogLevel::WARN, WARN},
-        {AnoLogLevel::ERROR, ERROR},
-        {AnoLogLevel::CRITICAL, CRITICAL},
-        {AnoLogLevel::OFF, OFF},
+        {LogLevel::TRACE, DEBUG},
+        {LogLevel::DEBUG, DEBUG},
+        {LogLevel::INFO, INFO},
+        {LogLevel::WARN, WARN},
+        {LogLevel::ERROR, ERROR},
+        {LogLevel::CRITICAL, CRITICAL},
+        {LogLevel::OFF, OFF},
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ const std::unordered_map<AnoLogLevel::Level, DpdkLogLevel::Level>
 ///  \brief Init
 ///
 ////////////////////////////////////////////////////////////////////////////////
-bool DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
+bool DpdkMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   num_init++;
 
   if (!this->initialized_) {
@@ -139,7 +139,7 @@ bool DpdkMgr::set_config_and_initialize(const AdvNetConfigYaml& cfg) {
     }
 
     stats_.Init(cfg_);
-    stats_thread_ = std::thread(&AdvNetworkDpdkStats::Run, &stats_);
+    stats_thread_ = std::thread(&DpdkStats::Run, &stats_);
 
     if (!validate_config()) {
       HOLOSCAN_LOG_CRITICAL("Config validation failed");
@@ -160,14 +160,14 @@ int DpdkMgr::address_to_port(const std::string& addr) {
   return -1;
 }
 
-AdvNetStatus DpdkMgr::get_mac(int port, char* mac) {
+Status DpdkMgr::get_mac_addr(int port, char* mac) {
   if (port > mac_addrs.size()) {
-    HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac() lookup");
-    return AdvNetStatus::INVALID_PARAMETER;
+    HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac_addr() lookup");
+    return Status::INVALID_PARAMETER;
   }
 
   memcpy(mac, reinterpret_cast<char*>(&mac_addrs[port]), sizeof(mac_addrs[port]));
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 void DpdkMgr::adjust_memory_regions() {
@@ -178,14 +178,14 @@ void DpdkMgr::adjust_memory_regions() {
   }
 }
 
-AdvNetStatus DpdkMgr::map_mrs() {
+Status DpdkMgr::map_mrs() {
   // Map every MR to every device for now
   for (const auto& intf : cfg_.ifs_) {
     struct rte_eth_dev_info dev_info;
     int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
     if (ret != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
-      return AdvNetStatus::NULL_PTR;
+      return Status::NULL_PTR;
     }
 
     for (const auto& ext_mem_el : ext_pktmbufs_) {
@@ -199,7 +199,7 @@ AdvNetStatus DpdkMgr::map_mrs() {
       if (ret) {
         HOLOSCAN_LOG_CRITICAL(
             "Could not DMA map EXT memory: {} err={}", ret, rte_strerror(rte_errno));
-        return AdvNetStatus::NULL_PTR;
+        return Status::NULL_PTR;
       }
 
       HOLOSCAN_LOG_INFO(
@@ -207,10 +207,10 @@ AdvNetStatus DpdkMgr::map_mrs() {
     }
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::register_mrs() {
+Status DpdkMgr::register_mrs() {
   for (const auto& ar : ar_) {
     auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
     const auto& mr = cfg_.mrs_[ar.second.mr_name_];
@@ -230,7 +230,7 @@ AdvNetStatus DpdkMgr::register_mrs() {
                             ext_mem->buf_ptr,
                             ret,
                             rte_strerror(rte_errno));
-      return AdvNetStatus::NULL_PTR;
+      return Status::NULL_PTR;
     } else {
       HOLOSCAN_LOG_INFO("Successfully registered external memory for {}", mr.name_);
     }
@@ -238,7 +238,7 @@ AdvNetStatus DpdkMgr::register_mrs() {
     ext_pktmbufs_[mr.name_] = ext_mem;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 void DpdkMgr::setup_accurate_send_scheduling_mask() {
@@ -275,7 +275,7 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
   done = true;
 }
 
-int DpdkMgr::numa_from_mem(const MemoryRegion& mr) {
+int DpdkMgr::numa_from_mem(const MemoryRegionConfig& mr) {
   if (mr.kind_ == MemoryKind::DEVICE) {
     int val;
     if (cudaDeviceGetAttribute(&val, cudaDevAttrHostNumaId, mr.affinity_) != cudaSuccess) {
@@ -322,7 +322,7 @@ void DpdkMgr::create_dummy_rx_q() {
 
 
       // Create unused MR
-      MemoryRegion tmp_mr;
+      MemoryRegionConfig tmp_mr;
       tmp_mr.name_ = mr_name;
       tmp_mr.kind_ = MemoryKind::HUGE;
       tmp_mr.affinity_ = 0;
@@ -380,7 +380,7 @@ void DpdkMgr::initialize() {
   num_ports = ifs.size();
   HOLOSCAN_LOG_INFO("Attempting to use {} ports for high-speed network", num_ports);
 
-  strncpy(_argv[arg++], "adv_net_operator", max_arg_size - 1);
+  strncpy(_argv[arg++], "operator", max_arg_size - 1);
   strncpy(_argv[arg++],
           (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
           max_arg_size - 1);
@@ -437,17 +437,17 @@ void DpdkMgr::initialize() {
   // Adjust the sizes to accommodate any padding/alignment restrictions by this library
   adjust_memory_regions();
 
-  if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
+  if (allocate_memory_regions() != Status::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
     return;
   }
 
-  if (register_mrs() != AdvNetStatus::SUCCESS) {
+  if (register_mrs() != Status::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
     return;
   }
 
-  if (map_mrs() != AdvNetStatus::SUCCESS) {
+  if (map_mrs() != Status::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
     return;
   }
@@ -833,12 +833,12 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     return -1;
   }
 
-  auto num_rx_ptrs_bufs = (1UL << 13) - 1;
+  auto num_rx_ptrs_buffers = (1UL << 13) - 1;
   HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
-                    num_rx_ptrs_bufs,
+                    num_rx_ptrs_buffers,
                     sizeof(void*) * max_rx_batch);
   rx_burst_buffer = rte_mempool_create("RX_BURST_POOL",
-                                       num_rx_ptrs_bufs,
+                                       num_rx_ptrs_buffers,
                                        sizeof(void*) * max_rx_batch,
                                        0,
                                        0,
@@ -854,10 +854,10 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   }
 
   HOLOSCAN_LOG_INFO("Setting up RX burst pool with {} batches of size {}",
-                    num_rx_ptrs_bufs,
+                    num_rx_ptrs_buffers,
                     sizeof(ExtraRxPacketInfo) * max_rx_batch);
   rx_flow_id_buffer = rte_mempool_create("RX_FLOWID_POOL",
-                                       num_rx_ptrs_bufs,
+                                       num_rx_ptrs_buffers,
                                        sizeof(ExtraRxPacketInfo) * max_rx_batch,
                                        0,
                                        0,
@@ -873,9 +873,9 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   }
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
-  rx_meta = rte_mempool_create("RX_META_POOL",
+  rx_metadata = rte_mempool_create("RX_META_POOL",
                                (1U << 8) - 1U,
-                               sizeof(AdvNetBurstParams),
+                               sizeof(BurstParams),
                                0,
                                0,
                                nullptr,
@@ -884,7 +884,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
                                nullptr,
                                rte_socket_id(),
                                0);
-  if (rx_meta == nullptr) {
+  if (rx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX meta pool!");
     return -1;
   }
@@ -929,9 +929,9 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   }
 
   HOLOSCAN_LOG_DEBUG("Setting up TX meta pool");
-  tx_meta = rte_mempool_create("TX_META_POOL",
+  tx_metadata = rte_mempool_create("TX_META_POOL",
                                (1U << 8) - 1U,
-                               sizeof(AdvNetBurstParams),
+                               sizeof(BurstParams),
                                0,
                                0,
                                nullptr,
@@ -940,7 +940,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
                                nullptr,
                                rte_socket_id(),
                                0);
-  if (tx_meta == nullptr) {
+  if (tx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX meta pool!");
     return -1;
   }
@@ -1053,7 +1053,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
 }
 
 struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* buf, int len,
-                                              AdvNetDirection direction) {
+                                              Direction direction) {
   struct rte_flow_attr attr;
   struct rte_flow_item pattern[MAX_PATTERN_NUM];
   struct rte_flow_action action[MAX_ACTION_NUM];
@@ -1072,8 +1072,8 @@ struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* b
 
   /* Set the rule attribute, only ingress packets will be checked. 8< */
   memset(&attr, 0, sizeof(struct rte_flow_attr));
-  attr.ingress = (direction == AdvNetDirection::RX) ? 1 : 0;
-  attr.egress = (direction == AdvNetDirection::TX) ? 1 : 0;
+  attr.ingress = (direction == Direction::RX) ? 1 : 0;
+  attr.egress = (direction == Direction::TX) ? 1 : 0;
 
   // mf.operation = RTE_FLOW_MODIFY_SET;
 
@@ -1137,7 +1137,7 @@ void DpdkMgr::apply_tx_offloads(int port) {
                             q.common_.id_,
                             reinterpret_cast<const char*>(&mac_bytes),
                             sizeof(mac_bytes) * 8,
-                            AdvNetDirection::TX);
+                            Direction::TX);
       }
     }
   }
@@ -1204,7 +1204,7 @@ DpdkMgr::~DpdkMgr() {
 }
 
 bool DpdkMgr::validate_config() const {
-  if (!ANOMgr::validate_config()) { return false; }
+  if (!Manager::validate_config()) { return false; }
 
   HOLOSCAN_LOG_INFO("Config validated successfully");
   return true;
@@ -1243,7 +1243,7 @@ void DpdkMgr::run() {
       params->queue = q_id;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
-      params->meta_pool = rx_meta;
+      params->meta_pool = rx_metadata;
       params->batch_size = q->common_.batch_size_;
       rte_eal_remote_launch(
           rx_core_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
@@ -1263,7 +1263,7 @@ void DpdkMgr::run() {
       params->ring = rx_ring;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
-      params->meta_pool = rx_meta;
+      params->meta_pool = rx_metadata;
       rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);
     }
   }
@@ -1279,7 +1279,7 @@ void DpdkMgr::run() {
         params->ring = tx_rings[key];
         params->queue = q.common_.id_;
         params->burst_pool = tx_burst_buffers[key];
-        params->meta_pool = tx_meta;
+        params->meta_pool = tx_metadata;
         params->batch_size = q.common_.batch_size_;
         rte_eth_macaddr_get(intf.port_id_, &params->mac_addr);
         rte_eal_remote_launch(
@@ -1314,7 +1314,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   uint64_t freq = rte_get_tsc_hz();
   uint64_t timeout_ticks = freq * 0.02;  // expect all packets within 20ms
   uint64_t total_pkts = 0;
-  std::array<AdvNetBurstParams*, ANOMgr::MAX_RX_Q_PER_CORE> bursts;
+  std::array<BurstParams*, Manager::MAX_RX_Q_PER_CORE> bursts;
 
   uint16_t num_queues = tparams->q_params.size();
   struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
@@ -1329,9 +1329,9 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
                     pq_str,
                     rte_socket_id());
 
-  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> nb_rx{};
-  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> to_copy{};
-  std::array<int, ANOMgr::MAX_RX_Q_PER_CORE> cur_pkt_in_batch{};
+  std::array<int, Manager::MAX_RX_Q_PER_CORE> nb_rx{};
+  std::array<int, Manager::MAX_RX_Q_PER_CORE> to_copy{};
+  std::array<int, Manager::MAX_RX_Q_PER_CORE> cur_pkt_in_batch{};
 
   uint16_t cur_idx        = 0;
   uint16_t cur_port       = tparams->q_params[cur_idx].port;
@@ -1349,7 +1349,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
       exit(1);
     }
 
-    AdvNetBurstParams* burst  = bursts[cur_idx];
+    BurstParams* burst  = bursts[cur_idx];
 
     //  Queue ID for receiver to differentiate
     burst->hdr.hdr.q_id     = cur_q;
@@ -1510,7 +1510,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
-    AdvNetBurstParams* burst;
+    BurstParams* burst;
     if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
       HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
       exit(1);
@@ -1654,7 +1654,7 @@ int DpdkMgr::tx_core_worker(void* arg) {
   TxWorkerParams* tparams = (TxWorkerParams*)arg;
   uint64_t seq;
   uint64_t ttl_pkts_tx = 0;
-  AdvNetBurstParams* msg;
+  BurstParams* msg;
   int64_t bursts = 0;
 
   HOLOSCAN_LOG_INFO("Starting TX Core {}, port {}, queue {} socket {} using burst pool {} ring {}",
@@ -1727,40 +1727,40 @@ int DpdkMgr::tx_core_worker(void* arg) {
 }
 
 /* ANO interface implementations */
-void* DpdkMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
+void* DpdkMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx]), void*);
 }
 
-void* DpdkMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
+void* DpdkMgr::get_packet_ptr(BurstParams* burst, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]), void*);
 }
 
-uint16_t DpdkMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
+uint16_t DpdkMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx])->data_len;
 }
 
-uint16_t DpdkMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
+uint16_t DpdkMgr::get_packet_length(BurstParams* burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->pkt_len;
 }
 
-uint16_t DpdkMgr::get_pkt_flow_id(AdvNetBurstParams* burst, int idx) {
+uint16_t DpdkMgr::get_packet_flow_id(BurstParams* burst, int idx) {
   const ExtraRxPacketInfo* info = reinterpret_cast<ExtraRxPacketInfo*>(burst->pkt_extra_info);
   return info[idx].flow_id;
 }
 
-AdvNetStatus DpdkMgr::set_pkt_tx_time(AdvNetBurstParams* burst, int idx, uint64_t timestamp) {
+Status DpdkMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
   reinterpret_cast<struct rte_mbuf**>(burst->pkts[0])[idx]->ol_flags |= timestamp_mask_;
   *RTE_MBUF_DYNFIELD(
       reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx], timestamp_offset_, uint64_t*) = timestamp;
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-void* DpdkMgr::get_pkt_extra_info(AdvNetBurstParams* burst, int idx) {
+void* DpdkMgr::get_packet_extra_info(BurstParams* burst, int idx) {
   return nullptr;
 }
 
-AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
+Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto& q = tx_dpdk_q_map_[key];
 
@@ -1769,26 +1769,26 @@ AdvNetStatus DpdkMgr::get_tx_pkt_burst(AdvNetBurstParams* burst) {
     HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
                        burst->hdr.hdr.port_id,
                        burst->hdr.hdr.q_id);
-    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+    return Status::NO_FREE_BURST_BUFFERS;
   }
 
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->pkts[seg])) != 0) {
-      return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+      return Status::NO_FREE_BURST_BUFFERS;
     }
 
     if (rte_pktmbuf_alloc_bulk(q->pools[seg],
                                reinterpret_cast<rte_mbuf**>(burst->pkts[seg]),
                                static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
       rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->pkts[seg]));
-      return AdvNetStatus::NO_FREE_PACKET_BUFFERS;
+      return Status::NO_FREE_PACKET_BUFFERS;
     }
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_addr) {
+Status DpdkMgr::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
   auto mbuf = reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]);
   auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
   memcpy(reinterpret_cast<void*>(&mbuf_data->eth.dst_addr),
@@ -1796,10 +1796,10 @@ AdvNetStatus DpdkMgr::set_eth_hdr(AdvNetBurstParams* burst, int idx, char* dst_a
          sizeof(mbuf_data->eth.dst_addr));
 
   mbuf_data->eth.ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len, uint8_t proto,
+Status DpdkMgr::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
                                    unsigned int src_host, unsigned int dst_host) {
   auto mbuf = reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]);
   auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
@@ -1809,10 +1809,10 @@ AdvNetStatus DpdkMgr::set_ipv4_hdr(AdvNetBurstParams* burst, int idx, int ip_len
   mbuf_data->ip.version = 4;
   mbuf_data->ip.src_addr = htonl(src_host);
   mbuf_data->ip.dst_addr = htonl(dst_host);
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len, uint16_t src_port,
+Status DpdkMgr::set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
                                   uint16_t dst_port) {
   auto mbuf = reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]);
   auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
@@ -1821,18 +1821,18 @@ AdvNetStatus DpdkMgr::set_udp_hdr(AdvNetBurstParams* burst, int idx, int udp_len
   mbuf_data->udp.src_port = htons(src_port);
   mbuf_data->udp.dst_port = htons(dst_port);
   mbuf_data->udp.dgram_len = htons(udp_len + sizeof(mbuf_data->udp));
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::set_udp_payload(AdvNetBurstParams* burst, int idx, void* data, int len) {
+Status DpdkMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len) {
   auto mbuf = reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]);
   auto mbuf_data = rte_pktmbuf_mtod(mbuf, UDPPkt*);
 
   rte_memcpy(mbuf_data->payload, data, len);
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-bool DpdkMgr::tx_burst_available(AdvNetBurstParams* burst) {
+bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto& q = tx_dpdk_q_map_[key];
 
@@ -1843,7 +1843,7 @@ bool DpdkMgr::tx_burst_available(AdvNetBurstParams* burst) {
   return true;
 }
 
-AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
+Status DpdkMgr::set_packet_lengths(BurstParams* burst, int idx,
                                    const std::initializer_list<int>& lens) {
   uint32_t ttl_len = 0;
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
@@ -1853,30 +1853,30 @@ AdvNetStatus DpdkMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
 
   reinterpret_cast<rte_mbuf**>(burst->pkts[0])[idx]->pkt_len = ttl_len;
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-void DpdkMgr::free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) {
+void DpdkMgr::free_packet_segment(BurstParams* burst, int seg, int pkt) {
   rte_pktmbuf_free_seg(reinterpret_cast<rte_mbuf**>(burst->pkts[seg])[pkt]);
 }
 
-void DpdkMgr::free_all_seg_pkts(AdvNetBurstParams* burst, int seg) {
+void DpdkMgr::free_all_segment_packets(BurstParams* burst, int seg) {
   for (int p = 0; p < burst->hdr.hdr.num_pkts; p++) {
     rte_pktmbuf_free_seg(reinterpret_cast<rte_mbuf**>(burst->pkts[seg])[p]);
   }
 }
 
-void DpdkMgr::free_pkt(AdvNetBurstParams* burst, int pkt) {
+void DpdkMgr::free_packet(BurstParams* burst, int pkt) {
   rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(burst->pkts[0])[pkt]);
 }
 
-void DpdkMgr::free_all_pkts(AdvNetBurstParams* burst) {
+void DpdkMgr::free_all_packets(BurstParams* burst) {
   for (int p = 0; p < burst->hdr.hdr.num_pkts; p++) {
     rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(burst->pkts[0])[p]);
   }
 }
 
-void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
+void DpdkMgr::free_rx_burst(BurstParams* burst) {
   if (burst->pkt_extra_info != nullptr) {
     rte_mempool_put(rx_flow_id_buffer, (void*)burst->pkt_extra_info);
   }
@@ -1887,10 +1887,10 @@ void DpdkMgr::free_rx_burst(AdvNetBurstParams* burst) {
 
   burst->hdr.hdr.num_pkts = 0;
   burst->pkt_extra_info = nullptr;
-  rte_mempool_put(rx_meta, burst);
+  rte_mempool_put(rx_metadata, burst);
 }
 
-void DpdkMgr::free_tx_burst(AdvNetBurstParams* burst) {
+void DpdkMgr::free_tx_burst(BurstParams* burst) {
   const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto burst_pool = tx_burst_buffers.find(key);
 
@@ -1899,7 +1899,7 @@ void DpdkMgr::free_tx_burst(AdvNetBurstParams* burst) {
   }
 
   burst->hdr.hdr.num_pkts = 0;
-  rte_mempool_put(tx_meta, burst);
+  rte_mempool_put(tx_metadata, burst);
 }
 
 std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
@@ -1910,32 +1910,32 @@ std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
   return port;
 }
 
-AdvNetStatus DpdkMgr::get_rx_burst(AdvNetBurstParams** burst) {
+Status DpdkMgr::get_rx_burst(BurstParams** burst) {
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
-    return AdvNetStatus::NOT_READY;
+    return Status::NOT_READY;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-void DpdkMgr::free_rx_meta(AdvNetBurstParams* burst) {
-  rte_mempool_put(rx_meta, burst);
+void DpdkMgr::free_rx_metadata(BurstParams* burst) {
+  rte_mempool_put(rx_metadata, burst);
 }
 
-void DpdkMgr::free_tx_meta(AdvNetBurstParams* burst) {
-  rte_mempool_put(tx_meta, burst);
+void DpdkMgr::free_tx_metadata(BurstParams* burst) {
+  rte_mempool_put(tx_metadata, burst);
 }
 
-AdvNetStatus DpdkMgr::get_tx_meta_buf(AdvNetBurstParams** burst) {
-  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(burst)) != 0) {
+Status DpdkMgr::get_tx_metadata_buffer(BurstParams** burst) {
+  if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(burst)) != 0) {
     HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
-    return AdvNetStatus::NO_FREE_BURST_BUFFERS;
+    return Status::NO_FREE_BURST_BUFFERS;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
-AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
+Status DpdkMgr::send_tx_burst(BurstParams* burst) {
   uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
   const auto ring = tx_rings.find(key);
 
@@ -1943,17 +1943,17 @@ AdvNetStatus DpdkMgr::send_tx_burst(AdvNetBurstParams* burst) {
     HOLOSCAN_LOG_ERROR("Invalid port/queue combination in send_tx_burst: {}/{}",
                        burst->hdr.hdr.port_id,
                        burst->hdr.hdr.q_id);
-    return AdvNetStatus::INVALID_PARAMETER;
+    return Status::INVALID_PARAMETER;
   }
 
   if (rte_ring_enqueue(ring->second, reinterpret_cast<void*>(burst)) != 0) {
     free_tx_burst(burst);
-    free_tx_meta(burst);
+    free_tx_metadata(burst);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
-    return AdvNetStatus::NO_SPACE_AVAILABLE;
+    return Status::NO_SPACE_AVAILABLE;
   }
 
-  return AdvNetStatus::SUCCESS;
+  return Status::SUCCESS;
 }
 
 void DpdkMgr::shutdown() {
@@ -1980,13 +1980,13 @@ void DpdkMgr::print_stats() {
   }
 }
 
-uint64_t DpdkMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
+uint64_t DpdkMgr::get_burst_tot_byte(BurstParams* burst) {
   return 0;
 }
 
-AdvNetBurstParams* DpdkMgr::create_tx_burst_params() {
-  AdvNetBurstParams* burst = nullptr;
-  if (rte_mempool_get(tx_meta, reinterpret_cast<void**>(&burst)) != 0) {
+BurstParams* DpdkMgr::create_tx_burst_params() {
+  BurstParams* burst = nullptr;
+  if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(&burst)) != 0) {
     HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
     return nullptr;
   }

@@ -34,7 +34,7 @@ using namespace ral::services;
  * @class RmaxBurst
  * @brief Represents a burst of packets in the advanced network.
  */
-class RmaxBurst : public AdvNetBurstParams {
+class RmaxBurst : public BurstParams {
  public:
   static constexpr int MAX_PKT_IN_BURST = 9100;
 
@@ -379,13 +379,13 @@ class RxBurstsManager {
    * @throws logic_error If shared output queue is used.
    * @return ReturnStatus indicating the success or failure of the operation.
    */
-  inline ReturnStatus get_rx_burst(AdvNetBurstParams** burst) {
+  inline ReturnStatus get_rx_burst(BurstParams** burst) {
     if (m_using_shared_out_queue) {
       throw std::logic_error("Cannot get RX burst when using shared output queue");
     }
 
     auto out_burst = m_rx_bursts_out_queue->dequeue_burst().get();
-    *burst = static_cast<AdvNetBurstParams*>(out_burst);
+    *burst = static_cast<BurstParams*>(out_burst);
     if (*burst == nullptr) { return ReturnStatus::failure; }
     return ReturnStatus::success;
   }
