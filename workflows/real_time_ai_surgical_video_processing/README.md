@@ -1,7 +1,7 @@
 # Real-Time End-to-end AI Surgical Video Processing
 
-![Overall Diagram](images/RAISVP_overall_diagram.png)
-*Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video processing.*
+![Overall Diagram](images/RAISVP_diagram_with_latency.png)
+*Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video processing. The end-to-end latency and its breakdown also depicted below the diagram.*
 
 ## Overview
 
@@ -183,7 +183,4 @@ The application accepts the following command line arguments:
 
 ## Benchmarking
 
-Please refer to [Holoscan Benchmarking](../../benchmarks/holoscan_flow_benchmarking/README.md) for how to perform benchmarking of this workflow. Below you can find the latency of each operator in a connected graph.
-
-![Latency Profiling](./images/RAISVP_latency.png)
-*Fig.4: Latency for all Holoscan operators in Real-time AI Surgical Video Processing Workflow.*
+Please refer to [Holoscan Benchmarking](../../benchmarks/holoscan_flow_benchmarking/README.md) for how to perform benchmarking for this workflow.
