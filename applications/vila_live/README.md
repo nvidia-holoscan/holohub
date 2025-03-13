@@ -66,7 +66,7 @@ To receive the video stream, please also ensure port 49000 is open.
 There are three options to ingest video data.
 
 1. use a physical device or capture card, such as a v4l2 device as described in the [Setup Instructions](##-⚙️-Setup-Instructions
-). Make sure the [vila_live.yaml](./vila_live.yaml) contains the v4l2_source group and specifies the device correctly.
+). Make sure the [vila_live.yaml](./vila_live.yaml) contains the v4l2_source group and specifies the device correctly (`pixel_format` may be tuned accordingly, e.g. `pixel_format: "auto"`).
 2. convert a video file to a gxf-compatible format using the [convert_video_to_gxf_entities.py](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script. See the [yolo_model_deployment](https://github.com/nvidia-holoscan/holohub/tree/main/applications/yolo_model_deployment#step-2-deployment) application for a detailed example. When using the replayer, configure the replayer_source in the yaml file and launch the application with:
     ```bash
     ./run_vila_live.sh --source "replayer"
