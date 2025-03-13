@@ -20,6 +20,8 @@
 #include <memory>
 #include <assert.h>
 
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 struct AdvNetworkOpTx::AdvNetworkOpTxImpl {
@@ -44,7 +46,7 @@ void AdvNetworkOpTx::stop() {
 
 void AdvNetworkOpTx::initialize() {
   HOLOSCAN_LOG_INFO("AdvNetworkOpTx::initialize()");
-  register_converter<holoscan::ops::AdvNetConfigYaml>();
+  register_converter<holoscan::advanced_network::AdvNetConfigYaml>();
 
   holoscan::Operator::initialize();
   if (Init() < 0) { throw std::runtime_error("ANO initialization failed"); }

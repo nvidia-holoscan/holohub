@@ -27,7 +27,7 @@
 #include "adv_network_types.h"
 #include <holoscan/logger/logger.hpp>
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
@@ -465,6 +465,6 @@ class RxBurstsManager {
   std::unique_ptr<RmaxBurst::BurstHandler> m_burst_handler;
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 #endif /* BURST_MANAGER_H_ */

@@ -27,7 +27,7 @@
 #include "packet_processor.h"
 #include "adv_network_types.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
@@ -121,6 +121,6 @@ inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_ch
   return {status, processed_packets, chunk_size - processed_packets};
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 #endif /* RMAX_CHUNK_CONSUMER_ANO_H_ */

@@ -22,7 +22,7 @@
 
 #include "rmax_config_manager.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 static constexpr int USECS_IN_SECOND = 1000000;
 
@@ -795,4 +795,4 @@ void RmaxRxQueueConfig::dump_parameters() const {
   }
 }
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::advanced_network

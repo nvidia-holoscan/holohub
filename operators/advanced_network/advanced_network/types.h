@@ -30,7 +30,7 @@
 #include <linux/udp.h>
 #include <cuda_runtime.h>
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 /**
  * @brief Reserved header bytes for burst structure
@@ -422,4 +422,4 @@ auto adv_net_get_rx_tx_cfg_en(const Config& config) {
   return std::make_tuple(rx, tx);
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

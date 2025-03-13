@@ -51,7 +51,7 @@
 #include "advanced_network/common.h"
 #include "adv_network_dpdk_stats.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 struct DPDKQueueConfig {
   std::vector<struct rte_mempool*> pools;
@@ -245,4 +245,4 @@ class DpdkMgr : public ANOMgr {
   int num_init = 0;
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

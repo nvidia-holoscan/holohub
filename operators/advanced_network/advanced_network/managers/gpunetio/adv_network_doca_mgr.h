@@ -83,7 +83,7 @@ static uint64_t next_power_of_two(uint64_t x) {
   return x + 1;
 }
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 static constexpr int JUMBFRAME_SIZE = 9100;
 static constexpr int DEFAULT_NUM_TX_BURST = 256;
@@ -273,4 +273,4 @@ class DocaMgr : public ANOMgr {
 };
 
 extern DocaMgr doca_mgr;
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

@@ -34,7 +34,7 @@
 
 #include "holoscan/holoscan.hpp"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 // Initialize static members
 std::unique_ptr<ANOMgr> AnoMgrFactory::AnoMgrInstance_ = nullptr;  // Initialize static members
@@ -103,11 +103,11 @@ AnoMgrType AnoMgrFactory::get_manager_type(const Config& config) {
       std::string manager = node["manager"].template as<std::string>(ANO_MGR_STR__DEFAULT);
       return manager_type_from_string(manager);
     } catch (const std::exception& e) {
-      return manager_type_from_string(holoscan::ops::ANO_MGR_STR__DEFAULT);
+      return manager_type_from_string(holoscan::advanced_network::ANO_MGR_STR__DEFAULT);
     }
   }
 
-  return manager_type_from_string(holoscan::ops::ANO_MGR_STR__DEFAULT);
+  return manager_type_from_string(holoscan::advanced_network::ANO_MGR_STR__DEFAULT);
 }
 
 template AnoMgrType AnoMgrFactory::get_manager_type<Config>(const Config&);
@@ -241,4 +241,4 @@ void ANOMgr::init_rx_core_q_map() {
   }
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

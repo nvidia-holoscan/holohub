@@ -32,7 +32,7 @@
 
 using namespace std::chrono;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 DocaMgr doca_mgr{};
 
@@ -1833,4 +1833,4 @@ void DocaMgr::print_stats() {
   return;
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

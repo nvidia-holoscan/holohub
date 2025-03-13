@@ -27,7 +27,7 @@
 #include "advanced_network/types.h"
 #include "holoscan/holoscan.hpp"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 // this part is purely optional, just a helper for the user
 AdvNetBurstParams* adv_net_create_burst_params();
@@ -434,11 +434,11 @@ void adv_net_print_stats();
  */
 std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir);
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 template <>
-struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
-  static Node encode(const holoscan::ops::AdvNetConfigYaml& input_spec) {
+struct YAML::convert<holoscan::advanced_network::AdvNetConfigYaml> {
+  static Node encode(const holoscan::advanced_network::AdvNetConfigYaml& input_spec) {
     Node node;
     // node["type"] = inputTypeToString(input_spec.type_);
     // node["name"] = input_spec.tensor_name_;
@@ -459,7 +459,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @param flow The FlowConfig object to populate.
    * @return true if parsing was successful, false otherwise.
    */
-  static bool parse_flow_config(const YAML::Node& flow_item, holoscan::ops::FlowConfig& flow);
+  static bool parse_flow_config(const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow);
 
   /**
    * @brief Parse memory region configuration from a YAML node.
@@ -469,7 +469,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_memory_region_config(const YAML::Node& mr,
-                                         holoscan::ops::MemoryRegion& memory_region);
+                                         holoscan::advanced_network::MemoryRegion& memory_region);
 
   /**
    * @brief Parse common RX queue configuration from a YAML node.
@@ -479,8 +479,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_config(const YAML::Node& q_item,
-                                    const holoscan::ops::AnoMgrType& manager_type,
-                                    holoscan::ops::RxQueueConfig& rx_queue_config);
+                                    const holoscan::advanced_network::AnoMgrType& manager_type,
+                                    holoscan::advanced_network::RxQueueConfig& rx_queue_config);
 
   /**
    * @brief Parse RX queue configuration from a YAML node.
@@ -491,7 +491,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_common_config(const YAML::Node& q_item,
-                                           holoscan::ops::RxQueueConfig& rx_queue_config);
+                                           holoscan::advanced_network::RxQueueConfig& rx_queue_config);
 
   /**
    * @brief Parse common TX queue configuration from a YAML node.
@@ -501,8 +501,8 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_config(const YAML::Node& q_item,
-                                    const holoscan::ops::AnoMgrType& manager_type,
-                                    holoscan::ops::TxQueueConfig& tx_queue_config);
+                                    const holoscan::advanced_network::AnoMgrType& manager_type,
+                                    holoscan::advanced_network::TxQueueConfig& tx_queue_config);
 
   /**
    * @brief Parse TX queue configuration from a YAML node.
@@ -513,7 +513,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_common_config(const YAML::Node& q_item,
-                                           holoscan::ops::TxQueueConfig& tx_queue_config);
+                                           holoscan::advanced_network::TxQueueConfig& tx_queue_config);
 
   /**
    * @brief Decode the YAML node into an AdvNetConfigYaml object.
@@ -526,7 +526,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
    * @param input_spec The AdvNetConfigYaml object to populate.
    * @return true if decoding was successful, false otherwise.
    */
-  static bool decode(const Node& node, holoscan::ops::AdvNetConfigYaml& input_spec) {
+  static bool decode(const Node& node, holoscan::advanced_network::AdvNetConfigYaml& input_spec) {
     if (!node.IsMap()) {
       GXF_LOG_ERROR("InputSpec: expected a map");
       return false;
@@ -537,10 +537,10 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       input_spec.common_.version = node["version"].as<int32_t>();
       input_spec.common_.master_core_ = node["master_core"].as<int32_t>();
       try {
-        input_spec.common_.manager_type = holoscan::ops::manager_type_from_string(
-            node["manager"].as<std::string>(holoscan::ops::ANO_MGR_STR__DEFAULT));
+        input_spec.common_.manager_type = holoscan::advanced_network::manager_type_from_string(
+            node["manager"].as<std::string>(holoscan::advanced_network::ANO_MGR_STR__DEFAULT));
       } catch (const std::exception& e) {
-        input_spec.common_.manager_type = holoscan::ops::AnoMgrType::DEFAULT;
+        input_spec.common_.manager_type = holoscan::advanced_network::AnoMgrType::DEFAULT;
       }
 
       try {
@@ -549,16 +549,16 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
       try {
         input_spec.log_level_ =
-            holoscan::ops::AnoLogLevel::from_string(node["log_level"].as<std::string>(
-                holoscan::ops::AnoLogLevel::to_string(holoscan::ops::AnoLogLevel::WARN)));
+            holoscan::advanced_network::AnoLogLevel::from_string(node["log_level"].as<std::string>(
+                holoscan::advanced_network::AnoLogLevel::to_string(holoscan::advanced_network::AnoLogLevel::WARN)));
       } catch (const std::exception& e) {
-        input_spec.log_level_ = holoscan::ops::AnoLogLevel::WARN;
+        input_spec.log_level_ = holoscan::advanced_network::AnoLogLevel::WARN;
       }
 
       try {
         const auto& mrs = node["memory_regions"];
         for (const auto& mr : mrs) {
-          holoscan::ops::MemoryRegion tmr;
+          holoscan::advanced_network::MemoryRegion tmr;
           if (!parse_memory_region_config(mr, tmr)) {
             HOLOSCAN_LOG_ERROR("Failed to parse memory region config");
             return false;
@@ -577,21 +577,21 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
       try {
         const auto& intfs = node["interfaces"];
         for (const auto& intf : intfs) {
-          holoscan::ops::AdvNetConfigInterface ifcfg;
+          holoscan::advanced_network::AdvNetConfigInterface ifcfg;
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
 
           try {
             const auto& rx = intf["rx"];
-            holoscan::ops::AdvNetRxConfig rx_cfg;
+            holoscan::advanced_network::AdvNetRxConfig rx_cfg;
 
             try {
               rx_cfg.flow_isolation_ = rx["flow_isolation"].as<bool>();
             } catch (const std::exception& e) { rx_cfg.flow_isolation_ = false; }
 
             for (const auto& q_item : rx["queues"]) {
-              holoscan::ops::RxQueueConfig q;
+              holoscan::advanced_network::RxQueueConfig q;
               if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
                 return false;
@@ -605,7 +605,7 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
             }
 
             for (const auto& flow_item : rx["flows"]) {
-              holoscan::ops::FlowConfig flow;
+              holoscan::advanced_network::FlowConfig flow;
               if (!parse_flow_config(flow_item, flow)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse FlowConfig");
                 return false;
@@ -618,14 +618,14 @@ struct YAML::convert<holoscan::ops::AdvNetConfigYaml> {
 
           try {
             const auto& tx = intf["tx"];
-            holoscan::ops::AdvNetTxConfig tx_cfg;
+            holoscan::advanced_network::AdvNetTxConfig tx_cfg;
 
             try {
               tx_cfg.accurate_send_ = tx["accurate_send"].as<bool>();
             } catch (const std::exception& e) { tx_cfg.accurate_send_ = false; }
 
             for (const auto& q_item : tx["queues"]) {
-              holoscan::ops::TxQueueConfig q;
+              holoscan::advanced_network::TxQueueConfig q;
               if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse TxQueueConfig");
                 return false;

@@ -20,7 +20,7 @@
 #include "advanced_network/types.h"
 #include <optional>
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 struct AllocRegion {
   std::string mr_name_;
@@ -138,4 +138,4 @@ class AnoMgrFactory {
   static std::unique_ptr<ANOMgr> create_instance(AnoMgrType type);
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

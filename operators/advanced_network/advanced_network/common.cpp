@@ -33,7 +33,7 @@
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
   assert(g_ano_mgr != nullptr && "ANO Manager is not initialized")
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 /**
  * @brief Structure for passing packets to/from advanced network operator
@@ -326,7 +326,7 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
   return output_ports;
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 /**
  * @brief Parse flow configuration from a YAML node.
@@ -335,12 +335,12 @@ std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const
  * @param flow The FlowConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
-    const YAML::Node& flow_item, holoscan::ops::FlowConfig& flow) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_flow_config(
+    const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow) {
   try {
     flow.name_ = flow_item["name"].as<std::string>();
     flow.id_ = flow_item["id"].as<int>();
-    flow.action_.type_ = holoscan::ops::FlowType::QUEUE;
+    flow.action_.type_ = holoscan::advanced_network::FlowType::QUEUE;
     flow.action_.id_ = flow_item["action"]["id"].as<int>();
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing FlowConfig: {}", e.what());
@@ -370,18 +370,18 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_flow_config(
  * @param tmr The MemoryRegion object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
-    const YAML::Node& mr, holoscan::ops::MemoryRegion& tmr) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_memory_region_config(
+    const YAML::Node& mr, holoscan::advanced_network::MemoryRegion& tmr) {
   try {
     tmr.name_ = mr["name"].as<std::string>();
-    tmr.kind_ = holoscan::ops::GetMemoryKindFromString(mr["kind"].template as<std::string>());
+    tmr.kind_ = holoscan::advanced_network::GetMemoryKindFromString(mr["kind"].template as<std::string>());
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
     try {
-      tmr.access_ = holoscan::ops::GetMemoryAccessPropertiesFromList(mr["access"]);
+      tmr.access_ = holoscan::advanced_network::GetMemoryAccessPropertiesFromList(mr["access"]);
     } catch (const std::exception& e) {
-      tmr.access_ = holoscan::ops::MEM_ACCESS_LOCAL;
+      tmr.access_ = holoscan::advanced_network::MEM_ACCESS_LOCAL;
     }
     tmr.owned_ = mr["owned"].template as<bool>(true);
   } catch (const std::exception& e) {
@@ -398,7 +398,7 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_memory_region_config(
  * @param common The CommonQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQueueConfig& common) {
+bool parse_common_queue_config(const YAML::Node& q_item, holoscan::advanced_network::CommonQueueConfig& common) {
   try {
     common.name_ = q_item["name"].as<std::string>();
     common.id_ = q_item["id"].as<int>();
@@ -428,8 +428,8 @@ bool parse_common_queue_config(const YAML::Node& q_item, holoscan::ops::CommonQu
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_config(
-    const YAML::Node& q_item, holoscan::ops::RxQueueConfig& q) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue_common_config(
+    const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     q.output_port_ = q_item["output_port"].as<std::string>();
@@ -448,22 +448,22 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_common_confi
  * @param q The RxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
-    const YAML::Node& q_item, const holoscan::ops::AnoMgrType& manager_type,
-    holoscan::ops::RxQueueConfig& q) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_rx_queue_config(
+    const YAML::Node& q_item, const holoscan::advanced_network::AnoMgrType& manager_type,
+    holoscan::advanced_network::RxQueueConfig& q) {
   try {
-    holoscan::ops::AnoMgrType _manager_type = manager_type;
+    holoscan::advanced_network::AnoMgrType _manager_type = manager_type;
 
     if (!parse_rx_queue_common_config(q_item, q)) { return false; }
 
-    if (manager_type == holoscan::ops::AnoMgrType::DEFAULT) {
-      _manager_type = holoscan::ops::AnoMgrFactory::get_default_manager_type();
+    if (manager_type == holoscan::advanced_network::AnoMgrType::DEFAULT) {
+      _manager_type = holoscan::advanced_network::AnoMgrFactory::get_default_manager_type();
     }
 #if ANO_MGR_RIVERMAX
-    if (_manager_type == holoscan::ops::AnoMgrType::RIVERMAX) {
-      holoscan::ops::AdvNetStatus status =
-          holoscan::ops::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
-      if (status != holoscan::ops::AdvNetStatus::SUCCESS) {
+    if (_manager_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
+      holoscan::advanced_network::AdvNetStatus status =
+          holoscan::advanced_network::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
+      if (status != holoscan::advanced_network::AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
       }
@@ -483,8 +483,8 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_rx_queue_config(
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_config(
-    const YAML::Node& q_item, holoscan::ops::TxQueueConfig& q) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_tx_queue_common_config(
+    const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
   try {
     const auto& offload = q_item["offloads"];
@@ -505,23 +505,23 @@ bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_common_confi
  * @param q The TxQueueConfig object to populate.
  * @return true if parsing was successful, false otherwise.
  */
-bool YAML::convert<holoscan::ops::AdvNetConfigYaml>::parse_tx_queue_config(
-    const YAML::Node& q_item, const holoscan::ops::AnoMgrType& manager_type,
-    holoscan::ops::TxQueueConfig& q) {
+bool YAML::convert<holoscan::advanced_network::AdvNetConfigYaml>::parse_tx_queue_config(
+    const YAML::Node& q_item, const holoscan::advanced_network::AnoMgrType& manager_type,
+    holoscan::advanced_network::TxQueueConfig& q) {
   try {
-    holoscan::ops::AnoMgrType _manager_type = manager_type;
+    holoscan::advanced_network::AnoMgrType _manager_type = manager_type;
 
-    if (manager_type == holoscan::ops::AnoMgrType::DEFAULT) {
-      _manager_type = holoscan::ops::AnoMgrFactory::get_default_manager_type();
+    if (manager_type == holoscan::advanced_network::AnoMgrType::DEFAULT) {
+      _manager_type = holoscan::advanced_network::AnoMgrFactory::get_default_manager_type();
     }
 
     if (!parse_tx_queue_common_config(q_item, q)) { return false; }
 
 #if ANO_MGR_RIVERMAX
-    if (_manager_type == holoscan::ops::AnoMgrType::RIVERMAX) {
-      holoscan::ops::AdvNetStatus status =
-          holoscan::ops::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
-      if (status != holoscan::ops::AdvNetStatus::SUCCESS) {
+    if (_manager_type == holoscan::advanced_network::AnoMgrType::RIVERMAX) {
+      holoscan::advanced_network::AdvNetStatus status =
+          holoscan::advanced_network::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
+      if (status != holoscan::advanced_network::AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;
       }

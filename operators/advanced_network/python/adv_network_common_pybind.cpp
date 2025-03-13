@@ -20,7 +20,7 @@
 
 namespace py = pybind11;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 PYBIND11_MODULE(_advanced_network_common, m) {
   m.doc() = "Advanced networking operator utility functions";
@@ -119,4 +119,4 @@ PYBIND11_MODULE(_advanced_network_common, m) {
   //  py::class_<AdvNetBurstParams, std::shared_ptr<AdvNetBurstParams>>
   //    (m, "AdvNetBurstParams").def(py::init<>());
 }
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

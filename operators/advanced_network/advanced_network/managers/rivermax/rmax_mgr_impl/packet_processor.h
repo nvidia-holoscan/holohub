@@ -27,7 +27,7 @@
 #include "burst_manager.h"
 #include "adv_network_types.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
@@ -145,6 +145,6 @@ class RxPacketProcessor : public IPacketProcessor {
   std::shared_ptr<RxBurstsManager> m_rx_burst_manager;
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 #endif /* PACKET_PROCESSOR_H_ */

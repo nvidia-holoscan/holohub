@@ -28,6 +28,8 @@
 
 #define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_RAW_PTR
 
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 #define CUDA_TRY(stmt)                                                                          \

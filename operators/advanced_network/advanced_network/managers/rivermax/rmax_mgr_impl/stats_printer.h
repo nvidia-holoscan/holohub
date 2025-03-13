@@ -25,7 +25,7 @@
 #include "advanced_network/manager.h"
 #include "rmax_ipo_receiver_service.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 class IpoRxStatsPrinter {
  public:
@@ -98,6 +98,6 @@ class IpoRxStatsPrinter {
   }
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
 
 #endif  // STATS_PRINTER_H

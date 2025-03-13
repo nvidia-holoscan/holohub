@@ -41,7 +41,7 @@
 
 using namespace std::chrono;
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 using namespace ral::services::rmax_ipo_receiver;
 
@@ -198,9 +198,9 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
   }
   HOLOSCAN_LOG_INFO(
       "Setting Rivermax Log Level to: {}",
-      holoscan::ops::RmaxLogLevel::to_description_string(config_manager.get_rmax_log_level()));
+      holoscan::advanced_network::RmaxLogLevel::to_description_string(config_manager.get_rmax_log_level()));
   rivermax_setparam("RIVERMAX_LOG_LEVEL",
-                    holoscan::ops::RmaxLogLevel::to_cmd_string(config_manager.get_rmax_log_level()),
+                    holoscan::advanced_network::RmaxLogLevel::to_cmd_string(config_manager.get_rmax_log_level()),
                     true);
 
   auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
@@ -1138,4 +1138,4 @@ int RmaxMgr::address_to_port(const std::string& addr) {
   return pImpl->address_to_port(addr);
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
