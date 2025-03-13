@@ -58,7 +58,7 @@ out_of_body_inference:
   is_engine_path: false
 
 out_of_body_postprocessor:
-  in_tensor_names: "out_of_body_inferred"
+  in_tensor_name: "out_of_body_inferred"
   out_tensor_name: "decision"
 
 detection_preprocessor:

@@ -111,22 +111,35 @@ get_buildtype_str() {
     echo -n "${build_type_str}"
 }
 
+is_workflow() {
+  # Check if a given project name is a workflow.
+  # Returns true if the project is a workflow, false otherwise.
+  # Usage: ./run is_workflow <project_name>
+  # Example: if $(is_workflow "my_project"); then echo "It's a workflow"; fi
+  local project_name="$1"
+
+  if [[ -z "${project_name}" ]]; then
+    echo "Missing project name argument for is_workflow"
+    return 1
+  fi
+
+  if list_workflows | awk '{print $1}' | grep -Fxq "${project_name}"; then
+    return 0 # Return true (0) if it's a workflow
+  else
+    return 1 # Return false (1) if it's not a workflow
+  fi
+}
 
 get_app_source_root_dir() {
   # Get source path for a given application according to HoloHub convention.
-  # Usage: ./run get_app_source_root_dir <app_name> [is_workflow]
+  # Usage: ./run get_app_source_root_dir <app_name>
   local appname="$1"
-  local is_workflow="$2"
   if [[ -z "${appname}" ]]; then
     echo "Missing app name argument for get_app_source_root_dir"
     exit 1
   fi
 
-  if [[ -z "${is_workflow}" ]]; then
-    is_workflow=false
-  fi
-
-  if [[ "${is_workflow}" == "true" ]]; then
+  if is_workflow "${appname}"; then
     holohub_app_source="${SCRIPT_DIR}/workflows/${appname}"
   else
     holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
@@ -155,15 +168,11 @@ get_app_source_lang_dir() {
   # Get source path for a given application language implementation according to HoloHub convention.
   # If a project defines more than one language implementation it must define one subfolder per language,
   # otherwise the implementation may be provided at the top level or in a subfolder at the contributor's discretion.
-  # Usage: ./run get_app_source_lang_dir <app_name> <language> [is_workflow]
+  # Usage: ./run get_app_source_lang_dir <app_name> <language>
   local appname="$1"
   local language="$2"
-  local is_workflow="$3"
 
-  if [[ -z "${is_workflow}" ]]; then
-    is_workflow=false
-  fi
-  local holohub_app_source=$(get_app_source_root_dir "${appname}" "${is_workflow}")
+  local holohub_app_source=$(get_app_source_root_dir "${appname}")
   if [[ -n "${holohub_app_source}" ]] && [[ -d "${holohub_app_source}/${language}" ]]; then
     holohub_app_source="${holohub_app_source}/${language}"
   fi
@@ -236,18 +245,12 @@ get_app_dockerfile() {
   # 2. Check for a Dockerfile in the application language implementation directory.
   # 3. Check for a Dockerfile in the root application directory.
   # 4. Use the default Dockerfile provided at the top level of the HoloHub repository.
-  # Usage: ./run get_app_dockerfile <app_name> <language> [is_workflow]
+  # Usage: ./run get_app_dockerfile <app_name> <language>
   local appname="$1"
-  local language="$2"
-  local is_workflow="$3"
   local dockerfile_path=""
 
-  if [[ -z "${is_workflow}" ]]; then
-    is_workflow=false
-  fi
-
-  local app_source_root_path=$(get_app_source_root_dir ${appname} ${is_workflow})
-  local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language} ${is_workflow})
+  local app_source_root_path=$(get_app_source_root_dir ${appname})
+  local app_source_lang_path=$(get_app_source_lang_dir ${appname} ${language})
 
   local dockerfile_entry=$(cat "${app_source_lang_path}/metadata.json" 2>/dev/null | grep "dockerfile" )
   if [[ -n "${dockerfile_entry}" ]]; then
@@ -779,16 +782,15 @@ build() {
   project=$(basename "$1")
   is_app=false
   is_pkg=false
-  is_workflow=false
   if list_packages | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="PKG"
     is_pkg=true
   elif list_apps | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="APP"
     is_app=true
-  elif list_workflows | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D APP_"
-    is_workflow=true
+  elif is_workflow "${project}"; then
+    opt_prefix="APP"
+    is_app=true
   elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="OP"
   else
@@ -806,8 +808,8 @@ build() {
 
   local app_source_root_path
   if [ $benchmark == true ]; then
-    if [ $is_app == true ] || [ $is_workflow == true ]; then
-      app_source_root_path=$(get_app_source_root_dir $project ${is_workflow})
+    if [ $is_app == true ]; then
+      app_source_root_path=$(get_app_source_root_dir $project)
       run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
     else
       print_warning "Requesting benchmarking with --benchmark is only available for applications/workflows, ignoring"
@@ -845,7 +847,7 @@ build() {
   fi
 
   if [ $benchmark == true ] && [ $is_app == true ]; then
-    app_source_root_path=$(get_app_source_root_dir $1 ${is_workflow})
+    app_source_root_path=$(get_app_source_root_dir $1)
     run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
   fi
 
@@ -937,13 +939,7 @@ launch() {
      fi
    fi
 
-   # Check if target is an application or workflow
-   local is_workflow=false
-   if list_workflows | awk '{print $1}' | grep -Fxq "$appname"; then
-     is_workflow=true
-   fi
-
-   holohub_app_source=$(get_app_source_lang_dir "${appname}" "${language}" "${is_workflow}")
+   holohub_app_source=$(get_app_source_lang_dir "${appname}" "${language}")
    if [[ -z "${holohub_app_source}" ]]; then
      print_error "Could not find app source directory for ${appname} ${language}."
      launch_desc
@@ -960,9 +956,6 @@ launch() {
    fi
 
    holohub_app_bin="${holohub_build_dir}/${holohub_app_source#"$SCRIPT_DIR/"}"
-   if [ "$is_workflow" = true ]; then
-     holohub_app_bin="${holohub_app_bin/workflows/applications/}"
-   fi
 
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
