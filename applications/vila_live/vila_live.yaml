@@ -16,7 +16,8 @@
 ---
 v4l2_source:
   device: "/dev/video0"
-  pixel_format: "YUYV"
+  # please consider `pixel_format: "YUYV"` if facing
+  # RuntimeError: Unsupported pixel format NV12
 
 replayer_source:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
