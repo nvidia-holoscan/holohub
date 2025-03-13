@@ -176,7 +176,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
 
       if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {gpu_len})) != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_pkts_and_burst(msg);
+        adv_net_free_all_pkts_and_burst_tx(msg);
         return;
       }
     }
