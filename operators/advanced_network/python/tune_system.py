@@ -529,7 +529,7 @@ def check_topology_connections():
 
         # Parse the topology table rows
         gpu_to_nic_connections = {}
-        for row_idx, row in enumerate(topo_output[header_index + 1:]):
+        for row_idx, row in enumerate(topo_output[header_index + 1 :]):
             row = row.strip()
             if not row:
                 continue  # Skip empty lines
