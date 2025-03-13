@@ -66,9 +66,15 @@ const std::unordered_map<std::string, AnoLogLevel::Level> AnoLogLevel::string_to
     {"off", OFF},
 };
 
+[[deprecated("Use adv_net_create_tx_burst_params() instead")]]
 AdvNetBurstParams* adv_net_create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->create_burst_params();
+  return g_ano_mgr->create_tx_burst_params();
+}
+
+AdvNetBurstParams* adv_net_create_tx_burst_params() {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->create_tx_burst_params();
 }
 
 void adv_net_initialize_manager(ANOMgr* manager) {
@@ -132,10 +138,16 @@ void adv_net_free_all_burst_pkts(AdvNetBurstParams* burst) {
   g_ano_mgr->free_all_pkts(burst);
 }
 
-void adv_net_free_all_pkts_and_burst(AdvNetBurstParams* burst) {
+void adv_net_free_all_pkts_and_burst_rx(AdvNetBurstParams* burst) {
   adv_net_free_all_burst_pkts(burst);
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_rx_burst(burst);
+}
+
+void adv_net_free_all_pkts_and_burst_tx(AdvNetBurstParams* burst) {
+  adv_net_free_all_burst_pkts(burst);
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->free_tx_burst(burst);
 }
 
 void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg) {
@@ -241,9 +253,20 @@ void adv_net_free_tx_burst(AdvNetBurstParams* burst) {
   g_ano_mgr->free_tx_burst(burst);
 }
 
+void adv_net_free_tx_meta(AdvNetBurstParams* burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->free_tx_meta(burst);
+}
+
+
 void adv_net_free_rx_burst(AdvNetBurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->free_rx_burst(burst);
+}
+
+void adv_net_free_rx_meta(AdvNetBurstParams* burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->free_rx_meta(burst);
 }
 
 void* adv_net_get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {

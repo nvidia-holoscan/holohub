@@ -70,7 +70,7 @@ class RmaxMgr : public ANOMgr {
   void shutdown() override;
   void print_stats() override;
   uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
-  AdvNetBurstParams* create_burst_params() override;
+  AdvNetBurstParams* create_tx_burst_params() override;
   AdvNetStatus get_mac(int port, char* mac) override;
   int address_to_port(const std::string& addr) override;
 

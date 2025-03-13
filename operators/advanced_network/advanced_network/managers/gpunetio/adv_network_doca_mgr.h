@@ -232,7 +232,7 @@ class DocaMgr : public ANOMgr {
   bool validate_config() const override;
 
   uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
-  AdvNetBurstParams* create_burst_params() override;
+  AdvNetBurstParams* create_tx_burst_params() override;
 
  private:
   doca_error_t init_doca_devices();

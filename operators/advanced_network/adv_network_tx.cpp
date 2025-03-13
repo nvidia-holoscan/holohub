@@ -71,8 +71,12 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
 
   AdvNetBurstParams* d_params;
   auto rx = op_input.receive<AdvNetBurstParams*>("burst_in");
+  if (!rx.has_value() || rx.value() == nullptr) {
+    HOLOSCAN_LOG_ERROR("No burst received from input");
+    return;
+  }
 
-  if (rx.has_value() && rx.value() != nullptr) {
+  if (impl->cfg.common_.manager_type == AnoMgrType::RIVERMAX) {
     const auto tx_buf_res = impl->mgr->get_tx_meta_buf(&d_params);
     if (tx_buf_res != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor: {}", static_cast<int>(tx_buf_res));
@@ -88,7 +92,14 @@ void AdvNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCont
       return;
     }
 
-    if (impl->cfg.common_.manager_type != AnoMgrType::DOCA) delete burst;
+    // Eventually switch rivermax over to its own pools. This delete shouldn't be here
+    delete burst;
+  } else {
+    const auto tx_res = impl->mgr->send_tx_burst(rx.value());
+    if (tx_res != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_ERROR("Failed to send TX burst to ANO: {}", static_cast<int>(tx_res));
+      return;
+    }
   }
 }
 };  // namespace holoscan::ops

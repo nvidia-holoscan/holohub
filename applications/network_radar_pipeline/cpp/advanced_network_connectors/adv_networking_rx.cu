@@ -238,7 +238,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_pkts_and_burst(first.msg[m]);
+        adv_net_free_all_pkts_and_burst_rx(first.msg[m]);
       }
       out_q.pop();
     } else {
@@ -301,7 +301,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
   if (adv_net_get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
-    adv_net_free_all_pkts_and_burst(burst);
+    adv_net_free_all_pkts_and_burst_rx(burst);
     HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
     return;
   }
@@ -375,7 +375,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
         exit(1);
       }
     } else {
-      adv_net_free_all_pkts_and_burst(burst);
+      adv_net_free_all_pkts_and_burst_rx(burst);
     }
     aggr_pkts_recv_ = 0;
     cur_idx = (++cur_idx % num_concurrent);

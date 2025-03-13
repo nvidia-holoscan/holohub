@@ -153,7 +153,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       // If CUDA processing/copy is complete, free the packets for all bursts in this batch
       if (cudaEventQuery(batch.evt) == cudaSuccess) {
         for (auto m = 0; m < batch.num_bursts; m++) {
-          adv_net_free_all_pkts_and_burst(batch.bursts[m]);
+          adv_net_free_all_pkts_and_burst_rx(batch.bursts[m]);
         }
         batch_q_.pop();
       } else {
@@ -290,7 +290,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         HOLOSCAN_LOG_ERROR("Fell behind putting packet data in contiguous memory on GPU!");
         for (auto m = 0; m < cur_batch_.num_bursts; m++) {
           ttl_packets_dropped_ += adv_net_get_num_pkts(cur_batch_.bursts[m]);
-          adv_net_free_all_pkts_and_burst(cur_batch_.bursts[m]);
+          adv_net_free_all_pkts_and_burst_rx(cur_batch_.bursts[m]);
         }
         cur_batch_.num_bursts = 0;
         CUDA_TRY(cudaDeviceSynchronize());

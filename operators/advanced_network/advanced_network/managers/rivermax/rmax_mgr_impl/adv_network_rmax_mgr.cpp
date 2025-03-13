@@ -121,7 +121,7 @@ class RmaxMgr::RmaxMgrImpl {
   void shutdown();
   void print_stats();
   uint64_t get_burst_tot_byte(AdvNetBurstParams* burst);
-  AdvNetBurstParams* create_burst_params();
+  AdvNetBurstParams* create_tx_burst_params();
   AdvNetStatus get_mac(int port, char* mac);
   int address_to_port(const std::string& addr);
 
@@ -705,7 +705,7 @@ uint64_t RmaxMgr::RmaxMgrImpl::get_burst_tot_byte(AdvNetBurstParams* burst) {
  *
  * @return Pointer to the created burst parameters.
  */
-AdvNetBurstParams* RmaxMgr::RmaxMgrImpl::create_burst_params() {
+AdvNetBurstParams* RmaxMgr::RmaxMgrImpl::create_tx_burst_params() {
   return new AdvNetBurstParams();
 }
 
@@ -1113,8 +1113,8 @@ uint64_t RmaxMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
  *
  * @return Pointer to the created burst parameters.
  */
-AdvNetBurstParams* RmaxMgr::create_burst_params() {
-  return pImpl->create_burst_params();
+AdvNetBurstParams* RmaxMgr::create_tx_burst_params() {
+  return pImpl->create_tx_burst_params();
 }
 
 /**
