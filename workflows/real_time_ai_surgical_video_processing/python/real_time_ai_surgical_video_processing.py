@@ -307,9 +307,9 @@ class DetectionPostprocessorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class RealTimeAISurgicalVideoProcessingWorkflow(Application):
+class AISurgicalVideoWorkflow(Application):
     """
-    Real-Time AI Surgical Video Processing Workflow
+    Real-Time End-to-End AI Surgical Video Workflow
 
     This class defines the workflow for processing surgical video streams with AI models.
     It supports three different sources:
@@ -341,7 +341,7 @@ class RealTimeAISurgicalVideoProcessingWorkflow(Application):
     ):
         super().__init__()
         # Set application name
-        self.name = "Real-Time AI Surgical Video Processing"
+        self.name = "Real-Time End-to-End AI Surgical Video Workflow"
         # Validate the path to the data directory
         self.data_dir = data if data is not None else os.environ.get("HOLOHUB_DATA_PATH", "../data")
         if not self.data_dir or not os.path.exists(self.data_dir):
@@ -719,7 +719,7 @@ def main(args):
 
         # __________________________________________________________________
         # Set up our Holoscan pipeline
-        application = RealTimeAISurgicalVideoProcessingWorkflow(
+        application = AISurgicalVideoWorkflow(
             source=args.source,
             data=args.data,
             headless=args.headless,
@@ -773,7 +773,7 @@ def main(args):
         cuda.cuDevicePrimaryCtxRelease(cu_device)
 
     else:
-        application = RealTimeAISurgicalVideoProcessingWorkflow(
+        application = AISurgicalVideoWorkflow(
             source=args.source,
             data=args.data,
             headless=args.headless,
@@ -785,7 +785,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Real-Time AI Surgical Video Processing Workflow")
+    parser = ArgumentParser(description="Real-Time End-to-End AI Surgical Video Workflow")
     parser.add_argument(
         "-s",
         "--source",
