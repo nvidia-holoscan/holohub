@@ -292,7 +292,7 @@ Status send_tx_burst(BurstParams* burst) {
 
 Status get_rx_burst(BurstParams** burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_rx_burst(burst);  
+  return g_ano_mgr->get_rx_burst(burst);
 }
 
 void print_stats() {
@@ -305,8 +305,8 @@ Status adv_net_init(NetworkConfig &config) {
 
   auto mgr = &(ManagerFactory::get_active_manager());
 
-  if (!mgr->set_config_and_initialize(config)) { 
-    return Status::INTERNAL_ERROR; 
+  if (!mgr->set_config_and_initialize(config)) {
+    return Status::INTERNAL_ERROR;
   }
 
   for (const auto& intf : config.ifs_) {
