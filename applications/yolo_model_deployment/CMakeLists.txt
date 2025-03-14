@@ -21,7 +21,7 @@ find_package(holoscan 1.0 REQUIRED CONFIG
 
 # Download the yolov8 model, exporting ONNX model, apply graph surgery for input size conversion
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onnx"
-    COMMAND git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git
+    COMMAND git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git || true
     COMMAND wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
     COMMAND mv yolov8s.pt YOLOv8-TensorRT
     COMMAND python3 YOLOv8-TensorRT/export-det.py --weights yolov8s.pt --iou-thres 0.65 --conf-thres 0.25 --topk 100 --opset 11 --sim --input-shape 1 3 640 640 --device cuda:0
@@ -29,9 +29,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onn
     COMMAND python ./graph_surgeon.py yolov8s.onnx yolov8s.onnx
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/yolo_model_deployment"
     COMMAND mv yolov8s.onnx "${HOLOHUB_DATA_DIR}/yolo_model_deployment"
-    COMMAND rm -rf YOLOv8-TensorRT
-    COMMAND rm graph_surgeon.py
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onnx"
     )
 
 
@@ -43,7 +40,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.mp4
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/yolo_model_deployment/video.mp4" -t 6.4
               -c:v libx264 "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.mp4"
     COMMAND rm -rf "${HOLOHUB_DATA_DIR}/yolo_model_deployment/video.mp4"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.mp4"
     VERBATIM
     )
 
@@ -53,8 +49,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.gxf
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/yolo_model_deployment" --basename meeting --width 1280 --height 720 --framerate 25
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.gxf_index"
-               "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/yolo_model_deployment/meeting.mp4"
     )
 
