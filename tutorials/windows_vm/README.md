@@ -27,7 +27,7 @@ the Windows platform. A significant number of these medical devices rely on Wind
 functionality. To integrate AI/ML and sensor processing capabilities from NVIDIA Holoscan into such
 Windows-based systems, we previously introduced a "sidecar" architecture. This architecture involved
 an AI compute node running Holoscan interoperating with a Windows node via a DDS link, showcased in
-the [Holoscan DDS reference application](../../applications/dds_video/).
+the [Holoscan DDS reference application](../../applications/dds/dds_video/).
 This tutorial extends the options for such use-cases by providing developers with a straightforward
 and clear system design to enable interoperability between Holoscan applications and Windows
 applications running on the same physical machine. It demonstrates how to achieve efficient
@@ -400,7 +400,7 @@ For a 1 minute test, we have observed **4.33 Gbits/sec** transfer rate from Wind
 
 If the above configurations are done correctly, then interoperating between a Holoscan application
 and Windows VM application is straightforward. For this tutorial, we will use the
-[Holoscan DDS app](../../applications/dds_video/) and a simple Windows application. The Holoscan DDS
+[Holoscan DDS app](../../applications/dds/dds_video/) and a simple Windows application. The Holoscan DDS
 app is used in `publisher` mode where it reads frames from a USB camera and sends the frames via
 DDS. The Windows application (available upon request) receives the frames via DDS and renders the
 frame on the screen using the RTX A4000 GPU with the help of OpenGL.
