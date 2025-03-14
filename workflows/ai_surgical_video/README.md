@@ -1,7 +1,7 @@
 # Real-Time End-to-end AI Surgical Video Workflow
 
 ![Overall Diagram](images/RAISVP_overall_diagram.png)
-*Fig.1: The overall diagram representing end-to-end pipeline for real-time AI surgical video. The end-to-end latency for this workflow on average is 37ms with maximum of 54ms, and its breakdown also depicted below the diagram is HSB Latency (Avg=21ms, Max=28ms), and AI Application Latency (Avg=16ms, Max=26ms).*
+*Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. This workflow achieves an end-to-end latency of 37ms on average with a maximum of 54ms. The latency breakdown shown below the diagram indicates HSB latency (Avg=21ms, Max=28ms) and AI Application latency (Avg=16ms, Max=26ms), demonstrating the high-performance capabilities of this solution.*
 
 ## Overview
 
@@ -78,7 +78,7 @@ This workflow utilizes the following three AI models:
 ### Using AJA Card or Replayer as I/O
 
 ```sh
-./dev_container build_and_run real_time_ai_surgical_video_processing
+./dev_container build_and_run ai_surgical_video
 ```
 
 ### Using Holoscan Sensor Bridge as I/O
@@ -97,7 +97,7 @@ This will build a docker image called `hololink-demo:2.0.0`.
 Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_ai_surgical_video_processing
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video
 ```
 
 ## Advanced Usage
@@ -113,7 +113,7 @@ First, you need to run the Holohub container:
 Then, you can build the workflow using the following command:
 
 ```sh
-./run build real_time_ai_surgical_video_processing
+./run build ai_surgical_video
 ```
 
 ### Running the Application
@@ -123,13 +123,13 @@ Then, you can build the workflow using the following command:
 Using the Holohub container, you can run the workflow without building it again:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build real_time_ai_surgical_video_processing
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build ai_surgical_video
 ```
 
 However, if you want to build the workflow, you can just remove the `--no_build` flag:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link real_time_ai_surgical_video_processing
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video
 ```
 
 #### Use Holohub Container from Inside the Container
@@ -143,20 +143,20 @@ First, you need to run the Holohub container:
 To run the Python application, you can make use of the run script:
 
 ```sh
-./run launch real_time_ai_surgical_video_processing
+./run launch ai_surgical_video
 ```
 
 Alternatively, you can run the application directly:
 
 ```sh
-cd <HOLOHUB_SOURCE_DIR>/workflows/real_time_ai_surgical_video_processing/python
-python3 real_time_ai_surgical_video_processing.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
+cd <HOLOHUB_SOURCE_DIR>/workflows/ai_surgical_video/python
+python3 ai_surgical_video.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 
 > **TIP:** You can get the exact "Run command" along with "Run environment" and "Run workdir" by executing:
 >
 > ```bash
-> ./run launch real_time_ai_surgical_video_processing --dryrun
+> ./run launch ai_surgical_video --dryrun
 > ```
 
 ### Command Line Arguments

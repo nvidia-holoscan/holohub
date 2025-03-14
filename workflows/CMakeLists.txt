@@ -19,4 +19,4 @@ set(HOLOSCAN_OPERATORS
         orsi_format_converter
         orsi_segmentation_preprocessor
 )
-add_holohub_application(real_time_ai_surgical_video_processing DEPENDS OPERATORS ${HOLOSCAN_OPERATORS})
+add_holohub_application(ai_surgical_video DEPENDS OPERATORS ${HOLOSCAN_OPERATORS})

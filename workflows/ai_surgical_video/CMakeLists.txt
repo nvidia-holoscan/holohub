@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(real_time_ai_surgical_video_processing_workflow LANGUAGES NONE)
+project(ai_surgical_video_workflow LANGUAGES NONE)
 
 # Holoscan
 find_package(holoscan 3.0 REQUIRED CONFIG
