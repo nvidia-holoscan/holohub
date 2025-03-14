@@ -1,6 +1,6 @@
 {
 	"workflow": {
-		"name": "Real-Time AI Surgical Video Processing Workflow",
+		"name": "Real-Time AI End-to-End Surgical Video Workflow",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -41,10 +41,10 @@
 		"dependencies": {
 			"data": [
 				{
-					"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
-					"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
-					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
-					"version": "20230222"
+					"name": "Orsi Academy Sample Applications",
+					"description": "This resource contains a binary tool segmentation model [1], a binary out-of-body classification model and sample surgical videos as accompanying assets for the Orsi Academy holohub applications.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_orsi_academy_sample_data",
+					"version": "20240206"
 				},
 				{
 					"name": "A SSD Detection model for Endoscopy Surgical Tools",
