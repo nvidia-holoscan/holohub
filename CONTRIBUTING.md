@@ -249,7 +249,7 @@ cmake --build ./build -j
 
 ### Adding a Workflow
 
-> NOTE: Workflows are _end-to-end_ reference applications that demonstrate complete pipelines from sensors to results. To determine if your contribution should be a workflow rather than an application, consider whether it represents a complete "from sensor to insight" pipeline. Workflows typically integrate multiple components (operators, models, etc.) to solve a specific use case in a production-ready manner, while applications may focus on demonstrating specific functionality or techniques.
+> NOTE: Workflows are _end-to-end_ reference applications that demonstrate complete pipelines from sensors to results. To determine if your contribution should be a workflow rather than an application, consider whether it represents a complete "from sensor to insight" pipeline. Workflows typically integrate multiple components (operators, models, etc.) to solve entire use case, while applications may focus on demonstrating specific functionality or techniques.
 
 Add each workflow in its own subdirectory under the [`workflows`](./workflows/) directory. The subdirectory should contain:
 
