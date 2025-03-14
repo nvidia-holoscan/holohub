@@ -708,4 +708,8 @@
          <loc>https://nvidia-holoscan.github.io/holohub/workflows/</loc>
          <lastmod>2025-03-14</lastmod>
     </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/workflows/ai_surgical_video/python/</loc>
+         <lastmod>2025-03-14</lastmod>
+    </url>
 </urlset>
