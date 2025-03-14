@@ -116,8 +116,6 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.output<std::shared_ptr<BurstParams>>("burst_out");
-
     spec.param<uint32_t>(
         batch_size_, "batch_size", "Batch size", "Batch size for each processing epoch", 1000);
     spec.param<uint16_t>(payload_size_,
@@ -206,7 +204,7 @@ class AdvNetworkingBenchDocaTxOp : public Operator {
 
     const auto first = out_q.front();
     if (cudaEventQuery(first.evt) == cudaSuccess) {
-      op_output.emit(first.msg, "burst_out");
+      send_tx_burst(first.msg);
       out_q.pop();
     }
   };

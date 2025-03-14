@@ -66,7 +66,6 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<std::shared_ptr<BurstParams>>("burst_in");
     spec.param<uint32_t>(batch_size_,
                          "batch_size",
                          "Batch size",
@@ -110,12 +109,12 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     free_batch_queue();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<BurstParams*>("burst_in");
-    if (!burst_opt) {
-      HOLOSCAN_LOG_ERROR("No burst input");
+    BurstParams *burst;
+    auto status = get_rx_burst(&burst);
+    if (status != Status::SUCCESS) {
+      HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;
     }
-    auto burst = burst_opt.value();
 
     // Count packets received
     ttl_pkts_recv_ += get_num_packets(burst);

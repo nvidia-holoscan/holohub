@@ -174,7 +174,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     BurstParams *burst;
     auto status = get_rx_burst(&burst);
     if (status != Status::SUCCESS) {
-      HOLOSCAN_LOG_DEBUG("Failed to get RX burst");
+      HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;
     }
 
