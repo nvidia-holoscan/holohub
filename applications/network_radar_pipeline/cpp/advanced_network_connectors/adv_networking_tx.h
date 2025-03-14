@@ -49,7 +49,7 @@ class AdvConnectorOpTx : public Operator {
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
   static constexpr uint16_t queue_id   = 0;
 
-  Status set_cpu_hdr(BurstParams *msg, const int pkt_idx);
+  Status set_cpu_hdr(holoscan::advanced_network::BurstParams *msg, const int pkt_idx);
   void populate_packets(uint8_t **out_ptr,
                         complex_t *rf_data,
                         uint16_t waveform_id,
@@ -58,14 +58,14 @@ class AdvConnectorOpTx : public Operator {
                         cudaStream_t stream);
 
   struct TxMsg {
-    BurstParams *msg;
+    holoscan::advanced_network::BurstParams *msg;
     uint16_t waveform_id;
     uint16_t channel_id;
     cudaEvent_t evt;
   };
   std::queue<TxMsg> out_q;
 
-  Parameter<NetworkConfig> cfg_;
+  Parameter<holoscan::advanced_network::NetworkConfig> cfg_;
 
   // Radar settings
   Parameter<uint16_t> num_pulses_;

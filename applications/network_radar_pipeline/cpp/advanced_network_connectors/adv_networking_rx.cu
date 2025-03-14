@@ -115,6 +115,8 @@ void place_packet_data(complex_t* out, const void* const* const in, int* sample_
                                                                                  max_waveform_id);
 }
 
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 void AdvConnectorOpRx::setup(OperatorSpec& spec) {

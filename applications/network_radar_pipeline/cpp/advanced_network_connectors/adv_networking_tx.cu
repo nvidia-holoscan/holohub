@@ -17,6 +17,8 @@
 
 #include "adv_networking_tx.h"  // TODO: Rename networking connectors
 
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
