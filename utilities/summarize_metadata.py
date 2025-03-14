@@ -44,6 +44,7 @@ class ProjectType(Enum):
     APPLICATION = 0
     GXF_EXTENSION = 1
     OPERATOR = 2
+    WORKFLOW = 3
 
 
 @dataclass
@@ -70,12 +71,13 @@ project_type_data = [
     ProjectTypeData(ProjectType.APPLICATION, "applications", "application"),
     ProjectTypeData(ProjectType.GXF_EXTENSION, "gxf_extensions", "gxf_extension"),
     ProjectTypeData(ProjectType.OPERATOR, "operators", "operator"),
+    ProjectTypeData(ProjectType.WORKFLOW, "workflows", "workflow"),
 ]
 
 
 def collect_metadata() -> pd.DataFrame:
     """Gather HoloHub project metadata into a DataFrame"""
-    METADATA_DIRECTORIES = ["applications", "gxf_extensions", "operators"]
+    METADATA_DIRECTORIES = ["applications", "workflows", "gxf_extensions", "operators"]
 
     # Ingest project metadata files
     metadata = gather_metadata(METADATA_DIRECTORIES)
