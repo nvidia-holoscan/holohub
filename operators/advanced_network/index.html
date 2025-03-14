@@ -7274,9 +7274,9 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 </li>
 </ul>
 <h4 id="api-structures">API Structures<a class="headerlink" href="#api-structures" title="Permanent link">&para;</a></h4>
-<p>Both the transmit and receive operators use a common structure named <code>AdvNetBurstParams</code> to pass data to/from other operators. <code>AdvNetBurstParams</code> provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by the operator to track allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network card library, interacting with <code>AdvNetBurstParams</code> is mostly done with the helper functions described below. A user should never modify any members of <code>AdvNetBurstParams</code> directly, as this may break in future versions. The <code>AdvNetBurstParams</code> is described below:</p>
-<div class="highlight"><pre><span></span><code>struct AdvNetBurstParams {
-  AdvNetBurstHdr hdr;
+<p>Both the transmit and receive operators use a common structure named <code>BurstParams</code> to pass data to/from other operators. <code>BurstParams</code> provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by the operator to track allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network card library, interacting with <code>BurstParams</code> is mostly done with the helper functions described below. A user should never modify any members of <code>BurstParams</code> directly, as this may break in future versions. The <code>BurstParams</code> is described below:</p>
+<div class="highlight"><pre><span></span><code>struct BurstParams {
+  BurstHeader hdr;
 
   std::array&lt;void**, MAX_NUM_SEGS&gt; pkts;
   std::array&lt;uint32_t*, MAX_NUM_SEGS&gt; pkt_lens;
@@ -7298,17 +7298,17 @@ network operator's <code>burst_out</code> port.</p>
 auto my_receiver   = make_operator&lt;ops::MyReceiver&gt;(&quot;my_receiver&quot;, from_config(&quot;my_receiver&quot;));
 add_flow(adv_net_rx, my_receiver, (&#39;burst_out&#39;, &#39;burst_in&#39;));
 </code></pre></div>
-<p>Once the ports are connected, inside the <code>compute()</code> function of your operator you will receive a <code>AdvNetBurstParams</code> structure
+<p>Once the ports are connected, inside the <code>compute()</code> function of your operator you will receive a <code>BurstParams</code> structure
 when a batch is complete:</p>
-<div class="highlight"><pre><span></span><code>auto burst = op_input.receive&lt;std::shared_ptr&lt;AdvNetBurstParams&gt;&gt;(&quot;burst_in&quot;).value();
+<div class="highlight"><pre><span></span><code>auto burst = op_input.receive&lt;std::shared_ptr&lt;BurstParams&gt;&gt;(&quot;burst_in&quot;).value();
 </code></pre></div>
 <p>The packets arrive in scattered packet buffers. Depending on the application, you may need to iterate through the packets to
 aggregate them into a single buffer. Alternatively the operator handling the packet data can operate on a list of packet
 pointers rather than a contiguous buffer. Below is an example of aggregating separate GPU packet buffers into a single GPU
 buffer:</p>
-<div class="highlight"><pre><span></span><code>  for (int p = 0; p &lt; adv_net_get_num_pkts(burst); p++) {
-    h_dev_ptrs_[aggr_pkts_recv_ + p]   = adv_net_get_cpu_pkt_ptr(burst, p);
-    ttl_bytes_in_cur_batch_           += adv_net_get_gpu_packet_len(burst, p) + sizeof(UDPPkt);
+<div class="highlight"><pre><span></span><code>  for (int p = 0; p &lt; get_num_packets(burst); p++) {
+    h_dev_ptrs_[aggr_pkts_recv_ + p]   = get_cpu_packet_ptr(burst, p);
+    ttl_bytes_in_cur_batch_           += get_gpu_packet_length(burst, p) + sizeof(UDPPkt);
   }
 
   simple_packet_reorder(buffer, h_dev_ptrs, packet_len, burst-&gt;hdr.num_pkts);
@@ -7316,7 +7316,7 @@ buffer:</p>
 <p>For this example we are tossing the header portion (CPU), so we don't need to examine the packets. Since we launched a reorder
 kernel to aggregate the packets in GPU memory, we are also done with the GPU pointers. All buffers may be freed to the
 advanced network operator at this point:</p>
-<div class="highlight"><pre><span></span><code>adv_net_free_all_burst_pkts_and_burst(burst_bufs_[b]);
+<div class="highlight"><pre><span></span><code>free_all_burst_packets_and_burst(burst_bufs_[b]);
 </code></pre></div>
 <h5 id="transmit">Transmit<a class="headerlink" href="#transmit" title="Permanent link">&para;</a></h5>
 <p>Transmitting packets works similar to the receive side, except the user is tasked with filling out the packets as much as it
@@ -7328,30 +7328,30 @@ auto adv_net_tx       = make_operator&lt;ops::AdvNetworkOpTx&gt;(&quot;adv_netwo
 add_flow(my_transmitter, adv_net_tx, (&#39;burst_out&#39;, &#39;burst_in&#39;));
 </code></pre></div>
 <p>Before sending packets, the user's transmit operator must request a buffer from the advanced network operator pool:</p>
-<div class="highlight"><pre><span></span><code>auto msg = std::make_shared&lt;AdvNetBurstParams&gt;();
+<div class="highlight"><pre><span></span><code>auto msg = std::make_shared&lt;BurstParams&gt;();
 msg-&gt;hdr.num_pkts = num_pkts;
-if ((ret = adv_net_get_tx_pkt_burst(msg.get())) != AdvNetStatus::SUCCESS) {
-  HOLOSCAN_LOG_ERROR(&quot;Error returned from adv_net_get_tx_pkt_burst: {}&quot;, static_cast&lt;int&gt;(ret));
+if ((ret = get_tx_packet_burst(msg.get())) != Status::SUCCESS) {
+  HOLOSCAN_LOG_ERROR(&quot;Error returned from get_tx_packet_burst: {}&quot;, static_cast&lt;int&gt;(ret));
   return;
 }
 </code></pre></div>
-<p>The code above creates a shared <code>AdvNetBurstParams</code> that will be passed to the advanced network operator, and uses
-<code>adv_net_get_tx_pkt_burst</code> to populate the burst buffers with valid packet buffers. On success, the buffers inside the
+<p>The code above creates a shared <code>BurstParams</code> that will be passed to the advanced network operator, and uses
+<code>get_tx_packet_burst</code> to populate the burst buffers with valid packet buffers. On success, the buffers inside the
 burst structure will be allocate and are ready to be filled in. Each packet must be filled in by the user. In this
 example we loop through each packet and populate a buffer:</p>
 <div class="highlight"><pre><span></span><code>for (int num_pkt = 0; num_pkt &lt; msg-&gt;hdr.num_pkts; num_pkt++) {
   void *payload_src = data_buf + num_pkt * nom_pkt_size;
-  if (adv_net_set_udp_payload(msg-&gt;cpu_pkts[num_pkt], payload_src, nom_pkt_size) != AdvNetStatus::SUCCESS) {
+  if (set_udp_payload(msg-&gt;cpu_packets[num_pkt], payload_src, nom_pkt_size) != Status::SUCCESS) {
     HOLOSCAN_LOG_ERROR(&quot;Failed to create packet {}&quot;, num_pkt);
   }
 }
 </code></pre></div>
 <p>The code iterates over <code>msg-&gt;hdr.num_pkts</code> (defined by the user) and passes a pointer to the payload and the packet
-size to <code>adv_net_set_udp_payload</code>. In this example our configuration is using <code>fill_mode</code> "udp" on the transmitter, so
-<code>adv_net_set_udp_payload</code> will populate the Ethernet, IP, and UDP headers. The payload pointer passed by the user
+size to <code>set_udp_payload</code>. In this example our configuration is using <code>fill_mode</code> "udp" on the transmitter, so
+<code>set_udp_payload</code> will populate the Ethernet, IP, and UDP headers. The payload pointer passed by the user
 is also copied into the buffer. Alternatively a user could use the packet buffers directly as output from a previous stage
 to avoid this extra copy.</p>
-<p>With the <code>AdvNetBurstParams</code> populated, the burst can be sent off to the advanced network operator for transmission:</p>
+<p>With the <code>BurstParams</code> populated, the burst can be sent off to the advanced network operator for transmission:</p>
 <div class="highlight"><pre><span></span><code>op_output.emit(msg, &quot;burst_out&quot;);
 </code></pre></div>
 
