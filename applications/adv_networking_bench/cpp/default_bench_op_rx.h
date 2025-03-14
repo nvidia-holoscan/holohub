@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "adv_network_rx.h"
+#include "advanced_network/common.h"
 #include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "adv_network_tx.h"
+#include "advanced_network/common.h"
 #include "advanced_network/kernels.h"
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
