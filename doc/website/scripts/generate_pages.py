@@ -145,8 +145,9 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
     # Add a suffix to the title based on the language
     # Check if we have multiple language implementations (cpp and python)
     parent_dir = os.path.dirname(str(metadata_file.parent))
-    if (os.path.isdir(os.path.join(parent_dir, "cpp")) and
-        os.path.isdir(os.path.join(parent_dir, "python"))):
+    if os.path.isdir(os.path.join(parent_dir, "cpp")) and os.path.isdir(
+        os.path.join(parent_dir, "python")
+    ):
         dir = path.split("/")[-1]
         if dir == "python":
             output_text += " (Python)"
@@ -264,8 +265,8 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
         other_implementations = list(parent_dir.glob("*/metadata.json"))
         # Check how many implementations we have
         if len(other_implementations) == 1:
-         # Take the parent folder of the path
-          path = os.path.dirname(path)
+            # Take the parent folder of the path
+            path = os.path.dirname(path)
 
     dest_directory = dest_dir + "/" + path
     dest_file = dest_directory + ".md"
