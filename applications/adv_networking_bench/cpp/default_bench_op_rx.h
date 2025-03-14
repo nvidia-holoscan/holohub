@@ -119,7 +119,6 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<std::shared_ptr<BurstParams>>("burst_in");
     spec.param<bool>(hds_,
                      "split_boundary",
                      "Header-data split boundary",
@@ -172,11 +171,12 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     // to keep it simple, we do that check right here on the next epoch of the operator.
     free_processed_packets();
 
-    // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<BurstParams*>("burst_in");
-    if (!burst_opt) { return; }
-
-    auto burst = burst_opt.value();
+    BurstParams *burst;
+    auto status = get_rx_burst(&burst);
+    if (status != Status::SUCCESS) {
+      HOLOSCAN_LOG_DEBUG("Failed to get RX burst");
+      return;
+    }
 
     auto burst_size = get_num_packets(burst);
 
