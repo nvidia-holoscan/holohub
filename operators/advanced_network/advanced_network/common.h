@@ -75,7 +75,7 @@ inline int EnabledDirections(const std::string& dir) {
  *    INVALID_CONFIG: Invalid configuration
  *    INTERNAL_ERROR: Internal error
  */
-AdvNetStatus adv_net_init(AdvNetConfigYaml &config);
+Status adv_net_init(NetworkConfig &config);
 
 /**
  * @brief Returns a manager type
@@ -399,6 +399,25 @@ int address_to_port(const std::string& addr);
 void set_num_packets(BurstParams* burst, int64_t num);
 
 /**
+ * @brief Send a TX burst
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst sent successfully
+ */
+Status send_tx_burst(BurstParams* burst);
+
+/**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive  
+ */
+Status get_rx_burst(BurstParams** burst);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure
@@ -523,6 +542,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_tx_queue_common_config(
       const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.

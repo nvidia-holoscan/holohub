@@ -285,26 +285,40 @@ void shutdown() {
   g_ano_mgr->shutdown();
 }
 
+Status send_tx_burst(BurstParams* burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->send_tx_burst(burst);
+}
+
+Status get_rx_burst(BurstParams** burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst);  
+}
+
 void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();
 }
 
-AdvNetStatus adv_net_init(AdvNetConfigYaml &config) {
-  AnoMgrFactory::set_manager_type(config.common_.manager_type);
+Status adv_net_init(NetworkConfig &config) {
+  ManagerFactory::set_manager_type(config.common_.manager_type);
 
-  auto mgr = &(AnoMgrFactory::get_active_manager());
+  auto mgr = &(ManagerFactory::get_active_manager());
 
-  if (!mgr->set_config_and_initialize(config)) { return AdvNetStatus::INTERNAL_ERROR; }
+  if (!mgr->set_config_and_initialize(config)) { 
+    return Status::INTERNAL_ERROR; 
+  }
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
     auto port_opt = mgr->get_port_from_ifname(intf.address_);
     if (!port_opt.has_value()) {
       HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
-      return -1;
+      return Status::INVALID_PARAMETER;
     }
-  }  
+  }
+
+  return Status::SUCCESS;
 }
 
 std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir) {

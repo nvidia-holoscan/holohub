@@ -31,13 +31,14 @@ class App : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
-    
-    if (holoscan::ops::adv_net_init(config()) != holoscan::ops::AdvNetStatus::SUCCESS) {
+
+    auto adv_net_config = from_config("advanced_network").as<NetworkConfig>();
+    if (advanced_network::adv_net_init(adv_net_config) != advanced_network::Status::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Failed to initialize advanced network");
       exit(1);
     }
 
-    HOLOSCAN_LOG_INFO("Initializing advanced network operator");
+    HOLOSCAN_LOG_INFO("Initialized advanced network operator");
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
     auto output_rx_ports = advanced_network::get_port_names(config(), "rx");
@@ -51,12 +52,14 @@ class App : public holoscan::Application {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx", from_config("bench_rx"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_rx);
       }
       if (tx_en) {
         auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_tx);
       }
 #else
       HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is disabled");
@@ -69,12 +72,14 @@ class App : public holoscan::Application {
         auto bench_rx =
             make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_rx);
       }
       if (tx_en) {
         auto bench_tx = make_operator<ops::AdvNetworkingBenchDocaTxOp>(
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_tx);
       }
 #else
       HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
@@ -88,6 +93,7 @@ class App : public holoscan::Application {
           std::string bench_rx_name = "bench_rx_" + std::to_string(index++);
           auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
                                                                          from_config("bench_rx"));
+          add_operator(bench_rx);
         }
       }
       if (tx_en) {
