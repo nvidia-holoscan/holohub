@@ -185,12 +185,13 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
      * it's not having to do any work to construct packets, and just copying from a buffer into
      * memory.
      */
+
     if (!adv_net_tx_burst_available(msg)) {
-      if (not_available_count++ > 10000) {
+      if (++not_available_count == 10000) {
         HOLOSCAN_LOG_ERROR(
-          "TX port {}, queue {}, burst not available {} times. "\
+          "TX port {}, queue {}, burst not available too many times consecutively. "\
           "Make sure memory region has enough buffers",
-          port_id_, queue_id, not_available_count);
+          port_id_, queue_id);
         not_available_count = 0;
       }
       adv_net_free_tx_meta(msg);
