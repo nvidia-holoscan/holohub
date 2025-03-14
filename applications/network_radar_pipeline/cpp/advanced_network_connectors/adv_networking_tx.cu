@@ -189,7 +189,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams* msg, const int pkt
   // Set Ethernet header
   if ((ret = adv_net_set_eth_hdr(msg, pkt_idx, eth_dst_)) != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set Ethernet header for packet {}", pkt_idx);
-    adv_net_free_all_pkts_and_burst(msg);
+    adv_net_free_all_pkts_and_burst_tx(msg);
     return ret;
   }
 
@@ -198,7 +198,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams* msg, const int pkt
   if ((ret = adv_net_set_ipv4_hdr(msg, pkt_idx, ip_len, 17, ip_src_, ip_dst_)) !=
       AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set IP header for packet {}", 0);
-    adv_net_free_all_pkts_and_burst(msg);
+    adv_net_free_all_pkts_and_burst_tx(msg);
     return ret;
   }
 
@@ -210,7 +210,7 @@ AdvNetStatus AdvConnectorOpTx::set_cpu_hdr(AdvNetBurstParams* msg, const int pkt
                                  udp_src_port_.get(),
                                  udp_dst_port_.get())) != AdvNetStatus::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
-    adv_net_free_all_pkts_and_burst(msg);
+    adv_net_free_all_pkts_and_burst_tx(msg);
     return ret;
   }
 
@@ -369,7 +369,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
                  msg, num_pkt, packets_buf[num_pkt].get_ptr(), payload_size_)) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set UDP payload for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
       }
@@ -382,7 +382,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
       if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE}))
               != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_pkts_and_burst(msg);
+        adv_net_free_all_pkts_and_burst_tx(msg);
         return;
       }
     } else if (gpu_direct_ && hds_ > 0) {
@@ -391,14 +391,14 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
         if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_, payload_size_}))
               != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
     } else {
       if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {payload_size_ + PADDED_HDR_SIZE}))
               != AdvNetStatus::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-        adv_net_free_all_pkts_and_burst(msg);
+        adv_net_free_all_pkts_and_burst_tx(msg);
         return;
       }
     }

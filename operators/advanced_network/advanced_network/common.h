@@ -31,6 +31,16 @@ namespace holoscan::ops {
 
 // this part is purely optional, just a helper for the user
 AdvNetBurstParams* adv_net_create_burst_params();
+AdvNetBurstParams* adv_net_create_tx_burst_params();
+
+enum class AdvNetErrorGlobalStats {
+  OUT_OF_RX_BUFFERS = 0,
+  RX_QUEUE_FULL = 1,
+  METADATA_BUF_DEPLETED = 2,
+
+  SENTINEL = 3,
+};
+
 
 namespace detail {
 inline AdvNetDirection DirectionStringToType(const std::string& dir) {
@@ -222,13 +232,22 @@ bool adv_net_tx_burst_available(AdvNetBurstParams* burst);
 void adv_net_free_seg_pkts_and_burst(AdvNetBurstParams* burst, int seg);
 
 /**
- * @brief Free all packets and a burst
+ * @brief Free all packets and an RX burst
  *
  * Frees all packets in a burst of packets and the associated burst buffer
  *
  * @param burst Burst structure containing packet lists
  */
-void adv_net_free_all_pkts_and_burst(AdvNetBurstParams* burst);
+void adv_net_free_all_pkts_and_burst_rx(AdvNetBurstParams* burst);
+
+/**
+ * @brief Free all packets and a TX burst
+ *
+ * Frees all packets in a burst of packets and the associated burst buffer
+ *
+ * @param burst Burst structure containing packet lists
+ */
+void adv_net_free_all_pkts_and_burst_tx(AdvNetBurstParams* burst);
 
 /**
  * @brief Set packet lengths in metadata
@@ -309,6 +328,26 @@ void adv_net_free_rx_burst(AdvNetBurstParams* burst);
  * @param burst Burst structure to free
  */
 void adv_net_free_tx_burst(AdvNetBurstParams* burst);
+
+/**
+ * @brief Free a receive TX meta buffer
+ *
+ * Frees the buffer containing a receive TX meta buffer. This function does not free packets;
+ * packets must be freed prior to calling this.
+ *
+ * @param burst Burst structure to free
+ */
+void adv_net_free_tx_meta(AdvNetBurstParams* burst);
+
+/**
+ * @brief Free a receive RX meta buffer
+ *
+ * Frees the buffer containing a receive RX meta buffer. This function does not free packets;
+ * packets must be freed prior to calling this.
+ *
+ * @param burst Burst structure to free
+ */
+void adv_net_free_rx_meta(AdvNetBurstParams* burst);
 
 /**
  * @brief Get the number of packets in a burst

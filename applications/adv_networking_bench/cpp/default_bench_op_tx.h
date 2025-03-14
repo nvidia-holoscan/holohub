@@ -169,6 +169,16 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
     AdvNetStatus ret;
+    static int not_available_count = 0;
+
+    if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
+      HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
+      return;
+    }
+
+    auto msg = adv_net_create_tx_burst_params();
+    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
+
     /**
      * Spin waiting until a buffer is free. This can be stalled by sending faster than the NIC can
      * handle it. We expect the transmit operator to operate much faster than the receiver since
@@ -176,15 +186,20 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
      * memory.
      */
 
-    if (gpu_direct_.get() && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
-      HOLOSCAN_LOG_ERROR("Falling behind on TX processing for index {}!", cur_idx);
+    if (!adv_net_tx_burst_available(msg)) {
+      if (++not_available_count == 10000) {
+        HOLOSCAN_LOG_ERROR(
+          "TX port {}, queue {}, burst not available too many times consecutively. "\
+          "Make sure memory region has enough buffers",
+          port_id_, queue_id);
+        not_available_count = 0;
+      }
+      adv_net_free_tx_meta(msg);
       return;
     }
 
-    auto msg = adv_net_create_burst_params();
-    adv_net_set_hdr(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
+    not_available_count = 0;
 
-    while (!adv_net_tx_burst_available(msg)) {}
     if ((ret = adv_net_get_tx_pkt_burst(msg)) != AdvNetStatus::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from adv_net_get_tx_pkt_burst: {}", static_cast<int>(ret));
       return;
@@ -195,7 +210,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       if (!gpu_direct_.get() || hds_.get() > 0) {
         if ((ret = adv_net_set_eth_hdr(msg, num_pkt, eth_dst_)) != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set Ethernet header for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
 
@@ -204,7 +219,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         if ((ret = adv_net_set_ipv4_hdr(msg, num_pkt, ip_len, 17, ip_src_, ip_dst_)) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set IP header for packet {}", 0);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
 
@@ -215,7 +230,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                                        udp_src_port_.get(),
                                        udp_dst_port_.get())) != AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
 
@@ -227,7 +242,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                    static_cast<char*>(full_batch_data_h_) + num_pkt * payload_size_.get(),
                    payload_size_.get())) != AdvNetStatus::SUCCESS) {
             HOLOSCAN_LOG_ERROR("Failed to set UDP payload for packet {}", num_pkt);
-            adv_net_free_all_pkts_and_burst(msg);
+            adv_net_free_all_pkts_and_burst_tx(msg);
             return;
           }
         }
@@ -240,7 +255,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         if ((ret = adv_net_set_pkt_lens(msg, num_pkt, {hds_.get(), payload_size_.get()})) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
       } else {
@@ -253,7 +268,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                  adv_net_set_pkt_lens(msg, num_pkt, {payload_size_.get() + header_size_.get()})) !=
             AdvNetStatus::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
-          adv_net_free_all_pkts_and_burst(msg);
+          adv_net_free_all_pkts_and_burst_tx(msg);
           return;
         }
       }

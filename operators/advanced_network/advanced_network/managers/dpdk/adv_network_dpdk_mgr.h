@@ -49,6 +49,7 @@
 #include <unordered_map>
 #include "advanced_network/manager.h"
 #include "advanced_network/common.h"
+#include "adv_network_dpdk_stats.h"
 
 namespace holoscan::ops {
 
@@ -198,7 +199,7 @@ class DpdkMgr : public ANOMgr {
   void print_stats() override;
   void adjust_memory_regions() override;
   uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
-  AdvNetBurstParams* create_burst_params() override;
+  AdvNetBurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
 
  private:
@@ -239,7 +240,8 @@ class DpdkMgr : public ANOMgr {
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
-
+  AdvNetworkDpdkStats stats_;
+  std::thread stats_thread_;
   int num_init = 0;
 };
 
