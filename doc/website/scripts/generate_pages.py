@@ -141,11 +141,18 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
     for tag in tags:
         output_text += f"\n - {tag}"
     output_text += f"\ntitle: {name}"
-    dir = path.split("/")[-1]
-    if dir == "python":
-        output_text += " (Python)"
-    elif dir == "cpp":
-        output_text += " (C++)"
+
+    # Add a suffix to the title based on the language
+    # Check if we have multiple language implementations (cpp and python)
+    parent_dir = os.path.dirname(str(metadata_file.parent))
+    if os.path.isdir(os.path.join(parent_dir, "cpp")) and os.path.isdir(
+        os.path.join(parent_dir, "python")
+    ):
+        dir = path.split("/")[-1]
+        if dir == "python":
+            output_text += " (Python)"
+        elif dir == "cpp":
+            output_text += " (C++)"
     output_text += "\n---\n"
 
     # Finds the README.md
@@ -249,6 +256,17 @@ def parse_metadata_file(metadata_file: Path, statistics) -> None:
                 output_text += readme_text.replace(match.group(1), title + "\n" + header_text, 1)
             else:
                 output_text += readme_text
+
+    # Check if this is a subdirectory implementation (cpp/python)
+    # If so, check if there are other implementations at the parent level
+    parent_dir = metadata_file.parent.parent
+    if metadata_file.parent.name in ["cpp", "python"]:
+        # Check if the parent directory contains other subdirectories with metadata.json files
+        other_implementations = list(parent_dir.glob("*/metadata.json"))
+        # Check how many implementations we have
+        if len(other_implementations) == 1:
+            # Take the parent folder of the path
+            path = os.path.dirname(path)
 
     dest_directory = dest_dir + "/" + path
     dest_file = dest_directory + ".md"
