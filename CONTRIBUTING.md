@@ -3,7 +3,7 @@
 ## Table of Contents
 - [Introduction](#introduction)
 - [Types of Contributions](#types-of-contributions)
-- [Developer Workflow](#developer-workflow)
+- [Developer Process](#developer-process)
 - [Preparing your submission](#preparing-your-submission)
 - [Reporting issues](#reporting-issues)
 
@@ -22,18 +22,21 @@ Please read this guide if you are interested in contributing open source code to
 Before getting started, assess how your idea or project may best benefit the Holoscan community.
 
 If your idea is:
+
+- _an end-to-end pipeline that address the entire use case:_ Consider submitting to HoloHub as a [workflow](./workflows/).
 - _specific to a narrow practical application or use case:_ Consider submitting to HoloHub as an [application](./applications/).
 - _widely applicable across a domain of interests:_ Consider submitting to HoloHub as an [operator](./operators/) and an accompanying [application](./applications/).
-- _neither a new operator nor an application_: Consider submitting a [tutorial](./tutorials/) to HoloHub.
+- _neither a new operator, application, nor workflow_: Consider submitting a [tutorial](./tutorials/) to HoloHub.
+
 
 If your code is:
 - _feature-complete and tested_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to contribute your work to HoloHub.
 - _a work in progress:_ We recommend to [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) HoloHub and track your local development there, then submit to HoloHub when ready. Alternatively, open pull request and indicate that it is a "work-in-progress" with the prefix "WIP".
-- _a patch for an existing application or operator_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and request a review from the original author of the contribution you are patching.
+- _a patch for an existing application, workflow, or operator_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and request a review from the original author of the contribution you are patching.
 
 We recommend referring to contributing guidelines for testing and styling goals throughout your development process.
 
-## Developer Workflow
+## Developer Process
 
 ### Requirements
 
@@ -41,7 +44,7 @@ Review [HoloHub prerequisites](./README.md#prerequisites) before getting started
 
 We recommend that new developers review GitHub's [starting documentation](https://docs.github.com/en/get-started/start-your-journey) before making their first contribution.
 
-### Workflow
+### Process
 
 1. Developers must first [fork](https://help.github.com/en/articles/fork-a-repo) the [upstream](https://github.com/nvidia-holoscan/holohub) HoloHub repository.
 
@@ -68,9 +71,9 @@ We request that members follow the guidelines in this document to make sure new 
 
 A typical submission consists of:
 
-- Application, operator, and/or tutorial code making use of the Holoscan SDK;
+- Application, workflow, operator, and/or tutorial code making use of the Holoscan SDK;
 - A [`metadata.json`](#metadata-description) file;
-- A [README](#readme-file) file describing the application, operator, and/or tutorial;
+- A [README](#readme-file) file describing the application, workflow, operator, and/or tutorial;
 - A [LICENSE](#license-guidelines) file (optional).
 
 For a submission to be accepted into HoloHub it must meet at least these criteria:
@@ -243,6 +246,39 @@ cmake -S . -B ./build -D APP_my_application:BOOL=1
 cmake --build ./build -j
 ```
 
+
+### Adding a Workflow
+
+> NOTE: Workflows are _end-to-end_ reference applications that demonstrate complete pipelines from sensors to results. To determine if your contribution should be a workflow rather than an application, consider whether it represents a complete "from sensor to insight" pipeline. Workflows typically integrate multiple components (operators, models, etc.) to solve entire use case, while applications may focus on demonstrating specific functionality or techniques.
+
+Add each workflow in its own subdirectory under the [`workflows`](./workflows/) directory. The subdirectory should contain:
+
+- A *metadata.json* file which describes its specifications and requirements in accordance with the [workflow metadata.json schema](./workflows/metadata.schema.json).
+- A README file summarizing the workflow's purpose and architecture;
+- A LICENSE file governing use (optional).
+
+Workflows should follow the organization conventions described in the [workflows README](./workflows/README.md), which includes:
+
+- Required conventions:
+  - Each workflow must provide a `metadata.json` file
+  - Each workflow must provide a `README.md` file
+  - Each workflow must be organized in its own subfolder under `holohub/workflows/`
+
+- Recommended conventions:
+  - Language-specific code should be organized in language subdirectories (`cpp/`, `python/`)
+  - Container environment can be customized or use the default HoloHub environment
+  - Build and run instructions should be provided in the `metadata.json` file
+
+If your workflow does not adhere to these conventions, set the field `manual_setup` to `true` in your project `metadata.json` file.
+
+Refer to the workflows directory for examples of existing workflows that you can use as templates for your submission.
+
+You can run your workflow using the `./run launch` command:
+
+```bash
+./run launch workflows/my_workflow
+```
+
 ### Adding a Package Configuration
 
 1. Ensure the applications/operator CMake targets and/or files you want to package have an `install` rule define in your application/operator CMakeLists.txt files (see [CMake docs](https://cmake.org/cmake/help/latest/command/install.html)). Optionally, pass a `COMPONENT` argument to the `install` rule to control precisely which of your targets/files will get packaged. This can be useful if - for example - you want to create dev vs run packages, not include python bindings, or split your libraries in separate packages for different backends.
@@ -300,7 +336,7 @@ There are no project-wide build requirements for tutorials.
 
 - All source code contributions must strictly adhere to the Holoscan SDK coding style.
 
-- Every application and operator should be named with an english descriptive name of the functionality
+- Every application, workflow, and operator should be named with an english descriptive name of the functionality
 provided. Please avoid using acronyms, brand, or team names.
 
 ### Signing Your Contribution
@@ -414,7 +450,7 @@ We recommend exploring the following tools below for debugging your application:
   - The `--as_root` option launches an application container as the root user, giving you expanded permissions to install and run debugging programs like `gdb`.
   - The `--local_sdk_root` option mounts a local SDK installation into your application container. You can build a local Holoscan SDK installation in Debug mode and then mount it into your container to inspect more complete debug information with `gdb`.
 
-Note that there is no single debugging workflow nor VSCode Dev Container in HoloHub due to the variety of methods and libraries used across HoloHub applications. If you feel that tools or workflows are missing, please open an issue on GitHub to let us know.
+Note that there is no single debugging process nor VSCode Dev Container in HoloHub due to the variety of methods and libraries used across HoloHub applications. If you feel that tools or processes are missing, please open an issue on GitHub to let us know.
 
 ## Performance
 
