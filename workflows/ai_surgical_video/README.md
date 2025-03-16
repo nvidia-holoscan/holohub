@@ -88,7 +88,7 @@ When using the workflow with `--source hsb`, it requires the Holoscan Sensor Bri
 ```sh
 git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 cd holoscan-sensor-bridge
-git checkout 2.0.0
+git checkout hsdk-3.0
 ./docker/build.sh
 ```
 
