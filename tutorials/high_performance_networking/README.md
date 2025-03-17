@@ -106,8 +106,6 @@ You can then install `holoscan-networking`:
 
 === "Debian installation"
 
-    !!! tip "COMING SOON - GTC 2025"
-
     ```bash
     sudo apt install -y holoscan-networking
     ```
