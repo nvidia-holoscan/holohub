@@ -1,0 +1,5 @@
+torch
+torchvision
+requests
+tqdm
+opencv-python
