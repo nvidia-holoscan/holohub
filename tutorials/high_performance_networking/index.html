@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -7225,7 +7225,7 @@
 
 
 <h1 id="high-performance-networking-with-holoscan"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/high_performance_networking">High Performance Networking with Holoscan</a><a class="headerlink" href="#high-performance-networking-with-holoscan" title="Permanent link">&para;</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Alexis Girault (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> amd64, arm64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 14, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br></p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Alexis Girault (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, sbsa, IGX Orin with dGPU<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 17, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br></p>
 <p>This tutorial demonstrates how to use the advanced networking Holoscan operator (often referred to as ANO or <code>advanced_network</code> in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the advanced network operator can achieve hundreds of Gbps with latencies in the low microseconds.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -7238,6 +7238,10 @@
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Achieving High Performance Networking with Holoscan requires a system with an <a href="https://www.nvidia.com/en-us/networking/ethernet-adapters/"><strong>NVIDIA SmartNIC</strong></a> and a <a href="https://www.nvidia.com/en-us/design-visualization/desktop-graphics/"><strong>discrete GPU</strong></a>. That is the case of <a href="https://www.nvidia.com/en-us/data-center/">NVIDIA Data Center</a> systems, or edge systems like the <a href="https://www.nvidia.com/en-us/edge-computing/products/igx/">NVIDIA IGX</a> platform and the <a href="https://www.nvidia.com/en-us/project-digits/">NVIDIA Project DIGITS</a>. <code>x86_64</code> systems equipped with these components are also supported, though the performance will vary greatly depending on the PCIe topology of the system (more on this <a href="#31-ensure-ideal-pcie-topology">below</a>).</p>
 <p>In this tutorial, we will be developing on an <strong>NVIDIA IGX Orin platform</strong> with <a href="https://docs.nvidia.com/igx-orin/user-guide/latest/base-os.html">IGX SW 1.1</a> and an <a href="https://www.nvidia.com/en-us/design-visualization/rtx-6000/">NVIDIA RTX 6000 ADA GPU</a>, which is the configuration that is currently actively tested. The concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.</p>
+<div class="admonition warning">
+<p class="admonition-title">Secure boot conflict</p>
+<p>If you have secure boot enabled on your system, you might need to disable it as a prerequisite to run some of the configurations below (<a href="#22-switch-your-nic-link-layers-to-ethernet">switching the NIC link layers to Ethernet</a>, <a href="#33-maximize-the-nics-max-read-request-size-mrrs">updating the MRRS of your NIC ports</a>, <a href="#38-maximize-gpu-bar1-size">updating the BAR1 size of your GPU</a>). Secure boot can be re-enabled after the configurations are completed.</p>
+</div>
 <h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
 <p>Achieving high performance networking is a complex problem that involves many system components and configurations which we will cover in this tutorial. Two of the core concepts to achieve this are named Kernel Bypass, and GPUDirect.</p>
 <h3 id="kernel-bypass">Kernel Bypass<a class="headerlink" href="#kernel-bypass" title="Permanent link">&para;</a></h3>
@@ -7321,9 +7325,6 @@ sudo<span class="w"> </span>apt<span class="w"> </span>update
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Debian installation</label><label for="__tabbed_2_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="admonition tip">
-<p class="admonition-title">COMING SOON - GTC 2025</p>
-</div>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>holoscan-networking
 </code></pre></div>
 </div>
@@ -7481,6 +7482,10 @@ Applying...<span class="w"> </span>Done!
 <li><code>New</code> is the value you're about to set to override <code>Next Boot</code>.</li>
 </ul>
 </details>
+<details class="failure">
+<summary>ERROR: write counter to semaphore: Operation not permitted</summary>
+<p>Disable secure boot on your system ahead of changing the link type of your NIC ports. It can be re-enabled afterwards.</p>
+</details>
 </li>
 <li>
 <p>Reboot your system.</p>
@@ -7559,7 +7564,7 @@ sudo<span class="w"> </span>nmcli<span class="w"> </span>connection<span class="
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you are connecting the NIC to another NIC with a <a href="https://www.nvidia.com/en-us/networking/interconnect/">LinkX interconnect</a>, do the same on the other system with an IP address on the same network segment.
+<p>If you are connecting the NIC to another NIC with an <a href="https://www.nvidia.com/en-us/networking/interconnect/">interconnect</a>, do the same on the other system with an IP address on the same network segment.
 For example, to communicate with <code>1.1.1.1/24</code> above (<code>/24</code> -&gt; <code>255.255.255.0</code> submask), setup your other system with an IP between <code>1.1.1.2</code> and <code>1.1.1.254</code>, and the same <code>/24</code> submask.</p>
 </div>
 <h3 id="24-enable-gpudirect">2.4 Enable GPUDirect<a class="headerlink" href="#24-enable-gpudirect" title="Permanent link">&para;</a></h3>
@@ -7918,6 +7923,10 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 <p class="admonition-title">Note</p>
 <p>This value is reset on reboot and needs to be set every time the system boots</p>
 </div>
+<details class="failure">
+<summary>ERROR: pcilib: sysfs_write: write failed: Operation not permitted</summary>
+<p>Disable secure boot on your system ahead of changing the MRRS of your NIC ports. It can be re-enabled afterwards.</p>
+</details>
 <h3 id="34-enable-huge-pages">3.4 Enable Huge pages<a class="headerlink" href="#34-enable-huge-pages" title="Permanent link">&para;</a></h3>
 <p>Huge pages are a memory management feature that allows the OS to allocate large blocks of memory (typically 2MB or 1GB) instead of the default 4KB pages. This reduces the number of page table entries and the amount of memory used for translation, improving cache performance and reducing TLB (Translation Lookaside Buffer) misses, which leads to lower latencies.</p>
 <p>While it is naturally beneficial for CPU packets, it is also needed when routing data packets to the GPU in order to handle metadata (mbufs) on the CPU.</p>
@@ -8448,6 +8457,10 @@ rmmod<span class="w"> </span>nvidia_uvm<span class="w"> </span>nvidia_drm<span c
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>isolate<span class="w"> </span>multi-user
 </code></pre></div>
 </details>
+<details class="failure">
+<summary>/dev/mem: Operation not permitted. Access to physical memory denied</summary>
+<p>Disable secure boot on your system ahead of changing your GPU's BAR1 size. It can be re-enabled afterwards.</p>
+</details>
 <p>Reboot your system, and check the BAR1 size again to confirm the change.</p>
 <div class="highlight"><pre><span></span><code>sudo reboot
 </code></pre></div>
@@ -8525,8 +8538,8 @@ maxmtu<span class="w"> </span><span class="m">9978</span>
 </code></pre></div>
 </details>
 <h2 id="4-running-a-test-application">4. Running a test application<a class="headerlink" href="#4-running-a-test-application" title="Permanent link">&para;</a></h2>
-<p>Holoscan Networking provides a benchmarking application named <code>adv_networking_bench</code> that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a <a href="https://www.nvidia.com/en-us/networking/interconnect/">physical link</a> between them.</p>
-<p>Before continuing, ensure you have properly installed the <code>holoscan-networking</code> package as part of the <a href="#1-installing-holoscan-networking">installation instructions</a>, whether from a Debian package, or building from the HoloHub source repository.</p>
+<p>Holoscan Networking provides a benchmarking application named <code>adv_networking_bench</code> that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a <a href="https://www.nvidia.com/en-us/networking/interconnect/">physical SFP cable</a> connecting them.</p>
+<p>Make sure to install <a href="#1-installing-holoscan-networking"><code>holoscan-networking</code></a> beforehand.</p>
 <h3 id="41-update-the-loopback-configuration">4.1 Update the loopback configuration<a class="headerlink" href="#41-update-the-loopback-configuration" title="Permanent link">&para;</a></h3>
 <h5 id="find-the-application-files">Find the application files<a class="headerlink" href="#find-the-application-files" title="Permanent link">&para;</a></h5>
 <p>Identify the location of the <code>adv_networking_bench</code> executable, and of the configuration file named <code>adv_networking_bench_default_tx_rx.yaml</code>, for your installation:</p>
@@ -8606,7 +8619,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </code></pre></div>
 </details>
 <h5 id="configure-the-nic-for-tx-and-rx">Configure the NIC for Tx and Rx<a class="headerlink" href="#configure-the-nic-for-tx-and-rx" title="Permanent link">&para;</a></h5>
-<p>Set the NIC addresses in the <code>interfaces</code> section of the <code>advanced_network</code> section. This configures your NIC independently of your application:</p>
+<p>Set the NIC addresses in the <code>interfaces</code> section of the <code>advanced_network</code> section, making sure to remove the template brackets <code>&lt; &gt;</code>. This configures your NIC independently of your application:</p>
 <ul>
 <li>Set the <code>address</code> field of the <code>tx_port</code> interface to one of these addresses. That interface will be able to transmit ethernet packets.</li>
 <li>Set the <code>address</code> field of the <code>rx_port</code> interface to the other address. This interface will be able to receive ethernet packets.</li>
@@ -8621,7 +8634,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </span><span class="w">    </span><span class="nt">rx</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </code></pre></div>
-<details class="abstract">
+<details class="abstract" open="open">
 <summary>See an example yaml</summary>
 <div class="highlight"><pre><span></span><code><span class="nt">interfaces</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_port&quot;</span>
@@ -8635,7 +8648,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </code></pre></div>
 </details>
 <h5 id="configure-the-application">Configure the application<a class="headerlink" href="#configure-the-application" title="Permanent link">&para;</a></h5>
-<p>Modify the <code>bench_tx</code> section which configures the application itself, to create the packet headers and direct them to the NIC:</p>
+<p>Modify the <code>bench_tx</code> section which configures the application itself, to create the packet headers and direct them to the NIC. Make sure to remove the template brackets <code>&lt; &gt;</code>.</p>
 <ul>
 <li><code>eth_dst_addr</code> with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your <code>if_name</code> interface with <code class="highlight">cat<span class="w"> </span>/sys/class/net/<span class="nv">$if_name</span>/address</code>:</li>
 <li>Replacing <code>address</code> with the PCIe address of the NIC interface you want to use for Tx (same as <code>tx_port</code>'s address above).</li>
@@ -8649,16 +8662,7 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 <span class="w">    </span><span class="nt">udp_dst_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span><span class="w">      </span><span class="c1"># UDP destination port</span>
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;0000:00:00.0&gt;</span><span class="w"> </span><span class="c1"># Source NIC Bus ID. Should match the address of the Tx interface above</span>
 </span></code></pre></div>
-<details class="info">
-<summary>Show explanation</summary>
-<ul>
-<li><code>eth_dst_addr</code> - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has <code>flow_isolation: true</code> (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.</li>
-<li>We ignore the IP fields (<code>ip_src_addr</code>, <code>ip_dst_addr</code>) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.</li>
-<li><code>address</code> - the source PCIe address - needs to be defined again to tell the application itself to route the packets to the NIC interface we have configured previously for Tx.</li>
-<li>You might have noted the lack of a <code>eth_src_addr</code> field in the <code>bench_tx</code> section. This is because the source Ethernet MAC address can be inferred automatically from the PCIe address of the Tx interface (below).</li>
-</ul>
-</details>
-<details class="abstract">
+<details class="abstract" open="open">
 <summary>See an example yaml</summary>
 <div class="highlight"><pre><span></span><code><span class="nt">bench_tx</span><span class="p">:</span>
 <span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
@@ -8670,7 +8674,17 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 <span class="hll"><span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0005:03:00.0</span><span class="w">  </span><span class="c1"># Source NIC Bus ID. Should match the address of the Tx interface above</span>
 </span></code></pre></div>
 </details>
+<details class="info">
+<summary>Show explanation</summary>
+<ul>
+<li><code>eth_dst_addr</code> - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has <code>flow_isolation: true</code> (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.</li>
+<li>We ignore the IP fields (<code>ip_src_addr</code>, <code>ip_dst_addr</code>) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.</li>
+<li><code>address</code> - the source PCIe address - needs to be defined again to tell the application itself to route the packets to the NIC interface we have configured previously for Tx.</li>
+<li>You might have noted the lack of a <code>eth_src_addr</code> field in the <code>bench_tx</code> section. This is because the source Ethernet MAC address can be inferred automatically from the PCIe address of the Tx interface (below).</li>
+</ul>
+</details>
 <h3 id="42-run-the-loopback-test">4.2 Run the loopback test<a class="headerlink" href="#42-run-the-loopback-test" title="Permanent link">&para;</a></h3>
+<p>After having modified the configuration file, ensure you have connected an SFP cable between the two interfaces of your NIC, then run the application with the command below:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="38:2"><input checked="checked" id="__tabbed_38_1" name="__tabbed_38" type="radio" /><input id="__tabbed_38_2" name="__tabbed_38" type="radio" /><div class="tabbed-labels"><label for="__tabbed_38_1">Debian installation</label><label for="__tabbed_38_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -8678,8 +8692,22 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </code></pre></div>
 </div>
 <div class="tabbed-block">
+<div class="tabbed-set tabbed-alternate" data-tabs="39:2"><input checked="checked" id="__tabbed_39_1" name="__tabbed_39" type="radio" /><input id="__tabbed_39_2" name="__tabbed_39" type="radio" /><div class="tabbed-labels"><label for="__tabbed_39_1">Bare Metal</label><label for="__tabbed_39_2">Containerized</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>This assumes you have the required dependencies (holoscan, doca, etc.) installed locally on your system.</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./install/examples/adv_networking_bench/adv_networking_bench<span class="w"> </span>adv_networking_bench_default_tx_rx.yaml
 </code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--img<span class="w"> </span>holohub:adv_networking_bench<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml&quot;</span>
+</code></pre></div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -8979,12 +9007,12 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 </details>
 </details>
 <h2 id="5-building-your-own-application">5. Building your own application<a class="headerlink" href="#5-building-your-own-application" title="Permanent link">&para;</a></h2>
-<p>This section will guide you through building your own application using the <code>adv_networking_bench</code> as an example. Make sure to have installed <a href="#1-installing-holoscan-networking"><code>holoscan-networking</code></a> first.</p>
+<p>This section will guide you through building your own application using the <code>adv_networking_bench</code> as an example. Make sure to install <a href="#1-installing-holoscan-networking"><code>holoscan-networking</code></a> first.</p>
 <h3 id="51-understand-the-configuration-parameters">5.1 Understand the configuration parameters<a class="headerlink" href="#51-understand-the-configuration-parameters" title="Permanent link">&para;</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The configuration below will be analyzed in the context of the application consuming it, as defined in the <code>main.cpp</code> file. You can look it up when the "sample application code" is referenced.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="39:2"><input checked="checked" id="__tabbed_39_1" name="__tabbed_39" type="radio" /><input id="__tabbed_39_2" name="__tabbed_39" type="radio" /><div class="tabbed-labels"><label for="__tabbed_39_1">Debian installation</label><label for="__tabbed_39_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="40:2"><input checked="checked" id="__tabbed_40_1" name="__tabbed_40" type="radio" /><input id="__tabbed_40_2" name="__tabbed_40" type="radio" /><div class="tabbed-labels"><label for="__tabbed_40_1">Debian installation</label><label for="__tabbed_40_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/main.cpp
@@ -9129,7 +9157,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <div class="admonition example">
 <p class="admonition-title">Under construction</p>
 <p>This section is under construction. Refer to the implementation of the <code>AdvNetworkingBenchDefaultRxOp</code> for an example.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="40:2"><input checked="checked" id="__tabbed_40_1" name="__tabbed_40" type="radio" /><input id="__tabbed_40_2" name="__tabbed_40" type="radio" /><div class="tabbed-labels"><label for="__tabbed_40_1">Debian installation</label><label for="__tabbed_40_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="41:2"><input checked="checked" id="__tabbed_41_1" name="__tabbed_41" type="radio" /><input id="__tabbed_41_2" name="__tabbed_41" type="radio" /><div class="tabbed-labels"><label for="__tabbed_41_1">Debian installation</label><label for="__tabbed_41_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_rx.h
@@ -9150,7 +9178,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <div class="admonition example">
 <p class="admonition-title">Under construction</p>
 <p>This section is under construction. Refer to the implementation of the <code>AdvNetworkingBenchDefaultTxOp</code> for an example.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="41:2"><input checked="checked" id="__tabbed_41_1" name="__tabbed_41" type="radio" /><input id="__tabbed_41_2" name="__tabbed_41" type="radio" /><div class="tabbed-labels"><label for="__tabbed_41_1">Debian installation</label><label for="__tabbed_41_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="42:2"><input checked="checked" id="__tabbed_42_1" name="__tabbed_42" type="radio" /><input id="__tabbed_42_2" name="__tabbed_42" type="radio" /><div class="tabbed-labels"><label for="__tabbed_42_1">Debian installation</label><label for="__tabbed_42_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>/opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_tx.h
@@ -9168,7 +9196,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <p>Designs investigations are expected soon for a generic way to prepare packets to send to the NIC.</p>
 </div>
 <h3 id="54-build-with-cmake">5.4 Build with CMake<a class="headerlink" href="#54-build-with-cmake" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="42:2"><input checked="checked" id="__tabbed_42_1" name="__tabbed_42" type="radio" /><input id="__tabbed_42_2" name="__tabbed_42" type="radio" /><div class="tabbed-labels"><label for="__tabbed_42_1">Debian installation</label><label for="__tabbed_42_2">From source</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="43:2"><input checked="checked" id="__tabbed_43_1" name="__tabbed_43" type="radio" /><input id="__tabbed_43_2" name="__tabbed_43" type="radio" /><div class="tabbed-labels"><label for="__tabbed_43_1">Debian installation</label><label for="__tabbed_43_2">From source</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <ol>
