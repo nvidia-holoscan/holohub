@@ -36,7 +36,7 @@
 			"NIC",
 			"HPC"
 		],
-		"ranking": 3,
+		"ranking": 1,
 		"dependencies": {
 			"applications": [
 				"adv_networking_bench"
