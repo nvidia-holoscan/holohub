@@ -1489,7 +1489,7 @@ You can set the MTU for each interface like so, for a given `if_name` name ident
 
 Holoscan Networking provides a benchmarking application named `adv_networking_bench` that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a [physical SFP cable](https://www.nvidia.com/en-us/networking/interconnect/) connecting them.
 
-Before continuing, ensure you have properly installed the `holoscan-networking` package as part of the [installation instructions](#1-installing-holoscan-networking), whether from a Debian package, or building from the HoloHub source repository.
+Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) beforehand.
 
 ### 4.1 Update the loopback configuration
 
@@ -1661,9 +1661,23 @@ After having modified the configuration file, ensure you have connected an SFP c
 
 === "From source"
 
-    ```bash
-    sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
-    ```
+    === "Bare Metal"
+
+        This assumes you have the required dependencies (holoscan, doca, etc.) installed locally on your system.
+
+        ```bash
+        sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
+        ```
+
+    === "Containerized"
+
+        ```bash
+        ./dev_container launch \
+          --img holohub:adv_networking_bench \
+          --docker_opts "-u 0 --privileged" \
+          -- bash -c "./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml"
+        ```
+
 
 The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration file to limit the duration of the run automatically.
 
@@ -1981,7 +1995,7 @@ sudo mlnx_perf -i $if_name
 
 ## 5. Building your own application
 
-This section will guide you through building your own application using the `adv_networking_bench` as an example. Make sure to have installed [`holoscan-networking`](#1-installing-holoscan-networking) first.
+This section will guide you through building your own application using the `adv_networking_bench` as an example. Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) first.
 
 ### 5.1 Understand the configuration parameters
 
