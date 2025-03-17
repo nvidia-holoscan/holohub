@@ -396,7 +396,7 @@ If nothing appears, or you'd like to change the address, you can set an IP addre
 
 !!! note
 
-    If you are connecting the NIC to another NIC with a [LinkX interconnect](https://www.nvidia.com/en-us/networking/interconnect/), do the same on the other system with an IP address on the same network segment.
+    If you are connecting the NIC to another NIC with an [interconnect](https://www.nvidia.com/en-us/networking/interconnect/), do the same on the other system with an IP address on the same network segment.
     For example, to communicate with `1.1.1.1/24` above (`/24` -> `255.255.255.0` submask), setup your other system with an IP between `1.1.1.2` and `1.1.1.254`, and the same `/24` submask.
 
 ### 2.4 Enable GPUDirect
@@ -1487,7 +1487,7 @@ You can set the MTU for each interface like so, for a given `if_name` name ident
 
 ## 4. Running a test application
 
-Holoscan Networking provides a benchmarking application named `adv_networking_bench` that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a [physical link](https://www.nvidia.com/en-us/networking/interconnect/) between them.
+Holoscan Networking provides a benchmarking application named `adv_networking_bench` that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a [physical SFP cable](https://www.nvidia.com/en-us/networking/interconnect/) connecting them.
 
 Before continuing, ensure you have properly installed the `holoscan-networking` package as part of the [installation instructions](#1-installing-holoscan-networking), whether from a Debian package, or building from the HoloHub source repository.
 
@@ -1651,6 +1651,7 @@ bench_tx:
 
 ### 4.2 Run the loopback test
 
+After having modified the configuration file, ensure you have connected an SFP cable between the two interfaces of your NIC, then run the application with the command below:
 
 === "Debian installation"
 
