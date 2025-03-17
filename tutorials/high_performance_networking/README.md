@@ -15,6 +15,10 @@ Achieving High Performance Networking with Holoscan requires a system with an [*
 
 In this tutorial, we will be developing on an **NVIDIA IGX Orin platform** with [IGX SW 1.1](https://docs.nvidia.com/igx-orin/user-guide/latest/base-os.html) and an [NVIDIA RTX 6000 ADA GPU](https://www.nvidia.com/en-us/design-visualization/rtx-6000/), which is the configuration that is currently actively tested. The concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.
 
+!!! Warning "Secure boot conflict"
+
+    If you have secure boot enabled on your system, you might need to disable it as a prerequisite to run some of the configurations below ([switching the NIC link layers to Ethernet](#22-switch-your-nic-link-layers-to-ethernet), [updating the MRRS of your NIC ports](#33-maximize-the-nics-max-read-request-size-mrrs), [updating the BAR1 size of your GPU](#38-maximize-gpu-bar1-size)). Secure boot can be re-enabled after the configurations are completed.
+
 ## Background
 
 Achieving high performance networking is a complex problem that involves many system components and configurations which we will cover in this tutorial. Two of the core concepts to achieve this are named Kernel Bypass, and GPUDirect.
@@ -295,6 +299,9 @@ ibv_devinfo
             - `Next Boot` is the current value that was expected to be used at the next reboot.
             - `New` is the value you're about to set to override `Next Boot`.
 
+        ??? failure "ERROR: write counter to semaphore: Operation not permitted"
+
+            Disable secure boot on your system ahead of changing the link type of your NIC ports. It can be re-enabled afterwards.
 
     3. Reboot your system.
 
@@ -785,6 +792,10 @@ Update MRRS:
 !!! note
 
     This value is reset on reboot and needs to be set every time the system boots
+
+??? failure "ERROR: pcilib: sysfs_write: write failed: Operation not permitted"
+
+    Disable secure boot on your system ahead of changing the MRRS of your NIC ports. It can be re-enabled afterwards.
 
 ### 3.4 Enable Huge pages
 
@@ -1382,6 +1393,10 @@ Press `y` to confirm you'd like to continue, then `y` again to apply to all the 
     ```bash
     sudo systemctl isolate multi-user
     ```
+
+??? failure "/dev/mem: Operation not permitted. Access to physical memory denied"
+
+    Disable secure boot on your system ahead of changing your GPU's BAR1 size. It can be re-enabled afterwards.
 
 Reboot your system, and check the BAR1 size again to confirm the change.
 
