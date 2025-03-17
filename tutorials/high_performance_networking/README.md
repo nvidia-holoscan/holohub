@@ -1580,7 +1580,7 @@ Retrieve the PCIe addresses of both ports of your NIC. We'll arbitrarily use the
 
 ##### Configure the NIC for Tx and Rx
 
-Set the NIC addresses in the `interfaces` section of the `advanced_network` section. This configures your NIC independently of your application:
+Set the NIC addresses in the `interfaces` section of the `advanced_network` section, making sure to remove the template brackets `< >`. This configures your NIC independently of your application:
 
 - Set the `address` field of the `tx_port` interface to one of these addresses. That interface will be able to transmit ethernet packets.
 - Set the `address` field of the `rx_port` interface to the other address. This interface will be able to receive ethernet packets.
@@ -1597,7 +1597,7 @@ interfaces:
         ...
 ```
 
-??? abstract "See an example yaml"
+???+ abstract "See an example yaml"
 
     ```yaml hl_lines="3 7"
     interfaces:
@@ -1613,7 +1613,7 @@ interfaces:
 
 ##### Configure the application
 
-Modify the `bench_tx` section which configures the application itself, to create the packet headers and direct them to the NIC:
+Modify the `bench_tx` section which configures the application itself, to create the packet headers and direct them to the NIC. Make sure to remove the template brackets `< >`.
 
 -  `eth_dst_addr` with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your `if_name` interface with `#!bash cat /sys/class/net/$if_name/address`:
 - Replacing `address` with the PCIe address of the NIC interface you want to use for Tx (same as `tx_port`'s address above).
@@ -1629,14 +1629,7 @@ bench_tx:
     address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
 ```
 
-??? info "Show explanation"
-
-    - `eth_dst_addr` - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has `flow_isolation: true` (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.
-    - We ignore the IP fields (`ip_src_addr`, `ip_dst_addr`) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.
-    - `address` - the source PCIe address - needs to be defined again to tell the application itself to route the packets to the NIC interface we have configured previously for Tx.
-    - You might have noted the lack of a `eth_src_addr` field in the `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically from the PCIe address of the Tx interface (below).
-
-??? abstract "See an example yaml"
+???+ abstract "See an example yaml"
 
     ```yaml hl_lines="3 8"
     bench_tx:
@@ -1648,6 +1641,13 @@ bench_tx:
         udp_dst_port: 4096      # UDP destination port
         address: 0005:03:00.0  # Source NIC Bus ID. Should match the address of the Tx interface above
     ```
+
+??? info "Show explanation"
+
+    - `eth_dst_addr` - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has `flow_isolation: true` (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.
+    - We ignore the IP fields (`ip_src_addr`, `ip_dst_addr`) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.
+    - `address` - the source PCIe address - needs to be defined again to tell the application itself to route the packets to the NIC interface we have configured previously for Tx.
+    - You might have noted the lack of a `eth_src_addr` field in the `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically from the PCIe address of the Tx interface (below).
 
 ### 4.2 Run the loopback test
 
