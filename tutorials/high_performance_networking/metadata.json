@@ -21,8 +21,9 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"SBSA",
+			"IGX Orin (dGPU)"
 		],
 		"tags": [
 			"DPDK",

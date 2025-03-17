@@ -30,7 +30,7 @@
                 "2.9.0"
             ]
         },
-        "platforms": ["amd64"],
+        "platforms": ["x86_64"],
         "tags": [
             "Sensor",
             "Processing",

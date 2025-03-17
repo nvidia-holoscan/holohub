@@ -18,7 +18,7 @@
 				"0.4.0"
 			]
 		},
-		"platforms": ["amd64"],
+		"platforms": ["x86_64"],
 		"tags": ["Communications", "Aerospace", "Defence", "Lifesciences"],
 		"ranking": 2,
 		"dependencies": {
