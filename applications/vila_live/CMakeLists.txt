@@ -27,7 +27,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/vila_live/video.mp4" -t 6.4
               -c:v libx264 "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     COMMAND rm -rf "${HOLOHUB_DATA_DIR}/vila_live/video.mp4"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     VERBATIM
     )
 
@@ -37,8 +36,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/vila_live/meeting.gxf_index"
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/vila_live" --basename meeting --width 1280 --height 720 --framerate 25
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/vila_live/meeting.gxf_index"
-               "${HOLOHUB_DATA_DIR}/vila_live/meeting.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     )
 
