@@ -122,7 +122,7 @@ and dependencies.
 			]
 		},
 		// Supported platforms
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		// Free-form tags for referencing the contribution
 		"tags": ["Endoscopy", "Video Encoding"],
 		// Ranking of the contribution. See below for ranking meaning
