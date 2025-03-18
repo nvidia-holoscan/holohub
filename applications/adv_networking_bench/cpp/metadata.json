@@ -14,7 +14,7 @@
 			"1.2": "GPUDirect TX",
 			"1.1": "GPUDirect mode without header data split"
 		},
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
 		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {

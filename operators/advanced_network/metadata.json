@@ -15,7 +15,7 @@
 			"1.1": "GPUDirect updates",
 			"1.0": "Initial Release"
 		},
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
 		"holoscan_sdk": {
 			"minimum_required_version": "2.6.0",

@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
 		"tags": [
 			"Video Processing",
