@@ -39,7 +39,7 @@ RUN python3 -m pip install --no-cache-dir setuptools packaging && \
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn~=2.5
 
 # Copy over app-specific requirements
-COPY applications/vila_live/requirements.txt /tmp/requirements.txt
+COPY applications/vila_live/requirements.txt applications/vila_live/llm-awq.patch /tmp/
 
 # Clone AWQ and VILA repositories and install them based on the GPU's compute capacity
 WORKDIR /workspace
@@ -47,6 +47,8 @@ ARG COMPUTE_CAPACITY
 RUN git clone https://github.com/mit-han-lab/llm-awq \
     && cd llm-awq \
     && git checkout 41d7e704932b7eaf8b3dcfb21e1fe49fd296d894 \
+    # patching this version of llm-awq so that it works with transformers 4.48
+    && git apply /tmp/llm-awq.patch \
     # Remove torch and transformers from pyproject.toml to avoid conflicts with installed versions
     && sed -i '/torch/d' pyproject.toml \
     && sed -i '/transformers/d' pyproject.toml \
@@ -66,7 +68,7 @@ RUN git clone https://github.com/mit-han-lab/llm-awq \
 
 
 # Download the AWQ-quantized VILA model
-RUN huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ \
-    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ
+RUN huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
+    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
 
 WORKDIR /workspace/holohub

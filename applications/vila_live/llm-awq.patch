@@ -1,0 +1,17 @@
+diff --git a/tinychat/models/llama.py b/tinychat/models/llama.py
+index a65cbaa..b9d616c 100644
+--- a/tinychat/models/llama.py
++++ b/tinychat/models/llama.py
+@@ -143,9 +143,9 @@ class LlamaAttentionFused(nn.Module):
+         )  # added to half
+ 
+         # dummy
+-        self.rotary_emb = LlamaRotaryEmbedding(
+-            self.head_dim, max_position_embeddings=2048, device="cuda:0"
+-        )
++        from transformers import LlamaConfig
++        c = LlamaConfig(head_dim=self.head_dim, max_position_embeddings=2048)
++        self.rotary_emb = LlamaRotaryEmbedding(c, device="cuda:0")
+ 
+     def forward(
+         self,
