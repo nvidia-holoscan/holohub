@@ -39,8 +39,8 @@ trap cleanup SIGINT SIGTERM
 # Run the Llama.cpp LLM server process + main HoloScrub app
 python3 -m tinychat.serve.controller --host 0.0.0.0 --port 10000 & bg_pids+=($!)
 python3 -m tinychat.serve.model_worker_new --host 0.0.0.0 --controller http://localhost:10000 --port 40000 --worker http://localhost:40000 \
-    --model-path /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/ \
-    --quant-path /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ/llm/llama-3-vila1.5-8b-w4-g128-awq-v2.pt & bg_pids+=($!)
+    --model-path /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ/ \
+    --quant-path /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ/llm/llama-3-vila1.5-8b-fix-w4-g128-awq-v2.pt & bg_pids+=($!)
 python3 /workspace/holohub/applications/vila_live/vila_live.py "$@" & bg_pids+=($!)
 
 # Let the script clean up the server process
