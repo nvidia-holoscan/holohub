@@ -31,7 +31,7 @@ RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
 # Install setuptools prior to all other requirements to avoid install errors
-RUN python3 -m pip install --no-cache-dir setuptools && \
+RUN python3 -m pip install --no-cache-dir setuptools packaging && \
     python3 -m pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)
