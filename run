@@ -561,11 +561,11 @@ lint() {
     # If we call with --fix
     if [ $FIX == true ]; then
       # Fix python
-      run_command ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
       # Fix python isort issues, run:
-      run_command isort ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
-      run_command black ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} --ignore-words codespell_ignore_words.txt \
                             --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
@@ -592,7 +592,7 @@ lint() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
-    run_command ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
+    run_command ${HOLOHUB_PY_EXE} -m ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m isort -c $DIR_TO_RUN || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m black --check $DIR_TO_RUN || exit_code=1
 
