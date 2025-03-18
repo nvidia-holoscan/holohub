@@ -5,7 +5,7 @@ This application demonstrates how to run [VILA 1.5](https://github.com/Efficient
 VILA 1.5 is a family of Vision Language Models (VLM) created by NVIDIA & MIT. It uses SigLIP to encode images into tokens which are fed into an LLM with an accompanying prompt. This application collects video frames from the V4L2 operator and feeds them to an AWQ-quantized VILA 1.5 for inference using the [TinyChat](https://github.com/mit-han-lab/llm-awq/blob/main/tinychat/README.md) library. This allows users to interact with a Generative AI model that is "watching" a chosen video stream in real-time.
 
 ![Holoscan VILA Live](./screenshot.png)
-Note: This demo currently uses [Llama-3-VILA1.5-8b-AWQ](https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ), but any of the following AWQ-quantized models from the VILA 1.5 familty should work as long as the file names are changed in the [Dockerfile](./Dockerfile) and [run_vila_live.sh](./run_vila_live.sh):
+Note: This demo currently uses [Llama-3-VILA1.5-8b-AWQ](https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ), but any of the following AWQ-quantized models from the VILA 1.5 familty should work as long as the file names are changed in the [Dockerfile](./Dockerfile) and [run_vila_live.sh](./run_vila_live.sh):
 - [VILA1.5-3b-AWQ](https://huggingface.co/Efficient-Large-Model/VILA1.5-3b-AWQ)
 - [VILA1.5-3b-s2-AWQ](https://huggingface.co/Efficient-Large-Model/VILA1.5-3b-s2-AWQ)
 - [Llama-3-VILA1.5-8b-AWQ](https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ)

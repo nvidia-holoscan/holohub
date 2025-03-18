@@ -67,7 +67,7 @@ RUN git clone https://github.com/mit-han-lab/llm-awq \
 
 
 # Download the AWQ-quantized VILA model
-RUN huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ \
-    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-AWQ
+RUN huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
+    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
 
 WORKDIR /workspace/holohub
