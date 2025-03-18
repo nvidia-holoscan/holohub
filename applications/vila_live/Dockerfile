@@ -47,6 +47,7 @@ ARG COMPUTE_CAPACITY
 RUN git clone https://github.com/mit-han-lab/llm-awq \
     && cd llm-awq \
     && git checkout 41d7e704932b7eaf8b3dcfb21e1fe49fd296d894 \
+    # patching this version of llm-awq so that it works with transformers 4.48
     && git apply /tmp/llm-awq.patch \
     # Remove torch and transformers from pyproject.toml to avoid conflicts with installed versions
     && sed -i '/torch/d' pyproject.toml \
