@@ -247,6 +247,7 @@ get_app_dockerfile() {
   # 4. Use the default Dockerfile provided at the top level of the HoloHub repository.
   # Usage: ./run get_app_dockerfile <app_name> <language>
   local appname="$1"
+  local language="$2"
   local dockerfile_path=""
 
   local app_source_root_path=$(get_app_source_root_dir ${appname})
