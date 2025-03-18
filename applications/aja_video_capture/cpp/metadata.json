@@ -24,7 +24,7 @@
 				"3.0.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Video", "AJA"],
 		"ranking": 0,
 		"dependencies": {
@@ -34,4 +34,4 @@
 			"workdir": "holohub_bin"
 		}
 	}
-} 
+}

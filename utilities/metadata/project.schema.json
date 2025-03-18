@@ -42,7 +42,7 @@
       "items": [
         {
           "type": "string",
-          "enum": [ "amd64", "arm64" ]
+          "enum": [ "x86_64", "aarch64" ]
         }
       ]
     },
