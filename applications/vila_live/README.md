@@ -43,6 +43,10 @@ From the Holohub main directory run the following command:
 ```bash
 ./dev_container build_and_run vila_live
 ```
+or running with a replayer:
+```bash
+./dev_container build_and_run vila_live --run_args "--source replayer"
+```
 Note: The first build will take **~1.5 hours** if you're on ARM64. This is largely due to building [Flash Attention 2](https://github.com/Dao-AILab/flash-attention) since pre-built wheels are not distributed for ARM64 platforms.
 
 Once the main LMM-based app is running, you will see a link for the app at `http://127.0.0.1:8050`.
