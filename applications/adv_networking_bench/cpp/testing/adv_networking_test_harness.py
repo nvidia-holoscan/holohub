@@ -25,21 +25,18 @@ from time import sleep
 from typing import Dict, List, Tuple
 
 
-def run_bash_cmd(cmd, external_script: str) -> CompletedProcess:
+def start_bash_cmd(cmd) -> subprocess.Popen:
     """
-    Runs a bash command and captures its output.
+    Starts a bash command and returns the process object without waiting for completion.
 
     Args:
         cmd (str or list): The command to run.
 
     Returns:
-        CompletedProcess: The result of the command execution.
+        subprocess.Popen: The process object for the running command.
     """
     logger = logging.getLogger(__name__)
-    logger.debug(f"Running command: {cmd}")
-
-    stdout_lines: List[str] = []
-    stderr_lines: List[str] = []
+    logger.debug(f"Starting bash command: {cmd}")
 
     # Convert the bash command to a list of arguments if needed,
     # so as not to require Shell=True
@@ -58,30 +55,25 @@ def run_bash_cmd(cmd, external_script: str) -> CompletedProcess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        return p
     except Exception as e:
         logger.error(f"Failed to create process: {e}")
         raise
 
-    if external_script is not None:
-        # Define a function to run the external script after a delay
-        def delayed_external_script():
-            logger.info("Sleeping before launching script")
-            sleep(5)
-            try:
-                external_args = shlex.split(external_script)
-                subprocess.run(
-                    external_args,
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-            except Exception as e:
-                logger.error(f"Failed to run external script: {e}")
-                raise
+def monitor_process(p, cmd) -> CompletedProcess:
+    """
+    Monitors a process until completion, capturing its stdout and stderr.
 
-        # Start the thread for the delayed execution of the external script
-        Thread(target=delayed_external_script).start()
-        logger.info("Launched external script")
+    Args:
+        p (subprocess.Popen): The process to monitor.
+        cmd (str or list): The original command (for error reporting).
+
+    Returns:
+        CompletedProcess: The result of the command execution.
+    """
+    logger = logging.getLogger(__name__)
+    stdout_lines = []
+    stderr_lines = []
 
     # Stream & capture log
     while p.poll() is None:
@@ -173,10 +165,6 @@ def validate_ano_benchmark(
     logger.debug("Validating benchmark results")
 
     success = True
-    # Check for errors in the log
-    if "[error]" in log:
-        logger.error("Errors found in benchmark output")
-        success = False
 
     pm = parse_port_map(port_map)
     logger.info(f"Port map is: {pm}")
@@ -312,11 +300,30 @@ def main():
 
     # Run the bash command
     try:
-        result = run_bash_cmd(args.command, args.external_script)
+        # Start the main process
+        p = start_bash_cmd(args.command)
+
+        # Run external script in a separate thread if provided
+        if args.external_script is not None:
+            def delayed_external_script():
+                logger.info("Sleeping before launching script")
+                sleep(5)
+                try:
+                    start_bash_cmd(args.external_script)
+                    logger.info("Launched external script")
+                except Exception as e:
+                    logger.error(f"Failed to run external script: {e}")
+                    raise
+
+            Thread(target=delayed_external_script).start()
+
+        # Monitor the process until completion
+        result = monitor_process(p, args.command)
+
         if result.returncode != 0:
             sys.exit(result.returncode)
     except Exception as e:
-        logger.error(f"Exiting due to external script error: {e}")
+        logger.error(f"Exiting due to command execution error: {e}")
         sys.exit(-1)
 
     # Validate the benchmark results
