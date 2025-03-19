@@ -25,7 +25,7 @@
 #include "rmax_service/ipo_chunk_consumer_base.h"
 #include "rmax_service/rmax_ipo_receiver_service.h"
 #include "packet_processor.h"
-#include "adv_network_types.h"
+#include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
 using namespace ral::services;

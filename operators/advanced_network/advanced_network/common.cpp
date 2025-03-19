@@ -28,7 +28,7 @@
 #include <rte_ethdev.h>
 #endif
 #if ANO_MGR_RIVERMAX
-#include "adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \

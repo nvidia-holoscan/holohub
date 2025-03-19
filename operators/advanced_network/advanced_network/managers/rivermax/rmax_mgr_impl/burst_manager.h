@@ -24,7 +24,7 @@
 #include "rmax_ano_data_types.h"
 #include "rmax_service/ipo_chunk_consumer_base.h"
 #include "rmax_service/rmax_ipo_receiver_service.h"
-#include "adv_network_types.h"
+#include "advanced_network/types.h"
 #include <holoscan/logger/logger.hpp>
 
 namespace holoscan::advanced_network {
