@@ -13,103 +13,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import argparse
+
 import logging
 import re
-import shlex
-import subprocess
 import sys
-from subprocess import CalledProcessError, CompletedProcess
-from threading import Thread
-from time import sleep
 from typing import Dict, List, Tuple, Optional, NamedTuple, Any
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
-
-def start_bash_cmd(cmd) -> subprocess.Popen:
-    """
-    Starts a bash command and returns the process object without waiting for completion.
-
-    Args:
-        cmd (str or list): The command to run.
-
-    Returns:
-        subprocess.Popen: The process object for the running command.
-    """
-    logger.debug(f"Starting bash command: {cmd}")
-
-    # Convert the bash command to a list of arguments if needed,
-    # so as not to require Shell=True
-    if isinstance(cmd, str):
-        args = shlex.split(cmd)
-    else:
-        args = cmd
-
-    # Start process
-    try:
-        p = subprocess.Popen(
-            args,
-            cwd=None,
-            universal_newlines=True,
-            bufsize=1,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        return p
-    except Exception as e:
-        logger.error(f"Failed to create process: {e}")
-        raise
-
-
-def monitor_process(p, cmd) -> CompletedProcess:
-    """
-    Monitors a process until completion, capturing its stdout and stderr.
-
-    Args:
-        p (subprocess.Popen): The process to monitor.
-        cmd (str or list): The original command (for error reporting).
-
-    Returns:
-        CompletedProcess: The result of the command execution.
-    """
-    stdout_lines = []
-    stderr_lines = []
-
-    # Stream & capture log through pipes
-    while p.poll() is None:
-        for line in iter(p.stderr.readline, ""):
-            print(line.strip(), flush=True)
-            stderr_lines.append(line)
-        for line in iter(p.stdout.readline, ""):
-            print(line.strip(), flush=True)
-            stdout_lines.append(line)
-
-    # Capture any remaining output after process ends
-    for line in p.stderr:
-        print(line.strip(), flush=True)
-        stderr_lines.append(line)
-    for line in p.stdout:
-        print(line.strip(), flush=True)
-        stdout_lines.append(line)
-
-    # Close pipes
-    p.stdout.close()
-    p.stderr.close()
-
-    # Return
-    std_out = "".join(stdout_lines)
-    std_err = "".join(stderr_lines)
-
-    rc = p.poll()
-    if rc != 0:
-        logger.debug(f"Command failed with exit code {rc}")
-        raise CalledProcessError(rc, cmd, std_out, std_err)
-    return CompletedProcess(cmd, rc, std_out, std_err)
 
 
 def parse_benchmark_results(log: str) -> 'BenchmarkResults':
+    """
+    Parse benchmark results from log output.
+
+    Args:
+        log: The log output as a string
+
+    Returns:
+        BenchmarkResults: A structured representation of the benchmark results
+    """
     # Initialize result dictionaries
     tx_packets = {}
     tx_bytes = {}
@@ -121,7 +44,7 @@ def parse_benchmark_results(log: str) -> 'BenchmarkResults':
     tx_queue_packets = {}
 
     # Regex patterns
-    port_pattern = r"Port (\d+):"  # Remove the $ anchor to match anywhere in the line
+    port_pattern = r"Port (\d+):"
     metric_patterns = {
         "rx_packets": (r"Received packets:\s+(\d+)", rx_packets),
         "tx_packets": (r"Transmit packets:\s+(\d+)", tx_packets),
@@ -147,15 +70,15 @@ def parse_benchmark_results(log: str) -> 'BenchmarkResults':
 
     for i, port_match in enumerate(port_matches):
         # Extract the port ID from the match
-        port_id = port_match.group(1)        # Print the port ID being processed
+        port_id = port_match.group(1)
         logger.debug(f"Parsing stats for port ID: {port_id}")
 
-        # Extract the stats for his port
+        # Extract the stats for this port
         port_start = port_match.end()
         if i < len(port_matches) - 1:
-            port_end = port_matches[i + 1].start() # Stop at next port's start
+            port_end = port_matches[i + 1].start()  # Stop at next port's start
         else:
-            port_end = len(log) # last port: go to end of log
+            port_end = len(log)  # last port: go to end of log
         port_section = log[port_start:port_end]
 
         # Extract all metrics for this port
@@ -212,7 +135,7 @@ def parse_benchmark_results(log: str) -> 'BenchmarkResults':
 
 
 class BenchmarkResults:
-    """Class to hold parsed benchmark results."""
+    """Class to hold parsed benchmark results and provide analysis methods."""
 
     def __init__(self, tx_pkts: Dict[str, int], tx_bytes: Dict[str, int],
                  rx_pkts: Dict[str, int], rx_bytes: Dict[str, int],
@@ -477,6 +400,7 @@ class BenchmarkResults:
 
 
 if __name__ == "__main__":
-    # The logging configuration is already set up at the module level
+    # Set up console logging if run directly
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     logger.info("This module is designed to be imported, not run directly.")
     sys.exit(0)

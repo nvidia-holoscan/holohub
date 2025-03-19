@@ -16,9 +16,10 @@
 
 import logging
 import re
-import subprocess
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
+
+from process_utils import run_command
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -36,27 +37,6 @@ class NetworkInterface:
         return f"NetworkInterface(name={self.interface_name}, bus_id={self.bus_id}, mac={self.mac_address}, status={status})"
 
 
-def run_command(cmd: str) -> Tuple[int, str, str]:
-    """
-    Run a shell command and return the result.
-
-    Args:
-        cmd: Command to run
-
-    Returns:
-        Tuple of (return_code, stdout, stderr)
-    """
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        universal_newlines=True
-    )
-    stdout, stderr = process.communicate()
-    return process.returncode, stdout, stderr
-
-
 def get_nvidia_nics() -> List[NetworkInterface]:
     """
     Get a list of NVIDIA NICs on the system using ibdev2netdev.
@@ -65,9 +45,9 @@ def get_nvidia_nics() -> List[NetworkInterface]:
         List of NetworkInterface objects representing NVIDIA NICs
     """
     # Use ibdev2netdev to get NVIDIA/Mellanox NIC information
-    returncode, stdout, stderr = run_command("ibdev2netdev -v 2>/dev/null")
-    if returncode != 0:
-        logger.error(f"Failed to get NVIDIA NICs with ibdev2netdev: {stderr}")
+    result = run_command("ibdev2netdev -v 2>/dev/null")
+    if result.returncode != 0:
+        logger.error(f"Failed to get NVIDIA NICs with ibdev2netdev: {result.stderr}")
         return []
 
     # Parse the output of ibdev2netdev -v
@@ -75,7 +55,7 @@ def get_nvidia_nics() -> List[NetworkInterface]:
     # 0005:03:00.0 mlx5_0 (MT4129 -            )                 fw 28.39.3004 port 1 (ACTIVE) ==> cx7_0 (Up)
     # 0005:03:00.1 mlx5_1 (MT4129 -            )                 fw 28.39.3004 port 1 (ACTIVE) ==> cx7_1 (Up)
     interfaces = []
-    for line in stdout.strip().split('\n'):
+    for line in result.stdout.strip().split('\n'):
         if not line:
             continue
 
@@ -93,12 +73,12 @@ def get_nvidia_nics() -> List[NetworkInterface]:
         is_up = status.lower() == "up"
 
         # Get MAC address
-        returncode, mac_stdout, mac_stderr = run_command(f"cat /sys/class/net/{interface_name}/address")
-        if returncode != 0:
-            logger.warning(f"Failed to get MAC address for interface {interface_name}: {mac_stderr}")
+        result = run_command(f"cat /sys/class/net/{interface_name}/address")
+        if result.returncode != 0:
+            logger.warning(f"Failed to get MAC address for interface {interface_name}: {result.stderr}")
             continue
 
-        mac_address = mac_stdout.strip()
+        mac_address = result.stdout.strip()
 
         # Create and add the interface
         interface = NetworkInterface(

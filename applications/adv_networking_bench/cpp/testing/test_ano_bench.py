@@ -22,12 +22,9 @@ from threading import Thread
 from time import sleep
 import os.path
 
-# Import the test harness functionality
-from test_ano_bench_utils import (
-    start_bash_cmd,
-    monitor_process,
-    parse_benchmark_results
-)
+# Import the benchmark and process functionality
+from benchmark_utils import parse_benchmark_results, BenchmarkResults
+from process_utils import run_command, start_process, monitor_process
 
 # Import NIC and YAML utilities
 from nvidia_nic_utils import get_nvidia_nics, print_nvidia_nics
@@ -81,8 +78,7 @@ def test_multi_if_loopback(work_dir, nvidia_nics):
     command = f"{executable} {config_file}"
 
     # Run the application until completion and parse the results
-    p = start_bash_cmd(command)
-    result = monitor_process(p, command)
+    result = run_command(command, stream_output=True)
     results = parse_benchmark_results(result.stdout + result.stderr)
 
     # Validate some expected metrics
@@ -121,7 +117,7 @@ def test_multi_rx_q(work_dir, nvidia_nics):
     command = f"{executable} {config_file}"
 
     # Run the application (non-blocking)
-    p = start_bash_cmd(command)
+    p = start_process(command)
 
     # Send packets with scapy after a 5s delay
     def send_test_packets():
@@ -146,7 +142,7 @@ def test_multi_rx_q(work_dir, nvidia_nics):
     Thread(target=send_test_packets).start()
 
     # Monitor the application until completion and parse the results
-    result = monitor_process(p, command)
+    result = monitor_process(p)
     results = parse_benchmark_results(result.stdout + result.stderr)
 
     # For this test, we only care about queue packet distribution (on port 0)
