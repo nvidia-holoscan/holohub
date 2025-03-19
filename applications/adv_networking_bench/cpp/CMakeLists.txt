@@ -183,22 +183,13 @@ if(BUILD_TESTING)
   string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_rx_multi_q.yaml" ${TEST_CONFIG})
 
+  # Copy the test files to the build directory
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
 
-  # Define the tests
-  file(COPY "testing/adv_networking_test_harness.py" DESTINATION "testing")
-  add_test(NAME adv_networking_bench_dpdk_multi_if_loopback_test
-           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_multi_if_loopback_test.yaml"
-                  --avg-throughput-threshold 90
-                  --missed-packets-threshold 0.1
-                  --port-map 0-1
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-  add_test(NAME adv_networking_bench_dpdk_multi_rx_q_test
-           COMMAND python3 testing/adv_networking_test_harness.py "./adv_networking_bench adv_networking_bench_dpdk_rx_multi_q.yaml"
-                  --avg-throughput-threshold 0
-                  --missed-packets-threshold 0
-                  --packets-per-rx-queue 1 1
-                  --port-map 0-0
-                  --external-script ${CMAKE_CURRENT_SOURCE_DIR}/../utils/test_multi_rx_q.py
+  # Define a single test that runs both pytest tests
+  add_test(NAME adv_networking_bench_pytest
+           COMMAND python3 -m pytest "${CMAKE_CURRENT_BINARY_DIR}/testing/test_ano_bench.py" -v -s --log-cli-level=DEBUG --workdir=${CMAKE_CURRENT_BINARY_DIR}
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
