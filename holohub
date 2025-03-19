@@ -1,0 +1,1060 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import argparse
+import os
+import subprocess
+import sys
+from typing import List, Optional, Dict, Any, Tuple
+from pathlib import Path
+import shutil
+import pwd
+import grp
+from datetime import datetime
+import json
+import glob
+import traceback
+
+# Utility Functions
+def get_timestamp() -> str:
+    """Get current timestamp in the format used by the bash script"""
+    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+def fatal(message: str) -> None:
+    """Print fatal error and exit with backtrace"""
+    print(f"\033[31m{get_timestamp()} [FATAL] \033[0m{message}", file=sys.stderr)
+    print("\nBacktrace: ...", file=sys.stderr)
+    traceback.print_list(traceback.extract_stack()[-3:], file=sys.stderr)
+    sys.exit(1)
+
+def run_command(cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs) -> subprocess.CompletedProcess:
+    """Run a shell command and handle errors"""
+    cmd_str = ' '.join(str(x) for x in cmd)
+    if dry_run:
+        print(f"\033[34m{get_timestamp()} \033[36m[dryrun] \033[37m$ \033[32m{cmd_str}\033[0m")
+        return subprocess.CompletedProcess(cmd, 0)
+    
+    print(f"\033[34m{get_timestamp()} \033[37m$ \033[32m{cmd_str}\033[0m")
+    try:
+        return subprocess.run(cmd, check=check, **kwargs)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: {cmd_str}")
+        print(f"Exit code: {e.returncode}")
+        sys.exit(e.returncode)
+
+def check_nvidia_ctk() -> None:
+    """Check NVIDIA Container Toolkit version"""
+    min_version = "1.12.0"
+    recommended_version = "1.14.1"
+    
+    if not shutil.which('nvidia-ctk'):
+        fatal("nvidia-ctk not found. Please install the NVIDIA Container Toolkit.")
+        
+    try:
+        output = subprocess.check_output(['nvidia-ctk', '--version'], text=True)
+        import re
+        match = re.search(r'(\d+\.\d+\.\d+)', output)
+        if match:
+            version = match.group(1)
+            from packaging import version as ver
+            if ver.parse(version) < ver.parse(min_version):
+                fatal(f"Found nvidia-ctk Version {version}. Version {min_version}+ is required ({recommended_version}+ recommended).")
+    except subprocess.CalledProcessError:
+        fatal(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
+
+def get_host_gpu() -> str:
+    """Determine if running on dGPU or iGPU"""
+    if not shutil.which('nvidia-smi'):
+        print("Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack.", file=sys.stderr)
+        return "dgpu"
+        
+    try:
+        output = subprocess.check_output(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'])
+        if not output or 'Orin (nvgpu)' in output.decode():
+            return "igpu"
+    except subprocess.CalledProcessError:
+        return "dgpu"
+        
+    return "dgpu"
+
+def get_compute_capacity() -> str:
+    """Get GPU compute capacity"""
+    if not shutil.which('nvidia-smi'):
+        return "0.0"
+    try:
+        output = subprocess.check_output(['nvidia-smi', '--query-gpu=compute_cap', '--format=csv,noheader'])
+        return output.decode().strip().split('\n')[0]
+    except subprocess.CalledProcessError:
+        return "0.0"
+
+def get_group_id(group: str) -> Optional[int]:
+    """Get group ID for a given group name"""
+    try:
+        return grp.getgrnam(group).gr_gid
+    except KeyError:
+        return None
+
+def get_app_source_root_dir(app_name: str, script_dir: Path) -> Path:
+    """Get source path for a given application according to HoloHub convention"""
+    if not app_name:
+        fatal("Missing app name argument for get_app_source_root_dir")
+        
+    holohub_app_source = script_dir / "applications" / app_name
+    
+    # Check if the application is in a subdirectory
+    if not holohub_app_source.is_dir():
+        sub_app_paths = list(script_dir.glob(f"applications/*/{app_name}"))
+        if sub_app_paths:
+            holohub_app_source = sub_app_paths[0]
+            
+    # Check if the application is in the benchmarks folder
+    if not holohub_app_source.is_dir():
+        benchmark_path = script_dir / "benchmarks" / app_name
+        if benchmark_path.is_dir():
+            holohub_app_source = benchmark_path
+            
+    if not holohub_app_source.is_dir():
+        fatal(f"Could not find project {app_name}")
+        
+    return holohub_app_source
+
+def get_app_source_lang_dir(app_name: str, language: str, script_dir: Path) -> Path:
+    """Get source path for a given application language implementation"""
+    holohub_app_source = get_app_source_root_dir(app_name, script_dir)
+    lang_dir = holohub_app_source / language
+    
+    if lang_dir.is_dir():
+        return lang_dir
+    return holohub_app_source
+
+def get_pkg_dir(pkg_name: str, script_dir: Path) -> Path:
+    """Get source path for a given package according to HoloHub convention"""
+    if not pkg_name:
+        fatal("Missing package name argument for get_pkg_dir")
+        
+    holohub_pkg_source = script_dir / "pkg" / pkg_name
+    
+    # Check if the package is in a subdirectory
+    if not holohub_pkg_source.is_dir():
+        sub_pkg_paths = list(script_dir.glob(f"pkg/*/{pkg_name}"))
+        if sub_pkg_paths:
+            holohub_pkg_source = sub_pkg_paths[0]
+            
+    if not holohub_pkg_source.is_dir():
+        fatal(f"Could not find package {pkg_name}")
+        
+    return holohub_pkg_source
+
+def get_metadata(path: Path) -> Dict:
+    """Read and parse metadata.json file"""
+    try:
+        with open(path / "metadata.json") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        fatal(f"The metadata file does not exist: {path}/metadata.json")
+    except json.JSONDecodeError:
+        fatal(f"Invalid JSON in metadata file: {path}/metadata.json")
+
+def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
+    """List all metadata.json files in given paths"""
+    results = []
+    for path in paths:
+        for json_path in path.rglob('metadata.json'):
+            json_dir = json_path.parent
+            dir_name = json_dir.name
+            
+            if '{{' in dir_name and '}}' in dir_name:
+                continue  # Skip templates
+                
+            if dir_name in ['cpp', 'python']:
+                language = f"({dir_name})"
+                name = json_dir.parent.name
+            else:
+                language = ""
+                name = dir_name
+                
+            results.append((name, language))
+    
+    return sorted(results)
+
+def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
+    """Get list of directories from CMakeLists.txt files"""
+    results = []
+    for cmakelists in script_dir.rglob('CMakeLists.txt'):
+        with open(cmakelists) as f:
+            content = f.read()
+            for line in content.splitlines():
+                if cmake_function in line:
+                    try:
+                        name = line.split('(')[1].split(')')[0].strip()
+                        results.append(name)
+                    except IndexError:
+                        continue
+    return sorted(results)
+
+class HoloHubContainer:
+    """Manages container operations for HoloHub"""
+    
+    def __init__(self):
+        self.script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+        self.holohub_root = self.script_dir
+        
+        # Environment defaults
+        self.holoscan_py_exe = os.environ.get('HOLOSCAN_PY_EXE', 'python3')
+        self.holoscan_docker_exe = os.environ.get('HOLOSCAN_DOCKER_EXE', 'docker')
+        self.holoscan_sdk_version = 'sdk-latest'
+        self.holohub_container_base_name = 'holohub'
+        
+        self.do_dry_run = False
+
+    def get_default_base_img(self) -> str:
+        """Get default base image name"""
+        return f"nvcr.io/nvidia/clara-holoscan/holoscan:v2.9.0-{get_host_gpu()}"
+
+    def get_default_img(self) -> str:
+        """Get default image name"""
+        return f"holohub:ngc-v2.9.0-{get_host_gpu()}"
+
+    def get_ucx_options(self) -> List[str]:
+        """Get UCX-related docker options"""
+        return [
+            '--ipc=host',
+            '--cap-add=CAP_SYS_PTRACE',
+            '--ulimit=memlock=-1',
+            '--ulimit=stack=67108864'
+        ]
+
+    def get_conditional_options(self, use_tini: bool = False, persistent: bool = False) -> List[str]:
+        """Get conditional docker options"""
+        options = []
+        
+        # Add device mounts
+        device_paths = [
+            '/usr/lib/libvideomasterhd.so',
+            '/opt/deltacast/videomaster/Include',
+            '/opt/yuan/qcap/include',
+            '/opt/yuan/qcap/lib',
+            '/usr/lib/aarch64-linux-gnu/tegra'
+        ]
+        
+        for path in device_paths:
+            if os.path.exists(path):
+                if os.path.isfile(path):
+                    options.append(f'--volume={path}:{path}')
+                else:
+                    options.append(f'--volume={path}:{path}')
+
+        # Add group permissions
+        for group in ['video', 'render', 'docker']:
+            gid = get_group_id(group)
+            if gid is not None:
+                options.append(f'--group-add={gid}')
+
+        # Handle tini and persistence
+        if use_tini:
+            options.append('--init')
+        if not persistent:
+            options.append('--rm')
+
+        return options
+
+    def get_dockerfile_path(self, app_name: str = None, language: Optional[str] = 'cpp') -> Path:
+        """Get Dockerfile path for an application or default"""
+        if not app_name:
+            return self.script_dir / "Dockerfile"
+            
+        app_source = get_app_source_lang_dir(app_name, language, self.script_dir)
+        
+        # Check metadata.json for dockerfile entry
+        try:
+            metadata = get_metadata(app_source)
+            if "dockerfile" in metadata:
+                dockerfile = metadata["dockerfile"].replace("<holohub_app_source>", str(app_source))
+                return Path(dockerfile)
+        except (FileNotFoundError, KeyError):
+            pass
+            
+        # Check for Dockerfile in application directory
+        app_dockerfile = app_source / "Dockerfile"
+        if app_dockerfile.exists():
+            return app_dockerfile
+        
+        # Check for Dockerfile in language directory
+        lang_dockerfile = app_source / "Dockerfile"
+        if lang_dockerfile.exists():
+            return lang_dockerfile
+            
+        # Use default Dockerfile
+        return self.script_dir / "Dockerfile"
+
+    def build(self, 
+              docker_file: Optional[str] = None,
+              base_img: Optional[str] = None,
+              img: Optional[str] = None,
+              no_cache: bool = False,
+              build_args: Optional[str] = None,
+              project: Optional[str] = None,
+              language: Optional[str] = 'cpp',
+              verbose: bool = False) -> None:
+        """Build the container image"""
+        
+        # Get Dockerfile path
+        if docker_file:
+            docker_file_path = Path(docker_file)
+        else:
+            docker_file_path = self.get_dockerfile_path(project, language)
+            
+        base_img = base_img or self.get_default_base_img()
+        img = img or self.get_default_img()
+        gpu_type = get_host_gpu()
+        compute_capacity = get_compute_capacity()
+
+        if verbose:
+            print(f"Build (HOLOHUB_ROOT: {self.holohub_root})")
+            print(f"Build (gpu_type: {gpu_type})")
+            print(f"Build (base_img: {base_img})")
+            print(f"Build (docker_file: {docker_file_path})")
+            print(f"Build (img: {img})")
+
+        # Check if buildx exists
+        try:
+            run_command(['docker', 'buildx', 'version'], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            fatal("docker buildx plugin is missing. Please install docker-buildx-plugin:\n"
+                  "https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository")
+
+        # Set DOCKER_BUILDKIT environment variable
+        os.environ['DOCKER_BUILDKIT'] = '1'
+        
+        cmd = [
+            'docker', 'build',
+            '--build-arg', f'BUILDKIT_INLINE_CACHE=1',
+            '--build-arg', f'BASE_IMAGE={base_img}',
+            '--build-arg', f'GPU_TYPE={gpu_type}',
+            '--build-arg', f'COMPUTE_CAPACITY={compute_capacity}',
+            '--network=host',
+        ]
+        
+        if no_cache:
+            cmd.append('--no-cache')
+            
+        if build_args:
+            cmd.extend(build_args.split())
+            
+        cmd.extend([
+            '-f', str(docker_file_path),
+            '-t', img,
+            str(self.holohub_root)
+        ])
+        
+        run_command(cmd, dry_run=self.do_dry_run)
+
+    def launch(self,
+               img: Optional[str] = None,
+               local_sdk_root: str = "undefined",
+               ssh_x11: bool = False,
+               use_tini: bool = False,
+               persistent: bool = False,
+               nsys_profile: bool = False,
+               nsys_location: str = "",
+               as_root: bool = False,
+               docker_opts: str = "",
+               add_volumes: List[str] = None,
+               verbose: bool = False,
+               dryrun: bool = False,
+               extra_args: List[str] = None) -> None:
+        """Launch the container"""
+        
+        check_nvidia_ctk()
+        
+        img = img or self.get_default_img()
+        add_volumes = add_volumes or []
+        extra_args = extra_args or []
+
+        # Build docker command
+        cmd = [self.holoscan_docker_exe, 'run', '--net', 'host']
+        
+        # Basic options
+        cmd.extend(['--interactive'])
+        if sys.stdout.isatty():
+            cmd.append('--tty')
+            
+        # User permissions
+        if not as_root:
+            cmd.extend(['-u', f'{os.getuid()}:{os.getgid()}'])
+        cmd.extend([
+            '-v', '/etc/group:/etc/group:ro',
+            '-v', '/etc/passwd:/etc/passwd:ro'
+        ])
+        
+        # Workspace mounting
+        cmd.extend([
+            '-v', f'{self.holohub_root}:/workspace/holohub',
+            '-w', '/workspace/holohub'
+        ])
+        
+        # GPU and device access
+        cmd.extend([
+            '--runtime=nvidia',
+            '--gpus', 'all',
+            '--cap-add', 'CAP_SYS_PTRACE',
+            '--ipc=host',
+            '-v', '/dev:/dev',
+            '--device-cgroup-rule', 'c 81:* rmw',
+            '--device-cgroup-rule', 'c 189:* rmw',
+        ])
+        
+        # Environment variables
+        cmd.extend([
+            '-e', 'NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display',
+            '-e', 'HOME=/workspace/holohub'
+        ])
+        
+        # Additional volumes
+        for volume in add_volumes:
+            base = os.path.basename(volume)
+            cmd.extend(['-v', f'{volume}:/workspace/volumes/{base}'])
+            
+        # Add conditional options
+        cmd.extend(self.get_conditional_options(use_tini, persistent))
+        
+        # Add UCX options
+        cmd.extend(self.get_ucx_options())
+        
+        # Add display server options
+        self._add_display_options(cmd, ssh_x11)
+        
+        # Add local SDK options if provided
+        if local_sdk_root != "undefined":
+            self._add_local_sdk_options(cmd, local_sdk_root)
+            
+        # Add docker options if provided
+        if docker_opts:
+            cmd.extend(docker_opts.split())
+            
+        # Add the image name
+        cmd.append(img)
+        
+        # Add any extra arguments
+        cmd.extend(extra_args)
+        
+        if verbose:
+            print(f"Launch command: {' '.join(cmd)}")
+            
+        run_command(cmd, dry_run=self.do_dry_run)
+
+    def _add_display_options(self, cmd: List[str], ssh_x11: bool) -> None:
+        """Add display-related options to docker command"""
+        if 'XDG_SESSION_TYPE' in os.environ:
+            cmd.extend(['-e', 'XDG_SESSION_TYPE'])
+            if os.environ['XDG_SESSION_TYPE'] == 'wayland':
+                cmd.extend(['-e', 'WAYLAND_DISPLAY'])
+                
+        if 'XDG_RUNTIME_DIR' in os.environ:
+            cmd.extend(['-e', 'XDG_RUNTIME_DIR'])
+            if os.path.isdir(os.environ['XDG_RUNTIME_DIR']):
+                cmd.extend(['-v', f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"])
+                
+        # Handle X11
+        session_type = os.environ.get('XDG_SESSION_TYPE', '')
+        if not session_type or session_type in ['x11', 'tty']:
+            if 'DISPLAY' in os.environ and shutil.which('xhost'):
+                run_command(['xhost', '+local:docker'])
+            cmd.extend([
+                '-v', '/tmp/.X11-unix:/tmp/.X11-unix',
+                '-e', 'DISPLAY'
+            ])
+
+    def _add_local_sdk_options(self, cmd: List[str], local_sdk_root: str) -> None:
+        """Add Holoscan SDK-related options to docker command"""
+        pythonpath = "/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        
+        if os.path.isdir(local_sdk_root):
+            cmd.extend(['-v', f'{local_sdk_root}:/workspace/holoscan-sdk'])
+            cmd.extend([
+                '-e', 'HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/build/lib',
+                '-e', 'HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data',
+                '-e', 'HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data'
+            ])
+            pythonpath = f"/workspace/holoscan-sdk/build/python/lib:{pythonpath}"
+        else:
+            pythonpath = f"/opt/nvidia/holoscan/python/lib:{pythonpath}"
+            
+        cmd.extend(['-e', f'PYTHONPATH={pythonpath}'])
+
+class HoloHubCLI:
+    """Command-line interface for HoloHub"""
+    
+    def __init__(self):
+        self.container = HoloHubContainer()
+        self.parser = self._create_parser()
+        
+        # Add build configuration
+        self.build_dir = self.container.script_dir / "build"
+        self.data_dir = os.environ.get('HOLOHUB_DATA_PATH', 
+                                     self.container.script_dir / "data")
+        self.holoscan_sdk_install = os.environ.get('HOLOSCAN_LIB_PATH',
+                                                  '/opt/nvidia/holoscan/lib')
+
+    def _create_parser(self) -> argparse.ArgumentParser:
+        """Create the argument parser with all supported commands"""
+        parser = argparse.ArgumentParser(description='HoloHub CLI tool')
+        subparsers = parser.add_subparsers(dest='command', required=True)
+        
+        # build-container command
+        build_container = subparsers.add_parser('build-container', 
+            help='Build the development container')
+        build_container.add_argument('project', nargs='?',
+            help='Project to build container for')
+        build_container.add_argument('--base_img',
+            help='Fully qualified base image name')
+        build_container.add_argument('--docker_file',
+            help='Path to Dockerfile to use')
+        build_container.add_argument('--img',
+            help='Specify fully qualified container name')
+        build_container.add_argument('--verbose', action='store_true',
+            help='Print variables passed to docker build command')
+        build_container.add_argument('--no-cache', action='store_true',
+            help='Do not use cache when building the image')
+        build_container.add_argument('--build-args',
+            help='Provides extra arguments to docker build command')
+        build_container.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        build_container.set_defaults(func=self.handle_build_container)
+
+        # run-container command
+        run_container = subparsers.add_parser('run-container',
+            help='Launch the development container')
+        run_container.add_argument('--img',
+            help='Fully qualified image name')
+        run_container.add_argument('--local_sdk_root',
+            help='Path to Holoscan SDK used for building local Holoscan SDK container')
+        run_container.add_argument('--ssh_x11', action='store_true',
+            help='Enable X11 forwarding of graphical HoloHub applications over SSH')
+        run_container.add_argument('--init', action='store_true',
+            help='Support tini entry point')
+        run_container.add_argument('--persistent', action='store_true',
+            help='Does not delete container after it is run')
+        run_container.add_argument('--verbose', action='store_true',
+            help='Print variables passed to docker run command')
+        run_container.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        run_container.add_argument('--add-volume', action='append',
+            help='Mount additional volume')
+        run_container.add_argument('--as_root', action='store_true',
+            help='Run the container with root permissions')
+        run_container.add_argument('--docker_opts',
+            help='Additional options to pass to the Docker launch')
+        run_container.set_defaults(func=self.handle_run_container)
+
+        # build command
+        build = subparsers.add_parser('build',
+            help='Build a project')
+        build.add_argument('project',
+            help='Project to build')
+        build.add_argument('--local', action='store_true',
+            help='Build locally instead of in container')
+        build.add_argument('--verbose', action='store_true',
+            help='Print extra output')
+        build.add_argument('--build-type', choices=['debug', 'release', 'rel-debug'],
+            help='Build type (debug, release, rel-debug)')
+        build.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        build.set_defaults(func=self.handle_build)
+
+        # run command
+        run = subparsers.add_parser('run',
+            help='Run a project')
+        run.add_argument('project',
+            help='Project to run')
+        run.add_argument('--local', action='store_true',
+            help='Run locally instead of in container')
+        run.add_argument('--verbose', action='store_true',
+            help='Print extra output')
+        run.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        run.add_argument('--nsys-profile', action='store_true',
+            help='Enable Nsight Systems profiling')
+        run.add_argument('--language', choices=['cpp', 'python'],
+            help='Specify language implementation')
+        run.set_defaults(func=self.handle_run)
+
+        # list command
+        list_cmd = subparsers.add_parser('list',
+            help='List all available targets')
+        list_cmd.set_defaults(func=self.handle_list)
+        
+        # lint command
+        lint = subparsers.add_parser('lint',
+            help='Run linting tools')
+        lint.add_argument('path', nargs='?', default='.',
+            help='Path to lint')
+        lint.add_argument('--fix', action='store_true',
+            help='Fix linting issues')
+        lint.add_argument('--install-dependencies', action='store_true',
+            help='Install linting dependencies')
+        lint.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        lint.set_defaults(func=self.handle_lint)
+        
+        # setup command
+        setup = subparsers.add_parser('setup',
+            help='Install HoloHub main required packages')
+        setup.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        setup.set_defaults(func=self.handle_setup)
+
+        # Add install command
+        install = subparsers.add_parser('install',
+            help='Install a project')
+        install.add_argument('project',
+            help='Project to install')
+        install.add_argument('--local', action='store_true',
+            help='Install locally instead of in container')
+        install.add_argument('--build-type', choices=['debug', 'release', 'rel-debug'],
+            help='Build type (debug, release, rel-debug)')
+        install.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        install.set_defaults(func=self.handle_install)
+
+        # Add clear-cache command
+        clear_cache = subparsers.add_parser('clear-cache',
+            help='Clear cache folders')
+        clear_cache.add_argument('--dryrun', action='store_true',
+            help='Print commands without executing them')
+        clear_cache.set_defaults(func=self.handle_clear_cache)
+
+        return parser
+
+    def handle_build_container(self, args: argparse.Namespace) -> None:
+        """Handle build-container command"""
+        self.container.do_dry_run = args.dryrun
+        self.container.build(
+            docker_file=args.docker_file,
+            base_img=args.base_img,
+            img=args.img,
+            no_cache=args.no_cache,
+            build_args=args.build_args,
+            project=args.project,
+            verbose=args.verbose
+        )
+
+    def handle_run_container(self, args: argparse.Namespace) -> None:
+        """Handle run-container command"""
+        self.container.do_dry_run = args.dryrun
+        self.container.launch(
+            img=args.img,
+            local_sdk_root=args.local_sdk_root or "undefined",
+            ssh_x11=args.ssh_x11,
+            use_tini=args.init,
+            persistent=args.persistent,
+            as_root=args.as_root,
+            docker_opts=args.docker_opts or "",
+            add_volumes=args.add_volume,
+            verbose=args.verbose
+        )
+
+    def get_buildtype_str(self, build_type: Optional[str]) -> str:
+        """Get CMake build type string"""
+        if not build_type:
+            return os.environ.get('CMAKE_BUILD_TYPE', 'Release')
+            
+        build_type_map = {
+            'debug': 'Debug',
+            'Debug': 'Debug',
+            'release': 'Release',
+            'Release': 'Release',
+            'rel-debug': 'RelWithDebInfo',
+            'RelWithDebInfo': 'RelWithDebInfo'
+        }
+        return build_type_map.get(build_type, 'Release')
+
+    def get_app_default_language(self, app_name: str) -> str:
+        """Get default language if multiple are available"""
+        apps = list_metadata_json_dir(
+            self.container.script_dir / "applications",
+            self.container.script_dir / "benchmarks"
+        )
+        for name, lang in apps:
+            if name == app_name:
+                return lang.strip('()') if lang else ''
+        return ''
+
+    def handle_build(self, args: argparse.Namespace) -> None:
+        """Handle build command"""
+        language = (hasattr(args, 'language') and args.language) or self.get_app_default_language(args.project)
+        if args.local:
+            app_source = get_app_source_root_dir(args.project, self.container.script_dir)
+            
+            if not language:
+                fatal("Could not determine project language. Please specify with --language")
+                
+            app_source = get_app_source_lang_dir(args.project, language, self.container.script_dir)
+            build_type = self.get_buildtype_str(args.build_type)
+            
+            # Local build
+            build_dir = self.build_dir / args.project
+            build_dir.mkdir(parents=True, exist_ok=True)
+            
+            if language == 'cpp':
+                # Build C++ project
+                run_command([
+                    'cmake', '-B', str(build_dir),
+                    '-S', str(app_source),
+                    f'-DCMAKE_BUILD_TYPE={build_type}',
+                    f'-DCMAKE_PREFIX_PATH={self.holoscan_sdk_install}'
+                ], dry_run=args.dryrun)
+                run_command(['cmake', '--build', str(build_dir), '--config', build_type],
+                          dry_run=args.dryrun)
+            else:
+                # For Python projects, just create the directory
+                pass
+        else:
+            # Build in container
+            self.container.do_dry_run = args.dryrun
+            self.container.build(project=args.project, verbose=args.verbose)
+            self.container.launch(
+                docker_opts="--entrypoint=bash",
+                extra_args=['-c', f'holohub build {args.project} --language {language} --local'],
+                verbose=args.verbose
+            )
+
+    def handle_run(self, args: argparse.Namespace) -> None:
+        """Handle run command"""
+        if args.local:
+            app_source = get_app_source_root_dir(args.project, self.container.script_dir)
+            language = args.language or self.get_app_default_language(args.project)
+            
+            if not language:
+                fatal("Could not determine project language. Please specify with --language")
+                
+            app_source = get_app_source_lang_dir(args.project, language, self.container.script_dir)
+            metadata = get_metadata(app_source)
+            
+            # Get run configuration from metadata
+            project_type = "benchmark" if "benchmark" in metadata else "application"
+            run_config = metadata[project_type]["run"]
+            
+            # Process command template
+            cmd = run_config["command"]
+            cmd = cmd.replace("<holohub_data_dir>", str(self.data_dir))
+            cmd = cmd.replace("<holohub_app_source>", str(app_source))
+            
+            if language == 'cpp':
+                build_dir = self.build_dir / args.project
+                cmd = cmd.replace("<holohub_app_bin>", str(build_dir))
+                
+                if not build_dir.is_dir() and not args.dryrun:
+                    fatal(f"The build directory for this application does not exist.\n"
+                          f"Did you forget to './holohub build {args.project}'?")
+            
+            # Handle workdir
+            workdir = run_config.get("workdir", "holohub_app_bin")
+            if workdir == "holohub_app_source":
+                if not args.dryrun:
+                    os.chdir(app_source)
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mcd {app_source}\033[0m")
+            elif workdir == "holohub_bin":
+                if not args.dryrun:
+                    os.chdir(self.build_dir)
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mcd {self.build_dir}\033[0m")
+            else:  # default to app binary directory
+                target_dir = build_dir if language == 'cpp' else app_source
+                if not args.dryrun:
+                    os.chdir(target_dir)
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mcd {target_dir}\033[0m")
+            
+            # Set up environment
+            env = os.environ.copy()
+            env['PYTHONPATH'] = f"{self.holoscan_sdk_install}/../python/lib:{self.build_dir}/python/lib:{self.container.script_dir}"
+            env['HOLOHUB_DATA_PATH'] = str(self.data_dir)
+            env['HOLOSCAN_INPUT_PATH'] = os.environ.get('HOLOSCAN_INPUT_PATH', str(self.data_dir))
+            
+            # Print environment setup
+            if args.verbose or args.dryrun:
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mexport PYTHONPATH={env['PYTHONPATH']}\033[0m")
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mexport HOLOHUB_DATA_PATH={env['HOLOHUB_DATA_PATH']}\033[0m")
+                print(f"\033[34m{get_timestamp()} \033[37m$ \033[32mexport HOLOSCAN_INPUT_PATH={env['HOLOSCAN_INPUT_PATH']}\033[0m")
+            
+            # Handle Nsight Systems profiling
+            if args.nsys_profile:
+                if not shutil.which('nsys') and not os.path.isdir('/opt/nvidia/nsys-host') and not args.dryrun:
+                    fatal("Nsight Systems CLI command 'nsys' not found. No Nsight installation from the host is also mounted.")
+                nsys_cmd = '/opt/nvidia/nsys-host/bin/nsys' if not shutil.which('nsys') else 'nsys'
+                
+                # Check perf_event_paranoid level
+                if not args.dryrun:
+                    try:
+                        with open('/proc/sys/kernel/perf_event_paranoid') as f:
+                            if int(f.read()) > 2:
+                                fatal("For Nsight Systems profiling the Linux operating system's perf_event_paranoid level must be 2 or less.")
+                    except (IOError, ValueError):
+                        pass
+                
+                cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
+            
+            run_command(cmd.split(), env=env, dry_run=args.dryrun)
+        else:
+            # Pass dryrun to container launch if specified
+            self.container.do_dry_run = args.dryrun
+            
+            # Get language before launching container
+            language = args.language or self.get_app_default_language(args.project)
+            if not language:
+                fatal("Could not determine project language. Please specify with --language")
+            
+            # Build command with all necessary arguments
+            run_cmd = f'holohub run {args.project} --language {language} --local'
+            if args.dryrun:
+                run_cmd += ' --dryrun'
+            if args.verbose:
+                run_cmd += ' --verbose'
+            if args.nsys_profile:
+                run_cmd += ' --nsys-profile'
+                
+            self.container.launch(
+                docker_opts="--entrypoint=bash",
+                extra_args=['-c', run_cmd],
+                verbose=args.verbose
+            )
+
+    def handle_list(self, args: argparse.Namespace) -> None:
+        """Handle list command"""
+        print("\n\033[1;37m== APPLICATIONS =================\033[0m\n")
+        
+        apps = list_metadata_json_dir(
+            self.container.script_dir / "applications",
+            self.container.script_dir / "benchmarks"
+        )
+        for name, lang in apps:
+            print(f"{name} {lang}")
+            
+        print("\n\033[1;37m== OPERATORS ====================\033[0m\n")
+        
+        ops = list_metadata_json_dir(self.container.script_dir / "operators")
+        for name, lang in ops:
+            print(f"{name} {lang}")
+            
+        print("\n\033[1;37m== PACKAGES =====================\033[0m\n")
+        
+        pkgs = list_cmake_dir_options(self.container.script_dir, "add_holohub_package")
+        for pkg in pkgs:
+            print(pkg)
+            
+        print("\n\033[1;37m=================================\033[0m\n")
+
+    def handle_lint(self, args: argparse.Namespace) -> None:
+        """Handle lint command"""
+        if args.install_dependencies:
+            self._install_lint_deps()
+            return
+            
+        exit_code = 0
+        
+        # Change to script directory
+        os.chdir(self.container.script_dir)
+        
+        if args.fix:
+            # Fix Python
+            run_command(['ruff', 'check', '--fix', '--ignore', 'E712', args.path], check=False)
+            run_command(['isort', args.path], check=False)
+            run_command(['black', args.path], check=False)
+            run_command(['codespell', '-w', '-i', '3', args.path,
+                        '--ignore-words', 'codespell_ignore_words.txt',
+                        '--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data'],
+                       check=False)
+            
+            # Fix C++ with clang-format
+            try:
+                cpp_files = subprocess.check_output(
+                    [sys.executable, '-m', 'cpplint',
+                     '--exclude', 'build',
+                     '--exclude', 'install',
+                     '--exclude', 'build-*',
+                     '--exclude', 'install-*',
+                     '--exclude', 'applications/holoviz/template/cookiecutter*',
+                     '--recursive', args.path],
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                for file in cpp_files.splitlines():
+                    if ':' in file:  # Only process files with issues
+                        file = file.split(':')[0]
+                        run_command(['clang-format', '--style=file', '--sort-includes=0',
+                                   '--lines=20:10000', '-i', file], check=False)
+            except subprocess.CalledProcessError:
+                pass
+                
+        else:
+            # Run linting checks
+            print("Linting Python")
+            if run_command(['ruff', 'check', '--ignore', 'E712', args.path], check=False).returncode != 0:
+                exit_code = 1
+            if run_command(['isort', '-c', args.path], check=False).returncode != 0:
+                exit_code = 1
+            if run_command(['black', '--check', args.path], check=False).returncode != 0:
+                exit_code = 1
+                
+            print("Linting C++")
+            if run_command(['python', '-m', 'cpplint',
+                          '--exclude', 'build',
+                          '--exclude', 'install',
+                          '--exclude', 'build-*',
+                          '--exclude', 'install-*',
+                          '--exclude', '.vscode-server',
+                          '--exclude', 'applications/holoviz/template/cookiecutter*',
+                          '--recursive', args.path], check=False).returncode != 0:
+                exit_code = 1
+                
+            print("Code spelling")
+            if run_command(['codespell', args.path,
+                          '--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data',
+                          '--ignore-words', 'codespell_ignore_words.txt',
+                          '--exclude-file', 'codespell.txt'], check=False).returncode != 0:
+                exit_code = 1
+                
+            print("Linting CMake")
+            cmake_files = list(Path(args.path).rglob('CMakeLists.txt'))
+            cmake_files.extend(Path(args.path).rglob('*.cmake'))
+            if cmake_files:
+                if run_command(['cmakelint',
+                              '--filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs',
+                              *[str(f) for f in cmake_files]], check=False).returncode != 0:
+                    exit_code = 1
+                    
+        if exit_code == 0:
+            print("Everything looks good!")
+        sys.exit(exit_code)
+
+    def _install_lint_deps(self) -> None:
+        """Install linting dependencies"""
+        os.chdir(self.container.script_dir)
+        
+        print("Install Lint Dependencies for Python")
+        run_command([sys.executable, '-m', 'pip', 'install', '-r',
+                    str(self.container.script_dir / 'utilities/requirements.lint.txt')])
+        run_command(['apt', 'install', '--no-install-recommends', '-y',
+                    'clang-format=1:14.0*'])
+
+    def handle_setup(self, args: argparse.Namespace) -> None:
+        """Handle setup command"""
+        # Install system dependencies
+        run_command(['sudo', 'apt-get', 'update'], dry_run=args.dryrun)
+        run_command(['sudo', 'apt-get', 'install', '-y',
+            'build-essential',
+            'cmake',
+            'git',
+            'python3-dev',
+            'python3-pip',
+            'ninja-build',
+            'pkg-config',
+            'libglib2.0-dev',
+            'clang-format',
+            'clang-tidy',
+            'cppcheck'
+        ], dry_run=args.dryrun)
+
+        # Install Python dependencies
+        run_command([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'], dry_run=args.dryrun)
+        run_command([sys.executable, '-m', 'pip', 'install',
+            'cmake-format',
+            'cpplint',
+            'pytest',
+            'pytest-cov',
+            'pytest-timeout',
+            'black',
+            'isort',
+            'ruff',
+            'codespell'
+        ], dry_run=args.dryrun)
+
+        # Create build directory
+        self.build_dir.mkdir(parents=True, exist_ok=True)
+
+    def handle_install(self, args: argparse.Namespace) -> None:
+        """Handle install command"""
+        if args.local:
+            app_source = get_app_source_root_dir(args.project, self.container.script_dir)
+            language = args.language or self.get_app_default_language(args.project)
+            
+            if not language:
+                fatal("Could not determine project language. Please specify with --language")
+                
+            app_source = get_app_source_lang_dir(args.project, language, self.container.script_dir)
+            build_type = self.get_buildtype_str(args.build_type)
+            
+            # Local install
+            build_dir = self.build_dir / args.project
+            build_dir.mkdir(parents=True, exist_ok=True)
+            
+            if language == 'cpp':
+                # Build and install C++ project
+                run_command([
+                    'cmake', '-B', str(build_dir),
+                    '-S', str(app_source),
+                    f'-DCMAKE_BUILD_TYPE={build_type}',
+                    f'-DCMAKE_PREFIX_PATH={self.holoscan_sdk_install}',
+                    '-DCMAKE_INSTALL_PREFIX=/usr/local'
+                ], dry_run=args.dryrun)
+                run_command(['cmake', '--build', str(build_dir), '--config', build_type],
+                          dry_run=args.dryrun)
+                run_command(['sudo', 'cmake', '--install', str(build_dir)],
+                          dry_run=args.dryrun)
+            else:
+                # For Python projects, install with pip
+                if (app_source / "setup.py").exists():
+                    run_command([sys.executable, '-m', 'pip', 'install', str(app_source)],
+                              dry_run=args.dryrun)
+        else:
+            # Install in container
+            self.container.do_dry_run = args.dryrun
+            self.container.build(project=args.project, verbose=args.verbose)
+            self.container.launch(
+                docker_opts="--entrypoint=bash",
+                extra_args=['-c', f'holohub install {args.project} --language {language} --local'],
+                verbose=args.verbose
+            )
+
+    def handle_clear_cache(self, args: argparse.Namespace) -> None:
+        """Handle clear-cache command"""
+        if args.dryrun:
+            print("Would clear cache folders:")
+            for pattern in ['build', 'build-*', 'install']:
+                for path in self.container.script_dir.glob(pattern):
+                    if path.is_dir():
+                        print(f"  Would remove: {path}")
+        else:
+            print("Clearing cache...")
+            for pattern in ['build', 'build-*', 'install']:
+                for path in self.container.script_dir.glob(pattern):
+                    if path.is_dir():
+                        shutil.rmtree(path)
+
+    def run(self) -> None:
+        """Main entry point for the CLI"""
+        args = self.parser.parse_args()
+        if hasattr(args, 'func'):
+            args.func(args)
+        else:
+            self.parser.print_help()
+            sys.exit(1)
+
+def main():
+    cli = HoloHubCLI()
+    cli.run()
+
+if __name__ == '__main__':
+    main()
