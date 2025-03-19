@@ -26,7 +26,7 @@ def pytest_addoption(parser):
         help="Working directory for tests (where executables and config files are located)"
     )
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def work_dir(request):
     """Return the working directory."""
     return request.config.getoption("--workdir")

@@ -134,59 +134,12 @@ install(
 
 # Add testing
 if(BUILD_TESTING)
-
-  # Define a macro to handle the execution and checks
-  macro(execute_and_check MSG CMD OUTPUT_VAR)
-    execute_process(COMMAND bash "-c" "${CMD}"
-                    RESULT_VARIABLE result_code
-                    OUTPUT_VARIABLE ${OUTPUT_VAR}
-                    ERROR_VARIABLE error_output
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT result_code EQUAL 0 OR "${${OUTPUT_VAR}}" STREQUAL "")
-      message(STATUS "[ANO Test] ${MSG}")
-      message(WARNING "'${CMD}' failed (${result_code}) or output was empty.\nError: ${error_output}")
-      message(STATUS "[ANO Test] Skipping advanced networking test")
-      return()
-    else()
-      message(STATUS "[ANO Test] ${MSG} ${${OUTPUT_VAR}}")
-    endif()
-  endmacro()
-
-  # Check NIC addresses
-  # Note: 0200 is the PCI-SIG class code for NICs. 15b3 is the Vendor ID for Mellanox.
-  message(STATUS "[ANO Test] Checking system compatibility for advanced networking loopback test")
-  execute_and_check("NVIDIA NIC BUS Addresses:" "lspci -n | awk '$2 == \"0200:\" && $3 ~ /^15b3:/ {print $1}'" cx_bus_address_list)
-  string(REGEX REPLACE "\n" ";" cx_bus_address_list "${cx_bus_address_list}")
-  list(LENGTH cx_bus_address_list cx_bus_address_list_count)
-  if(NOT cx_bus_address_list_count EQUAL 2)
-    message(WARNING "[ANO Test] Expected 2 CX NICs, found ${cx_bus_address_list_count}")
-    message(WARNING "[ANO Test] Skipping advanced networking test")
-    return()
-  endif()
-
-  # TEST 1 TX/RX loopback over single link. One TX queue and one RX queue
-  list(GET cx_bus_address_list 0 tx_bus)
-  list(GET cx_bus_address_list 1 rx_bus)
-  execute_and_check("ETH Interface for ${tx_bus}:" "find /sys/class/net -exec bash -c 'echo {} $(readlink -f {}/device)' \; | grep ${tx_bus} | awk '{print $1}'" tx_if)
-  execute_and_check("MAC Address for ${tx_if}:" "cat ${tx_if}/address" rx_eth_mac)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" TEST_CONFIG)
-  string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "address: [^\n]*Source[^\n]*Tx[^\n]*" "address: ${tx_bus}" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "eth_dst_addr:[^\n]*" "eth_dst_addr: ${rx_eth_mac}" TEST_CONFIG ${TEST_CONFIG})
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_multi_if_loopback_test.yaml" ${TEST_CONFIG})
-
-  # TEST 2 RX multi queue with a single CPU core. Uses a scapy script to send packets
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml" TEST_CONFIG)
-  string(REGEX REPLACE "# max_duration_ms:[^\n]*" "max_duration_ms: 20000" TEST_CONFIG ${TEST_CONFIG})
-  string(REGEX REPLACE "address: [^\n]*interface[^\n]*Rx[^\n]*" "address: ${rx_bus}" TEST_CONFIG ${TEST_CONFIG})
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/adv_networking_bench_dpdk_rx_multi_q.yaml" ${TEST_CONFIG})
-
   # Copy the test files to the build directory
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/nvidia_nic_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/yaml_config_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
 
   # Define a single test that runs both pytest tests
   add_test(NAME adv_networking_bench_pytest

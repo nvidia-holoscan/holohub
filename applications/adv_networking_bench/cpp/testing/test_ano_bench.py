@@ -29,11 +29,28 @@ from test_ano_bench_utils import (
     parse_benchmark_results
 )
 
+# Import NIC and YAML utilities
+from nvidia_nic_utils import get_nvidia_nics, print_nvidia_nics
+from yaml_config_utils import update_yaml_file
+
 # Configure the logger
 logger = logging.getLogger(__name__)
 
 
-def test_multi_if_loopback(work_dir):
+@pytest.fixture(scope="module")
+def nvidia_nics():
+    """Get NVIDIA NICs and check if we have enough for the tests."""
+    nics = get_nvidia_nics()
+
+    if len(nics) < 2:
+        logger.warning(f"Not enough NVIDIA NICs available (need at least 2, found {len(nics)})")
+        pytest.skip("Not enough NVIDIA NICs available (need at least 2)")
+
+    print_nvidia_nics(nics)
+    return nics
+
+
+def test_multi_if_loopback(work_dir, nvidia_nics):
     """
     Test 1: TX/RX loopback over single link with one TX queue and one RX queue.
 
@@ -42,12 +59,22 @@ def test_multi_if_loopback(work_dir):
     - Errored packets staying below threshold
     - Average throughput staying above threshold
     """
-    # Parameters for this test
-    config_file = "adv_networking_bench_dpdk_multi_if_loopback_test.yaml"
-    port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX) # TODO: infer from config file?
-    avg_throughput_threshold = 90.0
-    missed_pkts_threshold = 0.1
-    error_pkts_threshold = 0.0
+    # Get the first two NICs for this test
+    tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
+
+    # Prepare config
+    config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx.yaml")
+    update_yaml_file(
+        config_file,
+        config_file,
+        {
+            "scheduler.max_duration_ms": 10000,
+            "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
+            "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
+            "bench_tx.eth_dst_addr": rx_interface.mac_address,
+            "bench_tx.address": tx_interface.bus_id,
+        },
+    )
 
     # Build the command
     executable = os.path.join(work_dir, "adv_networking_bench")
@@ -58,23 +85,36 @@ def test_multi_if_loopback(work_dir):
     result = monitor_process(p, command)
     results = parse_benchmark_results(result.stdout + result.stderr)
 
-    # Validate the following metrics
+    # Validate some expected metrics
+    port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX), match advanced_network.cfg.interfaces
+    avg_throughput_threshold = 90.0
+    missed_pkts_threshold = 0.1
+    error_pkts_threshold = 0.0
     assert results.validate_missed_packets(port_map, missed_pkts_threshold), "Missed packets validation failed"
     assert results.validate_errored_packets(port_map, error_pkts_threshold), "Errored packets validation failed"
     assert results.validate_throughput(port_map, avg_throughput_threshold), "Throughput validation failed"
 
 
-def test_multi_rx_q(work_dir):
+def test_multi_rx_q(work_dir, nvidia_nics):
     """
     Test 2: RX multi queue with a single CPU core using scapy to send packets.
 
     This test focuses on:
     - Validating the distribution of packets to RX queues
     """
-    # Parameters for this test
-    config_file = "adv_networking_bench_dpdk_rx_multi_q.yaml"
-    port_map = {0: 0}  # Port 0 (TX) sends to Port 0 (RX) - loopback
-    expected_q_pkts = {0: 1, 1: 1}  # Expecting 1 packet for queue 0 and 1
+    # Get the NICs for this test
+    tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
+
+    # Prepare config
+    config_file = os.path.join(work_dir, "adv_networking_bench_default_rx_multi_q.yaml")
+    update_yaml_file(
+        config_file,
+        config_file,
+        {
+            "scheduler.max_duration_ms": 10000,
+            "advanced_network.cfg.interfaces[0].address": rx_interface.bus_id,
+        },
+    )
 
     # Build the absolute path to the executable
     executable = os.path.join(work_dir, "adv_networking_bench")
@@ -90,13 +130,13 @@ def test_multi_rx_q(work_dir):
         try:
             from scapy.all import IP, UDP, Ether, sendp
 
-            logger.info("Sending test packets to queues")
-            packet1 = Ether() / IP(dst="10.10.100.2") / UDP(sport=4095, dport=4095) / ("X" * (1050 - 20 - 8))
-            packet2 = Ether() / IP(dst="10.10.100.2") / UDP(sport=4096, dport=4096) / ("X" * (1050 - 20 - 8))
+            logger.info(f"Sending test packets to queues using interface {tx_interface.interface_name}")
+            packet1 = Ether() / IP(dst="foo") / UDP(sport=4095, dport=4095) / ("X" * (1050 - 20 - 8))
+            packet2 = Ether() / IP(dst="foo") / UDP(sport=4096, dport=4096) / ("X" * (1050 - 20 - 8))
 
             # Send one packet to each queue
-            sendp(packet1, iface="cx7_0", count=1, verbose=1)
-            sendp(packet2, iface="cx7_0", count=1, verbose=1)
+            sendp(packet1, iface=tx_interface.interface_name, count=1, verbose=1)
+            sendp(packet2, iface=tx_interface.interface_name, count=1, verbose=1)
             logger.info("Test packets sent successfully")
         except Exception as e:
             logger.error(f"Failed to send test packets: {e}")
@@ -110,4 +150,5 @@ def test_multi_rx_q(work_dir):
     results = parse_benchmark_results(result.stdout + result.stderr)
 
     # For this test, we only care about queue packet distribution (on port 0)
-    assert results.validate_rx_queue_packets(0, expected_q_pkts)
+    expected_q_pkts = {0: 1, 1: 1}  # Expecting 1 packet for both queue 0 and 1
+    assert results.validate_rx_queue_packets(0, expected_q_pkts) # On port 0
