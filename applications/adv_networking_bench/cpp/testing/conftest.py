@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,9 @@
 # limitations under the License.
 
 import os
+
 import pytest
+
 
 def pytest_addoption(parser):
     """Add command line options to pytest."""
@@ -23,8 +25,9 @@ def pytest_addoption(parser):
         "--workdir",
         action="store",
         default=os.getcwd(),
-        help="Working directory for tests (where executables and config files are located)"
+        help="Working directory for tests (where executables and config files are located)",
     )
+
 
 @pytest.fixture(scope="module")
 def work_dir(request):

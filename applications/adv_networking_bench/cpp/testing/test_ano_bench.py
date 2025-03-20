@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import pytest
-import sys
 import logging
+import os
 from threading import Thread
 from time import sleep
-import os.path
 
-# Import the benchmark and process functionality
-from benchmark_utils import parse_benchmark_results, BenchmarkResults
-from process_utils import run_command, start_process, monitor_process
-
-# Import NIC and YAML utilities
+import pytest
+from benchmark_utils import parse_benchmark_results
 from nvidia_nic_utils import get_nvidia_nics, print_nvidia_nics
+from process_utils import monitor_process, run_command, start_process
 from yaml_config_utils import update_yaml_file
 
 # Configure the logger
@@ -86,9 +81,15 @@ def test_multi_if_loopback(work_dir, nvidia_nics):
     avg_throughput_threshold = 90.0
     missed_pkts_threshold = 0.1
     error_pkts_threshold = 0.0
-    assert results.validate_missed_packets(port_map, missed_pkts_threshold), "Missed packets validation failed"
-    assert results.validate_errored_packets(port_map, error_pkts_threshold), "Errored packets validation failed"
-    assert results.validate_throughput(port_map, avg_throughput_threshold), "Throughput validation failed"
+    assert results.validate_missed_packets(
+        port_map, missed_pkts_threshold
+    ), "Missed packets validation failed"
+    assert results.validate_errored_packets(
+        port_map, error_pkts_threshold
+    ), "Errored packets validation failed"
+    assert results.validate_throughput(
+        port_map, avg_throughput_threshold
+    ), "Throughput validation failed"
 
 
 def test_multi_rx_q(work_dir, nvidia_nics):
@@ -126,9 +127,15 @@ def test_multi_rx_q(work_dir, nvidia_nics):
         try:
             from scapy.all import IP, UDP, Ether, sendp
 
-            logger.info(f"Sending test packets to queues using interface {tx_interface.interface_name}")
-            packet1 = Ether() / IP(dst="foo") / UDP(sport=4095, dport=4095) / ("X" * (1050 - 20 - 8))
-            packet2 = Ether() / IP(dst="foo") / UDP(sport=4096, dport=4096) / ("X" * (1050 - 20 - 8))
+            logger.info(
+                f"Sending test packets to queues using interface {tx_interface.interface_name}"
+            )
+            packet1 = (
+                Ether() / IP(dst="foo") / UDP(sport=4095, dport=4095) / ("X" * (1050 - 20 - 8))
+            )
+            packet2 = (
+                Ether() / IP(dst="foo") / UDP(sport=4096, dport=4096) / ("X" * (1050 - 20 - 8))
+            )
 
             # Send one packet to each queue
             sendp(packet1, iface=tx_interface.interface_name, count=1, verbose=1)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,131 +17,27 @@
 import logging
 import re
 import sys
-from typing import Dict, List, Tuple, Optional, NamedTuple, Any
+from typing import Dict
 
 # Configure the logger
 logger = logging.getLogger(__name__)
 
 
-def parse_benchmark_results(log: str) -> 'BenchmarkResults':
-    """
-    Parse benchmark results from log output.
-
-    Args:
-        log: The log output as a string
-
-    Returns:
-        BenchmarkResults: A structured representation of the benchmark results
-    """
-    # Initialize result dictionaries
-    tx_packets = {}
-    tx_bytes = {}
-    rx_packets = {}
-    rx_bytes = {}
-    missed_packets = {}
-    errored_packets = {}
-    rx_queue_packets = {}
-    tx_queue_packets = {}
-
-    # Regex patterns
-    port_pattern = r"Port (\d+):"
-    metric_patterns = {
-        "rx_packets": (r"Received packets:\s+(\d+)", rx_packets),
-        "tx_packets": (r"Transmit packets:\s+(\d+)", tx_packets),
-        "rx_bytes": (r"Received bytes:\s+(\d+)", rx_bytes),
-        "tx_bytes": (r"Transmit bytes:\s+(\d+)", tx_bytes),
-        "missed_packets": (r"Missed packets:\s+(\d+)", missed_packets),
-        "errored_packets": (r"Errored packets:\s+(\d+)", errored_packets),
-    }
-    rx_queue_pattern = r"rx_q(\d+)_packets:\s+(\d+)"
-    tx_queue_pattern = r"tx_q(\d+)_packets:\s+(\d+)"
-    exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
-
-    # Helper function to extract metrics
-    def extract_metric(pattern, text) -> int:
-        match = re.search(pattern, text)
-        if match:
-            return int(match.group(1))
-        return 0  # Return 0 if no match found
-
-    # Find all port sections in the log
-    port_matches = list(re.finditer(port_pattern, log))
-    logger.debug(f"Number of port_matches: {len(port_matches)}")
-
-    for i, port_match in enumerate(port_matches):
-        # Extract the port ID from the match
-        port_id = port_match.group(1)
-        logger.debug(f"Parsing stats for port ID: {port_id}")
-
-        # Extract the stats for this port
-        port_start = port_match.end()
-        if i < len(port_matches) - 1:
-            port_end = port_matches[i + 1].start()  # Stop at next port's start
-        else:
-            port_end = len(log)  # last port: go to end of log
-        port_section = log[port_start:port_end]
-
-        # Extract all metrics for this port
-        for metric_name, (pattern, result_dict) in metric_patterns.items():
-            value = extract_metric(pattern, port_section)
-            result_dict[port_id] = value
-            logger.debug(f"Port {port_id} - {metric_name}: {value}")
-
-        # Parse queue-specific information
-        rx_queue_matches = re.findall(rx_queue_pattern, port_section)
-        logger.debug(f"Port {port_id} - rx_queue_matches: {rx_queue_matches}")
-
-        for queue_id, count in rx_queue_matches:
-            if port_id not in rx_queue_packets:
-                rx_queue_packets[port_id] = {}
-            rx_queue_packets[port_id][queue_id] = int(count)
-
-        tx_queue_matches = re.findall(tx_queue_pattern, port_section)
-        logger.debug(f"Port {port_id} - tx_queue_matches: {tx_queue_matches}")
-
-        for queue_id, count in tx_queue_matches:
-            if port_id not in tx_queue_packets:
-                tx_queue_packets[port_id] = {}
-            tx_queue_packets[port_id][queue_id] = int(count)
-
-    # Extract execution time
-    exec_time = 0.0
-    exec_time_match = re.search(exec_time_pattern, log)
-    if exec_time_match:
-        exec_time = float(exec_time_match.group(1))
-
-    # Debug output
-    logger.debug(f"TX packets: {tx_packets}")
-    logger.debug(f"TX bytes: {tx_bytes}")
-    logger.debug(f"RX packets: {rx_packets}")
-    logger.debug(f"RX bytes: {rx_bytes}")
-    logger.debug(f"Missed packets: {missed_packets}")
-    logger.debug(f"Errored packets: {errored_packets}")
-    logger.debug(f"RX queue packets: {rx_queue_packets}")
-    logger.debug(f"TX queue packets: {tx_queue_packets}")
-    logger.debug(f"Exec time: {exec_time}")
-
-    return BenchmarkResults(
-        tx_pkts=tx_packets,
-        tx_bytes=tx_bytes,
-        rx_pkts=rx_packets,
-        rx_bytes=rx_bytes,
-        missed_pkts=missed_packets,
-        errored_pkts=errored_packets,
-        q_rx_pkts=rx_queue_packets,
-        q_tx_pkts=tx_queue_packets,
-        exec_time=exec_time,
-    )
-
-
 class BenchmarkResults:
     """Class to hold parsed benchmark results and provide analysis methods."""
 
-    def __init__(self, tx_pkts: Dict[str, int], tx_bytes: Dict[str, int],
-                 rx_pkts: Dict[str, int], rx_bytes: Dict[str, int],
-                 missed_pkts: Dict[str, int], errored_pkts: Dict[str, int],
-                 q_rx_pkts: Dict[str, Dict[str, int]], q_tx_pkts: Dict[str, Dict[str, int]],
-                 exec_time: float):
+    def __init__(
+        self,
+        tx_pkts: Dict[str, int],
+        tx_bytes: Dict[str, int],
+        rx_pkts: Dict[str, int],
+        rx_bytes: Dict[str, int],
+        missed_pkts: Dict[str, int],
+        errored_pkts: Dict[str, int],
+        q_rx_pkts: Dict[str, Dict[str, int]],
+        q_tx_pkts: Dict[str, Dict[str, int]],
+        exec_time: float,
+    ):
         """
         Initialize benchmark results from parsed values.
 
@@ -399,8 +295,121 @@ class BenchmarkResults:
         return success
 
 
+def parse_benchmark_results(log: str) -> BenchmarkResults:
+    """
+    Parse benchmark results from log output.
+
+    Args:
+        log: The log output as a string
+
+    Returns:
+        BenchmarkResults: A structured representation of the benchmark results
+    """
+    # Initialize result dictionaries
+    tx_packets = {}
+    tx_bytes = {}
+    rx_packets = {}
+    rx_bytes = {}
+    missed_packets = {}
+    errored_packets = {}
+    rx_queue_packets = {}
+    tx_queue_packets = {}
+
+    # Regex patterns
+    port_pattern = r"Port (\d+):"
+    metric_patterns = {
+        "rx_packets": (r"Received packets:\s+(\d+)", rx_packets),
+        "tx_packets": (r"Transmit packets:\s+(\d+)", tx_packets),
+        "rx_bytes": (r"Received bytes:\s+(\d+)", rx_bytes),
+        "tx_bytes": (r"Transmit bytes:\s+(\d+)", tx_bytes),
+        "missed_packets": (r"Missed packets:\s+(\d+)", missed_packets),
+        "errored_packets": (r"Errored packets:\s+(\d+)", errored_packets),
+    }
+    rx_queue_pattern = r"rx_q(\d+)_packets:\s+(\d+)"
+    tx_queue_pattern = r"tx_q(\d+)_packets:\s+(\d+)"
+    exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
+
+    # Helper function to extract metrics
+    def extract_metric(pattern, text) -> int:
+        match = re.search(pattern, text)
+        if match:
+            return int(match.group(1))
+        return 0  # Return 0 if no match found
+
+    # Find all port sections in the log
+    port_matches = list(re.finditer(port_pattern, log))
+    logger.debug(f"Number of port_matches: {len(port_matches)}")
+
+    for i, port_match in enumerate(port_matches):
+        # Extract the port ID from the match
+        port_id = port_match.group(1)
+        logger.debug(f"Parsing stats for port ID: {port_id}")
+
+        # Extract the stats for this port
+        port_start = port_match.end()
+        if i < len(port_matches) - 1:
+            port_end = port_matches[i + 1].start()  # Stop at next port's start
+        else:
+            port_end = len(log)  # last port: go to end of log
+        port_section = log[port_start:port_end]
+
+        # Extract all metrics for this port
+        for metric_name, (pattern, result_dict) in metric_patterns.items():
+            value = extract_metric(pattern, port_section)
+            result_dict[port_id] = value
+            logger.debug(f"Port {port_id} - {metric_name}: {value}")
+
+        # Parse queue-specific information
+        rx_queue_matches = re.findall(rx_queue_pattern, port_section)
+        logger.debug(f"Port {port_id} - rx_queue_matches: {rx_queue_matches}")
+
+        for queue_id, count in rx_queue_matches:
+            if port_id not in rx_queue_packets:
+                rx_queue_packets[port_id] = {}
+            rx_queue_packets[port_id][queue_id] = int(count)
+
+        tx_queue_matches = re.findall(tx_queue_pattern, port_section)
+        logger.debug(f"Port {port_id} - tx_queue_matches: {tx_queue_matches}")
+
+        for queue_id, count in tx_queue_matches:
+            if port_id not in tx_queue_packets:
+                tx_queue_packets[port_id] = {}
+            tx_queue_packets[port_id][queue_id] = int(count)
+
+    # Extract execution time
+    exec_time = 0.0
+    exec_time_match = re.search(exec_time_pattern, log)
+    if exec_time_match:
+        exec_time = float(exec_time_match.group(1))
+
+    # Debug output
+    logger.debug(f"TX packets: {tx_packets}")
+    logger.debug(f"TX bytes: {tx_bytes}")
+    logger.debug(f"RX packets: {rx_packets}")
+    logger.debug(f"RX bytes: {rx_bytes}")
+    logger.debug(f"Missed packets: {missed_packets}")
+    logger.debug(f"Errored packets: {errored_packets}")
+    logger.debug(f"RX queue packets: {rx_queue_packets}")
+    logger.debug(f"TX queue packets: {tx_queue_packets}")
+    logger.debug(f"Exec time: {exec_time}")
+
+    return BenchmarkResults(
+        tx_pkts=tx_packets,
+        tx_bytes=tx_bytes,
+        rx_pkts=rx_packets,
+        rx_bytes=rx_bytes,
+        missed_pkts=missed_packets,
+        errored_pkts=errored_packets,
+        q_rx_pkts=rx_queue_packets,
+        q_tx_pkts=tx_queue_packets,
+        exec_time=exec_time,
+    )
+
+
 if __name__ == "__main__":
     # Set up console logging if run directly
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     logger.info("This module is designed to be imported, not run directly.")
     sys.exit(0)
