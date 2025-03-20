@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,8 +142,11 @@ if(BUILD_TESTING)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/nvidia_nic_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/yaml_config_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
 
-  # Define a single test that runs both pytest tests
-  add_test(NAME adv_networking_bench_pytest
-           COMMAND python3 -m pytest "${CMAKE_CURRENT_BINARY_DIR}/testing/test_ano_bench.py" -v -s --log-cli-level=DEBUG --workdir=${CMAKE_CURRENT_BINARY_DIR}
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  # Register individual pytest tests with CTest
+  include(add_python_tests)
+  add_python_tests(
+    INPUT "testing"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    PYTEST_ARGS "-v" "-s" "--log-cli-level=INFO"
+  )
 endif()
