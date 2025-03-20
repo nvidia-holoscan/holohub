@@ -29,7 +29,7 @@ FetchContent_MakeAvailable(MatX)
 target_link_libraries(psd_pipeline PRIVATE
   matx::matx
   holoscan::core
-  holoscan::advanced_network_rx
+  holoscan::ops::advanced_network_rx
   holoscan::ops::fft
   holoscan::ops::high_rate_psd
   holoscan::ops::low_rate_psd
