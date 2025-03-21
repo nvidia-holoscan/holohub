@@ -42,7 +42,13 @@ def nvidia_nics():
     return nics
 
 
-def test_multi_if_loopback(work_dir, nvidia_nics):
+@pytest.fixture(scope="module")
+def executable(work_dir):
+    """Get the path to the adv_networking_bench executable."""
+    return os.path.join(work_dir, "adv_networking_bench")
+
+
+def test_multi_if_loopback(executable, work_dir, nvidia_nics):
     """
     Test 1: TX/RX loopback over single link with one TX queue and one RX queue.
 
@@ -68,11 +74,8 @@ def test_multi_if_loopback(work_dir, nvidia_nics):
         },
     )
 
-    # Build the command
-    executable = os.path.join(work_dir, "adv_networking_bench")
-    command = f"{executable} {config_file}"
-
     # Run the application until completion and parse the results
+    command = f"{executable} {config_file}"
     result = run_command(command, stream_output=True)
     results = parse_benchmark_results(result.stdout + result.stderr)
 
@@ -92,7 +95,7 @@ def test_multi_if_loopback(work_dir, nvidia_nics):
     ), "Throughput validation failed"
 
 
-def test_multi_rx_q(work_dir, nvidia_nics):
+def test_multi_rx_q(executable, work_dir, nvidia_nics):
     """
     Test 2: RX multi queue with a single CPU core using scapy to send packets.
 
@@ -113,11 +116,8 @@ def test_multi_rx_q(work_dir, nvidia_nics):
         },
     )
 
-    # Build the absolute path to the executable
-    executable = os.path.join(work_dir, "adv_networking_bench")
-    command = f"{executable} {config_file}"
-
     # Run the application (non-blocking)
+    command = f"{executable} {config_file}"
     p = start_process(command)
 
     # Send packets with scapy after a 5s delay
