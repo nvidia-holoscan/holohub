@@ -107,15 +107,10 @@ def test_multi_if_loopback(
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX), match advanced_network.cfg.interfaces
-    assert results.validate_missed_packets(
-        port_map, missed_pkts_threshold
-    ), "Missed packets validation failed"
-    assert results.validate_errored_packets(
-        port_map, error_pkts_threshold
-    ), "Errored packets validation failed"
-    assert results.validate_throughput(
-        port_map, avg_throughput_threshold
-    ), "Throughput validation failed"
+    missed_pkts_check = results.validate_missed_packets(port_map, missed_pkts_threshold)
+    errored_pkts_check = results.validate_errored_packets(port_map, error_pkts_threshold)
+    throughput_check = results.validate_throughput(port_map, avg_throughput_threshold)
+    assert missed_pkts_check and errored_pkts_check and throughput_check, "Validation failed"
 
 
 def test_multi_rx_q(executable, work_dir, nvidia_nics):
@@ -177,7 +172,8 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
 
     # For this test, we only care about queue packet distribution (on port 0)
     expected_q_pkts = {0: 1, 1: 1}  # Expecting 1 packet for both queue 0 and 1
-    assert results.validate_rx_queue_packets(0, expected_q_pkts) # On port 0
+    queue_check = results.validate_rx_queue_packets(0, expected_q_pkts)  # On port 0
+    assert queue_check, "Queue packet distribution validation failed"
 
 
 def test_hds_rx(executable, work_dir, nvidia_nics):
@@ -208,12 +204,7 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
     avg_throughput_threshold = 85.0
     missed_pkts_threshold = 0.1
     error_pkts_threshold = 0.0
-    assert results.validate_missed_packets(
-        port_map, missed_pkts_threshold
-    ), "Missed packets validation failed"
-    assert results.validate_errored_packets(
-        port_map, error_pkts_threshold
-    ), "Errored packets validation failed"
-    assert results.validate_throughput(
-        port_map, avg_throughput_threshold
-    ), "Throughput validation failed"
+    missed_pkts_check = results.validate_missed_packets(port_map, missed_pkts_threshold)
+    errored_pkts_check = results.validate_errored_packets(port_map, error_pkts_threshold)
+    throughput_check = results.validate_throughput(port_map, avg_throughput_threshold)
+    assert missed_pkts_check and errored_pkts_check and throughput_check, "Validation failed"
