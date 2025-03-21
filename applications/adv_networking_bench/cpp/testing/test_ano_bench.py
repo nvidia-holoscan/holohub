@@ -48,7 +48,24 @@ def executable(work_dir):
     return os.path.join(work_dir, "adv_networking_bench")
 
 
-def test_multi_if_loopback(executable, work_dir, nvidia_nics):
+@pytest.mark.parametrize(
+    "packet_size,avg_throughput_threshold,missed_pkts_threshold,error_pkts_threshold",
+    [
+        (64, 6.0, 0.1, 0.0),
+        (512, 55.0, 0.1, 0.0),
+        (1500, 94.0, 0.1, 0.0),
+        (9000, 96.0, 0.1, 0.0),
+    ],
+)
+def test_multi_if_loopback(
+    executable,
+    work_dir,
+    nvidia_nics,
+    packet_size,
+    avg_throughput_threshold,
+    missed_pkts_threshold,
+    error_pkts_threshold,
+):
     """
     Test 1: TX/RX loopback over single link with one TX queue and one RX queue.
 
@@ -61,29 +78,35 @@ def test_multi_if_loopback(executable, work_dir, nvidia_nics):
     tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
 
     # Prepare config
-    config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx.yaml")
+    header_size = 64  # Eth (14) + IP (20) + UDP (8) + custom header (22) as defined in yaml config
+    payload_size = packet_size - header_size
+    in_config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx.yaml")
+    out_config_file = os.path.join(
+        work_dir, "testing", f"adv_networking_bench_default_tx_rx_{packet_size}.yaml"
+    )
     update_yaml_file(
-        config_file,
-        config_file,
+        in_config_file,
+        out_config_file,
         {
             "scheduler.max_duration_ms": 10000,
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
             "bench_tx.eth_dst_addr": rx_interface.mac_address,
             "bench_tx.address": tx_interface.bus_id,
+            "bench_tx.payload_size": payload_size,
+            "bench_rx.max_packet_size": packet_size,
+            "advanced_network.cfg.memory_regions[0].buf_size": packet_size,
+            "advanced_network.cfg.memory_regions[1].buf_size": packet_size,
         },
     )
 
     # Run the application until completion and parse the results
-    command = f"{executable} {config_file}"
+    command = f"{executable} {out_config_file}"
     result = run_command(command, stream_output=True)
     results = parse_benchmark_results(result.stdout + result.stderr)
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX), match advanced_network.cfg.interfaces
-    avg_throughput_threshold = 90.0
-    missed_pkts_threshold = 0.1
-    error_pkts_threshold = 0.0
     assert results.validate_missed_packets(
         port_map, missed_pkts_threshold
     ), "Missed packets validation failed"

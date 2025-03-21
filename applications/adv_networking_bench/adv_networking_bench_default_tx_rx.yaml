@@ -75,7 +75,7 @@ advanced_network:
           match:
             udp_src: 4096
             udp_dst: 4096
-            ipv4_len: 1050
+            # ipv4_len: 1050
 
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.

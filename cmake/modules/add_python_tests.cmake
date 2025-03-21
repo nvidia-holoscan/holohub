@@ -48,20 +48,34 @@ function(add_python_tests)
 
   # Process each test found
   foreach(test_line ${pytest_list})
+    message(DEBUG "pytest collected test: ${test_line}")
     # Extract module file and test name from the full test ID
-    # Full pattern might be: path/to/dir/module.py::test_name
-    if(test_line MATCHES "(.+)::([a-zA-Z0-9_]+)$")
+    # Support both regular tests (path/to/module.py::test_name)
+    # and parameterized tests (path/to/module.py::test_name[param1-param2])
+    if(test_line MATCHES "(.+)::([^\\[]+)(\\[.+\\])?$")
       set(module_path ${CMAKE_MATCH_1})
       set(test_name ${CMAKE_MATCH_2})
+      set(test_params ${CMAKE_MATCH_3})
+      message(DEBUG "module_path: ${module_path}")
+      message(DEBUG "test_name: ${test_name}")
+      message(DEBUG "test_params: ${test_params}")
 
-      # Get the module name
+      # Construct the ctest name
       string(REGEX MATCH "([^/]+)$" _ "${module_path}")
       set(module_name ${CMAKE_MATCH_1})
       string(REGEX REPLACE "\\.py$" "" module_name "${module_name}")
+      if(test_params)
+        string(REPLACE "[" "" test_params "${test_params}")
+        string(REPLACE "]" "" test_params "${test_params}")
+        set(ctest_name "${PYTEST_PREFIX}.${module_name}.${test_name}_${test_params}")
+      else()
+        set(ctest_name "${PYTEST_PREFIX}.${module_name}.${test_name}")
+      endif()
 
-      # Add the test with module name in the test name
+      # Wrapping the individual pytest with a ctest
+      message(STATUS "Adding CTest: ${ctest_name}")
       add_test(
-        NAME "${PYTEST_PREFIX}.${module_name}.${test_name}"
+        NAME "${ctest_name}"
         COMMAND ${Python3_EXECUTABLE} -m pytest "${test_line}" ${PYTEST_PYTEST_ARGS}
         WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
       )
