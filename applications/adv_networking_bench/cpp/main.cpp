@@ -130,8 +130,10 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  auto config_path = std::filesystem::canonical(argv[0]).parent_path();
-  config_path += "/" + std::string(argv[1]);
+  std::filesystem::path config_path(argv[1]);
+  if (!config_path.is_absolute()) {
+    config_path = std::filesystem::canonical(argv[0]).parent_path() / config_path;
+  }
   app->config(config_path);
   app->scheduler(app->make_scheduler<MultiThreadScheduler>(
       "multithread-scheduler", app->from_config("scheduler")));
