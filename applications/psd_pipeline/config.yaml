@@ -116,158 +116,158 @@ advanced_network:
         #  - See list with: sudo lshw -c network -businfo
         # address: 0000:51:00.1  # A4500
         address: 0000:17:00.0  # A4500E
-        flow_isolation: true
         rx:
-          - queues:
-              - name: "Context"
+          flow_isolation: true
+          queues:
+            - name: "Context"
+              id: 0
+              cpu_core: 4
+              batch_size: 4  # Should be equal to num_channels
+              output_port: "bench_rx_out"
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "Context_RX_CPU"
+            - name: "Channel 1 data"
+              id: 1
+              cpu_core: 5
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              output_port: "bench_rx_out"
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH1_VRT_Headers_RX_CPU"
+                - "CH1_Data_RX_GPU"
+            - name: "Channel 2 data"
+              id: 2
+              cpu_core: 6
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              output_port: "bench_rx_out"
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH2_VRT_Headers_RX_CPU"
+                - "CH2_Data_RX_GPU"
+            - name: "Channel 3 data"
+              id: 3
+              cpu_core: 7
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              output_port: "bench_rx_out"
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH3_VRT_Headers_RX_CPU"
+                - "CH3_Data_RX_GPU"
+            - name: "Channel 4 data"
+              id: 4
+              cpu_core: 8
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              output_port: "bench_rx_out"
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH4_VRT_Headers_RX_CPU"
+                - "CH4_Data_RX_GPU"
+          flows:
+            - name: "Channel 1 context packets"
+              id: 0
+              action:
+                type: queue
                 id: 0
-                cpu_core: 4
-                batch_size: 4  # Should be equal to num_channels
-                output_port: "bench_rx_out"
-                memory_regions:
-                  - "Headers_RX_CPU"
-                  - "Context_RX_CPU"
-              - name: "Channel 1 data"
-                id: 1
-                cpu_core: 5
-                # How many data packets do you want before
-                # invoking the VRT connector operator?
-                # 20 data packets is 20480 samples and
-                # we want 625 of them, so 12,500
-                batch_size: 12500
-                output_port: "bench_rx_out"
-                memory_regions:
-                  - "Headers_RX_CPU"
-                  - "CH1_VRT_Headers_RX_CPU"
-                  - "CH1_Data_RX_GPU"
-              - name: "Channel 2 data"
-                id: 2
-                cpu_core: 6
-                # How many data packets do you want before
-                # invoking the VRT connector operator?
-                # 20 data packets is 20480 samples and
-                # we want 625 of them, so 12,500
-                batch_size: 12500
-                output_port: "bench_rx_out"
-                memory_regions:
-                  - "Headers_RX_CPU"
-                  - "CH2_VRT_Headers_RX_CPU"
-                  - "CH2_Data_RX_GPU"
-              - name: "Channel 3 data"
-                id: 3
-                cpu_core: 7
-                # How many data packets do you want before
-                # invoking the VRT connector operator?
-                # 20 data packets is 20480 samples and
-                # we want 625 of them, so 12,500
-                batch_size: 12500
-                output_port: "bench_rx_out"
-                memory_regions:
-                  - "Headers_RX_CPU"
-                  - "CH3_VRT_Headers_RX_CPU"
-                  - "CH3_Data_RX_GPU"
-              - name: "Channel 4 data"
-                id: 4
-                cpu_core: 8
-                # How many data packets do you want before
-                # invoking the VRT connector operator?
-                # 20 data packets is 20480 samples and
-                # we want 625 of them, so 12,500
-                batch_size: 12500
-                output_port: "bench_rx_out"
-                memory_regions:
-                  - "Headers_RX_CPU"
-                  - "CH4_VRT_Headers_RX_CPU"
-                  - "CH4_Data_RX_GPU"
-            flows:
-              - name: "Channel 1 context packets"
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4991
+                udp_dst: 4991
+                ipv4_len: 92
+            - name: "Channel 2 context packets"
+              id: 1
+              action:
+                type: queue
                 id: 0
-                action:
-                  type: queue
-                  id: 0
-                match:
-                  # Match with the port your SDR is sending to/from and the
-                  # length of the context packets
-                  udp_src: 4991
-                  udp_dst: 4991
-                  ipv4_len: 92
-              - name: "Channel 2 context packets"
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4992
+                udp_dst: 4992
+                ipv4_len: 92
+            - name: "Channel 3 context packets"
+              id: 2
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4993
+                udp_dst: 4993
+                ipv4_len: 92
+            - name: "Channel 4 context packets"
+              id: 3
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4994
+                udp_dst: 4994
+                ipv4_len: 92
+            - name: "Channel 1 data packets"
+              id: 4
+              action:
+                type: queue
                 id: 1
-                action:
-                  type: queue
-                  id: 0
-                match:
-                  # Match with the port your SDR is sending to/from and the
-                  # length of the context packets
-                  udp_src: 4992
-                  udp_dst: 4992
-                  ipv4_len: 92
-              - name: "Channel 3 context packets"
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4991
+                udp_dst: 4991
+                ipv4_len: 4148
+            - name: "Channel 2 data packets"
+              id: 5
+              action:
+                type: queue
                 id: 2
-                action:
-                  type: queue
-                  id: 0
-                match:
-                  # Match with the port your SDR is sending to/from and the
-                  # length of the context packets
-                  udp_src: 4993
-                  udp_dst: 4993
-                  ipv4_len: 92
-              - name: "Channel 4 context packets"
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4992
+                udp_dst: 4992
+                ipv4_len: 4148
+            - name: "Channel 3 data packets"
+              id: 6
+              action:
+                type: queue
                 id: 3
-                action:
-                  type: queue
-                  id: 0
-                match:
-                  # Match with the port your SDR is sending to/from and the
-                  # length of the context packets
-                  udp_src: 4994
-                  udp_dst: 4994
-                  ipv4_len: 92
-              - name: "Channel 1 data packets"
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4993
+                udp_dst: 4993
+                ipv4_len: 4148
+            - name: "Channel 4 data packets"
+              id: 7
+              action:
+                type: queue
                 id: 4
-                action:
-                  type: queue
-                  id: 1
-                match:
-                  # Match with the port your SDR is sending to and the
-                  # length of the signal data packets
-                  udp_src: 4991
-                  udp_dst: 4991
-                  ipv4_len: 4148
-              - name: "Channel 2 data packets"
-                id: 5
-                action:
-                  type: queue
-                  id: 2
-                match:
-                  # Match with the port your SDR is sending to and the
-                  # length of the signal data packets
-                  udp_src: 4992
-                  udp_dst: 4992
-                  ipv4_len: 4148
-              - name: "Channel 3 data packets"
-                id: 6
-                action:
-                  type: queue
-                  id: 3
-                match:
-                  # Match with the port your SDR is sending to and the
-                  # length of the signal data packets
-                  udp_src: 4993
-                  udp_dst: 4993
-                  ipv4_len: 4148
-              - name: "Channel 4 data packets"
-                id: 7
-                action:
-                  type: queue
-                  id: 4
-                match:
-                  # Match with the port your SDR is sending to and the
-                  # length of the signal data packets
-                  udp_src: 4994
-                  udp_dst: 4994
-                  ipv4_len: 4148
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4994
+                udp_dst: 4994
+                ipv4_len: 4148
 
 vita_connector:
   num_complex_samples_per_packet: 1024
