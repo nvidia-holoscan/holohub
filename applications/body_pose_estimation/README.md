@@ -10,7 +10,7 @@ A model is used to infer the locations of keypoints from the source video which 
 
 ## Model
 
-This application uses YOLOv8 pose model from [Ultralytics](https://docs.ultralytics.com/tasks/pose/) for body pose estimation.
+This application uses YOLO11 pose model from [Ultralytics](https://docs.ultralytics.com/tasks/pose/) for body pose estimation.
 The model is downloaded when building the application.
 
 ## Data

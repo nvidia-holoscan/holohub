@@ -416,7 +416,7 @@ class BodyPoseEstimationApp(Application):
 
         inference_args = self.kwargs("inference")
         inference_args["model_path_map"] = {
-            "yolo_pose": os.path.join(self.sample_data_path, "yolov8l-pose.onnx")
+            "yolo_pose": os.path.join(self.sample_data_path, "yolo11l-pose.onnx")
         }
 
         inference = InferenceOp(
