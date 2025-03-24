@@ -111,7 +111,6 @@ ID 1, we see:
                 id: 1
                 cpu_core: 5
                 batch_size: 12500
-                output_port: "bench_rx_out"
                 memory_regions:
                   - "Headers_RX_CPU"
                   - "VRT_Headers_RX_CPU"

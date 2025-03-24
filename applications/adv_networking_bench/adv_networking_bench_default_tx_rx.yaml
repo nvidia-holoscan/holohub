@@ -43,7 +43,7 @@ advanced_network:
 
     interfaces:
     - name: "tx_port"
-      address: 0005:03:00.0       # The BUS address of the interface doing Tx
+      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
       tx:
         queues:
         - name: "tx_q_0"
@@ -55,7 +55,7 @@ advanced_network:
           offloads:
             - "tx_eth_src"
     - name: "rx_port"
-      address: 0005:03:00.1       # The BUS address of the interface doing Rx
+      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true
         queues:
@@ -77,6 +77,7 @@ advanced_network:
             # ipv4_len: 1050
 
 bench_rx:
+  port_name: "rx_port"    # Name of rx_port from ANO config
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
   split_boundary: false   # Whether header and data is split (Header to CPU)
   batch_size: 10240
@@ -94,4 +95,4 @@ bench_tx:
   ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
   udp_src_port: 4096      # UDP source port
   udp_dst_port: 4096      # UDP destination port
-  address: 0005:03:00.0 # Source NIC Bus ID. Should match the address of the Tx interface above
+  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above

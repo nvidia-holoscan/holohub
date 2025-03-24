@@ -1743,7 +1743,8 @@ std::optional<uint16_t> DocaMgr::get_port_from_ifname(const std::string& name) {
   return -1;
 }
 
-Status DocaMgr::get_rx_burst(BurstParams** burst) {
+Status DocaMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  // Update to allow multiple ports and queues!
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;
   }

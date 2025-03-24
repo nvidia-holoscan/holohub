@@ -41,7 +41,6 @@ class App : public holoscan::Application {
     HOLOSCAN_LOG_INFO("Initialized advanced network operator");
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
-    auto output_rx_ports = advanced_network::get_port_names(config(), "rx");
 
     HOLOSCAN_LOG_INFO("Using ANO manager {}", advanced_network::manager_type_to_string(mgr_type));
 
@@ -88,13 +87,10 @@ class App : public holoscan::Application {
     } else if (mgr_type == advanced_network::ManagerType::RIVERMAX) {
 #if ANO_MGR_RIVERMAX
       if (rx_en) {
-        int index = 0;
-        for (const auto& port : output_rx_ports) {
-          std::string bench_rx_name = "bench_rx_" + std::to_string(index++);
-          auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
-                                                                         from_config("bench_rx"));
-          add_operator(bench_rx);
-        }
+        std::string bench_rx_name = "bench_rx";
+        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
+                                                                        from_config("bench_rx"));
+        add_operator(bench_rx);
       }
       if (tx_en) {
         HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend doesn't support TX");

@@ -155,6 +155,7 @@ bool DpdkMgr::set_config_and_initialize(const NetworkConfig& cfg) {
 int DpdkMgr::address_to_port(const std::string& addr) {
   for (const auto& intf : cfg_.ifs_) {
     if (intf.address_ == addr) { return intf.port_id_; }
+    if (intf.name_ == addr) { return intf.port_id_; }
   }
 
   return -1;
@@ -310,7 +311,6 @@ void DpdkMgr::create_dummy_rx_q() {
       HOLOSCAN_LOG_INFO("Port {} has no RX queues. Creating dummy queue.", intf.port_id_);
       const std::string mr_name = "MR_Unused_P" + std::to_string(intf.port_id_);
       RxQueueConfig tmp_q;
-      tmp_q.output_port_ = "none";
       tmp_q.common_.name_ = "UNUSED_P" + std::to_string(intf.port_id_) + "_Q0";
       tmp_q.common_.id_ = 0;
       tmp_q.common_.batch_size_ = 1;
@@ -456,12 +456,6 @@ void DpdkMgr::initialize() {
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
   for (auto& intf : cfg_.ifs_) {
-    ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
-      return;
-    }
-
     struct rte_eth_dev_info dev_info;
     int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
     if (ret != 0) {
@@ -1242,6 +1236,7 @@ void DpdkMgr::run() {
       if (q->common_.name_.find("UNUSED") == 0) {
         continue;
       }
+
       auto params = new RxWorkerParams;
       params->port = port_id;
       params->num_segs = q->common_.mrs_.size();
@@ -1602,6 +1597,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
         continue;
       }
 
+
       to_copy = std::min(nb_rx, (int)(tparams->batch_size - burst->hdr.hdr.num_pkts));
       memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr, sizeof(rte_mbuf*) * to_copy);
 
@@ -1685,17 +1681,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
         reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
       }
     }
-
-    //     if (msg->pkts[0] != nullptr) {
-    //       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-    //         auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->pkts[0][p]);
-    //         auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-    // #pragma GCC diagnostic push
-    // #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-    //         rte_ether_addr_copy(&tparams->mac_addr, reinterpret_cast<rte_ether_addr *>(pkt + 6));
-    // #pragma GCC diagnostic pop
-    //       }
-    //     }
 
     auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
 

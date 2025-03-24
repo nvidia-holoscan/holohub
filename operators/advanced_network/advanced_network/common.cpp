@@ -321,37 +321,6 @@ Status adv_net_init(NetworkConfig &config) {
   return Status::SUCCESS;
 }
 
-std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir) {
-  std::unordered_set<std::string> output_ports;
-  std::string default_output_name;
-
-  if (dir == "rx") {
-    default_output_name = "bench_rx_out";
-  } else if (dir == "tx") {
-    default_output_name = "bench_tx_out";
-  } else {
-    return output_ports;
-  }
-
-  try {
-    auto& yaml_nodes = conf.yaml_nodes();
-    for (const YAML::Node& node : yaml_nodes) {
-      const auto& intfs = node["advanced_network"]["cfg"]["interfaces"];
-      for (const auto& intf : intfs) {
-        try {
-          const auto& intf_dir = intf[dir];
-          for (const auto& q_item : intf_dir["queues"]) {
-            auto out_port_name = q_item["output_port"].as<std::string>(default_output_name);
-            output_ports.insert(out_port_name);
-          }
-        } catch (const std::exception& e) {
-          continue;  // No queues defined for this direction
-        }
-      }
-    }
-  } catch (const std::exception& e) { GXF_LOG_ERROR(e.what()); }
-  return output_ports;
-}
 
 };  // namespace holoscan::advanced_network
 
@@ -460,12 +429,6 @@ bool parse_common_queue_config(const YAML::Node& q_item,
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
-  try {
-    q.output_port_ = q_item["output_port"].as<std::string>();
-  } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing RxQueueConfig: {}", e.what());
-    return false;
-  }
   return true;
 }
 

@@ -2077,29 +2077,28 @@ advanced_network: # (2)!
           id: 0
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out" # (24)!
-          memory_regions: # (25)!
+          memory_regions: # (24)!
             - "Data_RX_CPU"
             - "Data_RX_GPU"
-        flows: # (26)!
-        - name: "flow_0" # (27)!
-          id: 0 # (28)!
-          action: # (29)!
+        flows: # (25)!
+        - name: "flow_0" # (26)!
+          id: 0 # (27)!
+          action: # (28)!
             type: queue
             id: 0
-          match: # (30)!
+          match: # (29)!
             udp_src: 4096
             udp_dst: 4096
             ipv4_len: 1050
 
-bench_rx: # (31)!
+bench_rx: # (30)!
   gpu_direct: true       # Set to true if using a GPU region for the Rx queues.
   split_boundary: true   # Whether header and data are split for Rx (Header to CPU)
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
 
-bench_tx: # (32)!
+bench_tx: # (31)!
   gpu_direct: true        # Set to true if using a GPU region for the Tx queues.
   split_boundary: 0       # Byte boundary where header and data are split for Tx, 0 if no split
   batch_size: 10240
@@ -2136,15 +2135,14 @@ bench_tx: # (32)!
 21. The `offloads` section (Tx queues only) lists optional tasks that can be offloaded to the NIC. The only value currently supported is `tx_eth_src`, that lets the NIC insert the ethernet source mac address in the packet headers. Note: IP, UDP, and Ethernet Checksums or CRC are always done by the NIC currently and are not optional.
 22. Same as for `tx_port`. Each interface in this list should have a unique mac address. This one will do `rx` per config below.
 23. Whether to isolate the Rx flow. If true, any incoming packets that does not match the MAC address of this interface - or isn't directed to a queue when the `flows` section below is used - will be delegated back to Linux for processing (no kernel bypass). This is useful to let this interface handle ARP, ICMP, etc. Otherwise, any packets sent to this interface (ex: ping) will need to be processed (or dropped) by your application.
-24. `rx` queues have an `output_port` parameter so you can attach a downstream operator to receive data from this specific queue, as can be seen in the `#!cpp Application::compose()` function of the sample application. Multiple `rx` queues can share the same `output_port`. In contrast, `tx` queues have a single non-configurable port (name: `burst_in`) to which upstream operators will send all packets, which are then routed to the correct queue based on the port/queue in the burst header.
-25. This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the `Data_RX_CPU` memory region, filling its `buf_size` of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the `Data_RX_GPU` memory region. Its `buf_size` of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!
-26. The list of flows. Flows are responsible for routing packets to the correct queue based on various properties. If this field is missing, all packets will be routed to the first queue.
-27. The flow name, currently only used for logging.
-28. The flow `id` is used to tag the packets with what flow it arrived on. This is useful when sending multiple flows to a single queue, as the user application can differentiate which flow (i.e. rules) matched the packet based on this ID.
-29. What to do with packets that match this flow. The only supported action currently is `type: queue` to send the packet to a queue given its `id`.
-30. List of rules to match packets against. All rules must be met for a packet to match the flow. Currently supported rules include `udp_src` and `udp_dst` (port numbers), `ipv4_len` (#TODO#) etc.
-31. The `bench_rx` section is passed to the `AdvNetworkingBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that aggregates packets received from the NIC. The parameters in this section are specific to this operator, and should align with how `memory_regions` and `queues` were configured for the `rx` interface.
-32. The `bench_tx` section is passed to the `AdvNetworkingBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC. The parameters in this section up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The following parameters up to `udp_dst_port` are used to fill-in the ethernet header of the packets. The last parameter, `address`, is used to specify which NIC interface to use for the Tx operation.
+24. This scenario is called HDS (Header-Data Split): the packet will first be written to a buffer in the `Data_RX_CPU` memory region, filling its `buf_size` of 64 bytes - which is consistent with the size of our header - then the rest of the packet will be written to the `Data_RX_GPU` memory region. Its `buf_size` of 1000 bytes is just what we need to write the payload size for our application, no byte wasted!
+25. The list of flows. Flows are responsible for routing packets to the correct queue based on various properties. If this field is missing, all packets will be routed to the first queue.
+26. The flow name, currently only used for logging.
+27. The flow `id` is used to tag the packets with what flow it arrived on. This is useful when sending multiple flows to a single queue, as the user application can differentiate which flow (i.e. rules) matched the packet based on this ID.
+28. What to do with packets that match this flow. The only supported action currently is `type: queue` to send the packet to a queue given its `id`.
+29. List of rules to match packets against. All rules must be met for a packet to match the flow. Currently supported rules include `udp_src` and `udp_dst` (port numbers), `ipv4_len` (#TODO#) etc.
+30. The `bench_rx` section is passed to the `AdvNetworkingBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that aggregates packets received from the NIC. The parameters in this section are specific to this operator, and should align with how `memory_regions` and `queues` were configured for the `rx` interface.
+31. The `bench_tx` section is passed to the `AdvNetworkingBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC. The parameters in this section up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The following parameters up to `udp_dst_port` are used to fill-in the ethernet header of the packets. The last parameter, `address`, is used to specify which NIC interface to use for the Tx operation.
 
 ### 5.2 Create your own Rx operator
 

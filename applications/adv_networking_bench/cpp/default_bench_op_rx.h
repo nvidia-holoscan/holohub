@@ -69,6 +69,15 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize()");
     holoscan::Operator::initialize();
 
+    port_id_ = address_to_port(port_name_.get());
+    if (port_id_ == -1) {
+      HOLOSCAN_LOG_ERROR("Invalid RX port {} specified in the config", port_name_.get());
+      exit(1);
+    }
+
+    queue_ids_.fill(-1);
+    queue_ids_[0] = 0;  // Only poll one queue for now
+
     // For this example assume all packets are the same size, specified in the config
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
 
@@ -119,6 +128,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
+    spec.param<std::string>(port_name_,
+                            "port_name",
+                            "Port name",
+                            "Name of the port to poll on from the ANO config",
+                            "rx_port");
     spec.param<bool>(hds_,
                      "split_boundary",
                      "Header-data split boundary",
@@ -172,7 +186,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     free_processed_packets();
 
     BurstParams *burst;
-    auto status = get_rx_burst(&burst, 0, 0);
+    auto status = get_rx_burst(&burst, port_id_, queue_ids_[0]);
     if (status != Status::SUCCESS) {
       HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;
@@ -367,6 +381,8 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     cudaEvent_t evt;
   };
 
+  int port_id_;                                    // Port ID to poll on
+  std::array<int, 16> queue_ids_;                  // Queue IDs to poll on
   BatchAggregationParams cur_batch_{};             // Parameters of current batch to process
   int cur_batch_idx_ = 0;                          // Current batch ID
   std::queue<BatchAggregationParams> batch_q_;     // Queue of batches being processed
@@ -378,6 +394,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
   std::array<void*, num_concurrent> full_batch_data_h_;  // Host aggregated batch
+  Parameter<std::string> port_name_;                      // Port name from ANO config
   Parameter<bool> hds_;                                  // Header-data split enabled
   Parameter<bool> gpu_direct_;                           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block

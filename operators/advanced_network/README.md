@@ -293,8 +293,6 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `integer`
 	- **`split_boundary`**: HDS (Header Data Split) Split point in bytes between header and payload. If set to 0 HDS is disabled
   		- type: `integer`
-	- **`output_port`**:  Name of the ANO Rx operator output port for aggregator operators to connect to
-  		- type: `string`
 	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
 		type: `list`
 	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
@@ -388,7 +386,6 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
           id: 1
           cpu_core: '11'
           batch_size: 4320
-          output_port: bench_rx_out_1
           rmax_rx_settings:
             memory_registration: true
             max_path_diff_us: 100
