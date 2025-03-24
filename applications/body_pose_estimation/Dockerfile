@@ -27,7 +27,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install required apt packages and python modules
 #
 RUN apt-get update \
-    && apt-get install -y libgl1
+    && apt-get install -y libgl1 curl
 
 RUN pip3 install \
     ultralytics \
