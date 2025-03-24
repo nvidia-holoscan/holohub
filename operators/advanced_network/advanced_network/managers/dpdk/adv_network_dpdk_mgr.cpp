@@ -824,12 +824,12 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
       std::string ring_name = "RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
       rx_rings_[i][j] =
-          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(), 
+          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
               RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
       if (rx_rings_[i][j] == nullptr) {
         HOLOSCAN_LOG_CRITICAL("Failed to allocate ring {}!", ring_name);
         return -1;
-      }          
+      }
     }
   }
 

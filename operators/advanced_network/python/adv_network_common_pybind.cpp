@@ -102,7 +102,7 @@ PYBIND11_MODULE(_advanced_network_common, m) {
   m.def("get_rx_burst", [](int port, int q) {
       BurstParams* burst_ptr = nullptr;
       Status status = get_rx_burst(&burst_ptr, port, q);
-      return py::make_tuple(status, py::cast(burst_ptr, 
+      return py::make_tuple(status, py::cast(burst_ptr,
             py::return_value_policy::take_ownership));
       }, py::arg("port"), py::arg("q"));
 
