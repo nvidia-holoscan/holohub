@@ -47,7 +47,7 @@ target_include_directories(advanced_network_common
         $<INSTALL_INTERFACE:include>
 )
 add_library(holoscan::advanced_network ALIAS advanced_network_common)
-target_link_libraries(advanced_network_common PUBLIC holoscan::core) 
+target_link_libraries(advanced_network_common PUBLIC holoscan::core)
 set_target_properties(advanced_network_common PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RESOLVE_DEVICE_SYMBOLS ON

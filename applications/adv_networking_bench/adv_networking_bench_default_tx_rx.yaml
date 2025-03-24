@@ -43,7 +43,7 @@ advanced_network:
 
     interfaces:
     - name: "tx_port"
-      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
+      address: 0005:03:00.0       # The BUS address of the interface doing Tx
       tx:
         queues:
         - name: "tx_q_0"
@@ -55,7 +55,7 @@ advanced_network:
           offloads:
             - "tx_eth_src"
     - name: "rx_port"
-      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
+      address: 0005:03:00.1       # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true
         queues:
@@ -63,7 +63,6 @@ advanced_network:
           id: 0
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
             - "Data_RX_GPU"
         flows:
@@ -95,4 +94,4 @@ bench_tx:
   ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
   udp_src_port: 4096      # UDP source port
   udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
+  address: 0005:03:00.0 # Source NIC Bus ID. Should match the address of the Tx interface above

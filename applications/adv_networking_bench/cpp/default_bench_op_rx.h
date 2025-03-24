@@ -172,7 +172,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     free_processed_packets();
 
     BurstParams *burst;
-    auto status = get_rx_burst(&burst);
+    auto status = get_rx_burst(&burst, 0, 0);
     if (status != Status::SUCCESS) {
       HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;

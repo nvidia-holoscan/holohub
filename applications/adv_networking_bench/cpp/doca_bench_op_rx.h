@@ -110,7 +110,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
     // Get new input burst (ANO batch of packets)
     BurstParams *burst;
-    auto status = get_rx_burst(&burst);
+    auto status = get_rx_burst(&burst, 0, 0);
     if (status != Status::SUCCESS) {
       HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;

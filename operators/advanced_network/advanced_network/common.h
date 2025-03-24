@@ -411,11 +411,13 @@ Status send_tx_burst(BurstParams* burst);
  * @brief Get a RX burst
  *
  * @param burst Burst structure
+ * @param port Port ID of interface
+ * @param q Queue ID of interface
  * @return Status indicating status. Valid values are:
  *    SUCCESS: Burst received successfully
  *    NULL_PTR: No bursts ready to receive  
  */
-Status get_rx_burst(BurstParams** burst);
+Status get_rx_burst(BurstParams** burst, int port, int q);
 
 /**
  * @brief Set the header fields in a burst
