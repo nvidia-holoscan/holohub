@@ -18,7 +18,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["Healthcare AI", "Video", "H.264", "LSTM"],
+    "tags": ["healthcare AI", "video", "H.264", "LSTM"],
     "ranking": 1,
     "dependencies": {
       "operators": [

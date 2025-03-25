@@ -22,7 +22,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["Signal Processing", "Audio", "fm-demodulation", "real-time-transcription"],
+		"tags": ["signal processing", "audio", "FM-demodulation", "real-time-transcription"],
 		"ranking": 3,
 		"dependencies": {
 			"libraries": [

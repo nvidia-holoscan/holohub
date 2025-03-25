@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Integration", "parameter-binding", "video-replay"],
+		"tags": ["computer vision and perception", "integration", "parameter-binding", "video-replay"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

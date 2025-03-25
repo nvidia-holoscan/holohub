@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Networking and Distributed Computing", "Video", "Webcam streaming", "SDP negotiation"],
+		"tags": ["networking and distributed computing", "video", "webcam streaming", "SDP negotiation"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

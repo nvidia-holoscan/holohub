@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Healthcare AI", "Video", "surgical-tool-detection", "tensorrt-optimization"],
+		"tags": ["healthcare AI", "video", "surgical-tool-detection", "TensorRT-optimization"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Imaging", "organ-segmentation", "nrrd-processing"],
+		"tags": ["healthcare AI", "imaging", "organ-segmentation", "NRRD-processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

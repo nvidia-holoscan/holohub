@@ -13,7 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Networking and Distributed Computing", "Distributed", "UDP-communication", "network-operators"],
+		"tags": ["networking and distributed computing", "distributed", "UDP-communication", "network-operators"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [

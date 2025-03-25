@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "Bone Segmentation", "Scoliosis Measurement"],
+		"tags": ["healthcare AI", "video", "bone segmentation", "scoliosis measurement"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

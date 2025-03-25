@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "multi-model-inference", "tensor-postprocessing"],
+		"tags": ["healthcare AI", "video", "multi-model-inference", "tensor-postprocessing"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

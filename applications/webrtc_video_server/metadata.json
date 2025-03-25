@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Networking and Distributed Computing", "Video", "WebRTC-Server", "Video-Streaming-Replay"],
+		"tags": ["networking and distributed computing", "video", "WebRTC-server", "video-streaming-replay"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

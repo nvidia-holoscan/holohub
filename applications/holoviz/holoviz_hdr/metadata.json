@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Visualization", "HDR10", "ST2084-PQ"],
+		"tags": ["computer vision and perception", "visualization", "HDR10", "ST2084-pq"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

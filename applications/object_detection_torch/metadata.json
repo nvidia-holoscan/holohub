@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Visualization", "torchscript-inference", "bounding-box-configuration"],
+		"tags": ["computer vision and perception", "visualization", "torchscript-inference", "bounding-box-configuration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

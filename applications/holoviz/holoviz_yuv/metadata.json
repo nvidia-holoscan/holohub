@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Visualization", "YUV-conversion", "color-space-models"],
+		"tags": ["computer vision and perception", "visualization", "YUV-conversion", "color-space-models"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

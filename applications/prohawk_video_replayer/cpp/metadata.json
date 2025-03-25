@@ -22,7 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "vision-restoration", "filter-presets"],
+		"tags": ["healthcare AI", "video", "vision-restoration", "filter-presets"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

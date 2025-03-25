@@ -25,7 +25,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Computer Vision and Perception", "Visualization", "aja-capture", "format-conversion"],
+		"tags": ["computer vision and perception", "visualization", "AJA-capture", "format-conversion"],
 		"ranking": 0,
 		"dependencies": {
 		},

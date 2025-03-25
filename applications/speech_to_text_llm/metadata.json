@@ -21,7 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["Natural Language and Conversational AI", "Audio", "medical-report-generation", "icd-coding"],
+		"tags": ["natural language and conversational AI", "audio", "medical-report-generation", "ICD-coding"],
 		"ranking": 2,
 		"dependencies": {
 			"openai-whisper": "^20230314",

@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Signal Processing", "Imaging", "beamforming", "real-time-processing"],
+		"tags": ["signal processing", "imaging", "beamforming", "real-time-processing"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

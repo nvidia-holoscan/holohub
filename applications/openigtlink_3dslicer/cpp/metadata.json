@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Networking", "Segmentation", "OpenIGTLink"],
+		"tags": ["healthcare AI", "networking", "segmentation", "OpenIGTLink"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

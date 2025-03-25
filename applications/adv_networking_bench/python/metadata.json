@@ -13,7 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Networking and Distributed Computing", "Benchmark", "UDP-throughput", "header-data-split"],
+		"tags": ["networking and distributed computing", "benchmark", "UDP-throughput", "header-data-split"],
 		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",

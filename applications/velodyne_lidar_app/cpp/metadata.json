@@ -43,7 +43,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Signal Processing", "Lidar", "point-cloud-conversion", "low-latency-processing"],
+		"tags": ["signal processing", "lidar", "point-cloud-conversion", "low-latency-processing"],
 		"ranking": 4,
 		"dependencies": {},
 		"run": {

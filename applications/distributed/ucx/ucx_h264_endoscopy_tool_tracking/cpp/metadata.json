@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Distributed", "H.264", "LSTM-TensorRT"],
+		"tags": ["healthcare AI", "distributed", "H.264", "LSTM-TensorRT"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Language Model", "rag-pipeline", "agent-framework"],
+		"tags": ["healthcare AI", "language model", "rag-pipeline", "agent-framework"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

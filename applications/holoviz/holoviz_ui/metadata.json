@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Visualization", "Layer Callback", "ImGui Integration"],
+		"tags": ["computer vision and perception", "visualization", "layer callback", "IMGUI integration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

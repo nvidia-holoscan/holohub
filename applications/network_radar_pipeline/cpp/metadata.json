@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Signal Processing", "Networking", "real-time signal assembly", "GPUDirect RDMA"],
+		"tags": ["signal processing", "networking", "real-time signal assembly", "GPUDirect RDMA"],
 		"ranking": 2,
 		"dependencies": {
 			"operators": [{

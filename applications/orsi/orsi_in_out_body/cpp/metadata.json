@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Healthcare AI", "Video", "out-of-body-detection", "glsl-blur"],
+        "tags": ["healthcare AI", "video", "out-of-body-detection", "GLSL-blur"],
         "ranking": 3,
         "dependencies": {
 			"data": [
