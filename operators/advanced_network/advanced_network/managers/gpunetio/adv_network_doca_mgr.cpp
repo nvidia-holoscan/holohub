@@ -417,16 +417,16 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_metadata = rte_mempool_create("RX_META_POOL",
-                               (1U << 6) - 1U,
-                               sizeof(BurstParams),
-                               0,
-                               0,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               rte_socket_id(),
-                               0);
+                                   (1U << 6) - 1U,
+                                   sizeof(BurstParams),
+                                   0,
+                                   0,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   rte_socket_id(),
+                                   0);
   if (rx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX meta pool!");
     return -1;
@@ -458,16 +458,16 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 
   HOLOSCAN_LOG_INFO("Setting up TX meta pool");
   tx_metadata = rte_mempool_create("TX_META_POOL",
-                               (1U << 7) - 1U,
-                               sizeof(BurstParams),
-                               0,
-                               0,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               rte_socket_id(),
-                               0);
+                                   (1U << 7) - 1U,
+                                   sizeof(BurstParams),
+                                   0,
+                                   0,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   rte_socket_id(),
+                                   0);
   if (tx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX meta pool!");
     return -1;
@@ -1677,12 +1677,12 @@ Status DocaMgr::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
 }
 
 Status DocaMgr::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                   unsigned int src_host, unsigned int dst_host) {
+                                unsigned int src_host, unsigned int dst_host) {
   return Status::NOT_SUPPORTED;
 }
 
 Status DocaMgr::set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                                  uint16_t dst_port) {
+                               uint16_t dst_port) {
   return Status::NOT_SUPPORTED;
 }
 
@@ -1727,9 +1727,7 @@ void DocaMgr::free_tx_burst(BurstParams* burst) {
 }
 
 Status DocaMgr::get_rx_burst(BurstParams** burst) {
-  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
-    return Status::NOT_READY;
-  }
+  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) { return Status::NOT_READY; }
 
   return Status::SUCCESS;
 }
@@ -1744,9 +1742,9 @@ void DocaMgr::free_tx_metadata(BurstParams* burst) {
 
 BurstParams* DocaMgr::create_tx_burst_params() {
   auto burst_idx = burst_tx_idx.fetch_add(1);
-  HOLOSCAN_LOG_DEBUG(
-      "create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
-        burst_idx % MAX_TX_BURST, MAX_TX_BURST);
+  HOLOSCAN_LOG_DEBUG("create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
+                     burst_idx % MAX_TX_BURST,
+                     MAX_TX_BURST);
   return &(burst[burst_idx % MAX_TX_BURST]);
 }
 
