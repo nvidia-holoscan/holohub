@@ -183,6 +183,12 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
  * and initializing the RX services and chunk consumers.
  */
 void RmaxMgr::RmaxMgrImpl::initialize() {
+  int port_id = 0;
+  for (auto& intf : cfg_.ifs_) {
+    intf.port_id_ = port_id++;
+    HOLOSCAN_LOG_INFO("{} ({}): assigned port ID {}", intf.name_, intf.address_, intf.port_id_);
+  }
+
   rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
 
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
