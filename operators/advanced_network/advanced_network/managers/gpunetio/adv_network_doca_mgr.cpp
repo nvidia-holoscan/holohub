@@ -210,24 +210,24 @@ doca_error_t DocaMgr::init_doca_devices() {
                     argv_[1],
                     argv_[2],
                     argv_[3]);
-
-  for (const auto& intf : cfg_.ifs_) {
-    HOLOSCAN_LOG_INFO("Initializing interface {} port {}", intf.address_, intf.port_id_);
-
-    result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
-    if (result != DOCA_SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
-      return result;
-    }
-  }
-
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
     HOLOSCAN_LOG_CRITICAL("DPDK init failed: {}", ret);
     return DOCA_ERROR_DRIVER;
   }
 
-  for (const auto& intf : cfg_.ifs_) {
+  int port_id = 0;
+  for (auto& intf : cfg_.ifs_) {
+    // Assign an arbitrary port ID in the interface config for faster lookup
+    intf.port_id_ = port_id++;
+    HOLOSCAN_LOG_INFO("Initializing interface {} ({} - port {})",
+                      intf.name_, intf.address_, intf.port_id_);
+    result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
+      return result;
+    }
+
     /* Enable DOCA Flow HWS mode */
     result = doca_dpdk_port_probe(ddev[intf.port_id_], "dv_flow_en=2");
     if (result != DOCA_SUCCESS) {
