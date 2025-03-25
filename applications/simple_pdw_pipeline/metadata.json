@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Network", "UDP", "Radar", "Electronic Support"],
+		"tags": ["Signal Processing", "Networking", "FFT-based-thresholding", "pulse-characterization"],
 		"ranking": 4,
 		"dependencies": {
 			"gxf_extensions": [{

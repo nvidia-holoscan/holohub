@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["Healthcare AI", "Imaging", "organ-segmentation", "nrrd-processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

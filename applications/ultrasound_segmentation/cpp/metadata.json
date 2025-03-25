@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Video", "Bone Segmentation", "Scoliosis Measurement"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

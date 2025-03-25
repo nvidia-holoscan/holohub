@@ -23,12 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"DDS",
-			"RTI Connext",
-			"Video",
-			"Shapes"
-		],
+		"tags": ["Networking and Distributed Computing", "Integration", "qos-optimization", "dds-shapes-overlay"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

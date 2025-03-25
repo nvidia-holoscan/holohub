@@ -21,10 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [
-			"Video Processing",
-			"Prohawk"
-		],
+		"tags": ["Healthcare AI", "Video", "vision-restoration", "filter-presets"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

@@ -25,10 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "object-detection", "real-time-inference"],
 		"ranking": 2,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"

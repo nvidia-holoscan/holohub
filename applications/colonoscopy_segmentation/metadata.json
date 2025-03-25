@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Colonoscopy",
-			"Classification"
-		],
+		"tags": ["Healthcare AI", "Video", "polyp-segmentation", "gpu-contour"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

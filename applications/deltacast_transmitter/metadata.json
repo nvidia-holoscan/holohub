@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Deltacast",
-			"VideoMaster"
-		],
+		"tags": ["Networking and Distributed Computing", "Video", "RDMA-transport", "deltacast-sdk"],
 		"ranking": 2,
 		"dependencies": {},
 		"run": {

@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": ["Healthcare AI", "Imaging", "bayer-demosaic", "photon-to-glass-latency"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

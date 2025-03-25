@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Large Multimodal Model",
-			"Large Vision Model"
-		],
+		"tags": ["Computer Vision and Perception", "Language Model", "Vision-Language Models (VLM)", "Real-time Inference"],
 		"ranking": 1,
 		"dependencies": {
 			"Bootstrap": {

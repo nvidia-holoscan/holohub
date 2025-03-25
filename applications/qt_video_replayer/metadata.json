@@ -22,15 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Qt",
-			"QML",
-			"QtQuick",
-			"Video",
-			"UI",
-			"Userinterface",
-			"Interactive"
-		],
+		"tags": ["Computer Vision and Perception", "Integration", "parameter-binding", "video-replay"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

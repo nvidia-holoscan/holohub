@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Holoviz UI"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Layer Callback", "ImGui Integration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

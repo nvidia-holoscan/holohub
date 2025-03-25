@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Imaging", "apriltag-calibration", "perspective-transform"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

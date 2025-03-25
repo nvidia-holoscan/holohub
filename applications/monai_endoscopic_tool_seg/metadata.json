@@ -22,11 +22,7 @@
 		"platforms": [
 			"x86_64", "aarch64"
 		],
-		"tags": [
-			"MONAI",
-			"Endoscopy",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Video", "ONNX-conversion", "endoscopic-tool-segmentation"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []

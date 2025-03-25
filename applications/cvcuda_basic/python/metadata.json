@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"CV-CUDA",
-			"Computer Vision",
-			"CV"
-		],
+		"tags": ["Computer Vision and Perception", "Integration", "tensor-conversion", "video-flip"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

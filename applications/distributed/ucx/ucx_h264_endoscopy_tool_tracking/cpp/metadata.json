@@ -23,13 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA",
-			"Video Decoding",
-			"Video Encoding"
-		],
+		"tags": ["Healthcare AI", "Distributed", "H.264", "LSTM-TensorRT"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Yolo Detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "yolov8", "efficientnms-trt"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

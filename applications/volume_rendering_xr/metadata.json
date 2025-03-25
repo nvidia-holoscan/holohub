@@ -57,14 +57,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["Extended Reality", "Visualization", "volume-rendering", "segmented-volumes"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

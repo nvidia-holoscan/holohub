@@ -25,11 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Render",
-			"ClaraViz"
-		],
+		"tags": ["Healthcare AI", "Visualization", "volumetric-rendering", "transfer-functions"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

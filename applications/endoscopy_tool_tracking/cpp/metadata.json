@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Endoscopy", "Tracking", "AJA"],
+		"tags": ["Healthcare AI", "Networking", "tool-tracking", "grpc-offload"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Client",
-			"Video"
-		],
+		"tags": ["Networking and Distributed Computing", "Video", "Webcam streaming", "SDP negotiation"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

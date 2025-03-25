@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Imaging", "laser-thresholding", "perspective-calibration"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

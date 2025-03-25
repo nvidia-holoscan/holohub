@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Holoviz HDR","BT.2020","ST.2084","EOTF"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "HDR10", "ST2084-PQ"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
