@@ -6,7 +6,7 @@
 
 ### Breaking
 
--
+- Removed `get_port_from_ifname`. Use `address_to_port` instead.
 
 ### Non-Breaking
 

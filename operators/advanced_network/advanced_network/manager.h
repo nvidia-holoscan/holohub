@@ -71,7 +71,6 @@ class Manager {
   virtual BurstParams* create_tx_burst_params() = 0;
 
   /* Internal functions used by ANO operators */
-  virtual std::optional<uint16_t> get_port_from_ifname(const std::string& name) = 0;
   virtual Status get_rx_burst(BurstParams** burst) = 0;
   virtual void free_rx_metadata(BurstParams* burst) = 0;
   virtual void free_tx_metadata(BurstParams* burst) = 0;

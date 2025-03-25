@@ -1726,15 +1726,6 @@ void DocaMgr::free_tx_burst(BurstParams* burst) {
   return;
 }
 
-std::optional<uint16_t> DocaMgr::get_port_from_ifname(const std::string& name) {
-  HOLOSCAN_LOG_INFO("Port name {}", name);
-  for (const auto& intf : cfg_.ifs_) {
-    if (name == intf.address_) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DocaMgr::get_rx_burst(BurstParams** burst) {
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;

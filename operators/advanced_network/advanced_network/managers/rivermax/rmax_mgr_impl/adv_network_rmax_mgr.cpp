@@ -110,8 +110,7 @@ class RmaxMgr::RmaxMgrImpl {
   void free_rx_burst(BurstParams* burst);
   void free_tx_burst(BurstParams* burst);
   void format_eth_addr(char* dst, std::string addr);
-  std::optional<uint16_t> get_port_from_ifname(const std::string& name);
-  Status get_rx_burst(BurstParams** burst);
+    Status get_rx_burst(BurstParams** burst);
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst);
   void free_tx_metadata(BurstParams* burst);
@@ -603,23 +602,6 @@ void RmaxMgr::RmaxMgrImpl::free_rx_burst(BurstParams* burst) {
 void RmaxMgr::RmaxMgrImpl::free_tx_burst(BurstParams* burst) {}
 
 /**
- * @brief Gets the port number from an interface name.
- *
- * @param name The interface name.
- * @return Optional containing the port number if found, otherwise empty.
- */
-std::optional<uint16_t> RmaxMgr::RmaxMgrImpl::get_port_from_ifname(const std::string& name) {
-  HOLOSCAN_LOG_INFO("Port name {}", name);
-  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&name](const auto& intf) {
-    return name == intf.address_;
-  });
-
-  if (it != cfg_.ifs_.end()) { return it->port_id_; }
-
-  return -1;
-}
-
-/**
  * @brief Dequeues an RX burst.
  *
  * @param burst Pointer to the burst parameters.
@@ -993,16 +975,6 @@ void RmaxMgr::free_rx_burst(BurstParams* burst) {
  */
 void RmaxMgr::free_tx_burst(BurstParams* burst) {
   pImpl->free_tx_burst(burst);
-}
-
-/**
- * @brief Gets the port number from an interface name.
- *
- * @param name The interface name.
- * @return Optional containing the port number if found, otherwise empty.
- */
-std::optional<uint16_t> RmaxMgr::get_port_from_ifname(const std::string& name) {
-  return pImpl->get_port_from_ifname(name);
 }
 
 /**
