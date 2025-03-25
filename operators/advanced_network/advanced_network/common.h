@@ -362,15 +362,15 @@ int64_t get_q_id(BurstParams* burst);
 /**
  * @brief Get mac address of an interface
  *
- * @param addr Address of interface from config file
- * @param port Port ID of interface
+ * @param port Port number of interface
+ * @param mac MAC address of interface
  *
  * @returns Status::SUCCESS on success
  */
 Status get_mac_addr(int port, char* mac);
 
 /**
- * @brief Get mac address of an interface
+ * @brief Get port number from interface name
  *
  * @param addr Address of interface from config file
  *

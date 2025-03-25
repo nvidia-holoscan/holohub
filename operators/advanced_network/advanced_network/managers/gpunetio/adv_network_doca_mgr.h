@@ -226,8 +226,7 @@ class DocaMgr : public Manager {
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
   Status get_mac_addr(int port, char* mac) override;
-  int address_to_port(const std::string& addr) override;
-  void shutdown() override;
+    void shutdown() override;
   void print_stats() override;
   bool validate_config() const override;
 
