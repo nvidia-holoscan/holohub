@@ -339,9 +339,9 @@ namespace holoscan::ops {
   }
   
   /**
-   * Worker thread for a server SQ
+   * Worker thread for a client or server. Each thread handles one queue pair.
   */
-  void RdmaMgr::rdma_thread(int if_idx, int q) {
+  void RdmaMgr::rdma_thread(bool is_server, int if_idx, int q) {
     struct ibv_wc wc;
     int num_comp;
     const auto &qref = cfg_.ifs_[if_idx].tx_.queues_[q];
@@ -354,7 +354,7 @@ namespace holoscan::ops {
       return;
     }
 
-    HOLOSCAN_LOG_INFO("Affined RDMA thread to core {}", cpu_core);
+    HOLOSCAN_LOG_INFO("Affined {} RDMA thread to core {}", is_server ? "Server" : "Client", cpu_core);
 
     // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
     // periodically poll the CQ.
@@ -419,6 +419,11 @@ namespace holoscan::ops {
       switch (burst.rdma_hdr.opcode) {
         case AdvNetRDMAOpCode::CONNECT:
         {
+          if (!is_server) {
+            HOLOSCAN_LOG_CRITICAL("Received connect request from client, but we are a client!");
+            continue;
+          }
+
           HOLOSCAN_LOG_INFO("Received connect request from client");
           auto ret = rdma_connect_to_server(burst.rdma_hdr.server_addr, burst.rdma_hdr.server_port);
           if (ret != AdvNetStatus::SUCCESS) {
@@ -570,21 +575,77 @@ namespace holoscan::ops {
       return AdvNetStatus::CONNECT_FAILURE;
     }
 
+    // Set up server address
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(server_port);  // Same port as server
+    addr.sin_port = htons(server_port);
     addr.sin_addr.s_addr = server_addr;
 
+    // Resolve the server's address
     if (rdma_resolve_addr(cm_id, nullptr, (struct sockaddr *)&addr, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
       return AdvNetStatus::CONNECT_FAILURE;
     }    
 
-    int ret = rdma_connect(cm_server_id_[0], &addr);
-    if (ret != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", errno);
+    // Wait for address resolution event
+    if (rdma_get_cm_event(ec, &event)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
       return AdvNetStatus::CONNECT_FAILURE;
     }
+
+    if (event->event != RDMA_CM_EVENT_ADDR_RESOLVED) {
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      rdma_ack_cm_event(event);
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+    rdma_ack_cm_event(event);
+
+    // Resolve route to server
+    if (rdma_resolve_route(cm_id, 2000)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to resolve route");
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+
+    // Wait for route resolution event
+    if (rdma_get_cm_event(ec, &event)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+
+    if (event->event != RDMA_CM_EVENT_ROUTE_RESOLVED) {
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      rdma_ack_cm_event(event);
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+    rdma_ack_cm_event(event);
+
+    // Set up connection parameters
+    memset(&conn_param, 0, sizeof(conn_param));
+    conn_param.responder_resources = 1;
+    conn_param.initiator_depth = 1;
+    conn_param.rnr_retry_count = 7;
+
+    // Connect to server
+    if (rdma_connect(cm_id, &conn_param)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to connect to server");
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+
+    // Wait for connection established event
+    if (rdma_get_cm_event(ec, &event)) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+
+    if (event->event != RDMA_CM_EVENT_ESTABLISHED) {
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      rdma_ack_cm_event(event);
+      return AdvNetStatus::CONNECT_FAILURE;
+    }
+    rdma_ack_cm_event(event);
+
+    // Store the connection ID for later use
+    endpoints_[cm_id] = {};
 
     return AdvNetStatus::SUCCESS;
   }
@@ -593,6 +654,8 @@ namespace holoscan::ops {
 
   void RdmaMgr::run_server() {
     int ret;
+
+    HOLOSCAN_LOG_INFO("Starting RDMA server main thread");
 
     if (set_affinity(cfg_.common_.master_core_) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set master core affinity");
@@ -682,7 +745,7 @@ namespace holoscan::ops {
     sparams_.resize(10); // Temporary -- fix later
 
     // Our master thread's job is to wait on connections from clients, set up all the needed
-    // information for them (QPs, MRs, etc), and spawn client threads to monitor both TX and RX
+    // information for them (QPs, MRs, etc), and spawn helper threads to monitor both TX and RX
     struct rdma_cm_event *cm_event = nullptr;    
     while (!rdma_force_quit.load()) {
       ret = rdma_get_cm_event(cm_event_channel, &cm_event);

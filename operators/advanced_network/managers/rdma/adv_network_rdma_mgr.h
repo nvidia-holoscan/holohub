@@ -167,7 +167,7 @@ class RdmaMgr : public ANOMgr {
     struct rte_mempool* tx_meta;
     std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
 
-    void rdma_thread(int if_idx, int q);
+    void rdma_thread(bool is_server, int if_idx, int q);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     int rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id);
     int rdma_register_cfg_mrs();
