@@ -1645,7 +1645,7 @@ Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto txq = tx_q_map_[key];
 
         // Should be thread safe as it's atomic inc
@@ -1696,7 +1696,7 @@ bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
