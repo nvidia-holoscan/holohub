@@ -110,7 +110,7 @@ class RmaxMgr::RmaxMgrImpl {
   void free_rx_burst(BurstParams* burst);
   void free_tx_burst(BurstParams* burst);
   void format_eth_addr(char* dst, std::string addr);
-    Status get_rx_burst(BurstParams** burst);
+  Status get_rx_burst(BurstParams** burst);
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst);
   void free_tx_metadata(BurstParams* burst);
@@ -121,7 +121,7 @@ class RmaxMgr::RmaxMgrImpl {
   uint64_t get_burst_tot_byte(BurstParams* burst);
   BurstParams* create_tx_burst_params();
   Status get_mac_addr(int port, char* mac);
-  
+
  private:
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
