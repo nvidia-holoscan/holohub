@@ -418,11 +418,10 @@ void DpdkMgr::initialize() {
   // Set up the port IDs to map to DPDK port IDs
   for (auto& intf : cfg_.ifs_) {
     if (rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_) < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_);
+      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {} ({})", intf.name_, intf.address_);
       return;
-    } else {
-      HOLOSCAN_LOG_INFO("Port {} found for {}", intf.port_id_, intf.name_);
     }
+    HOLOSCAN_LOG_INFO("{} ({}): identified as port {}", intf.name_, intf.address_, intf.port_id_);
   }
 
   for (int i = 0; i < num_ports; i++) {
@@ -456,12 +455,6 @@ void DpdkMgr::initialize() {
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
   for (auto& intf : cfg_.ifs_) {
-    ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
-      return;
-    }
-
     struct rte_eth_dev_info dev_info;
     int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
     if (ret != 0) {
