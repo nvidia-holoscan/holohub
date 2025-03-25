@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "surgical-tool-segmentation", "endoscopic-video-overlay"],
+        "tags": ["healthcare AI", "mixed reality", "surgical tool segmentation", "endoscopic video overlay"],
         "ranking": 3,
         "dependencies": {
             "data": [

@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["natural language and conversational AI", "integration", "model-switching", "api-configuration"],
+		"tags": ["natural language and conversational AI", "integration", "model switching", "api configuration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "imaging", "Bayer-demosaic", "photon-to-glass-latency"],
+		"tags": ["healthcare AI", "imaging", "Bayer demosaic", "photon to glass latency"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

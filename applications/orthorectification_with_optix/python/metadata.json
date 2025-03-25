@@ -21,7 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["computer vision and perception", "visualization", "ray-tracing", "sensor-simulation"],
+		"tags": ["computer vision and perception", "visualization", "ray tracing", "sensor simulation"],
 		"ranking": 4,
 		"dependencies": {
 			"OptiX-SDK": {

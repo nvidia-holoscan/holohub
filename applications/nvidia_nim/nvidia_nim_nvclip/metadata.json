@@ -24,7 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "integration", "multimodal-embeddings", "cosine-similarity"],
+		"tags": ["computer vision and perception", "integration", "multimodal embeddings", "cosine similarity"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

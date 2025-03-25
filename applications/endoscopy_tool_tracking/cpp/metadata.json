@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["healthcare AI", "networking", "tool-tracking", "gRPC-offload"],
+		"tags": ["healthcare AI", "networking", "tool tracking", "gRPC offload"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

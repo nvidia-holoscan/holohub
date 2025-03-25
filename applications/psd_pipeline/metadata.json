@@ -32,7 +32,7 @@
             ]
         },
         "platforms": ["x86_64"],
-        "tags": ["signal processing", "radar", "vita49-compliance", "spectral-analysis"],
+        "tags": ["signal processing", "radar", "vita49 compliance", "spectral analysis"],
         "ranking": 3,
         "dependencies": {
             "operators": [

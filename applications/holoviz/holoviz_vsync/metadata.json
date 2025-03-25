@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "vertical-synchronization", "frame-rate-monitoring"],
+		"tags": ["computer vision and perception", "visualization", "vertical synchronization", "frame rate monitoring"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

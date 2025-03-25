@@ -22,7 +22,7 @@
 			"x86_64",
             "aarch64"
 		],
-		"tags": ["healthcare AI", "audio", "real-time-transcription", "medical-summarization"],
+		"tags": ["healthcare AI", "audio", "real-time transcription", "medical summarization"],
 		"ranking": 4,
 		"dependencies": {
             "python-packages": {

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "YOLOv8", "efficientnms-TRT"],
+		"tags": ["computer vision and perception", "video", "YOLOv8", "efficientnms TRT"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

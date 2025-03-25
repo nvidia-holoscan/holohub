@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "pose-estimation", "DDS-integration"],
+		"tags": ["computer vision and perception", "video", "pose estimation", "DDS integration"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

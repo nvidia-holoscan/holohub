@@ -57,7 +57,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["extended reality", "visualization", "volume-rendering", "segmented-volumes"],
+		"tags": ["extended reality", "visualization", "volume rendering", "segmented volumes"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

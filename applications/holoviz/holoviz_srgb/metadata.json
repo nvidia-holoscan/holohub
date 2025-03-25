@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "color-space-conversion", "rendering-pipeline-configuration"],
+		"tags": ["computer vision and perception", "visualization", "color space conversion", "rendering pipeline configuration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

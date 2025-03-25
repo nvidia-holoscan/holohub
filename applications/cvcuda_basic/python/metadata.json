@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "integration", "tensor-conversion", "video-flip"],
+		"tags": ["computer vision and perception", "integration", "tensor conversion", "video flip"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "distributed", "UDP-communication", "network-operators"],
+		"tags": ["networking and distributed computing", "distributed", "UDP communication", "network operators"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

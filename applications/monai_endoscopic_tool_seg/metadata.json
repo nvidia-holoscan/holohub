@@ -22,7 +22,7 @@
 		"platforms": [
 			"x86_64", "aarch64"
 		],
-		"tags": ["healthcare AI", "video", "ONNX-conversion", "endoscopic-tool-segmentation"],
+		"tags": ["healthcare AI", "video", "ONNX conversion", "endoscopic tool segmentation"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []

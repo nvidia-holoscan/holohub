@@ -26,7 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["signal processing", "radar", "backprojection", "gotcha-dataset"],
+        "tags": ["signal processing", "radar", "backprojection", "gotcha dataset"],
         "ranking": 4,
         "dependencies": {
             "operators": [

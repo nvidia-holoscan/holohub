@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "visualization", "real-time-streaming", "interactive-controls"],
+		"tags": ["networking and distributed computing", "visualization", "real-time streaming", "interactive controls"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "monocular-depth", "interactive-display"],
+		"tags": ["computer vision and perception", "video", "monocular depth", "interactive display"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

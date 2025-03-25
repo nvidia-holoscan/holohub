@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "video", "polyp-segmentation", "GPU-contour"],
+		"tags": ["healthcare AI", "video", "polyp segmentation", "GPU contour"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

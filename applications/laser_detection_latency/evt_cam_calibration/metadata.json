@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "perspective-transform", "camera-alignment"],
+		"tags": ["computer vision and perception", "visualization", "perspective transform", "camera alignment"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

@@ -25,7 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "visualization", "volumetric-rendering", "transfer-functions"],
+		"tags": ["healthcare AI", "visualization", "volumetric rendering", "transfer functions"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

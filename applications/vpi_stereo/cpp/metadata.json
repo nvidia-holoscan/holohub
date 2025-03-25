@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "stereo-disparity", "depth-estimation"],
+		"tags": ["computer vision and perception", "video", "stereo disparity", "depth estimation"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "MATLAB-coder", "image-filtering"],
+		"tags": ["computer vision and perception", "visualization", "MATLAB coder", "image filtering"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

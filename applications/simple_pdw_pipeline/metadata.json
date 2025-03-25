@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["signal processing", "networking", "FFT-based-thresholding", "pulse-characterization"],
+		"tags": ["signal processing", "networking", "FFT based thresholding", "pulse characterization"],
 		"ranking": 4,
 		"dependencies": {
 			"gxf_extensions": [{
