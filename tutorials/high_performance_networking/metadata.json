@@ -1,0 +1,49 @@
+{
+	"tutorial": {
+		"name": "Achieving High Performance Networking with Holoscan",
+		"description": "TODO",
+		"authors": [
+			{
+				"name": "Alexis Girault",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "0.1.0",
+		"changelog": {
+			"0.0.1": "Initial Release",
+			"0.0.3": "Updated for Holoscan 3.0"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"SBSA",
+			"IGX Orin (dGPU)"
+		],
+		"tags": [
+			"DPDK",
+			"RDMA",
+			"Rivermax",
+			"GPUNetIO",
+			"GPUDirect",
+			"ConnectX",
+			"Networking",
+			"NIC",
+			"HPC"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"applications": [
+				"adv_networking_bench"
+			],
+			"operators": [
+				"advanced_network"
+			]
+		}
+	}
+}

@@ -14,11 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-multithreaded: true
-num_delay_ops: 32
-delay: 0.1
-delay_step: 0.01
-
 scheduler:
   check_recession_period_ms: 0
   worker_thread_number: 5
@@ -35,58 +30,54 @@ advanced_network:
     log_level: "info"
 
     memory_regions:
-    - name: "Data_RX_GPU"
+    - name: "Data_RX_GPU1"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
-      buf_size: 9000
+      buf_size: 1064
     - name: "Data_RX_GPU2"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
-      buf_size: 9000      
+      buf_size: 1064
 
     interfaces:
-    - name: data2
+    - name: "rx_port"
       address: <0000:00:00.0>       # The BUS address of the interface doing Rx
-      flow_isolation: true
       rx:
-        - queues:
-          - name: "Data"
+        flow_isolation: true
+        queues:
+        - name: "rx_q_0"
+          id: 0
+          cpu_core: 9
+          batch_size: 10240
+          output_port: "bench_rx_out"
+          memory_regions:
+            - "Data_RX_GPU1"
+        - name: "rx_q_1"
+          id: 1
+          cpu_core: 9
+          batch_size: 10240
+          output_port: "bench_rx_out"
+          memory_regions:
+            - "Data_RX_GPU2"
+        flows:
+        - name: "flow_4096"
+          id: 0
+          action:
+            type: queue
             id: 0
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU"
-          - name: "Data"
+          match:
+            udp_src: 4096
+            udp_dst: 4096
+        - name: "flow_4095"
+          id: 1
+          action:
+            type: queue
             id: 1
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU2"              
-          flows:
-          - name: "ADC Samples"
-            id: 0
-            action:
-              type: queue
-              id: 0
-            match:
-              udp_src: 4096 #12288
-              udp_dst: 4096 #12288
-          - name: "ADC Samples"
-            id: 1
-            action:
-              type: queue
-              id: 1
-            match:
-              udp_src: 4095 #12288
-              udp_dst: 4095 #12288           
+          match:
+            udp_src: 4095
+            udp_dst: 4095
 
 bench_rx:
   gpu_direct: true        # Set to true if using a GPU region for the Rx queues.

@@ -16,10 +16,11 @@
 ---
 v4l2_source:
   device: "/dev/video0"
+  pixel_format: "YUYV"    # please update to "auto" if your webcam does not support YUYV
 
 replayer_source:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
-  basename: ""
+  basename: "meeting"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true

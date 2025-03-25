@@ -19,8 +19,8 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"SAM2 Model"
@@ -33,7 +33,7 @@
 				"license": "Apache-2.0"
 			}
 		},
-	
+
 		"run": {
 			"command": "<holohub_app_source>/start.sh",
 			"workdir": "holohub_bin"

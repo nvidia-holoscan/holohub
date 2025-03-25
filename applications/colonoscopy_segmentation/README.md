@@ -40,14 +40,15 @@ Next, run the commands of your choice:
 * Using a pre-recorded video
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
-    python3 colonoscopy_segmentation.py --source=replayer --data=<DATA_DIR>/colonoscopy_segmentation
+    python3 colonoscopy_segmentation.py --source=replayer --data=<DATA_DIR>/colonoscopy_segmentation --no-contours
     ```
 
 * Using an AJA card
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
-    python3 colonoscopy_segmentation.py --source=aja
+    python3 colonoscopy_segmentation.py --source=aja --no-contours
     ```
+Note that segmentation contours can be shown (instead of segmentation masks) by changing `--no-contours` to `--contours`.
 
 ### Holoscan SDK version
 

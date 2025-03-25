@@ -16,12 +16,14 @@
  */
 
 #include "adv_network_rx.h"
-#include "adv_network_kernels.h"
+#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
+
+using namespace holoscan::advanced_network;
 
 namespace holoscan::ops {
 
@@ -64,7 +66,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    spec.input<std::shared_ptr<BurstParams>>("burst_in");
     spec.param<uint32_t>(batch_size_,
                          "batch_size",
                          "Batch size",
@@ -108,7 +110,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     free_batch_queue();
 
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
+    auto burst_opt = op_input.receive<BurstParams*>("burst_in");
     if (!burst_opt) {
       HOLOSCAN_LOG_ERROR("No burst input");
       return;
@@ -116,10 +118,10 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     auto burst = burst_opt.value();
 
     // Count packets received
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
+    ttl_pkts_recv_ += get_num_packets(burst);
 
     // Iterate over packets on GPU
-    for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
+    for (int pkt_idx = 0; pkt_idx < get_num_packets(burst); pkt_idx++) {
       /* For each ANO batch (named burst), we might not want to right away send the packets to the
       * next operator, but maybe wait for more packets to come in, to make up what we call an
       * "App batch". While that increases the latency by needing more data to come in to continue,
@@ -191,11 +193,11 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       // NOTE: currently ordering pointers in the order packets come in. If headers had segment
       //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
       h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(get_packet_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     // Count bytes received
-    ttl_bytes_recv_ += adv_net_get_burst_tot_byte(burst);
+    ttl_bytes_recv_ += get_burst_tot_byte(burst);
   }
 
  private:
@@ -206,7 +208,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
 
   // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
   struct BatchAggregationParams {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    std::array<std::shared_ptr<BurstParams>, MAX_ANO_BURSTS> bursts;
     int num_bursts;
     cudaEvent_t evt;
   };

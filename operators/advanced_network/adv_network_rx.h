@@ -20,7 +20,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include "adv_network_common.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 #include <experimental/propagate_const>
 
@@ -47,7 +47,7 @@ class AdvNetworkOpRx : public Operator {
 
   void initialize() override;
   int Init();
-  int FreeBurst(AdvNetBurstParams* burst);
+  int FreeBurst(holoscan::advanced_network::BurstParams* burst);
 
   // Holoscan functions
   void stop() override;
@@ -69,7 +69,7 @@ class AdvNetworkOpRx : public Operator {
   Parameter<int> batch_size_;
   Parameter<int> max_packet_size_;
   Parameter<uint32_t> num_concurrent_batches_;
-  Parameter<AdvNetConfigYaml> cfg_;
+  Parameter<holoscan::advanced_network::NetworkConfig> cfg_;
 };
 
 };  // namespace holoscan::ops

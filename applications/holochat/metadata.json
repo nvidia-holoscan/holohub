@@ -18,7 +18,7 @@
 					"2.0.0"
 				]
 			},
-			"platforms": ["amd64", "arm64"],
+			"platforms": ["x86_64", "aarch64"],
 			"tags": ["LLM", "Vector Database", "AI-Assistant"],
 			"ranking": 4,
 			"dependencies": {

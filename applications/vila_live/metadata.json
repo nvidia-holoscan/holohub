@@ -19,8 +19,8 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"Large Multimodal Model",
@@ -34,7 +34,7 @@
 			}
 		},
 		"run": {
-			"command": "bash -c '<holohub_app_source>/run_vila_live.sh'",
+			"command": "<holohub_app_source>/run_vila_live.sh",
 			"workdir": "holohub_bin"
 		}
 	}

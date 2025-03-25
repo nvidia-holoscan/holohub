@@ -18,7 +18,8 @@
 #include "swap.h"
 #include "swap.cuh"
 
-using in_t = holoscan::ops::AdvNetBurstParams*;
+using namespace holoscan::advanced_network;
+using in_t = BurstParams*;
 using out_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 
 constexpr uint32_t CONTEXT_QUEUE_ID = 0;
@@ -183,7 +184,7 @@ std::vector<Vita49ConnectorOpRx::RxMsg> Vita49ConnectorOpRx::free_bufs(
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_pkts_and_burst(first.msg[m]);
+        free_all_packets_and_burst_rx(first.msg[m]);
       }
       channel->out_q.pop();
     } else {
@@ -232,11 +233,11 @@ void Vita49ConnectorOpRx::compute(
   auto burst = burst_opt.value();
 
   // If we have a new context packet, get the metadata out and free
-  if (adv_net_get_q_id(burst) == CONTEXT_QUEUE_ID) {
-    for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+  if (get_q_id(burst) == CONTEXT_QUEUE_ID) {
+    for (int p = 0; p < get_num_packets(burst); p++) {
       // Assume channel 0 context comes in on flow 0, channel 1 on flow 1, etc.
-      auto channel_num = adv_net_get_pkt_flow_id(burst, p);
-      ContextPacket *ctxt = reinterpret_cast<ContextPacket*>(adv_net_get_seg_pkt_ptr(burst, 1, p));
+      auto channel_num = get_packet_flow_id(burst, p);
+      ContextPacket *ctxt = reinterpret_cast<ContextPacket*>(get_segment_packet_ptr(burst, 1, p));
       HOLOSCAN_LOG_INFO(
           "Got {}context packet (ch: {}) with:\n"
           "      VRT header: 0x{:X}\n"
@@ -281,31 +282,31 @@ void Vita49ConnectorOpRx::compute(
       channel->context_received = true;
       // TODO: when context changes, we should flush data
     }
-    adv_net_free_all_pkts_and_burst(burst);
+    free_all_packets_and_burst_rx(burst);
     return;
   }
 
   // Assumes that channel 0 is queue 1, channel 1 is queue 2, etc.
-  uint16_t channel_num = adv_net_get_q_id(burst) - 1;
+  uint16_t channel_num = get_q_id(burst) - 1;
   process_channel_data(op_output, burst, channel_num);
 }
 
 void Vita49ConnectorOpRx::process_channel_data(
         OutputContext& op_output,
-        AdvNetBurstParams *burst,
+        BurstParams *burst,
         uint16_t channel_num) {
   auto channel = channel_list.at(channel_num);
 
   if (!channel->context_received) {
     HOLOSCAN_LOG_INFO("Waiting to process channel {} data until context is received",
                       channel->channel_num);
-    adv_net_free_all_pkts_and_burst(burst);
+    free_all_packets_and_burst_rx(burst);
     return;
   }
 
   // Grab metadata out of the first packet in the batch
   if (!channel->meta_set) {
-      VitaMetaData *meta = reinterpret_cast<VitaMetaData*>(adv_net_get_seg_pkt_ptr(burst, 1, 0));
+      VitaMetaData *meta = reinterpret_cast<VitaMetaData*>(get_segment_packet_ptr(burst, 1, 0));
       channel->current_meta.vrt_header = get_vrt_header_h(meta);
       channel->current_meta.stream_id = get_stream_id_h(meta);
       channel->current_meta.integer_time = get_integer_time_h(meta);
@@ -314,16 +315,16 @@ void Vita49ConnectorOpRx::process_channel_data(
   }
 
   uint64_t ttl_bytes_in_cur_batch = 0;
-  for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+  for (int p = 0; p < get_num_packets(burst); p++) {
       channel->h_dev_ptrs[channel->cur_idx][channel->aggr_pkts_recv + p]
-          = adv_net_get_seg_pkt_ptr(burst, 2, p);
-      ttl_bytes_in_cur_batch += adv_net_get_seg_pkt_len(burst, 0, p)
-          + adv_net_get_seg_pkt_len(burst, 1, p)
-          + adv_net_get_seg_pkt_len(burst, 2, p);
+          = get_segment_packet_ptr(burst, 2, p);
+      ttl_bytes_in_cur_batch += get_segment_packet_length(burst, 0, p)
+          + get_segment_packet_length(burst, 1, p)
+          + get_segment_packet_length(burst, 2, p);
   }
 
   channel->ttl_bytes_recv += ttl_bytes_in_cur_batch;
-  channel->aggr_pkts_recv += adv_net_get_num_pkts(burst);
+  channel->aggr_pkts_recv += get_num_packets(burst);
   channel->cur_msg.msg[channel->cur_msg.num_batches++] = burst;
 
   // Once we've aggregated enough packets, do some work

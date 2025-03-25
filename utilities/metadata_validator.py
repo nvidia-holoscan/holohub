@@ -108,6 +108,7 @@ if __name__ == "__main__":
     exit_code_op = validate_json_directory("operators", ignore_patterns=["template"])
     exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
     exit_code_applications = validate_json_directory("applications", ignore_patterns=["template"])
+    exit_code_workflows = validate_json_directory("workflows", ignore_patterns=["template"])
     exit_code_tutorials = validate_json_directory(
         "tutorials", ignore_patterns=["template"], metadata_is_required=False
     )
@@ -119,6 +120,7 @@ if __name__ == "__main__":
             exit_code_op,
             exit_code_extensions,
             exit_code_applications,
+            exit_code_workflows,
             exit_code_tutorials,
             exit_code_benchmarks,
             exit_code_packages,

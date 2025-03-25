@@ -115,10 +115,12 @@ void place_packet_data(complex_t* out, const void* const* const in, int* sample_
                                                                                  max_waveform_id);
 }
 
+using namespace holoscan::advanced_network;
+
 namespace holoscan::ops {
 
 void AdvConnectorOpRx::setup(OperatorSpec& spec) {
-  spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+  spec.input<std::shared_ptr<BurstParams>>("burst_in");
   spec.output<std::shared_ptr<RFArray>>("rf_out");
 
   // Radar settings
@@ -238,7 +240,7 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
     if (cudaEventQuery(first.evt) == cudaSuccess) {
       completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
-        adv_net_free_all_pkts_and_burst(first.msg[m]);
+        free_all_packets_and_burst_rx(first.msg[m]);
       }
       out_q.pop();
     } else {
@@ -292,7 +294,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   // todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
 
-  auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
+  auto burst_opt = op_input.receive<BurstParams*>("burst_in");
   if (!burst_opt) {
     free_bufs();
     return;
@@ -300,8 +302,8 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   auto burst = burst_opt.value();
 
   // If packets are coming in from our non-GPUDirect queue, free them and move on
-  if (adv_net_get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
-    adv_net_free_all_pkts_and_burst(burst);
+  if (get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
+    free_all_packets_and_burst_rx(burst);
     HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
     return;
   }
@@ -311,22 +313,22 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
   // entire burst buffer pointer is saved and freed once an entire batch is received.
   if (gpu_direct_.get()) {
     if (split_boundary_.get()) {
-      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
-        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = adv_net_get_seg_pkt_ptr(burst, 1, p);
+      for (int p = 0; p < get_num_packets(burst); p++) {
+        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = get_segment_packet_ptr(burst, 1, p);
         ttl_bytes_in_cur_batch_ +=
-            adv_net_get_seg_pkt_len(burst, 0, p) + adv_net_get_seg_pkt_len(burst, 1, p);
+            get_segment_packet_length(burst, 0, p) + get_segment_packet_length(burst, 1, p);
       }
     } else {
-      for (int p = 0; p < adv_net_get_num_pkts(burst); p++) {
+      for (int p = 0; p < get_num_packets(burst); p++) {
         h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
-            reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, p)) + PADDED_HDR_SIZE;
-        ttl_bytes_in_cur_batch_ += adv_net_get_burst_tot_byte(burst);
+            reinterpret_cast<uint8_t*>(get_packet_ptr(burst, p)) + PADDED_HDR_SIZE;
+        ttl_bytes_in_cur_batch_ += get_burst_tot_byte(burst);
       }
     }
   }
   ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
-  aggr_pkts_recv_ += adv_net_get_num_pkts(burst);
+  aggr_pkts_recv_ += get_num_packets(burst);
 
   HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
       aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
@@ -375,7 +377,7 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
         exit(1);
       }
     } else {
-      adv_net_free_all_pkts_and_burst(burst);
+      free_all_packets_and_burst_rx(burst);
     }
     aggr_pkts_recv_ = 0;
     cur_idx = (++cur_idx % num_concurrent);

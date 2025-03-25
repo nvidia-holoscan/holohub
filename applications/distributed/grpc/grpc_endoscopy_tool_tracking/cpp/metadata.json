@@ -12,7 +12,6 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"dockerfile": "applications/h264/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.7.0",
 			"tested_versions": [
@@ -20,8 +19,8 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"Endoscopy",

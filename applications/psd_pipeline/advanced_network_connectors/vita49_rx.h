@@ -67,8 +67,8 @@ class Vita49ConnectorOpRx : public Operator {
   Vita49ConnectorOpRx() = default;
 
   ~Vita49ConnectorOpRx() {
-    adv_net_shutdown();
-    adv_net_print_stats();
+    holoscan::advanced_network::shutdown();
+    holoscan::advanced_network::print_stats();
   }
 
   void setup(OperatorSpec& spec) override;
@@ -91,7 +91,7 @@ class Vita49ConnectorOpRx : public Operator {
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
-    std::array<AdvNetBurstParams *, MAX_ANO_BATCHES> msg;
+    std::array<holoscan::advanced_network::BurstParams *, MAX_ANO_BATCHES> msg;
     int num_batches;
     cudaStream_t stream;
     cudaEvent_t evt;
@@ -121,7 +121,7 @@ class Vita49ConnectorOpRx : public Operator {
   void free_bufs_and_emit_arrays(OutputContext& op_output, std::shared_ptr<struct Channel> channel);
   void process_channel_data(
           OutputContext& op_output,
-          AdvNetBurstParams *burst,
+          holoscan::advanced_network::BurstParams *burst,
           uint16_t channel_num);
 };  // Vita49ConnectorOpRx
 

@@ -19,7 +19,7 @@
 				"0.6.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
 		"ranking": 2,
 		"dependencies": {

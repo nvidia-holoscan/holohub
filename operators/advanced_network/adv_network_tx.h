@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memory>
-#include "adv_network_common.h"
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
@@ -37,7 +37,7 @@ class AdvNetworkOpTx : public Operator {
   ~AdvNetworkOpTx() = default;
   void initialize() override;
   int Init();
-  int FreeBurst(AdvNetBurstParams* burst);
+  int FreeBurst(holoscan::advanced_network::BurstParams* burst);
 
   // Holoscan functions
   void stop() override;
@@ -47,7 +47,8 @@ class AdvNetworkOpTx : public Operator {
  private:
   void SetFillInfo();
   std::unordered_map<uint32_t, void*> tx_rings_;
-  Parameter<AdvNetConfigYaml> cfg_;
+  Parameter<holoscan::advanced_network::NetworkConfig> cfg_;
   AdvNetworkOpTxImpl* impl;
 };
+
 };  // namespace holoscan::ops

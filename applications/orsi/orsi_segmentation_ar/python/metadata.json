@@ -19,15 +19,15 @@
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
         "tags": [
             "DeltaCast",
             "VideoMaster",
             "Endoscopy",
             "Segmentation",
-            "Augmented Reality", 
+            "Augmented Reality",
             "VTK"
         ],
         "ranking": 3,
