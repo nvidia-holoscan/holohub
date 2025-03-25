@@ -1631,14 +1631,6 @@ Status DocaMgr::get_mac_addr(int port, char* mac) {
   return Status::SUCCESS;
 }
 
-int DocaMgr::address_to_port(const std::string& addr) {
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DocaMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
   return Status::SUCCESS;
 }

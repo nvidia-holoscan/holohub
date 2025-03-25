@@ -72,8 +72,7 @@ class RmaxMgr : public Manager {
   uint64_t get_burst_tot_byte(BurstParams* burst) override;
   BurstParams* create_tx_burst_params() override;
   Status get_mac_addr(int port, char* mac) override;
-  int address_to_port(const std::string& addr) override;
-
+  
  private:
   class RmaxMgrImpl;
   std::unique_ptr<RmaxMgr::RmaxMgrImpl> pImpl;

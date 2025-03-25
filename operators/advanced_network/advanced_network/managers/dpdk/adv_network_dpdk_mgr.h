@@ -193,8 +193,7 @@ class DpdkMgr : public Manager {
   void free_tx_metadata(BurstParams* burst) override;
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
-  int address_to_port(const std::string& addr) override;
-  Status get_mac_addr(int port, char* mac) override;
+    Status get_mac_addr(int port, char* mac) override;
   void shutdown() override;
   void print_stats() override;
   void adjust_memory_regions() override;

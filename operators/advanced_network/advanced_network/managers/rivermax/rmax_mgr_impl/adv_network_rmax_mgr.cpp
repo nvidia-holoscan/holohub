@@ -122,8 +122,7 @@ class RmaxMgr::RmaxMgrImpl {
   uint64_t get_burst_tot_byte(BurstParams* burst);
   BurstParams* create_tx_burst_params();
   Status get_mac_addr(int port, char* mac);
-  int address_to_port(const std::string& addr);
-
+  
  private:
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
@@ -718,21 +717,6 @@ Status RmaxMgr::RmaxMgrImpl::get_mac_addr(int port, char* mac) {
 }
 
 /**
- * @brief Converts an address to a port number.
- *
- * @param addr The address.
- * @return The port number.
- */
-int RmaxMgr::RmaxMgrImpl::address_to_port(const std::string& addr) {
-  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&addr](const auto& intf) {
-    return intf.address_ == addr;
-  });
-
-  if (it != cfg_.ifs_.end()) { return it->port_id_; }
-  return -1;
-}
-
-/**
  * @brief Constructor for RmaxMgr.
  */
 RmaxMgr::RmaxMgr() : pImpl(std::make_unique<RmaxMgrImpl>()) {}
@@ -1123,16 +1107,6 @@ BurstParams* RmaxMgr::create_tx_burst_params() {
  */
 Status RmaxMgr::get_mac_addr(int port, char* mac) {
   return pImpl->get_mac_addr(port, mac);
-}
-
-/**
- * @brief Converts an address to a port number.
- *
- * @param addr The address.
- * @return The port number.
- */
-int RmaxMgr::address_to_port(const std::string& addr) {
-  return pImpl->address_to_port(addr);
 }
 
 };  // namespace holoscan::advanced_network

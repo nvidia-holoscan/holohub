@@ -78,7 +78,7 @@ class Manager {
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;
   virtual Status send_tx_burst(BurstParams* burst) = 0;
   virtual Status get_mac_addr(int port, char* mac) = 0;
-  virtual int address_to_port(const std::string& addr) = 0;
+  virtual int address_to_port(const std::string& addr) final;
   virtual bool validate_config() const;
 
   virtual ~Manager() = default;

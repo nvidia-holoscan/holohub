@@ -152,14 +152,6 @@ bool DpdkMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   return true;
 }
 
-int DpdkMgr::address_to_port(const std::string& addr) {
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DpdkMgr::get_mac_addr(int port, char* mac) {
   if (port > mac_addrs.size()) {
     HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac_addr() lookup");
