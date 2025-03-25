@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "networking", "FHIR-client", "oauth2-authentication"],
+		"tags": ["healthcare AI", "networking", "FHIR-client", "OAuth2-authentication"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {
