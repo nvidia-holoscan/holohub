@@ -1887,14 +1887,6 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
   rte_mempool_put(tx_metadata, burst);
 }
 
-std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
-  uint16_t port;
-  auto ret = rte_eth_dev_get_port_by_name(name.c_str(), &port);
-  if (ret < 0) { return {}; }
-
-  return port;
-}
-
 Status DpdkMgr::get_rx_burst(BurstParams** burst) {
   if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;

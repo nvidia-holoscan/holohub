@@ -405,8 +405,6 @@ void set_header(BurstParams* burst, uint16_t port, uint16_t q, int64_t num, int 
  */
 void format_eth_addr(char* dst, std::string addr);
 
-std::optional<uint16_t> get_port_from_ifname(const std::string& name);
-
 /**
  * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
  * in the manager's destructor.
