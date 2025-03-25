@@ -5,7 +5,7 @@ read from a DDS databus in order to provide flexible integration between
 Holoscan applications and other applications (using Holoscan or not) via DDS.
 
 The application can be run as either a publisher or as a subscriber. In either case,
-it will use the [VideoFrame](../../operators/dds/video/VideoFrame.idl) data topic
+it will use the [VideoFrame](../../../operators/dds/video/VideoFrame.idl) data topic
 registered by the `DDSVideoPublisherOp` or `DDSVideoSubscriberOp` operators in order
 to write or read the video frame data to/from the DDS databus, respectively.
 
