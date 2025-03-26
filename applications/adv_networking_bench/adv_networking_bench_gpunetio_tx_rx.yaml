@@ -40,7 +40,7 @@ advanced_network:
       buf_size: 1064
 
     interfaces:
-    - name: "tx_port"
+    - name: "single_port"
       address: 0000:ca:00.0
       tx:
         queues:
