@@ -51,14 +51,12 @@ advanced_network:
           id: 0
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
             - "Data_RX_GPU1"
         - name: "rx_q_1"
           id: 1
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
             - "Data_RX_GPU2"
         flows:

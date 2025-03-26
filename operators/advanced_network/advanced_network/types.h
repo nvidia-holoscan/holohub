@@ -138,7 +138,8 @@ enum class Status {
   NOT_READY,
   INVALID_PARAMETER,
   NO_SPACE_AVAILABLE,
-  NOT_SUPPORTED
+  NOT_SUPPORTED,
+  INTERNAL_ERROR
 };
 
 /**
@@ -319,7 +320,6 @@ struct MemoryRegionConfig {
 struct RxQueueConfig {
   CommonQueueConfig common_;
   uint64_t timeout_us_;
-  std::string output_port_;
 };
 
 struct TxQueueConfig {

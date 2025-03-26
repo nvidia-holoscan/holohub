@@ -59,7 +59,6 @@ advanced_network:
           id: 0
           cpu_core: 10
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
             - "Data_RX_GPU"
         flows:

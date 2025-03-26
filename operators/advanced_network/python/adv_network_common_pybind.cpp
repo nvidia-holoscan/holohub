@@ -97,8 +97,14 @@ PYBIND11_MODULE(_advanced_network_common, m) {
         py::overload_cast<BurstParams*, int>(&get_packet_ptr),
         "Get packet pointer");
   m.def("get_port_from_ifname",
-        &get_port_from_ifname,
+        py::overload_cast<const std::string&>(&get_port_from_ifname),
         "Get port number from interface name");
+  m.def("get_rx_burst", [](int port, int q) {
+      BurstParams* burst_ptr = nullptr;
+      Status status = get_rx_burst(&burst_ptr, port, q);
+      return py::make_tuple(status, py::cast(burst_ptr,
+            py::return_value_policy::take_ownership));
+      }, py::arg("port"), py::arg("q"));
 
   // py::class_<BurstHeaderParams>(m, "BurstHeaderParams").def(py::init<>())
   //     .def_readwrite("num_pkts",  &BurstHeaderParams::num_pkts)

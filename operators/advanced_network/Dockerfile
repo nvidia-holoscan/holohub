@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.9.0-dgpu
 
 FROM ${BASE_IMAGE} AS base
 ARG UBUNTU_VERSION=22.04

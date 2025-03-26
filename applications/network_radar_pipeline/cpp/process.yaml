@@ -56,7 +56,6 @@ advanced_network:
             max_packet_size: 9000          # Maximum payload size
             num_concurrent_batches: 32767  # Number of batches that can be used at any time
             batch_size: 1                  # Number of packets in a batch
-            output_port: "bench_rx_out"
           - name: "ADC Samples"
             id: 1
             gpu_device: 0
@@ -66,7 +65,6 @@ advanced_network:
             max_packet_size: 9000       # Maximum payload size
             num_concurrent_batches: 15  # Number of batches that can be used at any time
             batch_size: 5120            # Number of packets in a batch
-            output_port: "bench_rx_out"
           flows:
             - name: "ADC Samples"
               action:

@@ -65,6 +65,18 @@ inline int EnabledDirections(const std::string& dir) {
   return 0;
 }
 
+/** 
+ * @brief Initialize the advanced network operator. This function will initialize the backend
+ *        manager and any other resources needed based on the configuration.
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Initialization successful
+ *    INVALID_CONFIG: Invalid configuration
+ *    INTERNAL_ERROR: Internal error
+ */
+Status adv_net_init(NetworkConfig &config);
+
 /**
  * @brief Returns a manager type
  *
@@ -387,6 +399,27 @@ int address_to_port(const std::string& addr);
 void set_num_packets(BurstParams* burst, int64_t num);
 
 /**
+ * @brief Send a TX burst
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst sent successfully
+ */
+Status send_tx_burst(BurstParams* burst);
+
+/**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param port Port ID of interface
+ * @param q Queue ID of interface
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive  
+ */
+Status get_rx_burst(BurstParams** burst, int port, int q);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure
@@ -419,17 +452,6 @@ void shutdown();
  *
  */
 void print_stats();
-
-/**
- * @brief Get the list (set) of rx/tx ports from a node
- *
- * @param node Yaml node
- * @param dir String of direction ["rx", "tx"]
- *
- * @returns unordered set of rx/tx port names
- */
-std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir);
-
 };  // namespace holoscan::advanced_network
 
 template <>
@@ -511,6 +533,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_tx_queue_common_config(
       const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.

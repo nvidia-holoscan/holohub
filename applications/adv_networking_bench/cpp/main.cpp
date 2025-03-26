@@ -32,10 +32,15 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    HOLOSCAN_LOG_INFO("Initializing advanced network operator");
+    auto adv_net_config = from_config("advanced_network").as<NetworkConfig>();
+    if (advanced_network::adv_net_init(adv_net_config) != advanced_network::Status::SUCCESS) {
+      HOLOSCAN_LOG_ERROR("Failed to initialize advanced network");
+      exit(1);
+    }
+
+    HOLOSCAN_LOG_INFO("Initialized advanced network operator");
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
-    auto output_rx_ports = advanced_network::get_port_names(config(), "rx");
 
     HOLOSCAN_LOG_INFO("Using ANO manager {}", advanced_network::manager_type_to_string(mgr_type));
 
@@ -43,22 +48,17 @@ class App : public holoscan::Application {
     if (mgr_type == advanced_network::ManagerType::DPDK) {
 #if ANO_MGR_DPDK
       if (rx_en) {
-        auto adv_net_rx =
-            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
-                                               from_config("advanced_network"),
-                                               make_condition<BooleanCondition>("is_alive", true));
         auto bench_rx =
-            make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx", from_config("bench_rx"));
-        add_flow(adv_net_rx, bench_rx, {{ "bench_rx_out", "burst_in" }});
+            make_operator<ops::AdvNetworkingBenchDefaultRxOp>("bench_rx", from_config("bench_rx"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_rx);
       }
       if (tx_en) {
-        auto adv_net_tx =
-            make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
         auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
-        add_flow(bench_tx, adv_net_tx, {{ "burst_out", "burst_in" }});
+        add_operator(bench_tx);
       }
 #else
       HOLOSCAN_LOG_ERROR("DPDK ANO manager/backend is disabled");
@@ -69,21 +69,16 @@ class App : public holoscan::Application {
 #if ANO_MGR_GPUNETIO
       if (rx_en) {
         auto bench_rx =
-            make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"));
-        auto adv_net_rx =
-            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
-                                               from_config("advanced_network"),
-                                               make_condition<BooleanCondition>("is_alive", true));
-        add_flow(adv_net_rx, bench_rx, {{ "bench_rx_out", "burst_in" }});
+            make_operator<ops::AdvNetworkingBenchDocaRxOp>("bench_rx", from_config("bench_rx"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_rx);
       }
       if (tx_en) {
         auto bench_tx = make_operator<ops::AdvNetworkingBenchDocaTxOp>(
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
-        auto adv_net_tx =
-            make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
-        add_flow(bench_tx, adv_net_tx, {{ "burst_out", "burst_in" }});
+        add_operator(bench_tx);
       }
 #else
       HOLOSCAN_LOG_ERROR("DOCA ANO manager/backend is disabled");
@@ -92,18 +87,10 @@ class App : public holoscan::Application {
     } else if (mgr_type == advanced_network::ManagerType::RIVERMAX) {
 #if ANO_MGR_RIVERMAX
       if (rx_en) {
-        auto adv_net_rx =
-            make_operator<ops::AdvNetworkOpRx>("adv_network_rx",
-                                               output_rx_ports,
-                                               from_config("advanced_network"),
-                                               make_condition<BooleanCondition>("is_alive", true));
-        int index = 0;
-        for (const auto& port : output_rx_ports) {
-          std::string bench_rx_name = "bench_rx_" + std::to_string(index++);
-          auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(
-              bench_rx_name, from_config("bench_rx"));
-          add_flow(adv_net_rx, bench_rx, {{ port, "burst_in" }});
-        }
+        std::string bench_rx_name = "bench_rx";
+        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
+                                                                        from_config("bench_rx"));
+        add_operator(bench_rx);
       }
       if (tx_en) {
         HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend doesn't support TX");
