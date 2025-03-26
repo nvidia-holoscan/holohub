@@ -1937,10 +1937,7 @@ void DpdkMgr::shutdown() {
   HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
 
   if (--num_init == 0) {
-    int portid;
-    RTE_ETH_FOREACH_DEV(portid) {
-      PrintDpdkStats(portid);
-    }
+    print_stats();
 
     HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
     force_quit.store(true);
