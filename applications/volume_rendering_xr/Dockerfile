@@ -65,6 +65,9 @@ RUN apt update \
         libvulkan-dev="1.3.204.1-*" \
     && rm -rf /var/lib/apt/lists/*
 
+# Install specific version of markupsafe for OpenXR build
+RUN pip install markupsafe==2.0.1
+
 ############################################################
 # Windrunner configuration
 # 
