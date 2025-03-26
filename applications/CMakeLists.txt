@@ -111,10 +111,7 @@ add_holohub_application(volume_rendering DEPENDS
                                   volume_renderer)
 
 add_holohub_application(volume_rendering_xr DEPENDS
-                        OPERATORS volume_loader
-                                  volume_renderer
-                                  XrFrameOp
-                                  XrTransformOp)
+                        OPERATORS volume_loader volume_renderer)
 
 add_holohub_application(vpi_stereo)
 
