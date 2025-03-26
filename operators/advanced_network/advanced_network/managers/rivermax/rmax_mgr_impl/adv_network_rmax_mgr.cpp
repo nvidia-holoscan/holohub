@@ -110,7 +110,6 @@ class RmaxMgr::RmaxMgrImpl {
   void free_rx_burst(BurstParams* burst);
   void free_tx_burst(BurstParams* burst);
   void format_eth_addr(char* dst, std::string addr);
-  std::optional<uint16_t> get_port_from_ifname(const std::string& name);
   Status get_rx_burst(BurstParams** burst);
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst);
@@ -122,7 +121,6 @@ class RmaxMgr::RmaxMgrImpl {
   uint64_t get_burst_tot_byte(BurstParams* burst);
   BurstParams* create_tx_burst_params();
   Status get_mac_addr(int port, char* mac);
-  int address_to_port(const std::string& addr);
 
  private:
   static void flush_packets(int port);
@@ -185,6 +183,12 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
  * and initializing the RX services and chunk consumers.
  */
 void RmaxMgr::RmaxMgrImpl::initialize() {
+  int port_id = 0;
+  for (auto& intf : cfg_.ifs_) {
+    intf.port_id_ = port_id++;
+    HOLOSCAN_LOG_INFO("{} ({}): assigned port ID {}", intf.name_, intf.address_, intf.port_id_);
+  }
+
   rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
 
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
@@ -604,23 +608,6 @@ void RmaxMgr::RmaxMgrImpl::free_rx_burst(BurstParams* burst) {
 void RmaxMgr::RmaxMgrImpl::free_tx_burst(BurstParams* burst) {}
 
 /**
- * @brief Gets the port number from an interface name.
- *
- * @param name The interface name.
- * @return Optional containing the port number if found, otherwise empty.
- */
-std::optional<uint16_t> RmaxMgr::RmaxMgrImpl::get_port_from_ifname(const std::string& name) {
-  HOLOSCAN_LOG_INFO("Port name {}", name);
-  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&name](const auto& intf) {
-    return name == intf.address_;
-  });
-
-  if (it != cfg_.ifs_.end()) { return it->port_id_; }
-
-  return -1;
-}
-
-/**
  * @brief Dequeues an RX burst.
  *
  * @param burst Pointer to the burst parameters.
@@ -715,21 +702,6 @@ BurstParams* RmaxMgr::RmaxMgrImpl::create_tx_burst_params() {
  */
 Status RmaxMgr::RmaxMgrImpl::get_mac_addr(int port, char* mac) {
   return Status::NOT_SUPPORTED;
-}
-
-/**
- * @brief Converts an address to a port number.
- *
- * @param addr The address.
- * @return The port number.
- */
-int RmaxMgr::RmaxMgrImpl::address_to_port(const std::string& addr) {
-  auto it = std::find_if(cfg_.ifs_.begin(), cfg_.ifs_.end(), [&addr](const auto& intf) {
-    return intf.address_ == addr;
-  });
-
-  if (it != cfg_.ifs_.end()) { return it->port_id_; }
-  return -1;
 }
 
 /**
@@ -1012,16 +984,6 @@ void RmaxMgr::free_tx_burst(BurstParams* burst) {
 }
 
 /**
- * @brief Gets the port number from an interface name.
- *
- * @param name The interface name.
- * @return Optional containing the port number if found, otherwise empty.
- */
-std::optional<uint16_t> RmaxMgr::get_port_from_ifname(const std::string& name) {
-  return pImpl->get_port_from_ifname(name);
-}
-
-/**
  * @brief Gets an RX burst.
  *
  * @param burst Pointer to the burst parameters.
@@ -1123,16 +1085,6 @@ BurstParams* RmaxMgr::create_tx_burst_params() {
  */
 Status RmaxMgr::get_mac_addr(int port, char* mac) {
   return pImpl->get_mac_addr(port, mac);
-}
-
-/**
- * @brief Converts an address to a port number.
- *
- * @param addr The address.
- * @return The port number.
- */
-int RmaxMgr::address_to_port(const std::string& addr) {
-  return pImpl->address_to_port(addr);
 }
 
 };  // namespace holoscan::advanced_network

@@ -275,11 +275,6 @@ void* get_packet_ptr(BurstParams* burst, int idx) {
   return g_ano_mgr->get_packet_ptr(burst, idx);
 }
 
-std::optional<uint16_t> get_port_from_ifname(const std::string& name) {
-  ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_port_from_ifname(name);
-}
-
 void shutdown() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->shutdown();
