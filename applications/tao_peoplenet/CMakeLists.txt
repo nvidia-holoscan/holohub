@@ -22,7 +22,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/tao_peoplenet"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
               -L "https://api.ngc.nvidia.com/v2/models/org/nvidia/team/tao/peoplenet/pruned_quantized_decrypted_v2.3.3/files?redirect=true&path=resnet34_peoplenet_int8.onnx"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tao_peoplenet/resnet34_peoplenet_int8.onnx"
     VERBATIM
 )
 
@@ -31,7 +30,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.mp4"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/tao_peoplenet"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.mp4"
               -L "https://www.pexels.com/download/video/3252148/?fps=25.0&h=720&w=1280"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.mp4"
     VERBATIM
 )
 
@@ -41,8 +39,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.gxf_index"
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/tao_peoplenet" --basename people --width 1280 --height 720 --framerate 25
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.gxf_index"
-               "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/tao_peoplenet/people.mp4"
 )
 

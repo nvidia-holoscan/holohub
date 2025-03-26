@@ -367,4 +367,5 @@ if __name__ == "__main__":
 
     app = FaceDetectApp(args.data, args.source, args.video_device)
     app.config(config_file)
+    app.enable_metadata(False)
     app.run()
