@@ -659,6 +659,8 @@ Status RmaxMgr::RmaxMgrImpl::send_tx_burst(BurstParams* burst) {
  */
 void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
+    print_stats();
+
     HOLOSCAN_LOG_INFO("ANO Rivermax manager shutting down");
     force_quit.store(false);
     std::raise(SIGINT);

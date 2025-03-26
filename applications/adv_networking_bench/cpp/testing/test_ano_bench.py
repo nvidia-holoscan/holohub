@@ -57,10 +57,12 @@ def executable(work_dir):
         (9000, 96.0, 0.1, 0.0),
     ],
 )
+@pytest.mark.parametrize("manager", ["dpdk", "gpunetio"])
 def test_multi_if_loopback(
     executable,
     work_dir,
     nvidia_nics,
+    manager,
     packet_size,
     avg_throughput_threshold,
     missed_pkts_threshold,
@@ -82,12 +84,13 @@ def test_multi_if_loopback(
     payload_size = packet_size - header_size
     in_config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx.yaml")
     out_config_file = os.path.join(
-        work_dir, "testing", f"adv_networking_bench_default_tx_rx_{packet_size}.yaml"
+        work_dir, "testing", f"adv_networking_bench_{manager}_tx_rx_{packet_size}.yaml"
     )
     update_yaml_file(
         in_config_file,
         out_config_file,
         {
+            "advanced_network.cfg.manager": manager,
             "scheduler.max_duration_ms": 10000,
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
@@ -103,7 +106,7 @@ def test_multi_if_loopback(
     # Run the application until completion and parse the results
     command = f"{executable} {out_config_file}"
     result = run_command(command, stream_output=True)
-    results = parse_benchmark_results(result.stdout + result.stderr)
+    results = parse_benchmark_results(result.stdout + result.stderr, manager)
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX), match advanced_network.cfg.interfaces
@@ -168,7 +171,7 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
 
     # Monitor the application until completion and parse the results
     result = monitor_process(p)
-    results = parse_benchmark_results(result.stdout + result.stderr)
+    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
 
     # For this test, we only care about queue packet distribution (on port 0)
     expected_q_pkts = {0: 1, 1: 1}  # Expecting 1 packet for both queue 0 and 1
@@ -177,6 +180,9 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
 
 
 def test_hds_rx(executable, work_dir, nvidia_nics):
+    """
+    Test 3: RX with header-data split.
+    """
     # Get the first two NICs for this test
     tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
 
@@ -197,7 +203,7 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
     # Run the application until completion and parse the results
     command = f"{executable} {config_file}"
     result = run_command(command, stream_output=True)
-    results = parse_benchmark_results(result.stdout + result.stderr)
+    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX)
@@ -208,3 +214,32 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
     errored_pkts_check = results.validate_errored_packets(port_map, error_pkts_threshold)
     throughput_check = results.validate_throughput(port_map, avg_throughput_threshold)
     assert missed_pkts_check and errored_pkts_check and throughput_check, "Validation failed"
+
+
+def test_gpunetio_single_if_loopback(executable, work_dir, nvidia_nics):
+    """
+    Test 4: GPUNetIO with single interface loopback.
+    """
+    # Get the first two NICs for this test
+    interface = nvidia_nics[0]
+
+    # Prepare config
+    config_file = os.path.join(work_dir, "adv_networking_bench_gpunetio_tx_rx.yaml")
+    update_yaml_file(
+        config_file,
+        config_file,
+        {
+            "scheduler.max_duration_ms": 10000,
+            "advanced_network.cfg.interfaces[0].address": interface.bus_id,
+            "bench_tx.eth_dst_addr": interface.mac_address,
+            "bench_tx.address": interface.bus_id,
+        },
+    )
+
+    # Run the application until completion
+    command = f"{executable} {config_file}"
+    result = run_command(command, stream_output=True)
+    parse_benchmark_results(result.stdout + result.stderr, "gpunetio")
+    assert result.returncode == 0, "Application errored out"
+    assert "[error]" not in (result.stdout + result.stderr), "Application reported errors"
+    assert "[ERR]" not in (result.stdout + result.stderr), "Application reported errors"
