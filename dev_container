@@ -256,7 +256,7 @@ get_group_id() {
     # a single ID. Thus, append a colon to the group name to match the exact
     # group (e.g., video: and not video-users:) and include head -1 to get a
     # single ID if there are still multiple matches.
-    cat /etc/group | grep $group: | cut -d: -f3 | head -1
+    cat /etc/group | grep ^${group}: | cut -d: -f3 | head -1
 }
 
 get_ucx_options() {
