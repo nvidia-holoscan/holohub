@@ -115,11 +115,7 @@ add_holohub_application(volume_rendering_xr DEPENDS
 
 add_holohub_application(vpi_stereo)
 
-add_holohub_application(xr_hello_holoscan DEPENDS
-                        OPERATORS volume_renderer # for nlohmann_json dependency
-                                  XrFrameOp
-                                  XrTransformOp
-                                  xr_basic_render)
+add_holohub_application(xr_hello_holoscan)
 
 add_holohub_application(video_deidentification)
 
