@@ -243,83 +243,81 @@ namespace holoscan::ops {
   /**
    * Set up all parameters needed for a newly-connected client
   */
-  int RdmaMgr::setup_client_params_for_server(rdma_server_params *sparams, int if_idx) {
+  int RdmaMgr::setup_client_params_for_server(rdma_server_params *sparams, int client_idx) {
     // RX/TX queues should be symmetric with RDMA
-    const auto num_queues = cfg_.ifs_[if_idx].rx_.queues_.size();
-    const int port_id = cfg_.ifs_[if_idx].port_id_;
-    for (int qi = 0; qi < num_queues; qi++) {
-      rdma_qp_params qp_params;
+    rdma_qp_params qp_params;
+    const auto &client_params = sparams->client_ids[client_idx];
+    const int port_id = cfg_.ifs_[sparams->if_ifx].port_id_;
 
-      qp_params.rx_cq = ibv_create_cq(sparams->client_id->verbs, 
-        MAX_CQ, nullptr, nullptr,	0);
-      if (qp_params.rx_cq == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to create RX queue pair! {}", errno);
-        return -1;
-      }  
+    qp_params.rx_cq = ibv_create_cq(client_params.client_id->verbs, 
+      MAX_CQ, nullptr, nullptr,	0);
+    if (qp_params.rx_cq == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create RX queue pair! {}", errno);
+      return -1;
+    }  
 
-      qp_params.tx_cq = ibv_create_cq(sparams->client_id->verbs, 
-        MAX_CQ, nullptr, nullptr,	0);
-      if (qp_params.tx_cq == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to create TX queue pair! {}", errno);
-        return -1;
-      }              
+    qp_params.tx_cq = ibv_create_cq(client_params.client_id->verbs, 
+      MAX_CQ, nullptr, nullptr,	0);
+    if (qp_params.tx_cq == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create TX queue pair! {}", errno);
+      return -1;
+    }              
 
-      memset(&qp_params.qp_attr, 0, sizeof(qp_params.qp_attr));       
-      qp_params.qp_attr.cap.max_recv_sge = 1; // No header-data split in RDMA right now
-      qp_params.qp_attr.cap.max_recv_wr = MAX_OUSTANDING_WR;
-      qp_params.qp_attr.cap.max_send_sge = 1;
-      qp_params.qp_attr.cap.max_send_wr = MAX_OUSTANDING_WR;
+    memset(&qp_params.qp_attr, 0, sizeof(qp_params.qp_attr));       
+    qp_params.qp_attr.cap.max_recv_sge = 1; // No header-data split in RDMA right now
+    qp_params.qp_attr.cap.max_recv_wr = MAX_OUSTANDING_WR;
+    qp_params.qp_attr.cap.max_send_sge = 1;
+    qp_params.qp_attr.cap.max_send_wr = MAX_OUSTANDING_WR;
 
-      if (cfg_.ifs_[if_idx].rdma_.xmode_ == RDMATransportMode::RC) {
-        qp_params.qp_attr.qp_type = IBV_QPT_RC;
-      }
-      else if (cfg_.ifs_[if_idx].rdma_.xmode_ == RDMATransportMode::UC) {
-        qp_params.qp_attr.qp_type = IBV_QPT_UC;
-      }
-      else {
-        HOLOSCAN_LOG_ERROR("RDMA transport mode {} not supported!", 
-              static_cast<int>(cfg_.ifs_[if_idx].rdma_.xmode_));
-        return -1;
-      }
-
-      // Share the CQ between TX and RX
-      qp_params.qp_attr.recv_cq = qp_params.rx_cq;
-      qp_params.qp_attr.send_cq = qp_params.tx_cq;
-
-      int ret = rdma_create_qp(sparams->client_id, sparams->pd, &qp_params.qp_attr);
-      if (ret != 0) {
-	      HOLOSCAN_LOG_CRITICAL("Failed to create QP: {}", errno);
-	      return -1;
-      } 
-
-      // Create POSIX message queues for talking to client
-      struct mq_attr attr;
-
-      attr.mq_flags = 0;
-      attr.mq_maxmsg = 128;
-      attr.mq_msgsize = sizeof(AdvNetBurstParams);
-      attr.mq_curmsgs = 0;
-
-      qp_params.rx_ring = rx_ring;  
-
-      const uint32_t key = (port_id << 16) | qi;
-      qp_params.tx_ring = tx_rings[key];
-      
-
-      // const int q = 0; // Add multiple queues later
-      // std::string q_name = "P" + std::to_string(cfg_.ifs_[if_idx].port_id_) + 
-      //                      "_Q" + std::to_string(q);
-      // qp_params.rx_mq = mq_open((q_name + "_RX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
-      // qp_params.tx_mq = mq_open((q_name + "_TX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
-
-      // if (qp_params.rx_mq == (mqd_t)-1 || 
-      //     qp_params.tx_mq == (mqd_t)-1) {
-      //   HOLOSCAN_LOG_CRITICAL("Failed to create message queues for {}", q_name);
-      //   return -1;
-      // }
-
-      sparams->qp_params.emplace_back(qp_params);        
+    if (cfg_.ifs_[if_idx].rdma_.xmode_ == RDMATransportMode::RC) {
+      qp_params.qp_attr.qp_type = IBV_QPT_RC;
     }
+    else if (cfg_.ifs_[if_idx].rdma_.xmode_ == RDMATransportMode::UC) {
+      qp_params.qp_attr.qp_type = IBV_QPT_UC;
+    }
+    else {
+      HOLOSCAN_LOG_ERROR("RDMA transport mode {} not supported!", 
+            static_cast<int>(cfg_.ifs_[if_idx].rdma_.xmode_));
+      return -1;
+    }
+
+    // Share the CQ between TX and RX
+    qp_params.qp_attr.recv_cq = qp_params.rx_cq;
+    qp_params.qp_attr.send_cq = qp_params.tx_cq;
+
+    int ret = rdma_create_qp(client_params.client_id, sparams->pd, &qp_params.qp_attr);
+    if (ret != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create QP: {}", errno);
+      return -1;
+    } 
+
+    // Create POSIX message queues for talking to client
+    struct mq_attr attr;
+
+    attr.mq_flags = 0;
+    attr.mq_maxmsg = 128;
+    attr.mq_msgsize = sizeof(AdvNetBurstParams);
+    attr.mq_curmsgs = 0;
+
+    qp_params.rx_ring = rx_ring;  
+
+    const uint32_t key = (port_id << 16) | qi;
+    qp_params.tx_ring = tx_rings[key];
+    
+
+    // const int q = 0; // Add multiple queues later
+    // std::string q_name = "P" + std::to_string(cfg_.ifs_[if_idx].port_id_) + 
+    //                      "_Q" + std::to_string(q);
+    // qp_params.rx_mq = mq_open((q_name + "_RX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
+    // qp_params.tx_mq = mq_open((q_name + "_TX").c_str(), O_CREAT | O_WRONLY, 0644, &attr);
+
+    // if (qp_params.rx_mq == (mqd_t)-1 || 
+    //     qp_params.tx_mq == (mqd_t)-1) {
+    //   HOLOSCAN_LOG_CRITICAL("Failed to create message queues for {}", q_name);
+    //   return -1;
+    // }
+
+    client_params.qp_params.emplace_back(qp_params);        
 
     return 0;
   }
@@ -419,8 +417,8 @@ namespace holoscan::ops {
       switch (burst.rdma_hdr.opcode) {
         case AdvNetRDMAOpCode::CONNECT:
         {
-          if (!is_server) {
-            HOLOSCAN_LOG_CRITICAL("Received connect request from client, but we are a client!");
+          if (is_server) {
+            HOLOSCAN_LOG_CRITICAL("Received connect request from a server!");
             continue;
           }
 
@@ -670,19 +668,23 @@ namespace holoscan::ops {
     }
 
     HOLOSCAN_LOG_INFO("Found {} RDMA-capable devices", num_ib_devices);
-      
+
+    // Create a channel for events. Only the master thread reads from this channel
+    auto server_cm_event_channel = rdma_create_event_channel();    
+    if (server_cm_event_channel == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
+      return;
+    }
+
+    // Set the channel to non-blocking so we can check for SIGINT
+    int flags = fcntl(server_cm_event_channel->fd, F_GETFL);
+    fcntl(server_cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
+
 
     // Start an RDMA server on each interface specified
     for (const auto &intf: cfg_.ifs_) {
       if (intf.rdma_.mode_ != RDMAMode::SERVER) {
         continue;
-      }
-
-      // Create a channel for events. Only the master thread reads from this channel
-      auto cm_event_channel = rdma_create_event_channel();    
-      if (cm_event_channel == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
-        return;
       }
 
       // Initialize all the setup before the main loop
@@ -700,14 +702,18 @@ namespace holoscan::ops {
       HOLOSCAN_LOG_INFO("Successfully created CM event channel");
 
       struct rdma_cm_id *s_id;
-      ret = rdma_create_id(cm_event_channel, &s_id, nullptr, RDMA_PS_TCP);
+      ret = rdma_create_id(server_cm_event_channel, &s_id, nullptr, RDMA_PS_TCP);
       if (ret != 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to create RDMA server ID {}", errno);
         return;
       }
-      cm_server_id_.push_back(s_id);
 
-      HOLOSCAN_LOG_INFO("Created RDMA server ID successfully");
+      sparams_[s_id] = {};
+      sparams_[s_id].server_id = s_id;
+      sparams_[s_id].if_ifx = intf.port_id_;
+
+      HOLOSCAN_LOG_INFO("Created RDMA server on {}:{} successfully", 
+        intf.address_, intf.rdma_.port_);
 
       ret = rdma_bind_addr(s_id, reinterpret_cast<struct sockaddr*>(&server_addr));
       if (ret != 0) {
@@ -724,13 +730,13 @@ namespace holoscan::ops {
 
       pd_map_[intf.port_id_] = pd;
 
-      ret = rdma_listen(s_id, MAX_RDMA_CONNECTIONS);
+      ret = rdma_listen(s_id, intf.rx_.queues_.size());
       if (ret != 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to listen for RDMA server: {}", errno);
         return;
       }
 
-      HOLOSCAN_LOG_INFO("RDMA server successfully started");
+      HOLOSCAN_LOG_INFO("RDMA server successfully started on {} queues", intf.rx_.queues_.size());
     }
 
 
@@ -748,8 +754,14 @@ namespace holoscan::ops {
     // information for them (QPs, MRs, etc), and spawn helper threads to monitor both TX and RX
     struct rdma_cm_event *cm_event = nullptr;    
     while (!rdma_force_quit.load()) {
-      ret = rdma_get_cm_event(cm_event_channel, &cm_event);
+      ret = rdma_get_cm_event(server_cm_event_channel, &cm_event);
       if (ret != 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+          // Sleep for 500 microseconds and try again
+          usleep(500);
+          continue;
+        }
+
         HOLOSCAN_LOG_INFO("Failed to get CM event: {}", errno);
         continue;
       }
@@ -767,46 +779,90 @@ namespace holoscan::ops {
         case RDMA_CM_EVENT_CONNECT_REQUEST: {
           HOLOSCAN_LOG_INFO("Received new connection request for client ID {}", 
               (void*)cm_event->id);
-          rdma_server_params sparams{};
-          int listen_idx;
-          sparams.client_id = cm_event->id;
-          const auto listen_id = cm_event->listen_id;          
+
           ack_event(cm_event);
 
-          const auto listen_iter = std::find(cm_server_id_.begin(), cm_server_id_.end(), listen_id);
-          if (listen_iter == cm_server_id_.end()) {
-            HOLOSCAN_LOG_ERROR("Failed to find listener ID for {}", (void*)listen_id);
+          const auto listen_iter = sparams_.find(sparams.server_id);
+          if (listen_iter == sparams_.end()) {
+            HOLOSCAN_LOG_ERROR("Failed to find server ID for {}", (void*)sparams.server_id);
             break;
           }
           else {
+            if (listen_iter->second.client_ids.size() >= 
+                cfg_.ifs_[listen_iter->second.if_ifx].rx_.queues_.size()) {
+              HOLOSCAN_LOG_CRITICAL("More RDMA connections than RX queues! Dropping connection");
+              break;
+            }
+
+            if (listen_iter->second.client_ids.find(cm_event->id) != listen_iter->second.client_ids.end()) {
+              HOLOSCAN_LOG_CRITICAL("Client ID {} already exists in server ID {}", 
+                  (void*)cm_event->id, (void*)listen_iter->second.server_id);
+              break;
+            }
+
+            rdma_thread_params client_params;
+            client_params.client_id = cm_event->id;
+            client_params.queue_idx = listen_iter->second.client_ids.size();
+            listen_iter->second.client_ids.push_back(client_params);
+
             struct rdma_conn_param conn_param = {};
             conn_param.responder_resources = 1;
             conn_param.initiator_depth = 1;
             conn_param.rnr_retry_count = 7;     
 
-            // resize sparams_ for number of interfaces and add to array. finish posix mq work
-            listen_idx = listen_iter - cm_server_id_.begin();
-            setup_client_params_for_server(&sparams, listen_idx);
-            HOLOSCAN_LOG_INFO("Configured queues for client. Launching threads");
-
-            sparams_[listen_idx] = sparams;
-
-            if (rdma_accept(sparams.client_id, &conn_param) != 0) {
+            if (rdma_accept(client_params.client_id , &conn_param) != 0) {
               HOLOSCAN_LOG_CRITICAL("Failed to accept connection: {}", errno);
-              rdma_reject(sparams.client_id, nullptr, 0);
+              rdma_reject(client_params.client_id, nullptr, 0);
               continue;
-            }
-
-            // Spawn a new TX and RX thread for each QP
-            const auto num_queues = 1; //cfg_.rx[listen_idx].queues_.size();
-            for (int q = 0; q < num_queues; q++) {
-              txrx_workers.emplace_back(std::thread(&RdmaMgr::rdma_thread, this, listen_idx, q));
             }
           }
           break;
         }
-        default:
+        case RDMA_CM_EVENT_ESTABLISHED: {
+          bool found = false;
+          for (const auto &sparams : sparams_) {
+            const auto client_iter = sparams.second.client_ids.find(cm_event->id);
+
+            // Client is found, set up QP and spawn a new thread
+            if (client_iter != sparams.second.client_ids.end()) {
+              const auto client_idx = client_iter->second.queue_idx;
+              setup_client_params_for_server(&sparams_[client_iter->second.server_id], client_idx);
+              HOLOSCAN_LOG_INFO("Configured queues for client. Launching thread");
+
+              client_iter->second.worker_thread = 
+                std::thread(&RdmaMgr::rdma_thread, this, true, client_iter->second);
+              found = true;
+            }
+          }
+
+          if (!found) {
+            HOLOSCAN_LOG_CRITICAL("Received established event for unknown client ID {}", 
+                (void*)cm_event->id);
+            break;
+          }
+
+          HOLOSCAN_LOG_INFO("Received established event for client ID {}", (void*)cm_event->id);
+          break;
+        }
+        case RDMA_CM_EVENT_DISCONNECTED: {
+          HOLOSCAN_LOG_INFO("Received disconnected event for client ID {}", (void*)cm_event->id);
+
+          // Find client across all servers and remove it
+          for (const auto &sparams : sparams_) {
+            const auto client_iter = sparams.second.client_ids.find(cm_event->id);
+            if (client_iter != sparams.second.client_ids.end()) {
+              client_iter->second.worker_thread.join();
+              sparams.second.client_ids.erase(client_iter);
+              HOLOSCAN_LOG_INFO("Joined and removed client thread for ID {}", (void*)cm_event->id);
+              break;
+            }
+          }
+          break;
+        }
+        default: {
           HOLOSCAN_LOG_INFO("Cannot handle event type {}", cm_event->event);
+          break;
+        }
       }     
     }
 

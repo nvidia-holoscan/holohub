@@ -42,14 +42,21 @@ struct rdma_qp_params {
    struct ibv_qp_init_attr qp_attr;
 };
 
+struct rdma_thread_params {
+   struct rdma_cm_id *client_id;
+   rdma_qp_params qp_params;
+   int queue_idx;
+   std::thread worker_thread;
+};
 
 // Used to spawn a new server thread for a particular client
 struct rdma_server_params {
-   struct rdma_cm_id *client_id;
+   int if_ifx;
+   std::vector<rdma_thread_params> client_ids;
+   struct rdma_cm_id *server_id;
    struct ibv_pd *pd;
    struct ibv_comp_channel *iocc;
    struct ibv_cq *cq;
-   std::vector<rdma_qp_params> qp_params;
 };
 
 struct rdma_mr_params {
@@ -152,7 +159,7 @@ class RdmaMgr : public ANOMgr {
     static constexpr int MAX_OUSTANDING_WR = 64;
     std::vector<struct rdma_cm_id *> cm_server_id_;
     std::vector<struct rdma_cm_id *> cm_client_id_;
-    std::vector<rdma_server_params> sparams_;
+    std::unordered_map<rdma_cm_id *, rdma_server_params> sparams_;
     std::vector<std::thread> txrx_workers;
     std::unordered_map<int, struct ibv_pd *> pd_map_;
     std::unordered_map<std::string, rdma_mr_params> mrs_;
@@ -166,8 +173,9 @@ class RdmaMgr : public ANOMgr {
     struct rte_mempool* rx_meta;
     struct rte_mempool* tx_meta;
     std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
+    rdma_event_channel* server_cm_event_channel_;
 
-    void rdma_thread(bool is_server, int if_idx, int q);
+    void rdma_thread(bool is_server, rdma_thread_params params);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     int rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id);
     int rdma_register_cfg_mrs();
@@ -182,7 +190,7 @@ class RdmaMgr : public ANOMgr {
     bool ack_event(rdma_cm_event *cm_event);
     int mr_access_to_ibv(uint32_t access);
     bool get_ip_from_interface(const std::string_view &if_name, sockaddr_in &addr);
-    int  setup_client_params_for_server(rdma_server_params *sparams, int if_idx);
+    int  setup_client_params_for_server(rdma_server_params *sparams, int client_idx);
 };
 
 };  // namespace holoscan::ops
