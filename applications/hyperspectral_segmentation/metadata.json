@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Segmentation",
-			"Hyperspectral"
-		],
+		"tags": ["healthcare AI", "imaging", "blosc compression", "ONNX inference"],
 		"ranking": 2,
 		"dependencies": {
 			"blosc": "^1.11.1",

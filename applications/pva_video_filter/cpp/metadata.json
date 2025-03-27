@@ -29,9 +29,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": [
-            "PVA"
-        ],
+        "tags": ["computer vision and perception", "imaging", "PVA accelerated", "unsharp mask filtering"],
         "ranking": 1,
         "dependencies": {},
         "run": {

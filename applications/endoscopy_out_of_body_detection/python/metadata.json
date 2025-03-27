@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Classification"
-		],
+		"tags": ["healthcare AI", "video", "binary classification", "ONNX inference"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

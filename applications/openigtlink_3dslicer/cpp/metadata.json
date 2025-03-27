@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-            "Streaming",
-            "Ethernet",
-            "3DSlicer",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "networking", "segmentation", "OpenIGTLink"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

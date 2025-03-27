@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Multimodal Model",
-			"Vision Model"
-		],
+		"tags": ["computer vision and perception", "video", "dynamic tasks", "multi inference"],
 		"ranking": 1,
 		"dependencies": {
 			"PySide6": {

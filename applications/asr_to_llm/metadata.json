@@ -22,12 +22,7 @@
 			"x86_64",
             "aarch64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model",
-            "ASR",
-            "Local-LLM"
-		],
+		"tags": ["healthcare AI", "audio", "real-time transcription", "medical summarization"],
 		"ranking": 4,
 		"dependencies": {
             "python-packages": {

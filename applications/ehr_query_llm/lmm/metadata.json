@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"EHR",
-			"LLM",
-			"RAG"
-		],
+		"tags": ["healthcare AI", "language model", "RAG pipeline", "agent framework"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

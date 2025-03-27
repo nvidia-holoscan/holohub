@@ -23,11 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"gRPC"
-		],
+		"tags": ["healthcare AI", "networking", "tool tracking", "gRPC offload"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

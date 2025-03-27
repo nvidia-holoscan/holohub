@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Object detection"
-		],
+		"tags": ["computer vision and perception", "visualization", "torchscript inference", "bounding box configuration"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

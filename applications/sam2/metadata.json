@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"SAM2 Model"
-		],
+		"tags": ["computer vision and perception", "video", "interactive segmentation", "mask generation"],
 		"ranking": 1,
 		"dependencies": {
 			"SAM2": {
