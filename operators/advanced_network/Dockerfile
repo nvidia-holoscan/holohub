@@ -163,7 +163,7 @@ FROM common-deps AS dpdk
 FROM common-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
-ARG RIVERMAX_VERSION=1.60.6
+ARG RIVERMAX_VERSION=1.70.21
 ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
@@ -206,19 +206,19 @@ RUN cd apps && \
     cmake --build build -j $(nproc)
 
 # Temporarily add missing definitions for rmax_apps_lib build until added to the SDK
-RUN echo '\
-    target_compile_definitions(rmax-apps-util-reduced PUBLIC \
-            \$<\$<BOOL:\${RMAX_CUDA}>:CUDA_ENABLED> \
-            \$<\$<BOOL:\${RMAX_TEGRA}>:TEGRA_ENABLED> \
-    )' >> rmax_apps_lib/util/CMakeLists.txt
+#RUN echo '\
+#    target_compile_definitions(rmax-apps-util-reduced PUBLIC \
+#            \$<\$<BOOL:\${RMAX_CUDA}>:CUDA_ENABLED> \
+#            \$<\$<BOOL:\${RMAX_TEGRA}>:TEGRA_ENABLED> \
+#    )' >> rmax_apps_lib/util/CMakeLists.txt
 
 # Build rmax_apps_lib sample applications
-RUN cd rmax_apps_lib && \
+RUN cd rivermax-dev-kit && \
     cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA} -DRMAX_BUILD_VIEWER=ON && \
     cmake --build build -j $(nproc)
 
 # Temporarily exclude apps from rmax_apps_lib build until added to the SDK
-RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt
+#RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt
 
 # ==============================
 # Default stage: common-deps

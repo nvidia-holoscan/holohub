@@ -480,6 +480,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+#if !ANO_MGR_RIVERMAX
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
@@ -488,6 +489,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
   }
+#endif
   return true;
 }
 
