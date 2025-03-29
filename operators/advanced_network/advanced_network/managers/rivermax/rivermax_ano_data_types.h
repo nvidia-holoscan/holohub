@@ -18,19 +18,58 @@
 #ifndef RIVERMAX_ANO_DATA_TYPES_H_
 #define RIVERMAX_ANO_DATA_TYPES_H_
 
+#include <chrono>
+
 #include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
 
 class RivermaxBurst;
-
+/**
+ * @brief Interface for a collection of bursts.
+ *
+ * This interface defines the basic operations for a collection of bursts,
+ * including enqueueing, dequeueing, checking the size, and clearing the collection.
+ */
 class IAnoBurstsCollection {
  public:
+  /**
+   * @brief Virtual destructor for the IAnoBurstsCollection class.
+   */
   virtual ~IAnoBurstsCollection() = default;
+ /**
+   * @brief Enqueues a burst into the queue.
+   *
+   * @param burst The burst to put into the queue.
+   * @return True if the burst was successfully put into the queue, false otherwise.
+   */
   virtual bool enqueue_burst(std::shared_ptr<RivermaxBurst> burst) = 0;
+
+  /**
+   * @brief Dequeues a burst from the queue.
+   *
+   * @return A shared pointer to the burst.
+   */
   virtual std::shared_ptr<RivermaxBurst> dequeue_burst() = 0;
+
+  /**
+   * @brief Gets the number of available bursts in the queue.
+   *
+   * @return The number of available bursts.
+   */
   virtual size_t available_bursts() = 0;
+
+  /**
+   * @brief Checks if the queue is empty.
+   *
+   * @return True if the queue is empty, false otherwise.
+   */
   virtual bool empty() = 0;
+
+  /**
+   * @brief Clears the queue.
+   */
+  virtual void stop() = 0;
 };
 
 /**
@@ -84,6 +123,10 @@ class QueueInterface {
    * @brief Clears the queue.
    */
   virtual void clear() = 0;
+  /**
+   * @brief Stops the queue.
+   */
+  virtual void stop() = 0;
 };
 
 /**
@@ -103,39 +146,17 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
    */
   AnoBurstsQueue();
 
-  /**
-   * @brief Virtual destructor for the AnoBurstsQueue class.
-   */
   virtual ~AnoBurstsQueue() = default;
 
-  /**
-   * @brief Enqueues a burst into the queue.
-   *
-   * @param burst The burst to put into the queue.
-   * @return True if the burst was successfully put into the queue, false otherwise.
-   */
   bool enqueue_burst(std::shared_ptr<RivermaxBurst> burst) override;
 
-  /**
-   * @brief Dequeues a burst from the queue.
-   *
-   * @return A shared pointer to the burst.
-   */
   std::shared_ptr<RivermaxBurst> dequeue_burst() override;
 
-  /**
-   * @brief Gets the number of available bursts in the queue.
-   *
-   * @return The number of available bursts.
-   */
-  size_t available_bursts() override { return m_queue->get_size(); };
+  size_t available_bursts() override { return queue_->get_size(); };
 
-  /**
-   * @brief Checks if the queue is empty.
-   *
-   * @return True if the queue is empty, false otherwise.
-   */
-  bool empty() override { return m_queue->get_size() == 0; };
+  bool empty() override { return queue_->get_size() == 0; };
+
+  void stop() override;
 
   /**
    * @brief Clears the queue.
@@ -143,7 +164,8 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
   void clear();
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<RivermaxBurst>>> m_queue;
+  std::unique_ptr<QueueInterface<std::shared_ptr<RivermaxBurst>>> queue_;
+  std::atomic<bool> stop_ = false;
 };
 
 enum BurstFlags : uint8_t {

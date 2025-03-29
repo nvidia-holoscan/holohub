@@ -23,12 +23,14 @@
 #include <memory>
 #include <tuple>
 
+#include "rdk/core/core.h"
+
 #include "rivermax_ano_data_types.h"
 #include "burst_manager.h"
 #include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
-using namespace ral::services;
+using namespace rivermax::dev_kit::core;
 
 /**
  * @brief Parameters for processing a chunk of packets.
@@ -67,9 +69,10 @@ class IPacketProcessor {
    * status along with the number of processed packets.
    *
    * @param params Struct containing packet processing parameters.
-   * @return A tuple containing the status and the number of processed packets.
+   * @param processed_packets Sets the number of processed packets.
+   * @return Status indicating the success or failure of the operation.
    */
-  virtual std::tuple<ReturnStatus, size_t> process_packets(const PacketsChunkParams& params) = 0;
+  virtual Status process_packets(const PacketsChunkParams& params, size_t& processed_packets) = 0;
 };
 
 /**
@@ -88,33 +91,24 @@ class RxPacketProcessor : public IPacketProcessor {
    * @param rx_burst_manager Shared pointer to the burst manager.
    */
   explicit RxPacketProcessor(std::shared_ptr<RxBurstsManager> rx_burst_manager)
-      : m_rx_burst_manager(rx_burst_manager) {
-    if (m_rx_burst_manager == nullptr) {
+      : rx_burst_manager_(rx_burst_manager) {
+    if (rx_burst_manager_ == nullptr) {
       throw std::invalid_argument("RxPacketProcessor: rx_burst_manager is nullptr");
     }
   }
 
-  /**
-   * @brief Processes packets.
-   *
-   * This function processes the packets contained in the provided arrays and returns the
-   * status along with the number of processed packets.
-   *
-   * @param params Struct containing packet processing parameters.
-   * @return A tuple containing the status and the number of processed packets.
-   */
-  std::tuple<ReturnStatus, size_t> process_packets(const PacketsChunkParams& params) override {
-    size_t processed_packets = 0;
-    ReturnStatus status = ReturnStatus::success;
+  Status process_packets(const PacketsChunkParams& params, size_t& processed_packets) override {
+    processed_packets = 0;
+    Status status = Status::SUCCESS;
 
-    if (params.chunk_size == 0) { return {status, processed_packets}; }
+    if (params.chunk_size == 0) { return status; }
 
     auto remaining_packets = params.chunk_size;
 
-    status = m_rx_burst_manager->set_next_chunk_params(
+    status = rx_burst_manager_->set_next_chunk_params(
         params.chunk_size, params.hds_on, params.header_stride_size, params.payload_stride_size);
 
-    if (status != ReturnStatus::success) { return {status, processed_packets}; }
+    if (status != Status::SUCCESS) { return status; }
 
     auto header_ptr = params.header_ptr;
     auto payload_ptr = params.payload_ptr;
@@ -128,9 +122,9 @@ class RxPacketProcessor : public IPacketProcessor {
           {params.packet_info_array[processed_packets].get_packet_flow_tag(),
            params.packet_info_array[processed_packets].get_packet_timestamp()}};
 
-      status = m_rx_burst_manager->submit_next_packet(rx_packet_data);
+      status = rx_burst_manager_->submit_next_packet(rx_packet_data);
 
-      if (status != ReturnStatus::success) { return {status, processed_packets}; }
+      if (status != Status::SUCCESS) { return status; }
 
       processed_packets++;
       remaining_packets--;
@@ -138,11 +132,11 @@ class RxPacketProcessor : public IPacketProcessor {
       payload_ptr += params.payload_stride_size;
     }
 
-    return {status, processed_packets};
+    return status;
   }
 
  private:
-  std::shared_ptr<RxBurstsManager> m_rx_burst_manager;
+  std::shared_ptr<RxBurstsManager> rx_burst_manager_;
 };
 
 };  // namespace holoscan::advanced_network

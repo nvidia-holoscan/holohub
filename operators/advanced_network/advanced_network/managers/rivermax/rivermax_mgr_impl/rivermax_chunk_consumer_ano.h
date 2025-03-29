@@ -21,14 +21,17 @@
 #include <cstddef>
 #include <iostream>
 
+#include "rdk/core/core.h"
+#include "rdk/services/services.h"
+
 #include "rivermax_ano_data_types.h"
-#include "rivermax_service/ipo_chunk_consumer_base.h"
-#include "rivermax_service/rmax_ipo_receiver_service.h"
 #include "packet_processor.h"
 #include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
-using namespace ral::services;
+
+using namespace rivermax::dev_kit::services;
+using namespace rivermax::dev_kit::core;
 
 /**
  * @brief Consumer class for handling Rivermax chunks and providing advanced_network bursts.
@@ -40,7 +43,7 @@ using namespace ral::services;
  * and provide the necessary functionality to handle and transform the data
  * into a format suitable for advanced_network to process.
  */
-class RivermaxChunkConsumerAno : public IIPOChunkConsumer {
+class RivermaxChunkConsumerAno : public IReceiveDataConsumer {
  public:
   /**
    * @brief Constructor for the RivermaxChunkConsumerAno class.
@@ -50,7 +53,9 @@ class RivermaxChunkConsumerAno : public IIPOChunkConsumer {
    * @param packet_processor Shared pointer to the packet processor.
    */
   explicit RivermaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
-      : m_packet_processor(packet_processor) {}
+      : packet_processor_(std::move(packet_processor)) {
+    packet_info_array_ = std::make_unique<ReceivePacketInfo[]>(RivermaxBurst::MAX_PKT_IN_BURST);
+  }
 
   /**
    * @brief Destructor for the RivermaxChunkConsumerAno class.
@@ -59,66 +64,50 @@ class RivermaxChunkConsumerAno : public IIPOChunkConsumer {
    */
   virtual ~RivermaxChunkConsumerAno() = default;
 
-  /**
-   * @brief Consumes and processes packets from a given chunk.
-   *
-   * This function processes the packets contained in the provided chunk and returns a tuple
-   * containing the return status, the number of consumed packets, and the number of unconsumed
-   * packets.
-   *
-   * @param chunk Reference to the IPOReceiveChunk containing the packets.
-   * @param stream Reference to the IPOReceiveStream associated with the chunk.
-   * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
-   * consumed packets, and the number of unconsumed packets.
-   */
-  std::tuple<ReturnStatus, size_t, size_t> consume_chunk_packets(IPOReceiveChunk& chunk,
-                                                                 IPOReceiveStream& stream) override;
+  ReturnStatus consume_chunk(const ReceiveChunk& chunk, const IReceiveStream& stream,
+                             size_t& consumed_packets) override;
 
  protected:
-  std::shared_ptr<RxPacketProcessor> m_packet_processor;
+  std::shared_ptr<RxPacketProcessor> packet_processor_;
+  std::unique_ptr<ReceivePacketInfo[]> packet_info_array_;
 };
 
-/**
- * @brief Consumes and processes packets from a given chunk.
- *
- * This function processes the packets contained in the provided chunk and returns a tuple
- * containing the return status, the number of consumed packets, and the number of unconsumed
- * packets.
- *
- * @param chunk Reference to the IPOReceiveChunk containing the packets.
- * @param stream Reference to the IPOReceiveStream associated with the chunk.
- * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
- * consumed packets, and the number of unconsumed packets.
- */
-inline std::tuple<ReturnStatus, size_t, size_t> RivermaxChunkConsumerAno::consume_chunk_packets(
-    IPOReceiveChunk& chunk, IPOReceiveStream& stream) {
-  if (m_packet_processor == nullptr) {
+inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& chunk,
+                                                            const IReceiveStream& stream,
+                                                            size_t& consumed_packets) {
+  consumed_packets = 0;
+  if (packet_processor_ == nullptr) {
     HOLOSCAN_LOG_ERROR("Packet processor is not set");
-    return {ReturnStatus::failure, 0, 0};
+    return ReturnStatus::failure;
   }
 
-  const auto chunk_size = chunk.get_completion_chunk_size();
-  if (chunk_size == 0) { return {ReturnStatus::success, 0, 0}; }
+  auto chunk_size = chunk.get_length();
+  if (chunk_size == 0) { return ReturnStatus::success; }
 
+  for (size_t i = 0; i < chunk_size; ++i) { packet_info_array_[i] = chunk.get_packet_info(i); }
   PacketsChunkParams params = {
       // header_ptr: Pointer to the header data
-      reinterpret_cast<uint8_t*>(chunk.get_completion_header_ptr()),
+      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(chunk.get_header_ptr())),
       // payload_ptr: Pointer to the payload data
-      reinterpret_cast<uint8_t*>(chunk.get_completion_payload_ptr()),
+      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(chunk.get_payload_ptr())),
       // packet_info_array: Array of packet information
-      chunk.get_completion_info_ptr(),
+      packet_info_array_.get(),
       chunk_size,
       // hds_on: Header data splitting enabled
-      (chunk_size > 0) ? (chunk.get_packet_header_size(0) > 0) : false,
+      chunk.is_header_data_split_on(),
       // header_stride_size: Stride size for the header data
       stream.get_header_stride_size(),
       // payload_stride_size: Stride size for the payload data
       stream.get_payload_stride_size(),
   };
 
-  auto [status, processed_packets] = m_packet_processor->process_packets(params);
+  auto process_status = packet_processor_->process_packets(params, consumed_packets);
+  if (process_status != Status::SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Packet processing failed");
+    return ReturnStatus::failure;
+  }
 
-  return {status, processed_packets, chunk_size - processed_packets};
+  return ReturnStatus::success;
 }
 
 };  // namespace holoscan::advanced_network

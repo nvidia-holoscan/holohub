@@ -22,21 +22,30 @@
 #include <sstream>
 #include <vector>
 
+#include "rdk/apps/apps.h"
+#include "rdk/io_node/io_node.h"
+#include "rdk/apps/rmax_ipo_receiver/rmax_ipo_receiver.h"
+#include "rdk/apps/rmax_rtp_receiver/rmax_rtp_receiver.h"
+
 #include "advanced_network/manager.h"
-#include "rmax_ipo_receiver_service.h"
 
 namespace holoscan::advanced_network {
 
-class IpoRxStatsPrinter {
+using namespace rivermax::dev_kit::io_node;
+using namespace rivermax::dev_kit::apps;
+using namespace rivermax::dev_kit::apps::rmax_ipo_receiver;
+using namespace rivermax::dev_kit::apps::rmax_rtp_receiver;
+
+class RxStatsPrinter {
  public:
   static constexpr double GIGABYTE = 1073741824.0;
   static constexpr double MEGABYTE = 1048576.0;
 
-  static void print_stream_stats(std::stringstream& ss, uint32_t stream_index,
-                                 IPORXStatistics stream_stats,
-                                 std::vector<IPOPathStatistics> stream_path_stats) {
+  static void print_ipo_stream_stats(std::stringstream& ss, uint32_t stream_index,
+                                     IPORXStatistics stream_stats,
+                                     std::vector<IPOPathStatistics> stream_path_stats) {
     ss << "[stream_index " << std::setw(3) << stream_index << "]"
-       << " Got " << std::setw(7) << stream_stats.rx_counter << " packets | ";
+       << " Got " << std::setw(7) << stream_stats.rx_count << " packets | ";
 
     if (stream_stats.received_bytes >= GIGABYTE) {
       ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / GIGABYTE)
@@ -61,10 +70,10 @@ class IpoRxStatsPrinter {
        << " bad RTP hdr: " << stream_stats.rx_corrupt_rtp_header << " | ";
 
     for (uint32_t s_index = 0; s_index < stream_path_stats.size(); ++s_index) {
-      if (stream_stats.rx_counter > 0) {
+      if (stream_stats.rx_count > 0) {
         uint32_t number = static_cast<uint32_t>(
             floor(100 * static_cast<double>(stream_path_stats[s_index].rx_count) /
-                  static_cast<double>(stream_stats.rx_counter)));
+                  static_cast<double>(stream_stats.rx_count)));
         ss << " " << std::setw(3) << number << "%";
       } else {
         ss << "   0%";
@@ -73,26 +82,55 @@ class IpoRxStatsPrinter {
     ss << "\n";
   }
 
+  static void print_rtp_stream_stats(std::stringstream& ss, uint32_t stream_index,
+                                     RXStatistics stream_stats) {
+    ss << "[stream_index " << std::setw(3) << stream_index << "]"
+       << " Got " << std::setw(7) << stream_stats.rx_count << " packets | ";
+
+    if (stream_stats.received_bytes >= GIGABYTE) {
+      ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / GIGABYTE)
+         << " GB |";
+    } else if (stream_stats.received_bytes >= MEGABYTE) {
+      ss << std::fixed << std::setprecision(2) << (stream_stats.received_bytes / MEGABYTE)
+         << " MB |";
+    } else {
+      ss << stream_stats.received_bytes << " bytes |";
+    }
+    ss << " |"
+       << " consumed: " << stream_stats.consumed_packets << " |"
+       << " unconsumed: " << stream_stats.unconsumed_packets << " |"
+       << " lost: " << stream_stats.rx_dropped << " |"
+       << " bad RTP hdr: " << stream_stats.rx_corrupt_rtp_header << " | ";
+    ss << "\n";
+  }
+
   /**
    * @brief Prints the statistics of the Rivermax manager.
    */
   static void print_total_stats(
       std::stringstream& ss,
-      std::unordered_map<uint32_t,
-                         std::unique_ptr<ral::services::rmax_ipo_receiver::RmaxIPOReceiverService>>&
-          rx_services) {
+      std::unordered_map<uint32_t, std::unique_ptr<RmaxReceiverBaseApp>>& rx_services) {
     uint32_t stream_id = 0;
 
     ss << "RIVERMAX advanced_network Statistics\n";
     ss << "====================================\n";
     ss << "Total Statistics\n";
     ss << "----------------\n";
+
     for (const auto& entry : rx_services) {
       uint32_t key = entry.first;
       auto& rx_service = entry.second;
-      auto [stream_stats, path_stats] = rx_service->get_streams_statistics();
-      for (uint32_t i = 0; i < stream_stats.size(); ++i) {
-        print_stream_stats(ss, stream_id++, stream_stats[i], path_stats[i]);
+
+      if (IPOReceiverApp* ipo_service = dynamic_cast<IPOReceiverApp*>(rx_service.get())) {
+        auto [stream_stats, path_stats] = ipo_service->get_streams_statistics();
+        for (uint32_t i = 0; i < stream_stats.size(); ++i) {
+          print_ipo_stream_stats(ss, stream_id++, stream_stats[i], path_stats[i]);
+        }
+      } else if (RTPReceiverApp* rtp_service = dynamic_cast<RTPReceiverApp*>(rx_service.get())) {
+        auto stream_stats = rtp_service->get_streams_statistics();
+        for (uint32_t i = 0; i < stream_stats.size(); ++i) {
+          print_rtp_stream_stats(ss, stream_id++, stream_stats[i]);
+        }
       }
     }
   }

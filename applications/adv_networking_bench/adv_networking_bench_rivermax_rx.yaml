@@ -54,6 +54,7 @@ advanced_network:
           - "Data_RX_CPU"
           - "Data_RX_GPU"
           rivermax_rx_settings:
+            settings_type: "ipo_receiver"
             memory_registration: true
             #allocator_type: "huge_page_2mb"
             verbose: true
@@ -72,7 +73,7 @@ advanced_network:
             destination_ports:
               - 50001
               - 50001
-            rx_stats_period_report_ms: 3000
+            stats_report_interval_ms: 100
             send_packet_ext_info: true
 
 bench_rx:
