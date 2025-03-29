@@ -26,125 +26,264 @@
 
 #include "advanced_network/manager.h"
 #include "rivermax_ano_data_types.h"
-#include "rmax_ipo_receiver_service.h"
+#include "rivermax_queue_configs.h"
 
 namespace holoscan::advanced_network {
 
-using namespace ral::services::rmax_ipo_receiver;
+/**
+ * @brief: Base configuration holder class.
+ *
+ * This class serves as the base for all configuration holder types
+ * and provides a common interface for identifying the configuration type.
+ */
+class ConfigBuilderHolder {
+ public:
+  /**
+   * @brief: Virtual destructor for ConfigBuilderHolder.
+   */
+  virtual ~ConfigBuilderHolder() = default;
+
+  /**
+   * @brief: Returns the type of the configuration.
+   *
+   * @return: The configuration type enum value.
+   */
+  virtual QueueConfigType get_type() const = 0;
+};
 
 /**
- * @brief Configuration structure for Rivermax RX queue.
+ * @brief: Typed configuration holder for specific builder types.
  *
- * This structure holds the configuration settings for an Rivermax RX queue,
- * including packet size, chunk size, IP addresses, ports, and other parameters.
+ * This template class holds a builder of a specific type along with
+ * its type enum for identification purposes.
+ *
+ * @tparam ConfigBuilderType: The type of the configuration builder to hold.
  */
-struct RivermaxRxQueueConfig : public ManagerExtraQueueConfig {
-  uint16_t max_packet_size = 0;
-  size_t max_chunk_size;
-  size_t packets_buffers_size;
-  bool gpu_direct;
-  int gpu_device_id;
-  uint16_t split_boundary;
-  std::vector<std::string> local_ips;
-  std::vector<std::string> source_ips;
-  std::vector<std::string> destination_ips;
-  std::vector<uint16_t> destination_ports;
-  size_t num_of_threads;
-  bool print_parameters;
-  uint32_t max_path_differential_us;
-  int sleep_between_operations_us;
-  std::string allocator_type;
-  bool ext_seq_num;
-  bool memory_registration;
-  bool send_packet_ext_info;
-  uint32_t rx_stats_period_report_ms;
-
+template <typename ConfigBuilderType>
+class TypedConfigBuilderHolder : public ConfigBuilderHolder {
  public:
-  RivermaxRxQueueConfig() = default;
-  ~RivermaxRxQueueConfig() = default;
+  /**
+   * @brief: Constructor for TypedConfigBuilderHolder.
+   *
+   * @param [in] type: The configuration type enum value.
+   * @param [in] config_builder: A shared pointer to the configuration builder.
+   */
+  TypedConfigBuilderHolder(QueueConfigType type, std::shared_ptr<ConfigBuilderType> config_builder)
+      : type_(type), config_builder_(std::move(config_builder)) {}
 
-  RivermaxRxQueueConfig(const RivermaxRxQueueConfig& other)
-      : ManagerExtraQueueConfig(other),
-        max_packet_size(other.max_packet_size),
-        max_chunk_size(other.max_chunk_size),
-        packets_buffers_size(other.packets_buffers_size),
-        gpu_direct(other.gpu_direct),
-        gpu_device_id(other.gpu_device_id),
-        split_boundary(other.split_boundary),
-        local_ips(other.local_ips),
-        source_ips(other.source_ips),
-        destination_ips(other.destination_ips),
-        destination_ports(other.destination_ports),
-        num_of_threads(other.num_of_threads),
-        print_parameters(other.print_parameters),
-        max_path_differential_us(other.max_path_differential_us),
-        sleep_between_operations_us(other.sleep_between_operations_us),
-        allocator_type(other.allocator_type),
-        ext_seq_num(other.ext_seq_num),
-        memory_registration(other.memory_registration),
-        send_packet_ext_info(other.send_packet_ext_info),
-        rx_stats_period_report_ms(other.rx_stats_period_report_ms) {}
+  /**
+   * @brief: Returns the type of the configuration.
+   *
+   * @return: The configuration type enum value.
+   */
+  QueueConfigType get_type() const override { return type_; }
 
-  RivermaxRxQueueConfig& operator=(const RivermaxRxQueueConfig& other) {
-    if (this != &other) {
-      ManagerExtraQueueConfig::operator=(other);
-      max_packet_size = other.max_packet_size;
-      max_chunk_size = other.max_chunk_size;
-      packets_buffers_size = other.packets_buffers_size;
-      gpu_direct = other.gpu_direct;
-      gpu_device_id = other.gpu_device_id;
-      split_boundary = other.split_boundary;
-      local_ips = other.local_ips;
-      source_ips = other.source_ips;
-      destination_ips = other.destination_ips;
-      destination_ports = other.destination_ports;
-      num_of_threads = other.num_of_threads;
-      print_parameters = other.print_parameters;
-      max_path_differential_us = other.max_path_differential_us;
-      sleep_between_operations_us = other.sleep_between_operations_us;
-      allocator_type = other.allocator_type;
-      ext_seq_num = other.ext_seq_num;
-      memory_registration = other.memory_registration;
-      send_packet_ext_info = other.send_packet_ext_info;
-      rx_stats_period_report_ms = other.rx_stats_period_report_ms;
-    }
-    return *this;
+  /**
+   * @brief: Gets the configuration builder pointer.
+   *
+   * @return: A shared pointer to the configuration builder.
+   */
+  std::shared_ptr<ConfigBuilderType> get_config_builder() const { return config_builder_; }
+
+ private:
+  QueueConfigType type_;
+  std::shared_ptr<ConfigBuilderType> config_builder_;
+};
+
+/**
+ * @brief: Container for multiple configuration builders.
+ *
+ * This class provides a mapping from configuration numbers to
+ * configuration builder holders, allowing for storage and retrieval
+ * of different types of configuration builders.
+ */
+class ConfigBuilderContainer {
+ public:
+  /**
+   * @brief: Iterator types for the container.
+   */
+  using ConstIterator =
+      typename std::map<uint32_t, std::shared_ptr<ConfigBuilderHolder>>::const_iterator;
+
+  /**
+   * @brief: Iterator access methods.
+   */
+  ConstIterator begin() const { return holders_.begin(); }
+  ConstIterator end() const { return holders_.end(); }
+  ConstIterator cbegin() const { return holders_.cbegin(); }
+  ConstIterator cend() const { return holders_.cend(); }
+
+  /**
+   * @brief: Adds a configuration builder to the container.
+   *
+   * @tparam ConfigBuilderType: The type of the configuration builder.
+   * @param [in] config_num: The configuration number (key).
+   * @param [in] type: The configuration type enum value.
+   * @param [in] config_builder: A shared pointer to the configuration builder.
+   */
+  template <typename ConfigBuilderType>
+  void add_config_builder(uint32_t config_num, QueueConfigType type,
+                          std::shared_ptr<ConfigBuilderType> config_builder) {
+    holders_[config_num] = std::make_shared<TypedConfigBuilderHolder<ConfigBuilderType>>(
+        type, std::move(config_builder));
   }
 
-  void dump_parameters() const;
+  /**
+   * @brief: Gets a configuration holder by configuration number.
+   *
+   * @param [in] config_num: The configuration number (key).
+   * @return: A shared pointer to the ConfigBuilderHolder, or nullptr if not found.
+   */
+  std::shared_ptr<ConfigBuilderHolder> get_holder(uint32_t config_num) const {
+    auto it = holders_.find(config_num);
+    if (it != holders_.end()) { return it->second; }
+    return nullptr;
+  }
+
+  /**
+   * @brief: Gets a configuration builder by configuration number and casts to specific type.
+   *
+   * @tparam ConfigBuilderType: The type of the configuration builder.
+   * @param [in] config_num: The configuration number (key).
+   * @return: A shared pointer to the specific type of configuration builder, or nullptr if not
+   * found.
+   */
+  template <typename ConfigBuilderType>
+  std::shared_ptr<ConfigBuilderType> get_config_builder(uint32_t config_num) const {
+    auto holder = get_holder(config_num);
+    if (holder) {
+      auto typed_holder = dynamic_cast<TypedConfigBuilderHolder<ConfigBuilderType>*>(holder.get());
+      if (typed_holder) { return typed_holder->get_config_builder(); }
+    }
+    return nullptr;
+  }
+
+  /**
+   * @brief: Gets configuration builders by type.
+   *
+   * @tparam ConfigBuilderType: The type of the configuration builder.
+   * @param [in] type: The configuration type enum value.
+   * @return: A vector of pairs containing config number and builder pointer.
+   */
+  template <typename ConfigBuilderType>
+  std::vector<std::pair<uint32_t, std::shared_ptr<ConfigBuilderType>>> get_config_builders_by_type(
+      QueueConfigType type) const {
+    std::vector<std::pair<uint32_t, std::shared_ptr<ConfigBuilderType>>> result;
+    for (const auto& pair : holders_) {
+      if (pair.second->get_type() == type) {
+        auto typed_holder =
+            dynamic_cast<TypedConfigBuilderHolder<ConfigBuilderType>*>(pair.second.get());
+        if (typed_holder) { result.emplace_back(pair.first, typed_holder->get_config_builder()); }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * @brief: Checks if the container has a configuration with the given number.
+   *
+   * @param [in] config_num: The configuration number to check.
+   * @return: True if the configuration exists, false otherwise.
+   */
+  bool has_config(uint32_t config_num) const {
+    return holders_.find(config_num) != holders_.end();
+  }
+
+  /**
+   * @brief: Gets all configuration numbers in the container.
+   *
+   * @return: A vector of configuration numbers.
+   */
+  std::vector<uint32_t> get_config_nums() const {
+    std::vector<uint32_t> keys;
+    keys.reserve(holders_.size());
+    for (const auto& pair : holders_) { keys.push_back(pair.first); }
+    return keys;
+  }
+
+  /**
+   * @brief: Gets the number of configurations in the container.
+   *
+   * @return: The number of configurations.
+   */
+  size_t size() const { return holders_.size(); }
+
+  /**
+   * @brief: Clears all configurations from the container.
+   */
+  void clear() { holders_.clear(); }
+
+ private:
+  std::map<uint32_t, std::shared_ptr<ConfigBuilderHolder>> holders_;
 };
 
 /**
- * @brief Extended configuration for Rivermax IPO Receiver.
- */
-struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
-  bool send_packet_ext_info;
-};
-
-/**
- * @brief Base interface for configuration managers.
+ * @brief Interface for configuration managers.
  *
- * The IConfigManager interface defines the basic operations for configuration managers
- * in Rivermax. It provides a template for iterators and a method to set the configuration.
+ * The IConfigManager interface provides a common set of operations for
+ * managing configurations. It defines methods for setting configurations,
+ * iterating through configuration entries, and accessing specific configurations.
+ * This serves as the base interface for specialized configuration managers like
+ * RxConfigManager and TxConfigManager.
  */
 class IConfigManager {
  public:
+  /**
+   * @brief Maximum number of Rivermax memory regions supported.
+   */
   static constexpr uint16_t MAX_RMAX_MEMORY_REGIONS = 2;
 
-  template <typename T>
-  using ConstIterator = typename std::unordered_map<uint32_t, T>::const_iterator;
+  /**
+   * @brief Type definition for constant iterators used to traverse configurations.
+   */
+  using ConstIterator = typename ConfigBuilderContainer::ConstIterator;
 
+  /**
+   * @brief Virtual destructor to ensure proper cleanup of derived classes.
+   */
   virtual ~IConfigManager() = default;
 
   /**
-   * @brief Sets the configuration.
+   * @brief Sets the network configuration.
    *
-   * @param cfg The configuration object parsed from YAML.
-   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
-   * @return True if the configuration was successfully set, false otherwise.
+   * @param [in] cfg The network configuration to set.
+   * @return true if the configuration was set successfully, false otherwise.
    */
-  virtual bool set_configuration(const NetworkConfig& cfg,
-                                 std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) = 0;
+  virtual bool set_configuration(const NetworkConfig& cfg) = 0;
+
+  /**
+   * @brief Gets an iterator to the beginning of the configuration collection.
+   *
+   * @return A constant iterator pointing to the beginning of the collection.
+   */
+  virtual ConstIterator begin() const = 0;
+
+  /**
+   * @brief Gets an iterator to the end of the configuration collection.
+   *
+   * @return A constant iterator pointing to the end of the collection.
+   */
+  virtual ConstIterator end() const = 0;
+
+  /**
+   * @brief Gets a constant iterator to the beginning of the configuration collection.
+   *
+   * This method explicitly returns a constant iterator, useful when the const
+   * nature of the access needs to be emphasized.
+   *
+   * @return A constant iterator pointing to the beginning of the collection.
+   */
+  virtual ConstIterator cbegin() const = 0;
+
+  /**
+   * @brief Gets a constant iterator to the end of the configuration collection.
+   *
+   * This method explicitly returns a constant iterator, useful when the const
+   * nature of the access needs to be emphasized.
+   *
+   * @return A constant iterator pointing to the end of the collection.
+   */
+  virtual ConstIterator cend() const = 0;
 };
 
 /**
@@ -155,22 +294,6 @@ class IConfigManager {
  */
 class IRxConfigManager : public IConfigManager {
  public:
-  using ConstIterator = IConfigManager::ConstIterator<ExtRmaxIPOReceiverConfig>;
-
-  /**
-   * @brief Gets the beginning iterator for RX configurations.
-   *
-   * @return The beginning iterator.
-   */
-  virtual ConstIterator begin() const = 0;
-
-  /**
-   * @brief Gets the ending iterator for RX configurations.
-   *
-   * @return The ending iterator.
-   */
-  virtual ConstIterator end() const = 0;
-
   /**
    * @brief Appends a candidate for RX queue configuration.
    *
@@ -189,22 +312,6 @@ class IRxConfigManager : public IConfigManager {
  */
 class ITxConfigManager : public IConfigManager {
  public:
-  using ConstIterator = IConfigManager::ConstIterator<RmaxBaseServiceConfig>;
-
-  /**
-   * @brief Gets the beginning iterator for TX configurations.
-   *
-   * @return The beginning iterator.
-   */
-  virtual ConstIterator begin() const = 0;
-
-  /**
-   * @brief Gets the ending iterator for TX configurations.
-   *
-   * @return The ending iterator.
-   */
-  virtual ConstIterator end() const = 0;
-
   /**
    * @brief Appends a candidate for TX queue configuration.
    *
@@ -223,15 +330,15 @@ class ITxConfigManager : public IConfigManager {
  */
 class RxConfigManager : public IRxConfigManager {
  public:
-  using ConstIterator = IConfigManager::ConstIterator<ExtRmaxIPOReceiverConfig>;
+  // Regular const iterators
+  ConstIterator begin() const override { return config_builder_container_.begin(); }
+  ConstIterator end() const override { return config_builder_container_.end(); }
+  // Explicit const iterators
+  ConstIterator cbegin() const override { return config_builder_container_.cbegin(); }
+  ConstIterator cend() const override { return config_builder_container_.cend(); }
 
-  ConstIterator begin() const override { return rx_service_configs_.begin(); }
-  ConstIterator end() const override { return rx_service_configs_.end(); }
-
-  bool set_configuration(const NetworkConfig& cfg,
-                         std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
+  bool set_configuration(const NetworkConfig& cfg) override {
     cfg_ = cfg;
-    rmax_apps_lib_ = rmax_apps_lib;
     is_configuration_set_ = true;
     return true;
   }
@@ -240,32 +347,25 @@ class RxConfigManager : public IRxConfigManager {
 
  private:
   /**
-   * @brief Sets the default configuration for an RX service.
+   * @brief Appends a candidate for RX queue configuration.
    *
-   * @param rx_service_cfg The RX service configuration to set defaults for.
-   */
-  void set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const;
-
-  /**
-   * @brief Builds the Rivermax IPO receiver configuration.
-   *
-   * @param rx_service_cfg The RX service configuration to build.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
+   * @param config_index The configuration index.
    * @param q The RX queue configuration.
-   * @return True if the configuration was successfully built, false otherwise.
+   * @return True if the configuration was appended successfully, false otherwise.
    */
-  bool build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                      const RivermaxRxQueueConfig& rivermax_rx_config,
-                                      const RxQueueConfig& q);
-
+  bool append_ipo_receiver_candidate_for_rx_queue(
+      uint32_t config_index, const RxQueueConfig& q,
+      RivermaxIPOReceiverQueueConfig& rivermax_rx_config);
   /**
-   * @brief Validates the RX queue configuration.
+   * @brief Appends a candidate for RX queue configuration.
    *
-   * @param rivermax_rx_config The Rivermax RX queue configuration to validate.
-   * @return True if the configuration is valid, false otherwise.
+   * @param config_index The configuration index.
+   * @param q The RX queue configuration.
+   * @return True if the configuration was appended successfully, false otherwise.
    */
-  bool validate_rx_queue_config(const RivermaxRxQueueConfig& rivermax_rx_config);
-
+  bool append_rtp_receiver_candidate_for_rx_queue(
+      uint32_t config_index, const RxQueueConfig& q,
+      RivermaxRTPReceiverQueueConfig& rivermax_rx_config);
   /**
    * @brief Configures the memory allocator for the Rivermax RX queue.
    *
@@ -273,149 +373,44 @@ class RxConfigManager : public IRxConfigManager {
    * @param q The RX queue configuration.
    * @return true if the configuration is successful, false otherwise.
    */
-  bool config_memory_allocator(RivermaxRxQueueConfig& rivermax_rx_config, const RxQueueConfig& q);
+  bool config_memory_allocator(RivermaxCommonRxQueueConfig& rivermax_rx_config,
+                               const RxQueueConfig& q);
 
   /**
    * @brief Configures the memory allocator for a single memory region.
-   *        The allocator will be used for both the header and payload memory.
+   *
+   * Configures the memory allocator for a single memory region.
+   * The allocator will be used for both the header and payload memory.
    *
    * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param q The RX queue configuration.
    * @param mr The memory region.
    * @return true if the configuration is successful, false otherwise.
    */
-  bool config_memory_allocator_from_single_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
-                                               const RxQueueConfig& q,
+  bool config_memory_allocator_from_single_mrs(RivermaxCommonRxQueueConfig& rivermax_rx_config,
                                                const MemoryRegionConfig& mr);
 
   /**
    * @brief Configures the memory allocator for dual memory regions.
-   *        If GPU is in use, it will be used for the payload memory region,
-   *        and the CPU allocator will be used for the header memory region.
-   *        Otherwise, the function expects that the same allocator is configured
-   *        for both memory regions.
+   *
+   * Configures the memory allocator for dual memory regions.
+   * If GPU is in use, it will be used for the payload memory region,
+   * and the CPU allocator will be used for the header memory region.
+   * Otherwise, the function expects that the same allocator is configured
+   * for both memory regions.
    *
    * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param q The RX queue configuration.
    * @param mr_header The header memory region.
    * @param mr_payload The payload memory region.
    * @return true if the configuration is successful, false otherwise.
    */
 
-  bool config_memory_allocator_from_dual_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
-                                             const RxQueueConfig& q,
+  bool config_memory_allocator_from_dual_mrs(RivermaxCommonRxQueueConfig& rivermax_rx_config,
                                              const MemoryRegionConfig& mr_header,
                                              const MemoryRegionConfig& mr_payload);
-  /**
-   * @brief Sets the GPU memory configuration if applicable.
-   *
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param mr The memory region.
-   * @return true if the GPU memory configuration is set, false otherwise.
-   */
-  bool set_gpu_is_in_use_if_applicable(RivermaxRxQueueConfig& rivermax_rx_config,
-                                       const MemoryRegionConfig& mr);
-
-  /**
-   * @brief Sets the CPU memory configuration.
-   *
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   */
-  void set_gpu_is_not_in_use(RivermaxRxQueueConfig& rivermax_rx_config);
-
-  /**
-   * @brief Sets the allocator type based on the memory region.
-   *
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param mr The memory region.
-   */
-  void set_cpu_allocator_type(RivermaxRxQueueConfig& rivermax_rx_config, const MemoryRegionConfig& mr);
-
-  /**
-   * @brief Validates the RX queue memory regions configuration.
-   *
-   * @param q The RX queue configuration.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @return True if the configuration is valid, false otherwise.
-   */
-  bool validate_memory_regions_config(const RxQueueConfig& q,
-                                      const RivermaxRxQueueConfig& rivermax_rx_config);
-
-  /**
-   * @brief Validates the RX queue memory regions configuration for a single memory region.
-   *
-   * @param q The RX queue configuration.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param mr The memory region.
-   * @return True if the configuration is valid, false otherwise.
-   */
-  bool validate_memory_regions_config_from_single_mrs(const RxQueueConfig& q,
-                                                      const RivermaxRxQueueConfig& rivermax_rx_config,
-                                                      const MemoryRegionConfig& mr);
-
-  /**
-   * @brief Validates the RX queue memory regions configuration for dual memory regions.
-   *
-   * @param q The RX queue configuration.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   * @param mr_header The header memory region.
-   * @param mr_payload The payload memory region.
-   * @return True if the configuration is valid, false otherwise.
-   */
-  bool validate_memory_regions_config_from_dual_mrs(const RxQueueConfig& q,
-                                                    const RivermaxRxQueueConfig& rivermax_rx_config,
-                                                    const MemoryRegionConfig& mr_header,
-                                                    const MemoryRegionConfig& mr_payload);
-
-  /**
-   * @brief Sets common application settings for an RX service.
-   *
-   * @param app_settings_config The application settings configuration to set.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   */
-  void set_rx_service_common_app_settings(AppSettings& app_settings_config,
-                                          const RivermaxRxQueueConfig& rivermax_rx_config);
-
-  /**
-   * @brief Sets the allocator type for the application settings.
-   *
-   * @param app_settings_config The application settings configuration to set.
-   * @param allocator_type The allocator type to set.
-   */
-  void set_allocator_type(AppSettings& app_settings_config, const std::string& allocator_type);
-
-  /**
-   * @brief Parses and sets the cores for the application settings.
-   *
-   * @param app_settings_config The application settings configuration to set.
-   * @param cores The cores to parse and set.
-   * @return True if the cores were successfully parsed and set, false otherwise.
-   */
-  bool parse_and_set_cores(AppSettings& app_settings_config, const std::string& cores);
-
-  /**
-   * @brief Sets the IPO receiver settings for an RX service.
-   *
-   * @param rx_service_cfg The RX service configuration to set.
-   * @param rivermax_rx_config The Rivermax RX queue configuration.
-   */
-  void set_rx_service_ipo_receiver_settings(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                            const RivermaxRxQueueConfig& rivermax_rx_config);
-
-  /**
-   * @brief Adds a new RX service configuration.
-   *
-   * @param rx_service_cfg The RX service configuration to add.
-   * @param port_id The port ID.
-   * @param queue_id The queue ID.
-   */
-  void add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg, uint16_t port_id,
-                                 uint16_t queue_id);
 
  private:
-  std::unordered_map<uint32_t, ExtRmaxIPOReceiverConfig> rx_service_configs_;
+  ConfigBuilderContainer config_builder_container_;
   NetworkConfig cfg_;
-  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   bool is_configuration_set_ = false;
 };
 
@@ -427,15 +422,15 @@ class RxConfigManager : public IRxConfigManager {
  */
 class TxConfigManager : public ITxConfigManager {
  public:
-  using ConstIterator = IConfigManager::ConstIterator<RmaxBaseServiceConfig>;
+  // Regular const iterators
+  ConstIterator begin() const override { return config_builder_container_.begin(); }
+  ConstIterator end() const override { return config_builder_container_.end(); }
+  // Explicit const iterators
+  ConstIterator cbegin() const override { return config_builder_container_.cbegin(); }
+  ConstIterator cend() const override { return config_builder_container_.cend(); }
 
-  ConstIterator begin() const override { return tx_service_configs_.begin(); }
-  ConstIterator end() const override { return tx_service_configs_.end(); }
-
-  bool set_configuration(const NetworkConfig& cfg,
-                         std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
+  bool set_configuration(const NetworkConfig& cfg) override {
     cfg_ = cfg;
-    rmax_apps_lib_ = rmax_apps_lib;
     is_configuration_set_ = true;
     return true;
   }
@@ -443,9 +438,61 @@ class TxConfigManager : public ITxConfigManager {
   bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) override;
 
  private:
-  std::unordered_map<uint32_t, RmaxBaseServiceConfig> tx_service_configs_;
+  /**
+   * @brief Appends a candidate for TX queue configuration.
+   *
+   * @param config_index The configuration index.
+   * @param q The TX queue configuration.
+   * @return True if the configuration was appended successfully, false otherwise.
+   */
+  bool append_media_sender_candidate_for_tx_queue(
+      uint32_t config_index, const TxQueueConfig& q,
+      RivermaxMediaSenderQueueConfig& rivermax_tx_config);
+  /**
+   * @brief Configures the memory allocator for the Rivermax TX queue.
+   *
+   * @param rivermax_rx_config The Rivermax TX queue configuration.
+   * @param q The TX queue configuration.
+   * @return true if the configuration is successful, false otherwise.
+   */
+  bool config_memory_allocator(RivermaxCommonTxQueueConfig& rivermax_tx_config,
+                               const TxQueueConfig& q);
+
+  /**
+   * @brief Configures the memory allocator for a single memory region.
+   *
+   * Configures the memory allocator for a single memory region.
+   * The allocator will be used for both the header and payload memory.
+   *
+   * @param rivermax_rx_config The Rivermax TX queue configuration.
+   * @param mr The memory region.
+   * @return true if the configuration is successful, false otherwise.
+   */
+  bool config_memory_allocator_from_single_mrs(RivermaxCommonTxQueueConfig& rivermax_tx_config,
+                                               const MemoryRegionConfig& mr);
+
+  /**
+   * @brief Configures the memory allocator for dual memory regions.
+   *
+   * Configures the memory allocator for dual memory regions.
+   * If GPU is in use, it will be used for the payload memory region,
+   * and the CPU allocator will be used for the header memory region.
+   * Otherwise, the function expects that the same allocator is configured
+   * for both memory regions.
+   *
+   * @param rivermax_rx_config The Rivermax TX queue configuration.
+   * @param mr_header The header memory region.
+   * @param mr_payload The payload memory region.
+   * @return true if the configuration is successful, false otherwise.
+   */
+
+  bool config_memory_allocator_from_dual_mrs(RivermaxCommonTxQueueConfig& rivermax_tx_config,
+                                             const MemoryRegionConfig& mr_header,
+                                             const MemoryRegionConfig& mr_payload);
+
+ private:
+  ConfigBuilderContainer config_builder_container_;
   NetworkConfig cfg_;
-  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   bool is_configuration_set_ = false;
 };
 
@@ -461,12 +508,8 @@ class RivermaxConfigContainer {
 
   /**
    * @brief Constructs a new RivermaxConfigContainer object.
-   * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
    */
-  explicit RivermaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
-      : rmax_apps_lib_(rmax_apps_lib) {
-    initialize_managers();
-  }
+  RivermaxConfigContainer() { initialize_managers(); }
 
   /**
    * @brief Parses the configuration from the YAML file.
@@ -549,15 +592,24 @@ class RivermaxConfigContainer {
  private:
   RivermaxLogLevel::Level rivermax_log_level_ = RivermaxLogLevel::OFF;
   std::unordered_map<ConfigType, std::shared_ptr<IConfigManager>> config_managers_;
-  std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   NetworkConfig cfg_;
   bool is_configured_ = false;
 };
 
 /**
- * @brief Parses the configuration for Rivermax.
+ * @brief Parses the configuration for Rivermax queues from YAML.
  *
- * The RivermaxConfigParser class is responsible for parsing the configuration settings for Rivermax.
+ * The RivermaxConfigParser class is a static utility class responsible for parsing
+ * configuration settings for Rivermax from YAML nodes. It handles both RX and TX
+ * queue configurations, supporting multiple receiver types (IPO, RTP) and sender types
+ * (media sender, generic sender).
+ *
+ * This class separates the parsing logic into common settings shared across all queue types
+ * and specialized settings for specific receiver/sender implementations. It works together
+ * with RxConfigManager and TxConfigManager which use the parsed configurations to build
+ * the actual Rivermax service configurations.
+ *
+ * All methods in this class are static and do not require instantiation of the class.
  */
 class RivermaxConfigParser {
  public:
@@ -574,6 +626,49 @@ class RivermaxConfigParser {
   static Status parse_rx_queue_rivermax_config(const YAML::Node& q_item, RxQueueConfig& q);
 
   /**
+   * @brief Parses common RX settings from a YAML node.
+   *
+   * This function extracts common RX configuration settings from the provided YAML node
+   * and populates the RivermaxCommonRxQueueConfig structure with the extracted values.
+   * These settings are shared across all RX queue types.
+   *
+   * @param [in] rx_settings The YAML node containing the RX settings.
+   * @param [in] q_item The YAML node containing the queue item.
+   * @param [out] rivermax_rx_config The common RX queue configuration to be populated.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_common_rx_settings(const YAML::Node& rx_settings, const YAML::Node& q_item,
+                                       RivermaxCommonRxQueueConfig& rivermax_rx_config);
+
+  /**
+   * @brief Parses IPO receiver specific settings from a YAML node.
+   *
+   * This function extracts IPO receiver specific configuration settings from the provided YAML node
+   * and populates the RivermaxIPOReceiverQueueConfig structure with the extracted values.
+   * These settings include network addresses, ports, and IPO-specific parameters.
+   *
+   * @param [in] rx_settings The YAML node containing the RX settings.
+   * @param [out] rivermax_rx_config The IPO receiver RX queue configuration to be populated.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_ipo_receiver_settings(const YAML::Node& rx_settings,
+                                          RivermaxIPOReceiverQueueConfig& rivermax_rx_config);
+
+  /**
+   * @brief Parses RTP receiver specific settings from a YAML node.
+   *
+   * This function extracts RTP receiver specific configuration settings from the provided YAML node
+   * and populates the RivermaxRTPReceiverQueueConfig structure with the extracted values.
+   * These settings include network addresses and port parameters specific to RTP.
+   *
+   * @param [in] rx_settings The YAML node containing the RX settings.
+   * @param [out] rivermax_rx_config The RTP receiver RX queue configuration to be populated.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rtp_receiver_settings(const YAML::Node& rx_settings,
+                                          RivermaxRTPReceiverQueueConfig& rivermax_rx_config);
+
+  /**
    * @brief Parses the TX queue Rivermax configuration.
    *
    * This function extracts the TX queue configuration settings from the provided YAML node
@@ -584,6 +679,67 @@ class RivermaxConfigParser {
    * @return Status indicating the success or failure of the operation.
    */
   static Status parse_tx_queue_rivermax_config(const YAML::Node& q_item, TxQueueConfig& q);
+
+  /**
+   * @brief Parses common TX settings from a YAML node.
+   *
+   * This function extracts common TX configuration settings from the provided YAML node
+   * and populates the RivermaxCommonTxQueueConfig structure with the extracted values.
+   * These settings are shared across all TX queue types.
+   *
+   * @param [in] tx_settings The YAML node containing the TX settings.
+   * @param [in] q_item The YAML node containing the queue item.
+   * @param [out] rivermax_tx_config The common TX queue configuration to be populated.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_common_tx_settings(const YAML::Node& tx_settings, const YAML::Node& q_item,
+                                       RivermaxCommonTxQueueConfig& rivermax_tx_config);
+
+  /**
+   * @brief Parses media sender specific settings from a YAML node.
+   *
+   * This function extracts media sender specific configuration settings from the provided YAML node
+   * and populates the RivermaxMediaSenderQueueConfig structure with the extracted values.
+   * These settings include video format, bit depth, frame dimensions, and frame rate.
+   *
+   * @param [in] tx_settings The YAML node containing the TX settings.
+   * @param [out] rivermax_tx_config The media sender TX queue configuration to be populated.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_media_sender_settings(const YAML::Node& tx_settings,
+                                          RivermaxMediaSenderQueueConfig& rivermax_tx_config);
+};
+
+class ConfigManagerUtilities {
+ public:
+  template <typename T>
+  static void set_cpu_allocator_type(T& rivermax_config, const MemoryRegionConfig& mr);
+
+  template <typename T>
+  static void set_gpu_is_not_in_use(T& rivermax_config);
+
+  template <typename T>
+  static bool set_gpu_is_in_use_if_applicable(T& rivermax_config, const MemoryRegionConfig& mr);
+
+  static bool parse_and_set_cores(std::vector<int>& app_threads_cores, const std::string& cores);
+
+  static bool validate_cores(const std::string& cores);
+
+  static void set_allocator_type(AppSettings& app_settings_config,
+                                 const std::string& allocator_type);
+
+  static VideoSampling convert_video_sampling(const std::string& sampling);
+
+  static ColorBitDepth convert_bit_depth(uint16_t bit_depth);
+
+  static bool validate_memory_regions_config(
+      const std::vector<std::string>& queue_mr_names,
+      const std::unordered_map<std::string, MemoryRegionConfig>& memory_regions);
+
+  static bool validate_memory_regions_config_from_single_mrs(const MemoryRegionConfig& mr);
+
+  static bool validate_memory_regions_config_from_dual_mrs(const MemoryRegionConfig& mr_header,
+                                                           const MemoryRegionConfig& mr_payload);
 };
 
 }  // namespace holoscan::advanced_network

@@ -29,6 +29,7 @@ target_sources(${PROJECT_NAME}
         rivermax_mgr_impl/adv_network_rivermax_mgr.cpp
         rivermax_mgr_impl/burst_manager.cpp
         rivermax_mgr_impl/rivermax_config_manager.cpp
+        rivermax_mgr_impl/rivermax_queue_configs.cpp
     PUBLIC
         adv_network_rivermax_mgr.h
 )
@@ -40,7 +41,10 @@ target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         rivermax_service
-        rmax-ral-lib
-        rmax-ral-build
+        rivermax-dev-kit-services
+        rivermax-dev-kit-core
+        rivermax-dev-kit-io-node
+        rivermax-dev-kit
+        rivermax-dev-kit-apps
         holoscan::core
 )
