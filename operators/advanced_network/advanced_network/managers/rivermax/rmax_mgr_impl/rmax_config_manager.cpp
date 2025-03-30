@@ -56,38 +56,16 @@ class ConfigManagerFactory {
   }
 };
 
-/**
- * @brief Adds a configuration manager.
- *
- * This function adds a configuration manager for the specified type.
- *
- * @param type The type of configuration manager to add.
- * @param config_manager The shared pointer to the configuration manager.
- */
 void RmaxConfigContainer::add_config_manager(ConfigType type,
                                              std::shared_ptr<IConfigManager> config_manager) {
   config_managers_[type] = config_manager;
 }
 
-/**
- * @brief Initializes the configuration managers.
- *
- * This function initializes the configuration managers for RX and TX services.
- */
 void RmaxConfigContainer::initialize_managers() {
   add_config_manager(ConfigType::RX, ConfigManagerFactory::create_manager(ConfigType::RX));
   add_config_manager(ConfigType::TX, ConfigManagerFactory::create_manager(ConfigType::TX));
 }
 
-/**
- * @brief Parses the RX queues configuration.
- *
- * This function parses the configuration for RX queues for the specified port ID.
- *
- * @param port_id The port ID for which to parse the RX queues.
- * @param queues The vector of RX queue configurations.
- * @return An integer indicating the success or failure of the parsing operation.
- */
 int RmaxConfigContainer::parse_rx_queues(uint16_t port_id,
                                          const std::vector<RxQueueConfig>& queues) {
   int rmax_rx_config_found = 0;
@@ -107,15 +85,6 @@ int RmaxConfigContainer::parse_rx_queues(uint16_t port_id,
   return rmax_rx_config_found;
 }
 
-/**
- * @brief Parses the TX queues configuration.
- *
- * This function parses the configuration for TX queues for the specified port ID.
- *
- * @param port_id The port ID for which to parse the TX queues.
- * @param queues The vector of TX queue configurations.
- * @return An integer indicating the success or failure of the parsing operation.
- */
 int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
                                          const std::vector<TxQueueConfig>& queues) {
   int rmax_tx_config_found = 0;
@@ -135,17 +104,6 @@ int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
   return rmax_tx_config_found;
 }
 
-/**
- * @brief Parses the configuration from the YAML file.
- *
- * This function iterates over the interfaces and their respective RX an TX queues
- * defined in the configuration YAML, extracting and validating the necessary
- * settings for each queue. It then populates the RX and TX service configuration
- * structures with these settings. The parsing is done via dedicated configuration managers.
- *
- * @param cfg The configuration YAML.
- * @return True if the configuration was successfully parsed, false otherwise.
- */
 bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   int rmax_rx_config_found = 0;
   int rmax_tx_config_found = 0;
@@ -182,11 +140,6 @@ bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   return true;
 }
 
-/**
- * @brief Sets the default configuration for an RX service.
- *
- * @param rx_service_cfg The RX service configuration to be set.
- */
 void RxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const {
   rx_service_cfg.app_settings->destination_ip = DESTINATION_IP_DEFAULT;
   rx_service_cfg.app_settings->destination_port = DESTINATION_PORT_DEFAULT;
@@ -218,14 +171,6 @@ void RxConfigManager::set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cf
   rx_service_cfg.rx_stats_period_report_ms = 1000;
 }
 
-/**
- * @brief Validates RX queue for Rmax Queue configuration. If valid, appends the RX queue for a
- * given port.
- *
- * @param port_id The port ID.
- * @param q The RX queue configuration.
- * @return True if the configuration was appended successfully, false otherwise.
- */
 bool RxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) {
   HOLOSCAN_LOG_INFO(
       "Configuring RX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
@@ -263,13 +208,6 @@ bool RxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQu
   return true;
 }
 
-/**
- * @brief Configures the memory allocator for the RMAX RX queue.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- * @param q The RX queue configuration.
- * @return true if the configuration is successful, false otherwise.
- */
 bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
                                               const RxQueueConfig& q) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
@@ -290,15 +228,6 @@ bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
   }
 }
 
-/**
- * @brief Configures the memory allocator for a single memory region.
- *        The allocator will be used for both the header and payload memory.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- * @param q The RX queue configuration.
- * @param mr The memory region.
- * @return true if the configuration is successful, false otherwise.
- */
 bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
                                                               const RxQueueConfig& q,
                                                               const MemoryRegionConfig& mr) {
@@ -314,19 +243,6 @@ bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig&
   return true;
 }
 
-/**
- * @brief Configures the memory allocator for dual memory regions.
- *        If GPU is in use, it will be used for the payload memory region,
- *        and the CPU allocator will be used for the header memory region.
- *        Otherwise, the function expects that the same allocator is configured
- *        for both memory regions.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- * @param q The RX queue configuration.
- * @param mr_header The header memory region.
- * @param mr_payload The payload memory region.
- * @return true if the configuration is successful, false otherwise.
- */
 bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
                                                             const RxQueueConfig& q,
                                                             const MemoryRegionConfig& mr_header,
@@ -344,13 +260,6 @@ bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& r
   return true;
 }
 
-/**
- * @brief Sets the GPU memory configuration if applicable.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- * @param mr The memory region.
- * @return true if the GPU memory configuration is set, false otherwise.
- */
 bool RxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
                                                       const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
@@ -365,22 +274,11 @@ bool RxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx
   return false;
 }
 
-/**
- * @brief Sets the CPU memory configuration.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- */
 void RxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
   rmax_rx_config.gpu_device_id = -1;
   rmax_rx_config.gpu_direct = false;
 }
 
-/**
- * @brief Sets the allocator type based on the memory region.
- *
- * @param rmax_rx_config The RMAX RX queue configuration.
- * @param mr The memory region.
- */
 void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
                                              const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
@@ -400,13 +298,6 @@ void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
   }
 }
 
-/**
- * @brief Validates the RX queue memory regions configuration.
- *
- * @param q The RX queue configuration.
- * @param rmax_rx_config The Rmax RX queue configuration.
- * @return True if the configuration is valid, false otherwise.
- */
 bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
                                                      const RmaxRxQueueConfig& rmax_rx_config) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
@@ -436,14 +327,6 @@ bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
   return true;
 }
 
-/**
- * @brief Validates the RX queue memory regions configuration for a single memory region.
- *
- * @param q The RX queue configuration.
- * @param rmax_rx_config The Rmax RX queue configuration.
- * @param mr The memory region.
- * @return True if the configuration is valid, false otherwise.
- */
 bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
     const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegionConfig& mr) {
   return true;
@@ -480,14 +363,6 @@ bool RxConfigManager::validate_memory_regions_config_from_dual_mrs(
   return true;
 }
 
-/**
- * @brief Builds the Rmax IPO receiver configuration.
- *
- * @param rx_service_cfg The RX service configuration to be built.
-s * @param rmax_rx_config The Rmax RX queue configuration.
- * @param q The RX queue configuration.
- * @return True if the configuration is successful, false otherwise.
- */
 bool RxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                      const RmaxRxQueueConfig& rmax_rx_config,
                                                      const RxQueueConfig& q) {
@@ -505,12 +380,6 @@ bool RxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& r
   return true;
 }
 
-/**
- * @brief Validates the RX queue configuration.
- *
- * @param rmax_rx_config The Rmax RX queue configuration.
- * @return True if the configuration is valid, false otherwise.
- */
 bool RxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config) {
   if (rmax_rx_config.source_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
@@ -543,13 +412,6 @@ bool RxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_
   return true;
 }
 
-/**
- * @brief Sets the common application settings for the RX service.
- *
- * @param app_settings_config The application settings configuration.
- * @param rmax_rx_config The Rmax RX queue configuration.
- * @param split_boundary The split boundary value.
- */
 void RxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
                                                          const RmaxRxQueueConfig& rmax_rx_config) {
   app_settings_config.local_ips = rmax_rx_config.local_ips;
@@ -580,12 +442,6 @@ void RxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settin
       std::pow(2, std::ceil(std::log2(rmax_rx_config.packets_buffers_size)));
 }
 
-/**
- * @brief Sets the allocator type for the application settings.
- *
- * @param app_settings_config The application settings configuration.
- * @param allocator_type The allocator type string.
- */
 void RxConfigManager::set_allocator_type(AppSettings& app_settings_config,
                                          const std::string& allocator_type) {
   auto setAllocatorType = [&](const std::string& allocatorTypeStr, AllocatorTypeUI allocatorType) {
@@ -602,13 +458,6 @@ void RxConfigManager::set_allocator_type(AppSettings& app_settings_config,
   setAllocatorType("gpu", AllocatorTypeUI::Gpu);
 }
 
-/**
- * @brief Parses and sets the cores for the application settings.
- *
- * @param app_settings_config The application settings configuration.
- * @param cores The cores configuration string.
- * @return True if the cores are successfully parsed and set, false otherwise.
- */
 bool RxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
                                           const std::string& cores) {
   std::istringstream iss(cores);
@@ -638,12 +487,6 @@ bool RxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
   return true;
 }
 
-/**
- * @brief Sets the IPO receiver settings for the RX service.
- *
- * @param rx_service_cfg The RX service configuration.
- * @param rmax_rx_config The Rmax RX queue configuration.
- */
 void RxConfigManager::set_rx_service_ipo_receiver_settings(
     ExtRmaxIPOReceiverConfig& rx_service_cfg, const RmaxRxQueueConfig& rmax_rx_config) {
   rx_service_cfg.is_extended_sequence_number = rmax_rx_config.ext_seq_num;
@@ -661,13 +504,6 @@ void RxConfigManager::set_rx_service_ipo_receiver_settings(
   rx_service_cfg.send_packet_ext_info = rmax_rx_config.send_packet_ext_info;
 }
 
-/**
- * @brief Adds a new RX service configuration to the configuration map.
- *
- * @param rx_service_cfg The RX service configuration.
- * @param port_id The port ID.
- * @param queue_id The queue ID.
- */
 void RxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                 uint16_t port_id, uint16_t queue_id) {
   uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
@@ -684,14 +520,6 @@ void RxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& 
   rx_service_configs_[key] = rx_service_cfg;
 }
 
-/**
- * @brief Validates TX queue for Rmax Queue configuration. If valid, appends the TX queue for a
- * given port.
- *
- * @param port_id The port ID.
- * @param q The TX queue configuration.
- * @return True if the configuration was appended successfully, false otherwise.
- */
 bool TxConfigManager::append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) {
   HOLOSCAN_LOG_INFO(
       "Configuring TX queue: {} ({}) on port {}", q.common_.name_, q.common_.id_, port_id);
@@ -705,16 +533,6 @@ bool TxConfigManager::append_candidate_for_tx_queue(uint16_t port_id, const TxQu
   return false;
 }
 
-/**
- * @brief Parses the RX queue configuration from a YAML node.
- *
- * This function extracts the RX queue configuration settings from the provided YAML node
- * and populates the RxQueueConfig structure with the extracted values.
- *
- * @param q_item The YAML node containing the RX queue configuration.
- * @param q The RxQueueConfig structure to be populated.
- * @return Status indicating the success or failure of the operation.
- */
 Status RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
                                                         RxQueueConfig& q) {
   const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
@@ -758,13 +576,6 @@ Status RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item
   return Status::SUCCESS;
 }
 
-/**
- * @brief Parses the TX queue Rivermax configuration.
- *
- * @param q_item The YAML node containing the queue item.
- * @param q The TX queue configuration to be populated.
- * @return Status indicating the success or failure of the operation.
- */
 Status RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
                                                         TxQueueConfig& q) {
   return Status::SUCCESS;
@@ -773,7 +584,6 @@ Status RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item
 void RmaxRxQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax RX Queue Config:");
-    // print gpu settings
     HOLOSCAN_LOG_INFO("\tNetwork settings:");
     HOLOSCAN_LOG_INFO("\t\tlocal_ips: {}", fmt::join(local_ips, ", "));
     HOLOSCAN_LOG_INFO("\t\tsource_ips: {}", fmt::join(source_ips, ", "));

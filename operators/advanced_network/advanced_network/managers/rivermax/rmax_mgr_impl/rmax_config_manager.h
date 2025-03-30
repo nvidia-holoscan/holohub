@@ -228,13 +228,6 @@ class RxConfigManager : public IRxConfigManager {
   ConstIterator begin() const override { return rx_service_configs_.begin(); }
   ConstIterator end() const override { return rx_service_configs_.end(); }
 
-  /**
-   * @brief Sets the configuration for RX queues.
-   *
-   * @param cfg The configuration object parsed from YAML.
-   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
-   * @return True if the configuration was successfully set, false otherwise.
-   */
   bool set_configuration(const NetworkConfig& cfg,
                          std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
     cfg_ = cfg;
@@ -243,14 +236,6 @@ class RxConfigManager : public IRxConfigManager {
     return true;
   }
 
-  /**
-   * @brief Validates RX queue for Rmax Queue configuration. If valid, appends the RX queue for a
-   * given port.
-   *
-   * @param port_id The port ID.
-   * @param q The RX queue configuration.
-   * @return True if the configuration was appended successfully, false otherwise.
-   */
   bool append_candidate_for_rx_queue(uint16_t port_id, const RxQueueConfig& q) override;
 
  private:
@@ -447,13 +432,6 @@ class TxConfigManager : public ITxConfigManager {
   ConstIterator begin() const override { return tx_service_configs_.begin(); }
   ConstIterator end() const override { return tx_service_configs_.end(); }
 
-  /**
-   * @brief Sets the configuration for TX queues.
-   *
-   * @param cfg The configuration object parsed from YAML.
-   * @param rmax_apps_lib Shared pointer to the RmaxAppsLibFacade.
-   * @return True if the configuration was successfully set, false otherwise.
-   */
   bool set_configuration(const NetworkConfig& cfg,
                          std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib) override {
     cfg_ = cfg;
@@ -462,14 +440,6 @@ class TxConfigManager : public ITxConfigManager {
     return true;
   }
 
-  /**
-   * @brief Validates TX queue for Rmax Queue configuration. If valid, appends the TX queue for a
-   * given port.
-   *
-   * @param port_id The port ID.
-   * @param q The TX queue configuration.
-   * @return True if the configuration was appended successfully, false otherwise.
-   */
   bool append_candidate_for_tx_queue(uint16_t port_id, const TxQueueConfig& q) override;
 
  private:
