@@ -14,7 +14,7 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
 
-project(rmax_service)
+project(rivermax_service)
 
 add_library(${PROJECT_NAME} SHARED
   rmax_base_service.cpp
@@ -39,7 +39,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # add rmax_apps_lib with absolute path as a library
 if(NOT DEFINED RAL_DIR_PATH)
-    set(RAL_DIR_PATH "/opt/rivermax_sdk/rmax_apps_lib" CACHE STRING "Rmax Apps Lib absolute path")
+    set(RAL_DIR_PATH "/opt/rivermax_sdk/rmax_apps_lib" CACHE STRING "Rivermax Apps Lib absolute path")
 endif()
 
 set(RMAX_CUDA TRUE)

@@ -74,7 +74,7 @@ class IpoRxStatsPrinter {
   }
 
   /**
-   * @brief Prints the statistics of the Rmax manager.
+   * @brief Prints the statistics of the Rivermax manager.
    */
   static void print_total_stats(
       std::stringstream& ss,

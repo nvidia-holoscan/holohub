@@ -23,7 +23,7 @@
 #include <memory>
 #include <tuple>
 
-#include "rmax_ano_data_types.h"
+#include "rivermax_ano_data_types.h"
 #include "burst_manager.h"
 #include "advanced_network/types.h"
 
@@ -120,7 +120,7 @@ class RxPacketProcessor : public IPacketProcessor {
     auto payload_ptr = params.payload_ptr;
 
     while (remaining_packets > 0) {
-      RmaxPacketData rx_packet_data = {
+      RivermaxPacketData rx_packet_data = {
           header_ptr,
           payload_ptr,
           params.packet_info_array[processed_packets].get_packet_sub_block_size(0),

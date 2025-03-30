@@ -24,10 +24,10 @@
 
 namespace holoscan::advanced_network {
 
-class RmaxMgr : public Manager {
+class RivermaxMgr : public Manager {
  public:
-  RmaxMgr();
-  ~RmaxMgr();
+  RivermaxMgr();
+  ~RivermaxMgr();
   bool set_config_and_initialize(const NetworkConfig& cfg) override;
   void initialize() override;
   void run() override;
@@ -73,8 +73,8 @@ class RmaxMgr : public Manager {
   Status get_mac_addr(int port, char* mac) override;
 
  private:
-  class RmaxMgrImpl;
-  std::unique_ptr<RmaxMgr::RmaxMgrImpl> pImpl;
+  class RivermaxMgrImpl;
+  std::unique_ptr<RivermaxMgr::RivermaxMgrImpl> pImpl;
 };
 
 };  // namespace holoscan::advanced_network

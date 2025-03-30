@@ -231,10 +231,10 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 
 ##### Extended Receive Configuration for Rivermax manager
 
-- **`rmax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
+- **`rivermax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
 	Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
   type: `list`
-  full path: `cfg\interfaces\rx\queues\rmax_rx_settings`
+  full path: `cfg\interfaces\rx\queues\rivermax_rx_settings`
 	- **`memory_registration`**: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
 		<mark>Can be used only together with HDS enabled</mark>
   		- type: `boolean`
@@ -296,7 +296,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
           id: 1
           cpu_core: '11'
           batch_size: 4320
-          rmax_rx_settings:
+          rivermax_rx_settings:
             memory_registration: true
             max_path_diff_us: 100
             ext_seq_num: true

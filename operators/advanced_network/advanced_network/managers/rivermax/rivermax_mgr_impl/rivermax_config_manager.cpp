@@ -17,10 +17,10 @@
 
 #include "rt_threads.h"
 #include "rmax_ipo_receiver_service.h"
-#include "rmax_mgr_impl/burst_manager.h"
+#include "rivermax_mgr_impl/burst_manager.h"
 #include <holoscan/logger/logger.hpp>
 
-#include "rmax_config_manager.h"
+#include "rivermax_config_manager.h"
 
 namespace holoscan::advanced_network {
 
@@ -44,11 +44,11 @@ class ConfigManagerFactory {
    * @return A shared pointer to the created configuration manager, or nullptr if the type is
    * invalid.
    */
-  static std::shared_ptr<IConfigManager> create_manager(RmaxConfigContainer::ConfigType type) {
+  static std::shared_ptr<IConfigManager> create_manager(RivermaxConfigContainer::ConfigType type) {
     switch (type) {
-      case RmaxConfigContainer::ConfigType::RX:
+      case RivermaxConfigContainer::ConfigType::RX:
         return std::make_shared<RxConfigManager>();
-      case RmaxConfigContainer::ConfigType::TX:
+      case RivermaxConfigContainer::ConfigType::TX:
         return std::make_shared<TxConfigManager>();
       default:
         return nullptr;
@@ -56,22 +56,22 @@ class ConfigManagerFactory {
   }
 };
 
-void RmaxConfigContainer::add_config_manager(ConfigType type,
+void RivermaxConfigContainer::add_config_manager(ConfigType type,
                                              std::shared_ptr<IConfigManager> config_manager) {
   config_managers_[type] = config_manager;
 }
 
-void RmaxConfigContainer::initialize_managers() {
+void RivermaxConfigContainer::initialize_managers() {
   add_config_manager(ConfigType::RX, ConfigManagerFactory::create_manager(ConfigType::RX));
   add_config_manager(ConfigType::TX, ConfigManagerFactory::create_manager(ConfigType::TX));
 }
 
-int RmaxConfigContainer::parse_rx_queues(uint16_t port_id,
+int RivermaxConfigContainer::parse_rx_queues(uint16_t port_id,
                                          const std::vector<RxQueueConfig>& queues) {
-  int rmax_rx_config_found = 0;
+  int rivermax_rx_config_found = 0;
 
   auto rx_manager = std::dynamic_pointer_cast<RxConfigManager>(
-      get_config_manager(RmaxConfigContainer::ConfigType::RX));
+      get_config_manager(RivermaxConfigContainer::ConfigType::RX));
 
   if (!rx_manager) { return 0; }
 
@@ -79,18 +79,18 @@ int RmaxConfigContainer::parse_rx_queues(uint16_t port_id,
 
   for (const auto& q : queues) {
     if (!rx_manager->append_candidate_for_rx_queue(port_id, q)) { continue; }
-    rmax_rx_config_found++;
+    rivermax_rx_config_found++;
   }
 
-  return rmax_rx_config_found;
+  return rivermax_rx_config_found;
 }
 
-int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
+int RivermaxConfigContainer::parse_tx_queues(uint16_t port_id,
                                          const std::vector<TxQueueConfig>& queues) {
-  int rmax_tx_config_found = 0;
+  int rivermax_tx_config_found = 0;
 
   auto tx_manager = std::dynamic_pointer_cast<TxConfigManager>(
-      get_config_manager(RmaxConfigContainer::ConfigType::TX));
+      get_config_manager(RivermaxConfigContainer::ConfigType::TX));
 
   if (!tx_manager) { return 0; }
 
@@ -98,32 +98,32 @@ int RmaxConfigContainer::parse_tx_queues(uint16_t port_id,
 
   for (const auto& q : queues) {
     if (!tx_manager->append_candidate_for_tx_queue(port_id, q)) { continue; }
-    rmax_tx_config_found++;
+    rivermax_tx_config_found++;
   }
 
-  return rmax_tx_config_found;
+  return rivermax_tx_config_found;
 }
 
-bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
-  int rmax_rx_config_found = 0;
-  int rmax_tx_config_found = 0;
+bool RivermaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
+  int rivermax_rx_config_found = 0;
+  int rivermax_tx_config_found = 0;
 
   is_configured_ = false;
   cfg_ = cfg;
 
   for (const auto& intf : cfg.ifs_) {
-    HOLOSCAN_LOG_INFO("Rmax init Port {} -- RX: {} TX: {}",
+    HOLOSCAN_LOG_INFO("Rivermax init Port {} -- RX: {} TX: {}",
                       intf.port_id_,
                       intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
-    rmax_rx_config_found += parse_rx_queues(intf.port_id_, intf.rx_.queues_);
-    rmax_tx_config_found += parse_tx_queues(intf.port_id_, intf.tx_.queues_);
+    rivermax_rx_config_found += parse_rx_queues(intf.port_id_, intf.rx_.queues_);
+    rivermax_tx_config_found += parse_tx_queues(intf.port_id_, intf.tx_.queues_);
   }
 
-  set_rmax_log_level(cfg.log_level_);
+  set_rivermax_log_level(cfg.log_level_);
 
-  if (rmax_rx_config_found == 0 && rmax_tx_config_found == 0) {
+  if (rivermax_rx_config_found == 0 && rivermax_tx_config_found == 0) {
     HOLOSCAN_LOG_ERROR("Failed to parse Rivermax advanced_network settings. "
                        "No valid settings found");
     return false;
@@ -133,8 +133,8 @@ bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
       "Rivermax advanced_network settings were successfully parsed, "
       "Found {} RX Queues and {} TX Queues "
       "settings",
-      rmax_rx_config_found,
-      rmax_tx_config_found);
+      rivermax_rx_config_found,
+      rivermax_tx_config_found);
 
   is_configured_ = true;
   return true;
@@ -180,46 +180,46 @@ bool RxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQu
     return false;
   }
 
-  // extra queue config_ contains RMAX configuration. If it is not set, return false
+  // extra queue config_ contains Rivermax configuration. If it is not set, return false
   if (!q.common_.extra_queue_config_) return false;
 
-  auto* rmax_rx_config_ptr = dynamic_cast<RmaxRxQueueConfig*>(q.common_.extra_queue_config_);
-  if (!rmax_rx_config_ptr) {
-    HOLOSCAN_LOG_ERROR("Failed to cast extra queue config to RmaxRxQueueConfig");
+  auto* rivermax_rx_config_ptr = dynamic_cast<RivermaxRxQueueConfig*>(q.common_.extra_queue_config_);
+  if (!rivermax_rx_config_ptr) {
+    HOLOSCAN_LOG_ERROR("Failed to cast extra queue config to RivermaxRxQueueConfig");
     return false;
   }
 
-  RmaxRxQueueConfig rmax_rx_config(*rmax_rx_config_ptr);
+  RivermaxRxQueueConfig rivermax_rx_config(*rivermax_rx_config_ptr);
 
-  if (!validate_rx_queue_config(rmax_rx_config)) { return false; }
+  if (!validate_rx_queue_config(rivermax_rx_config)) { return false; }
 
-  if (!validate_memory_regions_config(q, rmax_rx_config)) { return false; }
+  if (!validate_memory_regions_config(q, rivermax_rx_config)) { return false; }
 
-  if (config_memory_allocator(rmax_rx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_rx_config, q) == false) { return false; }
 
-  rmax_rx_config.dump_parameters();
+  rivermax_rx_config.dump_parameters();
 
   ExtRmaxIPOReceiverConfig rx_service_cfg;
 
-  if (!build_rmax_ipo_receiver_config(rx_service_cfg, rmax_rx_config, q)) { return false; }
+  if (!build_rmax_ipo_receiver_config(rx_service_cfg, rivermax_rx_config, q)) { return false; }
 
   add_new_rx_service_config(rx_service_cfg, port_id, q.common_.id_);
 
   return true;
 }
 
-bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
+bool RxConfigManager::config_memory_allocator(RivermaxRxQueueConfig& rivermax_rx_config,
                                               const RxQueueConfig& q) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
   HOLOSCAN_LOG_INFO(
-      "Configuring memory allocator for RMAX RX queue: {}, number of memory regions: {}",
+      "Configuring memory allocator for Rivermax RX queue: {}, number of memory regions: {}",
       q.common_.name_,
       num_of_mrs);
   if (num_of_mrs == 1) {
-    return config_memory_allocator_from_single_mrs(rmax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]]);
+    return config_memory_allocator_from_single_mrs(rivermax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]]);
   } else if (num_of_mrs == 2) {
     return config_memory_allocator_from_dual_mrs(
-        rmax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]], cfg_.mrs_[q.common_.mrs_[1]]);
+        rivermax_rx_config, q, cfg_.mrs_[q.common_.mrs_[0]], cfg_.mrs_[q.common_.mrs_[1]]);
   } else {
     HOLOSCAN_LOG_ERROR("Incompatible number of memory regions for Rivermax RX queue: {} [1..{}]",
                        num_of_mrs,
@@ -228,58 +228,58 @@ bool RxConfigManager::config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config,
   }
 }
 
-bool RxConfigManager::config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
+bool RxConfigManager::config_memory_allocator_from_single_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
                                                               const RxQueueConfig& q,
                                                               const MemoryRegionConfig& mr) {
-  rmax_rx_config.split_boundary = 0;
-  rmax_rx_config.max_packet_size = mr.buf_size_;
-  rmax_rx_config.packets_buffers_size = mr.num_bufs_;
+  rivermax_rx_config.split_boundary = 0;
+  rivermax_rx_config.max_packet_size = mr.buf_size_;
+  rivermax_rx_config.packets_buffers_size = mr.num_bufs_;
 
-  if (set_gpu_is_in_use_if_applicable(rmax_rx_config, mr)) { return true; }
+  if (set_gpu_is_in_use_if_applicable(rivermax_rx_config, mr)) { return true; }
 
-  set_gpu_is_not_in_use(rmax_rx_config);
-  set_cpu_allocator_type(rmax_rx_config, mr);
+  set_gpu_is_not_in_use(rivermax_rx_config);
+  set_cpu_allocator_type(rivermax_rx_config, mr);
 
   return true;
 }
 
-bool RxConfigManager::config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
+bool RxConfigManager::config_memory_allocator_from_dual_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
                                                             const RxQueueConfig& q,
                                                             const MemoryRegionConfig& mr_header,
                                                             const MemoryRegionConfig& mr_payload) {
-  rmax_rx_config.split_boundary = mr_header.buf_size_;
-  rmax_rx_config.max_packet_size = mr_payload.buf_size_;
-  rmax_rx_config.packets_buffers_size = mr_payload.num_bufs_;
+  rivermax_rx_config.split_boundary = mr_header.buf_size_;
+  rivermax_rx_config.max_packet_size = mr_payload.buf_size_;
+  rivermax_rx_config.packets_buffers_size = mr_payload.num_bufs_;
 
-  if (!set_gpu_is_in_use_if_applicable(rmax_rx_config, mr_payload)) {
-    set_gpu_is_not_in_use(rmax_rx_config);
+  if (!set_gpu_is_in_use_if_applicable(rivermax_rx_config, mr_payload)) {
+    set_gpu_is_not_in_use(rivermax_rx_config);
   }
 
-  set_cpu_allocator_type(rmax_rx_config, mr_header);
+  set_cpu_allocator_type(rivermax_rx_config, mr_header);
 
   return true;
 }
 
-bool RxConfigManager::set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
+bool RxConfigManager::set_gpu_is_in_use_if_applicable(RivermaxRxQueueConfig& rivermax_rx_config,
                                                       const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::DEVICE || mr.kind_ == MemoryKind::HOST_PINNED) {
 #else
   if (mr.kind_ == MemoryKind::DEVICE) {
 #endif
-    rmax_rx_config.gpu_device_id = mr.affinity_;
-    rmax_rx_config.gpu_direct = true;
+    rivermax_rx_config.gpu_device_id = mr.affinity_;
+    rivermax_rx_config.gpu_direct = true;
     return true;
   }
   return false;
 }
 
-void RxConfigManager::set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config) {
-  rmax_rx_config.gpu_device_id = -1;
-  rmax_rx_config.gpu_direct = false;
+void RxConfigManager::set_gpu_is_not_in_use(RivermaxRxQueueConfig& rivermax_rx_config) {
+  rivermax_rx_config.gpu_device_id = -1;
+  rivermax_rx_config.gpu_direct = false;
 }
 
-void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
+void RxConfigManager::set_cpu_allocator_type(RivermaxRxQueueConfig& rivermax_rx_config,
                                              const MemoryRegionConfig& mr) {
 #if RMAX_TEGRA
   if (mr.kind_ == MemoryKind::HOST) {
@@ -287,27 +287,27 @@ void RxConfigManager::set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config,
   if (mr.kind_ == MemoryKind::HOST || mr.kind_ == MemoryKind::HOST_PINNED) {
 #endif
 
-    rmax_rx_config.allocator_type = "malloc";
+    rivermax_rx_config.allocator_type = "malloc";
   } else if (mr.kind_ == MemoryKind::HUGE) {
-    if (rmax_rx_config.allocator_type != "huge_page_default" &&
-        rmax_rx_config.allocator_type != "huge_page_2mb" &&
-        rmax_rx_config.allocator_type != "huge_page_512mb" &&
-        rmax_rx_config.allocator_type != "huge_page_1gb") {
-      rmax_rx_config.allocator_type = "huge_page_default";
+    if (rivermax_rx_config.allocator_type != "huge_page_default" &&
+        rivermax_rx_config.allocator_type != "huge_page_2mb" &&
+        rivermax_rx_config.allocator_type != "huge_page_512mb" &&
+        rivermax_rx_config.allocator_type != "huge_page_1gb") {
+      rivermax_rx_config.allocator_type = "huge_page_default";
     }  // else the allocator type is already set
   }
 }
 
 bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
-                                                     const RmaxRxQueueConfig& rmax_rx_config) {
+                                                     const RivermaxRxQueueConfig& rivermax_rx_config) {
   uint16_t num_of_mrs = q.common_.mrs_.size();
   try {
     if (num_of_mrs == 1) {
       return validate_memory_regions_config_from_single_mrs(
-          q, rmax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]));
+          q, rivermax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]));
     } else if (num_of_mrs == 2) {
       return validate_memory_regions_config_from_dual_mrs(
-          q, rmax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]), cfg_.mrs_.at(q.common_.mrs_[1]));
+          q, rivermax_rx_config, cfg_.mrs_.at(q.common_.mrs_[0]), cfg_.mrs_.at(q.common_.mrs_[1]));
     } else {
       HOLOSCAN_LOG_ERROR("Incompatible number of memory regions for Rivermax RX queue: {} [1..{}]",
                          num_of_mrs,
@@ -328,7 +328,7 @@ bool RxConfigManager::validate_memory_regions_config(const RxQueueConfig& q,
 }
 
 bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
-    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config, const MemoryRegionConfig& mr) {
+    const RxQueueConfig& q, const RivermaxRxQueueConfig& rivermax_rx_config, const MemoryRegionConfig& mr) {
   return true;
 }
 
@@ -336,13 +336,13 @@ bool RxConfigManager::validate_memory_regions_config_from_single_mrs(
  * @brief Validates the RX queue memory regions configuration for dual memory regions.
  *
  * @param q The RX queue configuration.
- * @param rmax_rx_config The Rmax RX queue configuration.
+ * @param rivermax_rx_config The Rivermax RX queue configuration.
  * @param mr_header The header memory region.
  * @param mr_payload The payload memory region.
  * @return True if the configuration is valid, false otherwise.
  */
 bool RxConfigManager::validate_memory_regions_config_from_dual_mrs(
-    const RxQueueConfig& q, const RmaxRxQueueConfig& rmax_rx_config,
+    const RxQueueConfig& q, const RivermaxRxQueueConfig& rivermax_rx_config,
     const MemoryRegionConfig& mr_header, const MemoryRegionConfig& mr_payload) {
   if (mr_payload.kind_ != MemoryKind::DEVICE && mr_header.kind_ != mr_payload.kind_) {
     HOLOSCAN_LOG_ERROR(
@@ -364,46 +364,46 @@ bool RxConfigManager::validate_memory_regions_config_from_dual_mrs(
 }
 
 bool RxConfigManager::build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                                     const RmaxRxQueueConfig& rmax_rx_config,
+                                                     const RivermaxRxQueueConfig& rivermax_rx_config,
                                                      const RxQueueConfig& q) {
   rx_service_cfg.app_settings = std::make_shared<AppSettings>();
   set_default_config(rx_service_cfg);
 
   auto& app_settings_config = *(rx_service_cfg.app_settings);
 
-  set_rx_service_common_app_settings(app_settings_config, rmax_rx_config);
+  set_rx_service_common_app_settings(app_settings_config, rivermax_rx_config);
 
   if (!parse_and_set_cores(app_settings_config, q.common_.cpu_core_)) { return false; }
 
-  set_rx_service_ipo_receiver_settings(rx_service_cfg, rmax_rx_config);
+  set_rx_service_ipo_receiver_settings(rx_service_cfg, rivermax_rx_config);
 
   return true;
 }
 
-bool RxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config) {
-  if (rmax_rx_config.source_ips.empty()) {
+bool RxConfigManager::validate_rx_queue_config(const RivermaxRxQueueConfig& rivermax_rx_config) {
+  if (rivermax_rx_config.source_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
     return false;
   }
 
-  if (rmax_rx_config.local_ips.empty()) {
+  if (rivermax_rx_config.local_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Local IP addresses are not set for RTP stream");
     return false;
   }
 
-  if (rmax_rx_config.destination_ips.empty()) {
+  if (rivermax_rx_config.destination_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Destination IP addresses are not set for RTP stream");
     return false;
   }
 
-  if (rmax_rx_config.destination_ports.empty()) {
+  if (rivermax_rx_config.destination_ports.empty()) {
     HOLOSCAN_LOG_ERROR("Destination ports are not set for RTP stream");
     return false;
   }
 
-  if ((rmax_rx_config.local_ips.size() != rmax_rx_config.source_ips.size()) ||
-      (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ips.size()) ||
-      (rmax_rx_config.local_ips.size() != rmax_rx_config.destination_ports.size())) {
+  if ((rivermax_rx_config.local_ips.size() != rivermax_rx_config.source_ips.size()) ||
+      (rivermax_rx_config.local_ips.size() != rivermax_rx_config.destination_ips.size()) ||
+      (rivermax_rx_config.local_ips.size() != rivermax_rx_config.destination_ports.size())) {
     HOLOSCAN_LOG_ERROR(
         "Local/Source/Destination IP addresses and ports sizes are not equal for RTP stream");
     return false;
@@ -413,19 +413,19 @@ bool RxConfigManager::validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_
 }
 
 void RxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settings_config,
-                                                         const RmaxRxQueueConfig& rmax_rx_config) {
-  app_settings_config.local_ips = rmax_rx_config.local_ips;
-  app_settings_config.source_ips = rmax_rx_config.source_ips;
-  app_settings_config.destination_ips = rmax_rx_config.destination_ips;
-  app_settings_config.destination_ports = rmax_rx_config.destination_ports;
+                                                         const RivermaxRxQueueConfig& rivermax_rx_config) {
+  app_settings_config.local_ips = rivermax_rx_config.local_ips;
+  app_settings_config.source_ips = rivermax_rx_config.source_ips;
+  app_settings_config.destination_ips = rivermax_rx_config.destination_ips;
+  app_settings_config.destination_ports = rivermax_rx_config.destination_ports;
 
-  if (rmax_rx_config.gpu_direct) {
-    app_settings_config.gpu_id = rmax_rx_config.gpu_device_id;
+  if (rivermax_rx_config.gpu_direct) {
+    app_settings_config.gpu_id = rivermax_rx_config.gpu_device_id;
   } else {
     app_settings_config.gpu_id = INVALID_GPU_ID;
   }
 
-  set_allocator_type(app_settings_config, rmax_rx_config.allocator_type);
+  set_allocator_type(app_settings_config, rivermax_rx_config.allocator_type);
 
   if (cfg_.common_.master_core_ >= 0 &&
       cfg_.common_.master_core_ < std::thread::hardware_concurrency()) {
@@ -433,13 +433,13 @@ void RxConfigManager::set_rx_service_common_app_settings(AppSettings& app_settin
   } else {
     app_settings_config.internal_thread_core = CPU_NONE;
   }
-  app_settings_config.num_of_threads = rmax_rx_config.num_of_threads;
-  app_settings_config.print_parameters = rmax_rx_config.print_parameters;
-  app_settings_config.sleep_between_operations_us = rmax_rx_config.sleep_between_operations_us;
-  app_settings_config.packet_payload_size = rmax_rx_config.max_packet_size;
-  app_settings_config.packet_app_header_size = rmax_rx_config.split_boundary;
+  app_settings_config.num_of_threads = rivermax_rx_config.num_of_threads;
+  app_settings_config.print_parameters = rivermax_rx_config.print_parameters;
+  app_settings_config.sleep_between_operations_us = rivermax_rx_config.sleep_between_operations_us;
+  app_settings_config.packet_payload_size = rivermax_rx_config.max_packet_size;
+  app_settings_config.packet_app_header_size = rivermax_rx_config.split_boundary;
   app_settings_config.num_of_packets_in_chunk =
-      std::pow(2, std::ceil(std::log2(rmax_rx_config.packets_buffers_size)));
+      std::pow(2, std::ceil(std::log2(rivermax_rx_config.packets_buffers_size)));
 }
 
 void RxConfigManager::set_allocator_type(AppSettings& app_settings_config,
@@ -488,25 +488,25 @@ bool RxConfigManager::parse_and_set_cores(AppSettings& app_settings_config,
 }
 
 void RxConfigManager::set_rx_service_ipo_receiver_settings(
-    ExtRmaxIPOReceiverConfig& rx_service_cfg, const RmaxRxQueueConfig& rmax_rx_config) {
-  rx_service_cfg.is_extended_sequence_number = rmax_rx_config.ext_seq_num;
-  rx_service_cfg.max_path_differential_us = rmax_rx_config.max_path_differential_us;
+    ExtRmaxIPOReceiverConfig& rx_service_cfg, const RivermaxRxQueueConfig& rivermax_rx_config) {
+  rx_service_cfg.is_extended_sequence_number = rivermax_rx_config.ext_seq_num;
+  rx_service_cfg.max_path_differential_us = rivermax_rx_config.max_path_differential_us;
   if (rx_service_cfg.max_path_differential_us >= USECS_IN_SECOND) {
     HOLOSCAN_LOG_ERROR("Max path differential must be less than 1 second");
     rx_service_cfg.max_path_differential_us = USECS_IN_SECOND;
   }
 
-  rx_service_cfg.rx_stats_period_report_ms = rmax_rx_config.rx_stats_period_report_ms;
-  rx_service_cfg.register_memory = rmax_rx_config.memory_registration;
-  rx_service_cfg.max_chunk_size = rmax_rx_config.max_chunk_size;
+  rx_service_cfg.rx_stats_period_report_ms = rivermax_rx_config.rx_stats_period_report_ms;
+  rx_service_cfg.register_memory = rivermax_rx_config.memory_registration;
+  rx_service_cfg.max_chunk_size = rivermax_rx_config.max_chunk_size;
   rx_service_cfg.rmax_apps_lib = this->rmax_apps_lib_;
 
-  rx_service_cfg.send_packet_ext_info = rmax_rx_config.send_packet_ext_info;
+  rx_service_cfg.send_packet_ext_info = rivermax_rx_config.send_packet_ext_info;
 }
 
 void RxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& rx_service_cfg,
                                                 uint16_t port_id, uint16_t queue_id) {
-  uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
+  uint32_t key = RivermaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   if (rx_service_configs_.find(key) != rx_service_configs_.end()) {
     HOLOSCAN_LOG_ERROR("Rivermax advanced_network settings for port {} and queue {} already exists",
                        port_id,
@@ -533,55 +533,55 @@ bool TxConfigManager::append_candidate_for_tx_queue(uint16_t port_id, const TxQu
   return false;
 }
 
-Status RmaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
+Status RivermaxConfigParser::parse_rx_queue_rivermax_config(const YAML::Node& q_item,
                                                         RxQueueConfig& q) {
-  const auto& rmax_rx_settings = q_item["rmax_rx_settings"];
+  const auto& rivermax_rx_settings = q_item["rivermax_rx_settings"];
 
-  if (!rmax_rx_settings) {
-    HOLOSCAN_LOG_ERROR("Rmax RX settings not found");
+  if (!rivermax_rx_settings) {
+    HOLOSCAN_LOG_ERROR("Rivermax RX settings not found");
     return Status::INVALID_PARAMETER;
   }
 
-  q.common_.extra_queue_config_ = new RmaxRxQueueConfig();
-  auto& rmax_rx_config = *(reinterpret_cast<RmaxRxQueueConfig*>(q.common_.extra_queue_config_));
+  q.common_.extra_queue_config_ = new RivermaxRxQueueConfig();
+  auto& rivermax_rx_config = *(reinterpret_cast<RivermaxRxQueueConfig*>(q.common_.extra_queue_config_));
 
-  for (const auto& q_item_ip : rmax_rx_settings["local_ip_addresses"]) {
-    rmax_rx_config.local_ips.emplace_back(q_item_ip.as<std::string>());
+  for (const auto& q_item_ip : rivermax_rx_settings["local_ip_addresses"]) {
+    rivermax_rx_config.local_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  for (const auto& q_item_ip : rmax_rx_settings["source_ip_addresses"]) {
-    rmax_rx_config.source_ips.emplace_back(q_item_ip.as<std::string>());
+  for (const auto& q_item_ip : rivermax_rx_settings["source_ip_addresses"]) {
+    rivermax_rx_config.source_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  for (const auto& q_item_ip : rmax_rx_settings["destination_ip_addresses"]) {
-    rmax_rx_config.destination_ips.emplace_back(q_item_ip.as<std::string>());
+  for (const auto& q_item_ip : rivermax_rx_settings["destination_ip_addresses"]) {
+    rivermax_rx_config.destination_ips.emplace_back(q_item_ip.as<std::string>());
   }
 
-  for (const auto& q_item_ip : rmax_rx_settings["destination_ports"]) {
-    rmax_rx_config.destination_ports.emplace_back(q_item_ip.as<uint16_t>());
+  for (const auto& q_item_ip : rivermax_rx_settings["destination_ports"]) {
+    rivermax_rx_config.destination_ports.emplace_back(q_item_ip.as<uint16_t>());
   }
 
-  rmax_rx_config.ext_seq_num = rmax_rx_settings["ext_seq_num"].as<bool>(true);
-  rmax_rx_config.max_path_differential_us = rmax_rx_settings["max_path_diff_us"].as<uint32_t>(0);
-  rmax_rx_config.allocator_type = rmax_rx_settings["allocator_type"].as<std::string>("auto");
-  rmax_rx_config.memory_registration = rmax_rx_settings["memory_registration"].as<bool>(false);
-  rmax_rx_config.sleep_between_operations_us =
-      rmax_rx_settings["sleep_between_operations_us"].as<int>(0);
-  rmax_rx_config.print_parameters = rmax_rx_settings["verbose"].as<bool>(false);
-  rmax_rx_config.num_of_threads = rmax_rx_settings["num_of_threads"].as<size_t>(1);
-  rmax_rx_config.send_packet_ext_info = rmax_rx_settings["send_packet_ext_info"].as<bool>(true);
-  rmax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
-  rmax_rx_config.rx_stats_period_report_ms =
-      rmax_rx_settings["rx_stats_period_report_ms"].as<uint32_t>(0);
+  rivermax_rx_config.ext_seq_num = rivermax_rx_settings["ext_seq_num"].as<bool>(true);
+  rivermax_rx_config.max_path_differential_us = rivermax_rx_settings["max_path_diff_us"].as<uint32_t>(0);
+  rivermax_rx_config.allocator_type = rivermax_rx_settings["allocator_type"].as<std::string>("auto");
+  rivermax_rx_config.memory_registration = rivermax_rx_settings["memory_registration"].as<bool>(false);
+  rivermax_rx_config.sleep_between_operations_us =
+      rivermax_rx_settings["sleep_between_operations_us"].as<int>(0);
+  rivermax_rx_config.print_parameters = rivermax_rx_settings["verbose"].as<bool>(false);
+  rivermax_rx_config.num_of_threads = rivermax_rx_settings["num_of_threads"].as<size_t>(1);
+  rivermax_rx_config.send_packet_ext_info = rivermax_rx_settings["send_packet_ext_info"].as<bool>(true);
+  rivermax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
+  rivermax_rx_config.rx_stats_period_report_ms =
+      rivermax_rx_settings["rx_stats_period_report_ms"].as<uint32_t>(0);
   return Status::SUCCESS;
 }
 
-Status RmaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
+Status RivermaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_item,
                                                         TxQueueConfig& q) {
   return Status::SUCCESS;
 }
 
-void RmaxRxQueueConfig::dump_parameters() const {
+void RivermaxRxQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax RX Queue Config:");
     HOLOSCAN_LOG_INFO("\tNetwork settings:");

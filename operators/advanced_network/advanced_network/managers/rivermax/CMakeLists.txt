@@ -20,17 +20,17 @@ enable_language(CUDA)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(rmax_service)
+add_subdirectory(rivermax_service)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rmax_mgr_impl)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rivermax_mgr_impl)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        rmax_mgr_impl/adv_network_rmax_mgr.cpp
-        rmax_mgr_impl/burst_manager.cpp
-        rmax_mgr_impl/rmax_config_manager.cpp
+        rivermax_mgr_impl/adv_network_rivermax_mgr.cpp
+        rivermax_mgr_impl/burst_manager.cpp
+        rivermax_mgr_impl/rivermax_config_manager.cpp
     PUBLIC
-        adv_network_rmax_mgr.h
+        adv_network_rivermax_mgr.h
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
@@ -39,7 +39,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        rmax_service
+        rivermax_service
         rmax-ral-lib
         rmax-ral-build
         holoscan::core
