@@ -24,8 +24,8 @@
 #include <condition_variable>
 #include <chrono>
 
-#include <rivermax_api.h>
 #include "api/rmax_apps_lib_api.h"
+
 #include "rmax_service/rmax_ipo_receiver_service.h"
 #include "rmax_mgr_impl/rmax_chunk_consumer_ano.h"
 #include <holoscan/logger/logger.hpp>
@@ -191,7 +191,9 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
   AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler, uint32_t tag);
 
   /**
-   * @brief Destructor to clean up resources.
+   * @brief Destructor for the AnoBurstsMemoryPool class.
+   *
+   * Frees all bursts in the queue and clears the burst map.
    */
   ~AnoBurstsMemoryPool();
 
@@ -211,13 +213,6 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
   RmaxBurst::BurstHandler& m_burst_handler;
 };
 
-/**
- * @brief Constructor for AnoBurstsMemoryPool.
- *
- * @param size Initial size of the memory pool.
- * @param burst_handler Reference to the burst handler.
- * @param tag Tag for the burst.
- */
 AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler,
                                          uint32_t tag)
     : m_initial_size(size), m_bursts_tag(tag), m_burst_handler(burst_handler) {
@@ -234,12 +229,6 @@ AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& b
   }
 }
 
-/**
- * @brief Puts a burst back into the memory pool.
- *
- * @param burst Pointer to the burst to be put back.
- * @return true if the burst was successfully put back, false otherwise.
- */
 bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
@@ -259,12 +248,6 @@ bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
   }
 }
 
-/**
- * @brief Puts a burst back into the memory pool.
- *
- * @param burst Shared pointer to the burst to be put back.
- * @return true if the burst was successfully put back, false otherwise.
- */
 bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
@@ -287,11 +270,6 @@ bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
   return false;
 }
 
-/**
- * @brief Retrieves a burst from the memory pool.
- *
- * @return A shared pointer to the retrieved burst, or nullptr if no burst is available.
- */
 std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
   std::shared_ptr<RmaxBurst> burst;
 
@@ -302,11 +280,6 @@ std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
   return nullptr;
 }
 
-/**
- * @brief Destructor for the AnoBurstsMemoryPool class.
- *
- * Frees all bursts in the queue and clears the burst map.
- */
 AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
   std::shared_ptr<RmaxBurst> burst;
 
@@ -317,11 +290,6 @@ AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
   m_burst_map.clear();
 }
 
-/**
- * @brief Constructor for the AnoBurstsQueue class.
- *
- * Initializes the queue based on the USE_BLOCKING_QUEUE macro.
- */
 AnoBurstsQueue::AnoBurstsQueue() {
 #if USE_BLOCKING_QUEUE
   m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RmaxBurst>>>();
@@ -330,29 +298,15 @@ AnoBurstsQueue::AnoBurstsQueue() {
 #endif
 }
 
-/**
- * @brief Enqueues a burst into the queue.
- *
- * @param burst A shared pointer to the burst to be enqueued.
- * @return True if the burst was successfully enqueued.
- */
 bool AnoBurstsQueue::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
   m_queue->enqueue(burst);
   return true;
 }
 
-/**
- * @brief Clears all bursts from the queue.
- */
 void AnoBurstsQueue::clear() {
   m_queue->clear();
 }
 
-/**
- * @brief Retrieves a burst from the queue.
- *
- * @return A shared pointer to the retrieved burst, or nullptr if no burst is available.
- */
 std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
   std::shared_ptr<RmaxBurst> burst;
 
@@ -363,14 +317,6 @@ std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
   return nullptr;
 }
 
-/**
- * @brief Constructs a BurstHandler object.
- *
- * @param send_packet_ext_info Flag indicating whether to send packet info.
- * @param port_id The port ID.
- * @param queue_id The queue ID.
- * @param gpu_direct Flag indicating whether GPU direct is enabled.
- */
 RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, int queue_id,
                                       bool gpu_direct)
     : m_send_packet_ext_info(send_packet_ext_info),
@@ -392,12 +338,6 @@ RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, in
   m_burst_info.payload_seg_idx = 0;
 }
 
-/**
- * @brief Creates and initializes a new burst with the given burst ID
- *
- * @param burst_id The ID of the burst to create.
- * @return A shared pointer to the created burst.
- */
 std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_id) {
   std::shared_ptr<RmaxBurst> burst(new RmaxBurst(m_port_id, m_queue_id, MAX_PKT_IN_BURST));
 
@@ -420,11 +360,6 @@ std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_
   return burst;
 }
 
-/**
- * @brief Deletes a burst and frees its associated resources.
- *
- * @param burst A shared pointer to the burst to delete.
- */
 void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
@@ -452,11 +387,6 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
   burst->pkt_lens[1] = nullptr;
 }
 
-/**
- * @brief Marks a burst as done and returns it to the memory pool.
- *
- * @param burst Pointer to the burst that is done.
- */
 void RxBurstsManager::rx_burst_done(RmaxBurst* burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
@@ -481,18 +411,6 @@ void RxBurstsManager::rx_burst_done(RmaxBurst* burst) {
   }
 }
 
-/**
- * @brief Constructor for the RxBurstsManager class.
- *
- * Initializes the chunk consumer with the specified parameters.
- *
- * @param send_packet_ext_info Flag indicating if packet information should be sent.
- * @param port_id The port ID.
- * @param queue_id The queue ID.
- * @param burst_out_size The minimum output burst size.
- * @param gpu_id The GPU ID.
- * @param rx_bursts_out_queue Shared pointer to the output queue for received bursts.
- */
 RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id,
                                  uint16_t burst_out_size, int gpu_id,
                                  std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue)
@@ -519,11 +437,6 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
     m_burst_out_size = RmaxBurst::MAX_PKT_IN_BURST;
 }
 
-/**
- * @brief Destructor for the RxBurstsManager class.
- *
- * Ensures that all bursts are properly returned to the memory pool.
- */
 RxBurstsManager::~RxBurstsManager() {
   if (m_using_shared_out_queue) { return; }
 
