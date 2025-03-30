@@ -53,7 +53,7 @@ advanced_network:
           memory_regions:
           - "Data_RX_CPU"
           - "Data_RX_GPU"
-          rmax_rx_settings:
+          rivermax_rx_settings:
             memory_registration: true
             #allocator_type: "huge_page_2mb"
             verbose: true

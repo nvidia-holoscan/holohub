@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-#ifndef RMAX_ANO_DATA_TYPES_H_
-#define RMAX_ANO_DATA_TYPES_H_
+#ifndef RIVERMAX_ANO_DATA_TYPES_H_
+#define RIVERMAX_ANO_DATA_TYPES_H_
 
 #include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
 
-class RmaxBurst;
+class RivermaxBurst;
 
 class IAnoBurstsCollection {
  public:
   virtual ~IAnoBurstsCollection() = default;
-  virtual bool enqueue_burst(std::shared_ptr<RmaxBurst> burst) = 0;
-  virtual std::shared_ptr<RmaxBurst> dequeue_burst() = 0;
+  virtual bool enqueue_burst(std::shared_ptr<RivermaxBurst> burst) = 0;
+  virtual std::shared_ptr<RivermaxBurst> dequeue_burst() = 0;
   virtual size_t available_bursts() = 0;
   virtual bool empty() = 0;
 };
@@ -114,14 +114,14 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
    * @param burst The burst to put into the queue.
    * @return True if the burst was successfully put into the queue, false otherwise.
    */
-  bool enqueue_burst(std::shared_ptr<RmaxBurst> burst) override;
+  bool enqueue_burst(std::shared_ptr<RivermaxBurst> burst) override;
 
   /**
    * @brief Dequeues a burst from the queue.
    *
    * @return A shared pointer to the burst.
    */
-  std::shared_ptr<RmaxBurst> dequeue_burst() override;
+  std::shared_ptr<RivermaxBurst> dequeue_burst() override;
 
   /**
    * @brief Gets the number of available bursts in the queue.
@@ -143,7 +143,7 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
   void clear();
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;
+  std::unique_ptr<QueueInterface<std::shared_ptr<RivermaxBurst>>> m_queue;
 };
 
 enum BurstFlags : uint8_t {
@@ -164,23 +164,23 @@ struct AnoBurstExtendedInfo {
   uint16_t payload_seg_idx;
 };
 
-struct RmaxPacketExtendedInfo {
+struct RivermaxPacketExtendedInfo {
   uint32_t flow_tag;
   uint64_t timestamp;
 };
 
-struct RmaxPacketData {
+struct RivermaxPacketData {
   uint8_t* header_ptr;
   uint8_t* payload_ptr;
   size_t header_length;
   size_t payload_length;
-  RmaxPacketExtendedInfo extended_info;
+  RivermaxPacketExtendedInfo extended_info;
 };
 
 /**
- * @brief Class representing Rmax log levels.
+ * @brief Class representing Rivermax log levels.
  */
-class RmaxLogLevel {
+class RivermaxLogLevel {
  public:
   enum Level {
     TRACE,
@@ -193,9 +193,9 @@ class RmaxLogLevel {
   };
 
   /**
-   * @brief Converts an Rmax log level to a description string.
+   * @brief Converts an Rivermax log level to a description string.
    *
-   * @param level The Rmax log level to convert.
+   * @param level The Rivermax log level to convert.
    * @return The string representation of the log level.
    */
   static std::string to_description_string(Level level) {
@@ -207,9 +207,9 @@ class RmaxLogLevel {
   }
 
   /**
-   * @brief Converts an Rmax log level to a command string.
+   * @brief Converts an Rivermax log level to a command string.
    *
-   * @param level The Rmax log level to convert.
+   * @param level The Rivermax log level to convert.
    * @return The string representation of the log level.
    */
   static std::string to_cmd_string(Level level) {
@@ -226,8 +226,8 @@ class RmaxLogLevel {
    * @return The corresponding Rmax log level.
    */
   static Level from_adv_net_log_level(LogLevel::Level level) {
-    auto it = adv_net_to_rmax_log_level_map.find(level);
-    if (it != adv_net_to_rmax_log_level_map.end()) { return it->second; }
+    auto it = adv_net_to_rivermax_log_level_map.find(level);
+    if (it != adv_net_to_rivermax_log_level_map.end()) { return it->second; }
     return OFF;
   }
 
@@ -237,11 +237,11 @@ class RmaxLogLevel {
    */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
   /**
-   * A map of advanced_network log level to Rmax log level.
+   * A map of advanced_network log level to Rivermax log level.
    */
-  static const std::unordered_map<LogLevel::Level, Level> adv_net_to_rmax_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> adv_net_to_rivermax_log_level_map;
 };
 
 }  // namespace holoscan::advanced_network
 
-#endif  // RMAX_ANO_DATA_TYPES_H_
+#endif  // RIVERMAX_ANO_DATA_TYPES_H_

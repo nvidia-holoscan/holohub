@@ -28,7 +28,7 @@
 #include <rte_ethdev.h>
 #endif
 #if ANO_MGR_RIVERMAX
-#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rivermax_mgr.h"
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
@@ -456,7 +456,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_rx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
@@ -514,7 +514,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_tx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;

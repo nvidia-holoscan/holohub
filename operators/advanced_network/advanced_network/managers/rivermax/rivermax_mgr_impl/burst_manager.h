@@ -21,9 +21,9 @@
 #include <cstddef>
 #include <iostream>
 
-#include "rmax_ano_data_types.h"
-#include "rmax_service/ipo_chunk_consumer_base.h"
-#include "rmax_service/rmax_ipo_receiver_service.h"
+#include "rivermax_ano_data_types.h"
+#include "rivermax_service/ipo_chunk_consumer_base.h"
+#include "rivermax_service/rmax_ipo_receiver_service.h"
 #include "advanced_network/types.h"
 #include <holoscan/logger/logger.hpp>
 
@@ -31,10 +31,10 @@ namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
- * @class RmaxBurst
+ * @class RivermaxBurst
  * @brief Represents a burst of packets in the advanced network.
  */
-class RmaxBurst : public BurstParams {
+class RivermaxBurst : public BurstParams {
  public:
   static constexpr int MAX_PKT_IN_BURST = 9100;
 
@@ -196,7 +196,7 @@ class RmaxBurst : public BurstParams {
    *
    * @throws runtime_error If the maximum number of packets is exceeded.
    */
-  inline void append_packet(const RmaxPacketData& packet_data) {
+  inline void append_packet(const RivermaxPacketData& packet_data) {
     if (hdr.hdr.num_pkts >= m_max_num_packets) {
       throw std::runtime_error("Maximum number of packets exceeded (num_packets: " +
                                std::to_string(m_max_num_packets) + ")");
@@ -213,12 +213,12 @@ class RmaxBurst : public BurstParams {
    *                                Index boundary checks are not performed in this function.
    * @param packet_data The data of the packet to append.
    */
-  inline void set_packet_data(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
+  inline void set_packet_data(size_t packet_ind_in_out_burst, const RivermaxPacketData& packet_data) {
     auto burst_info = get_burst_info();
 
     if (burst_info->burst_flags & BurstFlags::INFO_PER_PACKET) {
-      RmaxPacketExtendedInfo* rx_packet_info =
-          reinterpret_cast<RmaxPacketExtendedInfo*>(pkt_extra_info[packet_ind_in_out_burst]);
+      RivermaxPacketExtendedInfo* rx_packet_info =
+          reinterpret_cast<RivermaxPacketExtendedInfo*>(pkt_extra_info[packet_ind_in_out_burst]);
       rx_packet_info->timestamp = packet_data.extended_info.timestamp;
       rx_packet_info->flow_tag = packet_data.extended_info.flow_tag;
     }
@@ -244,13 +244,13 @@ class RmaxBurst : public BurstParams {
   inline void set_num_packets(uint16_t num_pkts) { hdr.hdr.num_pkts = num_pkts; }
 
   /**
-   * @brief Constructs an RmaxBurst object.
+   * @brief Constructs an RivermaxBurst object.
    *
    * @param port_id The port ID.
    * @param queue_id The queue ID.
    * @param max_packets_in_burst The maximum number of packets in the burst.
    */
-  RmaxBurst(uint16_t port_id, uint16_t queue_id, uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
+  RivermaxBurst(uint16_t port_id, uint16_t queue_id, uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
       : m_max_num_packets(max_packets_in_burst) {
     hdr.hdr.port_id = port_id;
     hdr.hdr.q_id = queue_id;
@@ -263,7 +263,7 @@ class RmaxBurst : public BurstParams {
 /**
  * @brief Class responsible for handling burst operations.
  */
-class RmaxBurst::BurstHandler {
+class RivermaxBurst::BurstHandler {
  public:
   /**
    * @brief Constructs a BurstHandler object.
@@ -281,14 +281,14 @@ class RmaxBurst::BurstHandler {
    * @param burst_id The ID of the burst to create.
    * @return A shared pointer to the created burst.
    */
-  std::shared_ptr<RmaxBurst> create_burst(uint16_t burst_id);
+  std::shared_ptr<RivermaxBurst> create_burst(uint16_t burst_id);
 
   /**
    * @brief Deletes a burst and frees its associated resources.
    *
    * @param burst A shared pointer to the burst to delete.
    */
-  void delete_burst(std::shared_ptr<RmaxBurst> burst);
+  void delete_burst(std::shared_ptr<RivermaxBurst> burst);
 
  private:
   bool m_send_packet_ext_info;
@@ -303,7 +303,7 @@ class RmaxBurst::BurstHandler {
  *
  * The RxBurstsManager class is responsible for managing RX bursts in advanced networking
  * operations. It handles the creation, deletion, and processing of bursts, as well as
- * managing the lifecycle of packets within bursts. This class interfaces with the Rmax
+ * managing the lifecycle of packets within bursts. This class interfaces with the Rivermax
  * framework to provide the necessary functionality for handling and transforming data
  * into a format suitable for advanced_network to process.
  */
@@ -356,7 +356,7 @@ class RxBurstsManager {
    * @param packet_data Extended information about the packet.
    * @return ReturnStatus indicating the success or failure of the operation.
    */
-  inline ReturnStatus submit_next_packet(const RmaxPacketData& packet_data) {
+  inline ReturnStatus submit_next_packet(const RivermaxPacketData& packet_data) {
     get_or_allocate_current_burst();
     if (m_cur_out_burst == nullptr) {
       HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
@@ -395,7 +395,7 @@ class RxBurstsManager {
    *
    * @param burst Pointer to the burst parameters.
    */
-  void rx_burst_done(RmaxBurst* burst);
+  void rx_burst_done(RivermaxBurst* burst);
 
  protected:
   /**
@@ -403,7 +403,7 @@ class RxBurstsManager {
    *
    * @return Shared pointer to the allocated burst parameters.
    */
-  inline std::shared_ptr<RmaxBurst> allocate_burst() {
+  inline std::shared_ptr<RivermaxBurst> allocate_burst() {
     auto burst = m_rx_bursts_mempool->dequeue_burst();
     return burst;
   }
@@ -413,7 +413,7 @@ class RxBurstsManager {
    *
    * @return Shared pointer to the current burst parameters.
    */
-  inline std::shared_ptr<RmaxBurst> get_or_allocate_current_burst() {
+  inline std::shared_ptr<RivermaxBurst> get_or_allocate_current_burst() {
     if (m_cur_out_burst == nullptr) {
       m_cur_out_burst = allocate_burst();
       if (m_cur_out_burst == nullptr) {
@@ -460,9 +460,9 @@ class RxBurstsManager {
   bool m_using_shared_out_queue = true;
   std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool = nullptr;
   std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue = nullptr;
-  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;
+  std::shared_ptr<RivermaxBurst> m_cur_out_burst = nullptr;
   AnoBurstExtendedInfo m_burst_info;
-  std::unique_ptr<RmaxBurst::BurstHandler> m_burst_handler;
+  std::unique_ptr<RivermaxBurst::BurstHandler> m_burst_handler;
 };
 
 };  // namespace holoscan::advanced_network

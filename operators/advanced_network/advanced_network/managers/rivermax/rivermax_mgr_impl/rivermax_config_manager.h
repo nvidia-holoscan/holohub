@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef RMAX_CONFIG_MANAGER_H_
-#define RMAX_CONFIG_MANAGER_H_
+#ifndef RIVERMAX_CONFIG_MANAGER_H_
+#define RIVERMAX_CONFIG_MANAGER_H_
 
 #include <unordered_map>
 #include <memory>
@@ -25,7 +25,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "advanced_network/manager.h"
-#include "rmax_ano_data_types.h"
+#include "rivermax_ano_data_types.h"
 #include "rmax_ipo_receiver_service.h"
 
 namespace holoscan::advanced_network {
@@ -33,12 +33,12 @@ namespace holoscan::advanced_network {
 using namespace ral::services::rmax_ipo_receiver;
 
 /**
- * @brief Configuration structure for Rmax RX queue.
+ * @brief Configuration structure for Rivermax RX queue.
  *
- * This structure holds the configuration settings for an Rmax RX queue,
+ * This structure holds the configuration settings for an Rivermax RX queue,
  * including packet size, chunk size, IP addresses, ports, and other parameters.
  */
-struct RmaxRxQueueConfig : public ManagerExtraQueueConfig {
+struct RivermaxRxQueueConfig : public ManagerExtraQueueConfig {
   uint16_t max_packet_size = 0;
   size_t max_chunk_size;
   size_t packets_buffers_size;
@@ -60,10 +60,10 @@ struct RmaxRxQueueConfig : public ManagerExtraQueueConfig {
   uint32_t rx_stats_period_report_ms;
 
  public:
-  RmaxRxQueueConfig() = default;
-  ~RmaxRxQueueConfig() = default;
+  RivermaxRxQueueConfig() = default;
+  ~RivermaxRxQueueConfig() = default;
 
-  RmaxRxQueueConfig(const RmaxRxQueueConfig& other)
+  RivermaxRxQueueConfig(const RivermaxRxQueueConfig& other)
       : ManagerExtraQueueConfig(other),
         max_packet_size(other.max_packet_size),
         max_chunk_size(other.max_chunk_size),
@@ -85,7 +85,7 @@ struct RmaxRxQueueConfig : public ManagerExtraQueueConfig {
         send_packet_ext_info(other.send_packet_ext_info),
         rx_stats_period_report_ms(other.rx_stats_period_report_ms) {}
 
-  RmaxRxQueueConfig& operator=(const RmaxRxQueueConfig& other) {
+  RivermaxRxQueueConfig& operator=(const RivermaxRxQueueConfig& other) {
     if (this != &other) {
       ManagerExtraQueueConfig::operator=(other);
       max_packet_size = other.max_packet_size;
@@ -115,7 +115,7 @@ struct RmaxRxQueueConfig : public ManagerExtraQueueConfig {
 };
 
 /**
- * @brief Extended configuration for Rmax IPO Receiver.
+ * @brief Extended configuration for Rivermax IPO Receiver.
  */
 struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
   bool send_packet_ext_info;
@@ -125,7 +125,7 @@ struct ExtRmaxIPOReceiverConfig : RmaxIPOReceiverConfig {
  * @brief Base interface for configuration managers.
  *
  * The IConfigManager interface defines the basic operations for configuration managers
- * in Rmax. It provides a template for iterators and a method to set the configuration.
+ * in Rivermax. It provides a template for iterators and a method to set the configuration.
  */
 class IConfigManager {
  public:
@@ -151,7 +151,7 @@ class IConfigManager {
  * @brief Interface for RX configuration managers.
  *
  * The IRxConfigManager interface extends IConfigManager and defines additional operations
- * specific to RX configuration managers in Rmax.
+ * specific to RX configuration managers in Rivermax.
  */
 class IRxConfigManager : public IConfigManager {
  public:
@@ -185,7 +185,7 @@ class IRxConfigManager : public IConfigManager {
  * @brief Interface for TX configuration managers.
  *
  * The ITxConfigManager interface extends IConfigManager and defines additional operations
- * specific to TX configuration managers in Rmax.
+ * specific to TX configuration managers in Rivermax.
  */
 class ITxConfigManager : public IConfigManager {
  public:
@@ -216,10 +216,10 @@ class ITxConfigManager : public IConfigManager {
 };
 
 /**
- * @brief Manages the RX configuration for Rmax.
+ * @brief Manages the RX configuration for Rivermax.
  *
  * The RxConfigManager class is responsible for managing the configuration settings
- * for RX queues in Rmax. It validates and appends RX queue configurations for given ports.
+ * for RX queues in Rivermax. It validates and appends RX queue configurations for given ports.
  */
 class RxConfigManager : public IRxConfigManager {
  public:
@@ -247,44 +247,44 @@ class RxConfigManager : public IRxConfigManager {
   void set_default_config(ExtRmaxIPOReceiverConfig& rx_service_cfg) const;
 
   /**
-   * @brief Builds the Rmax IPO receiver configuration.
+   * @brief Builds the Rivermax IPO receiver configuration.
    *
    * @param rx_service_cfg The RX service configuration to build.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param q The RX queue configuration.
    * @return True if the configuration was successfully built, false otherwise.
    */
   bool build_rmax_ipo_receiver_config(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                      const RmaxRxQueueConfig& rmax_rx_config,
+                                      const RivermaxRxQueueConfig& rivermax_rx_config,
                                       const RxQueueConfig& q);
 
   /**
    * @brief Validates the RX queue configuration.
    *
-   * @param rmax_rx_config The Rmax RX queue configuration to validate.
+   * @param rivermax_rx_config The Rivermax RX queue configuration to validate.
    * @return True if the configuration is valid, false otherwise.
    */
-  bool validate_rx_queue_config(const RmaxRxQueueConfig& rmax_rx_config);
+  bool validate_rx_queue_config(const RivermaxRxQueueConfig& rivermax_rx_config);
 
   /**
-   * @brief Configures the memory allocator for the RMAX RX queue.
+   * @brief Configures the memory allocator for the Rivermax RX queue.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param q The RX queue configuration.
    * @return true if the configuration is successful, false otherwise.
    */
-  bool config_memory_allocator(RmaxRxQueueConfig& rmax_rx_config, const RxQueueConfig& q);
+  bool config_memory_allocator(RivermaxRxQueueConfig& rivermax_rx_config, const RxQueueConfig& q);
 
   /**
    * @brief Configures the memory allocator for a single memory region.
    *        The allocator will be used for both the header and payload memory.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param q The RX queue configuration.
    * @param mr The memory region.
    * @return true if the configuration is successful, false otherwise.
    */
-  bool config_memory_allocator_from_single_mrs(RmaxRxQueueConfig& rmax_rx_config,
+  bool config_memory_allocator_from_single_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
                                                const RxQueueConfig& q,
                                                const MemoryRegionConfig& mr);
 
@@ -295,75 +295,75 @@ class RxConfigManager : public IRxConfigManager {
    *        Otherwise, the function expects that the same allocator is configured
    *        for both memory regions.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param q The RX queue configuration.
    * @param mr_header The header memory region.
    * @param mr_payload The payload memory region.
    * @return true if the configuration is successful, false otherwise.
    */
 
-  bool config_memory_allocator_from_dual_mrs(RmaxRxQueueConfig& rmax_rx_config,
+  bool config_memory_allocator_from_dual_mrs(RivermaxRxQueueConfig& rivermax_rx_config,
                                              const RxQueueConfig& q,
                                              const MemoryRegionConfig& mr_header,
                                              const MemoryRegionConfig& mr_payload);
   /**
    * @brief Sets the GPU memory configuration if applicable.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param mr The memory region.
    * @return true if the GPU memory configuration is set, false otherwise.
    */
-  bool set_gpu_is_in_use_if_applicable(RmaxRxQueueConfig& rmax_rx_config,
+  bool set_gpu_is_in_use_if_applicable(RivermaxRxQueueConfig& rivermax_rx_config,
                                        const MemoryRegionConfig& mr);
 
   /**
    * @brief Sets the CPU memory configuration.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    */
-  void set_gpu_is_not_in_use(RmaxRxQueueConfig& rmax_rx_config);
+  void set_gpu_is_not_in_use(RivermaxRxQueueConfig& rivermax_rx_config);
 
   /**
    * @brief Sets the allocator type based on the memory region.
    *
-   * @param rmax_rx_config The RMAX RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param mr The memory region.
    */
-  void set_cpu_allocator_type(RmaxRxQueueConfig& rmax_rx_config, const MemoryRegionConfig& mr);
+  void set_cpu_allocator_type(RivermaxRxQueueConfig& rivermax_rx_config, const MemoryRegionConfig& mr);
 
   /**
    * @brief Validates the RX queue memory regions configuration.
    *
    * @param q The RX queue configuration.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @return True if the configuration is valid, false otherwise.
    */
   bool validate_memory_regions_config(const RxQueueConfig& q,
-                                      const RmaxRxQueueConfig& rmax_rx_config);
+                                      const RivermaxRxQueueConfig& rivermax_rx_config);
 
   /**
    * @brief Validates the RX queue memory regions configuration for a single memory region.
    *
    * @param q The RX queue configuration.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param mr The memory region.
    * @return True if the configuration is valid, false otherwise.
    */
   bool validate_memory_regions_config_from_single_mrs(const RxQueueConfig& q,
-                                                      const RmaxRxQueueConfig& rmax_rx_config,
+                                                      const RivermaxRxQueueConfig& rivermax_rx_config,
                                                       const MemoryRegionConfig& mr);
 
   /**
    * @brief Validates the RX queue memory regions configuration for dual memory regions.
    *
    * @param q The RX queue configuration.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    * @param mr_header The header memory region.
    * @param mr_payload The payload memory region.
    * @return True if the configuration is valid, false otherwise.
    */
   bool validate_memory_regions_config_from_dual_mrs(const RxQueueConfig& q,
-                                                    const RmaxRxQueueConfig& rmax_rx_config,
+                                                    const RivermaxRxQueueConfig& rivermax_rx_config,
                                                     const MemoryRegionConfig& mr_header,
                                                     const MemoryRegionConfig& mr_payload);
 
@@ -371,10 +371,10 @@ class RxConfigManager : public IRxConfigManager {
    * @brief Sets common application settings for an RX service.
    *
    * @param app_settings_config The application settings configuration to set.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    */
   void set_rx_service_common_app_settings(AppSettings& app_settings_config,
-                                          const RmaxRxQueueConfig& rmax_rx_config);
+                                          const RivermaxRxQueueConfig& rivermax_rx_config);
 
   /**
    * @brief Sets the allocator type for the application settings.
@@ -397,10 +397,10 @@ class RxConfigManager : public IRxConfigManager {
    * @brief Sets the IPO receiver settings for an RX service.
    *
    * @param rx_service_cfg The RX service configuration to set.
-   * @param rmax_rx_config The Rmax RX queue configuration.
+   * @param rivermax_rx_config The Rivermax RX queue configuration.
    */
   void set_rx_service_ipo_receiver_settings(ExtRmaxIPOReceiverConfig& rx_service_cfg,
-                                            const RmaxRxQueueConfig& rmax_rx_config);
+                                            const RivermaxRxQueueConfig& rivermax_rx_config);
 
   /**
    * @brief Adds a new RX service configuration.
@@ -420,10 +420,10 @@ class RxConfigManager : public IRxConfigManager {
 };
 
 /**
- * @brief Manages the TX configuration for Rmax.
+ * @brief Manages the TX configuration for Rivermax.
  *
  * The TxConfigManager class is responsible for managing the configuration settings
- * for TX queues in Rmax. It validates and appends TX queue configurations for given ports.
+ * for TX queues in Rivermax. It validates and appends TX queue configurations for given ports.
  */
 class TxConfigManager : public ITxConfigManager {
  public:
@@ -450,20 +450,20 @@ class TxConfigManager : public ITxConfigManager {
 };
 
 /**
- * @brief Manages the configuration for Rmax.
+ * @brief Manages the configuration for Rivermax.
  *
- * The RmaxConfigContainer class is responsible for parsing and managing the configuration
- * settings for Rmax via dedicated configuration managers.
+ * The RivermaxConfigContainer class is responsible for parsing and managing the configuration
+ * settings for Rivermax via dedicated configuration managers.
  */
-class RmaxConfigContainer {
+class RivermaxConfigContainer {
  public:
   enum class ConfigType { RX, TX };
 
   /**
-   * @brief Constructs a new RmaxConfigContainer object.
+   * @brief Constructs a new RivermaxConfigContainer object.
    * @param rmax_apps_lib Optional shared pointer to the RmaxAppsLibFacade.
    */
-  explicit RmaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
+  explicit RivermaxConfigContainer(std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr)
       : rmax_apps_lib_(rmax_apps_lib) {
     initialize_managers();
   }
@@ -488,11 +488,11 @@ class RmaxConfigContainer {
   }
 
   /**
-   * @brief Gets the current log level for Rmax.
+   * @brief Gets the current log level for Rivermax.
    *
    * @return The current log level.
    */
-  RmaxLogLevel::Level get_rmax_log_level() const { return rmax_log_level_; }
+  RivermaxLogLevel::Level get_rivermax_log_level() const { return rivermax_log_level_; }
 
  private:
   /**
@@ -535,19 +535,19 @@ class RmaxConfigContainer {
   int parse_tx_queues(uint16_t port_id, const std::vector<TxQueueConfig>& queues);
 
   /**
-   * @brief Sets the Rmax log level based on the provided advanced_network log level.
+   * @brief Sets the Rivermax log level based on the provided advanced_network log level.
    *
    * This function converts the provided advanced_network log level to the corresponding
-   * Rmax log level and sets it as the current log level for Rmax.
+   * Rivermax log level and sets it as the current log level for Rivermax.
    *
    * @param level The advanced_network log level to be converted and set.
    */
-  void set_rmax_log_level(LogLevel::Level level) {
-    rmax_log_level_ = RmaxLogLevel::from_adv_net_log_level(level);
+  void set_rivermax_log_level(LogLevel::Level level) {
+    rivermax_log_level_ = RivermaxLogLevel::from_adv_net_log_level(level);
   }
 
  private:
-  RmaxLogLevel::Level rmax_log_level_ = RmaxLogLevel::OFF;
+  RivermaxLogLevel::Level rivermax_log_level_ = RivermaxLogLevel::OFF;
   std::unordered_map<ConfigType, std::shared_ptr<IConfigManager>> config_managers_;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib_ = nullptr;
   NetworkConfig cfg_;
@@ -555,11 +555,11 @@ class RmaxConfigContainer {
 };
 
 /**
- * @brief Parses the configuration for Rmax.
+ * @brief Parses the configuration for Rivermax.
  *
- * The RmaxConfigParser class is responsible for parsing the configuration settings for Rmax.
+ * The RivermaxConfigParser class is responsible for parsing the configuration settings for Rivermax.
  */
-class RmaxConfigParser {
+class RivermaxConfigParser {
  public:
   /**
    * @brief Parses the RX queue configuration from a YAML node.
@@ -576,6 +576,9 @@ class RmaxConfigParser {
   /**
    * @brief Parses the TX queue Rivermax configuration.
    *
+   * This function extracts the TX queue configuration settings from the provided YAML node
+   * and populates the TxQueueConfig structure with the extracted values.
+   *
    * @param q_item The YAML node containing the queue item.
    * @param q The TX queue configuration to be populated.
    * @return Status indicating the success or failure of the operation.
@@ -585,4 +588,4 @@ class RmaxConfigParser {
 
 }  // namespace holoscan::advanced_network
 
-#endif  // RMAX_CONFIG_MANAGER_H_
+#endif  // RIVERMAX_CONFIG_MANAGER_H_

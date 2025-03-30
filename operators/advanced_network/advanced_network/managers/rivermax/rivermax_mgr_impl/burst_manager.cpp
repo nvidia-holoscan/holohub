@@ -26,8 +26,8 @@
 
 #include "api/rmax_apps_lib_api.h"
 
-#include "rmax_service/rmax_ipo_receiver_service.h"
-#include "rmax_mgr_impl/rmax_chunk_consumer_ano.h"
+#include "rivermax_service/rmax_ipo_receiver_service.h"
+#include "rivermax_mgr_impl/rivermax_chunk_consumer_ano.h"
 #include <holoscan/logger/logger.hpp>
 
 #define USE_BLOCKING_QUEUE 0
@@ -188,7 +188,7 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
    * @param burst_handler Reference to the burst handler.
    * @param tag Tag for the burst.
    */
-  AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler, uint32_t tag);
+  AnoBurstsMemoryPool(size_t size, RivermaxBurst::BurstHandler& burst_handler, uint32_t tag);
 
   /**
    * @brief Destructor for the AnoBurstsMemoryPool class.
@@ -197,29 +197,29 @@ class AnoBurstsMemoryPool : public IAnoBurstsCollection {
    */
   ~AnoBurstsMemoryPool();
 
-  bool enqueue_burst(std::shared_ptr<RmaxBurst> burst) override;
-  bool enqueue_burst(RmaxBurst* burst);
-  std::shared_ptr<RmaxBurst> dequeue_burst() override;
+  bool enqueue_burst(std::shared_ptr<RivermaxBurst> burst) override;
+  bool enqueue_burst(RivermaxBurst* burst);
+  std::shared_ptr<RivermaxBurst> dequeue_burst() override;
   size_t available_bursts() override { return m_queue->get_size(); };
   bool empty() override { return m_queue->get_size() == 0; };
 
  private:
-  std::unique_ptr<QueueInterface<std::shared_ptr<RmaxBurst>>> m_queue;
-  std::map<uint16_t, std::shared_ptr<RmaxBurst>> m_burst_map;
+  std::unique_ptr<QueueInterface<std::shared_ptr<RivermaxBurst>>> m_queue;
+  std::map<uint16_t, std::shared_ptr<RivermaxBurst>> m_burst_map;
   size_t m_initial_size;
   mutable std::mutex m_burst_map_mutex;
   mutable std::mutex m_queue_mutex;
   uint32_t m_bursts_tag = 0;
-  RmaxBurst::BurstHandler& m_burst_handler;
+  RivermaxBurst::BurstHandler& m_burst_handler;
 };
 
-AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& burst_handler,
+AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RivermaxBurst::BurstHandler& burst_handler,
                                          uint32_t tag)
     : m_initial_size(size), m_bursts_tag(tag), m_burst_handler(burst_handler) {
 #if USE_BLOCKING_MEMPOOL
-  m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RmaxBurst>>>();
+  m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RivermaxBurst>>>();
 #else
-  m_queue = std::make_unique<NonBlockingQueue<std::shared_ptr<RmaxBurst>>>();
+  m_queue = std::make_unique<NonBlockingQueue<std::shared_ptr<RivermaxBurst>>>();
 #endif
 
   for (uint16_t i = 0; i < size; i++) {
@@ -229,7 +229,7 @@ AnoBurstsMemoryPool::AnoBurstsMemoryPool(size_t size, RmaxBurst::BurstHandler& b
   }
 }
 
-bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
+bool AnoBurstsMemoryPool::enqueue_burst(RivermaxBurst* burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
     return false;
@@ -240,7 +240,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
   std::lock_guard<std::mutex> lock(m_burst_map_mutex);
   auto it = m_burst_map.find(burst_id);
   if (it != m_burst_map.end()) {
-    std::shared_ptr<RmaxBurst> cur_burst = it->second;
+    std::shared_ptr<RivermaxBurst> cur_burst = it->second;
     return enqueue_burst(cur_burst);
   } else {
     HOLOSCAN_LOG_ERROR("Invalid burst ID: {}", burst_id);
@@ -248,7 +248,7 @@ bool AnoBurstsMemoryPool::enqueue_burst(RmaxBurst* burst) {
   }
 }
 
-bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
+bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RivermaxBurst> burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
     return false;
@@ -270,8 +270,8 @@ bool AnoBurstsMemoryPool::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
   return false;
 }
 
-std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
-  std::shared_ptr<RmaxBurst> burst;
+std::shared_ptr<RivermaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
+  std::shared_ptr<RivermaxBurst> burst;
 
   if (m_queue->try_dequeue(burst,
                            std::chrono::milliseconds(RxBurstsManager::GET_BURST_TIMEOUT_MS))) {
@@ -281,7 +281,7 @@ std::shared_ptr<RmaxBurst> AnoBurstsMemoryPool::dequeue_burst() {
 }
 
 AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
-  std::shared_ptr<RmaxBurst> burst;
+  std::shared_ptr<RivermaxBurst> burst;
 
   while (m_queue->get_size() > 0 && m_queue->try_dequeue(burst)) {
     m_burst_handler.delete_burst(burst);
@@ -292,13 +292,13 @@ AnoBurstsMemoryPool::~AnoBurstsMemoryPool() {
 
 AnoBurstsQueue::AnoBurstsQueue() {
 #if USE_BLOCKING_QUEUE
-  m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RmaxBurst>>>();
+  m_queue = std::make_unique<BlockingQueue<std::shared_ptr<RivermaxBurst>>>();
 #else
-  m_queue = std::make_unique<NonBlockingQueue<std::shared_ptr<RmaxBurst>>>();
+  m_queue = std::make_unique<NonBlockingQueue<std::shared_ptr<RivermaxBurst>>>();
 #endif
 }
 
-bool AnoBurstsQueue::enqueue_burst(std::shared_ptr<RmaxBurst> burst) {
+bool AnoBurstsQueue::enqueue_burst(std::shared_ptr<RivermaxBurst> burst) {
   m_queue->enqueue(burst);
   return true;
 }
@@ -307,8 +307,8 @@ void AnoBurstsQueue::clear() {
   m_queue->clear();
 }
 
-std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
-  std::shared_ptr<RmaxBurst> burst;
+std::shared_ptr<RivermaxBurst> AnoBurstsQueue::dequeue_burst() {
+  std::shared_ptr<RivermaxBurst> burst;
 
   if (m_queue->try_dequeue(burst,
                            std::chrono::milliseconds(RxBurstsManager::GET_BURST_TIMEOUT_MS))) {
@@ -317,7 +317,7 @@ std::shared_ptr<RmaxBurst> AnoBurstsQueue::dequeue_burst() {
   return nullptr;
 }
 
-RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, int queue_id,
+RivermaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, int queue_id,
                                       bool gpu_direct)
     : m_send_packet_ext_info(send_packet_ext_info),
       m_port_id(port_id),
@@ -338,13 +338,13 @@ RmaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id, in
   m_burst_info.payload_seg_idx = 0;
 }
 
-std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_id) {
-  std::shared_ptr<RmaxBurst> burst(new RmaxBurst(m_port_id, m_queue_id, MAX_PKT_IN_BURST));
+std::shared_ptr<RivermaxBurst> RivermaxBurst::BurstHandler::create_burst(uint16_t burst_id) {
+  std::shared_ptr<RivermaxBurst> burst(new RivermaxBurst(m_port_id, m_queue_id, MAX_PKT_IN_BURST));
 
   if (m_send_packet_ext_info) {
-    burst->pkt_extra_info = reinterpret_cast<void**>(new RmaxPacketExtendedInfo*[MAX_PKT_IN_BURST]);
+    burst->pkt_extra_info = reinterpret_cast<void**>(new RivermaxPacketExtendedInfo*[MAX_PKT_IN_BURST]);
     for (int j = 0; j < MAX_PKT_IN_BURST; j++) {
-      burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RmaxPacketExtendedInfo());
+      burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RivermaxPacketExtendedInfo());
     }
   }
 
@@ -360,7 +360,7 @@ std::shared_ptr<RmaxBurst> RmaxBurst::BurstHandler::create_burst(uint16_t burst_
   return burst;
 }
 
-void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
+void RivermaxBurst::BurstHandler::delete_burst(std::shared_ptr<RivermaxBurst> burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
     return;
@@ -369,7 +369,7 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
   if (m_send_packet_ext_info && burst->pkt_extra_info != nullptr) {
     for (int i = 0; i < MAX_PKT_IN_BURST; i++) {
       if (burst->pkt_extra_info[i] != nullptr) {
-        delete reinterpret_cast<RmaxPacketExtendedInfo*>(burst->pkt_extra_info[i]);
+        delete reinterpret_cast<RivermaxPacketExtendedInfo*>(burst->pkt_extra_info[i]);
         burst->pkt_extra_info[i] = nullptr;
       }
     }
@@ -387,7 +387,7 @@ void RmaxBurst::BurstHandler::delete_burst(std::shared_ptr<RmaxBurst> burst) {
   burst->pkt_lens[1] = nullptr;
 }
 
-void RxBurstsManager::rx_burst_done(RmaxBurst* burst) {
+void RxBurstsManager::rx_burst_done(RivermaxBurst* burst) {
   if (burst == nullptr) {
     HOLOSCAN_LOG_ERROR("Invalid burst");
     return;
@@ -420,9 +420,9 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
       m_burst_out_size(burst_out_size),
       m_gpu_id(gpu_id),
       m_rx_bursts_out_queue(rx_bursts_out_queue),
-      m_burst_handler(std::make_unique<RmaxBurst::BurstHandler>(
+      m_burst_handler(std::make_unique<RivermaxBurst::BurstHandler>(
           send_packet_ext_info, port_id, queue_id, gpu_id != INVALID_GPU_ID)) {
-  const uint32_t burst_tag = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
+  const uint32_t burst_tag = RivermaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   m_gpu_direct = (m_gpu_id != INVALID_GPU_ID);
 
   m_rx_bursts_mempool =
@@ -433,14 +433,14 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
     m_using_shared_out_queue = false;
   }
 
-  if (m_burst_out_size > RmaxBurst::MAX_PKT_IN_BURST || m_burst_out_size == 0)
-    m_burst_out_size = RmaxBurst::MAX_PKT_IN_BURST;
+  if (m_burst_out_size > RivermaxBurst::MAX_PKT_IN_BURST || m_burst_out_size == 0)
+    m_burst_out_size = RivermaxBurst::MAX_PKT_IN_BURST;
 }
 
 RxBurstsManager::~RxBurstsManager() {
   if (m_using_shared_out_queue) { return; }
 
-  std::shared_ptr<RmaxBurst> burst;
+  std::shared_ptr<RivermaxBurst> burst;
   // Get all bursts from the queue and return them to the memory pool
   while (m_rx_bursts_out_queue->available_bursts() > 0) {
     burst = m_rx_bursts_out_queue->dequeue_burst();
