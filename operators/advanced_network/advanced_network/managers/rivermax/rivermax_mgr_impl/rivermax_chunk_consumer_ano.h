@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-#ifndef RMAX_CHUNK_CONSUMER_ANO_H_
-#define RMAX_CHUNK_CONSUMER_ANO_H_
+#ifndef RIVERMAX_CHUNK_CONSUMER_ANO_H_
+#define RIVERMAX_CHUNK_CONSUMER_ANO_H_
 
 #include <cstddef>
 #include <iostream>
 
-#include "rmax_ano_data_types.h"
-#include "rmax_service/ipo_chunk_consumer_base.h"
-#include "rmax_service/rmax_ipo_receiver_service.h"
+#include "rivermax_ano_data_types.h"
+#include "rivermax_service/ipo_chunk_consumer_base.h"
+#include "rivermax_service/rmax_ipo_receiver_service.h"
 #include "packet_processor.h"
 #include "advanced_network/types.h"
 
@@ -31,33 +31,33 @@ namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
- * @brief Consumer class for handling Rmax chunks and providing advanced_network bursts.
+ * @brief Consumer class for handling Rivermax chunks and providing advanced_network bursts.
  *
- * The RmaxChunkConsumerAno class acts as an adapter that consumes Rmax chunks
+ * The RivermaxChunkConsumerAno class acts as an adapter that consumes Rmax chunks
  * and produces advanced_network bursts. It processes the packets contained in the chunks,
  * updates the consumed and unconsumed byte counts, and manages the lifecycle
- * of the bursts. This class is designed to interface with the Rmax framework
+ * of the bursts. This class is designed to interface with the Rivermax framework
  * and provide the necessary functionality to handle and transform the data
  * into a format suitable for advanced_network to process.
  */
-class RmaxChunkConsumerAno : public IIPOChunkConsumer {
+class RivermaxChunkConsumerAno : public IIPOChunkConsumer {
  public:
   /**
-   * @brief Constructor for the RmaxChunkConsumerAno class.
+   * @brief Constructor for the RivermaxChunkConsumerAno class.
    *
    * Initializes the chunk consumer with the specified packet processor.
    *
    * @param packet_processor Shared pointer to the packet processor.
    */
-  explicit RmaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
+  explicit RivermaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
       : m_packet_processor(packet_processor) {}
 
   /**
-   * @brief Destructor for the RmaxChunkConsumerAno class.
+   * @brief Destructor for the RivermaxChunkConsumerAno class.
    *
    * Ensures that all bursts are properly returned to the memory pool.
    */
-  virtual ~RmaxChunkConsumerAno() = default;
+  virtual ~RivermaxChunkConsumerAno() = default;
 
   /**
    * @brief Consumes and processes packets from a given chunk.
@@ -90,7 +90,7 @@ class RmaxChunkConsumerAno : public IIPOChunkConsumer {
  * @return std::tuple<ReturnStatus, size_t, size_t> containing the return status, the number of
  * consumed packets, and the number of unconsumed packets.
  */
-inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_chunk_packets(
+inline std::tuple<ReturnStatus, size_t, size_t> RivermaxChunkConsumerAno::consume_chunk_packets(
     IPOReceiveChunk& chunk, IPOReceiveStream& stream) {
   if (m_packet_processor == nullptr) {
     HOLOSCAN_LOG_ERROR("Packet processor is not set");
@@ -123,4 +123,4 @@ inline std::tuple<ReturnStatus, size_t, size_t> RmaxChunkConsumerAno::consume_ch
 
 };  // namespace holoscan::advanced_network
 
-#endif /* RMAX_CHUNK_CONSUMER_ANO_H_ */
+#endif /* RIVERMAX_CHUNK_CONSUMER_ANO_H_ */

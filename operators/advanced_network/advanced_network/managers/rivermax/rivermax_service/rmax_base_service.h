@@ -35,9 +35,9 @@ struct RmaxBaseServiceConfig {
 
 /**
  * @class IRmaxServicesSynchronizer
- * @brief Interface for synchronizing Rmax services.
+ * @brief Interface for synchronizing Rivermax services.
  *
- * This interface provides a method for synchronizing the start of multiple Rmax services.
+ * This interface provides a method for synchronizing the start of multiple Rivermax services.
  * Implementations of this interface should provide the necessary synchronization mechanisms
  * to ensure that all services start together.
  */
@@ -68,7 +68,7 @@ class RmaxBaseService {
   ReturnStatus m_obj_init_status;
   /* Service settings pointer */
   std::shared_ptr<AppSettings> m_service_settings;
-  /* Rmax apps lib facade */
+  /* Rivermax apps lib facade */
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> m_rmax_apps_lib;
   /* Local NIC address */
   sockaddr_in m_local_address;
