@@ -65,6 +65,7 @@ plugins:
       version_selector: true
       css_dir: "assets/css"
       javascript_dir: "assets/js"
+  - awesome-nav
   - mkdocstrings:
       handlers:
         python:
