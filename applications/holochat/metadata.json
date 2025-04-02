@@ -19,7 +19,7 @@
 				]
 			},
 			"platforms": ["x86_64", "aarch64"],
-			"tags": ["LLM", "Vector Database", "AI-Assistant"],
+			"tags": ["natural language and conversational AI", "integration", "vector database", "developer copilot"],
 			"ranking": 4,
 			"dependencies": {
 				"OSS": [

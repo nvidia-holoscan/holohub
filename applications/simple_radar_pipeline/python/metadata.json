@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64"],
-		"tags": ["Aerospace, Defense, Communications"],
+		"tags": ["signal processing", "radar", "pulse compression", "CFAR detection"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

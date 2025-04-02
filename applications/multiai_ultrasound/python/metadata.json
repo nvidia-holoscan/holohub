@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"MultiAI"
-		],
+		"tags": ["healthcare AI", "imaging", "echocardiography processing", "multi model inference"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

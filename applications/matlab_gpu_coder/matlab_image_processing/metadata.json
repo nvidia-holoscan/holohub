@@ -26,13 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"MATLAB",
-			"Image Processing",
-			"Signal Processing",
-			"Computer Vision",
-			"CUDA"
-		],
+		"tags": ["computer vision and perception", "visualization", "MATLAB coder", "image filtering"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

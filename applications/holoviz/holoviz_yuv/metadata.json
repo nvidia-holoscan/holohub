@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Holoviz YUV","YCbCr"
-		],
+		"tags": ["computer vision and perception", "visualization", "YUV conversion", "color space models"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
