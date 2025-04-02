@@ -56,7 +56,14 @@ function(add_holohub_application NAME)
 
     # If we have dependencies make sure they are built
     if(APP_DEPENDS)
-      cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS" ${APP_DEPENDS})
+      cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;APPLICATIONS" ${APP_DEPENDS})
+      message(DEBUG "${pkgname} exts = ${DEPS_EXTENSIONS}")
+      message(DEBUG "${pkgname} ops = ${DEPS_OPERATORS}")
+      message(DEBUG "${pkgname} apps = ${DEPS_APPLICATIONS}")
+
+      foreach(dependency IN LISTS DEPS_APPLICATIONS)
+        set("APP_${dependency}" ON CACHE BOOL "Build the ${dependency} application" FORCE)
+      endforeach()
 
       foreach(dependency IN LISTS DEPS_EXTENSIONS)
         set("EXT_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
