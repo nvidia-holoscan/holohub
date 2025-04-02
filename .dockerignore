@@ -23,7 +23,6 @@ ci/
 *.so
 *.deb
 *.rpm
-*.tar.gz
 *.tar.xz
 *.tar.bz2
 *.tar.7z
