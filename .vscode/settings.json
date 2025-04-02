@@ -124,7 +124,8 @@
         "latch": "cpp",
         "syncstream": "cpp",
         "annotated_ptr": "cpp",
-        "stream_ref": "cpp"
+        "stream_ref": "cpp",
+        "dense": "cpp"
     },
     "C_Cpp.clang_format_fallbackStyle": "Google",
     "C_Cpp.formatting": "clangFormat",

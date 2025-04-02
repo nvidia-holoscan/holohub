@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "operators/XrFrameOp/convert_depth/convert_depth_to_screen_space_op.cpp"
+#include "operators/XrFrameOp/convert_depth/convert_depth_to_screen_space_op.hpp"
 #include "holoscan/holoscan.hpp"
 #include "operators/XrFrameOp/begin_frame/xr_begin_frame_op.hpp"
 #include "operators/XrFrameOp/end_frame/xr_end_frame_op.hpp"

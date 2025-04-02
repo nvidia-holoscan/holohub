@@ -50,6 +50,9 @@ The application supports the following hand or controller interactions by defaul
 - **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
 - **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
 
+### Testing Utility
+We provide a simple test application in `utils/xr_hello_holoscan` for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See [utils/xr_hello_holoscan/README.md](utils/xr_hello_holoscan/README.md) for details on running the test utility.
+
 ## Advanced Setup
 
 You can use the `--dryrun` option to see the individual commands run by the quick start option above:

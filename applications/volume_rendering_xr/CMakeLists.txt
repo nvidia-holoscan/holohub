@@ -59,6 +59,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 # Add local XR operators
 add_subdirectory(operators/XrFrameOp)
 add_subdirectory(operators/XrTransformOp)
+add_subdirectory(utils/xr_hello_holoscan)
 
 add_executable(volume_rendering_xr
   main.cpp
