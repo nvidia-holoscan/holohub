@@ -88,7 +88,39 @@ def get_last_modified_date(file_path: Path) -> str:
     return "Unknown"
 
 
-def create_metadata_header(metadata: dict, last_modified: str) -> str:
+def get_file_from_git(path: Path, git_ref: str) -> str:
+    """Get file content from a specific git revision."""
+
+    rel_file_path = str(path.relative_to(GIT_REPO_PATH))
+    try:
+        # Always execute git commands in the repository directory
+        cmd = ["git", "-C", GIT_REPO_PATH, "show", f"{git_ref}:{rel_file_path}"]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to get file {rel_file_path} at revision {git_ref}: {e}")
+        logger.error(f"Git error output: {e.stderr}")
+        return ""
+
+
+def is_git_available() -> bool:
+    """Check if git is available and we're in a git repository."""
+    try:
+        # Check if git command exists and we're in a git repo
+        # Always execute git commands in the repository directory
+        subprocess.run(
+            ["git", "-C", GIT_REPO_PATH, "rev-parse", "--is-inside-work-tree"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        logger.warning("Git is not available or not a git repository")
+        return False
+
+
+def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
     """Create the metadata header for the documentation page."""
     authors = metadata["authors"]
     platforms = metadata["platforms"]
@@ -124,8 +156,10 @@ def create_metadata_header(metadata: dict, last_modified: str) -> str:
 
     header_text += f":octicons-clock-24: **Last modified:** {last_modified}<br>"
 
-    # Remove archive-specific handling
-    header_text += f":octicons-tag-24: **Latest version:** {version}<br>"
+    if archive_version:
+        header_text += f":octicons-history-24: **Archive version:** {archive_version}<br>"
+    else:
+        header_text += f":octicons-tag-24: **Latest version:** {version}<br>"
 
     header_text += f":octicons-stack-24: **Minimum Holoscan SDK version:** {min_sdk_version}<br>"
 
@@ -142,20 +176,25 @@ def create_page(
     readme_text: str,
     dest_path: Path,
     last_modified: str,
+    archive: dict = {"version": None, "git_ref": "main"},
 ):
-    """Create a documentation page.
+    """Create a documentation page, handling both versioned and non-versioned cases.
 
     Args:
         metadata: The metadata dictionary
         readme_text: Content of the README file
         dest_path: relative path to the documentation page
         last_modified: Last modified date string
+        archive: Dictionary of version label and git reference strings
+          - if provided, links are versioned accordingly
     Returns:
         Generated page content as string
     """
 
     # Title
     title = metadata["name"]
+    archive_version = archive["version"] if archive and "version" in archive else None
+    title += f" ({archive_version})" if archive_version else " (latest)"
 
     # Tags
     tags = metadata["tags"]
@@ -169,8 +208,9 @@ def create_page(
     output_text += "\n---\n"
 
     # Process README content to fix image paths
+    git_ref = archive["git_ref"] if archive and "git_ref" in archive else "main"
     dest_dir = dest_path.parent
-    base_url = f"https://github.com/nvidia-holoscan/holohub/blob/main/{str(dest_dir)}"
+    base_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}/{str(dest_dir)}"
     # Regular expression pattern to match paths containing .gif, .png, or .jpg
     pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
     matches = re.findall(pattern, readme_text)
@@ -189,7 +229,7 @@ def create_page(
         readme_text = readme_text.replace(match, f"{base_url}/{imgmatch}?raw=true")
 
     # Get the header metadata
-    header_text = create_metadata_header(metadata, last_modified)
+    header_text = create_metadata_header(metadata, last_modified, archive_version)
 
     # Find the first header
     pattern = r"^#\s+(.+)"
@@ -208,12 +248,13 @@ def create_page(
         dest_file.write(output_text)
 
 
-def parse_metadata_path(metadata_path: Path, components) -> None:
+def parse_metadata_path(metadata_path: Path, components, git_available: bool) -> None:
     """Copy README file from a sub-package to the user guide's developer guide directory.
 
     Args:
         metadata_path: Path to the metadata file
         components: Dictionary tracking unique components
+        git_available: Whether git is available (checked once globally)
 
     Returns:
         None
@@ -274,16 +315,72 @@ def parse_metadata_path(metadata_path: Path, components) -> None:
         with readme_path.open("r") as readme_file:
             readme_text = readme_file.read()
 
-    # Create page content
-    dest_file = dest_dir / "README.md"
-    create_page(
-        metadata, readme_text, dest_file, get_last_modified_date(metadata_path)
-    )
+    # Generate page
+    dest_path = dest_dir / "README.md"
+    last_modified = get_last_modified_date(metadata_path)
+    create_page(metadata, readme_text, dest_path, last_modified)
 
-    # Add a .nav.yml file to control navigation with mkdocs-awesome-nav
+    # Initialize nav file content to control navigation with mkdocs-awesome-nav
     nav_path = dest_dir / ".nav.yml"
-    nav_content = f"title: \"{title}\""
+    nav_content = f"""
+title: "{title}"
+nav:
+  - README.md
+"""
 
+    # Check for archives in metadata
+    archives = metadata["archives"] if "archives" in metadata else None
+
+    # In git is missing, disable archives functionality
+    if archives is not None and not git_available:
+        logger.warning(
+            f"Archives specified for {str(dest_dir)} but Git is not available. "
+            "Archive versions will not be generated."
+        )
+        archives = None
+
+    if archives:
+        logger.info(f"Processing versioned documentation for {str(dest_dir)}")
+
+        for version in sorted(archives.keys(), reverse=True):
+            git_ref = archives[version]
+
+            # Get metadata and README from the specified git reference
+            archived_metadata_content = get_file_from_git(metadata_path, git_ref)
+            archived_readme_content = get_file_from_git(readme_path, git_ref)
+            if not archived_metadata_content or not archived_readme_content:
+                logger.error(f"Failed to retrieve archived content for {path} at {git_ref}")
+                continue
+
+            # Parse the archived metadata
+            try:
+                archived_metadata = json.loads(archived_metadata_content)
+            except json.JSONDecodeError:
+                logger.error(f"Failed to parse archived metadata for {dest_dir.name} at {git_ref}")
+                return
+            archived_metadata = archived_metadata[project_type]
+
+            # Get commit date as last modified
+            cmd = ["git", "-C", GIT_REPO_PATH, "show", "-s", "--format=%ad", "--date=short", git_ref]
+            archive_last_modified = subprocess.run(
+                cmd, capture_output=True, text=True, check=True
+            ).stdout.strip()
+            archive_last_modified = format_date(archive_last_modified)
+
+            # Create the archived version content
+            archive_dest_path = dest_dir / f"{version}.md"
+            create_page(
+                archived_metadata,
+                archived_readme_content,
+                archive_dest_path,
+                archive_last_modified,
+                archive={"version": version, "git_ref": git_ref},
+            )
+
+            # Add archives to nav file
+            nav_content += f'  - "{version}": {version}.md\n'
+
+    # Write nav file
     with mkdocs_gen_files.open(nav_path, "w") as nav_file:
         nav_file.write(nav_content)
 
@@ -302,6 +399,10 @@ def generate_pages() -> None:
     src_dir = Path(GIT_REPO_PATH)
     website_src_dir = Path(__file__).parent.parent
 
+    # Check Git availability
+    git_available = is_git_available()
+    logger.info(f"Git availability: {git_available}")
+
     # Initialize map of projects/component per type
     components = {key: set() for key in COMPONENT_TYPES}
 
@@ -314,7 +415,7 @@ def generate_pages() -> None:
         # Parse the metadata.json files
         for metadata_path in component_dir.rglob("metadata.json"):
             try:
-                parse_metadata_path(metadata_path, components)
+                parse_metadata_path(metadata_path, components, git_available)
             except Exception as e:
                 logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
 
