@@ -422,6 +422,7 @@ def generate_pages() -> None:
         # Write navigation file to sort components by title
         nav_path = Path(component_type) / ".nav.yml"
         nav_content = f"""
+title: "{component_type.capitalize()} ({str(len(components[component_type]))})"
 sort:
   by: title
 """
@@ -437,7 +438,8 @@ sort:
 
         # Replace the number of components in the home page
         for component_type in COMPONENT_TYPES:
-            home_text = home_text.replace(f"#{component_type}", str(len(components[component_type])))
+            nbr_components = len(components[component_type])
+            home_text = home_text.replace(f"#{component_type}", str(nbr_components))
 
     with mkdocs_gen_files.open("index.md", "w") as index_file:
         index_file.write(home_text)
