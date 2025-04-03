@@ -29,6 +29,7 @@
 #include <rdma/rdma_cma.h>
 #include "adv_network_mgr.h"
 #include "adv_network_common.h"
+#include <mutex>
 
 namespace holoscan::ops {
 
@@ -44,19 +45,18 @@ struct rdma_qp_params {
 
 struct rdma_thread_params {
    struct rdma_cm_id *client_id;
+   struct ibv_pd *pd;   
    rdma_qp_params qp_params;
+   int if_idx;
    int queue_idx;
    std::thread worker_thread;
 };
 
 // Used to spawn a new server thread for a particular client
-struct rdma_server_params {
-   int if_ifx;
-   std::vector<rdma_thread_params> client_ids;
-   struct rdma_cm_id *server_id;
-   struct ibv_pd *pd;
-   struct ibv_comp_channel *iocc;
-   struct ibv_cq *cq;
+struct rdma_port_params {
+   int if_idx;
+   struct rdma_cm_id *server_id = nullptr;
+   struct ibv_pd *pd = nullptr;
 };
 
 struct rdma_mr_params {
@@ -144,7 +144,7 @@ class RdmaMgr : public ANOMgr {
     bool validate_config() const override { return true; }
 
     // RDMA-specific functions
-    AdvNetStatus rdma_connect_to_server(uint32_t server_addr, uint16_t server_port);    
+    AdvNetStatus rdma_connect_to_server(uint32_t server_addr, uint16_t server_port, uintptr_t *conn_id);    
     AdvNetStatus register_mr(std::string name, int intf, void *addr, size_t len, int flags);
     AdvNetStatus wait_on_key_xchg();
     void poll_cm_events();
@@ -157,11 +157,13 @@ class RdmaMgr : public ANOMgr {
     static constexpr int NUM_SGE_BUFS = 256;
     static constexpr int MAX_NUM_MR = 16; // Maximum number of memory registers to exchange
     static constexpr int MAX_OUSTANDING_WR = 64;
-    std::vector<struct rdma_cm_id *> cm_server_id_;
-    std::vector<struct rdma_cm_id *> cm_client_id_;
-    std::unordered_map<rdma_cm_id *, rdma_server_params> sparams_;
+    static constexpr int MAX_NUM_PORTS = 4;
+
+    std::unordered_map<struct rdma_cm_id *, rdma_thread_params> server_q_params_; 
+    std::unordered_map<struct rdma_cm_id *, rdma_thread_params> client_q_params_;
+    std::unordered_map<struct rdma_cm_id *, rdma_port_params> pd_params_;
     std::vector<std::thread> txrx_workers;
-    std::unordered_map<int, struct ibv_pd *> pd_map_;
+    std::unordered_map<struct ibv_context *, std::array<struct ibv_pd *, MAX_NUM_PORTS>> pd_map_;
     std::unordered_map<std::string, rdma_mr_params> mrs_;
     std::unordered_map<std::string, rdma_remote_mr_info> remote_mrs_;
     std::vector<rdma_key_xchg> lkey_mrs_;
@@ -173,9 +175,9 @@ class RdmaMgr : public ANOMgr {
     struct rte_mempool* rx_meta;
     struct rte_mempool* tx_meta;
     std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
-    rdma_event_channel* server_cm_event_channel_;
-
-    void rdma_thread(bool is_server, rdma_thread_params params);
+    rdma_event_channel* cm_event_channel_;
+    mutable std::mutex mutex_;
+    void rdma_thread(bool is_server, rdma_thread_params tparams);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     int rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id);
     int rdma_register_cfg_mrs();
@@ -183,14 +185,12 @@ class RdmaMgr : public ANOMgr {
     static int set_affinity(int cpu_core);
     int register_mrs();
     void init_client();
-    void run_server();
-    void run_client();
     void server_tx(int if_idx, int q);
     void server_rx(int if_idx, int q);
     bool ack_event(rdma_cm_event *cm_event);
     int mr_access_to_ibv(uint32_t access);
     bool get_ip_from_interface(const std::string_view &if_name, sockaddr_in &addr);
-    int  setup_client_params_for_server(rdma_server_params *sparams, int client_idx);
+    int  setup_thread_params(rdma_thread_params *params);
 };
 
 };  // namespace holoscan::ops

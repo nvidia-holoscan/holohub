@@ -79,8 +79,7 @@ struct AdvNetRdmaBurstHdr {
   AdvNetRDMAOpCode  opcode; 
   AdvNetStatus status;
   size_t num_pkts;
-  uint16_t port_id;
-  uint16_t q_id;  
+  uintptr_t conn_id; 
   char  local_mr_name[32];
   char  remote_mr_name[32];
   void        *raddr;

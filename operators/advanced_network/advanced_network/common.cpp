@@ -322,8 +322,8 @@ Status adv_net_init(NetworkConfig &config) {
 }
 
 // RDMA Functions
-AdvNetStatus adv_net_rdma_connect_to_server(const std::string& server_addr, uint16_t server_port) {
-  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port);
+AdvNetStatus adv_net_rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
 }
 
 };  // namespace holoscan::ops

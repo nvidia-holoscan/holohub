@@ -57,16 +57,15 @@ class AdvNetworkingRdmaClientOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::connect_to_server() start");
 
     auto burst = adv_net_create_burst();
-    burst->hdr.hdr.opcode = AdvNetOpCode::CONNECT;
-    burst->hdr.hdr.server_addr = server_address_;
-    burst->hdr.hdr.server_port = server_port_.get();
-    burst->hdr.hdr.local_mr_name = "LOCAL_MR"; // Unused
-    burst->hdr.hdr.remote_mr_name = "REMOTE_MR"; // Unused
-    burst->hdr.hdr.raddr = nullptr; // Unused
-    burst->hdr.hdr.dst_key = 0; // Unused
-    burst->hdr.hdr.imm = 0; // Unused
+    auto res = adv_net_rdma_connect_to_server(server_address_str_.get(), server_port_.get(), &conn_id_);
+    if (res != AdvNetStatus::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", res);
+      return false;
+    }
+    else {
+      HOLOSCAN_LOG_INFO("Connected to server {}:{} with ID: {}", server_address_str_.get(), server_port_.get(), conn_id_);
+    }
 
-    op_output.emit(burst);
 
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::connect_to_server() complete");
     return true;
@@ -124,6 +123,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   uint32_t server_addr_;
+  uintptr_t conn_id_ = nullptr;
   Parameter<bool> rdma_write_;               // Message size in bytes
   Parameter<uint32_t> message_size_;               // Message size in bytes
   Parameter<std::string> server_address_str_;         // Server address

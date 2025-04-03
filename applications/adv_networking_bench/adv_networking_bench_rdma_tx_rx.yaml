@@ -69,7 +69,6 @@ advanced_network:
       rdma_mode: client
       rdma_transport_mode: RC
       address: 192.168.2.1       # The BUS address of the interface doing Tx
-      rdma_port: 4096
       tx:
         - queues:
           - name: "ADC Samples"
