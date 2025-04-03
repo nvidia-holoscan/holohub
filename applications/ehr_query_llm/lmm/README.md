@@ -1,9 +1,9 @@
-## EHR Agent Framework 
+# EHR Agent Framework
 
 The EHR Agent Framework is designed to handle and interact with EHR (Electronic Health Records) and it provides a modular and extensible system for handling various types of queries through specialized agents, with robust error handling and performance optimization features.
 
 
-### Table of Contents
+## Table of Contents
 
 - [Agent Framework overview](#agent-framework-overview)
 - [Setup Instructions](#setup-instructions)
@@ -11,7 +11,7 @@ The EHR Agent Framework is designed to handle and interact with EHR (Electronic 
 - [Offline Mode](#offline-mode)
 
 
-### Agent Framework overview
+## Agent Framework overview
 
 The `AgentFrameworkOp` orchestrates multiple specialized agents to handle different types of queries and responses, it maintains a streaming queue for responses and it handles response states through `ResponseHandler`.
 It tracks conversation history using ChatHistory class and updates history based on agent responses and ASR transcripts.
@@ -22,7 +22,7 @@ Agent Lifecycle:
 - Controls response streaming and muting during speech
 
 
-### The Base Agent Class
+## The Base Agent Class
 
 This is an abstract base class implementing common agent functionality:
 
@@ -32,46 +32,46 @@ This is an abstract base class implementing common agent functionality:
 It loads configuration from YAML files and it handles prompt templates, tokens limits, and model URLs. The Base Agent is designed to stream responses from LLM server and it supports both text and image-based prompts while enforcing maximum prompt token limits. Throughout the agent lifecycle it maintains conversation context and it creates conversation strings within token limits.
 
 
-### The Selector Agent 
+## The Selector Agent
 
 The Selector Agent routes user queries to the appropriate specialized agent by analyzing user input to determine the appropriate agent and return the selected agent name and corrected input text.
 For response parsing, it handles JSON response format. If there are parsing failures, it logs them and it returns `None` for invalid selection.
 
-### The EHR Builder Agent
+## The EHR Builder Agent
 
 The EHR Builder Agent handles EHR database construction on demand and it tracks and reports build time performance in the process.
 For response generation, it uses custom prompt templates for EHR tasks and it returns structured JSON responses.
 It also verifies build capability before execution and it reports success/failure status.
 
-### The EHR Agent
+## The EHR Agent
 
 The EHR Agent handles EHR queries and data retrieval. It uses Chroma for document storage while implementing HuggingFaceBgeEmbeddings for embeddings.
 For the RAG (Retrieval-Augmented Generation) pipeline, it performs MMR (Maximal Marginal Relevance) search with configurable search parameters (`k`, `lambda_mult`, `fetch_k`).
 For prompt generation, it incorporates retrieved documents into prompts and it supports both standard and RAG-specific prompts.
 The EHR Agent is using CUDA for embedding computation and optimizes for cosine similarity calculations.
 
-### Common features across agents
+## Common features across agents
 
-#### Configuration Management:
+### Configuration Management:
 
         -YAML-based settings
         -Configurable prompts and rules
         -Extensible tool support
 
-#### Response Handling:
+### Response Handling:
 
         -Streaming response support
         -Mutable response states
         -Structured output formatting
 
 
-#### Error Management:
+### Error Management:
 
         -Connection retry logic
         -Comprehensive error logging
         -Graceful failure handling
 
-#### Performance Optimization:
+### Performance Optimization:
 
         -Thread-safe operations
         -Token usage optimization
@@ -79,7 +79,7 @@ The EHR Agent is using CUDA for embedding computation and optimizes for cosine s
 
 ## Setup Instructions
 
-#### Speech pipeline
+### Speech pipeline
 
 **_Note_**
 ___
@@ -101,7 +101,7 @@ service_enabled_tts=true
 service_enabled_nmt=false
 ```
 
-#### Model acquisition:
+### Model acquisition:
 
 > It is recommended to create a directory called `/models` on your machine to download the LLM.
 
@@ -115,7 +115,7 @@ wget -nc -P <your_model_dir> https://huggingface.co/TheBloke/openchat-3.5-0106-G
 Download the BGE-large finetuned embedding model from NGC:
  ```bash
  wget https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/bge-large-ehr-finetune
-``` 
+```
 
 Execute the following command from the Holohub root directory:
 
@@ -188,14 +188,14 @@ To interact with ehr_query_llm using voice input:
 
 ⚠️ Note: When running via VNC, you must have your keyboard focus on the VNC terminal that you are using to run ehr_query_llm in order to use the push-to-talk feature.
 
-### Stopping Instructions
+## Stopping Instructions
 To stop the main app, simply use `ctrl+c`
 
 To stop Riva server:
 ```bash
 bash <Riva_install_dir>riva_stop.sh
 ```
-### ASR_To_LLM Application arguments
+## ASR_To_LLM Application arguments
 The `asr_llm_tts.py` can receive the following **optional** cli argument:
 
 `--sample-rate-hz`: The number of frames per second in audio streamed from the selected microphone.
@@ -208,7 +208,7 @@ To enable offline use (no internet connection required):
 ## Troubleshooting
 
 ### Adding Agents:
-An Agent is an LLM (or LMM) with a task specific "persona" - such as a EHRAgent, etc., each with their own specific task. They also have a specific prompt tailored to complete that task, pre-fix prompts specific to the model used, grammar to constrain output, as well as context length. 
+An Agent is an LLM (or LMM) with a task specific "persona" - such as a EHRAgent, etc., each with their own specific task. They also have a specific prompt tailored to complete that task, pre-fix prompts specific to the model used, grammar to constrain output, as well as context length.
 
 The AgentFrameworkOp works by using a SelectorAgent to select which Agent should be called upon based on user input.
 
@@ -218,14 +218,14 @@ Adding a new "agent" for ehr_query_llm involves creating a new agent .py and YAM
 When creating a new agent .py file, you will need to define:
 
 **Agent name**: A class name which will also need to be added to the selector agent YAML, so it knows the agent is available to be called.
-**process_request**: A runtime method describing the logic of how an agent should carry out its task and send a response. 
+**process_request**: A runtime method describing the logic of how an agent should carry out its task and send a response.
 
 
 For the YAML file, the fields needed are:
 
 **name**: This is the name of the agent, as well as what is used as the ZeroMQ topic when the agent  publishes its output. So you must make sure your listener is using this as the topic.
 
-**user_prefix, bot_prefix, bot_rule_prefix, end_token:**: These are dependent on the particular llm or lmm being used, and help to set the correct template for the model to interact with. 
+**user_prefix, bot_prefix, bot_rule_prefix, end_token:**: These are dependent on the particular llm or lmm being used, and help to set the correct template for the model to interact with.
 
 **agent_prompt**: This gives the agent its "persona" - how it should behave, and for what purpose. It should have as much context as possible.
 
@@ -263,7 +263,7 @@ ctx_length: 256
 
 grammar: |
   space ::= " "?
-  string ::= "\"" ([^"\\])* "\"" space 
+  string ::= "\"" ([^"\\])* "\"" space
   root ::= "{" space "\"name\"" space ":" space "\"EHRAgent\"" space "," space "\"response\"" space ":" space string "}" space
 
 publish:

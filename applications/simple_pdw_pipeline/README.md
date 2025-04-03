@@ -1,5 +1,4 @@
-Simple PDW Pipeline
-==================================
+# Simple PDW Pipeline
 
 This is a Holoscan pipeline that shows the possibility of using Holoscan as a
 Pulse Description Word (PDW) generator. This is a process that takes in IQ
@@ -9,13 +8,13 @@ processors are used to see what is transmitting in your area, be they radio
 towers or radars.
 
 siggen.c a signal generator written in C that will transmit
-the input to this pipeline. 
+the input to this pipeline.
 
 BasicNetworkOpRx
 --------------------------
 
 This uses the Basic Network Operator to read udp packets this operator is
-documented elsewhere. 
+documented elsewhere.
 
 PacketToTensorOp
 -------------------------
@@ -46,7 +45,7 @@ future work, but that is not the point of this particular project.
 
 PulsePrinterOp
 ----------------------
-Prints the pulse to screen. Also optionally sends packets to a BasicNetworkOpTx. 
+Prints the pulse to screen. Also optionally sends packets to a BasicNetworkOpTx.
 The transmitted network packets have the following format:
 Each of the following fields are 16bit unsigned integers
   id
