@@ -77,6 +77,15 @@ plugins:
       nav_file: SUMMARY.md
   - site-urls
 
+watch:
+  - ../../applications
+  - ../../operators
+  - ../../tutorials
+  - ../../benchmarks
+  - ../../workflows
+  - overrides
+  - scripts
+
 markdown_extensions:
   - attr_list
   - md_in_html
