@@ -26,30 +26,16 @@ Refer to the [`volume_rendering_xr` README](/applications/volume_rendering_xr/RE
 
 This utility is part of the `volume_rendering_xr` application suite. 
 
-### Default Behavior
-```bash
-./dev_container build_and_run volume_rendering_xr
-```
-This will launch the main volume rendering application by default.
 
 ### Running the Test Utility
-To run this test utility instead:
 
-1. Open `/applications/volume_rendering_xr/metadata.json`
-2. Modify the `run` command to use `xr_hello_holoscan`:
-```json
-{
-    "run": {
-        "command": "if [ -v ML_START_OPTIONS ]; then ml_start.sh ${ML_START_OPTIONS}; else ml_start.sh debug; fi && ml_pair.sh && <holohub_app_source>/scripts/run.sh xr_hello_holoscan --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
-        "workdir": "<holohub_app_bin>"
-    }
-}
-```
-3. Run the following command in the top-level HoloHub folder to build and run the host application:
+Run the following command in the top-level HoloHub folder to build and run the host application:
 
 ```bash
-./dev_container build_and_run volume_rendering_xr
+./dev_container build_and_run volume_rendering_xr --run_args "xr_hello_holoscan"
 ```
+
+Note that without specifying the extra arguments, it will launch the main volume rendering application by default.
 
 To pair your Magic Leap 2 device with the host, open the QR Reader application in the ML2 headset and scan the QR code printed in console output on the host machine.
 
