@@ -1,0 +1,42 @@
+{
+	"application": {
+		"name": "Videomaster transmitter example",
+		"authors": [
+			{
+				"name": "Laurent Radoux",
+				"affiliation": "DELTACAST"
+			},
+			{
+				"name": "Pierre PERICK",
+				"affiliation": "DELTACAST"
+			}
+		],
+		"language": "C++",
+		"version": "1.1",
+		"changelog": {
+			"1.0": "Initial Release",
+			"1.1": "Fix common external video source parameters"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0",
+				"2.9.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Deltacast",
+			"VideoMaster"
+		],
+		"ranking": 2,
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/deltacast_transmitter --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}

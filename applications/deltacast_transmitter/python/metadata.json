@@ -3,11 +3,11 @@
 		"name": "Videomaster transmitter example",
 		"authors": [
 			{
-				"name": "Laurent Radoux",
+				"name": "Pierre PERICK",
 				"affiliation": "DELTACAST"
 			}
 		],
-		"language": "C++",
+		"language": "Python",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -15,7 +15,8 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
-				"0.5.0"
+				"0.5.0",
+				"2.9.0"
 			]
 		},
 		"platforms": [
@@ -29,7 +30,7 @@
 		"ranking": 2,
 		"dependencies": {},
 		"run": {
-			"command": "<holohub_app_bin>/deltacast_transmitter --data <holohub_data_dir>/endoscopy",
+			"command": "python3 <holohub_app_source>/deltacast_transmitter.py --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
 		}
 	}
