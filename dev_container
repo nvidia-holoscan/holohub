@@ -282,8 +282,8 @@ get_conditional_options() {
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
     fi
-    if [ -d /opt/deltacast/videomaster/Include ]; then
-        conditional_opt+="${prefix}--volume=/opt/deltacast/videomaster/Include:/usr/local/deltacast/Include${postfix}"
+    if [ -d /usr/include/videomaster/ ]; then
+        conditional_opt+="${prefix}--volume=/usr/include/videomaster:/usr/include/videomaster${postfix}"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
         conditional_opt+="${prefix}--volume=/opt/yuan/qcap/include:/opt/yuan/qcap/include${postfix}"

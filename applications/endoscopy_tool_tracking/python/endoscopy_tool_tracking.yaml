@@ -30,7 +30,8 @@ resources:
 
 extensions:
 - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
-- lib/gxf_extensions/libgxf_qcap_source.so
+# - lib/gxf_extensions/libgxf_videomaster.so
+# - lib/gxf_extensions/libgxf_qcap_source.so
 
 visualizer: "holoviz" # "holoviz" or "vtk"
 
@@ -45,6 +46,35 @@ yuan:
   width: 3840
   height: 2160
   rdma: true
+
+deltacast:
+  width: 1920
+  height: 1080
+  progressive: true
+  framerate: 25
+  board: 0
+  input: 0
+  output: 0
+  rdma: false
+  enable_overlay: true
+
+deltacast_overlay_format_converter:
+  in_dtype: "rgba8888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+  resize_width: 1920
+  resize_height: 1080
+
+deltacast_drop_alpha_channel_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+deltacast_visualizer_format_converter:
+  in_dtype: "rgb888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
 
 replayer:
   basename: "surgical_video"
@@ -79,6 +109,16 @@ format_converter_aja:
 format_converter_yuan:
   out_tensor_name: source_video
   out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+format_converter_deltacast:
+  in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  out_channel_order: [2,1,0]
   scale_min: 0.0
   scale_max: 255.0
   resize_width: 854
