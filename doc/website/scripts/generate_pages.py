@@ -16,11 +16,13 @@
 
 import json
 import logging
+import os.path
 import re
 import subprocess
 import sys
 import traceback
 from pathlib import Path
+from urllib.parse import quote as urlencode
 
 import mkdocs_gen_files
 
@@ -180,27 +182,89 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
     return header_text
 
 
-def patch_links(text: str, github_url: str) -> str:
-    """Patch links in the text to direct to the GitHub repository."""
+def patch_links(
+    text: str,
+    relative_dir: Path,  # Relative dir of source/dest (e.g., "tutorials/tut1")
+    git_repo_path: Path,  # Absolute path to repo root
+    base_url: str,  # Base URL for new external links
+) -> str:
+    """Patch Markdown links and images in the text.
 
-    # Regular expression pattern to match paths containing .gif, .png, or .jpg
-    pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
-    matches = re.findall(pattern, text)
-    for match in matches:
-        # Find the URL inside [](image)
-        parenthensis_match = re.search(r"\((.*?)\)", match)
-        if parenthensis_match:
-            match = parenthensis_match.group(1)
+    - Images: Point to raw GitHub URL.
+    - Internal README.md links (within COMPONENT_TYPES): Convert to relative MkDocs paths.
+    - Other internal links: Point to blob GitHub URL.
+    - External links: Leave untouched.
+    """
+    readme_dir = (git_repo_path / relative_dir).resolve()
+    patched_text = text
 
-        match = match.strip('"()[]')
-        imgmatch = match
-        if match.startswith("."):
-            imgmatch = match[1:]
-        if imgmatch.startswith("/"):
-            imgmatch = imgmatch[1:]
-        text = text.replace(match, f"{github_url}/{imgmatch}?raw=true")
+    # Regex to find Markdown links ![alt](target) or [text](target)
+    link_pattern = re.compile(r"(!?)\[(.*?)\]\((.*?)\)")
 
-    return text
+    for match in link_pattern.finditer(text):
+        prefix, link_text, original_target = match.groups()
+
+        # --- Skip external and anchor links ---
+        if original_target.strip().startswith(("http://", "https://", "mailto:", "#")):
+            continue
+
+        # --- Process internal links ---
+        # Separate anchor if present
+        original_target_path_str, *anchor_parts = original_target.split("#", 1)
+        anchor = f"#{anchor_parts[0]}" if anchor_parts else ""
+
+        # Manipulate the path as a Path object
+        original_target_path = Path(original_target_path_str)
+
+        # Calculate path relative to repo root
+        if original_target_path.is_absolute():
+            # For absolute paths, the path relative to repo root is just the path stripped of '/'
+            # We assume this path is already canonical enough for our needs here.
+            rel_repo_target_path = original_target_path.relative_to("/")
+        else:
+            # For relative paths, first find the resolved absolute path
+            resolved_absolute = (readme_dir / original_target_path).resolve()
+            # Then, try to calculate the path relative to the repo root
+            try:
+                rel_repo_target_path = resolved_absolute.relative_to(git_repo_path)
+            except ValueError:
+                logger.error(
+                    f"Link target '{original_target}' in {relative_dir} "
+                    f"resolves to '{resolved_absolute}', which is outside the git repo root "
+                    f"'{git_repo_path}'. Skipping."
+                )
+                continue
+
+        # Generate new target URL based on type
+        # Note: ideally we'd do a first pass of discovery to determine what docs make it in the
+        # site instead of this heuristic that depends on logic elsewhere in the codebase, but this
+        # is simpler for now.
+        is_in_website = (
+            rel_repo_target_path.name == "README.md"  # Is a README
+            and len(rel_repo_target_path.parts) > 2  # Nested (not root README)
+            and rel_repo_target_path.parts[0] in COMPONENT_TYPES  # Top dir is a component type
+        )
+        if is_in_website:
+            # Point relative path within the MkDocs site
+            # Note: can't use Path.relative_to() because of limitation with ../ resolution
+            new_target = Path(os.path.relpath(rel_repo_target_path, relative_dir)).as_posix()
+        else:  # Handle links pointing to GitHub
+            # URL encode the path parts first
+            encoded_path = "/".join(urlencode(part, safe="") for part in rel_repo_target_path.parts)
+
+            # Construct full URL using the provided base ref URL
+            new_target = f"{base_url}/{encoded_path}"
+
+            # Append raw=true for images (! prefix)
+            if prefix == "!":
+                new_target = f"{new_target}?raw=true"
+
+        # Reconstruct the full link to avoid issues if the same link target
+        # appears multiple times with different text/prefix
+        new_link = f"{prefix}[{link_text}]({new_target}{anchor})"
+        patched_text = patched_text.replace(match.group(0), new_link)
+
+    return patched_text
 
 
 def create_page(
@@ -208,6 +272,7 @@ def create_page(
     readme_text: str,
     dest_path: Path,
     last_modified: str,
+    git_repo_path: Path,
     archive: dict = {"version": None, "git_ref": "main"},
 ):
     """Create a documentation page, handling both versioned and non-versioned cases.
@@ -217,6 +282,7 @@ def create_page(
         readme_text: Content of the README file
         dest_path: relative path to the documentation page
         last_modified: Last modified date string
+        git_repo_path: Path to the Git repository root
         archive: Dictionary of version label and git reference strings
           - if provided, links are versioned accordingly
     Returns:
@@ -227,22 +293,34 @@ def create_page(
     archive_version = archive["version"] if archive and "version" in archive else None
     output_text = create_frontmatter(metadata, archive_version)
 
-    # Patch links in the README test
+    # Patch links in the README content
     git_ref = archive["git_ref"] if archive and "git_ref" in archive else "main"
-    dest_dir = dest_path.parent
-    github_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}/{str(dest_dir)}"
-    readme_text = patch_links(readme_text, github_url)
-
-    # Get the header metadata
-    header_text = create_metadata_header(metadata, last_modified, archive_version)
+    relative_dir = dest_path.parent
+    base_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}"
+    readme_text = patch_links(
+        readme_text,
+        relative_dir,
+        git_repo_path,
+        base_url,
+    )
 
     # Find the first header
     match = re.match(r"^#\s+(.+)", readme_text)
     if match:
-        # Add URL to the title, and list metadata after it
-        header_title = match.group(1)
-        header_title = f"[{header_title}]({github_url})"
-        output_text += readme_text.replace(match.group(1), f"{header_title}\n{header_text}", 1)
+        current_header = match.group(1)
+
+        # Get the metadata header
+        metadata_header = create_metadata_header(metadata, last_modified, archive_version)
+
+        # Calculate the github URL for the specific source directory
+        encoded_rel_dir = "/".join(urlencode(part, safe="") for part in relative_dir.parts)
+        url = f"{base_url}/{encoded_rel_dir}"
+
+        # Create the new header
+        new_header = f"[{current_header}]({url})\n{metadata_header}"
+
+        # Replace the header
+        output_text += readme_text.replace(current_header, new_header, 1)
     else:
         logger.warning(f"No header found in {dest_path}, can't insert metadata header")
         output_text += readme_text
@@ -327,7 +405,7 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     # Generate page
     dest_path = dest_dir / "README.md"
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
-    create_page(metadata, readme_text, dest_path, last_modified)
+    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path)
 
     # Initialize nav file content to control navigation with mkdocs-awesome-nav
     nav_path = dest_dir / ".nav.yml"
@@ -375,6 +453,7 @@ nav:
                 archived_readme_content,
                 archive_dest_path,
                 archive_last_modified,
+                git_repo_path,
                 archive={"version": version, "git_ref": git_ref},
             )
 
@@ -421,7 +500,7 @@ def generate_pages() -> None:
         for metadata_path in component_dir.rglob("metadata.json"):
             try:
                 parse_metadata_path(metadata_path, components, git_repo_path)
-            except Exception as e:
+            except Exception:
                 logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
 
         # Write navigation file to sort components by title
