@@ -29,13 +29,32 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Eigen3)
 
+# Add nlohmann_json
+FetchContent_Declare(
+  nlohmann_json
+  URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 find_package(holoscan 2.0 REQUIRED CONFIG)
 
+# Add local xr_basic_render operator
+add_subdirectory(xr_basic_render)
+
 add_executable(xr_hello_holoscan main.cpp)
+
+target_include_directories(xr_hello_holoscan
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../operators/XrFrameOp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../operators/XrTransformOp
+)
+
 target_link_libraries(xr_hello_holoscan
   holoscan::core
-  holoscan::ops::frame_op
-  holoscan::ops::xr_transform_op
-  holoscan::ops::xr_basic_render_op
+  frame_op
+  xr_transform_op
+  xr_basic_render_op
   holoscan::viz
 )

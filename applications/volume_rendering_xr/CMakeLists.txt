@@ -1,18 +1,17 @@
-
- # SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- # SPDX-License-Identifier: Apache-2.0
- #
- # Licensed under the Apache License, Version 2.0 (the "License");
- # you may not use this file except in compliance with the License.
- # You may obtain a copy of the License at
- #
- # http://www.apache.org/licenses/LICENSE-2.0
- #
- # Unless required by applicable law or agreed to in writing, software
- # distributed under the License is distributed on an "AS IS" BASIS,
- # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- # See the License for the specific language governing permissions and
- # limitations under the License.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 include(FetchContent)
 cmake_minimum_required(VERSION 3.20)
 project(volume_rendering_xr)
@@ -49,18 +48,39 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Eigen3)
 set(BUILD_TESTING ${HOLOHUB_BUILD_TESTING})
 
+# Add nlohmann_json
+FetchContent_Declare(
+  nlohmann_json
+  URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
+# Add local XR operators
+add_subdirectory(operators/XrFrameOp)
+add_subdirectory(operators/XrTransformOp)
+add_subdirectory(utils/xr_hello_holoscan)
 
 add_executable(volume_rendering_xr
   main.cpp
 )
 
+target_include_directories(volume_rendering_xr
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/operators
+    ${CMAKE_CURRENT_SOURCE_DIR}/operators/XrFrameOp
+    ${CMAKE_CURRENT_SOURCE_DIR}/operators/XrTransformOp
+)
+
 target_link_libraries(volume_rendering_xr
   holoscan::core
-  holoscan::ops::xr_transform_op
-  holoscan::ops::frame_op
+  frame_op
+  xr_transform_op
   holoscan::ops::volume_loader
   holoscan::ops::volume_renderer
   holoscan::ops::holoviz
+  nlohmann_json::nlohmann_json
 )
 
 set_target_properties(volume_rendering_xr
