@@ -18,6 +18,7 @@ import json
 import logging
 import re
 import subprocess
+import sys
 import traceback
 from pathlib import Path
 
@@ -27,10 +28,15 @@ import mkdocs_gen_files
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Set the git repository path for Docker environment
-GIT_REPO_PATH = "/holohub"
-
 COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
+
+
+def get_git_root() -> Path:
+    """Get the absolute path to the Git repository root."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
+    )
+    return Path(result.stdout.strip())
 
 
 def format_date(date_str: str) -> str:
@@ -57,67 +63,50 @@ def format_date(date_str: str) -> str:
         return date_str
 
 
-def get_last_modified_date(file_path: Path) -> str:
+def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
     """Get the last modified date of a file or directory using git or stat."""
-    rel_file_path = str(file_path.relative_to(GIT_REPO_PATH))
-
-    # First try: Git date
+    # Try using git to get the last modified date
     try:
-        cmd = ["git", "-C", GIT_REPO_PATH, "log", "-1", "--format=%ad", "--date=short", rel_file_path]
+        rel_file_path = str(file_path.relative_to(git_repo_path))
+        repo_path = str(git_repo_path)
+        cmd = ["git", "-C", repo_path, "log", "-1", "--format=%ad", "--date=short", rel_file_path]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         git_date = result.stdout.strip()
 
         if git_date:  # If we got a valid date from git
             return format_date(git_date)
-    except subprocess.CalledProcessError:
-        # Git command failed, we'll fall back to stat
+    except (subprocess.CalledProcessError, ValueError):
+        # Git command failed or path is not in repo, we'll fall back to stat
         pass
 
     # Second try: Filesystem stat date
     try:
-        cmd = ["stat", "-c", "%y", file_path]
+        cmd = ["stat", "-c", "%y", str(file_path)]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         stat_date = result.stdout.split()[0].strip()  # Get just the date portion
 
         if stat_date:  # If we got a valid date from stat
             return format_date(stat_date)
     except (subprocess.CalledProcessError, ValueError, IndexError):
-        logger.error(f"Failed to get modification date for {rel_file_path}")
+        logger.error(f"Failed to get modification date for {file_path}")
 
     # Fallback if both methods fail
     return "Unknown"
 
 
-def get_file_from_git(path: Path, git_ref: str) -> str:
+def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str:
     """Get file content from a specific git revision."""
-
-    rel_file_path = str(path.relative_to(GIT_REPO_PATH))
     try:
-        # Always execute git commands in the repository directory
-        cmd = ["git", "-C", GIT_REPO_PATH, "show", f"{git_ref}:{rel_file_path}"]
+        rel_file_path = file_path.relative_to(git_repo_path)
+        cmd = ["git", "-C", str(git_repo_path), "show", f"{git_ref}:{rel_file_path}"]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to get file {rel_file_path} at revision {git_ref}: {e}")
-        logger.error(f"Git error output: {e.stderr}")
-        return ""
-
-
-def is_git_available() -> bool:
-    """Check if git is available and we're in a git repository."""
-    try:
-        # Check if git command exists and we're in a git repo
-        # Always execute git commands in the repository directory
-        subprocess.run(
-            ["git", "-C", GIT_REPO_PATH, "rev-parse", "--is-inside-work-tree"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.warning("Git is not available or not a git repository")
-        return False
+    except (subprocess.CalledProcessError, ValueError) as e:
+        if isinstance(e, subprocess.CalledProcessError):
+            logger.error(f"Git error: {e.stderr}")
+        else:
+            logger.error(f"Path {file_path} is not within the Git repository")
+        raise e
 
 
 def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
@@ -248,13 +237,13 @@ def create_page(
         dest_file.write(output_text)
 
 
-def parse_metadata_path(metadata_path: Path, components, git_available: bool) -> None:
+def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) -> None:
     """Copy README file from a sub-package to the user guide's developer guide directory.
 
     Args:
         metadata_path: Path to the metadata file
         components: Dictionary tracking unique components
-        git_available: Whether git is available (checked once globally)
+        git_repo_path: Path to the Git repository root
 
     Returns:
         None
@@ -283,11 +272,17 @@ def parse_metadata_path(metadata_path: Path, components, git_available: bool) ->
     while not readme_path.exists():
         readme_dir = readme_dir.parent
         readme_path = readme_dir / "README.md"
-    dest_dir = readme_dir.relative_to(GIT_REPO_PATH)
 
     # Valid README is not in the component type directory or the git repo root
     if readme_dir.name in COMPONENT_TYPES or readme_dir == git_repo_path:
         logger.error(f"Skipping {metadata_path}: no README found")
+        return
+
+    # Get path relative to the Git repository root
+    try:
+        dest_dir = readme_dir.relative_to(git_repo_path)
+    except ValueError:
+        logger.error(f"Skipping {metadata_path}: no README in git repo {git_repo_path}")
         return
 
     # Track components if in adequate directories
@@ -317,7 +312,7 @@ def parse_metadata_path(metadata_path: Path, components, git_available: bool) ->
 
     # Generate page
     dest_path = dest_dir / "README.md"
-    last_modified = get_last_modified_date(metadata_path)
+    last_modified = get_last_modified_date(metadata_path, git_repo_path)
     create_page(metadata, readme_text, dest_path, last_modified)
 
     # Initialize nav file content to control navigation with mkdocs-awesome-nav
@@ -330,15 +325,6 @@ nav:
 
     # Check for archives in metadata
     archives = metadata["archives"] if "archives" in metadata else None
-
-    # In git is missing, disable archives functionality
-    if archives is not None and not git_available:
-        logger.warning(
-            f"Archives specified for {str(dest_dir)} but Git is not available. "
-            "Archive versions will not be generated."
-        )
-        archives = None
-
     if archives:
         logger.info(f"Processing versioned documentation for {str(dest_dir)}")
 
@@ -346,10 +332,10 @@ nav:
             git_ref = archives[version]
 
             # Get metadata and README from the specified git reference
-            archived_metadata_content = get_file_from_git(metadata_path, git_ref)
-            archived_readme_content = get_file_from_git(readme_path, git_ref)
+            archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
+            archived_readme_content = get_file_from_git(readme_path, git_ref, git_repo_path)
             if not archived_metadata_content or not archived_readme_content:
-                logger.error(f"Failed to retrieve archived content for {path} at {git_ref}")
+                logger.error(f"Failed to retrieve archived content for {dest_dir} at {git_ref}")
                 continue
 
             # Parse the archived metadata
@@ -361,7 +347,8 @@ nav:
             archived_metadata = archived_metadata[project_type]
 
             # Get commit date as last modified
-            cmd = ["git", "-C", GIT_REPO_PATH, "show", "-s", "--format=%ad", "--date=short", git_ref]
+            repo_str = str(git_repo_path)
+            cmd = ["git", "-C", repo_str, "show", "-s", "--format=%ad", "--date=short", git_ref]
             archive_last_modified = subprocess.run(
                 cmd, capture_output=True, text=True, check=True
             ).stdout.strip()
@@ -394,14 +381,18 @@ def generate_pages() -> None:
     Returns:
         None
     """
+    # Initialize Git repository path
+    try:
+        git_repo_path = get_git_root()
+        logger.info(f"Git repository root: {git_repo_path}")
+    except Exception as e:
+        logger.error(f"Failed to find Git repository root: {e}")
+        logger.error("This script requires Git and must be run from within a Git repository.")
+        sys.exit(1)
 
     # Dirs
-    src_dir = Path(GIT_REPO_PATH)
+    src_dir = git_repo_path
     website_src_dir = Path(__file__).parent.parent
-
-    # Check Git availability
-    git_available = is_git_available()
-    logger.info(f"Git availability: {git_available}")
 
     # Initialize map of projects/component per type
     components = {key: set() for key in COMPONENT_TYPES}
@@ -415,7 +406,7 @@ def generate_pages() -> None:
         # Parse the metadata.json files
         for metadata_path in component_dir.rglob("metadata.json"):
             try:
-                parse_metadata_path(metadata_path, components, git_available)
+                parse_metadata_path(metadata_path, components, git_repo_path)
             except Exception as e:
                 logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
 
