@@ -109,6 +109,26 @@ def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str
         raise e
 
 
+def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
+    """Create the frontmatter for the documentation page."""
+
+    # Title
+    title = metadata["name"]
+    title += f" ({archive_version})" if archive_version else " (latest)"
+
+    # Tags
+    tags = metadata["tags"]
+    tags_str = ""
+    for tag in tags:
+        tags_str += f"\n - {tag}"
+
+    return f"""---
+title: "{title}"
+tags:{tags_str}
+---
+"""
+
+
 def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
     """Create the metadata header for the documentation page."""
     authors = metadata["authors"]
@@ -160,6 +180,29 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
     return header_text
 
 
+def patch_links(text: str, github_url: str) -> str:
+    """Patch links in the text to direct to the GitHub repository."""
+
+    # Regular expression pattern to match paths containing .gif, .png, or .jpg
+    pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
+    matches = re.findall(pattern, text)
+    for match in matches:
+        # Find the URL inside [](image)
+        parenthensis_match = re.search(r"\((.*?)\)", match)
+        if parenthensis_match:
+            match = parenthensis_match.group(1)
+
+        match = match.strip('"()[]')
+        imgmatch = match
+        if match.startswith("."):
+            imgmatch = match[1:]
+        if imgmatch.startswith("/"):
+            imgmatch = imgmatch[1:]
+        text = text.replace(match, f"{github_url}/{imgmatch}?raw=true")
+
+    return text
+
+
 def create_page(
     metadata: dict,
     readme_text: str,
@@ -180,54 +223,25 @@ def create_page(
         Generated page content as string
     """
 
-    # Title
-    title = metadata["name"]
-    archive_version = archive["version"] if archive and "version" in archive else None
-    title += f" ({archive_version})" if archive_version else " (latest)"
-
-    # Tags
-    tags = metadata["tags"]
-
     # Frontmatter
-    output_text = "---"
-    output_text += f'\ntitle: "{title}"'
-    output_text += "\ntags:"
-    for tag in tags:
-        output_text += f"\n - {tag}"
-    output_text += "\n---\n"
+    archive_version = archive["version"] if archive and "version" in archive else None
+    output_text = create_frontmatter(metadata, archive_version)
 
-    # Process README content to fix image paths
+    # Patch links in the README test
     git_ref = archive["git_ref"] if archive and "git_ref" in archive else "main"
     dest_dir = dest_path.parent
-    base_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}/{str(dest_dir)}"
-    # Regular expression pattern to match paths containing .gif, .png, or .jpg
-    pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
-    matches = re.findall(pattern, readme_text)
-    for match in matches:
-        # Find the URL inside [](image)
-        parenthensis_match = re.search(r"\((.*?)\)", match)
-        if parenthensis_match:
-            match = parenthensis_match.group(1)
-
-        match = match.strip('"()[]')
-        imgmatch = match
-        if match.startswith("."):
-            imgmatch = match[1:]
-        if imgmatch.startswith("/"):
-            imgmatch = imgmatch[1:]
-        readme_text = readme_text.replace(match, f"{base_url}/{imgmatch}?raw=true")
+    github_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}/{str(dest_dir)}"
+    readme_text = patch_links(readme_text, github_url)
 
     # Get the header metadata
     header_text = create_metadata_header(metadata, last_modified, archive_version)
 
     # Find the first header
-    pattern = r"^#\s+(.+)"
-    match = re.match(pattern, readme_text)
-
-    # Add URL to the title, and list metadata after it
+    match = re.match(r"^#\s+(.+)", readme_text)
     if match:
+        # Add URL to the title, and list metadata after it
         header_title = match.group(1)
-        header_title = f"[{header_title}]({base_url})"
+        header_title = f"[{header_title}]({github_url})"
         output_text += readme_text.replace(match.group(1), f"{header_title}\n{header_text}", 1)
     else:
         logger.warning(f"No header found in {dest_path}, can't insert metadata header")
