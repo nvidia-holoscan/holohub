@@ -210,24 +210,24 @@ doca_error_t DocaMgr::init_doca_devices() {
                     argv_[1],
                     argv_[2],
                     argv_[3]);
-
-  for (const auto& intf : cfg_.ifs_) {
-    HOLOSCAN_LOG_INFO("Initializing interface {} port {}", intf.address_, intf.port_id_);
-
-    result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
-    if (result != DOCA_SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
-      return result;
-    }
-  }
-
   ret = rte_eal_init(arg, argv_);
   if (ret < 0) {
     HOLOSCAN_LOG_CRITICAL("DPDK init failed: {}", ret);
     return DOCA_ERROR_DRIVER;
   }
 
-  for (const auto& intf : cfg_.ifs_) {
+  int port_id = 0;
+  for (auto& intf : cfg_.ifs_) {
+    // Assign an arbitrary port ID in the interface config for faster lookup
+    intf.port_id_ = port_id++;
+    HOLOSCAN_LOG_INFO("Initializing interface {} ({} - port {})",
+                      intf.name_, intf.address_, intf.port_id_);
+    result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
+      return result;
+    }
+
     /* Enable DOCA Flow HWS mode */
     result = doca_dpdk_port_probe(ddev[intf.port_id_], "dv_flow_en=2");
     if (result != DOCA_SUCCESS) {
@@ -417,16 +417,16 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_metadata = rte_mempool_create("RX_META_POOL",
-                               (1U << 6) - 1U,
-                               sizeof(BurstParams),
-                               0,
-                               0,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               rte_socket_id(),
-                               0);
+                                   (1U << 6) - 1U,
+                                   sizeof(BurstParams),
+                                   0,
+                                   0,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   rte_socket_id(),
+                                   0);
   if (rx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate RX meta pool!");
     return -1;
@@ -458,16 +458,16 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 
   HOLOSCAN_LOG_INFO("Setting up TX meta pool");
   tx_metadata = rte_mempool_create("TX_META_POOL",
-                               (1U << 7) - 1U,
-                               sizeof(BurstParams),
-                               0,
-                               0,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               rte_socket_id(),
-                               0);
+                                   (1U << 7) - 1U,
+                                   sizeof(BurstParams),
+                                   0,
+                                   0,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   rte_socket_id(),
+                                   0);
   if (tx_metadata == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate TX meta pool!");
     return -1;
@@ -1631,14 +1631,6 @@ Status DocaMgr::get_mac_addr(int port, char* mac) {
   return Status::SUCCESS;
 }
 
-int DocaMgr::address_to_port(const std::string& addr) {
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DocaMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp) {
   return Status::SUCCESS;
 }
@@ -1653,7 +1645,7 @@ Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto txq = tx_q_map_[key];
 
         // Should be thread safe as it's atomic inc
@@ -1685,12 +1677,12 @@ Status DocaMgr::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
 }
 
 Status DocaMgr::set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                   unsigned int src_host, unsigned int dst_host) {
+                                unsigned int src_host, unsigned int dst_host) {
   return Status::NOT_SUPPORTED;
 }
 
 Status DocaMgr::set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                                  uint16_t dst_port) {
+                               uint16_t dst_port) {
   return Status::NOT_SUPPORTED;
 }
 
@@ -1704,7 +1696,7 @@ bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
@@ -1734,19 +1726,8 @@ void DocaMgr::free_tx_burst(BurstParams* burst) {
   return;
 }
 
-std::optional<uint16_t> DocaMgr::get_port_from_ifname(const std::string& name) {
-  HOLOSCAN_LOG_INFO("Port name {}", name);
-  for (const auto& intf : cfg_.ifs_) {
-    if (name == intf.address_) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DocaMgr::get_rx_burst(BurstParams** burst) {
-  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
-    return Status::NOT_READY;
-  }
+  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) { return Status::NOT_READY; }
 
   return Status::SUCCESS;
 }
@@ -1761,9 +1742,9 @@ void DocaMgr::free_tx_metadata(BurstParams* burst) {
 
 BurstParams* DocaMgr::create_tx_burst_params() {
   auto burst_idx = burst_tx_idx.fetch_add(1);
-  HOLOSCAN_LOG_DEBUG(
-      "create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
-        burst_idx % MAX_TX_BURST, MAX_TX_BURST);
+  HOLOSCAN_LOG_DEBUG("create_tx_burst_params burst_idx {} MAX_TX_BURST {}",
+                     burst_idx % MAX_TX_BURST,
+                     MAX_TX_BURST);
   return &(burst[burst_idx % MAX_TX_BURST]);
 }
 

@@ -57,7 +57,7 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git \
 # Install Torch based on the specified architecturea, and if not specified, host's
 RUN if [[ $TARGETARCH == x86_64 ]] || [[ $(uname -m) == x86_64 ]]; then \
         echo "Installing Torch for x86_64 architecture" && \
-        python3 -m pip install torch~=2.5.0; \
+        python3 -m pip install torch~=2.6.0; \
     elif [[ $TARGETARCH == aarch64* ]] ||  [[ $(uname -m) == aarch64* ]] ; then \
         echo "Installing Torch for aarch64 architecture" && \
         python3 -m pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/test/cu126; \

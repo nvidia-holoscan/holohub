@@ -64,3 +64,5 @@ target_link_libraries(aja_source
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+install(TARGETS aja_source)

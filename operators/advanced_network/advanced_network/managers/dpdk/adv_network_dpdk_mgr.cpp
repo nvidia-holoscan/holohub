@@ -152,14 +152,6 @@ bool DpdkMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   return true;
 }
 
-int DpdkMgr::address_to_port(const std::string& addr) {
-  for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
-  }
-
-  return -1;
-}
-
 Status DpdkMgr::get_mac_addr(int port, char* mac) {
   if (port > mac_addrs.size()) {
     HOLOSCAN_LOG_CRITICAL("Port {} out of range in get_mac_addr() lookup");
@@ -418,11 +410,10 @@ void DpdkMgr::initialize() {
   // Set up the port IDs to map to DPDK port IDs
   for (auto& intf : cfg_.ifs_) {
     if (rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_) < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_);
+      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {} ({})", intf.name_, intf.address_);
       return;
-    } else {
-      HOLOSCAN_LOG_INFO("Port {} found for {}", intf.port_id_, intf.name_);
     }
+    HOLOSCAN_LOG_INFO("{} ({}): identified as port {}", intf.name_, intf.address_, intf.port_id_);
   }
 
   for (int i = 0; i < num_ports; i++) {
@@ -456,12 +447,6 @@ void DpdkMgr::initialize() {
   int max_rx_batch_size = 0;
   int max_tx_batch_size = 0;
   for (auto& intf : cfg_.ifs_) {
-    ret = rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_);
-    if (ret < 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get port number for {}", intf.name_.c_str());
-      return;
-    }
-
     struct rte_eth_dev_info dev_info;
     int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
     if (ret != 0) {
@@ -1900,14 +1885,6 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
 
   burst->hdr.hdr.num_pkts = 0;
   rte_mempool_put(tx_metadata, burst);
-}
-
-std::optional<uint16_t> DpdkMgr::get_port_from_ifname(const std::string& name) {
-  uint16_t port;
-  auto ret = rte_eth_dev_get_port_by_name(name.c_str(), &port);
-  if (ret < 0) { return {}; }
-
-  return port;
 }
 
 Status DpdkMgr::get_rx_burst(BurstParams** burst) {

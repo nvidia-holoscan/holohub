@@ -25,7 +25,7 @@
 
 #include "rmax_ano_data_types.h"
 #include "burst_manager.h"
-#include "adv_network_types.h"
+#include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
 using namespace ral::services;

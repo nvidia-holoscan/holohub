@@ -59,8 +59,6 @@ class RmaxMgr : public Manager {
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
 
-  std::optional<uint16_t> get_port_from_ifname(const std::string& name) override;
-
   Status get_rx_burst(BurstParams** burst) override;
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst) override;
@@ -72,7 +70,6 @@ class RmaxMgr : public Manager {
   uint64_t get_burst_tot_byte(BurstParams* burst) override;
   BurstParams* create_tx_burst_params() override;
   Status get_mac_addr(int port, char* mac) override;
-  int address_to_port(const std::string& addr) override;
 
  private:
   class RmaxMgrImpl;

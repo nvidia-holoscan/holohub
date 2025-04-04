@@ -192,6 +192,22 @@ Status Manager::allocate_memory_regions() {
   return Status::SUCCESS;
 }
 
+/**
+ * @brief Generic implementation of address_to_port that looks up port in config
+ * This is a final method that cannot be overridden by subclasses.
+ *
+ * @param addr Address string to look up
+ * @return int Port ID or -1 if not found
+ */
+int Manager::address_to_port(const std::string& addr) {
+  for (const auto& intf : cfg_.ifs_) {
+    if (intf.address_ == addr) {
+      return intf.port_id_;
+    }
+  }
+  return -1;
+}
+
 bool Manager::validate_config() const {
   bool pass = true;
   std::set<std::string> mr_names;
