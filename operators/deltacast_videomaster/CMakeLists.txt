@@ -29,3 +29,7 @@ add_library(holoscan::videomaster ALIAS videomaster)
 target_include_directories(videomaster INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(videomaster INTERFACE DELTACAST_VIDEOMASTER)
 target_link_libraries(videomaster holoscan::core)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

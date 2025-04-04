@@ -23,7 +23,13 @@ from holoscan.operators import (
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+
+# Enable this line for DELTACAST capture card (linter issue)
+from holoscan.resources import (  # UnboundedAllocator,
+    BlockMemoryPool,
+    CudaStreamPool,
+    MemoryStorageType,
+)
 
 from holohub.aja_source import AJASourceOp
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
@@ -31,6 +37,10 @@ from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 # Enable this line for Yuam capture card
 # from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
+
+# Enable this line for DELTACAST capture card
+# from holohub.videomaster import VideoMasterSourceOp, VideoMasterTransmitterOp
+
 
 # Enable this line for vtk rendering
 # from holohub.vtk_renderer import VtkRendererOp
@@ -86,6 +96,25 @@ class EndoscopyApp(Application):
             is_overlay_enabled = aja_kwargs["enable_overlay"]
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
+        elif self.source.lower() == "deltacast":
+            deltacast_kwargs = self.kwargs("deltacast")
+
+            width = deltacast_kwargs["width"]
+            height = deltacast_kwargs["height"]
+            rdma = deltacast_kwargs["rdma"]
+            is_overlay_enabled = deltacast_kwargs["enable_overlay"]
+
+            source_block_size = width * height * 4 * 4
+            source_num_blocks = 3 if rdma else 4
+            # Enable this line for DELTACAST capture card (linter issue)
+            # source = VideoMasterSourceOp(
+            #     self,
+            #     name="deltacast",
+            #     pool=UnboundedAllocator(self, name="pool"),
+            #     rdma=rdma,
+            #     board=deltacast_kwargs["board"],
+            #     input=deltacast_kwargs["input"],
+            # )
         elif self.source.lower() == "yuan":
             yuan_kwargs = self.kwargs("yuan")
             # Uncomment to enable QCap
@@ -236,27 +265,80 @@ class EndoscopyApp(Application):
             {("out", input_annotations_signal)},
         )
 
+        output_signal = "output" if self.source == "replayer" else "video_buffer_output"
+        if self.source.lower() == "deltacast":
+            output_signal = "signal"
+
         self.add_flow(
             source,
             format_converter,
-            {("video_buffer_output" if self.source != "replayer" else "output", "source_video")},
+            {(output_signal, "source_video")},
         )
         self.add_flow(format_converter, lstm_inferer)
-        if is_overlay_enabled:
-            # Overlay buffer flow between AJA source and visualizer
-            self.add_flow(source, visualizer, {("overlay_buffer_output", "render_buffer_input")})
-            self.add_flow(visualizer, source, {("render_buffer_output", "overlay_buffer_input")})
+
+        if self.source.lower() == "deltacast":
+            if is_overlay_enabled:
+                # Enable this line for DELTACAST capture card (linter issue)
+                # overlayer = VideoMasterTransmitterOp(
+                #     self,
+                #     name="videomaster",
+                #     pool=UnboundedAllocator(self, name="pool"),
+                #     rdma=deltacast_kwargs.get("rdma", False),
+                #     board=deltacast_kwargs.get("board", 0),
+                #     width=width,
+                #     height=height,
+                #     output=deltacast_kwargs.get("output", 0),
+                #     progressive=deltacast_kwargs.get("progressive", True),
+                #     framerate=deltacast_kwargs.get("framerate", 60),
+                #     overlay=deltacast_kwargs.get("overlay", False),
+                # )
+                overlay_format_converter = FormatConverterOp(
+                    self,
+                    name="overlay_format_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_overlay_format_converter"),
+                )
+                self.add_flow(visualizer, overlay_format_converter, {("render_buffer_output", "")})
+                # Enable this line for DELTACAST capture card (linter issue)
+                # self.add_flow(overlay_format_converter, overlayer)
+            else:
+                visualizer_format_converter_videomaster = FormatConverterOp(
+                    self,
+                    name="visualizer_format_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_visualizer_format_converter"),
+                )
+                drop_alpha_channel_converter = FormatConverterOp(
+                    self,
+                    name="drop_alpha_channel_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_drop_alpha_channel_converter"),
+                )
+                self.add_flow(source, drop_alpha_channel_converter)
+                self.add_flow(drop_alpha_channel_converter, visualizer_format_converter_videomaster)
+                self.add_flow(
+                    visualizer_format_converter_videomaster, visualizer, {("", "receivers")}
+                )
         else:
-            self.add_flow(
-                source,
-                visualizer,
-                {
-                    (
-                        "video_buffer_output" if self.source != "replayer" else "output",
-                        input_video_signal,
-                    )
-                },
-            )
+            if is_overlay_enabled:
+                # Overlay buffer flow between AJA source and visualizer
+                self.add_flow(
+                    source, visualizer, {("overlay_buffer_output", "render_buffer_input")}
+                )
+                self.add_flow(
+                    visualizer, source, {("render_buffer_output", "overlay_buffer_input")}
+                )
+            else:
+                self.add_flow(
+                    source,
+                    visualizer,
+                    {
+                        (
+                            "video_buffer_output" if self.source != "replayer" else "output",
+                            input_video_signal,
+                        )
+                    },
+                )
         if record_type == "input":
             if self.source != "replayer":
                 self.add_flow(
@@ -290,7 +372,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja", "yuan"],
+        choices=[
+            "replayer",
+            "aja",
+            "deltacast",
+            "yuan",
+        ],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. Otherwise use a "
