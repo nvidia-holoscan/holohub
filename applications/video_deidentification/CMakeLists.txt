@@ -21,7 +21,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/resnet34_p
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/video_deidentification"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/video_deidentification/resnet34_peoplenet_int8.onnx"
               -L "https://api.ngc.nvidia.com/v2/models/org/nvidia/team/tao/peoplenet/pruned_quantized_decrypted_v2.3.3/files?redirect=true&path=resnet34_peoplenet_int8.onnx"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/video_deidentification/resnet34_peoplenet_int8.onnx"
     VERBATIM
 )
 
@@ -30,7 +29,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/video_deidentification"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
               -L "https://www.pexels.com/download/video/5271997/?fps=25.0&h=540&w=960"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
     VERBATIM
 )
 
@@ -41,8 +39,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.gx
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/video_deidentification" --basename tourist --width 960 --height 540 --framerate 24
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.gxf_index"
-               "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
 )
 
