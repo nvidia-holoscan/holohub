@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Out of Body Detection Pipeline in C++",
+		"name": "Endoscopy Out of Body Detection Pipeline",
 		"authors": [
 			{
 				"name": "Holoscan Team",

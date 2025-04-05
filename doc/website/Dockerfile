@@ -8,4 +8,3 @@ COPY doc/website/requirements.txt /tmp/
 RUN ~/.local/bin/uv pip install --system --no-cache-dir -r /tmp/requirements.txt
 
 RUN git config --global --add safe.directory /holohub
-
