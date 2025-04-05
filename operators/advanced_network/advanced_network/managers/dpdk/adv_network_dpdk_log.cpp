@@ -21,7 +21,7 @@
 
 #include "adv_network_dpdk_log.h"
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::string>>
     DpdkLogLevel::level_to_cmd_map = {{OFF, {"Disabled", "9"}},
@@ -34,15 +34,15 @@ const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::strin
                                       {INFO, {"Info", "info"}},
                                       {DEBUG, {"Debug", "debug"}}};
 
-const std::unordered_map<AnoLogLevel::Level, DpdkLogLevel::Level>
+const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
     DpdkLogLevel::ano_to_dpdk_log_level_map = {
-        {AnoLogLevel::TRACE, DEBUG},
-        {AnoLogLevel::DEBUG, DEBUG},
-        {AnoLogLevel::INFO, INFO},
-        {AnoLogLevel::WARN, WARN},
-        {AnoLogLevel::ERROR, ERROR},
-        {AnoLogLevel::CRITICAL, CRITICAL},
-        {AnoLogLevel::OFF, OFF},
+        {LogLevel::TRACE, DEBUG},
+        {LogLevel::DEBUG, DEBUG},
+        {LogLevel::INFO, INFO},
+        {LogLevel::WARN, WARN},
+        {LogLevel::ERROR, ERROR},
+        {LogLevel::CRITICAL, CRITICAL},
+        {LogLevel::OFF, OFF},
 };
 
 }  // namespace holoscan::ops

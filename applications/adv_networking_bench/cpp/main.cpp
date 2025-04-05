@@ -23,7 +23,7 @@
 #include "doca_bench_op_tx.h"
 #endif
 #if ANO_MGR_RDMA
-#include "rdma_bench_sender.h"
+#include "rdma_bench_server.h"
 #include "rdma_bench_client.h"
 #endif
 #include "advanced_network/kernels.h"
@@ -43,7 +43,7 @@ class App : public holoscan::Application {
     }
 
     HOLOSCAN_LOG_INFO("Initialized advanced network operator");
-    const auto [rdma_server_en, rdma_client_en] = holoscan::ops::adv_net_get_rdma_cfg_en(config());
+    const auto [rdma_server_en, rdma_client_en] = holoscan::advanced_network::get_rdma_cfg_en(config());
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
 
@@ -105,24 +105,13 @@ class App : public holoscan::Application {
       HOLOSCAN_LOG_ERROR("RIVERMAX ANO manager/backend is not supported");
       exit(1);
 #endif
-    } else if (mgr_type == holoscan::ops::AnoMgrType::RDMA) {
+    } else if (mgr_type == holoscan::advanced_network::ManagerType::RDMA) {
 #if ANO_MGR_RDMA
-      auto adv_net_rx = make_operator<holoscan::ops::AdvNetworkOpRx>(
-          "adv_network_rx",
-          output_rx_ports,
-          from_config("advanced_network"),
-          make_condition<BooleanCondition>("is_alive", true));
-      auto adv_net_tx =
-          make_operator<ops::AdvNetworkOpTx>("adv_network_tx", from_config("advanced_network"));
-
       if (rdma_server_en) {
         auto bench_server = make_operator<ops::AdvNetworkingRdmaServerOp>(
             "rdma_bench_server",
             from_config("rdma_bench_server"),
             make_condition<BooleanCondition>("is_alive", true));
-
-        add_flow(adv_net_rx, bench_server, {{ "bench_rx_out", "rdma_in" }});
-        add_flow(bench_server, adv_net_tx, {{ "rdma_out", "burst_in" }});
       }
 
       if (rdma_client_en) {
@@ -130,8 +119,6 @@ class App : public holoscan::Application {
             "rdma_bench_client",
             from_config("rdma_bench_client"),
             make_condition<BooleanCondition>("is_alive", true));
-        add_flow(adv_net_rx, bench_client, {{ "bench_rx_out", "rdma_in" }});
-        add_flow(bench_client, adv_net_tx, {{ "rdma_out", "burst_in" }});
       }
 
 #else

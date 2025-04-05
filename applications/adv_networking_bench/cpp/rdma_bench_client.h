@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-#include "adv_network_rx.h"
-#include "adv_network_kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>
@@ -56,14 +54,14 @@ class AdvNetworkingRdmaClientOp : public Operator {
   bool connect_to_server(OutputContext& op_output) {
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::connect_to_server() start");
 
-    auto burst = adv_net_create_burst();
-    auto res = adv_net_rdma_connect_to_server(server_address_str_.get(), server_port_.get(), &conn_id_);
-    if (res != AdvNetStatus::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", res);
+    auto burst = create_burst_params();
+    auto res = rdma_connect_to_server(server_addr_str_.get(), server_port_.get(), &conn_id_);
+    if (res != Status::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", (int)res);
       return false;
     }
     else {
-      HOLOSCAN_LOG_INFO("Connected to server {}:{} with ID: {}", server_address_str_.get(), server_port_.get(), conn_id_);
+      HOLOSCAN_LOG_INFO("Connected to server {}:{} with ID: {}", server_addr_str_.get(), server_port_.get(), conn_id_);
     }
 
 
@@ -72,8 +70,8 @@ class AdvNetworkingRdmaClientOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<AdvNetBurstParams*>("rdma_in");
-    spec.output<AdvNetBurstParams*>("rdma_out");
+    spec.input<BurstParams*>("rdma_in");
+    spec.output<BurstParams*>("rdma_out");
     spec.param<uint32_t>(message_size_,
                          "message_size",
                          "Message size",
@@ -84,7 +82,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
                      "Rdma write",
                      "Whether to issue RDMA writes",
                      true);
-    spec.param<std::string>(server_address_str_,
+    spec.param<std::string>(server_addr_str_,
                             "server_address",
                             "Server address",
                             "Server address",
@@ -95,27 +93,27 @@ class AdvNetworkingRdmaClientOp : public Operator {
                          "Server port",
                          4096);
 
-    server_addr_ = inet_addr(server_address_str_.get().c_str());
+    server_addr_ = inet_addr(server_addr_str_.get().c_str());
   }
 
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
     // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<AdvNetBurstParams*>("burst_in");
-    if (!burst_opt) { 
-      if (!connected_) {
-        connect_to_server(op_output);
-      }
-    }
+    // auto burst_opt = op_input.receive<BurstParams*>("burst_in");
+    // if (!burst_opt) { 
+    //   if (!connected_) {
+    //     connect_to_server(op_output);
+    //   }
+    // }
 
-    auto burst = burst_opt.value();
-    auto burst_size = adv_net_get_num_pkts(burst);
+    // auto burst = burst_opt.value();
+    // auto burst_size = adv_net_get_num_pkts(burst);
 
-    // Count packets received
-    ttl_pkts_recv_ += burst_size;
-    ttl_bytes_recv_ += adv_net_get_pkt_len(burst, 0);    
+    // // Count packets received
+    // ttl_pkts_recv_ += burst_size;
+    // ttl_bytes_recv_ += adv_net_get_packet_len(burst, 0);    
 
-    printf("Got %d bytes\n", adv_net_get_pkt_len(burst, 0));
+    // printf("Got %d bytes\n", adv_net_get_packet_len(burst, 0));
   }
 
  private:
@@ -123,10 +121,10 @@ class AdvNetworkingRdmaClientOp : public Operator {
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   uint32_t server_addr_;
-  uintptr_t conn_id_ = nullptr;
+  uintptr_t conn_id_ = 0;
   Parameter<bool> rdma_write_;               // Message size in bytes
   Parameter<uint32_t> message_size_;               // Message size in bytes
-  Parameter<std::string> server_address_str_;         // Server address
+  Parameter<std::string> server_addr_str_;         // Server address
   Parameter<uint16_t> server_port_;              // Server port
 };
 

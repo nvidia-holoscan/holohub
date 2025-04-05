@@ -69,8 +69,8 @@ inline int EnabledDirections(const std::string& dir) {
  * @brief Initialize the advanced network operator. This function will initialize the backend
  *        manager and any other resources needed based on the configuration.
  *
- * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
- * @return AdvNetStatus indicating status. Valid values are:
+ * @param config YML Configuration structure (e.g. NetworkConfig)
+ * @return Status indicating status. Valid values are:
  *    SUCCESS: Initialization successful
  *    INVALID_CONFIG: Invalid configuration
  *    INTERNAL_ERROR: Internal error
@@ -464,10 +464,10 @@ void print_stats();
 std::unordered_set<std::string> adv_net_get_port_names(const Config& conf, const std::string& dir);
 
 // RDMA functions
-AdvNetStatus adv_net_rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
-// AdvNetStatus adv_net_rdma_shutdown();
-// AdvNetStatus adv_net_rdma_accept(int server_id, struct rdma_cm_id** client_id);
-// AdvNetStatus adv_net_rdma_reject(struct rdma_cm_id* client_id);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
+// Status adv_net_rdma_shutdown();
+// Status adv_net_rdma_accept(int server_id, struct rdma_cm_id** client_id);
+// Status adv_net_rdma_reject(struct rdma_cm_id* client_id);
 
 };  // namespace holoscan::ops
 
@@ -618,9 +618,8 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
-          ifcfg.port_id_ = port++;
-          ifcfg.rdma_.mode_    = holoscan::ops::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
-          ifcfg.rdma_.xmode_   = holoscan::ops::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
+          ifcfg.rdma_.mode_    = holoscan::advanced_network::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
+          ifcfg.rdma_.xmode_   = holoscan::advanced_network::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
           
           try {
             const auto& rx = intf["rx"];
@@ -674,13 +673,8 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
             }
 
             ifcfg.tx_ = tx_cfg;
-<<<<<<< HEAD:operators/advanced_network/advanced_network/common.h
           } catch (const std::exception& e) {}  // No TX queues defined for this interface.
 
-=======
-          }
-printf("pushing back\n");
->>>>>>> c5ad71f6 (More RDMA progress):operators/advanced_network/adv_network_common.h
           input_spec.ifs_.push_back(ifcfg);
         }
       } catch (const std::exception& e) {

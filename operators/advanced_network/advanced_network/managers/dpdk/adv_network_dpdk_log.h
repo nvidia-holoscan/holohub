@@ -18,9 +18,9 @@
 #include <string>
 #include <tuple>
 #include <stdexcept>
-#include "../../adv_network_types.h"
+#include "advanced_network/types.h"
  
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 class DpdkLogLevel {
  public:
@@ -52,7 +52,7 @@ class DpdkLogLevel {
         "debug/info/notice/warn/error/critical/alert/emergency/off");
   }
 
-  static Level from_ano_log_level(AnoLogLevel::Level ano_level) {
+  static Level from_ano_log_level(LogLevel::Level ano_level) {
     auto it = ano_to_dpdk_log_level_map.find(ano_level);
     if (it != ano_to_dpdk_log_level_map.end()) { return it->second; }
     return OFF;
@@ -63,7 +63,7 @@ class DpdkLogLevel {
    * A map of log level to a tuple of the description and command strings.
    */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
-  static const std::unordered_map<AnoLogLevel::Level, Level> ano_to_dpdk_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> ano_to_dpdk_log_level_map;
 };
 
 /**
@@ -80,7 +80,7 @@ class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
    *
    * @param ano_level The log level from AnoLogLevel to be converted to DPDK log level.
    */
-  explicit DpdkLogLevelCommandBuilder(AnoLogLevel::Level ano_level)
+  explicit DpdkLogLevelCommandBuilder(LogLevel::Level ano_level)
       : level_(DpdkLogLevel::from_ano_log_level(ano_level)) {}
 
   /**

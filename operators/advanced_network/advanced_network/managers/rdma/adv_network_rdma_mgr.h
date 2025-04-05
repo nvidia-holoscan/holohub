@@ -27,11 +27,11 @@
 #include <unordered_map>
 #include <infiniband/verbs.h>
 #include <rdma/rdma_cma.h>
-#include "adv_network_mgr.h"
-#include "adv_network_common.h"
+#include "advanced_network/manager.h"
+#include "advanced_network/common.h"
 #include <mutex>
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
 
 struct rdma_qp_params {
    struct ibv_cq *rx_cq;
@@ -49,7 +49,6 @@ struct rdma_thread_params {
    rdma_qp_params qp_params;
    int if_idx;
    int queue_idx;
-   std::thread worker_thread;
 };
 
 // Used to spawn a new server thread for a particular client
@@ -60,7 +59,7 @@ struct rdma_port_params {
 };
 
 struct rdma_mr_params {
-   MemoryRegion params_;
+   MemoryRegionConfig params_;
    struct ibv_mr *mr_;
    void *ptr_;
 };
@@ -86,67 +85,67 @@ struct rdma_work_req {
 };
 
 
-class RdmaMgr : public ANOMgr {
+class RdmaMgr : public Manager {
  public:
     static constexpr uint16_t DEFAULT_PORT = 18515;
 
     RdmaMgr() = default;
     ~RdmaMgr();
-    bool set_config_and_initialize(const AdvNetConfigYaml &cfg) override;
+    bool set_config_and_initialize(const NetworkConfig &cfg) override;
     void initialize() override;
     void run() override;
 
-    void* get_pkt_ptr(AdvNetBurstParams* burst, int idx) override;
-    uint16_t get_pkt_len(AdvNetBurstParams* burst, int idx) override;
-    uint16_t get_pkt_flow_id(AdvNetBurstParams* burst, int idx) override { return 0; }
-    void* get_pkt_extra_info(AdvNetBurstParams* burst, int idx) override { return nullptr; }
-    void* get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) override;
-    uint16_t get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) override;
-    AdvNetStatus get_tx_pkt_burst(AdvNetBurstParams *burst) override;
-    AdvNetStatus set_eth_hdr(AdvNetBurstParams *burst, int idx,
+    void* get_packet_ptr(BurstParams* burst, int idx) override;
+    uint16_t get_packet_length(BurstParams* burst, int idx) override;
+    uint16_t get_packet_flow_id(BurstParams* burst, int idx) override { return 0; }
+    void* get_packet_extra_info(BurstParams* burst, int idx) override { return nullptr; }
+    void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
+    uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+    Status get_tx_packet_burst(BurstParams *burst) override;
+    Status set_eth_header(BurstParams *burst, int idx,
                                       char *dst_addr) override;
-    AdvNetStatus set_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+    Status set_ipv4_header(BurstParams *burst, int idx,
                                       int ip_len,
                                       uint8_t proto,
                                       unsigned int src_host,
                                       unsigned int dst_host) override;
-    AdvNetStatus set_udp_hdr(AdvNetBurstParams *burst,
+    Status set_udp_header(BurstParams *burst,
                                       int idx,
                                       int udp_len,
                                       uint16_t src_port,
                                       uint16_t dst_port) override;
-    AdvNetStatus set_udp_payload(AdvNetBurstParams *burst, int idx,
+    Status set_udp_payload(BurstParams *burst, int idx,
                                       void *data, int len) override;
-    bool tx_burst_available(AdvNetBurstParams *burst) override;
+    bool is_tx_burst_available(BurstParams *burst) override;
 
-  AdvNetStatus set_pkt_lens(AdvNetBurstParams* burst, int idx,
+    Status set_packet_lengths(BurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
-    void free_all_seg_pkts(AdvNetBurstParams* burst, int seg) override {}
-    void free_pkt_seg(AdvNetBurstParams* burst, int seg, int pkt) override {}
-    void free_pkt(AdvNetBurstParams* burst, int pkt) override {}
-    void free_all_pkts(AdvNetBurstParams* burst) override {}
-    void free_rx_burst(AdvNetBurstParams* burst) override;
-    void free_tx_burst(AdvNetBurstParams* burst) override;
+    void free_all_segment_packets(BurstParams* burst, int seg) override;
+    void free_packet_segment(BurstParams* burst, int seg, int pkt) override;
+    void free_packet(BurstParams* burst, int pkt) override;
+    void free_all_packets(BurstParams* burst) override;
+    void free_rx_burst(BurstParams* burst) override;
+    void free_tx_burst(BurstParams* burst) override;
     std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
 
-    AdvNetStatus get_rx_burst(AdvNetBurstParams **burst) override;
-    AdvNetStatus set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp);
-    void free_rx_meta(AdvNetBurstParams *burst) override;
-    void free_tx_meta(AdvNetBurstParams *burst) override;
-    AdvNetStatus get_tx_meta_buf(AdvNetBurstParams **burst) override;
-    AdvNetStatus send_tx_burst(AdvNetBurstParams *burst) override;
-    uint64_t get_burst_tot_byte(AdvNetBurstParams* burst) override;
-    AdvNetBurstParams* create_burst_params() override;
-    AdvNetStatus get_mac(int port, char* mac) override { return AdvNetStatus::SUCCESS; }
+    Status get_rx_burst(BurstParams **burst, int port, int q) override;
+    Status set_packet_tx_time(BurstParams *burst, int idx, uint64_t timestamp);
+    void free_rx_metadata(BurstParams *burst) override;
+    void free_tx_metadata(BurstParams *burst) override;
+    Status get_tx_metadata_buffer(BurstParams **burst) override;
+    Status send_tx_burst(BurstParams *burst) override;
+    uint64_t get_burst_tot_byte(BurstParams* burst) override;
+    BurstParams* create_tx_burst_params() override;
+    Status get_mac_addr(int port, char* mac) override { return Status::SUCCESS; }
     int address_to_port(const std::string& addr) override { return 0; }
     void shutdown() override;
     void print_stats() override;
     bool validate_config() const override { return true; }
 
     // RDMA-specific functions
-    AdvNetStatus rdma_connect_to_server(uint32_t server_addr, uint16_t server_port, uintptr_t *conn_id);    
-    AdvNetStatus register_mr(std::string name, int intf, void *addr, size_t len, int flags);
-    AdvNetStatus wait_on_key_xchg();
+    Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) override;    
+    Status register_mr(std::string name, int intf, void *addr, size_t len, int flags);
+    Status wait_on_key_xchg();
     void poll_cm_events();
 
 
@@ -162,7 +161,7 @@ class RdmaMgr : public ANOMgr {
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> server_q_params_; 
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> client_q_params_;
     std::unordered_map<struct rdma_cm_id *, rdma_port_params> pd_params_;
-    std::vector<std::thread> txrx_workers;
+    std::unordered_map<struct rdma_cm_id *, std::thread> worker_threads_;
     std::unordered_map<struct ibv_context *, std::array<struct ibv_pd *, MAX_NUM_PORTS>> pd_map_;
     std::unordered_map<std::string, rdma_mr_params> mrs_;
     std::unordered_map<std::string, rdma_remote_mr_info> remote_mrs_;
@@ -179,7 +178,7 @@ class RdmaMgr : public ANOMgr {
     mutable std::mutex mutex_;
     void rdma_thread(bool is_server, rdma_thread_params tparams);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
-    int rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id);
+    int rdma_register_mr(const MemoryRegionConfig &mr, void *ptr, int port_id);
     int rdma_register_cfg_mrs();
     std::string generate_random_string(int len);
     static int set_affinity(int cpu_core);
@@ -193,4 +192,4 @@ class RdmaMgr : public ANOMgr {
     int  setup_thread_params(rdma_thread_params *params);
 };
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network

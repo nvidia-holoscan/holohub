@@ -80,11 +80,11 @@ std::unique_ptr<Manager> ManagerFactory::create_instance(ManagerType type) {
       break;
 #endif
 #if ANO_MGR_RDMA
-    case AnoMgrType::RDMA:
+    case ManagerType::RDMA:
       _manager = std::make_unique<RdmaMgr>();
       break;
 #endif
-    case AnoMgrType::DEFAULT:
+    case ManagerType::DEFAULT:
       _manager = create_instance(get_default_manager_type());
       return _manager;
     case ManagerType::UNKNOWN:
@@ -250,6 +250,11 @@ void Manager::init_rx_core_q_map() {
       }
     }
   }
+}
+
+Status Manager::rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+  HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
+  return Status::NOT_SUPPORTED;
 }
 
 };  // namespace holoscan::advanced_network

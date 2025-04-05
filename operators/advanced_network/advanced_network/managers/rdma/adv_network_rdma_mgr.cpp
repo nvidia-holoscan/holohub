@@ -31,10 +31,10 @@
    sends and receives.
 */
 
-namespace holoscan::ops {
+namespace holoscan::advanced_network {
   std::atomic<bool> rdma_force_quit = false;
 
-  bool RdmaMgr::set_config_and_initialize(const AdvNetConfigYaml &cfg) {
+  bool RdmaMgr::set_config_and_initialize(const NetworkConfig &cfg) {
     if (!this->initialized_) {
       cfg_ = cfg;
       initialize();
@@ -44,64 +44,64 @@ namespace holoscan::ops {
   }
 
   // Common ANO functions
-  AdvNetStatus RdmaMgr::set_pkt_lens(AdvNetBurstParams* burst, int idx,
+  Status RdmaMgr::set_packet_lengths(BurstParams* burst, int idx,
                                     const std::initializer_list<int>& lens) {
 // populate later
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }  
 
-  void* RdmaMgr::get_seg_pkt_ptr(AdvNetBurstParams* burst, int seg, int idx) {
+  void* RdmaMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
     return burst->pkts[seg][idx];
   }
 
-  void* RdmaMgr::get_pkt_ptr(AdvNetBurstParams* burst, int idx) {
+  void* RdmaMgr::get_packet_ptr(BurstParams* burst, int idx) {
     return burst->pkts[0][idx];
   }  
   
-  uint16_t RdmaMgr::get_seg_pkt_len(AdvNetBurstParams* burst, int seg, int idx) {
+  uint16_t RdmaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
     return burst->pkt_lens[seg][idx];
   }
 
-  uint16_t RdmaMgr::get_pkt_len(AdvNetBurstParams* burst, int idx) {
+  uint16_t RdmaMgr::get_packet_length(BurstParams* burst, int idx) {
     return burst->pkt_lens[0][idx];
   }
 
-  AdvNetStatus RdmaMgr::set_eth_hdr(AdvNetBurstParams *burst, int idx,
+  Status RdmaMgr::set_eth_header(BurstParams *burst, int idx,
                                     char *dst_addr) {
     HOLOSCAN_LOG_CRITICAL("Cannot set Ethernet header in RDMA mode");
-    return AdvNetStatus::NOT_SUPPORTED;
+    return Status::NOT_SUPPORTED;
   }
 
-  AdvNetStatus RdmaMgr::set_ipv4_hdr(AdvNetBurstParams *burst, int idx,
+  Status RdmaMgr::set_ipv4_header(BurstParams *burst, int idx,
                                     int ip_len,
                                     uint8_t proto,
                                     unsigned int src_host,
                                     unsigned int dst_host) {
     HOLOSCAN_LOG_CRITICAL("Cannot set IPv4 header in RDMA mode");
-    return AdvNetStatus::NOT_SUPPORTED;
+    return Status::NOT_SUPPORTED;
   }
 
-  AdvNetStatus RdmaMgr::set_udp_hdr(AdvNetBurstParams *burst,
+  Status RdmaMgr::set_udp_header(BurstParams *burst,
                                     int idx,
                                     int udp_len,
                                     uint16_t src_port,
                                     uint16_t dst_port) {
     HOLOSCAN_LOG_CRITICAL("Cannot set UDP header in RDMA mode");
-    return AdvNetStatus::NOT_SUPPORTED;
+    return Status::NOT_SUPPORTED;
   }
 
-  AdvNetStatus RdmaMgr::set_udp_payload(AdvNetBurstParams *burst, int idx,
+  Status RdmaMgr::set_udp_payload(BurstParams *burst, int idx,
                                     void *data, int len) {
     HOLOSCAN_LOG_CRITICAL("Cannot set UDP payload in RDMA mode");
-    return AdvNetStatus::NOT_SUPPORTED;
+    return Status::NOT_SUPPORTED;
   }  
 
-  uint64_t RdmaMgr::get_burst_tot_byte(AdvNetBurstParams* burst) {
+  uint64_t RdmaMgr::get_burst_tot_byte(BurstParams* burst) {
     return 0;
   }
 
-  AdvNetBurstParams* RdmaMgr::create_burst_params() {
-    return new AdvNetBurstParams();
+  BurstParams* RdmaMgr::create_tx_burst_params() {
+    return new BurstParams();
   }  
 
   bool RdmaMgr::get_ip_from_interface(const std::string_view &if_name, sockaddr_in &addr) {
@@ -168,7 +168,7 @@ namespace holoscan::ops {
     return ibv_access;
   }
 
-  int RdmaMgr::rdma_register_mr(const MemoryRegion &mr, void *ptr, int port_id) {
+  int RdmaMgr::rdma_register_mr(const MemoryRegionConfig &mr, void *ptr, int port_id) {
     rdma_mr_params params;
     params.params_ = mr;
     params.ptr_ = ptr;
@@ -180,12 +180,12 @@ namespace holoscan::ops {
           int access = mr_access_to_ibv(mr.access_);
           params.mr_ = ibv_reg_mr(pd, ptr, mr.buf_size_ * mr.num_bufs_, access);
           if (params.mr_ == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to register MR {} on PD {}", mr.name_, pd);
+            HOLOSCAN_LOG_CRITICAL("Failed to register MR {} on PD {}", mr.name_, (void*)pd);
             return -1;
           }
           else {
             HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {}", 
-              mr.name_, mr.buf_size_ * mr.num_bufs_, pd);
+              mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd);
           }
         }
       }
@@ -199,7 +199,7 @@ namespace holoscan::ops {
   int RdmaMgr::rdma_register_cfg_mrs() {
     HOLOSCAN_LOG_INFO("Registering memory regions");
 
-    if (allocate_memory_regions() != AdvNetStatus::SUCCESS) {
+    if (allocate_memory_regions() != Status::SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed to allocate memory");
       return -1;
     } 
@@ -220,7 +220,7 @@ namespace holoscan::ops {
     // Register all the MRs for exchanging keys
     for (int p = 0; p < cfg_.ifs_.size(); p++) {
       const std::string name = std::string("lkey_") + std::to_string(p);
-      MemoryRegion mr{
+      MemoryRegionConfig mr{
         name,
         cfg_.ifs_[p].name_,
         MemoryKind::HOST,
@@ -240,8 +240,8 @@ namespace holoscan::ops {
     return 0;
   }
 
-  AdvNetStatus RdmaMgr::wait_on_key_xchg() {
-    return AdvNetStatus::SUCCESS;
+  Status RdmaMgr::wait_on_key_xchg() {
+    return Status::SUCCESS;
   }
 
   /**
@@ -299,7 +299,7 @@ namespace holoscan::ops {
 
     attr.mq_flags = 0;
     attr.mq_maxmsg = 128;
-    attr.mq_msgsize = sizeof(AdvNetBurstParams);
+    attr.mq_msgsize = sizeof(BurstParams);
     attr.mq_curmsgs = 0;
 
     qp_params.rx_ring = rx_ring;  
@@ -334,7 +334,7 @@ namespace holoscan::ops {
     int num_comp;
     const auto &qref = cfg_.ifs_[tparams.if_idx].tx_.queues_[tparams.queue_idx];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
-    struct rte_ring *tx_ring = tparams.tx_ring;
+    struct rte_ring *tx_ring = tparams.qp_params.tx_ring;
 
     if (set_affinity(cpu_core) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
@@ -347,25 +347,24 @@ namespace holoscan::ops {
     // periodically poll the CQ.
     while (!rdma_force_quit.load()) {
       // Check RQ first to reduce latency
-      while ((num_comp = ibv_poll_cq(tparams.rx_cq, 1, &wc)) != 0) {
+      while ((num_comp = ibv_poll_cq(tparams.qp_params.rx_cq, 1, &wc)) != 0) {
         if (wc.status != IBV_WC_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", wc.status, wc.wr_id, wc.opcode);
+          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
         }
         else {
-          HOLOSCAN_LOG_INFO("Received message from client: {}", 
-                  wc.status);
+          HOLOSCAN_LOG_INFO("Received message from client: {}", (int)wc.status);
         }
       }
 
       // Check TX CQ for completion
-      while ((num_comp = ibv_poll_cq(tparams.tx_cq, 1, &wc)) != 0) {
+      while ((num_comp = ibv_poll_cq(tparams.qp_params.tx_cq, 1, &wc)) != 0) {
         if (wc.status != IBV_WC_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", wc.status, wc.wr_id, wc.opcode);
+          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
           continue;
         }
 
         if (wc.opcode == IBV_WC_RDMA_READ) {
-          // AdvNetBurstParams read_burst;
+          // BurstParams read_burst;
           // read_burst.rdma_hdr.
 
           // out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
@@ -383,10 +382,10 @@ namespace holoscan::ops {
       }
 
       // Now handle any incoming messages
-      AdvNetBurstParams burst;
+      BurstParams burst;
 
       //ssize_t bytes = mq_receive(tparams.tx_mq, reinterpret_cast<char*>(&burst), sizeof(burst), nullptr);
-      if (rte_ring_dequeue(tparams.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
+      if (rte_ring_dequeue(tparams.qp_params.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
         continue; 
       }
 
@@ -522,25 +521,32 @@ namespace holoscan::ops {
     }
   }
 
-  AdvNetStatus RdmaMgr::rdma_connect_to_server(uint32_t server_addr, uint16_t server_port, uintptr_t *conn_id) {
+  Status RdmaMgr::rdma_connect_to_server(const std::string &server_addr_str, uint16_t server_port, uintptr_t *conn_id) {
     struct sockaddr_in addr;
     struct rdma_cm_id *cm_id = nullptr;
     struct rdma_event_channel *ec = nullptr;
     struct rdma_cm_event *event = nullptr;
     struct rdma_conn_param conn_param = {};
+    uint32_t server_addr;
 
-    *conn_id = nullptr;
+    // Convert IPv4 address from string to int32
+    if (inet_pton(AF_INET, server_addr_str.c_str(), &server_addr) != 1) {
+      HOLOSCAN_LOG_CRITICAL("Failed to convert IP address: {}", server_addr_str);
+      return Status::CONNECT_FAILURE;
+    }
 
-    auto ec = rdma_create_event_channel();    
+    *conn_id = 0;
+
+    ec = rdma_create_event_channel();    
     if (ec == nullptr) {
       HOLOSCAN_LOG_CRITICAL("Failed to create a CM channel: {}", errno);
-      return;
+      return Status::CONNECT_FAILURE;
     }
 
     // Create RDMA id
     if (rdma_create_id(ec, &cm_id, nullptr, RDMA_PS_TCP)) {
       HOLOSCAN_LOG_CRITICAL("Failed to create ID");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     // Set up server address
@@ -552,7 +558,7 @@ namespace holoscan::ops {
     // Resolve the server's address
     if (rdma_resolve_addr(cm_id, nullptr, (struct sockaddr *)&addr, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     if (pd_map_.find(cm_id->verbs) == pd_map_.end()) {
@@ -560,7 +566,7 @@ namespace holoscan::ops {
       auto pd = ibv_alloc_pd(cm_id->verbs);
       if (pd == nullptr) {
         HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
-        return AdvNetStatus::CONNECT_FAILURE;
+        return Status::CONNECT_FAILURE;
       }
       pd_map_[cm_id->verbs] = {};
       pd_map_[cm_id->verbs][cm_id->port_num] = pd;
@@ -569,32 +575,32 @@ namespace holoscan::ops {
     // Wait for address resolution event
     if (rdma_get_cm_event(ec, &event)) {
       HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     if (event->event != RDMA_CM_EVENT_ADDR_RESOLVED) {
-      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", (int)event->event);
       rdma_ack_cm_event(event);
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
     rdma_ack_cm_event(event);
 
     // Resolve route to server
     if (rdma_resolve_route(cm_id, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve route");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     // Wait for route resolution event
     if (rdma_get_cm_event(ec, &event)) {
       HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     if (event->event != RDMA_CM_EVENT_ROUTE_RESOLVED) {
-      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", (int)event->event);
       rdma_ack_cm_event(event);
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
     rdma_ack_cm_event(event);
 
@@ -607,19 +613,19 @@ namespace holoscan::ops {
     // Connect to server
     if (rdma_connect(cm_id, &conn_param)) {
       HOLOSCAN_LOG_CRITICAL("Failed to connect to server");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     // Wait for connection established event
     if (rdma_get_cm_event(ec, &event)) {
       HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
 
     if (event->event != RDMA_CM_EVENT_ESTABLISHED) {
-      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", event->event);
+      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", (int)event->event);
       rdma_ack_cm_event(event);
-      return AdvNetStatus::CONNECT_FAILURE;
+      return Status::CONNECT_FAILURE;
     }
     rdma_ack_cm_event(event);
 
@@ -632,7 +638,7 @@ namespace holoscan::ops {
     client_params.queue_idx = client_q_params_.size();
 
     setup_thread_params(&client_params);
-    client_params.worker_thread = std::thread(&RdmaMgr::rdma_thread, this, false, client_params);
+    worker_threads_[cm_id] = std::thread(&RdmaMgr::rdma_thread, this, false, std::move(client_params));
     client_q_params_[cm_id] = client_params;
     mutex_.unlock();
 
@@ -642,7 +648,7 @@ namespace holoscan::ops {
 
     rdma_destroy_event_channel(ec);
 
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 
 
@@ -717,15 +723,15 @@ namespace holoscan::ops {
         return;
       }
 
-      // Create a protection domain
-      auto pd = ibv_alloc_pd(s_id->verbs);
-      if (pd == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
-        return;
-      }
+      // // Create a protection domain
+      // auto pd = ibv_alloc_pd(s_id->verbs);
+      // if (pd == nullptr) {
+      //   HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
+      //   return;
+      // }
 
-      pd_params_[s_id].pd = pd;
-      pd_map_[intf.port_id_] = pd;
+      // pd_params_[s_id].pd = pd;
+      // pd_map_[s_id->verbs][s_id->port_num] = pd;
 
       ret = rdma_listen(s_id, intf.rx_.queues_.size());
       if (ret != 0) {
@@ -775,9 +781,9 @@ namespace holoscan::ops {
 
           ack_event(cm_event);
 
-          const auto listen_iter = pd_params_.find(sparams.server_id);
+          const auto listen_iter = pd_params_.find(cm_event->id);
           if (listen_iter == pd_params_.end()) {
-            HOLOSCAN_LOG_ERROR("Failed to find server ID for {}", (void*)sparams.server_id);
+            HOLOSCAN_LOG_ERROR("Failed to find server ID for {}", (void*)cm_event->id);
             break;
           }
           else {
@@ -792,6 +798,7 @@ namespace holoscan::ops {
                 HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
                 break;
               }
+
               pd_map_[cm_event->id->verbs] = {};
               pd_map_[cm_event->id->verbs][cm_event->id->port_num] = pd;
             }
@@ -840,12 +847,10 @@ namespace holoscan::ops {
 
           // Client is found, set up QP and spawn a new thread
           if (client_iter != server_q_params_.end()) {
-            const auto client_idx = client_iter->queue_idx;
-            setup_thread_params(&pd_params_[client_iter->server_id], client_idx);
+            setup_thread_params(&client_iter->second);
             HOLOSCAN_LOG_INFO("Configured queues for client. Launching thread");
 
-            client_iter->second.worker_thread = 
-              std::thread(&RdmaMgr::rdma_thread, this, true, client_iter->second);
+            worker_threads_[cm_event->id] = std::thread(&RdmaMgr::rdma_thread, this, true, std::move(client_iter->second));
             found = true;
           }
           mutex_.unlock();
@@ -866,7 +871,7 @@ namespace holoscan::ops {
           mutex_.lock();
           const auto client_iter = server_q_params_.find(cm_event->id);
           if (client_iter != server_q_params_.end()) {
-            client_iter->second.worker_thread.join();
+            worker_threads_[cm_event->id].join();
             server_q_params_.erase(client_iter);
             HOLOSCAN_LOG_INFO("Joined and removed client thread for ID {}", (void*)cm_event->id);
           }
@@ -878,7 +883,7 @@ namespace holoscan::ops {
           break;
         }
         default: {
-          HOLOSCAN_LOG_INFO("Cannot handle event type {}", cm_event->event);
+          HOLOSCAN_LOG_INFO("Cannot handle event type {}", (int)cm_event->event);
           break;
         }
       }     
@@ -886,12 +891,8 @@ namespace holoscan::ops {
 
     // Join any client threads we had spawned
     HOLOSCAN_LOG_INFO("Waiting for server TX/RX threads to complete");
-    for (const auto &server_q : server_q_params_) {
-      server_q.second.worker_thread.join();
-    }
-
-    for (const auto &client_q : client_q_params_) {
-      client_q.second.worker_thread.join();
+    for (auto &thread : worker_threads_) {
+      thread.second.join();
     }
 
     HOLOSCAN_LOG_INFO("Finished cleaning up TX/RX workers");
@@ -910,7 +911,7 @@ namespace holoscan::ops {
     HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
     rx_meta = rte_mempool_create("RX_META_POOL",
                                 (1U << 6) - 1U,
-                                sizeof(AdvNetBurstParams),
+                                sizeof(BurstParams),
                                 0,
                                 0,
                                 nullptr,
@@ -927,7 +928,7 @@ namespace holoscan::ops {
     HOLOSCAN_LOG_DEBUG("Setting up TX meta pool");
     tx_meta = rte_mempool_create("TX_META_POOL",
                                 (1U << 6) - 1U,
-                                sizeof(AdvNetBurstParams),
+                                sizeof(BurstParams),
                                 0,
                                 0,
                                 nullptr,
@@ -961,11 +962,11 @@ namespace holoscan::ops {
     return 0;          
   }
 
-  void RdmaMgr::free_rx_burst(AdvNetBurstParams* burst) {
+  void RdmaMgr::free_rx_burst(BurstParams* burst) {
     rte_mempool_put(rx_meta, burst);
   }
 
-  void RdmaMgr::free_tx_burst(AdvNetBurstParams* burst) {
+  void RdmaMgr::free_tx_burst(BurstParams* burst) {
     // const uint32_t key = (burst->rdma_hdr.port_id << 16) | burst->rdma_hdr.q_id;
     // const auto burst_pool = tx_burst_buffers.find(key);
 
@@ -1053,25 +1054,10 @@ namespace holoscan::ops {
       }
     }
 
-    std::vector<std::thread> threads;
+    auto main_thread = std::thread(&RdmaMgr::run, this);
 
-    if (server) {
-      threads.emplace_back(std::thread(&RdmaMgr::run_server, this));
-    }
-    
-    if (client) {
-      init_client();
-      threads.emplace_back(std::thread(&RdmaMgr::run_client, this));
-    }
-
-
-    HOLOSCAN_LOG_INFO("Waiting for all threads to complete");
-
-    // Each thread launches a separate CM event channel loop. They also spawn their own threads 
-    // for each QP
-    for (auto& t : threads) {
-      t.join();
-    }
+    HOLOSCAN_LOG_INFO("Waiting for main thread to complete");
+    main_thread.join();
   }
 
   void RdmaMgr::shutdown() {
@@ -1081,16 +1067,16 @@ namespace holoscan::ops {
 
   void RdmaMgr::init_client() {
     // TODO: Implement client initialization
-    //return AdvNetStatus::SUCCESS;
+    //return Status::SUCCESS;
   }
 
 
-  AdvNetStatus RdmaMgr::get_tx_pkt_burst(AdvNetBurstParams *burst) {
-    // TODO: Implement get_tx_pkt_burst
-    return AdvNetStatus::SUCCESS;
+  Status RdmaMgr::get_tx_packet_burst(BurstParams *burst) {
+    // TODO: Implement get_tx_packet_burst
+    return Status::SUCCESS;
   }
 
-  bool RdmaMgr::tx_burst_available(AdvNetBurstParams *burst) {
+  bool RdmaMgr::is_tx_burst_available(BurstParams *burst) {
     // TODO: Implement tx_burst_available
     return true;
   }
@@ -1100,32 +1086,32 @@ namespace holoscan::ops {
     return std::nullopt;
   }
 
-  AdvNetStatus RdmaMgr::get_rx_burst(AdvNetBurstParams **burst) {
+  Status RdmaMgr::get_rx_burst(BurstParams **burst, int port, int q) {
     // TODO: Implement get_rx_burst
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 
-  AdvNetStatus RdmaMgr::set_pkt_tx_time(AdvNetBurstParams *burst, int idx, uint64_t timestamp) {
+  Status RdmaMgr::set_packet_tx_time(BurstParams *burst, int idx, uint64_t timestamp) {
     // TODO: Implement set_pkt_tx_time
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 
-  void RdmaMgr::free_rx_meta(AdvNetBurstParams *burst) {
-    // TODO: Implement free_rx_meta
+  void RdmaMgr::free_rx_metadata(BurstParams *burst) {
+    // TODO: Implement free_rx_metadata
   }
 
-  void RdmaMgr::free_tx_meta(AdvNetBurstParams *burst) {
-    // TODO: Implement free_tx_meta
+  void RdmaMgr::free_tx_metadata(BurstParams *burst) {
+    // TODO: Implement free_tx_metadata
   }
 
-  AdvNetStatus RdmaMgr::get_tx_meta_buf(AdvNetBurstParams **burst) {
+  Status RdmaMgr::get_tx_metadata_buffer(BurstParams **burst) {
     // TODO: Implement get_tx_meta_buf
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 
-  AdvNetStatus RdmaMgr::send_tx_burst(AdvNetBurstParams *burst) {
+  Status RdmaMgr::send_tx_burst(BurstParams *burst) {
     // TODO: Implement send_tx_burst
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 
   void RdmaMgr::print_stats() {
@@ -1138,8 +1124,8 @@ namespace holoscan::ops {
   }
 
   // RDMA-specific functions that were declared but not implemented
-  AdvNetStatus RdmaMgr::register_mr(std::string name, int intf, void *addr, size_t len, int flags) {
+  Status RdmaMgr::register_mr(std::string name, int intf, void *addr, size_t len, int flags) {
     // TODO: Implement register_mr
-    return AdvNetStatus::SUCCESS;
+    return Status::SUCCESS;
   }
 }

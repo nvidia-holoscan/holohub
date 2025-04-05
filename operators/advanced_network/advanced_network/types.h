@@ -46,7 +46,7 @@ static inline constexpr uint32_t MAX_INTERFACES = 4;
  * @brief Return status codes from advanced network operators
  *
  */
-enum class AdvNetStatus {
+enum class Status {
   SUCCESS,
   NULL_PTR,
   NO_FREE_BURST_BUFFERS,
@@ -57,6 +57,7 @@ enum class AdvNetStatus {
   NOT_SUPPORTED,
   GENERIC_FAILURE,
   CONNECT_FAILURE,
+  INTERNAL_ERROR,
 };
 
 /**
@@ -77,7 +78,7 @@ enum class AdvNetRDMAOpCode {
 struct AdvNetRdmaBurstHdr {
   uint8_t version;
   AdvNetRDMAOpCode  opcode; 
-  AdvNetStatus status;
+  Status status;
   size_t num_pkts;
   uintptr_t conn_id; 
   char  local_mr_name[32];
@@ -90,7 +91,7 @@ struct AdvNetRdmaBurstHdr {
 };
 
 /**
- * @brief Header of AdvNetBurstParams
+ * @brief Header of BurstParams
  *
  */
 struct BurstHeaderParams {
@@ -178,22 +179,6 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
 }
 
 /**
- * @brief Return status codes from advanced network operators
- *
- */
-enum class Status {
-  SUCCESS,
-  NULL_PTR,
-  NO_FREE_BURST_BUFFERS,
-  NO_FREE_PACKET_BUFFERS,
-  NOT_READY,
-  INVALID_PARAMETER,
-  NO_SPACE_AVAILABLE,
-  NOT_SUPPORTED,
-  INTERNAL_ERROR
-};
-
-/**
  * @brief Location of packet buffers
  *
  */
@@ -241,7 +226,7 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
 inline ManagerType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
   if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
-  if (str == ANO_MGR_STR__RDMA) return AnoMgrType::RDMA;
+  if (str == ANO_MGR_STR__RDMA) return ManagerType::RDMA;
   if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
   if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
   throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
@@ -265,9 +250,9 @@ inline std::string manager_type_to_string(ManagerType type) {
       return ANO_MGR_STR__GPUNETIO;
     case ManagerType::RIVERMAX:
       return ANO_MGR_STR__RIVERMAX;
-    case AnoMgrType::RDMA:
+    case ManagerType::RDMA:
       return ANO_MGR_STR__RDMA;      
-    case AnoMgrType::DEFAULT:
+    case ManagerType::DEFAULT:
       return ANO_MGR_STR__DEFAULT;
     default:
       return "unknown";
@@ -508,7 +493,7 @@ auto get_rx_tx_configs_enabled(const Config& config) {
 }
 
 template <typename Config>
-auto adv_net_get_rdma_cfg_en(const Config& config) {
+auto get_rdma_cfg_en(const Config& config) {
   bool server = false;
   bool client = false;
 
@@ -525,4 +510,4 @@ auto adv_net_get_rdma_cfg_en(const Config& config) {
   return std::make_tuple(server, client);
 }
 
-};  // namespace holoscan::ops
+};  // namespace holoscan::advanced_network
