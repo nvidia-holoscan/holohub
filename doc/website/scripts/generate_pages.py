@@ -306,6 +306,87 @@ def patch_links(
     return patched_text
 
 
+def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
+    """Extract the main header (title) from Markdown text.
+
+    Supports Setext-style (Header\n===) and ATX-style (# Header) headers.
+    Finds the first header occurrence in the text.
+
+    Args:
+        md_txt: The Markdown content as a string.
+
+    Returns:
+        A tuple containing (full_header, header_text, header_symbols)
+        if a header is found, otherwise None.
+        - full_header: The full matched text of the header.
+        - header_text: The text content of the header.
+        - header_symbols: The markdown symbols used (e.g., '#', '##', '===', '---').
+    """
+
+    # Try ATX first (e.g., # Header, ## Header)
+    #   \s*#+\s+ -> group(1) -> '#' symbols, with surrounding whitespaces
+    #   .+?      -> group(2) -> text, before end of line $
+    atx_match = re.search(r"^(\s*#+\s+)(.+?)$", md_txt, re.MULTILINE)
+    if atx_match:
+        full_header = atx_match.group(0)
+        header_text = atx_match.group(2).strip()
+        header_symbols = atx_match.group(1).strip()  # The '#' symbols
+        return full_header, header_text, header_symbols
+
+    # If no ATX, try Setext (e.g., Header\n=== or Header\n---)
+    #   ^(?! \s*#)  -> don't start line with '#'
+    #   .+?         -> group(1) -> text, before new line \n
+    #   ={3,}|-{3,} -> group(2) -> underline symbols, before end of line $
+    setext_match = re.search(r"^(?! \s*#)(.+?)\n(={3,}|-{3,})\s*$", md_txt, re.MULTILINE)
+    if setext_match:
+        full_header = setext_match.group(0)
+        header_text = setext_match.group(1).strip()
+        header_symbols = setext_match.group(2).strip()  # The '===' or '---'
+        return full_header, header_text, header_symbols
+
+    return None
+
+
+def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
+    """Finds the main header in the readme_text, replaces it with a linked
+    version, and inserts the metadata_header.
+
+    Args:
+        readme_text: The original text of the README.
+        url: The URL to link the header title to.
+        metadata_header: The formatted metadata block to insert.
+
+    Returns:
+        The modified readme_text with the patched header and metadata.
+        Returns the original text if no header is found.
+    """
+
+    # Extract current header info
+    header_info = extract_markdown_header(readme_text)
+    if not header_info:
+        logger.warning("No markdown header found. Cannot insert metadata header.")
+        return readme_text
+
+    full_header, header_text, header_symbols = header_info
+
+    # Create the linked header text
+    header_with_url = f"[{header_text}]({url})"
+
+    # Restore the header symbols
+    if "#" in header_symbols:
+        # ATX style: '#' sequence
+        new_header = f"{header_symbols} {header_with_url}"
+    else:
+        # Setext style: '===' or '---'
+        new_header = f"{header_with_url}\n{header_symbols}"
+
+    # Append the metadata header
+    new_header += f"\n{metadata_header}"
+
+    # Replace the original header
+    return readme_text.replace(full_header, new_header, 1)
+
+
 def create_page(
     metadata: dict,
     readme_text: str,
@@ -343,27 +424,16 @@ def create_page(
         base_url,
     )
 
-    # Find the first header
-    match = re.match(r"^#\s+(.+)", readme_text)
-    if match:
-        current_header = match.group(1)
+    # Patch the header (finds header, links it, inserts metadata)
+    metadata_header = create_metadata_header(metadata, last_modified, archive_version)
+    encoded_rel_dir = _encode_path_for_url(relative_dir)
+    url = f"{base_url}/{encoded_rel_dir}"
+    readme_text = patch_header(readme_text, url, metadata_header)
 
-        # Get the metadata header
-        metadata_header = create_metadata_header(metadata, last_modified, archive_version)
+    # Append the text to the output
+    output_text += readme_text
 
-        # Calculate the github URL for the specific source directory
-        encoded_rel_dir = _encode_path_for_url(relative_dir)
-        url = f"{base_url}/{encoded_rel_dir}"
-
-        # Create the new header
-        new_header = f"[{current_header}]({url})\n{metadata_header}"
-
-        # Replace the header
-        output_text += readme_text.replace(current_header, new_header, 1)
-    else:
-        logger.warning(f"No header found in {dest_path}, can't insert metadata header")
-        output_text += readme_text
-
+    # Write the mkdocs page
     with mkdocs_gen_files.open(dest_path, "w") as dest_file:
         dest_file.write(output_text)
 
