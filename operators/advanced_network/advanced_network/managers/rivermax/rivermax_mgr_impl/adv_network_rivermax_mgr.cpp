@@ -42,7 +42,7 @@
 #include "rivermax_mgr_impl/burst_manager.h"
 #include "rivermax_mgr_impl/packet_processor.h"
 #include "rivermax_mgr_impl/rivermax_chunk_consumer_ano.h"
-#include "rivermax_mgr_impl/stats_printer.h"
+#include "rivermax_mgr_impl/rivermax_mgr_service.h"
 
 using namespace std::chrono;
 
@@ -137,53 +137,53 @@ class RivermaxMgr::RivermaxMgrImpl {
   bool initialize_rx_service(uint32_t service_id,
                              std::shared_ptr<ConfigBuilderHolder> config_holder);
   bool initialize_tx_service(uint32_t service_id,
-                              std::shared_ptr<ConfigBuilderHolder> config_holder);
+                             std::shared_ptr<ConfigBuilderHolder> config_holder);
 
  private:
   static constexpr int DEFAULT_NUM_RX_BURST = 64;
+  static constexpr int MAX_TX_BURST = 128;
+  static constexpr int MAX_NUM_OF_FRAMES_IN_BURST = 1;
 
-  NetworkConfig cfg_;
-  std::unordered_map<uint32_t, std::unique_ptr<RmaxReceiverBaseApp>> rx_services_;
-  std::unordered_map<uint32_t, std::shared_ptr<RxBurstsManager>> rx_burst_managers_;
-  std::unordered_map<uint32_t, std::shared_ptr<RxPacketProcessor>> rx_packet_processors_;
+  const NetworkConfig* cfg_ = nullptr;
   std::unordered_map<uint32_t, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queues_map_;
   std::vector<std::thread> rx_service_threads_;
-  std::unordered_map<uint32_t, std::unique_ptr<MediaSenderApp>> tx_services_;
   std::vector<std::thread> tx_service_threads_;
-    bool initialized_ = false;
+  std::unordered_map<uint32_t, std::shared_ptr<RivermaxManagerRxService>> rx_services_;
+  std::unordered_map<uint32_t, std::shared_ptr<RivermaxManagerTxService>> tx_services_;
+  BurstParams burst_tx_pool[MAX_TX_BURST];
+  std::atomic<uint32_t> burst_tx_idx{0};
+  bool initialized_ = false;
 };
 
 std::atomic<bool> force_quit = false;
 
 bool RivermaxMgr::RivermaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
-  if (!this->initialized_) {
-    cfg_ = cfg;
-
-    // Start Initialize in a separate thread so it doesn't set the affinity for the
-    // whole application
-    std::thread t(&RivermaxMgr::RivermaxMgrImpl::initialize, this);
-    t.join();
-
-    if (!this->initialized_) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax advanced_network Manager");
-      return false;
-    }
-    run();
+  if (this->initialized_) {
+    HOLOSCAN_LOG_INFO("Rivermax ANO Manager already initialized");
+    return true;
   }
+  cfg_ = &cfg;
+
+  // Start Initialize in a separate thread so it doesn't set the affinity for the
+  // whole application
+  std::thread t(&RivermaxMgr::RivermaxMgrImpl::initialize, this);
+  t.join();
+
+  if (!this->initialized_) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax Advanced Network Manager");
+    return false;
+  }
+
+  run();
 
   return true;
 }
 
 void RivermaxMgr::RivermaxMgrImpl::initialize() {
-  int port_id = 0;
-  for (auto& intf : cfg_.ifs_) {
-    intf.port_id_ = port_id++;
-    HOLOSCAN_LOG_INFO("{} ({}): assigned port ID {}", intf.name_, intf.address_, intf.port_id_);
-  }
 
   RivermaxConfigContainer config_manager;
 
-  bool res = config_manager.parse_configuration(cfg_);
+  bool res = config_manager.parse_configuration(*cfg_);
   if (!res) {
     HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax advanced_network Manager");
     return;
@@ -210,7 +210,7 @@ void RivermaxMgr::RivermaxMgrImpl::initialize() {
   }
 
   auto tx_config_manager = std::dynamic_pointer_cast<TxConfigManager>(
-    config_manager.get_config_manager(RivermaxConfigContainer::ConfigType::TX));
+      config_manager.get_config_manager(RivermaxConfigContainer::ConfigType::TX));
 
   if (tx_config_manager) {
     for (const auto& config : *tx_config_manager) {
@@ -222,141 +222,131 @@ void RivermaxMgr::RivermaxMgrImpl::initialize() {
     }
   }
 
+  for (int i = 0; i < MAX_TX_BURST; i++) {
+    burst_tx_pool[i].hdr.hdr.port_id = 0;
+    burst_tx_pool[i].hdr.hdr.q_id = 0;
+    burst_tx_pool[i].hdr.hdr.num_pkts = MAX_NUM_OF_FRAMES_IN_BURST;
+    burst_tx_pool[i].pkts[0] = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
+    burst_tx_pool[i].pkt_lens[0] = new uint32_t[MAX_NUM_OF_FRAMES_IN_BURST];
+    burst_tx_pool[i].pkt_extra_info = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
+  }
+
   this->initialized_ = true;
 }
 
 bool RivermaxMgr::RivermaxMgrImpl::initialize_rx_service(
     uint32_t service_id, std::shared_ptr<ConfigBuilderHolder> config_holder) {
-  uint16_t port_id = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
-  uint16_t queue_id = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
-
   if (config_holder == nullptr) {
     HOLOSCAN_LOG_ERROR("Config holder is null");
     return false;
   }
-  std::unique_ptr<RmaxReceiverBaseApp> rx_service;
-  bool send_packet_ext_info = false;
-  int gpu_id = INVALID_GPU_ID;
-  size_t max_chunk_size = 0;
+
+  std::shared_ptr<RivermaxManagerRxService> rx_service;
+
+  // Create a dedicated queue for this service_id
+  auto rx_service_out_queue = std::make_shared<AnoBurstsQueue>();
+  rx_bursts_out_queues_map_[service_id] = rx_service_out_queue;
+
   auto config_type = config_holder->get_type();
   if (config_type == QueueConfigType::IPOReceiver) {
     HOLOSCAN_LOG_INFO("Initializing IPOReceiver:{}", service_id);
+
     auto typed_holder = std::dynamic_pointer_cast<
         TypedConfigBuilderHolder<RivermaxQueueToIPOReceiverSettingsBuilder>>(config_holder);
-    std::dynamic_pointer_cast<RivermaxQueueToIPOReceiverSettingsBuilder>(config_holder);
+
     if (!typed_holder) {
       HOLOSCAN_LOG_ERROR(
           "Failed to cast to TypedConfigBuilderHolder<RivermaxQueueToIPOReceiverSettingsBuilder>");
       return false;
     }
+
     auto ipo_receiver_builder = typed_holder->get_config_builder();
     if (!ipo_receiver_builder) {
       HOLOSCAN_LOG_ERROR("Failed to get RivermaxQueueToIPOReceiverSettingsBuilder");
       return false;
     }
-    rx_service = std::make_unique<IPOReceiverApp>(ipo_receiver_builder);
-    send_packet_ext_info = ipo_receiver_builder->send_packet_ext_info_;
-    auto init_status = rx_service->initialize();
-    if (init_status != ReturnStatus::obj_init_success) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize RX service, status: {}", (int)init_status);
-      return false;
-    }
-    HOLOSCAN_LOG_INFO("IPOReceiver:{} was successfully initialized", service_id);
-    gpu_id = ipo_receiver_builder->built_settings_.gpu_id;
-    max_chunk_size = ipo_receiver_builder->built_settings_.max_chunk_size;
+
+    rx_service = std::make_shared<IPOReceiverService>(
+        service_id, ipo_receiver_builder, rx_service_out_queue);
   } else if (config_type == QueueConfigType::RTPReceiver) {
     HOLOSCAN_LOG_INFO("Initializing RTPReceiver:{}", service_id);
+
     auto typed_holder = std::dynamic_pointer_cast<
         TypedConfigBuilderHolder<RivermaxQueueToRTPReceiverSettingsBuilder>>(config_holder);
-    std::dynamic_pointer_cast<RivermaxQueueToRTPReceiverSettingsBuilder>(config_holder);
+
     if (!typed_holder) {
       HOLOSCAN_LOG_ERROR(
           "Failed to cast to TypedConfigBuilderHolder<RivermaxQueueToRTPReceiverSettingsBuilder>");
       return false;
     }
+
     auto rtp_receiver_builder = typed_holder->get_config_builder();
     if (!rtp_receiver_builder) {
       HOLOSCAN_LOG_ERROR("Failed to get RivermaxQueueToRTPReceiverSettingsBuilder");
       return false;
     }
-    rx_service = std::make_unique<RTPReceiverApp>(rtp_receiver_builder);
-    send_packet_ext_info = rtp_receiver_builder->send_packet_ext_info_;
-    auto init_status = rx_service->initialize();
-    if (init_status != ReturnStatus::obj_init_success) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize RX service, status: {}", (int)init_status);
-      return false;
-    }
-    HOLOSCAN_LOG_INFO("RTPReceiver:{} was successfully initialized", service_id);
-    gpu_id = rtp_receiver_builder->built_settings_.gpu_id;
-    max_chunk_size = rtp_receiver_builder->max_chunk_size_;
+
+    rx_service = std::make_shared<RTPReceiverService>(
+        service_id, rtp_receiver_builder, rx_service_out_queue);
   } else {
     HOLOSCAN_LOG_ERROR("Unsupported Rx Service configuration type: {}",
                        queue_config_type_to_string(config_type));
     return false;
   }
 
-  // Create a dedicated queue for this service_id
-  auto rx_service_out_queue = std::make_shared<AnoBurstsQueue>();
-  rx_bursts_out_queues_map_[service_id] = rx_service_out_queue;
-
-  rx_services_[service_id] = std::move(rx_service);
-  rx_burst_managers_[service_id] = std::make_shared<RxBurstsManager>(
-      send_packet_ext_info, port_id, queue_id, max_chunk_size, gpu_id, rx_service_out_queue);
-
-  rx_packet_processors_[service_id] =
-      std::make_shared<RxPacketProcessor>(rx_burst_managers_[service_id]);
-
-  auto rivermax_chunk_consumer =
-      std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processors_[service_id]);
-
-  auto status = rx_services_[service_id]->set_receive_data_consumer(
-    0, std::move(rivermax_chunk_consumer));
-  if (status != ReturnStatus::success) {
-    HOLOSCAN_LOG_ERROR("Failed to set receive data consumer, status: {}", (int)status);
+  if (!rx_service->initialize()) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize RX service");
     return false;
   }
+
+  rx_services_[service_id] = std::move(rx_service);
   return true;
 }
 
 bool RivermaxMgr::RivermaxMgrImpl::initialize_tx_service(
     uint32_t service_id, std::shared_ptr<ConfigBuilderHolder> config_holder) {
-  uint16_t port_id = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
-  uint16_t queue_id = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
-
   if (config_holder == nullptr) {
     HOLOSCAN_LOG_ERROR("Config holder is null");
     return false;
   }
-  std::unique_ptr<MediaSenderApp> tx_service;
-  bool send_packet_ext_info = false;
-  int gpu_id = INVALID_GPU_ID;
-  size_t max_chunk_size = 0;
+
+  std::shared_ptr<RivermaxManagerTxService> tx_service;
+
   auto config_type = config_holder->get_type();
   if (config_type == QueueConfigType::MediaFrameSender) {
     HOLOSCAN_LOG_INFO("Initializing MediaSender:{}", service_id);
+
     auto typed_holder = std::dynamic_pointer_cast<
         TypedConfigBuilderHolder<RivermaxQueueToMediaSenderSettingsBuilder>>(config_holder);
-    std::dynamic_pointer_cast<RivermaxQueueToMediaSenderSettingsBuilder>(config_holder);
+
     if (!typed_holder) {
       HOLOSCAN_LOG_ERROR(
           "Failed to cast to TypedConfigBuilderHolder<RivermaxQueueToMediaSenderSettingsBuilder>");
       return false;
     }
+
     auto media_sender_builder = typed_holder->get_config_builder();
     if (!media_sender_builder) {
       HOLOSCAN_LOG_ERROR("Failed to get RivermaxQueueToMediaSenderSettingsBuilder");
       return false;
     }
-    tx_service = std::make_unique<MediaSenderApp>(media_sender_builder);
-    auto init_status = tx_service->initialize();
-    if (init_status != ReturnStatus::obj_init_success) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize TX service, status: {}", (int)init_status);
-      return false;
+
+    auto dummy_sender = media_sender_builder->dummy_sender_;
+    if (dummy_sender) {
+      HOLOSCAN_LOG_INFO("Initializing Media Mock Sender :{}", service_id);
+      tx_service = std::make_shared<MediaSenderMockService>(service_id, media_sender_builder);
+    } else {
+      HOLOSCAN_LOG_INFO("Initializing Media Frame Sender :{}", service_id);
+      tx_service = std::make_shared<MediaSenderService>(service_id, media_sender_builder);
     }
-    HOLOSCAN_LOG_INFO("MediaSender:{} was successfully initialized", service_id);
   } else {
     HOLOSCAN_LOG_ERROR("Unsupported Tx Service configuration type: {}",
                        queue_config_type_to_string(config_type));
+    return false;
+  }
+
+  if (!tx_service->initialize()) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize TX service");
     return false;
   }
 
@@ -373,8 +363,6 @@ RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {
   }
 
   rx_services_.clear();
-  rx_burst_managers_.clear();
-  rx_packet_processors_.clear();
   for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
     rx_bursts_out_queue->clear();
   }
@@ -384,33 +372,24 @@ RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {
 }
 
 void RivermaxMgr::RivermaxMgrImpl::run() {
-
   std::size_t num_services = rx_services_.size();
-  if (num_services > 0) {
-    HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services);
-  }
+  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services); }
 
   for (const auto& entry : rx_services_) {
     uint32_t key = entry.first;
     auto& rx_service = entry.second;
-    rx_service_threads_.emplace_back([rx_service_ptr = rx_service.get()]() {
-      ReturnStatus status = rx_service_ptr->run();
-      // TODO: Handle the status if needed
-    });
+    rx_service_threads_.emplace_back(
+        [rx_service_ptr = rx_service.get()]() { rx_service_ptr->run(); });
   }
 
   num_services = tx_services_.size();
-  if (num_services > 0) {
-    HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services);
-  }
+  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services); }
 
   for (const auto& entry : tx_services_) {
     uint32_t key = entry.first;
     auto& tx_service = entry.second;
-    tx_service_threads_.emplace_back([tx_service_ptr = tx_service.get()]() {
-      ReturnStatus status = tx_service_ptr->run();
-      // TODO: Handle the status if needed
-    });
+    tx_service_threads_.emplace_back(
+        [tx_service_ptr = tx_service.get()]() { tx_service_ptr->run(); });
   }
 
   HOLOSCAN_LOG_INFO("Done starting workers");
@@ -449,7 +428,17 @@ Status RivermaxMgr::RivermaxMgrImpl::set_packet_tx_time(BurstParams* burst, int 
 }
 
 Status RivermaxMgr::RivermaxMgrImpl::get_tx_packet_burst(BurstParams* burst) {
-  return Status::NO_FREE_BURST_BUFFERS;
+  uint32_t key =
+      RivermaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+
+  auto it = tx_services_.find(key);
+  if (it == tx_services_.end()) {
+    HOLOSCAN_LOG_ERROR(
+        "Invalid Port ID {}, Queue ID {} combination", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
+
+  return it->second->get_tx_packet_burst(burst);
 }
 
 Status RivermaxMgr::RivermaxMgrImpl::set_eth_header(BurstParams* burst, int idx, char* dst_addr) {
@@ -473,7 +462,17 @@ Status RivermaxMgr::RivermaxMgrImpl::set_udp_payload(BurstParams* burst, int idx
 }
 
 bool RivermaxMgr::RivermaxMgrImpl::is_tx_burst_available(BurstParams* burst) {
-  return false;
+  uint32_t key =
+      RivermaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+
+  auto it = tx_services_.find(key);
+  if (it == tx_services_.end()) {
+    HOLOSCAN_LOG_ERROR(
+        "Invalid Port ID {}, Queue ID {} combination", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return false;
+  }
+
+  return it->second->is_tx_burst_available(burst);
 }
 
 Status RivermaxMgr::RivermaxMgrImpl::set_packet_lengths(BurstParams* burst, int idx,
@@ -493,19 +492,28 @@ void RivermaxMgr::RivermaxMgrImpl::free_rx_burst(BurstParams* burst) {
   uint32_t key =
       RivermaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
 
-  if (rx_services_.find(key) == rx_services_.end() ||
-      rx_burst_managers_.find(key) == rx_burst_managers_.end()) {
+  auto it = rx_services_.find(key);
+  if (it == rx_services_.end()) {
     HOLOSCAN_LOG_ERROR("Rivermax Service is not initialized");
     return;
   }
 
-  auto& rx_service = rx_services_[key];
-  auto& rivermax_bursts_manager = rx_burst_managers_[key];
-
-  rivermax_bursts_manager->rx_burst_done(static_cast<RivermaxBurst*>(burst));
+  it->second->free_rx_burst(burst);
 }
 
-void RivermaxMgr::RivermaxMgrImpl::free_tx_burst(BurstParams* burst) {}
+void RivermaxMgr::RivermaxMgrImpl::free_tx_burst(BurstParams* burst) {
+  uint32_t key =
+      RivermaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+
+  auto it = tx_services_.find(key);
+  if (it == tx_services_.end()) {
+    HOLOSCAN_LOG_ERROR(
+        "Invalid Port ID {}, Queue ID {} combination", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return;
+  }
+
+  it->second->free_tx_burst(burst);
+}
 
 Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(BurstParams** burst, int port, int q) {
   uint32_t service_id = RivermaxBurst::burst_tag_from_port_and_queue_id(port, q);
@@ -534,7 +542,17 @@ Status RivermaxMgr::RivermaxMgrImpl::get_tx_metadata_buffer(BurstParams** burst)
 }
 
 Status RivermaxMgr::RivermaxMgrImpl::send_tx_burst(BurstParams* burst) {
-  return Status::SUCCESS;
+  uint32_t key =
+      RivermaxBurst::burst_tag_from_port_and_queue_id(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+
+  auto it = tx_services_.find(key);
+  if (it == tx_services_.end()) {
+    HOLOSCAN_LOG_ERROR(
+        "Invalid Port ID {}, Queue ID {} combination", burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
+
+  return it->second->send_tx_burst(burst);
 }
 
 void RivermaxMgr::RivermaxMgrImpl::shutdown() {
@@ -543,6 +561,12 @@ void RivermaxMgr::RivermaxMgrImpl::shutdown() {
   force_quit.store(true);
   print_stats();
   kill(getpid(), SIGINT);
+
+  // Shut down all services
+  for (auto& service_pair : rx_services_) { service_pair.second->shutdown(); }
+
+  for (auto& service_pair : tx_services_) { service_pair.second->shutdown(); }
+
   for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
     rx_bursts_out_queue->stop();
   }
@@ -550,7 +574,14 @@ void RivermaxMgr::RivermaxMgrImpl::shutdown() {
 
 void RivermaxMgr::RivermaxMgrImpl::print_stats() {
   std::stringstream ss;
-  RxStatsPrinter::print_total_stats(ss, rx_services_);
+  ss << std::endl;
+  ss << "RIVERMAX Advanced Network Manager Statistics" << std::endl;
+  ss << "====================" << std::endl;
+  ss << "Service Statistics" << std::endl;
+  ss << "----------------" << std::endl;
+
+  for (const auto& entry : rx_services_) { entry.second->print_stats(ss); }
+
   HOLOSCAN_LOG_INFO(ss.str());
 }
 
@@ -559,7 +590,8 @@ uint64_t RivermaxMgr::RivermaxMgrImpl::get_burst_tot_byte(BurstParams* burst) {
 }
 
 BurstParams* RivermaxMgr::RivermaxMgrImpl::create_tx_burst_params() {
-  return new BurstParams();
+  auto burst_idx = burst_tx_idx.fetch_add(1);
+  return &(burst_tx_pool[burst_idx % MAX_TX_BURST]);
 }
 
 Status RivermaxMgr::RivermaxMgrImpl::get_mac_addr(int port, char* mac) {
@@ -571,18 +603,30 @@ RivermaxMgr::RivermaxMgr() : pImpl(std::make_unique<RivermaxMgrImpl>()) {}
 RivermaxMgr::~RivermaxMgr() = default;
 
 bool RivermaxMgr::set_config_and_initialize(const NetworkConfig& cfg) {
-  bool res = true;
-  if (!this->initialized_) {
-    res = pImpl->set_config_and_initialize(cfg);
-    this->initialized_ = res;
+  std::lock_guard<std::mutex> lock(initialization_mutex_);
+
+  if (this->initialized_) {
+    HOLOSCAN_LOG_INFO("Rivermax Advanced Network Manager has been already initialized");
+    return true;
   }
+
+  cfg_ = cfg;
+
+  int port_id = 0;
+  for (auto& intf : cfg_.ifs_) {
+    intf.port_id_ = port_id++;
+    HOLOSCAN_LOG_INFO("{} ({}): assigned port ID {}", intf.name_, intf.address_, intf.port_id_);
+  }
+
+  this->initialized_ = pImpl->set_config_and_initialize(cfg_);
+
   if (this->initialized_) {
     HOLOSCAN_LOG_INFO("Rivermax ANO Manager initialized successfully");
-    cfg_ = cfg;
   } else {
     HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax ANO Manager");
   }
-  return res;
+
+  return this->initialized_;
 }
 
 void RivermaxMgr::initialize() {

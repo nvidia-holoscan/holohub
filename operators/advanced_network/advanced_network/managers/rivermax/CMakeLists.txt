@@ -27,6 +27,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/r
 target_sources(${PROJECT_NAME}
     PRIVATE
         rivermax_mgr_impl/adv_network_rivermax_mgr.cpp
+        rivermax_mgr_impl/rivermax_mgr_service.cpp
         rivermax_mgr_impl/burst_manager.cpp
         rivermax_mgr_impl/rivermax_config_manager.cpp
         rivermax_mgr_impl/rivermax_queue_configs.cpp
