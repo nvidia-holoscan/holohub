@@ -371,9 +371,13 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
+
   auto rivermax_media_sender_settings_validator = std::make_shared<MediaSenderSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToMediaSenderSettingsBuilder>(
       std::move(rivermax_tx_config_ptr), std::move(rivermax_media_sender_settings_validator));
+
+  settings_builder->dummy_sender_ = rivermax_tx_config.dummy_sender;
+  settings_builder->memory_pool_location_ = rivermax_tx_config.memory_pool_location;
 
   config_builder_container_.add_config_builder(
       config_index, QueueConfigType::MediaFrameSender, settings_builder);
@@ -630,6 +634,7 @@ bool RivermaxConfigParser::parse_common_tx_settings(
       tx_settings["sleep_between_operations"].as<bool>(true);
   rivermax_tx_config.stats_report_interval_ms =
       tx_settings["stats_report_interval_ms"].as<uint32_t>(1000);
+  rivermax_tx_config.dummy_sender = tx_settings["dummy_sender"].as<bool>(false);
 
   return true;
 }
@@ -641,6 +646,12 @@ bool RivermaxConfigParser::parse_media_sender_settings(
   rivermax_tx_config.frame_width = tx_settings["frame_width"].as<uint16_t>(0);
   rivermax_tx_config.frame_height = tx_settings["frame_height"].as<uint16_t>(0);
   rivermax_tx_config.frame_rate = tx_settings["frame_rate"].as<uint16_t>(0);
+  rivermax_tx_config.memory_pool_location =
+    GetMemoryKindFromString(tx_settings["memory_pool_location"].template as<std::string>("device"));
+  if (rivermax_tx_config.memory_pool_location == MemoryKind::INVALID) {
+    rivermax_tx_config.memory_pool_location = MemoryKind::DEVICE;
+    HOLOSCAN_LOG_ERROR("Invalid memory pool location, setting to DEVICE");
+  }
 
   return true;
 }
@@ -749,7 +760,7 @@ void ConfigManagerUtilities::set_allocator_type(AppSettings& app_settings_config
   setAllocatorType("huge_page_2mb", AllocatorTypeUI::HugePage2MB);
   setAllocatorType("huge_page_512mb", AllocatorTypeUI::HugePage512MB);
   setAllocatorType("huge_page_1gb", AllocatorTypeUI::HugePage1GB);
-  setAllocatorType("gpu", AllocatorTypeUI::Gpu);
+  setAllocatorType("gpu", AllocatorTypeUI::GPU);
 }
 
 VideoSampling ConfigManagerUtilities::convert_video_sampling(const std::string& sampling) {

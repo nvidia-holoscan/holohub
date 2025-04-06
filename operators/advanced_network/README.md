@@ -111,7 +111,7 @@ To build and run the Dockerfile with `Rivermax` support, follow these steps:
 
 - Visit the [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started) to download the Rivermax Release SDK.
 - Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.
-- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.60.1.tar.gz`) into your current working directory.
+- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.70.31.tar.gz`) into your current working directory.
   - You can adjust the path using the `RIVERMAX_SDK_ZIP_PATH` build argument if needed.
   - Modify the version using the `RIVERMAX_VERSION` build argument if you're using a different SDK version.
 - Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory.
@@ -258,7 +258,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 		- type: `sequence`
 	- **`destination_ports`**: List of Destination IP ports (one port per receiving path)
 		- type: `sequence`
-	- **`rx_stats_period_report_ms`**: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set `0` to disable statistics logging feature
+	- **`stats_report_interval_ms`**: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set `0` to disable statistics logging feature
   		- type: `integer`
   		- default:`0`
 	- **`send_packet_ext_info`**: Enables the transmission of extended metadata for each received packet
@@ -316,15 +316,13 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
             destination_ports:
             - 50001
             - 50001
-            rx_stats_period_report_ms: 3000
+            stats_report_interval_ms: 3000
             send_packet_ext_info: true
 
 ```
 
 ##### Transmit Configuration (tx)
-
- (<mark>Current version of Rivermax manager doesn't support TX</mark>)
-
+ 
 - **`queues`**: List of queues on NIC
 	type: `list`
 	full path: `cfg\interfaces\tx\queues`
@@ -341,7 +339,156 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `integer`
 	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
 		type: `list`
+##### Transmit Configuration (tx)
 
+- **`queues`**: List of queues on NIC
+  **Type**: `list`
+  **Full Path**: `cfg\interfaces\tx\queues`
+
+  - **`name`**: Name of the queue
+    - **Type**: `string`
+
+  - **`id`**: Integer ID used for flow connection or lookup in operator compute method
+    - **Type**: `integer`
+
+  - **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance. <mark>Not in use for DOCA GPUNetIO</mark>. Rivermax Manager can accept comma-separated list of CPU IDs.
+    - **Type**: `string`
+
+  - **`batch_size`**: Number of packets in batch passed between operators. Larger values increase throughput at cost of latency.
+    - **Type**: `integer`
+
+  - **`memory_regions`**: List of memory regions where buffers are stored (configured in Memory Regions section)
+    - **Type**: `list`
+##### Extended Transmit Configuration for Rivermax manager
+The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant video streaming with:
+- Precision timestamping via PCIe PTP clock synchronization
+- Jitter-free packetization of rasterized video frames
+- Automatic UDP checksum offload
+- Traffic shaping for constant bitrate delivery
+
+  - **`rivermax_tx_settings`**: Extended TX settings for SMPTE 2110-20 media streaming
+    **Type**: `sequence`
+    **Full Path**: `cfg\interfaces\tx\queues\rivermax_tx_settings`
+
+    - **`settings_type`**: Transmission mode. Must be `media_sender` for video
+      - **Type**: `string`
+      - **Required**: Yes
+      - **Valid Values**: `media_sender`
+
+    - **`memory_registration`**: Enables bulk registration of GPU/CPU memory regions with NIC for zero-copy transfers. Recommended for high-throughput scenarios.
+      - **Type**: `boolean`
+      - **Default**: `true`
+
+    - **`memory_allocation`**:  I\O Memory allocated by application
+      - **Type**: `boolean`
+      - **Default**: `true`
+
+    - **`memory_pool_location`**: Buffer memory type (`device/huge_pages/host_pinned/host`)
+      - **Type**: `string`
+      - **Required**: Yes
+
+    - **`local_ip_address`**: Source IP address bound to transmitting network interface.
+      - **Type**: `string`
+      - **Required**: Yes
+
+    - **`destination_ip_address`**: Unicast/Multicast group address for media stream distribution.
+      - **Type**: `string`
+      - **Required**: Yes
+
+    - **`destination_port`**: UDP port number for media stream transmission
+      - **Type**: `integer`
+      - **Range**: 1024-65535
+      - **Required**: Yes
+
+    - **`video_format`**: Defines pixel sampling structure per SMPTE ST 2110-20
+      - **Type**: `string`
+      - **Required**: Yes
+      - **Valid Values**: `YCbCr-4:2:2`, `YCbCr-4:4:4`,`YCbCr-4:2:0`, `RGB`
+
+    - **`bit_depth`**: Color component quantization precision
+      - **Type**: `integer`
+      - **Required**: Yes
+      - **Valid Values**: `8`, `10`, `12`
+
+    - **`frame_width`**: Horizontal resolution in pixels
+      - **Type**: `integer`
+      - **Required**: Yes
+      -  **Valid Values**: `1920` for HD, `3840` for 4K UHD
+
+    - **`frame_height`**: The vertical resolution of the video in pixels
+      - **Type**: `integer`
+      - **Required**: Yes
+      -  **Valid Values**: `1080` for HD, `2160` for 4K UHD
+
+    - **`frame_rate`**: Frame rate in fps
+      - **Type**: `integer`
+      - **Required**: Yes
+      - **Valid Values**:  `24`, `25`, `30`, `50`, and `60`
+
+    - **`dummy_sender`**: Test mode without NIC transmission
+      - **Type**: `boolean`
+      - **Default**: `false`
+
+    - **`stats_report_interval_ms`**: Transmission stats logging interval (0=disable)
+      - **Type**: `integer`
+      - **Default**: `0`
+
+    - **`verbose`**: Enable detailed transmission logging
+      - **Type**: `boolean`
+      - **Default**: `false`
+
+    - **`sleep_between_operations`**: Add inter-burst delays for timing sync
+      - **Type**: `boolean`
+      - **Default**: `false`
+
+#### Example Configuration
+```YAML
+    memory_regions:
+    - name: "Data_TX_CPU"
+      kind: "huge"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 20
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 1200
+
+    interfaces:
+    - name: "tx_port"
+      address: cc:00.1
+      tx:
+        queues:
+        - name: "tx_q_1"
+          id: 0
+          cpu_core:  "13"
+          batch_size: 4320
+          output_port: "bench_tx_out_1"
+          memory_regions:
+          - "Data_TX_CPU"
+          - "Data_TX_GPU"
+          rivermax_tx_settings:
+            settings_type: "media_sender"
+            memory_registration: true
+            memory_allocation: true
+            memory_pool_location: "host_pinned"
+            #allocator_type: "huge_page_2mb"
+            verbose: true
+            sleep_between_operations: false
+            local_ip_address: 2.1.0.12
+            destination_ip_address: 224.1.1.2
+            destination_port: 50001
+            stats_report_interval_ms: 1000
+            send_packet_ext_info: true
+            video_format: YCbCr-4:2:2
+            bit_depth: 10
+            frame_width: 1920
+            frame_height: 1080
+            frame_rate: 60
+            dummy_sender: false
+
+```
 
 #### API Structures
 
