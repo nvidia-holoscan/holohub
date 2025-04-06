@@ -128,7 +128,8 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       send_packet_ext_info(other.send_packet_ext_info),
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
-      master_core(other.master_core) {}
+      master_core(other.master_core),
+      dummy_sender(other.dummy_sender) {}
 
 RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
     const RivermaxCommonTxQueueConfig& other) {
@@ -150,6 +151,7 @@ RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
   stats_report_interval_ms = other.stats_report_interval_ms;
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
+  dummy_sender = other.dummy_sender;
   return *this;
 }
 
@@ -160,7 +162,8 @@ RivermaxMediaSenderQueueConfig::RivermaxMediaSenderQueueConfig(
       bit_depth(other.bit_depth),
       frame_width(other.frame_width),
       frame_height(other.frame_height),
-      frame_rate(other.frame_rate) {}
+      frame_rate(other.frame_rate),
+      memory_pool_location((other.memory_pool_location)) {}
 
 RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
     const RivermaxMediaSenderQueueConfig& other) {
@@ -171,6 +174,7 @@ RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
   frame_width = other.frame_width;
   frame_height = other.frame_height;
   frame_rate = other.frame_rate;
+  memory_pool_location = other.memory_pool_location;
   return *this;
 }
 
@@ -248,9 +252,11 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\t\tallocator_type: {}", allocator_type);
     HOLOSCAN_LOG_INFO("\t\tmemory_registration: {}", memory_registration);
     HOLOSCAN_LOG_INFO("\t\tmemory_allocation: {}", memory_allocation);
+    HOLOSCAN_LOG_INFO("\t\tmemory_pool_location: {}", (int)memory_pool_location);
     HOLOSCAN_LOG_INFO("\tPacket settings:");
     HOLOSCAN_LOG_INFO("\t\tsplit_boundary: {}", split_boundary);
     HOLOSCAN_LOG_INFO("\tSender settings:");
+    HOLOSCAN_LOG_INFO("\t\tdummy_sender: {}", dummy_sender);
     HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
     HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
     HOLOSCAN_LOG_INFO("\t\tsleep_between_operations: {}", sleep_between_operations);
@@ -412,7 +418,7 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
 
   target_settings->stats_report_interval_ms = source_settings->stats_report_interval_ms;
   target_settings->register_memory = source_settings->memory_registration;
-  target_settings->max_chunk_size = source_settings->max_chunk_size;
+  target_settings->max_packets_in_rx_chunk = source_settings->max_chunk_size;
 
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
   settings_built_ = true;
@@ -513,6 +519,7 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
   target_settings->media.sampling_type =
       ConfigManagerUtilities::convert_video_sampling(source_settings->video_format);
 
+  dummy_sender_ = source_settings->dummy_sender;
   settings_built_ = true;
   built_settings_ = *target_settings;
 
