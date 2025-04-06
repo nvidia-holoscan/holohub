@@ -639,7 +639,7 @@ sort:
     # Write explicit navigation order for the root
     nav_content = """
 nav:
-- index.md
+- Home: index.md
 - workflows
 - applications
 - operators
