@@ -189,6 +189,7 @@ struct RivermaxCommonTxQueueConfig : public BaseQueueConfig {
   uint32_t stats_report_interval_ms;
   std::string cpu_cores;
   int master_core;
+  bool dummy_sender;
 };
 
 struct RivermaxMediaSenderQueueConfig : public RivermaxCommonTxQueueConfig {
@@ -208,6 +209,7 @@ struct RivermaxMediaSenderQueueConfig : public RivermaxCommonTxQueueConfig {
   uint16_t frame_width;
   uint16_t frame_height;
   uint16_t frame_rate;
+  MemoryKind memory_pool_location;
 };
 
 class RivermaxCommonRxQueueValidator : public ISettingsValidator<RivermaxCommonRxQueueConfig> {
@@ -258,10 +260,10 @@ class RivermaxQueueToIPOReceiverSettingsBuilder
       std::shared_ptr<IPOReceiverSettings>& target_settings) override;
 
  public:
-      static constexpr int USECS_IN_SECOND = 1000000;
-      bool send_packet_ext_info_ = false;
-      IPOReceiverSettings built_settings_;
-      bool settings_built_ = false;
+  static constexpr int USECS_IN_SECOND = 1000000;
+  bool send_packet_ext_info_ = false;
+  IPOReceiverSettings built_settings_;
+  bool settings_built_ = false;
 };
 
 class RivermaxQueueToRTPReceiverSettingsBuilder
@@ -279,11 +281,11 @@ class RivermaxQueueToRTPReceiverSettingsBuilder
       std::shared_ptr<RTPReceiverSettings>& target_settings) override;
 
  public:
-      static constexpr int USECS_IN_SECOND = 1000000;
-      bool send_packet_ext_info_ = false;
-      size_t max_chunk_size_ = 0;
-      RTPReceiverSettings built_settings_;
-      bool settings_built_ = false;
+  static constexpr int USECS_IN_SECOND = 1000000;
+  bool send_packet_ext_info_ = false;
+  size_t max_chunk_size_ = 0;
+  RTPReceiverSettings built_settings_;
+  bool settings_built_ = false;
 };
 
 class RivermaxQueueToMediaSenderSettingsBuilder
@@ -301,6 +303,8 @@ class RivermaxQueueToMediaSenderSettingsBuilder
       std::shared_ptr<MediaSenderSettings>& target_settings) override;
 
  public:
+  bool dummy_sender_ = false;
+  MemoryKind memory_pool_location_ = MemoryKind::DEVICE;
   MediaSenderSettings built_settings_;
   bool settings_built_ = false;
 };

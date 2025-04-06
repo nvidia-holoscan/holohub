@@ -16,23 +16,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(rivermax_service)
 
-add_library(${PROJECT_NAME} SHARED
-  #rmax_base_service.cpp
-  #rmax_ipo_receiver_service.cpp
-  #ipo_receiver_io_node.cpp
-  # We'll add the rmax_ipo_receiver.cpp after fetching it
-)
+add_library(${PROJECT_NAME} INTERFACE)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
-target_compile_features(${PROJECT_NAME}
-  PUBLIC cxx_std_17
-)
-target_compile_definitions(${PROJECT_NAME} PUBLIC RMAX_APPS_LIB_FLAT_STRUCTURE)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-# Set RMAX_CUDA flag
 set(RMAX_CUDA TRUE)
 
 # Check if the environment variable RMAX_TEGRA is set
@@ -52,9 +39,9 @@ unset(RMAX_TEGRA CACHE)
 message(STATUS "RMAX_TEGRA is set to: ${RMAX_TEGRA}")
 
 if(RMAX_TEGRA)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC RMAX_TEGRA=1)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE RMAX_TEGRA=1)
 else()
-    target_compile_definitions(${PROJECT_NAME} PUBLIC RMAX_TEGRA=0)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE RMAX_TEGRA=0)
 endif()
 
 # GitHub Access Configuration - Modified for fine-grained token
@@ -72,13 +59,16 @@ endif()
 # Configure FetchContent for Rivermax library
 include(FetchContent)
 
+# Force position-independent code for all targets to avoid linker issues
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
 # For fine-grained tokens, use the token directly in the URL
-set(RIVERMAX_DEV_KIT_REPO_URL "https://ronyrad:${RIVERMAX_GITHUB_PAT}@github.com/ronyrad/rivermax-dev-kit-test.git" CACHE STRING "Repository URL" FORCE)
+set(RIVERMAX_DEV_KIT_REPO_URL "https://ronyrad:${RIVERMAX_GITHUB_PAT}@github.com/ronyrad/rivermax-dev-kit-staging.git" CACHE STRING "Repository URL" FORCE)
 message(STATUS "Using HTTPS with fine-grained token authentication")
 
 # Clear and set with FORCE to prevent overrides
 unset(RIVERMAX_DEV_KIT_TAG CACHE)
-set(RIVERMAX_DEV_KIT_TAG "T_RIVERMAX_DEV_KIT_TEST_0_0_5" CACHE STRING "Git tag, branch or commit hash to use for rivermax-dev-kit" FORCE)
+set(RIVERMAX_DEV_KIT_TAG "feature_media_writer_upgrade" CACHE STRING "Git tag, branch or branch hash to use for rivermax-dev-kit" FORCE)
 message(STATUS "Using Rivermax tag: ${RIVERMAX_DEV_KIT_TAG}")
 
 # Diagnostics to verify URL (masked token for security)
@@ -86,47 +76,19 @@ string(REGEX REPLACE "github_pat_[^@]*" "github_pat_***" MASKED_URL "${RIVERMAX_
 message(STATUS "Repository URL (masked): ${MASKED_URL}")
 
 FetchContent_Declare(
-    rivermax_dev_kit
+    rivermax-dev-kit
     GIT_REPOSITORY ${RIVERMAX_DEV_KIT_REPO_URL}
     GIT_TAG ${RIVERMAX_DEV_KIT_TAG}
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
 )
 
-# Make the rivermax-dev-kit content available
-FetchContent_GetProperties(rivermax_dev_kit)
-if(NOT rivermax_dev_kit_POPULATED)
-    message(STATUS "Fetching rivermax-dev-kit...")
-    FetchContent_Populate(rivermax_dev_kit)
+FetchContent_MakeAvailable(rivermax-dev-kit)
 
-    # Add the fetched directory
-    add_subdirectory(${rivermax_dev_kit_SOURCE_DIR} ${rivermax_dev_kit_BINARY_DIR} EXCLUDE_FROM_ALL)
-
-    message(STATUS "rivermax-dev-kit fetched successfully to ${rivermax_dev_kit_SOURCE_DIR}")
-
-    # Now add the rmax_ipo_receiver.cpp to our library
-    target_sources(${PROJECT_NAME} PRIVATE
-        ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_ipo_receiver/rmax_ipo_receiver.cpp
-        ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_rtp_receiver/rmax_rtp_receiver.cpp
-        ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.cpp
-    )
-endif()
-
-# Explicitly include the rmax_ipo_receiver include directory
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_ipo_receiver/include
-    ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_rtp_receiver/include
-    ${rivermax_dev_kit_SOURCE_DIR}/source/apps/rmax_xstream_media_sender/include
+# Link external RDK libraries through INTERFACE
+target_link_libraries(${PROJECT_NAME} INTERFACE
+    rmax_ipo_receiver_lib
+    rmax_xstream_media_sender_lib
+    rmax_rtp_receiver_lib
 )
 
-# Link to the fetched libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    rivermax-dev-kit-services
-    rivermax-dev-kit-core
-    rivermax-dev-kit-io-node
-    rivermax-dev-kit
-    rivermax-dev-kit-apps
-)
-
-# Installation
-install(TARGETS ${PROJECT_NAME} COMPONENT advanced_network-rivermax)
