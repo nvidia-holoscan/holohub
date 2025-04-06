@@ -168,7 +168,7 @@ namespace holoscan::advanced_network {
     return ibv_access;
   }
 
-  int RdmaMgr::rdma_register_mr(const MemoryRegionConfig &mr, void *ptr, int port_id) {
+  int RdmaMgr::rdma_register_mr(const MemoryRegionConfig &mr, void *ptr) {
     rdma_mr_params params;
     params.params_ = mr;
     params.ptr_ = ptr;
@@ -205,13 +205,7 @@ namespace holoscan::advanced_network {
     } 
 
     for (const auto &mr: cfg_.mrs_) {
-      const auto port_id = get_intf_from_mr(mr.second.name_);
-      if (port_id == -1) {
-        HOLOSCAN_LOG_CRITICAL("Cannot find interface for MR {}", mr.second.name_);
-        return -1;
-      }
-
-      int ret = rdma_register_mr(mr.second, ar_[mr.second.name_].ptr_, port_id);
+      int ret = rdma_register_mr(mr.second, ar_[mr.second.name_].ptr_);
       if (ret < 0) {
         return ret;
       }
@@ -231,7 +225,7 @@ namespace holoscan::advanced_network {
 
       lkey_mrs_.emplace_back(rdma_key_xchg{}); // Dummy entry where data will be written
 
-      if (rdma_register_mr(mr, &lkey_mrs_[p], cfg_.ifs_[p].port_id_) < 0) {
+      if (rdma_register_mr(mr, &lkey_mrs_[p]) < 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to register key exchange MR for interface {}", p);
         return -1;
       }

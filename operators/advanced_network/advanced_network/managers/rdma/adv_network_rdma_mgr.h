@@ -120,10 +120,10 @@ class RdmaMgr : public Manager {
 
     Status set_packet_lengths(BurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
-    void free_all_segment_packets(BurstParams* burst, int seg) override;
-    void free_packet_segment(BurstParams* burst, int seg, int pkt) override;
-    void free_packet(BurstParams* burst, int pkt) override;
-    void free_all_packets(BurstParams* burst) override;
+    void free_all_segment_packets(BurstParams* burst, int seg) override {}
+    void free_packet_segment(BurstParams* burst, int seg, int pkt) override { return; }
+    void free_packet(BurstParams* burst, int pkt) override {}
+    void free_all_packets(BurstParams* burst) override { return; }
     void free_rx_burst(BurstParams* burst) override;
     void free_tx_burst(BurstParams* burst) override;
     std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
@@ -178,7 +178,7 @@ class RdmaMgr : public Manager {
     mutable std::mutex mutex_;
     void rdma_thread(bool is_server, rdma_thread_params tparams);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
-    int rdma_register_mr(const MemoryRegionConfig &mr, void *ptr, int port_id);
+    int rdma_register_mr(const MemoryRegionConfig &mr, void *ptr);
     int rdma_register_cfg_mrs();
     std::string generate_random_string(int len);
     static int set_affinity(int cpu_core);
