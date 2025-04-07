@@ -261,7 +261,7 @@ def patch_links(
     patched_text = text
 
     # Regex to find image URLs in both Markdown and HTML
-    md_img_regex = re.compile(r"!\[.*?\]\((.*?)\)")  # ![alt](url)
+    md_img_regex = re.compile(r"!\[[\s\S]*?\]\((.*?)\)")  # ![alt](url)
     html_img_regex = re.compile(r'<img\s+[^>]*?src=[\'"]([^\'"]*)[\'"]')  # <img src="url"
 
     for pattern in [md_img_regex, html_img_regex]:
@@ -286,7 +286,7 @@ def patch_links(
             patched_text = patched_text.replace(original_img_str, new_image_path)
 
     # Regex to find Markdown links [text](target)
-    link_pattern = re.compile(r"\[(.*?)\]\((.*?)\)")
+    link_pattern = re.compile(r"\[([\s\S]*?)\]\((.*?)\)")
 
     for match in link_pattern.finditer(patched_text):  # Use text patched by image loop
         link_text, original_target = match.groups()
