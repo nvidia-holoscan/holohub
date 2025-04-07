@@ -16,9 +16,12 @@
 
 import json
 import logging
-import os
+import os.path
 import re
 import subprocess
+import sys
+import traceback
+import urllib.parse
 from pathlib import Path
 
 import mkdocs_gen_files
@@ -27,252 +30,576 @@ import mkdocs_gen_files
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
 
-def get_last_modified_date(path: str) -> str:
-    """Get the last modified date of a file or directory from git."""
+RANKING_LEVELS = {
+    0: "Level 0 - Core Stable",
+    1: "Level 1 - Highly Reliable",
+    2: "Level 2 - Trusted",
+    3: "Level 3 - Developmental",
+    4: "Level 4 - Experimental",
+    5: "Level 5 - Obsolete",
+}
+
+
+def get_git_root() -> Path:
+    """Get the absolute path to the Git repository root."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
+    )
+    return Path(result.stdout.strip())
+
+
+def format_date(date_str: str) -> str:
+    """Format a date string in YYYY-MM-DD format to Month DD, YYYY format."""
     try:
-        # Get the last commit date for the path
-        cmd = ["git", "log", "-1", "--format=%ad", "--date=short", path]
-        result = subprocess.run(
-            cmd, cwd=path, capture_output=True, text=True, check=True
-        )  # Convert YYYY-MM-DD to Month DD, YYYY format
-        date = result.stdout.strip()
-        if date == "":
-            # If git date is empty, try using stat instead
-            cmd = ["stat", "-c", "%y", path]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            date = result.stdout.split()[0].strip()  # Get just the date portion
-        try:
-            year, month, day = date.split("-")
-            months = [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-            ]
-            return f"{months[int(month)-1]} {int(day)}, {year}"
-        except subprocess.CalledProcessError:
-            return date
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Git command failed: {e}")
-        logger.error(f"Git error output: {e.stderr}")
-        return "Unknown"
+        year, month, day = date_str.split("-")
+        months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
+        return f"{months[int(month)-1]} {int(day)}, {year}"
+    except (ValueError, IndexError):
+        # Return the original string if we can't parse it
+        return date_str
 
 
-def parse_metadata_file(metadata_file: Path, statistics) -> None:
+def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
+    """Get the last modified date of a file or directory using git or stat."""
+    # Try using git to get the last modified date
+    try:
+        rel_file_path = str(file_path.relative_to(git_repo_path))
+        repo_path = str(git_repo_path)
+        cmd = ["git", "-C", repo_path, "log", "-1", "--format=%ad", "--date=short", rel_file_path]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        git_date = result.stdout.strip()
+
+        if git_date:  # If we got a valid date from git
+            return format_date(git_date)
+    except (subprocess.CalledProcessError, ValueError):
+        # Git command failed or path is not in repo, we'll fall back to stat
+        pass
+
+    # Second try: Filesystem stat date
+    try:
+        cmd = ["stat", "-c", "%y", str(file_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        stat_date = result.stdout.split()[0].strip()  # Get just the date portion
+
+        if stat_date:  # If we got a valid date from stat
+            return format_date(stat_date)
+    except (subprocess.CalledProcessError, ValueError, IndexError):
+        logger.error(f"Failed to get modification date for {file_path}")
+
+    # Fallback if both methods fail
+    return "Unknown"
+
+
+def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str:
+    """Get file content from a specific git revision."""
+    try:
+        rel_file_path = file_path.relative_to(git_repo_path)
+        cmd = ["git", "-C", str(git_repo_path), "show", f"{git_ref}:{rel_file_path}"]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return result.stdout
+    except (subprocess.CalledProcessError, ValueError) as e:
+        if isinstance(e, subprocess.CalledProcessError):
+            logger.error(f"Git error: {e.stderr}")
+        else:
+            logger.error(f"Path {file_path} is not within the Git repository")
+        raise e
+
+
+def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
+    """Create the frontmatter for the documentation page."""
+
+    # Title
+    title = metadata["name"]
+    title += f" ({archive_version})" if archive_version else " (latest)"
+
+    # Tags
+    tags = metadata["tags"]
+    tags_str = ""
+    for tag in tags:
+        tags_str += f"\n - {tag}"
+
+    return f"""---
+title: "{title}"
+tags:{tags_str}
+---
+"""
+
+
+def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
+    """Create the metadata header for the documentation page.
+
+    This function generates a formatted metadata header with icons and labels for display
+    on the documentation page. It includes information such as authors, platforms, language,
+    version information, and contribution metrics.
+
+    Args:
+        metadata (dict): Dictionary containing the application metadata
+        last_modified (str): String representing the last modification date
+        archive_version (str, optional): Version string for archived documentation. Default: None.
+
+    Returns:
+        str: Formatted HTML-like string containing the metadata header with icons and labels
+    """
+
+    # Safely extract metadata to handle missing keys
+    authors_str = None
+    if authors := metadata.get("authors"):
+        authors_str = ", ".join(
+            [f'{author.get("name", "")} ({author.get("affiliation", "")})' for author in authors]
+        )
+    platforms = metadata.get("platforms")
+    platforms_str = ", ".join(platforms) if platforms else None
+    language = metadata.get("language")
+    version = metadata.get("version")
+    hsdk_meta = metadata.get("holoscan_sdk")
+    min_sdk_version = hsdk_meta.get("minimum_required_version") if hsdk_meta else None
+    tested_sdk_versions = hsdk_meta.get("tested_versions") if hsdk_meta else None
+    tested_sdk_versions_str = ", ".join(tested_sdk_versions) if tested_sdk_versions else None
+    ranking = metadata.get("ranking")
+    ranking_str = RANKING_LEVELS.get(ranking)
+
+    # List inputs for creating metadata header lines
+    line_str_inputs = [
+        ("person", "Authors", authors_str),
+        ("device-desktop", "Supported platforms", platforms_str),
+    ]
+
+    if language:
+        line_str_inputs.append(("code-square", "Language", language))
+
+    line_str_inputs.append(("clock", "Last modified", last_modified))
+
+    if archive_version:
+        line_str_inputs.append(("history", "Archive version", archive_version))
+    else:
+        line_str_inputs.append(("tag", "Latest version", version))
+
+    line_str_inputs.extend(
+        [
+            ("stack", "Minimum Holoscan SDK version", min_sdk_version),
+            ("beaker", "Tested Holoscan SDK versions", tested_sdk_versions_str),
+            ("sparkle-fill", "Contribution metric", ranking_str),
+        ]
+    )
+
+    # Generate lines strings
+    output_lines = []
+    for icon, label, value in line_str_inputs:
+        if not value:
+            logger.warning(f"Skipping metadata line: no value for '{label}'")
+            continue
+
+        output_lines.append(f":octicons-{icon}-24: **{label}:** {value}<br>")
+
+    # Join the valid lines and add a line break
+    return "".join(output_lines) + "<br>"
+
+
+def _get_path_relative_to_repo(
+    original_path: Path,
+    git_repo_path: Path,
+    base_dir: Path = None,  # for relative paths
+) -> Path | None:
+    """Calculates the path relative to the git repo root.
+
+    Handles both absolute (relative to repo root) and relative (relative to base_dir)
+    input paths.
+
+    Returns the relative Path object or None if the path is outside the repo.
+    """
+    if original_path.is_absolute():
+        return original_path.relative_to("/")
+
+    if base_dir is None:
+        logger.error(f"Path {original_path} is relative but no base directory was provided.")
+        return None
+
+    # Resolve relative paths against the base directory
+    resolved_absolute = (base_dir / original_path).resolve()
+    try:
+        # Calculate path relative to repo root
+        return resolved_absolute.relative_to(git_repo_path)
+    except ValueError:
+        logger.error(f"Path {original_path} is not within the git repo {git_repo_path}.")
+        return None
+
+
+def _encode_path_for_url(path_obj: Path) -> str:
+    """URL-encode each part of a Path object and join with slashes."""
+    return "/".join(urllib.parse.quote(part, safe="") for part in path_obj.parts)
+
+
+def patch_links(
+    text: str,
+    relative_dir: Path,  # Relative dir of source/dest (e.g., "tutorials/tut1")
+    git_repo_path: Path,  # Absolute path to repo root
+    base_url: str,  # Base URL for new external links
+) -> str:
+    """Patch Markdown links and images in the text.
+
+    - Images: Point to raw GitHub URL.
+    - Internal README.md links (within COMPONENT_TYPES): Convert to relative MkDocs paths.
+    - Other internal links: Point to blob GitHub URL.
+    - External links: Leave untouched.
+    """
+    readme_dir = (git_repo_path / relative_dir).resolve()
+    patched_text = text
+
+    # Regex to find image URLs in both Markdown and HTML
+    md_img_regex = re.compile(r"!\[.*?\]\((.*?)\)")  # ![alt](url)
+    html_img_regex = re.compile(r'<img\s+[^>]*?src=[\'"]([^\'"]*)[\'"]')  # <img src="url"
+
+    for pattern in [md_img_regex, html_img_regex]:
+        for match in pattern.finditer(text):
+            original_img_str = match.group(1)
+
+            # Skip external URLs
+            if original_img_str.startswith(("http://", "https://")):
+                continue
+
+            # Get relative path to git repo root
+            original_img_path = Path(original_img_str)
+            rel_repo_target_path = _get_path_relative_to_repo(
+                original_img_path, git_repo_path, readme_dir
+            )
+            if not rel_repo_target_path:
+                continue
+
+            # Create raw GitHub URL
+            encoded_path = _encode_path_for_url(rel_repo_target_path)
+            new_image_path = f"{base_url}/{encoded_path}?raw=true"
+            patched_text = patched_text.replace(original_img_str, new_image_path)
+
+    # Regex to find Markdown links [text](target)
+    link_pattern = re.compile(r"\[(.*?)\]\((.*?)\)")
+
+    for match in link_pattern.finditer(patched_text):  # Use text patched by image loop
+        link_text, original_target = match.groups()
+
+        # Skip external and anchor links
+        if original_target.strip().startswith(("http://", "https://", "mailto:", "#")):
+            continue
+
+        # Separate anchor if present
+        original_target_path_str, *anchor_parts = original_target.split("#", 1)
+        anchor = f"#{anchor_parts[0]}" if anchor_parts else ""
+
+        # Get relative path to git repo root
+        original_target_path = Path(original_target_path_str)
+        rel_repo_target_path = _get_path_relative_to_repo(
+            original_target_path, git_repo_path, readme_dir
+        )
+        if not rel_repo_target_path:
+            continue
+
+        # Generate new target URL based on type
+        # Note: ideally we'd do a first pass of discovery to determine what docs make it in the
+        # site instead of this heuristic that depends on logic elsewhere in the codebase, but this
+        # is simpler for now.
+        is_in_website = (
+            rel_repo_target_path.name == "README.md"  # Is a README
+            and len(rel_repo_target_path.parts) > 2  # Nested (not root README)
+            and rel_repo_target_path.parts[0] in COMPONENT_TYPES  # Top dir is a component type
+        )
+        if is_in_website:
+            # Point relative path within the MkDocs site
+            # Note: can't use Path.relative_to() with ../ (ValueError: "not in the subpath")
+            new_target = Path(os.path.relpath(rel_repo_target_path, relative_dir)).as_posix()
+        else:  # Handle links pointing to GitHub
+            # URL encode the path parts first
+            encoded_path = _encode_path_for_url(rel_repo_target_path)
+
+            # Construct full URL using the provided base ref URL
+            new_target = f"{base_url}/{encoded_path}"
+
+        # Reconstruct the full link
+        new_link = f"[{link_text}]({new_target}{anchor})"
+        patched_text = patched_text.replace(match.group(0), new_link)
+
+    return patched_text
+
+
+def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
+    """Extract the main header (title) from Markdown text.
+
+    Supports Setext-style (Header\n===) and ATX-style (# Header) headers.
+    Finds the first header occurrence in the text.
+
+    Args:
+        md_txt: The Markdown content as a string.
+
+    Returns:
+        A tuple containing (full_header, header_text, header_symbols)
+        if a header is found, otherwise None.
+        - full_header: The full matched text of the header.
+        - header_text: The text content of the header.
+        - header_symbols: The markdown symbols used (e.g., '#', '##', '===', '---').
+    """
+
+    # Try ATX first (e.g., # Header, ## Header)
+    #   \s*#+\s+ -> group(1) -> '#' symbols, with surrounding whitespaces
+    #   .+?      -> group(2) -> text, before end of line $
+    atx_match = re.search(r"^(\s*#+\s+)(.+?)$", md_txt, re.MULTILINE)
+    if atx_match:
+        full_header = atx_match.group(0)
+        header_text = atx_match.group(2).strip()
+        header_symbols = atx_match.group(1).strip()  # The '#' symbols
+        return full_header, header_text, header_symbols
+
+    # If no ATX, try Setext (e.g., Header\n=== or Header\n---)
+    #   ^(?! \s*#)  -> don't start line with '#'
+    #   .+?         -> group(1) -> text, before new line \n
+    #   ={3,}|-{3,} -> group(2) -> underline symbols, before end of line $
+    setext_match = re.search(r"^(?! \s*#)(.+?)\n(={3,}|-{3,})\s*$", md_txt, re.MULTILINE)
+    if setext_match:
+        full_header = setext_match.group(0)
+        header_text = setext_match.group(1).strip()
+        header_symbols = setext_match.group(2).strip()  # The '===' or '---'
+        return full_header, header_text, header_symbols
+
+    return None
+
+
+def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
+    """Finds the main header in the readme_text, replaces it with a linked
+    version, and inserts the metadata_header.
+
+    Args:
+        readme_text: The original text of the README.
+        url: The URL to link the header title to.
+        metadata_header: The formatted metadata block to insert.
+
+    Returns:
+        The modified readme_text with the patched header and metadata.
+        Returns the original text if no header is found.
+    """
+
+    # Extract current header info
+    header_info = extract_markdown_header(readme_text)
+    if not header_info:
+        logger.warning("No markdown header found. Cannot insert metadata header.")
+        return readme_text
+
+    full_header, header_text, header_symbols = header_info
+
+    # Create the linked header text
+    header_with_url = f"[{header_text}]({url})"
+
+    # Restore the header symbols
+    if "#" in header_symbols:
+        # ATX style: '#' sequence
+        new_header = f"{header_symbols} {header_with_url}"
+    else:
+        # Setext style: '===' or '---'
+        new_header = f"{header_with_url}\n{header_symbols}"
+
+    # Append the metadata header
+    new_header += f"\n{metadata_header}"
+
+    # Replace the original header
+    return readme_text.replace(full_header, new_header, 1)
+
+
+def create_page(
+    metadata: dict,
+    readme_text: str,
+    dest_path: Path,
+    last_modified: str,
+    git_repo_path: Path,
+    archive: dict = {"version": None, "git_ref": "main"},
+):
+    """Create a documentation page, handling both versioned and non-versioned cases.
+
+    Args:
+        metadata: The metadata dictionary
+        readme_text: Content of the README file
+        dest_path: relative path to the documentation page
+        last_modified: Last modified date string
+        git_repo_path: Path to the Git repository root
+        archive: Dictionary of version label and git reference strings
+          - if provided, links are versioned accordingly
+    Returns:
+        Generated page content as string
+    """
+
+    # Frontmatter
+    archive_version = archive["version"] if archive and "version" in archive else None
+    output_text = create_frontmatter(metadata, archive_version)
+
+    # Patch links in the README content
+    git_ref = archive["git_ref"] if archive and "git_ref" in archive else "main"
+    relative_dir = dest_path.parent
+    base_url = f"https://github.com/nvidia-holoscan/holohub/blob/{git_ref}"
+    readme_text = patch_links(
+        readme_text,
+        relative_dir,
+        git_repo_path,
+        base_url,
+    )
+
+    # Patch the header (finds header, links it, inserts metadata)
+    metadata_header = create_metadata_header(metadata, last_modified, archive_version)
+    encoded_rel_dir = _encode_path_for_url(relative_dir)
+    url = f"{base_url}/{encoded_rel_dir}"
+    readme_text = patch_header(readme_text, url, metadata_header)
+
+    # Append the text to the output
+    output_text += readme_text
+
+    # Write the mkdocs page
+    with mkdocs_gen_files.open(dest_path, "w") as dest_file:
+        dest_file.write(output_text)
+
+
+def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) -> None:
     """Copy README file from a sub-package to the user guide's developer guide directory.
+
+    Args:
+        metadata_path: Path to the metadata file
+        components: Dictionary tracking unique components
+        git_repo_path: Path to the Git repository root
 
     Returns:
         None
     """
     # Disable application with {{ in the name
-    if "{{" in str(metadata_file):
+    if "{{" in str(metadata_path):
         return
 
-    # Read the file
-    # Parse the JSON data
-    with open(metadata_file, "r") as metadatafile:
-        metadata = json.load(metadatafile)
-        key = list(metadata.keys())[0]
-        dest_dir = str(key) + "s"
+    # Parse the metadata
+    with metadata_path.open("r") as metadata_file:
+        metadata = json.load(metadata_file)
 
-    # Extract the application name, removing cpp/python from the path for counting
-    if dest_dir == "applications":
-        path = re.sub(r".*/applications/", "", str(metadata_file)).removesuffix("/metadata.json")
-        base_path = re.sub(r"/(cpp|python)$", "", path)
-        statistics["unique_applications"].add(base_path)
-    elif dest_dir == "workflows":
-        path = re.sub(r".*/workflows/", "", str(metadata_file)).removesuffix("/metadata.json")
-        base_path = re.sub(r"/(cpp|python)$", "", path)
-        statistics["unique_workflows"].add(base_path)
-    elif dest_dir == "operators":
-        path = str(metadata_file).removesuffix("/metadata.json")
-        path = path.split("/")[-1]
-        base_path = re.sub(r"/(cpp|python)$", "", path)
-        statistics["unique_operators"].add(base_path)
-    elif dest_dir == "tutorials":
-        path = str(metadata_file).removesuffix("/metadata.json")
-        path = path.split("/")[-1]
-        base_path = re.sub(r"/(cpp|python)$", "", path)
-        statistics["unique_tutorials"].add(base_path)
-    elif dest_dir == "benchmarks":
-        path = str(metadata_file).removesuffix("/metadata.json")
-        path = path.split("/")[-1]
-        base_path = re.sub(r"/(cpp|python)$", "", path)
-        statistics["unique_benchmarks"].add(base_path)
-    else:
-        logger.error(f"Don't know the output path for: {dest_dir}")
+    project_type = list(metadata.keys())[0]
+    metadata = metadata[project_type]
+
+    # Check valid component type
+    component_type = f"{project_type}s"
+    if component_type not in COMPONENT_TYPES:
+        logger.error(f"Skipping {metadata_path}: unknown type '{component_type}'")
         return
 
-    # Extract the "tags" into a Python list
-    tags = metadata[key]["tags"]
-    name = metadata[key]["name"]
-    platforms = metadata[key]["platforms"]
-    authors = metadata[key]["authors"]
-    if "language" in metadata[key]:
-        language = metadata[key]["language"]
-    version = metadata[key]["version"]
-    minimum_required_version = metadata[key]["holoscan_sdk"]["minimum_required_version"]
-    tested_versions = metadata[key]["holoscan_sdk"]["tested_versions"]
-    metric = metadata[key]["ranking"]
+    # Dirs & Paths
+    metadata_dir = metadata_path.parent
+    readme_dir = metadata_dir
+    readme_path = readme_dir / "README.md"
+    while not readme_path.exists():
+        readme_dir = readme_dir.parent
+        readme_path = readme_dir / "README.md"
 
-    metric_str = "Level 0 - Core Stable"
-    if metric == 1:
-        metric_str = "Level 1 - Highly Reliable"
-    if metric == 2:
-        metric_str = "Level 2 - Trusted"
-    if metric == 3:
-        metric_str = "Level 3 - Developmental"
-    if metric == 4:
-        metric_str = "Level 4 - Experimental"
-    if metric == 5:
-        metric_str = "Level 5 - Obsolete"
+    # Valid README is not in the component type directory or the git repo root
+    if readme_dir.name in COMPONENT_TYPES or readme_dir == git_repo_path:
+        logger.error(f"Skipping {metadata_path}: no README found")
+        return
 
-    output_text = "---"
-    output_text += "\ntags:"
-    for tag in tags:
-        output_text += f"\n - {tag}"
-    output_text += f"\ntitle: {name}"
+    # Get path relative to the Git repository root
+    try:
+        dest_dir = readme_dir.relative_to(git_repo_path)
+    except ValueError:
+        logger.error(f"Skipping {metadata_path}: no README in git repo {git_repo_path}")
+        return
 
-    # Add a suffix to the title based on the language
-    # Check if we have multiple language implementations (cpp and python)
-    parent_dir = os.path.dirname(str(metadata_file.parent))
-    if os.path.isdir(os.path.join(parent_dir, "cpp")) and os.path.isdir(
-        os.path.join(parent_dir, "python")
-    ):
-        dir = path.split("/")[-1]
-        if dir == "python":
-            output_text += " (Python)"
-        elif dir == "cpp":
-            output_text += " (C++)"
-    output_text += "\n---\n"
+    # Track components if in adequate directories
+    # Ex: don't track operators under application folders
+    if component_type == dest_dir.parts[0]:
+        components[component_type].add(dest_dir)
+    logger.info(f"Processing: {dest_dir}")
+    logger.debug(f"  for metadata_path: {metadata_path}")
 
-    # Finds the README.md
-    readme_path = str(metadata_file).replace("metadata.json", "README.md")
-    readme_parent = 0
-    if not os.path.exists(readme_path):
-        readme_path = str(metadata_file.parent) + "/README.md"
-        readme_parent = 1
-    if not os.path.exists(readme_path):
-        readme_path = str(metadata_file.parent.parent) + "/README.md"
-        readme_parent = 2
+    # Prepare suffix with language info if it's a language-specific component
+    suffix = ""
+    if metadata_dir.name in ["cpp", "python"] and readme_dir == metadata_dir:
+        language_agnostic_dir = metadata_dir.parent
+        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
+        if nbr_language_dirs > 1:
+            suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
+            suffix = f" ({suffix})"
+    logger.debug(f"suffix: {suffix}")
+    title = metadata["name"] if "name" in metadata else metadata_path.name
+    title += suffix
 
-    if os.path.exists(readme_path):
-        with open(readme_path, "r") as readme_file:
+    # Process the README content
+    readme_text = f"# {title}\n\nNo README available."
+    if readme_path.exists():
+        with readme_path.open("r") as readme_file:
             readme_text = readme_file.read()
 
-            # Regular expression pattern to match paths containing .gif, .png, or .jpg
-            pattern = r'["(\[][^:")]*\.(?:gif|png|jpg)[")\]]'
+    # Generate page
+    dest_path = dest_dir / "README.md"
+    last_modified = get_last_modified_date(metadata_path, git_repo_path)
+    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path)
 
-            # Find all matches in the string
-            matches = re.findall(pattern, readme_text)
+    # Initialize nav file content to control navigation with mkdocs-awesome-nav
+    nav_path = dest_dir / ".nav.yml"
+    nav_content = f"""
+title: "{title}"
+nav:
+  - README.md
+"""
 
-            # Tune the path
-            relative_path = path
-            if readme_parent == 2:
-                relative_path = os.path.dirname(path)
+    # Check for archives in metadata
+    archives = metadata["archives"] if "archives" in metadata else None
+    if archives:
+        logger.info(f"Processing versioned documentation for {str(dest_dir)}")
 
-            # Print the matches
-            for match in matches:
+        for version in sorted(archives.keys(), reverse=True):
+            git_ref = archives[version]
 
-                # Find the URL inside [](image)
-                parenthensis_match = re.search(r"\((.*?)\)", match)
-                if parenthensis_match:
-                    match = parenthensis_match.group(1)
+            # Get metadata and README from the specified git reference
+            archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
+            archived_readme_content = get_file_from_git(readme_path, git_ref, git_repo_path)
+            if not archived_metadata_content or not archived_readme_content:
+                logger.error(f"Failed to retrieve archived content for {dest_dir} at {git_ref}")
+                continue
 
-                match = match.strip('"()[]')
-                imgmatch = match
-                if match.startswith("."):
-                    imgmatch = match[1:]
-                if imgmatch.startswith("/"):
-                    imgmatch = imgmatch[1:]
-                readme_text = readme_text.replace(
-                    match,
-                    "https://github.com/nvidia-holoscan/holohub/blob/main/"
-                    + dest_dir
-                    + "/"
-                    + relative_path
-                    + "/"
-                    + imgmatch
-                    + "?raw=true",
-                )
+            # Parse the archived metadata
+            try:
+                archived_metadata = json.loads(archived_metadata_content)
+            except json.JSONDecodeError:
+                logger.error(f"Failed to parse archived metadata for {dest_dir.name} at {git_ref}")
+                return
+            archived_metadata = archived_metadata[project_type]
 
-            # Find the first heading
-            pattern = r"^#\s+(.+)"
-            match = re.match(pattern, readme_text)
+            # Get commit date as last modified
+            repo_str = str(git_repo_path)
+            cmd = ["git", "-C", repo_str, "show", "-s", "--format=%ad", "--date=short", git_ref]
+            archive_last_modified = subprocess.run(
+                cmd, capture_output=True, text=True, check=True
+            ).stdout.strip()
+            archive_last_modified = format_date(archive_last_modified)
 
-            header_text = (
-                ":octicons-person-24: **Authors:** "
-                + ", ".join(f"{author['name']} ({author['affiliation']})" for author in authors)
-                + "<br>"
-            )
-            header_text += (
-                ":octicons-device-desktop-24: **Supported platforms:** "
-                + ", ".join(platforms)
-                + "<br>"
-            )
-
-            # Add last modified date from git
-            last_modified = get_last_modified_date(str(metadata_file.parent))
-            header_text += f":octicons-clock-24: **Last modified:** {last_modified}<br>"
-
-            if "language" in locals():
-                header_text += ":octicons-code-square-24: **Language:** " + language + "<br>"
-            header_text += ":octicons-tag-24: **Latest version:** " + version + "<br>"
-            header_text += (
-                ":octicons-stack-24: **Minimum Holoscan SDK version:** "
-                + minimum_required_version
-                + "<br>"
-            )
-            header_text += (
-                ":octicons-beaker-24: **Tested Holoscan SDK versions:** "
-                + ", ".join(tested_versions)
-                + "<br>"
-            )
-            header_text += (
-                ":octicons-sparkle-fill-24: **Contribution metric:** " + metric_str + "<br>"
+            # Create the archived version content
+            archive_dest_path = dest_dir / f"{version}.md"
+            create_page(
+                archived_metadata,
+                archived_readme_content,
+                archive_dest_path,
+                archive_last_modified,
+                git_repo_path,
+                archive={"version": version, "git_ref": git_ref},
             )
 
-            # Add the header text
-            if match:
-                title = match.group(1)
-                title = (
-                    "["
-                    + title
-                    + "](https://github.com/nvidia-holoscan/holohub/tree/main/"
-                    + dest_dir
-                    + "/"
-                    + path
-                    + ")"
-                )
-                output_text += readme_text.replace(match.group(1), title + "\n" + header_text, 1)
-            else:
-                output_text += readme_text
+            # Add archives to nav file
+            nav_content += f'  - "{version}": {version}.md\n'
 
-    # Check if this is a subdirectory implementation (cpp/python)
-    # If so, check if there are other implementations at the parent level
-    parent_dir = metadata_file.parent.parent
-    if metadata_file.parent.name in ["cpp", "python"]:
-        # Check if the parent directory contains other subdirectories with metadata.json files
-        other_implementations = list(parent_dir.glob("*/metadata.json"))
-        # Check how many implementations we have
-        if len(other_implementations) == 1:
-            # Take the parent folder of the path
-            path = os.path.dirname(path)
-
-    dest_directory = dest_dir + "/" + path
-    dest_file = dest_directory + ".md"
-
-    with mkdocs_gen_files.open(dest_file, "w") as fd:
-        fd.write(output_text)
+    # Write nav file
+    with mkdocs_gen_files.open(nav_path, "w") as nav_file:
+        nav_file.write(nav_content)
 
 
 def generate_pages() -> None:
@@ -284,35 +611,71 @@ def generate_pages() -> None:
     Returns:
         None
     """
-    root = Path(__file__).parent.parent.parent.parent
+    # Initialize Git repository path
+    try:
+        git_repo_path = get_git_root()
+        logger.info(f"Git repository root: {git_repo_path}")
+    except Exception as e:
+        logger.error(f"Failed to find Git repository root: {e}")
+        logger.error("This script requires Git and must be run from within a Git repository.")
+        sys.exit(1)
 
-    statistics = {
-        "unique_operators": set(),
-        "unique_tutorials": set(),
-        "unique_applications": set(),
-        "unique_workflows": set(),
-        "unique_benchmarks": set(),
-    }
+    # Dirs
+    src_dir = git_repo_path
+    website_src_dir = Path(__file__).parent.parent
 
-    logger.info(f"root: {root}")
+    # Initialize map of projects/component per type
+    components = {key: set() for key in COMPONENT_TYPES}
 
-    # Parse the metadata.json files
-    for metadata_file in root.rglob("metadata.json"):
-        parse_metadata_file(metadata_file, statistics)
+    for component_type in COMPONENT_TYPES:
+        component_dir = src_dir / component_type
+        if not component_dir.exists():
+            logger.error(f"Component directory not found: {component_dir}")
+            continue
 
-    logger.info(f"Stats: {statistics}")
+        # Parse the metadata.json files
+        for metadata_path in component_dir.rglob("metadata.json"):
+            try:
+                parse_metadata_path(metadata_path, components, git_repo_path)
+            except Exception:
+                logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
+
+        # Write navigation file to sort components by title
+        nav_path = Path(component_type) / ".nav.yml"
+        nav_content = """
+sort:
+  by: title
+"""
+        with mkdocs_gen_files.open(nav_path, "w") as nav_file:
+            nav_file.write(nav_content)
+
+    logger.debug(f"Components: {components}")
+
     # Write the home page
-    homefile_path = str(Path(__file__).parent.parent) + "/docs/index.md"
-    with open(homefile_path, "r") as home_file:
+    homefile_path = website_src_dir / "docs" / "index.md"
+    with homefile_path.open("r") as home_file:
         home_text = home_file.read()
-        home_text = home_text.replace("#operators", str(len(statistics["unique_operators"])))
-        home_text = home_text.replace("#tutorials", str(len(statistics["unique_tutorials"])))
-        home_text = home_text.replace("#applications", str(len(statistics["unique_applications"])))
-        home_text = home_text.replace("#workflows", str(len(statistics["unique_workflows"])))
-        home_text = home_text.replace("#benchmarks", str(len(statistics["unique_benchmarks"])))
 
-    with mkdocs_gen_files.open("index.md", "w") as fd:
-        fd.write(home_text)
+        # Replace the number of components in the home page
+        for component_type in COMPONENT_TYPES:
+            nbr_components = len(components[component_type])
+            home_text = home_text.replace(f"#{component_type}", str(nbr_components))
+
+    with mkdocs_gen_files.open("index.md", "w") as index_file:
+        index_file.write(home_text)
+
+    # Write explicit navigation order for the root
+    nav_content = """
+nav:
+- Home: index.md
+- workflows
+- applications
+- operators
+- tutorials
+- benchmarks
+"""
+    with mkdocs_gen_files.open(".nav.yml", "w") as nav_file:
+        nav_file.write(nav_content)
 
 
 if __name__ in {"__main__", "<run_path>"}:

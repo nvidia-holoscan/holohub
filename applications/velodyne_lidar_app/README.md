@@ -47,7 +47,7 @@ Then, build and start the Holoscan lidar viewing application:
 
 ## Benchmarks
 
-We performed benchmarking on an NVIDIA IGX developer kit with an A4000 GPU. (Note that an A6000 GPU is standard for IGX.) We used the [holoscan_flow_benchmarking](../../../benchmarks/holoscan_flow_benchmarking/) project to collect and summarize performance. The performance for each component in the Holoscan SDK pipeline is shown in the image below.
+We performed benchmarking on an NVIDIA IGX developer kit with an A4000 GPU. (Note that an A6000 GPU is standard for IGX.) We used the [holoscan_flow_benchmarking](../../benchmarks/holoscan_flow_benchmarking/) project to collect and summarize performance. The performance for each component in the Holoscan SDK pipeline is shown in the image below.
 
 Key statistics:
 
@@ -100,4 +100,3 @@ There are several reasons that this could be the case:
 
 This operator was developed in part with support from the NVIDIA nvMap team and adapts portions
 of the NVIDIA DeepMap SDK.
-

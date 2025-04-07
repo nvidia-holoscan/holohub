@@ -13,8 +13,11 @@ From the repository root:
 docker build -t holohub-website -f doc/website/Dockerfile .
 
 # Run the Docker container
-docker run --rm -it -p 8000:8000 \
-    -v ${PWD}:/holohub -v ${PWD}/doc/website:/docs \
+docker run --rm -it \
+    -p 8000:8000 \
+    -v ${PWD}:/holohub \
+    -w /holohub/doc/website \
+    --name holohub-mkdocs \
     holohub-website:latest
 ```
 
