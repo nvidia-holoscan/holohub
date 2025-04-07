@@ -32,6 +32,15 @@ logger = logging.getLogger(__name__)
 
 COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
 
+RANKING_LEVELS = {
+    0: "Level 0 - Core Stable",
+    1: "Level 1 - Highly Reliable",
+    2: "Level 2 - Trusted",
+    3: "Level 3 - Developmental",
+    4: "Level 4 - Experimental",
+    5: "Level 5 - Obsolete",
+}
+
 
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
@@ -132,54 +141,73 @@ tags:{tags_str}
 
 
 def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
-    """Create the metadata header for the documentation page."""
-    authors = metadata["authors"]
-    platforms = metadata["platforms"]
-    language = metadata["language"] if "language" in metadata else None
-    version = metadata["version"]
-    min_sdk_version = metadata["holoscan_sdk"]["minimum_required_version"]
-    tested_sdk_versions = metadata["holoscan_sdk"]["tested_versions"]
-    metric = metadata["ranking"]
+    """Create the metadata header for the documentation page.
 
-    metric_str = "Level 0 - Core Stable"
-    if metric == 1:
-        metric_str = "Level 1 - Highly Reliable"
-    if metric == 2:
-        metric_str = "Level 2 - Trusted"
-    if metric == 3:
-        metric_str = "Level 3 - Developmental"
-    if metric == 4:
-        metric_str = "Level 4 - Experimental"
-    if metric == 5:
-        metric_str = "Level 5 - Obsolete"
+    This function generates a formatted metadata header with icons and labels for display
+    on the documentation page. It includes information such as authors, platforms, language,
+    version information, and contribution metrics.
 
-    header_text = (
-        ":octicons-person-24: **Authors:** "
-        + ", ".join(f"{author['name']} ({author['affiliation']})" for author in authors)
-        + "<br>"
-    )
+    Args:
+        metadata (dict): Dictionary containing the application metadata
+        last_modified (str): String representing the last modification date
+        archive_version (str, optional): Version string for archived documentation. Default: None.
 
-    platforms_str = ", ".join(platforms)
-    header_text += f":octicons-device-desktop-24: **Supported platforms:** {platforms_str}<br>"
+    Returns:
+        str: Formatted HTML-like string containing the metadata header with icons and labels
+    """
+
+    # Safely extract metadata to handle missing keys
+    authors_str = None
+    if authors := metadata.get("authors"):
+        authors_str = ", ".join(
+            [f'{author.get("name", "")} ({author.get("affiliation", "")})' for author in authors]
+        )
+    platforms = metadata.get("platforms")
+    platforms_str = ", ".join(platforms) if platforms else None
+    language = metadata.get("language")
+    version = metadata.get("version")
+    hsdk_meta = metadata.get("holoscan_sdk")
+    min_sdk_version = hsdk_meta.get("minimum_required_version") if hsdk_meta else None
+    tested_sdk_versions = hsdk_meta.get("tested_versions") if hsdk_meta else None
+    tested_sdk_versions_str = ", ".join(tested_sdk_versions) if tested_sdk_versions else None
+    ranking = metadata.get("ranking")
+    ranking_str = RANKING_LEVELS.get(ranking)
+
+    # List inputs for creating metadata header lines
+    line_str_inputs = [
+        ("person", "Authors", authors_str),
+        ("device-desktop", "Supported platforms", platforms_str),
+    ]
 
     if language:
-        header_text += f":octicons-code-square-24: **Language:** {language}<br>"
+        line_str_inputs.append(("code-square", "Language", language))
 
-    header_text += f":octicons-clock-24: **Last modified:** {last_modified}<br>"
+    line_str_inputs.append(("clock", "Last modified", last_modified))
 
     if archive_version:
-        header_text += f":octicons-history-24: **Archive version:** {archive_version}<br>"
+        line_str_inputs.append(("history", "Archive version", archive_version))
     else:
-        header_text += f":octicons-tag-24: **Latest version:** {version}<br>"
+        line_str_inputs.append(("tag", "Latest version", version))
 
-    header_text += f":octicons-stack-24: **Minimum Holoscan SDK version:** {min_sdk_version}<br>"
+    line_str_inputs.extend(
+        [
+            ("stack", "Minimum Holoscan SDK version", min_sdk_version),
+            ("beaker", "Tested Holoscan SDK versions", tested_sdk_versions_str),
+            ("sparkle-fill", "Contribution metric", ranking_str),
+        ]
+    )
 
-    tested_vers_str = ", ".join(tested_sdk_versions)
-    header_text += f":octicons-beaker-24: **Tested Holoscan SDK versions:** {tested_vers_str}<br>"
+    # Generate lines strings
+    output_lines = []
+    for icon, label, value in line_str_inputs:
+        if not value:
+            logger.warning(f"Skipping metadata line: no value for '{label}'")
+            continue
 
-    header_text += f":octicons-sparkle-fill-24: **Contribution metric:** {metric_str}<br><br>"
+        output_lines.append(f":octicons-{icon}-24: **{label}:** {value}<br>")
 
-    return header_text
+    # Join the valid lines and add a line break
+    return "".join(output_lines) + "<br>"
 
 
 def _get_path_relative_to_repo(
