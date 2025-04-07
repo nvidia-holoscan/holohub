@@ -400,13 +400,13 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     # Create the linked header text
     header_with_url = f"[{header_text}]({url})"
 
-    # Restore the header symbols
+    # Restore the header symbols, force to h1
     if "#" in header_symbols:
         # ATX style: '#' sequence
-        new_header = f"{header_symbols} {header_with_url}"
+        new_header = f"# {header_with_url}"
     else:
         # Setext style: '===' or '---'
-        new_header = f"{header_with_url}\n{header_symbols}"
+        new_header = f"{header_with_url}\n==="
 
     # Append the metadata header
     new_header += f"\n{metadata_header}"
