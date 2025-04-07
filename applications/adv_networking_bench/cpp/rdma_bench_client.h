@@ -43,6 +43,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::initialize()");
     holoscan::Operator::initialize();
 
+    server_addr_ = inet_addr(server_addr_str_.get().c_str());
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaClientOp::initialize() complete");
   }
 
@@ -70,8 +71,6 @@ class AdvNetworkingRdmaClientOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<BurstParams*>("rdma_in");
-    spec.output<BurstParams*>("rdma_out");
     spec.param<uint32_t>(message_size_,
                          "message_size",
                          "Message size",
@@ -92,8 +91,16 @@ class AdvNetworkingRdmaClientOp : public Operator {
                          "Server port",
                          "Server port",
                          4096);
-
-    server_addr_ = inet_addr(server_addr_str_.get().c_str());
+    spec.param<bool>(writes_,
+                     "writes",
+                     "Writes",
+                     "Writes",
+                     true);
+    spec.param<bool>(reads_,
+                     "reads",
+                     "Reads",
+                     "Reads",
+                     false);
   }
 
 
@@ -126,6 +133,8 @@ class AdvNetworkingRdmaClientOp : public Operator {
   Parameter<uint32_t> message_size_;               // Message size in bytes
   Parameter<std::string> server_addr_str_;         // Server address
   Parameter<uint16_t> server_port_;              // Server port
+  Parameter<bool> writes_;                        // Writes
+  Parameter<bool> reads_;                         // Reads
 };
 
 }  // namespace holoscan::ops

@@ -717,16 +717,6 @@ namespace holoscan::advanced_network {
         return;
       }
 
-      // // Create a protection domain
-      // auto pd = ibv_alloc_pd(s_id->verbs);
-      // if (pd == nullptr) {
-      //   HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
-      //   return;
-      // }
-
-      // pd_params_[s_id].pd = pd;
-      // pd_map_[s_id->verbs][s_id->port_num] = pd;
-
       ret = rdma_listen(s_id, intf.rx_.queues_.size());
       if (ret != 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to listen for RDMA server: {}", errno);
@@ -753,6 +743,7 @@ namespace holoscan::advanced_network {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
           // Sleep for 500 microseconds and try again  
           usleep(500);
+          continue;
         }
 
         HOLOSCAN_LOG_INFO("Failed to get CM event: {}", errno);
@@ -1048,15 +1039,15 @@ namespace holoscan::advanced_network {
       }
     }
 
-    auto main_thread = std::thread(&RdmaMgr::run, this);
-
-    HOLOSCAN_LOG_INFO("Waiting for main thread to complete");
-    main_thread.join();
+    main_thread_ = std::thread(&RdmaMgr::run, this);
   }
 
   void RdmaMgr::shutdown() {
     HOLOSCAN_LOG_INFO("RDMA ANO manager shutting down");
     rdma_force_quit.store(true);
+
+    HOLOSCAN_LOG_INFO("Waiting for main thread to complete");
+    main_thread_.join();    
   } 
 
   void RdmaMgr::init_client() {
@@ -1076,7 +1067,14 @@ namespace holoscan::advanced_network {
   }
 
   std::optional<uint16_t> RdmaMgr::get_port_from_ifname(const std::string &name) {
-    // TODO: Implement get_port_from_ifname
+    // Look up port owning the IP address passed in
+    for (const auto& intf : cfg_.ifs_) {
+      HOLOSCAN_LOG_INFO("intf.name_ {} {}", intf.name_, name);
+      if (intf.name_ == name) {
+        return intf.port_id_;
+      }
+    }
+    
     return std::nullopt;
   }
 

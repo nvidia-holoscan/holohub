@@ -40,7 +40,7 @@ advanced_network:
       affinity: 0
       access:
         - local
-      num_bufs: 51200
+      num_bufs: 1
       buf_size: 900000
     - name: "Data_RX_GPU_SERVER"
       kind: "device"
@@ -54,7 +54,7 @@ advanced_network:
       affinity: 0
       access:
         - local
-      num_bufs: 51200
+      num_bufs: 1
       buf_size: 900000
     - name: "Data_RX_GPU_CLIENT"
       kind: "device"
@@ -68,7 +68,7 @@ advanced_network:
     - name: data1
       rdma_mode: client
       rdma_transport_mode: RC
-      address: 192.168.2.1       # The BUS address of the interface doing Tx
+      address: 192.168.2.1       # The address to use, or leave blank for auto-detect
       tx:
         - queues:
           - name: "ADC Samples"

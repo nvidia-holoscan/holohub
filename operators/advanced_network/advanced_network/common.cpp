@@ -309,14 +309,14 @@ Status adv_net_init(NetworkConfig &config) {
     return Status::INTERNAL_ERROR;
   }
 
-  for (const auto& intf : config.ifs_) {
-    const auto& rx = intf.rx_;
-    auto port_opt = mgr->get_port_from_ifname(intf.address_);
-    if (!port_opt.has_value()) {
-      HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
-      return Status::INVALID_PARAMETER;
-    }
-  }
+  // for (const auto& intf : config.ifs_) {
+  //   const auto& rx = intf.rx_;
+  //   auto port_opt = mgr->get_port_from_ifname(intf.address_);
+  //   if (!port_opt.has_value()) {
+  //     HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
+  //     return Status::INVALID_PARAMETER;
+  //   }
+  // }
 
   return Status::SUCCESS;
 }

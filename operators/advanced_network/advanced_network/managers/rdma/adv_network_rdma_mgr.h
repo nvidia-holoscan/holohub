@@ -176,6 +176,7 @@ class RdmaMgr : public Manager {
     std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
     rdma_event_channel* cm_event_channel_;
     mutable std::mutex mutex_;
+    std::thread main_thread_;
     void rdma_thread(bool is_server, rdma_thread_params tparams);
     int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
     int rdma_register_mr(const MemoryRegionConfig &mr, void *ptr);

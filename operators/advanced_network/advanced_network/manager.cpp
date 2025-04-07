@@ -131,7 +131,6 @@ Status Manager::allocate_memory_regions() {
     mr.second.ttl_size_ = RTE_ALIGN_CEIL(mr.second.adj_size_ * mr.second.num_bufs_, GPU_PAGE_SIZE);
 
     if (mr.second.owned_) {
-      printf("here\n");
       switch (mr.second.kind_) {
         case MemoryKind::HOST:
           ptr = malloc(mr.second.ttl_size_);
@@ -149,7 +148,6 @@ Status Manager::allocate_memory_regions() {
           unsigned int flag = 1;
           const auto align = RTE_ALIGN_CEIL(mr.second.ttl_size_, GPU_PAGE_SIZE);
           CUdeviceptr cuptr;
-          printf("here2 %zu %zu\n", mr.second.adj_size_ , mr.second.num_bufs_);
           cudaSetDevice(mr.second.affinity_);
           cudaFree(0);  // Create primary context if it doesn't exist
           const auto alloc_res = cuMemAlloc(&cuptr, align);

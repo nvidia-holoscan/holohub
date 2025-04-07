@@ -618,8 +618,14 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
-          ifcfg.rdma_.mode_    = holoscan::advanced_network::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
-          ifcfg.rdma_.xmode_   = holoscan::advanced_network::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
+
+          try {
+            ifcfg.rdma_.mode_    = holoscan::advanced_network::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
+            ifcfg.rdma_.xmode_   = holoscan::advanced_network::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
+            ifcfg.rdma_.port_    = intf["rdma_port"].as<uint16_t>();            
+          } catch (const std::exception& e) {
+            // Non-RDMA config
+          }
           
           try {
             const auto& rx = intf["rx"];

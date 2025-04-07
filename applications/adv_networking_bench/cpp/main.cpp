@@ -112,6 +112,7 @@ class App : public holoscan::Application {
             "rdma_bench_server",
             from_config("rdma_bench_server"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_server);
       }
 
       if (rdma_client_en) {
@@ -119,6 +120,7 @@ class App : public holoscan::Application {
             "rdma_bench_client",
             from_config("rdma_bench_client"),
             make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_client);
       }
 
 #else
