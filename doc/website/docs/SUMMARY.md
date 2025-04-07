@@ -1,6 +1,0 @@
-* [Home](index.md)
-* [Workflows](workflows/)
-* [Applications](applications/)
-* [Operators](operators/)
-* [Tutorials](tutorials/)
-* [Benchmarks](benchmarks/)
