@@ -203,7 +203,7 @@ git checkout main
 #### Libraries are missing when building the application (Vulkan, OpenXR, etc)
 
 This error may indicate that you are building inside the default HoloHub container instead of the expected `volume_rendering_xr` container.
-Review the [build steps](#building-the-application) and ensure that you have launched the container with the appropriate
+Review the [build steps](#build-the-application) and ensure that you have launched the container with the appropriate
 `dev_container --img` option.
 
 #### Unexpected CMake errors

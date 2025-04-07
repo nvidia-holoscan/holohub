@@ -66,7 +66,7 @@ streams, respectively, but to enable both use the following:
 ```
 
 Note that building these operators requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
-be installed. See the [DDS Operator Documentation](../../operators/dds/README.md)
+be installed. See the [DDS Operator Documentation](/operators/dds/video/README.md)
 for more information on how to build the operators. If using a development
 container, see the [additional instructions below](#using-a-development-container-with-dds-support).
 

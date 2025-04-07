@@ -41,7 +41,7 @@ The repository hosts a variety of applications that demonstrate how to use Holos
     Reference workflows demonstrate how capabilities from applications and operators can be combined
     to achieve complex tasks.
 
-    [Browse Workflows](workflows){ .md-button .md-button }
+    [Browse Workflows](workflows/index.md){ .md-button .md-button }
 
 
 -   :material-apps:{ .lg } __Applications__ (#applications)
@@ -51,7 +51,7 @@ The repository hosts a variety of applications that demonstrate how to use Holos
     Reference applications demonstrate a specific capability of Holoscan or how a specific operator
     can be used to perform an optimize task.
 
-    [Browse Applications](applications){ .md-button .md-button }
+    [Browse Applications](applications/index.md){ .md-button .md-button }
 
 -   :material-code-greater-than:{ .lg } __Operators__ (#operators)
 
@@ -59,7 +59,7 @@ The repository hosts a variety of applications that demonstrate how to use Holos
 
     Operators perform a specific task.
 
-    [Browse Operators](operators){ .md-button .md-button }
+    [Browse Operators](operators/index.md){ .md-button .md-button }
 
 -   :material-book-open-variant-outline:{ .lg } __Tutorials__ (#tutorials)
 
@@ -67,7 +67,7 @@ The repository hosts a variety of applications that demonstrate how to use Holos
 
     Tutorials provide hands-on experience.
 
-    [Browse Tutorials](tutorials){ .md-button .md-button }
+    [Browse Tutorials](tutorials/index.md){ .md-button .md-button }
 
 
 -   :material-chart-box-outline:{ .lg } __Benchmarks__ (#benchmarks)
@@ -76,7 +76,7 @@ The repository hosts a variety of applications that demonstrate how to use Holos
 
     Benchmarks provide tools for assessing performance of Holoscan pipelines as well as reference benchmarks for specific releases
 
-    [Browse Benchmarks](benchmarks){ .md-button .md-button }
+    [Browse Benchmarks](benchmarks/index.md){ .md-button .md-button }
 
 
 
