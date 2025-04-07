@@ -73,8 +73,6 @@ plugins:
             - ../sub-packages/*/src
   - include_dir_to_nav:
       file_pattern: '.*\.(md|ipynb)$'
-  - literate-nav:
-      nav_file: SUMMARY.md
   - site-urls
 
 watch:
