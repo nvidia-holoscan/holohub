@@ -597,6 +597,9 @@ nav:
             # Add archives to nav file
             nav_content += f'  - "{version}": {version}.md\n'
 
+    # Add remaining pages to nav file
+    nav_content += "  - '*'"
+
     # Write nav file
     with mkdocs_gen_files.open(nav_path, "w") as nav_file:
         nav_file.write(nav_content)
