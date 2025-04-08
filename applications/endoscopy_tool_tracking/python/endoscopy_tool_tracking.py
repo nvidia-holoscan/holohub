@@ -36,7 +36,8 @@ from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 
 # Enable this line for Yuam capture card
 # from holohub.qcap_source import QCAPSourceOp
-# from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
+
+from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 # Enable this line for DELTACAST capture card
 # from holohub.videomaster import VideoMasterSourceOp, VideoMasterTransmitterOp
