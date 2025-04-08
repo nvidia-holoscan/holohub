@@ -229,7 +229,7 @@ class EndoscopyApp(Application):
                 num_blocks=tool_tracking_postprocessor_num_blocks,
             ),
         )
-        
+
         visualizer_allocator = None
         should_use_allocator = record_type == "visualizer" and self.source == "replayer"
         if source_name == "deltacast":
@@ -244,7 +244,9 @@ class EndoscopyApp(Application):
                 name="holoviz",
                 width=width,
                 height=height,
-                enable_render_buffer_input=is_overlay_enabled if source_name != "deltacast" else None,
+                enable_render_buffer_input=(
+                    is_overlay_enabled if source_name != "deltacast" else None
+                ),
                 enable_render_buffer_output=is_overlay_enabled or record_type == "visualizer",
                 allocator=visualizer_allocator,
                 cuda_stream_pool=cuda_stream_pool,
