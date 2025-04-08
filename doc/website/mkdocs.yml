@@ -65,6 +65,7 @@ plugins:
       version_selector: true
       css_dir: "assets/css"
       javascript_dir: "assets/js"
+  - awesome-nav
   - mkdocstrings:
       handlers:
         python:
@@ -72,9 +73,16 @@ plugins:
             - ../sub-packages/*/src
   - include_dir_to_nav:
       file_pattern: '.*\.(md|ipynb)$'
-  - literate-nav:
-      nav_file: SUMMARY.md
   - site-urls
+
+watch:
+  - ../../applications
+  - ../../operators
+  - ../../tutorials
+  - ../../benchmarks
+  - ../../workflows
+  - overrides
+  - scripts
 
 markdown_extensions:
   - attr_list
@@ -97,7 +105,7 @@ markdown_extensions:
       alternate_style: true
   - toc:
       title: On this page
-      permalink: true
+      permalink: "#"
       toc_depth: '1-4'
   - def_list
   - admonition

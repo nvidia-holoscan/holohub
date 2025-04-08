@@ -217,7 +217,6 @@ class DocaMgr : public Manager {
   void free_all_packets(BurstParams* burst) override{};
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
-  std::optional<uint16_t> get_port_from_ifname(const std::string& name) override;
 
   Status get_rx_burst(BurstParams** burst) override;
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
@@ -226,7 +225,6 @@ class DocaMgr : public Manager {
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
   Status get_mac_addr(int port, char* mac) override;
-  int address_to_port(const std::string& addr) override;
   void shutdown() override;
   void print_stats() override;
   bool validate_config() const override;

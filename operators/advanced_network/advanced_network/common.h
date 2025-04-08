@@ -362,15 +362,15 @@ int64_t get_q_id(BurstParams* burst);
 /**
  * @brief Get mac address of an interface
  *
- * @param addr Address of interface from config file
- * @param port Port ID of interface
+ * @param port Port number of interface
+ * @param mac MAC address of interface
  *
  * @returns Status::SUCCESS on success
  */
 Status get_mac_addr(int port, char* mac);
 
 /**
- * @brief Get mac address of an interface
+ * @brief Get port number from interface name
  *
  * @param addr Address of interface from config file
  *
@@ -404,8 +404,6 @@ void set_header(BurstParams* burst, uint16_t port, uint16_t q, int64_t num, int 
  * @param addr MAC address as string in format xx:xx:xx:xx:xx:xx
  */
 void format_eth_addr(char* dst, std::string addr);
-
-std::optional<uint16_t> get_port_from_ifname(const std::string& name);
 
 /**
  * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done

@@ -21,7 +21,6 @@ find_package(holoscan 1.0 REQUIRED CONFIG
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vits.onnx"
     COMMAND mkdir -p ${HOLOHUB_DATA_DIR}/depth_anything_v2/
     COMMAND cp "/models/depth_anything_v2_vits.onnx" "${HOLOHUB_DATA_DIR}/depth_anything_v2/"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/depth_anything_v2/depth_anything_v2_vits.onnx"
     )
 
 # Download the testing video and trim
@@ -32,7 +31,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_path
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/depth_anything_v2/video.mp4" -t 6.4
               -c:v libx264 "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.mp4"
     COMMAND rm -rf "${HOLOHUB_DATA_DIR}/depth_anything_v2/video.mp4"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.mp4"
     VERBATIM
     )
 
@@ -43,8 +41,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_path
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/depth_anything_v2" --basename running_on_pathway --width 1280 --height 720 --framerate 50
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.gxf_index"
-               "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/depth_anything_v2/running_on_pathway.mp4"
     )
 

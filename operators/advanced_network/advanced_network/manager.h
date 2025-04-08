@@ -71,14 +71,13 @@ class Manager {
   virtual BurstParams* create_tx_burst_params() = 0;
 
   /* Internal functions used by ANO operators */
-  virtual std::optional<uint16_t> get_port_from_ifname(const std::string& name) = 0;
   virtual Status get_rx_burst(BurstParams** burst) = 0;
   virtual void free_rx_metadata(BurstParams* burst) = 0;
   virtual void free_tx_metadata(BurstParams* burst) = 0;
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;
   virtual Status send_tx_burst(BurstParams* burst) = 0;
   virtual Status get_mac_addr(int port, char* mac) = 0;
-  virtual int address_to_port(const std::string& addr) = 0;
+  virtual int address_to_port(const std::string& addr) final;  // NOLINT(readability/inheritance)
   virtual bool validate_config() const;
 
   virtual ~Manager() = default;

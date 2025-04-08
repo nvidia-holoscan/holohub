@@ -28,7 +28,7 @@
 #include <rte_ethdev.h>
 #endif
 #if ANO_MGR_RIVERMAX
-#include "adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
@@ -273,11 +273,6 @@ void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
 void* get_packet_ptr(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_packet_ptr(burst, idx);
-}
-
-std::optional<uint16_t> get_port_from_ifname(const std::string& name) {
-  ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->get_port_from_ifname(name);
 }
 
 void shutdown() {
