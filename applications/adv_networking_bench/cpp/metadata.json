@@ -23,7 +23,7 @@
 				"0.6.0"
 			]
 		},
-		"ranking": 1,
+		"ranking": 5,
 		"dependencies": {
 			"gxf_extensions": [{
 				"name": "advanced_networking_benchmark",
@@ -33,6 +33,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/adv_networking_bench adv_networking_bench_default_tx_rx.yaml",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

@@ -21,7 +21,7 @@
 				"0.6.0"
 			]
 		},
-		"ranking": 1,
+		"ranking": 5,
 		"dependencies": {
 			"operators": [{
 				"name": "adv_network_rx",
@@ -35,6 +35,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/main.py",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

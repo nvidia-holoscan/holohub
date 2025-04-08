@@ -31,7 +31,7 @@
             "SAR",
             "Synthetic Aperture"
         ],
-        "ranking": 4,
+        "ranking": 5,
         "dependencies": {
             "operators": [
                 {
@@ -43,6 +43,9 @@
         "run": {
             "command": "python3 ./holosar.py",
             "workdir": "holohub_app_source"
-        }
+        },
+        "code_structure_ranking": 3,
+        "usability_ranking": 1,
+        "efficiency_ranking": 1
     }
 }

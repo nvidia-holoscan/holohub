@@ -28,7 +28,7 @@
             "ASR",
             "Local-LLM"
 		],
-		"ranking": 4,
+		"ranking": 5,
 		"dependencies": {
             "python-packages": {
                 "requests": {
@@ -58,6 +58,9 @@
 		"run": {
 			"command": "python3 asr_to_llm.py",
 			"workdir": "holohub_app_source"
-		}
+		},
+		"code_structure_ranking": 5,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

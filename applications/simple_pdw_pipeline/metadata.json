@@ -34,6 +34,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/simple_pdw_pipeline",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

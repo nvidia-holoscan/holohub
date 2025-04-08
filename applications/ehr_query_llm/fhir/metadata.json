@@ -27,7 +27,7 @@
 			"FHIR service client",
 			"FHIR"
 		],
-		"ranking": 1,
+		"ranking": 5,
 		"dependencies": {
             "python-packages": {
                 "holoscan": {
@@ -51,6 +51,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/fhir_client.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 4,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

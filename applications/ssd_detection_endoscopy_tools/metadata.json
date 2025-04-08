@@ -21,7 +21,7 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["SSD", "bounding box", "Detection"],
-		"ranking": 2,
+		"ranking": 3,
 		"dependencies": {
 			"libraries": [{
 				"name": "numpy",
@@ -32,6 +32,9 @@
 				"version": "11.6.0"
 			}
             ]
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

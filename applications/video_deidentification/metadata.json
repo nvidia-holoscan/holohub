@@ -30,7 +30,7 @@
 			"Computer Vision",
 			"Detection"
 		],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet",
 			"libraries": [{
@@ -41,6 +41,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/video_deidentification.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

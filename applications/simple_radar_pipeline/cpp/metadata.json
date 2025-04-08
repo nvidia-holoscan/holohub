@@ -21,7 +21,7 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "RADAR"],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"libraries": [{
 			  "name": "MatX",
@@ -32,6 +32,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/simple_radar_pipeline",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

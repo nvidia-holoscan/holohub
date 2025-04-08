@@ -30,7 +30,7 @@
             "Augmented Reality",
             "VTK"
         ],
-        "ranking": 3,
+        "ranking": 5,
         "dependencies": {
             "data": [
                 {
@@ -44,6 +44,9 @@
         "run": {
             "command": "<holohub_app_bin>/orsi_segmentation_ar <holohub_app_bin>/orsi_segmentation_ar.yaml --data <holohub_data_dir>/orsi",
             "workdir": "holohub_bin"
-        }
+        },
+        "code_structure_ranking": 3,
+        "usability_ranking": 2,
+        "efficiency_ranking": 0
     }
 }

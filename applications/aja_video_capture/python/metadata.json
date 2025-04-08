@@ -25,12 +25,15 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Video", "AJA"],
-		"ranking": 0,
+		"ranking": 3,
 		"dependencies": {
 		},
 		"run": {
 			"command": "python3 <holohub_app_bin>/aja_capture.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

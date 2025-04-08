@@ -27,7 +27,7 @@
 			"Depth",
 			"AJA"
 		],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_depth_estimation_sample_data",
 			"opencv": "^4.8.0"
@@ -35,6 +35,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/endoscopy_depth_estimation.py --data <holohub_data_dir>/endoscopy --model <holohub_data_dir>/endoscopy_depth",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

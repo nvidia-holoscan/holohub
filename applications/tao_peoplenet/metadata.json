@@ -29,13 +29,16 @@
 			"Computer Vision",
 			"Detection"
 		],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/tao_peoplenet.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 1,
+		"usability_ranking": 3,
+		"efficiency_ranking": 0
 	}
 }

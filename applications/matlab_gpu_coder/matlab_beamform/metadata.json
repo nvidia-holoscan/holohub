@@ -32,7 +32,7 @@
 			"Beamforming",
 			"CUDA"
 		],
-		"ranking": 4,
+		"ranking": 6,
 		"dependencies": {
 			"operators": [
 				{
@@ -40,6 +40,9 @@
 					"version": "R2023b"
 				}
 			]
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 2,
+		"efficiency_ranking": 1
 	}
 }

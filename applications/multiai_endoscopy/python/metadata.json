@@ -63,6 +63,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/multi_ai.py --data <holohub_data_dir>/",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

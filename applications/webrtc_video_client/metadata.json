@@ -27,7 +27,7 @@
 			"Client",
 			"Video"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {
 			"libraries": [
 				{
@@ -43,6 +43,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/webrtc_client.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

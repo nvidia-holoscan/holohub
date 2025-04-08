@@ -25,11 +25,14 @@
 		"tags": [
 			"Object detection"
 		],
-		"ranking": 1,
+		"ranking": 3,
 		"dependencies": {},
 		"run": {
 			"command": "./object_detection_torch --data <holohub_data_dir>/object_detection_torch",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

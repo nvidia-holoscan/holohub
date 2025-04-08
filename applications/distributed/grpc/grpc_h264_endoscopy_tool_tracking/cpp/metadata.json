@@ -30,7 +30,7 @@
 			"Video Decoding",
 			"Video Encoding"
 		],
-		"ranking": 0,
+		"ranking": 4,
 		"dependencies": {
 			"operators": [
 				{
@@ -54,6 +54,9 @@
 		"run": {
 			"command": "./launch.sh --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

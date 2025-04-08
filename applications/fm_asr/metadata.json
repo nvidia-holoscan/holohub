@@ -52,6 +52,9 @@
 		"run": {
 			"command": "./fm_asr_app.py holoscan.yml",
 			"workdir": "holohub_app_source"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

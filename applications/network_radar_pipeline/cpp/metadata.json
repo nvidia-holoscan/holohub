@@ -21,7 +21,7 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
-		"ranking": 2,
+		"ranking": 3,
 		"dependencies": {
 			"operators": [{
 				"name": "basic_network",
@@ -39,6 +39,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/network_radar_pipeline",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

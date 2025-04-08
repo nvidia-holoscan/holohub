@@ -26,7 +26,7 @@
 			"Segmentation",
 			"Hyperspectral"
 		],
-		"ranking": 2,
+		"ranking": 3,
 		"dependencies": {
 			"blosc": "^1.11.1",
 			"torch": "^2.1.0",
@@ -44,6 +44,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/hyperspectral_segmentation.py --output_folder <holohub_app_source>/ --data <holohub_data_dir>/hyperspectral/data --model <holohub_data_dir>/hyperspectral",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

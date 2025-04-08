@@ -49,6 +49,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/velodyne_lidar_app <holohub_app_source>/lidar.yaml",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

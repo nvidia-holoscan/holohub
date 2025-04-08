@@ -16,7 +16,7 @@
 						"tested_versions": [ "0.5.0" ] },
 		"platforms": ["x86_64"],
 		"tags": ["Life Sciences, Aerospace, Defense, Communications"],
-		"ranking": 2,
+		"ranking": 7,
 		"dependencies": {
 			"libraries": [{
 				"name": "numpy",
@@ -30,6 +30,9 @@
 				"name": "cunumeric",
 				"version": "23.03"
 			}]
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 2,
+		"efficiency_ranking": 2
 	}
 }

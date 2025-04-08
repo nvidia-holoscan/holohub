@@ -25,11 +25,14 @@
 		"tags": [
 			"Holoviz HDR","BT.2020","ST.2084","EOTF"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_hdr",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

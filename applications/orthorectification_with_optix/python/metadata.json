@@ -26,7 +26,7 @@
 			"Drone",
 			"OptiX"
 		],
-		"ranking": 4,
+		"ranking": 2,
 		"dependencies": {
 			"OptiX-SDK": {
 				"version": "4.7.0"
@@ -34,6 +34,9 @@
 			"OptiX-Toolit": {
 				"version": "0.8.1"
 			}
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

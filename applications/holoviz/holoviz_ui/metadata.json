@@ -25,11 +25,14 @@
 		"tags": [
 			"Holoviz UI"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_ui",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

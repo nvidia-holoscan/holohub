@@ -20,7 +20,7 @@
 		},
 		"platforms": ["x86_64"],
 		"tags": ["Aerospace, Defense, Communications"],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"libraries": [{
 				"name": "numpy",
@@ -38,6 +38,9 @@
 		"run": {
 			"command": "python3 simple_radar_pipeline.py",
 			"workdir": "holohub_app_source"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

@@ -26,11 +26,14 @@
 			"Ultrasound",
 			"MultiAI"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/multiai_ultrasound --data <holohub_data_dir>/multiai_ultrasound",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

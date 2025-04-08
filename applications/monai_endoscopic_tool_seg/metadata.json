@@ -27,13 +27,16 @@
 			"Endoscopy",
 			"Segmentation"
 		],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {
 			"libraries": []
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/tool_segmentation.py --data <holohub_data_dir>",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }
