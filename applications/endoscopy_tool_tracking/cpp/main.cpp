@@ -179,7 +179,11 @@ class App : public holoscan::Application {
 
     if (this->visualizer_name == "holoviz") {
       std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-      if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
+      if (((record_type_ == Record::VISUALIZER) && (source_ == "replayer"))
+#ifdef DELTACAST_VIDEOMASTER
+          || overlay_enabled
+#endif
+    ) {
         visualizer_allocator =
             make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
       }
@@ -188,7 +192,9 @@ class App : public holoscan::Application {
           from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
           Arg("width") = width,
           Arg("height") = height,
+#ifndef DELTACAST_VIDEOMASTER
           Arg("enable_render_buffer_input") = overlay_enabled,
+#endif
           Arg("enable_render_buffer_output") =
               overlay_enabled || (record_type_ == Record::VISUALIZER),
           Arg("allocator") = visualizer_allocator,
