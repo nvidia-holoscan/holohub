@@ -17,70 +17,74 @@
 import os
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import patch
 
 # Add the utilities directory to the Python path
-sys.path.append(str(Path(os.getcwd()) / 'utilities'))
+sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.container import HoloHubContainer
+
 
 class TestHoloHubContainer(unittest.TestCase):
     def setUp(self):
         self.project_metadata = {
-            'project_name': 'test_project',
-            'source_folder': Path('/test/path'),
-            'metadata': {
-                'language': 'cpp',
-                'dockerfile': '<holohub_app_source>/Dockerfile'
-            }
+            "project_name": "test_project",
+            "source_folder": Path("/test/path"),
+            "metadata": {"language": "cpp", "dockerfile": "<holohub_app_source>/Dockerfile"},
         }
         self.container = HoloHubContainer(project_metadata=self.project_metadata)
 
     def test_default_base_image(self):
         """Test that default base image is correctly formatted"""
         base_image = HoloHubContainer.default_base_image()
-        self.assertTrue(base_image.startswith('nvcr.io/nvidia/clara-holoscan/holoscan:'))
+        self.assertTrue(base_image.startswith("nvcr.io/nvidia/clara-holoscan/holoscan:"))
 
     def test_default_image(self):
         """Test that default image name is correctly formatted"""
         image_name = HoloHubContainer.default_image()
-        self.assertTrue(image_name.startswith('holohub:ngc-'))
+        self.assertTrue(image_name.startswith("holohub:ngc-"))
 
     def test_dockerfile_path(self):
         """Test that Dockerfile path is correctly determined"""
         dockerfile_path = self.container.dockerfile_path
-        self.assertEqual(str(dockerfile_path), '/test/path/Dockerfile')
+        self.assertEqual(str(dockerfile_path), "/test/path/Dockerfile")
 
     def test_image_name(self):
         """Test that image name is correctly determined"""
         image_name = self.container.image_name
-        self.assertEqual(image_name, 'holohub:test_project')
+        self.assertEqual(image_name, "holohub:test_project")
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_build(self, mock_run):
         """Test container build command"""
         self.container.build()
         self.assertGreater(mock_run.call_count, 0)
         cmd = mock_run.call_args[0][0]
-        self.assertTrue('docker' in cmd)
-        self.assertTrue('build' in cmd)
-        self.assertTrue(str(self.container.dockerfile_path) in ' '.join(cmd), f"Dockerfile path {self.container.dockerfile_path} not found in command: {cmd}")
-        self.assertTrue(self.container.image_name in ' '.join(cmd), f"Image name {self.container.image_name} not found in command: {cmd}")
+        self.assertTrue("docker" in cmd)
+        self.assertTrue("build" in cmd)
+        self.assertTrue(
+            str(self.container.dockerfile_path) in " ".join(cmd),
+            f"Dockerfile path {self.container.dockerfile_path} not found in command: {cmd}",
+        )
+        self.assertTrue(
+            self.container.image_name in " ".join(cmd),
+            f"Image name {self.container.image_name} not found in command: {cmd}",
+        )
 
-    @patch('subprocess.run')
-    @patch('subprocess.check_output')
+    @patch("subprocess.run")
+    @patch("subprocess.check_output")
     def test_run(self, mock_check_output, mock_run):
         """Test container run command"""
         mock_check_output.return_value = ""
         self.container.run()
         mock_run.assert_called_once()
         cmd = mock_run.call_args[0][0]
-        self.assertTrue('docker' in cmd)
-        self.assertTrue('run' in cmd)
-        self.assertTrue('--runtime=nvidia' in cmd)
+        self.assertTrue("docker" in cmd)
+        self.assertTrue("run" in cmd)
+        self.assertTrue("--runtime=nvidia" in cmd)
         self.assertTrue(self.container.image_name in cmd)
 
 
-if __name__ == '__main__':
-    unittest.main() 
+if __name__ == "__main__":
+    unittest.main()

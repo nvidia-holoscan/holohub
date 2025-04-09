@@ -21,6 +21,7 @@ import json
 import logging
 import os
 from pathlib import Path
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -88,7 +89,7 @@ def generate_build_and_run_command(metadata: dict) -> str:
 def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
     """
     Collect project metadata from JSON files into a single dictionary
-    
+
     This function will return a list of dictionaries, each containing metadata for a project.
 
     :input:
@@ -99,7 +100,15 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
     :return:
         A list of dictionaries, each containing metadata for a project.
     """
-    SCHEMA_TYPES = ["application", "benchmark", "gxf_extension", "package", "operator", "tutorial", "workflow"]
+    SCHEMA_TYPES = [
+        "application",
+        "benchmark",
+        "gxf_extension",
+        "package",
+        "operator",
+        "tutorial",
+        "workflow",
+    ]
 
     metadata_files = find_metadata_files(repo_paths)
     metadata = []
@@ -112,13 +121,17 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
         with open(file_path, "r") as file:
             try:
                 entries = json.load(file)
-                entries = entries if type(entries) == list else [entries]
+                entries = entries if type(entries) is list else [entries]
 
                 for data in entries:
                     try:
                         schema_type = next(key for key in data.keys() if key in SCHEMA_TYPES)
                     except StopIteration:
-                        logger.error('No valid schema type found in metadata file "%s". Available keys: %s', file_path, ', '.join(data.keys()))
+                        logger.error(
+                            'No valid schema type found in metadata file "%s". Available keys: %s',
+                            file_path,
+                            ", ".join(data.keys()),
+                        )
                         continue
 
                     data["project_type"] = schema_type
