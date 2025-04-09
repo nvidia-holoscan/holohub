@@ -24,7 +24,7 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 
-# Enable this line for DELTACAST capture card (linter issue)
+# Uncomment UnboundedAllocator to enable DELTACAST capture card (linter issue)
 from holoscan.resources import (  # UnboundedAllocator,
     BlockMemoryPool,
     CudaStreamPool,
@@ -38,7 +38,7 @@ from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 # from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
-# Enable this line for DELTACAST capture card
+# Uncomment to enable DELTACAST capture card
 # from holohub.videomaster import VideoMasterSourceOp, VideoMasterTransmitterOp
 
 
@@ -107,7 +107,7 @@ class EndoscopyApp(Application):
 
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
-            # Enable this line for DELTACAST capture card (linter issue)
+            # Uncomment to enable DELTACAST capture card (linter issue)
             # source = VideoMasterSourceOp(
             #     self,
             #     name="deltacast",
@@ -284,7 +284,7 @@ class EndoscopyApp(Application):
 
         if source_name == "deltacast":
             if is_overlay_enabled:
-                # Enable this line for DELTACAST capture card (linter issue)
+                # Uncomment to enable DELTACAST capture card (linter issue)
                 # overlayer = VideoMasterTransmitterOp(
                 #     self,
                 #     name="videomaster",
@@ -296,7 +296,7 @@ class EndoscopyApp(Application):
                 #     output=deltacast_kwargs.get("output", 0),
                 #     progressive=deltacast_kwargs.get("progressive", True),
                 #     framerate=deltacast_kwargs.get("framerate", 60),
-                #     enable_overlay=deltacast_kwargs.get("overlay", False),
+                #     enable_overlay=deltacast_kwargs.get("enable_overlay", False),
                 # )
                 overlay_format_converter = FormatConverterOp(
                     self,
@@ -305,7 +305,7 @@ class EndoscopyApp(Application):
                     **self.kwargs("deltacast_overlay_format_converter"),
                 )
                 self.add_flow(visualizer, overlay_format_converter, {("render_buffer_output", "")})
-                # Enable this line for DELTACAST capture card (linter issue)
+                # Uncomment to enable DELTACAST capture card (linter issue)
                 # self.add_flow(overlay_format_converter, overlayer)
             else:
                 visualizer_format_converter_videomaster = FormatConverterOp(
