@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": ["computer vision and perception", "video", "Bayer demosaicing", "photon to glass latency", "camera", "holoviz", "RDMA", "GPUDirect", "endoscopy"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

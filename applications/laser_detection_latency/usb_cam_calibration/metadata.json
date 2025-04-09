@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["computer vision and perception", "video", "homography matrix", "perspective correction", "camera", "holoviz", "detection", "image processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

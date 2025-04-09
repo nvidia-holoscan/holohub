@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Human Body Pose Estimation"
-		],
+		"tags": ["computer vision and perception", "video", "keypoint inference", "non max suppression", "human body pose estimation", "DDS", "holoviz", "video processing"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

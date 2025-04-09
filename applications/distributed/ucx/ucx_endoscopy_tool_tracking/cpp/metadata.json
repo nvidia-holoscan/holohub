@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Endoscopy", "Tracking"],
+		"tags": ["healthcare AI", "distributed", "LSTM model", "frame overlay", "endoscopy", "tool tracking", "holoviz", "video processing"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

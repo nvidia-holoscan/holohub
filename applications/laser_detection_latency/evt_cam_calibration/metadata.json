@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["computer vision and perception", "imaging", "perspective transformation", "calibration matrix export", "emergent", "camera", "holoviz", "detection"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

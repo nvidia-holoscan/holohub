@@ -35,10 +35,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Deltacast",
-			"VideoMaster"
-		],
+		"tags": ["networking and distributed computing", "video", "hardware accelerated transmission", "stream format adaptation", "Deltacast", "endoscopy", "RDMA", "video processing", "videomaster"],
 		"ranking": 2,
 		"dependencies": {},
 		"run": {

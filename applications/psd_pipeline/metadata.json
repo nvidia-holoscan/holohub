@@ -33,15 +33,7 @@
             ]
         },
         "platforms": ["x86_64"],
-        "tags": [
-            "Sensor",
-            "Processing",
-            "Utilities",
-            "PSD",
-            "FFT",
-            "SDR",
-            "IQ data"
-        ],
+        "tags": ["signal processing", "networking", "vita49", "spectral packetization", "FFT", "psd", "GPUDirect", "IQ data"],
         "ranking": 3,
         "dependencies": {
             "operators": [

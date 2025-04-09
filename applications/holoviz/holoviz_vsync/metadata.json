@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Holoviz vsync"
-		],
+		"tags": ["computer vision and perception", "visualization", "vertical blank synchronization", "frame rate capping", "holoviz vsync", "rendering", "visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

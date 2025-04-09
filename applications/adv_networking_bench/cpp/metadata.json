@@ -15,7 +15,7 @@
 			"1.1": "GPUDirect mode without header data split"
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
+		"tags": ["networking and distributed computing", "benchmark", "packet batching optimization", "header data split processing", "GPUDirect", "dpdk", "doca", "UDP"],
 		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",

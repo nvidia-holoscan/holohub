@@ -13,7 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"tags": ["networking and distributed computing", "distributed", "burst messaging", "dynamic configuration", "network", "UDP"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [

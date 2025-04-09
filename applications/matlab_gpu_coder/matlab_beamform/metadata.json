@@ -26,12 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"MATLAB",
-			"Ultrasound",
-			"Beamforming",
-			"CUDA"
-		],
+		"tags": ["healthcare AI", "visualization", "GPU code generation", "synthetic aperture focusing", "ultrasound", "beamforming", "visualization", "MATLAB", "signal processing"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

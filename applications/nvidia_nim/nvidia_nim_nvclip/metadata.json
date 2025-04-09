@@ -24,10 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["computer vision and perception", "integration", "multimodal embeddings comparison", "nim inference orchestration", "openai api", "multimodal model", "nim", "computer vision"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Networking",
-			"Network",
-			"UDP",
-			"IP"
-		],
+		"tags": ["networking and distributed computing", "distributed", "burst messaging", "dynamic configuration", "network", "UDP"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

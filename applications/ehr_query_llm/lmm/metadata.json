@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"EHR",
-			"LLM",
-			"RAG"
-		],
+		"tags": ["healthcare AI", "language model", "modular agent framework", "cuda optimized embeddings", "ehr", "RAG", "automatic speech recognition", "vector database"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

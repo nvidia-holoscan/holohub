@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Colonoscopy",
-			"Classification"
-		],
+		"tags": ["healthcare AI", "visualization", "morphological contour generation", "video mask overlay", "colonoscopy", "segmentation", "holoviz", "AJA"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

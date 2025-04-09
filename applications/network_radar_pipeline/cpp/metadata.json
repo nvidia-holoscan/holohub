@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
+		"tags": ["signal processing", "networking", "radar signal pipeline", "packet assembly", "GPUDirect", "radar", "dpdk", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"operators": [{

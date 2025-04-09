@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "video", "spinal image processing", "scoliosis measurement automation", "ultrasound", "segmentation", "holoviz", "AJA"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Network", "UDP", "Radar", "Electronic Support"],
+		"tags": ["signal processing", "radar", "pdw generation", "threshold based pulse extraction", "IQ data", "FFT", "radar", "UDP"],
 		"ranking": 4,
 		"dependencies": {
 			"gxf_extensions": [{

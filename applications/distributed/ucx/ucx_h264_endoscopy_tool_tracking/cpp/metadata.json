@@ -23,13 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA",
-			"Video Decoding",
-			"Video Encoding"
-		],
+		"tags": ["healthcare AI", "distributed", "H.264 stream processing", "surgical tool detection", "H.264", "video decoding", "tracking", "holoviz", "endoscopy"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

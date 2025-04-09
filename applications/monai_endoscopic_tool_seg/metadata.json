@@ -22,11 +22,7 @@
 		"platforms": [
 			"x86_64", "aarch64"
 		],
-		"tags": [
-			"MONAI",
-			"Endoscopy",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "video", "model conversion", "graph surgery", "MONAI", "segmentation", "endoscopy", "holoviz", "video processing"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []

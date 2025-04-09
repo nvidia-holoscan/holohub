@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Signal Processing", "RADAR"],
+		"tags": ["signal processing", "radar", "pulse compression", "range doppler map", "radar", "signal processing", "FFT", "detection"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

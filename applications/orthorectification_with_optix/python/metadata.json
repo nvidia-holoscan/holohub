@@ -21,11 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": [
-			"Orthorectification",
-			"Drone",
-			"OptiX"
-		],
+		"tags": ["computer vision and perception", "visualization", "orthophoto generation", "ray traced orthomosaic", "holoviz", "optix", "drone", "image processing", "sensor"],
 		"ranking": 4,
 		"dependencies": {
 			"OptiX-SDK": {

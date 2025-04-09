@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Server",
-			"Video"
-		],
+		"tags": ["networking and distributed computing", "video", "ice configuration", "frame replay", "WebRTC", "streaming", "server", "client"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["computer vision and perception", "visualization", "perspective calibration", "threshold based localization", "cv cuda", "camera", "detection", "tracking", "holoviz"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [
