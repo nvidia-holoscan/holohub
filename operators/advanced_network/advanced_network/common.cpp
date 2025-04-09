@@ -487,8 +487,8 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     q.common_.offloads_.reserve(offload.size());
     for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
-    return false;
+    // HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
+    // return false;
   }
   return true;
 }

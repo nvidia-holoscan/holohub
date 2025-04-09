@@ -86,6 +86,11 @@ class AdvNetworkingRdmaClientOp : public Operator {
                             "Server address",
                             "Server address",
                             "192.168.3.1");
+    spec.param<std::string>(client_addr_str_,
+                            "client_address",
+                            "Client address",
+                            "Client address",
+                            "192.168.2.1");                       
     spec.param<uint16_t>(server_port_,
                          "server_port",
                          "Server port",
@@ -113,6 +118,18 @@ class AdvNetworkingRdmaClientOp : public Operator {
     //   }
     // }
 
+    if (conn_id_ == 0) {
+      HOLOSCAN_LOG_INFO("Connecting to server at {}:{}", server_addr_str_.get(), server_port_.get());
+      auto res = rdma_connect_to_server(server_addr_str_.get(), server_port_.get(), &conn_id_);
+      if (res != Status::SUCCESS) {
+        HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", (int)res);
+        return;
+      }
+      else {
+        HOLOSCAN_LOG_INFO("Connected to server at {}:{} with ID: {}", server_addr_str_.get(), server_port_.get(), (void*)conn_id_);
+      }
+    }
+
     // auto burst = burst_opt.value();
     // auto burst_size = adv_net_get_num_pkts(burst);
 
@@ -124,7 +141,6 @@ class AdvNetworkingRdmaClientOp : public Operator {
   }
 
  private:
-  bool connected_ = false;
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   uint32_t server_addr_;
@@ -132,6 +148,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
   Parameter<bool> rdma_write_;               // Message size in bytes
   Parameter<uint32_t> message_size_;               // Message size in bytes
   Parameter<std::string> server_addr_str_;         // Server address
+  Parameter<std::string> client_addr_str_;         // Client address
   Parameter<uint16_t> server_port_;              // Server port
   Parameter<bool> writes_;                        // Writes
   Parameter<bool> reads_;                         // Reads

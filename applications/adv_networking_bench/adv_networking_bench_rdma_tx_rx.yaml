@@ -70,22 +70,21 @@ advanced_network:
       rdma_transport_mode: RC
       address: 192.168.2.1       # The address to use, or leave blank for auto-detect
       tx:
-        - queues:
-          - name: "ADC Samples"
-            id: 0
-            batch_size: 10240
-            cpu_core: 11
-            memory_regions:
-              - "Data_TX_GPU_CLIENT"
+        queues:
+        - name: "ADC Samples"
+          id: 0
+          batch_size: 10240
+          cpu_core: 11
+          memory_regions:
+            - "Data_TX_GPU_CLIENT"
       rx:
-        - queues:
-          - name: "Data"
-            id: 0
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU_CLIENT"
+        queues:
+        - name: "Data"
+          id: 0
+          cpu_core: 9
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU_CLIENT"
     - name: data2
       rdma_mode: server
       rdma_port: 4096
@@ -93,22 +92,21 @@ advanced_network:
       address: 192.168.3.1       # The BUS address of the interface doing Rx
       flow_isolation: true
       rx:
-        - queues:
-          - name: "Data"
-            id: 0
-            cpu_core: 9
-            batch_size: 10240
-            output_port: "bench_rx_out"
-            memory_regions:
-              - "Data_RX_GPU_SERVER"
+        queues:
+            - name: "Data"
+              id: 0
+              cpu_core: 9
+              batch_size: 10240
+              memory_regions:
+                - "Data_RX_GPU_SERVER"
       tx:
-        - queues:
-          - name: "ADC Samples"
-            id: 0
-            batch_size: 10240
-            cpu_core: 11
-            memory_regions:
-              - "Data_TX_GPU_SERVER"              
+        queues:
+        - name: "ADC Samples"
+          id: 0
+          batch_size: 10240
+          cpu_core: 11
+          memory_regions:
+            - "Data_TX_GPU_SERVER"              
 
 rdma_bench_server:
   server_address: 192.168.3.1

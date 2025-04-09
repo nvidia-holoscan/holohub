@@ -59,9 +59,6 @@ struct DPDKQueueConfig {
   std::vector<union rte_eth_rxseg> rx_useg;
 };
 
-
-using RxRings = std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES>;
-
 class DpdkMgr : public Manager {
  public:
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");

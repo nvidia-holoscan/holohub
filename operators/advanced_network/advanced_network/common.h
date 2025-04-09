@@ -626,7 +626,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           } catch (const std::exception& e) {
             // Non-RDMA config
           }
-          
+
           try {
             const auto& rx = intf["rx"];
             holoscan::advanced_network::RxConfig rx_cfg;
@@ -649,14 +649,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
               rx_cfg.queues_.emplace_back(std::move(q));
             }
 
-            for (const auto& flow_item : rx["flows"]) {
-              holoscan::advanced_network::FlowConfig flow;
-              if (!parse_flow_config(flow_item, flow)) {
-                HOLOSCAN_LOG_ERROR("Failed to parse FlowConfig");
-                return false;
+            try {
+              for (const auto& flow_item : rx["flows"]) {
+                holoscan::advanced_network::FlowConfig flow;
+                if (!parse_flow_config(flow_item, flow)) {
+                  HOLOSCAN_LOG_ERROR("Failed to parse FlowConfig");
+                  return false;
+                }
+
+                rx_cfg.flows_.emplace_back(std::move(flow));
               }
-              rx_cfg.flows_.emplace_back(std::move(flow));
-            }
+            } catch (const std::exception& e) {}
 
             ifcfg.rx_ = rx_cfg;
           } catch (const std::exception& e) {}  // No RX queues defined for this interface.

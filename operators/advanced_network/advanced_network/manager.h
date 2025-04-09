@@ -22,6 +22,8 @@
 
 namespace holoscan::advanced_network {
 
+using RxRings = std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES>;
+
 struct AllocRegion {
   std::string mr_name_;
   void* ptr_;
