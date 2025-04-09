@@ -23,11 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"gRPC"
-		],
+		"tags": ["healthcare AI", "distributed", "tool tracking accuracy", "remote inference offloading", "endoscopy", "gRPC", "video processing", "holoviz", "client server"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

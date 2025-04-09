@@ -22,11 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Quantum Computing",
-            "CUDA",
-            "VQE"
-        ],
+        "tags": ["integration and tools and other specialized applications", "integration", "hamiltonian simulation", "variational optimization", "quantum computing", "VQE"],
         "ranking": 4,
         "dependencies": {
             "cuda_quantum": "^0.4.0"

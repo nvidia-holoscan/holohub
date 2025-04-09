@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-            "Streaming",
-            "Ethernet",
-            "3DSlicer",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "networking", "headless rendering", "image guided therapy protocol", "3dslicer", "segmentation", "ultrasound", "colonoscopy", "network"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

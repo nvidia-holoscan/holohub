@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"MultiAI"
-		],
+		"tags": ["healthcare AI", "visualization", "keypoint detection", "cardiac view classification", "ultrasound", "multiai", "classification", "holoviz"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

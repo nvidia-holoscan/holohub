@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Segmentation",
-			"Hyperspectral"
-		],
+		"tags": ["healthcare AI", "visualization", "ONNX inference", "spectral cubes processing", "hyperspectral", "segmentation", "endoscopy", "claraviz"],
 		"ranking": 2,
 		"dependencies": {
 			"blosc": "^1.11.1",

@@ -21,10 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model"
-		],
+		"tags": ["healthcare AI", "audio", "clinical transcription pipeline", "multimodal report generation", "speech to text", "large language model", "openai api", "radiology imaging"],
 		"ranking": 2,
 		"dependencies": {
 			"openai-whisper": "^20230314",

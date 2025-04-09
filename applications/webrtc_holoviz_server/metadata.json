@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Server",
-			"Holoviz"
-		],
+		"tags": ["networking and distributed computing", "visualization", "dynamic geometry streaming", "web based pipeline control", "WebRTC", "holoviz", "server", "interactive", "streaming"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

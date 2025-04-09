@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Stereo"
-		],
+		"tags": ["computer vision and perception", "video", "stereo rectification", "disparity to heatmap conversion", "camera", "depth", "stereo", "holoviz", "video processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

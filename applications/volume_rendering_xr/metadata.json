@@ -57,14 +57,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["healthcare AI", "mixed reality", "volume interaction", "stereoscopic viewing", "OpenXR", "claraviz", "visualization", "volume"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

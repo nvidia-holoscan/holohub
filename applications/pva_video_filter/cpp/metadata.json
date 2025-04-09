@@ -29,9 +29,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": [
-            "PVA"
-        ],
+        "tags": ["computer vision and perception", "video", "unsharp masking", "workload offloading", "PVA", "image processing", "video processing", "holoviz", "endoscopy"],
         "ranking": 1,
         "dependencies": {},
         "run": {

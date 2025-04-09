@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Yolo Detection"
-		],
+		"tags": ["computer vision and perception", "video", "efficientnms_trt integration", "cross source video inference", "yolo detection", "object detection", "holoviz", "video processing", "bounding box"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

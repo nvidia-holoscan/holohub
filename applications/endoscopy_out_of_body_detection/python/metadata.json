@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Classification"
-		],
+		"tags": ["healthcare AI", "video", "confidence scoring", "frame based classification", "endoscopy", "detection", "classification", "video processing"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

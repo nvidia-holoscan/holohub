@@ -24,11 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Render",
-			"ClaraViz"
-		],
+		"tags": ["healthcare AI", "visualization", "transfer function configuration", "multi volume fusion", "claraviz", "holoviz", "volume", "rendering", "ct scan"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
