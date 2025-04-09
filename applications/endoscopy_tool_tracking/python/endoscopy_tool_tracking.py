@@ -296,7 +296,7 @@ class EndoscopyApp(Application):
                 #     output=deltacast_kwargs.get("output", 0),
                 #     progressive=deltacast_kwargs.get("progressive", True),
                 #     framerate=deltacast_kwargs.get("framerate", 60),
-                #     overlay=deltacast_kwargs.get("overlay", False),
+                #     enable_overlay=deltacast_kwargs.get("overlay", False),
                 # )
                 overlay_format_converter = FormatConverterOp(
                     self,
