@@ -237,8 +237,7 @@ class App : public holoscan::Application {
             Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
             Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
             Arg("pool") = make_resource<UnboundedAllocator>("pool"),
-            Arg("enable_overlay") = overlay_enabled
-          );
+            Arg("enable_overlay") = overlay_enabled);
         auto overlay_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
             "overlay_format_converter",
             from_config("deltacast_overlay_format_converter"),
