@@ -383,11 +383,11 @@ Status get_mac_addr(int port, char* mac);
 /**
  * @brief Get port number from interface name
  *
- * @param addr Address of interface from config file
+ * @param key PCIe address or config name of the interface to look up
  *
  * @returns Port number or -1 for not found
  */
-int address_to_port(const std::string& addr);
+int get_port_id(const std::string& key);
 
 /**
  * @brief Set the number of packets in a burst
