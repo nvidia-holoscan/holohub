@@ -4,7 +4,15 @@
     "description": "A tutorial demonstrating how to analyze and optimize real-time performance in Holoscan applications",
     "authors": [
       {
-        "name": "Holoscan Team",
+        "name": "Philip Schowitz",
+        "affiliation": "The University of British Columbia"
+      },
+       {
+        "name": "Arpan Gujarati",
+        "affiliation": "The University of British Columbia"
+      },
+      {
+        "name": "Soham Sinha",
         "affiliation": "NVIDIA"
       }
     ],
@@ -13,9 +21,9 @@
       "1.0.0": "Initial release"
     },
     "holoscan_sdk": {
-      "minimum_required_version": "3.0.0",
+      "minimum_required_version": "2.2.0",
       "tested_versions": [
-        "3.0.0"
+        "2.2.0"
       ]
     },
    "platforms": [
