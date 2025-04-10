@@ -6,6 +6,7 @@ project(vita49_psd_packetizer CXX)
 
 find_package(holoscan 2.5.0 REQUIRED CONFIG
   PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(matx CONFIG REQUIRED)
 
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
@@ -25,13 +26,6 @@ FetchContent_Declare(
     GIT_TAG v0.1.0
 )
 FetchContent_MakeAvailable(vita49_psd)
-
-FetchContent_Declare(
-  MatX
-  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.9.0
-)
-FetchContent_MakeAvailable(MatX)
 
 add_library(packetlib
     packet_sender.cpp

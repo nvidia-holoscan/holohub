@@ -9,14 +9,7 @@ enable_language(CUDA)
 
 find_package(holoscan 2.5.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-include(FetchContent)
-FetchContent_Declare(
-  MatX
-  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.9.0
-)
-FetchContent_MakeAvailable(MatX)
+find_package(matx CONFIG REQUIRED)
 
 add_library(high_rate_psd
   high_rate_psd.cu

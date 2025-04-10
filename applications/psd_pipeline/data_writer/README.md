@@ -26,7 +26,7 @@ With this, it creates: `data_writer_out_ch{channel_number}_bw{bandwidth_hz}_freq
 
 ## Requirements
 
-- [MatX](https://github.com/NVIDIA/MatX)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
 
 ## Configuration
 

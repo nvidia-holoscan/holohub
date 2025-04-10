@@ -27,7 +27,7 @@ destination UDP socket.
 ## Requirements
 
 - ConnectX 6 or 7 NIC for GPUDirect RDMA with packet size steering
-- [MatX](https://github.com/NVIDIA/MatX) (dependency)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
 - [vrtgen](https://github.com/Geontech/vrtgen) (dependency)
 
 ## Configuration
@@ -175,13 +175,17 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
 `0000:51:00.1`.
 
 ## Build & Run
-1. **Build** the development container from the ANO operator's directory:
+1. **Build** the development container in two steps:
    ```bash
+   # Build the ANO dev container
    ./dev_container build --docker_file ./operators/advanced_network/Dockerfile
+
+   # Add the psd-pipeline deps
+   ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v2.9.0-dgpu --img holohub-psd-pipeline:ngc-v2.9.0-dgpu
    ```
 2. **Launch** the development container with the command:
    ```bash
-   ./dev_container launch --as_root --img docker.io/library/holohub:ngc-v2.9.0-dgpu --docker_opts "--privileged"
+   ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v2.9.0-dgpu --docker_opts "--privileged"
    ```
 
 Once you are in the dev container:

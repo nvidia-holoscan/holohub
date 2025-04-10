@@ -22,7 +22,7 @@ UDP IP/port.
 
 ## Requirements
 
-- [MatX](https://github.com/NVIDIA/MatX) (dependency)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
 - [vrtgen](https://github.com/Geontech/vrtgen) (dependency, LGPL-3.0)
 - [vita49-psd](https://github.com/vts-i/vita49-psd) (dependency, LGPL-3.0)
 
