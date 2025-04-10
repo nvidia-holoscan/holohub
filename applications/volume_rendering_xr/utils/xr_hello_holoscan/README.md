@@ -1,6 +1,6 @@
 # XR "Hello Holoscan"
 
-This application provides a simple scene demonstrating mixed reality viewing with Holoscan SDK.
+This application provides a simple scene demonstrating mixed reality viewing with Holoscan SDK. It can be served as a testing tool for validating basic XR features.
 
 ![Stereo scene view](doc/screenshot.png)
 
@@ -24,10 +24,18 @@ The mixed reality demonstration scene includes:
 
 Refer to the [`volume_rendering_xr` README](/applications/volume_rendering_xr/README.md#prerequisites) for details on hardware, firmware, and software prerequisites.
 
-To run the application, run the following command in the HoloHub folder on your host machine:
+This utility is part of the `volume_rendering_xr` application suite. 
+
+
+### Running the Test Utility
+
+Run the following command in the top-level HoloHub folder to build and run the host application:
+
 ```bash
-./dev_container build_and_run xr_hello_holoscan
+./dev_container build_and_run volume_rendering_xr --run_args "xr_hello_holoscan"
 ```
+
+Note that without specifying the extra arguments, it will launch the main volume rendering application by default.
 
 To pair your Magic Leap 2 device with the host, open the QR Reader application in the ML2 headset and scan the QR code printed in console output on the host machine.
 
