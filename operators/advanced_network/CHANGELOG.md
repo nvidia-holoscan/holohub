@@ -6,7 +6,7 @@
 
 ### Breaking
 
-- Removed `get_port_from_ifname`. Use `address_to_port` instead.
+- Removed `get_port_from_ifname` and `address_to_port`. Use `get_port_id` instead.
 - Removed the `adv_network_tx` (`AdvNetworkOpTx`) and `adv_network_rx` operators. See https://github.com/nvidia-holoscan/holohub/pull/743. Instead:
   - Initialize your NIC with `advanced_network::adv_net_init` in your application.
   - In your custom Tx operator, replace `op_output.emit` with `advanced_network::send_tx_burst`.
@@ -14,10 +14,9 @@
 
 ### Non-Breaking
 
-- Common:
-  - `address_to_port` now also supports interface names as input, not just pcie addresses.
-  - Added `get_num_rx_queues` to get the number of RX queues for a given port.
-
+Common:
+- Added `get_port_id` to get the port ID for a given PCIe address or config name.
+- Added `get_num_rx_queues` to get the number of RX queues for a given port.
 
 
 ## 🚀 holoscan-networking 0.1

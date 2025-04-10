@@ -172,9 +172,9 @@ bool is_tx_burst_available(BurstParams* burst) {
   return g_ano_mgr->is_tx_burst_available(burst);
 }
 
-int address_to_port(const std::string& addr) {
+int get_port_id(const std::string& key) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->address_to_port(addr);
+  return g_ano_mgr->get_port_id(key);
 }
 
 Status get_tx_packet_burst(BurstParams* burst) {
@@ -303,7 +303,7 @@ Status adv_net_init(NetworkConfig &config) {
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
-    auto port = mgr->address_to_port(intf.address_);
+    auto port = mgr->get_port_id(intf.address_);
     if (port < 0) {
       HOLOSCAN_LOG_ERROR("Failed to get port from name {}", intf.address_);
       return Status::INVALID_PARAMETER;
