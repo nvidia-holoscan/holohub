@@ -193,16 +193,16 @@ Status Manager::allocate_memory_regions() {
 }
 
 /**
- * @brief Generic implementation of address_to_port that looks up port in config
+ * @brief Generic implementation of get_port_id that looks up port in config
  * This is a final method that cannot be overridden by subclasses.
  *
- * @param addr Address string to look up
+ * @param key PCIe address or config name of the interface to look up
  * @return int Port ID or -1 if not found
  */
-int Manager::address_to_port(const std::string& addr) {
+int Manager::get_port_id(const std::string& key) {
   for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == addr) { return intf.port_id_; }
-    if (intf.name_ == addr) { return intf.port_id_; }
+    if (intf.address_ == key) { return intf.port_id_; }
+    if (intf.name_ == key) { return intf.port_id_; }
   }
   return -1;
 }
