@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"SAM2 Model"
-		],
+		"tags": ["computer vision and perception", "video", "interactive query points", "mask selection logic", "sam2 model", "segmentation", "holoviz", "video processing", "visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"SAM2": {

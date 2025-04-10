@@ -20,7 +20,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
+    "tags": ["healthcare AI", "video", "tool tracking", "H.264 stream processing", "endoscopy", "video decoding", "holoviz", "H.264"],
     "ranking": 1,
     "dependencies": {
       "operators": [

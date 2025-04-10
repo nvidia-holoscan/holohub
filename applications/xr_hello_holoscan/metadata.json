@@ -55,14 +55,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["extended reality", "visualization", "xrsession operators", "stereo view pipeline", "xr", "OpenXR", "holoviz", "rendering", "stereo"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

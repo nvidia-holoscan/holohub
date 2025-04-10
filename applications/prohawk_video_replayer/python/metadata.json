@@ -21,10 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [
-			"Video Processing",
-			"Prohawk"
-		],
+		"tags": ["healthcare AI", "video", "preset vision filters", "degraded frame restoration", "prohawk", "holoviz", "video processing", "endoscopy"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

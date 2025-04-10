@@ -22,14 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Multiai",
-			"SSD",
-			"bounding box",
-			"Detection",
-			"MONAI",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "video", "tool localization", "concurrent inference pipelines", "holoviz", "segmentation", "detection", "endoscopy", "multiai"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

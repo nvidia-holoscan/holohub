@@ -20,7 +20,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["H.264", "Video Decoding"],
+    "tags": ["computer vision and perception", "visualization", "bitstream processing", "frame synchronization", "H.264", "video decoding", "holoviz", "endoscopy"],
     "ranking": 1,
     "dependencies": {
       "operators": [
