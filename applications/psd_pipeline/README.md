@@ -181,11 +181,11 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
    ./dev_container build --docker_file ./operators/advanced_network/Dockerfile
 
    # Add the psd-pipeline deps
-   ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v2.9.0-dgpu --img holohub-psd-pipeline:ngc-v2.9.0-dgpu
+   ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v3.1.0-dgpu --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
    ```
 2. **Launch** the development container with the command:
    ```bash
-   ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v2.9.0-dgpu --docker_opts "--privileged"
+   ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v3.1.0-dgpu --docker_opts "--privileged"
    ```
 
 Once you are in the dev container:
