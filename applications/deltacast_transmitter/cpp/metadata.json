@@ -5,17 +5,30 @@
 			{
 				"name": "Laurent Radoux",
 				"affiliation": "DELTACAST"
+			},
+			{
+				"name": "Pierre PERICK",
+				"affiliation": "DELTACAST"
 			}
 		],
 		"language": "C++",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
-			"1.0": "Initial Release"
+			"1.0": "Initial Release",
+			"1.1": "Fix common external video source parameters"
 		},
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
-				"0.5.0"
+				"0.5.0",
+				"2.9.0",
+				"3.0.0"
+			]
+		},
+		"videomaster_sdk": {
+			"minimum_required_version": "6.26.0",
+			"tested_versions": [
+				"6.29.0"
 			]
 		},
 		"platforms": [

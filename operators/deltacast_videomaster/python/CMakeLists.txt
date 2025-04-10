@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(deltacast_transmitter_apps LANGUAGES NONE)
 
-add_subdirectory(cpp)
+include(pybind11_add_holohub_module)
 
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET videomaster
+    CLASS_NAME "VideoMasterSourceOp, VideoMasterTransmitterOp"
+    SOURCES videomaster.cpp
+)

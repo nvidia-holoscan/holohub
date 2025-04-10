@@ -12,25 +12,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 cmake_minimum_required(VERSION 3.20)
-project(videomaster)
+project(deltacast_transmitter CXX)
 
-find_package(holoscan 0.5 REQUIRED CONFIG
+find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(videomaster SHARED
-  videomaster_source.hpp
-  videomaster_source.cpp
-  videomaster_transmitter.hpp
-  videomaster_transmitter.cpp
-  )
-add_library(holoscan::videomaster ALIAS videomaster)
+# CPP Applications
+add_executable(deltacast_transmitter
+  main.cpp
+)
 
-target_include_directories(videomaster INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(videomaster INTERFACE DELTACAST_VIDEOMASTER)
-target_link_libraries(videomaster holoscan::core)
+target_link_libraries(deltacast_transmitter
+  PRIVATE
+  holoscan::core
+  holoscan::ops::video_stream_replayer
+  holoscan::ops::format_converter
+  holoscan::videomaster
+)
 
-if(HOLOHUB_BUILD_PYTHON)
-    add_subdirectory(python)
-endif()
+# Copy config file
+add_custom_target(deltacast_transmitter_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "deltacast_transmitter.yaml"
+  BYPRODUCTS "deltacast_transmitter.yaml"
+)
+add_dependencies(deltacast_transmitter deltacast_transmitter_yaml)

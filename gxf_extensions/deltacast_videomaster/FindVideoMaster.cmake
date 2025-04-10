@@ -14,9 +14,9 @@
 # limitations under the License.
 
 # Find the main root of the SDK
-find_path(VideoMaster_SDK_DIR NAMES Include/VideoMasterHD_Core.h PATHS /usr/local/deltacast REQUIRED)
+find_path(VideoMaster_SDK_DIR NAMES VideoMasterHD_Core.h PATHS /usr/include/videomaster REQUIRED)
 
-find_path(VideoMaster_INCLUDE_DIR NAMES VideoMasterHD_Core.h PATHS ${VideoMaster_SDK_DIR}/Include REQUIRED)
+find_path(VideoMaster_INCLUDE_DIR NAMES VideoMasterHD_Core.h PATHS ${VideoMaster_SDK_DIR} REQUIRED)
 mark_as_advanced(VideoMaster_INCLUDE_DIR)
 
 find_library(videomasterhd_core
