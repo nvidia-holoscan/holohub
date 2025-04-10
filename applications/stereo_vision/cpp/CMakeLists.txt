@@ -80,7 +80,6 @@ add_custom_target(stereo_depth_yaml
 add_custom_command(
     OUTPUT "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/get_data_and_models.sh" "${HOLOHUB_DATA_DIR}/stereo_vision"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
     DEPENDS stereo_vision_data
 )
 
