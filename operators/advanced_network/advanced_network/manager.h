@@ -75,7 +75,7 @@ class Manager {
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;
   virtual Status send_tx_burst(BurstParams* burst) = 0;
   virtual Status get_mac_addr(int port, char* mac) = 0;
-  virtual int address_to_port(const std::string& addr) final;  // NOLINT(readability/inheritance)
+  virtual int get_port_id(const std::string& key) final;  // NOLINT(readability/inheritance)
   virtual bool validate_config() const;
   virtual uint16_t get_num_rx_queues(int port_id) const;
 

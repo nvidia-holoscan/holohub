@@ -167,7 +167,7 @@ void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize()");
   holoscan::Operator::initialize();
 
-  port_id_ = address_to_port(interface_name_.get());
+  port_id_ = get_port_id(interface_name_.get());
   if (port_id_ == -1) {
     HOLOSCAN_LOG_ERROR("Invalid RX port {} specified in the config", interface_name_.get());
     exit(1);
