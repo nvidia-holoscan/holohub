@@ -37,6 +37,9 @@
 		"run": {
 			"command": "python prohawk_video_replayer.py",
 			"workdir": "/workspace/holohub/applications/prohawk_video_replayer/python"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

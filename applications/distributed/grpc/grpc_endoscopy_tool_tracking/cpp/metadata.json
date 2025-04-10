@@ -27,7 +27,7 @@
 			"Tracking",
 			"gRPC"
 		],
-		"ranking": 0,
+		"ranking": 2,
 		"dependencies": {
 			"data": [
 				{
@@ -41,6 +41,9 @@
 		"run": {
 			"command": "./launch.sh --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

@@ -28,7 +28,7 @@
 			"UDP",
 			"IP"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {
 			"gxf_extensions": [
 				{
@@ -40,6 +40,9 @@
 		"run": {
 			"command": "<holohub_app_bin>/basic_networking_ping",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 0,
+		"efficiency_ranking": 1
 	}
 }

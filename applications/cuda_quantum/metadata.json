@@ -27,13 +27,16 @@
             "CUDA",
             "VQE"
         ],
-        "ranking": 4,
+        "ranking": 6,
         "dependencies": {
             "cuda_quantum": "^0.4.0"
         },
         "run": {
             "command": "pip install -r requirements.txt && python3 cuda_quantum.py",
             "workdir": "holohub_app_source"
-        }
+        },
+        "code_structure_ranking": 4,
+        "usability_ranking": 2,
+        "efficiency_ranking": 0
     }
 }

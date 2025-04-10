@@ -26,7 +26,7 @@
 			"Computer Vision",
 			"Yolo Detection"
 		],
-		"ranking": 2,
+		"ranking": 5,
 		"dependencies": {
 			"data": [
 				{
@@ -45,6 +45,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/yolo_detection.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 4,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

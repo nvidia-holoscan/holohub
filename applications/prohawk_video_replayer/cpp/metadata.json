@@ -38,6 +38,9 @@
 		"run": {
 			"command": "./prohawk_video_replayer --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

@@ -21,7 +21,7 @@
     },
     "platforms": ["x86_64", "aarch64"],
     "tags": ["H.264", "Video Decoding"],
-    "ranking": 1,
+    "ranking": 2,
     "dependencies": {
       "operators": [
         {
@@ -37,6 +37,9 @@
     "run": {
       "command": "./h264_video_decode h264_video_decode.yaml --data <holohub_data_dir>/endoscopy",
       "workdir": "holohub_app_bin"
-    }
+    },
+    "code_structure_ranking": 0,
+    "usability_ranking": 1,
+    "efficiency_ranking": 1
   }
 }

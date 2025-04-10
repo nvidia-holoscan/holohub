@@ -26,11 +26,14 @@
 			"Endoscopy",
 			"Stereo"
 		],
-		"ranking": 1,
+		"ranking": 5,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/stereo_depth",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 4,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

@@ -18,11 +18,14 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": [],
-		"ranking": 0,
+		"ranking": 3,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/realsense_visualizer",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 0,
+		"efficiency_ranking": 1
 	}
 }

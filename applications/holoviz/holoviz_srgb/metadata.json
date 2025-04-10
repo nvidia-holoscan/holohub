@@ -25,11 +25,14 @@
 		"tags": [
 			"Holoviz sRGB"
 		],
-		"ranking": 1,
+		"ranking": 3,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_srgb",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

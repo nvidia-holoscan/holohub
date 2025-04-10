@@ -26,7 +26,7 @@
 			"Colonoscopy",
 			"Classification"
 		],
-		"ranking": 1,
+		"ranking": 3,
 		"dependencies": {
 			"data": [
 				{
@@ -39,6 +39,9 @@
 		"run": {
 			"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation --no-contours",
 			"workdir": "holohub_app_source"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

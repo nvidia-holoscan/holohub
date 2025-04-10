@@ -20,7 +20,7 @@
 			},
 			"platforms": ["x86_64", "aarch64"],
 			"tags": ["LLM", "Vector Database", "AI-Assistant"],
-			"ranking": 4,
+			"ranking": 3,
 			"dependencies": {
 				"OSS": [
 					{
@@ -36,6 +36,9 @@
 			"run": {
 				"command": "<holohub_app_source>/holochat.sh",
 				"workdir": "holohub_app_source"
-			}
+			},
+			"code_structure_ranking": 3,
+			"usability_ranking": 0,
+			"efficiency_ranking": 0
 		}
 	}

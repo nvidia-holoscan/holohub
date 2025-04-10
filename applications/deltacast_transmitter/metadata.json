@@ -26,11 +26,14 @@
 			"Deltacast",
 			"VideoMaster"
 		],
-		"ranking": 2,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/deltacast_transmitter --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

@@ -31,7 +31,7 @@
 			"MONAI",
 			"MONAI Model Zoo"
 		],
-		"ranking": 1,
+		"ranking": 7,
 		"dependencies": {
             "python-packages": {
                 "holoscan": {
@@ -83,6 +83,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 5,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

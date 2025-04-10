@@ -21,7 +21,7 @@
     },
     "platforms": ["x86_64", "aarch64"],
     "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
-    "ranking": 1,
+    "ranking": 4,
     "dependencies": {
       "operators": [
         {
@@ -45,6 +45,9 @@
     "run": {
       "command": "<holohub_app_bin>/h264_endoscopy_tool_tracking h264_endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy",
       "workdir": "holohub_app_bin"
-    }
+    },
+    "code_structure_ranking": 3,
+    "usability_ranking": 1,
+    "efficiency_ranking": 0
   }
 }

@@ -29,7 +29,7 @@
 			"Video",
 			"Shapes"
 		],
-		"ranking": 2,
+		"ranking": 5,
 		"dependencies": {
 			"packages": [
 				{
@@ -44,6 +44,9 @@
 		"run": {
 			"command": "./dds_video",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 1,
+		"efficiency_ranking": 1
 	}
 }

@@ -20,7 +20,7 @@
 		},
 		"platforms": ["x86_64"],
 		"tags": ["Communications", "Aerospace", "Defence", "Lifesciences"],
-		"ranking": 2,
+		"ranking": 5,
 		"dependencies": {
 			"libraries": [{
 				"name": "numpy",
@@ -50,6 +50,9 @@
 		"run": {
 			"command": "python3 sdr_fm_demodulation.py",
 			"workdir": "holohub_app_source"
-		}
+		},
+		"code_structure_ranking": 4,
+		"usability_ranking": 1,
+		"efficiency_ranking": 0
 	}
 }

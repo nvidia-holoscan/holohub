@@ -25,7 +25,7 @@
 		"tags": [
 			"SAM2 Model"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"dependencies": {
 			"SAM2": {
 				"source": "https://github.com/facebookresearch/segment-anything-2",
@@ -37,6 +37,9 @@
 		"run": {
 			"command": "<holohub_app_source>/start.sh",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 0,
+		"efficiency_ranking": 0
 	}
 }

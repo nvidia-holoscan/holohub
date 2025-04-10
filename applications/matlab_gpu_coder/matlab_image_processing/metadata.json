@@ -33,7 +33,7 @@
 			"Computer Vision",
 			"CUDA"
 		],
-		"ranking": 4,
+		"ranking": 6,
 		"dependencies": {
 			"operators": [
 				{
@@ -41,6 +41,9 @@
 					"version": "R2023b"
 				}
 			]
-		}
+		},
+		"code_structure_ranking": 4,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

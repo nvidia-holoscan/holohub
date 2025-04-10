@@ -27,11 +27,14 @@
 			"OpenAI API",
 			"NIM"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

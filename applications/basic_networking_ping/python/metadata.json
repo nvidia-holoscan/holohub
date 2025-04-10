@@ -22,7 +22,7 @@
 				"2.2.0"
 			]
 		},
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {
 			"operators": [{
 				"name": "basic_network",
@@ -32,6 +32,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/basic_networking_ping.py",
 			"workdir": "holohub_app_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 0,
+		"efficiency_ranking": 1
 	}
 }

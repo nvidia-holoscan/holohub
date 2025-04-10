@@ -32,11 +32,14 @@
         "tags": [
             "PVA"
         ],
-        "ranking": 1,
+        "ranking": 3,
         "dependencies": {},
         "run": {
             "command": "<holohub_app_bin>/pva_video_filter",
             "workdir": "holohub_bin"
-        }
+        },
+        "code_structure_ranking": 2,
+        "usability_ranking": 1,
+        "efficiency_ranking": 0
     }
 }

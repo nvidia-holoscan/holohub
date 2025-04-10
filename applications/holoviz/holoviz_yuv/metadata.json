@@ -25,11 +25,14 @@
 		"tags": [
 			"Holoviz YUV","YCbCr"
 		],
-		"ranking": 1,
+		"ranking": 4,
 		"dependencies": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_yuv",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 2,
+		"usability_ranking": 2,
+		"efficiency_ranking": 0
 	}
 }

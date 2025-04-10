@@ -26,7 +26,7 @@
 			"Camera",
 			"Emergent"
 		],
-		"ranking": 1,
+		"ranking": 6,
 		"dependencies": {
 			"gxf_extensions": [
 				{
@@ -38,6 +38,9 @@
 		"run": {
 			"command": "python3 <holohub_app_source>/high_speed_endoscopy.py",
 			"workdir": "holohub_bin"
-		}
+		},
+		"code_structure_ranking": 3,
+		"usability_ranking": 3,
+		"efficiency_ranking": 0
 	}
 }
