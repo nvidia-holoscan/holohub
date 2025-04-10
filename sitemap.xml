@@ -325,6 +325,42 @@
          <lastmod>2025-04-10</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrFrameOp/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrFrameOp/begin_frame/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrFrameOp/convert_depth/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrFrameOp/end_frame/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrTransformOp/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/utils/xr_hello_holoscan/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/</loc>
+         <lastmod>2025-04-10</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/vpi_stereo/</loc>
          <lastmod>2025-04-10</lastmod>
     </url>
@@ -338,10 +374,6 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/webrtc_video_server/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/applications/xr_hello_holoscan/</loc>
          <lastmod>2025-04-10</lastmod>
     </url>
     <url>
@@ -370,30 +402,6 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrFrameOp/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrFrameOp/begin_frame/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrFrameOp/convert_depth/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrFrameOp/end_frame/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrTransformOp/XrTransformControlOp/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/XrTransformOp/XrTransformRenderOp/</loc>
          <lastmod>2025-04-10</lastmod>
     </url>
     <url>
@@ -510,10 +518,6 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/webrtc_server/</loc>
-         <lastmod>2025-04-10</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/xr_basic_render/</loc>
          <lastmod>2025-04-10</lastmod>
     </url>
     <url>
