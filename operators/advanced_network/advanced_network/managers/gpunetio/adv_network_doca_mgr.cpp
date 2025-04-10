@@ -1209,11 +1209,9 @@ int DocaMgr::rx_core(void* arg) {
   }
   pthread_setname_np(self, "RX_WORKER");
 
-// WAR for Holoscan management of threads.
-// Be sure application thread finished before launching other CUDA tasks
-#if RX_PERSISTENT_ENABLED == 1
-  sleep(5);
-#endif
+  // WAR for Holoscan management of threads.
+  // Be sure application thread finished before launching other CUDA tasks
+  sleep(2);
 
   HOLOSCAN_LOG_INFO(
       "Starting Rx Core {}, queues {}, GPU {}", tparams->core_id, tparams->rxqn, tparams->gpu_id);
@@ -1323,16 +1321,6 @@ int DocaMgr::rx_core(void* arg) {
 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
-  /*
-   * Something in the Holoscan/GXF lower layer imposes a GPU device synchronization
-   * which represent an issue when running CUDA persistent kernels.
-   * Still trying to root-cause the issue.
-   *
-   * For this reason, by default the ANO DOCA Rx CUDA kernel is set as non-persistent.
-   * Depending on the application, it worths to test if persistency can be used or not.
-   * Best for performance is to have it persistent.
-   */
-#if RX_PERSISTENT_ENABLED == 1
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
                               eth_rxq_gpu_list,
@@ -1341,26 +1329,13 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               true);
-#endif
 
   HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
   uint64_t loop_count = 0;
-  uint64_t loop_log_rate = 200;
+  uint64_t loop_log_rate = 100000000;
   while (!force_quit_doca.load()) {
     loop_count++;
-
-#if RX_PERSISTENT_ENABLED == 0
-    doca_receiver_packet_kernel(rx_stream,
-                                tparams->rxqn,
-                                eth_rxq_gpu_list,
-                                sem_gpu_list,
-                                sem_idx_gpu_list,
-                                batch_gpu_list,
-                                gpu_exit_condition,
-                                false);
-    cudaStreamSynchronize(rx_stream);
-#endif
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
       result = doca_gpu_semaphore_get_status(
