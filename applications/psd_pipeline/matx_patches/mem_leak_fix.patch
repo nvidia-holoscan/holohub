@@ -1,0 +1,26 @@
+From 6bda214428e7b46c002a46f71af0b856a7e7d12b Mon Sep 17 00:00:00 2001
+From: Cliff Burdick <30670611+cliffburdick@users.noreply.github.com>
+Date: Thu, 13 Mar 2025 19:49:02 -0700
+Subject: [PATCH] Fixed bug in sort() where memory was not properly freed
+ (#922)
+
+---
+ include/matx/transforms/cub.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/matx/transforms/cub.h b/include/matx/transforms/cub.h
+index c5aa9807..306fba55 100644
+--- a/include/matx/transforms/cub.h
++++ b/include/matx/transforms/cub.h
+@@ -1909,6 +1909,11 @@ void sort_impl(OutputTensor &a_out, const InputOperator &a,
+   }
+ 
+   detail::sort_impl_inner(a_out, tmp_in, dir, exec);
++
++  if (!done) {
++    // We need to free the temporary memory allocated above if we had to make a copy
++    matxFree(out_ptr, exec.getStream());
++  }
+ #endif
+ }
+ 

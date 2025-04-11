@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 
 find_package(holoscan 2.6.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(matx REQUIRED CONFIG)
 
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)

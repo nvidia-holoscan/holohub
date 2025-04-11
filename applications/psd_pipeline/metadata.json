@@ -28,7 +28,8 @@
                 "2.7.0",
                 "2.8.0",
                 "2.9.0",
-                "3.0.0"
+                "3.0.0",
+                "3.1.0"
             ]
         },
         "platforms": ["x86_64"],
@@ -53,10 +54,11 @@
               "name": "MatX",
               "version": "0.9.0",
               "url": "https://github.com/NVIDIA/MatX.git"
-            }, {
-              "name": "vrtgen",
-              "version": "master",
-              "url": "https://github.com/Geontech/vrtgen"
+            },
+            {
+              "name": "vita49-rs",
+              "version": "0.0.3",
+              "url": "https://github.com/voyager-tech-inc/vita49-rs"
             }]
         },
         "run": {

@@ -27,7 +27,7 @@ a few things:
 
 - [ANO](https://github.com/nvidia-holoscan/holohub/tree/main/operators/advanced_network)
   (and associated hardware)
-- [MatX](https://github.com/NVIDIA/MatX) (dependency)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
 
 ## Configuration
 
