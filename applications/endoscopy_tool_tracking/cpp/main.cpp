@@ -108,8 +108,9 @@ class App : public holoscan::Application {
 #ifdef DELTACAST_VIDEOMASTER
       source = make_operator<ops::VideoMasterSourceOp>(
           "deltacast",
-          from_config("deltacast"),
-          from_config("external_source"),
+          Arg("rdma") = use_rdma,
+          Arg("board") = from_config("deltacast.board").as<uint32_t>(),
+          Arg("input") = from_config("deltacast.input").as<uint32_t>(),
           Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 #endif
       source_block_size = width * height * 4 * 4;
@@ -179,7 +180,11 @@ class App : public holoscan::Application {
 
     if (this->visualizer_name == "holoviz") {
       std::shared_ptr<BlockMemoryPool> visualizer_allocator;
-      if ((record_type_ == Record::VISUALIZER) && source_ == "replayer") {
+      if (((record_type_ == Record::VISUALIZER) && (source_ == "replayer"))
+#ifdef DELTACAST_VIDEOMASTER
+          || overlay_enabled
+#endif
+    ) {
         visualizer_allocator =
             make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
       }
@@ -188,7 +193,9 @@ class App : public holoscan::Application {
           from_config(overlay_enabled ? "holoviz_overlay" : "holoviz"),
           Arg("width") = width,
           Arg("height") = height,
+#ifndef DELTACAST_VIDEOMASTER
           Arg("enable_render_buffer_input") = overlay_enabled,
+#endif
           Arg("enable_render_buffer_output") =
               overlay_enabled || (record_type_ == Record::VISUALIZER),
           Arg("allocator") = visualizer_allocator,
@@ -222,8 +229,15 @@ class App : public holoscan::Application {
         // Overlay buffer flow between source and visualizer
         auto overlayer = make_operator<ops::VideoMasterTransmitterOp>(
             "videomaster_overlayer",
-            from_config("deltacast"),
-            Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+            Arg("rdma") = use_rdma,
+            Arg("board") = from_config("deltacast.board").as<uint32_t>(),
+            Arg("output") = from_config("deltacast.output").as<uint32_t>(),
+            Arg("width") = width,
+            Arg("height") = height,
+            Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
+            Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
+            Arg("pool") = make_resource<UnboundedAllocator>("pool"),
+            Arg("enable_overlay") = overlay_enabled);
         auto overlay_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
             "overlay_format_converter",
             from_config("deltacast_overlay_format_converter"),

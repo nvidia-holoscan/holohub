@@ -76,7 +76,7 @@ class DeltacastTransmitterApp(Application):
             output=videomaster_kwargs.get("output", 0),
             progressive=videomaster_kwargs.get("progressive", True),
             framerate=videomaster_kwargs.get("framerate", 60),
-            overlay=videomaster_kwargs.get("overlay", False),
+            enable_overlay=videomaster_kwargs.get("enable_overlay", False),
         )
 
         # Define the data flow between operators
