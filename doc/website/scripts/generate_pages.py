@@ -481,6 +481,9 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     if "{{" in str(metadata_path):
         return
 
+    metadata_rel_path = metadata_path.relative_to(git_repo_path)
+    logger.info(f"Processing: {metadata_rel_path}")
+
     # Parse the metadata
     with metadata_path.open("r") as metadata_file:
         metadata = json.load(metadata_file)
@@ -491,7 +494,7 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     # Check valid component type
     component_type = f"{project_type}s"
     if component_type not in COMPONENT_TYPES:
-        logger.error(f"Skipping {metadata_path}: unknown type '{component_type}'")
+        logger.error(f"Skipping {metadata_rel_path}: unknown type '{component_type}'")
         return
 
     # Dirs & Paths
@@ -514,21 +517,25 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
         logger.error(f"Skipping {metadata_path}: no README in git repo {git_repo_path}")
         return
 
-    # Track components if in adequate directories
-    # Ex: don't track operators under application folders
-    if component_type == dest_dir.parts[0]:
-        components[component_type].add(dest_dir)
-    logger.info(f"Processing: {dest_dir}")
-    logger.debug(f"  for metadata_path: {metadata_path}")
+    # Identify language agnostic directory
+    language_agnostic_dir = metadata_dir
+    nbr_language_dirs = 0
+    if metadata_dir.name in ["cpp", "python"]:
+        language_agnostic_dir = metadata_dir.parent
+        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
+
+    # Track language agnostic components if in adequate directories
+    # Ex:
+    # - don't track operators under application folders
+    # - only track once for cpp and python
+    if component_type == metadata_rel_path.parts[0]:
+        components[component_type].add(language_agnostic_dir)
 
     # Prepare suffix with language info if it's a language-specific component
     suffix = ""
-    if metadata_dir.name in ["cpp", "python"] and readme_dir == metadata_dir:
-        language_agnostic_dir = metadata_dir.parent
-        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
-        if nbr_language_dirs > 1:
-            suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
-            suffix = f" ({suffix})"
+    if readme_dir == metadata_dir and nbr_language_dirs > 1:
+        suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
+        suffix = f" ({suffix})"
     logger.debug(f"suffix: {suffix}")
     title = metadata["name"] if "name" in metadata else metadata_path.name
     title += suffix
