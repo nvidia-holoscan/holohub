@@ -419,6 +419,27 @@ Status send_tx_burst(BurstParams* burst);
 Status get_rx_burst(BurstParams** burst, int port, int q);
 
 /**
+ * @brief Get a RX burst from any queue on a specific port
+ *
+ * @param burst Burst structure
+ * @param port Port ID of interface
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive on any queue for this port
+ */
+Status get_rx_burst(BurstParams** burst, int port);
+
+/**
+ * @brief Get a RX burst from any queue on any port
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive on any queue on any port
+ */
+Status get_rx_burst(BurstParams** burst);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure

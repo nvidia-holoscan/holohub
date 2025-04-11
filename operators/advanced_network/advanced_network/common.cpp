@@ -282,6 +282,16 @@ Status get_rx_burst(BurstParams** burst, int port, int q) {
   return g_ano_mgr->get_rx_burst(burst, port, q);
 }
 
+Status get_rx_burst(BurstParams** burst, int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, port);
+}
+
+Status get_rx_burst(BurstParams** burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst);
+}
+
 uint16_t get_num_rx_queues(int port_id) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_num_rx_queues(port_id);

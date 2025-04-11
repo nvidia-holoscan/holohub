@@ -190,6 +190,7 @@ class DpdkMgr : public Manager {
   void free_tx_burst(BurstParams* burst) override;
 
   Status get_rx_burst(BurstParams** burst, int port, int q) override;
+  using holoscan::advanced_network::Manager::get_rx_burst;  // for overloads
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst) override;
   void free_tx_metadata(BurstParams* burst) override;
