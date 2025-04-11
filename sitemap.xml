@@ -413,6 +413,10 @@
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/apriltag_detector/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/basic_network/</loc>
          <lastmod>2025-04-11</lastmod>
     </url>
@@ -434,6 +438,14 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/deltacast_videomaster/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/ehr_query_llm/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/emergent_source/</loc>
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
@@ -461,11 +473,35 @@
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/mesh_to_usd/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/npp_filter/</loc>
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/openigtlink/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_format_converter/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_segmentation_postprocessor/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_segmentation_preprocessor/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_visualizer/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/prohawk_video_processing/</loc>
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
@@ -518,6 +554,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/webrtc_server/</loc>
+         <lastmod>2025-04-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/yuan_qcap/</loc>
          <lastmod>2025-04-11</lastmod>
     </url>
     <url>
