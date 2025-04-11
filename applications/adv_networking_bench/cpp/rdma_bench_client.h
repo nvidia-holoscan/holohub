@@ -120,9 +120,10 @@ class AdvNetworkingRdmaClientOp : public Operator {
 
     if (conn_id_ == 0) {
       HOLOSCAN_LOG_INFO("Connecting to server at {}:{}", server_addr_str_.get(), server_port_.get());
-      auto res = rdma_connect_to_server(server_addr_str_.get(), server_port_.get(),  &conn_id_);
+      auto res = rdma_connect_to_server(server_addr_str_.get(), server_port_.get(), client_addr_str_.get(), &conn_id_);
       if (res != Status::SUCCESS) {
         HOLOSCAN_LOG_CRITICAL("Failed to connect to server: {}", (int)res);
+        conn_id_ = 0;
         return;
       }
       else {

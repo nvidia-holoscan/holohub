@@ -556,12 +556,10 @@ namespace holoscan::advanced_network {
   }
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, const std::string &src_addr, uintptr_t *conn_id) {
-    struct sockaddr_in addr;
     struct rdma_cm_id *cm_id = nullptr;
     struct rdma_event_channel *ec = nullptr;
     struct rdma_cm_event *event = nullptr;
     struct rdma_conn_param conn_param = {};
-    uint32_t server_addr;
 
     if (!initialized_) {
       HOLOSCAN_LOG_WARN("RDMA manager not initialized yet. Not trying to connect to server");
@@ -588,42 +586,32 @@ namespace holoscan::advanced_network {
       HOLOSCAN_LOG_INFO("Created ID for client: {}", (void*)cm_id);
     }
 
-    // Did not specify a source address, so use the default
-    if (src_addr.empty()) {
-      HOLOSCAN_LOG_INFO("No source address specified, using default");
-    }
-    else {
-      struct sockaddr_in src_addr_in;
-      HOLOSCAN_LOG_INFO("Using source address: {}", src_addr);
-      memset(&src_addr_in, 0, sizeof(src_addr_in));
-      src_addr_in.sin_family = AF_INET;
-      src_addr_in.sin_port = 0;  // Let the system assign a port
-      inet_pton(AF_INET, src_addr.c_str(), &src_addr_in.sin_addr);  // Your source IP
-      
-      // Bind to the specific source address
-      auto ret = rdma_bind_addr(cm_id, (struct sockaddr *)&src_addr_in);
-      if (ret) {
-        HOLOSCAN_LOG_CRITICAL("Failed to bind to source address: {}", strerror(errno));
-        rdma_destroy_event_channel(ec);
-        return Status::CONNECT_FAILURE;
-      }      
-    }
+    // Always bind to the source address, even if not explicitly provided
+    struct sockaddr_in src_addr_in;
+    memset(&src_addr_in, 0, sizeof(src_addr_in));    
 
-    // Convert IPv4 address from string to int32
-    if (inet_pton(AF_INET, dst_addr.c_str(), &server_addr) != 1) {
+    if (!src_addr.empty()) {
+      src_addr_in.sin_family = AF_INET;
+      src_addr_in.sin_port = 0;  //
+      HOLOSCAN_LOG_INFO("Using provided source address: {}", src_addr);
+      inet_pton(AF_INET, src_addr.c_str(), &src_addr_in.sin_addr);
+    }
+    
+    // Set up server address
+    struct sockaddr_in addr;    
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(dst_port);
+    if (inet_pton(AF_INET, dst_addr.c_str(), &addr.sin_addr) != 1) {
       HOLOSCAN_LOG_CRITICAL("Failed to convert IP address: {}", dst_addr);
       return Status::CONNECT_FAILURE;
     }
 
-    // Set up server address
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(dst_port);
-    addr.sin_addr.s_addr = server_addr;
+    struct sockaddr *src_addr_p = src_addr.empty() ? nullptr : (struct sockaddr *)&src_addr_in;
 
     HOLOSCAN_LOG_INFO("Resolving server address: {}", dst_addr);
     // Resolve the server's address
-    if (rdma_resolve_addr(cm_id, nullptr, (struct sockaddr *)&addr, 2000)) {
+    if (rdma_resolve_addr(cm_id, src_addr_p, (struct sockaddr *)&addr, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
@@ -637,7 +625,12 @@ namespace holoscan::advanced_network {
     }
 
     if (event->event != RDMA_CM_EVENT_ADDR_RESOLVED) {
-      HOLOSCAN_LOG_CRITICAL("Unexpected event: {}", (int)event->event);
+      if (event->event == RDMA_CM_EVENT_ADDR_ERROR) {
+        HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
+      }
+      else {
+        HOLOSCAN_LOG_CRITICAL("Unexpected event from rdma_resolve_addr: {}", (int)event->event);
+      }
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
     }
