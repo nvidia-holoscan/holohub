@@ -260,4 +260,67 @@ uint16_t Manager::get_num_rx_queues(int port_id) const {
   return cfg_.ifs_[port_id].rx_.queues_.size();
 }
 
+Status Manager::get_rx_burst(BurstParams** burst, int port_id) {
+  // Check if the port_id is valid
+  if (port_id < 0 || port_id >= static_cast<int>(cfg_.ifs_.size())) {
+    HOLOSCAN_LOG_ERROR("Invalid port_id {} provided to get_rx_burst", port_id);
+    return Status::INVALID_PARAMETER;
+  }
+
+  const auto& queues = cfg_.ifs_[port_id].rx_.queues_;
+  if (queues.empty()) {
+    // No queues configured for this port
+    return Status::NULL_PTR;
+  }
+
+  // Initialize the next queue index for this port if not already present
+  if (next_queue_index_map_.find(port_id) == next_queue_index_map_.end()) {
+    next_queue_index_map_[port_id] = 0;
+  }
+
+  size_t& next_queue_index = next_queue_index_map_[port_id];
+  size_t num_queues = queues.size();
+
+  // Check all queues once, starting from the next index
+  for (size_t i = 0; i < num_queues; ++i) {
+    size_t check_index = (next_queue_index + i) % num_queues;
+    int queue_id = queues[check_index].common_.id_;
+
+    Status ret = get_rx_burst(burst, port_id, queue_id);
+    if (ret != Status::NULL_PTR) {
+      // Got something, update index for next time and return status
+      next_queue_index = (check_index + 1) % num_queues;
+      return ret;
+    }
+  }
+
+  // If we checked all queues and none had data
+  return Status::NULL_PTR;
+}
+
+Status Manager::get_rx_burst(BurstParams** burst) {
+  if (cfg_.ifs_.empty()) {
+    // No interfaces configured
+    return Status::NULL_PTR;
+  }
+
+  size_t num_interfaces = cfg_.ifs_.size();
+
+  // Check all queues once, starting from the next index
+  for (size_t i = 0; i < num_interfaces; ++i) {
+    size_t check_index = (next_port_index_ + i) % num_interfaces;
+    int port_id = cfg_.ifs_[check_index].port_id_;
+
+    Status ret = get_rx_burst(burst, port_id);
+    if (ret != Status::NULL_PTR) {
+      // Got something, update index for next time and return status
+      next_port_index_ = (check_index + 1) % num_interfaces;
+      return ret;
+    }
+  }
+
+  // If we checked all interfaces and none yielded a burst
+  return Status::NULL_PTR;
+}
+
 };  // namespace holoscan::advanced_network
