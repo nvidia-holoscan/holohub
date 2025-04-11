@@ -250,7 +250,12 @@ void Manager::init_rx_core_q_map() {
   }
 }
 
-Status Manager::rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
+  HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
+  return Status::NOT_SUPPORTED;
+}
+
+Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
   return Status::NOT_SUPPORTED;
 }

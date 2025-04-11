@@ -71,7 +71,8 @@ class Manager {
   virtual void print_stats() = 0;
   virtual uint64_t get_burst_tot_byte(BurstParams* burst) = 0;
   virtual BurstParams* create_tx_burst_params() = 0;
-  virtual Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id);
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id);
 
   /* Internal functions used by ANO operators */
   virtual std::optional<uint16_t> get_port_from_ifname(const std::string& name) = 0;

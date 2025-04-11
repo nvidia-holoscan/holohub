@@ -35,10 +35,9 @@ namespace holoscan::advanced_network {
   std::atomic<bool> rdma_force_quit = false;
 
   bool RdmaMgr::set_config_and_initialize(const NetworkConfig &cfg) {
-    if (!this->initialized_) {
-      cfg_ = cfg;
-      initialize();
-    }    
+    HOLOSCAN_LOG_INFO("Setting up RDMA manager");
+    cfg_ = cfg;
+    initialize();
 
     return true;
   }
@@ -244,7 +243,7 @@ namespace holoscan::advanced_network {
   /**
    * Set up all parameters needed for a newly-connected client
   */
-  int RdmaMgr::setup_thread_params(rdma_thread_params *params) {
+  int RdmaMgr::setup_thread_params(rdma_thread_params *params, bool is_server) {
     // RX/TX queues should be symmetric with RDMA
     rdma_qp_params qp_params;
     const int port_id = cfg_.ifs_[static_cast<int>(params->if_idx)].port_id_;
@@ -305,12 +304,40 @@ namespace holoscan::advanced_network {
     attr.mq_curmsgs = 0;
 
     // qp_params.rx_ring = rx_ring;  
+    const uint32_t key = (port_id << 16) | static_cast<int>(params->queue_idx);
+    if (is_server) {
+      qp_params.tx_ring = server_tx_rings_[key];
+    }
+    else {
+      qp_params.tx_ring = client_tx_rings_[key];
+    }
 
-    // const uint32_t key = (port_id << 16) | static_cast<int>(params->queue_idx);
-    // qp_params.tx_ring = tx_rings[key];
+    printf("tx ring %p for port %d, queue %d is_server %d\n", 
+      qp_params.tx_ring, port_id, params->queue_idx, is_server);
 
     params->qp_params = qp_params;
     HOLOSCAN_LOG_INFO("Successfully configured queues for client {}", (void*)params->client_id);
+
+    return 0;
+  }
+
+  int RdmaMgr::destroy_thread_params(rdma_thread_params *params) {
+    HOLOSCAN_LOG_INFO("Destroying thread params for client {}", (void*)params->client_id);
+    // First destroy the QP
+    if (params->client_id->qp) {
+      rdma_destroy_qp(params->client_id);
+    }
+
+    // Then destroy the CQs
+    if (params->qp_params.tx_cq) {
+      ibv_destroy_cq(params->qp_params.tx_cq);
+      params->qp_params.tx_cq = nullptr;
+    }
+
+    if (params->qp_params.rx_cq) {
+      ibv_destroy_cq(params->qp_params.rx_cq);
+      params->qp_params.rx_cq = nullptr;
+    }
 
     return 0;
   }
@@ -338,7 +365,7 @@ namespace holoscan::advanced_network {
     const auto &qref = cfg_.ifs_[tparams->if_idx].tx_.queues_[tparams->queue_idx];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
     struct rte_ring *tx_ring = tparams->qp_params.tx_ring;
-
+    printf("thread ring %p is_server %d\n", tx_ring, is_server);
     if (set_affinity(cpu_core) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
       return;
@@ -524,9 +551,11 @@ namespace holoscan::advanced_network {
     }
   }
 
+  Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
+    return rdma_connect_to_server(dst_addr, dst_port, "", conn_id);
+  }
 
-
-  Status RdmaMgr::rdma_connect_to_server(const std::string &server_addr_str, uint16_t server_port, uintptr_t *conn_id) {
+  Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, const std::string &src_addr, uintptr_t *conn_id) {
     struct sockaddr_in addr;
     struct rdma_cm_id *cm_id = nullptr;
     struct rdma_event_channel *ec = nullptr;
@@ -534,13 +563,12 @@ namespace holoscan::advanced_network {
     struct rdma_conn_param conn_param = {};
     uint32_t server_addr;
 
-    HOLOSCAN_LOG_INFO("Connecting to server {} on port {}", server_addr_str, server_port);
-
-    // Convert IPv4 address from string to int32
-    if (inet_pton(AF_INET, server_addr_str.c_str(), &server_addr) != 1) {
-      HOLOSCAN_LOG_CRITICAL("Failed to convert IP address: {}", server_addr_str);
-      return Status::CONNECT_FAILURE;
+    if (!initialized_) {
+      HOLOSCAN_LOG_WARN("RDMA manager not initialized yet. Not trying to connect to server");
+      return Status::NOT_READY;
     }
+
+    HOLOSCAN_LOG_INFO("Connecting to server {} on port {}", dst_addr, dst_port);
 
     *conn_id = 0;
 
@@ -560,12 +588,40 @@ namespace holoscan::advanced_network {
       HOLOSCAN_LOG_INFO("Created ID for client: {}", (void*)cm_id);
     }
 
+    // Did not specify a source address, so use the default
+    if (src_addr.empty()) {
+      HOLOSCAN_LOG_INFO("No source address specified, using default");
+    }
+    else {
+      struct sockaddr_in src_addr_in;
+      HOLOSCAN_LOG_INFO("Using source address: {}", src_addr);
+      memset(&src_addr_in, 0, sizeof(src_addr_in));
+      src_addr_in.sin_family = AF_INET;
+      src_addr_in.sin_port = 0;  // Let the system assign a port
+      inet_pton(AF_INET, src_addr.c_str(), &src_addr_in.sin_addr);  // Your source IP
+      
+      // Bind to the specific source address
+      auto ret = rdma_bind_addr(cm_id, (struct sockaddr *)&src_addr_in);
+      if (ret) {
+        HOLOSCAN_LOG_CRITICAL("Failed to bind to source address: {}", strerror(errno));
+        rdma_destroy_event_channel(ec);
+        return Status::CONNECT_FAILURE;
+      }      
+    }
+
+    // Convert IPv4 address from string to int32
+    if (inet_pton(AF_INET, dst_addr.c_str(), &server_addr) != 1) {
+      HOLOSCAN_LOG_CRITICAL("Failed to convert IP address: {}", dst_addr);
+      return Status::CONNECT_FAILURE;
+    }
+
     // Set up server address
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(server_port);
+    addr.sin_port = htons(dst_port);
     addr.sin_addr.s_addr = server_addr;
 
+    HOLOSCAN_LOG_INFO("Resolving server address: {}", dst_addr);
     // Resolve the server's address
     if (rdma_resolve_addr(cm_id, nullptr, (struct sockaddr *)&addr, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
@@ -636,14 +692,30 @@ namespace holoscan::advanced_network {
     }
     else {
       HOLOSCAN_LOG_INFO("PD already exists for device {} using PD {}", (void*)cm_id->verbs, (void*)pd_map_[cm_id->verbs][cm_id->port_num]);
-    }    
+    }
+
+    struct sockaddr *source_addr = rdma_get_local_addr(cm_id);
+
+    // Convert sockaddr to string
+    char source_addr_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &source_addr->sa_data[2], source_addr_str, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Client source address: {}", source_addr_str);
+
+    int client_port;
+    for (const auto &port: cfg_.ifs_) {
+      if (port.address_ == std::string(source_addr_str)) {
+        client_port = port.port_id_;
+        break;
+      }
+    }
 
     rdma_thread_params client_params;
     client_params.client_id = cm_id;
     client_params.pd = pd_map_[cm_id->verbs][cm_id->port_num];
-    client_params.if_idx = cm_id->port_num;
+    client_params.if_idx = client_port;
     client_params.queue_idx = client_q_params_.size();
-    setup_thread_params(&client_params);    
+    printf("client params port %d, queue idx %d\n", client_params.if_idx, client_params.queue_idx);
+    setup_thread_params(&client_params, false);    
 
     // Set up connection parameters
     memset(&conn_param, 0, sizeof(conn_param));
@@ -654,6 +726,7 @@ namespace holoscan::advanced_network {
     // Connect to server
     if (rdma_connect(cm_id, &conn_param) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to connect to server");
+      destroy_thread_params(&client_params);
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
     }
@@ -664,6 +737,7 @@ namespace holoscan::advanced_network {
     // Wait for connection established event
     if (rdma_get_cm_event(ec, &event)) {
       HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
+      destroy_thread_params(&client_params);
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
     }
@@ -677,6 +751,7 @@ namespace holoscan::advanced_network {
       }
       rdma_ack_cm_event(event);
       rdma_destroy_event_channel(ec);
+      destroy_thread_params(&client_params);      
       return Status::CONNECT_FAILURE;
     }
     else {
@@ -697,13 +772,12 @@ namespace holoscan::advanced_network {
 
     *conn_id = reinterpret_cast<uintptr_t>(cm_id);
     HOLOSCAN_LOG_INFO("Successfully connected to server {} on port {}", 
-        server_addr, server_port);
+        dst_addr, dst_port);
 
     rdma_destroy_event_channel(ec);
 
     return Status::SUCCESS;
   }
-
 
   void RdmaMgr::run() {
     int ret;
@@ -733,8 +807,7 @@ namespace holoscan::advanced_network {
 
     // Set the channel to non-blocking so we can check for SIGINT
     int flags = fcntl(cm_event_channel_->fd, F_GETFL);
-    fcntl(cm_event_channel_->fd, F_SETFL, flags | O_NONBLOCK);
-
+    fcntl(cm_event_channel_->fd, F_SETFL, flags | O_NONBLOCK);   
 
     // Start an RDMA server on each server interface
     for (const auto &intf: cfg_.ifs_) {
@@ -785,11 +858,6 @@ namespace holoscan::advanced_network {
       HOLOSCAN_LOG_INFO("RDMA server successfully started on {} queues", intf.rx_.queues_.size());
     }
 
-
-    if (rdma_register_cfg_mrs() < 0) {
-      HOLOSCAN_LOG_ERROR("Failed to register MRs");
-      return;
-    }
 
     HOLOSCAN_LOG_INFO("Entering CM main loop");
 
@@ -853,7 +921,7 @@ namespace holoscan::advanced_network {
             client_params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num];
             client_params.if_idx = cm_event->id->port_num;
             client_params.queue_idx = server_q_params_.size();
-
+            printf("client params port %d, queue idx %d\n", client_params.if_idx, client_params.queue_idx);
             if (server_q_params_.size() >= 
                 cfg_.ifs_[listen_iter->second.if_idx].rx_.queues_.size()) {
               HOLOSCAN_LOG_CRITICAL("More RDMA connections ({}) than RX queues ({}) on interface {}! Dropping connection", 
@@ -871,7 +939,7 @@ namespace holoscan::advanced_network {
               break;
             }
             server_q_params_[cm_event->id] = client_params;
-            setup_thread_params(&server_q_params_[cm_event->id]);
+            setup_thread_params(&server_q_params_[cm_event->id], true);
             HOLOSCAN_LOG_INFO("Configured queues for client {}. Launching thread", (void*)cm_event->id);
 
             ack_event(cm_event);
@@ -963,13 +1031,26 @@ namespace holoscan::advanced_network {
     HOLOSCAN_LOG_DEBUG("Setting up RX rings");
     for (int i = 0; i < cfg_.ifs_.size(); i++) {
       for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
-        std::string ring_name = "RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
-        rx_rings_[i][j] =
-            rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
-                RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-        if (rx_rings_[i][j] == nullptr) {
-          HOLOSCAN_LOG_CRITICAL("Failed to allocate ring {}!", ring_name);
-          return -1;
+        if (cfg_.ifs_[i].rdma_.mode_ == RDMAMode::SERVER) {
+          std::string ring_name = "S_RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
+          HOLOSCAN_LOG_INFO("Setting up server RX ring {}", ring_name);
+          server_rx_rings_[i][j] =
+              rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+                  RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (server_rx_rings_[i][j] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate server RX ring {}!", ring_name);
+            return -1;
+          }
+        } else {
+          std::string ring_name = "C_RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
+          HOLOSCAN_LOG_INFO("Setting up client RX ring {}", ring_name);
+          client_rx_rings_[i][j] =
+              rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+                  RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (client_rx_rings_[i][j] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate client RX ring {}!", ring_name);
+            return -1;
+          }
         }
       }
     }
@@ -1010,17 +1091,30 @@ namespace holoscan::advanced_network {
 
     for (const auto& intf : cfg_.ifs_) {
       for (const auto& q : intf.tx_.queues_) {
-        const auto append =
-            "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_);
-
-        auto name = "TX_RING_" + append;
-        HOLOSCAN_LOG_INFO("Setting up TX ring {}", name);
         uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-        tx_rings[key] = rte_ring_create(
-            name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-        if (tx_rings[key] == nullptr) {
-          HOLOSCAN_LOG_CRITICAL("Failed to allocate ring!");
-          return -1;
+          const auto append =
+              "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_); 
+
+        if (intf.rdma_.mode_ == RDMAMode::SERVER) {
+          auto name = "S_TX_RING_" + append;
+          HOLOSCAN_LOG_INFO("Setting up server TX ring {}", name);
+
+          server_tx_rings_[key] = rte_ring_create(
+              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (server_tx_rings_[key] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring!");
+            return -1;
+          }
+        } else {
+          auto name = "C_TX_RING_" + append;
+          HOLOSCAN_LOG_INFO("Setting up client TX ring {}", name);
+
+          client_tx_rings_[key] = rte_ring_create(
+              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (client_tx_rings_[key] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring!");
+            return -1;
+          }          
         }
       }
     }
@@ -1122,7 +1216,20 @@ namespace holoscan::advanced_network {
       }
     }
 
+    if (rdma_register_cfg_mrs() < 0) {
+      HOLOSCAN_LOG_ERROR("Failed to register MRs");
+      return;
+    }
+
+    if (setup_pools_and_rings() != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to setup pools and rings");
+      return;
+    } 
+
     main_thread_ = std::thread(&RdmaMgr::run, this);
+
+    HOLOSCAN_LOG_INFO("RDMA manager initialized");
+    initialized_ = true;
   }
 
   void RdmaMgr::shutdown() {

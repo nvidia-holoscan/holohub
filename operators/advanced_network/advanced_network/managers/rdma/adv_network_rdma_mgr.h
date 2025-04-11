@@ -143,7 +143,8 @@ class RdmaMgr : public Manager {
     bool validate_config() const override { return true; }
 
     // RDMA-specific functions
-    Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) override;    
+    Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) override;    
+    Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) override;
     Status register_mr(std::string name, int intf, void *addr, size_t len, int flags);
     Status wait_on_key_xchg();
     void poll_cm_events();
@@ -158,6 +159,7 @@ class RdmaMgr : public Manager {
     static constexpr int MAX_OUSTANDING_WR = 64;
     static constexpr int MAX_NUM_PORTS = 4;
 
+    bool initialized_ = false;
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> server_q_params_; 
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> client_q_params_;
     std::unordered_map<struct rdma_cm_id *, rdma_port_params> pd_params_;
@@ -170,10 +172,12 @@ class RdmaMgr : public Manager {
     std::queue<struct ibv_sge*> sge_bufs_;
     std::array<rdma_work_req, MAX_OUSTANDING_WR> out_wr_;
     uint64_t cur_wc_id_ = 0;
-    std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> rx_rings_;
+    std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> server_rx_rings_;
+    std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> client_rx_rings_;
     struct rte_mempool* rx_meta;
     struct rte_mempool* tx_meta;
-    std::unordered_map<uint32_t, struct rte_ring*> tx_rings_;
+    std::unordered_map<uint32_t, struct rte_ring*> server_tx_rings_;
+    std::unordered_map<uint32_t, struct rte_ring*> client_tx_rings_;
     rdma_event_channel* cm_event_channel_;
     std::mutex threads_mutex_;
     std::mutex client_params_mutex_;
@@ -191,7 +195,8 @@ class RdmaMgr : public Manager {
     bool ack_event(rdma_cm_event *cm_event);
     int mr_access_to_ibv(uint32_t access);
     bool get_ip_from_interface(const std::string_view &if_name, sockaddr_in &addr);
-    int  setup_thread_params(rdma_thread_params *params);
+    int setup_thread_params(rdma_thread_params *params, bool is_server);
+    int destroy_thread_params(rdma_thread_params *params);
 };
 
 };  // namespace holoscan::advanced_network

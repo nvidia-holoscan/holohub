@@ -326,6 +326,10 @@ Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_po
   return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
 }
 
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
+}
+
 };  // namespace holoscan::ops
 
 /**

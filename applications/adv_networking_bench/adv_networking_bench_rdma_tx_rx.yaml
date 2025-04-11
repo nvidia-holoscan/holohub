@@ -68,7 +68,7 @@ advanced_network:
     - name: data1
       rdma_mode: client
       rdma_transport_mode: RC
-      address: 192.168.2.1       # The address to use, or leave blank for auto-detect
+      address: 192.168.11.2       # The address to use, or leave blank for auto-detect
       tx:
         queues:
         - name: "ADC Samples"
@@ -89,7 +89,7 @@ advanced_network:
       rdma_mode: server
       rdma_port: 4096
       rdma_transport_mode: RC    
-      address: 192.168.3.1       # The BUS address of the interface doing Rx
+      address: 192.168.10.2       # The BUS address of the interface doing Rx
       flow_isolation: true
       rx:
         queues:
@@ -109,7 +109,7 @@ advanced_network:
             - "Data_TX_GPU_SERVER"              
 
 rdma_bench_server:
-  server_address: 192.168.3.1
+  server_address: 192.168.10.2
   server_port: 4096
   message_size: 1048576
   writes: true
@@ -119,6 +119,6 @@ rdma_bench_client:
   message_size: 1000
   writes: false
   reads: false
-  client_address: 192.168.2.1
-  server_address: 192.168.3.1
+  client_address: 192.168.11.2
+  server_address: 192.168.10.2
   server_port: 4096
