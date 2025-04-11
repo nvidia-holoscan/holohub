@@ -15,11 +15,6 @@ class PsdPipeline : public holoscan::Application {
     void compose() override {
         using namespace holoscan;
 
-        auto advNetOp = make_operator<ops::AdvNetworkOpRx>(
-            "advNetOp",
-            from_config("advanced_network"),
-            make_condition<BooleanCondition>("is_alive", true));
-
         auto vitaConnectorOp = make_operator<ops::Vita49ConnectorOpRx>(
             "vitaConnectorOp",
             from_config("vita_connector"));
@@ -41,13 +36,11 @@ class PsdPipeline : public holoscan::Application {
             from_config("vita49_psd_packetizer"),
             make_condition<CountCondition>(from_config("num_psds").as<int64_t>()));
 
-        add_operator(advNetOp);
         add_operator(vitaConnectorOp);
         add_operator(fftOp);
         add_operator(highRatePsdOp);
         add_operator(lowRatePsdOp);
         add_operator(packetizerOp);
-        add_flow(advNetOp, vitaConnectorOp, {{"bench_rx_out", "in"}});
         add_flow(vitaConnectorOp, fftOp);
         add_flow(fftOp, highRatePsdOp);
         add_flow(highRatePsdOp, lowRatePsdOp);

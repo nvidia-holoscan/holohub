@@ -28,7 +28,7 @@ struct AllocRegion {
 };
 
 /**
- * @brief (Almost) ABC representing an interface into an ANO backend implementation
+ * @brief (Almost) ABC representing an interface into an advanced_network backend implementation
  *
  */
 class Manager {
@@ -50,9 +50,9 @@ class Manager {
   virtual Status get_tx_packet_burst(BurstParams* burst) = 0;
   virtual Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) = 0;
   virtual Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
-                                    unsigned int src_host, unsigned int dst_host) = 0;
-  virtual Status set_udp_header(BurstParams* burst, int idx, int udp_len,
-                                   uint16_t src_port, uint16_t dst_port) = 0;
+                                 unsigned int src_host, unsigned int dst_host) = 0;
+  virtual Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
+                                uint16_t dst_port) = 0;
   virtual Status set_udp_payload(BurstParams* burst, int idx, void* data, int len) = 0;
   virtual bool is_tx_burst_available(BurstParams* burst) = 0;
 
@@ -69,16 +69,17 @@ class Manager {
   virtual void print_stats() = 0;
   virtual uint64_t get_burst_tot_byte(BurstParams* burst) = 0;
   virtual BurstParams* create_tx_burst_params() = 0;
-
-  /* Internal functions used by ANO operators */
-  virtual Status get_rx_burst(BurstParams** burst) = 0;
+  virtual Status get_rx_burst(BurstParams** burst, int port, int q) = 0;
+  virtual Status get_rx_burst(BurstParams** burst, int port_id);
+  virtual Status get_rx_burst(BurstParams** burst);
   virtual void free_rx_metadata(BurstParams* burst) = 0;
   virtual void free_tx_metadata(BurstParams* burst) = 0;
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;
   virtual Status send_tx_burst(BurstParams* burst) = 0;
   virtual Status get_mac_addr(int port, char* mac) = 0;
-  virtual int address_to_port(const std::string& addr) final;  // NOLINT(readability/inheritance)
+  virtual int get_port_id(const std::string& key) final;  // NOLINT(readability/inheritance)
   virtual bool validate_config() const;
+  virtual uint16_t get_num_rx_queues(int port_id) const;
 
   virtual ~Manager() = default;
 
@@ -93,6 +94,10 @@ class Manager {
   NetworkConfig cfg_;
   std::unordered_map<std::string, AllocRegion> ar_;
   std::unordered_map<uint32_t, std::vector<std::pair<uint16_t, uint16_t>>> rx_core_q_map;
+
+  // State for round-robin burst retrieval
+  size_t next_port_index_ = 0;                            // For get_rx_burst next port check
+  std::unordered_map<int, size_t> next_queue_index_map_;  // For get_rx_burst next queue check
 
   virtual Status allocate_memory_regions();
   virtual void adjust_memory_regions() {}

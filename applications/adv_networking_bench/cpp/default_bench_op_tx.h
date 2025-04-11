@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "adv_network_tx.h"
+#include "advanced_network/common.h"
 #include "advanced_network/kernels.h"
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
@@ -29,15 +29,15 @@ using namespace holoscan::advanced_network;
 namespace holoscan::ops {
 
 /*
-  The ANO benchmark app uses the Advanced Networking Operator to show how to send
-  and receive packets at very high rates. The application is highly configurable
-  to show different scenarios that might be used with the ANO. For both TX and RX,
-  there are three possible modes: CPU-only, Header-data split, and GPU-only. CPU-only
-  gives the worst performance of the three, but allows the packets to be viewed
-  in CPU memory. Header-data split and GPU-only mode both utilize GPUDirect technology
-  to DMA data directly to/from NIC to GPU. GPU-only mode may give the highest
-  performance in some cases, but the user must handle the header processing on the
-  GPU when using it.
+  The Advanced Networking Benchmark app uses the Advanced Network library to show how to
+  send and receive packets at very high rates. The application is configurable
+  to show different scenarios that might be used with the Advanced Network library.
+  For both TX and RX, there are three possible modes: CPU-only, Header-data split,
+  and GPU-only. CPU-only gives the worst performance of the three, but allows the
+  packets to be viewed in CPU memory. Header-data split and GPU-only mode both
+  utilize GPUDirect technology to DMA data directly to/from NIC to GPU. GPU-only mode
+  may give the highest performance in some cases, but the user must handle the header
+  processing on the GPU when using it.
 
   Both TX and RX show how to do stream pipelining by setting up N CUDA streams on
   launch and pushing work to them asynchronously.
@@ -50,7 +50,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   AdvNetworkingBenchDefaultTxOp() = default;
 
   ~AdvNetworkingBenchDefaultTxOp() {
-    HOLOSCAN_LOG_INFO("ANO benchmark TX op shutting down");
+    HOLOSCAN_LOG_INFO("Advanced Networking Benchmark TX op shutting down");
   }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
@@ -81,7 +81,11 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
-    port_id_ = address_to_port(address_.get());
+    port_id_ = get_port_id(interface_name_.get());
+    if (port_id_ == -1) {
+      HOLOSCAN_LOG_ERROR("Invalid TX port {} specified in the config", interface_name_.get());
+      exit(1);
+    }
 
     size_t buf_size = batch_size_.get() * payload_size_.get();
     if (!gpu_direct_.get()) {
@@ -119,7 +123,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       cudaMemset(gds_header_, 0, header_size_.get());
 
       populate_dummy_headers(pkt);
-      // ANO expects host order when setting
+      // advanced_network expects host order when setting
       ip_src_ = ntohl(ip_src_);
       ip_dst_ = ntohl(ip_dst_);
 
@@ -131,8 +135,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.output<std::shared_ptr<BurstParams>>("burst_out");
-
     spec.param<uint32_t>(
         batch_size_, "batch_size", "Batch size", "Batch size for each processing epoch", 1000);
     spec.param<uint16_t>(payload_size_,
@@ -160,13 +162,15 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                             "eth_dst_addr",
                             "Ethernet destination address",
                             "Ethernet destination address");
-    spec.param<std::string>(
-        address_, "address", "Address of NIC from ANO config", "Address of NIC from ANO config");
     spec.param<uint16_t>(header_size_,
                          "header_size",
                          "Header size",
                          "Header size on each packet from L4 and below",
                          42);
+    spec.param<std::string>(interface_name_,
+                            "interface_name",
+                            "Name of NIC from advanced_network config",
+                            "Name of NIC from advanced_network config");
   }
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
@@ -250,7 +254,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         }
       }
 
-      // Figure out the CPU and GPU length portions for ANO
+      // Figure out the CPU and GPU length portions for advanced_network
       if (gpu_direct_.get() && hds_.get() > 0) {
         gpu_bufs[cur_idx][num_pkt] =
             reinterpret_cast<uint8_t*>(get_segment_packet_ptr(msg, 1, num_pkt));
@@ -302,11 +306,11 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     if (gpu_direct_.get()) {
       const auto first = out_q.front();
       if (cudaEventQuery(first.evt) == cudaSuccess) {
-        op_output.emit(first.msg, "burst_out");
+        send_tx_burst(first.msg);
         out_q.pop();
       }
     } else {
-      op_output.emit(msg, "burst_out");
+      send_tx_burst(msg);
     }
   };
 
@@ -335,7 +339,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   Parameter<bool> gpu_direct_;  // GPUDirect enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
-  Parameter<std::string> address_;
+  Parameter<std::string> interface_name_;
   Parameter<uint16_t> payload_size_;
   Parameter<uint16_t> udp_src_port_;
   Parameter<uint16_t> udp_dst_port_;

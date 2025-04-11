@@ -83,8 +83,8 @@ class IpoRxStatsPrinter {
           rx_services) {
     uint32_t stream_id = 0;
 
-    ss << "RIVERMAX ANO Statistics\n";
-    ss << "====================\n";
+    ss << "RIVERMAX advanced_network Statistics\n";
+    ss << "====================================\n";
     ss << "Total Statistics\n";
     ss << "----------------\n";
     for (const auto& entry : rx_services) {

@@ -66,6 +66,17 @@ inline int EnabledDirections(const std::string& dir) {
 }
 
 /**
+ * @brief Initialize the backend manager and any other resources needed
+ *
+ * @param config YML Configuration structure (e.g. AdvNetConfigYaml)
+ * @return AdvNetStatus indicating status. Valid values are:
+ *    SUCCESS: Initialization successful
+ *    INVALID_CONFIG: Invalid configuration
+ *    INTERNAL_ERROR: Internal error
+ */
+Status adv_net_init(NetworkConfig &config);
+
+/**
  * @brief Returns a manager type
  *
  * @return Manager type
@@ -131,7 +142,7 @@ uint16_t get_packet_length(BurstParams* burst, int idx);
  * @brief Get flow ID of a packet
  *
  * Retrieves the flow ID of a packet, or 0 if no flow was matched. The flow ID should match
- * the flow ID in the flow rule for the ANO config.
+ * the flow ID in the flow rule for the advanced_network config.
  *
  * @param burst Burst structure containing packets
  * @param idx Index of packet
@@ -210,9 +221,9 @@ Status set_udp_payload(BurstParams* burst, int idx, void* data, int len);
  * @brief Test if a TX burst is available
  *
  * Checks whether a TX burst for a given size can be allocated. This is useful for an
- * application to throttle its transmissions if the NIC and/or advanced network operator
- * is not keeping up with the desired rate. Rather than returning an error, the user can
- * use this function to loop or return later to try again.
+ * application to throttle its transmissions if the NIC is not keeping up with the desired rate.
+ * Rather than returning an error, the user can use this function to loop or return later
+ * to try again.
  *
  * @param burst Info about burst of packets
  * @return true Burst is available
@@ -372,11 +383,11 @@ Status get_mac_addr(int port, char* mac);
 /**
  * @brief Get port number from interface name
  *
- * @param addr Address of interface from config file
+ * @param key PCIe address or config name of the interface to look up
  *
  * @returns Port number or -1 for not found
  */
-int address_to_port(const std::string& addr);
+int get_port_id(const std::string& key);
 
 /**
  * @brief Set the number of packets in a burst
@@ -385,6 +396,48 @@ int address_to_port(const std::string& addr);
  * @param num Number of packets
  */
 void set_num_packets(BurstParams* burst, int64_t num);
+
+/**
+ * @brief Send a TX burst
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst sent successfully
+ */
+Status send_tx_burst(BurstParams* burst);
+
+/**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param port Port ID of interface
+ * @param q Queue ID of interface
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive
+ */
+Status get_rx_burst(BurstParams** burst, int port, int q);
+
+/**
+ * @brief Get a RX burst from any queue on a specific port
+ *
+ * @param burst Burst structure
+ * @param port Port ID of interface
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive on any queue for this port
+ */
+Status get_rx_burst(BurstParams** burst, int port);
+
+/**
+ * @brief Get a RX burst from any queue on any port
+ *
+ * @param burst Burst structure
+ * @return Status indicating status. Valid values are:
+ *    SUCCESS: Burst received successfully
+ *    NULL_PTR: No bursts ready to receive on any queue on any port
+ */
+Status get_rx_burst(BurstParams** burst);
 
 /**
  * @brief Set the header fields in a burst
@@ -406,7 +459,7 @@ void set_header(BurstParams* burst, uint16_t port, uint16_t q, int64_t num, int 
 void format_eth_addr(char* dst, std::string addr);
 
 /**
- * @brief Shut down ANO and do any cleanup necessary. Freeing memory is done
+ * @brief Shut down the advanced_network and do any cleanup necessary. Freeing memory is done
  * in the manager's destructor.
  *
  */
@@ -419,14 +472,13 @@ void shutdown();
 void print_stats();
 
 /**
- * @brief Get the list (set) of rx/tx ports from a node
+ * @brief Get the number of RX queues. May be overridden by the manager if the number of queues
+ * differs from what is defined in the config.
  *
- * @param node Yaml node
- * @param dir String of direction ["rx", "tx"]
- *
- * @returns unordered set of rx/tx port names
+ * @param port_id Port ID of interface
+ * @return uint16_t Number of RX queues
  */
-std::unordered_set<std::string> get_port_names(const Config& conf, const std::string& dir);
+uint16_t get_num_rx_queues(int port_id);
 
 };  // namespace holoscan::advanced_network
 
@@ -509,6 +561,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_tx_queue_common_config(
       const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.
@@ -638,7 +691,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
         return false;
       }
 
-      HOLOSCAN_LOG_INFO("Finished reading advanced network operator config");
+      HOLOSCAN_LOG_INFO("Finished reading Advanced Network configuration");
 
       return true;
     } catch (const std::exception& e) {
