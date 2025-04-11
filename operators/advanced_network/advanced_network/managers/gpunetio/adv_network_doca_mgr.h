@@ -241,7 +241,7 @@ class DocaMgr : public Manager {
   int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, Direction dir);
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
-  struct rte_ring* rx_ring;
+  std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_mempool* rx_metadata;
   struct rte_mempool* tx_metadata;
   std::unordered_map<uint32_t, DocaRxQueue*> rx_q_map_;
