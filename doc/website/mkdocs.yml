@@ -75,6 +75,9 @@ plugins:
       file_pattern: '.*\.(md|ipynb)$'
   - site-urls
 
+not_in_nav: |
+  tags.md
+
 watch:
   - ../../applications
   - ../../operators
