@@ -10852,6 +10852,7 @@ Dummy<span class="w"> </span>video<span class="w"> </span>device<span class="w">
 Determine your desired video device and edit the source device in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/segment_one_thing.yaml">segment_one_thing.yaml</a></p>
 <h2 id="build-and-run-instructions">🚀 Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
 <h3 id="arm64-and-x86">ARM64 and x86<a class="headerlink" href="#arm64-and-x86" title="Permanent link">#</a></h3>
+<p><strong>OBS</strong>: If you are building on a Clara AGX Dev Kit, replace the <code>Dockerfile</code> below with <code>./alternative_docker/Dockerfile_cagx</code>.</p>
 <p>This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
 <div class="highlight"><pre><span></span><code><span class="w"> </span>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>sam2<span class="w"> </span>--docker_file<span class="w"> </span>applications/sam2/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:sam2.1
@@ -10878,7 +10879,8 @@ Run the application in debug mode from vscode, or execute it by
 <h2 id="supported-hardware">💻 Supported Hardware<a class="headerlink" href="#supported-hardware" title="Permanent link">#</a></h2>
 <ul>
 <li>x86 w/ dGPU</li>
-<li>IGX devKit w/ dGPU</li>
+<li>IGX Dev Kit w/ dGPU</li>
+<li>Clara AGX Dev Kit w/ dGPU</li>
 </ul>
 <h2 id="acknowledgements">🙌 Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">#</a></h2>
 <ul>
