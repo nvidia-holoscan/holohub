@@ -544,18 +544,22 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
     create_page(metadata, readme_text, dest_path, last_modified, git_repo_path)
 
-    # Initialize nav file content to control navigation with mkdocs-awesome-nav
+    # Initialize nav file content to set title
     nav_path = dest_dir / ".nav.yml"
     nav_content = f"""
 title: "{title}"
-nav:
-  - README.md
 """
 
     # Check for archives in metadata
     archives = metadata["archives"] if "archives" in metadata else None
     if archives:
         logger.info(f"Processing versioned documentation for {str(dest_dir)}")
+
+        # List the current version first
+        nav_content += """
+nav:
+  - README.md
+"""
 
         for version in sorted(archives.keys(), reverse=True):
             git_ref = archives[version]
@@ -596,9 +600,6 @@ nav:
 
             # Add archives to nav file
             nav_content += f'  - "{version}": {version}.md\n'
-
-    # Add remaining pages to nav file
-    nav_content += "  - '*'"
 
     # Write nav file
     with mkdocs_gen_files.open(nav_path, "w") as nav_file:
