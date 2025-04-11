@@ -85,3 +85,9 @@ add_subdirectory(operators)
 
 # Build the extensions
 add_subdirectory(gxf_extensions)
+
+option(BUILD_HOLOHUB_TESTING OFF)
+if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
+  enable_testing()
+  add_subdirectory(utilities/cli/tests)
+endif()
