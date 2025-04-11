@@ -500,24 +500,14 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     # Dirs & Paths
     metadata_dir = metadata_path.parent
     readme_dir = metadata_dir
+    md_search_dir = readme_dir
+    while md_search_dir.name not in COMPONENT_TYPES and md_search_dir != git_repo_path.parent:
+        if (md_search_dir / "README.md").exists():
+            readme_dir = md_search_dir
+            break  # Found the relevant README, stop searching
+        md_search_dir = md_search_dir.parent  # Not found, try parent
     readme_path = readme_dir / "README.md"
-    while not readme_path.exists():
-        readme_dir = readme_dir.parent
-        readme_path = readme_dir / "README.md"
-
-    # Valid README is not in the component type directory or the git repo root
-    if readme_dir.name in COMPONENT_TYPES or readme_dir == git_repo_path:
-        logger.error(f"Skipping {metadata_path}: no README found")
-        return
-
-    # Get path relative to the Git repository root
-    try:
-        dest_dir = readme_dir.relative_to(git_repo_path)
-    except ValueError:
-        logger.error(f"Skipping {metadata_path}: no README in git repo {git_repo_path}")
-        return
-
-    # Identify language agnostic directory
+    dest_dir = readme_dir.relative_to(git_repo_path)
     language_agnostic_dir = metadata_dir
     nbr_language_dirs = 0
     if metadata_dir.name in ["cpp", "python"]:
@@ -541,10 +531,12 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     title += suffix
 
     # Process the README content
-    readme_text = f"# {title}\n\nNo README available."
+    readme_text = f"# {title}\n\nNo documentation found."
     if readme_path.exists():
         with readme_path.open("r") as readme_file:
             readme_text = readme_file.read()
+    else:
+        logger.warning(f"No README available for {metadata_path}")
 
     # Generate page
     dest_path = dest_dir / "README.md"
