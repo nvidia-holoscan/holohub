@@ -61,7 +61,7 @@ void QtHoloscanVideo::processBuffer(void* pointer,
   {
     std::unique_lock lock(shared_data_->mutex_);
     shared_data_->condition_variable_.wait_until(
-        lock, std::chrono::steady_clock::now() + std::chrono::seconds(5), 
+        lock, std::chrono::steady_clock::now() + std::chrono::seconds(5),
         [this] { return shared_data_->state_ == QtHoloscanSharedData::State::Processed; });
   }
 }
