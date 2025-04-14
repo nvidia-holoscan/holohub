@@ -93,7 +93,7 @@ There are several reasons that this could be the case:
 - The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool
   such as [Wireshark](https://www.wireshark.org/) to review live packets on the network interface. Review the [VLP-16
   user manual](https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf) for troubleshooting.
-- The HoloHub application is not properly configured. Review the [`lidar.yaml`](lidar.yaml) configuration
+- The HoloHub application is not properly configured. Review the [`lidar.yaml`](cpp/lidar.yaml) configuration
   and confirm that the port and IP address match the VLP-16 configuration.
 
 ## Acknowledgements
