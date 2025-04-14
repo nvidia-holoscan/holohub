@@ -41,7 +41,6 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
              "Progressiveness of the video frames to send.",
              true);
   spec.param(_framerate, "framerate", "Framerate", "Framerate of the signal to generate.", 60u);
-
 }
 
 }  // namespace holoscan::ops

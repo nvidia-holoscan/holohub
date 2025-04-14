@@ -158,8 +158,8 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
   }
 
   _stream_handle = std::move(Deltacast::Helper::get_stream_handle(board_handle(),
-                                                                 id_to_stream_type.at(_channel_index),
-                                                                 _video_information->get_stream_processing_mode()));
+                                                id_to_stream_type.at(_channel_index),
+                                                _video_information->get_stream_processing_mode()));
 
   set_loopback_state(false);
 
@@ -170,7 +170,8 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
 
   video_format = {};
 
-  GXF_LOG_INFO("%s stream successfully opened.", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+  GXF_LOG_INFO("%s stream successfully opened."
+    , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
 
   return gxf::Success;
 }
@@ -188,7 +189,8 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
 
   if (!_video_information->get_video_format(stream_handle())->progressive) {
     success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
-                                  VHD_SetStreamProperty(*stream_handle(), VHD_CORE_SP_FIELD_MERGE, TRUE)
+                                  VHD_SetStreamProperty(*stream_handle()
+                                                        , VHD_CORE_SP_FIELD_MERGE, TRUE)
                                   },
                                   "Failed to set field merge property");
     if (!success_b) {
@@ -199,8 +201,8 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
   if (_is_input) {
     auto success_opt = _video_information->set_stream_properties_values(
       stream_handle(),
-      _video_information->get_stream_properties_values(stream_handle())
-    );
+      _video_information->get_stream_properties_values(stream_handle()));
+
     if (!success_opt.has_value() || !success_opt.value()) {
       GXF_LOG_ERROR("Failed to set stream properties");
       return gxf::Unexpected{GXF_FAILURE};
@@ -209,7 +211,8 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
 
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
   video_format = _video_information->get_video_format(stream_handle()).value();
-  GXF_LOG_INFO("%s configured in %ux%u@%u", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
+  GXF_LOG_INFO("%s configured in %ux%u@%u"
+    , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
     , video_format.width, video_format.height, video_format.framerate);
 
   return gxf::Success;
@@ -237,7 +240,8 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
 
   buffer_sizes.resize(_video_information->get_nb_buffer_types());
 
-  for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types(); buffer_type_index++) {
+  for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types();
+       buffer_type_index++) {
     VHD_GetApplicationBuffersSize(*stream_handle(),
                                   buffer_type_index,
                                   &buffer_sizes[buffer_type_index]);
@@ -273,7 +277,8 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
       raw_buffer_pointer.push_back(desc);
     }
 
-    success = VHD_CreateSlotEx(*stream_handle(), raw_buffer_pointer.data(), &_slot_handles[slot_index]);
+    success = VHD_CreateSlotEx(*stream_handle()
+                              , raw_buffer_pointer.data(), &_slot_handles[slot_index]);
     if (!success) {
       GXF_LOG_ERROR("Failed to create slot");
       return gxf::Unexpected{GXF_FAILURE};
@@ -308,22 +313,25 @@ gxf::Expected<void> VideoMasterBase::start_stream() {
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
 
   Deltacast::Helper::ApiSuccess success;
-  if (!(success = VHD_StartStream(*stream_handle())))
-  {
-    GXF_LOG_ERROR("Could not start stream %s", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+  if (!(success = VHD_StartStream(*stream_handle()))) {
+    GXF_LOG_ERROR("Could not start stream %s"
+                  , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  GXF_LOG_INFO("%s stream successfully started.", VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+  GXF_LOG_INFO("%s stream successfully started."
+              , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
 
   return gxf::Success;
 }
 
-bool VideoMasterBase::gxf_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message) {
+bool VideoMasterBase::gxf_log_on_error(Deltacast::Helper::ApiSuccess result
+                                      , const std::string& message) {
   bool result_b = static_cast<bool>(result);
   if (!result_b) {
     auto error_code = result.error_code();
-    std::string error_message = message + " - Error: " + Deltacast::Helper::enum_to_string(error_code);
+    std::string error_message = message
+                                + " - Error: " + Deltacast::Helper::enum_to_string(error_code);
     GXF_LOG_ERROR(error_message.c_str());
   }
   return result_b;
@@ -374,18 +382,14 @@ bool VideoMasterBase::set_loopback_state(bool state) {
 
   if (has_firmware_loopback &&
       id_to_firmware_loopback_prop.find(_channel_index) != id_to_firmware_loopback_prop.end()) {
-
     success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
                                   VHD_SetBoardProperty(*board_handle(),
                                     id_to_firmware_loopback_prop.at(_channel_index), state)
                                   }, "Failed to set firmware loopback state");
 
     return success_b;
-  }
-
-  else if (has_active_loopback &&
-           id_to_active_loopback_prop.find(_channel_index) != id_to_active_loopback_prop.end()) {
-
+  } else if (has_active_loopback &&
+             id_to_active_loopback_prop.find(_channel_index) != id_to_active_loopback_prop.end()) {
     success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
                                   VHD_SetBoardProperty(*board_handle(),
                                     id_to_active_loopback_prop.at(_channel_index),
@@ -393,10 +397,8 @@ bool VideoMasterBase::set_loopback_state(bool state) {
                                   }, "Failed to set active loopback state");
 
     return success_b;
-  }
-  else if (has_passive_loopback &&
+  } else if (has_passive_loopback &&
            id_to_passive_loopback_prop.find(_channel_index) != id_to_passive_loopback_prop.end()) {
-
     success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
                                   VHD_SetBoardProperty(*board_handle(),
                                     id_to_passive_loopback_prop.at(_channel_index),
