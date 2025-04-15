@@ -11761,8 +11761,8 @@ git<span class="w"> </span>checkout<span class="w"> </span>hsdk-3.0
 ./docker/build.sh
 </code></pre></div>
 <p>This will build a docker image called <code>hololink-demo:2.0.0</code>.</p>
-<p>Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--base_img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>ai_surgical_video
+<p>Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:</p>
+<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--base_img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>ai_surgical_video<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot; --source hsb&quot;</span>
 </code></pre></div>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">#</a></h2>
 <h3 id="building-the-application">Building the Application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h3>
