@@ -20,6 +20,7 @@ import codecs
 import json
 import logging
 import os
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -53,10 +54,10 @@ def extract_readme(file_path):
             return ""
 
 
-def extract_application_name(metadata_filepath: str) -> str:
-    """Extract the application or workflow name from the README file path.
+def extract_project_name(metadata_filepath: str) -> str:
+    """Extract the project name from the metadata.json file path.
 
-    HoloHub convention is such that an application/workflow `metadata.json` file
+    HoloHub convention is such that a `metadata.json` file
     must be located at either:
     - the named project folder; or
     - a language subfolder one level below the project folder.
@@ -85,36 +86,66 @@ def generate_build_and_run_command(metadata: dict) -> str:
         return f'./dev_container build_and_run {metadata["application_name"]}'
 
 
-def gather_metadata(repo_path, exclude_files: None) -> dict:
-    """Collect project metadata from JSON files into a single dictionary"""
-    SCHEMA_TYPES = ["workflow", "application", "operator", "gxf_extension", "tutorial"]
+def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
+    """
+    Collect project metadata from JSON files into a single dictionary
 
-    metadata_files = find_metadata_files(repo_path)
+    This function will return a list of dictionaries, each containing metadata for a project.
+
+    :input:
+        repo_path: str
+            The path to the repository to collect metadata from.
+        exclude_files: list
+            A list of files to exclude from metadata collection.
+    :return:
+        A list of dictionaries, each containing metadata for a project.
+    """
+    SCHEMA_TYPES = [
+        "application",
+        "benchmark",
+        "gxf_extension",
+        "package",
+        "operator",
+        "tutorial",
+        "workflow",
+    ]
+
+    metadata_files = find_metadata_files(repo_paths)
     metadata = []
-    exclude_files = exclude_files or []
+    exclude_paths = exclude_paths or []
 
     # Iterate over the found metadata files
     for file_path in metadata_files:
-        if file_path in exclude_files:
+        if any(exclude_path in file_path for exclude_path in exclude_paths):
             continue
         with open(file_path, "r") as file:
             try:
-                data = json.load(file)
+                entries = json.load(file)
+                entries = entries if type(entries) is list else [entries]
 
-                for schema_type in SCHEMA_TYPES:
-                    if schema_type in data:
-                        data["metadata"] = data.pop(schema_type)
-                        break
+                for data in entries:
+                    try:
+                        schema_type = next(key for key in data.keys() if key in SCHEMA_TYPES)
+                    except StopIteration:
+                        logger.error(
+                            'No valid schema type found in metadata file "%s". Available keys: %s',
+                            file_path,
+                            ", ".join(data.keys()),
+                        )
+                        continue
 
-                readme = extract_readme(file_path)
-                application_name = extract_application_name(file_path)
-                source_folder = os.path.normpath(file_path).split("/")[0]
-                data["readme"] = readme
-                data["application_name"] = application_name
-                data["source_folder"] = source_folder
-                if source_folder in ["applications", "workflows"]:
-                    data["build_and_run"] = generate_build_and_run_command(data)
-                metadata.append(data)
+                    data["project_type"] = schema_type
+                    data["metadata"] = data.pop(schema_type)
+
+                    readme = extract_readme(file_path)
+                    project_name = extract_project_name(file_path)
+                    source_folder = Path(file_path).parent
+                    data["readme"] = readme
+                    data["project_name"] = project_name
+                    data["source_folder"] = source_folder
+                    if source_folder in ["applications", "benchmarks", "workflows"]:
+                        data["build_and_run"] = generate_build_and_run_command(data)
+                    metadata.append(data)
             except json.decoder.JSONDecodeError as e:
                 logger.error('Error parsing JSON file "%s": %s', file_path, e)
                 continue
