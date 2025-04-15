@@ -235,6 +235,7 @@ def install_cuda_dependencies_package(
         else:
             fatal(f"Error checking available versions for {package_name}: {e}")
 
+
 def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
     """Format a long command into multiple lines for better readability
 
@@ -254,25 +255,27 @@ def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
 
     # Common patterns that suggest good break points
     break_patterns = {
-        '--',  # Long options
-        '-',   # Short options
-        '&&',  # Command chaining
-        '||',  # Command chaining
-        '|',   # Pipes
-        ';',   # Command separator
-        '>',   # Output redirection
-        '<',   # Input redirection
-        '>>',  # Append redirection
-        '2>',  # Error redirection
+        "--",  # Long options
+        "-",  # Short options
+        "&&",  # Command chaining
+        "||",  # Command chaining
+        "|",  # Pipes
+        ";",  # Command separator
+        ">",  # Output redirection
+        "<",  # Input redirection
+        ">>",  # Append redirection
+        "2>",  # Error redirection
     }
 
     for i, arg in enumerate(cmd[1:]):
         # Check if this is a good place to break
         should_break = (
             # Break if we exceed max length
-            len(current_line) + len(arg) + 1 > max_line_length or
+            len(current_line) + len(arg) + 1 > max_line_length
+            or
             # Break before common command separators
-            any(arg.startswith(pattern) for pattern in break_patterns) or
+            any(arg.startswith(pattern) for pattern in break_patterns)
+            or
             # Break after common command separators
             any(cmd[i].endswith(pattern) for pattern in break_patterns)
         )
