@@ -94,10 +94,10 @@ git checkout hsdk-3.0
 
 This will build a docker image called `hololink-demo:2.0.0`.
 
-Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:
+Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run_args " --source hsb"
 ```
 
 ## Advanced Usage
