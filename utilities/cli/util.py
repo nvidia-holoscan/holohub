@@ -43,7 +43,7 @@ def run_command(
     cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
     """Run a shell command and handle errors"""
-    cmd_str = " ".join(str(x) for x in cmd)
+    cmd_str = format_long_command(cmd) if dry_run else " ".join(str(x) for x in cmd)
     if dry_run:
         print(f"\033[34m{get_timestamp()} \033[36m[dryrun] \033[37m$ \033[32m{cmd_str}\033[0m")
         return subprocess.CompletedProcess(cmd, 0)
@@ -234,3 +234,54 @@ def install_cuda_dependencies_package(
             return False
         else:
             fatal(f"Error checking available versions for {package_name}: {e}")
+
+def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
+    """Format a long command into multiple lines for better readability
+
+    Args:
+        cmd: Command to format as a list of strings
+        max_line_length: Maximum line length before wrapping
+
+    Returns:
+        Formatted command string with line continuations
+    """
+    if not cmd:
+        return ""
+
+    # Start with the first command
+    formatted = cmd[0]
+    current_line = cmd[0]
+
+    # Common patterns that suggest good break points
+    break_patterns = {
+        '--',  # Long options
+        '-',   # Short options
+        '&&',  # Command chaining
+        '||',  # Command chaining
+        '|',   # Pipes
+        ';',   # Command separator
+        '>',   # Output redirection
+        '<',   # Input redirection
+        '>>',  # Append redirection
+        '2>',  # Error redirection
+    }
+
+    for i, arg in enumerate(cmd[1:]):
+        # Check if this is a good place to break
+        should_break = (
+            # Break if we exceed max length
+            len(current_line) + len(arg) + 1 > max_line_length or
+            # Break before common command separators
+            any(arg.startswith(pattern) for pattern in break_patterns) or
+            # Break after common command separators
+            any(cmd[i].endswith(pattern) for pattern in break_patterns)
+        )
+
+        if should_break:
+            formatted += " \\\n    " + arg
+            current_line = arg
+        else:
+            formatted += " " + arg
+            current_line += " " + arg
+
+    return formatted
