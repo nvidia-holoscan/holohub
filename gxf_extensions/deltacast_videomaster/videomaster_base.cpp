@@ -169,6 +169,7 @@ gxf::Expected<void> VideoMasterBase::configure_stream() {
 }
 
 gxf::Expected<void> VideoMasterBase::init_buffers() {
+  std::vector<ULONG> buffer_sizes;
   free_buffers();
 
   if (_use_rdma || _is_input) {
@@ -185,21 +186,24 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
     return gxf::Unexpected{GXF_FAILURE};
   }
 
+  buffer_sizes.resize(_video_information->get_nb_buffer_types());
+
   for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types();
       buffer_type_index++) {
-    ULONG buffer_size = 0;
-    VHD_GetApplicationBuffersSize(_stream_handle, buffer_type_index, &buffer_size);
-    if (!buffer_size)
+    VHD_GetApplicationBuffersSize(_stream_handle,
+                                  buffer_type_index,
+                                  &buffer_sizes[buffer_type_index]);
+    if (!buffer_sizes[buffer_type_index])
       continue;
 
     for (int slot_index = 0; slot_index < _rdma_buffers.size(); slot_index++) {
       if ((buffer_type_index == _video_information->get_buffer_type() && _use_rdma) || _is_input) {
-        _rdma_buffers[slot_index][buffer_type_index].resize(_pool, buffer_size,
+        _rdma_buffers[slot_index][buffer_type_index].resize(_pool, buffer_sizes[buffer_type_index],
                                                             gxf::MemoryStorageType::kDevice);
       }
       if ((buffer_type_index != _video_information->get_buffer_type() || !_use_rdma) || _is_input) {
         void *allocated_buffer = nullptr;
-        posix_memalign(&allocated_buffer, 4096, buffer_size);
+        posix_memalign(&allocated_buffer, 4096, buffer_sizes[buffer_type_index]);
         _non_rdma_buffers[slot_index][buffer_type_index] = (BYTE*)allocated_buffer;
       }
     }
@@ -211,9 +215,11 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
          buffer_type_index++) {
       VHD_APPLICATION_BUFFER_DESCRIPTOR desc;
       desc.Size = sizeof(VHD_APPLICATION_BUFFER_DESCRIPTOR);
-      desc.pBuffer = ((buffer_type_index == _video_information->get_buffer_type() && _use_rdma)
-                                            ? _rdma_buffers[slot_index][buffer_type_index].pointer()
-                                : _non_rdma_buffers[slot_index][buffer_type_index]);
+      desc.pBuffer = (buffer_sizes[buffer_type_index]
+                        ? ((buffer_type_index == _video_information->get_buffer_type() && _use_rdma)
+                                    ? _rdma_buffers[slot_index][buffer_type_index].pointer()
+                                    : _non_rdma_buffers[slot_index][buffer_type_index])
+                        : nullptr);
       desc.RDMAEnabled = (buffer_type_index == _video_information->get_buffer_type() && _use_rdma);
 
       raw_buffer_pointer.push_back(desc);
