@@ -389,7 +389,7 @@ class AISurgicalVideoWorkflow(Application):
             if not os.path.exists(video_dir):
                 raise ValueError(f"Video directory not found: {video_dir}")
             replayer_kwargs["directory"] = video_dir
-            if self._frame_limit:
+            if self._frame_limit is not None:
                 replayer_kwargs["count"] = self._frame_limit
             replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
         # ------------------------------------------------------------------------------------------
