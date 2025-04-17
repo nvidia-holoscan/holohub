@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "occlusion handling", "robotic surgery assistance", "augmented reality", "vtk", "segmentation", "endoscopy"],
+        "tags": ["healthcare AI", "mixed reality", "occlusion handling", "robotic surgery assistance", "augmented reality", "VTK", "segmentation", "endoscopy"],
         "ranking": 3,
         "dependencies": {
             "data": [

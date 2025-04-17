@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "occlusion mitigation", "depth aware compositing", "augmented reality", "segmentation", "multiai", "vtk"],
+        "tags": ["healthcare AI", "mixed reality", "occlusion mitigation", "depth aware compositing", "augmented reality", "segmentation", "MultiAI", "VTK"],
         "ranking": 3,
         "dependencies": {
             "data": [

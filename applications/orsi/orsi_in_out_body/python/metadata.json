@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "video", "anonymization boundary", "GLSL blur", "computer vision", "video processing", "detection", "multiai", "visualization"],
+        "tags": ["healthcare AI", "video", "anonymization boundary", "GLSL blur", "computer vision", "video processing", "detection", "MultiAI", "visualization"],
         "ranking": 3,
         "dependencies": {
 			"data": [
