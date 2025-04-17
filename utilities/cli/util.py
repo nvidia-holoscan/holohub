@@ -295,6 +295,11 @@ def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
     if not cmd:
         return ""
 
+    # Check if total command length exceeds max length
+    total_length = sum(len(arg) + 1 for arg in cmd) - 1
+    if total_length <= max_line_length:
+        return " ".join(cmd)
+
     # Start with the first command
     formatted = cmd[0]
     current_line = cmd[0]
