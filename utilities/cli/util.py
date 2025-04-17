@@ -25,6 +25,48 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 
+class Color:
+    """Utility class for terminal color formatting"""
+
+    # ANSI color codes
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+
+    # Text attributes
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+    @staticmethod
+    def format(text: str, color: str, bold: bool = False) -> str:
+        """Format text with color and optional bold attribute"""
+        result = color
+        if bold:
+            result += Color.BOLD
+        result += text + Color.RESET
+        return result
+
+    @staticmethod
+    def _create_color_method(color_code: str):
+        """Create a color method for the given color code"""
+
+        def color_method(text: str, bold: bool = False) -> str:
+            return Color.format(text, color_code, bold)
+
+        return color_method
+
+    # Create color methods dynamically
+    red = _create_color_method(RED)
+    green = _create_color_method(GREEN)
+    yellow = _create_color_method(YELLOW)
+    blue = _create_color_method(BLUE)
+    cyan = _create_color_method(CYAN)
+    white = _create_color_method(WHITE)
+
+
 # Utility Functions
 def get_timestamp() -> str:
     """Get current timestamp in the format used by the bash script"""
@@ -33,7 +75,9 @@ def get_timestamp() -> str:
 
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
-    print(f"\033[31m{get_timestamp()} [FATAL] \033[0m{message}", file=sys.stderr)
+    print(
+        f"{Color.red(get_timestamp())} {Color.red('[FATAL]', bold=True)} {message}", file=sys.stderr
+    )
     print("\nBacktrace: ...", file=sys.stderr)
     traceback.print_list(traceback.extract_stack()[-3:], file=sys.stderr)
     sys.exit(1)
@@ -45,10 +89,12 @@ def run_command(
     """Run a shell command and handle errors"""
     cmd_str = format_long_command(cmd) if dry_run else " ".join(str(x) for x in cmd)
     if dry_run:
-        print(f"\033[34m{get_timestamp()} \033[36m[dryrun] \033[37m$ \033[32m{cmd_str}\033[0m")
+        print(
+            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
+        )
         return subprocess.CompletedProcess(cmd, 0)
 
-    print(f"\033[34m{get_timestamp()} \033[37m$ \033[32m{cmd_str}\033[0m")
+    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:

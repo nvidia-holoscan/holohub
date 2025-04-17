@@ -28,6 +28,7 @@ from typing import List, Optional
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
+from utilities.cli.util import Color
 
 
 def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
@@ -435,13 +436,13 @@ class HoloHubCLI:
                 if not args.dryrun:
                     os.chdir(project_data.get("source_folder", ""))
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mcd {project_data.get('source_folder', '')}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(project_data.get('source_folder', '')))}"
                 )
             elif workdir == "holohub_bin":
                 if not args.dryrun:
                     os.chdir(build_dir)
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mcd {build_dir}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(build_dir))}"
                 )
             else:  # default to app binary directory
                 target_dir = (
@@ -450,7 +451,7 @@ class HoloHubCLI:
                 if not args.dryrun:
                     os.chdir(target_dir)
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mcd {target_dir}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(target_dir))}"
                 )
 
             # Set up environment
@@ -466,13 +467,13 @@ class HoloHubCLI:
             # Print environment setup
             if args.verbose or args.dryrun:
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mexport PYTHONPATH={env['PYTHONPATH']}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export PYTHONPATH=' + env['PYTHONPATH'])}"
                 )
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mexport HOLOHUB_DATA_PATH={env['HOLOHUB_DATA_PATH']}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export HOLOHUB_DATA_PATH=' + env['HOLOHUB_DATA_PATH'])}"
                 )
                 print(
-                    f"\033[34m{holohub_cli_util.get_timestamp()} \033[37m$ \033[32mexport HOLOSCAN_INPUT_PATH={env['HOLOSCAN_INPUT_PATH']}\033[0m"
+                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export HOLOSCAN_INPUT_PATH=' + env['HOLOSCAN_INPUT_PATH'])}"
                 )
 
             # Handle Nsight Systems profiling
@@ -557,13 +558,13 @@ class HoloHubCLI:
         for project_type in LIST_TYPES:
             if project_type not in grouped_metadata:
                 continue
-            print(f"\n\033[1;37m== {project_type.upper()}S =================\033[0m\n")
+            print(f"\n{Color.white(f'== {project_type.upper()}S =================', bold=True)}\n")
             for project in sorted(grouped_metadata[project_type], key=lambda x: x["project_name"]):
                 language = project.get("metadata", {}).get("language", "")
                 language = f"({language})" if language else ""
                 print(f'{project["project_name"]} {language}')
 
-        print("\n\033[1;37m=================================\033[0m\n")
+        print(f"\n{Color.white('=================================', bold=True)}\n")
 
     def handle_lint(self, args: argparse.Namespace) -> None:
         """Handle lint command"""
@@ -645,7 +646,7 @@ class HoloHubCLI:
 
         else:
             # Run linting checks
-            print("Linting Python")
+            print(Color.blue("Linting Python"))
             if (
                 holohub_cli_util.run_command(
                     ["ruff", "check", "--ignore", "E712", args.path],
@@ -670,7 +671,7 @@ class HoloHubCLI:
             ):
                 exit_code = 1
 
-            print("Linting C++")
+            print(Color.blue("Linting C++"))
             if (
                 holohub_cli_util.run_command(
                     [
@@ -699,7 +700,7 @@ class HoloHubCLI:
             ):
                 exit_code = 1
 
-            print("Code spelling")
+            print(Color.blue("Code spelling"))
             if (
                 holohub_cli_util.run_command(
                     [
@@ -718,7 +719,7 @@ class HoloHubCLI:
             ):
                 exit_code = 1
 
-            print("Linting CMake")
+            print(Color.blue("Linting CMake"))
             cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
             cmake_files.extend(Path(args.path).rglob("*.cmake"))
             if cmake_files:
@@ -737,7 +738,7 @@ class HoloHubCLI:
                     exit_code = 1
 
         if exit_code == 0:
-            print("Everything looks good!")
+            print(Color.green("Everything looks good!"))
         sys.exit(exit_code)
 
     def _install_lint_deps(self, dry_run: bool = False) -> None:
@@ -998,7 +999,7 @@ class HoloHubCLI:
             dry_run=args.dryrun,
         )
 
-        print("Setup for HoloHub is ready. Happy Holocoding!")
+        print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
@@ -1007,13 +1008,13 @@ class HoloHubCLI:
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""
         if args.dryrun:
-            print("Would clear cache folders:")
+            print(Color.blue("Would clear cache folders:"))
             for pattern in ["build", "build-*", "install"]:
                 for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
                     if path.is_dir():
-                        print(f"  Would remove: {path}")
+                        print(f"  {Color.yellow('Would remove:')} {path}")
         else:
-            print("Clearing cache...")
+            print(Color.blue("Clearing cache..."))
             for pattern in ["build", "build-*", "install"]:
                 for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
                     if path.is_dir():

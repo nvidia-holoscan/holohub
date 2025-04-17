@@ -43,11 +43,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Mock project data with some similar names
         self.cli.projects = [
             {"project_name": "hello_world", "metadata": {"language": "cpp"}},
-            {
-                "project_name": "hello_world_python",
-                "metadata": {"language": "python"},
-                "source_folder": "applications/hello_world_python",
-            },
+            {"project_name": "hello_world_python", "metadata": {"language": "python"}},
             {"project_name": "hello_world_cpp", "source_folder": "applications/hello_world_cpp"},
             {
                 "project_name": "hello_world_advanced",
@@ -65,17 +61,9 @@ class TestHoloHubCLI(unittest.TestCase):
         subparsers = [action for action in parser._actions if action.dest == "command"]
         self.assertEqual(len(subparsers), 1)
         # Check for some key commands
-        for x in [
-            "build-container",
-            "run-container",
-            "build",
-            "run",
-            "list",
-            "lint",
-            "setup",
-            "install",
-        ]:
-            self.assertIn(x, subparsers[0].choices)
+        cmds = "build-container run-container build run list lint setup install"
+        for cmd in cmds.split():
+            self.assertIn(cmd, subparsers[0].choices)
 
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
