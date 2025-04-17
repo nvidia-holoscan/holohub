@@ -254,7 +254,7 @@ class HoloHubCLI:
         ]  # Get the closest match with distance <= 3
         msg = f"Project '{project_name}' not found."
         if closest_matches:
-            msg += f" Did you mean: '{closest_matches[0][0]}' (source: {closest_matches[0][1]})"
+            msg += f"\nDid you mean: '{closest_matches[0][0]}' (source: {closest_matches[0][1]})"
         holohub_cli_util.fatal(msg)
         return None
 
@@ -426,7 +426,7 @@ class HoloHubCLI:
             if language == "cpp":
                 if not build_dir.is_dir() and not args.dryrun:
                     holohub_cli_util.fatal(
-                        f"The build directory for this application does not exist.\n"
+                        f"The build directory {build_dir} for this application does not exist.\n"
                         f"Did you forget to './holohub build {args.project}'?"
                     )
 

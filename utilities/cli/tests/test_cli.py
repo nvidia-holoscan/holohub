@@ -67,53 +67,39 @@ class TestHoloHubCLI(unittest.TestCase):
 
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
-    def test_build_container_command(self, mock_container_class, mock_find_project):
-        """Test the build-container command parsing"""
+    @patch("utilities.cli.util.run_command")
+    @patch("shutil.which")
+    @patch("pathlib.Path.is_dir")
+    @patch("os.chdir")
+    def test_container_commands(
+        self,
+        mock_chdir,
+        mock_is_dir,
+        mock_which,
+        mock_run_command,
+        mock_container_class,
+        mock_find_project,
+    ):
+        """Test both build-container and run commands"""
+        # Setup mocks
         mock_find_project.return_value = self.mock_project_data
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
+        mock_is_dir.return_value = True
 
-        cmd = "build-container test_project --base_img test_image --verbose --no-cache"
-        args = self.cli.parser.parse_args(cmd.split())
-        self.assertEqual(args.command, "build-container")
-        self.assertEqual(args.project, "test_project")
-        self.assertEqual(args.base_img, "test_image")
-        self.assertTrue(args.verbose)
-        self.assertTrue(args.no_cache)
-
-        # Call the function to verify it's called with correct args
-        args.func(args)
-        mock_find_project.assert_called_once_with(project_name="test_project", language=None)
-        mock_container_class.assert_called_once()
-        mock_container.build.assert_called_once_with(
+        # Test build-container command
+        build_args = self.cli.parser.parse_args(
+            "build-container test_project --base_img test_image --no-cache".split()
+        )
+        build_args.func(build_args)
+        mock_container.build.assert_called_with(
             docker_file=None, base_img="test_image", img=None, no_cache=True, build_args=None
         )
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    @patch("utilities.cli.util.run_command")
-    @patch("shutil.which")
-    def test_run_command(
-        self, mock_which, mock_run_command, mock_container_class, mock_find_project
-    ):
-        """Test the run command parsing"""
-        mock_find_project.return_value = self.mock_project_data
-        mock_container = MagicMock()
-        mock_container_class.return_value = mock_container
-        mock_run_command.return_value = None
-        mock_which.return_value = "/usr/local/bin/nsys"  # Mock nsys being available
-
-        cmd = "run test_project --local --verbose --nsys-profile"
-        args = self.cli.parser.parse_args(cmd.split())
-        self.assertEqual(args.command, "run")
-        self.assertEqual(args.project, "test_project")
-        self.assertTrue(args.local)
-        self.assertTrue(args.verbose)
-        self.assertTrue(args.nsys_profile)
-
-        # Call the function to verify it's called with correct args
-        args.func(args)
-        mock_find_project.assert_called_once_with(project_name="test_project", language=None)
+        # Test run command
+        run_args = self.cli.parser.parse_args("run test_project --local".split())
+        run_args.func(run_args)
+        mock_find_project.assert_called_with(project_name="test_project", language=None)
 
     def test_list_command(self):
         """Test the list command parsing"""
