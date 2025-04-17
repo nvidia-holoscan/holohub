@@ -77,3 +77,10 @@ add_test(
     COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_container.py"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+# Add test for CLI module
+add_test(
+    NAME test_cli
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_cli.py"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
