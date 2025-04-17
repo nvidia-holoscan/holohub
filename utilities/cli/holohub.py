@@ -678,6 +678,7 @@ class HoloHubCLI:
                         "python",
                         "-m",
                         "cpplint",
+                        "--quiet",
                         "--exclude",
                         "build",
                         "--exclude",
@@ -737,7 +738,7 @@ class HoloHubCLI:
                 ):
                     exit_code = 1
 
-        if exit_code == 0:
+        if exit_code == 0 and not args.dryrun:
             print(Color.green("Everything looks good!"))
         sys.exit(exit_code)
 
