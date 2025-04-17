@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "display modes", "TensorRT integration", "holoviz", "depth", "monocular depth estimation", "interactive"],
+		"tags": ["computer vision and perception", "visualization", "dynamic colormap generation", "edge accelerated inference", "monocular depth estimation", "interactive", "holoviz ui", "video processing"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "tool tracking accuracy", "remote inference offloading", "endoscopy", "gRPC", "video processing", "holoviz", "client server"],
+		"tags": ["healthcare AI", "distributed", "LSTM TensorRT", "asynchronous queues", "gRPC", "video processing", "computer vision", "tracking", "visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

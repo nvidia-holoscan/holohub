@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "color space encoding", "gamma correction", "holoviz sRGB", "image processing", "eotf", "rendering"],
+		"tags": ["computer vision and perception", "visualization", "synthetic test patterns", "dual color space control", "holoviz sRGB", "eotf", "rendering"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

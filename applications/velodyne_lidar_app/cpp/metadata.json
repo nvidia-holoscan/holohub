@@ -43,7 +43,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["signal processing", "lidar", "GPU cartesian conversion", "rolling point accumulation", "velodyne", "holoviz", "point cloud", "network"],
+		"tags": ["signal processing", "lidar", "spherical cartesian conversion", "rolling buffer accumulation", "velodyne", "point cloud", "UDP", "visualization"],
 		"ranking": 4,
 		"dependencies": {},
 		"run": {

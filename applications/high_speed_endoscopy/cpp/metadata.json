@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "Bayer demosaicing", "photon to glass latency", "camera", "holoviz", "RDMA", "GPUDirect", "endoscopy"],
+		"tags": ["healthcare AI", "video", "photon to glass latency", "Bayer rgb pipeline optimization", "emergent", "endoscopy", "RDMA", "holoviz vsync", "video processing"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

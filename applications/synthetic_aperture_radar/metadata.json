@@ -26,7 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["signal processing", "radar", "backprojection algorithm", "gotcha dataset", "sar", "signal processing", "backprojection", "holoviz", "image formation"],
+        "tags": ["signal processing", "imaging", "backprojection", "coherent integration", "sar", "synthetic aperture", "FFT", "holoviz ui"],
         "ranking": 4,
         "dependencies": {
             "operators": [

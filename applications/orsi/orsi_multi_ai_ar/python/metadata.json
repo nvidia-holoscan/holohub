@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "surgical instrument occlusion resolution", "anatomical depth projection", "augmented reality", "segmentation", "holoviz", "endoscopy"],
+        "tags": ["healthcare AI", "mixed reality", "occlusion mitigation", "depth aware compositing", "augmented reality", "segmentation", "multiai", "vtk"],
         "ranking": 3,
         "dependencies": {
             "data": [

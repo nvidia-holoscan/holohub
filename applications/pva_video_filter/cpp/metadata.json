@@ -29,7 +29,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": ["computer vision and perception", "video", "unsharp masking", "workload offloading", "PVA", "image processing", "video processing", "holoviz", "endoscopy"],
+        "tags": ["computer vision and perception", "video", "tegra vliw optimization", "nv24 luminance processing", "PVA", "video processing", "endoscopy", "visualization"],
         "ranking": 1,
         "dependencies": {},
         "run": {

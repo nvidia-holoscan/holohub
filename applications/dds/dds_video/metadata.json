@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "video", "custom idl types", "multi topic overlay", "DDS", "rti connext", "holoviz", "shapes"],
+		"tags": ["networking and distributed computing", "integration", "transport tuning", "geometric overlay", "DDS", "rti connext", "video processing", "visualization", "shapes"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "rgb channel filtering", "sigma adjustment", "MATLAB", "image processing", "ultrasound", "holoviz"],
+		"tags": ["computer vision and perception", "visualization", "GPU code generation", "memory transpose optimization", "MATLAB", "image processing", "video processing", "holoviz ui"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

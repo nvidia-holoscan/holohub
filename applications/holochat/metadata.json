@@ -19,7 +19,7 @@
 				]
 			},
 			"platforms": ["x86_64", "aarch64"],
-			"tags": ["natural language and conversational AI", "language model", "code generation assistant", "documentation driven coding", "AI assistant", "vector database", "local LLM", "RAG"],
+			"tags": ["natural language and conversational AI", "integration", "code context management", "documentation aware generation", "RAG", "nim", "vector database", "local LLM"],
 			"ranking": 4,
 			"dependencies": {
 				"OSS": [

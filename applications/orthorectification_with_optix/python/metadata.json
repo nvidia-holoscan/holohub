@@ -21,7 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["computer vision and perception", "visualization", "orthophoto generation", "ray traced orthomosaic", "holoviz", "optix", "drone", "image processing", "sensor"],
+		"tags": ["computer vision and perception", "visualization", "digital elevation model integration", "per frame geoprojection", "optix", "drone", "orthorectification", "image processing"],
 		"ranking": 4,
 		"dependencies": {
 			"OptiX-SDK": {

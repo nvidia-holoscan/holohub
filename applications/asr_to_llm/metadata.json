@@ -22,7 +22,7 @@
 			"x86_64",
             "aarch64"
 		],
-		"tags": ["healthcare AI", "audio", "streaming transcription", "transcription summarization", "automatic speech recognition", "local LLM", "streaming", "radiology imaging", "lifesciences"],
+		"tags": ["healthcare AI", "audio", "streaming ASR pipeline", "quantized model inference", "automatic speech recognition", "local LLM", "speech to text", "radiology imaging"],
 		"ranking": 4,
 		"dependencies": {
             "python-packages": {

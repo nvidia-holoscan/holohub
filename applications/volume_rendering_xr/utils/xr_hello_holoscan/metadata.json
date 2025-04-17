@@ -55,7 +55,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["extended reality", "visualization", "xrsession operators", "stereo view pipeline", "xr", "OpenXR", "holoviz", "rendering", "stereo"],
+		"tags": ["extended reality", "visualization", "primitive rendering", "pose visualization overlay", "OpenXR", "holoviz ui", "sensor", "stereo", "tracking"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

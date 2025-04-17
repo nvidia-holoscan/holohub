@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "non organic layer overlay", "surgical ar depth enhancement", "augmented reality", "segmentation", "vtk", "holoviz", "endoscopy"],
+        "tags": ["healthcare AI", "mixed reality", "occlusion handling", "robotic surgery assistance", "augmented reality", "vtk", "segmentation", "endoscopy"],
         "ranking": 3,
         "dependencies": {
             "data": [

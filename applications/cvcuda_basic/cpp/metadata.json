@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "integration", "tensor conversion", "stride management", "cv cuda", "holoviz", "video processing", "image processing", "endoscopy"],
+		"tags": ["computer vision and perception", "video", "buffer reuse", "tensor interop", "cv cuda", "video processing", "endoscopy", "visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

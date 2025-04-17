@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "dynamic layer callback", "IMGUI integration", "holoviz ui", "interactive", "visualization"],
+		"tags": ["computer vision and perception", "visualization", "IMGUI integration", "dynamic gradients", "holoviz ui", "interactive", "rendering", "shapes"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

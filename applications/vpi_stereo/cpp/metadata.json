@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "rectified processing", "accelerator backends", "stereo", "depth", "holoviz", "camera"],
+		"tags": ["computer vision and perception", "video", "disparity mapping", "stereo rectification", "camera", "depth", "stereo", "visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

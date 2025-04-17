@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "fasterr cnn inference", "dynamic thresholding", "object detection", "holoviz", "bounding box", "video processing"],
+		"tags": ["computer vision and perception", "video", "torchscript inference", "gxf tensor conversion", "detection", "bounding box", "video processing", "visualization", "holoviz ui"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -25,7 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "v4l2 integration", "multi class detection", "holoviz", "object detection", "bounding box", "video processing"],
+		"tags": ["computer vision and perception", "video", "face detection", "bounding box filtering", "holoviz ui", "video processing", "detection"],
 		"ranking": 2,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "language model", "vision language integration", "real-time video analysis", "large multimodal model", "holoviz", "video processing", "ui", "local LLM"],
+		"tags": ["computer vision and perception", "language model", "visual query injection", "stream aware inference", "large vision model", "multimodal model", "video processing", "interactive"],
 		"ranking": 1,
 		"dependencies": {
 			"Bootstrap": {

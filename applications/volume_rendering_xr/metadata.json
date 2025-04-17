@@ -57,7 +57,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "mixed reality", "volume interaction", "stereoscopic viewing", "OpenXR", "claraviz", "visualization", "volume"],
+		"tags": ["extended reality", "visualization", "depth conversion", "interactive controls", "OpenXR", "bounding box", "holoviz ui", "volume"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

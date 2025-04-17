@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "H.264 stream processing", "surgical tool detection", "H.264", "video decoding", "tracking", "holoviz", "endoscopy"],
+		"tags": ["healthcare AI", "video", "**endoscopic tool tracking**", "**distributed ucx pipeline**", "... **h.264**", "**holoviz hdr**", "**lstm model zoo**", "**tensorrt**", "**endoscopy** ##### explanation: **secondary category**: video directly relates to the core H.264 stream processing and real-time video overlay features. **keywords**: \"endoscopic tool tracking\" captures the surgical domain specificity not covered by categories \"distributed ucx pipeline\" highlights the inter fragment communication architecture using :10000 ports **tags**: *h.264*: core codec for video stream handling *holoviz hdr*: visualization component with overlay fusion *lstm model zoo*: inference engine implementation detail *tensorrt*: acceleration framework critical to latency optimization *endoscopy*: medical imaging domain specialization"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

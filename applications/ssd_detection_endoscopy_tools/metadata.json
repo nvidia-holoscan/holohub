@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["healthcare AI", "video", "surgical tool detection", "ONNX model conversion", "object detection", "ssd", "endoscopy", "holoviz"],
+		"tags": ["healthcare AI", "video", "surgicaltooltracking", "onnx_nhwc_conversion", "ssd", "detection", "video processing", "visualization", "bounding box"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

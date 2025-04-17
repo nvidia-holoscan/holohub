@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["natural language and conversational AI", "integration", "runtime model selection", "inference service configuration", "nim", "openai api", "large language model", "client"],
+		"tags": ["natural language and conversational AI", "integration", "model switching", "yaml configuration", "openai api", "nim", "local LLM"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

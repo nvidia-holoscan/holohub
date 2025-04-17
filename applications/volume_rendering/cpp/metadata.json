@@ -25,7 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "visualization", "transfer function configuration", "multi volume fusion", "claraviz", "holoviz", "volume", "rendering", "ct scan"],
+		"tags": ["healthcare AI", "visualization", "hounsfield scale transfer functions", "volume rendering presets", "claraviz", "volume", "segmentation", "interactive", "total segmentator"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "language model", "modular agent framework", "cuda optimized embeddings", "ehr", "RAG", "automatic speech recognition", "vector database"],
+		"tags": ["healthcare AI", "audio", "zeromq integration", "mmr retrieval", "automatic speech recognition", "ehr", "RAG", "vector database", "FHIR"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

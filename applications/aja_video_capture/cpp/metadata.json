@@ -25,7 +25,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["computer vision and perception", "video", "frame capture pipeline", "AJA holoviz integration", "AJA", "holoviz", "streaming"],
+		"tags": ["computer vision and perception", "video", "format conversion", "stream recording", "AJA", "video processing"],
 		"ranking": 0,
 		"dependencies": {
 		},
