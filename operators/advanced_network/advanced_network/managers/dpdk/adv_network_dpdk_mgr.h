@@ -137,8 +137,6 @@ class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
   DpdkLogLevel::Level level_;  ///< The DPDK log level.
 };
 
-using RxRings = std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES>;
-
 class DpdkMgr : public Manager {
  public:
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
@@ -151,7 +149,6 @@ class DpdkMgr : public Manager {
   static constexpr int JUMBOFRAME_SIZE = 9100;
   static constexpr int DEFAULT_NUM_TX_BURST = 256;
   static constexpr int DEFAULT_NUM_RX_BURST = 64;
-  static constexpr int MAX_NUM_RX_QUEUES = 64;
   uint16_t default_num_rx_desc = 8192;
   uint16_t default_num_tx_desc = 8192;
   int num_ports = 0;
@@ -226,7 +223,7 @@ class DpdkMgr : public Manager {
   std::array<std::string, MAX_IFS> if_names;
   std::array<std::string, MAX_IFS> pcie_addrs;
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
-  RxRings rx_rings_;
+  std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
