@@ -156,7 +156,7 @@ PYBIND11_MODULE(_videomaster, m) {
            "progressive"_a = true,
            "framerate"_a = "60"s,
            "pool"_a,
-           "overlay"_a = false,
+           "enable_overlay"_a = false,
            "name"_a = "videomaster_transmitter"s,
            doc::VideoMasterTransmitterOp::doc_VideoMasterTransmitterOp)
       .def_property_readonly("gxf_typename",
