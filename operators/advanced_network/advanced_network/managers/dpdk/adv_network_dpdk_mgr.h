@@ -152,9 +152,7 @@ class DpdkMgr : public Manager {
   uint16_t default_num_rx_desc = 8192;
   uint16_t default_num_tx_desc = 8192;
   int num_ports = 0;
-  static constexpr int num_lcores = 2;
   static constexpr int MEMPOOL_CACHE_SIZE = 32;
-  static constexpr int MAX_PKT_BURST = 64;
 
   static constexpr uint32_t GPU_PAGE_OFFSET = (GPU_PAGE_SIZE - 1);
   static constexpr uint32_t GPU_PAGE_MASK = (~GPU_PAGE_OFFSET);
@@ -220,8 +218,6 @@ class DpdkMgr : public Manager {
 
   void apply_tx_offloads(int port);
 
-  std::array<std::string, MAX_IFS> if_names;
-  std::array<std::string, MAX_IFS> pcie_addrs;
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
   std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];

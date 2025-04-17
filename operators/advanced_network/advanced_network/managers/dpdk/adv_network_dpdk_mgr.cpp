@@ -848,7 +848,8 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
           RING_F_SC_DEQ | RING_F_SP_ENQ);
 
       if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate ring {}! err={}", ring_name, rte_strerror(rte_errno));
+        HOLOSCAN_LOG_CRITICAL(
+          "Failed to allocate ring {}! err={}", ring_name, rte_strerror(rte_errno));
         return -1;
       }
 
@@ -1933,7 +1934,14 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
 
 Status DpdkMgr::get_rx_burst(BurstParams** burst, int port, int q) {
   uint32_t key = generate_queue_key(port, q);
-  if (rte_ring_dequeue(rx_rings[key], reinterpret_cast<void**>(burst)) < 0) {
+  const auto ring_it = rx_rings.find(key);
+
+  if (ring_it == rx_rings.end()) {
+    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in get_rx_burst: {}/{}", port, q);
+    return Status::INVALID_PARAMETER;
+  }
+
+  if (rte_ring_dequeue(ring_it->second, reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;
   }
 
