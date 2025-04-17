@@ -53,3 +53,51 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     ALL
   )
 endif()
+
+# Add testing
+if(BUILD_TESTING)
+  # Set the test directories and variables
+  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/python/recording_output)
+  set(SOURCE_VIDEO_BASENAME ai_surgical_video_output)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/testing/)
+
+  # Create the recording directory
+  file(MAKE_DIRECTORY ${RECORDING_DIR})
+
+  # ---------------------------------------------------------------------------
+  # Add the python integration test
+  # ---------------------------------------------------------------------------
+  add_test(NAME ai_surgical_video_python_test
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/python/ai_surgical_video.py
+                   --source replayer
+                   --config ${CMAKE_CURRENT_SOURCE_DIR}/python/config.yaml
+                   --data ${HOLOHUB_DATA_DIR}
+                   --recording-dir ${RECORDING_DIR}
+                   --recording-basename ${SOURCE_VIDEO_BASENAME}
+                   --frame-limit 10
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  # Set python environment variables
+  set_property(TEST ai_surgical_video_python_test PROPERTY ENVIRONMENT
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
+  # Set the test passing criteria with regular expressions
+  set_tests_properties(ai_surgical_video_python_test
+                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # ---------------------------------------------------------------------------
+  # Add a test to check the validity of the frames
+  # ---------------------------------------------------------------------------
+  add_test(NAME ai_surgical_video_python_render_test
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+    --source_video_dir ${RECORDING_DIR}
+    --source_video_basename ${SOURCE_VIDEO_BASENAME}
+    --output_dir ${RECORDING_DIR}
+    --validation_frames_dir ${VALIDATION_FRAMES_DIR}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  # Set the test passing criteria with regular expressions
+  set_tests_properties(ai_surgical_video_python_render_test PROPERTIES
+    DEPENDS ai_surgical_video_python_test
+    PASS_REGULAR_EXPRESSION "Valid video output!"
+  )
+endif()

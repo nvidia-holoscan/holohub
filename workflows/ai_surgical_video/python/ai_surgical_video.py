@@ -28,6 +28,7 @@ from holoscan.operators import (
     HolovizOp,
     InferenceOp,
     SegmentationPostprocessorOp,
+    VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, UnboundedAllocator
@@ -338,6 +339,8 @@ class AISurgicalVideoWorkflow(Application):
         camera=None,
         camera_mode=None,
         frame_limit=None,
+        recording_dir=None,
+        recording_basename="ai_surgical_video_output",
     ):
         super().__init__()
         # Set application name
@@ -360,6 +363,9 @@ class AISurgicalVideoWorkflow(Application):
         self._camera = camera
         self._camera_mode = camera_mode
         self._frame_limit = frame_limit
+        self._recording_dir = recording_dir
+        self._recording_basename = recording_basename
+        self._enable_recording = self._recording_dir is not None
 
     def compose(self):
         logging.info("Setup source and camera")
@@ -383,6 +389,8 @@ class AISurgicalVideoWorkflow(Application):
             if not os.path.exists(video_dir):
                 raise ValueError(f"Video directory not found: {video_dir}")
             replayer_kwargs["directory"] = video_dir
+            if self._frame_limit:
+                replayer_kwargs["count"] = self._frame_limit
             replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
         # ------------------------------------------------------------------------------------------
         # Setup Holoscan Sensor Bridge
@@ -602,8 +610,26 @@ class AISurgicalVideoWorkflow(Application):
             tensors=holoviz_tensors,
             fullscreen=self._fullscreen,
             headless=self._headless,
+            enable_render_buffer_output=self._enable_recording,
             **self.kwargs("holoviz"),
         )
+        # ------------------------------------------------------------------------------------------
+        # Recording
+        # ------------------------------------------------------------------------------------------
+        if self._enable_recording:
+            recorder_format_converter = FormatConverterOp(
+                self,
+                name="recorder_format_converter",
+                in_dtype="rgba8888",
+                out_dtype="rgb888",
+                pool=UnboundedAllocator(self, name="recorder_pool"),
+            )
+            recorder = VideoStreamRecorderOp(
+                self,
+                name="recorder",
+                directory=self._recording_dir,
+                basename=self._recording_basename,
+            )
         # ------------------------------------------------------------------------------------------
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
@@ -690,6 +716,15 @@ class AISurgicalVideoWorkflow(Application):
         # ____________________________________________________________________
         # Branch 1&2: connect the holoviz delegate to the holoviz operator
         self.add_flow(holoviz_delegate, holoviz, {("out", "receivers")})
+        # ------------------------------------------------------------------------------------------
+        # Recording
+        # ------------------------------------------------------------------------------------------
+        if self._enable_recording:
+            self.add_flow(
+                holoviz, recorder_format_converter, {("render_buffer_output", "source_video")}
+            )
+            self.add_flow(recorder_format_converter, recorder)
+        # ------------------------------------------------------------------------------------------
 
 
 def main(args):
@@ -732,6 +767,7 @@ def main(args):
             camera=camera,
             camera_mode=camera_mode,
             frame_limit=args.frame_limit,
+            recording_dir=args.recording_dir,
         )
         application.config(args.config)
 
@@ -779,6 +815,7 @@ def main(args):
             headless=args.headless,
             fullscreen=args.fullscreen,
             frame_limit=args.frame_limit,
+            recording_dir=args.recording_dir,
         )
         application.config(args.config)
         application.run()
@@ -865,7 +902,18 @@ if __name__ == "__main__":
         action="store_true",
         help="Don't call reset on the hololink device",
     )
-
+    parser.add_argument(
+        "--recording-dir",
+        type=str,
+        default=None,
+        help="Directory to save the recording",
+    )
+    parser.add_argument(
+        "--recording-basename",
+        type=str,
+        default="ai_surgical_video_output",
+        help="Basename of the recording",
+    )
     args = parser.parse_args()
 
     main(args)
