@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "perspective matrix generation", "frame delayed calibration", "camera", "detection", "image processing", "holoviz ui"],
+		"tags": ["computer vision and perception", "visualization", "perspective matrix generation", "frame delayed calibration", "camera", "detection", "image processing", "HoloViz UI"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

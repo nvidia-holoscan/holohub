@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "GPU code generation", "memory transpose optimization", "MATLAB", "image processing", "video processing", "holoviz ui"],
+		"tags": ["computer vision and perception", "visualization", "GPU code generation", "memory transpose optimization", "MATLAB", "image processing", "video processing", "HoloViz UI"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [
