@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "zeromq messaging", "OAuth2 authentication", "FHIR", "ehr", "client", "ehr_query_llm"],
+		"tags": ["healthcare AI", "distributed", "ZeroMQ messaging", "OAuth2 authentication", "FHIR", "EHR", "client", "ehr_query_llm"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {
