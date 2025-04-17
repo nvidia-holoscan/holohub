@@ -227,6 +227,8 @@ class HoloHubCLI:
     def _find_project(self, project_name: str, language: Optional[str] = None) -> dict:
         """Find a project by name"""
         normalized_language = holohub_cli_util.normalize_language(language) if language else None
+
+        # First try exact match
         for project in self.projects:
             if project["project_name"] == project_name:
                 if (
@@ -236,6 +238,23 @@ class HoloHubCLI:
                 ):
                     continue
                 return project
+        # If project not found, suggest similar names
+        distances = [
+            (
+                p["project_name"],
+                holohub_cli_util.levenshtein_distance(project_name, p["project_name"]),
+                p.get("source_folder", ""),
+            )
+            for p in self.projects
+        ]
+        distances.sort(key=lambda x: x[1])  # Sort by distance
+        closest_matches = [
+            (name, folder) for name, dist, folder in distances[:1] if dist <= 3
+        ]  # Get the closest match with distance <= 3
+        msg = f"Project '{project_name}' not found."
+        if closest_matches:
+            msg += f" Did you mean: '{closest_matches[0][0]}' (source: {closest_matches[0][1]})"
+        holohub_cli_util.fatal(msg)
         return None
 
     def _make_project_container(
