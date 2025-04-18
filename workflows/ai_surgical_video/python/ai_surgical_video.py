@@ -75,6 +75,27 @@ class ForwardOp(Operator):
         op_output.emit(in_message, "out")
 
 
+class DecimationOp(Operator):
+    """
+    This operator decimates the input image based on the defined interval.
+    """
+
+    def __init__(self, *args, interval: int = 1, **kwargs):
+        self.interval = interval
+        self.count = 0
+        super().__init__(*args, **kwargs)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        in_message = op_input.receive("in")
+        self.count += 1
+        if self.count % self.interval == 0:
+            op_output.emit(in_message, "out")
+
+
 class ConditionOp(Operator):
     """
     This operator set the dynamic flow condition based on the input decision and forward the input image.
@@ -341,6 +362,7 @@ class AISurgicalVideoWorkflow(Application):
         frame_limit=None,
         recording_dir=None,
         recording_basename="ai_surgical_video_output",
+        replayer_interval=1,
     ):
         super().__init__()
         # Set application name
@@ -366,6 +388,7 @@ class AISurgicalVideoWorkflow(Application):
         self._recording_dir = recording_dir
         self._recording_basename = recording_basename
         self._enable_recording = self._recording_dir is not None
+        self._replayer_interval = replayer_interval
 
     def compose(self):
         logging.info("Setup source and camera")
@@ -392,6 +415,8 @@ class AISurgicalVideoWorkflow(Application):
             if self._frame_limit is not None:
                 replayer_kwargs["count"] = self._frame_limit
             replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
+            # Decimate the input frames
+            decimation = DecimationOp(self, name="decimation_op", interval=self._replayer_interval)
         # ------------------------------------------------------------------------------------------
         # Setup Holoscan Sensor Bridge
         # ------------------------------------------------------------------------------------------
@@ -677,7 +702,8 @@ class AISurgicalVideoWorkflow(Application):
         elif self.source == "aja":
             self.add_flow(aja, source, {("video_buffer_output", "in")})
         else:
-            self.add_flow(replayer, source)
+            self.add_flow(replayer, decimation)
+            self.add_flow(decimation, source)
         # __________________________________________________________________
         # Main Branch
         # Out of body detection application
@@ -768,6 +794,7 @@ def main(args):
             camera_mode=camera_mode,
             frame_limit=args.frame_limit,
             recording_dir=args.recording_dir,
+            replayer_interval=args.replayer_interval,
         )
         application.config(args.config)
 
@@ -816,6 +843,7 @@ def main(args):
             fullscreen=args.fullscreen,
             frame_limit=args.frame_limit,
             recording_dir=args.recording_dir,
+            replayer_interval=args.replayer_interval,
         )
         application.config(args.config)
         application.run()
@@ -913,6 +941,12 @@ if __name__ == "__main__":
         type=str,
         default="ai_surgical_video_output",
         help="Basename of the recording",
+    )
+    parser.add_argument(
+        "--replayer-interval",
+        type=int,
+        default=1,
+        help="Replayer frames interval",
     )
     args = parser.parse_args()
 
