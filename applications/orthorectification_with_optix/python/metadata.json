@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Orthorectification with OptiX",
+		"name": "GPU-Accelerated Orthorectification with NVIDIA OptiX",
 		"authors": [
 			{
 				"name": "Brent Bartlett",

@@ -1,4 +1,4 @@
-## Multi AI Ultrasound Application
+# Multi AI Ultrasound
 
 To run multiple inference pipelines in a single application, the Multi AI operators (inference and postprocessor) use APIs from the Holoscan Inference module to extract data, initialize and execute the inference workflow, process, and transmit data for visualization.
 

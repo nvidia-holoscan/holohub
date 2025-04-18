@@ -1,4 +1,4 @@
-# 📷 Holoscan SAM2
+# SAM 2: Segment Anything in Images and Videos
 
 This application demonstrates how to run [SAM2](https://github.com/facebookresearch/segment-anything-2) models on live video feed with the possibility of changing query points in real-time.
 

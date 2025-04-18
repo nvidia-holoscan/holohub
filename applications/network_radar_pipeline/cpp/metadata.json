@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Networked Radar Pipeline",
+		"name": "Radar Signal Processing over Network",
 		"authors": [
 			{
 				"name": "Dylan Eustice",

@@ -1,5 +1,6 @@
-# Network Radar Pipeline
-The Network Radar Pipeline demonstrates signal processing on data streamed via packets over a network. It showcases the use of both the Advanced Network Operator and Basic Network Operator to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
+# Radar Signal Processing over Network
+
+The Network Radar application demonstrates signal processing on data streamed via packets over a network. It showcases the use of both the Advanced Network Operator and Basic Network Operator to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
 
 Using the GPUDirect capabilities afforded by the Advanced Network Operator, this pipeline has been tested up to 100 Gbps (Tx/Rx) using a ConnectX-7 NIC and A30 GPU.
 

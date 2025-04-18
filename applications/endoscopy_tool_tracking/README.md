@@ -1,4 +1,4 @@
-## Endoscopy Tool Tracking Application
+# Endoscopy Tool Tracking
 
 Digital endoscopy is a key technology for medical screenings and minimally invasive surgeries. Using real-time AI workflows to process and analyze the video signal produced by the endoscopic camera, this technology helps medical professionals with anomaly detection and measurements, image enhancements, alerts, and analytics.
 

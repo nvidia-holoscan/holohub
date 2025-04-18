@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Riva ASR to local-LLM",
+		"name": "Real-time Riva ASR to local-LLM",
 		"authors": [
 			{
 				"name": "Nigel Nelson",

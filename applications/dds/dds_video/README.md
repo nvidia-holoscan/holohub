@@ -1,4 +1,4 @@
-# DDS Video Application
+# DDS Video: Real-time Video Streaming with RTI Connext
 
 The DDS Video application demonstrates how video frames can be written to or
 read from a DDS databus in order to provide flexible integration between

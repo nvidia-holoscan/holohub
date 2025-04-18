@@ -1,4 +1,5 @@
 # Depth Anything V2
+
 <div align="center">
     <img src="./docs/depth.gif" width="500" height="363">
 </div>

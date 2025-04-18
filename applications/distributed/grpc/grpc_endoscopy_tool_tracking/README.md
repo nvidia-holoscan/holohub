@@ -1,4 +1,4 @@
-# Endoscopy Tool Tracking Application with gRPC
+# Distributed Endoscopy Tool Tracking with gRPC Streaming
 
 This application demonstrates how to offload heavy workloads to a remote Holoscan application using gRPC.
 

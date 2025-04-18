@@ -1,4 +1,5 @@
-# SSD Detection Application
+# SSD Detection for Endoscopy Tools
+
 ## Model
 We can train the [SSD model from NVIDIA DeepLearningExamples repo]((https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/Detection/SSD)) with any data of our choosing. Here for the purpose of demonstrating the deployment process, we will use a SSD model checkpoint that is only trained for the [demo video clip](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data). 
 

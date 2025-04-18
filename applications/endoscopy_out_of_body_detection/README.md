@@ -1,4 +1,4 @@
-# Endoscopy Out of Body Detection Application
+# Endoscopy Out of Body Detection
 
 ![Endoscopy Out of Body Detection Workflow](./endoscopy_out_of_body_detection.png)
 

@@ -1,4 +1,4 @@
-# Deltacast transmitter
+# Deltacast Videomaster Transmitter
 
 This application demonstrates the use of videomaster_transmitter to transmit a video stream through a dedicated IO device.
 

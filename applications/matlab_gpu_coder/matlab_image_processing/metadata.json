@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "matlab_image_processing",
+		"name": "Image Processing with MATLAB GPU Coder",
 		"authors": [
 			{
 				"name": "Holoscan Team",

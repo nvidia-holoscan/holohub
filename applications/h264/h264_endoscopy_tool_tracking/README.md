@@ -1,4 +1,4 @@
-# H.264 Endoscopy Tool Tracking Application
+# H.264 Endoscopy Tool Tracking
 
 The application showcases how to use H.264 video source as input to and output
 from the Holoscan pipeline. This application is a modified version of Endoscopy

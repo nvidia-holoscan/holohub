@@ -1,4 +1,4 @@
-# AI Segmentation using MONAI re-trained TotalSegmentator model and CT DICOM images as input
+# Imaging AI Whole Body Segmentation
 
 This application uses MONAI re-trained TotalSegmentator model to segment 104 body parts from a DICOM series of a CT scan. It is implemented using Holohub DICOM processing operators and PyTorch inference operators.
 

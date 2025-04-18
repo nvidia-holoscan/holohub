@@ -1,4 +1,5 @@
-# Body Pose Estimation App
+# Body Pose Estimation
+
 <div align="center">
     <img src="./docs/1.png" width="300" height="375">
     <img src="./docs/2.png" width="300" height="375">

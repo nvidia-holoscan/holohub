@@ -1,4 +1,4 @@
-# 📷🤖 Florence-2
+# Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks
 
 This application demonstrates how to run the [Florence-2](https://arxiv.org/abs/2311.06242) models on a live video feed with the possibility of changing the task and optional prompt via a QT UI.
 

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Chat with NVIDIA Inference Microservice (NIM)",
+		"name": "Chat with NVIDIA NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "CV-CUDA: Basic Interoperability",
+		"name": "Simple CV-CUDA",
 		"authors": [
 			{
 				"name": "Holoscan Team",

@@ -1,4 +1,4 @@
-# Orsi Non Organic Structure Segmentation and AR sample app
+# Orsi Academy Surgical Tool Segmentation and AR Overlay
 
 
 <center> <img src="./docs/orsi_segmentation.png" ></center>

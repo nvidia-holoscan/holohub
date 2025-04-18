@@ -1,4 +1,5 @@
-# Holoscan-Yolo
+# Yolo Object Detection
+
 This project is aiming to provide basic guidance to deploy Yolo-based model to Holoscan SDK as "Bring Your Own Model"
 
 <div align="center">

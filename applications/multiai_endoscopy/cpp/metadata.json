@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Multi AI SSD Detection MONAI Endoscopic Tool Segmentation Application",
+		"name": "Multi AI SSD Detection and MONAI Endoscopic Tool Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",

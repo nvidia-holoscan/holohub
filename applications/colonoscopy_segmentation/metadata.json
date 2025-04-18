@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Colonoscopy segmentation",
+		"name": "Colonoscopy Polyp Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",

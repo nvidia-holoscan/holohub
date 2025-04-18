@@ -1,4 +1,4 @@
-## High Speed Endoscopy Application
+# High Speed Endoscopy
 
 The high speed endoscopy application showcases how high resolution cameras can be used to capture the scene, post-processed on GPU, and displayed at high frame rate.
 

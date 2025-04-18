@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Volume Rendering",
+		"name": "Volume rendering using ClaraViz",
 		"authors": [
 			{
 				"name": "Holoscan Team",

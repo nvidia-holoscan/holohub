@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Ultrasound Segmentation",
+		"name": "Ultrasound Bone Scoliosis Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
