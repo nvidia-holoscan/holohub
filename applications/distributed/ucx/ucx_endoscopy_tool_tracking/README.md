@@ -1,4 +1,4 @@
-## Distributed Endoscopy Tool Tracking Application
+# UCX-based Distributed Endoscopy Tool Tracking 
 
 Digital endoscopy is a key technology for medical screenings and minimally invasive surgeries. Using real-time AI workflows to process and analyze the video signal produced by the endoscopic camera, this technology helps medical professionals with anomaly detection and measurements, image enhancements, alerts, and analytics.
 
@@ -13,7 +13,7 @@ The Distributed Endoscopy Tool Tracking application provides an example of how a
 The Distributed Endoscopy Tool Tracking application is very similar to the [Endoscopy Tool Tracking application](../../../endoscopy_tool_tracking/) but divides all operators into three fragments as depicted below.
 This allows fragments to run on different systems. For example, one can run the *Video Input Fragment* and the *Visualization Fragment* on a radiology workstation while the *Inference Fragment* runs on a more powerful system with multiple GPUs. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html) for more information on distributed applications.
 
-### Video Stream Replayer Input
+## Video Stream Replayer Input
 ![](docs/workflow_tool_tracking_replayer.png)<br>
 Fig. 2 Tool tracking application workflow with replay from file
 
@@ -31,9 +31,9 @@ To start the the Dev Container, run the following command from the root director
 ./dev_container vscode
 ```
 
-### VS Code Launch Profiles
+## VS Code Launch Profiles
 
-#### C++
+### C++
 
 There are several launch profiles configured for the C++ version of this application:
 
@@ -44,7 +44,7 @@ There are several launch profiles configured for the C++ version of this applica
 5. **(compound) ucx_endoscopy_tool_tracking/cpp**: Starts #2, #3, #4 in sequence.
 
 
-#### Python
+### Python
 
 There are several launch profiles configured for this application:
 

@@ -1,4 +1,4 @@
-# Real-time ASR to local-LLM
+# Real-time Riva ASR to local-LLM
 
 This application streams microphone input to [NVIDIA Riva](https://www.nvidia.com/en-us/ai-data-science/products/riva/) Automatic Speech Recognition (ASR), which once the user specifies they are done speaking, passes the transcribed text to an LLM running locally that then summarizes this text.
 

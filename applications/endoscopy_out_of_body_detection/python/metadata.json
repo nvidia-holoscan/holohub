@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Out of Body Detection Pipeline",
+		"name": "Endoscopy Out of Body Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",

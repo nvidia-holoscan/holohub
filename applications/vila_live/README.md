@@ -1,4 +1,4 @@
-# 📷🤖 Holoscan VILA Live
+# VILA Live
 
 This application demonstrates how to run [VILA 1.5](https://github.com/Efficient-Large-Model/VILA) models on live video feed with the possibility of changing the prompt in real time.
 

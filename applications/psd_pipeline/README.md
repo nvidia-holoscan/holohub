@@ -3,10 +3,11 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-# PSD Pipeline
+# VITA 49 Power Spectral Density (PSD)
 
 ## Overview
-The PSD pipeline takes in a VITA49 data stream from the advanced network
+
+The VITA 49 Power Spectral Density (PSD) application takes in a VITA49 data stream from the advanced network
 operator, then performs an FFT, PSD, and averaging operation before
 generating a VITA 49.2 spectral data packet which gets sent to a
 destination UDP socket.
