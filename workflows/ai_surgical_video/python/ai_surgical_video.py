@@ -82,6 +82,8 @@ class FrameSamplerOp(Operator):
     """
 
     def __init__(self, *args, interval: int = 1, **kwargs):
+        if interval <= 0:
+            raise ValueError("The 'interval' parameter must be greater than 0.")
         self.interval = interval
         self.count = 0
         super().__init__(*args, **kwargs)
