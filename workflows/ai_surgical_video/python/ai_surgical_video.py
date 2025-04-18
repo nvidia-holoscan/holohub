@@ -75,9 +75,10 @@ class ForwardOp(Operator):
         op_output.emit(in_message, "out")
 
 
-class DecimationOp(Operator):
+class FrameSamplerOp(Operator):
     """
-    This operator decimates the input video frames based on the defined interval.
+    This operator decimates the input video stream by sampling frames at a specified interval.
+    It allows for reducing the frame rate by only forwarding every Nth frame, where N is the interval.
     """
 
     def __init__(self, *args, interval: int = 1, **kwargs):
@@ -416,7 +417,7 @@ class AISurgicalVideoWorkflow(Application):
                 replayer_kwargs["count"] = self._frame_limit
             replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
             # Decimate the input frames
-            decimation = DecimationOp(self, name="decimation_op", interval=self._replayer_interval)
+            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._replayer_interval)
         # ------------------------------------------------------------------------------------------
         # Setup Holoscan Sensor Bridge
         # ------------------------------------------------------------------------------------------
@@ -644,14 +645,14 @@ class AISurgicalVideoWorkflow(Application):
         if self._enable_recording:
             recorder_format_converter = FormatConverterOp(
                 self,
-                name="recorder_format_converter",
+                name="recorder_format_converter_op",
                 in_dtype="rgba8888",
                 out_dtype="rgb888",
                 pool=UnboundedAllocator(self, name="recorder_pool"),
             )
             recorder = VideoStreamRecorderOp(
                 self,
-                name="recorder",
+                name="recorder_op",
                 directory=self._recording_dir,
                 basename=self._recording_basename,
             )
@@ -702,8 +703,8 @@ class AISurgicalVideoWorkflow(Application):
         elif self.source == "aja":
             self.add_flow(aja, source, {("video_buffer_output", "in")})
         else:
-            self.add_flow(replayer, decimation)
-            self.add_flow(decimation, source)
+            self.add_flow(replayer, frame_sampler)
+            self.add_flow(frame_sampler, source)
         # __________________________________________________________________
         # Main Branch
         # Out of body detection application
