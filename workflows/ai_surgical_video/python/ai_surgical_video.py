@@ -654,7 +654,9 @@ class AISurgicalVideoWorkflow(Application):
                 pool=UnboundedAllocator(self, name="recorder_pool"),
             )
             # Decimate the input frames
-            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._recording_frame_interval)
+            frame_sampler = FrameSamplerOp(
+                self, name="frame_sampler_op", interval=self._recording_frame_interval
+            )
             # Record frames to PNG files
             recorder = VideoStreamRecorderOp(
                 self,
