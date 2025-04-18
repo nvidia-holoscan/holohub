@@ -74,8 +74,8 @@ if(BUILD_TESTING)
                    --data ${HOLOHUB_DATA_DIR}
                    --recording-dir ${RECORDING_DIR}
                    --recording-basename ${SOURCE_VIDEO_BASENAME}
-                   --frame-limit 1000
-                   --replayer-interval 100
+                   --frame-limit 300
+                   --recording-frame-interval 30
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   # Set python environment variables
   set_property(TEST ai_surgical_video_python_test PROPERTY ENVIRONMENT

@@ -363,7 +363,7 @@ class AISurgicalVideoWorkflow(Application):
         frame_limit=None,
         recording_dir=None,
         recording_basename="ai_surgical_video_output",
-        replayer_interval=1,
+        recording_frame_interval=1,
     ):
         super().__init__()
         # Set application name
@@ -389,7 +389,7 @@ class AISurgicalVideoWorkflow(Application):
         self._recording_dir = recording_dir
         self._recording_basename = recording_basename
         self._enable_recording = self._recording_dir is not None
-        self._replayer_interval = replayer_interval
+        self._recording_frame_interval = recording_frame_interval
 
     def compose(self):
         logging.info("Setup source and camera")
@@ -403,7 +403,7 @@ class AISurgicalVideoWorkflow(Application):
             in_dtype = "rgba8888"
             aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
         # ------------------------------------------------------------------------------------------
-        # Setup video replay
+        # Setup video replayer
         # ------------------------------------------------------------------------------------------
         elif self.source.startswith("replayer"):
             replayer_kwargs = self.kwargs("replayer")
@@ -415,9 +415,9 @@ class AISurgicalVideoWorkflow(Application):
             replayer_kwargs["directory"] = video_dir
             if self._frame_limit is not None:
                 replayer_kwargs["count"] = self._frame_limit
+            if self._enable_recording:
+                replayer_kwargs["realtime"] = False
             replayer = VideoStreamReplayerOp(self, name="video_replayer", **replayer_kwargs)
-            # Decimate the input frames
-            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._replayer_interval)
         # ------------------------------------------------------------------------------------------
         # Setup Holoscan Sensor Bridge
         # ------------------------------------------------------------------------------------------
@@ -643,6 +643,7 @@ class AISurgicalVideoWorkflow(Application):
         # Recording
         # ------------------------------------------------------------------------------------------
         if self._enable_recording:
+            # Convert the Holoviz output frames
             recorder_format_converter = FormatConverterOp(
                 self,
                 name="recorder_format_converter_op",
@@ -650,12 +651,16 @@ class AISurgicalVideoWorkflow(Application):
                 out_dtype="rgb888",
                 pool=UnboundedAllocator(self, name="recorder_pool"),
             )
+            # Decimate the input frames
+            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._recording_frame_interval)
+            # Record frames to PNG files
             recorder = VideoStreamRecorderOp(
                 self,
                 name="recorder_op",
                 directory=self._recording_dir,
                 basename=self._recording_basename,
             )
+
         # ------------------------------------------------------------------------------------------
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
@@ -703,8 +708,7 @@ class AISurgicalVideoWorkflow(Application):
         elif self.source == "aja":
             self.add_flow(aja, source, {("video_buffer_output", "in")})
         else:
-            self.add_flow(replayer, frame_sampler)
-            self.add_flow(frame_sampler, source)
+            self.add_flow(replayer, source)
         # __________________________________________________________________
         # Main Branch
         # Out of body detection application
@@ -750,7 +754,8 @@ class AISurgicalVideoWorkflow(Application):
             self.add_flow(
                 holoviz, recorder_format_converter, {("render_buffer_output", "source_video")}
             )
-            self.add_flow(recorder_format_converter, recorder)
+            self.add_flow(recorder_format_converter, frame_sampler)
+            self.add_flow(frame_sampler, recorder)
         # ------------------------------------------------------------------------------------------
 
 
@@ -795,7 +800,7 @@ def main(args):
             camera_mode=camera_mode,
             frame_limit=args.frame_limit,
             recording_dir=args.recording_dir,
-            replayer_interval=args.replayer_interval,
+            recording_frame_interval=args.recording_frame_interval,
         )
         application.config(args.config)
 
@@ -844,7 +849,7 @@ def main(args):
             fullscreen=args.fullscreen,
             frame_limit=args.frame_limit,
             recording_dir=args.recording_dir,
-            replayer_interval=args.replayer_interval,
+            recording_frame_interval=args.recording_frame_interval,
         )
         application.config(args.config)
         application.run()
@@ -944,10 +949,10 @@ if __name__ == "__main__":
         help="Basename of the recording",
     )
     parser.add_argument(
-        "--replayer-interval",
+        "--recording-frame-interval",
         type=int,
         default=1,
-        help="Replayer frames interval",
+        help="Recording frames interval",
     )
     args = parser.parse_args()
 
