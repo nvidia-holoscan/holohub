@@ -77,7 +77,7 @@ class ForwardOp(Operator):
 
 class DecimationOp(Operator):
     """
-    This operator decimates the input image based on the defined interval.
+    This operator decimates the input video frames based on the defined interval.
     """
 
     def __init__(self, *args, interval: int = 1, **kwargs):
