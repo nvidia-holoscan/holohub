@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Human Body Pose Estimation"
-		],
+		"tags": ["computer vision and perception", "distributed", "tensor axis transformation", "keypoint non max suppression", "human body pose estimation", "DDS", "RTI connext", "video processing", "visualization"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

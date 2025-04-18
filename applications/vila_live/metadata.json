@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Large Multimodal Model",
-			"Large Vision Model"
-		],
+		"tags": ["computer vision and perception", "language model", "visual query injection", "stream aware inference", "large vision model", "multimodal model", "video processing", "interactive"],
 		"ranking": 1,
 		"dependencies": {
 			"Bootstrap": {

@@ -22,15 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Qt",
-			"QML",
-			"QtQuick",
-			"Video",
-			"UI",
-			"Userinterface",
-			"Interactive"
-		],
+		"tags": ["computer vision and perception", "integration", "dynamic parameter adjustment", "operator UI binding", "Qt", "QML", "video processing", "visualization", "interactive"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

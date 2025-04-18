@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"EHR",
-			"LLM",
-			"RAG"
-		],
+		"tags": ["healthcare AI", "audio", "ZeroMQ integration", "mmr retrieval", "automatic speech recognition", "EHR", "RAG", "vector database", "FHIR"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

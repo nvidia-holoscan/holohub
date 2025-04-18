@@ -18,7 +18,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["H264", "Video Decoding"],
+    "tags": ["healthcare AI", "video", "hardware accelerated decode", "frame synchronization", "H.264", "video decoding", "endoscopy"],
     "ranking": 1,
     "dependencies": {
       "operators": [
