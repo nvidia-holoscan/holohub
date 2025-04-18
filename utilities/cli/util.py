@@ -25,6 +25,48 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 
+class Color:
+    """Utility class for terminal color formatting"""
+
+    # ANSI color codes
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+
+    # Text attributes
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+    @staticmethod
+    def format(text: str, color: str, bold: bool = False) -> str:
+        """Format text with color and optional bold attribute"""
+        result = color
+        if bold:
+            result += Color.BOLD
+        result += text + Color.RESET
+        return result
+
+    @staticmethod
+    def _create_color_method(color_code: str):
+        """Create a color method for the given color code"""
+
+        def color_method(text: str, bold: bool = False) -> str:
+            return Color.format(text, color_code, bold)
+
+        return color_method
+
+    # Create color methods dynamically
+    red = _create_color_method(RED)
+    green = _create_color_method(GREEN)
+    yellow = _create_color_method(YELLOW)
+    blue = _create_color_method(BLUE)
+    cyan = _create_color_method(CYAN)
+    white = _create_color_method(WHITE)
+
+
 # Utility Functions
 def get_timestamp() -> str:
     """Get current timestamp in the format used by the bash script"""
@@ -33,7 +75,9 @@ def get_timestamp() -> str:
 
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
-    print(f"\033[31m{get_timestamp()} [FATAL] \033[0m{message}", file=sys.stderr)
+    print(
+        f"{Color.red(get_timestamp())} {Color.red('[FATAL]', bold=True)} {message}", file=sys.stderr
+    )
     print("\nBacktrace: ...", file=sys.stderr)
     traceback.print_list(traceback.extract_stack()[-3:], file=sys.stderr)
     sys.exit(1)
@@ -45,10 +89,12 @@ def run_command(
     """Run a shell command and handle errors"""
     cmd_str = format_long_command(cmd) if dry_run else " ".join(str(x) for x in cmd)
     if dry_run:
-        print(f"\033[34m{get_timestamp()} \033[36m[dryrun] \033[37m$ \033[32m{cmd_str}\033[0m")
+        print(
+            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
+        )
         return subprocess.CompletedProcess(cmd, 0)
 
-    print(f"\033[34m{get_timestamp()} \033[37m$ \033[32m{cmd_str}\033[0m")
+    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
@@ -249,6 +295,11 @@ def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
     if not cmd:
         return ""
 
+    # Check if total command length exceeds max length
+    total_length = sum(len(arg) + 1 for arg in cmd) - 1
+    if total_length <= max_line_length:
+        return " ".join(cmd)
+
     # Start with the first command
     formatted = cmd[0]
     current_line = cmd[0]
@@ -288,3 +339,27 @@ def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
             current_line += " " + arg
 
     return formatted
+
+
+def levenshtein_distance(s1: str, s2: str) -> int:
+    """Calculate the Levenshtein distance between two strings."""
+    s1 = s1.lower()
+    s2 = s2.lower()
+
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+
+    if len(s2) == 0:
+        return len(s1)
+
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]

@@ -23,13 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA",
-			"Video Decoding",
-			"Video Encoding"
-		],
+		"tags": ["healthcare AI", "distributed", "workload offloading", "asynchronous queues", "gRPC", "H.264", "tracking", "video decoding"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

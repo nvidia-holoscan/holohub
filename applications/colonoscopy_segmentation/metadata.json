@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Colonoscopy",
-			"Classification"
-		],
+		"tags": ["healthcare AI", "visualization", "polyp mask overlay", "contour binary erosion", "AJA", "colonoscopy", "segmentation", "HoloViz UI", "video processing"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

@@ -57,14 +57,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["extended reality", "visualization", "depth conversion", "interactive controls", "OpenXR", "bounding box", "HoloViz UI", "volume"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

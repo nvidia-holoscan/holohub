@@ -22,14 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "DeltaCast",
-            "VideoMaster",
-            "Endoscopy",
-            "Segmentation",
-            "Augmented Reality",
-            "VTK"
-        ],
+        "tags": ["healthcare AI", "mixed reality", "occlusion mitigation", "depth aware compositing", "augmented reality", "segmentation", "MultiAI", "VTK"],
         "ranking": 3,
         "dependencies": {
             "data": [

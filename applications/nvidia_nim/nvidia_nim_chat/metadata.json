@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["natural language and conversational AI", "integration", "model switching", "YAML configuration", "OpenAI API", "NIM", "local LLM"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

@@ -43,7 +43,7 @@ def check_frames(src_dir, val_dir):
         src_img_arr = np.asarray(Image.open(src_img_path)).astype(int)
         val_img_arr = np.asarray(Image.open(val_img_path)).astype(int)
 
-        if src_img_arr.shape != src_img_arr.shape:
+        if src_img_arr.shape != val_img_arr.shape:
             print("Frames are a different size")
             is_valid = False
             break
