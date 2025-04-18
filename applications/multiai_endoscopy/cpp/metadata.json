@@ -22,14 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Multiai",
-			"SSD",
-			"bounding box",
-			"Detection",
-			"MONAI",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "video", "surgical instrument tracking", "laparoscopic analysis", "MONAI model zoo", "endoscopy", "SSD", "segmentation", "MultiAI"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

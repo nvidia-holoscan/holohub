@@ -55,14 +55,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["extended reality", "visualization", "primitive rendering", "pose visualization overlay", "OpenXR", "HoloViz UI", "sensor", "stereo", "tracking"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [

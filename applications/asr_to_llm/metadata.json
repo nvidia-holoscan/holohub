@@ -22,12 +22,7 @@
 			"x86_64",
             "aarch64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model",
-            "ASR",
-            "Local-LLM"
-		],
+		"tags": ["healthcare AI", "audio", "streaming ASR pipeline", "quantized model inference", "automatic speech recognition", "local LLM", "speech to text", "radiology imaging"],
 		"ranking": 4,
 		"dependencies": {
             "python-packages": {

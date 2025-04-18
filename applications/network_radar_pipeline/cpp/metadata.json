@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
+		"tags": ["signal processing", "networking", "packet assembly", "header data split optimization", "radar", "signal processing", "GPUDirect", "DPDK", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"operators": [{

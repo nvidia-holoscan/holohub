@@ -26,11 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Radar",
-            "SAR",
-            "Synthetic Aperture"
-        ],
+        "tags": ["signal processing", "imaging", "backprojection", "coherent integration", "SAR", "synthetic aperture", "FFT", "HoloViz UI"],
         "ranking": 4,
         "dependencies": {
             "operators": [

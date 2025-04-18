@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-            "Streaming",
-            "Ethernet",
-            "3DSlicer",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "networking", "bidirectional video streaming", "headless rendering overlay", "3D Slicer", "segmentation", "ultrasound", "colonoscopy", "visualization"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

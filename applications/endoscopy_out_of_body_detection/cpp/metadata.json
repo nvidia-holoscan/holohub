@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Classification"
-		],
+		"tags": ["healthcare AI", "video", "out of body detection", "confidence score output", "AJA", "endoscopy", "classification", "computer vision"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [
