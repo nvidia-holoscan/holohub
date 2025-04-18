@@ -157,11 +157,21 @@ void AdvConnectorOpRx::setup(OperatorSpec& spec) {
                        "Max packet size",
                        "Maximum packet size expected from sender",
                        9100);
+  spec.param<std::string>(interface_name_,
+                          "interface_name",
+                          "Port name",
+                          "Name of the port to poll on from the advanced_network config");
 }
 
 void AdvConnectorOpRx::initialize() {
   HOLOSCAN_LOG_INFO("AdvConnectorOpRx::initialize()");
   holoscan::Operator::initialize();
+
+  port_id_ = get_port_id(interface_name_.get());
+  if (port_id_ == -1) {
+    HOLOSCAN_LOG_ERROR("Invalid RX port {} specified in the config", interface_name_.get());
+    exit(1);
+  }
 
   cudaStreamCreateWithFlags(&proc_stream, cudaStreamNonBlocking);
 
@@ -293,94 +303,106 @@ void AdvConnectorOpRx::compute(InputContext& op_input, OutputContext& op_output,
                                ExecutionContext& context) {
   // todo Some sort of warm start for the processing stages?
   int64_t ttl_bytes_in_cur_batch_ = 0;
+  bool pkts_arrived = false;
+  BurstParams *burst;
 
-  auto burst_opt = op_input.receive<BurstParams*>("burst_in");
-  if (!burst_opt) {
-    free_bufs();
-    return;
-  }
-  auto burst = burst_opt.value();
-
-  // If packets are coming in from our non-GPUDirect queue, free them and move on
-  if (get_q_id(burst) == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
-    free_all_packets_and_burst_rx(burst);
-    HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
-    return;
-  }
-
-  // Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
-  // Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
-  // entire burst buffer pointer is saved and freed once an entire batch is received.
-  if (gpu_direct_.get()) {
-    if (split_boundary_.get()) {
-      for (int p = 0; p < get_num_packets(burst); p++) {
-        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = get_segment_packet_ptr(burst, 1, p);
-        ttl_bytes_in_cur_batch_ +=
-            get_segment_packet_length(burst, 0, p) + get_segment_packet_length(burst, 1, p);
-      }
-    } else {
-      for (int p = 0; p < get_num_packets(burst); p++) {
-        h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
-            reinterpret_cast<uint8_t*>(get_packet_ptr(burst, p)) + PADDED_HDR_SIZE;
-        ttl_bytes_in_cur_batch_ += get_burst_tot_byte(burst);
-      }
+  const auto num_rx_queues = get_num_rx_queues(port_id_);
+  for (int q = 0; q < num_rx_queues; q++) {
+    auto status = get_rx_burst(&burst, port_id_, q);
+    if (status != Status::SUCCESS) {
+      HOLOSCAN_LOG_DEBUG("No RX burst available");
+      continue;
     }
-  }
-  ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
 
-  aggr_pkts_recv_ += get_num_packets(burst);
+    pkts_arrived = true;
 
-  HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
-      aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
-
-  // Once we've aggregated enough packets, do some work
-  if (aggr_pkts_recv_ >= batch_size_.get()) {
-    if (gpu_direct_.get()) {
-      do {
-        free_bufs_and_emit_arrays(op_output);
-        if (out_q.size() == num_concurrent) {
-          HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-          cudaStreamSynchronize(streams_[cur_idx]);
-        }
-      } while (out_q.size() == num_concurrent);
-
-      HOLOSCAN_LOG_DEBUG("place_packet_data cur_idx {}", cur_idx);
-      // Copy packet I/Q contents to appropriate location in 'rf_data'
-      place_packet_data(rf_data.Data(),
-                        h_dev_ptrs_[cur_idx],
-                        buffer_track.sample_cnt_d,
-                        buffer_track.received_end_d,
-                        buffer_track.pos,
-                        nom_payload_size_,
-                        aggr_pkts_recv_,
-                        buffer_size_.get(),
-                        num_channels_.get(),
-                        num_pulses_.get(),
-                        num_samples_.get(),
-                        ttl_pkts_recv_,   // only needed if spoofing packets
-                        pkts_per_pulse,   // only needed if spoofing packets
-                        max_waveform_id,  // only needed if spoofing packets
-                        streams_[cur_idx]);
-
-      cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
-      cur_msg_.stream = streams_[cur_idx];
-      cur_msg_.evt = events_[cur_idx];
-      out_q.push(cur_msg_);
-      cur_msg_.num_batches = 0;
-
-      ttl_pkts_recv_ += aggr_pkts_recv_;
-
-      if (cudaGetLastError() != cudaSuccess) {
-        HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
-                           batch_size_.get(),
-                           batch_size_.get() * nom_payload_size_);
-        exit(1);
-      }
-    } else {
+    if (q == 0) {  // queue 0 is configured to be non-GPUDirect in yaml config
       free_all_packets_and_burst_rx(burst);
+      HOLOSCAN_LOG_INFO("Freeing CPU packets on queue 0");
+      continue;
     }
-    aggr_pkts_recv_ = 0;
-    cur_idx = (++cur_idx % num_concurrent);
+
+    // If packets are coming in from our non-GPUDirect queue, free them and move on
+
+
+    // Header data split saves off the GPU pointers into a host-pinned buffer to reassemble later.
+    // Once enough packets are aggregated, a reorder kernel is launched. In CPU-only mode the
+    // entire burst buffer pointer is saved and freed once an entire batch is received.
+    if (gpu_direct_.get()) {
+      if (split_boundary_.get()) {
+        for (int p = 0; p < get_num_packets(burst); p++) {
+          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] = get_segment_packet_ptr(burst, 1, p);
+          ttl_bytes_in_cur_batch_ +=
+              get_segment_packet_length(burst, 0, p) + get_segment_packet_length(burst, 1, p);
+        }
+      } else {
+        for (int p = 0; p < get_num_packets(burst); p++) {
+          h_dev_ptrs_[cur_idx][aggr_pkts_recv_ + p] =
+              reinterpret_cast<uint8_t*>(get_packet_ptr(burst, p)) + PADDED_HDR_SIZE;
+          ttl_bytes_in_cur_batch_ += get_burst_tot_byte(burst);
+        }
+      }
+    }
+    ttl_bytes_recv_ += ttl_bytes_in_cur_batch_;
+
+    aggr_pkts_recv_ += get_num_packets(burst);
+
+    HOLOSCAN_LOG_INFO("aggr_pkts_recv_ {} ttl_bytes_recv_ {} batch_size_ {}",
+        aggr_pkts_recv_, ttl_bytes_recv_, batch_size_.get());
+
+    // Once we've aggregated enough packets, do some work
+    if (aggr_pkts_recv_ >= batch_size_.get()) {
+      if (gpu_direct_.get()) {
+        do {
+          free_bufs_and_emit_arrays(op_output);
+          if (out_q.size() == num_concurrent) {
+            HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
+            cudaStreamSynchronize(streams_[cur_idx]);
+          }
+        } while (out_q.size() == num_concurrent);
+
+        HOLOSCAN_LOG_DEBUG("place_packet_data cur_idx {}", cur_idx);
+        // Copy packet I/Q contents to appropriate location in 'rf_data'
+        place_packet_data(rf_data.Data(),
+                          h_dev_ptrs_[cur_idx],
+                          buffer_track.sample_cnt_d,
+                          buffer_track.received_end_d,
+                          buffer_track.pos,
+                          nom_payload_size_,
+                          aggr_pkts_recv_,
+                          buffer_size_.get(),
+                          num_channels_.get(),
+                          num_pulses_.get(),
+                          num_samples_.get(),
+                          ttl_pkts_recv_,   // only needed if spoofing packets
+                          pkts_per_pulse,   // only needed if spoofing packets
+                          max_waveform_id,  // only needed if spoofing packets
+                          streams_[cur_idx]);
+
+        cudaEventRecord(events_[cur_idx], streams_[cur_idx]);
+        cur_msg_.stream = streams_[cur_idx];
+        cur_msg_.evt = events_[cur_idx];
+        out_q.push(cur_msg_);
+        cur_msg_.num_batches = 0;
+
+        ttl_pkts_recv_ += aggr_pkts_recv_;
+
+        if (cudaGetLastError() != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("CUDA error with {} packets in batch and {} bytes total",
+                            batch_size_.get(),
+                            batch_size_.get() * nom_payload_size_);
+          exit(1);
+        }
+      } else {
+        free_all_packets_and_burst_rx(burst);
+      }
+      aggr_pkts_recv_ = 0;
+      cur_idx = (++cur_idx % num_concurrent);
+    }
+  }
+
+  if (!pkts_arrived) {
+    free_bufs();
   }
 }
 

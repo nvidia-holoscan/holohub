@@ -166,12 +166,14 @@ bool RmaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   set_rmax_log_level(cfg.log_level_);
 
   if (rmax_rx_config_found == 0 && rmax_tx_config_found == 0) {
-    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax ANO settings. No valid settings found");
+    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax advanced_network settings. "
+                       "No valid settings found");
     return false;
   }
 
   HOLOSCAN_LOG_INFO(
-      "Rivermax ANO settings were successfully parsed, Found {} RX Queues and {} TX Queues "
+      "Rivermax advanced_network settings were successfully parsed, "
+      "Found {} RX Queues and {} TX Queues "
       "settings",
       rmax_rx_config_found,
       rmax_tx_config_found);
@@ -670,11 +672,14 @@ void RxConfigManager::add_new_rx_service_config(const ExtRmaxIPOReceiverConfig& 
                                                 uint16_t port_id, uint16_t queue_id) {
   uint32_t key = RmaxBurst::burst_tag_from_port_and_queue_id(port_id, queue_id);
   if (rx_service_configs_.find(key) != rx_service_configs_.end()) {
-    HOLOSCAN_LOG_ERROR(
-        "Rivermax ANO settings for port {} and queue {} already exists", port_id, queue_id);
+    HOLOSCAN_LOG_ERROR("Rivermax advanced_network settings for port {} and queue {} already exists",
+                       port_id,
+                       queue_id);
     return;
   }
-  HOLOSCAN_LOG_INFO("Rivermax ANO settings for port {} and queue {} added", port_id, queue_id);
+  HOLOSCAN_LOG_INFO("Rivermax advanced_network settings for port {} and queue {} added",
+                    port_id,
+                    queue_id);
 
   rx_service_configs_[key] = rx_service_cfg;
 }

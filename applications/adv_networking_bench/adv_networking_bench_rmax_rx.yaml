@@ -49,7 +49,6 @@ advanced_network:
           id: 1
           cpu_core:  "11,12,13"
           batch_size: 4320
-          output_port: "bench_rx_out_1"
           memory_regions:
           - "Data_RX_CPU"
           - "Data_RX_GPU"
@@ -76,8 +75,9 @@ advanced_network:
             send_packet_ext_info: true
 
 bench_rx:
-  gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
-  split_boundary: true    # Whether header and data is split (Header to CPU)
+  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
+  split_boundary: true      # Whether header and data is split (Header to CPU)
   batch_size: 8640
   max_packet_size: 1220
   header_size: 20

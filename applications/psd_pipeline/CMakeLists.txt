@@ -21,7 +21,7 @@ add_executable(psd_pipeline
 target_link_libraries(psd_pipeline PRIVATE
   matx::matx
   holoscan::core
-  holoscan::ops::advanced_network_rx
+  holoscan::advanced_network
   holoscan::ops::fft
   holoscan::ops::high_rate_psd
   holoscan::ops::low_rate_psd
