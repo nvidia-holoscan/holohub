@@ -186,27 +186,6 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
   		- type: `integer`
 
-##### Transmit Configuration (tx)
-
-- **`queues`**: List of queues on NIC
-	type: `list`
-	full path: `cfg\interfaces\rx\queues`
-	- **`name`**: Name of queue
-  		- type: `string`
-	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
-  		- type: `integer`
-	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
-		Rivermax manager can accept coma separated list of CPU IDs
-  		- type: `string`
-	- **`batch_size`**: Number of packets in a batch passed from the NIC to the downstream operator. A
-	larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
-	buffer. A smaller number reduces end-to-end latency but can also reduce throughput.
-  		- type: `integer`
-	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
-		type: `list`
-	- **`accurate_send`**: Accurate TX sending enabled for sending packets at a specific PTP timestamp
-  		- type: `boolean`
-
 - **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
   type: `list`
   full path: `cfg\interfaces\[rx|tx]\flows`
@@ -293,14 +272,15 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
       rx:
         queues:
         - name: Data1
-          id: 1
+          id: 0
           cpu_core: '11'
           batch_size: 4320
           rivermax_rx_settings:
+            settings_type: "ipo_receiver"
             memory_registration: true
-            max_path_diff_us: 100
+            max_path_diff_us: 10000
             ext_seq_num: true
-            sleep_between_operations_us: 100
+            sleep_between_operations_us: 0
             memory_regions:
             - "Data_RX_CPU"
             - "Data_RX_GPU"
@@ -339,6 +319,9 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   		- type: `integer`
 	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
 		type: `list`
+	- **`accurate_send`**: Accurate TX sending enabled for sending packets at a specific PTP timestamp
+  		- type: `boolean`
+
 ##### Transmit Configuration (tx)
 
 - **`queues`**: List of queues on NIC
