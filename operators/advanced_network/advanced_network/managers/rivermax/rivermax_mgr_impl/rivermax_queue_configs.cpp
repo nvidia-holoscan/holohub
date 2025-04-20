@@ -407,6 +407,9 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
+    target_settings->header_data_split = true;
+
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
   target_settings->is_extended_sequence_number = source_settings->ext_seq_num;
@@ -460,6 +463,9 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
+    target_settings->header_data_split = true;
+
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
   target_settings->is_extended_sequence_number = source_settings->ext_seq_num;
@@ -506,10 +512,12 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations = source_settings->sleep_between_operations;
   target_settings->packet_app_header_size = source_settings->split_boundary;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
+    target_settings->header_data_split = true;
 
   target_settings->stats_report_interval_ms = source_settings->stats_report_interval_ms;
-  target_settings->register_memory = source_settings->memory_allocation;
-  target_settings->app_memory_alloc = source_settings->memory_registration;
+  target_settings->register_memory = source_settings->memory_registration;
+  target_settings->app_memory_alloc = source_settings->memory_allocation;
 
   target_settings->media.resolution.height = source_settings->frame_height;
   target_settings->media.resolution.width = source_settings->frame_width;
