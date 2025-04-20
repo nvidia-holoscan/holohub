@@ -293,14 +293,15 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
       rx:
         queues:
         - name: Data1
-          id: 1
+          id: 0
           cpu_core: '11'
           batch_size: 4320
           rivermax_rx_settings:
+            settings_type: "ipo_receiver"
             memory_registration: true
-            max_path_diff_us: 100
+            max_path_diff_us: 10000
             ext_seq_num: true
-            sleep_between_operations_us: 100
+            sleep_between_operations_us: 0
             memory_regions:
             - "Data_RX_CPU"
             - "Data_RX_GPU"

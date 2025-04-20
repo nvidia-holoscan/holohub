@@ -24,7 +24,7 @@ advanced_network:
   cfg:
     version: 1
     manager: "rivermax"
-    master_core: 5              # Master CPU core
+    master_core: 6              # Master CPU core
     debug: 1
     log_level: "debug"
 
@@ -47,7 +47,7 @@ advanced_network:
         queues:
         - name: "tx_q_1"
           id: 0
-          cpu_core:  "13"
+          cpu_core:  "14"
           batch_size: 4320
           output_port: "bench_tx_out_1"
           memory_regions:
@@ -74,12 +74,11 @@ advanced_network:
             dummy_sender: false
 
 bench_tx:
-  address: cc:00.1
+  interface_name: cc:00.1
   sample_format: YUV422
   frame_width: 1920
   frame_height: 1080
   bit_depth: 10
-  hds: true
   file_path: "./build/adv_networking_bench/applications/adv_networking_bench/cpp/input_file.ycbcr"
   payload_memory: "device"
 

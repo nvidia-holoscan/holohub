@@ -58,7 +58,8 @@ bool RivermaxManagerRxService::initialize() {
 
   rx_packet_processor_ = std::make_shared<RxPacketProcessor>(rx_burst_manager_);
 
-  auto rivermax_chunk_consumer = std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processor_);
+  auto rivermax_chunk_consumer = std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processor_,
+    max_chunk_size_);
 
   auto status = rx_service_->set_receive_data_consumer(0, std::move(rivermax_chunk_consumer));
   if (status != ReturnStatus::success) {
@@ -166,10 +167,9 @@ void IPOReceiverService::print_stats(std::stringstream& ss) const {
 
     for (uint32_t s_index = 0; s_index < stream_stats[i].path_stats.size(); ++s_index) {
       if (stream_stats[i].rx_count > 0) {
-        uint32_t number =
-            static_cast<uint32_t>(floor(100 * static_cast<double>(
-              stream_stats[i].path_stats[s_index].rx_count) /
-              static_cast<double>(stream_stats[i].rx_count)));
+        uint32_t number = static_cast<uint32_t>(
+            floor(100 * static_cast<double>(stream_stats[i].path_stats[s_index].rx_count) /
+                  static_cast<double>(stream_stats[i].rx_count)));
         ss << " " << std::setw(3) << number << "%";
       } else {
         ss << "   0%";
@@ -282,9 +282,7 @@ void RivermaxManagerTxService::run() {
 }
 
 void RivermaxManagerTxService::shutdown() {
-  if (tx_service_) {
-    HOLOSCAN_LOG_INFO("Shutting down TX Service:{}", service_id_);
-  }
+  if (tx_service_) { HOLOSCAN_LOG_INFO("Shutting down TX Service:{}", service_id_); }
   initialized_ = false;
 }
 
@@ -308,7 +306,7 @@ bool MediaSenderBaseService::configure_service() {
 }
 
 void* MediaSenderBaseService::allocate_pool_memory(size_t pool_buffer_size,
-  const AppSettings* settings) {
+                                                   const AppSettings* settings) {
   void* pool_buffer = nullptr;
   if (media_sender_builder_->memory_pool_location_ == MemoryKind::DEVICE) {
     cudaError_t cuda_status = cudaMalloc(&pool_buffer, pool_buffer_size);
@@ -321,18 +319,18 @@ void* MediaSenderBaseService::allocate_pool_memory(size_t pool_buffer_size,
     cudaError_t cuda_status = cudaHostAlloc(&pool_buffer, pool_buffer_size, cudaHostAllocDefault);
     if (cuda_status != cudaSuccess) {
       HOLOSCAN_LOG_ERROR("Failed to allocate pinned host memory: {}",
-        cudaGetErrorString(cuda_status));
+                         cudaGetErrorString(cuda_status));
       cudaFree(pool_buffer);
       return nullptr;
     }
     HOLOSCAN_LOG_INFO("Allocated pinned host memory for frames memory pool at address: {}",
-      pool_buffer);
+                      pool_buffer);
   } else if (media_sender_builder_->memory_pool_location_ == MemoryKind::HUGE) {
     RivermaxDevKitFacade& rivermax_dev_kit(RivermaxDevKitFacade::get_instance());
-    std::shared_ptr<AppSettings> app_settings(
-      const_cast<AppSettings*>(settings), [](AppSettings*){});
-    allocator_ = rivermax_dev_kit.get_memory_allocator(
-      AllocatorType::HugePageDefault, app_settings);
+    std::shared_ptr<AppSettings> app_settings(const_cast<AppSettings*>(settings),
+                                              [](AppSettings*) {});
+    allocator_ =
+        rivermax_dev_kit.get_memory_allocator(AllocatorType::HugePageDefault, app_settings);
     if (allocator_ == nullptr) {
       HOLOSCAN_LOG_ERROR("Failed to create header memory allocator");
       return nullptr;
@@ -375,8 +373,8 @@ bool MediaSenderMockService::post_init_setup() {
     return false;
   }
 
-  processing_frame_ = std::make_unique<MediaFrame>(
-    static_cast<byte_t*>(pool_buffer), settings->media.bytes_per_frame);
+  processing_frame_ = std::make_unique<MediaFrame>(static_cast<byte_t*>(pool_buffer),
+                                                   settings->media.bytes_per_frame);
   return true;
 }
 
@@ -400,7 +398,9 @@ Status MediaSenderMockService::send_tx_burst(BurstParams* burst) {
   }
 
   if (!processing_frame_) {
-    HOLOSCAN_LOG_ERROR("No frame in processing");
+    HOLOSCAN_LOG_ERROR("MediaSenderMockService{}:{}::send_tx_burst(): No frame in processing",
+                       port_id_,
+                       queue_id_);
     return Status::INVALID_PARAMETER;
   }
 
@@ -426,15 +426,14 @@ bool MediaSenderService::post_init_setup() {
     HOLOSCAN_LOG_ERROR("Failed to allocate memory for media frame pool");
     return false;
   }
-
-  tx_media_frame_pool_ = std::make_unique<MediaFramePool>(
-      MEDIA_FRAME_POOL_SIZE,
-      settings->media.bytes_per_frame,
-      static_cast<byte_t*>(pool_buffer),
-      pool_buffer_size);
+  HOLOSCAN_LOG_INFO("Creating memory pool at address: {}", pool_buffer);
+  tx_media_frame_pool_ = std::make_unique<MediaFramePool>(MEDIA_FRAME_POOL_SIZE,
+                                                          settings->media.bytes_per_frame,
+                                                          static_cast<byte_t*>(pool_buffer),
+                                                          pool_buffer_size);
 
   tx_media_frame_provider_ =
-    std::make_shared<BufferedMediaFrameProvider>(MEDIA_FRAME_PROVIDER_SIZE);
+      std::make_shared<BufferedMediaFrameProvider>(MEDIA_FRAME_PROVIDER_SIZE);
   // Set the media frame provider to the TX service
   status = tx_service_->set_frame_provider(0, tx_media_frame_provider_);
   if (status != ReturnStatus::success) {
@@ -449,24 +448,48 @@ Status MediaSenderService::get_tx_packet_burst(BurstParams* burst) {
     HOLOSCAN_LOG_ERROR("Media Sender service not initialized");
     return Status::INVALID_PARAMETER;
   }
-
+  std::lock_guard<std::mutex> lock(mutex_);
   if (processing_frame_) {
-    HOLOSCAN_LOG_ERROR("Processing frame is in progress");
+    HOLOSCAN_LOG_ERROR(
+        "MediaSenderService{}:{}::get_tx_packet_burst(): Processing frame is in progress",
+        port_id_,
+        queue_id_);
+    return Status::INVALID_PARAMETER;
+  }
+  if (burst->hdr.hdr.q_id != queue_id_ || burst->hdr.hdr.port_id != port_id_) {
+    HOLOSCAN_LOG_ERROR("MediaSenderService{}:{}::get_tx_packet_burst(): Burst queue ID mismatch",
+                       port_id_,
+                       queue_id_);
     return Status::INVALID_PARAMETER;
   }
 
   auto frame = tx_media_frame_pool_->get_frame();
   if (!frame) {
-    HOLOSCAN_LOG_ERROR("Failed to get frame from pool");
+    HOLOSCAN_LOG_ERROR(
+        "MediaSenderService{}:{}::get_tx_packet_burst(): Failed to get frame from pool",
+        port_id_,
+        queue_id_);
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
   prepare_burst_params(burst);
   burst->pkts[0][0] = frame->data.get();
+  burst->pkt_lens[0][0] = frame->data.get_size();
   burst->hdr.hdr.max_pkt = 1;  // Single packet in burst
 
+  if (burst->hdr.hdr.q_id != queue_id_ || burst->hdr.hdr.port_id != port_id_) {
+    HOLOSCAN_LOG_ERROR("MediaSenderService{}:{}::get_tx_packet_burst(): Burst queue ID mismatch",
+                       port_id_,
+                       queue_id_);
+  }
   processing_frame_ = std::move(frame);
-
+  HOLOSCAN_LOG_TRACE(
+      "MediaSenderService{}:{}::get_tx_packet_burst(): Processing Frame is set,"
+      "frame address: {} with size {}",
+      port_id_,
+      queue_id_,
+      static_cast<const void*>(processing_frame_->data.get()),
+      processing_frame_->data.get_size());
   return Status::SUCCESS;
 }
 
@@ -475,45 +498,51 @@ Status MediaSenderService::send_tx_burst(BurstParams* burst) {
     HOLOSCAN_LOG_ERROR("Media Sender service not initialized");
     return Status::INVALID_PARAMETER;
   }
-
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!processing_frame_) {
-    HOLOSCAN_LOG_ERROR("No frame in processing");
+    HOLOSCAN_LOG_ERROR(
+        "MediaSenderService{}:{}::send_tx_burst(): No frame in processing", port_id_, queue_id_);
     return Status::INVALID_PARAMETER;
   }
-
+  HOLOSCAN_LOG_TRACE("MediaSenderService{}:{}::send_tx_burst(): Out frame size is {}",
+                     port_id_,
+                     queue_id_,
+                     tx_media_frame_provider_->get_queue_size());
   auto status = tx_media_frame_provider_->add_frame(std::move(processing_frame_));
   if (status != ReturnStatus::success) {
-    HOLOSCAN_LOG_ERROR("Failed to add frame to provider! Frame will be dropped");
+    HOLOSCAN_LOG_ERROR(
+        "MediaSenderService{}:{}::send_tx_burst(): Failed to add frame to provider! Frame will be "
+        "dropped",
+        port_id_,
+        queue_id_);
     processing_frame_.reset();  // Clear the frame to avoid leaks
     return Status::NO_SPACE_AVAILABLE;
   }
-
+  HOLOSCAN_LOG_TRACE(
+      "MediaSenderService{}:{}::send_tx_burst(): Frame was sent", port_id_, queue_id_);
   processing_frame_.reset();  // Clear the reference as it's now managed by the provider
   return Status::SUCCESS;
 }
 
 bool MediaSenderService::is_tx_burst_available(BurstParams* burst) {
   if (!initialized_ || !tx_media_frame_pool_) { return false; }
-
-  // Check if we have available frames in the pool and no current processing frame
+  //  Check if we have available frames in the pool and no current processing frame
   return (tx_media_frame_pool_->get_available_frames_count() > 0 && !processing_frame_);
 }
 
 void MediaSenderService::free_tx_burst(BurstParams* burst) {
   // If we have a processing frame but we're told to free the burst,
   // we should clear the processing frame to avoid leaks
+  std::lock_guard<std::mutex> lock(mutex_);
+  HOLOSCAN_LOG_TRACE(
+      "MediaSenderService{}:{}::free_tx_burst(): Processing frame was reset", port_id_, queue_id_);
   if (processing_frame_) { processing_frame_.reset(); }
-
-  HOLOSCAN_LOG_DEBUG("MediaSender:{} free_tx_burst", service_id_);
 }
+
 void MediaSenderService::shutdown() {
   if (processing_frame_) { processing_frame_.reset(); }
-  if (tx_media_frame_provider_) {
-    tx_media_frame_provider_->stop();
-  }
-  if (tx_media_frame_pool_) {
-    tx_media_frame_pool_->stop();
-  }
+  if (tx_media_frame_provider_) { tx_media_frame_provider_->stop(); }
+  if (tx_media_frame_pool_) { tx_media_frame_pool_->stop(); }
 }
 
 }  // namespace holoscan::advanced_network

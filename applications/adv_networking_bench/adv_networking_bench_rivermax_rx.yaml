@@ -24,7 +24,7 @@ advanced_network:
   cfg:
     version: 1
     manager: "rivermax"
-    master_core: 5              # Master CPU core
+    master_core: 6              # Master CPU core
     debug: 1
     log_level: "warn"
     loopback: ""
@@ -46,9 +46,9 @@ advanced_network:
       address: cc:00.1
       rx:
         queues:
-        - name: "rx_q_1"
-          id: 1
-          cpu_core:  "11,12,13"
+        - name: "rx_q_0"
+          id: 0
+          cpu_core:  "10"
           batch_size: 4320
           memory_regions:
           - "Data_RX_CPU"
@@ -58,9 +58,9 @@ advanced_network:
             memory_registration: true
             #allocator_type: "huge_page_2mb"
             verbose: true
-            max_path_diff_us: 100
+            max_path_diff_us: 10000
             ext_seq_num: true
-            sleep_between_operations_us: 100
+            sleep_between_operations_us: 0
             local_ip_addresses:
               - 2.1.0.12
               - 2.1.0.12
@@ -69,10 +69,10 @@ advanced_network:
               - 2.1.0.12
             destination_ip_addresses:
               - 224.1.1.1
-              - 224.1.1.2
+              - 224.1.1.1
             destination_ports:
               - 50001
-              - 50001
+              - 50002
             stats_report_interval_ms: 1000
             send_packet_ext_info: true
 
