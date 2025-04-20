@@ -52,8 +52,13 @@ class RivermaxChunkConsumerAno : public IReceiveDataConsumer {
    *
    * @param packet_processor Shared pointer to the packet processor.
    */
-  explicit RivermaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor)
-      : packet_processor_(std::move(packet_processor)) {
+  explicit RivermaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor,
+    size_t max_burst_size)
+      : packet_processor_(std::move(packet_processor)),
+        max_burst_size_(max_burst_size) {
+    if (max_burst_size_ >= RivermaxBurst::MAX_PKT_IN_BURST) {
+      max_burst_size_ = RivermaxBurst::MAX_PKT_IN_BURST;
+    }
     packet_info_array_ = std::make_unique<ReceivePacketInfo[]>(RivermaxBurst::MAX_PKT_IN_BURST);
   }
 
@@ -70,6 +75,7 @@ class RivermaxChunkConsumerAno : public IReceiveDataConsumer {
  protected:
   std::shared_ptr<RxPacketProcessor> packet_processor_;
   std::unique_ptr<ReceivePacketInfo[]> packet_info_array_;
+  size_t max_burst_size_ = 0;
 };
 
 inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& chunk,
@@ -83,6 +89,11 @@ inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& 
 
   auto chunk_size = chunk.get_length();
   if (chunk_size == 0) { return ReturnStatus::success; }
+  if (chunk_size > max_burst_size_) {
+    HOLOSCAN_LOG_WARN("Chunk size {} exceeds maximum burst size {}, discarding packets",
+      chunk_size, max_burst_size_);
+    chunk_size = max_burst_size_;
+  }
 
   for (size_t i = 0; i < chunk_size; ++i) { packet_info_array_[i] = chunk.get_packet_info(i); }
   PacketsChunkParams params = {

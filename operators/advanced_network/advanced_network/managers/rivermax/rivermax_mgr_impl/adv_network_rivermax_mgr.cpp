@@ -180,7 +180,6 @@ bool RivermaxMgr::RivermaxMgrImpl::set_config_and_initialize(const NetworkConfig
 }
 
 void RivermaxMgr::RivermaxMgrImpl::initialize() {
-
   RivermaxConfigContainer config_manager;
 
   bool res = config_manager.parse_configuration(*cfg_);
@@ -352,24 +351,9 @@ bool RivermaxMgr::RivermaxMgrImpl::initialize_tx_service(
 
   tx_services_[service_id] = std::move(tx_service);
   return true;
- }
-
-RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {
-  for (auto& rx_service_thread : rx_service_threads_) {
-    if (rx_service_thread.joinable()) { rx_service_thread.join(); }
-  }
-  for (auto& tx_service_thread : tx_service_threads_) {
-    if (tx_service_thread.joinable()) { tx_service_thread.join(); }
-  }
-
-  rx_services_.clear();
-  for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
-    rx_bursts_out_queue->clear();
-  }
-  rx_bursts_out_queues_map_.clear();
-
-  tx_services_.clear();
 }
+
+RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {}
 
 void RivermaxMgr::RivermaxMgrImpl::run() {
   std::size_t num_services = rx_services_.size();
@@ -569,7 +553,20 @@ void RivermaxMgr::RivermaxMgrImpl::shutdown() {
 
   for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
     rx_bursts_out_queue->stop();
+    rx_bursts_out_queue->clear();
   }
+
+  for (auto& rx_service_thread : rx_service_threads_) {
+    if (rx_service_thread.joinable()) { rx_service_thread.join(); }
+  }
+  for (auto& tx_service_thread : tx_service_threads_) {
+    if (tx_service_thread.joinable()) { tx_service_thread.join(); }
+  }
+  HOLOSCAN_LOG_INFO("All service threads finished");
+  rx_services_.clear();
+  rx_bursts_out_queues_map_.clear();
+
+  tx_services_.clear();
 }
 
 void RivermaxMgr::RivermaxMgrImpl::print_stats() {

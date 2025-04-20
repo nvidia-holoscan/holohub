@@ -67,14 +67,18 @@ class FrameBuffer {
    *
    * @return: Pointer to the buffer.
    */
-  uint8_t* get() const { return buffer_.get(); }
+  uint8_t* get() const {
+    return buffer_.get();
+  }
 
   /**
    * @brief: Return size of the buffer.
    *
    * @return: Size of the buffer.
    */
-  size_t get_size() const { return buffer_size_; }
+  size_t get_size() const {
+    return buffer_size_;
+  }
 
  private:
   /* Smart pointer for the owned memory */
@@ -100,8 +104,8 @@ class ConcurrentItemBuffer {
    *
    * @param [in] max_queue_size Maximum size of the internal queue (0 for unlimited).
    */
-  explicit ConcurrentItemBuffer(size_t max_queue_size = 0) :
-    max_queue_size_(max_queue_size), stop_(false) {}
+  explicit ConcurrentItemBuffer(size_t max_queue_size = 0)
+      : max_queue_size_(max_queue_size), stop_(false) {}
 
   /**
    * @brief Destructor.
@@ -455,10 +459,11 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
       "interface_name",
       "Name of NIC from advanced_network config",
       "Name of NIC from advanced_network config");
+    spec.param<uint16_t>(queue_id_, "queue_id", "Queue ID", "Queue ID", default_queue_id);
     spec.param<uint32_t>(frame_width_, "frame_width", "Frame width", "Width of the frame", 1920);
     spec.param<uint32_t>(
         frame_height_, "frame_height", "Frame height", "Height of the frame", 1080);
-    spec.param<uint32_t>(bit_depth_, "bit_depth", "Bit depth", "Number of bits per pixle", 8);
+    spec.param<uint32_t>(bit_depth_, "bit_depth", "Bit depth", "Number of bits per pixel", 8);
     spec.param<std::string>(
         sample_format_, "sample_format", "Sample Format", "Format of the frame", "RGB888");
     spec.param<std::string>(
@@ -469,25 +474,32 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
     static int not_available_count = 0;
-    auto msg = create_tx_burst_params();
+    static int sent = 0;
+    static int err = 0;
+    if (!cur_msg_) {
+      cur_msg_ = create_tx_burst_params();
+      set_header(cur_msg_, port_id_, queue_id_.get(), 1, 1);
+    }
 
-    set_header(msg, port_id_, queue_id, 1, 1);
-
-    if (!is_tx_burst_available(msg)) {
-      if (++not_available_count == 10000) {
+    if (!is_tx_burst_available(cur_msg_)) {
+      std::this_thread::sleep_for(std::chrono::microseconds(SLEEP_WHEN_BURST_NOT_AVAILABLE_US));
+      if (++not_available_count == DISPLAY_WARNING_AFTER_BURST_NOT_AVAILABLE) {
         HOLOSCAN_LOG_ERROR(
             "TX port {}, queue {}, burst not available too many times consecutively. "
-            "Make sure memory region has enough buffers",
+            "Make sure memory region has enough buffers. Sent {} and error {}",
             port_id_,
-            queue_id);
+            queue_id_.get(),
+            sent,
+            err);
         not_available_count = 0;
+        err++;
       }
       return;
     }
 
     not_available_count = 0;
     Status ret;
-    if ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {
+    if ((ret = get_tx_packet_burst(cur_msg_)) != Status::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from get_tx_packet_burst: {}", static_cast<int>(ret));
       return;
     }
@@ -495,22 +507,31 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
     auto frame = frame_provider_->get_next_frame();
     if (!frame) {
       HOLOSCAN_LOG_DEBUG("No frames available from provider");
-      free_tx_burst(msg);
+      free_tx_burst(cur_msg_);
       return;
     }
 
     // Copy frame data into the burst
     if (payload_memory_.get() == "device") {
-      cudaMemcpy(msg->pkts[0][0], frame->get(), frame->get_size(), cudaMemcpyHostToDevice);
+      cudaMemcpy(cur_msg_->pkts[0][0], frame->get(), frame->get_size(), cudaMemcpyDefault);
     } else {
-      std::memcpy(msg->pkts[0][0], frame->get(), frame->get_size());
+      std::memcpy(cur_msg_->pkts[0][0], frame->get(), frame->get_size());
     }
 
-    ret = send_tx_burst(msg);
+    ret = send_tx_burst(cur_msg_);
     if (ret != Status::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from send_tx_burst: {}", static_cast<int>(ret));
-      free_tx_burst(msg);
+      free_tx_burst(cur_msg_);
+      err++;
+    } else {
+      sent++;
     }
+    cur_msg_ = nullptr;
+    HOLOSCAN_LOG_TRACE("AdvNetworkingBenchRivermaxTxOp::compute() {}:{} done. Emitted{}/Error{}",
+                       port_id_,
+                       queue_id_.get(),
+                       sent,
+                       err);
   }
 
   enum class VideoSampling { RGB, YCbCr_4_2_2, YCbCr_4_2_0, YCbCr_4_4_4 };
@@ -529,7 +550,6 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
       {VideoSampling::YCbCr_4_2_0,
        {{ColorBitDepth::_8, {6, 4}}, {ColorBitDepth::_10, {15, 8}}, {ColorBitDepth::_12, {9, 4}}}}};
 
-
   /**
    * @brief: Returns the corresponding VideoSampling enum value for the given video sampling format.
    *
@@ -546,7 +566,6 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
     if (format == "YUV442") return VideoSampling::YCbCr_4_4_4;
     throw std::invalid_argument("Unsupported video sampling format: " + format);
   }
-
 
   /**
    * @brief Returns the corresponding ColorBitDepth enum value for the given bit depth.
@@ -603,9 +622,12 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
   }
 
  private:
-  static constexpr uint16_t queue_id = 0;
+  static constexpr uint16_t default_queue_id = 0;
+  static constexpr auto SLEEP_WHEN_BURST_NOT_AVAILABLE_US = 1000;
+  static constexpr auto DISPLAY_WARNING_AFTER_BURST_NOT_AVAILABLE = 10000;
   int port_id_ = -1;
   Parameter<std::string> interface_name_;
+  Parameter<uint16_t> queue_id_;
   size_t frame_size_;
   Parameter<uint32_t> frame_width_;
   Parameter<uint32_t> frame_height_;
@@ -616,6 +638,7 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
   bool loop_frames_ = true;
   std::unique_ptr<MediaFileFrameProvider> frame_provider_;
   std::thread provider_thread_;
+  BurstParams* cur_msg_ = nullptr;
 };
 
 }  // namespace holoscan::ops

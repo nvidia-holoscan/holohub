@@ -466,6 +466,7 @@ class MediaSenderService : public MediaSenderBaseService {
   std::shared_ptr<BufferedMediaFrameProvider>
       tx_media_frame_provider_;                   ///< Provider for buffered media frames
   std::shared_ptr<MediaFrame> processing_frame_;  ///< Currently processing media frame
+  mutable std::mutex mutex_;
 
   static constexpr int MEDIA_FRAME_POOL_SIZE = 16;      ///< Size of the media frame pool
   static constexpr int MEDIA_FRAME_PROVIDER_SIZE = 32;  ///< Size of the media frame provider
