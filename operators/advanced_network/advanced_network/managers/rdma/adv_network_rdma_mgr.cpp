@@ -339,6 +339,10 @@ namespace holoscan::advanced_network {
       params->qp_params.rx_cq = nullptr;
     }
 
+    client_params_mutex_.lock();    
+    client_q_params_.erase(params->client_id);
+    client_params_mutex_.unlock();    
+
     return 0;
   }
 
@@ -392,7 +396,7 @@ namespace holoscan::advanced_network {
           HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
           continue;
         }
-
+printf("good msg poll for %s\n", is_server ? "server" : "client");
         if (wc.opcode == IBV_WC_RDMA_READ) {
           // BurstParams read_burst;
           // read_burst.rdma_hdr.
@@ -418,6 +422,8 @@ namespace holoscan::advanced_network {
       if (rte_ring_dequeue(tparams->qp_params.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
         continue; 
       }
+
+      printf("dequeue msg poll for %s\n", is_server ? "server" : "client");
 
       const auto endpt = endpoints_.find(reinterpret_cast<struct rdma_cm_id*>(burst.rdma_hdr.dst_key));
       if (endpt == endpoints_.end()) {
