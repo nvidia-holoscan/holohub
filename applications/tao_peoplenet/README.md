@@ -1,4 +1,5 @@
 # TAO PeopleNet Detection Model on V4L2 Video Stream
+
 <center> <img src="./docs/meeting.gif" ></center>
 
 Use the TAO PeopleNet available on [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet) to detect faces and people in a V4L2 supported video stream. HoloViz is used to draw bounding boxes around the detections.

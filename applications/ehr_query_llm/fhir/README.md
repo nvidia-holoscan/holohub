@@ -1,4 +1,4 @@
-# FHIR Client Application for Retrieving and posting FHIR Resources
+# FHIR Client for Retrieving and Posting FHIR Resources
 
 This is an application to interface with a FHIR server to retrieve or post FHIR resources.
 

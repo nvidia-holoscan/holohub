@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Velodyne Lidar Viewer",
+		"name": "Velodyne VLP-16 Lidar Viewer",
 		"authors": [
 			{
 				"name": "Holoscan Team",

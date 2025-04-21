@@ -1,4 +1,4 @@
-# Orsi In - Out - Body Detection sample app
+# Orsi Academy In-Out Body Detection and Surgical Video Anonymization
 
 
 <center> <img src="./docs/anonymization.png" ></center>

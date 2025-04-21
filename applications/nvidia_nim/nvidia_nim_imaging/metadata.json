@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Imaging using NVIDIA Inference Microservice (NIM)",
+		"name": "Medical Imaging Segmentation with NVIDIA Vista-3D NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",

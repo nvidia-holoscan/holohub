@@ -1,4 +1,4 @@
-# Prohawk video replayer
+# ProHawk Video Replayer
 
 This application utilizes the ProHawk restoration operator along with Holoscan's Video Replayer and Holoviz operators to enhance and restore medical imagery in real-time, offering superior image quality. The user-friendly interface of the application provides a range of filter options, enabling users to dynamically select the most suitable filter for optimal results.
 

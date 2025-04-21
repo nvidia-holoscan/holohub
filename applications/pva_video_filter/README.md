@@ -1,4 +1,4 @@
-# PVA-Accelerated Image Sharpening Application
+# PVA-Accelerated Image Sharpening
 
 This application demonstrates the usage of [Programmable Vision Accelerator (PVA)](#about-pva) within a Holoscan
 application. It reads a video stream, applies a 2D unsharp mask filter and renders it via the

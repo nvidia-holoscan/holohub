@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Basic PDW Pipeline",
+		"name": "Basic Pulse Description Word (PDW) Generator",
 		"authors": [
 			{
 				"name": "Joshua Anderson",

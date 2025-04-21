@@ -1,4 +1,4 @@
-# Velodyne VLP-16 Lidar Viewer Application
+# Velodyne VLP-16 Lidar Viewer
 
 ![HoloViz Visual of Highway Sample Lidar Data](./doc/VLP10HzMontereyHighway.gif)
 

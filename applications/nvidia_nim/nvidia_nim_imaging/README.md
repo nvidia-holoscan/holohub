@@ -1,4 +1,4 @@
-# NVIDIA NIM Imaging with Vista-3D
+# Medical Imaging Segmentation with NVIDIA Vista-3D NIM
 
 [Vista-3D](https://build.nvidia.com/nvidia/vista-3d) is a specialized interactive foundation model for segmenting and annotating human anatomies.
 This sample application demonstrates using the Vista-3D NVIDIA Inference Microservice (NIM) in a Holoscan pipeline.

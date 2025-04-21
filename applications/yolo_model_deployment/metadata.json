@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Yolo Detection",
+		"name": "Yolo Object Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",

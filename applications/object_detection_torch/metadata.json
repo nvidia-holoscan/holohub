@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Object detection using frcnn based pytorch model in C++",
+		"name": "Object Detection using PyTorch Faster R-CNN",
 		"authors": [
 			{
 				"name": "Holoscan Team",

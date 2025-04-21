@@ -1,4 +1,5 @@
-# Endoscopic Tool Segmentation from MONAI Model Zoo
+# Endoscopy Tool Segmentation from MONAI Model Zoo
+
 This endoscopy tool segmentation application runs the MONAI Endoscopic Tool Segmentation from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation).
 
 

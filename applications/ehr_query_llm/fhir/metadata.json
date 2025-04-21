@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "FHIR Client App",
+		"name": "FHIR Client for Retrieving and Posting FHIR Resources",
 		"authors": [
 			{
 				"name": "Holoscan Team",
