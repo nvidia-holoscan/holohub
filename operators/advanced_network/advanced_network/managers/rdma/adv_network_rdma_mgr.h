@@ -49,6 +49,7 @@ struct rdma_thread_params {
    rdma_qp_params qp_params;
    int if_idx;
    int queue_idx;
+   std::atomic<bool> ready_to_exit;
 };
 
 // Used to spawn a new server thread for a particular client

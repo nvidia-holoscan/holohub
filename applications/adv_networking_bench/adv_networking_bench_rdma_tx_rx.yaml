@@ -74,14 +74,14 @@ advanced_network:
         - name: "ADC Samples"
           id: 0
           batch_size: 10240
-          cpu_core: 11
+          cpu_core: 7
           memory_regions:
             - "Data_TX_GPU_CLIENT"
       rx:
         queues:
         - name: "Data"
           id: 0
-          cpu_core: 9
+          cpu_core: 7
           batch_size: 10240
           memory_regions:
             - "Data_RX_GPU_CLIENT"
@@ -95,7 +95,7 @@ advanced_network:
         queues:
             - name: "Data"
               id: 0
-              cpu_core: 9
+              cpu_core: 8
               batch_size: 10240
               memory_regions:
                 - "Data_RX_GPU_SERVER"
@@ -104,7 +104,7 @@ advanced_network:
         - name: "ADC Samples"
           id: 0
           batch_size: 10240
-          cpu_core: 11
+          cpu_core: 8
           memory_regions:
             - "Data_TX_GPU_SERVER"              
 

@@ -375,7 +375,7 @@ namespace holoscan::advanced_network {
 
     // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
     // periodically poll the CQ.
-    while (!rdma_force_quit.load()) {
+    while (!tparams->ready_to_exit.load()) {
       // Check RQ first to reduce latency
       while ((num_comp = ibv_poll_cq(tparams->qp_params.rx_cq, 1, &wc)) != 0) {
         if (wc.status != IBV_WC_SUCCESS) {
@@ -549,6 +549,8 @@ namespace holoscan::advanced_network {
         }          
       }
     }
+
+    HOLOSCAN_LOG_INFO("{} RDMA thread exiting on core {}", is_server ? "Server" : "Client", cpu_core);
   }
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
@@ -702,13 +704,23 @@ namespace holoscan::advanced_network {
       }
     }
 
-    rdma_thread_params client_params;
-    client_params.client_id = cm_id;
-    client_params.pd = pd_map_[cm_id->verbs][cm_id->port_num];
-    client_params.if_idx = client_port;
-    client_params.queue_idx = client_q_params_.size();
-    printf("client params port %d, queue idx %d\n", client_params.if_idx, client_params.queue_idx);
-    setup_thread_params(&client_params, false);    
+    // Construct the params directly in the map using try_emplace
+    client_params_mutex_.lock();    
+    auto [iter, inserted] = client_q_params_.try_emplace(cm_id);
+    client_params_mutex_.unlock();    
+    if (!inserted) {
+      HOLOSCAN_LOG_CRITICAL("Failed to insert client params into map");
+      return Status::CONNECT_FAILURE;
+    }
+    
+    auto& params = iter->second;
+    params.ready_to_exit = false;
+    params.client_id = cm_id;
+    params.pd = pd_map_[cm_id->verbs][cm_id->port_num];
+    params.if_idx = client_port;
+    params.queue_idx = client_q_params_.size() - 1;  // Fix this race condition
+    printf("client params port %d, queue idx %d\n", params.if_idx, params.queue_idx);
+    setup_thread_params(&params, false);    
 
     // Set up connection parameters
     memset(&conn_param, 0, sizeof(conn_param));
@@ -719,7 +731,7 @@ namespace holoscan::advanced_network {
     // Connect to server
     if (rdma_connect(cm_id, &conn_param) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to connect to server");
-      destroy_thread_params(&client_params);
+      destroy_thread_params(&params);
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
     }
@@ -730,7 +742,7 @@ namespace holoscan::advanced_network {
     // Wait for connection established event
     if (rdma_get_cm_event(ec, &event)) {
       HOLOSCAN_LOG_CRITICAL("Failed to get CM event");
-      destroy_thread_params(&client_params);
+      destroy_thread_params(&params);
       rdma_destroy_event_channel(ec);
       return Status::CONNECT_FAILURE;
     }
@@ -744,7 +756,7 @@ namespace holoscan::advanced_network {
       }
       rdma_ack_cm_event(event);
       rdma_destroy_event_channel(ec);
-      destroy_thread_params(&client_params);      
+      destroy_thread_params(&params);      
       return Status::CONNECT_FAILURE;
     }
     else {
@@ -754,20 +766,17 @@ namespace holoscan::advanced_network {
     rdma_ack_cm_event(event);
 
     HOLOSCAN_LOG_INFO("Launching client thread for {}", (void*)cm_id);
-    client_params_mutex_.lock();
-    client_q_params_[cm_id] = client_params;
-    client_params_mutex_.unlock();
 
     // Store the connection ID for later use
     threads_mutex_.lock();
-    worker_threads_[cm_id] = std::thread(&RdmaMgr::rdma_thread, this, false, &client_q_params_[cm_id]);
+    worker_threads_[cm_id] = std::thread(&RdmaMgr::rdma_thread, this, false, &params);
     threads_mutex_.unlock();    
 
     *conn_id = reinterpret_cast<uintptr_t>(cm_id);
     HOLOSCAN_LOG_INFO("Successfully connected to server {} on port {}", 
         dst_addr, dst_port);
 
-    rdma_destroy_event_channel(ec);
+    //rdma_destroy_event_channel(ec);
 
     return Status::SUCCESS;
   }
@@ -895,8 +904,6 @@ namespace holoscan::advanced_network {
             break;
           }
           else {
-            rdma_thread_params client_params;
-            client_params.client_id = cm_event->id;
             if (pd_map_.find(cm_event->id->verbs) == pd_map_.end()) {
               // Create a new PD for this device
               HOLOSCAN_LOG_INFO("Creating new PD for device {} on port {}", 
@@ -911,16 +918,13 @@ namespace holoscan::advanced_network {
               pd_map_[cm_event->id->verbs][cm_event->id->port_num] = pd;
             }
 
-            client_params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num];
-            client_params.if_idx = cm_event->id->port_num;
-            client_params.queue_idx = server_q_params_.size();
-            printf("client params port %d, queue idx %d\n", client_params.if_idx, client_params.queue_idx);
+
             if (server_q_params_.size() >= 
                 cfg_.ifs_[listen_iter->second.if_idx].rx_.queues_.size()) {
               HOLOSCAN_LOG_CRITICAL("More RDMA connections ({}) than RX queues ({}) on interface {}! Dropping connection", 
                   server_q_params_.size(), cfg_.ifs_[listen_iter->second.if_idx].rx_.queues_.size(), 
                   cfg_.ifs_[listen_iter->second.if_idx].address_);
-              rdma_reject(client_params.client_id, nullptr, 0);
+              rdma_reject(cm_event->id, nullptr, 0);
               break;
             }
 
@@ -928,11 +932,26 @@ namespace holoscan::advanced_network {
                 server_q_params_.end()) {
               HOLOSCAN_LOG_CRITICAL("Client ID {} already exists in server ID {}", 
                   (void*)cm_event->id, (void*)listen_iter->second.server_id);
-              rdma_reject(client_params.client_id, nullptr, 0);
+              rdma_reject(cm_event->id, nullptr, 0);
               break;
             }
-            server_q_params_[cm_event->id] = client_params;
-            setup_thread_params(&server_q_params_[cm_event->id], true);
+            
+            // Construct the params directly in the map using try_emplace
+            auto [iter, inserted] = server_q_params_.try_emplace(cm_event->id);
+            if (!inserted) {
+              HOLOSCAN_LOG_CRITICAL("Failed to insert server params into map");
+              rdma_reject(cm_event->id, nullptr, 0);
+              break;
+            }
+            
+            auto& params = iter->second;
+            params.ready_to_exit = false;
+            params.client_id = cm_event->id;
+            params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num];
+            params.if_idx = cm_event->id->port_num;
+            params.queue_idx = server_q_params_.size() - 1;  // Fix this race condition
+            
+            setup_thread_params(&params, true);
             HOLOSCAN_LOG_INFO("Configured queues for client {}. Launching thread", (void*)cm_event->id);
 
             ack_event(cm_event);
@@ -942,13 +961,13 @@ namespace holoscan::advanced_network {
             conn_param.initiator_depth = 1;
             conn_param.rnr_retry_count = 7;
 
-            if (rdma_accept(client_params.client_id , &conn_param) != 0) {
+            if (rdma_accept(params.client_id, &conn_param) != 0) {
               HOLOSCAN_LOG_CRITICAL("Failed to accept connection: {}", strerror(errno));
-              rdma_reject(client_params.client_id, nullptr, 0);
+              rdma_reject(params.client_id, nullptr, 0);
               continue;
             }
             else {
-              HOLOSCAN_LOG_INFO("Accepted connection for client ID {}", (void*)client_params.client_id);
+              HOLOSCAN_LOG_INFO("Accepted connection for client ID {}", (void*)params.client_id);
             }
           }
 
@@ -983,11 +1002,10 @@ namespace holoscan::advanced_network {
         case RDMA_CM_EVENT_DISCONNECTED: {
           HOLOSCAN_LOG_INFO("Received disconnected event for client ID {}", (void*)cm_event->id);
 
-          // Find client across all servers and remove it 
-          
           const auto client_iter = server_q_params_.find(cm_event->id);
           if (client_iter != server_q_params_.end()) {
             threads_mutex_.lock();
+            client_iter->second.ready_to_exit = true;
             worker_threads_[cm_event->id].join();
             worker_threads_.erase(cm_event->id);
             threads_mutex_.unlock();
@@ -1000,14 +1018,14 @@ namespace holoscan::advanced_network {
                 (void*)cm_event->id);
           }
 
-          ack_event(cm_event);
-
           break;
         }
         default: {
           HOLOSCAN_LOG_INFO("Cannot handle event type {}", rdma_event_str(cm_event->event));
           break;
         }
+
+        ack_event(cm_event);
       }
     }
 
