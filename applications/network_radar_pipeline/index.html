@@ -11574,7 +11574,6 @@
 <p>To run with DOCA GPUNetIO as ANO transport layer:
 - On Tx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml</code>
 - On Rx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml</code></p>
-<p><mark>For Holoscan internal reasons (not related to the DOCA library), build the Advanced Network Operator with <code>RX_PERSISTENT_ENABLED</code> set to 1 MAY cause problems to this application on the receive (process) side (receive hangs in process.cu file). If you experience any issue on the receive side, please read carefully in the Advanced Network Operator README about how to solve this problem.</mark></p>
 <h2 id="network-operator-connectors">Network Operator Connectors<a class="headerlink" href="#network-operator-connectors" title="Permanent link">#</a></h2>
 <p>See each operators' README before using / for more detailed information.</p>
 <h3 id="basic-network-operator-connector">Basic Network Operator Connector<a class="headerlink" href="#basic-network-operator-connector" title="Permanent link">#</a></h3>
