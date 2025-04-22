@@ -1345,7 +1345,11 @@ int DocaMgr::rx_core(void* arg) {
 
   HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
+  uint64_t loop_count = 0;
+  uint64_t loop_log_rate = 200;
   while (!force_quit_doca.load()) {
+    loop_count++;
+
 #if RX_PERSISTENT_ENABLED == 0
     doca_receiver_packet_kernel(rx_stream,
                                 tparams->rxqn,
@@ -1362,16 +1366,22 @@ int DocaMgr::rx_core(void* arg) {
       result = doca_gpu_semaphore_get_status(
           tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], &status);
       if (result != DOCA_SUCCESS) {
-        HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
+        HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}, result={}.", ridx, (int)result);
         force_quit_doca.store(true);
         break;
+      }
+
+      // Log semaphore status periodically unless it's ready
+      if (status != DOCA_GPU_SEMAPHORE_STATUS_READY && (loop_count % loop_log_rate == 0)) {
+        HOLOSCAN_LOG_INFO(
+            "rx_core Q {}, sem_idx {}, status: {}", ridx, sem_idx_cpu_list[ridx], (int)status);
       }
 
       if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
         result = doca_gpu_semaphore_get_custom_info_addr(
             tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], (void**)&(packets_stats));
         if (result != DOCA_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("UDP semaphore get address error");
+          HOLOSCAN_LOG_ERROR("UDP semaphore get address error.");
           force_quit_doca.store(true);
           break;
         }
@@ -1379,6 +1389,7 @@ int DocaMgr::rx_core(void* arg) {
         if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
           HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
           force_quit_doca.store(true);
+          break;
         }
 
         //  Queue ID for receiver to differentiate
@@ -1396,21 +1407,23 @@ int DocaMgr::rx_core(void* arg) {
         // Assuming each batch is accumulated by the kernel
         rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
 
+        // Update stats
+        total_pkts += burst->hdr.hdr.num_pkts;
+        stats_rx_tot_pkts += burst->hdr.hdr.num_pkts;
+        stats_rx_tot_bytes += burst->hdr.hdr.nbytes;
+        stats_rx_tot_batch++;
+
+        // Reset semaphore to free
         result = doca_gpu_semaphore_set_status(tparams->rxqw[ridx].rxq->sem_cpu,
                                                sem_idx_cpu_list[ridx],
                                                DOCA_GPU_SEMAPHORE_STATUS_FREE);
         if (result != DOCA_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
+          HOLOSCAN_LOG_ERROR("UDP semaphore set status error queue {}.", ridx);
           force_quit_doca.store(true);
           break;
         }
 
         sem_idx_cpu_list[ridx] = (sem_idx_cpu_list[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
-
-        total_pkts += burst->hdr.hdr.num_pkts;
-        stats_rx_tot_pkts += burst->hdr.hdr.num_pkts;
-        stats_rx_tot_bytes += burst->hdr.hdr.nbytes;
-        stats_rx_tot_batch++;
       }
     }
   }
