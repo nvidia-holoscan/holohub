@@ -16,7 +16,6 @@
 import ctypes
 import logging
 import os
-import sys
 from argparse import ArgumentParser
 
 import cupy as cp
@@ -32,13 +31,11 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, UnboundedAllocator
+from import_utils import lazy_import
 
 from holohub.aja_source import AJASourceOp
 from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
-
-sys.path.append("../../..")
-from holohub.utilities.import_utils import lazy_import
 
 cuda = lazy_import("cuda.cuda")
 hololink_module = lazy_import("hololink")
