@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import os
 import platform
 import re
@@ -65,6 +66,25 @@ class HoloHubCLI:
             description="HoloHub CLI tool for managing HoloHub applications and containers"
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
+
+        # Add create command
+        create = subparsers.add_parser("create", help="Create a new HoloHub application")
+        create.add_argument("project", help="Name of the project to create")
+        create.add_argument(
+            "--template",
+            default="applications/template",
+            help="Path to the template directory to use",
+        )
+        create.add_argument(
+            "--language",
+            choices=["cpp", "python"],
+            default="cpp",
+            help="Programming language for the project",
+        )
+        create.add_argument(
+            "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        create.set_defaults(func=self.handle_create)
 
         # build-container command
         build_container = subparsers.add_parser(
@@ -212,7 +232,7 @@ class HoloHubCLI:
     def _collect_metadata(self) -> None:
         """Create an unstructured database of metadata for all projects"""
 
-        EXCLUDE_PATHS = ["applications/holoviz/template"]
+        EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
         # Known exceptions, such as template files that do not represent a standalone project
 
         app_paths = (
@@ -767,6 +787,23 @@ class HoloHubCLI:
             dry_run=dry_run,
         )
 
+    def _install_template_deps(self, dry_run: bool = False) -> None:
+        """Install linting dependencies"""
+        os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+
+        print("Install Template Dependencies")
+        holohub_cli_util.run_command(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                str(HoloHubCLI.HOLOHUB_ROOT / "utilities" / "requirements.template.txt"),
+            ],
+            dry_run=dry_run,
+        )
+
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
         # Install system dependencies
@@ -1024,6 +1061,79 @@ class HoloHubCLI:
                 for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
                     if path.is_dir():
                         shutil.rmtree(path)
+
+    def handle_create(self, args: argparse.Namespace) -> None:
+        """Handle create command"""
+        try:
+            import cookiecutter.main
+        except ImportError:
+            self._install_template_deps(args.dryrun)
+
+        import cookiecutter.exceptions
+        import cookiecutter.main
+
+        # Ensure template directory exists
+        template_dir = self.HOLOHUB_ROOT / args.template
+        if not template_dir.exists():
+            holohub_cli_util.fatal(f"Template directory {template_dir} does not exist")
+
+        canonical_project_name = args.project.lower().replace(" ", "_")
+        project_dir = self.HOLOHUB_ROOT / "applications" / canonical_project_name
+        context = {
+            "project_name": args.project,
+            "project_slug": canonical_project_name,
+            "full_name": os.getenv("USER", "HoloHub User"),
+            "affiliation": "Holoscan",
+            "language": args.language,
+            "version": "0.1.0",
+            "holoscan_version": "2.3",
+            "platforms": '["x86_64", "aarch64"]',
+            "tags": '["keyword1", "keyword2", "keyword3"]',
+            "description": "A brief description of the project",
+            "license": "Apache-2.0",
+            "year": datetime.datetime.now().year,
+        }
+
+        # Print summary if dryrun
+        if args.dryrun:
+            print("Would create project with these parameters (dryrun):")
+            print(f"Directory: {project_dir}")
+            for key, value in context.items():
+                print(f"  {key}: {value}")
+            return
+
+        if project_dir.exists():
+            holohub_cli_util.fatal(f"Project directory {project_dir} already exists")
+
+        try:
+            cookiecutter.main.cookiecutter(
+                str(template_dir),
+                no_input=True,
+                extra_context=context,
+                output_dir=str(self.HOLOHUB_ROOT / "applications"),
+            )
+        except Exception as e:
+            holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
+
+        # Copy the appropriate example source file
+        template_file = template_dir / f"example.{args.language}"
+        if template_file.exists():
+            src_dir = project_dir / "src"
+            src_dir.mkdir(exist_ok=True)
+            target_file = src_dir / f"{canonical_project_name}.{args.language}"
+            shutil.copy2(str(template_file), str(target_file))
+
+        print(
+            Color.green(f"Successfully created new project: {args.project}"),
+            f"\nProject directory: {project_dir}\n\n"
+            f"Possible next steps:\n"
+            f"- Add your operators to {target_file}\n"
+            f"- Update project metadata in {project_dir / 'metadata.json'}\n"
+            f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
+            f"- Build and run your application:\n"
+            f"   ./holohub build {canonical_project_name}\n"
+            f"   ./holohub run {canonical_project_name}",
+        )
 
     def run(self) -> None:
         """Main entry point for the CLI"""
