@@ -94,7 +94,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#advanced-network-operator" class="md-skip">
+        <a href="#advanced-network-library" class="md-skip">
           Skip to content
         </a>
       
@@ -11422,18 +11422,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
+  <a href="#managers" class="md-nav__link">
     <span class="md-ellipsis">
-      Implementation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#system-tuning" class="md-nav__link">
-    <span class="md-ellipsis">
-      System Tuning
+      Managers
     </span>
   </a>
   
@@ -11534,24 +11525,31 @@
 
 
 
-<h1 id="advanced-network-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/advanced_network">Advanced Network Operator</a><a class="headerlink" href="#advanced-network-operator" title="Permanent link">#</a></h1>
+<h1 id="advanced-network-library"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/advanced_network">Advanced Network library</a><a class="headerlink" href="#advanced-network-library" title="Permanent link">#</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Cliff Burdick (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 18, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.4<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>The Advanced Network Operator provides a way for users to achieve the highest throughput and lowest latency
-for transmitting and receiving Ethernet frames out of and into their operators. Direct access to the NIC hardware
-is available in userspace using this operator, thus bypassing the kernel's networking stack entirely. With a
-properly tuned system the advanced network operator can achieve hundreds of Gbps with latencies in the low
-microseconds. Performance is highly dependent on system tuning, packet sizes, batch sizes, and other factors.
-The data may optionally be sent to the GPU using GPUDirect to prevent extra copies to and from the CPU.</p>
-<p>Since the kernel's networking stack is bypassed, the user is responsible for defining the protocols used
-over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their
-simplicity, but any type of protocol can be implemented or used. The advanced network operator
-gives the option to use several primitives to remove the need for filling out these headers for basic packet types,
-but raw headers can also be constructed.</p>
+<blockquote>
+<p>[!NOTE]
+The Advanced Network library previously included standard operators for transmitting and receiving packets
+to/from the NIC, also referred to as the Advanced Network Operator (ANO). These operators were removed to
+lower overhead, as aggregation/disaggregation of the packets still needed to be done in separate operators.
+We plan to provide more full-fledged generic operators in the future. In the meantime, you can continue to use
+this library to develop Holoscan operators adapted to your use case, now including the direct packet transaction
+with the NIC. Referred to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench">Benchmarking sample application</a> for an example.</p>
+<p>[!WARNING]
+The library is undergoing large improvements as we aim to better support it as an NVIDIA product.
+API breakages might be more frequent until we reach version 1.0.</p>
+<p>[!TIP]
+Review the <a href="../../tutorials/high_performance_networking/">High Performance Networking tutorial</a> for guided
+instructions to configure your system and test the Advanced Network library.</p>
+</blockquote>
+<p>The Advanced Network library provides a way for users to achieve the highest throughput and lowest latency
+for transmitting and receiving Ethernet frames out of and into Holoscan operators. Direct access to the NIC hardware
+is available in userspace, thus bypassing the kernel's networking stack entirely.</p>
 <h4 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h4>
 <ul>
 <li>Linux</li>
 <li>An NVIDIA NIC with a ConnectX-6 or later chip</li>
-<li>System tuning as described below</li>
+<li>System tuning as described <a href="../../tutorials/high_performance_networking/">here</a></li>
 <li>DPDK 22.11</li>
 <li>MOFED 5.8-1.0.1.1 or later</li>
 <li>DOCA 2.7 or later</li>
@@ -11560,6 +11558,11 @@ but raw headers can also be constructed.</p>
 <ul>
 <li><strong>High Throughput</strong>: Hundreds of gigabits per second is possible with the proper hardware</li>
 <li><strong>Low Latency</strong>: With direct access to the NIC's ring buffers, most latency incurred is only PCIe latency</li>
+<li>Since the kernel's networking stack is bypassed, the user is responsible for defining the protocols used
+        over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their
+        simplicity, but any type of protocol can be implemented or used. The advanced network library
+        gives the option to use several primitives to remove the need for filling out these headers for basic packet types,
+        but raw headers can also be constructed.</li>
 <li><strong>GPUDirect</strong>: Optionally send data directly from the NIC to GPU, or directly from the GPU to NIC. GPUDirect has two modes:</li>
 <li>Header-data split: Split the header portion of the packet to the CPU and the rest (payload) to the GPU. The split point is
     configurable by the user. This option should be the preferred method in most cases since it's easy to use and still
@@ -11567,7 +11570,7 @@ but raw headers can also be constructed.</p>
 <li>Batched GPU: Receive batches of whole packets directly into the GPU memory. This option requires the GPU kernel to inspect
     and determine how to handle packets. While performance may increase slightly over header-data split, this method
     requires more effort and should only be used for advanced users.</li>
-<li><strong>GPUComms</strong>: Optionally control the send or receive communications from the GPU through the GPUDirect Async Kernel-Initiated network technology (enabled with the <a href="https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html">DOCA GPUNetIO</a> transport layer only).</li>
+<li><strong>GPUComms</strong>: Optionally control the send or receive communications from the GPU through the GPUDirect Async Kernel-Initiated network technology (enabled with the <a href="https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html">DOCA GPUNetIO</a> backend only).</li>
 <li><strong>Flow Configuration</strong>: Configure the NIC's hardware flow engine for configurable patterns. Currently only UDP source
     and destination are supported.</li>
 </ul>
@@ -11576,33 +11579,31 @@ but raw headers can also be constructed.</p>
 <ul>
 <li>Only UDP fill mode is supported</li>
 </ul>
-<h4 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">#</a></h4>
-<p>Internally the advanced network operator can be implemented by different transport layers, each offering different features.
-The network transport layer must be specified at the beginning of the application using the ANO API.</p>
-<h5 id="dpdk">DPDK<a class="headerlink" href="#dpdk" title="Permanent link">#</a></h5>
-<p>DPDK is an open-source userspace packet processing library supported across platforms and vendors.
-While the DPDK interface is abstracted away from users of the advanced network operator,
-the method in which DPDK integrates with Holoscan is important for understanding how to achieve the highest performance and for debugging.</p>
-<p>When the advanced network operator is compiled/linked against a Holoscan application, an instance of the DPDK manager
-is created, waiting to accept configuration. When either an RX or TX advanced network operator is defined in a
-Holoscan application, their configuration is sent to the DPDK manager. Once all advanced network operators have initialized,
-the DPDK manager is told to initialize DPDK. At this point the NIC is configured using all parameters given by the operators.
-This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal
-threads. The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible. They
-act as a proxy between the advanced network operators and DPDK by handling packets faster than the operators may be
-able to.</p>
-<p>To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above. When the user
-receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU
+<h4 id="managers">Managers<a class="headerlink" href="#managers" title="Permanent link">#</a></h4>
+<p>Internally the advanced network library is implemented by different backends, each offering different features.</p>
+<p>It is specified with the <code>manager</code> parameter, passed to the <code>advanced_network::adv_net_init</code> function before starting an application, along with all of the NIC parameters. This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal threads to take packets off or put packets onto the NIC as fast as possible, using the backend-specific implementation.</p>
+<p>Developers can then use the rest of the Advanced Network library API to send and receive packets, and do any
+additional processing needed (e.g. aggregate, reorder, etc.), as described in the <a href="#api-structures">API Structures</a> section.</p>
+<blockquote>
+<p>[!NOTE]
+To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above. When the user
+receives the packets from the network library it's using the same buffers that the NIC wrote to either CPU or GPU
 memory. This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
-Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.</p>
-<h5 id="doca">DOCA<a class="headerlink" href="#doca" title="Permanent link">#</a></h5>
-<p>NVIDIA DOCA brings together a wide range of powerful APIs, libraries, and frameworks for programming and accelerating modern data center infrastructures​. The DOCA SDK composed by a variety of C/C++ API for different purposes​, exposing all the features supported by NVIDIA hardware and platforms. <a href="https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html">DOCA GPUNetIO</a> is one of the libraries included in the SDK and it enables the GPU to control, from a CUDA kernel, network communications directly interacting with the network card and completely removing the CPU from the critical data path.</p>
-<p>If the application wants to enable GPU communications, it must chose DOCA as transport layer. The behaviour of the DOCA transport layer is similar to the DPDK one except that the receive and send are executed by CUDA kernels. Specifically:
-- Receive: a persistent CUDA kernel is running on a dedicated stream and keeps receiving packets, providing packets' info to the application level. Due to the nature of the operator, the CUDA receiver kernel now is responsible only to receive packets but in a real-world application, it can be extended to receive and process in real-time network packets (DPI, filtering, decrypting, byte modification, etc..) before forwarding packets to the application.
-- Send: every time the application wants to send packets it launches one or more CUDA kernels to prepare data and create Ethernet packets and then (without the need of synchronizing) forward the send request to the operator. The operator then launches another CUDA kernel that in turn sends the packets (still no need to synchronize with the CPU). The whole pipeline is executed on the GPU. Due to the nature of the operator, the packets' creation and packets' send must be split in two CUDA kernels but in a real-word application, they can be merged into a single CUDA kernel responsible for both packet processing and packet sending.</p>
+Failure to free buffers will result in errors in the advanced network library not being able to allocate buffers.</p>
+</blockquote>
+<h5 id="dpdk">DPDK<a class="headerlink" href="#dpdk" title="Permanent link">#</a></h5>
+<p>DPDK is an open-source userspace packet processing library supported across platforms and vendors.</p>
+<p>It is the default manager, and can be set with the values <code>dpdk</code> or <code>default</code>.</p>
+<h5 id="doca-gpunetio">DOCA GPUNetIO<a class="headerlink" href="#doca-gpunetio" title="Permanent link">#</a></h5>
+<p>NVIDIA DOCA brings together a wide range of powerful APIs, libraries, and frameworks for programming and accelerating modern data center infrastructures​. <a href="https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html">DOCA GPUNetIO</a> is one of the libraries included in the DOCA SDK. It enables the GPU to control, from a CUDA kernel, network communications directly interacting with the network card and completely removing the CPU from the critical data path.</p>
+<p>If the application wants to enable GPU communications, it must chose <code>gpunetio</code> as backend. The behavior of the GPUNetIO backend is similar to the DPDK one except that the receive and send are executed by CUDA kernels. Specifically:</p>
+<ul>
+<li>Receive: a persistent CUDA kernel is running on a dedicated stream and keeps receiving packets, providing packets' info to the application level. Due to the nature of the operator, the CUDA receiver kernel now is responsible only to receive packets but in a real-world application, it can be extended to receive and process in real-time network packets (DPI, filtering, decrypting, byte modification, etc..) before forwarding packets to the application.</li>
+<li>Send: every time the application wants to send packets it launches one or more CUDA kernels to prepare data and create Ethernet packets and then (without the need of synchronizing) forward the send request to the operator. The operator then launches another CUDA kernel that in turn sends the packets (still no need to synchronize with the CPU). The whole pipeline is executed on the GPU. Due to the nature of the operator, the packets' creation and packets' send must be split in two CUDA kernels but in a real-word application, they can be merged into a single CUDA kernel responsible for both packet processing and packet sending.</li>
+</ul>
 <p>Please refer to the <a href="https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html">DOCA GPUNetIO</a> programming guide to correctly configure your system before using this transport layer.</p>
-<p>DOCA transport layer doesn't support the <code>split-boundary</code> option.</p>
-<p>To build and run the ANO Dockerfile with DOCA support, please follow the steps below:</p>
+<p>The GPUNetIO manager does not support the <code>split-boundary</code> option.</p>
+<p>To build and run the Dockerfile with DOCA support, please follow the steps below:</p>
 <div class="highlight"><pre><span></span><code># To build Docker image
 ./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-28-ubuntu2204 --no-cache
 
@@ -11625,23 +11626,8 @@ delivering best-in-class throughput and latency with minimal CPU utilization for
 Rivermax is the only fully-virtualized streaming solution that complies with the stringent timing and traffic flow requirements of the SMPTE ST 2110-21 specification.
 Rivermax enables the future of cloud-based software-defined broadcasting.
 Product release highlights, documentation, platform support, installation and usage guides can be found in the <a href="https://developer.nvidia.com/networking/rivermax-getting-started">Rivermax SDK Page</a>.
-Frequently asked questions, customers product highlights, Video link and more are available on the <a href="https://developer.nvidia.com/networking/rivermax">Rivermax Product Page</a>.
-While the Rivermax interface is abstracted away from users of the advanced network operator, the method in which Rivermax integrates with Holoscan
-is important for understanding how to achieve the highest performance and for debugging.</p>
-<p>When the advanced network operator is compiled/linked against a Holoscan application, an instance of the Rivermax manager is created, waiting to accept configuration.
-When either an RX or TX advanced network operator is defined in aHoloscan application, their configuration is sent to the Rivermax manager.
-Once all advanced network operators have initialized, the Rivermax manager is told to initialize Rivermax. At this point the NIC is configured using all parameters given by the operators.
-This step allocates all packet buffers, initializes the queues on the NIC, and starts the appropriate number of internal threads.
-The job of the internal threads is to take packets off or put packets onto the NIC as fast as possible.
-They act as a proxy between the advanced network operators and Rivermax by handling packets faster than the operators may be able to.</p>
-<p>To achieve zero copy throughout the whole pipeline only pointers are passed between each entity above.
-When the user receives the packets from the network operator it's using the same buffers that the NIC wrote to either CPU or GPU memory.
-This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
-Failure to free buffers will result in errors in the advanced network operators not being able to allocate buffers.
-Rivermax manager supports receiving the same stream from multiple redundant paths.
-Each path is a combination of a source IP address, a destination IPaddress, a destination port, and a local IP address of the receiver device.
-Single path receive supports packet reordering within the NIC, multi-pathreceive also adds recovery of missing packets from other streams.</p>
-<p>To build and run the ANO Dockerfile with <code>Rivermax</code> support, follow these steps:</p>
+Frequently asked questions, customers product highlights, Video link and more are available on the <a href="https://developer.nvidia.com/networking/rivermax">Rivermax Product Page</a>.</p>
+<p>To build and run the Dockerfile with <code>Rivermax</code> support, follow these steps:</p>
 <ul>
 <li>Visit the <a href="https://developer.nvidia.com/networking/rivermax-getting-started">Rivermax SDK Page</a> to download the Rivermax Release SDK.</li>
 <li>Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.</li>
@@ -11665,49 +11651,9 @@ Single path receive supports packet reordering within the NIC, multi-pathreceive
 # Run app
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rmax_rx.yaml
 </code></pre></div>
-<h4 id="system-tuning">System Tuning<a class="headerlink" href="#system-tuning" title="Permanent link">#</a></h4>
-<p>From a high level, tuning the system for a low latency workload prevents latency spikes large enough to cause anomalies
-in the application. This section details how to perform the basic tuning steps needed on both a Clara AGX and Orin IGX systems.</p>
-<h5 id="create-hugepages">Create Hugepages<a class="headerlink" href="#create-hugepages" title="Permanent link">#</a></h5>
-<p>Hugepages give the kernel access to a larger page size than the default (usually 4K) which reduces the number of memory
-translations that have to be actively maintained in MMUs. 1GB hugepages are ideal, but 2MB may be used as well if 1GB is not
-available. To configure 1GB hugepages:</p>
-<div class="highlight"><pre><span></span><code>sudo mkdir /mnt/huge
-sudo mount -t hugetlbfs nodev /mnt/huge
-sudo sh -c &quot;echo nodev /mnt/huge hugetlbfs pagesize=1GB 0 0 &gt;&gt; /etc/fstab&quot;
-</code></pre></div>
-<h5 id="linux-boot-command-line">Linux Boot Command Line<a class="headerlink" href="#linux-boot-command-line" title="Permanent link">#</a></h5>
-<p>The Linux boot command line allows configuration to be injected into Linux before booting. Some configuration options are
-only available at the boot command since they must be provided before the kernel has started. On the Orin IGX
-editing the boot command can be done with the following configuration:</p>
-<div class="highlight"><pre><span></span><code>sudo vim /etc/default/grub
-# Find the line starting with APPEND and add the following
-
-isolcpus=6-11 nohz_full=6-11 irqaffinity=0-5 rcu_nocbs=6-11 rcu_nocb_poll tsc=reliable audit=0 nosoftlockup default_hugepagesz=1G hugepagesz=1G hugepages=2
-</code></pre></div>
-<p>The settings above isolate CPU cores 6-11 on the Orin and 4-7 on the Clara, and turn 1GB hugepages on.</p>
-<p>For non-IGX or AGX systems please look at the documentation for your system to change the boot command.</p>
-<h5 id="setting-the-cpu-governor">Setting the CPU governor<a class="headerlink" href="#setting-the-cpu-governor" title="Permanent link">#</a></h5>
-<p>The CPU governor reduces power consumption by decreasing the clock frequency of the CPU when cores are idle. While this is useful
-in most environments, increasing the clocks from an idle period can cause long latency stalls. To disable frequency scaling:</p>
-<div class="highlight"><pre><span></span><code>sudo apt install cpufrequtils
-sudo sed -i &#39;s/^GOVERNOR=.*/GOVERNOR=&quot;performance&quot;/&#39; /etc/init.d/cpufrequtils
-</code></pre></div>
-<p>Reboot the system after these changes.</p>
-<h5 id="permissions">Permissions<a class="headerlink" href="#permissions" title="Permanent link">#</a></h5>
-<p>DPDK typically requires running as a root user. If you wish to run as a non-root user, you may follow the directions here:
-http://doc.dpdk.org/guides/linux_gsg/enable_func.html</p>
-<p>If running in a container, you will need to run in privileged container, and mount your hugepages mount point from above into the container. This
-can be done as part of the <code>docker run</code> command by adding the following flags:</p>
-<div class="highlight"><pre><span></span><code>-v /mnt/huge:/mnt/huge \
---privileged \
-</code></pre></div>
 <h4 id="configuration-parameters">Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permanent link">#</a></h4>
-<p>The advanced network operator contains a separate operator for both transmit and receive. This allows applications to choose
-whether they need to handle bidirectional traffic or only unidirectional. Transmit and receive are configured separately in
-a YAML file, and a common configuration contains items used by both directions. Each configuration section is described below.</p>
 <h5 id="common-configuration">Common Configuration<a class="headerlink" href="#common-configuration" title="Permanent link">#</a></h5>
-<p>The common configuration container parameters are used by both TX and RX:</p>
+<p>These common configurations are used by both TX and RX:</p>
 <ul>
 <li><strong><code>version</code></strong>: Version of the config. Only 1 is valid currently.</li>
 <li>type: <code>integer</code></li>
@@ -11769,18 +11715,10 @@ full path: <code>cfg\interfaces\[rx|tx]</code></li>
 <li>type: <code>string</code></li>
 </ul>
 </li>
-<li><strong><code>batch_size</code></strong>: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
-larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
-buffer. A smaller number reduces latency and bandwidth by passing more messages.<ul>
+<li><strong><code>batch_size</code></strong>: Number of packets in a batch passed from the NIC to the downstream operator. A
+larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
+buffer. A smaller number reduces end-to-end latency but can also reduce throughput.<ul>
 <li>type: <code>integer</code></li>
-</ul>
-</li>
-<li><strong><code>split_boundary</code></strong>: HDS (Header Data Split) Split point in bytes between header and payload. If set to 0 HDS is disabled<ul>
-<li>type: <code>integer</code></li>
-</ul>
-</li>
-<li><strong><code>output_port</code></strong>:  Name of the ANO Rx operator output port for aggregator operators to connect to<ul>
-<li>type: <code>string</code></li>
 </ul>
 </li>
 <li><strong><code>memory_regions</code></strong>: List of memory regions where buffers are stored. memory regions names are configured in the <a href="#memory-regions">Memory Regions</a> section
@@ -11913,7 +11851,6 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 <span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">          </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;11&#39;</span>
 <span class="w">          </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4320</span>
-<span class="w">          </span><span class="nt">output_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench_rx_out_1</span>
 <span class="w">          </span><span class="nt">rmax_rx_settings</span><span class="p">:</span>
 <span class="w">            </span><span class="nt">memory_registration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">            </span><span class="nt">max_path_diff_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
@@ -11953,18 +11890,14 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 <li>type: <code>integer</code></li>
 </ul>
 </li>
-<li><strong><code>cpu_core</code></strong>: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNet IORivermax manager</mark>
+<li><strong><code>cpu_core</code></strong>: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
     Rivermax manager can accept coma separated list of CPU IDs<ul>
 <li>type: <code>string</code></li>
 </ul>
 </li>
-<li><strong><code>batch_size</code></strong>: Number of packets in a batch that is passed between the advanced network operator and the user's operator. A
-larger number increases throughput and latency by requiring fewer messages between operators, but takes longer to populate a single
-buffer. A smaller number reduces latency and bandwidth by passing more messages.<ul>
-<li>type: <code>integer</code></li>
-</ul>
-</li>
-<li><strong><code>split_boundary</code></strong>: HDS (Header Data Split) Split point in bytes between header and payload. If set to 0 HDS is disabled<ul>
+<li><strong><code>batch_size</code></strong>: Number of packets in a batch that the NIC needs to receive from the upstream operator before
+sending them over the network. A larger number increases throughput but reduces end-to-end latency.
+A smaller number reduces end-to-end latency but can also reduce throughput.<ul>
 <li>type: <code>integer</code></li>
 </ul>
 </li>
@@ -11974,85 +11907,61 @@ buffer. A smaller number reduces latency and bandwidth by passing more messages.
 </li>
 </ul>
 <h4 id="api-structures">API Structures<a class="headerlink" href="#api-structures" title="Permanent link">#</a></h4>
-<p>Both the transmit and receive operators use a common structure named <code>BurstParams</code> to pass data to/from other operators. <code>BurstParams</code> provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by the operator to track allocations. Since the advanced network operator utilizes a generic interface that does not expose the underlying low-level network card library, interacting with <code>BurstParams</code> is mostly done with the helper functions described below. A user should never modify any members of <code>BurstParams</code> directly, as this may break in future versions. The <code>BurstParams</code> is described below:</p>
-<div class="highlight"><pre><span></span><code>struct BurstParams {
-  BurstHeader hdr;
-
-  std::array&lt;void**, MAX_NUM_SEGS&gt; pkts;
-  std::array&lt;uint32_t*, MAX_NUM_SEGS&gt; pkt_lens;
-  void** pkt_extra_info;
-  cudaEvent_t event;
-};
-</code></pre></div>
-<p>Starting from the top, the <code>hdr</code> field contains metadata about the batch of packets. The <code>pkts</code> array stores opaque pointers to packet memory locations (e.g., CPU or GPU) across multiple segments, and <code>pkt_lens</code> stores the lengths of these packets. <code>pkt_extra_info</code> contains additional metadata about each packet, and <code>event</code> is a CUDA event used for synchronization.</p>
-<p>As mentioned above, the <code>pkts</code> and <code>pkt_lens</code> fields are opaque and should not be accessed directly. Instead, refer to the helper functions in the next section for interacting with these fields to ensure compatibility with future versions.</p>
+<p>The Advanced Network library uses a common structure named <code>BurstParams</code> to pass data to/from other operators. <code>BurstParams</code> provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by any operator to track allocations. Interacting with <code>BurstParams</code> should only be done with the helper functions described below.</p>
 <h4 id="example-api-usage">Example API Usage<a class="headerlink" href="#example-api-usage" title="Permanent link">#</a></h4>
 <p>For an entire list of API functions, please see the <code>advanced_network/common.h</code> header file.</p>
 <h5 id="receive">Receive<a class="headerlink" href="#receive" title="Permanent link">#</a></h5>
-<p>The section below describes a workflowusing GPUDirect to receive packets using header-data split. The job of the user's operator(s)
+<p>The section below describes a workflow using GPUDirect to receive packets using header-data split. The job of the user's operator(s)
 is to process and free the buffers as quickly as possible. This might be copying to interim buffers or freeing before the entire
 pipeline is done processing. This allows the networking piece to use relatively few buffers while still achieving very high rates.</p>
-<p>The first step in receiving from the advanced network operator is to tie your operator's input port to the output port of the RX
-network operator's <code>burst_out</code> port.</p>
-<div class="highlight"><pre><span></span><code>auto adv_net_rx    = make_operator&lt;ops::AdvNetworkOpRx&gt;(&quot;adv_network_rx&quot;, from_config(&quot;adv_network_common&quot;), from_config(&quot;adv_network_rx&quot;), make_condition&lt;BooleanCondition&gt;(&quot;is_alive&quot;, true));
-auto my_receiver   = make_operator&lt;ops::MyReceiver&gt;(&quot;my_receiver&quot;, from_config(&quot;my_receiver&quot;));
-add_flow(adv_net_rx, my_receiver, (&#39;burst_out&#39;, &#39;burst_in&#39;));
-</code></pre></div>
-<p>Once the ports are connected, inside the <code>compute()</code> function of your operator you will receive a <code>BurstParams</code> structure
-when a batch is complete:</p>
-<div class="highlight"><pre><span></span><code>auto burst = op_input.receive&lt;std::shared_ptr&lt;BurstParams&gt;&gt;(&quot;burst_in&quot;).value();
+<p>The first step in receiving from the NIC is to receive a <code>BurstParams</code> structure when a batch is complete:</p>
+<div class="highlight"><pre><span></span><code><span class="n">BurstParams</span><span class="w"> </span><span class="o">*</span><span class="n">burst</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">port_id_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">queue_id_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_rx_burst</span><span class="p">(</span><span class="o">&amp;</span><span class="n">burst</span><span class="p">,</span><span class="w"> </span><span class="n">port_id_</span><span class="p">,</span><span class="w"> </span><span class="n">queue_id_</span><span class="p">);</span>
 </code></pre></div>
 <p>The packets arrive in scattered packet buffers. Depending on the application, you may need to iterate through the packets to
 aggregate them into a single buffer. Alternatively the operator handling the packet data can operate on a list of packet
 pointers rather than a contiguous buffer. Below is an example of aggregating separate GPU packet buffers into a single GPU
 buffer:</p>
-<div class="highlight"><pre><span></span><code>  for (int p = 0; p &lt; get_num_packets(burst); p++) {
-    h_dev_ptrs_[aggr_pkts_recv_ + p]   = get_cpu_packet_ptr(burst, p);
-    ttl_bytes_in_cur_batch_           += get_gpu_packet_length(burst, p) + sizeof(UDPPkt);
-  }
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">get_num_packets</span><span class="p">(</span><span class="n">burst</span><span class="p">);</span><span class="w"> </span><span class="n">p</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">h_dev_ptrs_</span><span class="p">[</span><span class="n">aggr_pkts_recv_</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">p</span><span class="p">]</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">get_cpu_packet_ptr</span><span class="p">(</span><span class="n">burst</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ttl_bytes_in_cur_batch_</span><span class="w">           </span><span class="o">+=</span><span class="w"> </span><span class="n">get_gpu_packet_length</span><span class="p">(</span><span class="n">burst</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">UDPPkt</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
 
-  simple_packet_reorder(buffer, h_dev_ptrs, packet_len, burst-&gt;hdr.num_pkts);
+<span class="w">  </span><span class="n">simple_packet_reorder</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">h_dev_ptrs</span><span class="p">,</span><span class="w"> </span><span class="n">packet_len</span><span class="p">,</span><span class="w"> </span><span class="n">burst</span><span class="o">-&gt;</span><span class="n">hdr</span><span class="p">.</span><span class="n">num_pkts</span><span class="p">);</span>
 </code></pre></div>
 <p>For this example we are tossing the header portion (CPU), so we don't need to examine the packets. Since we launched a reorder
-kernel to aggregate the packets in GPU memory, we are also done with the GPU pointers. All buffers may be freed to the
-advanced network operator at this point:</p>
-<div class="highlight"><pre><span></span><code>free_all_burst_packets_and_burst(burst_bufs_[b]);
+kernel to aggregate the packets in GPU memory, we are also done with the GPU pointers. All buffers may be freed for the NIC to reuse at this point:</p>
+<div class="highlight"><pre><span></span><code><span class="n">free_all_burst_packets_and_burst</span><span class="p">(</span><span class="n">burst_bufs_</span><span class="p">[</span><span class="n">b</span><span class="p">]);</span>
 </code></pre></div>
 <h5 id="transmit">Transmit<a class="headerlink" href="#transmit" title="Permanent link">#</a></h5>
 <p>Transmitting packets works similar to the receive side, except the user is tasked with filling out the packets as much as it
 needs to. As mentioned above, helper functions are available to fill in most boilerplate header information if that doesn't
 change often.</p>
-<p>Similar to the receive, the transmit operator needs to connect to <code>burst_in</code> on the advanced network operator transmitter:</p>
-<div class="highlight"><pre><span></span><code>auto my_transmitter  = make_operator&lt;ops::MyTransmitter&gt;(&quot;my_transmitter&quot;, from_config(&quot;my_transmitter&quot;), make_condition&lt;BooleanCondition&gt;(&quot;is_alive&quot;, true));
-auto adv_net_tx       = make_operator&lt;ops::AdvNetworkOpTx&gt;(&quot;adv_network_tx&quot;, from_config(&quot;adv_network_common&quot;), from_config(&quot;adv_network_tx&quot;));
-add_flow(my_transmitter, adv_net_tx, (&#39;burst_out&#39;, &#39;burst_in&#39;));
+<p>Before sending packets, the user's transmit operator must request a buffer from the NIC:</p>
+<div class="highlight"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">burst</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create_tx_burst_params</span><span class="p">();</span>
+<span class="n">set_header</span><span class="p">(</span><span class="n">burst</span><span class="p">,</span><span class="w"> </span><span class="n">port_id</span><span class="p">,</span><span class="w"> </span><span class="n">queue_id</span><span class="p">,</span><span class="w"> </span><span class="n">batch_size</span><span class="p">,</span><span class="w"> </span><span class="n">num_segments</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_tx_packet_burst</span><span class="p">(</span><span class="n">burst</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">Status</span><span class="o">::</span><span class="n">SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">HOLOSCAN_LOG_ERROR</span><span class="p">(</span><span class="s">&quot;Error returned from get_tx_packet_burst: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">));</span>
+<span class="w">  </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
 </code></pre></div>
-<p>Before sending packets, the user's transmit operator must request a buffer from the advanced network operator pool:</p>
-<div class="highlight"><pre><span></span><code>auto msg = std::make_shared&lt;BurstParams&gt;();
-msg-&gt;hdr.num_pkts = num_pkts;
-if ((ret = get_tx_packet_burst(msg.get())) != Status::SUCCESS) {
-  HOLOSCAN_LOG_ERROR(&quot;Error returned from get_tx_packet_burst: {}&quot;, static_cast&lt;int&gt;(ret));
-  return;
-}
+<p>The code above creates a shared <code>BurstParams</code>, and uses <code>get_tx_packet_burst</code> to populate the burst buffers with valid packet buffers. On success, the buffers inside the burst structure will be allocated and are ready to be filled in. Each packet must be filled in by the user. In this example we loop through each packet and populate a buffer:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">num_pkt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">num_pkt</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">get_num_packets</span><span class="p">(</span><span class="n">burst</span><span class="p">);</span><span class="w"> </span><span class="n">num_pkt</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">payload_src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data_buf</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">num_pkt</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">payload_size</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">set_udp_payload</span><span class="p">(</span><span class="n">burst</span><span class="p">,</span><span class="w"> </span><span class="n">num_pkt</span><span class="p">,</span><span class="w"> </span><span class="n">payload_src</span><span class="p">,</span><span class="w"> </span><span class="n">payload_size</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">Status</span><span class="o">::</span><span class="n">SUCCESS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">HOLOSCAN_LOG_ERROR</span><span class="p">(</span><span class="s">&quot;Failed to create packet {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">num_pkt</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
-<p>The code above creates a shared <code>BurstParams</code> that will be passed to the advanced network operator, and uses
-<code>get_tx_packet_burst</code> to populate the burst buffers with valid packet buffers. On success, the buffers inside the
-burst structure will be allocate and are ready to be filled in. Each packet must be filled in by the user. In this
-example we loop through each packet and populate a buffer:</p>
-<div class="highlight"><pre><span></span><code>for (int num_pkt = 0; num_pkt &lt; msg-&gt;hdr.num_pkts; num_pkt++) {
-  void *payload_src = data_buf + num_pkt * nom_pkt_size;
-  if (set_udp_payload(msg-&gt;cpu_packets[num_pkt], payload_src, nom_pkt_size) != Status::SUCCESS) {
-    HOLOSCAN_LOG_ERROR(&quot;Failed to create packet {}&quot;, num_pkt);
-  }
-}
-</code></pre></div>
-<p>The code iterates over <code>msg-&gt;hdr.num_pkts</code> (defined by the user) and passes a pointer to the payload and the packet
-size to <code>set_udp_payload</code>. In this example our configuration is using <code>fill_mode</code> "udp" on the transmitter, so
-<code>set_udp_payload</code> will populate the Ethernet, IP, and UDP headers. The payload pointer passed by the user
-is also copied into the buffer. Alternatively a user could use the packet buffers directly as output from a previous stage
-to avoid this extra copy.</p>
-<p>With the <code>BurstParams</code> populated, the burst can be sent off to the advanced network operator for transmission:</p>
-<div class="highlight"><pre><span></span><code>op_output.emit(msg, &quot;burst_out&quot;);
+<p>The code iterates over the number of packets in the burst (defined above by the user) and passes a pointer
+to the payload and the packet size to <code>set_udp_payload</code>. In this example our configuration is using <code>fill_mode</code>
+"udp" on the transmitter, so <code>set_udp_payload</code> will populate the Ethernet, IP, and UDP headers. The payload
+pointer passed by the user is also copied into the buffer. Alternatively a user could use the packet buffers
+directly as output from a previous stage to avoid this extra copy.</p>
+<p>With the <code>BurstParams</code> populated, the burst can be sent off to the NIC:</p>
+<div class="highlight"><pre><span></span><code><span class="n">send_tx_burst</span><span class="p">(</span><span class="n">burst</span><span class="p">);</span>
 </code></pre></div>
 
 
