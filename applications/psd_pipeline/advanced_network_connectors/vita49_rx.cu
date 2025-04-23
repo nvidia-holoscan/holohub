@@ -18,8 +18,6 @@
 #include "swap.h"
 #include "swap.cuh"
 
-using namespace holoscan::advanced_network;
-using in_t = BurstParams*;
 using out_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 
 constexpr uint32_t CONTEXT_QUEUE_ID = 0;
@@ -103,7 +101,6 @@ void place_packet_data(complex* out,
 namespace holoscan::ops {
 
 void Vita49ConnectorOpRx::setup(OperatorSpec& spec) {
-  spec.input<in_t>("in");
   spec.output<out_t>("out");
 
   // Data tensor configuration
@@ -138,6 +135,11 @@ void Vita49ConnectorOpRx::setup(OperatorSpec& spec) {
       "num_channels",
       "Number of channels",
       "Number of channels to process", 2);
+  spec.param<std::string>(interface_name_,
+      "interface_name",
+      "Name of the RX port",
+      "Name of the RX port from the advanced_network config",
+      "sdr_data");
 }
 
 void Vita49ConnectorOpRx::initialize() {
@@ -180,33 +182,27 @@ void Vita49ConnectorOpRx::initialize() {
   }
 }
 
-std::vector<Vita49ConnectorOpRx::RxMsg> Vita49ConnectorOpRx::free_bufs(
+std::optional<Vita49ConnectorOpRx::RxMsg> Vita49ConnectorOpRx::free_buf(
         std::shared_ptr<struct Channel> channel) {
-  std::vector<Vita49ConnectorOpRx::RxMsg> completed;
-
-  // Loop over all batches, checking if any have completed
-  while (channel->out_q.size() > 0) {
+  if (!channel->out_q.empty()) {
     auto first = channel->out_q.front();
     if (cudaEventQuery(first.evt) == cudaSuccess) {
-      completed.push_back(first);
       for (auto m = 0; m < first.num_batches; m++) {
         free_all_packets_and_burst_rx(first.msg[m]);
       }
       channel->out_q.pop();
-    } else {
-      break;
+      return std::optional<Vita49ConnectorOpRx::RxMsg>{first};
     }
   }
-  return completed;
+  return std::nullopt;
 }
 
-void Vita49ConnectorOpRx::free_bufs_and_emit_arrays(
+bool Vita49ConnectorOpRx::free_bufs_and_emit_arrays(
         OutputContext& op_output,
         std::shared_ptr<struct Channel> channel) {
-  std::vector<Vita49ConnectorOpRx::RxMsg> completed_msgs = free_bufs(channel);
-  if (completed_msgs.empty()) {
-      HOLOSCAN_LOG_INFO("no completed messages yet");
-      return;
+  std::optional<Vita49ConnectorOpRx::RxMsg> completed_msg = free_buf(channel);
+  if (!completed_msg.has_value()) {
+    return false;
   }
 
   auto meta = metadata();
@@ -222,16 +218,30 @@ void Vita49ConnectorOpRx::free_bufs_and_emit_arrays(
   meta->set("gain_stage_2_db", channel->current_context.gain_stage_2_db);
   meta->set("sample_rate_hz", channel->current_context.sample_rate_sps);
 
-  cudaStream_t stream = completed_msgs[0].stream;
   auto data = slice<2>(channel->rf_data, {static_cast<index_t>(channel->cur_idx), 0, 0},
               {matxDropDim, matxEnd, matxEnd});
-  op_output.emit(out_t {data, stream}, "out");
+  op_output.emit(out_t {data, completed_msg.value().stream}, "out");
+  return true;
 }
 
 void Vita49ConnectorOpRx::compute(
         InputContext& op_input,
         OutputContext& op_output,
         ExecutionContext& context) {
+  const auto num_rx_queues = get_num_rx_queues(port_id_);
+  // Try to emit any waiting data on any channel that's ready (but
+  // only one "emit()" call per "compute()" call).
+  for (uint16_t q = CONTEXT_QUEUE_ID + 1; q < num_rx_queues; q++) {
+    auto channel = channel_list.at(q - 1);
+    if (free_bufs_and_emit_arrays(op_output, channel)) {
+      break;
+    }
+    if (channel->out_q.size() >= num_concurrent) {
+      HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
+      cudaStreamSynchronize(channel->streams[channel->cur_idx]);
+    }
+  }
+
   // Check for a context packet first
   BurstParams *burst;
   auto status = get_rx_burst(&burst, port_id_, CONTEXT_QUEUE_ID);
@@ -290,13 +300,11 @@ void Vita49ConnectorOpRx::compute(
     return;
   }
 
-  // Assumes that channel 0 is queue 1, channel 1 is queue 2, etc.
-  const auto num_rx_queues = get_num_rx_queues(port_id_);
   for (uint16_t q = CONTEXT_QUEUE_ID + 1; q < num_rx_queues; q++) {
+    // If there's new data, start processing it
     auto status = get_rx_burst(&burst, port_id_, q);
     if (status == Status::SUCCESS) {
-      uint16_t channel_num = q - 1;  // Should never be negative since CONTEXT_QUEUE_ID is 0
-      process_channel_data(op_output, burst, channel_num);
+      process_channel_data(op_output, burst, q - 1);
     }
   }
 }
@@ -306,7 +314,6 @@ void Vita49ConnectorOpRx::process_channel_data(
         BurstParams *burst,
         uint16_t channel_num) {
   auto channel = channel_list.at(channel_num);
-
   if (!channel->context_received) {
     HOLOSCAN_LOG_INFO("Waiting to process channel {} data until context is received",
                       channel->channel_num);
@@ -341,13 +348,6 @@ void Vita49ConnectorOpRx::process_channel_data(
   if (channel->aggr_pkts_recv >= num_packets_per_batch) {
     HOLOSCAN_LOG_INFO("Aggregated {} packets on channel {} index {} - sending downstream",
                       channel->aggr_pkts_recv, channel->channel_num, channel->cur_idx);
-    do {
-      free_bufs_and_emit_arrays(op_output, channel);
-      if (channel->out_q.size() == num_concurrent) {
-        HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-        cudaStreamSynchronize(channel->streams[channel->cur_idx]);
-      }
-    } while (channel->out_q.size() == num_concurrent);
 
     // Copy packet I/Q contents to appropriate location in 'rf_data'
     place_packet_data(channel->rf_data.Data(),
