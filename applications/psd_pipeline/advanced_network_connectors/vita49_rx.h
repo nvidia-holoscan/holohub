@@ -20,6 +20,7 @@
 #include "matx.h"
 #include "advanced_network/common.h"
 
+using namespace holoscan::advanced_network;
 using namespace matx;
 using complex = cuda::std::complex<float>;
 
@@ -67,8 +68,8 @@ class Vita49ConnectorOpRx : public Operator {
   Vita49ConnectorOpRx() = default;
 
   ~Vita49ConnectorOpRx() {
-    holoscan::advanced_network::shutdown();
-    holoscan::advanced_network::print_stats();
+    shutdown();
+    print_stats();
   }
 
   void setup(OperatorSpec& spec) override;
@@ -93,7 +94,7 @@ class Vita49ConnectorOpRx : public Operator {
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
-    std::array<holoscan::advanced_network::BurstParams *, MAX_ANO_BATCHES> msg;
+    std::array<BurstParams *, MAX_ANO_BATCHES> msg;
     int num_batches;
     cudaStream_t stream;
     cudaEvent_t evt;
@@ -119,11 +120,11 @@ class Vita49ConnectorOpRx : public Operator {
 
   std::vector<std::shared_ptr<struct Channel>> channel_list;
 
-  std::vector<RxMsg> free_bufs(std::shared_ptr<struct Channel> channel);
-  void free_bufs_and_emit_arrays(OutputContext& op_output, std::shared_ptr<struct Channel> channel);
+  std::optional<RxMsg> free_buf(std::shared_ptr<struct Channel> channel);
+  bool free_bufs_and_emit_arrays(OutputContext& op_output, std::shared_ptr<struct Channel> channel);
   void process_channel_data(
           OutputContext& op_output,
-          holoscan::advanced_network::BurstParams *burst,
+          BurstParams *burst,
           uint16_t channel_num);
 };  // Vita49ConnectorOpRx
 

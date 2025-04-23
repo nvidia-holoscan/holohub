@@ -15,6 +15,13 @@ class PsdPipeline : public holoscan::Application {
     void compose() override {
         using namespace holoscan;
 
+        auto adv_net_config = from_config("advanced_network").as<NetworkConfig>();
+        if (adv_net_init(adv_net_config) != Status::SUCCESS) {
+            HOLOSCAN_LOG_ERROR("Failed to configure the Advanced Network manager");
+            exit(1);
+        }
+        HOLOSCAN_LOG_INFO("Configured the Advanced Network manager");
+
         auto vitaConnectorOp = make_operator<ops::Vita49ConnectorOpRx>(
             "vitaConnectorOp",
             from_config("vita_connector"));
@@ -78,10 +85,12 @@ int main(int argc, char** argv) {
     }
 
     // Run
-    app->is_metadata_enabled(true);
+    app->enable_metadata(true);
     app->config(config_path);
     app->scheduler(app->make_scheduler<holoscan::EventBasedScheduler>(
           "event-based-scheduler", app->from_config("scheduler")));
     app->run();
+
+    shutdown();
     return 0;
 }
