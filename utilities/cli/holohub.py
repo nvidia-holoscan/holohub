@@ -788,7 +788,7 @@ class HoloHubCLI:
         )
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
-        """Install linting dependencies"""
+        """Install template dependencies"""
         os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
         print("Install Template Dependencies")
