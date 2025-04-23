@@ -1,6 +1,7 @@
 {
 	"application": {
 		"name": "{{ cookiecutter.project_name }}",
+		"description": "{{ cookiecutter.description }}",
 		"authors": [
 			{
 				"name": "{{ cookiecutter.full_name }}",
