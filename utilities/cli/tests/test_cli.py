@@ -147,9 +147,10 @@ class TestHoloHubCLI(unittest.TestCase):
 
     def test_lint_fix_command(self):
         args = self.cli.parser.parse_args("lint --fix".split())
-        with self.assertRaises(SystemExit):
+        try:
             args.func(args)
-            self.assertEqual(args.func(args).returncode, 0)
+        except SystemExit as e:
+            self.assertEqual(e.code, 0)
 
 
 if __name__ == "__main__":
