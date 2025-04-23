@@ -291,7 +291,7 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
   # Convert the video file(s)
   for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi}; do
      [ -f "$video" ] || continue
-     run_command ffmpeg -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
+     run_command ffmpeg -loglevel error -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
          python3 convert_video_to_gxf_entities.py --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
              --channels ${GXF_ENTITIES_CHANNELS} --framerate ${GXF_ENTITIES_FRAMERATE}
   done
