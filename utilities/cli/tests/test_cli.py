@@ -125,9 +125,7 @@ class TestHoloHubCLI(unittest.TestCase):
                 self.cli._find_project("nonexistent")
                 stderr_output = mock_stderr.getvalue()
                 self.assertIn("Project 'nonexistent' not found.", stderr_output)
-                self.assertNotIn(
-                    "Did you mean: 'hello_world' (source: applications/hello_world)", stderr_output
-                )
+                self.assertNotIn("Did you mean", stderr_output)
 
     @patch("utilities.cli.util.run_command")
     def test_lint_command(self, mock_run_command):
