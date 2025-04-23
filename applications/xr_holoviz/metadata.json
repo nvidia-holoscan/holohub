@@ -1,0 +1,38 @@
+{
+	"application": {
+		"name": "Holoscan-XR + Holoviz",
+		"authors": [
+			{
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Rafael Wiltz",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"0.0": "Initial release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"run": {
+			"command": "<holohub_app_bin>/xr_holoviz",
+			"workdir": "<holohub_app_bin>"
+		}
+	}
+}
