@@ -17,10 +17,22 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 
 ## Input
 
-This app currently supports three different input options:
+This app supports two different input options.  If you have a v4l2 compatible device plugged into your machine such as a webcam, you can run this application with option 1.  Otherwise you can run this application using a pre-recorded video with option 2.
 
 1. v4l2 compatible input device (default, see V4L2 Support below)
 2. pre-recorded video (see Video Replayer Support below)
+
+To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
+
+```
+sudo apt-get install v4l-utils
+```
+
+Then run:
+
+```
+v4l2-ctl --list-devices
+```
 
 ## Run Instructions
 
