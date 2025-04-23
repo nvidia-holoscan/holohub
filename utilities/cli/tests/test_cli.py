@@ -109,10 +109,9 @@ class TestHoloHubCLI(unittest.TestCase):
 
     def test_did_you_mean_suggestion(self):
         """Test the 'did you mean' suggestion functionality"""
-
         # Test with a misspelled project name
-        with self.assertRaises(SystemExit):
-            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with self.assertRaises(SystemExit):
                 self.cli._find_project("hello_wrld")
                 stderr_output = mock_stderr.getvalue()
                 self.assertIn("Project 'hello_wrld' not found.", stderr_output)
@@ -121,12 +120,12 @@ class TestHoloHubCLI(unittest.TestCase):
                 )
 
         # Test with a completely different name
-        with self.assertRaises(SystemExit):
-            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with self.assertRaises(SystemExit):
                 self.cli._find_project("nonexistent")
                 stderr_output = mock_stderr.getvalue()
                 self.assertIn("Project 'nonexistent' not found.", stderr_output)
-                self.assertIn(
+                self.assertNotIn(
                     "Did you mean: 'hello_world' (source: applications/hello_world)", stderr_output
                 )
 
@@ -145,6 +144,12 @@ class TestHoloHubCLI(unittest.TestCase):
         args.func(args)
         # Verify that run_command was called at least once
         mock_run_command.assert_called()
+
+    def test_lint_fix_command(self):
+        args = self.cli.parser.parse_args("lint test/path --fix".split())
+        with self.assertRaises(SystemExit):
+            args.func(args)
+            self.assertEqual(args.func(args).returncode, 0)
 
 
 if __name__ == "__main__":

@@ -597,6 +597,8 @@ class HoloHubCLI:
                     args.path,
                     "--ignore-words",
                     "codespell_ignore_words.txt",
+                    "--exclude-file",
+                    "codespell.txt",
                     "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data",
                 ],
                 check=False,
