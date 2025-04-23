@@ -146,6 +146,7 @@ class RdmaMgr : public Manager {
     // RDMA-specific functions
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) override;    
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) override;
+    Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) override;
     Status register_mr(std::string name, int intf, void *addr, size_t len, int flags);
     Status wait_on_key_xchg();
     void poll_cm_events();
@@ -159,6 +160,7 @@ class RdmaMgr : public Manager {
     static constexpr int MAX_NUM_MR = 16; // Maximum number of memory registers to exchange
     static constexpr int MAX_OUSTANDING_WR = 64;
     static constexpr int MAX_NUM_PORTS = 4;
+    static constexpr int MAX_RDMA_BATCH = 1024;
 
     bool initialized_ = false;
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> server_q_params_; 
@@ -177,8 +179,11 @@ class RdmaMgr : public Manager {
     std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> client_rx_rings_;
     struct rte_mempool* rx_meta;
     struct rte_mempool* tx_meta;
+    struct rte_mempool* pkt_len_pool_;
+    std::unordered_map<std::string, struct rte_mempool*> mr_pools_;
     std::unordered_map<uint32_t, struct rte_ring*> server_tx_rings_;
     std::unordered_map<uint32_t, struct rte_ring*> client_tx_rings_;
+    struct rte_mempool* tx_burst_pool_;
     rdma_event_channel* cm_event_channel_;
     std::mutex threads_mutex_;
     std::mutex client_params_mutex_;
@@ -189,7 +194,6 @@ class RdmaMgr : public Manager {
     int rdma_register_cfg_mrs();
     std::string generate_random_string(int len);
     static int set_affinity(int cpu_core);
-    int register_mrs();
     void init_client();
     void server_tx(int if_idx, int q);
     void server_rx(int if_idx, int q);

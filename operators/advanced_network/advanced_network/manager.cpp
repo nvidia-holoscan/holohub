@@ -30,9 +30,13 @@
 #include "adv_network_rdma_mgr.h"
 #endif
 
-#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
+#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO || ANO_MGR_RDMA
 #include <rte_common.h>
 #include <rte_malloc.h>
+#include <rte_mbuf.h>
+#include <rte_ethdev.h>
+#include <rte_ring.h>
+#include <rte_eal.h>
 #endif
 
 #include "holoscan/holoscan.hpp"
@@ -201,6 +205,169 @@ Status Manager::allocate_memory_regions() {
   return Status::SUCCESS;
 }
 
+Status Manager::map_mrs() {
+  // Map every MR to every device for now
+  for (const auto& intf : cfg_.ifs_) {
+    struct rte_eth_dev_info dev_info;
+    int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
+    if (ret != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
+      return Status::NULL_PTR;
+    }
+
+    for (const auto& ext_mem_el : ext_pktmbufs_) {
+      const auto& ext_mem = ext_mem_el.second;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      ret = rte_dev_dma_map(dev_info.device, ext_mem->buf_ptr, ext_mem->buf_iova, ext_mem->buf_len);
+#pragma GCC diagnostic pop
+
+      if (ret) {
+        HOLOSCAN_LOG_CRITICAL(
+            "Could not DMA map EXT memory: {} err={}", ret, rte_strerror(rte_errno));
+        return Status::NULL_PTR;
+      }
+
+      HOLOSCAN_LOG_INFO(
+          "Mapped external memory descriptor for {} to device {}", ext_mem->buf_ptr, intf.port_id_);
+    }
+  }
+
+  return Status::SUCCESS;
+}
+
+Status Manager::register_mrs() {
+  for (const auto& ar : ar_) {
+    auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
+    const auto& mr = cfg_.mrs_[ar.second.mr_name_];
+
+    // Hugepages use the normal rte functions that don't require extmem
+    if (mr.kind_ == MemoryKind::HUGE) { continue; }
+
+    ext_mem->buf_len = mr.ttl_size_;
+    ext_mem->buf_iova = RTE_BAD_IOVA;
+    ext_mem->buf_ptr = ar.second.ptr_;
+    ext_mem->elt_size = mr.adj_size_;
+
+    // GPUs have the largest page size vs CPUs, so just use that
+    int ret = rte_extmem_register(
+        ext_mem->buf_ptr, ext_mem->buf_len, NULL, ext_mem->buf_iova, GPU_PAGE_SIZE);
+    if (ret) {
+      HOLOSCAN_LOG_CRITICAL("Unable to register addr {}, ret {} errno {}",
+                            ext_mem->buf_ptr,
+                            ret,
+                            rte_strerror(rte_errno));
+      return Status::NULL_PTR;
+    } else {
+      HOLOSCAN_LOG_INFO("Successfully registered external memory for {}", mr.name_);
+    }
+
+    ext_pktmbufs_[mr.name_] = ext_mem;
+  }
+
+  return Status::SUCCESS;
+}
+
+struct rte_mempool *Manager::create_pktmbuf_pool(const std::string &name, const MemoryRegionConfig &mr)
+{
+  struct rte_mempool* pool;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  if (mr.kind_ == MemoryKind::HUGE) {
+    pool = rte_pktmbuf_pool_create(
+        name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
+                HOLOSCAN_LOG_INFO("huge2 at {}", 
+          pool->pool_data);
+  } else {
+    auto pktmbuf = ext_pktmbufs_[mr.name_];
+    pool = rte_pktmbuf_pool_create_extbuf(name.c_str(),
+                                          mr.num_bufs_,
+                                          0,
+                                          0,
+                                          mr.adj_size_,
+                                          numa_from_mem(mr),
+                                          pktmbuf.get(),
+                                          1);
+  }
+#pragma GCC diagnostic pop
+
+  return pool;
+}
+
+struct rte_mempool *Manager::create_generic_pool(const std::string &name, const MemoryRegionConfig &mr)
+{
+  struct rte_mempool* pool;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  pool = rte_mempool_create_empty(name.c_str(), mr.num_bufs_, mr.adj_size_, 0, 0, numa_from_mem(mr), 0);
+  
+  // Now we have to populate the memory pool with the correct memory region buffers
+  if (pool == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to create empty mempool {}", name);
+    return nullptr;
+  }
+
+  auto ar_it = ar_.find(mr.name_);
+  if (ar_it == ar_.end()) {
+    HOLOSCAN_LOG_ERROR("Memory region {} not found in allocated regions for pool {}", mr.name_, name);
+    rte_mempool_free(pool);
+    return nullptr;
+  }
+
+  const AllocRegion& alloc_region = ar_it->second;
+  size_t total_size = static_cast<size_t>(mr.num_bufs_) * mr.adj_size_;
+  size_t page_size = mr.adj_size_; // Default to adjusted size (element size)
+
+  if (mr.kind_ == MemoryKind::DEVICE) {
+    page_size = GPU_PAGE_SIZE;
+  }
+  else {
+    page_size = 4096;
+  }
+
+
+  // Check if the allocated size matches the expected total size
+  // Note: AllocRegion might store the originally requested size (buf_size_ * num_bufs_)
+  // or the adjusted size. Assuming it holds the base pointer to the whole region.
+  // We need the IOVA of the start of the buffer.
+  int ret = rte_mempool_populate_virt(pool,
+                                      static_cast<char*>(alloc_region.ptr_),
+                                      total_size,
+                                      page_size,
+                                      nullptr,
+                                      nullptr);                         // Opaque data for callback
+
+  if (ret < 0) {
+    HOLOSCAN_LOG_ERROR("Failed to populate mempool {} for MR {}: {}", name, mr.name_, rte_strerror(rte_errno));
+    rte_mempool_free(pool);
+    return nullptr;
+  } else if (static_cast<unsigned>(ret) != mr.num_bufs_) {
+     HOLOSCAN_LOG_WARN("Populated mempool {} for MR {} with {} objects, expected {}", name, mr.name_, ret, mr.num_bufs_);
+     // This might not be critical depending on how sizes align, but worth noting.
+  } else {
+    HOLOSCAN_LOG_INFO("Successfully populated generic mempool {} for MR {} with {} objects of size {} at VA {} ",
+                      name, mr.name_, ret, mr.adj_size_, alloc_region.ptr_);
+  }
+#pragma GCC diagnostic pop
+
+  return pool;
+}
+
+int Manager::numa_from_mem(const MemoryRegionConfig& mr) const {
+  if (mr.kind_ == MemoryKind::DEVICE) {
+    int val;
+    if (cudaDeviceGetAttribute(&val, cudaDevAttrHostNumaId, mr.affinity_) != cudaSuccess) {
+      HOLOSCAN_LOG_ERROR("Failed to get NUMA node from device {}", mr.affinity_);
+      return -1;
+    }
+
+    return val;
+  } else {
+    return mr.affinity_;
+  }
+}
+
 bool Manager::validate_config() const {
   bool pass = true;
   std::set<std::string> mr_names;
@@ -257,6 +424,11 @@ Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst
 
 Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
+  return Status::NOT_SUPPORTED;
+}
+
+Status Manager::rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+  HOLOSCAN_LOG_CRITICAL("RDMA get port queue not implemented");
   return Status::NOT_SUPPORTED;
 }
 

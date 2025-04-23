@@ -135,10 +135,7 @@ class DpdkMgr : public Manager {
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
-  Status register_mrs();
-  Status map_mrs();
   void create_dummy_rx_q();
-  int numa_from_mem(const MemoryRegionConfig& mr);
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 
@@ -152,7 +149,6 @@ class DpdkMgr : public Manager {
   struct rte_ring* rx_ring;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
-  std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
   std::unordered_map<uint32_t, DPDKQueueConfig*> rx_dpdk_q_map_;
   std::unordered_map<uint32_t, DPDKQueueConfig*> tx_dpdk_q_map_;
   std::unordered_map<uint32_t, const RxQueueConfig*> rx_cfg_q_map_;

@@ -157,68 +157,6 @@ void DpdkMgr::adjust_memory_regions() {
   }
 }
 
-Status DpdkMgr::map_mrs() {
-  // Map every MR to every device for now
-  for (const auto& intf : cfg_.ifs_) {
-    struct rte_eth_dev_info dev_info;
-    int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
-    if (ret != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
-      return Status::NULL_PTR;
-    }
-
-    for (const auto& ext_mem_el : ext_pktmbufs_) {
-      const auto& ext_mem = ext_mem_el.second;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      ret = rte_dev_dma_map(dev_info.device, ext_mem->buf_ptr, ext_mem->buf_iova, ext_mem->buf_len);
-#pragma GCC diagnostic pop
-
-      if (ret) {
-        HOLOSCAN_LOG_CRITICAL(
-            "Could not DMA map EXT memory: {} err={}", ret, rte_strerror(rte_errno));
-        return Status::NULL_PTR;
-      }
-
-      HOLOSCAN_LOG_INFO(
-          "Mapped external memory descriptor for {} to device {}", ext_mem->buf_ptr, intf.port_id_);
-    }
-  }
-
-  return Status::SUCCESS;
-}
-
-Status DpdkMgr::register_mrs() {
-  for (const auto& ar : ar_) {
-    auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
-    const auto& mr = cfg_.mrs_[ar.second.mr_name_];
-
-    if (mr.kind_ == MemoryKind::HUGE) { continue; }
-
-    ext_mem->buf_len = mr.ttl_size_;
-    ext_mem->buf_iova = RTE_BAD_IOVA;
-    ext_mem->buf_ptr = ar.second.ptr_;
-    ext_mem->elt_size = mr.adj_size_;
-
-    // GPUs have the largest page size vs CPUs, so just use that
-    int ret = rte_extmem_register(
-        ext_mem->buf_ptr, ext_mem->buf_len, NULL, ext_mem->buf_iova, GPU_PAGE_SIZE);
-    if (ret) {
-      HOLOSCAN_LOG_CRITICAL("Unable to register addr {}, ret {} errno {}",
-                            ext_mem->buf_ptr,
-                            ret,
-                            rte_strerror(rte_errno));
-      return Status::NULL_PTR;
-    } else {
-      HOLOSCAN_LOG_INFO("Successfully registered external memory for {}", mr.name_);
-    }
-
-    ext_pktmbufs_[mr.name_] = ext_mem;
-  }
-
-  return Status::SUCCESS;
-}
 
 void DpdkMgr::setup_accurate_send_scheduling_mask() {
   static bool done = false;
@@ -252,20 +190,6 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
   timestamp_mask_ = 1ULL << dynflag_shift;
   HOLOSCAN_LOG_INFO("Done setting up accurate send scheduling with mask {:x}", timestamp_mask_);
   done = true;
-}
-
-int DpdkMgr::numa_from_mem(const MemoryRegionConfig& mr) {
-  if (mr.kind_ == MemoryKind::DEVICE) {
-    int val;
-    if (cudaDeviceGetAttribute(&val, cudaDevAttrHostNumaId, mr.affinity_) != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Failed to get NUMA node from device {}", mr.affinity_);
-      return -1;
-    }
-
-    return val;
-  } else {
-    return mr.affinity_;
-  }
 }
 
 std::string DpdkMgr::generate_random_string(int len) {
@@ -473,24 +397,7 @@ void DpdkMgr::initialize() {
           return;
         }
 
-        struct rte_mempool* pool;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if (mr.kind_ == MemoryKind::HUGE) {
-          pool = rte_pktmbuf_pool_create(
-              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
-        } else {
-          auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
-          pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
-                                                mr.num_bufs_,
-                                                0,
-                                                0,
-                                                mr.adj_size_,
-                                                numa_from_mem(mr),
-                                                pktmbuf.get(),
-                                                1);
-        }
-#pragma GCC diagnostic pop
+        struct rte_mempool* pool = create_pktmbuf_pool(pool_name, mr);
 
         if (pool == nullptr) {
           HOLOSCAN_LOG_CRITICAL(
@@ -573,24 +480,7 @@ void DpdkMgr::initialize() {
           return;
         }
 
-        struct rte_mempool* pool;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if (mr.kind_ == MemoryKind::HUGE) {
-          pool = rte_pktmbuf_pool_create(
-              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.buf_size_, numa_from_mem(mr));
-        } else {
-          auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
-          pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
-                                                mr.num_bufs_,
-                                                0,
-                                                0,
-                                                mr.buf_size_,
-                                                numa_from_mem(mr),
-                                                pktmbuf.get(),
-                                                1);
-        }
-#pragma GCC diagnostic pop
+        struct rte_mempool* pool = create_pktmbuf_pool(pool_name, mr);
         if (pool == nullptr) {
           HOLOSCAN_LOG_CRITICAL("Could not create external memory mempool");
           return;

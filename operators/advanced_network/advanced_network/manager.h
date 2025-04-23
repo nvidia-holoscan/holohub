@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <rte_mbuf.h>
 #include "advanced_network/types.h"
 #include <optional>
 
@@ -73,6 +74,7 @@ class Manager {
   virtual BurstParams* create_tx_burst_params() = 0;
   virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id);
   virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id);
+  virtual Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
 
   /* Internal functions used by ANO operators */
   virtual std::optional<uint16_t> get_port_from_ifname(const std::string& name) = 0;
@@ -84,7 +86,11 @@ class Manager {
   virtual Status get_mac_addr(int port, char* mac) = 0;
   virtual int address_to_port(const std::string& addr) = 0;
   virtual bool validate_config() const;
-
+  int numa_from_mem(const MemoryRegionConfig& mr) const;
+  Status register_mrs();
+  Status map_mrs(); 
+  struct rte_mempool *create_pktmbuf_pool(const std::string &name, const MemoryRegionConfig &mr);
+  struct rte_mempool *create_generic_pool(const std::string &name, const MemoryRegionConfig &mr);
   virtual ~Manager() = default;
 
  protected:
@@ -97,6 +103,7 @@ class Manager {
   bool initialized_ = false;
   NetworkConfig cfg_;
   std::unordered_map<std::string, AllocRegion> ar_;
+  std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
   std::unordered_map<uint32_t, std::vector<std::pair<uint16_t, uint16_t>>> rx_core_q_map;
 
   virtual Status allocate_memory_regions();

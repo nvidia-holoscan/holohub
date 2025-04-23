@@ -22,6 +22,7 @@
 #include <rte_ring.h>
 #include <rte_mempool.h>
 #include <rte_errno.h>
+#include <rte_mbuf.h>
 #include "../dpdk/adv_network_dpdk_log.h"
 #include "adv_network_rdma_mgr.h"
 
@@ -45,9 +46,12 @@ namespace holoscan::advanced_network {
   // Common ANO functions
   Status RdmaMgr::set_packet_lengths(BurstParams* burst, int idx,
                                     const std::initializer_list<int>& lens) {
-// populate later
+    assert(lens.size() == 1); // Split not supported yet
+    printf("Setting packet length for idx %d to %d\n", idx, lens.begin()[0]);
+    printf(" pointer %p\n", burst->pkt_lens[0]);
+    burst->pkt_lens[0][idx] = lens.begin()[0];
     return Status::SUCCESS;
-  }  
+  }
 
   void* RdmaMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
     return burst->pkts[seg][idx];
@@ -156,6 +160,7 @@ namespace holoscan::advanced_network {
 
   int RdmaMgr::mr_access_to_ibv(uint32_t access) {
     int ibv_access = 0;
+    printf("access %d\n", access);
 
     if (access & MEM_ACCESS_LOCAL) {
       ibv_access |= IBV_ACCESS_LOCAL_WRITE;
@@ -174,7 +179,7 @@ namespace holoscan::advanced_network {
     rdma_mr_params params;
     params.params_ = mr;
     params.ptr_ = ptr;
-
+    HOLOSCAN_LOG_INFO("Registering MR {} with ibverbs {}", mr.name_, pd_map_.size());
     // For now register the MR with every PD we have
     for (const auto &pd: pd_map_) {
       for (const auto &pd: pd.second) {
@@ -186,14 +191,14 @@ namespace holoscan::advanced_network {
             return -1;
           }
           else {
-            HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {}", 
-              mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd);
+            HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {} ptr {}-{} lkey {} access {}", 
+              mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd, (void*)ptr, (void*)(ptr + mr.buf_size_ * mr.num_bufs_), params.mr_->lkey, mr.access_);
           }
         }
       }
     }
 
-    mrs_[mr.name_] = params;  
+    mrs_[mr.name_] = params;
 
     return 0;  
   }
@@ -206,12 +211,47 @@ namespace holoscan::advanced_network {
       return -1;
     } 
 
+    if (register_mrs() != Status::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
+      return -1;
+    }
+
+    if (map_mrs() != Status::SUCCESS) {
+      HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
+      return -1;
+    }
+
     for (const auto &mr: cfg_.mrs_) {
+      HOLOSCAN_LOG_INFO("Creating mempool for MR {}", mr.second.name_);
+      auto pool = create_generic_pool(mr.second.name_, mr.second);
+      if (pool == nullptr) {
+        HOLOSCAN_LOG_CRITICAL(
+              "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
+              mr.second.name_,
+              mr.second.num_bufs_,
+              mr.second.adj_size_,
+              (void*)pool);
+        return - 1;
+      }
+      else {
+        HOLOSCAN_LOG_INFO("Successfully created mempool for MR {} with {} buffers of size {}", 
+        mr.second.name_, mr.second.num_bufs_, mr.second.adj_size_);
+      }
+
+      mr_pools_[mr.second.name_] = pool;  
+      if (mr.second.kind_ == MemoryKind::HUGE) {
+        HOLOSCAN_LOG_INFO("huge at {}", 
+          pool->pool_data);
+      }
+
       int ret = rdma_register_mr(mr.second, ar_[mr.second.name_].ptr_);
       if (ret < 0) {
+        HOLOSCAN_LOG_CRITICAL("Failed to register MR {} with {} bytes at {}", 
+          mr.second.name_, mr.second.buf_size_ * mr.second.num_bufs_, (void*)ar_[mr.second.name_].ptr_);
         return ret;
       }
     }
+    
 
     // Register all the MRs for exchanging keys
     // for (int p = 0; p < cfg_.ifs_.size(); p++) {
@@ -359,6 +399,47 @@ namespace holoscan::advanced_network {
 
     return 0;    
   }
+
+  Status RdmaMgr::send_tx_burst(BurstParams *burst) {
+  uint32_t key = (burst->rdma_hdr.port_id << 16) | burst->rdma_hdr.q_id;
+  struct rte_ring *ring;
+  HOLOSCAN_LOG_INFO("Sending burst to ring");
+  if (burst->rdma_hdr.server) {
+    auto ri = server_tx_rings_.find(key);
+    if (ri == server_tx_rings_.end()) {
+      HOLOSCAN_LOG_ERROR("Invalid server port/queue combination in send_tx_burst: {}/{}",
+                        burst->rdma_hdr.port_id,
+                        burst->rdma_hdr.q_id);
+      return Status::INVALID_PARAMETER;
+    }
+
+    HOLOSCAN_LOG_INFO("Sending burst to server ring, {}", (void*)ri->second);  
+    ring = ri->second;
+  }
+  else {
+    auto ri = client_tx_rings_.find(key);
+    if (ri == client_tx_rings_.end()) {
+      HOLOSCAN_LOG_ERROR("Invalid client port/queue combination in send_tx_burst: {}/{}",
+                        burst->rdma_hdr.port_id,
+                        burst->rdma_hdr.q_id);
+      return Status::INVALID_PARAMETER;
+    }    
+
+    HOLOSCAN_LOG_INFO("Sending burst to client ring, {}", (void*)ri->second);  
+    ring = ri->second;
+  }
+
+  HOLOSCAN_LOG_INFO("Enqueuing burst to ring, {}", (void*)ring);
+
+  if (rte_ring_enqueue(ring, reinterpret_cast<void*>(burst)) != 0) {
+    free_tx_burst(burst);
+    free_tx_metadata(burst);
+    HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
+    return Status::NO_SPACE_AVAILABLE;
+  }
+
+  return Status::SUCCESS;
+  }  
   
   /**
    * Worker thread for a client or server. Each thread handles one queue pair.
@@ -393,10 +474,15 @@ namespace holoscan::advanced_network {
       // Check TX CQ for completion
       while ((num_comp = ibv_poll_cq(tparams->qp_params.tx_cq, 1, &wc)) != 0) {
         if (wc.status != IBV_WC_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
+          HOLOSCAN_LOG_ERROR("CQ error on {}: {} ({}) for WRID {} and opcode {}",
+                             is_server ? "server" : "client",
+                             ibv_wc_status_str(wc.status),
+                             (int)wc.status,
+                             (int64_t)wc.wr_id,
+                             (int)wc.opcode);
           continue;
         }
-printf("good msg poll for %s\n", is_server ? "server" : "client");
+HOLOSCAN_LOG_INFO("good msg poll for {} cmid {}", is_server ? "server" : "client", (void*)reinterpret_cast<struct rdma_cm_id*>(wc.wr_id));
         if (wc.opcode == IBV_WC_RDMA_READ) {
           // BurstParams read_burst;
           // read_burst.rdma_hdr.
@@ -416,141 +502,138 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
       }
 
       // Now handle any incoming messages
-      BurstParams burst;
-
+      BurstParams *burst;
+      static int blah;
+      if (blah++==0)
+HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx_ring);
       //ssize_t bytes = mq_receive(tparams.tx_mq, reinterpret_cast<char*>(&burst), sizeof(burst), nullptr);
       if (rte_ring_dequeue(tparams->qp_params.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
         continue; 
       }
 
-      printf("dequeue msg poll for %s\n", is_server ? "server" : "client");
+      HOLOSCAN_LOG_INFO("dequeue msg poll for {} cmid {}", is_server ? "server" : "client", (void*)reinterpret_cast<struct rdma_cm_id*>(burst->rdma_hdr.conn_id));
 
-      const auto endpt = endpoints_.find(reinterpret_cast<struct rdma_cm_id*>(burst.rdma_hdr.dst_key));
-      if (endpt == endpoints_.end()) {
-        HOLOSCAN_LOG_ERROR("Trying to send to client {}, but that client is not connected", burst.rdma_hdr.dst_key);
-        continue;
-      }
-
-      const auto local_mr = mrs_.find(burst.rdma_hdr.local_mr_name);
+      const auto local_mr = mrs_.find(std::string(burst->rdma_hdr.local_mr_name));
       if (local_mr == mrs_.end()) {
-        HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst.rdma_hdr.local_mr_name);
-        free_tx_burst(&burst);
+        HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst->rdma_hdr.local_mr_name);
+        free_tx_burst(burst);
         continue;
       }
 
-      switch (burst.rdma_hdr.opcode) {
+      switch (burst->rdma_hdr.opcode) {
         case AdvNetRDMAOpCode::SEND:
         { // perform send operation
           // Currently we expect SEND operations to be rare, and certainly not with thousands of
           // packets. For that reason we post one at a time and do not try to batch.
-          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+          for (int p = 0; p < burst->rdma_hdr.num_pkts; p++) {
             ibv_send_wr wr;
             ibv_send_wr *bad_wr;
             ibv_sge sge;
 
             memset(&wr, 0, sizeof(wr));
-            sge.addr      = (uint64_t)burst.pkts[0][p];
-            sge.length    = (uint32_t)burst.pkt_lens[0][p];
+            sge.addr      = (uint64_t)burst->pkts[0][p];
+            sge.length    = (uint32_t)burst->pkt_lens[0][p];
             sge.lkey      = local_mr->second.mr_->lkey;
+            HOLOSCAN_LOG_INFO("lkey {} addr {}", sge.lkey, sge.addr);
             wr.sg_list    = &sge;
             wr.num_sge    = 1;
             wr.opcode     = IBV_WR_SEND;
             wr.send_flags = IBV_SEND_SIGNALED;
 
-            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
+            int ret = ibv_post_send(tparams->client_id->qp, &wr, &bad_wr);
             if (ret != 0) {
               HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
-              free_tx_burst(&burst);
+              free_tx_burst(burst);
               continue;
             }   
-            }
+          }
 
           break; 
         }
         case AdvNetRDMAOpCode::RDMA_WRITE: [[fall_through]];
         case AdvNetRDMAOpCode::RDMA_WRITE_IMM:
         {
-          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
-            ibv_send_wr wr;
-            ibv_send_wr *bad_wr;
-            ibv_sge sge;
+          // for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+          //   ibv_send_wr wr;
+          //   ibv_send_wr *bad_wr;
+          //   ibv_sge sge;
 
-            memset(&wr, 0, sizeof(wr));
-            sge.addr      = (uint64_t)burst.pkts[0][p];
-            sge.length    = (uint32_t)burst.pkt_lens[0][p];
-            sge.lkey      = local_mr->second.mr_->lkey;
-            wr.sg_list    = &sge;
-            wr.num_sge    = 1;
-            if (burst.rdma_hdr.opcode==AdvNetRDMAOpCode::RDMA_WRITE) {
-              wr.opcode   = IBV_WR_RDMA_WRITE;
-            }
-            else {
-              wr.opcode   = IBV_WR_RDMA_WRITE_WITH_IMM;
-              wr.imm_data = htonl(burst.rdma_hdr.imm);
-            }
+          //   memset(&wr, 0, sizeof(wr));
+          //   sge.addr      = (uint64_t)burst.pkts[0][p];
+          //   sge.length    = (uint32_t)burst.pkt_lens[0][p];
+          //   sge.lkey      = local_mr->second.mr_->lkey;
+          //   wr.sg_list    = &sge;
+          //   wr.num_sge    = 1;
+          //   if (burst.rdma_hdr.opcode==AdvNetRDMAOpCode::RDMA_WRITE) {
+          //     wr.opcode   = IBV_WR_RDMA_WRITE;
+          //   }
+          //   else {
+          //     wr.opcode   = IBV_WR_RDMA_WRITE_WITH_IMM;
+          //     wr.imm_data = htonl(burst.rdma_hdr.imm);
+          //   }
 
-            wr.send_flags = IBV_SEND_SIGNALED;
+          //   wr.send_flags = IBV_SEND_SIGNALED;
 
-            // Look up remote key
-            const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
-            if (remote_mr == endpt->second.end()) {
-              HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
-                    burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
-              free_tx_burst(&burst);
-              continue;
-            }              
-            wr.wr.rdma.rkey = remote_mr->second.key;
-            wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
+          //   // Look up remote key
+          //   const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
+          //   if (remote_mr == endpt->second.end()) {
+          //     HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
+          //           burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
+          //     free_tx_burst(&burst);
+          //     continue;
+          //   }              
+          //   wr.wr.rdma.rkey = remote_mr->second.key;
+          //   wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
 
-            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
-            if (ret != 0) {
-              HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
-              free_tx_burst(&burst);
-              continue;
-            }
-          }
+          //   int ret = ibv_post_send(tparams->client_id->qp, &wr, &bad_wr);
+          //   if (ret != 0) {
+          //     HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
+          //     free_tx_burst(&burst);
+          //     continue;
+          //   }
+          // }
           break;
         }
         case AdvNetRDMAOpCode::RDMA_READ:
         {
-          for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
-            ibv_send_wr wr;
-            ibv_send_wr *bad_wr;
-            ibv_sge sge;
+          // for (int p = 0; p < burst.rdma_hdr.num_pkts; p++) {
+          //   ibv_send_wr wr;
+          //   ibv_send_wr *bad_wr;
+          //   ibv_sge sge;
 
-            memset(&wr, 0, sizeof(wr));
-            sge.addr      = (uint64_t)burst.pkts[0][p];
-            sge.length    = (uint32_t)burst.pkt_lens[0][p];
-            sge.lkey      = local_mr->second.mr_->lkey;
-            wr.sg_list    = &sge;
-            wr.num_sge    = 1;
-            wr.opcode     = IBV_WR_RDMA_READ;
-            wr.send_flags = IBV_SEND_SIGNALED;
+          //   memset(&wr, 0, sizeof(wr));
+          //   sge.addr      = (uint64_t)burst.pkts[0][p];
+          //   sge.length    = (uint32_t)burst.pkt_lens[0][p];
+          //   sge.lkey      = local_mr->second.mr_->lkey;
+          //   wr.sg_list    = &sge;
+          //   wr.num_sge    = 1;
+          //   wr.opcode     = IBV_WR_RDMA_READ;
+          //   wr.send_flags = IBV_SEND_SIGNALED;
 
-            // Look up remote key
-            const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
-            if (remote_mr == endpt->second.end()) {
-              HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
-                    burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
-              free_tx_burst(&burst);
-              continue;
-            }              
-            wr.wr.rdma.rkey  = remote_mr->second.key;
-            wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
+          //   // Look up remote key
+          //   const auto remote_mr = endpt->second.find(burst.rdma_hdr.remote_mr_name);
+          //   if (remote_mr == endpt->second.end()) {
+          //     HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry for client {}", 
+          //           burst.rdma_hdr.remote_mr_name, burst.rdma_hdr.dst_key);
+          //     free_tx_burst(&burst);
+          //     continue;
+          //   }              
+          //   wr.wr.rdma.rkey  = remote_mr->second.key;
+          //   wr.wr.rdma.remote_addr = reinterpret_cast<uint64_t>(burst.rdma_hdr.raddr);
 
-            int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
-            if (ret != 0) {
-              HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
-              free_tx_burst(&burst);
-              continue;
-            }
+          //   int ret = ibv_post_send(endpt->first->qp, &wr, &bad_wr);
+          //   if (ret != 0) {
+          //     HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
+          //     free_tx_burst(&burst);
+          //     continue;
+          //   }
 
-            out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
-            out_wr_[cur_wc_id_].done  = false;
-            out_wr_[cur_wc_id_].mr = remote_mr->second;
-            out_wr_[cur_wc_id_].mr.ptr = burst.pkts[0][p];
-            cur_wc_id_++;
-          }
+          //   out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
+          //   out_wr_[cur_wc_id_].done  = false;
+          //   out_wr_[cur_wc_id_].mr = remote_mr->second;
+          //   out_wr_[cur_wc_id_].mr.ptr = burst.pkts[0][p];
+          //   cur_wc_id_++;
+          // }
           break;
         }          
       }
@@ -689,10 +772,10 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
         return Status::CONNECT_FAILURE;
       }
       pd_map_[cm_id->verbs] = {};
-      pd_map_[cm_id->verbs][cm_id->port_num] = pd;
+      pd_map_[cm_id->verbs][cm_id->port_num-1] = pd;
     }
     else {
-      HOLOSCAN_LOG_INFO("PD already exists for device {} using PD {}", (void*)cm_id->verbs, (void*)pd_map_[cm_id->verbs][cm_id->port_num]);
+      HOLOSCAN_LOG_INFO("PD already exists for device {} using PD {}", (void*)cm_id->verbs, (void*)pd_map_[cm_id->verbs][cm_id->port_num-1]);
     }
 
     struct sockaddr *source_addr = rdma_get_local_addr(cm_id);
@@ -722,7 +805,7 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
     auto& params = iter->second;
     params.ready_to_exit = false;
     params.client_id = cm_id;
-    params.pd = pd_map_[cm_id->verbs][cm_id->port_num];
+    params.pd = pd_map_[cm_id->verbs][cm_id->port_num-1];
     params.if_idx = client_port;
     params.queue_idx = client_q_params_.size() - 1;  // Fix this race condition
     printf("client params port %d, queue idx %d\n", params.if_idx, params.queue_idx);
@@ -787,6 +870,74 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
     return Status::SUCCESS;
   }
 
+  Status RdmaMgr::rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+    // Look up connection ID to get port/q
+    auto iter = client_q_params_.find(reinterpret_cast<struct rdma_cm_id*>(conn_id));
+    if (iter == client_q_params_.end()) {
+      HOLOSCAN_LOG_CRITICAL("Failed to find client params for connection ID {}", conn_id);
+      return Status::INVALID_PARAMETER;
+    }
+
+    *port = iter->second.if_idx;
+    *queue = iter->second.queue_idx;
+
+    return Status::SUCCESS;
+  }
+
+  Status RdmaMgr::get_tx_packet_burst(BurstParams* burst) {
+    // RDMA isn't allowing split segments yet
+    assert(burst->rdma_hdr.num_segs == 1);
+    assert(burst->rdma_hdr.num_pkts <= MAX_RDMA_BATCH);
+    printf("Getting burst\n");
+    auto burst_pool = mr_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool == mr_pools_.end()) {
+      HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for MR {}",
+                        burst->rdma_hdr.local_mr_name);
+      return Status::INVALID_PARAMETER;
+    }
+
+    if (rte_mempool_get(tx_burst_pool_, reinterpret_cast<void**>(&burst->pkts[0])) != 0) {
+      HOLOSCAN_LOG_ERROR("Failed to get packet from pool");
+      return Status::NO_FREE_BURST_BUFFERS;
+    }
+    HOLOSCAN_LOG_INFO("Allocating {} packets from packet pool", burst->rdma_hdr.num_pkts);
+    if (rte_pktmbuf_alloc_bulk(burst_pool->second,
+                              reinterpret_cast<rte_mbuf**>(burst->pkts[0]),
+                              static_cast<int>(burst->rdma_hdr.num_pkts)) != 0) {
+      HOLOSCAN_LOG_ERROR("Failed to get packet from packet pool");
+      rte_mempool_put(tx_burst_pool_, reinterpret_cast<void*>(burst->pkts[0]));
+      return Status::NO_FREE_PACKET_BUFFERS;
+    }
+
+    HOLOSCAN_LOG_INFO("First burst is {}", (void*)burst->pkts[0][0]);
+
+    // Allocate packet length buffer
+    if (rte_mempool_get(pkt_len_pool_, reinterpret_cast<void**>(&burst->pkt_lens[0])) != 0) {
+      HOLOSCAN_LOG_ERROR("Failed to get packet length buffer");
+      rte_mempool_put(tx_burst_pool_, reinterpret_cast<void*>(burst->pkts[0]));
+      return Status::NO_FREE_PACKET_BUFFERS;
+    }
+
+    printf("Allocated packet length buffer at %p\n", burst->pkt_lens[0]);
+
+    return Status::SUCCESS;
+  }
+
+  bool RdmaMgr::is_tx_burst_available(BurstParams *burst) {
+    auto burst_pool = mr_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool == mr_pools_.end()) {
+      HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for MR {}",
+                        burst->rdma_hdr.local_mr_name);
+      return false;
+    }
+
+    if (rte_mempool_avail_count(burst_pool->second) < burst->rdma_hdr.num_pkts * 2) { 
+      return false; 
+    }
+
+    return true;
+  }
+
   void RdmaMgr::run() {
     int ret;
 
@@ -796,15 +947,6 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
       HOLOSCAN_LOG_CRITICAL("Failed to set master core affinity");
       return;
     }
-
-    int num_ib_devices;    
-    ibv_context **ib_devices = rdma_get_devices(&num_ib_devices);
-    if (num_ib_devices == 0) {
-      HOLOSCAN_LOG_CRITICAL("No RDMA-capable devices found!");
-      return;
-    }
-
-    HOLOSCAN_LOG_INFO("Found {} RDMA-capable devices", num_ib_devices);
 
     // Create a channel for events. Only the master thread reads from this channel
     cm_event_channel_ = rdma_create_event_channel();    
@@ -921,7 +1063,7 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
               }
 
               pd_map_[cm_event->id->verbs] = {};
-              pd_map_[cm_event->id->verbs][cm_event->id->port_num] = pd;
+              pd_map_[cm_event->id->verbs][cm_event->id->port_num - 1] = pd;
             }
 
 
@@ -953,7 +1095,7 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
             auto& params = iter->second;
             params.ready_to_exit = false;
             params.client_id = cm_event->id;
-            params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num];
+            params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num - 1];
             params.if_idx = cm_event->id->port_num;
             params.queue_idx = server_q_params_.size() - 1;  // Fix this race condition
             
@@ -1045,7 +1187,8 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
   }
 
   int RdmaMgr::setup_pools_and_rings() {
-    HOLOSCAN_LOG_DEBUG("Setting up RX rings");
+    // RX rings
+    HOLOSCAN_LOG_DEBUG("Setting up RX per-queue rings");
     for (int i = 0; i < cfg_.ifs_.size(); i++) {
       for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
         if (cfg_.ifs_[i].rdma_.mode_ == RDMAMode::SERVER) {
@@ -1071,6 +1214,56 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
         }
       }
     }
+
+    HOLOSCAN_LOG_DEBUG("Setting up TX per-queue rings");
+    // TX per-queue rings
+    for (const auto& intf : cfg_.ifs_) {
+      for (const auto& q : intf.tx_.queues_) {
+        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+          const auto append =
+              "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_); 
+
+        if (intf.rdma_.mode_ == RDMAMode::SERVER) {
+          auto name = "S_TX_RING_" + append;
+          HOLOSCAN_LOG_INFO("Setting up server TX ring {}", name);
+
+          server_tx_rings_[key] = rte_ring_create(
+              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (server_tx_rings_[key] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring!");
+            return -1;
+          }
+        } else {
+          auto name = "C_TX_RING_" + append;
+          HOLOSCAN_LOG_INFO("Setting up client TX ring {}", name);
+
+          client_tx_rings_[key] = rte_ring_create(
+              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+          if (client_tx_rings_[key] == nullptr) {
+            HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring!");
+            return -1;
+          }          
+        }
+      }
+    }
+
+    // Packet length buffers
+    HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
+    pkt_len_pool_ = rte_mempool_create("PKT_LEN_POOL",
+                                    (1U << 7) - 1U,
+                                    sizeof(uint32_t) * MAX_RDMA_BATCH,
+                                    0,
+                                    0,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    rte_socket_id(),
+                                    0);
+    if (pkt_len_pool_ == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to allocate packet length pool!");
+      return -1;
+    }     
 
     HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
     rx_meta = rte_mempool_create("RX_META_POOL",
@@ -1106,35 +1299,25 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
       return -1;
     }
 
-    for (const auto& intf : cfg_.ifs_) {
-      for (const auto& q : intf.tx_.queues_) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-          const auto append =
-              "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_); 
-
-        if (intf.rdma_.mode_ == RDMAMode::SERVER) {
-          auto name = "S_TX_RING_" + append;
-          HOLOSCAN_LOG_INFO("Setting up server TX ring {}", name);
-
-          server_tx_rings_[key] = rte_ring_create(
-              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (server_tx_rings_[key] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring!");
-            return -1;
-          }
-        } else {
-          auto name = "C_TX_RING_" + append;
-          HOLOSCAN_LOG_INFO("Setting up client TX ring {}", name);
-
-          client_tx_rings_[key] = rte_ring_create(
-              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (client_tx_rings_[key] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring!");
-            return -1;
-          }          
-        }
-      }
+    tx_burst_pool_ = rte_mempool_create( "TX_BURST_POOL",
+                                                (1U << 7) - 1U,
+                                                sizeof(void*) * MAX_RDMA_BATCH,
+                                                0,
+                                                0,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                rte_socket_id(),
+                                                0);
+    if (tx_burst_pool_ == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to allocate TX burst pool!");
+      return -1;
     }
+    else {
+      HOLOSCAN_LOG_INFO("TX burst pool allocated at {}", (void*)tx_burst_pool_);
+    }
+
 
     return 0;          
   }
@@ -1144,12 +1327,10 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
   }
 
   void RdmaMgr::free_tx_burst(BurstParams* burst) {
-    // const uint32_t key = (burst->rdma_hdr.port_id << 16) | burst->rdma_hdr.q_id;
-    // const auto burst_pool = tx_burst_buffers.find(key);
-
-    // for (int seg = 0; seg < burst->rdma_hdr.num_segs; seg++) {
-    //   rte_mempool_put(burst_pool->second, (void*)burst->pkts[seg]);
-    // }
+    rte_mempool_put(tx_burst_pool_, (void*)burst->pkts[0]);
+    rte_mempool_put(pkt_len_pool_, (void*)burst->pkt_lens[0]);
+    burst->rdma_hdr.num_pkts = 0;
+    rte_mempool_put(tx_meta, burst);
   } 
 
   std::string RdmaMgr::generate_random_string(int len) {
@@ -1177,6 +1358,42 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
     int arg = 0;
     std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
     std::set<std::string> ifs;
+
+    // Populate pd_map_ with all IB devices and create PDs
+    int num_ib_devices;    
+    ibv_context **ib_devices = rdma_get_devices(&num_ib_devices);
+    if (num_ib_devices == 0) {
+      HOLOSCAN_LOG_CRITICAL("No RDMA-capable devices found!");
+      return;
+    }
+
+    HOLOSCAN_LOG_INFO("Found {} RDMA-capable devices", num_ib_devices);
+
+    for (int i = 0; i < num_ib_devices; i++) {
+      struct ibv_context* device = ib_devices[i];
+      HOLOSCAN_LOG_INFO("Creating PD for device {}", (void*)device);
+
+      // Get device attributes to determine number of ports
+      struct ibv_device_attr device_attr;
+      if (ibv_query_device(device, &device_attr) != 0) {
+        HOLOSCAN_LOG_ERROR("Failed to query device attributes for device {}", (void*)device);
+        continue;
+      }
+
+      pd_map_[device] = {};
+
+      // Create a PD for each port on the device
+      // IB verbs physical port numbers are 1-based.
+      for (uint8_t port = 1; port <= device_attr.phys_port_cnt; port++) {
+        struct ibv_pd* pd = ibv_alloc_pd(device);
+        if (pd == nullptr) {
+          HOLOSCAN_LOG_ERROR("Failed to allocate PD for device {} port {}", (void*)device, port);
+          continue;
+        }
+        HOLOSCAN_LOG_INFO("Created PD {} for device {} port {}", (void*)pd, (void*)device, port);
+        pd_map_[device][port-1] = pd;
+      }
+    }    
 
     // Get GPU PCIe BDFs since they're needed to pass to DPDK
     int if_num = 0;
@@ -1263,15 +1480,6 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
   }
 
 
-  Status RdmaMgr::get_tx_packet_burst(BurstParams *burst) {
-    // TODO: Implement get_tx_packet_burst
-    return Status::SUCCESS;
-  }
-
-  bool RdmaMgr::is_tx_burst_available(BurstParams *burst) {
-    // TODO: Implement tx_burst_available
-    return true;
-  }
 
   std::optional<uint16_t> RdmaMgr::get_port_from_ifname(const std::string &name) {
     // Look up port owning the IP address passed in
@@ -1295,21 +1503,16 @@ printf("good msg poll for %s\n", is_server ? "server" : "client");
     return Status::SUCCESS;
   }
 
-  void RdmaMgr::free_rx_metadata(BurstParams *burst) {
-    // TODO: Implement free_rx_metadata
+  void RdmaMgr::free_rx_metadata(BurstParams* burst) {
+    rte_mempool_put(rx_meta, burst);
   }
 
-  void RdmaMgr::free_tx_metadata(BurstParams *burst) {
-    // TODO: Implement free_tx_metadata
+  void RdmaMgr::free_tx_metadata(BurstParams* burst) {
+    rte_mempool_put(tx_meta, burst);
   }
 
   Status RdmaMgr::get_tx_metadata_buffer(BurstParams **burst) {
     // TODO: Implement get_tx_meta_buf
-    return Status::SUCCESS;
-  }
-
-  Status RdmaMgr::send_tx_burst(BurstParams *burst) {
-    // TODO: Implement send_tx_burst
     return Status::SUCCESS;
   }
 

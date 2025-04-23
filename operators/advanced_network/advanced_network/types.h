@@ -77,9 +77,13 @@ enum class AdvNetRDMAOpCode {
 
 struct AdvNetRdmaBurstHdr {
   uint8_t version;
-  AdvNetRDMAOpCode  opcode; 
+  AdvNetRDMAOpCode  opcode;
+  uint16_t port_id;
+  uint16_t q_id;  
+  bool server;
   Status status;
   size_t num_pkts;
+  int num_segs;
   uintptr_t conn_id; 
   char  local_mr_name[32];
   char  remote_mr_name[32];
@@ -161,7 +165,7 @@ inline MemoryKind GetMemoryKindFromString(const std::string& mode_str) {
 
 template <typename T>
 uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
-  uint32_t access;
+  uint32_t access = 0;
   for (const auto& it : list) {
     const auto str = it.template as<std::string>();
     if (str == "local") {
@@ -174,7 +178,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
       return 0;
     }
   }
-
+  
   return access;
 }
 

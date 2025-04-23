@@ -330,6 +330,10 @@ Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_po
   return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
 }
 
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+  return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
+}
+
 };  // namespace holoscan::ops
 
 /**
