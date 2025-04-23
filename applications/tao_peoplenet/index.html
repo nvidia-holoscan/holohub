@@ -11539,11 +11539,17 @@ The model is downloaded when building the application.</p>
 <p><strong><em>NOTE:</em></strong> The user is responsible for checking if the dataset license is fit for the intended purpose.</p>
 </blockquote>
 <h2 id="input">Input<a class="headerlink" href="#input" title="Permanent link">#</a></h2>
-<p>This app currently supports three different input options:</p>
+<p>This app supports two different input options.  If you have a v4l2 compatible device plugged into your machine such as a webcam, you can run this application with option 1.  Otherwise you can run this application using a pre-recorded video with option 2.</p>
 <ol>
 <li>v4l2 compatible input device (default, see V4L2 Support below)</li>
 <li>pre-recorded video (see Video Replayer Support below)</li>
 </ol>
+<p>To see the list of v4l2 devices connected to your machine, install <code>v4l-utils</code> if it's not already installed:</p>
+<div class="highlight"><pre><span></span><code>sudo apt-get install v4l-utils
+</code></pre></div>
+<p>Then run:</p>
+<div class="highlight"><pre><span></span><code>v4l2-ctl --list-devices
+</code></pre></div>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
 <h2 id="v4l2-support">V4L2 Support<a class="headerlink" href="#v4l2-support" title="Permanent link">#</a></h2>
 <p>This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
