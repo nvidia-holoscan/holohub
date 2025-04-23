@@ -146,7 +146,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_run_command.assert_called()
 
     def test_lint_fix_command(self):
-        args = self.cli.parser.parse_args("lint test/path --fix".split())
+        args = self.cli.parser.parse_args("lint --fix".split())
         with self.assertRaises(SystemExit):
             args.func(args)
             self.assertEqual(args.func(args).returncode, 0)
