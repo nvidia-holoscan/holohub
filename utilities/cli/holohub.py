@@ -1064,17 +1064,9 @@ class HoloHubCLI:
 
     def handle_create(self, args: argparse.Namespace) -> None:
         """Handle create command"""
-        try:
-            import cookiecutter.main
-        except ImportError:
-            self._install_template_deps(args.dryrun)
-
-        import cookiecutter.exceptions
-        import cookiecutter.main
-
         # Ensure template directory exists
         template_dir = self.HOLOHUB_ROOT / args.template
-        if not template_dir.exists():
+        if not template_dir.exists() and not args.dryrun:
             holohub_cli_util.fatal(f"Template directory {template_dir} does not exist")
 
         canonical_project_name = args.project.lower().replace(" ", "_")
@@ -1101,6 +1093,13 @@ class HoloHubCLI:
             for key, value in context.items():
                 print(f"  {key}: {value}")
             return
+
+        try:
+            import cookiecutter.main
+        except ImportError:
+            self._install_template_deps(args.dryrun)
+
+        import cookiecutter.main
 
         if project_dir.exists():
             holohub_cli_util.fatal(f"Project directory {project_dir} already exists")

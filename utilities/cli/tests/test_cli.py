@@ -150,6 +150,38 @@ class TestHoloHubCLI(unittest.TestCase):
         except SystemExit as e:
             self.assertEqual(e.code, 0)
 
+    @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
+    @patch("cookiecutter.main.cookiecutter")
+    @patch("pathlib.Path.mkdir")
+    @patch("shutil.copy2")
+    @patch("utilities.cli.holohub.Path")
+    def test_handle_create(
+        self, mock_path, mock_copy2, mock_mkdir, mock_cookiecutter, mock_install_template_deps
+    ):
+        """Test the create command functionality"""
+        args = self.cli.parser.parse_args("create new_app --language python".split())
+        args.func(args)
+
+        mock_cookiecutter.assert_called_once()
+        _, kwargs = mock_cookiecutter.call_args
+        self.assertEqual(kwargs["extra_context"]["project_name"], "new_app")
+        self.assertEqual(kwargs["extra_context"]["language"], "python")
+
+        mock_mkdir.assert_called_once()
+        mock_copy2.assert_called_once()
+        self.assertTrue(mock_copy2.call_args[0][0].endswith("example.py"))
+        self.assertTrue(mock_copy2.call_args[0][1].endswith("new_app.py"))
+
+    @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
+    @patch("cookiecutter.main.cookiecutter")
+    @patch("utilities.cli.holohub.Path")
+    def test_handle_create_dryrun(self, mock_path, mock_cookiecutter, mock_install_template_deps):
+        """Test the create command with dryrun flag"""
+        args = self.cli.parser.parse_args("create new_app --dryrun".split())
+        args.func(args)
+        mock_cookiecutter.assert_not_called()
+        mock_install_template_deps.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
