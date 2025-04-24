@@ -68,7 +68,7 @@ class HoloHubCLI:
         subparsers = parser.add_subparsers(dest="command", required=True)
 
         # Add create command
-        create = subparsers.add_parser("create", help="Create a new HoloHub application")
+        create = subparsers.add_parser("create", help="Create a new Holoscan application")
         create.add_argument("project", help="Name of the project to create")
         create.add_argument(
             "--template",
@@ -83,6 +83,11 @@ class HoloHubCLI:
         )
         create.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        create.add_argument(
+            "--directory",
+            default=self.HOLOHUB_ROOT / "applications",
+            help="Path to the directory to create the project in",
         )
         create.set_defaults(func=self.handle_create)
 
@@ -1109,7 +1114,7 @@ class HoloHubCLI:
                 str(template_dir),
                 no_input=True,
                 extra_context=context,
-                output_dir=str(self.HOLOHUB_ROOT / "applications"),
+                output_dir=str(args.directory),
             )
         except Exception as e:
             holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
@@ -1123,6 +1128,12 @@ class HoloHubCLI:
             src_dir.mkdir(exist_ok=True)
             shutil.copy2(str(template_file), str(target_file))
 
+        if args.directory == self.HOLOHUB_ROOT / "applications":
+            msg_cmake = f"(please add `add_holohub_application({canonical_project_name})` to "
+            msg_cmake += f"{self.HOLOHUB_ROOT}/applications/CMakeLists.txt)\n"
+        else:
+            msg_cmake = ""
+
         print(
             Color.green(f"Successfully created new project: {args.project}"),
             f"\nProject directory: {project_dir}\n\n"
@@ -1130,9 +1141,7 @@ class HoloHubCLI:
             f"- Add your operators to {target_file}\n"
             f"- Update project metadata in {project_dir / 'metadata.json'}\n"
             f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
-            f"- Build and run your application:\n"
-            f"   (please add `add_holohub_application({canonical_project_name})` to "
-            f"{self.HOLOHUB_ROOT}/applications/CMakeLists.txt)\n"
+            f"- Build and run your application:\n{msg_cmake}"
             f"   ./holohub run {canonical_project_name}",
         )
 
