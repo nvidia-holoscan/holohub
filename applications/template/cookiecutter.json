@@ -1,8 +1,8 @@
 {
     "project_name": "My Project",
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
-    "full_name": "John Doe",
-    "affiliation": "My Institution",
+    "full_name": "HoloHub User",
+    "affiliation": "Holoscan",
     "language": "{{ cookiecutter.language }}",
     "version": "0.1.0",
     "holoscan_version": "2.3",

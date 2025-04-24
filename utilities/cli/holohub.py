@@ -1116,11 +1116,12 @@ class HoloHubCLI:
             holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
 
         # Copy the appropriate example source file
-        template_file = template_dir / f"example.{args.language}"
+        ext_name = "cpp" if args.language.lower() in ["c++", "cpp"] else "py"
+        template_file = template_dir / f"example.{ext_name}"
+        src_dir = project_dir / "src"
+        target_file = src_dir / f"{canonical_project_name}.{ext_name}"
         if template_file.exists():
-            src_dir = project_dir / "src"
             src_dir.mkdir(exist_ok=True)
-            target_file = src_dir / f"{canonical_project_name}.{args.language}"
             shutil.copy2(str(template_file), str(target_file))
 
         print(

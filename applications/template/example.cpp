@@ -8,6 +8,7 @@ class App : public holoscan::Application {
  public:
   void compose() override {
     // Add your operators here
+    std::cout << "Hello, Holoscan!" << std::endl;
   }
 };
 

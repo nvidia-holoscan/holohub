@@ -22,6 +22,10 @@
 		"platforms": {% if cookiecutter.platforms %}{{ cookiecutter.platforms }}{% else %}["x86_64", "aarch64"]{% endif %},
 		"tags": {% if cookiecutter.tags %}{{ cookiecutter.tags }}{% else %}["keyword1", "keyword2", "keyword3"]{% endif %},
 		"ranking": 1,
-		"dependencies": {}
+		"dependencies": {},
+		"run": {
+			"command": "<holohub_app_bin>/{{ cookiecutter.project_slug }}",
+			"workdir": "holohub_bin"
+		}
 	}
 }
