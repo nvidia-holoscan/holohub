@@ -31,6 +31,10 @@ void V49PsdPacketizer::setup(OperatorSpec& spec) {
         "num_channels",
         "Number of channels",
         "Number of channels to support");
+    spec.param(print_every_n_packets,
+        "print_every_n_packets",
+        "Print the time it takes to send N packets",
+        "Print the time it takes to send N packets (0: no print, defaults to 10 * num_channels)");
 }
 
 void V49PsdPacketizer::initialize() {
@@ -60,6 +64,12 @@ void V49PsdPacketizer::initialize() {
         }
         output_data.push_back(out);
     }
+
+    if (!print_every_n_packets.has_value()) {
+        print_every_n_packets = num_channels.get() * 10;
+    }
+
+    start = std::chrono::steady_clock::now();
 }
 
 void V49PsdPacketizer::compute(InputContext& op_input, OutputContext& _out, ExecutionContext&) {
@@ -125,7 +135,7 @@ void V49PsdPacketizer::compute(InputContext& op_input, OutputContext& _out, Exec
         if (meta->has_key("bandwidth_hz"))
             packet.bandwidth_hz = meta->get<double>("bandwidth_hz");
 
-        HOLOSCAN_LOG_INFO("Sending context packet (channel {}) to {}/udp",
+        HOLOSCAN_LOG_DEBUG("Sending context packet (channel {}) to {}/udp",
                           channel_num, packet_sender->destination.c_str());
         packet_sender->send_context_packet(packet);
     }
@@ -143,11 +153,19 @@ void V49PsdPacketizer::compute(InputContext& op_input, OutputContext& _out, Exec
     packet.fractional_timestamp = fractional_timestamp;
     packet.spectral_data = out;
 
-    HOLOSCAN_LOG_INFO("Sending {} bytes of spectral data (channel {}) to {}/udp",
+    HOLOSCAN_LOG_DEBUG("Sending {} bytes of spectral data (channel {}) to {}/udp",
         packet.spectral_data.size(),
         channel_num,
         packet_sender->destination.c_str());
 
     packet_sender->send_data_packet(packet);
+
+    if (print_every_n_packets.get() != 0 && ++packet_send_counter >= print_every_n_packets.get()) {
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> time_diff = end - start;
+        HOLOSCAN_LOG_INFO("Sent {} packets in {} seconds", packet_send_counter, time_diff.count());
+        packet_send_counter = 0;
+        start = std::chrono::steady_clock::now();
+    }
 }
 }  // namespace holoscan::ops

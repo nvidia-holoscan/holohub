@@ -251,33 +251,6 @@ void Vita49ConnectorOpRx::compute(
     for (int p = 0; p < get_num_packets(burst); p++) {
       // Assume channel 0 context comes in on flow 0, channel 1 on flow 1, etc.
       auto channel_num = get_packet_flow_id(burst, p);
-      ContextPacket *ctxt = reinterpret_cast<ContextPacket*>(get_segment_packet_ptr(burst, 1, p));
-      HOLOSCAN_LOG_INFO(
-          "Got {}context packet (ch: {}) with:\n"
-          "      VRT header: 0x{:X}\n"
-          "       Stream ID: 0x{:X}\n"
-          "    Integer time: {}\n"
-          " Fractional time: {}\n"
-          "            CIF0: 0x{:X}\n"
-          "       Bandwidth: {} MHz\n"
-          "         RF freq: {} MHz\n"
-          " Reference level: {} dBm\n"
-          "  Gain (stage 1): {} dB\n"
-          "  Gain (stage 2): {} dB\n"
-          "     Sample rate: {} Msps\n",
-          context_changed_h(ctxt) ? "NEW " : "",
-          channel_num,
-          get_vrt_header_h(&ctxt->metadata),
-          get_stream_id_h(&ctxt->metadata),
-          get_integer_time_h(&ctxt->metadata),
-          get_fractional_time_h(&ctxt->metadata),
-          get_cif0_h(ctxt),
-          get_bandwidth_hz_h(ctxt) / 1.0e6,
-          get_rf_ref_freq_hz_h(ctxt) / 1.0e6,
-          get_ref_level_dbm_h(ctxt),
-          get_gain_1_db_h(ctxt),
-          get_gain_2_db_h(ctxt),
-          get_sample_rate_sps_h(ctxt) / 1.0e6);
 
       // Stream ID channel is 1-indexed, but our list is 0-indexed
       if (channel_num >= num_channels_.get()) {
@@ -285,7 +258,47 @@ void Vita49ConnectorOpRx::compute(
                                 num_channels_.get(), channel_num);
           throw;
       }
+
       auto channel = channel_list.at(channel_num);
+
+      ContextPacket *ctxt = reinterpret_cast<ContextPacket*>(get_segment_packet_ptr(burst, 1, p));
+
+      // Use lambda here to lazily evaluate the string
+      auto log_context_packet = [&]() {
+          return fmt::format(
+              "Got {}context packet (ch: {}) with:\n"
+              "      VRT header: 0x{:X}\n"
+              "       Stream ID: 0x{:X}\n"
+              "    Integer time: {}\n"
+              " Fractional time: {}\n"
+              "            CIF0: 0x{:X}\n"
+              "       Bandwidth: {} MHz\n"
+              "         RF freq: {} MHz\n"
+              " Reference level: {} dBm\n"
+              "  Gain (stage 1): {} dB\n"
+              "  Gain (stage 2): {} dB\n"
+              "     Sample rate: {} Msps\n",
+              context_changed_h(ctxt) ? "NEW " : "",
+              channel_num,
+              get_vrt_header_h(&ctxt->metadata),
+              get_stream_id_h(&ctxt->metadata),
+              get_integer_time_h(&ctxt->metadata),
+              get_fractional_time_h(&ctxt->metadata),
+              get_cif0_h(ctxt),
+              get_bandwidth_hz_h(ctxt) / 1.0e6,
+              get_rf_ref_freq_hz_h(ctxt) / 1.0e6,
+              get_ref_level_dbm_h(ctxt),
+              get_gain_1_db_h(ctxt),
+              get_gain_2_db_h(ctxt),
+              get_sample_rate_sps_h(ctxt) / 1.0e6);
+      };
+
+      if (context_changed_h(ctxt) || !channel->context_received) {
+          HOLOSCAN_LOG_INFO("{}", log_context_packet());
+      } else {
+          HOLOSCAN_LOG_DEBUG("{}", log_context_packet());
+      }
+
       channel->current_context.context_changed = context_changed_h(ctxt);
       channel->current_context.bandwidth_hz = get_bandwidth_hz_h(ctxt);
       channel->current_context.rf_ref_freq_hz = get_rf_ref_freq_hz_h(ctxt);
@@ -346,7 +359,7 @@ void Vita49ConnectorOpRx::process_channel_data(
 
   // Once we've aggregated enough packets, do some work
   if (channel->aggr_pkts_recv >= num_packets_per_batch) {
-    HOLOSCAN_LOG_INFO("Aggregated {} packets on channel {} index {} - sending downstream",
+    HOLOSCAN_LOG_DEBUG("Aggregated {} packets on channel {} index {} - sending downstream",
                       channel->aggr_pkts_recv, channel->channel_num, channel->cur_idx);
 
     // Copy packet I/Q contents to appropriate location in 'rf_data'
