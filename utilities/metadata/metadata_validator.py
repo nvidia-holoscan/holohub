@@ -16,11 +16,65 @@ import glob
 import json
 import os
 import sys
+import re
 
 import jsonschema
 from jsonschema import Draft4Validator
 from referencing import Registry
 from referencing.jsonschema import DRAFT4
+
+
+def extract_readme_title(readme_path):
+    """Extract the title from a README.md file."""
+    with open(readme_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        # Match the first heading (title) in the markdown
+        match = re.match(r"^#\s+(.+)$", content, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
+
+    return None
+
+
+def check_name_matches_readme(metadata_path, json_data):
+    """Check if the name in metadata.json matches the title in README.md."""
+    # Get the name from metadata.json
+    # -----------------------------------------------------------------
+    # Currenlty it only checks for application.
+    # However, it can be extended to other entities (operator, benchmark, tutorial, etc.)
+    check_entities = ["application"]
+    for entity in check_entities:
+        if entity in json_data:
+            name = json_data[entity].get("name")
+            break
+    else:
+        return True, "Not an application!"
+
+    if name is None:
+        return False, "No name field found in metadata.json"
+
+    # Get the title from README.md
+    # -----------------------------------------------------------------
+    # First check for README.md in the same directory
+    metadata_dir = os.path.dirname(metadata_path)
+    readme_path = os.path.join(metadata_dir, "README.md")
+    if not os.path.exists(readme_path):
+        # If no README.md in same directory, check one level up
+        readme_path = os.path.join(os.path.dirname(metadata_dir), "README.md")
+        if not os.path.exists(readme_path):
+            return False, "No README.md found to compare against"
+
+    title = extract_readme_title(readme_path)
+
+    # Check if the name in metadata.json matches the title in README.md
+    # -----------------------------------------------------------------
+    if name != title:
+        return (
+            False,
+            f"Name in metadata.json ('{name}') does not match README.md title ('{title}' in {readme_path})",
+        )
+
+    return True, "Name matches README.md title"
 
 
 def validate_json(json_data, directory):
@@ -95,6 +149,12 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
             is_valid, msg = validate_json(jsonData, directory)
             if is_valid:
                 print(name + ": valid")
+
+                # Check if name matches README title
+                name_matches, name_msg = check_name_matches_readme(name, jsonData)
+                if not name_matches:
+                    print("ERROR:" + name + ": " + name_msg)
+                    exit_code = 1
             else:
                 print("ERROR:" + name + ": invalid")
                 print(msg)
