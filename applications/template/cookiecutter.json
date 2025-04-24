@@ -10,5 +10,17 @@
     "tags": "",
     "description": "A brief description of the project",
     "license": "{{ cookiecutter.license }}",
-    "year": "{% now 'utc', '%Y' %}"
+    "year": "{% now 'utc', '%Y' %}",
+    "__prompts__": {
+        "project_name": "What is the name of your project?",
+        "description": "Brief description of your project",
+        "full_name": "Author full name",
+        "affiliation": "Author institution or organization",
+        "language": "Primary programming language (python, cpp)",
+        "version": "Initial version number",
+        "holoscan_version": "Holoscan SDK version",
+        "platforms": "Supported platforms (comma-separated)",
+        "tags": "Tags for your application (comma-separated)",
+        "license": "License (such as MIT, Apache-2.0, BSD-3-Clause)"
+    }
 }
