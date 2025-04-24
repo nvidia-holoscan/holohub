@@ -40,7 +40,7 @@ def check_name_matches_readme(metadata_path, json_data):
     """Check if the name in metadata.json matches the title in README.md."""
     # Get the name from metadata.json
     # -----------------------------------------------------------------
-    # Currenlty it only checks for application.
+    # Currently it only checks for application.
     # However, it can be extended to other entities (operator, benchmark, tutorial, etc.)
     check_entities = ["application"]
     for entity in check_entities:
