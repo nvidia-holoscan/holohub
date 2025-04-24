@@ -18,4 +18,8 @@ target_link_libraries({{ cookiecutter.project_name }}
     PRIVATE
         holoscan::core
 )
+if(BUILD_TESTING)
+  add_test({{ cookiecutter.project_name }}-test
+    COMMAND echo "Add test coverage for {{ cookiecutter.project_name }} here"
+endif()
 {% endif %}
