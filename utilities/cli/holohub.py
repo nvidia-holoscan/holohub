@@ -1132,6 +1132,8 @@ class HoloHubCLI:
             f"- Update project metadata in {project_dir / 'metadata.json'}\n"
             f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
             f"- Build and run your application:\n"
+            f"   (please add `add_holohub_application({canonical_project_name})` to "
+            f"{self.HOLOHUB_ROOT}/applications/CMakeLists.txt)\n"
             f"   ./holohub run {canonical_project_name}",
         )
 
