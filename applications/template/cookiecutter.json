@@ -16,7 +16,11 @@
         "description": "Brief description of your project",
         "full_name": "Author full name",
         "affiliation": "Author institution or organization",
-        "language": "Primary programming language (python, cpp)",
+        "language": {
+            "prompt": "Primary programming language (python, cpp)",
+            "validator": "^(python|cpp)$",
+            "error_message": "Language must be either 'python' or 'cpp'"
+        },
         "version": "Initial version number",
         "holoscan_version": "Holoscan SDK version",
         "platforms": "Supported platforms (comma-separated)",
