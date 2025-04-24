@@ -72,7 +72,7 @@ class HoloHubCLI:
         create.add_argument("project", help="Name of the project to create")
         create.add_argument(
             "--template",
-            default="applications/template",
+            default=str(HoloHubCLI.HOLOHUB_ROOT / "applications" / "template"),
             help="Path to the template directory to use",
         )
         create.add_argument(
@@ -1074,8 +1074,11 @@ class HoloHubCLI:
         if not template_dir.exists() and not args.dryrun:
             holohub_cli_util.fatal(f"Template directory {template_dir} does not exist")
 
+        if not args.directory.exists() and not args.dryrun:
+            holohub_cli_util.fatal(f"Project output directory {args.directory} does not exist")
+
         canonical_project_name = args.project.lower().replace(" ", "_")
-        project_dir = self.HOLOHUB_ROOT / "applications" / canonical_project_name
+        project_dir = args.directory / canonical_project_name
         context = {
             "project_name": args.project,
             "project_slug": canonical_project_name,
@@ -1128,21 +1131,25 @@ class HoloHubCLI:
             src_dir.mkdir(exist_ok=True)
             shutil.copy2(str(template_file), str(target_file))
 
+        msg_cmake = ""
         if args.directory == self.HOLOHUB_ROOT / "applications":
             msg_cmake = f"(please add `add_holohub_application({canonical_project_name})` to "
             msg_cmake += f"{self.HOLOHUB_ROOT}/applications/CMakeLists.txt)\n"
-        else:
-            msg_cmake = ""
+
+        msg_next = ""
+        if "applications" in args.template:
+            msg_next = (
+                f"Possible next steps:\n"
+                f"- Add your operators to {target_file}\n"
+                f"- Update project metadata in {project_dir / 'metadata.json'}\n"
+                f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
+                f"- Build and run your application:\n"
+                f"   ./holohub run {canonical_project_name}"
+            )
 
         print(
             Color.green(f"Successfully created new project: {args.project}"),
-            f"\nProject directory: {project_dir}\n\n"
-            f"Possible next steps:\n"
-            f"- Add your operators to {target_file}\n"
-            f"- Update project metadata in {project_dir / 'metadata.json'}\n"
-            f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
-            f"- Build and run your application:\n{msg_cmake}"
-            f"   ./holohub run {canonical_project_name}",
+            f"\nDirectory: {project_dir}\n\n" f"{msg_cmake}{msg_next}",
         )
 
     def run(self) -> None:
