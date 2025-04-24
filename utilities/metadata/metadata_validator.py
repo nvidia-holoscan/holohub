@@ -53,6 +53,18 @@ def check_name_matches_readme(metadata_path, json_data):
     if name is None:
         return False, "No name field found in metadata.json"
 
+    # Check if the name includes terms like application, holoscan, holohub and its variations
+    # also report the found terms
+    forbidden_terms = ["application", "holoscan", "holohub"]
+    found_terms = [term for term in forbidden_terms if re.search(term, name, re.IGNORECASE)]
+    if found_terms:
+        return (
+            False,
+            f"The 'name' field in metadata.json (\"{name}\") contains "
+            f"\"{', '.join(found_terms)}\"."
+            f"The name should not include terms like {', '.join(forbidden_terms)}.",
+        )
+
     # Get the title from README.md
     # -----------------------------------------------------------------
     # First check for README.md in the same directory
