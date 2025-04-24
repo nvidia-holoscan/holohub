@@ -121,7 +121,6 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
-add_holohub_application(my_proj)
 
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
