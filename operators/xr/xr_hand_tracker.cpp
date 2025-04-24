@@ -43,7 +43,9 @@ void XrHandTracker::on_session_created() {
 
 std::optional<std::vector<xr::HandJointLocationEXT>> XrHandTracker::locate_hand_joints() {
   auto hand_tracker_handle = hand_tracker_handle_.load(std::memory_order_relaxed);
-  if (!hand_tracker_handle) { return {}; }
+  if (!hand_tracker_handle) {
+    return {};
+  }
 
   auto xr_instance = xr_session_->instance();
   auto dispatch = xr_session_->dispatch();
@@ -76,7 +78,9 @@ std::optional<std::vector<xr::HandJointLocationEXT>> XrHandTracker::locate_hand_
     return {};
   }
 
-  if (!joint_locations.isActive) { return {}; }
+  if (!joint_locations.isActive) {
+    return {};
+  }
 
   return joint_data;
 }

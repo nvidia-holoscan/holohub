@@ -1,4 +1,19 @@
-
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "holoscan/holoscan.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 #include "xr_begin_frame_op.hpp"
@@ -29,13 +44,12 @@ class XrBufferCompositionOp : public Operator {
     spec.param(xr_manager_, "xr_manager");
   }
 
-
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
-    // Get teh render buffer output from HolovizOp
+    // Get the render buffer output from HolovizOp
     auto color_render_buffer = op_input.receive<gxf::Entity>("color_render_buffer_output").value();
     auto xr_manager = xr_manager_.get();
-    
+
     // Get the VideoBuffer from the entity
     auto video_buffer = holoscan::gxf::get_videobuffer(color_render_buffer);
     auto frame = video_buffer.get();
@@ -47,12 +61,12 @@ class XrBufferCompositionOp : public Operator {
 
     // Determine channels based on color format
     switch (buffer_info.color_format) {
-        case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA:
-            channels = 4;  // RGBA
-            break;
-        case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB:
-            channels = 3;  // RGB
-            break;
+      case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA:
+        channels = 4;  // RGBA
+        break;
+      case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB:
+        channels = 3;  // RGB
+        break;
     }
 
     // Get the pointer to the tensor data
@@ -66,19 +80,21 @@ class XrBufferCompositionOp : public Operator {
     holoscan::Tensor depth_tensor = xr_manager->acquire_depth_swapchain();
 
     // Copy the frame buffer to the swapchain
-    cudaError_t err = cudaMemcpy(color_tensor.data(), data, color_tensor.nbytes(), cudaMemcpyDeviceToDevice);
+    cudaError_t err =
+        cudaMemcpy(color_tensor.data(), data, color_tensor.nbytes(), cudaMemcpyDeviceToDevice);
     if (err != cudaSuccess) {
-        std::cerr << "Render buffer to swapchain memcpy failed: " << cudaGetErrorString(err) << std::endl;
+      std::cerr << "Render buffer to swapchain memcpy failed: " << cudaGetErrorString(err)
+                << std::endl;
     }
 
     cudaStream_t cuda_stream = cudaStreamDefault;
     xr_manager->release_swapchains(cuda_stream);
 
     op_output.emit(std::static_pointer_cast<xr::CompositionLayerBaseHeader>(composition_layer),
-                "xr_composition_layer");
+                   "xr_composition_layer");
   }
 
  private:
-    Parameter<std::shared_ptr<holoscan::XrManager>> xr_manager_;
+  Parameter<std::shared_ptr<holoscan::XrManager>> xr_manager_;
 };
-}
+}  // namespace holoscan::ops

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,52 +31,50 @@ namespace holoscan {
 
 /*
  * Manages the XR components.
- * 
+ *
  * This class is responsible for managing the XR components.
  * - manage XrSession
  * - manage XrSwapchains
  * - manage Composition Layers
  */
 class XrManager : public holoscan::Resource {
-public:
-    HOLOSCAN_RESOURCE_FORWARD_ARGS(XrManager)
+ public:
+  HOLOSCAN_RESOURCE_FORWARD_ARGS(XrManager)
 
-    void setup(ComponentSpec& spec) override;
-    void initialize() override;
+  void setup(ComponentSpec& spec) override;
+  void initialize() override;
 
-    ~XrManager();
-    
-    std::shared_ptr<holoscan::XrSession> get_xr_session();
-    
-    holoscan::Tensor acquire_color_swapchain();
-    holoscan::Tensor acquire_depth_swapchain();
-    void release_swapchains(cudaStream_t cuda_stream);
+  ~XrManager();
 
-    // Create an XR composition layer using cached located views
-    std::shared_ptr<XrCompositionLayerProjectionStorage> create_composition_layer();
+  std::shared_ptr<holoscan::XrSession> get_xr_session();
 
-    // Update the located views with current frame state
-    const std::vector<xr::View>& update_located_views(const xr::FrameState& frame_state);
-    // Get the cached located views
-    const std::vector<xr::View>& get_located_views() const { return located_views_; }
+  holoscan::Tensor acquire_color_swapchain();
+  holoscan::Tensor acquire_depth_swapchain();
+  void release_swapchains(cudaStream_t cuda_stream);
 
-    uint32_t get_width() const { return width_; }
-    uint32_t get_height() const { return height_; }
+  // Create an XR composition layer using cached located views
+  std::shared_ptr<XrCompositionLayerProjectionStorage> create_composition_layer();
 
-private:
-    
-    void create_swapchains();
+  // Update the located views with current frame state
+  const std::vector<xr::View>& update_located_views(const xr::FrameState& frame_state);
+  // Get the cached located views
+  const std::vector<xr::View>& get_located_views() const { return located_views_; }
 
-    Parameter<std::shared_ptr<holoscan::XrSession>> xr_session_;
-    std::unique_ptr<XrSwapchainCuda> color_swapchain_;
-    std::unique_ptr<XrSwapchainCuda> depth_swapchain_;
-    uint32_t width_;
-    uint32_t height_;
-    // Caching the located views to ensure consistency throughout the rendering process.​
-    std::vector<xr::View> located_views_; 
-    bool is_initialized_;
+  uint32_t get_width() const { return width_; }
+  uint32_t get_height() const { return height_; }
+
+ private:
+  void create_swapchains();
+
+  Parameter<std::shared_ptr<holoscan::XrSession>> xr_session_;
+  std::unique_ptr<XrSwapchainCuda> color_swapchain_;
+  std::unique_ptr<XrSwapchainCuda> depth_swapchain_;
+  uint32_t width_;
+  uint32_t height_;
+  // Caching the located views to ensure consistency throughout the rendering process.​
+  std::vector<xr::View> located_views_;
+  bool is_initialized_;
 };
-
 
 }  // namespace holoscan
 

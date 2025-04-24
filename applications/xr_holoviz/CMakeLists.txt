@@ -19,12 +19,12 @@ project(xr_holoviz)
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable(xr_holoviz 
+add_executable(xr_holoviz
     xr_holoviz.cpp
 )
 
 target_link_libraries(xr_holoviz
-    holoscan::core 
+    holoscan::core
     holoscan::viz
     holoscan::ops::holoviz
     holoscan::ops::xr

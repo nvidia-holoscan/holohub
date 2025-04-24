@@ -44,7 +44,7 @@ struct XrCompositionLayerProjectionStorage : public xr::CompositionLayerProjecti
   static std::shared_ptr<XrCompositionLayerProjectionStorage> create_for_frame(
       XrSession& xr_session, XrSwapchainCuda& color_swapchain, XrSwapchainCuda& depth_swapchain,
       const std::vector<xr::View>& views);
-  
+
   static std::shared_ptr<XrCompositionLayerProjectionStorage> create_layer_storage(
       XrSession& xr_session, XrSwapchainCuda& color_swapchain, XrSwapchainCuda& depth_swapchain,
       const std::vector<xr::View>& views);

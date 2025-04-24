@@ -23,72 +23,65 @@
 namespace holoscan {
 
 std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_layer_storage(
-    XrSession& xr_session,
-    XrSwapchainCuda& color_swapchain,
-    XrSwapchainCuda& depth_swapchain,
-    const std::vector<xr::View>& views) {
-    
-    // Create the layer storage.
-    auto layer = std::make_shared<XrCompositionLayerProjectionStorage>();
+XrCompositionLayerProjectionStorage::create_layer_storage(XrSession& xr_session,
+                                                          XrSwapchainCuda& color_swapchain,
+                                                          XrSwapchainCuda& depth_swapchain,
+                                                          const std::vector<xr::View>& views) {
+  // Create the layer storage.
+  auto layer = std::make_shared<XrCompositionLayerProjectionStorage>();
 
-    assert(layer->views.size() >= views.size());
-    assert(layer->depth_info.size() >= views.size());
+  assert(layer->views.size() >= views.size());
+  assert(layer->depth_info.size() >= views.size());
 
-    // Populate each projection layer view.
-    for (int i = 0; i < views.size(); i++) {
-      // For stereo views, use side-by-side image layout.
-      xr::Extent2Di image_extent(color_swapchain.width() / 2, color_swapchain.height());
-      xr::Rect2Di image_rect(xr::Offset2Di(i * color_swapchain.width() / 2, 0), image_extent);
+  // Populate each projection layer view.
+  for (int i = 0; i < views.size(); i++) {
+    // For stereo views, use side-by-side image layout.
+    xr::Extent2Di image_extent(color_swapchain.width() / 2, color_swapchain.height());
+    xr::Rect2Di image_rect(xr::Offset2Di(i * color_swapchain.width() / 2, 0), image_extent);
 
-      // Make full use of the normalized depth range for depth image values.
-      constexpr float kMinDepth = 0.f;
-      constexpr float kMaxDepth = 1.f;
+    // Make full use of the normalized depth range for depth image values.
+    constexpr float kMinDepth = 0.f;
+    constexpr float kMaxDepth = 1.f;
 
-      layer->depth_info[i] = xr::CompositionLayerDepthInfoKHR({
-          xr::SwapchainSubImage(depth_swapchain.get(), image_rect, 0),
-          kMinDepth,
-          kMaxDepth,
-          xr_session.view_configuration_depth_range().recommendedNearZ,
-          xr_session.view_configuration_depth_range().recommendedFarZ,
-      });
+    layer->depth_info[i] = xr::CompositionLayerDepthInfoKHR({
+        xr::SwapchainSubImage(depth_swapchain.get(), image_rect, 0),
+        kMinDepth,
+        kMaxDepth,
+        xr_session.view_configuration_depth_range().recommendedNearZ,
+        xr_session.view_configuration_depth_range().recommendedFarZ,
+    });
 
-      layer->views[i] = xr::CompositionLayerProjectionView({
-          views[i].pose,
-          views[i].fov,
-          xr::SwapchainSubImage(color_swapchain.get(), image_rect, 0),
-          &layer->depth_info[i],
-      });
-    }
+    layer->views[i] = xr::CompositionLayerProjectionView({
+        views[i].pose,
+        views[i].fov,
+        xr::SwapchainSubImage(color_swapchain.get(), image_rect, 0),
+        &layer->depth_info[i],
+    });
+  }
 
-    layer->layerFlags = xr::CompositionLayerFlagBits::BlendTextureSourceAlpha;
-    layer->space = xr_session.reference_space();
-    layer->viewCount = static_cast<uint32_t>(views.size());
-    layer->xr::CompositionLayerProjection::views = layer->views.data();
+  layer->layerFlags = xr::CompositionLayerFlagBits::BlendTextureSourceAlpha;
+  layer->space = xr_session.reference_space();
+  layer->viewCount = static_cast<uint32_t>(views.size());
+  layer->xr::CompositionLayerProjection::views = layer->views.data();
 
-    return layer;
+  return layer;
 }
 
 // Create a composition layer for a frame from a list of views
 std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_for_frame(
-    XrSession& xr_session,
-    XrSwapchainCuda& color_swapchain,
-    XrSwapchainCuda& depth_swapchain,
-    const std::vector<xr::View>& views) {
-
-    return create_layer_storage(xr_session, color_swapchain, depth_swapchain, views);
-
+XrCompositionLayerProjectionStorage::create_for_frame(XrSession& xr_session,
+                                                      XrSwapchainCuda& color_swapchain,
+                                                      XrSwapchainCuda& depth_swapchain,
+                                                      const std::vector<xr::View>& views) {
+  return create_layer_storage(xr_session, color_swapchain, depth_swapchain, views);
 }
 
 // Create a composition layer for a frame from current xr_frame_state
 std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_for_frame(
-    xr::FrameState xr_frame_state,
-    XrSession& xr_session,
-    XrSwapchainCuda& color_swapchain,
-    XrSwapchainCuda& depth_swapchain) {
-
+XrCompositionLayerProjectionStorage::create_for_frame(xr::FrameState xr_frame_state,
+                                                      XrSession& xr_session,
+                                                      XrSwapchainCuda& color_swapchain,
+                                                      XrSwapchainCuda& depth_swapchain) {
   // Locate the views for xr_frame_state.
   xr::ViewLocateInfo view_locate_info(xr::ViewConfigurationType::PrimaryStereo,
                                       xr_frame_state.predictedDisplayTime,
@@ -99,6 +92,5 @@ XrCompositionLayerProjectionStorage::create_for_frame(
 
   return create_layer_storage(xr_session, color_swapchain, depth_swapchain, views);
 }
-
 
 }  // namespace holoscan

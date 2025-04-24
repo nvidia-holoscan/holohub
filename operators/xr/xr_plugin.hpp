@@ -41,7 +41,9 @@ class IXrPlugin {
  public:
   explicit IXrPlugin(std::shared_ptr<holoscan::XrSession> xr_session) noexcept(false)
       : xr_session_(xr_session) {
-    if (!xr_session) { throw std::runtime_error("invalid xr_session pointer (nullptr)"); }
+    if (!xr_session) {
+      throw std::runtime_error("invalid xr_session pointer (nullptr)");
+    }
     xr_session->register_plugin(*this);
   }
   virtual ~IXrPlugin() = default;

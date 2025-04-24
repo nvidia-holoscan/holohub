@@ -43,11 +43,13 @@ void XrEndFrameOp::compute(InputContext& input, OutputContext& output, Execution
   // Submit composition layers to the XR device for display.
   std::vector<xr::CompositionLayerBaseHeader*> layers;
   for (std::shared_ptr<xr::CompositionLayerBaseHeader>& layer : xr_composition_layers.value()) {
-    if (layer != nullptr) { layers.push_back(layer.get()); }
+    if (layer != nullptr) {
+      layers.push_back(layer.get());
+    }
   }
   xr_session->get().endFrame({
       xr_frame_state->predictedDisplayTime,
-      xr::EnvironmentBlendMode::Opaque, // AlphaBlend is not supported
+      xr::EnvironmentBlendMode::Opaque,  // AlphaBlend is not supported
       static_cast<uint32_t>(layers.size()),
       layers.data(),
   });

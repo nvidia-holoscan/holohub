@@ -78,7 +78,7 @@ void XrRenderRgbdOp::compute(InputContext& input, OutputContext& output,
 
   auto frame_state = input.receive<xr::FrameState>("xr_frame_state");
 
-  // Update the camera image if a new image is availabe.
+  // Update the camera image if a new image is available.
   if (!input.empty("camera_frame")) {
     camera_frame_ = input.receive<holoscan::TensorMap>("camera_frame").value();
   }

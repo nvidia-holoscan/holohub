@@ -67,7 +67,9 @@ void XrSession::initialize() {
   for (auto& plugin : plugins_) {
     const auto plugin_extensions = plugin.get().get_required_instance_extensions();
 
-    for (const auto ext_str : plugin_extensions) { xr_extensions.insert(ext_str); }
+    for (const auto ext_str : plugin_extensions) {
+      xr_extensions.insert(ext_str);
+    }
   }
 
   // Create an OpenXR instance.
@@ -75,7 +77,9 @@ void XrSession::initialize() {
 
   std::vector<const char*> out_ext = {};
   out_ext.reserve(xr_extensions.size());
-  for (const std::string_view& sv : xr_extensions) { out_ext.push_back(sv.data()); }
+  for (const std::string_view& sv : xr_extensions) {
+    out_ext.push_back(sv.data());
+  }
 
   xr_instance_ = xr::createInstanceUnique({
       {},
@@ -126,7 +130,9 @@ void XrSession::initialize() {
       nullptr);
   xr_instance_->createVulkanInstanceKHR(
       xr_vk_instance_create_info, &vk_instance, &vk_result, dispatch_);
-  if (vk_result != VK_SUCCESS) { throw std::runtime_error("xrCreateVulkanInstanceKHR failed"); }
+  if (vk_result != VK_SUCCESS) {
+    throw std::runtime_error("xrCreateVulkanInstanceKHR failed");
+  }
   vk_instance_ = vk::raii::Instance(vk_context_, vk_instance);
 
   // Create a Vulkan device and queue.
@@ -169,7 +175,9 @@ void XrSession::initialize() {
       nullptr);
   VkDevice vk_device;
   xr_instance_->createVulkanDeviceKHR(xr_vk_device_create_info, &vk_device, &vk_result, dispatch_);
-  if (vk_result != VK_SUCCESS) { throw std::runtime_error("xrCreateVulkanDeviceKHR failed"); }
+  if (vk_result != VK_SUCCESS) {
+    throw std::runtime_error("xrCreateVulkanDeviceKHR failed");
+  }
   uint32_t kQueueIndex = 0;
   vk_device_ = vk::raii::Device(vk_physical_device_, vk_device);
   vk_queue_ = vk_device_.getQueue(vk_queue_family_index_, kQueueIndex);
@@ -191,8 +199,12 @@ void XrSession::initialize() {
   while (session_state_ != xr::SessionState::Ready) {
     xr::EventDataBuffer event_data_buffer{};
     const xr::Result result = xr_instance_->pollEvent(event_data_buffer);
-    if (result == xr::Result::EventUnavailable) { continue; }
-    if (result != xr::Result::Success) { throw std::runtime_error("xrPollEvent failed"); }
+    if (result == xr::Result::EventUnavailable) {
+      continue;
+    }
+    if (result != xr::Result::Success) {
+      throw std::runtime_error("xrPollEvent failed");
+    }
     if (event_data_buffer.type == xr::StructureType::EventDataSessionStateChanged) {
       const xr::EventDataSessionStateChanged& session_state_changed_event =
           reinterpret_cast<xr::EventDataSessionStateChanged&>(event_data_buffer);
@@ -200,7 +212,9 @@ void XrSession::initialize() {
     }
   }
 
-  for (auto& plugin : plugins_) { plugin.get().on_session_created(); }
+  for (auto& plugin : plugins_) {
+    plugin.get().on_session_created();
+  }
 
   // not safe to maintain ref to Resources after initializion
   plugins_.clear();
