@@ -182,6 +182,38 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_cookiecutter.assert_not_called()
         mock_install_template_deps.assert_not_called()
 
+    @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
+    @patch("cookiecutter.main.cookiecutter")
+    @patch("pathlib.Path.mkdir")
+    @patch("shutil.copy2")
+    @patch("utilities.cli.holohub.Path")
+    def test_handle_create_with_context(
+        self, mock_path, mock_copy2, mock_mkdir, mock_cookiecutter, mock_install_template_deps
+    ):
+        """Test the create command with additional context variables"""
+        args = self.cli.parser.parse_args(
+            "create new_app --context version=1.0.0 --context description=Test-project".split()
+        )
+        args.func(args)
+        mock_cookiecutter.assert_called_once()
+        _, kwargs = mock_cookiecutter.call_args
+        self.assertEqual(kwargs["extra_context"]["version"], "1.0.0")
+        self.assertEqual(kwargs["extra_context"]["description"], "Test-project")
+
+        # Test with invalid context variable format
+        with self.assertRaises(SystemExit):
+            args = self.cli.parser.parse_args("create new_app --context invalid_format".split())
+            args.func(args)
+        # Test with multiple context variables
+        args = self.cli.parser.parse_args(
+            "create new_app --context key1=value1 --context key2=value2".split()
+        )
+        args.func(args)
+        mock_cookiecutter.assert_called()
+        _, kwargs = mock_cookiecutter.call_args
+        self.assertEqual(kwargs["extra_context"]["key1"], "value1")
+        self.assertEqual(kwargs["extra_context"]["key2"], "value2")
+
 
 if __name__ == "__main__":
     unittest.main()

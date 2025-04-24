@@ -89,6 +89,11 @@ class HoloHubCLI:
             default=self.HOLOHUB_ROOT / "applications",
             help="Path to the directory to create the project in",
         )
+        create.add_argument(
+            "--context",
+            action="append",
+            help="Additional context variables for cookiecutter in format key=value. Example: --context version=1.0.0 --context description='My project desc' ",
+        )
         create.set_defaults(func=self.handle_create)
 
         # build-container command
@@ -1094,6 +1099,17 @@ class HoloHubCLI:
             "year": datetime.datetime.now().year,
         }
 
+        # Add any additional context variables from command line
+        if args.context:
+            for ctx_var in args.context:
+                try:
+                    key, value = ctx_var.split("=", 1)
+                    context[key] = value
+                except ValueError:
+                    holohub_cli_util.fatal(
+                        f"Invalid context variable format: {ctx_var}. Expected key=value"
+                    )
+
         # Print summary if dryrun
         if args.dryrun:
             print("Would create project with these parameters (dryrun):")
@@ -1128,7 +1144,7 @@ class HoloHubCLI:
         src_dir = project_dir / "src"
         target_file = src_dir / f"{canonical_project_name}.{ext_name}"
         if template_file.exists():
-            src_dir.mkdir(exist_ok=True)
+            src_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(str(template_file), str(target_file))
 
         msg_cmake = ""
