@@ -15,8 +15,8 @@
 import glob
 import json
 import os
-import sys
 import re
+import sys
 
 import jsonschema
 from jsonschema import Draft4Validator
