@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
-
-SPDX-License-Identifier: Apache-2.0
--->
 # Data Writer Operator
 
 ## Overview

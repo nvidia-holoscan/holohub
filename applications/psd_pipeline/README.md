@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
-
-SPDX-License-Identifier: Apache-2.0
--->
 # VITA 49 Power Spectral Density (PSD)
 
 ## Overview
