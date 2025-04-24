@@ -1131,7 +1131,6 @@ class HoloHubCLI:
             f"- Update project metadata in {project_dir / 'metadata.json'}\n"
             f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
             f"- Build and run your application:\n"
-            f"   ./holohub build {canonical_project_name}\n"
             f"   ./holohub run {canonical_project_name}",
         )
 
