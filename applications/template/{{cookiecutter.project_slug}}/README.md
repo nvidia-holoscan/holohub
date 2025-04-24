@@ -27,7 +27,6 @@ This application is built using Holoscan SDK version {{ cookiecutter.holoscan_ve
 ### Running the Application
 
 ```bash
-./holohub build {{ cookiecutter.project_slug }}
 ./holohub run {{ cookiecutter.project_slug }}
 ```
 
