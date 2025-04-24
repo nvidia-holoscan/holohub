@@ -5,10 +5,10 @@
 import holoscan as hs
 
 
-class App(hs.Application):
+class App(hs.core.Application):
     def compose(self):
         # Add your operators here
-        pass
+        print("Hello, Holoscan!")
 
 
 def main():
