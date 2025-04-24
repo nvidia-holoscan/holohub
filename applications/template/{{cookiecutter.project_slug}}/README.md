@@ -50,7 +50,7 @@ This application is built using Holoscan SDK version {{ cookiecutter.holoscan_ve
 ### Adding New Operators
 
 1. Create a new operator class in `src/operators/`
-2. Register the operator in `src/main.cpp`
+2. Include the operator in `src/main.cpp`
 3. Update the pipeline configuration
 
 ## License
