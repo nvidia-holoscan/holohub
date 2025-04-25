@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "Data Writer Operator",
+        "name": "data_writer",
         "authors": [
             {
                 "name": "John Moon <john.moon@vts-i.com>",
