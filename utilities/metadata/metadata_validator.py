@@ -25,13 +25,39 @@ from referencing.jsonschema import DRAFT4
 
 
 def extract_readme_title(readme_path):
-    """Extract the title from a README.md file."""
+    """
+    Extract the first markdown title from a README.md file, ignoring any
+    leading HTML comment header blocks (e.g. <!-- ... -->) that might be
+    present at the top of the file.
+    """
     with open(readme_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        # Match the first heading (title) in the markdown
-        match = re.match(r"^#\s+(.+)$", content, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
+        in_comment_block = False
+
+        for line in f:
+            stripped = line.strip()
+
+            # Detect the start of an HTML comment block.
+            if stripped.startswith("<!--"):
+                # If the comment ends on the same line, just skip it and continue.
+                if stripped.endswith("-->"):
+                    continue
+                in_comment_block = True
+                continue
+
+            # If currently inside a comment block, look for its end.
+            if in_comment_block:
+                if "-->" in stripped:
+                    in_comment_block = False
+                continue  # Skip all lines while inside comment block.
+
+            # Skip blank lines outside comment blocks.
+            if not stripped:
+                continue
+
+            # Check for a markdown H1 heading.
+            match = re.match(r"^#\s+(.+)$", stripped)
+            if match:
+                return match.group(1).strip()
 
     return None
 
