@@ -52,7 +52,7 @@ class HoloHubContainer:
 
     @classmethod
     def default_image(cls) -> str:
-        return f"{cls.CONTAINER_PREFIX}:ngc-v3.1.0-{get_host_gpu()}"
+        return f"{cls.CONTAINER_PREFIX}:ngc-v{base_sdk_version}-{get_host_gpu()}"
 
     @staticmethod
     def default_dockerfile() -> Path:
