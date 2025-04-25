@@ -1021,15 +1021,14 @@ class HoloHubCLI:
         """Handle clear-cache command"""
         if args.dryrun:
             print(Color.blue("Would clear cache folders:"))
-            for pattern in ["build", "build-*", "install"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir():
-                        print(f"  {Color.yellow('Would remove:')} {path}")
         else:
             print(Color.blue("Clearing cache..."))
-            for pattern in ["build", "build-*", "install"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir():
+        for pattern in ["build", "build-*", "install"]:
+            for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                if path.is_dir():
+                    if args.dryrun:
+                        print(f"  {Color.yellow('Would remove:')} {path}")
+                    else:
                         shutil.rmtree(path)
 
     def run(self) -> None:
