@@ -16,6 +16,7 @@
 
 import argparse
 import datetime
+import json
 import os
 import platform
 import re
@@ -28,7 +29,7 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer
+from utilities.cli.container import HoloHubContainer, base_sdk_version
 from utilities.cli.util import Color
 
 
@@ -92,7 +93,9 @@ class HoloHubCLI:
         create.add_argument(
             "--context",
             action="append",
-            help="Additional context variables for cookiecutter in format key=value. Example: --context version=1.0.0 --context description='My project desc' ",
+            help='Additional context variables for cookiecutter in format key=value. \
+                Example: --context description=\'My project desc\' \
+                    --context tags=[\\"tag1\\", \\"tag2\\"]',
         )
         create.set_defaults(func=self.handle_create)
 
@@ -1072,6 +1075,23 @@ class HoloHubCLI:
                     if path.is_dir():
                         shutil.rmtree(path)
 
+    def _add_to_cmakelists(self, project_name: str) -> None:
+        """Add a new application to applications/CMakeLists.txt if it doesn't exist"""
+        cmakelists_path = self.HOLOHUB_ROOT / "applications" / "CMakeLists.txt"
+        if not cmakelists_path.exists():
+            return
+        with open(cmakelists_path, "r") as f:
+            lines = f.readlines()
+        target_line = f"add_holohub_application({project_name})"
+        if any(target_line in line.strip() for line in lines):
+            return
+        try:
+            with open(cmakelists_path, "a") as f:
+                f.write(f"add_holohub_application({project_name})\n")
+        except Exception as e:
+            print(Color.red(f"Failed to add application to applications/CMakeLists.txt: {str(e)}"))
+            print(Color.red("Please add the application manually to applications/CMakeLists.txt"))
+
     def handle_create(self, args: argparse.Namespace) -> None:
         """Handle create command"""
         # Ensure template directory exists
@@ -1082,16 +1102,14 @@ class HoloHubCLI:
         if not args.directory.exists() and not args.dryrun:
             holohub_cli_util.fatal(f"Project output directory {args.directory} does not exist")
 
-        canonical_project_name = args.project.lower().replace(" ", "_")
-        project_dir = args.directory / canonical_project_name
         context = {
             "project_name": args.project,
-            "project_slug": canonical_project_name,
+            "project_slug": args.project,
             "full_name": os.getenv("USER", "HoloHub User"),
             "affiliation": "Holoscan",
             "language": args.language,
             "version": "0.1.0",
-            "holoscan_version": "2.3",
+            "holoscan_version": base_sdk_version,
             "platforms": '["x86_64", "aarch64"]',
             "tags": '["keyword1", "keyword2", "keyword3"]',
             "description": "A brief description of the project",
@@ -1109,13 +1127,19 @@ class HoloHubCLI:
                     holohub_cli_util.fatal(
                         f"Invalid context variable format: {ctx_var}. Expected key=value"
                     )
+        canonical_project_name = context["project_name"].lower().replace(" ", "_")
+        context["project_slug"] = canonical_project_name
+        project_dir = args.directory / canonical_project_name
 
         # Print summary if dryrun
         if args.dryrun:
-            print("Would create project with these parameters (dryrun):")
+            print(Color.green("Would create project folder with these parameters (dryrun):"))
             print(f"Directory: {project_dir}")
             for key, value in context.items():
                 print(f"  {key}: {value}")
+            if args.directory == self.HOLOHUB_ROOT / "applications":
+                print(Color.green("Would modify `applications/CMakeLists.txt`: "))
+                print(f"    add_holohub_application({canonical_project_name})")
             return
 
         try:
@@ -1147,25 +1171,35 @@ class HoloHubCLI:
             src_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(str(template_file), str(target_file))
 
-        msg_cmake = ""
+        # verify metadata.json is valid
+        metadata_path = project_dir / "metadata.json"
+        if metadata_path.exists():
+            with open(metadata_path, "r") as f:
+                try:
+                    json.load(f)
+                except json.JSONDecodeError as e:
+                    holohub_cli_util.fatal(
+                        "the generated metadata.json file is not valid JSON, please review: \n"
+                        f"{metadata_path} {e}"
+                    )
+        # Add to CMakeLists.txt if in applications directory
         if args.directory == self.HOLOHUB_ROOT / "applications":
-            msg_cmake = f"(please add `add_holohub_application({canonical_project_name})` to "
-            msg_cmake += f"{self.HOLOHUB_ROOT}/applications/CMakeLists.txt)\n"
+            self._add_to_cmakelists(canonical_project_name)
 
         msg_next = ""
         if "applications" in args.template:
             msg_next = (
                 f"Possible next steps:\n"
-                f"- Add your operators to {target_file}\n"
-                f"- Update project metadata in {project_dir / 'metadata.json'}\n"
+                f"- Add operators to {target_file}\n"
+                f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
-                f"- Build and run your application:\n"
+                f"- Build and run the application:\n"
                 f"   ./holohub run {canonical_project_name}"
             )
 
         print(
             Color.green(f"Successfully created new project: {args.project}"),
-            f"\nDirectory: {project_dir}\n\n" f"{msg_cmake}{msg_next}",
+            f"\nDirectory: {project_dir}\n\n{msg_next}",
         )
 
     def run(self) -> None:
