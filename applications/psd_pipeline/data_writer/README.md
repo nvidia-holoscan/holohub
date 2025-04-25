@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+
+SPDX-License-Identifier: Apache-2.0
+-->
 # Data Writer Operator
 
 ## Overview
@@ -50,7 +55,3 @@ auto dataWriterOp = make_operator<ops::DataWriter>(
     "dataWriterOp",
     make_condition<CountCondition>(1));
 ```
-
-## Copyright
-
-Copyright © 2024 Valley Tech Systems, Inc.
