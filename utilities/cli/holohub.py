@@ -517,8 +517,6 @@ class HoloHubCLI:
 
             # Build command with all necessary arguments
             run_cmd = f"./holohub run {args.project} --language {language} --local"
-            if args.dryrun:
-                run_cmd += " --dryrun"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.nsys_profile:
