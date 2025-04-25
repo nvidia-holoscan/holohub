@@ -16,7 +16,7 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.0",
+		"version": "1.0.0",
 		"changelog": {
 			"0.0": "Initial release"
 		},
@@ -27,9 +27,23 @@
 			]
 		},
 		"platforms": [
-			"x86_64",
-			"aarch64"
+			"x86_64"
 		],
+		"tags": [
+			"XR",
+			"OpenXR",
+			"Vulkan",
+			"3D Visualization"
+		],
+		"ranking": 4,
+		"dependencies": {
+			"operators": [
+				{
+					"name": "xr",
+					"version": "1.0.0"
+				}
+			]
+		},
 		"run": {
 			"command": "<holohub_app_bin>/xr_holoviz",
 			"workdir": "<holohub_app_bin>"
