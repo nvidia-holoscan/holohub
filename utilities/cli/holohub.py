@@ -259,40 +259,59 @@ class HoloHubCLI:
         return None
 
     def _make_project_container(
-        self, project_name: Optional[str] = None, language: Optional[str] = None
+        self,
+        project_name: Optional[str] = None,
+        language: Optional[str] = None,
+        dryrun: bool = False,
+        build_args: Optional[dict] = None,
     ) -> HoloHubContainer:
-        """Define a project container"""
-        if not project_name:
-            return HoloHubContainer(project_metadata=None)
+        """Define a project container and optionally build it
 
-        project_data = self._find_project(project_name=project_name, language=language)
-        if not project_data:
-            holohub_cli_util.fatal(
-                f"Project '{project_name}' {f'({language})' if language else ''} not found"
-            )
-        return HoloHubContainer(project_metadata=project_data)
+        Args:
+            project_name: Name of the project
+            language: Language implementation (cpp/python)
+            dryrun: Whether to run in dryrun mode
+            build_args: Optional arguments to pass to container.build()
+        """
+        if not project_name:
+            container = HoloHubContainer(project_metadata=None)
+        else:
+            project_data = self._find_project(project_name=project_name, language=language)
+            if not project_data:
+                holohub_cli_util.fatal(
+                    f"Project '{project_name}' {f'({language})' if language else ''} not found"
+                )
+            container = HoloHubContainer(project_metadata=project_data)
+
+        container.dryrun = dryrun
+        if build_args is not None:
+            container.build(**build_args)
+
+        return container
 
     def handle_build_container(self, args: argparse.Namespace) -> None:
         """Handle build-container command"""
-        container = self._make_project_container(
-            project_name=args.project, language=args.language if hasattr(args, "language") else None
-        )
-        container.dryrun = args.dryrun
-        container.build(
-            docker_file=args.docker_file,
-            base_img=args.base_img,
-            img=args.img,
-            no_cache=args.no_cache,
-            build_args=args.build_args,
+        self._make_project_container(
+            project_name=args.project,
+            language=args.language if hasattr(args, "language") else None,
+            dryrun=args.dryrun,
+            build_args={
+                "docker_file": args.docker_file,
+                "base_img": args.base_img,
+                "img": args.img,
+                "no_cache": args.no_cache,
+                "build_args": args.build_args,
+            },
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
         """Handle run-container command"""
         container = self._make_project_container(
-            project_name=args.project, language=args.language if hasattr(args, "language") else None
+            project_name=args.project,
+            language=args.language if hasattr(args, "language") else None,
+            dryrun=args.dryrun,
+            build_args={},  # Empty dict to trigger build but with no special args
         )
-        container.dryrun = args.dryrun
-        container.build()
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -372,10 +391,9 @@ class HoloHubCLI:
             container = self._make_project_container(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
+                dryrun=args.dryrun,
+                build_args={},  # Empty dict to trigger build but with no special args
             )
-            container.dryrun = args.dryrun
-            container.build()
-
             container.run(
                 docker_opts="--entrypoint=bash",
                 extra_args=["-c", f"./holohub build {args.project} --local"],
@@ -497,9 +515,9 @@ class HoloHubCLI:
             container = self._make_project_container(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
+                dryrun=args.dryrun,
+                build_args={},  # Empty dict to trigger build but with no special args
             )
-            container.dryrun = args.dryrun
-            container.build()
 
             # Get language before launching container
             language = holohub_cli_util.normalize_language(
