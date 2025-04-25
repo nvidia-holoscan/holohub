@@ -93,7 +93,7 @@ class HoloHubCLI:
 
         # run-container command
         run_container = subparsers.add_parser(
-            "run-container", help="Launch the development container"
+            "run-container", help="Build and launch the development container"
         )
         run_container.add_argument("project", nargs="?", help="Project to run container for")
         run_container.add_argument("--img", help="Fully qualified image name")
@@ -146,7 +146,7 @@ class HoloHubCLI:
         build.set_defaults(func=self.handle_build)
 
         # run command
-        run = subparsers.add_parser("run", help="Run a project")
+        run = subparsers.add_parser("run", help="Build and run a project")
         run.add_argument("project", help="Project to run")
         run.add_argument("--local", action="store_true", help="Run locally instead of in container")
         run.add_argument("--verbose", action="store_true", help="Print extra output")
@@ -318,42 +318,55 @@ class HoloHubCLI:
         }
         return build_type_map.get(build_type.lower(), "Release")
 
+    def _build_project_locally(
+        self,
+        project_name: str,
+        language: Optional[str] = None,
+        build_type: Optional[str] = None,
+        dryrun: bool = False,
+    ) -> tuple[Path, dict]:
+        """Helper method to build a project locally"""
+        project_data = self._find_project(project_name=project_name, language=language)
+        if not project_data:
+            holohub_cli_util.fatal(
+                f"Project '{project_name}' {f'({language})' if language else ''} not found"
+            )
+
+        build_type = self.get_buildtype_str(build_type)
+        build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
+        build_dir.mkdir(parents=True, exist_ok=True)
+
+        holohub_cli_util.run_command(
+            [
+                "cmake",
+                "-B",
+                str(build_dir),
+                "-S",
+                str(HoloHubCLI.HOLOHUB_ROOT),
+                "-G",
+                "Ninja",
+                f"-DCMAKE_BUILD_TYPE={build_type}",
+                f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
+                f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
+                f"-DAPP_{project_name}=ON",
+            ],
+            dry_run=dryrun,
+        )
+        holohub_cli_util.run_command(
+            ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=dryrun
+        )
+
+        return build_dir, project_data
+
     def handle_build(self, args: argparse.Namespace) -> None:
         """Handle build command"""
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
-            project_data = self._find_project(
+            self._build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
+                build_type=args.build_type,
+                dryrun=args.dryrun,
             )
-            if not project_data:
-                holohub_cli_util.fatal(
-                    f"Project '{args.project}' {f'({args.language})' if hasattr(args, 'language') else ''} not found"
-                )
-
-            build_type = self.get_buildtype_str(args.build_type)
-            build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / args.project
-            build_dir.mkdir(parents=True, exist_ok=True)
-
-            holohub_cli_util.run_command(
-                [
-                    "cmake",
-                    "-B",
-                    str(build_dir),
-                    "-S",
-                    str(HoloHubCLI.HOLOHUB_ROOT),
-                    "-G",
-                    "Ninja",
-                    f"-DCMAKE_BUILD_TYPE={build_type}",
-                    f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
-                    f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
-                    f"-DAPP_{args.project}=ON",
-                ],
-                dry_run=args.dryrun,
-            )
-            holohub_cli_util.run_command(
-                ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=args.dryrun
-            )
-
         else:
             # Build in container
             container = self._make_project_container(
@@ -372,35 +385,11 @@ class HoloHubCLI:
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
-            project_data = self._find_project(
+            build_dir, project_data = self._build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
-            )
-            if not project_data:
-                holohub_cli_util.fatal(
-                    f"Project '{args.project}' {f'({args.language})' if hasattr(args, 'language') else ''} not found"
-                )
-
-            build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / args.project
-            BUILD_TYPE = "Release"
-            holohub_cli_util.run_command(
-                [
-                    "cmake",
-                    "-B",
-                    str(build_dir),
-                    "-S",
-                    str(HoloHubCLI.HOLOHUB_ROOT),
-                    "-G",
-                    "Ninja",
-                    f"-DCMAKE_BUILD_TYPE={BUILD_TYPE}",
-                    f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
-                    f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
-                    f"-DAPP_{args.project}=ON",
-                ],
-                dry_run=args.dryrun,
-            )
-            holohub_cli_util.run_command(
-                ["cmake", "--build", str(build_dir), "--config", BUILD_TYPE], dry_run=args.dryrun
+                build_type="Release",  # Default to Release for run
+                dryrun=args.dryrun,
             )
 
             language = holohub_cli_util.normalize_language(
