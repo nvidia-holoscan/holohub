@@ -44,10 +44,10 @@ HolovizOp::InputSpec::View create_view(int idx, const xr::View& view,
   glm::mat4 view_translation = glm::translate(glm::mat4{1}, glm::make_vec3(&view.pose.position.x));
   glm::mat4 view_matrix = glm::inverse(view_translation * view_orientation);
 
-  // Calculate projection matrix from FOV
   float nearZ = xr_session->view_configuration_depth_range().recommendedNearZ;
   float farZ = xr_session->view_configuration_depth_range().recommendedFarZ;
 
+  // Calculate projection matrix from FOV
   glm::mat4 projection_matrix = glm::frustumRH_ZO(nearZ * glm::tan(view.fov.angleLeft),
                                                   nearZ * glm::tan(view.fov.angleRight),
                                                   nearZ * glm::tan(view.fov.angleUp),

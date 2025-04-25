@@ -40,7 +40,7 @@ constexpr float TORUS_MINOR_RADIUS = 0.1f;  // Radius of the tube
 constexpr int TORUS_MAJOR_SEGMENTS = 32;    // Number of segments around the major radius
 constexpr int TORUS_MINOR_SEGMENTS = 16;    // Number of segments around the minor radius
 
-// Generate torus vertices - now using triangles (3 vertices per triangle)
+// Generate torus vertices - using triangles (3 vertices per triangle)
 std::array<std::array<float, 3>, TORUS_MAJOR_SEGMENTS * TORUS_MINOR_SEGMENTS * 6> torus_array;
 
 // Helper function to generate torus vertices
@@ -94,6 +94,15 @@ void generate_torus_vertices() {
   }
 }
 
+// Cube
+std::array<std::array<float, 3>, 24> cube_array = {
+    {{-0.2f, -0.2f, -0.2f}, {-0.2f, 0.2f, -0.2f}, {-0.2f, 0.2f, -0.2f}, {0.2f, 0.2f, -0.2f},
+     {0.2f, 0.2f, -0.2f},   {0.2f, -0.2f, -0.2f}, {0.2f, -0.2f, -0.2f}, {-0.2f, -0.2f, -0.2f},
+     {-0.2f, -0.2f, 0.2f},  {-0.2f, 0.2f, 0.2f},  {-0.2f, 0.2f, 0.2f},  {0.2f, 0.2f, 0.2f},
+     {0.2f, 0.2f, 0.2f},    {0.2f, -0.2f, 0.2f},  {0.2f, -0.2f, 0.2f},  {-0.2f, -0.2f, 0.2f},
+     {-0.2f, -0.2f, -0.2f}, {-0.2f, -0.2f, 0.2f}, {-0.2f, 0.2f, -0.2f}, {-0.2f, 0.2f, 0.2f},
+     {0.2f, 0.2f, -0.2f},   {0.2f, 0.2f, 0.2f},   {0.2f, -0.2f, -0.2f}, {0.2f, -0.2f, 0.2f}}};
+
 namespace holoscan::ops {
 class XrGeometrySourceOp : public Operator {
  public:
@@ -131,10 +140,10 @@ class XrGeometrySourceOp : public Operator {
         torus_array,
         context);
 
-    add_data<2, 2>(entity, "dynamic_text", {{0.F, 0.F}}, context);
+    add_data<24, 3>(entity, "cube", cube_array, context);
 
     /* ======
-     Create input specs for holovizs with stereo views.
+     Create input specs for HolovizOp with stereo views.
      ======
     */
 
@@ -143,21 +152,26 @@ class XrGeometrySourceOp : public Operator {
     auto located_views = xr_manager_->update_located_views(*frame_state);
 
     // Create model matrix for each objects
-    // Rotate the cube with display time
-    glm::mat4 model_matrix =
+
+    // Rotate the object with display time
+    glm::mat4 model_matrix_torus =
+        glm::translate(glm::mat4{1}, glm::vec3(0, 0, -1.0f)) *  // Put it to (0, 0, -1)
+        glm::rotate(glm::mat4{1},
+                    static_cast<float>(frame_state->predictedDisplayTime.get()) / 1'000'000'000,
+                    glm::vec3(0, -1, 0));
+    glm::mat4 model_matrix_cube =
+        glm::translate(glm::mat4{1}, glm::vec3(0, 0.5f, -1.0f)) *  // Put it to (0, 0.5, -1)
         glm::rotate(glm::mat4{1},
                     static_cast<float>(frame_state->predictedDisplayTime.get()) / 1'000'000'000,
                     glm::vec3(0, -1, 0));
 
     HolovizOp::InputSpec torus_spec = XrViewsHelper::create_spec_with_views(
-        "torus", HolovizOp::InputType::TRIANGLES_3D, located_views, xr_session, model_matrix);
-
+        "torus", HolovizOp::InputType::TRIANGLES_3D, located_views, xr_session, model_matrix_torus);
     specs.push_back(torus_spec);
 
-    HolovizOp::InputSpec text_spec = XrViewsHelper::create_spec_with_views(
-        "dynamic_text", HolovizOp::InputType::TEXT, located_views, xr_session, model_matrix);
-    text_spec.text_.push_back("Hello, World!");
-    specs.push_back(text_spec);
+    HolovizOp::InputSpec cube_spec = XrViewsHelper::create_spec_with_views(
+        "cube", HolovizOp::InputType::LINES_3D, located_views, xr_session, model_matrix_cube);
+    specs.push_back(cube_spec);
 
     // emit outputs
     op_output.emit(entity, "outputs");
