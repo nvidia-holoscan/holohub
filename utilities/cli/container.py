@@ -192,13 +192,14 @@ class HoloHubContainer:
         compute_capacity = get_compute_capacity()
 
         # Check if buildx exists
-        try:
-            run_command(["docker", "buildx", "version"], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            fatal(
-                "docker buildx plugin is missing. Please install docker-buildx-plugin:\n"
-                "https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository"
-            )
+        if not self.dryrun:
+            try:
+                run_command(["docker", "buildx", "version"], check=True, capture_output=True)
+            except subprocess.CalledProcessError:
+                fatal(
+                    "docker buildx plugin is missing. Please install docker-buildx-plugin:\n"
+                    "https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository"
+                )
 
         # Set DOCKER_BUILDKIT environment variable
         os.environ["DOCKER_BUILDKIT"] = "1"
@@ -244,7 +245,8 @@ class HoloHubContainer:
     ) -> None:
         """Launch the container"""
 
-        check_nvidia_ctk()
+        if not self.dryrun:
+            check_nvidia_ctk()
 
         img = img or self.image_name
         add_volumes = add_volumes or []
@@ -339,7 +341,8 @@ class HoloHubContainer:
         cmd.extend(extra_args)
 
         if verbose:
-            print(f"Launch command: {' '.join(cmd)}")
+            cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
+            print(f"Launch command: {' '.join(cmd_list)}")
 
         run_command(cmd, dry_run=self.dryrun)
 
