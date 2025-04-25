@@ -50,3 +50,7 @@ auto dataWriterOp = make_operator<ops::DataWriter>(
     "dataWriterOp",
     make_condition<CountCondition>(1));
 ```
+
+## Copyright
+
+Copyright © 2024 Valley Tech Systems, Inc.

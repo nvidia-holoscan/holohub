@@ -142,7 +142,6 @@ The connector operator also makes the following assumptions:
 4. The `batch_size` of the context queue is equal to the number of
    channels.
 
-
 ### Ingest NIC
 
 The PCIe address of your ingest NIC needs to be specified in `config.yaml`.
@@ -170,7 +169,9 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
 `0000:51:00.1`.
 
 ## Build & Run
+
 1. **Build** the development container in two steps:
+
    ```bash
    # Build the ANO dev container
    ./dev_container build --docker_file ./operators/advanced_network/Dockerfile
@@ -178,17 +179,27 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
    # Add the psd-pipeline deps
    ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v3.1.0-dgpu --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
    ```
+
 2. **Launch** the development container with the command:
+
    ```bash
    ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v3.1.0-dgpu --docker_opts "--privileged"
    ```
 
 Once you are in the dev container:
+
 1. **Build** the application using:
+
     ```bash
     ./run build psd_pipeline
     ```
+
 2. **Run** the application using:
+
     ```bash
     ./run launch psd_pipeline --extra_args config.yaml
     ```
+
+## Copyright
+
+Copyright © 2024 Valley Tech Systems, Inc.
