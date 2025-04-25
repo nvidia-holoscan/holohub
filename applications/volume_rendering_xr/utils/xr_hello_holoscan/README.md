@@ -1,4 +1,4 @@
-# XR "Hello Holoscan"
+# XR Demo
 
 This application provides a simple scene demonstrating mixed reality viewing with Holoscan SDK. It can be served as a testing tool for validating basic XR features.
 

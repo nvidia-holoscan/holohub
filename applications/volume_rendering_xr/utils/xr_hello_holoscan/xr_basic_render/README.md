@@ -1,4 +1,4 @@
-### XR Basic Rendering Operator
+# XR Basic Rendering Operator
 
 The `XrBasicRenderOp` defines and renders a basic scene to demonstrate OpenXR compatibility. It provides visuals for static primitives, controller tracking, and an ImGui window.
 
