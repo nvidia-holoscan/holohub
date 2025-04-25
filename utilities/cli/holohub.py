@@ -277,10 +277,6 @@ class HoloHubCLI:
             container = HoloHubContainer(project_metadata=None)
         else:
             project_data = self._find_project(project_name=project_name, language=language)
-            if not project_data:
-                holohub_cli_util.fatal(
-                    f"Project '{project_name}' {f'({language})' if language else ''} not found"
-                )
             container = HoloHubContainer(project_metadata=project_data)
 
         container.dryrun = dryrun
@@ -346,11 +342,6 @@ class HoloHubCLI:
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self._find_project(project_name=project_name, language=language)
-        if not project_data:
-            holohub_cli_util.fatal(
-                f"Project '{project_name}' {f'({language})' if language else ''} not found"
-            )
-
         build_type = self.get_buildtype_str(build_type)
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
