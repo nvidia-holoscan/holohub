@@ -298,6 +298,12 @@ if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser(description="YOLO Detection Demo Application.")
     parser.add_argument(
+        "-c",
+        "--config",
+        default=os.path.join(os.path.dirname(__file__), "yolo_detection.yaml"),
+        help="Path to the configuration file.",
+    )
+    parser.add_argument(
         "-s",
         "--source",
         choices=["v4l2", "replayer"],
@@ -319,7 +325,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config_file = os.path.join(os.path.dirname(__file__), "yolo_detection.yaml")
     app = YoloDetApp(video_dir=args.video_dir, data=args.data, source=args.source)
-    app.config(config_file)
+    app.config(args.config)
     app.run()
