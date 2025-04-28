@@ -28,7 +28,7 @@ find_package(holoscan REQUIRED CONFIG
 FetchContent_Declare(
     VideoMasterAPIHelper
     GIT_REPOSITORY  https://github.com/deltacasttv/videomaster-api-helper.git
-    GIT_TAG         feature/keyer_helper
+    GIT_TAG         1.3.0
     SOURCE_DIR      "${CMAKE_CURRENT_LIST_DIR}/api_helper"
 )
 FetchContent_MakeAvailable(VideoMasterAPIHelper)
