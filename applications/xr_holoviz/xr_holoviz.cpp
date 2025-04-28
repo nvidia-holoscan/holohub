@@ -117,6 +117,7 @@ class XrGeometrySourceOp : public Operator {
 
     spec.output<gxf::Entity>("outputs");
     spec.output<std::vector<HolovizOp::InputSpec>>("output_specs");
+    spec.output<gxf::Entity>("render_buffer_output");
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
@@ -176,6 +177,7 @@ class XrGeometrySourceOp : public Operator {
     // emit outputs
     op_output.emit(entity, "outputs");
     op_output.emit(specs, "output_specs");
+    create_render_buffer(context, op_output);
   }
 
  private:
@@ -190,6 +192,33 @@ class XrGeometrySourceOp : public Operator {
         nvidia::gxf::Shape({N, C}), nvidia::gxf::MemoryStorageType::kHost, allocator.value());
     std::memcpy(tensor->pointer(), data.data(), N * C * sizeof(float));
   }
+  // Create a render buffer with swapchain
+  void create_render_buffer(ExecutionContext& context, OutputContext& op_output) {
+    auto entity = nvidia::gxf::Entity::New(context.context());
+    auto video_buffer = entity.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
+
+    holoscan::Tensor color_tensor = xr_manager_->acquire_color_swapchain();
+    // TODO: HolovizOp currently doesn't support read frame buffer for depth buffer
+    holoscan::Tensor depth_tensor = xr_manager_->acquire_depth_swapchain();
+
+    nvidia::gxf::VideoBufferInfo video_buffer_info;
+    video_buffer_info.width = xr_manager_->get_width();
+    video_buffer_info.height = xr_manager_->get_height();
+    video_buffer_info.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA;
+    video_buffer_info.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
+
+    nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA> video_format_size;
+    video_buffer_info.color_planes = video_format_size.getDefaultColorPlanes(
+        video_buffer_info.width, video_buffer_info.height, false);
+
+    video_buffer.value()->wrapMemory(video_buffer_info,
+                                     color_tensor.nbytes(),
+                                     nvidia::gxf::MemoryStorageType::kDevice,
+                                     color_tensor.data(),
+                                     [](void*) mutable { return nvidia::gxf::Success; });
+    auto result = gxf::Entity(std::move(entity.value()));
+    op_output.emit(result, "render_buffer_output");
+  }
 
   Parameter<std::shared_ptr<holoscan::UnboundedAllocator>> allocator_;
   Parameter<std::shared_ptr<holoscan::XrManager>> xr_manager_;
@@ -201,6 +230,8 @@ class HolovizGeometryApp : public holoscan::Application {
  public:
   void compose() override {
     using namespace holoscan;
+
+    auto allocator = make_resource<holoscan::UnboundedAllocator>("pool");
 
     auto xr_session = make_resource<holoscan::XrSession>(
         "xr_session", holoscan::Arg("application_name") = std::string("XR Render Cube"));
@@ -214,20 +245,17 @@ class HolovizGeometryApp : public holoscan::Application {
         "xr_end_frame", holoscan::Arg("xr_session") = xr_session);
 
     auto source = make_operator<ops::XrGeometrySourceOp>(
-        "source",
-        Arg("xr_manager") = xr_manager,
-        Arg("allocator") = make_resource<holoscan::UnboundedAllocator>("allocator"));
+        "source", Arg("xr_manager") = xr_manager, Arg("allocator") = allocator);
 
     // TODO: width and height are hardcoded for now, can't get the width and height from headset at
     // this point
     auto holoviz_args = from_config("holoviz");
-    auto visualizer = make_operator<ops::HolovizOp>(
-        "holoviz",
-        // Arg("enable_render_buffer_input", true),
-        Arg("enable_render_buffer_output", true),
-        Arg("headless", true),
-        Arg("allocator") = make_resource<holoscan::UnboundedAllocator>("allocator"),
-        holoviz_args);
+    auto visualizer = make_operator<ops::HolovizOp>("holoviz",
+                                                    Arg("enable_render_buffer_input", true),
+                                                    Arg("enable_render_buffer_output", true),
+                                                    Arg("headless", true),
+                                                    Arg("allocator") = allocator,
+                                                    holoviz_args);
 
     auto buffer_composition = make_operator<ops::XrBufferCompositionOp>(
         "buffer_composition", Arg("xr_manager") = xr_manager);
@@ -235,7 +263,7 @@ class HolovizGeometryApp : public holoscan::Application {
     // source -> holoviz
     add_flow(source, visualizer, {{"outputs", "receivers"}});
     add_flow(source, visualizer, {{"output_specs", "input_specs"}});
-    // add_flow(source, visualizer, {{"render_buffer_output", "render_buffer_input"}});
+    add_flow(source, visualizer, {{"render_buffer_output", "render_buffer_input"}});
     // The core OpenXR render loop: begin frame -> end frame.
     add_flow(xr_begin_frame, xr_end_frame, {{"xr_frame_state", "xr_frame_state"}});
     add_flow(xr_begin_frame, source, {{"xr_frame_state", "xr_frame_state"}});

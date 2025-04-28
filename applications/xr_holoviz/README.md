@@ -1,4 +1,4 @@
-# XR + Holoviz Application
+# XR + Holoviz
 
 This application demonstrates the integration of Holoscan-XR with Holoviz for extended reality visualization.
 
