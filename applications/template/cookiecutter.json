@@ -9,7 +9,7 @@
     "platforms": "",
     "tags": "",
     "description": "A brief description of the project",
-    "license": "{{ cookiecutter.license }}",
+    "license": "Apache-2.0",
     "year": "{% now 'utc', '%Y' %}",
     "__prompts__": {
         "project_name": "What is the name of your project?",

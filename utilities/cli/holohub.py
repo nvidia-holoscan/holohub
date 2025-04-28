@@ -16,7 +16,6 @@
 
 import argparse
 import datetime
-import json
 import os
 import platform
 import re
@@ -96,6 +95,16 @@ class HoloHubCLI:
             help='Additional context variables for cookiecutter in format key=value. \
                 Example: --context description=\'My project desc\' \
                     --context tags=[\\"tag1\\", \\"tag2\\"]',
+        )
+        create.add_argument(
+            "-i",
+            "--interactive",
+            action="store",
+            nargs="?",
+            const=True,
+            default=True,
+            type=lambda x: x.lower() not in ("false", "no", "n", "0", "f"),
+            help="Interactive mode for setting cookiecutter properties (use -i False to disable)",
         )
         create.set_defaults(func=self.handle_create)
 
@@ -1077,18 +1086,12 @@ class HoloHubCLI:
         if not args.directory.exists() and not args.dryrun:
             holohub_cli_util.fatal(f"Project output directory {args.directory} does not exist")
 
+        # Define minimal context with required fields
         context = {
             "project_name": args.project,
-            "project_slug": args.project,
-            "full_name": os.getenv("USER", "HoloHub User"),
-            "affiliation": "Holoscan",
-            "language": args.language,
-            "version": "0.1.0",
+            "project_slug": args.project.lower().replace(" ", "_"),
+            "language": args.language.lower() if args.language else None,  # Only set if provided
             "holoscan_version": base_sdk_version,
-            "platforms": '["x86_64", "aarch64"]',
-            "tags": '["keyword1", "keyword2", "keyword3"]',
-            "description": "A brief description of the project",
-            "license": "Apache-2.0",
             "year": datetime.datetime.now().year,
         }
 
@@ -1102,19 +1105,16 @@ class HoloHubCLI:
                     holohub_cli_util.fatal(
                         f"Invalid context variable format: {ctx_var}. Expected key=value"
                     )
-        canonical_project_name = context["project_name"].lower().replace(" ", "_")
-        context["project_slug"] = canonical_project_name
-        project_dir = args.directory / canonical_project_name
 
         # Print summary if dryrun
         if args.dryrun:
             print(Color.green("Would create project folder with these parameters (dryrun):"))
-            print(f"Directory: {project_dir}")
+            print(f"Directory: {args.directory / context['project_slug']}")
             for key, value in context.items():
                 print(f"  {key}: {value}")
             if args.directory == self.HOLOHUB_ROOT / "applications":
                 print(Color.green("Would modify `applications/CMakeLists.txt`: "))
-                print(f"    add_holohub_application({canonical_project_name})")
+                print(f"    add_holohub_application({context['project_slug']})")
             return
 
         try:
@@ -1124,52 +1124,40 @@ class HoloHubCLI:
 
         import cookiecutter.main
 
+        project_dir = args.directory / context["project_slug"]
         if project_dir.exists():
             holohub_cli_util.fatal(f"Project directory {project_dir} already exists")
 
         try:
+            # Let cookiecutter handle all file generation
             cookiecutter.main.cookiecutter(
                 str(template_dir),
-                no_input=True,
+                no_input=not args.interactive,
                 extra_context=context,
                 output_dir=str(args.directory),
             )
         except Exception as e:
             holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
 
-        # Copy the appropriate example source file
-        ext_name = "cpp" if args.language.lower() in ["c++", "cpp"] else "py"
-        template_file = template_dir / f"example.{ext_name}"
-        src_dir = project_dir / "src"
-        target_file = src_dir / f"{canonical_project_name}.{ext_name}"
-        if template_file.exists():
-            src_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(str(template_file), str(target_file))
-
-        # verify metadata.json is valid
-        metadata_path = project_dir / "metadata.json"
-        if metadata_path.exists():
-            with open(metadata_path, "r") as f:
-                try:
-                    json.load(f)
-                except json.JSONDecodeError as e:
-                    holohub_cli_util.fatal(
-                        "the generated metadata.json file is not valid JSON, please review: \n"
-                        f"{metadata_path} {e}"
-                    )
         # Add to CMakeLists.txt if in applications directory
         if args.directory == self.HOLOHUB_ROOT / "applications":
-            self._add_to_cmakelists(canonical_project_name)
+            self._add_to_cmakelists(context["project_slug"])
+
+        # Get the actual project directory after cookiecutter runs
+        project_dir = args.directory / context["project_slug"]
+        metadata_path = project_dir / "metadata.json"
+        src_dir = project_dir / "src"
+        main_file = next(src_dir.glob(f"{context['project_slug']}.*"), None)
 
         msg_next = ""
         if "applications" in args.template:
             msg_next = (
                 f"Possible next steps:\n"
-                f"- Add operators to {target_file}\n"
+                f"- Add operators to {main_file}\n"
                 f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
                 f"- Build and run the application:\n"
-                f"   ./holohub run {canonical_project_name}"
+                f"   ./holohub run {context['project_slug']}"
             )
 
         print(
