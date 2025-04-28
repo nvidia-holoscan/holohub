@@ -176,24 +176,22 @@ namespace holoscan::advanced_network {
   }
 
   int RdmaMgr::rdma_register_mr(const MemoryRegionConfig &mr, void *ptr) {
-    rdma_mr_params params;
+    rdma_mr_params params{};
     params.params_ = mr;
     params.ptr_ = ptr;
     HOLOSCAN_LOG_INFO("Registering MR {} with ibverbs {}", mr.name_, pd_map_.size());
     // For now register the MR with every PD we have
     for (const auto &pd: pd_map_) {
-      for (const auto &pd: pd.second) {
-        if (pd != nullptr) {
-          int access = mr_access_to_ibv(mr.access_);
-          params.mr_ = ibv_reg_mr(pd, ptr, mr.buf_size_ * mr.num_bufs_, access);
-          if (params.mr_ == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to register MR {} on PD {}", mr.name_, (void*)pd);
-            return -1;
-          }
-          else {
-            HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {} ptr {}-{} lkey {} access {}", 
-              mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd, (void*)ptr, (void*)(ptr + mr.buf_size_ * mr.num_bufs_), params.mr_->lkey, mr.access_);
-          }
+      if (pd.second != nullptr) {
+        int access = mr_access_to_ibv(mr.access_);
+        params.ctx_mr_map_[pd.second] = ibv_reg_mr(pd.second, ptr, mr.buf_size_ * mr.num_bufs_, access);
+        if (params.ctx_mr_map_[pd.second] == nullptr) {
+          HOLOSCAN_LOG_CRITICAL("Failed to register MR {} on PD {}", mr.name_, (void*)pd.second);
+          return -1;
+        }
+        else {
+          HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {} ptr {}-{} lkey {} access {}", 
+            mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd.second, (void*)ptr, (void*)((uint8_t*)ptr + mr.buf_size_ * mr.num_bufs_), params.ctx_mr_map_[pd.second]->lkey, mr.access_);
         }
       }
     }
@@ -318,6 +316,9 @@ namespace holoscan::advanced_network {
     else if (cfg_.ifs_[static_cast<int>(params->if_idx)].rdma_.xmode_ == RDMATransportMode::UC) {
       qp_params.qp_attr.qp_type = IBV_QPT_UC;
     }
+    else if (cfg_.ifs_[static_cast<int>(params->if_idx)].rdma_.xmode_ == RDMATransportMode::UD) {
+      qp_params.qp_attr.qp_type = IBV_QPT_UD;
+    }
     else {
       HOLOSCAN_LOG_ERROR("RDMA transport mode {} not supported!", 
             static_cast<int>(cfg_.ifs_[static_cast<int>(params->if_idx)].rdma_.xmode_));
@@ -335,22 +336,19 @@ namespace holoscan::advanced_network {
       return -1;
     } 
 
-    // Create POSIX message queues for talking to client
-    struct mq_attr attr;
-
-    attr.mq_flags = 0;
-    attr.mq_maxmsg = 128;
-    attr.mq_msgsize = sizeof(BurstParams);
-    attr.mq_curmsgs = 0;
 
     // qp_params.rx_ring = rx_ring;  
-    const uint32_t key = (port_id << 16) | static_cast<int>(params->queue_idx);
     if (is_server) {
-      qp_params.tx_ring = server_tx_rings_[key];
+      qp_params.tx_ring = server_tx_rings_.front();
+      server_tx_rings_.pop();
+      server_tx_rings_map_[params->client_id] = qp_params.tx_ring;
     }
     else {
-      qp_params.tx_ring = client_tx_rings_[key];
+      qp_params.tx_ring = client_tx_rings_.front();
+      client_tx_rings_.pop();
+      client_tx_rings_map_[params->client_id] = qp_params.tx_ring;
     }
+
 
     printf("tx ring %p for port %d, queue %d is_server %d\n", 
       qp_params.tx_ring, port_id, params->queue_idx, is_server);
@@ -401,15 +399,13 @@ namespace holoscan::advanced_network {
   }
 
   Status RdmaMgr::send_tx_burst(BurstParams *burst) {
-  uint32_t key = (burst->rdma_hdr.port_id << 16) | burst->rdma_hdr.q_id;
   struct rte_ring *ring;
   HOLOSCAN_LOG_INFO("Sending burst to ring");
   if (burst->rdma_hdr.server) {
-    auto ri = server_tx_rings_.find(key);
-    if (ri == server_tx_rings_.end()) {
-      HOLOSCAN_LOG_ERROR("Invalid server port/queue combination in send_tx_burst: {}/{}",
-                        burst->rdma_hdr.port_id,
-                        burst->rdma_hdr.q_id);
+    auto ri = server_tx_rings_map_.find(reinterpret_cast<struct rdma_cm_id *>(burst->rdma_hdr.conn_id));
+    if (ri == server_tx_rings_map_.end()) {
+      HOLOSCAN_LOG_ERROR("Invalid server connection ID in send_tx_burst: {}",
+                        burst->rdma_hdr.conn_id);
       return Status::INVALID_PARAMETER;
     }
 
@@ -417,11 +413,10 @@ namespace holoscan::advanced_network {
     ring = ri->second;
   }
   else {
-    auto ri = client_tx_rings_.find(key);
-    if (ri == client_tx_rings_.end()) {
-      HOLOSCAN_LOG_ERROR("Invalid client port/queue combination in send_tx_burst: {}/{}",
-                        burst->rdma_hdr.port_id,
-                        burst->rdma_hdr.q_id);
+    auto ri = client_tx_rings_map_.find(reinterpret_cast<struct rdma_cm_id *>(burst->rdma_hdr.conn_id));
+    if (ri == client_tx_rings_map_.end()) {
+      HOLOSCAN_LOG_ERROR("Invalid client connection ID in send_tx_burst: {}",
+                        burst->rdma_hdr.conn_id);
       return Status::INVALID_PARAMETER;
     }    
 
@@ -450,7 +445,7 @@ namespace holoscan::advanced_network {
     const auto &qref = cfg_.ifs_[tparams->if_idx].tx_.queues_[tparams->queue_idx];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
     struct rte_ring *tx_ring = tparams->qp_params.tx_ring;
-    printf("thread ring %p is_server %d\n", tx_ring, is_server);
+
     if (set_affinity(cpu_core) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
       return;
@@ -460,9 +455,10 @@ namespace holoscan::advanced_network {
 
     // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
     // periodically poll the CQ.
-    while (!tparams->ready_to_exit.load()) {
+    while (!tparams->ready_to_exit) {
       // Check RQ first to reduce latency
       while ((num_comp = ibv_poll_cq(tparams->qp_params.rx_cq, 1, &wc)) != 0) {
+        HOLOSCAN_LOG_INFO("GOT RX COMPLETION in thread {} core {} wrid {}", (void*)tparams->client_id, cpu_core, (int64_t)wc.wr_id);
         if (wc.status != IBV_WC_SUCCESS) {
           HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
         }
@@ -473,6 +469,7 @@ namespace holoscan::advanced_network {
 
       // Check TX CQ for completion
       while ((num_comp = ibv_poll_cq(tparams->qp_params.tx_cq, 1, &wc)) != 0) {
+        HOLOSCAN_LOG_INFO("GOT TX COMPLETION in thread {} core {} wrid {}", (void*)tparams->client_id, cpu_core, (int64_t)wc.wr_id);
         if (wc.status != IBV_WC_SUCCESS) {
           HOLOSCAN_LOG_ERROR("CQ error on {}: {} ({}) for WRID {} and opcode {}",
                              is_server ? "server" : "client",
@@ -482,7 +479,7 @@ namespace holoscan::advanced_network {
                              (int)wc.opcode);
           continue;
         }
-HOLOSCAN_LOG_INFO("good msg poll for {} cmid {}", is_server ? "server" : "client", (void*)reinterpret_cast<struct rdma_cm_id*>(wc.wr_id));
+HOLOSCAN_LOG_INFO("good tx msg poll for {} cmid {}", is_server ? "server" : "client", (void*)reinterpret_cast<struct rdma_cm_id*>(wc.wr_id));
         if (wc.opcode == IBV_WC_RDMA_READ) {
           // BurstParams read_burst;
           // read_burst.rdma_hdr.
@@ -503,9 +500,7 @@ HOLOSCAN_LOG_INFO("good msg poll for {} cmid {}", is_server ? "server" : "client
 
       // Now handle any incoming messages
       BurstParams *burst;
-      static int blah;
-      if (blah++==0)
-HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx_ring);
+
       //ssize_t bytes = mq_receive(tparams.tx_mq, reinterpret_cast<char*>(&burst), sizeof(burst), nullptr);
       if (rte_ring_dequeue(tparams->qp_params.tx_ring, reinterpret_cast<void**>(&burst)) != 0) { 
         continue; 
@@ -522,9 +517,23 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
 
       switch (burst->rdma_hdr.opcode) {
         case AdvNetRDMAOpCode::SEND:
-        { // perform send operation
-          // Currently we expect SEND operations to be rare, and certainly not with thousands of
-          // packets. For that reason we post one at a time and do not try to batch.
+        { 
+          // Get lkey for this PD
+          auto pd = pd_map_.find(tparams->client_id->verbs);
+          if (pd == pd_map_.end()) {
+            HOLOSCAN_LOG_CRITICAL("Couldn't find PD for client");
+            free_tx_burst(burst);
+            continue;
+          }
+
+          // Get lkey for this MR
+          auto lkey = local_mr->second.ctx_mr_map_.find(pd->second);
+          if (lkey == local_mr->second.ctx_mr_map_.end()) {
+            HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst->rdma_hdr.local_mr_name);
+            free_tx_burst(burst);
+            continue;
+          }
+
           for (int p = 0; p < burst->rdma_hdr.num_pkts; p++) {
             ibv_send_wr wr;
             ibv_send_wr *bad_wr;
@@ -533,8 +542,8 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
             memset(&wr, 0, sizeof(wr));
             sge.addr      = (uint64_t)burst->pkts[0][p];
             sge.length    = (uint32_t)burst->pkt_lens[0][p];
-            sge.lkey      = local_mr->second.mr_->lkey;
-            HOLOSCAN_LOG_INFO("lkey {} addr {}", sge.lkey, sge.addr);
+            sge.lkey      = lkey->second->lkey;
+            wr.wr_id      = burst->rdma_hdr.wr_id;
             wr.sg_list    = &sge;
             wr.num_sge    = 1;
             wr.opcode     = IBV_WR_SEND;
@@ -545,10 +554,62 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
               HOLOSCAN_LOG_CRITICAL("Failed to post SEND request, errno: {}", strerror(errno));
               free_tx_burst(burst);
               continue;
-            }   
+            } else {
+              HOLOSCAN_LOG_INFO("Sent {} bytes to {} wrid {}", sge.length, (void*)tparams->client_id->qp, (int64_t)wr.wr_id);
+            } 
           }
 
           break; 
+        }
+        case AdvNetRDMAOpCode::RECEIVE:
+        {
+          // Get lkey for this PD
+          auto pd = pd_map_.find(tparams->client_id->verbs);
+          if (pd == pd_map_.end()) {
+            HOLOSCAN_LOG_CRITICAL("Couldn't find PD for client");
+            free_tx_burst(burst);
+            continue;
+          }
+
+          // Get lkey for this MR
+          auto lkey = local_mr->second.ctx_mr_map_.find(pd->second);
+          if (lkey == local_mr->second.ctx_mr_map_.end()) {
+            HOLOSCAN_LOG_CRITICAL("Couldn't find MR with name {} in registry", burst->rdma_hdr.local_mr_name);
+            free_tx_burst(burst);
+            continue;
+          }
+
+          for (int p = 0; p < burst->rdma_hdr.num_pkts; p++) {
+            struct ibv_recv_wr recv_wr;
+            struct ibv_sge sge;
+            struct ibv_recv_wr *bad_wr = NULL;
+            int ret;
+HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hdr.wr_id, (uintptr_t)(uint64_t)burst->pkts[0][p]);
+            // Prepare Scatter/Gather Entry
+            memset(&sge, 0, sizeof(sge));
+            sge.addr = (uintptr_t)(uint64_t)burst->pkts[0][p];
+            sge.length = (uint32_t)burst->pkt_lens[0][p];
+            sge.lkey = lkey->second->lkey;
+
+            // Prepare Receive Work Request
+            memset(&recv_wr, 0, sizeof(recv_wr));
+            recv_wr.wr_id = burst->rdma_hdr.wr_id;
+            recv_wr.next = NULL;
+            recv_wr.sg_list = &sge;
+            recv_wr.num_sge = 1;
+
+            // Post the receive request
+            ret = ibv_post_recv(tparams->client_id->qp, &recv_wr, &bad_wr);
+            if (ret) {
+                HOLOSCAN_LOG_CRITICAL("ibv_post_recv failed: {}", strerror(errno));
+                free_tx_burst(burst);
+                continue;
+            }
+            else {
+              HOLOSCAN_LOG_INFO("POSTED {} receives", burst->rdma_hdr.num_pkts);
+            }
+          }
+          break;
         }
         case AdvNetRDMAOpCode::RDMA_WRITE: [[fall_through]];
         case AdvNetRDMAOpCode::RDMA_WRITE_IMM:
@@ -644,6 +705,35 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
     return rdma_connect_to_server(dst_addr, dst_port, "", conn_id);
+  }
+
+  Status RdmaMgr::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
+    const auto iter = server_str_to_id_.find(server_addr + ":" + std::to_string(server_port));
+    if (iter == server_str_to_id_.end()) {
+      HOLOSCAN_LOG_CRITICAL("Couldn't find server params for address {}", server_addr);
+      return Status::INVALID_PARAMETER;
+    }
+
+    // Now that we have the server's listening ID, we need to find the next queue ID that's not already in use
+    const auto server_id = iter->second;
+    const auto server_params = server_q_params_.find(server_id);
+    if (server_params == server_q_params_.end()) {
+      HOLOSCAN_LOG_CRITICAL("Couldn't find server params for address {}", server_addr);
+      return Status::INVALID_PARAMETER;
+    }
+
+    // Find the next queue ID that's not already in use
+    for (size_t i = 0; i < server_params->second.size(); i++) {
+      if (server_params->second[i].client_id != nullptr && !server_params->second[i].active) {
+        *conn_id = reinterpret_cast<uintptr_t>(server_params->second[i].client_id);
+        server_params->second[i].active = true;
+        HOLOSCAN_LOG_INFO("Found available queue ID for server {}:{} with cm_id {}", server_addr, server_port, (void*)server_params->second[i].client_id);
+        return Status::SUCCESS;
+      }
+    }
+
+    HOLOSCAN_LOG_CRITICAL("Couldn't find an available queue ID for server {}:{}", server_addr, server_port);
+    return Status::NO_SPACE_AVAILABLE;
   }
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, const std::string &src_addr, uintptr_t *conn_id) {
@@ -761,23 +851,6 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
       rdma_ack_cm_event(event);
     }
 
-    // Look to see if we have a PD for this device, and if not, create one
-    if (pd_map_.find(cm_id->verbs) == pd_map_.end()) {
-      // PD not found, create it
-      HOLOSCAN_LOG_INFO("Creating client PD for device {} using cm_id {}", (void*)cm_id->verbs, (void*)cm_id);
-      auto pd = ibv_alloc_pd(cm_id->verbs);
-      if (pd == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
-        rdma_destroy_event_channel(ec);
-        return Status::CONNECT_FAILURE;
-      }
-      pd_map_[cm_id->verbs] = {};
-      pd_map_[cm_id->verbs][cm_id->port_num-1] = pd;
-    }
-    else {
-      HOLOSCAN_LOG_INFO("PD already exists for device {} using PD {}", (void*)cm_id->verbs, (void*)pd_map_[cm_id->verbs][cm_id->port_num-1]);
-    }
-
     struct sockaddr *source_addr = rdma_get_local_addr(cm_id);
 
     // Convert sockaddr to string
@@ -805,7 +878,7 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
     auto& params = iter->second;
     params.ready_to_exit = false;
     params.client_id = cm_id;
-    params.pd = pd_map_[cm_id->verbs][cm_id->port_num-1];
+    params.pd = pd_map_[cm_id->verbs];
     params.if_idx = client_port;
     params.queue_idx = client_q_params_.size() - 1;  // Fix this race condition
     printf("client params port %d, queue idx %d\n", params.if_idx, params.queue_idx);
@@ -885,10 +958,10 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
   }
 
   Status RdmaMgr::get_tx_packet_burst(BurstParams* burst) {
+    HOLOSCAN_LOG_INFO("Getting burst {}", burst->rdma_hdr.server);
     // RDMA isn't allowing split segments yet
     assert(burst->rdma_hdr.num_segs == 1);
     assert(burst->rdma_hdr.num_pkts <= MAX_RDMA_BATCH);
-    printf("Getting burst\n");
     auto burst_pool = mr_pools_.find(burst->rdma_hdr.local_mr_name);
     if (burst_pool == mr_pools_.end()) {
       HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for MR {}",
@@ -918,7 +991,8 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
       return Status::NO_FREE_PACKET_BUFFERS;
     }
 
-    printf("Allocated packet length buffer at %p\n", burst->pkt_lens[0]);
+    HOLOSCAN_LOG_INFO("Allocated packet length buffer at {} server={}", (void*)burst->pkt_lens[0], 
+    burst->rdma_hdr.server ? "true" : "false");
 
     return Status::SUCCESS;
   }
@@ -931,7 +1005,7 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
       return false;
     }
 
-    if (rte_mempool_avail_count(burst_pool->second) < burst->rdma_hdr.num_pkts * 2) { 
+    if (rte_mempool_avail_count(burst_pool->second) < burst->rdma_hdr.num_pkts) { 
       return false; 
     }
 
@@ -990,6 +1064,9 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
       pd_params_[s_id].server_id = s_id;
       pd_params_[s_id].if_idx = intf.port_id_;
 
+      auto &vec = server_q_params_[s_id];
+      vec.resize(intf.rx_.queues_.size());
+
       HOLOSCAN_LOG_INFO("Created RDMA server on {}:{} successfully with listener_id {}", 
         intf.address_, intf.rdma_.port_, (void*)s_id);
 
@@ -1004,6 +1081,8 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
         HOLOSCAN_LOG_CRITICAL("Failed to listen for RDMA server: {}", strerror(errno));
         return;
       }
+
+      server_str_to_id_[intf.address_ + ":" + std::to_string(intf.rdma_.port_)] = s_id;
 
       HOLOSCAN_LOG_INFO("RDMA server successfully started on {} queues", intf.rx_.queues_.size());
     }
@@ -1052,52 +1131,43 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
             break;
           }
           else {
-            if (pd_map_.find(cm_event->id->verbs) == pd_map_.end()) {
-              // Create a new PD for this device
-              HOLOSCAN_LOG_INFO("Creating new PD for device {} on port {}", 
-                  (void*)cm_event->id->verbs, cm_event->id->port_num);
-              auto pd = ibv_alloc_pd(cm_event->id->verbs);
-              if (pd == nullptr) {
-                HOLOSCAN_LOG_CRITICAL("Failed to allocate PD for device! {}", (void*)pd);
-                break;
+            const auto server_iter = server_q_params_.find(cm_event->listen_id);
+            if (server_iter == server_q_params_.end()) {
+              HOLOSCAN_LOG_ERROR("Failed to find server ID for {}", (void*)cm_event->listen_id);
+              break;
+            }
+
+            // Find first inactive queue
+            int queue_idx = -1;
+            for (int i = 0; i < server_iter->second.size(); i++) {
+              if (!server_iter->second[i].active) {
+                queue_idx = i;
               }
 
-              pd_map_[cm_event->id->verbs] = {};
-              pd_map_[cm_event->id->verbs][cm_event->id->port_num - 1] = pd;
+              // Also check if the client ID already exists
+              if (cm_event->id == server_iter->second[i].client_id) {
+                HOLOSCAN_LOG_CRITICAL("Client ID {} already exists in server ID {}", 
+                    (void*)cm_event->id, (void*)listen_iter->second.server_id);
+                rdma_reject(cm_event->id, nullptr, 0);
+                break;
+              }
             }
 
-
-            if (server_q_params_.size() >= 
-                cfg_.ifs_[listen_iter->second.if_idx].rx_.queues_.size()) {
-              HOLOSCAN_LOG_CRITICAL("More RDMA connections ({}) than RX queues ({}) on interface {}! Dropping connection", 
-                  server_q_params_.size(), cfg_.ifs_[listen_iter->second.if_idx].rx_.queues_.size(), 
-                  cfg_.ifs_[listen_iter->second.if_idx].address_);
+            if (queue_idx == -1) {
+              HOLOSCAN_LOG_CRITICAL("No free queues on server ID {}. Close at least one connection first.", 
+              (void*)cm_event->listen_id);
               rdma_reject(cm_event->id, nullptr, 0);
               break;
             }
 
-            if (server_q_params_.find(cm_event->id) != 
-                server_q_params_.end()) {
-              HOLOSCAN_LOG_CRITICAL("Client ID {} already exists in server ID {}", 
-                  (void*)cm_event->id, (void*)listen_iter->second.server_id);
-              rdma_reject(cm_event->id, nullptr, 0);
-              break;
-            }
             
-            // Construct the params directly in the map using try_emplace
-            auto [iter, inserted] = server_q_params_.try_emplace(cm_event->id);
-            if (!inserted) {
-              HOLOSCAN_LOG_CRITICAL("Failed to insert server params into map");
-              rdma_reject(cm_event->id, nullptr, 0);
-              break;
-            }
-            
-            auto& params = iter->second;
+            auto& params = server_iter->second[queue_idx];
             params.ready_to_exit = false;
+            params.active = false;
             params.client_id = cm_event->id;
-            params.pd = pd_map_[cm_event->id->verbs][cm_event->id->port_num - 1];
+            params.pd = pd_map_[cm_event->id->verbs];
             params.if_idx = cm_event->id->port_num;
-            params.queue_idx = server_q_params_.size() - 1;  // Fix this race condition
+            params.queue_idx = queue_idx;
             
             setup_thread_params(&params, true);
             HOLOSCAN_LOG_INFO("Configured queues for client {}. Launching thread", (void*)cm_event->id);
@@ -1125,16 +1195,22 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
           bool found = false;
           HOLOSCAN_LOG_INFO("Received established event for client ID {}", (void*)cm_event->id);
 
-          
-          const auto client_iter = server_q_params_.find(cm_event->id);
-          // Client is found, set up QP and spawn a new thread
-          if (client_iter != server_q_params_.end()) {
-            HOLOSCAN_LOG_INFO("Connection established. Launching server thread for client {}", (void*)cm_event->id);
+          // Find which server the client is on
+          for (auto& sp : server_q_params_) {
+            for (auto& thread_params : sp.second) {
+              if (thread_params.client_id == cm_event->id) {
+                HOLOSCAN_LOG_INFO("Client ID {} is on server ID {}", (void*)cm_event->id, (void*)sp.first);
+                found = true;
 
-            threads_mutex_.lock();
-            worker_threads_[cm_event->id] = std::thread(&RdmaMgr::rdma_thread, this, true, &client_iter->second);
-            threads_mutex_.unlock();
-            found = true;
+                HOLOSCAN_LOG_INFO("Connection established. Launching server thread for client {}", (void*)cm_event->id);
+
+                threads_mutex_.lock();
+                worker_threads_[cm_event->id] = std::thread(&RdmaMgr::rdma_thread, this, true, &thread_params);
+                threads_mutex_.unlock();
+                found = true;
+                break;
+              }
+            }
           }
 
           if (!found) {
@@ -1150,18 +1226,37 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
         case RDMA_CM_EVENT_DISCONNECTED: {
           HOLOSCAN_LOG_INFO("Received disconnected event for client ID {}", (void*)cm_event->id);
 
-          const auto client_iter = server_q_params_.find(cm_event->id);
-          if (client_iter != server_q_params_.end()) {
-            threads_mutex_.lock();
-            client_iter->second.ready_to_exit = true;
-            worker_threads_[cm_event->id].join();
-            worker_threads_.erase(cm_event->id);
-            threads_mutex_.unlock();
+          bool found = false;
+          for (auto& sp : server_q_params_) {
+            for (auto& thread_params : sp.second) {
+              if (thread_params.client_id == cm_event->id) {          
+                threads_mutex_.lock();
+                thread_params.ready_to_exit = true;
+                worker_threads_[cm_event->id].join();
+                worker_threads_.erase(cm_event->id);
+                threads_mutex_.unlock();
 
-            server_q_params_.erase(client_iter);
-            HOLOSCAN_LOG_INFO("Joined and removed client thread for ID {}", (void*)cm_event->id);
+                // Return the TX and RX rings to the pool
+                if (thread_params.qp_params.tx_ring != nullptr) {
+                  client_tx_rings_.push(thread_params.qp_params.tx_ring);
+                  client_tx_rings_map_.erase(cm_event->id);
+                }
+
+                if (thread_params.qp_params.rx_ring != nullptr) {
+                  client_rx_rings_.push(thread_params.qp_params.rx_ring);
+                  //client_rx_rings_map_.erase(cm_event->id);
+                }
+
+                thread_params.client_id = nullptr;
+                thread_params.active = false;
+                HOLOSCAN_LOG_INFO("Joined and removed client thread for ID {}", (void*)cm_event->id);
+                found = true;
+                break;
+              }
+            }
           }
-          else {
+
+          if (!found) {
             HOLOSCAN_LOG_CRITICAL("Received disconnected event for unknown client ID {}", 
                 (void*)cm_event->id);
           }
@@ -1189,62 +1284,52 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
   int RdmaMgr::setup_pools_and_rings() {
     // RX rings
     HOLOSCAN_LOG_DEBUG("Setting up RX per-queue rings");
-    for (int i = 0; i < cfg_.ifs_.size(); i++) {
-      for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
-        if (cfg_.ifs_[i].rdma_.mode_ == RDMAMode::SERVER) {
-          std::string ring_name = "S_RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
-          HOLOSCAN_LOG_INFO("Setting up server RX ring {}", ring_name);
-          server_rx_rings_[i][j] =
-              rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
-                  RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (server_rx_rings_[i][j] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate server RX ring {}!", ring_name);
-            return -1;
-          }
-        } else {
-          std::string ring_name = "C_RX_RING_P" + std::to_string(i) + "_Q" + std::to_string(j);
-          HOLOSCAN_LOG_INFO("Setting up client RX ring {}", ring_name);
-          client_rx_rings_[i][j] =
-              rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
-                  RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (client_rx_rings_[i][j] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate client RX ring {}!", ring_name);
-            return -1;
-          }
-        }
+    
+    for (int i = 0; i < MAX_RDMA_CONNECTIONS; i++) {
+      std::string ring_name = "S_RX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up server RX ring {}", ring_name);
+      struct rte_ring* ring =
+          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate server RX ring {}!", ring_name);
+        return -1;
       }
+      server_rx_rings_.push(ring);
+      ring_name = "C_RX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up client RX ring {}", ring_name);
+      ring = rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate client RX ring {}!", ring_name);
+        return -1;
+      }
+      client_rx_rings_.push(ring);
     }
 
     HOLOSCAN_LOG_DEBUG("Setting up TX per-queue rings");
     // TX per-queue rings
-    for (const auto& intf : cfg_.ifs_) {
-      for (const auto& q : intf.tx_.queues_) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
-          const auto append =
-              "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_); 
-
-        if (intf.rdma_.mode_ == RDMAMode::SERVER) {
-          auto name = "S_TX_RING_" + append;
-          HOLOSCAN_LOG_INFO("Setting up server TX ring {}", name);
-
-          server_tx_rings_[key] = rte_ring_create(
-              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (server_tx_rings_[key] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring!");
-            return -1;
-          }
-        } else {
-          auto name = "C_TX_RING_" + append;
-          HOLOSCAN_LOG_INFO("Setting up client TX ring {}", name);
-
-          client_tx_rings_[key] = rte_ring_create(
-              name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-          if (client_tx_rings_[key] == nullptr) {
-            HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring!");
-            return -1;
-          }          
-        }
+    for (int i = 0; i < MAX_RDMA_CONNECTIONS; i++) {
+      std::string ring_name = "S_TX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up server TX ring {}", ring_name);
+      struct rte_ring* ring =
+          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring {}!", ring_name);
+        return -1;
       }
+      server_tx_rings_.push(ring);
+
+      ring_name = "C_TX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up client TX ring {}", ring_name);
+      ring = rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
+              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring {}!", ring_name);
+        return -1;
+      }
+      client_tx_rings_.push(ring);
     }
 
     // Packet length buffers
@@ -1380,20 +1465,14 @@ HOLOSCAN_LOG_INFO("Checking message from ring, {}", (void*)tparams->qp_params.tx
         continue;
       }
 
-      pd_map_[device] = {};
-
-      // Create a PD for each port on the device
-      // IB verbs physical port numbers are 1-based.
-      for (uint8_t port = 1; port <= device_attr.phys_port_cnt; port++) {
-        struct ibv_pd* pd = ibv_alloc_pd(device);
-        if (pd == nullptr) {
-          HOLOSCAN_LOG_ERROR("Failed to allocate PD for device {} port {}", (void*)device, port);
-          continue;
-        }
-        HOLOSCAN_LOG_INFO("Created PD {} for device {} port {}", (void*)pd, (void*)device, port);
-        pd_map_[device][port-1] = pd;
+      struct ibv_pd* pd = ibv_alloc_pd(device);
+      if (pd == nullptr) {
+        HOLOSCAN_LOG_ERROR("Failed to allocate PD for device {}", (void*)device);
+        continue;
       }
-    }    
+      HOLOSCAN_LOG_INFO("Created PD {} for device {}", (void*)pd, (void*)device);
+      pd_map_[device] = pd;
+    }
 
     // Get GPU PCIe BDFs since they're needed to pass to DPDK
     int if_num = 0;

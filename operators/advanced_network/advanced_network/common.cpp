@@ -334,6 +334,10 @@ Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
   return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
 }
 
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, queue_id, conn_id);
+}
+
 };  // namespace holoscan::ops
 
 /**

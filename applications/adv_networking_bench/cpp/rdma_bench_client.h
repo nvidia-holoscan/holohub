@@ -127,49 +127,43 @@ class AdvNetworkingRdmaClientOp : public Operator {
         return;
       }
       else {
-        HOLOSCAN_LOG_INFO("Connected to server at {}:{} with ID: {}", server_addr_str_.get(), server_port_.get(), (void*)conn_id_);
-
-        if (rdma_get_port_queue(conn_id_, &port_id_, &queue_id_) != Status::SUCCESS) {
-          HOLOSCAN_LOG_CRITICAL("Failed to get port/queue for connection ID {}", conn_id_);
-          return;
-        }        
+        HOLOSCAN_LOG_INFO("Connected to server at {}:{} with ID: {}", server_addr_str_.get(), server_port_.get(), (void*)conn_id_);     
       }
     }
 
     Status ret;
     if (!sent) {
-      auto msg = create_burst_params();
+      for (int i = 0; i < 10; i++) {
+        auto msg = create_burst_params();
 
-      msg->rdma_hdr.opcode = AdvNetRDMAOpCode::SEND;
-      msg->rdma_hdr.port_id = port_id_;
-      msg->rdma_hdr.q_id = queue_id_;
-      msg->rdma_hdr.conn_id = conn_id_;
-      msg->rdma_hdr.server = false;
-      msg->rdma_hdr.num_pkts = 1;
-      msg->rdma_hdr.num_segs = 1;
-      strcpy(msg->rdma_hdr.local_mr_name, "DATA_TX_CPU_CLIENT");      
+        msg->rdma_hdr.opcode = AdvNetRDMAOpCode::SEND;
+        msg->rdma_hdr.conn_id = conn_id_;
+        msg->rdma_hdr.server = false;
+        msg->rdma_hdr.num_pkts = 1;
+        msg->rdma_hdr.num_segs = 1;
+        msg->rdma_hdr.wr_id = wr_id++;
+        strcpy(msg->rdma_hdr.local_mr_name, "DATA_TX_CPU_CLIENT");      
 
-      while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
+        while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
 
-
-      // Set the length the same as the buffer size
-      set_packet_lengths(msg, 0, {message_size_.get()});
-      HOLOSCAN_LOG_INFO("local mr name: {}", msg->rdma_hdr.local_mr_name);
-      
-      HOLOSCAN_LOG_INFO("Sending burst to server with client cmid {}", (void*)conn_id_);      
-      send_tx_burst(msg);
-      sent = true;
+        // Set the length the same as the buffer size
+        set_packet_lengths(msg, 0, {message_size_.get()});
+        
+        HOLOSCAN_LOG_INFO("Sending burst to server with client cmid {}", (void*)conn_id_);      
+        send_tx_burst(msg);
+        sent = true;
+        sleep(1);
+      }
     }
   }
 
  private:
- bool sent = false;
+  bool sent = false;
+  uint64_t wr_id = 0x1234;
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
   uint32_t server_addr_;
   uintptr_t conn_id_ = 0;
-  uint16_t port_id_ = 0;
-  uint16_t queue_id_ = 0;
   Parameter<bool> rdma_write_;               // Message size in bytes
   Parameter<uint32_t> message_size_;               // Message size in bytes
   Parameter<std::string> server_addr_str_;         // Server address

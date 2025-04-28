@@ -84,6 +84,7 @@ struct AdvNetRdmaBurstHdr {
   Status status;
   size_t num_pkts;
   int num_segs;
+  uint64_t wr_id;
   uintptr_t conn_id; 
   char  local_mr_name[32];
   char  remote_mr_name[32];
@@ -178,7 +179,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
       return 0;
     }
   }
-  
+
   return access;
 }
 

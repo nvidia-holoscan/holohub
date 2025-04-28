@@ -44,12 +44,13 @@ struct rdma_qp_params {
 };
 
 struct rdma_thread_params {
+   bool active = false;
    struct rdma_cm_id *client_id;
    struct ibv_pd *pd;   
    rdma_qp_params qp_params;
    int if_idx;
    int queue_idx;
-   std::atomic<bool> ready_to_exit;
+   bool ready_to_exit;
 };
 
 // Used to spawn a new server thread for a particular client
@@ -61,7 +62,7 @@ struct rdma_port_params {
 
 struct rdma_mr_params {
    MemoryRegionConfig params_;
-   struct ibv_mr *mr_;
+   std::unordered_map<struct ibv_pd *, struct ibv_mr *> ctx_mr_map_;
    void *ptr_;
 };
 
@@ -84,6 +85,7 @@ struct rdma_work_req {
    bool done = true;
    rdma_remote_mr_info mr;
 };
+
 
 
 class RdmaMgr : public Manager {
@@ -147,13 +149,14 @@ class RdmaMgr : public Manager {
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) override;    
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) override;
     Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) override;
+    Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) override;
     Status register_mr(std::string name, int intf, void *addr, size_t len, int flags);
     Status wait_on_key_xchg();
     void poll_cm_events();
 
 
  private:
-    static constexpr int MAX_RDMA_CONNECTIONS = 8;
+    static constexpr int MAX_RDMA_CONNECTIONS = 128;
     static constexpr int MAX_CQ = 16;
     static constexpr int NUM_SGE_ELS = 1024;
     static constexpr int NUM_SGE_BUFS = 256;
@@ -163,26 +166,29 @@ class RdmaMgr : public Manager {
     static constexpr int MAX_RDMA_BATCH = 1024;
 
     bool initialized_ = false;
-    std::unordered_map<struct rdma_cm_id *, rdma_thread_params> server_q_params_; 
+    std::unordered_map<struct rdma_cm_id *, std::vector<rdma_thread_params>> server_q_params_; 
     std::unordered_map<struct rdma_cm_id *, rdma_thread_params> client_q_params_;
     std::unordered_map<struct rdma_cm_id *, rdma_port_params> pd_params_;
     std::unordered_map<struct rdma_cm_id *, std::thread> worker_threads_;
-    std::unordered_map<struct ibv_context *, std::array<struct ibv_pd *, MAX_NUM_PORTS>> pd_map_;
+    std::unordered_map<struct ibv_context *, struct ibv_pd *> pd_map_;
     std::unordered_map<std::string, rdma_mr_params> mrs_;
     std::unordered_map<std::string, rdma_remote_mr_info> remote_mrs_;
+    std::unordered_map<std::string, struct rdma_cm_id*> server_str_to_id_;
     std::vector<rdma_key_xchg> lkey_mrs_;
     std::unordered_map<struct rdma_cm_id*, std::unordered_map<std::string, rdma_remote_mr_info>> endpoints_;
     std::queue<struct ibv_sge*> sge_bufs_;
     std::array<rdma_work_req, MAX_OUSTANDING_WR> out_wr_;
     uint64_t cur_wc_id_ = 0;
-    std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> server_rx_rings_;
-    std::array<std::array<struct rte_ring*, MAX_NUM_RX_QUEUES>, MAX_INTERFACES> client_rx_rings_;
+    std::queue<struct rte_ring*> server_rx_rings_;
+    std::queue<struct rte_ring*> client_rx_rings_;
     struct rte_mempool* rx_meta;
     struct rte_mempool* tx_meta;
     struct rte_mempool* pkt_len_pool_;
     std::unordered_map<std::string, struct rte_mempool*> mr_pools_;
-    std::unordered_map<uint32_t, struct rte_ring*> server_tx_rings_;
-    std::unordered_map<uint32_t, struct rte_ring*> client_tx_rings_;
+    std::queue<struct rte_ring*> server_tx_rings_;
+    std::queue<struct rte_ring*> client_tx_rings_;
+    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> client_tx_rings_map_;
+    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_tx_rings_map_;    
     struct rte_mempool* tx_burst_pool_;
     rdma_event_channel* cm_event_channel_;
     std::mutex threads_mutex_;
