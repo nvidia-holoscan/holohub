@@ -87,12 +87,13 @@ def run_command(
     cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
     """Run a shell command and handle errors"""
-    cmd_str = format_long_command(cmd) if dry_run else " ".join(str(x) for x in cmd)
+    cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
+    cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
         print(
             f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
         )
-        return subprocess.CompletedProcess(cmd, 0)
+        return subprocess.CompletedProcess(cmd_list, 0)
 
     print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
     try:

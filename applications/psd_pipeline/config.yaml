@@ -6,7 +6,6 @@
 num_psds: -1
 
 scheduler:
-  check_recession_period_ms: 0
   worker_thread_number: 4
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500

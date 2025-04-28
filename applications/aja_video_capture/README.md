@@ -1,4 +1,4 @@
-# AJA Capture
+# AJA Video Capture
 
 Minimal example to demonstrate the use of the aja source operator to capture device input and stream to holoviz operator.
 
