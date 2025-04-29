@@ -420,6 +420,15 @@ Status send_tx_burst(BurstParams* burst);
 Status get_rx_burst(BurstParams** burst, int port, int q);
 
 /**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param conn_id Connection ID
+ * @param server True if server, false if client
+ */
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure

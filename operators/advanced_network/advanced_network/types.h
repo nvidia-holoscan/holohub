@@ -73,15 +73,17 @@ enum class AdvNetRDMAOpCode {
   RDMA_WRITE_IMM,  
   RDMA_READ,
   RDMA_READ_IMM,
+  INVALID
 };
 
 struct AdvNetRdmaBurstHdr {
   uint8_t version;
   AdvNetRDMAOpCode  opcode;
+  Status status;
   uint16_t port_id;
   uint16_t q_id;  
   bool server;
-  Status status;
+  bool tx;
   size_t num_pkts;
   int num_segs;
   uint64_t wr_id;
@@ -92,7 +94,7 @@ struct AdvNetRdmaBurstHdr {
   uint64_t     dst_key;
   uint32_t     imm;
   uint32_t    server_addr;
-  uint16_t     server_port;
+  uint16_t    server_port;
 };
 
 /**

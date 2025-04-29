@@ -300,13 +300,15 @@ struct rte_mempool *Manager::create_generic_pool(const std::string &name, const 
   struct rte_mempool* pool;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  pool = rte_mempool_create_empty(name.c_str(), mr.num_bufs_, mr.adj_size_, 0, 0, numa_from_mem(mr), 0);
+  pool = rte_mempool_create_empty(name.c_str(), mr.num_bufs_, mr.adj_size_, 0, sizeof(struct rte_pktmbuf_pool_private), numa_from_mem(mr), 0);
   
   // Now we have to populate the memory pool with the correct memory region buffers
   if (pool == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to create empty mempool {}", name);
     return nullptr;
   }
+
+  rte_pktmbuf_pool_init(pool, nullptr);
 
   auto ar_it = ar_.find(mr.name_);
   if (ar_it == ar_.end()) {
@@ -326,15 +328,16 @@ struct rte_mempool *Manager::create_generic_pool(const std::string &name, const 
     page_size = 4096;
   }
 
-
+  HOLOSCAN_LOG_INFO("Populating mempool {} for MR {} with {} objects of size {} at VA {} ",
+                    name, mr.name_, mr.num_bufs_, mr.adj_size_, alloc_region.ptr_);
   // Check if the allocated size matches the expected total size
   // Note: AllocRegion might store the originally requested size (buf_size_ * num_bufs_)
   // or the adjusted size. Assuming it holds the base pointer to the whole region.
   // We need the IOVA of the start of the buffer.
-  int ret = rte_mempool_populate_virt(pool,
+  int ret = rte_mempool_populate_iova(pool,
                                       static_cast<char*>(alloc_region.ptr_),
+                                      RTE_BAD_IOVA,
                                       total_size,
-                                      page_size,
                                       nullptr,
                                       nullptr);                         // Opaque data for callback
 
@@ -434,6 +437,11 @@ Status Manager::rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t 
 
 Status Manager::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA get server conn ID not implemented");
+  return Status::NOT_SUPPORTED;
+}
+
+Status Manager::get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server) {
+  HOLOSCAN_LOG_CRITICAL("RDMA get RX burst not implemented");
   return Status::NOT_SUPPORTED;
 }
 

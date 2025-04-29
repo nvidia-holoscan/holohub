@@ -295,6 +295,11 @@ Status get_rx_burst(BurstParams** burst, int port, int q) {
   return g_ano_mgr->get_rx_burst(burst, port, q);
 }
 
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, conn_id, server);
+}
+
 void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();

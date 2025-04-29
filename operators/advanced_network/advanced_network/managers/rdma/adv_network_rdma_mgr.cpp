@@ -95,8 +95,11 @@ namespace holoscan::advanced_network {
 
   Status RdmaMgr::set_udp_payload(BurstParams *burst, int idx,
                                     void *data, int len) {
-    HOLOSCAN_LOG_CRITICAL("Cannot set UDP payload in RDMA mode");
-    return Status::NOT_SUPPORTED;
+    //auto mbuf = reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]);
+    //auto mbuf_data = rte_pktmbuf_mtod(mbuf, uint8_t*);
+    HOLOSCAN_LOG_INFO("Setting UDP payload for packet {} to {} at mbuf {} {}", idx, len, (void*)burst->pkts[0][idx], (void*)data);
+    rte_memcpy(burst->pkts[0][idx], data, len);
+    return Status::SUCCESS;
   }  
 
   uint64_t RdmaMgr::get_burst_tot_byte(BurstParams* burst) {
@@ -160,7 +163,6 @@ namespace holoscan::advanced_network {
 
   int RdmaMgr::mr_access_to_ibv(uint32_t access) {
     int ibv_access = 0;
-    printf("access %d\n", access);
 
     if (access & MEM_ACCESS_LOCAL) {
       ibv_access |= IBV_ACCESS_LOCAL_WRITE;
@@ -209,38 +211,49 @@ namespace holoscan::advanced_network {
       return -1;
     } 
 
-    if (register_mrs() != Status::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
-      return -1;
-    }
-
-    if (map_mrs() != Status::SUCCESS) {
-      HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
-      return -1;
-    }
-
     for (const auto &mr: cfg_.mrs_) {
-      HOLOSCAN_LOG_INFO("Creating mempool for MR {}", mr.second.name_);
-      auto pool = create_generic_pool(mr.second.name_, mr.second);
-      if (pool == nullptr) {
-        HOLOSCAN_LOG_CRITICAL(
-              "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
-              mr.second.name_,
-              mr.second.num_bufs_,
-              mr.second.adj_size_,
-              (void*)pool);
-        return - 1;
-      }
-      else {
-        HOLOSCAN_LOG_INFO("Successfully created mempool for MR {} with {} buffers of size {}", 
-        mr.second.name_, mr.second.num_bufs_, mr.second.adj_size_);
+      mem_pools_[mr.second.name_] = std::queue<void*>();
+      HOLOSCAN_LOG_INFO("Created mempool for MR {}", mr.second.name_);
+
+      uint8_t* ptr = (uint8_t*)ar_[mr.second.name_].ptr_;
+      for (int i = 0; i < mr.second.num_bufs_; i++) {
+        HOLOSCAN_LOG_INFO("Pushing packet to pool {} {}", i, (void*)ptr);
+        void* ptr = (void*)(ptr + i * mr.second.adj_size_);
+        mem_pools_[mr.second.name_].push(ptr);
       }
 
-      mr_pools_[mr.second.name_] = pool;  
-      if (mr.second.kind_ == MemoryKind::HUGE) {
-        HOLOSCAN_LOG_INFO("huge at {}", 
-          pool->pool_data);
-      }
+    // if (register_mrs() != Status::SUCCESS) {
+    //   HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
+    //   return -1;
+    // }
+
+    // if (map_mrs() != Status::SUCCESS) {
+    //   HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
+    //   return -1;
+    // }
+
+    // for (const auto &mr: cfg_.mrs_) {
+    //   HOLOSCAN_LOG_INFO("Creating mempool for MR {}", mr.second.name_);
+    //   auto pool = create_pktmbuf_pool(mr.second.name_, mr.second);
+    //   if (pool == nullptr) {
+    //     HOLOSCAN_LOG_CRITICAL(
+    //           "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
+    //           mr.second.name_,
+    //           mr.second.num_bufs_,
+    //           mr.second.adj_size_,
+    //           (void*)pool);
+    //     return - 1;
+    //   }
+    //   else {
+    //     HOLOSCAN_LOG_INFO("Successfully created mempool for MR {} with {} buffers of size {}", 
+    //     mr.second.name_, mr.second.num_bufs_, mr.second.adj_size_);
+    //   }
+
+    //   mr_pools_[mr.second.name_] = pool;  
+    //   if (mr.second.kind_ == MemoryKind::HUGE) {
+    //     HOLOSCAN_LOG_INFO("huge at {}", 
+    //       pool->pool_data);
+    //   }
 
       int ret = rdma_register_mr(mr.second, ar_[mr.second.name_].ptr_);
       if (ret < 0) {
@@ -336,17 +349,24 @@ namespace holoscan::advanced_network {
       return -1;
     } 
 
-
     // qp_params.rx_ring = rx_ring;  
     if (is_server) {
       qp_params.tx_ring = server_tx_rings_.front();
       server_tx_rings_.pop();
       server_tx_rings_map_[params->client_id] = qp_params.tx_ring;
+
+      qp_params.rx_ring = server_rx_rings_.front();
+      server_rx_rings_.pop();
+      server_rx_rings_map_[params->client_id] = qp_params.rx_ring;
     }
     else {
       qp_params.tx_ring = client_tx_rings_.front();
       client_tx_rings_.pop();
       client_tx_rings_map_[params->client_id] = qp_params.tx_ring;
+
+      qp_params.rx_ring = client_rx_rings_.front();
+      client_rx_rings_.pop();
+      client_rx_rings_map_[params->client_id] = qp_params.rx_ring;
     }
 
 
@@ -434,7 +454,22 @@ namespace holoscan::advanced_network {
   }
 
   return Status::SUCCESS;
-  }  
+  } 
+
+  AdvNetRDMAOpCode RdmaMgr::ibv_opcode_to_adv_net_opcode(ibv_wc_opcode opcode) {
+    switch (opcode) {
+      case IBV_WC_SEND:
+        return AdvNetRDMAOpCode::SEND;
+      case IBV_WC_RECV:
+        return AdvNetRDMAOpCode::RECEIVE;
+      case IBV_WC_RDMA_WRITE:
+        return AdvNetRDMAOpCode::RDMA_WRITE;
+      case IBV_WC_RDMA_READ:
+        return AdvNetRDMAOpCode::RDMA_READ;
+      default:
+        return AdvNetRDMAOpCode::INVALID;
+    }
+  }
   
   /**
    * Worker thread for a client or server. Each thread handles one queue pair.
@@ -445,6 +480,7 @@ namespace holoscan::advanced_network {
     const auto &qref = cfg_.ifs_[tparams->if_idx].tx_.queues_[tparams->queue_idx];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
     struct rte_ring *tx_ring = tparams->qp_params.tx_ring;
+    struct rte_ring *rx_ring = tparams->qp_params.rx_ring;
 
     if (set_affinity(cpu_core) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
@@ -465,6 +501,22 @@ namespace holoscan::advanced_network {
         else {
           HOLOSCAN_LOG_INFO("Received message from client: {}", (int)wc.status);
         }
+
+        // Only populate a header to indicate which burst needs to be freed
+        auto msg = create_burst_params();
+        msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
+        msg->rdma_hdr.status  = wc.status == IBV_WC_SUCCESS ? Status::SUCCESS : Status::GENERIC_FAILURE;
+        msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
+        msg->rdma_hdr.server  = is_server;
+        msg->rdma_hdr.tx      = false;
+        msg->rdma_hdr.wr_id   = wc.wr_id;
+
+        if (rte_ring_enqueue(rx_ring, reinterpret_cast<void*>(msg)) != 0) {
+          HOLOSCAN_LOG_CRITICAL("Failed to enqueue RX completion message");
+          free_tx_burst(msg);
+          free_tx_metadata(msg);
+          return;
+        }
       }
 
       // Check TX CQ for completion
@@ -479,22 +531,21 @@ namespace holoscan::advanced_network {
                              (int)wc.opcode);
           continue;
         }
-HOLOSCAN_LOG_INFO("good tx msg poll for {} cmid {}", is_server ? "server" : "client", (void*)reinterpret_cast<struct rdma_cm_id*>(wc.wr_id));
-        if (wc.opcode == IBV_WC_RDMA_READ) {
-          // BurstParams read_burst;
-          // read_burst.rdma_hdr.
 
-          // out_wr_[cur_wc_id_].wr_id = cur_wc_id_;
-          // out_wr_[cur_wc_id_].done  = false;
-          // out_wr_[cur_wc_id_].mr = *(endpt->second);
-          // out_wr_[cur_wc_id_].mr.ptr = burst.cpu_pkts[p];
-          // cur_wc_id_++;
+        // Only populate a header to indicate which burst needs to be freed
+        auto msg = create_burst_params();
+        msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
+        msg->rdma_hdr.tx      = true;
+        msg->rdma_hdr.status  = wc.status == IBV_WC_SUCCESS ? Status::SUCCESS : Status::GENERIC_FAILURE;
+        msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
+        msg->rdma_hdr.server  = is_server;
+        msg->rdma_hdr.wr_id   = wc.wr_id;
 
-          // auto ret = mq_send(tparams.rx_mq, &read_burst, sizeof(read_burst), 10);
-          // if (ret != 0) {
-          //   HOLOSCAN_LOG_CRITICAL("Failed to send to message queue: {}", errno);
-          //   continue;
-          // }
+        if (rte_ring_enqueue(rx_ring, reinterpret_cast<void*>(msg)) != 0) {
+          HOLOSCAN_LOG_CRITICAL("Failed to enqueue RX completion message");
+          free_tx_burst(msg);
+          free_tx_metadata(msg);
+          return;
         }
       }
 
@@ -543,7 +594,7 @@ HOLOSCAN_LOG_INFO("good tx msg poll for {} cmid {}", is_server ? "server" : "cli
             sge.addr      = (uint64_t)burst->pkts[0][p];
             sge.length    = (uint32_t)burst->pkt_lens[0][p];
             sge.lkey      = lkey->second->lkey;
-            wr.wr_id      = burst->rdma_hdr.wr_id;
+            wr.wr_id      = burst->rdma_hdr.wr_id + p; // Auto-increment wr_id to be unique
             wr.sg_list    = &sge;
             wr.num_sge    = 1;
             wr.opcode     = IBV_WR_SEND;
@@ -584,7 +635,7 @@ HOLOSCAN_LOG_INFO("good tx msg poll for {} cmid {}", is_server ? "server" : "cli
             struct ibv_sge sge;
             struct ibv_recv_wr *bad_wr = NULL;
             int ret;
-HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hdr.wr_id, (uintptr_t)(uint64_t)burst->pkts[0][p]);
+HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {} len {}", (int64_t)burst->rdma_hdr.wr_id, (void*)burst->pkts[0][p], (void*)burst->pkt_lens[0][p]);
             // Prepare Scatter/Gather Entry
             memset(&sge, 0, sizeof(sge));
             sge.addr = (uintptr_t)(uint64_t)burst->pkts[0][p];
@@ -593,7 +644,7 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
 
             // Prepare Receive Work Request
             memset(&recv_wr, 0, sizeof(recv_wr));
-            recv_wr.wr_id = burst->rdma_hdr.wr_id;
+            recv_wr.wr_id = burst->rdma_hdr.wr_id + p;
             recv_wr.next = NULL;
             recv_wr.sg_list = &sge;
             recv_wr.num_sge = 1;
@@ -962,8 +1013,8 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
     // RDMA isn't allowing split segments yet
     assert(burst->rdma_hdr.num_segs == 1);
     assert(burst->rdma_hdr.num_pkts <= MAX_RDMA_BATCH);
-    auto burst_pool = mr_pools_.find(burst->rdma_hdr.local_mr_name);
-    if (burst_pool == mr_pools_.end()) {
+    auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool == mem_pools_.end()) {
       HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for MR {}",
                         burst->rdma_hdr.local_mr_name);
       return Status::INVALID_PARAMETER;
@@ -973,13 +1024,18 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
       HOLOSCAN_LOG_ERROR("Failed to get packet from pool");
       return Status::NO_FREE_BURST_BUFFERS;
     }
-    HOLOSCAN_LOG_INFO("Allocating {} packets from packet pool", burst->rdma_hdr.num_pkts);
-    if (rte_pktmbuf_alloc_bulk(burst_pool->second,
-                              reinterpret_cast<rte_mbuf**>(burst->pkts[0]),
-                              static_cast<int>(burst->rdma_hdr.num_pkts)) != 0) {
-      HOLOSCAN_LOG_ERROR("Failed to get packet from packet pool");
-      rte_mempool_put(tx_burst_pool_, reinterpret_cast<void*>(burst->pkts[0]));
-      return Status::NO_FREE_PACKET_BUFFERS;
+    // HOLOSCAN_LOG_INFO("Allocating {} packets from packet pool", burst->rdma_hdr.num_pkts);
+    // if (rte_pktmbuf_alloc_bulk(burst_pool->second,
+    //                           reinterpret_cast<rte_mbuf**>(burst->pkts[0]),
+    //                           static_cast<int>(burst->rdma_hdr.num_pkts)) != 0) {
+    //   HOLOSCAN_LOG_ERROR("Failed to get packet from packet pool");
+    //   rte_mempool_put(tx_burst_pool_, reinterpret_cast<void*>(burst->pkts[0]));
+    //   return Status::NO_FREE_PACKET_BUFFERS;
+    // }
+    for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
+      burst->pkts[0][i] = burst_pool->second.front();
+      HOLOSCAN_LOG_INFO("Getting packet from pool {}:{}", i, (void*)burst->pkts[0][i]);      
+      burst_pool->second.pop();
     }
 
     HOLOSCAN_LOG_INFO("First burst is {}", (void*)burst->pkts[0][0]);
@@ -998,16 +1054,20 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
   }
 
   bool RdmaMgr::is_tx_burst_available(BurstParams *burst) {
-    auto burst_pool = mr_pools_.find(burst->rdma_hdr.local_mr_name);
-    if (burst_pool == mr_pools_.end()) {
+    auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool == mem_pools_.end()) {
       HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for MR {}",
                         burst->rdma_hdr.local_mr_name);
       return false;
     }
 
-    if (rte_mempool_avail_count(burst_pool->second) < burst->rdma_hdr.num_pkts) { 
-      return false; 
+    if (burst_pool->second.size() < burst->rdma_hdr.num_pkts) {
+      return false;
     }
+
+    // if (rte_mempool_avail_count(burst_pool->second) < burst->rdma_hdr.num_pkts) { 
+    //   return false; 
+    // }
 
     return true;
   }
@@ -1244,7 +1304,7 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
 
                 if (thread_params.qp_params.rx_ring != nullptr) {
                   client_rx_rings_.push(thread_params.qp_params.rx_ring);
-                  //client_rx_rings_map_.erase(cm_event->id);
+                  client_rx_rings_map_.erase(cm_event->id);
                 }
 
                 thread_params.client_id = nullptr;
@@ -1408,11 +1468,23 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
   }
 
   void RdmaMgr::free_rx_burst(BurstParams* burst) {
+    auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool != mem_pools_.end()) {
+      for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
+        burst_pool->second.push(burst->pkts[0][i]);
+      }
+    }
     rte_mempool_put(rx_meta, burst);
   }
 
   void RdmaMgr::free_tx_burst(BurstParams* burst) {
-    rte_mempool_put(tx_burst_pool_, (void*)burst->pkts[0]);
+    auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
+    if (burst_pool != mem_pools_.end()) {
+      for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
+        burst_pool->second.push(burst->pkts[0][i]);
+      }
+    }
+    rte_mempool_put(tx_burst_pool_, (void*)burst->pkts[0]);    
     rte_mempool_put(pkt_len_pool_, (void*)burst->pkt_lens[0]);
     burst->rdma_hdr.num_pkts = 0;
     rte_mempool_put(tx_meta, burst);
@@ -1573,8 +1645,36 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {}", (int64_t)burst->rdma_hd
   }
 
   Status RdmaMgr::get_rx_burst(BurstParams **burst, int port, int q) {
-    // TODO: Implement get_rx_burst
     return Status::SUCCESS;
+  }
+
+  Status RdmaMgr::get_rx_burst(BurstParams **burst, uintptr_t conn_id, bool server) {
+    if (server) {
+      const auto ring = server_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("No RX ring found for conn_id {}", conn_id);
+        return Status::INVALID_PARAMETER;
+      }
+
+      if (rte_ring_dequeue(ring, reinterpret_cast<void**>(burst)) != 0) {
+        return Status::NOT_READY;
+      }
+
+      return Status::SUCCESS;
+    }
+    else {
+      const auto ring = client_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("No RX ring found for conn_id {}", conn_id);
+        return Status::INVALID_PARAMETER;
+      }
+
+      if (rte_ring_dequeue(ring, reinterpret_cast<void**>(burst)) != 0) {
+        return Status::NOT_READY;
+      }
+
+      return Status::SUCCESS;
+    }
   }
 
   Status RdmaMgr::set_packet_tx_time(BurstParams *burst, int idx, uint64_t timestamp) {

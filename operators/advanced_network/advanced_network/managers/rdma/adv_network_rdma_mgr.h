@@ -132,6 +132,7 @@ class RdmaMgr : public Manager {
     std::optional<uint16_t> get_port_from_ifname(const std::string &name) override;
 
     Status get_rx_burst(BurstParams **burst, int port, int q) override;
+    Status get_rx_burst(BurstParams **burst, uintptr_t conn_id, bool server) override;
     Status set_packet_tx_time(BurstParams *burst, int idx, uint64_t timestamp);
     void free_rx_metadata(BurstParams *burst) override;
     void free_tx_metadata(BurstParams *burst) override;
@@ -188,7 +189,10 @@ class RdmaMgr : public Manager {
     std::queue<struct rte_ring*> server_tx_rings_;
     std::queue<struct rte_ring*> client_tx_rings_;
     std::unordered_map<struct rdma_cm_id*, struct rte_ring*> client_tx_rings_map_;
-    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_tx_rings_map_;    
+    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_tx_rings_map_;
+    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> client_rx_rings_map_;
+    std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_rx_rings_map_;
+    std::unordered_map<std::string, std::queue<void*>> mem_pools_;
     struct rte_mempool* tx_burst_pool_;
     rdma_event_channel* cm_event_channel_;
     std::mutex threads_mutex_;
@@ -208,6 +212,7 @@ class RdmaMgr : public Manager {
     bool get_ip_from_interface(const std::string_view &if_name, sockaddr_in &addr);
     int setup_thread_params(rdma_thread_params *params, bool is_server);
     int destroy_thread_params(rdma_thread_params *params);
+    AdvNetRDMAOpCode ibv_opcode_to_adv_net_opcode(ibv_wc_opcode opcode);
 };
 
 };  // namespace holoscan::advanced_network

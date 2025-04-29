@@ -79,6 +79,7 @@ class Manager {
   /* Internal functions used by ANO operators */
   virtual std::optional<uint16_t> get_port_from_ifname(const std::string& name) = 0;
   virtual Status get_rx_burst(BurstParams** burst, int port, int q) = 0;
+  virtual Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
   virtual void free_rx_metadata(BurstParams* burst) = 0;
   virtual void free_tx_metadata(BurstParams* burst) = 0;
   virtual Status get_tx_metadata_buffer(BurstParams** burst) = 0;

@@ -41,42 +41,56 @@ advanced_network:
       access:
         - local
       num_bufs: 20
-      buf_size: 900000    
-    - name: "DATA_TX_GPU_SERVER"
-      kind: "device"
+      buf_size: 9000  
+    - name: "DATA_TX_CPU_SERVER"
+      kind: "huge"
       affinity: 0
       access:
         - local
-      num_bufs: 1
-      buf_size: 900000
-    - name: "DATA_RX_GPU_SERVER"
-      kind: "device"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 1
-      buf_size: 900000
-    - name: "DATA_TX_GPU_CLIENT"
-      kind: "device"
-      affinity: 0
-      access:
-        - local
-      num_bufs: 1
-      buf_size: 900000
+      num_bufs: 20
+      buf_size: 9000        
+    # - name: "DATA_TX_GPU_SERVER"
+    #   kind: "device"
+    #   affinity: 0
+    #   access:
+    #     - local
+    #   num_bufs: 20
+    #   buf_size: 9000
+    # - name: "DATA_RX_GPU_SERVER"
+    #   kind: "device"
+    #   affinity: 0
+    #   access:
+    #     - local
+    #   num_bufs: 20
+    #   buf_size: 9000
+    # - name: "DATA_TX_GPU_CLIENT"
+    #   kind: "device"
+    #   affinity: 0
+    #   access:
+    #     - local
+    #   num_bufs: 20
+    #   buf_size: 9000
     - name: "DATA_TX_CPU_CLIENT"
       kind: "huge"
       affinity: 0
       access:
         - local
-      num_bufs: 10
-      buf_size: 900000      
-    - name: "DATA_RX_GPU_CLIENT"
-      kind: "device"
+      num_bufs: 20
+      buf_size: 9000      
+    # - name: "DATA_RX_GPU_CLIENT"
+    #   kind: "device"
+    #   affinity: 0
+    #   access:
+    #     - local
+    #   num_bufs: 20
+    #   buf_size: 9000   
+    - name: "DATA_RX_CPU_CLIENT"
+      kind: "huge"
       affinity: 0
       access:
         - local
-      num_bufs: 1
-      buf_size: 900000      
+      num_bufs: 20
+      buf_size: 9000           
 
     interfaces:
     - name: data1
@@ -87,18 +101,18 @@ advanced_network:
         queues:
         - name: "ADC Samples"
           id: 0
-          batch_size: 10240
+          batch_size: 1
           cpu_core: 7
           memory_regions:
-            - "Data_TX_GPU_CLIENT"
+            - "Data_TX_CPU_CLIENT"
       rx:
         queues:
         - name: "Data"
           id: 0
           cpu_core: 7
-          batch_size: 10240
+          batch_size: 1
           memory_regions:
-            - "Data_RX_GPU_CLIENT"
+            - "Data_RX_CPU_CLIENT"
     - name: data2
       rdma_mode: server
       rdma_port: 4096
@@ -107,30 +121,30 @@ advanced_network:
       flow_isolation: true
       rx:
         queues:
-            - name: "Data"
-              id: 0
-              cpu_core: 8
-              batch_size: 10240
-              memory_regions:
-                - "Data_RX_GPU_SERVER"
+        - name: "Data"
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+          memory_regions:
+            - "Data_RX_CPU_SERVER"
       tx:
         queues:
         - name: "ADC Samples"
           id: 0
-          batch_size: 10240
+          batch_size: 1
           cpu_core: 8
           memory_regions:
-            - "Data_TX_GPU_SERVER"              
+            - "Data_TX_CPU_SERVER"              
 
 rdma_bench_server:
   server_address: 192.168.10.2
   server_port: 4096
-  message_size: 10000
+  message_size: 8000
   writes: true
   reads: false
 
 rdma_bench_client:
-  message_size: 10000
+  message_size: 8000
   writes: false
   reads: false
   client_address: 192.168.11.2

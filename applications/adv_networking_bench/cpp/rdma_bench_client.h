@@ -110,13 +110,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
 
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
-    // Get new input burst (ANO batch of packets)
-    // auto burst_opt = op_input.receive<BurstParams*>("burst_in");
-    // if (!burst_opt) { 
-    //   if (!connected_) {
-    //     connect_to_server(op_output);
-    //   }
-    // }
+    BurstParams *burst;
 
     if (conn_id_ == 0) {
       HOLOSCAN_LOG_INFO("Connecting to server at {}:{}", server_addr_str_.get(), server_port_.get());
@@ -132,33 +126,58 @@ class AdvNetworkingRdmaClientOp : public Operator {
     }
 
     Status ret;
-    if (!sent) {
-      for (int i = 0; i < 10; i++) {
-        auto msg = create_burst_params();
+    if (outstanding_completions < 5) {
+      auto msg = create_burst_params();
 
-        msg->rdma_hdr.opcode = AdvNetRDMAOpCode::SEND;
-        msg->rdma_hdr.conn_id = conn_id_;
-        msg->rdma_hdr.server = false;
-        msg->rdma_hdr.num_pkts = 1;
-        msg->rdma_hdr.num_segs = 1;
-        msg->rdma_hdr.wr_id = wr_id++;
-        strcpy(msg->rdma_hdr.local_mr_name, "DATA_TX_CPU_CLIENT");      
+      outstanding_completions++;
 
-        while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
+      msg->rdma_hdr.opcode = AdvNetRDMAOpCode::SEND;
+      msg->rdma_hdr.conn_id = conn_id_;
+      msg->rdma_hdr.server = false;
+      msg->rdma_hdr.num_pkts = 1;
+      msg->rdma_hdr.num_segs = 1;
+      msg->rdma_hdr.wr_id = wr_id++;
+      strcpy(msg->rdma_hdr.local_mr_name, "DATA_TX_CPU_CLIENT");      
 
-        // Set the length the same as the buffer size
-        set_packet_lengths(msg, 0, {message_size_.get()});
-        
-        HOLOSCAN_LOG_INFO("Sending burst to server with client cmid {}", (void*)conn_id_);      
-        send_tx_burst(msg);
-        sent = true;
-        sleep(1);
+      while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
+
+      // Set the length the same as the buffer size
+      set_packet_lengths(msg, 0, {message_size_.get()});
+      
+      HOLOSCAN_LOG_INFO("Sending burst to server with client cmid {}", (void*)conn_id_);      
+      send_tx_burst(msg);
+      outstanding_tx_wr_ids_[msg->rdma_hdr.wr_id] = msg;
+
+      sleep(1);
+    }
+
+    if (get_rx_burst(&burst, conn_id_, false) == Status::SUCCESS) {
+      HOLOSCAN_LOG_INFO("Received burst from server with client cmid {}", (void*)conn_id_);
+
+      outstanding_completions--;
+
+      uint64_t received_wr_id = burst->rdma_hdr.wr_id;
+      HOLOSCAN_LOG_INFO("Received completion for WR ID: {}", received_wr_id);
+
+      // Find the received WR ID in the list of outstanding IDs
+      auto it = outstanding_tx_wr_ids_.find(received_wr_id);
+      if (it != outstanding_tx_wr_ids_.end()) {
+        // Found the ID, remove it from the vector
+        HOLOSCAN_LOG_INFO("Found and removing matching outstanding WR ID: {}", received_wr_id);
+        free_tx_burst(it->second);
+        outstanding_tx_wr_ids_.erase(it);
+      } else {
+        // This might happen if the completion arrived unexpectedly or was already processed
+        HOLOSCAN_LOG_WARN("Received completion for WR ID {}, but it was not found in the outstanding list.", received_wr_id);
       }
+
+      free_tx_burst(burst);
     }
   }
 
  private:
-  bool sent = false;
+  int outstanding_completions = 0;
+  std::unordered_map<uint64_t, BurstParams*> outstanding_tx_wr_ids_;
   uint64_t wr_id = 0x1234;
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
