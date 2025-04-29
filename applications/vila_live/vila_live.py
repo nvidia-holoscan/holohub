@@ -97,7 +97,7 @@ class V4L2toVLM(Application):
 
         if data == "none":
             data = os.path.join(
-                os.environ.get("HOLOHUB_DATA_PATH", "/workspace/holohub/data"), "vila_live"
+                os.environ.get("HOLOHUB_DATA_DIR", "/workspace/holohub/data"), "vila_live"
             )
 
         self.sample_data_path = data

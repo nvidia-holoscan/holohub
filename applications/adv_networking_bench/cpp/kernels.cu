@@ -32,7 +32,7 @@ __global__ void populate_packets(uint8_t** gpu_bufs, uint16_t pkt_len, uint16_t 
 /**
  * @brief Populate each packet with a monotonically-increasing sequence
  *
- * @param gpu_bufs GPU packet pointer list from ANO "gpu_pkts"
+ * @param gpu_bufs GPU packet pointer list from advanced_network "gpu_pkts"
  * @param pkt_len Length of each packet in bytes. Must be a multiple of 4
  * @param num_pkts Number of packets
  * @param offset Offset into packet to start

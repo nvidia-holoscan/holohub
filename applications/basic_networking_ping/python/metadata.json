@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Basic Networking Benchmark",
+		"name": "Basic Networking Ping",
 		"authors": [
 			{
 				"name": "Cliff Burdick",

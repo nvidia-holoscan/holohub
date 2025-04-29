@@ -85,6 +85,16 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertTrue("--runtime=nvidia" in cmd)
         self.assertTrue(self.container.image_name in cmd)
 
+    @patch("subprocess.CompletedProcess")
+    def test_dry_run(self, mock_completed_process):
+        """Test container dry run command"""
+        self.container.dryrun = True
+        self.container.run()
+        cmd = mock_completed_process.call_args[0][0]
+        self.assertTrue(self.container.image_name in cmd)
+        self.assertIn('"c 81:* rmw"', cmd)
+        self.container.dryrun = False
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -40,6 +40,8 @@ static inline constexpr uint32_t ADV_NETWORK_HEADER_SIZE_BYTES = 256;
 static inline constexpr uint32_t MAX_NUM_RX_QUEUES = 32;
 static inline constexpr uint32_t MAX_NUM_TX_QUEUES = 32;
 static inline constexpr uint32_t MAX_INTERFACES = 4;
+static inline constexpr int MAX_NUM_SEGS = 4;
+
 
 
 /**
@@ -68,7 +70,12 @@ struct BurstHeader {
                             sizeof(BurstHeaderParams)];
 };
 
-static inline constexpr int MAX_NUM_SEGS = 4;
+/**
+ * @brief Structure for passing packets
+ *
+ * The BurstParams structure describes metadata about a packet batch and its packet pointers.
+ *
+ */
 struct BurstParams {
   BurstHeader hdr;
 
@@ -127,7 +134,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
 }
 
 /**
- * @brief Return status codes from advanced network operators
+ * @brief Return status codes from communication with the NIC
  *
  */
 enum class Status {
@@ -138,7 +145,8 @@ enum class Status {
   NOT_READY,
   INVALID_PARAMETER,
   NO_SPACE_AVAILABLE,
-  NOT_SUPPORTED
+  NOT_SUPPORTED,
+  INTERNAL_ERROR
 };
 
 /**
@@ -319,7 +327,6 @@ struct MemoryRegionConfig {
 struct RxQueueConfig {
   CommonQueueConfig common_;
   uint64_t timeout_us_;
-  std::string output_port_;
 };
 
 struct TxQueueConfig {

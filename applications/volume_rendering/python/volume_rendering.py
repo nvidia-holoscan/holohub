@@ -287,12 +287,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if "density" not in args:
-        args.density == density_volume_file_default
-        args.mask == mask_volume_file_default
+        args.density = density_volume_file_default
+        args.mask = mask_volume_file_default
 
     app = VolumeRenderingApp(
         render_config_file=str(args.config),
-        render_preset_files=map(lambda x: str(x), args.render_preset_files),
+        render_preset_files=(
+            map(lambda x: str(x), args.render_preset_files) if args.render_preset_files else None
+        ),
         write_config_file=str(args.write_config_file),
         density_volume_file=str(args.density),
         density_min=args.density_min,

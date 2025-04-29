@@ -89,9 +89,9 @@ class DpdkLogLevel {
         "debug/info/notice/warn/error/critical/alert/emergency/off");
   }
 
-  static Level from_ano_log_level(LogLevel::Level ano_level) {
-    auto it = ano_to_dpdk_log_level_map.find(ano_level);
-    if (it != ano_to_dpdk_log_level_map.end()) { return it->second; }
+  static Level from_adv_net_log_level(LogLevel::Level log_level) {
+    auto it = adv_net_to_dpdk_log_level_map.find(log_level);
+    if (it != adv_net_to_dpdk_log_level_map.end()) { return it->second; }
     return OFF;
   }
 
@@ -100,7 +100,7 @@ class DpdkLogLevel {
    * A map of log level to a tuple of the description and command strings.
    */
   static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
-  static const std::unordered_map<LogLevel::Level, Level> ano_to_dpdk_log_level_map;
+  static const std::unordered_map<LogLevel::Level, Level> adv_net_to_dpdk_log_level_map;
 };
 
 /**
@@ -115,10 +115,10 @@ class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
   /**
    * @brief Constructor for DpdkLogLevelCommandBuilder.
    *
-   * @param ano_level The log level from LogLevel to be converted to DPDK log level.
+   * @param log_level The log level from advanced_network to be converted to DPDK log level.
    */
-  explicit DpdkLogLevelCommandBuilder(LogLevel::Level ano_level)
-      : level_(DpdkLogLevel::from_ano_log_level(ano_level)) {}
+  explicit DpdkLogLevelCommandBuilder(LogLevel::Level log_level)
+      : level_(DpdkLogLevel::from_adv_net_log_level(log_level)) {}
 
   /**
    * @brief Get the command flag strings for DPDK log levels.
@@ -152,9 +152,7 @@ class DpdkMgr : public Manager {
   uint16_t default_num_rx_desc = 8192;
   uint16_t default_num_tx_desc = 8192;
   int num_ports = 0;
-  static constexpr int num_lcores = 2;
   static constexpr int MEMPOOL_CACHE_SIZE = 32;
-  static constexpr int MAX_PKT_BURST = 64;
 
   static constexpr uint32_t GPU_PAGE_OFFSET = (GPU_PAGE_SIZE - 1);
   static constexpr uint32_t GPU_PAGE_MASK = (~GPU_PAGE_OFFSET);
@@ -186,7 +184,8 @@ class DpdkMgr : public Manager {
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
 
-  Status get_rx_burst(BurstParams** burst) override;
+  Status get_rx_burst(BurstParams** burst, int port, int q) override;
+  using holoscan::advanced_network::Manager::get_rx_burst;  // for overloads
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst) override;
   void free_tx_metadata(BurstParams* burst) override;
@@ -219,11 +218,9 @@ class DpdkMgr : public Manager {
 
   void apply_tx_offloads(int port);
 
-  std::array<std::string, MAX_IFS> if_names;
-  std::array<std::string, MAX_IFS> pcie_addrs;
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
+  std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
-  struct rte_ring* rx_ring;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
   std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
