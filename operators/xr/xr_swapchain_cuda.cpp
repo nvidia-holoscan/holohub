@@ -139,7 +139,13 @@ XrSwapchainCuda::XrSwapchainCuda(XrSession& session, Format format, uint32_t wid
         cudaSuccess) {
       throw std::runtime_error("cudaMemset failed");
     }
+    cudaPointerAttributes attributes = {};
+    if (cudaPointerGetAttributes(&attributes, images_[i].cuda_transfer_buffer) != cudaSuccess) {
+      throw std::runtime_error("cudaPointerGetAttributes failed");
+    }
+    images_[i].cuda_device = attributes.device;
   }
+
 
   // Create and export a Vulkan semaphore / CUDA external semaphore to signal
   // when upstream rendering finishes.
@@ -254,6 +260,7 @@ holoscan::Tensor XrSwapchainCuda::acquire() {
   dl_context->tensor = {
       .dl_tensor{
           .data = image.cuda_transfer_buffer,
+          .device = {.device_type = kDLCUDA, .device_id = image.cuda_device},
           .ndim = static_cast<int32_t>(dl_context->dl_shape.size()),
           .dtype = dl_data_type(format_),
           .shape = dl_context->dl_shape.data(),

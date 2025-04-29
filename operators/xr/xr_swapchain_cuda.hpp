@@ -71,6 +71,7 @@ class XrSwapchainCuda {
     vk::raii::DeviceMemory transfer_memory{nullptr};
     cudaExternalMemory_t cuda_transfer_memory;
     void* cuda_transfer_buffer;
+    int cuda_device;
 
     // Vulkan command buffer to copy the interop buffer to the swapchain image.
     vk::raii::CommandBuffer command_buffer{nullptr};
@@ -93,4 +94,4 @@ class XrSwapchainCuda {
 
 }  // namespace holoscan
 
-#endif  // XR_SWAPCHAIN_CUDA_HPP
+#endif /* XR_SWAPCHAIN_CUDA_HPP */

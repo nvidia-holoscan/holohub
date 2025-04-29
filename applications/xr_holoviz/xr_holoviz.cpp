@@ -68,9 +68,7 @@ void generate_torus_vertices() {
         float y = (TORUS_MAJOR_RADIUS + TORUS_MINOR_RADIUS * cos_minor) * sin_major;
         float z = TORUS_MINOR_RADIUS * sin_minor;
 
-        // Add subtle variation for visual interest
-        float variation = 0.05f * sinf(major_angle * 2.0f) * cosf(minor_angle * 3.0f);
-        return std::array<float, 3>{x + variation, y + variation, z + variation};
+        return std::array<float, 3>{x, y, z};
       };
 
       // Get the four vertices of the quad
@@ -200,13 +198,13 @@ class XrGeometrySourceOp : public Operator {
     auto entity = nvidia::gxf::Entity::New(context.context());
     auto video_buffer = entity.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
 
-    holoscan::Tensor color_tensor = xr_composition_layer_manager_->acquire_color_swapchain();
+    holoscan::Tensor color_tensor = xr_composition_layer_manager_->acquire_color_swapchain_image();
     // TODO: HolovizOp currently doesn't support read frame buffer for depth buffer
-    holoscan::Tensor depth_tensor = xr_composition_layer_manager_->acquire_depth_swapchain();
+    holoscan::Tensor depth_tensor = xr_composition_layer_manager_->acquire_depth_swapchain_image();
 
     nvidia::gxf::VideoBufferInfo video_buffer_info;
-    video_buffer_info.width = xr_composition_layer_manager_->get_width();
-    video_buffer_info.height = xr_composition_layer_manager_->get_height();
+    video_buffer_info.width = color_tensor.shape()[1];
+    video_buffer_info.height = color_tensor.shape()[0];
     video_buffer_info.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA;
     video_buffer_info.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
 
@@ -251,7 +249,7 @@ class XrCompositionLayerSubmitOp : public Operator {
 
     // Release the swapchains and synchronize
     cudaStream_t cuda_stream = cudaStreamDefault;
-    xr_composition_layer_manager_->release_swapchains(cuda_stream);
+    xr_composition_layer_manager_->release_swapchain_images(cuda_stream);
 
     // Emit the composition layer for the end frame operator
     op_output.emit(composition_layer, "xr_composition_layer");

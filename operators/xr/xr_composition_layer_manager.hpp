@@ -28,6 +28,7 @@
 #include "openxr/openxr.hpp"
 
 namespace holoscan {
+
 /*
  * XrCompositionLayerManager manages the composition layers for XR,
  * prepare everything needed to create an XR composition layer,
@@ -43,28 +44,21 @@ class XrCompositionLayerManager : public holoscan::Resource {
 
   ~XrCompositionLayerManager();
 
-  holoscan::Tensor acquire_color_swapchain();
-  holoscan::Tensor acquire_depth_swapchain();
-  void release_swapchains(cudaStream_t cuda_stream);
+  holoscan::Tensor acquire_color_swapchain_image();
+  holoscan::Tensor acquire_depth_swapchain_image();
+  void release_swapchain_images(cudaStream_t cuda_stream);
 
   // Create an XR composition layer using current frame state
   std::shared_ptr<XrCompositionLayerProjectionStorage> create_composition_layer(
       const xr::FrameState& xr_frame_state);
 
-  uint32_t get_width() const { return width_; }
-  uint32_t get_height() const { return height_; }
-
  private:
-  void create_swapchains();
-
   Parameter<std::shared_ptr<holoscan::XrSession>> xr_session_;
   std::unique_ptr<XrSwapchainCuda> color_swapchain_;
   std::unique_ptr<XrSwapchainCuda> depth_swapchain_;
-  uint32_t width_;
-  uint32_t height_;
   bool is_initialized_;
 };
 
 }  // namespace holoscan
 
-#endif  // XR_COMPOSITION_LAYER_MANAGER_HPP
+#endif /* XR_COMPOSITION_LAYER_MANAGER_HPP */

@@ -34,40 +34,38 @@ void XrCompositionLayerManager::initialize() {
   }
 
   Resource::initialize();
-  create_swapchains();
-  is_initialized_ = true;
-  HOLOSCAN_LOG_INFO("XrCompositionLayerManager initialized width: {} height: {}", width_, height_);
-}
-
-void XrCompositionLayerManager::create_swapchains() {
   auto xr_session = xr_session_.get();
-  width_ = xr_session->view_configurations()[0].recommendedImageRectWidth *
-           xr_session->view_configurations().size();
-  height_ = xr_session->view_configurations()[0].recommendedImageRectHeight;
+  uint32_t width = xr_session->view_configurations()[0].recommendedImageRectWidth *
+                   xr_session->view_configurations().size();
+  uint32_t height = xr_session->view_configurations()[0].recommendedImageRectHeight;
+
   // Create swapchains
   color_swapchain_ = std::make_unique<XrSwapchainCuda>(
-      *xr_session, XrSwapchainCuda::Format::R8G8B8A8_SRGB, width_, height_);
+      *xr_session, XrSwapchainCuda::Format::R8G8B8A8_SRGB, width, height);
   depth_swapchain_ = std::make_unique<XrSwapchainCuda>(
-      *xr_session, XrSwapchainCuda::Format::D32_SFLOAT, width_, height_);
+      *xr_session, XrSwapchainCuda::Format::D32_SFLOAT, width, height);
+
+  is_initialized_ = true;
+  HOLOSCAN_LOG_INFO("XrCompositionLayerManager initialized width: {} height: {}", width, height);
 }
 
 XrCompositionLayerManager::~XrCompositionLayerManager() {}
 
-holoscan::Tensor XrCompositionLayerManager::acquire_color_swapchain() {
+holoscan::Tensor XrCompositionLayerManager::acquire_color_swapchain_image() {
   if (!color_swapchain_) {
     throw std::runtime_error("Color swapchain not initialized");
   }
   return color_swapchain_->acquire();
 }
 
-holoscan::Tensor XrCompositionLayerManager::acquire_depth_swapchain() {
+holoscan::Tensor XrCompositionLayerManager::acquire_depth_swapchain_image() {
   if (!depth_swapchain_) {
     throw std::runtime_error("Depth swapchain not initialized");
   }
   return depth_swapchain_->acquire();
 }
 
-void XrCompositionLayerManager::release_swapchains(cudaStream_t cuda_stream) {
+void XrCompositionLayerManager::release_swapchain_images(cudaStream_t cuda_stream) {
   if (color_swapchain_) {
     color_swapchain_->release(cuda_stream);
   }
