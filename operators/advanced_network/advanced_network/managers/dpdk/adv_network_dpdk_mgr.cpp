@@ -35,6 +35,33 @@ using namespace std::chrono;
 
 namespace holoscan::advanced_network {
 
+
+// --- Local Helper Functions for Port/Queue Key Management ---
+
+/**
+ * @brief Generates a unique 32-bit key from a port and queue ID.
+ */
+static inline uint32_t generate_queue_key(int port_id, int queue_id) {
+    return (static_cast<uint32_t>(port_id) << 16) | static_cast<uint32_t>(queue_id);
+}
+
+/**
+ * @brief Extracts the port ID from a 32-bit queue key.
+ */
+static inline int get_port_from_key(uint32_t key) {
+    return static_cast<int>((key >> 16) & 0xFFFF);
+}
+
+/**
+ * @brief Extracts the queue ID from a 32-bit queue key.
+ */
+static inline int get_queue_from_key(uint32_t key) {
+    return static_cast<int>(key & 0xFFFF);
+}
+
+// --- End Helper Functions ---
+
+
 std::atomic<bool> force_quit = false;
 
 struct TxWorkerParams {
@@ -64,11 +91,11 @@ struct RxWorkerMultiQPerQParams {
   int queue;
   int num_segs;
   int batch_size;
+  struct rte_ring* ring;
 };
 
 struct RxWorkerMultiQParams {
   std::vector<RxWorkerMultiQPerQParams> q_params;
-  struct rte_ring* ring;
   struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
@@ -104,7 +131,7 @@ const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::strin
                                       {DEBUG, {"Debug", "debug"}}};
 
 const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
-    DpdkLogLevel::ano_to_dpdk_log_level_map = {
+    DpdkLogLevel::adv_net_to_dpdk_log_level_map = {
         {LogLevel::TRACE, DEBUG},
         {LogLevel::DEBUG, DEBUG},
         {LogLevel::INFO, INFO},
@@ -302,7 +329,6 @@ void DpdkMgr::create_dummy_rx_q() {
       HOLOSCAN_LOG_INFO("Port {} has no RX queues. Creating dummy queue.", intf.port_id_);
       const std::string mr_name = "MR_Unused_P" + std::to_string(intf.port_id_);
       RxQueueConfig tmp_q;
-      tmp_q.output_port_ = "none";
       tmp_q.common_.name_ = "UNUSED_P" + std::to_string(intf.port_id_) + "_Q0";
       tmp_q.common_.id_ = 0;
       tmp_q.common_.batch_size_ = 1;
@@ -381,7 +407,7 @@ void DpdkMgr::initialize() {
 
   HOLOSCAN_LOG_INFO(
       "Setting DPDK log level to: {}",
-      DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
+      DpdkLogLevel::to_description_string(DpdkLogLevel::from_adv_net_log_level(cfg_.log_level_)));
 
   DpdkLogLevelCommandBuilder cmd(cfg_.log_level_);
   for (auto& c : cmd.get_cmd_flags_strings()) {
@@ -555,7 +581,7 @@ void DpdkMgr::initialize() {
             RTE_ETH_RX_OFFLOAD_SCATTER | RTE_ETH_RX_OFFLOAD_BUFFER_SPLIT;
       }
 
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
       rx_dpdk_q_map_[key] = q_backend;
       rx_cfg_q_map_[key]  = &q;
     }
@@ -620,7 +646,7 @@ void DpdkMgr::initialize() {
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
       tx_dpdk_q_map_[key] = q_backend;
     }
 
@@ -713,7 +739,7 @@ void DpdkMgr::initialize() {
     for (const auto& q : rx.queues_) {
       // Assume one core for now
       auto socketid = rte_lcore_to_socket_id(strtol(q.common_.cpu_core_.c_str(), nullptr, 10));
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
       auto qinfo = rx_dpdk_q_map_[key];
 
       HOLOSCAN_LOG_INFO("Setting up port:{}, queue:{}, Num scatter:{} pool:{}",
@@ -810,12 +836,27 @@ void DpdkMgr::initialize() {
 }
 
 int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
-  HOLOSCAN_LOG_DEBUG("Setting up RX ring");
-  rx_ring =
-      rte_ring_create("RX_RING", 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-  if (rx_ring == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate ring!");
-    return -1;
+  HOLOSCAN_LOG_DEBUG("Setting up RX rings");
+  for (int i = 0; i < cfg_.ifs_.size(); i++) {
+    int port_id = cfg_.ifs_[i].port_id_;
+    for (int j = 0; j < cfg_.ifs_[i].rx_.queues_.size(); j++) {
+      int q_id = cfg_.ifs_[i].rx_.queues_[j].common_.id_;
+      std::string ring_name = "RX_RING_P" + std::to_string(port_id) + "_Q" + std::to_string(q_id);
+
+      struct rte_ring* ring = rte_ring_create(
+          ring_name.c_str(), 2048, rte_socket_id(),
+          RING_F_SC_DEQ | RING_F_SP_ENQ);
+
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL(
+          "Failed to allocate ring {}! err={}", ring_name, rte_strerror(rte_errno));
+        return -1;
+      }
+
+      uint32_t key = generate_queue_key(port_id, q_id);
+      rx_rings[key] = ring;
+      HOLOSCAN_LOG_DEBUG("Created RX ring: {}", ring_name);
+    }
   }
 
   auto num_rx_ptrs_buffers = (1UL << 13) - 1;
@@ -881,7 +922,7 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
 
       auto name = "TX_RING_" + append;
       HOLOSCAN_LOG_INFO("Setting up TX ring {}", name);
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
       tx_rings[key] = rte_ring_create(
           name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
       if (tx_rings[key] == nullptr) {
@@ -1186,6 +1227,20 @@ void DpdkMgr::PrintDpdkStats(int port) {
 }
 
 DpdkMgr::~DpdkMgr() {
+    // Add cleanup for rings in the map
+    for (auto const& [key, val] : rx_rings) {
+        if (val != nullptr) {
+            rte_ring_free(val);
+        }
+    }
+    rx_rings.clear();
+
+    for (auto const& [key, val] : tx_rings) {
+        if (val != nullptr) {
+            rte_ring_free(val);
+        }
+    }
+    tx_rings.clear();
 }
 
 bool DpdkMgr::validate_config() const {
@@ -1214,17 +1269,18 @@ void DpdkMgr::run() {
     if (el.second.size() == 1) {
       uint16_t port_id = el.second[0].first;
       uint16_t q_id    = el.second[0].second;
-      uint32_t key     = (port_id << 16) | q_id;
+      uint32_t key     = generate_queue_key(port_id, q_id);
       const auto &q    = rx_cfg_q_map_[key];
 
       // Dummy queue made to appease HWS. Don't launch worker
       if (q->common_.name_.find("UNUSED") == 0) {
         continue;
       }
+
       auto params = new RxWorkerParams;
       params->port = port_id;
       params->num_segs = q->common_.mrs_.size();
-      params->ring = rx_ring;
+      params->ring = rx_rings[key];
       params->queue = q_id;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
@@ -1238,14 +1294,14 @@ void DpdkMgr::run() {
       for (const auto &q_info : el.second) {
         uint16_t port_id = q_info.first;
         uint16_t q_id    = q_info.second;
-        uint32_t key     = (port_id << 16) | q_id;
+        uint32_t key     = generate_queue_key(port_id, q_id);
         const auto &q    = rx_cfg_q_map_[key];
+        struct rte_ring* ring_ptr = rx_rings[key];
 
         params->q_params.push_back({port_id, q_id,
-                    (int)q->common_.mrs_.size(), q->common_.batch_size_});
+                    (int)q->common_.mrs_.size(), q->common_.batch_size_, ring_ptr});
       }
 
-      params->ring = rx_ring;
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
       params->meta_pool = rx_metadata;
@@ -1257,7 +1313,7 @@ void DpdkMgr::run() {
     if (intf.tx_.queues_.size() > 0) {
       const auto& tx = intf.tx_;
       for (auto& q : tx.queues_) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto params = new TxWorkerParams;
         //  params->hds    = q.common_.hds_ > 0;
         params->port = intf.port_id_;
@@ -1450,7 +1506,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
       if (burst->hdr.hdr.num_pkts == cur_batch_size) {
         cur_pkt_in_batch[cur_idx] = 0;
-        rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+        rte_ring_enqueue(tparams->q_params[cur_idx].ring, reinterpret_cast<void*>(burst));
 
         // Don't move to the next queue yet since there may be some packets left over in the array
         break;
@@ -1665,17 +1721,6 @@ int DpdkMgr::tx_core_worker(void* arg) {
       }
     }
 
-    //     if (msg->pkts[0] != nullptr) {
-    //       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-    //         auto *mbuf = reinterpret_cast<rte_mbuf*>(msg->pkts[0][p]);
-    //         auto *pkt  = rte_pktmbuf_mtod(mbuf, uint8_t*);
-    // #pragma GCC diagnostic push
-    // #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-    //         rte_ether_addr_copy(&tparams->mac_addr, reinterpret_cast<rte_ether_addr *>(pkt + 6));
-    // #pragma GCC diagnostic pop
-    //       }
-    //     }
-
     auto pkts_to_transmit = static_cast<int64_t>(msg->hdr.hdr.num_pkts);
 
     size_t pkts_tx = 0;
@@ -1711,7 +1756,7 @@ int DpdkMgr::tx_core_worker(void* arg) {
   return 0;
 }
 
-/* ANO interface implementations */
+/* advanced_network interface implementations */
 void* DpdkMgr::get_segment_packet_ptr(BurstParams* burst, int seg, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx]), void*);
 }
@@ -1746,7 +1791,7 @@ void* DpdkMgr::get_packet_extra_info(BurstParams* burst, int idx) {
 }
 
 Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
-  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto& q = tx_dpdk_q_map_[key];
 
   const auto burst_pool = tx_burst_buffers.find(key);
@@ -1818,7 +1863,7 @@ Status DpdkMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len
 }
 
 bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
-  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto& q = tx_dpdk_q_map_[key];
 
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
@@ -1876,7 +1921,7 @@ void DpdkMgr::free_rx_burst(BurstParams* burst) {
 }
 
 void DpdkMgr::free_tx_burst(BurstParams* burst) {
-  const uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto burst_pool = tx_burst_buffers.find(key);
 
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
@@ -1887,8 +1932,16 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
   rte_mempool_put(tx_metadata, burst);
 }
 
-Status DpdkMgr::get_rx_burst(BurstParams** burst) {
-  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) {
+Status DpdkMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  uint32_t key = generate_queue_key(port, q);
+  const auto ring_it = rx_rings.find(key);
+
+  if (ring_it == rx_rings.end()) {
+    HOLOSCAN_LOG_ERROR("Invalid port/queue combination in get_rx_burst: {}/{}", port, q);
+    return Status::INVALID_PARAMETER;
+  }
+
+  if (rte_ring_dequeue(ring_it->second, reinterpret_cast<void**>(burst)) < 0) {
     return Status::NOT_READY;
   }
 
@@ -1913,7 +1966,7 @@ Status DpdkMgr::get_tx_metadata_buffer(BurstParams** burst) {
 }
 
 Status DpdkMgr::send_tx_burst(BurstParams* burst) {
-  uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto ring = tx_rings.find(key);
 
   if (ring == tx_rings.end()) {
@@ -1934,12 +1987,12 @@ Status DpdkMgr::send_tx_burst(BurstParams* burst) {
 }
 
 void DpdkMgr::shutdown() {
-  HOLOSCAN_LOG_INFO("DPDK ANO shutdown called {}", num_init);
+  HOLOSCAN_LOG_INFO("advanced_network DPDK manager shutdown called {}", num_init);
 
   if (--num_init == 0) {
     print_stats();
 
-    HOLOSCAN_LOG_INFO("ANO DPDK manager shutting down");
+    HOLOSCAN_LOG_INFO("advanced_network DPDK manager shutting down");
     force_quit.store(true);
 
     stats_.Shutdown();
@@ -1948,6 +2001,7 @@ void DpdkMgr::shutdown() {
 }
 
 void DpdkMgr::print_stats() {
+  HOLOSCAN_LOG_INFO("advanced_network DPDK manager stats");
   int portid;
   RTE_ETH_FOREACH_DEV(portid) {
     PrintDpdkStats(portid);
@@ -1966,5 +2020,4 @@ BurstParams* DpdkMgr::create_tx_burst_params() {
   }
   return burst;
 }
-
 };  // namespace holoscan::advanced_network

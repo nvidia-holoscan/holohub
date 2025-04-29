@@ -30,7 +30,7 @@ This app is designed using [EVT HB-9000-G 25GE](https://emergentvisiontec.com/pr
 ## Hardware requirements
 
 ### 1. USB camera
-The app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). A different webcam can also be used, but if resolution settings are different the application code and yaml file will need to be updated accordingly.
+The app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html). A different webcam can also be used, but if resolution settings are different the application code and yaml file will need to be updated accordingly.
 
 ### 2. EVT camera
 Visit [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) to check the hardware requirements for EVT camera.

@@ -95,7 +95,6 @@ def test_multi_if_loopback(
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
             "bench_tx.eth_dst_addr": rx_interface.mac_address,
-            "bench_tx.address": tx_interface.bus_id,
             "bench_tx.payload_size": payload_size,
             "bench_rx.max_packet_size": packet_size,
             "advanced_network.cfg.memory_regions[0].buf_size": packet_size,
@@ -196,7 +195,6 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
             "bench_tx.eth_dst_addr": rx_interface.mac_address,
-            "bench_tx.address": tx_interface.bus_id,
         },
     )
 

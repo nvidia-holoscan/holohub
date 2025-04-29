@@ -15,8 +15,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(advanced_network)
 
+
 find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install") # Remove if holoscan logger dependency removed
+
 find_package(PkgConfig)
 
 enable_language(CUDA)

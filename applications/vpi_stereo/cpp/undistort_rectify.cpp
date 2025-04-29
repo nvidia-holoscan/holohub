@@ -44,7 +44,6 @@ void UndistortRectifyOp::RectificationMap::setParameters(float* M, float* d, flo
   cudaMalloc((void**)&d_d, 5 * sizeof(float));
   cudaMalloc((void**)&d_R, 9 * sizeof(float));
   cudaMalloc((void**)&d_P, 12 * sizeof(float));
-  cudaMemcpy((void**)&d_M, M, 9 * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(d_M, M, 9 * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(d_d, d, 5 * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(d_R, R, 9 * sizeof(float), cudaMemcpyHostToDevice);
@@ -53,7 +52,7 @@ void UndistortRectifyOp::RectificationMap::setParameters(float* M, float* d, flo
   cudaFree(d_M);
   cudaFree(d_d);
   cudaFree(d_R);
-  cudaFree(d_M);
+  cudaFree(d_P);
 
   width_ = width;
   height_ = height;

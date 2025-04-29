@@ -1,4 +1,4 @@
-# UCX-based Distributed Endoscopy Tool Tracking (C++)
+# UCX-based Distributed Endoscopy Tool Tracking
 
 This application is similar to the Endoscopy Tool Tracking application, but the distributed version divides the application into three fragments:
 

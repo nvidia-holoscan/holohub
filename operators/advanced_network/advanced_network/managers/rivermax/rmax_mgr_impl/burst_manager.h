@@ -305,7 +305,7 @@ class RmaxBurst::BurstHandler {
  * operations. It handles the creation, deletion, and processing of bursts, as well as
  * managing the lifecycle of packets within bursts. This class interfaces with the Rmax
  * framework to provide the necessary functionality for handling and transforming data
- * into a format suitable for ANO processing.
+ * into a format suitable for advanced_network to process.
  */
 class RxBurstsManager {
  public:
