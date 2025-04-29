@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef XR_MANAGER_HPP
-#define XR_MANAGER_HPP
+#ifndef XR_COMPOSITION_LAYER_MANAGER_HPP
+#define XR_COMPOSITION_LAYER_MANAGER_HPP
 
 #include <memory>
 #include <vector>
@@ -28,37 +28,28 @@
 #include "openxr/openxr.hpp"
 
 namespace holoscan {
-
 /*
- * Manages the XR components.
- *
- * This class is responsible for managing the XR components.
- * - manage XrSession
- * - manage XrSwapchains
- * - manage Composition Layers
+ * XrCompositionLayerManager manages the composition layers for XR,
+ * prepare everything needed to create an XR composition layer,
+ * including swapchains and composition layer storage.
  */
-class XrManager : public holoscan::Resource {
+
+class XrCompositionLayerManager : public holoscan::Resource {
  public:
-  HOLOSCAN_RESOURCE_FORWARD_ARGS(XrManager)
+  HOLOSCAN_RESOURCE_FORWARD_ARGS(XrCompositionLayerManager)
 
   void setup(ComponentSpec& spec) override;
   void initialize() override;
 
-  ~XrManager();
-
-  std::shared_ptr<holoscan::XrSession> get_xr_session();
+  ~XrCompositionLayerManager();
 
   holoscan::Tensor acquire_color_swapchain();
   holoscan::Tensor acquire_depth_swapchain();
   void release_swapchains(cudaStream_t cuda_stream);
 
-  // Create an XR composition layer using cached located views
-  std::shared_ptr<XrCompositionLayerProjectionStorage> create_composition_layer();
-
-  // Update the located views with current frame state
-  const std::vector<xr::View>& update_located_views(const xr::FrameState& frame_state);
-  // Get the cached located views
-  const std::vector<xr::View>& get_located_views() const { return located_views_; }
+  // Create an XR composition layer using current frame state
+  std::shared_ptr<XrCompositionLayerProjectionStorage> create_composition_layer(
+      const xr::FrameState& xr_frame_state);
 
   uint32_t get_width() const { return width_; }
   uint32_t get_height() const { return height_; }
@@ -71,11 +62,9 @@ class XrManager : public holoscan::Resource {
   std::unique_ptr<XrSwapchainCuda> depth_swapchain_;
   uint32_t width_;
   uint32_t height_;
-  // Caching the located views to ensure consistency throughout the rendering process.​
-  std::vector<xr::View> located_views_;
   bool is_initialized_;
 };
 
 }  // namespace holoscan
 
-#endif /* XR_MANAGER_HPP */
+#endif  // XR_COMPOSITION_LAYER_MANAGER_HPP

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_XR_COMPOSITION_LAYERS_HPP_
-#define SRC_HOLOSCAN_XR_XR_XR_COMPOSITION_LAYERS_HPP_
+#ifndef XR_COMPOSITION_LAYERS_HPP
+#define XR_COMPOSITION_LAYERS_HPP
 
 #include <memory>
 
@@ -34,20 +34,10 @@ struct XrCompositionLayerProjectionStorage : public xr::CompositionLayerProjecti
   using xr::CompositionLayerProjection::CompositionLayerProjection;
 
   // Creates an XrCompositionLayerProjectionStorage which is populated with
-  // side-by-side projection views from current xr_frame_state.
+  // side-by-side projection views.
   static std::shared_ptr<XrCompositionLayerProjectionStorage> create_for_frame(
       xr::FrameState xr_frame_state, XrSession& xr_session, XrSwapchainCuda& color_swapchain,
       XrSwapchainCuda& depth_swapchain);
-
-  // Creates an XrCompositionLayerProjectionStorage which is populated with
-  // side-by-side projection views from a list of views.
-  static std::shared_ptr<XrCompositionLayerProjectionStorage> create_for_frame(
-      XrSession& xr_session, XrSwapchainCuda& color_swapchain, XrSwapchainCuda& depth_swapchain,
-      const std::vector<xr::View>& views);
-
-  static std::shared_ptr<XrCompositionLayerProjectionStorage> create_layer_storage(
-      XrSession& xr_session, XrSwapchainCuda& color_swapchain, XrSwapchainCuda& depth_swapchain,
-      const std::vector<xr::View>& views);
 
   static constexpr int32_t kMaxViews = 2;
   std::array<xr::CompositionLayerProjectionView, kMaxViews> views;
@@ -56,4 +46,4 @@ struct XrCompositionLayerProjectionStorage : public xr::CompositionLayerProjecti
 
 }  // namespace holoscan
 
-#endif  // SRC_HOLOSCAN_XR_XR_XR_COMPOSITION_LAYERS_HPP_
+#endif  // XR_COMPOSITION_LAYERS_HPP

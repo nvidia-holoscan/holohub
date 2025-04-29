@@ -49,7 +49,7 @@ void XrEndFrameOp::compute(InputContext& input, OutputContext& output, Execution
   }
   xr_session->get().endFrame({
       xr_frame_state->predictedDisplayTime,
-      xr::EnvironmentBlendMode::Opaque,  // AlphaBlend is not supported
+      xr_session->blend_mode(),
       static_cast<uint32_t>(layers.size()),
       layers.data(),
   });

@@ -23,10 +23,18 @@
 namespace holoscan {
 
 std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_layer_storage(XrSession& xr_session,
-                                                          XrSwapchainCuda& color_swapchain,
-                                                          XrSwapchainCuda& depth_swapchain,
-                                                          const std::vector<xr::View>& views) {
+XrCompositionLayerProjectionStorage::create_for_frame(xr::FrameState xr_frame_state,
+                                                      XrSession& xr_session,
+                                                      XrSwapchainCuda& color_swapchain,
+                                                      XrSwapchainCuda& depth_swapchain) {
+  // Locate the views for xr_frame_state.
+  xr::ViewLocateInfo view_locate_info(xr::ViewConfigurationType::PrimaryStereo,
+                                      xr_frame_state.predictedDisplayTime,
+                                      xr_session.reference_space());
+  xr::ViewState view_state;
+  std::vector<xr::View> views =
+      xr_session.get().locateViewsToVector(view_locate_info, view_state.put());
+
   // Create the layer storage.
   auto layer = std::make_shared<XrCompositionLayerProjectionStorage>();
 
@@ -67,30 +75,5 @@ XrCompositionLayerProjectionStorage::create_layer_storage(XrSession& xr_session,
   return layer;
 }
 
-// Create a composition layer for a frame from a list of views
-std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_for_frame(XrSession& xr_session,
-                                                      XrSwapchainCuda& color_swapchain,
-                                                      XrSwapchainCuda& depth_swapchain,
-                                                      const std::vector<xr::View>& views) {
-  return create_layer_storage(xr_session, color_swapchain, depth_swapchain, views);
-}
-
-// Create a composition layer for a frame from current xr_frame_state
-std::shared_ptr<XrCompositionLayerProjectionStorage>
-XrCompositionLayerProjectionStorage::create_for_frame(xr::FrameState xr_frame_state,
-                                                      XrSession& xr_session,
-                                                      XrSwapchainCuda& color_swapchain,
-                                                      XrSwapchainCuda& depth_swapchain) {
-  // Locate the views for xr_frame_state.
-  xr::ViewLocateInfo view_locate_info(xr::ViewConfigurationType::PrimaryStereo,
-                                      xr_frame_state.predictedDisplayTime,
-                                      xr_session.reference_space());
-  xr::ViewState view_state;
-  std::vector<xr::View> views =
-      xr_session.get().locateViewsToVector(view_locate_info, view_state.put());
-
-  return create_layer_storage(xr_session, color_swapchain, depth_swapchain, views);
-}
-
 }  // namespace holoscan
+

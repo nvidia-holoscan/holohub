@@ -31,8 +31,7 @@
 
 #include "holoscan/operators/holoviz/holoviz.hpp"
 #include "xr_view_helper.hpp"
-#include "xr_buffer_composition.hpp"
-#include "xr_manager.hpp"
+#include "xr_composition_layer_manager.hpp"
 
 // Constants for torus generation
 constexpr float TORUS_MAJOR_RADIUS = 0.3f;  // Distance from center to tube center
@@ -112,17 +111,17 @@ class XrGeometrySourceOp : public Operator {
 
   void setup(OperatorSpec& spec) override {
     spec.input<xr::FrameState>("xr_frame_state");
-    spec.param(xr_manager_, "xr_manager");
+    spec.param(xr_composition_layer_manager_, "xr_composition_layer_manager");
     spec.param(allocator_, "allocator");
 
     spec.output<gxf::Entity>("outputs");
     spec.output<std::vector<HolovizOp::InputSpec>>("output_specs");
     spec.output<gxf::Entity>("render_buffer_output");
+    spec.output<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
-    auto xr_session = xr_manager_->get_xr_session();
     auto frame_state = op_input.receive<xr::FrameState>("xr_frame_state");
 
     auto entity = gxf::Entity::New(&context);
@@ -144,21 +143,23 @@ class XrGeometrySourceOp : public Operator {
     add_data<24, 3>(entity, "cube", cube_array, context);
 
     /* ======
+     Create an XR composition layer by current frame state.
+     ======
+    */
+    auto xr_composition_layer =
+        xr_composition_layer_manager_->create_composition_layer(*frame_state);
+
+    /* ======
      Create input specs for HolovizOp with stereo views.
      ======
     */
 
-    // Get the located views with current frame state, cached in xr_manager
-    // This is shared by all objects
-    auto located_views = xr_manager_->update_located_views(*frame_state);
-
     // Create model matrix for each objects
-
-    // Rotate the object with display time
     glm::mat4 model_matrix_torus =
         glm::translate(glm::mat4{1}, glm::vec3(0, 0, -1.0f)) *  // Put it to (0, 0, -1)
         glm::rotate(glm::mat4{1},
-                    static_cast<float>(frame_state->predictedDisplayTime.get()) / 1'000'000'000,
+                    static_cast<float>(frame_state->predictedDisplayTime.get()) /
+                        1'000'000'000,  // Rotate the object with display time
                     glm::vec3(0, -1, 0));
     glm::mat4 model_matrix_cube =
         glm::translate(glm::mat4{1}, glm::vec3(0, 0.5f, -1.0f)) *  // Put it to (0, 0.5, -1)
@@ -167,16 +168,18 @@ class XrGeometrySourceOp : public Operator {
                     glm::vec3(0, -1, 0));
 
     HolovizOp::InputSpec torus_spec = XrViewsHelper::create_spec_with_views(
-        "torus", HolovizOp::InputType::TRIANGLES_3D, located_views, xr_session, model_matrix_torus);
+        "torus", HolovizOp::InputType::TRIANGLES_3D, xr_composition_layer, model_matrix_torus);
     specs.push_back(torus_spec);
 
     HolovizOp::InputSpec cube_spec = XrViewsHelper::create_spec_with_views(
-        "cube", HolovizOp::InputType::LINES_3D, located_views, xr_session, model_matrix_cube);
+        "cube", HolovizOp::InputType::LINES_3D, xr_composition_layer, model_matrix_cube);
     specs.push_back(cube_spec);
 
     // emit outputs
     op_output.emit(entity, "outputs");
     op_output.emit(specs, "output_specs");
+    op_output.emit(std::static_pointer_cast<xr::CompositionLayerBaseHeader>(xr_composition_layer),
+                   "xr_composition_layer");
     create_render_buffer(context, op_output);
   }
 
@@ -197,13 +200,13 @@ class XrGeometrySourceOp : public Operator {
     auto entity = nvidia::gxf::Entity::New(context.context());
     auto video_buffer = entity.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
 
-    holoscan::Tensor color_tensor = xr_manager_->acquire_color_swapchain();
+    holoscan::Tensor color_tensor = xr_composition_layer_manager_->acquire_color_swapchain();
     // TODO: HolovizOp currently doesn't support read frame buffer for depth buffer
-    holoscan::Tensor depth_tensor = xr_manager_->acquire_depth_swapchain();
+    holoscan::Tensor depth_tensor = xr_composition_layer_manager_->acquire_depth_swapchain();
 
     nvidia::gxf::VideoBufferInfo video_buffer_info;
-    video_buffer_info.width = xr_manager_->get_width();
-    video_buffer_info.height = xr_manager_->get_height();
+    video_buffer_info.width = xr_composition_layer_manager_->get_width();
+    video_buffer_info.height = xr_composition_layer_manager_->get_height();
     video_buffer_info.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA;
     video_buffer_info.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
 
@@ -221,7 +224,41 @@ class XrGeometrySourceOp : public Operator {
   }
 
   Parameter<std::shared_ptr<holoscan::UnboundedAllocator>> allocator_;
-  Parameter<std::shared_ptr<holoscan::XrManager>> xr_manager_;
+  Parameter<std::shared_ptr<holoscan::XrCompositionLayerManager>> xr_composition_layer_manager_;
+};
+
+// Submit the composition layer, release the swapchains and synchronize before end frame.
+class XrCompositionLayerSubmitOp : public Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(XrCompositionLayerSubmitOp)
+
+  XrCompositionLayerSubmitOp() = default;
+
+  void setup(OperatorSpec& spec) override {
+    spec.input<nvidia::gxf::VideoBuffer>("color_render_buffer_output");
+    spec.input<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
+    spec.output<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
+    spec.param(xr_composition_layer_manager_, "xr_composition_layer_manager");
+  }
+
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override {
+    // Get the render buffer output from HolovizOp, but not used. This is just for synchronization.
+    auto color_render_buffer = op_input.receive<gxf::Entity>("color_render_buffer_output").value();
+    auto composition_layer =
+        op_input.receive<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer")
+            .value();
+
+    // Release the swapchains and synchronize
+    cudaStream_t cuda_stream = cudaStreamDefault;
+    xr_composition_layer_manager_->release_swapchains(cuda_stream);
+
+    // Emit the composition layer for the end frame operator
+    op_output.emit(composition_layer, "xr_composition_layer");
+  }
+
+ private:
+  Parameter<std::shared_ptr<holoscan::XrCompositionLayerManager>> xr_composition_layer_manager_;
 };
 
 }  // namespace holoscan::ops
@@ -236,8 +273,8 @@ class HolovizGeometryApp : public holoscan::Application {
     auto xr_session = make_resource<holoscan::XrSession>(
         "xr_session", holoscan::Arg("application_name") = std::string("XR Render Cube"));
 
-    auto xr_manager =
-        make_resource<holoscan::XrManager>("xr_manager", Arg("xr_session") = xr_session);
+    auto xr_composition_layer_manager = make_resource<holoscan::XrCompositionLayerManager>(
+        "xr_composition_layer_manager", Arg("xr_session") = xr_session);
 
     auto xr_begin_frame = make_operator<holoscan::ops::XrBeginFrameOp>(
         "xr_begin_frame", holoscan::Arg("xr_session") = xr_session);
@@ -245,7 +282,9 @@ class HolovizGeometryApp : public holoscan::Application {
         "xr_end_frame", holoscan::Arg("xr_session") = xr_session);
 
     auto source = make_operator<ops::XrGeometrySourceOp>(
-        "source", Arg("xr_manager") = xr_manager, Arg("allocator") = allocator);
+        "source",
+        Arg("xr_composition_layer_manager") = xr_composition_layer_manager,
+        Arg("allocator") = allocator);
 
     // TODO: width and height are hardcoded for now, can't get the width and height from headset at
     // this point
@@ -257,20 +296,21 @@ class HolovizGeometryApp : public holoscan::Application {
                                                     Arg("allocator") = allocator,
                                                     holoviz_args);
 
-    auto buffer_composition = make_operator<ops::XrBufferCompositionOp>(
-        "buffer_composition", Arg("xr_manager") = xr_manager);
+    auto xr_submit = make_operator<ops::XrCompositionLayerSubmitOp>(
+        "xr_submit", Arg("xr_composition_layer_manager") = xr_composition_layer_manager);
+
+    // The core OpenXR render loop: begin frame -> end frame.
+    add_flow(xr_begin_frame, xr_end_frame, {{"xr_frame_state", "xr_frame_state"}});
+    add_flow(xr_begin_frame, source, {{"xr_frame_state", "xr_frame_state"}});
 
     // source -> holoviz
     add_flow(source, visualizer, {{"outputs", "receivers"}});
     add_flow(source, visualizer, {{"output_specs", "input_specs"}});
     add_flow(source, visualizer, {{"render_buffer_output", "render_buffer_input"}});
-    // The core OpenXR render loop: begin frame -> end frame.
-    add_flow(xr_begin_frame, xr_end_frame, {{"xr_frame_state", "xr_frame_state"}});
-    add_flow(xr_begin_frame, source, {{"xr_frame_state", "xr_frame_state"}});
 
-    add_flow(
-        visualizer, buffer_composition, {{"render_buffer_output", "color_render_buffer_output"}});
-    add_flow(buffer_composition, xr_end_frame, {{"xr_composition_layer", "xr_composition_layers"}});
+    add_flow(visualizer, xr_submit, {{"render_buffer_output", "color_render_buffer_output"}});
+    add_flow(source, xr_submit, {{"xr_composition_layer", "xr_composition_layer"}});
+    add_flow(xr_submit, xr_end_frame, {{"xr_composition_layer", "xr_composition_layers"}});
   }
 };
 

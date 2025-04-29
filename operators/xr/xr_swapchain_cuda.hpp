@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_XR_SWAPCHAIN_CUDA_OP_HPP_
-#define SRC_HOLOSCAN_XR_XR_XR_SWAPCHAIN_CUDA_OP_HPP_
+#ifndef XR_SWAPCHAIN_CUDA_HPP
+#define XR_SWAPCHAIN_CUDA_HPP
 
 #include <cuda_runtime.h>
 
@@ -93,4 +93,4 @@ class XrSwapchainCuda {
 
 }  // namespace holoscan
 
-#endif  // SRC_HOLOSCAN_XR_XR_XR_SWAPCHAIN_CUDA_OP_HPP_
+#endif  // XR_SWAPCHAIN_CUDA_HPP

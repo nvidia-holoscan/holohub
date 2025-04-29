@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_XR_BEGIN_FRAME_OP_HPP_
-#define SRC_HOLOSCAN_XR_XR_XR_BEGIN_FRAME_OP_HPP_
+#ifndef XR_BEGIN_FRAME_OP_HPP
+#define XR_BEGIN_FRAME_OP_HPP
 
 #include <memory>
 
@@ -41,4 +41,4 @@ class XrBeginFrameOp : public Operator {
 
 }  // namespace holoscan::ops
 
-#endif  // SRC_HOLOSCAN_XR_XR_XR_BEGIN_FRAME_OP_HPP_
+#endif  // XR_BEGIN_FRAME_OP_HPP

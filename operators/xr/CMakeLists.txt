@@ -32,7 +32,7 @@ add_library(
   xr_composition_layers.cpp
   xr_end_frame_op.cpp
   xr_hand_tracker.cpp
-  xr_manager.cpp
+  xr_composition_layer_manager.cpp
   xr_render_rgbd_op.cpp
   xr_session.cpp
   xr_swapchain_cuda.cpp)

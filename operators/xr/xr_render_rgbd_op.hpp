@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_XR_RENDER_RGBD_OP_HPP_
-#define SRC_HOLOSCAN_XR_XR_XR_RENDER_RGBD_OP_HPP_
+#ifndef XR_RENDER_RGBD_OP_HPP
+#define XR_RENDER_RGBD_OP_HPP
 
 #include <memory>
 #include <optional>
@@ -58,4 +58,4 @@ class XrRenderRgbdOp : public Operator {
 
 }  // namespace holoscan::ops
 
-#endif  // SRC_HOLOSCAN_XR_XR_XR_RENDER_RGBD_OP_HPP_
+#endif  // XR_RENDER_RGBD_OP_HPP

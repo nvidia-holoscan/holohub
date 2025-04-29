@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_PLUGIN_HPP_
-#define SRC_HOLOSCAN_XR_XR_PLUGIN_HPP_
+#ifndef XR_PLUGIN_HPP
+#define XR_PLUGIN_HPP
 
 #include <chrono>
 #include <memory>

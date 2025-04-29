@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_XR_SESSION_HPP_
-#define SRC_HOLOSCAN_XR_XR_XR_SESSION_HPP_
+#ifndef XR_SESSION_HPP
+#define XR_SESSION_HPP
 
 #include <atomic>
 #include <chrono>
@@ -66,6 +66,8 @@ class XrSession : public holoscan::Resource {
   xr::ViewConfigurationDepthRangeEXT view_configuration_depth_range() {
     return view_configuration_depth_range_;
   }
+  xr::EnvironmentBlendMode blend_mode() { return blend_modes_[0]; }
+
 
   vk::raii::PhysicalDevice& vk_physical_device() { return vk_physical_device_; }
   vk::raii::Device& vk_device() { return vk_device_; }
@@ -83,6 +85,7 @@ class XrSession : public holoscan::Resource {
   xr::SessionState session_state_{xr::SessionState::Unknown};
   std::vector<xr::ViewConfigurationView> view_configurations_;
   xr::ViewConfigurationDepthRangeEXT view_configuration_depth_range_;
+  std::vector<xr::EnvironmentBlendMode> blend_modes_;
   mutable xr::DispatchLoaderDynamic dispatch_;
   std::atomic_bool openxr_initialized_{false};
 
@@ -97,4 +100,4 @@ class XrSession : public holoscan::Resource {
 
 }  // namespace holoscan
 
-#endif  // SRC_HOLOSCAN_XR_XR_XR_SESSION_HPP_
+#endif /* XR_SESSION_HPP */

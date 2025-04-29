@@ -97,6 +97,8 @@ void XrSession::initialize() {
   xr::SystemId system_id = xr_instance_->getSystem({xr::FormFactor::HeadMountedDisplay});
   view_configurations_ = xr_instance_->enumerateViewConfigurationViewsToVector(
       system_id, xr::ViewConfigurationType::PrimaryStereo);
+  blend_modes_ = xr_instance_->enumerateEnvironmentBlendModesToVector(
+      system_id, xr::ViewConfigurationType::PrimaryStereo);
 
   // TODO: Enable XR_EXT_view_configuration_depth_range extension and read from
   // xrEnumerateViewConfigurationViews if supported.

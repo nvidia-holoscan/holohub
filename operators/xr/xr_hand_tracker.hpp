@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_HOLOSCAN_XR_XR_HAND_TRACKER_HPP_
-#define SRC_HOLOSCAN_XR_XR_HAND_TRACKER_HPP_
+#ifndef XR_HAND_TRACKER_HPP
+#define XR_HAND_TRACKER_HPP
 
 #include <atomic>
 #include <chrono>
