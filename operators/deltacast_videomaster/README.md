@@ -47,23 +47,25 @@ The path to the VideoMaster SDK is also mandatory and can be given through the V
 
 ## Tests
 
+All tests performed with the DELTACAST VideoMaster SDK `6.30`.
+
 | Application             | Device                  | Configuration                       | Holoscan SDK 2.9 | Holoscan SDK 3.0 | Holoscan SDK 3.1 |
 | ----------------------- | ----------------------- | ----------------------------------- | ---------------- | ---------------- | ---------------- |
-| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / ~~RDMA~~                | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / RDMA                    | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / ~~RDMA~~                | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / RDMA                    | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / ~~RDMA~~               | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / RDMA                   | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / RDMA      | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / RDMA      | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / ~~RDMA~~ | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / RDMA     | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / ~~RDMA~~ | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / RDMA     | PASSED (6.30)    | PASSED (6.30)    | PASSED (6.30)    |
+| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / ~~RDMA~~                | PASSED           | PASSED           | PASSED           |
+| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / RDMA                    | PASSED           | PASSED           | PASSED           |
+| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / ~~RDMA~~                | PASSED           | PASSED           | PASSED           |
+| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / RDMA                    | PASSED           | PASSED           | PASSED           |
+| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / ~~RDMA~~               | PASSED           | PASSED           | PASSED           |
+| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / RDMA                   | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / RDMA      | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / RDMA      | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / ~~RDMA~~ | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / RDMA     | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / ~~RDMA~~ | PASSED           | PASSED           | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / RDMA     | PASSED           | PASSED           | PASSED           |
