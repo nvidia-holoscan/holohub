@@ -144,7 +144,6 @@ class AdvNetworkingRdmaClientOp : public Operator {
       // Set the length the same as the buffer size
       set_packet_lengths(msg, 0, {message_size_.get()});
       
-      HOLOSCAN_LOG_INFO("Sending burst to server with client cmid {}", (void*)conn_id_);      
       send_tx_burst(msg);
       outstanding_tx_wr_ids_[msg->rdma_hdr.wr_id] = msg;
 

@@ -49,41 +49,13 @@ advanced_network:
         - local
       num_bufs: 20
       buf_size: 9000        
-    # - name: "DATA_TX_GPU_SERVER"
-    #   kind: "device"
-    #   affinity: 0
-    #   access:
-    #     - local
-    #   num_bufs: 20
-    #   buf_size: 9000
-    # - name: "DATA_RX_GPU_SERVER"
-    #   kind: "device"
-    #   affinity: 0
-    #   access:
-    #     - local
-    #   num_bufs: 20
-    #   buf_size: 9000
-    # - name: "DATA_TX_GPU_CLIENT"
-    #   kind: "device"
-    #   affinity: 0
-    #   access:
-    #     - local
-    #   num_bufs: 20
-    #   buf_size: 9000
     - name: "DATA_TX_CPU_CLIENT"
       kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 20
-      buf_size: 9000      
-    # - name: "DATA_RX_GPU_CLIENT"
-    #   kind: "device"
-    #   affinity: 0
-    #   access:
-    #     - local
-    #   num_bufs: 20
-    #   buf_size: 9000   
+      buf_size: 9000       
     - name: "DATA_RX_CPU_CLIENT"
       kind: "huge"
       affinity: 0
