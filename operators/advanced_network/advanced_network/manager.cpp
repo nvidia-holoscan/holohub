@@ -126,6 +126,33 @@ ManagerType ManagerFactory::get_manager_type(const Config& config) {
 
 template ManagerType ManagerFactory::get_manager_type<Config>(const Config&);
 
+size_t Manager::get_alignment(MemoryKind kind) {
+  switch (kind) {
+    case MemoryKind::HOST:
+    case MemoryKind::HOST_PINNED:
+    case MemoryKind::HUGE:    
+      return 128;
+    case MemoryKind::DEVICE:
+      return 256;
+    default:
+      return 128;
+  }
+}
+
+Status Manager::populate_pool(struct rte_ring *ring, const std::string &mr_name) {
+  auto mr = cfg_.mrs_[mr_name];
+  auto base = reinterpret_cast<char*>(ar_[mr_name].ptr_);
+
+  for (size_t i = 0; i < mr.num_bufs_; i++) {
+    HOLOSCAN_LOG_INFO("Enqueuing buffer {} to ring at {}", i, (void*)(base + i * mr.adj_size_));
+    if (rte_ring_enqueue(ring, base + i * mr.adj_size_) != 0) {
+      HOLOSCAN_LOG_CRITICAL("Failed to enqueue buffer {} to ring", i);
+      return Status::NULL_PTR;
+    }
+  }
+  return Status::SUCCESS;
+}
+
 Status Manager::allocate_memory_regions() {
   HOLOSCAN_LOG_INFO("Registering memory regions");
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO || ANO_MGR_RDMA
@@ -133,7 +160,7 @@ Status Manager::allocate_memory_regions() {
     void* ptr;
     AllocRegion ar;
     mr.second.ttl_size_ = RTE_ALIGN_CEIL(mr.second.adj_size_ * mr.second.num_bufs_, GPU_PAGE_SIZE);
-
+    size_t align = get_alignment(mr.second.kind_);
     if (mr.second.owned_) {
       switch (mr.second.kind_) {
         case MemoryKind::HOST:

@@ -171,7 +171,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
         HOLOSCAN_LOG_WARN("Received completion for WR ID {}, but it was not found in the outstanding list.", received_wr_id);
       }
 
-      free_tx_burst(burst);
+      free_rx_burst(burst);
     }
   }
 

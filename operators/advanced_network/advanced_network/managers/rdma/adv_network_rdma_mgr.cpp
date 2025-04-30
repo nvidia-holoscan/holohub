@@ -186,14 +186,14 @@ namespace holoscan::advanced_network {
     for (const auto &pd: pd_map_) {
       if (pd.second != nullptr) {
         int access = mr_access_to_ibv(mr.access_);
-        params.ctx_mr_map_[pd.second] = ibv_reg_mr(pd.second, ptr, mr.buf_size_ * mr.num_bufs_, access);
+        params.ctx_mr_map_[pd.second] = ibv_reg_mr(pd.second, ptr, mr.adj_size_ * mr.num_bufs_, access);
         if (params.ctx_mr_map_[pd.second] == nullptr) {
           HOLOSCAN_LOG_CRITICAL("Failed to register MR {} on PD {}", mr.name_, (void*)pd.second);
           return -1;
         }
         else {
           HOLOSCAN_LOG_INFO("Successfully registered MR {} with {} bytes on PD {} ptr {}-{} lkey {} access {}", 
-            mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd.second, (void*)ptr, (void*)((uint8_t*)ptr + mr.buf_size_ * mr.num_bufs_), params.ctx_mr_map_[pd.second]->lkey, mr.access_);
+            mr.name_, mr.buf_size_ * mr.num_bufs_, (void*)pd.second, (void*)ptr, (void*)((uint8_t*)ptr + mr.adj_size_ * mr.num_bufs_), params.ctx_mr_map_[pd.second]->lkey, mr.access_);
         }
       }
     }
@@ -212,48 +212,22 @@ namespace holoscan::advanced_network {
     } 
 
     for (const auto &mr: cfg_.mrs_) {
-      mem_pools_[mr.second.name_] = std::queue<void*>();
-      HOLOSCAN_LOG_INFO("Created mempool for MR {}", mr.second.name_);
+      auto ring = rte_ring_create(mr.second.name_.c_str(), 
+        rte_align32pow2(mr.second.num_bufs_), 
+        rte_socket_id(), 0);
 
-      uint8_t* ptr = (uint8_t*)ar_[mr.second.name_].ptr_;
-      for (int i = 0; i < mr.second.num_bufs_; i++) {
-        HOLOSCAN_LOG_INFO("Pushing packet to pool {} {}", i, (void*)ptr);
-        void* ptr = (void*)(ptr + i * mr.second.adj_size_);
-        mem_pools_[mr.second.name_].push(ptr);
+      if (ring == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to create ring for MR {}", mr.second.name_);
+        return -1;
       }
 
-    // if (register_mrs() != Status::SUCCESS) {
-    //   HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
-    //   return -1;
-    // }
+      mem_pools_[mr.second.name_] = ring;
+      HOLOSCAN_LOG_INFO("Created mempool for MR {}", mr.second.name_);
 
-    // if (map_mrs() != Status::SUCCESS) {
-    //   HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
-    //   return -1;
-    // }
-
-    // for (const auto &mr: cfg_.mrs_) {
-    //   HOLOSCAN_LOG_INFO("Creating mempool for MR {}", mr.second.name_);
-    //   auto pool = create_pktmbuf_pool(mr.second.name_, mr.second);
-    //   if (pool == nullptr) {
-    //     HOLOSCAN_LOG_CRITICAL(
-    //           "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
-    //           mr.second.name_,
-    //           mr.second.num_bufs_,
-    //           mr.second.adj_size_,
-    //           (void*)pool);
-    //     return - 1;
-    //   }
-    //   else {
-    //     HOLOSCAN_LOG_INFO("Successfully created mempool for MR {} with {} buffers of size {}", 
-    //     mr.second.name_, mr.second.num_bufs_, mr.second.adj_size_);
-    //   }
-
-    //   mr_pools_[mr.second.name_] = pool;  
-    //   if (mr.second.kind_ == MemoryKind::HUGE) {
-    //     HOLOSCAN_LOG_INFO("huge at {}", 
-    //       pool->pool_data);
-    //   }
+      if (populate_pool(ring, mr.second.name_) != Status::SUCCESS) {
+        HOLOSCAN_LOG_CRITICAL("Failed to populate pool for MR {}", mr.second.name_);
+        return -1;
+      }
 
       int ret = rdma_register_mr(mr.second, ar_[mr.second.name_].ptr_);
       if (ret < 0) {
@@ -1024,18 +998,13 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {} len {}", (int64_t)burst->
       HOLOSCAN_LOG_ERROR("Failed to get packet from pool");
       return Status::NO_FREE_BURST_BUFFERS;
     }
-    // HOLOSCAN_LOG_INFO("Allocating {} packets from packet pool", burst->rdma_hdr.num_pkts);
-    // if (rte_pktmbuf_alloc_bulk(burst_pool->second,
-    //                           reinterpret_cast<rte_mbuf**>(burst->pkts[0]),
-    //                           static_cast<int>(burst->rdma_hdr.num_pkts)) != 0) {
-    //   HOLOSCAN_LOG_ERROR("Failed to get packet from packet pool");
-    //   rte_mempool_put(tx_burst_pool_, reinterpret_cast<void*>(burst->pkts[0]));
-    //   return Status::NO_FREE_PACKET_BUFFERS;
-    // }
-    for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
-      burst->pkts[0][i] = burst_pool->second.front();
-      HOLOSCAN_LOG_INFO("Getting packet from pool {}:{}", i, (void*)burst->pkts[0][i]);      
-      burst_pool->second.pop();
+
+    HOLOSCAN_LOG_INFO("QUEUE SIZE: {}", rte_ring_count(burst_pool->second));
+    int rx = rte_ring_dequeue_bulk(burst_pool->second, reinterpret_cast<void**>(burst->pkts[0]), burst->rdma_hdr.num_pkts, nullptr);
+    if (rx != burst->rdma_hdr.num_pkts) {
+      HOLOSCAN_LOG_ERROR("Asked for {} packets, got {}", burst->rdma_hdr.num_pkts, rx);
+      rte_ring_enqueue_bulk(burst_pool->second, reinterpret_cast<void**>(burst->pkts[0]), burst->rdma_hdr.num_pkts, nullptr);
+      return Status::NO_FREE_BURST_BUFFERS;
     }
 
     HOLOSCAN_LOG_INFO("First burst is {}", (void*)burst->pkts[0][0]);
@@ -1061,7 +1030,7 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {} len {}", (int64_t)burst->
       return false;
     }
 
-    if (burst_pool->second.size() < burst->rdma_hdr.num_pkts) {
+    if (rte_ring_count(burst_pool->second) < burst->rdma_hdr.num_pkts) {
       return false;
     }
 
@@ -1468,23 +1437,19 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {} len {}", (int64_t)burst->
   }
 
   void RdmaMgr::free_rx_burst(BurstParams* burst) {
-    auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
-    if (burst_pool != mem_pools_.end()) {
-      for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
-        burst_pool->second.push(burst->pkts[0][i]);
-      }
-    }
     rte_mempool_put(rx_meta, burst);
   }
 
   void RdmaMgr::free_tx_burst(BurstParams* burst) {
     auto burst_pool = mem_pools_.find(burst->rdma_hdr.local_mr_name);
     if (burst_pool != mem_pools_.end()) {
-      for (int i = 0; i < burst->rdma_hdr.num_pkts; i++) {
-        burst_pool->second.push(burst->pkts[0][i]);
+      int ret = rte_ring_enqueue_bulk(burst_pool->second, reinterpret_cast<void**>(burst->pkts[0]), burst->rdma_hdr.num_pkts, nullptr);
+      if (ret != burst->rdma_hdr.num_pkts) {
+        HOLOSCAN_LOG_CRITICAL("Asked to free {} packets, only enqueued {}", burst->rdma_hdr.num_pkts, ret);
       }
     }
-    rte_mempool_put(tx_burst_pool_, (void*)burst->pkts[0]);    
+    
+    rte_mempool_put(tx_burst_pool_, (void*)burst->pkts[0]);
     rte_mempool_put(pkt_len_pool_, (void*)burst->pkt_lens[0]);
     burst->rdma_hdr.num_pkts = 0;
     rte_mempool_put(tx_meta, burst);
@@ -1589,7 +1554,7 @@ HOLOSCAN_LOG_INFO("POSTING RECEIVE for wrid {} addr {} len {}", (int64_t)burst->
 
     // Set up memory region sizes
     for (auto& mr : cfg_.mrs_) {
-      mr.second.adj_size_ = mr.second.buf_size_;
+      mr.second.adj_size_ = RTE_ALIGN_CEIL(mr.second.buf_size_, get_alignment(mr.second.kind_));
     }    
 
     for (const auto& intf : cfg_.ifs_) {

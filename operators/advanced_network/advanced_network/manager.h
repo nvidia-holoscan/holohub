@@ -110,6 +110,8 @@ class Manager {
   virtual Status allocate_memory_regions();
   virtual void adjust_memory_regions() {}
   void init_rx_core_q_map();
+  size_t get_alignment(MemoryKind kind);
+  Status populate_pool(struct rte_ring *ring, const std::string &mr_name);
 };
 
 class ManagerFactory {

@@ -192,7 +192,7 @@ class RdmaMgr : public Manager {
     std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_tx_rings_map_;
     std::unordered_map<struct rdma_cm_id*, struct rte_ring*> client_rx_rings_map_;
     std::unordered_map<struct rdma_cm_id*, struct rte_ring*> server_rx_rings_map_;
-    std::unordered_map<std::string, std::queue<void*>> mem_pools_;
+    std::unordered_map<std::string, struct rte_ring *> mem_pools_;
     struct rte_mempool* tx_burst_pool_;
     rdma_event_channel* cm_event_channel_;
     std::mutex threads_mutex_;
