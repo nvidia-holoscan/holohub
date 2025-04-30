@@ -1,6 +1,6 @@
 {
 	"application": {
-			"name": "Endoscopy Tool Tracking Distributed",
+			"name": "UCX-based Distributed Endoscopy Tool Tracking",
 			"authors": [
 			{
 				"name": "Holoscan Team",

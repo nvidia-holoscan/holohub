@@ -31,8 +31,12 @@ class V49PsdPacketizer : public Operator {
     Parameter<uint32_t> manufacturer_oui;
     Parameter<uint32_t> device_code;
     Parameter<uint16_t> num_channels;
+    Parameter<int> print_every_n_packets;
 
     std::vector<std::shared_ptr<PacketSender>> packet_senders;
     std::vector<rust::Vec<uint8_t>> output_data;
+
+    int packet_send_counter = 0;
+    std::chrono::steady_clock::time_point start;
 };
 }  // namespace holoscan::ops

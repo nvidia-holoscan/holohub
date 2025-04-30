@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,8 +104,8 @@ PYBIND11_MODULE(_volume_renderer, m) {
                     const std::shared_ptr<Allocator>&,
                     uint32_t,
                     uint32_t,
-                    float,
-                    float,
+                    std::optional<float>,
+                    std::optional<float>,
                     const std::shared_ptr<holoscan::CudaStreamPool>&,
                     const std::string&>(),
            "fragment"_a,

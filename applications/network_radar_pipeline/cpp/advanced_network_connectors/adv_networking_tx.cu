@@ -63,7 +63,10 @@ void AdvConnectorOpTx::setup(OperatorSpec& spec) {
                           "eth_dst_addr",
                           "Ethernet destination address",
                           "Ethernet destination address");
-  spec.param<uint16_t>(port_id_, "port_id", "Interface number", "Interface number");
+  spec.param<std::string>(interface_name_,
+                          "interface_name",
+                          "Port name",
+                          "Name of the port to poll on from the advanced_network config");
 }
 
 void AdvConnectorOpTx::populate_dummy_headers(UDPIPV4Pkt& pkt) {
@@ -95,22 +98,28 @@ void AdvConnectorOpTx::initialize() {
   register_converter<holoscan::advanced_network::NetworkConfig>();
   holoscan::Operator::initialize();
 
+  port_id_ = get_port_id(interface_name_.get());
+  if (port_id_ == -1) {
+    HOLOSCAN_LOG_ERROR("Invalid TX port {} specified in the config", interface_name_.get());
+    exit(1);
+  }
+
   // Read some parameters from config
-  if (cfg_.get().ifs_[0].tx_.queues_.size() != 1) {
+  if (cfg_.get().ifs_[port_id_].tx_.queues_.size() != 1) {
     HOLOSCAN_LOG_ERROR("Currently can only handle 1 Tx queue");
     return;
   }
 
   payload_size_ = RFPacket::packet_size(samples_per_packet_.get());
-  batch_size_ = cfg_.get().ifs_[0].tx_.queues_[0].common_.batch_size_;
-  hds_ = cfg_.get().ifs_[0].tx_.queues_[0].common_.split_boundary_;
+  batch_size_ = cfg_.get().ifs_[port_id_].tx_.queues_[0].common_.batch_size_;
+  hds_ = cfg_.get().ifs_[port_id_].tx_.queues_[0].common_.split_boundary_;
   gpu_direct_ = false;
   for (const auto& mr : cfg_.get().mrs_) {
-    if (mr.first == cfg_.get().ifs_[0].tx_.queues_[0].common_.mrs_[0] &&
+    if (mr.first == cfg_.get().ifs_[port_id_].tx_.queues_[0].common_.mrs_[0] &&
         mr.second.kind_ == MemoryKind::DEVICE)
       gpu_direct_ = true;
   }
-  mgr_ = cfg_.get().common_.mgr_;
+  mgr_ = manager_type_to_string(cfg_.get().common_.manager_type);
 
   HOLOSCAN_LOG_INFO("mgr_: {}", mgr_.c_str());
   HOLOSCAN_LOG_INFO("gpu_direct_: {}", gpu_direct_);
@@ -308,7 +317,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
                           get_num_packets(first.msg),
                           first.waveform_id,
                           first.channel_id);
-        op_output.emit(first.msg, "burst_out");
+        send_tx_burst(first.msg);
         out_q.pop();
       }
     }
@@ -440,7 +449,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
                         get_num_packets(first.msg),
                         first.waveform_id,
                         first.channel_id);
-      op_output.emit(first.msg, "burst_out");
+      send_tx_burst(first.msg);
       out_q.pop();
     }
   } else {
@@ -449,7 +458,7 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
                       get_num_packets(msg),
                       rf_data->waveform_id,
                       rf_data->channel_id);
-    op_output.emit(msg, "burst_out");
+    send_tx_burst(msg);
   }
 
   // Increment index
