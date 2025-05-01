@@ -13,18 +13,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Scripts for HoloHub website generation and management."""
-
-# Import common utilities to make them available through the package
-from .common_utils import (
-    get_git_root,
-    get_metadata_file_commit_date,
-    format_date,
-    get_last_modified_date,
-    get_file_from_git,
-    extract_image_from_readme,
-    logger,
-    COMPONENT_TYPES,
-    HOLOHUB_REPO_URL,
-    RANKING_LEVELS,
-)

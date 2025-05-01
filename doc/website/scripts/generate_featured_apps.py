@@ -16,23 +16,22 @@
 """Generate the featured apps HTML content based on the most recent metadata.json files."""
 
 import json
-import logging
 import os
 import sys
 from pathlib import Path
 
 # Add the script directory to the path to enable importing common_utils
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-if str(script_dir) not in sys.path:
-    sys.path.insert(0, str(script_dir))
+sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-from common_utils import (
+# Import after adding script_dir to path
+from common_utils import (  # noqa: E402
+    COMPONENT_TYPES,
     get_git_root,
     get_metadata_file_commit_date,
     logger,
-    COMPONENT_TYPES,
 )
-from extract_readme_images import update_featured_apps_html
+from extract_readme_images import update_featured_apps_html  # noqa: E402
 
 # Constants
 OUTPUT_FILE = "docs/_data/featured-apps.html"
@@ -59,7 +58,9 @@ def find_most_recent_metadata_files(git_repo_path: Path, count: int = 3) -> list
 
         for metadata_path in component_dir.rglob("metadata.json"):
             # Skip certain components
-            if any(t in str(metadata_path) for t in ["datawriter", "operators", "xr_hello_holoscan"]):
+            if any(
+                t in str(metadata_path) for t in ["datawriter", "operators", "xr_hello_holoscan"]
+            ):
                 continue
 
             # Determine the unique application name
@@ -73,7 +74,10 @@ def find_most_recent_metadata_files(git_repo_path: Path, count: int = 3) -> list
             commit_date = get_metadata_file_commit_date(metadata_path, git_repo_path)
 
             # Only keep the most recent version of each application
-            if app_name not in unique_applications or commit_date > unique_applications[app_name][1]:
+            if (
+                app_name not in unique_applications
+                or commit_date > unique_applications[app_name][1]
+            ):
                 unique_applications[app_name] = (metadata_path, commit_date)
 
     # Convert dictionary to sorted list of the most recent unique applications
@@ -109,7 +113,6 @@ def find_readme_path(metadata_dir: Path, git_repo_path: Path) -> Path:
 def get_component_path(metadata_path: Path, git_repo_path: Path) -> str:
     """Generate the relative path for the component documentation link."""
     rel_path = metadata_path.parent.relative_to(git_repo_path)
-    component_type = rel_path.parts[0]
 
     if rel_path.name in ["cpp", "python"]:
         rel_path = rel_path.parent
@@ -142,10 +145,10 @@ def generate_featured_app_card(metadata_path: Path, git_repo_path: Path) -> str:
 
         component_path = get_component_path(metadata_path, git_repo_path)
         component_type = metadata_path.parent.relative_to(git_repo_path).parts[0]
-        app_name = component_path.split('/')[-1]
+        app_name = component_path.split("/")[-1]
 
         # Generate card HTML - placeholder image will be updated by extract_readme_images.py
-        card_html = f'''
+        card_html = f"""
     <a href="{component_path}" class="featured-app-card">
       <h3>
         {name}
@@ -156,7 +159,7 @@ def generate_featured_app_card(metadata_path: Path, git_repo_path: Path) -> str:
       <div class="app-description">
         {description}
       </div>
-    </a>'''
+    </a>"""
 
         return card_html
 
@@ -181,12 +184,12 @@ def generate_featured_apps_html(n: int = 3):
 
         cards_html = ''.join(cards)
         # Create the featured apps container HTML
-        featured_apps_html = f'''<div class="featured-apps">
+        featured_apps_html = f"""<div class="featured-apps">
   <h2>Featured Components</h2>
   <div class="featured-apps-container" id="featured-apps-container">{cards_html}
   </div>
 </div>
-'''
+"""
 
         with open(OUTPUT_FILE, "w") as f:
             f.write(featured_apps_html)

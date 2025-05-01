@@ -20,26 +20,28 @@ thumbnails during the mkdocs build process.
 
 import os
 import sys
-from bs4 import BeautifulSoup
 from pathlib import Path
+
+from bs4 import BeautifulSoup
 
 # Add the script directory to the path to enable importing common_utils
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-if str(script_dir) not in sys.path:
-    sys.path.insert(0, str(script_dir))
+sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-from common_utils import (
-    logger,
+# Import after adding script_dir to path
+from common_utils import (  # noqa: E402
     COMPONENT_TYPES,
     HOLOHUB_REPO_URL,
     extract_image_from_readme,
     get_git_root,
+    logger,
 )
 
 # Base directories and URLs
 SCRIPT_DIR = Path(__file__).parent
 WEBSITE_DIR = SCRIPT_DIR.parent
 FEATURED_APPS_PATH = WEBSITE_DIR / "docs" / "_data" / "featured-apps.html"
+
 
 def get_readme_content(component_type, component_name, href=None):
     """Reads the README.md content from the local filesystem, handling various path variations.
@@ -60,24 +62,26 @@ def get_readme_content(component_type, component_name, href=None):
         readme_paths = []
 
         # If href is provided, use it as the primary path
-        if href and '/' in href:
-            href_path = href.strip('/')
+        if href and "/" in href:
+            href_path = href.strip("/")
             readme_paths.append(git_repo_path / href_path / "README.md")
             href_parent = Path(href_path).parent
-            if str(href_parent) != '.':  # Only if parent is not root
+            if str(href_parent) != ".":  # Only if parent is not root
                 readme_paths.append(git_repo_path / href_parent / "README.md")
 
-        readme_paths.extend([
-            git_repo_path / component_type / component_name / "README.md",
-            git_repo_path / component_type / component_name / "python" / "README.md",
-            git_repo_path / component_type / component_name / "cpp" / "README.md",
-        ])
+        readme_paths.extend(
+            [
+                git_repo_path / component_type / component_name / "README.md",
+                git_repo_path / component_type / component_name / "python" / "README.md",
+                git_repo_path / component_type / component_name / "cpp" / "README.md",
+            ]
+        )
 
         # Try each possible path
         for path in readme_paths:
             if path.exists():
                 logger.info(f"Found README at {path}")
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, "r", encoding="utf-8") as f:
                     return f.read(), path
 
         # No README found
@@ -88,6 +92,7 @@ def get_readme_content(component_type, component_name, href=None):
         logger.warning(f"Error reading README for {component_type}/{component_name}: {e}")
         return None, None
 
+
 def get_full_image_url(relative_path, readme_path=None):
     """Converts a relative image path to a full GitHub URL using the README path for context.
 
@@ -95,24 +100,26 @@ def get_full_image_url(relative_path, readme_path=None):
         relative_path: The relative path to the image from the README
         readme_path: Path object pointing to the README file that referenced the image
     """
-    if relative_path.startswith('./'):
+    if relative_path.startswith("./"):
         relative_path = relative_path[2:]
 
     # Handle already absolute URLs
-    if relative_path.startswith(('http://', 'https://')):
+    if relative_path.startswith(("http://", "https://")):
         return relative_path
 
     # Handle already raw GitHub URLs
-    if relative_path.startswith('https://raw.githubusercontent.com/'):
+    if relative_path.startswith("https://raw.githubusercontent.com/"):
         return relative_path
 
     # Convert GitHub blob URLs to raw URLs
-    if relative_path.startswith(HOLOHUB_REPO_URL) and 'blob/' in relative_path:
+    if relative_path.startswith(HOLOHUB_REPO_URL) and "blob/" in relative_path:
         # Convert from:
         # https://github.com/nvidia-holoscan/holohub/blob/main/path/to/image.png
         # To:
         # https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/path/to/image.png
-        return relative_path.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
+        return relative_path.replace("github.com", "raw.githubusercontent.com").replace(
+            "/blob/", "/"
+        )
 
     # Use the README path to resolve the relative path
     if readme_path:
@@ -127,7 +134,9 @@ def get_full_image_url(relative_path, readme_path=None):
         try:
             rel_image_path = image_path.relative_to(git_root)
             # Use raw.githubusercontent.com instead of github.com/blob
-            return f"https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/{rel_image_path}"
+            return (
+                f"https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/{rel_image_path}"
+            )
         except ValueError:
             # If we can't make it relative to git root, use absolute path
             logger.warning(f"Could not make {image_path} relative to git root")
@@ -142,6 +151,7 @@ def get_full_image_url(relative_path, readme_path=None):
     logger.warning(f"Using direct URL without context: {relative_path}")
     return relative_path
 
+
 def update_featured_apps_html():
     """Updates the featured-apps.html with images from READMEs."""
     if not FEATURED_APPS_PATH.exists():
@@ -149,11 +159,11 @@ def update_featured_apps_html():
         return
 
     # Parse the featured-apps.html file
-    with open(FEATURED_APPS_PATH, 'r', encoding='utf-8') as f:
+    with open(FEATURED_APPS_PATH, "r", encoding="utf-8") as f:
         html_content = f.read()
 
-    soup = BeautifulSoup(html_content, 'html.parser')
-    app_cards = soup.select('.featured-app-card')
+    soup = BeautifulSoup(html_content, "html.parser")
+    app_cards = soup.select(".featured-app-card")
 
     updated = False
 
@@ -167,11 +177,11 @@ def update_featured_apps_html():
 
     for card in app_cards:
         # Extract component type and name from href
-        href = card.get('href', '')
-        if not href or '/' not in href:
+        href = card.get("href", "")
+        if not href or "/" not in href:
             continue
 
-        parts = href.split('/')
+        parts = href.split("/")
         if len(parts) < 2:
             continue
 
@@ -187,44 +197,49 @@ def update_featured_apps_html():
         image_path = extract_image_from_readme(readme_content)
 
         # Get the image tag
-        img_tag = card.select_one('.app-thumbnail img')
+        img_tag = card.select_one(".app-thumbnail img")
         if not img_tag:
             continue
 
         if image_path:
             # README image found - use it
             full_img_url = get_full_image_url(image_path, readme_path)
-            logger.info(f"Found image in README for {component_type}/{component_name}: {full_img_url}")
+            logger.info(
+                f"Found image in README for {component_type}/{component_name}: {full_img_url}"
+            )
 
             # Update the image src and data-src
-            img_tag['src'] = full_img_url
-            img_tag['data-src'] = full_img_url
+            img_tag["src"] = full_img_url
+            img_tag["data-src"] = full_img_url
 
             # Remove unnecessary attributes
-            if 'data-app-name' in img_tag.attrs:
-                del img_tag.attrs['data-app-name']
+            if "data-app-name" in img_tag.attrs:
+                del img_tag.attrs["data-app-name"]
 
             updated = True
         else:
             # No README image found - use a default image based on component type
-            logger.info(f"No image found in README for {component_type}/{component_name}, using default")
+            logger.info(
+                f"No image found in README for {component_type}/{component_name}, using default"
+            )
 
             # Select the appropriate default image
             default_img_url = default_images.get(component_type, generic_default)
 
             # Update the image src and data-src
-            img_tag['src'] = default_img_url
-            img_tag['data-src'] = default_img_url
+            img_tag["src"] = default_img_url
+            img_tag["data-src"] = default_img_url
 
             updated = True
 
     if updated:
         # Write back the updated HTML
-        with open(FEATURED_APPS_PATH, 'w', encoding='utf-8') as f:
+        with open(FEATURED_APPS_PATH, "w", encoding="utf-8") as f:
             f.write(str(soup))
         logger.info("Updated featured-apps.html with README images")
     else:
         logger.info("No changes made to featured-apps.html")
+
 
 if __name__ in {"__main__", "<run_path>"}:
     update_featured_apps_html()

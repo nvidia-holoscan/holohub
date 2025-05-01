@@ -16,7 +16,6 @@
 """Generate the code reference pages and copy Jupyter notebooks and README files."""
 
 import json
-import logging
 import os.path
 import re
 import subprocess
@@ -27,20 +26,20 @@ from pathlib import Path
 
 # Add the script directory to the path to enable importing common_utils
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-if str(script_dir) not in sys.path:
-    sys.path.insert(0, str(script_dir))
+sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-import mkdocs_gen_files
-
-from common_utils import (
-    get_git_root,
-    format_date,
-    get_last_modified_date,
-    get_file_from_git,
-    logger,
+# Import after adding script_dir to path
+import mkdocs_gen_files  # noqa: E402
+from common_utils import (  # noqa: E402
     COMPONENT_TYPES,
     RANKING_LEVELS,
+    format_date,
+    get_file_from_git,
+    get_git_root,
+    get_last_modified_date,
+    logger,
 )
+
 
 def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     """Create the frontmatter for the documentation page."""
@@ -338,8 +337,10 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     content_with_linked_header = readme_text.replace(full_header, new_header, 1)
 
     # Now find the first paragraph after the header
-    content_after_header = content_with_linked_header[content_with_linked_header.find(new_header) + len(new_header):]
-    paragraphs = re.split(r'\n\s*\n', content_after_header)
+    content_after_header = content_with_linked_header[
+        content_with_linked_header.find(new_header) + len(new_header) :
+    ]
+    paragraphs = re.split(r"\n\s*\n", content_after_header)
 
     # If there's at least one paragraph, insert metadata after it
     if paragraphs and paragraphs[0].strip():
@@ -347,11 +348,22 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
         # Skip if it's just metadata
         if first_para.startswith(":octicons-"):
             # Insert metadata right after header
-            return content_with_linked_header.replace(new_header, f"{new_header}\n{metadata_header}", 1)
+            return content_with_linked_header.replace(
+                new_header, f"{new_header}\n{metadata_header}", 1
+            )
 
         # Insert metadata after first paragraph
-        replacement_point = content_with_linked_header.find(new_header) + len(new_header) + content_after_header.find(first_para) + len(first_para)
-        return content_with_linked_header[:replacement_point] + f"\n\n{metadata_header}" + content_with_linked_header[replacement_point:]
+        replacement_point = (
+            content_with_linked_header.find(new_header)
+            + len(new_header)
+            + content_after_header.find(first_para)
+            + len(first_para)
+        )
+        return (
+            content_with_linked_header[:replacement_point]
+            + f"\n\n{metadata_header}"
+            + content_with_linked_header[replacement_point:]
+        )
 
     # Fallback: insert metadata right after header
     return content_with_linked_header.replace(new_header, f"{new_header}\n{metadata_header}", 1)
@@ -386,16 +398,16 @@ def create_page(
         if header_info:
             # Get content after header
             header_text = header_info[0]
-            content_after_header = readme_text[readme_text.find(header_text) + len(header_text):]
+            content_after_header = readme_text[readme_text.find(header_text) + len(header_text) :]
 
             # Find first paragraph that's not metadata (doesn't start with :octicons)
-            paragraphs = re.split(r'\n\s*\n', content_after_header)
+            paragraphs = re.split(r"\n\s*\n", content_after_header)
             for para in paragraphs:
                 para = para.strip()
                 if para and not para.startswith(":octicons-"):
                     # Clean up and truncate description
-                    description = re.sub(r'\[|\]|\(|\)|#|\*|`', '', para)  # Remove markdown syntax
-                    description = re.sub(r'\s+', ' ', description).strip()  # Normalize whitespace
+                    description = re.sub(r"\[|\]|\(|\)|#|\*|`", "", para)  # Remove markdown syntax
+                    description = re.sub(r"\s+", " ", description).strip()  # Normalize whitespace
                     if len(description) > 160:
                         description = description[:157] + "..."
                     metadata["description"] = description

@@ -16,10 +16,10 @@
 """Common utilities shared across website scripts."""
 
 import logging
-import subprocess
-from pathlib import Path
-from datetime import datetime
 import re
+import subprocess
+from datetime import datetime
+from pathlib import Path
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -39,6 +39,7 @@ RANKING_LEVELS = {
     5: "Level 5 - Obsolete",
 }
 
+
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
     result = subprocess.run(
@@ -46,13 +47,23 @@ def get_git_root() -> Path:
     )
     return Path(result.stdout.strip())
 
+
 def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> datetime:
     """Get the date of the first commit that introduced the metadata file."""
     try:
         rel_file_path = str(metadata_path.relative_to(git_repo_path))
         repo_path = str(git_repo_path)
         # Use --reverse to sort from oldest to newest, and take the first one
-        cmd = ["git", "-C", repo_path, "log", "--follow", "--format=%at", "--reverse", rel_file_path]
+        cmd = [
+            "git",
+            "-C",
+            repo_path,
+            "log",
+            "--follow",
+            "--format=%at",
+            "--reverse",
+            rel_file_path,
+        ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamps = result.stdout.strip().split("\n")
 
@@ -64,6 +75,7 @@ def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> d
 
     # Fallback to file creation time or modification time if creation time not available
     return datetime.fromtimestamp(metadata_path.stat().st_mtime)
+
 
 def format_date(date_str: str) -> str:
     """Format a date string in YYYY-MM-DD format to Month DD, YYYY format."""
@@ -87,6 +99,7 @@ def format_date(date_str: str) -> str:
     except (ValueError, IndexError):
         # Return the original string if we can't parse it
         return date_str
+
 
 def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
     """Get the last modified date of a file or directory using git or stat."""
@@ -118,6 +131,7 @@ def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
     # Fallback if both methods fail
     return "Unknown"
 
+
 def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str:
     """Get file content from a specific git revision."""
     try:
@@ -132,6 +146,7 @@ def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str
             logger.error(f"Path {file_path} is not within the Git repository")
         raise e
 
+
 def extract_image_from_readme(readme_content):
     """Extracts the first image from a README file."""
     if not readme_content:
@@ -144,7 +159,7 @@ def extract_image_from_readme(readme_content):
         return html_match.group(1).strip()
 
     # Try Markdown image syntax
-    md_pattern = r'!\[[^\]]*\]\(([^)]+)\)'
+    md_pattern = r"!\[[^\]]*\]\(([^)]+)\)"
     md_match = re.search(md_pattern, readme_content, re.IGNORECASE)
     if md_match:
         return md_match.group(1).strip()
