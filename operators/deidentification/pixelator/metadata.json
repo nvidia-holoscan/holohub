@@ -1,27 +1,38 @@
 {
-  "name": "deidentification",
-  "description": "Pixelator-based deidentification operator for anonymizing images (e.g., surgical video frames) in Holoscan workflows.",
-  "keywords": ["deidentification", "pixelator", "pixelation", "anonymization", "holoscan", "operator"],
-  "authors": [
-    {
-      "name": "NVIDIA Holoscan Team",
-      "affiliation": "NVIDIA"
+  "operator": {
+    "name": "PixelatorOp",
+    "authors": [
+      {
+        "name": "NVIDIA Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "Python",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial release."
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "3.0.0",
+      "tested_versions": [
+        "3.1.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "deidentification",
+      "pixelation",
+      "anonymization"
+    ],
+    "ranking": 1,
+    "dependencies": {
+      "python-packages": {
+        "cupy": {
+          "version": ">=9.0.0"
+        }
+      }
     }
-  ],
-  "language": "Python",
-  "version": "1.0.0",
-  "changelog": {
-    "1.0.0": "Initial release."
-  },
-  "dependencies": {
-    "libraries": [
-      { "name": "cupy", "version": ">=9.0.0" }
-    ]
-  },
-  "entry_points": {
-    "python": "pixelator_op.py"
-  },
-  "license": {
-    "spdx": "Apache-2.0"
   }
-}
