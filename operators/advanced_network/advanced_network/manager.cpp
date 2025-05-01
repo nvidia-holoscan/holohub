@@ -472,4 +472,9 @@ Status Manager::get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server
   return Status::NOT_SUPPORTED;
 }
 
+Status Manager::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  HOLOSCAN_LOG_CRITICAL("RDMA set header not implemented");
+  return Status::NOT_SUPPORTED;
+}
+
 };  // namespace holoscan::advanced_network

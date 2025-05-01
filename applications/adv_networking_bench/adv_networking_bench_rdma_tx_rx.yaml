@@ -41,28 +41,28 @@ advanced_network:
       access:
         - local
       num_bufs: 20
-      buf_size: 9000  
+      buf_size: 9000000  
     - name: "DATA_TX_CPU_SERVER"
       kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 20
-      buf_size: 9000        
+      buf_size: 9000000        
     - name: "DATA_TX_CPU_CLIENT"
       kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 20
-      buf_size: 9000       
+      buf_size: 90000000       
     - name: "DATA_RX_CPU_CLIENT"
       kind: "huge"
       affinity: 0
       access:
         - local
       num_bufs: 20
-      buf_size: 9000           
+      buf_size: 90000000           
 
     interfaces:
     - name: data1
@@ -111,12 +111,12 @@ advanced_network:
 rdma_bench_server:
   server_address: 192.168.10.2
   server_port: 4096
-  message_size: 8000
+  message_size: 8000000
   writes: true
   reads: false
 
 rdma_bench_client:
-  message_size: 8000
+  message_size: 8000000
   writes: false
   reads: false
   client_address: 192.168.11.2

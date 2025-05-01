@@ -65,7 +65,7 @@ enum class Status {
 */
 
 
-enum class AdvNetRDMAOpCode {
+enum class RDMAOpCode {
   CONNECT,
   SEND,
   RECEIVE,
@@ -78,7 +78,7 @@ enum class AdvNetRDMAOpCode {
 
 struct AdvNetRdmaBurstHdr {
   uint8_t version;
-  AdvNetRDMAOpCode  opcode;
+  RDMAOpCode  opcode;
   Status status;
   uint16_t port_id;
   uint16_t q_id;  

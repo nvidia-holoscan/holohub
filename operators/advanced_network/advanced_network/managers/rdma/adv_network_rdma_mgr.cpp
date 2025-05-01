@@ -396,18 +396,18 @@ namespace holoscan::advanced_network {
   return Status::SUCCESS;
   } 
 
-  AdvNetRDMAOpCode RdmaMgr::ibv_opcode_to_adv_net_opcode(ibv_wc_opcode opcode) {
+  RDMAOpCode RdmaMgr::ibv_opcode_to_adv_net_opcode(ibv_wc_opcode opcode) {
     switch (opcode) {
       case IBV_WC_SEND:
-        return AdvNetRDMAOpCode::SEND;
+        return RDMAOpCode::SEND;
       case IBV_WC_RECV:
-        return AdvNetRDMAOpCode::RECEIVE;
+        return RDMAOpCode::RECEIVE;
       case IBV_WC_RDMA_WRITE:
-        return AdvNetRDMAOpCode::RDMA_WRITE;
+        return RDMAOpCode::RDMA_WRITE;
       case IBV_WC_RDMA_READ:
-        return AdvNetRDMAOpCode::RDMA_READ;
+        return RDMAOpCode::RDMA_READ;
       default:
-        return AdvNetRDMAOpCode::INVALID;
+        return RDMAOpCode::INVALID;
     }
   }
   
@@ -502,7 +502,7 @@ namespace holoscan::advanced_network {
       }
 
       switch (burst->rdma_hdr.opcode) {
-        case AdvNetRDMAOpCode::SEND:
+        case RDMAOpCode::SEND:
         { 
           // Get lkey for this PD
           auto pd = pd_map_.find(tparams->client_id->verbs);
@@ -545,7 +545,7 @@ namespace holoscan::advanced_network {
 
           break; 
         }
-        case AdvNetRDMAOpCode::RECEIVE:
+        case RDMAOpCode::RECEIVE:
         {
           // Get lkey for this PD
           auto pd = pd_map_.find(tparams->client_id->verbs);
@@ -592,13 +592,13 @@ namespace holoscan::advanced_network {
           }
           break;
         }
-        case AdvNetRDMAOpCode::RDMA_WRITE: [[fall_through]];
-        case AdvNetRDMAOpCode::RDMA_WRITE_IMM:
+        case RDMAOpCode::RDMA_WRITE: [[fall_through]];
+        case RDMAOpCode::RDMA_WRITE_IMM:
         {
 
           break;
         }
-        case AdvNetRDMAOpCode::RDMA_READ:
+        case RDMAOpCode::RDMA_READ:
         {
 
           break;
@@ -611,6 +611,17 @@ namespace holoscan::advanced_network {
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
     return rdma_connect_to_server(dst_addr, dst_port, "", conn_id);
+  }
+
+  Status RdmaMgr::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+    burst->rdma_hdr.opcode = op_code;
+    burst->rdma_hdr.conn_id = conn_id;
+    burst->rdma_hdr.server = is_server;
+    burst->rdma_hdr.num_pkts = num_pkts;
+    burst->rdma_hdr.num_segs = 1;
+    burst->rdma_hdr.wr_id = wr_id;
+    strcpy(burst->rdma_hdr.local_mr_name, local_mr_name.c_str());         
+    return Status::SUCCESS;
   }
 
   Status RdmaMgr::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {

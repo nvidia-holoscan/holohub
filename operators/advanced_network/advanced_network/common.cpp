@@ -343,6 +343,10 @@ Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_p
   return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, queue_id, conn_id);
 }
 
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  return g_ano_mgr->rdma_set_header(burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
+}
+
 };  // namespace holoscan::ops
 
 /**

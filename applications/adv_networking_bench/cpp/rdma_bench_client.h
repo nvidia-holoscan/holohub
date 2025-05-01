@@ -130,14 +130,7 @@ class AdvNetworkingRdmaClientOp : public Operator {
       auto msg = create_burst_params();
 
       outstanding_completions++;
-
-      msg->rdma_hdr.opcode = AdvNetRDMAOpCode::SEND;
-      msg->rdma_hdr.conn_id = conn_id_;
-      msg->rdma_hdr.server = false;
-      msg->rdma_hdr.num_pkts = 1;
-      msg->rdma_hdr.num_segs = 1;
-      msg->rdma_hdr.wr_id = wr_id++;
-      strcpy(msg->rdma_hdr.local_mr_name, "DATA_TX_CPU_CLIENT");      
+      ret = rdma_set_header(msg, RDMAOpCode::SEND, conn_id_, false, 1, wr_id++, "DATA_TX_CPU_CLIENT");
 
       while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
 
@@ -146,23 +139,19 @@ class AdvNetworkingRdmaClientOp : public Operator {
       
       send_tx_burst(msg);
       outstanding_tx_wr_ids_[msg->rdma_hdr.wr_id] = msg;
-
-      sleep(1);
     }
 
     if (get_rx_burst(&burst, conn_id_, false) == Status::SUCCESS) {
-      HOLOSCAN_LOG_INFO("Received burst from server with client cmid {}", (void*)conn_id_);
-
       outstanding_completions--;
 
       uint64_t received_wr_id = burst->rdma_hdr.wr_id;
-      HOLOSCAN_LOG_INFO("Received completion for WR ID: {}", received_wr_id);
+      HOLOSCAN_LOG_DEBUG("Received completion for WR ID: {}", received_wr_id);
 
       // Find the received WR ID in the list of outstanding IDs
       auto it = outstanding_tx_wr_ids_.find(received_wr_id);
       if (it != outstanding_tx_wr_ids_.end()) {
         // Found the ID, remove it from the vector
-        HOLOSCAN_LOG_INFO("Found and removing matching outstanding WR ID: {}", received_wr_id);
+        HOLOSCAN_LOG_DEBUG("Found and removing matching outstanding WR ID: {}", received_wr_id);
         free_tx_burst(it->second);
         outstanding_tx_wr_ids_.erase(it);
       } else {
