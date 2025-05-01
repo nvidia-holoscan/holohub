@@ -298,24 +298,13 @@ namespace holoscan::advanced_network {
     } 
 
     // qp_params.rx_ring = rx_ring;  
-    if (is_server) {
-      qp_params.tx_ring = server_tx_rings_.front();
-      server_tx_rings_.pop();
-      server_tx_rings_map_[params->client_id] = qp_params.tx_ring;
+    qp_params.tx_ring = tx_rings_.front();
+    tx_rings_.pop();
+    tx_rings_map_[params->client_id] = qp_params.tx_ring;
 
-      qp_params.rx_ring = server_rx_rings_.front();
-      server_rx_rings_.pop();
-      server_rx_rings_map_[params->client_id] = qp_params.rx_ring;
-    }
-    else {
-      qp_params.tx_ring = client_tx_rings_.front();
-      client_tx_rings_.pop();
-      client_tx_rings_map_[params->client_id] = qp_params.tx_ring;
-
-      qp_params.rx_ring = client_rx_rings_.front();
-      client_rx_rings_.pop();
-      client_rx_rings_map_[params->client_id] = qp_params.rx_ring;
-    }
+    qp_params.rx_ring = rx_rings_.front();
+    rx_rings_.pop();
+    rx_rings_map_[params->client_id] = qp_params.rx_ring;
 
     params->qp_params = qp_params;
     HOLOSCAN_LOG_INFO("Successfully configured queues for client {}", (void*)params->client_id);
@@ -365,26 +354,14 @@ namespace holoscan::advanced_network {
   Status RdmaMgr::send_tx_burst(BurstParams *burst) {
   struct rte_ring *ring;
 
-  if (burst->rdma_hdr.server) {
-    auto ri = server_tx_rings_map_.find(reinterpret_cast<struct rdma_cm_id *>(burst->rdma_hdr.conn_id));
-    if (ri == server_tx_rings_map_.end()) {
-      HOLOSCAN_LOG_ERROR("Invalid server connection ID in send_tx_burst: {}",
-                        burst->rdma_hdr.conn_id);
-      return Status::INVALID_PARAMETER;
-    }
-
-    ring = ri->second;
+  auto ri = tx_rings_map_.find(reinterpret_cast<struct rdma_cm_id *>(burst->rdma_hdr.conn_id));
+  if (ri == tx_rings_map_.end()) {
+    HOLOSCAN_LOG_ERROR("Invalid server connection ID in send_tx_burst: {}",
+                      burst->rdma_hdr.conn_id);
+    return Status::INVALID_PARAMETER;
   }
-  else {
-    auto ri = client_tx_rings_map_.find(reinterpret_cast<struct rdma_cm_id *>(burst->rdma_hdr.conn_id));
-    if (ri == client_tx_rings_map_.end()) {
-      HOLOSCAN_LOG_ERROR("Invalid client connection ID in send_tx_burst: {}",
-                        burst->rdma_hdr.conn_id);
-      return Status::INVALID_PARAMETER;
-    }    
 
-    ring = ri->second;
-  }
+  ring = ri->second;
 
   if (rte_ring_enqueue(ring, reinterpret_cast<void*>(burst)) != 0) {
     free_tx_burst(burst);
@@ -1153,13 +1130,13 @@ namespace holoscan::advanced_network {
 
                 // Return the TX and RX rings to the pool
                 if (thread_params.qp_params.tx_ring != nullptr) {
-                  client_tx_rings_.push(thread_params.qp_params.tx_ring);
-                  client_tx_rings_map_.erase(cm_event->id);
+                  tx_rings_.push(thread_params.qp_params.tx_ring);
+                  tx_rings_map_.erase(cm_event->id);
                 }
 
                 if (thread_params.qp_params.rx_ring != nullptr) {
-                  client_rx_rings_.push(thread_params.qp_params.rx_ring);
-                  client_rx_rings_map_.erase(cm_event->id);
+                  rx_rings_.push(thread_params.qp_params.rx_ring);
+                  rx_rings_map_.erase(cm_event->id);
                 }
 
                 thread_params.client_id = nullptr;
@@ -1198,53 +1175,29 @@ namespace holoscan::advanced_network {
 
   int RdmaMgr::setup_pools_and_rings() {
     // RX rings
-    HOLOSCAN_LOG_INFO("Setting up RX per-queue rings");
+    HOLOSCAN_LOG_INFO("Setting up TX/RX per-queue rings");
 
     for (int i = 0; i < MAX_RDMA_CONNECTIONS; i++) {
-      std::string ring_name = "S_RX_RING_" + std::to_string(i);
-      HOLOSCAN_LOG_DEBUG("Setting up server RX ring {}", ring_name);
+      std::string ring_name = "RX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up RX ring {}", ring_name);
       struct rte_ring* ring =
           rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
               RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
       if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate server RX ring {}!", ring_name);
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate RX ring {}!", ring_name);
         return -1;
       }
-      server_rx_rings_.push(ring);
-      ring_name = "C_RX_RING_" + std::to_string(i);
-      HOLOSCAN_LOG_DEBUG("Setting up client RX ring {}", ring_name);
+      rx_rings_.push(ring);
+
+      ring_name = "TX_RING_" + std::to_string(i);
+      HOLOSCAN_LOG_DEBUG("Setting up TX ring {}", ring_name);
       ring = rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
               RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
       if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate client RX ring {}!", ring_name);
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate TX ring {}!", ring_name);
         return -1;
       }
-      client_rx_rings_.push(ring);
-    }
-
-    HOLOSCAN_LOG_INFO("Setting up TX per-queue rings");
-    // TX per-queue rings
-    for (int i = 0; i < MAX_RDMA_CONNECTIONS; i++) {
-      std::string ring_name = "S_TX_RING_" + std::to_string(i);
-      HOLOSCAN_LOG_DEBUG("Setting up server TX ring {}", ring_name);
-      struct rte_ring* ring =
-          rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
-              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-      if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate server TX ring {}!", ring_name);
-        return -1;
-      }
-      server_tx_rings_.push(ring);
-
-      ring_name = "C_TX_RING_" + std::to_string(i);
-      HOLOSCAN_LOG_DEBUG("Setting up client TX ring {}", ring_name);
-      ring = rte_ring_create(ring_name.c_str(), 2048, rte_socket_id(),
-              RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-      if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("Failed to allocate client TX ring {}!", ring_name);
-        return -1;
-      }
-      client_tx_rings_.push(ring);
+      tx_rings_.push(ring);      
     }
 
     // Packet length buffers
@@ -1498,7 +1451,7 @@ namespace holoscan::advanced_network {
 
   Status RdmaMgr::get_rx_burst(BurstParams **burst, uintptr_t conn_id, bool server) {
     if (server) {
-      const auto ring = server_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
+      const auto ring = rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
       if (ring == nullptr) {
         HOLOSCAN_LOG_CRITICAL("No server RX ring found for conn_id {:#x}", conn_id);
         return Status::INVALID_PARAMETER;
@@ -1511,7 +1464,7 @@ namespace holoscan::advanced_network {
       return Status::SUCCESS;
     }
     else {
-      const auto ring = client_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
+      const auto ring = rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
       if (ring == nullptr) {
         HOLOSCAN_LOG_CRITICAL("No client RX ring found for conn_id {:#x}", conn_id);
         return Status::INVALID_PARAMETER;

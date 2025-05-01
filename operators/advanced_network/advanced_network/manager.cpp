@@ -144,7 +144,6 @@ Status Manager::populate_pool(struct rte_ring *ring, const std::string &mr_name)
   auto base = reinterpret_cast<char*>(ar_[mr_name].ptr_);
 
   for (size_t i = 0; i < mr.num_bufs_; i++) {
-    HOLOSCAN_LOG_INFO("Enqueuing buffer {} to ring at {}", i, (void*)(base + i * mr.adj_size_));
     if (rte_ring_enqueue(ring, base + i * mr.adj_size_) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to enqueue buffer {} to ring", i);
       return Status::NULL_PTR;
