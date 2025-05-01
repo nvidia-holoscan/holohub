@@ -93,7 +93,7 @@ class Manager {
   virtual Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
   virtual Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id);
   virtual Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
-
+  virtual RDMAOpCode rdma_get_opcode(BurstParams* burst);
   int numa_from_mem(const MemoryRegionConfig& mr) const;
   Status register_mrs();
   Status map_mrs(); 

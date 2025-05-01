@@ -365,6 +365,9 @@ Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id
   return g_ano_mgr->rdma_set_header(burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
 }
 
+RDMAOpCode rdma_get_opcode(BurstParams* burst) {
+  return g_ano_mgr->rdma_get_opcode(burst);
+}
 
 };  // namespace holoscan::advanced_network
 

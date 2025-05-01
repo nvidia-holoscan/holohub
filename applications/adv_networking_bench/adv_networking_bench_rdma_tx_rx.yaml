@@ -104,13 +104,15 @@ rdma_bench_server:
   server_address: 192.168.10.2
   server_port: 4096
   message_size: 8000000
-  writes: true
-  reads: false
+  send: true
+  receive: true  
+  server: true
 
 rdma_bench_client:
   message_size: 8000000
-  writes: false
-  reads: false
   client_address: 192.168.11.2
   server_address: 192.168.10.2
   server_port: 4096
+  receive: true
+  send: true  
+  server: false

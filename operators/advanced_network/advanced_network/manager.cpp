@@ -567,4 +567,9 @@ Status Manager::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_
   return Status::NOT_SUPPORTED;
 }
 
+RDMAOpCode Manager::rdma_get_opcode(BurstParams* burst) {
+  HOLOSCAN_LOG_CRITICAL("RDMA get opcode not implemented");
+  return RDMAOpCode::INVALID;
+}
+
 };  // namespace holoscan::advanced_network

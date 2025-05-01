@@ -613,6 +613,10 @@ namespace holoscan::advanced_network {
     return rdma_connect_to_server(dst_addr, dst_port, "", conn_id);
   }
 
+  RDMAOpCode RdmaMgr::rdma_get_opcode(BurstParams* burst) {
+    return burst->rdma_hdr.opcode;
+  }
+
   Status RdmaMgr::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
     burst->rdma_hdr.opcode = op_code;
     burst->rdma_hdr.conn_id = conn_id;
@@ -652,6 +656,8 @@ namespace holoscan::advanced_network {
     HOLOSCAN_LOG_CRITICAL("Couldn't find an available queue ID for server {}:{}", server_addr, server_port);
     return Status::NO_SPACE_AVAILABLE;
   }
+
+
 
   Status RdmaMgr::rdma_connect_to_server(const std::string &dst_addr, uint16_t dst_port, const std::string &src_addr, uintptr_t *conn_id) {
     struct rdma_cm_id *cm_id = nullptr;
@@ -707,7 +713,7 @@ namespace holoscan::advanced_network {
 
     struct sockaddr *src_addr_p = src_addr.empty() ? nullptr : (struct sockaddr *)&src_addr_in;
 
-    HOLOSCAN_LOG_INFO("Resolving server address: {}", dst_addr);
+    HOLOSCAN_LOG_INFO("Client resolving server address: {}", dst_addr);
     // Resolve the server's address
     if (rdma_resolve_addr(cm_id, src_addr_p, (struct sockaddr *)&addr, 2000)) {
       HOLOSCAN_LOG_CRITICAL("Failed to resolve address");
@@ -733,7 +739,7 @@ namespace holoscan::advanced_network {
       return Status::CONNECT_FAILURE;
     }
     else {
-      HOLOSCAN_LOG_INFO("Resolved address for client: {}", (void*)cm_id);
+      HOLOSCAN_LOG_INFO("Client resolved server address: {}", (void*)cm_id);
     }
 
     rdma_ack_cm_event(event);
@@ -764,7 +770,7 @@ namespace holoscan::advanced_network {
       return Status::CONNECT_FAILURE;
     }
     else {
-      HOLOSCAN_LOG_INFO("Resolved route for client: {}", (void*)cm_id);
+      HOLOSCAN_LOG_INFO("Client {} resolved route for server", (void*)cm_id);
       rdma_ack_cm_event(event);
     }
 
@@ -838,7 +844,7 @@ namespace holoscan::advanced_network {
       return Status::CONNECT_FAILURE;
     }
     else {
-      HOLOSCAN_LOG_INFO("Established connection for client: {}", (void*)cm_id);
+      HOLOSCAN_LOG_INFO("Client {} established connection to server", (void*)cm_id);
     }
 
     rdma_ack_cm_event(event);
@@ -1094,7 +1100,7 @@ namespace holoscan::advanced_network {
               continue;
             }
             else {
-              HOLOSCAN_LOG_INFO("Accepted connection for client ID {}", (void*)params.client_id);
+              HOLOSCAN_LOG_INFO("Server accepted connection for client ID {}", (void*)params.client_id);
             }
           }
 
@@ -1494,7 +1500,7 @@ namespace holoscan::advanced_network {
     if (server) {
       const auto ring = server_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
       if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("No RX ring found for conn_id {}", conn_id);
+        HOLOSCAN_LOG_CRITICAL("No server RX ring found for conn_id {:#x}", conn_id);
         return Status::INVALID_PARAMETER;
       }
 
@@ -1507,7 +1513,7 @@ namespace holoscan::advanced_network {
     else {
       const auto ring = client_rx_rings_map_[reinterpret_cast<struct rdma_cm_id*>(conn_id)];
       if (ring == nullptr) {
-        HOLOSCAN_LOG_CRITICAL("No RX ring found for conn_id {}", conn_id);
+        HOLOSCAN_LOG_CRITICAL("No client RX ring found for conn_id {:#x}", conn_id);
         return Status::INVALID_PARAMETER;
       }
 

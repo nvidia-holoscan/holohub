@@ -27,8 +27,7 @@
 #include "doca_bench_op_tx.h"
 #endif
 #if ANO_MGR_RDMA
-#include "rdma_bench_server.h"
-#include "rdma_bench_client.h"
+#include "rdma_bench.h"
 #endif
 #include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
@@ -118,7 +117,7 @@ class App : public holoscan::Application {
     } else if (mgr_type == holoscan::advanced_network::ManagerType::RDMA) {
 #if ANO_MGR_RDMA
       if (rdma_server_en) {
-        auto bench_server = make_operator<ops::AdvNetworkingRdmaServerOp>(
+        auto bench_server = make_operator<ops::AdvNetworkingRdmaOp>(
             "rdma_bench_server",
             from_config("rdma_bench_server"),
             make_condition<BooleanCondition>("is_alive", true));
@@ -126,7 +125,7 @@ class App : public holoscan::Application {
       }
 
       if (rdma_client_en) {
-        auto bench_client = make_operator<ops::AdvNetworkingRdmaClientOp>(
+        auto bench_client = make_operator<ops::AdvNetworkingRdmaOp>(
             "rdma_bench_client",
             from_config("rdma_bench_client"),
             make_condition<BooleanCondition>("is_alive", true));
