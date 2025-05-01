@@ -29,7 +29,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["extended reality", "visualization", "stereoscopic projection matrices", "XR composition layer management", "OpenXR", "rendering", "HoloViz UI", "stereo", "XR"],
+		"tags": ["extended reality", "visualization", "stereoscopic projection matrices", "XR composition layer management", "OpenXR", "rendering", "stereo"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [
