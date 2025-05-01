@@ -43,7 +43,55 @@ static inline constexpr uint32_t MAX_NUM_TX_QUEUES = 32;
 static inline constexpr uint32_t MAX_INTERFACES = 4;
 static inline constexpr int MAX_NUM_SEGS = 4;
 
+/**
+ * @brief Return status codes from communication with the NIC
+ *
+ */
+enum class Status {
+  SUCCESS,
+  NULL_PTR,
+  NO_FREE_BURST_BUFFERS,
+  NO_FREE_PACKET_BUFFERS,
+  NOT_READY,
+  INVALID_PARAMETER,
+  NO_SPACE_AVAILABLE,
+  NOT_SUPPORTED,
+  GENERIC_FAILURE,
+  CONNECT_FAILURE,
+  INTERNAL_ERROR,
+};
 
+enum class RDMAOpCode {
+  CONNECT,
+  SEND,
+  RECEIVE,
+  RDMA_WRITE,
+  RDMA_WRITE_IMM,  
+  RDMA_READ,
+  RDMA_READ_IMM,
+  INVALID
+};
+
+struct AdvNetRdmaBurstHdr {
+  uint8_t version;
+  RDMAOpCode  opcode;
+  Status status;
+  uint16_t port_id;
+  uint16_t q_id;  
+  bool server;
+  bool tx;
+  size_t num_pkts;
+  int num_segs;
+  uint64_t wr_id;
+  uintptr_t conn_id; 
+  char  local_mr_name[32];
+  char  remote_mr_name[32];
+  void        *raddr;
+  uint64_t     dst_key;
+  uint32_t     imm;
+  uint32_t    server_addr;
+  uint16_t    server_port;
+};
 
 /**
  * @brief Header of BurstParams
@@ -79,7 +127,10 @@ struct BurstHeader {
  *
  */
 struct BurstParams {
-  BurstHeader hdr;
+  union {
+    BurstHeader hdr;
+    AdvNetRdmaBurstHdr rdma_hdr;
+  };
 
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
@@ -119,7 +170,7 @@ inline MemoryKind GetMemoryKindFromString(const std::string& mode_str) {
 
 template <typename T>
 uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
-  uint32_t access;
+  uint32_t access = 0;
   for (const auto& it : list) {
     const auto str = it.template as<std::string>();
     if (str == "local") {
@@ -136,21 +187,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
   return access;
 }
 
-/**
- * @brief Return status codes from communication with the NIC
- *
- */
-enum class Status {
-  SUCCESS,
-  NULL_PTR,
-  NO_FREE_BURST_BUFFERS,
-  NO_FREE_PACKET_BUFFERS,
-  NOT_READY,
-  INVALID_PARAMETER,
-  NO_SPACE_AVAILABLE,
-  NOT_SUPPORTED,
-  INTERNAL_ERROR
-};
+
 
 /**
  * @brief Location of packet buffers
@@ -190,13 +227,14 @@ enum class ManagerType {
   DPDK,
   DOCA,
   RIVERMAX,
+  RDMA,
 };
 
 static constexpr const char* ANO_MGR_STR__DPDK = "dpdk";
 static constexpr const char* ANO_MGR_STR__GPUNETIO = "gpunetio";
 static constexpr const char* ANO_MGR_STR__RIVERMAX = "rivermax";
+static constexpr const char* ANO_MGR_STR__RDMA = "rdma";
 static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
-
 /**
  * @brief Convert string to manager type
  *
@@ -207,13 +245,59 @@ inline ManagerType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
   if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
   if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
+  if (str == ANO_MGR_STR__RDMA) return ManagerType::RDMA;
   if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
   throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
                         ANO_MGR_STR__DPDK + "/" +
                         ANO_MGR_STR__GPUNETIO + "/" +
                         ANO_MGR_STR__RIVERMAX + "/" +
+                        ANO_MGR_STR__RDMA + "/" +
                         ANO_MGR_STR__DEFAULT);
 }
+
+enum class RDMAMode {
+  CLIENT,
+  SERVER,
+
+  INVALID
+};
+
+inline RDMAMode GetRDMAModeFromString(const std::string &mode_str) {
+  if (mode_str == "client") {
+    return RDMAMode::CLIENT;
+  }
+  else if (mode_str == "server") {
+    return RDMAMode::SERVER;
+  }
+
+  return RDMAMode::INVALID;
+}
+
+enum class RDMATransportMode {
+  RC,
+  UC,
+  UD,
+
+  INVALID
+};
+
+inline RDMATransportMode GetRDMATransportModeFromString(const std::string &mode_str) {
+  if (mode_str == "RC") {
+    return RDMATransportMode::RC;
+  }
+  else if (mode_str == "UC") {
+    return RDMATransportMode::UC;
+  }
+
+  return RDMATransportMode::INVALID;
+}
+
+
+struct RDMAConfig {
+  RDMAMode mode_ = RDMAMode::INVALID;
+  RDMATransportMode xmode_ = RDMATransportMode::INVALID;
+  uint16_t port_ = 0;
+};
 
 /**
  * @brief Convert manager type to string
@@ -229,6 +313,8 @@ inline std::string manager_type_to_string(ManagerType type) {
       return ANO_MGR_STR__GPUNETIO;
     case ManagerType::RIVERMAX:
       return ANO_MGR_STR__RIVERMAX;
+    case ManagerType::RDMA:
+      return ANO_MGR_STR__RDMA;
     case ManagerType::DEFAULT:
       return ANO_MGR_STR__DEFAULT;
     default:
@@ -417,6 +503,7 @@ struct InterfaceConfig {
   std::string name_;
   std::string address_;
   uint16_t port_id_;
+  RDMAConfig rdma_;
   RxConfig rx_;
   TxConfig tx_;
 };
@@ -432,6 +519,24 @@ struct NetworkConfig {
   uint32_t rx_meta_buffers_;
   LogLevel::Level log_level_;
 };
+
+template <typename Config>
+auto get_rdma_cfg_en(const Config& config) {
+  bool server = false;
+  bool client = false;
+
+  auto& yaml_nodes = config.yaml_nodes();
+  for (const auto& yaml_node : yaml_nodes) {
+    auto node = yaml_node["advanced_network"]["cfg"]["interfaces"];
+    for (const auto& intf : node) {
+      std::string mode = intf["rdma_mode"].template as<std::string>();
+      if (mode == "server") { server = true; }
+      else if (mode == "client") { client = true; }
+    }
+  }
+
+  return std::make_tuple(server, client);
+}   
 
 template <typename Config>
 auto get_rx_tx_configs_enabled(const Config& config) {

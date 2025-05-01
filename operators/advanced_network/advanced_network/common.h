@@ -466,6 +466,15 @@ Status get_rx_burst(BurstParams** burst, int port);
 Status get_rx_burst(BurstParams** burst);
 
 /**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param conn_id Connection ID
+ * @param server True if server, false if client
+ */
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure
@@ -516,6 +525,13 @@ uint16_t get_num_rx_queues(int port_id);
  * @param queue Queue ID on the port
  */
 void flush_port_queue(int port, int queue);
+
+// RDMA functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id);
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id);
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
 
 };  // namespace holoscan::advanced_network
 
@@ -701,6 +717,15 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
+
+          // RDMA config
+          try {
+            ifcfg.rdma_.mode_    = holoscan::advanced_network::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
+            ifcfg.rdma_.xmode_   = holoscan::advanced_network::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
+            ifcfg.rdma_.port_    = intf["rdma_port"].as<uint16_t>();            
+          } catch (const std::exception& e) {
+            // Non-RDMA config
+          }          
 
           try {
             const auto& rx = intf["rx"];

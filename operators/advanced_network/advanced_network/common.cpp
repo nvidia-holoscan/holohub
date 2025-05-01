@@ -303,6 +303,11 @@ Status get_rx_burst(BurstParams** burst) {
   return g_ano_mgr->get_rx_burst(burst);
 }
 
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, conn_id, server);
+}
+
 uint16_t get_num_rx_queues(int port_id) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_num_rx_queues(port_id);
@@ -337,6 +342,27 @@ Status adv_net_init(NetworkConfig &config) {
   }
 
   return Status::SUCCESS;
+}
+
+// RDMA Functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
+}
+
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
+}
+
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+  return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
+}
+
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
+  return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, queue_id, conn_id);
+}
+
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  return g_ano_mgr->rdma_set_header(burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
 }
 
 
@@ -578,8 +604,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     q.common_.offloads_.reserve(offload.size());
     for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
-    return false;
   }
 #endif
   return true;
