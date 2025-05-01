@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: LicenseRef-Apache2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,101 +25,22 @@ import traceback
 import urllib.parse
 from pathlib import Path
 
+# Add the script directory to the path to enable importing common_utils
+script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+if str(script_dir) not in sys.path:
+    sys.path.insert(0, str(script_dir))
+
 import mkdocs_gen_files
 
-# log stuff
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
-COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
-
-RANKING_LEVELS = {
-    0: "Level 0 - Core Stable",
-    1: "Level 1 - Highly Reliable",
-    2: "Level 2 - Trusted",
-    3: "Level 3 - Developmental",
-    4: "Level 4 - Experimental",
-    5: "Level 5 - Obsolete",
-}
-
-
-def get_git_root() -> Path:
-    """Get the absolute path to the Git repository root."""
-    result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
-    )
-    return Path(result.stdout.strip())
-
-
-def format_date(date_str: str) -> str:
-    """Format a date string in YYYY-MM-DD format to Month DD, YYYY format."""
-    try:
-        year, month, day = date_str.split("-")
-        months = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-        ]
-        return f"{months[int(month)-1]} {int(day)}, {year}"
-    except (ValueError, IndexError):
-        # Return the original string if we can't parse it
-        return date_str
-
-
-def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
-    """Get the last modified date of a file or directory using git or stat."""
-    # Try using git to get the last modified date
-    try:
-        rel_file_path = str(file_path.relative_to(git_repo_path))
-        repo_path = str(git_repo_path)
-        cmd = ["git", "-C", repo_path, "log", "-1", "--format=%ad", "--date=short", rel_file_path]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        git_date = result.stdout.strip()
-
-        if git_date:  # If we got a valid date from git
-            return format_date(git_date)
-    except (subprocess.CalledProcessError, ValueError):
-        # Git command failed or path is not in repo, we'll fall back to stat
-        pass
-
-    # Second try: Filesystem stat date
-    try:
-        cmd = ["stat", "-c", "%y", str(file_path)]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        stat_date = result.stdout.split()[0].strip()  # Get just the date portion
-
-        if stat_date:  # If we got a valid date from stat
-            return format_date(stat_date)
-    except (subprocess.CalledProcessError, ValueError, IndexError):
-        logger.error(f"Failed to get modification date for {file_path}")
-
-    # Fallback if both methods fail
-    return "Unknown"
-
-
-def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str:
-    """Get file content from a specific git revision."""
-    try:
-        rel_file_path = file_path.relative_to(git_repo_path)
-        cmd = ["git", "-C", str(git_repo_path), "show", f"{git_ref}:{rel_file_path}"]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return result.stdout
-    except (subprocess.CalledProcessError, ValueError) as e:
-        if isinstance(e, subprocess.CalledProcessError):
-            logger.error(f"Git error: {e.stderr}")
-        else:
-            logger.error(f"Path {file_path} is not within the Git repository")
-        raise e
-
+from common_utils import (
+    get_git_root,
+    format_date,
+    get_last_modified_date,
+    get_file_from_git,
+    logger,
+    COMPONENT_TYPES,
+    RANKING_LEVELS,
+)
 
 def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     """Create the frontmatter for the documentation page."""
@@ -126,6 +48,9 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     # Title
     title = metadata["name"]
     title += f" ({archive_version})" if archive_version else " (latest)"
+
+    # Extract description - first try to get it from metadata, then fallback to extracting from readme
+    description = metadata.get("description", "")
 
     # Tags
     tags = metadata["tags"]
@@ -135,6 +60,7 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
 
     return f"""---
 title: "{title}"
+description: "{description}"
 tags:{tags_str}
 ---
 """
@@ -377,7 +303,7 @@ def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
 
 def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     """Finds the main header in the readme_text, replaces it with a linked
-    version, and inserts the metadata_header.
+    version, and inserts the metadata_header after the first paragraph of content.
 
     Args:
         readme_text: The original text of the README.
@@ -408,11 +334,27 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
         # Setext style: '===' or '---'
         new_header = f"{header_with_url}\n==="
 
-    # Append the metadata header
-    new_header += f"\n{metadata_header}"
+    # First, replace just the header (without metadata)
+    content_with_linked_header = readme_text.replace(full_header, new_header, 1)
 
-    # Replace the original header
-    return readme_text.replace(full_header, new_header, 1)
+    # Now find the first paragraph after the header
+    content_after_header = content_with_linked_header[content_with_linked_header.find(new_header) + len(new_header):]
+    paragraphs = re.split(r'\n\s*\n', content_after_header)
+
+    # If there's at least one paragraph, insert metadata after it
+    if paragraphs and paragraphs[0].strip():
+        first_para = paragraphs[0].strip()
+        # Skip if it's just metadata
+        if first_para.startswith(":octicons-"):
+            # Insert metadata right after header
+            return content_with_linked_header.replace(new_header, f"{new_header}\n{metadata_header}", 1)
+
+        # Insert metadata after first paragraph
+        replacement_point = content_with_linked_header.find(new_header) + len(new_header) + content_after_header.find(first_para) + len(first_para)
+        return content_with_linked_header[:replacement_point] + f"\n\n{metadata_header}" + content_with_linked_header[replacement_point:]
+
+    # Fallback: insert metadata right after header
+    return content_with_linked_header.replace(new_header, f"{new_header}\n{metadata_header}", 1)
 
 
 def create_page(
@@ -436,6 +378,28 @@ def create_page(
     Returns:
         Generated page content as string
     """
+
+    # Extract description from README if not in metadata
+    if not metadata.get("description"):
+        # Find the first paragraph after the header that's not metadata
+        header_info = extract_markdown_header(readme_text)
+        if header_info:
+            # Get content after header
+            header_text = header_info[0]
+            content_after_header = readme_text[readme_text.find(header_text) + len(header_text):]
+
+            # Find first paragraph that's not metadata (doesn't start with :octicons)
+            paragraphs = re.split(r'\n\s*\n', content_after_header)
+            for para in paragraphs:
+                para = para.strip()
+                if para and not para.startswith(":octicons-"):
+                    # Clean up and truncate description
+                    description = re.sub(r'\[|\]|\(|\)|#|\*|`', '', para)  # Remove markdown syntax
+                    description = re.sub(r'\s+', ' ', description).strip()  # Normalize whitespace
+                    if len(description) > 160:
+                        description = description[:157] + "..."
+                    metadata["description"] = description
+                    break
 
     # Frontmatter
     archive_version = archive["version"] if archive and "version" in archive else None

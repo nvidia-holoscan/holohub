@@ -12,3 +12,4 @@ mkdocs-site-urls
 mkdocs-git-revision-date-localized-plugin
 mike
 mistune
+beautifulsoup4
