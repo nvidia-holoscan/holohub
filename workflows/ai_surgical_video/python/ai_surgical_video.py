@@ -36,6 +36,7 @@ from import_utils import lazy_import
 from holohub.aja_source import AJASourceOp
 from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
+from operators.deidentification.pixelator import PixelatorOp
 
 cuda = lazy_import("cuda.cuda")
 hololink_module = lazy_import("hololink")
@@ -57,19 +58,39 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class ForwardOp(Operator):
+class HolovizDelegatorOp(Operator):
     """
-    This operator is used to forward the input to the following operator(s).
-    This is specially useful to abstract different possible conditional flows when one flow is broadcasted to multiple operators.
+    This operator receives the input tensors and forwards them to the Holoviz operator.
+    It also ensures that all required tensors are present in the input message.
+    If any tensor is missing, it is initialized with zeros.
     """
+
+    def __init__(
+        self,
+        *args,
+        holoviz_tensor_names: list[str] | None = None,
+        segmentation_shape: tuple[int, int, int] = (1, 1, 1),
+        **kwargs,
+    ):
+        self.holoviz_tensor_names = holoviz_tensor_names or []
+        self.segmentation_zeros = cp.zeros(segmentation_shape, dtype=cp.uint8)
+        self.detection_zeros = cp.zeros([1, 2, 2], dtype=cp.float32)
+        super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
-        in_message = op_input.receive("in")
-        op_output.emit(in_message, "out")
+        out_message = op_input.receive("in")
+        missing_tensors = set(self.holoviz_tensor_names) - set(out_message.keys())
+        if missing_tensors:
+            for tensor in missing_tensors:
+                if tensor == "out_tensor":
+                    out_message[tensor] = self.segmentation_zeros
+                else:
+                    out_message[tensor] = self.detection_zeros
+        op_output.emit(out_message, "out")
 
 
 class FrameSamplerOp(Operator):
@@ -147,60 +168,6 @@ class OutOfBodyPostprocessorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class DeIdentificationOp(Operator):
-    """
-    This operator is used to deidentify the input image.
-    """
-
-    def __init__(
-        self,
-        *args,
-        detection_labels: list | None = None,
-        segmentation_shape: tuple[int, int, int] = (1, 1, 1),
-        block_size_h: int = 16,
-        block_size_w: int = 16,
-        **kwargs,
-    ):
-        self.block_size_h = block_size_h
-        self.block_size_w = block_size_w
-        self.detection_labels = detection_labels or []
-        self.segmentation_shape = segmentation_shape
-        super().__init__(*args, **kwargs)
-
-    def setup(self, spec: OperatorSpec):
-        spec.input("in")
-        spec.output("out")
-
-    def compute(self, op_input, op_output, context):
-        in_message = op_input.receive("in")
-        image = cp.asarray(in_message[""])
-        # Pixelate the image by downsampling and upsampling
-        h, w = image.shape[:2]
-        small_h = h // self.block_size_h
-        small_w = w // self.block_size_w
-        # Reshape and mean across blocks to downsample
-        reshaped = image.reshape(small_h, self.block_size_h, small_w, self.block_size_w, -1)
-        downsampled = cp.mean(reshaped, axis=(1, 3))
-        # Repeat each pixel to upsample back to original size
-        upsampled = cp.repeat(
-            cp.repeat(downsampled, self.block_size_h, axis=0), self.block_size_w, axis=1
-        )
-        # Ensure output matches input dimensions and type
-        image = upsampled[:h, :w]
-        image = image.astype(cp.uint8)
-        # add the holoviz tensors to the output message
-        out_message = {}
-        if len(self.detection_labels) > 0:
-            for label in self.detection_labels:
-                out_message["rectangles" + label] = cp.zeros([1, 2, 2], dtype=cp.float32)
-                out_message["label" + label] = -1.0 * cp.ones([1, 1, 2], dtype=cp.float32)
-        else:
-            out_message["rectangles"] = cp.zeros([1, 2, 2], dtype=cp.float32)
-        out_message["out_tensor"] = cp.zeros(self.segmentation_shape, dtype=cp.uint8)
-        out_message[""] = image
-        op_output.emit(out_message, "out")
-
-
 class DetectionPostprocessorOp(Operator):
     """Post-processes detection inference outputs to prepare visualization data.
 
@@ -265,9 +232,7 @@ class DetectionPostprocessorOp(Operator):
 
         return filtered_bboxes, filtered_labels, has_rect
 
-    def _process_with_labels(
-        self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool
-    ):
+    def _process_with_labels(self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool):
         """Process detections when label dictionary is provided.
 
         Args:
@@ -279,9 +244,7 @@ class DetectionPostprocessorOp(Operator):
             Dict of bbox coordinates and text coordinates per label
         """
         bbox_coords = {label: cp.zeros([1, 2, 2], dtype=cp.float32) for label in self.label_dict}
-        text_coords = {
-            label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict
-        }
+        text_coords = {label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict}
 
         if has_rect:
             for label in self.label_dict:
@@ -304,9 +267,7 @@ class DetectionPostprocessorOp(Operator):
         inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
 
         # Process and filter detections
-        bboxes, labels, has_rect = self._process_detections(
-            inferred_bboxes, inferred_scores, inferred_labels
-        )
+        bboxes, labels, has_rect = self._process_detections(inferred_bboxes, inferred_scores, inferred_labels)
 
         # Prepare output message
         out_message = {}
@@ -319,11 +280,7 @@ class DetectionPostprocessorOp(Operator):
                 out_message[f"label{label}"] = text_coords[label]
         else:
             # Single category output
-            bbox_coords = (
-                cp.reshape(bboxes, (1, -1, 2))
-                if has_rect
-                else cp.zeros([1, 2, 2], dtype=cp.float32)
-            )
+            bbox_coords = cp.reshape(bboxes, (1, -1, 2)) if has_rect else cp.zeros([1, 2, 2], dtype=cp.float32)
             out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
@@ -437,9 +394,7 @@ class AISurgicalVideoWorkflow(Application):
                 name="pool",
                 # storage_type of 1 is device memory
                 storage_type=1,
-                block_size=self._camera._width
-                * ctypes.sizeof(ctypes.c_uint16)
-                * self._camera._height,
+                block_size=self._camera._width * ctypes.sizeof(ctypes.c_uint16) * self._camera._height,
                 num_blocks=2,
             )
             hsb_csi_to_bayer = hololink_module.operators.CsiToBayerOp(
@@ -504,13 +459,9 @@ class AISurgicalVideoWorkflow(Application):
                 interpolation_mode=0,
             )
 
-            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(
-                self, name="image_shift", shift=8
-            )
+            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(self, name="image_shift", shift=8)
         else:
-            raise ValueError(
-                f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}."
-            )
+            raise ValueError(f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}.")
 
         # ------------------------------------------------------------------------------------------
         # Out of Body Detection
@@ -533,11 +484,7 @@ class AISurgicalVideoWorkflow(Application):
             self,
             name="out_of_body_inference",
             allocator=pool,
-            model_path_map={
-                "out_of_body": os.path.join(
-                    self.data_dir, "orsi", "models", "anonymization_model.onnx"
-                )
-            },
+            model_path_map={"out_of_body": os.path.join(self.data_dir, "orsi", "models", "anonymization_model.onnx")},
             **self.kwargs("out_of_body_inference"),
         )
         # Postprocessor: postprocesses the out of body inference output to a decision
@@ -614,20 +561,24 @@ class AISurgicalVideoWorkflow(Application):
                 # Make text label a list
                 text = [label_info["text"]]
                 # Add rectangle tensor
-                holoviz_tensors.append(
-                    {"name": f"rectangles{label}", "color": color, **rectangle_defaults}
-                )
+                holoviz_tensors.append({"name": f"rectangles{label}", "color": color, **rectangle_defaults})
                 # Add text label tensor
-                holoviz_tensors.append(
-                    {"name": f"label{label}", "color": color, "text": text, **text_defaults}
-                )
+                holoviz_tensors.append({"name": f"label{label}", "color": color, "text": text, **text_defaults})
         else:
             # Add default red rectangle tensor if no labels
-            holoviz_tensors.append(
-                {**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]}
-            )
+            holoviz_tensors.append({**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]})
         # Holoviz operators for visualization
-        holoviz_delegate = ForwardOp(self, name="holoviz_delegate_op")
+        segmentation_shape = (
+            self.kwargs("segmentation_preprocessor")["resize_height"],
+            self.kwargs("segmentation_preprocessor")["resize_width"],
+            1,
+        )
+        holoviz_delegate = HolovizDelegatorOp(
+            self,
+            name="holoviz_delegate_op",
+            holoviz_tensor_names=[tensor["name"] for tensor in holoviz_tensors],
+            segmentation_shape=segmentation_shape,
+        )
         holoviz = HolovizOp(
             self,
             allocator=pool,
@@ -651,9 +602,7 @@ class AISurgicalVideoWorkflow(Application):
                 pool=UnboundedAllocator(self, name="recorder_pool"),
             )
             # Decimate the input frames
-            frame_sampler = FrameSamplerOp(
-                self, name="frame_sampler_op", interval=self._recording_frame_interval
-            )
+            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._recording_frame_interval)
             # Record frames to PNG files
             recorder = VideoStreamRecorderOp(
                 self,
@@ -666,11 +615,11 @@ class AISurgicalVideoWorkflow(Application):
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
         # Source operator
-        source = ForwardOp(self, name="source_op")
+        source = HolovizDelegatorOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
         # Broadcaster operator
-        broadcaster = ForwardOp(self, name="broadcaster_op")
+        broadcaster = HolovizDelegatorOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
@@ -684,16 +633,9 @@ class AISurgicalVideoWorkflow(Application):
         # ------------------------------------------------------------------------------------------
         # Deidentification
         # ------------------------------------------------------------------------------------------
-        segmentation_shape = (
-            self.kwargs("segmentation_preprocessor")["resize_height"],
-            self.kwargs("segmentation_preprocessor")["resize_width"],
-            1,
-        )
-        deidentification = DeIdentificationOp(
+        deidentification = PixelatorOp(
             self,
             name="deidentification_op",
-            detection_labels=list(label_dict.keys()),
-            segmentation_shape=segmentation_shape,
             **self.kwargs("deidentification"),
         )
         # ------------------------------------------------------------------------------------------
@@ -752,9 +694,7 @@ class AISurgicalVideoWorkflow(Application):
         # Recording
         # ------------------------------------------------------------------------------------------
         if self._enable_recording:
-            self.add_flow(
-                holoviz, recorder_format_converter, {("render_buffer_output", "source_video")}
-            )
+            self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
             self.add_flow(recorder_format_converter, frame_sampler)
             self.add_flow(frame_sampler, recorder)
         # ------------------------------------------------------------------------------------------
@@ -816,9 +756,7 @@ def main(args):
             ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
             logging.debug("Waiting for PTP sync.")
             if not hololink.ptp_synchronize(ptp_sync_timeout):
-                logging.error(
-                    f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring."
-                )
+                logging.error(f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring.")
             else:
                 logging.debug("PTP synchronized.")
 
