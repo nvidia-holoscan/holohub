@@ -182,7 +182,7 @@ def generate_featured_apps_html(n: int = 3):
             card_html = generate_featured_app_card(metadata_path, git_repo_path)
             cards.append(card_html)
 
-        cards_html = ''.join(cards)
+        cards_html = "".join(cards)
         # Create the featured apps container HTML
         featured_apps_html = f"""<div class="featured-apps">
   <h2>Featured Components</h2>
