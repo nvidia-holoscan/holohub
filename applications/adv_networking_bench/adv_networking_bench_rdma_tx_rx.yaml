@@ -36,28 +36,28 @@ advanced_network:
 
     memory_regions:
     - name: "DATA_RX_CPU_SERVER"
-      kind: "huge"
+      kind: "device"
       affinity: 0
       access:
         - local
       num_bufs: 20
       buf_size: 9000000  
     - name: "DATA_TX_CPU_SERVER"
-      kind: "huge"
+      kind: "device"
       affinity: 0
       access:
         - local
       num_bufs: 20
       buf_size: 9000000        
     - name: "DATA_TX_CPU_CLIENT"
-      kind: "huge"
+      kind: "device"
       affinity: 0
       access:
         - local
       num_bufs: 20
       buf_size: 90000000       
     - name: "DATA_RX_CPU_CLIENT"
-      kind: "huge"
+      kind: "device"
       affinity: 0
       access:
         - local
