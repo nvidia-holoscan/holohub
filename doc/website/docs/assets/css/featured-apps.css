@@ -6,6 +6,7 @@
   margin-bottom: 2rem;
   position: relative;
   max-width: 100%;
+  overflow: hidden; /* Ensure no overflow outside this container */
 }
 
 .featured-apps h2 {
@@ -24,8 +25,10 @@
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
-  padding: 0 0.5rem;
-  justify-content: center;
+  padding: 0 0.5rem 0.5rem; /* Added bottom padding for scrollbar space */
+  justify-content: center; /* Center cards when there's extra space */
+  -webkit-overflow-scrolling: touch; /* Improved scrolling on iOS */
+  max-width: 100%; /* Ensure container doesn't exceed parent width */
 }
 
 .featured-apps-container::-webkit-scrollbar {
@@ -129,5 +132,43 @@
 
   .featured-app-card .app-description {
     max-height: 135px;
+  }
+
+  /* Add visual indicator for scrolling on mobile */
+  .featured-apps::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 15px;
+    background: linear-gradient(to right, transparent, rgba(118, 185, 0, 0.1) 40%);
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .featured-apps {
+    padding: 0.5rem;
+  }
+
+  .featured-apps-container {
+    padding: 0 0.25rem 0.5rem;
+    margin: 0 -0.25rem; /* Extend slightly to counter parent padding */
+    width: calc(100% + 0.5rem);
+  }
+
+  .featured-app-card {
+    flex: 0 0 260px;
+    height: 340px;
+  }
+}
+
+/* Add media query for smaller screens */
+@media (max-width: 1000px) {
+  .featured-apps-container {
+    justify-content: flex-start; /* Left-align on smaller screens for better scrolling */
   }
 }
