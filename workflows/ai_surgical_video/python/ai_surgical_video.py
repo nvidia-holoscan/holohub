@@ -58,7 +58,7 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class HolovizDelegatorOp(Operator):
+class HolovizDelegateOp(Operator):
     """
     This operator receives the input tensors and forwards them to the Holoviz operator.
     It also ensures that all required tensors are present in the input message.
@@ -573,7 +573,7 @@ class AISurgicalVideoWorkflow(Application):
             self.kwargs("segmentation_preprocessor")["resize_width"],
             1,
         )
-        holoviz_delegate = HolovizDelegatorOp(
+        holoviz_delegate = HolovizDelegateOp(
             self,
             name="holoviz_delegate_op",
             holoviz_tensor_names=[tensor["name"] for tensor in holoviz_tensors],
@@ -615,11 +615,11 @@ class AISurgicalVideoWorkflow(Application):
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
         # Source operator
-        source = HolovizDelegatorOp(self, name="source_op")
+        source = HolovizDelegateOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
         # Broadcaster operator
-        broadcaster = HolovizDelegatorOp(self, name="broadcaster_op")
+        broadcaster = HolovizDelegateOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
