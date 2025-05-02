@@ -11816,9 +11816,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#model-conversion-to-onnx" class="md-nav__link">
+  <a href="#model-conversion-to-onnx-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      Model conversion to ONNX
+      Model conversion to ONNX (optional)
     </span>
   </a>
   
@@ -11853,6 +11853,30 @@
       Running the application
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Running the application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-the-application-manually" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running the application manually
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -11931,11 +11955,11 @@
 <h2 id="model">Model<a class="headerlink" href="#model" title="Permanent link">#</a></h2>
 <p>We will be deploying the endoscopic tool segmentation model from <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation">MONAI Model Zoo</a>. <br>
 Note that you could also use the MONAI model zoo repo for training your own semantic segmentation model with your own data, but here we are directly deploying the downloaded MONAI model checkpoint into Holoscan. </p>
-<h3 id="model-conversion-to-onnx">Model conversion to ONNX<a class="headerlink" href="#model-conversion-to-onnx" title="Permanent link">#</a></h3>
-<p>Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br>
-You can choose to 
+<p>You can choose to 
 - download the <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model">MONAI Endoscopic Tool Segmentation Model on NGC</a> directly and skip the rest of this Model section, or 
-- go through the following conversion steps yourself. </p>
+- go through the following conversion steps yourself.</p>
+<h3 id="model-conversion-to-onnx-optional">Model conversion to ONNX (optional)<a class="headerlink" href="#model-conversion-to-onnx-optional" title="Permanent link">#</a></h3>
+<p>Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br></p>
 <ol>
 <li>Download the PyTorch model checkpoint linked in the README of <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation#model-overview">endoscopic tool segmentation</a>. We will assume its name to be <code>model.pt</code>.</li>
 <li>
@@ -11972,6 +11996,11 @@ Finally, modify the input and output channels to have shape [n, height, width, c
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <p>The only requirement is to make sure the model and data are accessible by the application. At runtime we will need to specify via the <code>--data</code> arg, assuming the directory specified contains two subdirectories <code>endoscopy/</code> (endoscopy video data directory) and <code>monai_tool_seg_model/</code> (model directory).</p>
 <h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
+<h3 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
+<p>The easiest way to test this application is to use Holohub CLI from the top level of Holohub</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>monai_endoscopic_tool_seg
+</code></pre></div>
+<h3 id="running-the-application-manually">Running the application manually<a class="headerlink" href="#running-the-application-manually" title="Permanent link">#</a></h3>
 <p>To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.</p>
 <p>You should refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md#Glossary">glossary</a> for the terms defining specific locations within HoloHub.</p>
