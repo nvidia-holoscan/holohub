@@ -24,12 +24,13 @@ import traceback
 import urllib.parse
 from pathlib import Path
 
+import mkdocs_gen_files
+
 # Add the script directory to the path to enable importing common_utils
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
 # Import after adding script_dir to path
-import mkdocs_gen_files  # noqa: E402
 from common_utils import (  # noqa: E402
     COMPONENT_TYPES,
     RANKING_LEVELS,

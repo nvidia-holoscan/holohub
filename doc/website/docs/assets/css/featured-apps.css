@@ -105,6 +105,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  aspect-ratio: 16/9;
 }
 
 .featured-app-card .app-thumbnail img {
@@ -114,6 +116,28 @@
   border-radius: 3px;
   transition: transform 0.3s ease;
   background-color: #f6f6f6;
+  z-index: 1;
+}
+
+.featured-app-card .app-thumbnail .image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  animation: pulse 1.5s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+.featured-app-card .app-thumbnail.loaded .image-placeholder {
+  display: none;
 }
 
 .featured-app-card:hover .app-thumbnail img {
