@@ -34,6 +34,7 @@ sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 from common_utils import (  # noqa: E402
     COMPONENT_TYPES,
     RANKING_LEVELS,
+    extract_first_sentences,
     format_date,
     get_file_from_git,
     get_git_root,
@@ -48,9 +49,6 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     # Title
     title = metadata["name"]
     title += f" ({archive_version})" if archive_version else " (latest)"
-
-    # Extract description - first try to get it from metadata, then fallback to extracting from readme
-    description = metadata.get("description", "")
 
     # Tags
     tags = metadata["tags"]
@@ -363,25 +361,17 @@ def create_page(
 
     # Extract description from README if not in metadata
     if not metadata.get("description"):
-        # Find the first paragraph after the header that's not metadata
+        # Find content after header
         header_info = extract_markdown_header(readme_text)
         if header_info:
-            # Get content after header
             header_text = header_info[0]
             content_after_header = readme_text[readme_text.find(header_text) + len(header_text) :]
-
-            # Find first paragraph that's not metadata (doesn't start with :octicons)
-            paragraphs = re.split(r"\n\s*\n", content_after_header)
-            for para in paragraphs:
-                para = para.strip()
-                if para and not para.startswith(":octicons-"):
-                    # Clean up and truncate description
-                    description = re.sub(r"\[|\]|\(|\)|#|\*|`", "", para)  # Remove markdown syntax
-                    description = re.sub(r"\s+", " ", description).strip()  # Normalize whitespace
-                    if len(description) > 160:
-                        description = description[:157] + "..."
-                    metadata["description"] = description
-                    break
+            description = extract_first_sentences(
+                content_after_header, num_sentences=3, max_chars=160
+            )
+            if description:
+                metadata["description"] = description
+                logger.info(f"{metadata['name']} Description: {description}")
 
     # Frontmatter
     archive_version = archive["version"] if archive and "version" in archive else None
