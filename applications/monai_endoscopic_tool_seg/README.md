@@ -2,19 +2,18 @@
 
 This endoscopy tool segmentation application runs the MONAI Endoscopic Tool Segmentation from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation).
 
-
 This HoloHub application has been verified on the GI Genius sandbox and is currently deployable to GI Genius Intelligent Endoscopy Modules. [GI Genius](https://www.cosmoimd.com/gi-genius/) is Cosmo Intelligent Medical Devices’ AI-powered endoscopy system. This implementation by Cosmo Intelligent Medical Devices showcases the fast and seamless deployment of HoloHub applications on products/platforms running on NVIDIA Holoscan.
 
 ## Model
 We will be deploying the endoscopic tool segmentation model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation). <br>
 Note that you could also use the MONAI model zoo repo for training your own semantic segmentation model with your own data, but here we are directly deploying the downloaded MONAI model checkpoint into Holoscan. 
 
-
-### Model conversion to ONNX
-Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br>
 You can choose to 
 - download the [MONAI Endoscopic Tool Segmentation Model on NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model) directly and skip the rest of this Model section, or 
-- go through the following conversion steps yourself. 
+- go through the following conversion steps yourself.
+
+### Model conversion to ONNX (optional)
+Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br>
 
  1. Download the PyTorch model checkpoint linked in the README of [endoscopic tool segmentation](https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation#model-overview). We will assume its name to be `model.pt`.
  2. Clone the MONAI Model Zoo repo. 
@@ -59,6 +58,15 @@ For this application we will use the same [Endoscopy Sample Data](https://catalo
 The only requirement is to make sure the model and data are accessible by the application. At runtime we will need to specify via the `--data` arg, assuming the directory specified contains two subdirectories `endoscopy/` (endoscopy video data directory) and `monai_tool_seg_model/` (model directory).
 
 ## Running the application
+
+### Quick start
+The easiest way to test this application is to use Holohub CLI from the top level of Holohub
+
+  ```bash
+  ./holohub run monai_endoscopic_tool_seg
+  ```
+
+### Running the application manually
 To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
 necessary python libraries based on your Holoscan SDK installation type.
 
