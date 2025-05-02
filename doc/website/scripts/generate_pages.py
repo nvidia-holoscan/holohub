@@ -60,7 +60,6 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
 
     return f"""---
 title: "{title}"
-description: "{description}"
 tags:{tags_str}
 ---
 """
