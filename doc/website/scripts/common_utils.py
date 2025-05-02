@@ -316,6 +316,7 @@ def extract_first_sentences(readme_text, num_sentences=3, max_chars=160):
     try:
         import nltk.tokenize
 
+        nltk.download("punkt_tab")
         sentences = nltk.tokenize.sent_tokenize(text_content)
     except (ImportError, AttributeError):
         # Fallback to regex-based approach

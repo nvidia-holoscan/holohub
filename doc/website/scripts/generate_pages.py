@@ -303,7 +303,7 @@ def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
 
 def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     """Finds the main header in the readme_text, replaces it with a linked
-    version, and inserts the metadata_header after the first paragraph of content.
+    version, and inserts the metadata_header.
 
     Args:
         readme_text: The original text of the README.
@@ -334,40 +334,10 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
         # Setext style: '===' or '---'
         new_header = f"{header_with_url}\n==="
 
-    # First, replace just the header (without metadata)
-    content_with_linked_header = readme_text.replace(full_header, new_header, 1)
-
-    # Now find the first paragraph after the header
-    content_after_header = content_with_linked_header[
-        content_with_linked_header.find(new_header) + len(new_header) :
-    ]
-    paragraphs = re.split(r"\n\s*\n", content_after_header)
-
-    # If there's at least one paragraph, insert metadata after it
-    if paragraphs and paragraphs[0].strip():
-        first_para = paragraphs[0].strip()
-        # Skip if it's just metadata
-        if first_para.startswith(":octicons-"):
-            # Insert metadata right after header
-            return content_with_linked_header.replace(
-                new_header, f"{new_header}\n{metadata_header}", 1
-            )
-
-        # Insert metadata after first paragraph
-        replacement_point = (
-            content_with_linked_header.find(new_header)
-            + len(new_header)
-            + content_after_header.find(first_para)
-            + len(first_para)
-        )
-        return (
-            content_with_linked_header[:replacement_point]
-            + f"\n\n{metadata_header}"
-            + content_with_linked_header[replacement_point:]
-        )
-
-    # Fallback: insert metadata right after header
-    return content_with_linked_header.replace(new_header, f"{new_header}\n{metadata_header}", 1)
+    # Append the metadata header
+    new_header += f"\n{metadata_header}"
+    # Replace the original header
+    return readme_text.replace(full_header, new_header, 1)
 
 
 def create_page(
