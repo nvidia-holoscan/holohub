@@ -1,0 +1,47 @@
+--- ../applications/colonoscopy_segmentation/colonoscopy_segmentation.py	2024-03-13 19:09:20.281021565 +0000
++++ applications/colonoscopy_segmentation/colonoscopy_segmentation_test.py	2024-03-13 20:52:07.730109793 +0000
+@@ -24,8 +24,9 @@
+     InferenceOp,
+     SegmentationPostprocessorOp,
+     VideoStreamReplayerOp,
++    VideoStreamRecorderOp,
+ )
+-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
++from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType, UnboundedAllocator
+ 
+ 
+ class ColonoscopyApp(Application):
+@@ -161,6 +162,7 @@
+             name="segmentation_visualizer",
+             cuda_stream_pool=cuda_stream_pool,
+             **self.kwargs("segmentation_visualizer"),
++            enable_render_buffer_output=True
+         )
+ 
+         if is_aja:
+@@ -178,6 +180,25 @@
+             {("", "receivers")},
+         )
+ 
++        recorder_format_converter = FormatConverterOp(
++            self,
++            name="recorder_format_converter",
++            in_dtype="rgba8888",
++            out_dtype="rgb888",
++            pool=UnboundedAllocator(self, name="pool")
++        )
++        recorder = VideoStreamRecorderOp(
++            self,
++            name="recorder",
++            directory="RECORDING_DIR",
++            basename="SOURCE_VIDEO_BASENAME"
++        )
++
++        segmentation_visualizer.add_arg(allocator=UnboundedAllocator(self, name="allocator"))
++
++        self.add_flow(segmentation_visualizer, recorder_format_converter, {("render_buffer_output", "source_video")})
++        self.add_flow(recorder_format_converter, recorder)
++
+ 
+ if __name__ == "__main__":
+     # Parse args
