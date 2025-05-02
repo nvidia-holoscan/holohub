@@ -118,7 +118,7 @@ class AdvNetworkingRdmaOp : public Operator {
         }
       }
       else {
-        auto ret = rdma_get_server_conn_id(server_addr_str_.get(), server_port_.get(), 0, &conn_id_);
+        auto ret = rdma_get_server_conn_id(server_addr_str_.get(), server_port_.get(), &conn_id_);
         if (ret != Status::SUCCESS) {
           HOLOSCAN_LOG_INFO("Server connection ID not ready");
           sleep(1);

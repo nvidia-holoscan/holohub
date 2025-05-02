@@ -530,7 +530,7 @@ void flush_port_queue(int port, int queue);
 Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
 Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id);
 Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
-Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id);
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
 Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
 RDMAOpCode rdma_get_opcode(BurstParams* burst);
 

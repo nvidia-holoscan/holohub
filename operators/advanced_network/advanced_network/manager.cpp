@@ -551,7 +551,7 @@ Status Manager::rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t 
   return Status::NOT_SUPPORTED;
 }
 
-Status Manager::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
+Status Manager::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA get server conn ID not implemented");
   return Status::NOT_SUPPORTED;
 }

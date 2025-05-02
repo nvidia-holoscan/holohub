@@ -148,7 +148,7 @@ class RdmaMgr : public Manager {
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) override;    
     Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) override;
     Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) override;
-    Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) override;
+    Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) override;
     Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) override;
     RDMAOpCode rdma_get_opcode(BurstParams* burst) override;
     Status register_mr(std::string name, int intf, void *addr, size_t len, int flags);

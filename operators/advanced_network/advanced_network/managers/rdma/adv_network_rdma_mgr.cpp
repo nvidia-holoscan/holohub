@@ -605,7 +605,7 @@ namespace holoscan::advanced_network {
     return Status::SUCCESS;
   }
 
-  Status RdmaMgr::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uint16_t queue_id, uintptr_t *conn_id) {
+  Status RdmaMgr::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
     const auto iter = server_str_to_id_.find(server_addr + ":" + std::to_string(server_port));
     if (iter == server_str_to_id_.end()) {
       HOLOSCAN_LOG_CRITICAL("Couldn't find server params for address {}", server_addr);
@@ -1433,20 +1433,6 @@ namespace holoscan::advanced_network {
     // TODO: Implement client initialization
     //return Status::SUCCESS;
   }
-
-
-
-  // std::optional<uint16_t> RdmaMgr::get_port_from_ifname(const std::string &name) {
-  //   // Look up port owning the IP address passed in
-  //   for (const auto& intf : cfg_.ifs_) {
-  //     HOLOSCAN_LOG_INFO("intf.name_ {} {}", intf.name_, name);
-  //     if (intf.name_ == name) {
-  //       return intf.port_id_;
-  //     }
-  //   }
-
-  //   return std::nullopt;
-  // }
 
 
   Status RdmaMgr::get_rx_burst(BurstParams **burst, uintptr_t conn_id, bool server) {
