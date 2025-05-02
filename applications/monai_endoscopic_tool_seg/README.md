@@ -63,7 +63,7 @@ The only requirement is to make sure the model and data are accessible by the ap
 The easiest way to test this application is to use Holohub CLI from the top level of Holohub
 
   ```bash
-  ./holohub run monai_endoscopy_tool_seg
+  ./holohub run monai_endoscopic_tool_seg
   ```
 
 ### Running the application manually
