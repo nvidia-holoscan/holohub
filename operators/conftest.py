@@ -14,10 +14,10 @@
 # limitations under the License.
 
 import os
+
 import cupy as cp
 import pytest
-
-from holoscan.core import Application, Fragment, OperatorSpec
+from holoscan.core import Application, Fragment
 from holoscan.logger import LogLevel, set_log_level
 
 # set log level to INFO during testing
@@ -45,7 +45,9 @@ def config_file():
 def dummy_image_factory():
     def _factory(shape, dtype=cp.uint8):
         return cp.random.randint(0, 255, size=shape, dtype=dtype)
+
     return _factory
+
 
 class DummyInput:
     def __init__(self, tensor, tensor_name="", port=""):
