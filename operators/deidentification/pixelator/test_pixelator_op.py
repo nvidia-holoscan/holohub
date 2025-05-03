@@ -43,7 +43,9 @@ def test_pixelator_op_setup(fragment):
 
 
 @pytest.mark.parametrize("expected_shape", [(32, 32, 3), (16, 16, 1)])
-def test_pixelator_op_compute(fragment, op_input_factory, op_output, context, dummy_image_factory, expected_shape):
+def test_pixelator_op_compute(
+    fragment, op_input_factory, op_output, context, dummy_image_factory, expected_shape
+):
     tensor_name = "image"
     image = dummy_image_factory(expected_shape)
     op_input = op_input_factory(image, tensor_name=tensor_name, port="in")
