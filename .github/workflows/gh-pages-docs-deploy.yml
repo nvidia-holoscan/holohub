@@ -38,11 +38,15 @@ jobs:
       - name: Set version variable
         if: github.event_name == 'push'
         run: |
+          # If the push event is triggered by a tag matching 'holoscan-sdk-*',
+          # set DOC_VERSION to the version extracted from the tag and do not update "latest".
           if [[ $GITHUB_REF == refs/tags/holoscan-sdk-* ]]; then
             VERSION=${GITHUB_REF#refs/tags/holoscan-sdk-}
             echo "DOC_VERSION=$VERSION" >> $GITHUB_ENV
             echo "UPDATE_LATEST=false" >> $GITHUB_ENV
           else
+            # For other push events (e.g., to the main branch), set DOC_VERSION to "latest"
+            # and update the "latest" version of the documentation.
             echo "DOC_VERSION=latest" >> $GITHUB_ENV
             echo "UPDATE_LATEST=true" >> $GITHUB_ENV
           fi
