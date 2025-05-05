@@ -16,64 +16,81 @@
 import pytest
 from holoscan.core import Operator, _Operator
 
-from .pixelator_op import PixelatorOp
+from .pixelator import PixelatorOp
 
 
 def test_pixelator_op_init(fragment):
+    """Test PixelatorOp initialization and its properties."""
     name = "pixelator_op"
-    op = PixelatorOp(fragment=fragment, name=name)
-
-    # Check if it is a Holoscan operator
-    assert isinstance(op, _Operator)
-
-    # Check operator type
-    assert op.operator_type == Operator.OperatorType.NATIVE
-
-    # Check operator name is matched
-    assert f"name: {name}" in repr(op)
+    op = PixelatorOp(fragment=fragment, name=name, tensor_name="image")
+    assert isinstance(op, _Operator), "PixelatorOp should be a Holoscan operator (_Operator)"
+    assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
+    assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
 
 
 def test_pixelator_op_setup(fragment):
-    op = PixelatorOp(fragment=fragment)
+    """Test PixelatorOp setup for input/output ports."""
+    op = PixelatorOp(fragment=fragment, tensor_name="image")
     spec = op.spec
-
-    # Check input and output ports
-    assert "in" in spec.inputs
-    assert "out" in spec.outputs
+    assert "in" in spec.inputs, 'Input port "in" should be present in spec.inputs'
+    assert "out" in spec.outputs, 'Output port "out" should be present in spec.outputs'
 
 
-@pytest.mark.parametrize("expected_shape", [(32, 32, 3), (16, 16, 1)])
+def test_pixelator_op_invalid_block_size(fragment):
+    """Test PixelatorOp raises error on invalid block sizes."""
+    import pytest
+    with pytest.raises(ValueError, match="block_size_h must be a positive integer"):
+        PixelatorOp(fragment=fragment, tensor_name="image", block_size_h=0)
+    with pytest.raises(ValueError, match="block_size_w must be a positive integer"):
+        PixelatorOp(fragment=fragment, tensor_name="image", block_size_w=-1)
+
+
+def test_pixelator_op_missing_tensor_name(fragment):
+    """Test PixelatorOp raises error if tensor_name is missing in constructor."""
+    with pytest.raises(TypeError, match="missing 1 required keyword-only argument: 'tensor_name'"):
+        PixelatorOp(fragment=fragment)
+
+def test_pixelator_op_missing_tensor_name_in_input(fragment, op_input_factory, op_output, dummy_image_factory):
+    """Test PixelatorOp raises error if tensor_name is missing in input message."""
+    op = PixelatorOp(fragment=fragment, tensor_name="image")
+    op_input = op_input_factory(dummy_image_factory((32, 32, 3)), tensor_name="another_image", port="in")
+    with pytest.raises(KeyError, match="Tensor 'image' not found in input message"):
+        op.compute(op_input, op_output, context=None)
+
+
+@pytest.mark.parametrize("expected_shape,block_size", [
+    ((32, 32, 3), 8),
+    ((16, 16, 1), 8),
+    ((17, 17, 3), 4),  # Odd shape, block size not divisor
+    ((10, 10, 1), 5),
+])
 def test_pixelator_op_compute(
-    fragment, op_input_factory, op_output, context, dummy_image_factory, expected_shape
+    fragment, op_input_factory, op_output, dummy_image_factory, expected_shape, block_size
 ):
+    """Test PixelatorOp compute: output shape, pixelation, dtype, and ports."""
     tensor_name = "image"
     image = dummy_image_factory(expected_shape)
     op_input = op_input_factory(image, tensor_name=tensor_name, port="in")
     op = PixelatorOp(
-        block_size_h=8,
-        block_size_w=8,
+        block_size_h=block_size,
+        block_size_w=block_size,
         tensor_name=tensor_name,
         fragment=fragment,
         name="pixelator_op",
     )
-    op.compute(op_input, op_output, context)
+    op.compute(op_input, op_output, None)
     out_msg, out_port = op_output.emitted
 
-    # Check output port
-    assert out_port == "out"
+    assert out_port == "out", "Output port should be 'out'"
+    assert tensor_name in out_msg, f"Output tensor '{tensor_name}' should be in message"
+    assert out_msg[tensor_name].shape == expected_shape, f"Output shape should be {expected_shape}"
+    assert out_msg[tensor_name].dtype.name == "uint8", "Output dtype should be uint8"
 
-    # Check output tensor name
-    assert tensor_name in out_msg
-
-    # Check output tensor shape
-    assert out_msg[tensor_name].shape == expected_shape
-
-    # Check pixelation effect: block values should be constant within 8x8 blocks
-    for i in range(0, expected_shape[0], 8):
-        for j in range(0, expected_shape[1], 8):
-            block = out_msg[tensor_name][i : i + 8, j : j + 8]
-            # For grayscale, block has shape (8,8,1); for RGB, (8,8,3)
+    # Check pixelation: block values should be constant within each block
+    for i in range(0, expected_shape[0], block_size):
+        for j in range(0, expected_shape[1], block_size):
+            block = out_msg[tensor_name][i : i + block_size, j : j + block_size]
             if block.shape[-1] == 1:
-                assert (block == block[0, 0, 0]).all()
+                assert (block == block[0, 0, 0]).all(), f"Block at ({i},{j}) not constant (grayscale)"
             else:
-                assert (block == block[0, 0, :]).all()
+                assert (block == block[0, 0, :]).all(), f"Block at ({i},{j}) not constant (color)"
