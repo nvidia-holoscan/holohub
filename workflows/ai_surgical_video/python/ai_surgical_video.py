@@ -58,6 +58,21 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
+class ForwardOp(Operator):
+    """
+    This operator is used to forward the input to the following operator(s).
+    This is specially useful to abstract different possible conditional flows when one flow is broadcasted to multiple operators.
+    """
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        in_message = op_input.receive("in")
+        op_output.emit(in_message, "out")
+
+
 class HolovizDelegateOp(Operator):
     """
     This operator receives the input tensors and forwards them to the Holoviz operator.
@@ -232,9 +247,7 @@ class DetectionPostprocessorOp(Operator):
 
         return filtered_bboxes, filtered_labels, has_rect
 
-    def _process_with_labels(
-        self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool
-    ):
+    def _process_with_labels(self, inferred_bboxes: cp.ndarray, inferred_labels: cp.ndarray, has_rect: bool):
         """Process detections when label dictionary is provided.
 
         Args:
@@ -246,9 +259,7 @@ class DetectionPostprocessorOp(Operator):
             Dict of bbox coordinates and text coordinates per label
         """
         bbox_coords = {label: cp.zeros([1, 2, 2], dtype=cp.float32) for label in self.label_dict}
-        text_coords = {
-            label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict
-        }
+        text_coords = {label: cp.zeros([1, 1, 2], dtype=cp.float32) - 1.0 for label in self.label_dict}
 
         if has_rect:
             for label in self.label_dict:
@@ -271,9 +282,7 @@ class DetectionPostprocessorOp(Operator):
         inferred_labels = cp.asarray(in_message["inference_output_detection_classes"]).get()
 
         # Process and filter detections
-        bboxes, labels, has_rect = self._process_detections(
-            inferred_bboxes, inferred_scores, inferred_labels
-        )
+        bboxes, labels, has_rect = self._process_detections(inferred_bboxes, inferred_scores, inferred_labels)
 
         # Prepare output message
         out_message = {}
@@ -286,11 +295,7 @@ class DetectionPostprocessorOp(Operator):
                 out_message[f"label{label}"] = text_coords[label]
         else:
             # Single category output
-            bbox_coords = (
-                cp.reshape(bboxes, (1, -1, 2))
-                if has_rect
-                else cp.zeros([1, 2, 2], dtype=cp.float32)
-            )
+            bbox_coords = cp.reshape(bboxes, (1, -1, 2)) if has_rect else cp.zeros([1, 2, 2], dtype=cp.float32)
             out_message["rectangles"] = bbox_coords
 
         op_output.emit(out_message, "out")
@@ -404,9 +409,7 @@ class AISurgicalVideoWorkflow(Application):
                 name="pool",
                 # storage_type of 1 is device memory
                 storage_type=1,
-                block_size=self._camera._width
-                * ctypes.sizeof(ctypes.c_uint16)
-                * self._camera._height,
+                block_size=self._camera._width * ctypes.sizeof(ctypes.c_uint16) * self._camera._height,
                 num_blocks=2,
             )
             hsb_csi_to_bayer = hololink_module.operators.CsiToBayerOp(
@@ -471,13 +474,9 @@ class AISurgicalVideoWorkflow(Application):
                 interpolation_mode=0,
             )
 
-            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(
-                self, name="image_shift", shift=8
-            )
+            hsb_image_shift = hololink_module.operators.ImageShiftToUint8Operator(self, name="image_shift", shift=8)
         else:
-            raise ValueError(
-                f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}."
-            )
+            raise ValueError(f"Unsupported source: {self.source}. Please use {' or '.join(self.supported_sources)}.")
 
         # ------------------------------------------------------------------------------------------
         # Out of Body Detection
@@ -500,11 +499,7 @@ class AISurgicalVideoWorkflow(Application):
             self,
             name="out_of_body_inference",
             allocator=pool,
-            model_path_map={
-                "out_of_body": os.path.join(
-                    self.data_dir, "orsi", "models", "anonymization_model.onnx"
-                )
-            },
+            model_path_map={"out_of_body": os.path.join(self.data_dir, "orsi", "models", "anonymization_model.onnx")},
             **self.kwargs("out_of_body_inference"),
         )
         # Postprocessor: postprocesses the out of body inference output to a decision
@@ -581,18 +576,12 @@ class AISurgicalVideoWorkflow(Application):
                 # Make text label a list
                 text = [label_info["text"]]
                 # Add rectangle tensor
-                holoviz_tensors.append(
-                    {"name": f"rectangles{label}", "color": color, **rectangle_defaults}
-                )
+                holoviz_tensors.append({"name": f"rectangles{label}", "color": color, **rectangle_defaults})
                 # Add text label tensor
-                holoviz_tensors.append(
-                    {"name": f"label{label}", "color": color, "text": text, **text_defaults}
-                )
+                holoviz_tensors.append({"name": f"label{label}", "color": color, "text": text, **text_defaults})
         else:
             # Add default red rectangle tensor if no labels
-            holoviz_tensors.append(
-                {**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]}
-            )
+            holoviz_tensors.append({**rectangle_defaults, "name": "rectangles", "color": [1.0, 0.0, 0.0, 1.0]})
         # Holoviz operators for visualization
         segmentation_shape = (
             self.kwargs("segmentation_preprocessor")["resize_height"],
@@ -628,9 +617,7 @@ class AISurgicalVideoWorkflow(Application):
                 pool=UnboundedAllocator(self, name="recorder_pool"),
             )
             # Decimate the input frames
-            frame_sampler = FrameSamplerOp(
-                self, name="frame_sampler_op", interval=self._recording_frame_interval
-            )
+            frame_sampler = FrameSamplerOp(self, name="frame_sampler_op", interval=self._recording_frame_interval)
             # Record frames to PNG files
             recorder = VideoStreamRecorderOp(
                 self,
@@ -643,11 +630,11 @@ class AISurgicalVideoWorkflow(Application):
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
         # Source operator
-        source = HolovizDelegateOp(self, name="source_op")
+        source = ForwardOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
         # Broadcaster operator
-        broadcaster = HolovizDelegateOp(self, name="broadcaster_op")
+        broadcaster = ForwardOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 
@@ -722,9 +709,7 @@ class AISurgicalVideoWorkflow(Application):
         # Recording
         # ------------------------------------------------------------------------------------------
         if self._enable_recording:
-            self.add_flow(
-                holoviz, recorder_format_converter, {("render_buffer_output", "source_video")}
-            )
+            self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
             self.add_flow(recorder_format_converter, frame_sampler)
             self.add_flow(frame_sampler, recorder)
         # ------------------------------------------------------------------------------------------
@@ -786,9 +771,7 @@ def main(args):
             ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
             logging.debug("Waiting for PTP sync.")
             if not hololink.ptp_synchronize(ptp_sync_timeout):
-                logging.error(
-                    f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring."
-                )
+                logging.error(f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring.")
             else:
                 logging.debug("PTP synchronized.")
 

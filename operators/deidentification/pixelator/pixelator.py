@@ -32,9 +32,9 @@ class PixelatorOp(Operator):
     def __init__(
         self,
         *args,
+        tensor_name: str,
         block_size_h: int = 16,
         block_size_w: int = 16,
-        tensor_name: str = "",
         **kwargs,
     ):
         if block_size_h <= 0:
