@@ -20,9 +20,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(colonoscopy_segmentation
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_colonoscopy_sample_data/versions/20230222/zip
+    URL nvidia/clara-holoscan/holoscan_colonoscopy_sample_data:20230222
     DOWNLOAD_NAME holoscan_colonoscopy_sample_data_20230222.zip
-    URL_MD5 46e42fb08602fa1acdd1c02f10bde5a5
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 576
@@ -53,7 +52,6 @@ if(BUILD_TESTING)
 
     # Patch the current example to enable recording the rendering window
     add_custom_command(OUTPUT colonoscopy_segmentation_test.py
-    PRE_LINK
     COMMAND patch -u -o colonoscopy_segmentation_test.py ${CMAKE_CURRENT_SOURCE_DIR}/colonoscopy_segmentation.py
         ${CMAKE_SOURCE_DIR}/applications/colonoscopy_segmentation/testing/colonoscopy_segmentation.patch
     COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" colonoscopy_segmentation_test.py
@@ -71,7 +69,7 @@ if(BUILD_TESTING)
                    --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_property(TEST colonoscopy_segmentation_python_test PROPERTY ENVIRONMENT
-               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(colonoscopy_segmentation_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"

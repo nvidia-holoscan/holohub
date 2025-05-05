@@ -19,12 +19,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz UI"
-		],
+		"tags": ["computer vision and perception", "visualization", "IMGUI integration", "dynamic gradients", "HoloViz UI", "interactive", "rendering", "shapes"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

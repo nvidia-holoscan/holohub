@@ -17,7 +17,7 @@
 #pragma once
 
 #include "common.h"
-#include "adv_network_rx.h"
+#include "advanced_network/common.h"
 
 #include <arpa/inet.h>
 
@@ -78,7 +78,7 @@ struct AdvBufferTracking {
       src = received_end_d;
       dst = received_end_h;
     } else {
-      HOLOSCAN_LOG_ERROR("Unknown option {}", kind);
+      HOLOSCAN_LOG_ERROR("Unknown option {}", (int)kind);
       return cudaErrorInvalidValue;
     }
     return cudaMemcpyAsync(dst, src, buffer_size*sizeof(bool), kind, stream);
@@ -121,8 +121,8 @@ class AdvConnectorOpRx : public Operator {
   ~AdvConnectorOpRx() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
       ttl_bytes_recv_, ttl_pkts_recv_);
-    adv_net_shutdown();
-    adv_net_print_stats();
+    holoscan::advanced_network::shutdown();
+    holoscan::advanced_network::print_stats();
   }
 
   void setup(OperatorSpec& spec) override;
@@ -143,14 +143,16 @@ class AdvConnectorOpRx : public Operator {
   Parameter<uint16_t> num_samples_;
 
   // Networking settings
-  Parameter<bool> split_boundary_;       // Header-data split enabled
-  Parameter<bool> gpu_direct_;           // GPUDirect enabled
-  Parameter<uint32_t> batch_size_;       // Batch size for one processing block
-  Parameter<uint16_t> max_packet_size_;  // Maximum size of a single packet
+  Parameter<bool> split_boundary_;         // Header-data split enabled
+  Parameter<bool> gpu_direct_;             // GPUDirect enabled
+  Parameter<uint32_t> batch_size_;         // Batch size for one processing block
+  Parameter<uint16_t> max_packet_size_;    // Maximum size of a single packet
+  Parameter<std::string> interface_name_;  // Port name from advanced_network config to poll on
+  int port_id_;                            // Port ID to poll on
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BATCHES> msg;
+    std::array<holoscan::advanced_network::BurstParams*, MAX_ANO_BATCHES> msg;
     int num_batches;
     cudaStream_t stream;
     cudaEvent_t evt;

@@ -26,13 +26,13 @@ add_executable(object_detection_torch
 target_link_libraries(object_detection_torch
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
+    holoscan::aja
 )
 
 # Download the cars sample data
@@ -40,9 +40,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(object_detection_torch
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_cars_video/versions/20230725/zip
+    URL nvidia/clara-holoscan/holoscan_cars_video:20230725
     DOWNLOAD_NAME holoscan_cars_video_20230725.zip
-    URL_MD5 a0a510bc01cee0580a280d792da9ac5f
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 1080
@@ -55,6 +54,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   # Download the model
   add_custom_target(download_model
     COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+    DEPENDS object_detection_torch_data
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
   )
   add_dependencies(object_detection_torch download_model)
@@ -70,7 +70,9 @@ add_custom_target(object_detection_torch_yaml
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/labels.txt"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/labels.txt"
-    DEPENDS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+    DEPENDS
+      "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+      object_detection_torch_data  # download after NGC data is downloaded to avoid directory overwrite
     BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
 )
 add_dependencies(object_detection_torch object_detection_torch_yaml)

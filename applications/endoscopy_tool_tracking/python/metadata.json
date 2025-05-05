@@ -23,14 +23,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA"
-		],
+		"tags": ["healthcare AI", "distributed", "LSTM TensorRT", "asynchronous queues", "gRPC", "video processing", "computer vision", "tracking", "visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [
@@ -48,4 +44,3 @@
 		}
 	}
 }
-

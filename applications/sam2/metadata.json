@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "sam2",
+		"name": "SAM 2: Segment Anything in Images and Videos",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,12 +19,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"SAM2 Model"
-		],
+		"tags": ["computer vision and perception", "video", "mask score optimization", "coordinate remapping pipeline", "SAM2 model", "segmentation", "interactive", "visualization", "camera"],
 		"ranking": 1,
 		"dependencies": {
 			"SAM2": {
@@ -33,7 +31,7 @@
 				"license": "Apache-2.0"
 			}
 		},
-	
+
 		"run": {
 			"command": "<holohub_app_source>/start.sh",
 			"workdir": "holohub_bin"

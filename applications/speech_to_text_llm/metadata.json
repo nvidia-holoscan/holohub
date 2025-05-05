@@ -19,12 +19,9 @@
 			]
 		},
 		"platforms": [
-			"amd64"
+			"x86_64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model"
-		],
+		"tags": ["healthcare AI", "audio", "ICD 10 coding automation", "clinical transcription workflow", "automatic speech recognition", "large language model", "OpenAI API", "radiology imaging"],
 		"ranking": 2,
 		"dependencies": {
 			"openai-whisper": "^20230314",

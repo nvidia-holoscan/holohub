@@ -17,8 +17,8 @@ function(holohub_configure_deb)
   # parse args
   set(options)
   set(requiredArgs NAME DESCRIPTION VERSION VENDOR CONTACT DEPENDS)
-  list(APPEND oneValueArgs ${requiredArgs} SECTION PRIORITY)
-  set(multiValueArgs COMPONENTS)
+  list(APPEND oneValueArgs ${requiredArgs} SECTION PRIORITY RECOMMENDS SUGGESTS)
+  set(multiValueArgs COMPONENTS EXPORT_NAME)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGV})
 
   # validate required args
@@ -45,23 +45,64 @@ function(holohub_configure_deb)
   set(CPACK_PACKAGE_VENDOR "${ARG_VENDOR}")
   set(CPACK_PACKAGE_CONTACT "${ARG_CONTACT}")
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${ARG_DEPENDS}")
+  set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "${ARG_RECOMMENDS}")
+  set(CPACK_DEBIAN_PACKAGE_SUGGESTS "${ARG_SUGGESTS}")
   set(CPACK_PACKAGE_SECTION "${ARG_SECTION}")
   set(CPACK_PACKAGE_PRIORITY "${ARG_PRIORITY}")
 
+  if(ARG_EXPORT_NAME)
+    set(config_install_dir "lib/cmake/${ARG_NAME}")
+    set(export_component ${ARG_NAME}-cmake)
+    # Install export files
+    install(
+      EXPORT ${ARG_EXPORT_NAME}
+      DESTINATION ${config_install_dir}
+      NAMESPACE holoscan::
+      COMPONENT ${export_component}
+    )
+    # Generate the config files that include the exports
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Config.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}Config.cmake"
+      INSTALL_DESTINATION ${config_install_dir}
+      NO_SET_AND_CHECK_MACRO
+      NO_CHECK_REQUIRED_COMPONENTS_MACRO
+    )
+    write_basic_package_version_file(
+      "${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}ConfigVersion.cmake"
+      VERSION "${ARG_VERSION}"
+      COMPATIBILITY AnyNewerVersion
+    )
+    # Install the config files
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}Config.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/${ARG_NAME}ConfigVersion.cmake
+      DESTINATION ${config_install_dir}
+      COMPONENT ${export_component}
+    )
+  endif()
+
   if(ARG_COMPONENTS)
     # only packages installed components, in a single package
-    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}") # TODO: check if valid?
     set(CPACK_DEB_COMPONENT_INSTALL 1)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL 1)
+    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS};${export_component}") # TODO: check if components are valid?
     set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
   else()
     # package all installed targets
     set(CPACK_DEB_COMPONENT_INSTALL 0)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL 0)
   endif()
 
   # standard configurations
+  set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/nvidia/holoscan")
   set(CPACK_STRIP_FILES TRUE)
-  set(CPACK_GENERATOR DEB)
+  set(CPACK_GENERATOR DEB) # default, can be overridden with cpack -G <generator>
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  set(CPACK_ARCHIVE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CMAKE_SYSTEM_PROCESSOR}")
+  # Note: CPACK_ARCHIVE_FILE_NAME above does not work if there is no components:
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/20419
+  # Fixed in CMake 4.0: https://gitlab.kitware.com/cmake/cmake/-/blob/master/Help/release/4.0.rst
 
   # generate package specific CPack configs to allow for multi packages
   set(CPACK_OUTPUT_CONFIG_FILE "${CMAKE_BINARY_DIR}/pkg/CPackConfig-${ARG_NAME}.cmake")

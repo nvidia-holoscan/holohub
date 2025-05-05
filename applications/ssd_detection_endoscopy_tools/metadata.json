@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "SSD Detection Application",
+		"name": "SSD Detection for Endoscopy Tools",
 		"authors": [
 			{
 				"name": "Jin Li",
@@ -19,8 +19,8 @@
 				"0.6.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["SSD", "bounding box", "Detection"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["healthcare AI", "video", "surgicaltooltracking", "onnx_nhwc_conversion", "SSD", "detection", "video processing", "visualization", "bounding box"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

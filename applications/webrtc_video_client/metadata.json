@@ -19,14 +19,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Client",
-			"Video"
-		],
+		"tags": ["networking and distributed computing", "video", "SDP exchange", "ice candidate management", "WebRTC", "client", "camera", "visualization", "H.264"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

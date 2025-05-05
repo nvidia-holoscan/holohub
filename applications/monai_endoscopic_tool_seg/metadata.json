@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Tool Segmentation from MONAI Model Zoo Application",
+		"name": "Endoscopy Tool Segmentation from MONAI Model Zoo",
 		"authors": [
 			{
 				"name": "Jin Li",
@@ -20,13 +20,9 @@
 			]
 		},
 		"platforms": [
-			"amd64", "arm64"
+			"x86_64", "aarch64"
 		],
-		"tags": [
-			"MONAI",
-			"Endoscopy",
-			"Segmentation"
-		],
+		"tags": ["healthcare AI", "video", "ONNX graphsurgeon", "endoscopic instrument analysis", "MONAI model zoo", "endoscopy", "segmentation", "video processing"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []

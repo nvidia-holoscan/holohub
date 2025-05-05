@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "NV-CLIP NIM",
+		"name": "NVIDIA NV-CLIP NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -21,13 +21,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["computer vision and perception", "integration", "cross modal embeddings", "inference microservices", "multimodal model", "NIM", "OpenAI API", "image processing", "cosine similarity"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

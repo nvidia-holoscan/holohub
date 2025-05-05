@@ -251,7 +251,12 @@ run_docker() {
 
 get_group_id() {
     local group=$1
-    cat /etc/group | grep $group | cut -d: -f3
+    # It it possible to match multiple lines in /etc/group for a given
+    # search pattern, but the expectation is that this function returns
+    # a single ID. Thus, append a colon to the group name to match the exact
+    # group (e.g., video: and not video-users:) and include head -1 to get a
+    # single ID if there are still multiple matches.
+    grep "^${group}:" /etc/group | cut -d: -f3 | head -1
 }
 
 get_ucx_options() {
@@ -274,11 +279,20 @@ get_conditional_options() {
     local conditional_opt=""
 
 
+    if [ -e /usr/local/cmake/VideoMasterHDConfigVersion.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfigVersion.cmake:/usr/local/cmake/VideoMasterHDConfigVersion.cmake${postfix}"
+    fi
+    if [ -e /usr/local/cmake/VideoMasterHDConfig.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfig.cmake:/usr/local/cmake/VideoMasterHDConfig.cmake${postfix}"
+    fi
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_audio.so:/usr/lib/libvideomasterhd_audio.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbi.so:/usr/lib/libvideomasterhd_vbi.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbidata.so:/usr/lib/libvideomasterhd_vbidata.so${postfix}"
     fi
-    if [ -d /opt/deltacast/videomaster/Include ]; then
-        conditional_opt+="${prefix}--volume=/opt/deltacast/videomaster/Include:/usr/local/deltacast/Include${postfix}"
+    if [ -d /usr/include/videomaster ]; then
+        conditional_opt+="${prefix}--volume=/usr/include/videomaster:/usr/include/videomaster${postfix}"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
         conditional_opt+="${prefix}--volume=/opt/yuan/qcap/include:/opt/yuan/qcap/include${postfix}"
@@ -449,7 +463,7 @@ check_nvidia_ctk() {
 
 get_host_gpu() {
     if ! command -v nvidia-smi >/dev/null; then
-        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack."
+        echo "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack." >&2
         echo -n "dgpu";
     elif [[ ! $(nvidia-smi --query-gpu=name --format=csv,noheader) ]] || \
          [[ $(nvidia-smi --query-gpu=name --format=csv,noheader -i 0) =~ "Orin (nvgpu)" ]]; then
@@ -460,17 +474,21 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v2.7.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v3.2.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
 # Compute capacity is a version number that represents the GPU's features & specs
 get_compute_capacity() {
-    echo -n $(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1)
+    if ! command -v nvidia-smi >/dev/null; then
+        echo -n "0.0"  # Default value when nvidia-smi is not available
+    else
+        echo -n $(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1)
+    fi
 }
 
 build_desc() { c_echo 'Build dev image
@@ -596,11 +614,14 @@ Usage: ./dev_container launch [options]
     --local_sdk_root : Path to Holoscan SDK used for building local Holoscan SDK container
     --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
     --nsys_profile : Support Nsight Systems profiling in container
+    --nsys_location : (optional) Specify the location of the Nsight Systems installation on the host
+                       (e.g., /opt/nvidia/nsight-systems/2024.1.1/)
     --init : Support tini entry point
     --persistent : Does not delete container after it is run
     --verbose : Print variables passed to docker run command
     --add-volume : Mount additional volume
     --as_root  : Run the container with root permissions
+    --mps : If CUDA MPS is enabled on the host, mount MPS host directories into the container
     --docker_opts : Additional options to pass to the Docker launch
     -- : Any trailing arguments after "--" are forwarded to `docker run`
     '
@@ -616,6 +637,7 @@ launch() {
     local use_tini=0
     local persistent=0
     local nsys_profile=false
+    local nsys_location=""
     local as_root=false
     local docker_opts=""
 
@@ -669,6 +691,17 @@ launch() {
             nsys_profile=true
             shift
             ;;
+        --nsys_location)
+            if [[ -n "$2" ]]; then
+                nsys_location="$2"
+                additional_volumes+="-v $nsys_location:/opt/nvidia/nsys-host "
+                shift 2
+            else
+                echo "Error: --nsys_location requires a value"
+                launch_desc
+                exit 1
+            fi
+            ;;
         --as_root)
             as_root=true
             shift
@@ -684,6 +717,14 @@ launch() {
                 launch_desc
                 exit 1
             fi
+            ;;
+        --mps)
+            if [ -d "/tmp/nvidia-mps" ] && [ -d "/tmp/nvidia-log" ]; then
+                additional_volumes+="-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log "
+            else
+                echo "Warning: MPS directories not found. MPS may not be enabled on the host."
+            fi
+            shift
             ;;
         --docker_opts)
             if [[ -n "$2" ]]; then
@@ -842,9 +883,30 @@ launch() {
         "$@"
 }
 
-build_and_install_desc() { c_echo 'Build the application and install the binaries into install/<app> if supported
+build_and_package_desc() { c_echo 'Build the debian package
+    Usage: ./dev_container build_and_package <package_name>
+    View extra options with `./dev_container build_and_run_desc` ignoring run options
+    '
+}
+
+build_and_package() {
+    if [[ -z $1 ]]; then
+        c_echo "No package name provided (see ./run list_packages)"
+        exit 1
+    fi
+    pkg=$(basename "$1")
+    shift
+    packages=$(${HOLOHUB_ROOT}/run list_packages | awk '{print $1}')
+    if [[ ! " ${packages[*]} " =~ " ${pkg} " ]]; then
+        c_echo "Package ${pkg} not found in list of packages: (see ./run list_packages)"
+        exit 1
+    fi
+    build_and_run $pkg --no_run "$@"
+}
+
+build_and_install_desc() { c_echo 'Build and install the binaries into install/<app> if supported
     Usage: ./dev_container build_and_install <application_name>
-    View options with `./dev_container build_and_run_desc`
+    View extra options with `./dev_container build_and_run_desc` ignoring run options
     '
 }
 
@@ -883,7 +945,7 @@ build_and_run() {
     local app_language=""
     local container_build_args=()
     local container_launch_args=""
-    local docker_opts="--entrypoint=bash"
+    local docker_opts="--entrypoint=bash "
     local build_app=1
     local image_name=""
     local docker_file=""
@@ -1044,11 +1106,14 @@ build_and_run() {
     fi
 
     if [[ -z "${docker_file}" ]]; then
-        docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
+        packages=$(${HOLOHUB_ROOT}/run list_packages | awk '{print $1}')
+        if [[ " ${packages[*]} " =~ " ${app_name} " ]]; then
+            docker_file=$(./run get_pkg_dockerfile ${app_name})
+        else
+            docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
+        fi
     fi
-    if [[ -n "${docker_file}" ]]; then
-        container_build_args+=(--docker_file ${docker_file})
-    fi
+    container_build_args+=(--docker_file ${docker_file})
 
     if [[ -n "${configure_args}" ]]; then
         extra_build_args+=" --configure-args ${configure_args}"
@@ -1065,15 +1130,15 @@ build_and_run() {
     container_build_args+=(--img $image_name)
     container_launch_args+=" --img $image_name"
 
-    c_echo "Building application container..."
+    c_echo "Building container..."
     run_command  ${SCRIPT_DIR}/dev_container build "${container_build_args[@]}"
     if [[ $build_app == 1 ]]; then
-        c_echo "Building application..."
+        c_echo "Building $app_name..."
         run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $parallel_jobs $extra_build_with $extra_build_args"
     fi
 
     if [[ $run_app == 1 ]]; then
-        c_echo "Launching application..."
+        c_echo "Launching $app_name..."
         run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run launch $app_name $app_language $extra_run_args"
     fi
 }
@@ -1183,9 +1248,7 @@ vscode() {
         docker_file=$(./run get_app_dockerfile ${app_name} ${app_language:-cpp})
         c_echo W "Using Dockerfile: " G "${docker_file}"
     fi
-    if [[ -n "${docker_file}" ]]; then
-        container_build_args+=" --docker_file ${docker_file}"
-    fi
+    container_build_args+=" --docker_file ${docker_file}"
 
     if [ -n "${app_name}" ]; then
         dev_container_tag+="-${app_name}"

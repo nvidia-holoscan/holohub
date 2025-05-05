@@ -55,9 +55,7 @@ function build_db {
 function download_llama {
     mkdir -p "$BASE_DIR/docs"
     if [ ! -f "$BASE_DIR/models/phind-codellama-34b-v2.Q5_K_M.gguf" ]; then
-        wget -nc -P "$BASE_DIR/models" https://api.ngc.nvidia.com/v2/models/nvidia/clara-holoscan/phind-codellama-34b-v2-q5_k_m/versions/2.0/zip
-        unzip -n "$BASE_DIR/models/zip" -d "$BASE_DIR/models/"
-        rm "$BASE_DIR/models/zip"
+        wget -nc -P "$BASE_DIR/models" https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF/resolve/main/phind-codellama-34b-v2.Q5_K_M.gguf
     else
         echo "Model already exists, skipping download."
     fi

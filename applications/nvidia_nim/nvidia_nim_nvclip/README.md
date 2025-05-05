@@ -1,4 +1,4 @@
-# NVIDIA NV-CLIP
+# NVIDIA NV-CLIP NIM
 
 NV-CLIP is a multimodal embeddings model for image and text, and this is a sample application that shows how to use the OpenAI SDK with NVIDIA Inference Microservice (NIM). Whether you are using a NIM from [build.nvidia.com/](https://build.nvidia.com/) or [a self-hosted NIM](https://docs.nvidia.com/nim/nvclip/latest/getting-started.html#option-2-from-ngc), this sample application will work for both.
 

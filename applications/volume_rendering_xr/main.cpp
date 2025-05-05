@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-#include "convert_depth_to_screen_space_op.hpp"
+#include "operators/XrFrameOp/convert_depth/convert_depth_to_screen_space_op.hpp"
 #include "holoscan/holoscan.hpp"
-#include "xr_begin_frame_op.hpp"
-#include "xr_end_frame_op.hpp"
-#include "xr_transform_control_op.hpp"
-#include "xr_transform_render_op.hpp"
+#include "operators/XrFrameOp/begin_frame/xr_begin_frame_op.hpp"
+#include "operators/XrFrameOp/end_frame/xr_end_frame_op.hpp"
+#include "operators/XrTransformOp/XrTransformControlOp/xr_transform_control_op.hpp"
+#include "operators/XrTransformOp/XrTransformRenderOp/xr_transform_render_op.hpp"
 
 #include "volume_loader.hpp"
 #include "volume_renderer.hpp"

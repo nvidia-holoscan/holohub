@@ -14,8 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-ARG GPU_TYPE=dgpu
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-${GPU_TYPE}
+
+ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE} AS base
 ARG UBUNTU_VERSION=22.04
@@ -25,7 +25,7 @@ ARG TARGETARCH
 RUN echo "Using architecture ${TARGETARCH}"
 
 RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
-RUN pip3 install scipy loguru attrs
+RUN pip3 install scipy loguru attrs scapy pytest
 WORKDIR /opt
 
 ARG DEBIAN_FRONTEND=noninteractive

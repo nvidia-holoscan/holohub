@@ -19,9 +19,9 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
-		"tags": [],
+		"tags": ["computer vision and perception", "visualization", "apriltags", "perspective correction", "camera", "detection", "sensor", "emergent"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

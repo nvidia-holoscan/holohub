@@ -111,6 +111,24 @@ get_buildtype_str() {
     echo -n "${build_type_str}"
 }
 
+is_workflow() {
+  # Check if a given project name is a workflow.
+  # Returns true if the project is a workflow, false otherwise.
+  # Usage: ./run is_workflow <project_name>
+  # Example: if $(is_workflow "my_project"); then echo "It's a workflow"; fi
+  local project_name="$1"
+
+  if [[ -z "${project_name}" ]]; then
+    echo "Missing project name argument for is_workflow"
+    return 1
+  fi
+
+  if list_workflows | awk '{print $1}' | grep -Fxq "${project_name}"; then
+    return 0 # Return true (0) if it's a workflow
+  else
+    return 1 # Return false (1) if it's not a workflow
+  fi
+}
 
 get_app_source_root_dir() {
   # Get source path for a given application according to HoloHub convention.
@@ -121,15 +139,16 @@ get_app_source_root_dir() {
     exit 1
   fi
 
-  holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+  if is_workflow "${appname}"; then
+    holohub_app_source="${SCRIPT_DIR}/workflows/${appname}"
+  else
+    holohub_app_source="${SCRIPT_DIR}/applications/${appname}"
+  fi
 
   # Check if the application is in a subdirectory
   if [ ! -d "$holohub_app_source" ]; then
-    sub_app_path=$(find ${SCRIPT_DIR}/applications -type d -name "${appname}")
-    app_rel_path=${sub_app_path#"${SCRIPT_DIR}/applications/"}
-    if [[ -n "$app_rel_path" ]]; then
-      holohub_app_source="${SCRIPT_DIR}/applications/${app_rel_path}"
-    fi
+    app_parent=${holohub_app_source/${appname}/}
+    holohub_app_source=$(find ${app_parent} -type d -name "${appname}")
   fi
 
   # Check if the application is in the benchmarks folder
@@ -159,6 +178,64 @@ get_app_source_lang_dir() {
   fi
 
   echo -n "${holohub_app_source}"
+}
+
+get_pkg_dir() {
+  # Get source path for a given package according to HoloHub convention.
+  # Usage: ./run get_pkg_dir <pkg_name>
+  local pkgname="$1"
+  if [[ -z "${pkgname}" ]]; then
+    echo "Missing package name argument for get_pkg_dir"
+    exit 1
+  fi
+
+  holohub_pkg_source="${SCRIPT_DIR}/pkg/${pkgname}"
+
+  # Check if the package is in a subdirectory
+  if [ ! -d "$holohub_pkg_source" ]; then
+    sub_pkg_path=$(find ${SCRIPT_DIR}/pkg -type d -name "${pkgname}")
+    pkg_rel_path=${sub_pkg_path#"${SCRIPT_DIR}/pkg/"}
+    if [[ -n "$pkg_rel_path" ]]; then
+      holohub_pkg_source="${SCRIPT_DIR}/pkg/${pkg_rel_path}"
+    fi
+  fi
+
+  if [ ! -d "$holohub_pkg_source" ]; then
+    echo "Could not find package ${pkgname}"
+    exit 1
+  fi
+
+  echo -n "${holohub_pkg_source}"
+}
+
+get_pkg_dockerfile() {
+  # Parse the path to a custom package Dockerfile, if provided.
+  # Follows the HoloHub convention:
+  # 1. Check the metadata.json file for a "dockerfile" entry.
+  # 2. Check for a Dockerfile in the package directory.
+  # 3. Use the default Dockerfile provided at the top level of the HoloHub repository.
+  # Usage: ./run get_pkg_dockerfile <pkg_name>
+  local pkgname="$1"
+  local dockerfile_path=""
+
+  packages=$(list_packages | awk '{print $1}')
+  if [[ ! " ${packages[*]} " =~ " ${pkgname} " ]]; then
+    echo "Package ${pkgname} not found in list of packages: (see ./run list_packages)"
+    exit 1
+  fi
+
+  local pkg_source_path=$(get_pkg_dir ${pkgname})
+  local dockerfile_entry=$(cat "${pkg_source_path}/metadata.json" 2>/dev/null | grep "dockerfile" )
+  if [[ -n "${dockerfile_entry}" ]]; then
+    pattern="s#<holohub_pkg_source>#${pkg_source_path}#g"
+    dockerfile_path=$(echo "${dockerfile_entry}" | awk -F'["]' '{ print $4 }' | sed -E ${pattern})
+  elif [[ -f "${pkg_source_path}/Dockerfile" ]]; then
+    dockerfile_path="${pkg_source_path}/Dockerfile"
+  else
+    dockerfile_path="${SCRIPT_DIR}/Dockerfile"
+  fi
+
+  echo -n "${dockerfile_path}"
 }
 
 get_app_dockerfile() {
@@ -302,6 +379,13 @@ setup() {
     apt install --no-install-recommends -y cmake cmake-curses-gui
   fi
 
+  # Install Ninja
+  ninja_version=$(dpkg --status ninja-build 2>/dev/null | grep -Po '^Version: \K[^-]*')
+  if [[ $ninja_version == "" ]]; then
+    echo "Installing ninja-build"
+    apt install --no-install-recommends -y ninja-build
+  fi
+
   # Install python dev
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
@@ -342,16 +426,23 @@ setup() {
     apt-get install --no-install-recommends -y git
   fi
 
+  # unzip
+  unzip_path=$(which unzip)
+  if [[ $unzip_path == "" ]]; then
+    echo "Installing unzip"
+    apt-get install --no-install-recommends -y unzip
+  fi
+
   # Install ngc-cli
   ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
   if [[ $ngc_version == "" ]]; then
     echo "Installing ngc cli"
 
     if [ $(uname -m) == "aarch64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip -O ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
     fi
     if [ $(uname -m) == "x86_64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip -O ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
     fi
     ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/
   fi
@@ -371,8 +462,8 @@ setup() {
   echo "Cuda version found: $short_cuda_version"
 
   # Install cudnn9 first
-  install_cuda_dependencies_package libcudnn9-cuda-12 cuda$short_cuda_version true
-  install_cuda_dependencies_package libcudnn9-dev-cuda-12 cuda$short_cuda_version true
+  install_cuda_dependencies_package libcudnn9-cuda-12 9.* true
+  install_cuda_dependencies_package libcudnn9-dev-cuda-12 9.* true
 
   # Check if cudnn9 is install, if not install cudnn8
   installed_cudnn9_version=$(apt list --installed libcudnn9-cuda-12 2>/dev/null | grep libcudnn9-cuda-12)
@@ -470,11 +561,11 @@ lint() {
     # If we call with --fix
     if [ $FIX == true ]; then
       # Fix python
-      run_command ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m ruff check --fix --ignore E712 ${DIR_TO_RUN} || exit_code=1
       # Fix python isort issues, run:
-      run_command isort ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m isort ${DIR_TO_RUN} || exit_code=1
       # Fix python black code formatting issues, run:
-      run_command black ${DIR_TO_RUN} || exit_code=1
+      run_command ${HOLOHUB_PY_EXE} -m black ${DIR_TO_RUN} || exit_code=1
       run_command codespell -w -i 3 ${DIR_TO_RUN} --ignore-words codespell_ignore_words.txt \
                             --skip="*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data" || exit_code=1
 
@@ -501,7 +592,7 @@ lint() {
     pushd ${SCRIPT_DIR} > /dev/null
 
     echo "Linting Python"
-    run_command ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
+    run_command ${HOLOHUB_PY_EXE} -m ruff check $DIR_TO_RUN --ignore E712 || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m isort -c $DIR_TO_RUN || exit_code=1
     run_command ${HOLOHUB_PY_EXE} -m black --check $DIR_TO_RUN || exit_code=1
 
@@ -545,7 +636,7 @@ lint() {
 
 build_desc() {
   echo
-  echo -e "${BOLD}Build a Holohub operator, application, or package, in its isolated build directory.${NOCOLOR}"
+  echo -e "${BOLD}Build a Holohub operator, application, workflow, or package, in its isolated build directory.${NOCOLOR}"
   echo
   echo -e "${CYAN}USAGE:${NOCOLOR}"
   echo
@@ -565,7 +656,7 @@ build_desc() {
   echo "                                          Default: build"
   echo "                                          Associated environment variable: CMAKE_BUILD_PATH"
   echo "   --benchmark                          : Build for Holoscan Flow Benchmarking. Valid for"
-  echo "                                          applications only"
+  echo "                                          applications/workflows only"
   echo "   --install                            : Install the target and its dependencies to"
   echo "                                          install/<target> if supported."
   echo "   --configure-args <extra_args>        : Additional configuration arguments"
@@ -620,11 +711,8 @@ resolve_sdk_install_path() {
 }
 
 build() {
-  # Holoscan SDK location
-  holoscan_sdk=""
-
   # CMake configuration args
-  configure_args=""
+  local configure_args=""
 
   # Parse the arguments
   ARGS=("$@")
@@ -637,6 +725,8 @@ build() {
   local benchmark=false
   local install=false
   local parallel_jobs=""
+  local pkg_generator="DEB"
+  local opt_prefix=""
 
   for i in "${!ARGS[@]}"; do
       arg="${ARGS[i]}"
@@ -644,17 +734,17 @@ build() {
          skipnext=0
       elif [ "$arg" = "--sdk" ]; then
          sdk_path=$( resolve_sdk_install_path "${ARGS[i+1]}" )
-         holoscan_sdk="-Dholoscan_ROOT=${sdk_path}"
+         configure_args="${configure_args} -D holoscan_ROOT=${sdk_path}"
          echo "Setting Holoscan SDK install path to ${sdk_path}"
          skipnext=1
       elif [ "$arg" = "--with" ]; then
          operators="${ARGS[i+1]}"
-         configure_args="${configure_args} -DHOLOHUB_BUILD_OPERATORS=\"${operators}\""
+         configure_args="${configure_args} -D HOLOHUB_BUILD_OPERATORS=\"${operators}\""
          echo "Building with operator(s) ${operators}"
          skipnext=1
       elif [ "$arg" = "--benchmark" ]; then
           benchmark=true
-          configure_args="${configure_args} -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
+          configure_args="${configure_args} -D CMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
           echo "Building for Holoscan Flow Benchmarking"
       elif [ "$arg" = "--install" ]; then
           install=true
@@ -664,6 +754,7 @@ build() {
          skipnext=1
       elif [ "$arg" = "--type" ]; then
          build_type=$(get_buildtype_str "${ARGS[i+1]}")
+         echo "Building in ${build_type} mode"
          skipnext=1
       elif [ "$arg" = "--buildpath" ]; then
          build_path="${ARGS[i+1]}"
@@ -671,6 +762,9 @@ build() {
       elif [ "$arg" = "--parallel" ]; then
          parallel_jobs="${ARGS[i+1]}"
          echo "Setting the number of parallel build jobs: ${ARGS[i+1]}"
+         skipnext=1
+      elif [ "$arg" = "--pkg" ]; then
+         pkg_generator="${ARGS[i+1]}"
          skipnext=1
       elif [[ $arg = -* ]]; then
         print_error "Unknown option $arg"
@@ -687,24 +781,26 @@ build() {
     exit 1
   fi
   project=$(basename "$1")
-  opt_prefix=""
   is_app=false
   is_pkg=false
   if list_packages | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D PKG_"
+    opt_prefix="PKG"
     is_pkg=true
   elif list_apps | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D APP_"
+    opt_prefix="APP"
+    is_app=true
+  elif is_workflow "${project}"; then
+    opt_prefix="APP"
     is_app=true
   elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="-D OP_"
+    opt_prefix="OP"
   else
-    print_error "Unknown package, application, or operator: $1"
+    print_error "Unknown package, application, workflow, or operator: $1"
     echo "You can run ./run list for a full list of options."
     exit 1
   fi
   echo "Building $project"
-  opt_flag="$opt_prefix$project:BOOL=1"
+  configure_args="${configure_args} -D ${opt_prefix}_${project}:BOOL=1"
 
   # Assign default build path
   if [ "$build_path" == "" ]; then
@@ -717,19 +813,27 @@ build() {
       app_source_root_path=$(get_app_source_root_dir $project)
       run_command benchmarks/holoscan_flow_benchmarking/patch_application.sh ${app_source_root_path}
     else
-      print_warning "Requesting benchmarking with --benchmark is only available for applications, ignoring"
+      print_warning "Requesting benchmarking with --benchmark is only available for applications/workflows, ignoring"
     fi
   fi
 
-  # We define the python path to make sure we grab the right one
-  cmake_extra_args="--no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+  # Set the build type
+  configure_args="${configure_args} -D CMAKE_BUILD_TYPE=${build_type}"
 
-  # We set the data directory to be outside the build directory
-  cmake_extra_args="$cmake_extra_args $configure_args -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+  # Set the python path to make sure we grab the right one
+  configure_args="${configure_args} --no-warn-unused-cli -D Python3_EXECUTABLE=${HOLOHUB_PY_EXE} -D Python3_ROOT_DIR=${HOLOHUB_PY_LIB}"
+
+  # Set the data directory to be outside the build directory
+  configure_args="${configure_args} -D HOLOHUB_DATA_DIR:PATH=${SCRIPT_DIR}/data"
+
+  # Default to Ninja generator if available
+  if command -v ninja &>/dev/null; then
+    configure_args="${configure_args} -G Ninja"
+  fi
 
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
-  run_command cmake -S . -B ${build_path} ${cmake_extra_args} -D CMAKE_BUILD_TYPE=${build_type} ${holoscan_sdk} ${opt_flag}
+  run_command cmake -S . -B ${build_path} ${configure_args}
   ret=$?
   check_exit_code $ret "Error building $project."
   # Job concurrency determined by the underlying build tool unless a number is specified
@@ -750,7 +854,7 @@ build() {
 
   if [ $is_pkg == true ]; then
     for cpack_config in $(find ${build_path}/pkg -name "CPackConfig-*.cmake"); do
-      run_command cpack --config "$cpack_config"
+      run_command cpack --config "$cpack_config" -G "${pkg_generator}"
     done
   fi
 
@@ -761,18 +865,21 @@ build() {
 # Launch a sample app
 launch_desc() {
   echo -e "
-  ${BOLD}Run an application.${NOCOLOR}
+  ${BOLD}Run an application or workflow.${NOCOLOR}
 
-  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name> [cpp|python] [options]
+  ${CYAN}USAGE:${NOCOLOR} ./run launch <application_name|workflow_name> [cpp|python] [options]
+
 
   ${CYAN}Options:${NOCOLOR}
-     --extra_args <args>       : additional arguments passed to the application command
-     --nsys_profile            : profile using Nsight Systems
-     --verbose                 : output additional run command information to stdout
+     --extra_args <args>       : additional arguments passed to the application/workflow command
+     --nsys_profile           : profile using Nsight Systems
+     --verbose                : output additional run command information to stdout
 
 
-  Use './run list' or './run list_apps' to list the available applications.
-  Make sure you call './run build <application_name>' to first build the application.
+  Use './run list'
+  Use './run list_apps' to list the available applications.
+  Use './run list_workflows' to list the available workflows.
+  Make sure you call './run build <application_name|workflow_name>' to first build the target.
   "
 }
 
@@ -850,6 +957,7 @@ launch() {
    fi
 
    holohub_app_bin="${holohub_build_dir}/${holohub_app_source#"$SCRIPT_DIR/"}"
+
    # Check if the build directory exists (for C++ apps)
    if [ ! -d "$holohub_app_bin" ] &&  [ "$2" == "cpp" ]; then
      print_error "The build directory for this application does not exist."
@@ -862,7 +970,7 @@ launch() {
    json=$(${HOLOHUB_PY_EXE} -c 'import json,sys
 f=open("'${metadata_file}'")
 obj=json.load(f)
-project_type = "benchmark" if "benchmark" in obj.keys() else "application"
+project_type = "benchmark" if "benchmark" in obj.keys() else "workflow" if "workflow" in obj.keys() else "application"
 for k, v in obj[project_type]["run"].items():
   print(str(k)+"=\""+str(v)+"\"")
 ')
@@ -879,9 +987,14 @@ for k, v in obj[project_type]["run"].items():
    command=$(echo "${command//<holohub_app_source>/$holohub_app_source}")
 
    if [ $nsys_profile == true ]; then
-      if [ ! command -v nsys &> /dev/null ]; then
-        print_error "Nsight Systems CLI command 'nsys' not found."
-        exit 1
+      nsys_command="nsys"
+      if ! command -v nsys &>/dev/null; then
+        if [ ! -d "/opt/nvidia/nsys-host" ]; then
+          print_error "Nsight Systems CLI command 'nsys' not found. No Nsight installation from the host is also mounted."
+          echo "Please use --nsys_location with the 'dev_container launch' command to specify the location of the Nsight Systems installation on the host."
+          exit 1
+        fi
+        nsys_command="/opt/nvidia/nsys-host/bin/nsys"
       fi
       local perf_event_level=$(cat /proc/sys/kernel/perf_event_paranoid)
       if (( ${perf_event_level} > 2 )); then
@@ -889,7 +1002,7 @@ for k, v in obj[project_type]["run"].items():
         echo "See https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html#linux-requirements for more information."
         exit 1
       fi
-      command="nsys profile --trace=cuda,vulkan,nvtx,osrt ${command}"
+      command="${nsys_command} profile --trace=cuda,vulkan,nvtx,osrt ${command}"
    fi
 
    # default workdir is bin
@@ -928,7 +1041,7 @@ list_desc() {
   echo -e "
   ${BOLD}Display the list of Holohub targets.${NOCOLOR}
 
-  Includes applications, operators, packages.
+  Includes workflows, applications, operators, packages.
   "
 }
 
@@ -962,6 +1075,10 @@ list_apps() {
   list_metadata_json_dir ${SCRIPT_DIR}/applications ${SCRIPT_DIR}/benchmarks
 }
 
+list_workflows() {
+  list_metadata_json_dir ${SCRIPT_DIR}/workflows
+}
+
 list_operators() {
   list_metadata_json_dir ${SCRIPT_DIR}/operators
 }
@@ -972,9 +1089,12 @@ list_packages() {
 
 list() {
   echo
+  echo -e "${BOLD}== WORKFLOWS ===================${NOCOLOR}"
+  echo
+  list_workflows
+  echo
   echo -e "${BOLD}== APPLICATIONS =================${NOCOLOR}"
   echo
-
   list_apps
   echo
   echo -e "${BOLD}== OPERATORS ====================${NOCOLOR}"
@@ -991,6 +1111,7 @@ list() {
 
 # Returns the list of words for autocompletion
 autocompletion_list() {
+  # Get applications
   apps=$(find ${SCRIPT_DIR}/applications -name 'metadata.json')
   for d in ${apps}; do
     local appname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/applications/'\K[^ ]*')
@@ -998,6 +1119,16 @@ autocompletion_list() {
     # Deal with subdirectories of applications
     echo "${filename##*/}"
   done
+
+  # Get workflows
+  workflows=$(find ${SCRIPT_DIR}/workflows -name 'metadata.json')
+  for d in ${workflows}; do
+    local workflowname=$(dirname $d | grep -Po '^'${SCRIPT_DIR}/workflows/'\K[^ ]*')
+    filename="${workflowname%/*}"
+    # Deal with subdirectories of workflows
+    echo "${filename##*/}"
+  done
+
   echo "build launch clear_cache cpp python install_lint_deps lint setup"
 }
 
@@ -1094,7 +1225,6 @@ print_cmd_help_messages() {
     print_usage
     return 0
 }
-
 
 main() {
     local ret=0

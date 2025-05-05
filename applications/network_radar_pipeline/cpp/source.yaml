@@ -26,6 +26,7 @@ scheduler:
   stop_on_deadlock_timeout: 500
 
 tx_params:
+  interface_name: tx0
   use_ano: true
   samples_per_packet: 1024
   udp_src_port: 4096               # UDP source port
@@ -33,7 +34,6 @@ tx_params:
   ip_src_addr: 192.168.1.1      # Source IP send from
   ip_dst_addr: 192.168.1.2      # Destination IP to send to
   eth_dst_addr: 10:70:fd:fa:77:e9  # Destination MAC to populate
-  port_id: 0
 
 basic_network:
   batch_size: 100            # RX message batch size
@@ -53,8 +53,6 @@ advanced_network:
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 51200
       buf_size: 9000
     interfaces:
@@ -64,11 +62,8 @@ advanced_network:
         - queues:
           - name: "ADC Samples"
             id: 0
-            split_boundary: 0
-            max_packet_size: 9000      # Maximum payload size
-            num_concurrent_batches: 5  # Number of batches that can be used at any time
-            batch_size: 10240          # Number of packets in a batch
-            cpu_core: 1            # CPU cores for transmitting
+            batch_size: 10240         # Number of packets in a batch
+            cpu_core: 1               # CPU cores for transmitting
             memory_regions:
               - "Data_TX_GPU"
 

@@ -18,8 +18,8 @@
 				"0.4.0"
 			]
 		},
-		"platforms": ["amd64"],
-		"tags": ["Communications", "Aerospace", "Defence", "Lifesciences"],
+		"platforms": ["x86_64"],
+		"tags": ["signal processing", "audio", "FM demodulation pipeline", "GPU accelerated resampling", "SDR", "signal processing", "IQ data", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

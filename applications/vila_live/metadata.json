@@ -19,13 +19,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Large Multimodal Model",
-			"Large Vision Model"
-		],
+		"tags": ["computer vision and perception", "language model", "visual query injection", "stream aware inference", "large vision model", "multimodal model", "video processing", "interactive"],
 		"ranking": 1,
 		"dependencies": {
 			"Bootstrap": {
@@ -34,7 +31,7 @@
 			}
 		},
 		"run": {
-			"command": "bash -c '<holohub_app_source>/run_vila_live.sh'",
+			"command": "<holohub_app_source>/run_vila_live.sh",
 			"workdir": "holohub_bin"
 		}
 	}

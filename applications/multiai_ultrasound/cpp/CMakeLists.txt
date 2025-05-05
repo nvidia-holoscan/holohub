@@ -26,13 +26,13 @@ add_executable(multiai_ultrasound
 target_link_libraries(multiai_ultrasound
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_recorder
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::inference_processor
+    holoscan::aja
     visualizer_icardio
 )
 

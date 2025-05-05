@@ -1,9 +1,9 @@
-## EHR Agent Framework 
+# EHR Agent Framework
 
 The EHR Agent Framework is designed to handle and interact with EHR (Electronic Health Records) and it provides a modular and extensible system for handling various types of queries through specialized agents, with robust error handling and performance optimization features.
 
 
-### Table of Contents
+## Table of Contents
 
 - [Agent Framework overview](#agent-framework-overview)
 - [Setup Instructions](#setup-instructions)

@@ -24,4 +24,4 @@ jobs:
           python -m pip install -r ./utilities/requirements.txt
 
       - name: Run metadata_validator.py
-        run: python utilities/metadata_validator.py
+        run: python utilities/metadata/metadata_validator.py

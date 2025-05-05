@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Networked Radar Pipeline",
+		"name": "Radar Signal Processing over Network",
 		"authors": [
 			{
 				"name": "Dylan Eustice",
@@ -19,8 +19,8 @@
 				"0.6.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Networking", "Network", "UDP", "IP", "Signal Processing", "RADAR"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["signal processing", "networking", "packet assembly", "header data split optimization", "radar", "signal processing", "GPUDirect", "DPDK", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"operators": [{

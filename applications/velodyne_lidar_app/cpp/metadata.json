@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Velodyne Lidar Viewer",
+		"name": "Velodyne VLP-16 Lidar Viewer",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -42,8 +42,8 @@
 				"2.0.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Lidar","Velodyne", "Point Cloud","Visualization","Sensor"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["signal processing", "lidar", "spherical cartesian conversion", "rolling buffer accumulation", "velodyne", "point cloud", "UDP", "visualization"],
 		"ranking": 4,
 		"dependencies": {},
 		"run": {
@@ -51,4 +51,4 @@
 			"workdir": "holohub_bin"
 		}
 	}
-} 
+}

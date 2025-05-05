@@ -1,4 +1,4 @@
-# Distributed H.264 Endoscopy Tool Tracking Application
+# Distributed H.264 Endoscopy Tool Tracking
 
 This application is similar to the [H.264 Endoscopy Tool Tracking](../../../h264/h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
 

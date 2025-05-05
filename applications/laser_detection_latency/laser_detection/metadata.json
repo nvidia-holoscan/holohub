@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Laser detection",
+		"name": "Laser Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,9 +19,9 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
-		"tags": [],
+		"tags": ["computer vision and perception", "video", "perspective warp calibration", "threshold based coordinate mapping", "CV CUDA", "camera", "detection", "tracking"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

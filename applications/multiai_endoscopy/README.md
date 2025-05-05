@@ -1,4 +1,5 @@
-# Multi AI Application with SSD Detection and MONAI Endoscopic Tool Segmentation 
+# Multi AI SSD Detection and MONAI Endoscopic Tool Segmentation
+
 In this application, we show how to build a Multi AI application with detection and segmentation models, write postprocessing operators using CuPy and NumPy in Python tensor interop and [MatX library (An efficient C++17 GPU numerical computing library with Python-like syntax)](https://github.com/NVIDIA/MatX) in C++ tensor interop, and pass multiple tensors from postprocessing to Holoviz.
 
 ![](images/app_multiai_endoscopy.png)<br>

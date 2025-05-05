@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "gRPC-streaming Endoscopy Tool Tracking",
+		"name": "Distributed Endoscopy Tool Tracking with gRPC Streaming",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -12,7 +12,6 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"dockerfile": "applications/h264/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.7.0",
 			"tested_versions": [
@@ -20,14 +19,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"gRPC"
-		],
+		"tags": ["healthcare AI", "distributed", "LSTM TensorRT", "asynchronous queues", "gRPC", "video processing", "computer vision", "tracking", "visualization"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

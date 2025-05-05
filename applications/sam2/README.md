@@ -1,4 +1,4 @@
-# 📷 Holoscan SAM2
+# SAM 2: Segment Anything in Images and Videos
 
 This application demonstrates how to run [SAM2](https://github.com/facebookresearch/segment-anything-2) models on live video feed with the possibility of changing query points in real-time.
 
@@ -43,6 +43,9 @@ Determine your desired video device and edit the source device in [segment_one_t
 ## 🚀 Build and Run Instructions
 
 ### ARM64 and x86
+
+**OBS**: If you are building on a Clara AGX Dev Kit, replace the `Dockerfile` below with `./alternative_docker/Dockerfile_cagx`.
+
 This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
 ```sh
@@ -81,7 +84,8 @@ You can choose to output "logits" or "masks" in the configuration of the postpro
 
 ## 💻 Supported Hardware
 - x86 w/ dGPU
-- IGX devKit w/ dGPU
+- IGX Dev Kit w/ dGPU
+- Clara AGX Dev Kit w/ dGPU
 
 ## 🙌 Acknowledgements
 - Meta, [SAM2](https://github.com/facebookresearch/segment-anything-2): for providing these models and inference infrastructure

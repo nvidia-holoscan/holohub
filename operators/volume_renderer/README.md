@@ -35,8 +35,8 @@ All inputs are optional.
   - type: `nvidia::gxf::CameraModel`
 - **`right_camera_model`**: Camera model for the right camera when rendering in stereo mode.
   - type: `nvidia::gxf::CameraModel`
-- **`camera_matrix`**: Camera pose when not rendering in stereo mode.
-  - type: `std::array<float, 16>`
+- **`camera_pose`**: Camera pose when not rendering in stereo mode.
+  - type: `std::array<float, 16>` or `nvidia::gxf::Pose3D`
 - **`color_buffer_in`**: Buffer to store the rendered color data to, format needs to be 8 bit per component RGBA and buffer needs to be in device memory.
   - type: `nvidia::gxf::VideoBuffer`
 - **`depth_buffer_in`**: Buffer to store the rendered depth data to, format needs to be 32 bit float single component buffer needs to be in device memory.

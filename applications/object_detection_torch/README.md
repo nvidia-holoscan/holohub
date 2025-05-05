@@ -1,4 +1,4 @@
-# Object Detection Application
+# Object Detection using PyTorch Faster R-CNN
 
 This application performs object detection using frcnn resnet50 model from torchvision.
 The inference is executed using `torch` backend in `holoinfer` module in Holoscan SDK.
@@ -33,6 +33,15 @@ ffmpeg -i <downloaded_video> -pix_fmt rgb24 -f rawvideo pipe:1 | python utilitie
 If resolution is updated in entity generation, it must be updated in the following config files as well:
 <data_dir>/object_detection_torch/frcnn_resnet50_t.yaml
 <data_dir>/object_detection_torch/postprocessing.yaml
+
+## Quick start
+If you want to quickly run this application, you can use the `./dev_container build_and_run` command.
+
+```sh
+./dev_container build_and_run object_detection_torch
+```
+
+Otherwise, you can build and run the application using the commands below.
 
 ## Building the application
 

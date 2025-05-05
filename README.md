@@ -5,9 +5,7 @@
 ![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
 )
 
-[![Applications](https://img.shields.io/badge/Applications-87-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
-[![Operators](https://img.shields.io/badge/Operators-41-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
-[![Tutorials](https://img.shields.io/badge/Tutorials-12-59A700)](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials)
+Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub) for a searchable catalog of all available components.
 
 This is a central repository for the NVIDIA Holoscan AI sensor processing community to share reference applications, operators, tutorials and benchmarks. We invite users and developers of the Holoscan platform to reuse and contribute to this repository.
 
@@ -32,6 +30,8 @@ The following directories make up the core of this repo:
   reusable Holoscan modules.
 - **Package configurations**: Visit [`pkg`](./pkg/) for a list of debian package to generate, to distribute operators and applications for easier development.
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
+- **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
+
 
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
 
@@ -55,6 +55,8 @@ If you prefer to build locally without `docker`, take a look at our [Native Buil
 
 Once your development environment is configured you may move on to [Building the Holohub components you are interested in](#building-operators-applications-and-packages).
 
+> **NOTE:** Several applications and operators require additional dependencies beyond the basic prerequisites listed above. Please refer to the README of the specific application or operator for detailed dependency information before attempting to build or run it.
+
 ## Container Build (Recommended)
 
 ### Software Prerequisites
@@ -63,6 +65,7 @@ To build and run in a containerized environment you will need:
   - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
   - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
   - `git` version control
+  - (optional) A [Python3](https://www.python.org/downloads/) base installation to run the `holohub` infrastructure script
 
 You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 
@@ -76,7 +79,27 @@ $ cd holohub
 
 Alternatively, download sources as a ZIP archive from the GitHub homepage.
 
+### Build and run command (recommended)
+
+The easiest way to build and run Holohub applications is to use the `./dev_container build_and_run` command.
+
+```sh
+$ ./dev_container build_and_run <application_name>
+```
+
+If you want to use a specific based image for the application, you can use the `--base_img` option.
+
+```sh
+$ ./dev_container build_and_run --base_img <base_image> <application_name>
+```
+
+> **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires manual configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
+
+If you want a more detailed command to build and run a specific application, please follow the instructions below.
+
 ### Build
+
+Holohub provides a default development container that can be used to build and run applications. However several applications and operator requires specific dependencies that are not available in the default development container and are provided by specific docker files. Please refer to the README of each application or operator for more information.
 
 Run the following command to build the default development container. The build may take a few minutes.
 
@@ -84,16 +107,22 @@ Run the following command to build the default development container. The build 
 $ ./dev_container build
 ```
 
+Depending on the application or operator you are building, you may need to point to the specific docker file provided by the application or operator.
+
+```sh
+$ ./dev_container build --docker_file <path_to_the_application_dockerfile>
+```
+
 Check to verify that the image is created:
 ```bash
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
-holohub         ngc-v2.1.0-dgpu   17e3aa51f129   13 days ago     13.2GB
+holohub         ngc-v3.2.0-dgpu   17e3aa51f129   13 days ago     13.2GB
 ...
 ```
 
-***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.1`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](/doc/developer.md#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
+***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.9`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](/doc/developer.md#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
 
 See the [Developer Reference document](/doc/developer.md) for additional options.
 

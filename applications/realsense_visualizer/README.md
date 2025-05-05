@@ -1,4 +1,4 @@
-# RealSense Visualizer
+# Intel RealSense Camera Visualizer
 
 Visualizes frames captured from an Intel RealSense camera.
 ![](screenshot.png)<br>

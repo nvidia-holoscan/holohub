@@ -1,4 +1,4 @@
-# H.264 Video Decode Reference Application
+# H.264 Video Decode
 
 This is a minimal reference application demonstrating usage of H.264 video
 decode operators. This application makes use of H.264 elementary stream reader

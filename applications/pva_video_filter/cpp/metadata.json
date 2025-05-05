@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "PVA Video Filter (Unsharp Mask) Example",
+        "name": "PVA-Accelerated Image Sharpening",
         "authors": [
             {
                 "name": "Soham Sinha",
@@ -27,11 +27,9 @@
             ]
         },
         "platforms": [
-            "arm64"
+            "aarch64"
         ],
-        "tags": [
-            "PVA"
-        ],
+        "tags": ["computer vision and perception", "video", "Tegra VLIW optimization", "nv24 luminance processing", "PVA", "video processing", "endoscopy", "visualization"],
         "ranking": 1,
         "dependencies": {},
         "run": {

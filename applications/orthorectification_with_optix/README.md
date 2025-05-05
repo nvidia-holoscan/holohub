@@ -1,4 +1,4 @@
-# HoloHub Orthorectification Application
+# GPU-Accelerated Orthorectification with NVIDIA OptiX
 
 This application is an example of utilizing the nvidia OptiX SDK via the PyOptix bindings to create per-frame orthorectified imagery. In this example, one can create a visualization of mapping frames from a drone mapping mission processed with [Open Drone Map](https://opendronemap.org/). A typical output of a mapping mission is a single merged mosaic. While this product is useful for GIS applications, it is difficult to apply algorithms on a such a large single image without incurring additional steps like image chipping. Additionally, the mosaic process introduces image artifacts which can negativley impact algorithm performance. 
 

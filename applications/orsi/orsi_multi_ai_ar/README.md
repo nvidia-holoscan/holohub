@@ -1,6 +1,4 @@
-# Orsi Multi AI and AR sample app
-
-
+# Orsi Academy Multi AI and AR Visualization
 
 <center> <img src="./docs/multi_ai_1.png" width="650" height="400"> <img src="./docs/multi_ai_2.png" width="650" height="400"></center>
 <center> Fig. 1: Application screenshots  </center><br>

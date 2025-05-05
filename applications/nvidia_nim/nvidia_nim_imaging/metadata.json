@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Imaging using NVIDIA Inference Microservice (NIM)",
+		"name": "Medical Imaging Segmentation with NVIDIA Vista-3D NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -20,13 +20,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["healthcare AI", "imaging", "anatomical segmentation", "NRRD processing", "3D Slicer", "NIM", "segmentation", "radiology imaging"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

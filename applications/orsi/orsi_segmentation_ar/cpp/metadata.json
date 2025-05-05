@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "ORSI Academy Surgical Tool Segmentation and AR Overlay",
+        "name": "Orsi Academy Surgical Tool Segmentation and AR Overlay",
         "authors": [
             {
                 "name": "Jasper Hofman",
@@ -19,17 +19,10 @@
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
-        "tags": [
-            "DeltaCast",
-            "VideoMaster",
-            "Endoscopy",
-            "Segmentation",
-            "Augmented Reality", 
-            "VTK"
-        ],
+        "tags": ["healthcare AI", "mixed reality", "occlusion handling", "robotic surgery assistance", "augmented reality", "VTK", "segmentation", "endoscopy"],
         "ranking": 3,
         "dependencies": {
             "data": [

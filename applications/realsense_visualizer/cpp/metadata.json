@@ -16,8 +16,8 @@
 			"minimum_required_version": "2.1.0",
 			"tested_versions": ["2.1.0"]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": [],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["computer vision and perception", "visualization", "dual pipeline architecture", "unbounded stream allocation", "camera", "depth", "HoloViz UI", "sensor"],
 		"ranking": 0,
 		"dependencies": {},
 		"run": {
@@ -25,4 +25,4 @@
 			"workdir": "holohub_bin"
 		}
 	}
-} 
+}

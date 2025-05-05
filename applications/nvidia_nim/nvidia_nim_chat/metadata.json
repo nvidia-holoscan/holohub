@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Chat with NVIDIA Inference Microservice (NIM)",
+		"name": "Chat with NVIDIA NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -20,13 +20,10 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["natural language and conversational AI", "integration", "model switching", "YAML configuration", "OpenAI API", "NIM", "local LLM"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

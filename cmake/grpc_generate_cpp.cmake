@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ function(grpc_generate_cpp SRCS HDRS INCLUDE_DIRS)
     endif()
 
     foreach(PROTO_FILE ${ARGN})
-        message(STATUS "Build proto file ${PROTO_FILE}")
+        message(STATUS "Build proto file ${PROTO_FILE} in C++")
         # Get the full path to the proto file
         get_filename_component(_abs_proto_file "${PROTO_FILE}" ABSOLUTE)
         # Get the name of the proto file without extension
@@ -41,7 +41,7 @@ function(grpc_generate_cpp SRCS HDRS INCLUDE_DIRS)
         # Get the parent directory of the proto file
         get_filename_component(_proto_parent_dir ${_abs_proto_file} DIRECTORY)
         # Append 'generated' to the parent directory
-        set(_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+        set(_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated/cpp")
         file(MAKE_DIRECTORY ${_generated_dir})
 
         set(_protobuf_include_path -I ${_proto_parent_dir})
