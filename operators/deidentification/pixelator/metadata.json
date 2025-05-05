@@ -1,6 +1,6 @@
 {
   "operator": {
-    "name": "PixelatorOp",
+    "name": "Pixelator",
     "authors": [
       {
         "name": "NVIDIA Holoscan Team",
