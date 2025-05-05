@@ -4,8 +4,9 @@ This directory contains the `PixelatorOp` for use with NVIDIA Holoscan workflows
 
 ## Structure
 
-- `pixelator_op.py`: The main operator implementation (class `PixelatorOp`).
+- `pixelator.py`: The main operator implementation (class `PixelatorOp`).
 - `README.md`: This file.
+- `metadata.json`: Operator metadata.
 
 ## Requirements
 - [Holoscan SDK](https://docs.nvidia.com/holoscan/)

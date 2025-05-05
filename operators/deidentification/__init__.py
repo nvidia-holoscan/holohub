@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .pixelator.pixelator_op import PixelatorOp
+from .pixelator.pixelator import PixelatorOp
 
 __all__ = ["PixelatorOp"]
