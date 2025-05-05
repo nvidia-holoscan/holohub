@@ -1379,6 +1379,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   uint16_t cur_q          = tparams->q_params[cur_idx].queue;
   uint16_t cur_segs       = tparams->q_params[cur_idx].num_segs;
   uint32_t cur_batch_size = tparams->q_params[cur_idx].batch_size;
+  uint16_t pkts_per_poll;
 
 
   //
@@ -1452,18 +1453,16 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
     cur_q          = tparams->q_params[cur_idx].queue;
     cur_segs       = tparams->q_params[cur_idx].num_segs;
     cur_batch_size = tparams->q_params[cur_idx].batch_size;
+    pkts_per_poll  = std::min(DpdkMgr::DEFAULT_NUM_RX_BURST, (uint16_t)tparams->q_params[cur_idx].batch_size);
 
     // DPDK on some ARM platforms requires that you always pass nb_pkts as a number divisible
     // by 4. If you pass something other than that, you get undefined results and will end up
     // running out of buffers.
     do {
-      int burst_size = std::min((uint32_t)DpdkMgr::DEFAULT_NUM_RX_BURST,
-                                (uint32_t)(cur_batch_size - burst->hdr.hdr.num_pkts));
-
       nb_rx[cur_idx] = rte_eth_rx_burst(cur_port,
                                cur_q,
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
-                               DpdkMgr::DEFAULT_NUM_RX_BURST);
+                               pkts_per_poll);
 
       if (nb_rx[cur_idx] == 0) {
         cur_idx = (cur_idx + 1) % num_queues;
@@ -1538,6 +1537,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
   flush_packets(tparams->port);
   struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
+  int pkts_per_poll = std::min(DEFAULT_NUM_RX_BURST, (uint16_t)tparams->batch_size);
 
   HOLOSCAN_LOG_INFO("Starting RX Core {}, port {}, queue {}, socket {}",
                     rte_lcore_id(),
@@ -1613,13 +1613,10 @@ int DpdkMgr::rx_core_worker(void* arg) {
     // by 4. If you pass something other than that, you get undefined results and will end up
     // running out of buffers.
     do {
-      int burst_size = std::min((uint32_t)DEFAULT_NUM_RX_BURST,
-                                (uint32_t)(tparams->batch_size - burst->hdr.hdr.num_pkts));
-
       nb_rx = rte_eth_rx_burst(tparams->port,
                                tparams->queue,
                                reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]),
-                               DEFAULT_NUM_RX_BURST);
+                               pkts_per_poll);
 
       if (nb_rx == 0) {
         if (burst->hdr.hdr.num_pkts > 0 && timeout_cycles > 0) {
