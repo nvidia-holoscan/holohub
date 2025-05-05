@@ -41,8 +41,8 @@ record_type: "none"   # or "input" if you want to record input video stream, or 
                       # to record the visualizer output.
 
 external_source:
-  rdma: true
-  enable_overlay: false
+  rdma: false
+  enable_overlay: true
 
 aja:
   width: 1920

@@ -28,7 +28,8 @@
 		"videomaster_sdk": {
 			"minimum_required_version": "6.26.0",
 			"tested_versions": [
-				"6.29.0"
+				"6.29.0",
+				"6.30.0"
 			]
 		},
 		"platforms": [
