@@ -11856,6 +11856,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -11999,6 +12008,166 @@
 <h2 id="building-the-operator">Building the operator<a class="headerlink" href="#building-the-operator" title="Permanent link">#</a></h2>
 <p>As part of Holohub, running CMake on Holohub and point to Holoscan SDK install tree.</p>
 <p>The path to the VideoMaster SDK is also mandatory and can be given through the VideoMaster_SDK_DIR parameter.</p>
+<h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">#</a></h2>
+<p>All tests performed with the DELTACAST VideoMaster SDK <code>6.30</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Application</th>
+<th>Device</th>
+<th>Configuration</th>
+<th>Holoscan SDK 2.9</th>
+<th>Holoscan SDK 3.0</th>
+<th>Holoscan SDK 3.1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>TX0 (SDI) / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>TX0 (SDI) / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>TX0 (SDI) / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>TX0 (SDI) / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>TX1 (HDMI) / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>deltacast_transmitter</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>TX1 (HDMI) / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>RX0 (SDI) / ~~overlay~~ / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>RX0 (SDI) / ~~overlay~~ / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>RX0/TX0 (SDI) / overlay / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G-elp-key 11</td>
+<td>RX0/TX0 (SDI) / overlay / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX0 (SDI) / ~~overlay~~ / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX0 (SDI) / ~~overlay~~ / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX0/TX0 (SDI) / overlay / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX0/TX0 (SDI) / overlay / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX1 (HDMI) / ~~overlay~~ / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX1 (HDMI) / ~~overlay~~ / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX1/TX1 (HDMI) / overlay / ~~RDMA~~</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+<tr>
+<td>endoscopy_tool_tracking</td>
+<td>DELTA-12G11-hmi11-e-key</td>
+<td>RX1/TX1 (HDMI) / overlay / RDMA</td>
+<td>PASSED</td>
+<td>PASSED</td>
+<td>PASSED</td>
+</tr>
+</tbody>
+</table>
 
 
 
