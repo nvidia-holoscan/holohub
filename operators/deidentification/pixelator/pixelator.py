@@ -24,9 +24,9 @@ class PixelatorOp(Operator):
     This operator is used to deidentify the input image by pixelation.
 
     Args:
-        block_size_h (int): The height of the pixelation block.
-        block_size_w (int): The width of the pixelation block.
         tensor_name (str): The name of the tensor to be pixelated.
+        block_size_h (int): The height of the pixelation block. Defaults to 16.
+        block_size_w (int): The width of the pixelation block. Defaults to 16.
     """
 
     def __init__(
