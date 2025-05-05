@@ -1,0 +1,48 @@
+{
+	"application": {
+		"name": "XR + Gaussian Splatting",
+		"authors": [
+			{
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"0.0": "Initial release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.1.0",
+			"tested_versions": [
+				"3.1.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": [
+			"XR",
+			"OpenXR",
+			"Gaussian Splatting",
+			"3D Reconstruction"
+		],
+		"ranking": 4,
+		"dependencies": {
+			"operators": [
+				{
+					"name": "xr",
+					"version": "1.0.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/xr_gsplat.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
