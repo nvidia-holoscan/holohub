@@ -58,6 +58,21 @@ class AggregatorOp(Operator):
         op_output.emit(out_message, "out")
 
 
+class ForwardOp(Operator):
+    """
+    This operator is used to forward the input to the following operator(s).
+    This is specially useful to abstract different possible conditional flows when one flow is broadcasted to multiple operators.
+    """
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        in_message = op_input.receive("in")
+        op_output.emit(in_message, "out")
+
+
 class HolovizDelegateOp(Operator):
     """
     This operator receives the input tensors and forwards them to the Holoviz operator.
@@ -643,11 +658,11 @@ class AISurgicalVideoWorkflow(Application):
         # Auxiliary operators
         # ------------------------------------------------------------------------------------------
         # Source operator
-        source = HolovizDelegateOp(self, name="source_op")
+        source = ForwardOp(self, name="source_op")
         # Conditional operator
         condition = ConditionOp(self, name="condition_op")
         # Broadcaster operator
-        broadcaster = HolovizDelegateOp(self, name="broadcaster_op")
+        broadcaster = ForwardOp(self, name="broadcaster_op")
         # Postprocessor aggregator operator
         postprocessor_aggregator = AggregatorOp(self, name="postprocessor_aggregator_op")
 

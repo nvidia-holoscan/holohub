@@ -872,7 +872,7 @@ class HoloHubCLI:
                     [
                         "wget",
                         "--content-disposition",
-                        "https://ngc.nvidia.com/downloads/ngccli_arm64.zip",
+                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip",
                     ],
                     dry_run=args.dryrun,
                 )
@@ -882,7 +882,7 @@ class HoloHubCLI:
                     [
                         "wget",
                         "--content-disposition",
-                        "https://ngc.nvidia.com/downloads/ngccli_linux.zip",
+                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip",
                     ],
                     dry_run=args.dryrun,
                 )
