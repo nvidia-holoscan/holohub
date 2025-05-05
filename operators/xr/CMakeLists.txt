@@ -59,3 +59,7 @@ target_link_libraries(
   PRIVATE holoscan::viz Eigen3::Eigen)
 
 set_property(TARGET xr PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
