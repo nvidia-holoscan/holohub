@@ -198,8 +198,9 @@ class DpdkMgr : public Manager {
   uint64_t get_burst_tot_byte(BurstParams* burst) override;
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
-
+  uint16_t get_num_rx_queues(int port_id) const override;
  private:
+  static int allocate_rx_burst(BurstParams** burst, struct rte_mempool* burst_pool, struct rte_mempool* flowid_pool, struct rte_mempool* meta_pool, int num_segs);
   static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
@@ -227,6 +228,7 @@ class DpdkMgr : public Manager {
   std::unordered_map<uint32_t, DPDKQueueConfig*> rx_dpdk_q_map_;
   std::unordered_map<uint32_t, DPDKQueueConfig*> tx_dpdk_q_map_;
   std::unordered_map<uint32_t, const RxQueueConfig*> rx_cfg_q_map_;
+  std::unordered_map<uint16_t, std::pair<uint16_t, uint16_t>> port_q_num;
   struct rte_mempool* pkt_len_buffer;
   struct rte_mempool* rx_burst_buffer;
   struct rte_mempool* rx_flow_id_buffer;
