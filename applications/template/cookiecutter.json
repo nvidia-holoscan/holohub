@@ -13,6 +13,7 @@
     "year": "{% now 'utc', '%Y' %}",
     "__prompts__": {
         "project_name": "What is the name of your project?",
+        "project_slug": "Project slug (this will be the name of the project directory)",
         "description": "Brief description of your project",
         "full_name": "Author full name",
         "affiliation": "Author institution or organization",

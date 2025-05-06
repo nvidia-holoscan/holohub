@@ -39,8 +39,7 @@ This application is built using Holoscan SDK version {{ cookiecutter.holoscan_ve
 ├── CMakeLists.txt
 ├── README.md
 ├── src/
-│   ├── main.cpp
-│   └── operators/
+│   └── main.{{ 'py' if cookiecutter.language == 'python' else 'cpp' }}
 ├── include/
 ├── tests/
 └── docs/
@@ -49,7 +48,7 @@ This application is built using Holoscan SDK version {{ cookiecutter.holoscan_ve
 ### Adding New Operators
 
 1. Create a new operator class in `src/operators/`
-2. Include the operator in `src/main.cpp`
+2. Include the operator in `src/main.{{ 'py' if cookiecutter.language == 'python' else 'cpp' }}`
 3. Update the pipeline configuration
 
 ## License
@@ -67,10 +66,6 @@ This project is licensed under the {{ cookiecutter.license }} License - see the 
 ## Authors
 
 - {{ cookiecutter.full_name }} - {{ cookiecutter.affiliation }}
-
-## Tags
-
-{{ cookiecutter.tags }}
 
 ## Acknowledgments
 
