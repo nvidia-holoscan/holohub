@@ -129,6 +129,7 @@ segmentation_postprocessor:
   data_format: nchw
 
 deidentification:
+  tensor_name: ""
   block_size_h: 40
   block_size_w: 40
 
