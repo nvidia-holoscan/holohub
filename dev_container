@@ -279,10 +279,19 @@ get_conditional_options() {
     local conditional_opt=""
 
 
+    if [ -e /usr/local/cmake/VideoMasterHDConfigVersion.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfigVersion.cmake:/usr/local/cmake/VideoMasterHDConfigVersion.cmake${postfix}"
+    fi
+    if [ -e /usr/local/cmake/VideoMasterHDConfig.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfig.cmake:/usr/local/cmake/VideoMasterHDConfig.cmake${postfix}"
+    fi
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_audio.so:/usr/lib/libvideomasterhd_audio.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbi.so:/usr/lib/libvideomasterhd_vbi.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbidata.so:/usr/lib/libvideomasterhd_vbidata.so${postfix}"
     fi
-    if [ -d /usr/include/videomaster/ ]; then
+    if [ -d /usr/include/videomaster ]; then
         conditional_opt+="${prefix}--volume=/usr/include/videomaster:/usr/include/videomaster${postfix}"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
@@ -465,11 +474,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.1.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v3.1.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v3.2.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)

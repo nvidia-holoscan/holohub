@@ -439,10 +439,10 @@ setup() {
     echo "Installing ngc cli"
 
     if [ $(uname -m) == "aarch64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip -O ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
     fi
     if [ $(uname -m) == "x86_64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip -O ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
     fi
     ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/
   fi

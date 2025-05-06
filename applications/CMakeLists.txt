@@ -63,8 +63,8 @@ add_holohub_application(hyperspectral_segmentation)
 
 add_subdirectory(laser_detection_latency)
 
+add_holohub_application(monai_endoscopic_tool_seg DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
-
 add_holohub_application(multiai_ultrasound DEPENDS OPERATORS aja_source)
 
 add_holohub_application(simple_radar_pipeline)
@@ -121,7 +121,7 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
-
+add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
