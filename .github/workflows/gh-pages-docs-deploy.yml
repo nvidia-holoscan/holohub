@@ -34,7 +34,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           cd doc/website
-          mike build latest
+          mkdocs build
       - name: Configure Git Credentials
         if: github.event_name == 'push'
         run: |
