@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: LicenseRef-Apache2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,6 @@
 """Generate the code reference pages and copy Jupyter notebooks and README files."""
 
 import json
-import logging
 import os.path
 import re
 import subprocess
@@ -26,98 +26,21 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
-# log stuff
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+# Add the script directory to the path to enable importing common_utils
+script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
-
-RANKING_LEVELS = {
-    0: "Level 0 - Core Stable",
-    1: "Level 1 - Highly Reliable",
-    2: "Level 2 - Trusted",
-    3: "Level 3 - Developmental",
-    4: "Level 4 - Experimental",
-    5: "Level 5 - Obsolete",
-}
-
-
-def get_git_root() -> Path:
-    """Get the absolute path to the Git repository root."""
-    result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
-    )
-    return Path(result.stdout.strip())
-
-
-def format_date(date_str: str) -> str:
-    """Format a date string in YYYY-MM-DD format to Month DD, YYYY format."""
-    try:
-        year, month, day = date_str.split("-")
-        months = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-        ]
-        return f"{months[int(month)-1]} {int(day)}, {year}"
-    except (ValueError, IndexError):
-        # Return the original string if we can't parse it
-        return date_str
-
-
-def get_last_modified_date(file_path: Path, git_repo_path: Path) -> str:
-    """Get the last modified date of a file or directory using git or stat."""
-    # Try using git to get the last modified date
-    try:
-        rel_file_path = str(file_path.relative_to(git_repo_path))
-        repo_path = str(git_repo_path)
-        cmd = ["git", "-C", repo_path, "log", "-1", "--format=%ad", "--date=short", rel_file_path]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        git_date = result.stdout.strip()
-
-        if git_date:  # If we got a valid date from git
-            return format_date(git_date)
-    except (subprocess.CalledProcessError, ValueError):
-        # Git command failed or path is not in repo, we'll fall back to stat
-        pass
-
-    # Second try: Filesystem stat date
-    try:
-        cmd = ["stat", "-c", "%y", str(file_path)]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        stat_date = result.stdout.split()[0].strip()  # Get just the date portion
-
-        if stat_date:  # If we got a valid date from stat
-            return format_date(stat_date)
-    except (subprocess.CalledProcessError, ValueError, IndexError):
-        logger.error(f"Failed to get modification date for {file_path}")
-
-    # Fallback if both methods fail
-    return "Unknown"
-
-
-def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str:
-    """Get file content from a specific git revision."""
-    try:
-        rel_file_path = file_path.relative_to(git_repo_path)
-        cmd = ["git", "-C", str(git_repo_path), "show", f"{git_ref}:{rel_file_path}"]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return result.stdout
-    except (subprocess.CalledProcessError, ValueError) as e:
-        if isinstance(e, subprocess.CalledProcessError):
-            logger.error(f"Git error: {e.stderr}")
-        else:
-            logger.error(f"Path {file_path} is not within the Git repository")
-        raise e
+# Import after adding script_dir to path
+from common_utils import (  # noqa: E402
+    COMPONENT_TYPES,
+    RANKING_LEVELS,
+    extract_first_sentences,
+    format_date,
+    get_file_from_git,
+    get_git_root,
+    get_last_modified_date,
+    logger,
+)
 
 
 def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
@@ -410,7 +333,6 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
 
     # Append the metadata header
     new_header += f"\n{metadata_header}"
-
     # Replace the original header
     return readme_text.replace(full_header, new_header, 1)
 
@@ -436,6 +358,20 @@ def create_page(
     Returns:
         Generated page content as string
     """
+
+    # Extract description from README if not in metadata
+    if not metadata.get("description"):
+        # Find content after header
+        header_info = extract_markdown_header(readme_text)
+        if header_info:
+            header_text = header_info[0]
+            content_after_header = readme_text[readme_text.find(header_text) + len(header_text) :]
+            description = extract_first_sentences(
+                content_after_header, num_sentences=3, max_chars=160
+            )
+            if description:
+                metadata["description"] = description
+                logger.info(f"{metadata['name']} Description: {description}")
 
     # Frontmatter
     archive_version = archive["version"] if archive and "version" in archive else None

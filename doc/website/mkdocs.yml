@@ -46,14 +46,18 @@ extra_css:
   - assets/css/fonts.css
   - assets/css/custom-material.css
   - assets/css/jupyter-themes.css
+  - assets/css/header-custom.css
+  - assets/css/featured-apps.css
 
 plugins:
-  - search
-#  - git-revision-date-localized:
-#      fallback_to_build_date: true
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
         - scripts/generate_pages.py
+        - scripts/generate_featured_apps.py
+
   - macros
   - tags
   - mike:

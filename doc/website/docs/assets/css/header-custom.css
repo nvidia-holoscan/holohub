@@ -1,0 +1,16 @@
+/* Hide the site name in the header when scrolled to the top
+to avoid redundancy with the page title */
+.md-header__title:not(.md-header__title--active) .md-header__topic {
+  opacity: 0;
+}
+
+/* Override default transition: fade-in only, no slide */
+.md-header__topic {
+  transition: opacity 0.2s ease !important;
+  transform: none !important;
+}
+
+/* Hide the permalink anchor within the page title (from mkdocs / toc / permalink: true) */
+.md-content h1 > a.headerlink {
+  display: none;
+}
