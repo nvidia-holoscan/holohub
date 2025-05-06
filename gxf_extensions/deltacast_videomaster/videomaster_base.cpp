@@ -22,9 +22,13 @@
 #include <utility>
 
 #include "VideoMasterHD_ApplicationBuffers.h"
+#include "VideoMasterHD_String.h"
 #include "gxf/multimedia/video.hpp"
-#include "video_information/dv_video_information.hpp"
-#include "video_information/sdi_video_information.hpp"
+#include "VideoMasterAPIHelper/api.hpp"
+#include "VideoMasterAPIHelper/api_success.hpp"
+#include "VideoMasterAPIHelper/enum_to_string.hpp"
+#include "VideoMasterAPIHelper/VideoInformation/dv.hpp"
+#include "VideoMasterAPIHelper/VideoInformation/sdi.hpp"
 
 namespace nvidia {
 namespace holoscan {
@@ -60,45 +64,53 @@ const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_passive_loopbac
     {2, VHD_CORE_BP_BYPASS_RELAY_2},
     {3, VHD_CORE_BP_BYPASS_RELAY_3}
 };
-const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_active_loopback_prop =
-                                                            {{0, VHD_CORE_BP_ACTIVE_LOOPBACK_0}};
-const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopback_prop =
-                                                            {{0, VHD_CORE_BP_FIRMWARE_LOOPBACK_0}};
+const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_active_loopback_prop = {
+    {0, VHD_CORE_BP_ACTIVE_LOOPBACK_0}
+};
+const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopback_prop = {
+    {0, VHD_CORE_BP_FIRMWARE_LOOPBACK_0},
+    {1, VHD_CORE_BP_FIRMWARE_LOOPBACK_1}
+};
 
 VideoMasterBase::VideoMasterBase(bool is_input)
-    : _board_handle(nullptr),
-      _stream_handle(nullptr),
-      _is_input(is_input),
+    : _is_input(is_input),
       _has_lost_signal(false) {}
 
 gxf::Expected<void> VideoMasterBase::configure_board() {
-  ULONG dll_version, nb_boards = 0;
-  if (!api_call_success(VHD_GetApiInfo(&dll_version, &nb_boards),
-                        "API info could not be retrieved"))
-    return gxf::Unexpected{GXF_FAILURE};
+  std::string api_version = Deltacast::Helper::get_api_version();
+  if (api_version.empty()) {
+      GXF_LOG_ERROR("Could not retrieve VideoMaster API version");
+      return gxf::Unexpected{GXF_FAILURE};
+  }
 
-  GXF_LOG_INFO("VideoMaster API version: %08x - %u boards detected", dll_version, nb_boards);
+  uint32_t nb_boards = Deltacast::Helper::get_number_of_devices();
 
   if (nb_boards == 0) {
     GXF_LOG_ERROR("No deltacast boards found");
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  bool success = api_call_success(VHD_OpenBoardHandle(_board_index, &_board_handle, NULL, 0),
-                                                      "Failed to open board handle");
+  GXF_LOG_INFO("VideoMaster API version: %s - %u boards detected", api_version.c_str(), nb_boards);
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  _board_handle = std::move(Deltacast::Helper::get_board_handle(_board_index));
+
+  return _board_handle ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
 }
 
 gxf_result_t VideoMasterBase::stop() {
   GXF_LOG_INFO("Stopping stream and closing handles");
 
-  VHD_StopStream(_stream_handle);
-  VHD_CloseStreamHandle(_stream_handle);
+  if (_stream_handle) {
+    _stream_handle.reset();
+  }
 
+  sleep_ms(200);
   set_loopback_state(true);
+  sleep_ms(200);
 
-  VHD_CloseBoardHandle(_board_handle);
+  if (_board_handle) {
+    _board_handle.reset();
+  }
 
   free_buffers();
 
@@ -106,6 +118,8 @@ gxf_result_t VideoMasterBase::stop() {
 }
 
 gxf::Expected<void> VideoMasterBase::open_stream() {
+  Deltacast::Helper::ApiSuccess success;
+
   const auto &id_to_channel_type_prop =
                       _is_input ? id_to_rx_channel_type_prop : id_to_tx_channel_type_prop;
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
@@ -115,10 +129,12 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  if (!api_call_success(VHD_GetBoardProperty(_board_handle,
-                                             id_to_channel_type_prop.at(_channel_index),
-                                             (ULONG *)&_channel_type),
-                                             "Failed to retrieve channel type")) {
+  success = VHD_GetBoardProperty(*board_handle(),
+                                id_to_channel_type_prop.at(_channel_index),
+                                (ULONG *)&_channel_type);
+
+  if (!success) {
+    GXF_LOG_ERROR("Failed to retrieve channel type");
     return gxf::Unexpected{GXF_FAILURE};
   }
 
@@ -126,13 +142,11 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
     case VHD_CHNTYPE_HDSDI:
     case VHD_CHNTYPE_3GSDI:
     case VHD_CHNTYPE_12GSDI:
-      _video_information =
-        std::unique_ptr<VideoMasterSdiVideoInformation>(new VideoMasterSdiVideoInformation());
+      _video_information = std::make_unique<Deltacast::Helper::SdiVideoInformation>();
       break;
     case VHD_CHNTYPE_HDMI:
     case VHD_CHNTYPE_DISPLAYPORT:
-      _video_information =
-        std::unique_ptr<VideoMasterDvVideoInformation>(new VideoMasterDvVideoInformation());
+      _video_information = std::make_unique<Deltacast::Helper::DvVideoInformation>();
       break;
     default:
       break;
@@ -143,29 +157,65 @@ gxf::Expected<void> VideoMasterBase::open_stream() {
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  bool success = api_call_success(VHD_OpenStreamHandle(
-                                              _board_handle,
-                                              id_to_stream_type.at(_channel_index),
-                                              _video_information->get_stream_processing_mode(),
-                                              NULL,
-                                              &_stream_handle,
-                                              NULL), "Failed to open stream handle");
+  _stream_handle = std::move(Deltacast::Helper::get_stream_handle(board_handle(),
+                                                id_to_stream_type.at(_channel_index),
+                                                _video_information->get_stream_processing_mode()));
+
   set_loopback_state(false);
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  if (!_stream_handle) {
+    GXF_LOG_ERROR("Failed to open stream handle");
+    return gxf::Unexpected{GXF_FAILURE};
+  }
+
+  video_format = {};
+
+  GXF_LOG_INFO("%s stream successfully opened."
+    , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+
+  return gxf::Success;
 }
 
 gxf::Expected<void> VideoMasterBase::configure_stream() {
-  bool success = api_call_success(VHD_SetStreamProperty(_stream_handle,
-                                    VHD_CORE_SP_BUFFER_PACKING, VHD_BUFPACK_VIDEO_RGB_32),
-                                  "Failed to set buffer packing");
-  if (!_video_information->get_video_format()->progressive)
-    success = success && api_call_success(VHD_SetStreamProperty(_stream_handle,
-                                            VHD_CORE_SP_FIELD_MERGE, TRUE),
-                                          "Failed to set field merging");
-  success = success && _video_information->configure_stream(_stream_handle);
+  bool success_b = true;
+  success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                               VHD_SetStreamProperty(*stream_handle(),
+                               VHD_CORE_SP_BUFFER_PACKING, VHD_BUFPACK_VIDEO_RGB_32)
+                              },
+                              "Failed to set stream type");
+  if (!success_b) {
+    return gxf::Unexpected{GXF_FAILURE};
+  }
 
-  return success ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  if (!_video_information->get_video_format(stream_handle())->progressive) {
+    success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_SetStreamProperty(*stream_handle()
+                                                        , VHD_CORE_SP_FIELD_MERGE, TRUE)
+                                  },
+                                  "Failed to set field merge property");
+    if (!success_b) {
+      return gxf::Unexpected{GXF_FAILURE};
+    }
+  }
+
+  if (_is_input) {
+    auto success_opt = _video_information->set_stream_properties_values(
+      stream_handle(),
+      _video_information->get_stream_properties_values(stream_handle()));
+
+    if (!success_opt.has_value() || !success_opt.value()) {
+      GXF_LOG_ERROR("Failed to set stream properties");
+      return gxf::Unexpected{GXF_FAILURE};
+    }
+  }
+
+  const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
+  video_format = _video_information->get_video_format(stream_handle()).value();
+  GXF_LOG_INFO("%s configured in %ux%u@%u"
+    , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
+    , video_format.width, video_format.height, video_format.framerate);
+
+  return gxf::Success;
 }
 
 gxf::Expected<void> VideoMasterBase::init_buffers() {
@@ -181,16 +231,18 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
       slot.resize(_video_information->get_nb_buffer_types());
   }
 
-  if (!api_call_success(VHD_InitApplicationBuffers(_stream_handle),
-                                                    "Failed to init application buffers")) {
+  Deltacast::Helper::ApiSuccess success;
+  success = VHD_InitApplicationBuffers(*stream_handle());
+  if (!success) {
+    GXF_LOG_ERROR("Failed to init application buffers");
     return gxf::Unexpected{GXF_FAILURE};
   }
 
   buffer_sizes.resize(_video_information->get_nb_buffer_types());
 
   for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types();
-      buffer_type_index++) {
-    VHD_GetApplicationBuffersSize(_stream_handle,
+       buffer_type_index++) {
+    VHD_GetApplicationBuffersSize(*stream_handle(),
                                   buffer_type_index,
                                   &buffer_sizes[buffer_type_index]);
     if (!buffer_sizes[buffer_type_index])
@@ -225,14 +277,17 @@ gxf::Expected<void> VideoMasterBase::init_buffers() {
       raw_buffer_pointer.push_back(desc);
     }
 
-    if (!api_call_success(VHD_CreateSlotEx(_stream_handle, raw_buffer_pointer.data(),
-                                           &_slot_handles[slot_index]), "Failed to create slot")) {
+    success = VHD_CreateSlotEx(*stream_handle()
+                              , raw_buffer_pointer.data(), &_slot_handles[slot_index]);
+    if (!success) {
+      GXF_LOG_ERROR("Failed to create slot");
       return gxf::Unexpected{GXF_FAILURE};
     }
 
     if (_is_input) {
-      if (!api_call_success(VHD_QueueInSlot(_slot_handles[slot_index]),
-                                         "Failed to queue input slot")) {
+      success = VHD_QueueInSlot(_slot_handles[slot_index]);
+      if (!success) {
+        GXF_LOG_ERROR("Failed to queue slot");
         return gxf::Unexpected{GXF_FAILURE};
       }
     }
@@ -255,8 +310,31 @@ void VideoMasterBase::free_buffers() {
 gxf::Expected<void> VideoMasterBase::start_stream() {
   _slot_count = 0;
 
-  return api_call_success(VHD_StartStream(_stream_handle), "Failed to start stream")
-                          ? gxf::Success : gxf::Unexpected{GXF_FAILURE};
+  const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
+
+  Deltacast::Helper::ApiSuccess success;
+  if (!(success = VHD_StartStream(*stream_handle()))) {
+    GXF_LOG_ERROR("Could not start stream %s"
+                  , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+    return gxf::Unexpected{GXF_FAILURE};
+  }
+
+  GXF_LOG_INFO("%s stream successfully started."
+              , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
+
+  return gxf::Success;
+}
+
+bool VideoMasterBase::gxf_log_on_error(Deltacast::Helper::ApiSuccess result
+                                      , const std::string& message) {
+  bool result_b = static_cast<bool>(result);
+  if (!result_b) {
+    auto error_code = result.error_code();
+    std::string error_message = message
+                                + " - Error: " + Deltacast::Helper::enum_to_string(error_code);
+    GXF_LOG_ERROR(error_message.c_str());
+  }
+  return result_b;
 }
 
 bool VideoMasterBase::signal_present() {
@@ -267,80 +345,66 @@ bool VideoMasterBase::signal_present() {
       {9, VHD_CORE_BP_RX9_STATUS}, {10, VHD_CORE_BP_RX10_STATUS}, {11, VHD_CORE_BP_RX11_STATUS},
   };
   ULONG status;
-  if (!api_call_success(VHD_GetBoardProperty(_board_handle,
-                                             id_to_rx_status_prop.at(_channel_index), &status),
-                                             "Failed to check incoming RX status")) {
+  Deltacast::Helper::ApiSuccess success;
+
+  success = VHD_GetBoardProperty(*board_handle(), id_to_rx_status_prop.at(_channel_index), &status);
+  if (!success) {
+    GXF_LOG_ERROR("Failed to retrieve rx status");
     return false;
   }
 
   return !(status & VHD_CORE_RXSTS_UNLOCKED);
 }
 
-std::unordered_map<ULONG, ULONG>
-VideoMasterBase::get_detected_input_information(uint32_t channel_index) {
-  std::unordered_map<ULONG, ULONG> input_information;
-  auto board_properties = _video_information->get_board_properties(channel_index);
-  auto stream_properties = _video_information->get_stream_properties();
-  for (uint32_t i = 0; i < board_properties.size(); i++) {
-    ULONG data;
-    VHD_GetBoardProperty(_board_handle, board_properties[i], (ULONG*)&data);
-    input_information[stream_properties[i]] = data;
-  }
-
-  return input_information;
-}
-
-std::unordered_map<ULONG, ULONG> VideoMasterBase::get_input_information() {
-  std::unordered_map<ULONG, ULONG> input_information;
-  for (auto prop : _video_information->get_stream_properties()) {
-    ULONG data;
-    VHD_GetStreamProperty(_stream_handle, prop, (ULONG*)&data);
-    input_information[prop] = data;
-  }
-
-  return input_information;
-}
-
 bool VideoMasterBase::set_loopback_state(bool state) {
   ULONG has_passive_loopback = FALSE;
   ULONG has_active_loopback = FALSE;
   ULONG has_firmware_loopback = FALSE;
+  bool success_b = true;
 
-  api_call_success(VHD_GetBoardCapability(_board_handle,
-                                          VHD_CORE_BOARD_CAP_PASSIVE_LOOPBACK,
-                                          &has_passive_loopback),
-                                          "failed to retrieve passive loopback capability");
-  api_call_success(VHD_GetBoardCapability(_board_handle,
-                                          VHD_CORE_BOARD_CAP_ACTIVE_LOOPBACK,
-                                          &has_active_loopback),
-                                          "failed to retrieve active loopback capability");
-  api_call_success(VHD_GetBoardCapability(_board_handle,
-                                           VHD_CORE_BOARD_CAP_FIRMWARE_LOOPBACK,
-                                           &has_firmware_loopback),
-                                           "failed to retrieve firmware loopback capability");
+  success_b = success_b & gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_GetBoardCapability(*board_handle(),
+                                    VHD_CORE_BOARD_CAP_PASSIVE_LOOPBACK,
+                                    &has_passive_loopback)
+                                  }, "Failed to retrieve passive loopback capability");
+
+  success_b = success_b & gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_GetBoardCapability(*board_handle(),
+                                    VHD_CORE_BOARD_CAP_ACTIVE_LOOPBACK,
+                                    &has_active_loopback)
+                                  }, "Failed to retrieve active loopback capability");
+
+  success_b = success_b & gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_GetBoardCapability(*board_handle(),
+                                    VHD_CORE_BOARD_CAP_FIRMWARE_LOOPBACK,
+                                    &has_firmware_loopback)
+                                  }, "Failed to retrieve firmware loopback capability");
 
   if (has_firmware_loopback &&
-      id_to_firmware_loopback_prop.find(_channel_index) != id_to_firmware_loopback_prop.end())
-    return api_call_success(VHD_SetBoardProperty(_board_handle,
-            id_to_firmware_loopback_prop.at(_channel_index), state),
-            "failed to set firmware loopback state");
-  else if (has_active_loopback &&
-           id_to_active_loopback_prop.find(_channel_index) != id_to_active_loopback_prop.end())
-    return api_call_success(VHD_SetBoardProperty(_board_handle,
-              id_to_active_loopback_prop.at(_channel_index), state),
-              "failed to set active loopback state");
-  else if (has_passive_loopback &&
-           id_to_passive_loopback_prop.find(_channel_index) != id_to_passive_loopback_prop.end())
-    return api_call_success(VHD_SetBoardProperty(_board_handle,
-              id_to_passive_loopback_prop.at(_channel_index), state),
-              "failed to set passive loopback state");
-  return true;
-}
+      id_to_firmware_loopback_prop.find(_channel_index) != id_to_firmware_loopback_prop.end()) {
+    success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_SetBoardProperty(*board_handle(),
+                                    id_to_firmware_loopback_prop.at(_channel_index), state)
+                                  }, "Failed to set firmware loopback state");
 
-bool VideoMasterBase::api_call_success(ULONG api_error_code, std::string error_message) {
-  if (api_error_code != VHDERR_NOERROR) {
-    GXF_LOG_ERROR("%s", error_message.c_str());
-    return false;
+    return success_b;
+  } else if (has_active_loopback &&
+             id_to_active_loopback_prop.find(_channel_index) != id_to_active_loopback_prop.end()) {
+    success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_SetBoardProperty(*board_handle(),
+                                    id_to_active_loopback_prop.at(_channel_index),
+                                    state)
+                                  }, "Failed to set active loopback state");
+
+    return success_b;
+  } else if (has_passive_loopback &&
+           id_to_passive_loopback_prop.find(_channel_index) != id_to_passive_loopback_prop.end()) {
+    success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                  VHD_SetBoardProperty(*board_handle(),
+                                    id_to_passive_loopback_prop.at(_channel_index),
+                                    state)
+                                  }, "Failed to set passive loopback state");
+    return success_b;
   }
 
   return true;

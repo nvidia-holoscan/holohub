@@ -111,6 +111,10 @@ class App : public holoscan::Application {
           Arg("rdma") = use_rdma,
           Arg("board") = from_config("deltacast.board").as<uint32_t>(),
           Arg("input") = from_config("deltacast.input").as<uint32_t>(),
+          Arg("width") = width,
+          Arg("height") = height,
+          Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
+          Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
           Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 #endif
       source_block_size = width * height * 4 * 4;
