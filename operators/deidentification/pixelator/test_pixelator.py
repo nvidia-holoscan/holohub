@@ -52,14 +52,10 @@ def test_pixelator_op_missing_tensor_name(fragment):
         PixelatorOp(fragment=fragment)
 
 
-def test_pixelator_op_missing_tensor_name_in_input(
-    fragment, op_input_factory, op_output, dummy_image_factory
-):
+def test_pixelator_op_missing_tensor_name_in_input(fragment, op_input_factory, op_output, dummy_image_factory):
     """Test PixelatorOp raises error if tensor_name is missing in input message."""
     op = PixelatorOp(fragment=fragment, tensor_name="image")
-    op_input = op_input_factory(
-        dummy_image_factory((32, 32, 3)), tensor_name="another_image", port="in"
-    )
+    op_input = op_input_factory(dummy_image_factory((32, 32, 3)), tensor_name="another_image", port="in")
     with pytest.raises(KeyError, match="Tensor 'image' not found in input message"):
         op.compute(op_input, op_output, context=None)
 
@@ -73,9 +69,7 @@ def test_pixelator_op_missing_tensor_name_in_input(
         ((10, 10, 1), 5),
     ],
 )
-def test_pixelator_op_compute(
-    fragment, op_input_factory, op_output, dummy_image_factory, expected_shape, block_size
-):
+def test_pixelator_op_compute(fragment, op_input_factory, op_output, dummy_image_factory, expected_shape, block_size):
     """Test PixelatorOp compute: output shape, pixelation, dtype, and ports."""
     tensor_name = "image"
     image = dummy_image_factory(expected_shape)
@@ -100,8 +94,6 @@ def test_pixelator_op_compute(
         for j in range(0, expected_shape[1], block_size):
             block = out_msg[tensor_name][i : i + block_size, j : j + block_size]
             if block.shape[-1] == 1:
-                assert (
-                    block == block[0, 0, 0]
-                ).all(), f"Block at ({i},{j}) not constant (grayscale)"
+                assert (block == block[0, 0, 0]).all(), f"Block at ({i},{j}) not constant (grayscale)"
             else:
                 assert (block == block[0, 0, :]).all(), f"Block at ({i},{j}) not constant (color)"
