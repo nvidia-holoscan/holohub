@@ -18,10 +18,6 @@ import os
 import cupy as cp
 import pytest
 from holoscan.core import Application, Fragment
-from holoscan.logger import LogLevel, set_log_level
-
-# set log level to INFO during testing
-set_log_level(LogLevel.DEBUG)
 
 
 @pytest.fixture
