@@ -1497,7 +1497,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   for (int i = 0; i < num_queues; i++) {
     cur_port           = tparams->q_params[i].port;
     cur_q              = tparams->q_params[i].queue;    
-    HOLOSCAN_LOG_INFO("Total packets received by application (Port/Queue {}/{}): {}",
+    HOLOSCAN_LOG_INFO("Total packets received by RX core {} (Port/Queue {}/{}): {}",
+                     rte_lcore_id(),
                      cur_port,
                      cur_q,
                      total_pkts[i]);
@@ -1604,10 +1605,10 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
       for (int p = 0; p < to_copy; p++) {
-        struct rte_mbuf* mbuf = mbuf_arr[cur_pkt_in_batch + p];
+        struct rte_mbuf* mbuf = mbuf_arr[cur_pkt_in_batch + p]; 
         for (int seg = 1; seg < tparams->num_segs; seg++) {
           mbuf = mbuf->next;
-          burst->pkts[seg][p] = mbuf;
+          burst->pkts[seg][burst->hdr.hdr.num_pkts + p] = mbuf;
         }
       }
     }
