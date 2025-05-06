@@ -18,8 +18,6 @@ from collections import deque
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from utils import load_params, run_time_to_iterations
-
 from operators.audio_handler import AudioHandler
 from operators.demodulate_op import DemodulateOp
 from operators.pcm_op import PCMOp
@@ -29,6 +27,7 @@ from operators.resample_op import ResampleOp
 from operators.rtl_sdr_generator_op import RtlSdrGeneratorOp
 from operators.transcript_handler import TranscriptHandler
 from operators.transcript_sink_op import TranscriptSinkOp
+from utils import load_params, run_time_to_iterations
 
 params = load_params(*sys.argv[1:])
 
