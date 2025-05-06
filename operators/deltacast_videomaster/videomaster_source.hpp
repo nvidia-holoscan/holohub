@@ -49,6 +49,10 @@ class VideoMasterSourceOp : public holoscan::ops::GXFOperator {
   Parameter<uint32_t> _board_index;
   Parameter<uint32_t> _channel_index;
   Parameter<std::shared_ptr<Allocator>> _pool;
+  Parameter<uint32_t> _width;
+  Parameter<uint32_t> _height;
+  Parameter<bool> _progressive;
+  Parameter<uint32_t> _framerate;
 };
 
 }  // namespace holoscan::ops
