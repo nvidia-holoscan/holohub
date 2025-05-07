@@ -1372,7 +1372,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   std::array<int, Manager::MAX_RX_Q_PER_CORE> cur_pkt_in_batch{};
   std::array<BurstParams*, Manager::MAX_RX_Q_PER_CORE> bursts{};
   std::array<std::array<rte_mbuf*, DEFAULT_NUM_RX_BURST>, Manager::MAX_RX_Q_PER_CORE> mbuf_arr{};
-  std::array<uint64_t, Manager::MAX_RX_Q_PER_CORE> total_pkts{};  
+  std::array<uint64_t, Manager::MAX_RX_Q_PER_CORE> total_pkts{};
   std::array<uint64_t, Manager::MAX_RX_Q_PER_CORE> last_cycles;
   std::generate(last_cycles.begin(), last_cycles.end(), rte_get_tsc_cycles);
 
@@ -1380,16 +1380,16 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   uint16_t cur_port;
   uint16_t cur_q;
   uint16_t cur_segs;
-  uint32_t cur_batch_size;  
-  uint64_t cur_timeout_cycles;  
+  uint32_t cur_batch_size;
+  uint64_t cur_timeout_cycles;
 
   auto update_cur_idx = [&]() {
     cur_idx            = (cur_idx + 1) % num_queues;
     cur_port           = tparams->q_params[cur_idx].port;
     cur_q              = tparams->q_params[cur_idx].queue;
     cur_segs           = tparams->q_params[cur_idx].num_segs;
-    cur_batch_size     = tparams->q_params[cur_idx].batch_size;  
-    cur_timeout_cycles = tparams->q_params[cur_idx].timeout_us;    
+    cur_batch_size     = tparams->q_params[cur_idx].batch_size;
+    cur_timeout_cycles = tparams->q_params[cur_idx].timeout_us;
   };
 
   update_cur_idx();
@@ -1398,7 +1398,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
-    if (bursts[cur_idx] == nullptr) { // Allocate a new burst
+    if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
         HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
         exit(1);
@@ -1411,7 +1411,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
       bursts[cur_idx]->hdr.hdr.num_pkts = 0;
 
       for (int seg = 0; seg < cur_segs; seg++) {
-        if (rte_mempool_get(tparams->burst_pool, reinterpret_cast<void**>(&bursts[cur_idx]->pkts[seg])) < 0) {
+        if (rte_mempool_get(tparams->burst_pool,
+          reinterpret_cast<void**>(&bursts[cur_idx]->pkts[seg])) < 0) {
           HOLOSCAN_LOG_ERROR(
               "Processing function falling behind. No free RX bursts!");
           continue;
@@ -1428,7 +1429,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
     // Check if we need to get more packets
     if (nb_rx[cur_idx] == 0) {
       cur_pkt_in_batch[cur_idx] = 0;
-      nb_rx[cur_idx] = rte_eth_rx_burst(cur_port, cur_q, reinterpret_cast<rte_mbuf**>(&mbuf_arr[cur_idx][0]), DEFAULT_NUM_RX_BURST);
+      nb_rx[cur_idx] = rte_eth_rx_burst(cur_port, cur_q,
+                      reinterpret_cast<rte_mbuf**>(&mbuf_arr[cur_idx][0]), DEFAULT_NUM_RX_BURST);
 
       if (nb_rx[cur_idx] == 0) {
         if (bursts[cur_idx]->hdr.hdr.num_pkts > 0 && cur_timeout_cycles > 0) {
@@ -1436,7 +1438,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
           // We hit our timeout. Send the partial batch immediately
           if ((cur_cycles - last_cycles[cur_idx]) > cur_timeout_cycles) {
-            rte_ring_enqueue(tparams->q_params[cur_idx].ring, reinterpret_cast<void*>(bursts[cur_idx]));
+            rte_ring_enqueue(tparams->q_params[cur_idx].ring,
+                        reinterpret_cast<void*>(bursts[cur_idx]));
             last_cycles[cur_idx] = cur_cycles;
             bursts[cur_idx] = nullptr;
           }
@@ -1444,18 +1447,22 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
         update_cur_idx();
         continue;
-      } 
+      }
     }
 
     // At this point we have some packets to copy either from a new batch or an existing one. Check
     // if we are finishing a batch or copying all packets that came in
-    int to_copy = std::min(static_cast<size_t>(nb_rx[cur_idx]), cur_batch_size - bursts[cur_idx]->hdr.hdr.num_pkts);
-    memcpy(&bursts[cur_idx]->pkts[0][bursts[cur_idx]->hdr.hdr.num_pkts], &mbuf_arr[cur_idx][cur_pkt_in_batch[cur_idx]], sizeof(rte_mbuf*) * to_copy); 
+    int to_copy = std::min(static_cast<size_t>(nb_rx[cur_idx]),
+                        cur_batch_size - bursts[cur_idx]->hdr.hdr.num_pkts);
+    memcpy(&bursts[cur_idx]->pkts[0][bursts[cur_idx]->hdr.hdr.num_pkts],
+                  &mbuf_arr[cur_idx][cur_pkt_in_batch[cur_idx]], sizeof(rte_mbuf*) * to_copy);
 
-    ExtraRxPacketInfo* pkt_info = reinterpret_cast<ExtraRxPacketInfo*>(bursts[cur_idx]->pkt_extra_info);
+    ExtraRxPacketInfo* pkt_info =
+                          reinterpret_cast<ExtraRxPacketInfo*>(bursts[cur_idx]->pkt_extra_info);
     for (int p = 0; p < to_copy; p++) {
       if (mbuf_arr[cur_idx][cur_pkt_in_batch[cur_idx] + p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-        pkt_info[bursts[cur_idx]->hdr.hdr.num_pkts + p].flow_id = mbuf_arr[cur_idx][cur_pkt_in_batch[cur_idx] + p]->hash.fdir.hi;
+        pkt_info[bursts[cur_idx]->hdr.hdr.num_pkts + p].flow_id =
+                              mbuf_arr[cur_idx][cur_pkt_in_batch[cur_idx] + p]->hash.fdir.hi;
       } else {
         pkt_info[bursts[cur_idx]->hdr.hdr.num_pkts + p].flow_id = 0;
       }
@@ -1496,7 +1503,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
   for (int i = 0; i < num_queues; i++) {
     cur_port           = tparams->q_params[i].port;
-    cur_q              = tparams->q_params[i].queue;    
+    cur_q              = tparams->q_params[i].queue;
     HOLOSCAN_LOG_INFO("Total packets received by RX core {} (Port/Queue {}/{}): {}",
                      rte_lcore_id(),
                      cur_port,
@@ -1540,7 +1547,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
-    if (burst == nullptr) { // Allocate a new burst
+    if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
         HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
         exit(1);
@@ -1571,8 +1578,9 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     // Check if we need to get more packets
     if (nb_rx == 0) {
-      cur_pkt_in_batch = 0;      
-      nb_rx = rte_eth_rx_burst(tparams->port, tparams->queue, reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]), DEFAULT_NUM_RX_BURST);
+      cur_pkt_in_batch = 0;
+      nb_rx = rte_eth_rx_burst(tparams->port, tparams->queue,
+                          reinterpret_cast<rte_mbuf**>(&mbuf_arr[0]), DEFAULT_NUM_RX_BURST);
 
       if (nb_rx == 0) {
         if (burst->hdr.hdr.num_pkts > 0 && timeout_cycles > 0) {
@@ -1587,17 +1595,20 @@ int DpdkMgr::rx_core_worker(void* arg) {
         }
 
         continue;
-      } 
+      }
     }
 
     // At this point we have some packets to copy either from a new batch or an existing one. Check
     // if we are finishing a batch or copying all packets that came in
-    int to_copy = std::min(static_cast<size_t>(nb_rx), tparams->batch_size - burst->hdr.hdr.num_pkts);
-    memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts], &mbuf_arr[cur_pkt_in_batch], sizeof(rte_mbuf*) * to_copy); 
+    int to_copy = std::min(static_cast<size_t>(nb_rx),
+                                    tparams->batch_size - burst->hdr.hdr.num_pkts);
+    memcpy(&burst->pkts[0][burst->hdr.hdr.num_pkts],
+                                        &mbuf_arr[cur_pkt_in_batch], sizeof(rte_mbuf*) * to_copy);
 
     for (int p = 0; p < to_copy; p++) {
       if (mbuf_arr[cur_pkt_in_batch + p]->ol_flags & RTE_MBUF_F_RX_FDIR_ID) {
-        pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = mbuf_arr[cur_pkt_in_batch + p]->hash.fdir.hi;
+        pkt_info[burst->hdr.hdr.num_pkts + p].flow_id =
+                                          mbuf_arr[cur_pkt_in_batch + p]->hash.fdir.hi;
       } else {
         pkt_info[burst->hdr.hdr.num_pkts + p].flow_id = 0;
       }
@@ -1605,7 +1616,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     if (tparams->num_segs > 1) {  // Extra work when buffers are scattered
       for (int p = 0; p < to_copy; p++) {
-        struct rte_mbuf* mbuf = mbuf_arr[cur_pkt_in_batch + p]; 
+        struct rte_mbuf* mbuf = mbuf_arr[cur_pkt_in_batch + p];
         for (int seg = 1; seg < tparams->num_segs; seg++) {
           mbuf = mbuf->next;
           burst->pkts[seg][burst->hdr.hdr.num_pkts + p] = mbuf;

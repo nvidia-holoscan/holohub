@@ -199,8 +199,8 @@ class DpdkMgr : public Manager {
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
   uint16_t get_num_rx_queues(int port_id) const override;
+
  private:
-  static int allocate_rx_burst(BurstParams** burst, struct rte_mempool* burst_pool, struct rte_mempool* flowid_pool, struct rte_mempool* meta_pool, int num_segs);
   static void PrintDpdkStats(int port);
   static std::string generate_random_string(int len);
   static int rx_core_worker(void* arg);
