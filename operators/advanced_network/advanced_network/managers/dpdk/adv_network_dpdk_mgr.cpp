@@ -2225,11 +2225,11 @@ void* DpdkMgr::get_packet_ptr(BurstParams* burst, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]), void*);
 }
 
-uint16_t DpdkMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t DpdkMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx])->data_len;
 }
 
-uint16_t DpdkMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t DpdkMgr::get_packet_length(BurstParams* burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->pkt_len;
 }
 

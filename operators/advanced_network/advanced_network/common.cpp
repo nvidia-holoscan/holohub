@@ -99,7 +99,7 @@ void free_packet_segment(BurstParams* burst, int seg, int pkt) {
   g_ano_mgr->free_packet_segment(burst, seg, pkt);
 }
 
-uint16_t get_packet_length(BurstParams* burst, int idx) {
+uint32_t get_packet_length(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_packet_length(burst, idx);
 }
@@ -114,7 +114,7 @@ uint64_t get_burst_tot_byte(BurstParams* burst) {
   return g_ano_mgr->get_burst_tot_byte(burst);
 }
 
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_segment_packet_length(burst, seg, idx);
 }

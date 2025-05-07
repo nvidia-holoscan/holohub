@@ -129,7 +129,7 @@ void* get_packet_ptr(BurstParams* burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
 
 /**
  * @brief Get packet length of an entire packet
@@ -138,7 +138,7 @@ uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t get_packet_length(BurstParams* burst, int idx);
+uint32_t get_packet_length(BurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet

@@ -31,9 +31,11 @@ class AdvNetworkingRdmaOp : public Operator {
   AdvNetworkingRdmaOp() = default;
 
   ~AdvNetworkingRdmaOp() {
-    HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received",
+    HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received and {}/{} bytes/packets sent",
                       ttl_bytes_recv_,
-                      ttl_pkts_recv_);
+                      ttl_pkts_recv_,
+                      ttl_bytes_sent_,
+                      ttl_pkts_sent_);
 
     HOLOSCAN_LOG_INFO("ANO benchmark clent op shutting down");
     freeResources();
@@ -61,7 +63,7 @@ class AdvNetworkingRdmaOp : public Operator {
 
 
   void setup(OperatorSpec& spec) override {
-    spec.param<uint32_t>(message_size_,
+    spec.param<int>(message_size_,
                          "message_size",
                          "Message size",
                          "Message size in bytes",
@@ -130,15 +132,12 @@ class AdvNetworkingRdmaOp : public Operator {
       }
     }
 
-    Status ret;
-
-    // Process any SEND types
-    if (send_.get()) {
-      if (outstanding_send_completions < 5) {
+    // SEND and RECEIVE use almost the same code, so we can use a lambda to handle both
+    auto process_post_msg = [&](int &completion_cnt, uint64_t &wr_id, RDMAOpCode opcode, const std::string &mr_name) {
+      if (completion_cnt < MAX_OUTSTANDING_COMPLETIONS) {
         auto msg = create_burst_params();
 
-        outstanding_send_completions++;
-        ret = rdma_set_header(msg, RDMAOpCode::SEND, conn_id_, server_.get(), 1, send_wr_id, send_mr_name_.c_str());
+        Status ret = rdma_set_header(msg, opcode, conn_id_, server_.get(), 1, wr_id, mr_name.c_str());
 
         while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
 
@@ -146,87 +145,57 @@ class AdvNetworkingRdmaOp : public Operator {
         set_packet_lengths(msg, 0, {message_size_.get()});
         send_tx_burst(msg);
 
-        outstanding_send_wr_ids_[send_wr_id] = msg;
-        send_wr_id++;
+        completion_cnt++;
+        wr_id++;
       }
+    };
+
+    if (send_.get()) {
+      process_post_msg(outstanding_send_completions, send_wr_id, RDMAOpCode::SEND, send_mr_name_);
     }
 
-    // Process any RECEIVE types
     if (receive_.get()) {
-      if (outstanding_receive_completions < 5) {
-        auto msg = create_burst_params();
-
-        outstanding_receive_completions++;
-        ret = rdma_set_header(msg, RDMAOpCode::RECEIVE, conn_id_, server_.get(), 1, receive_wr_id, receive_mr_name_.c_str());
-
-        while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
-
-        // Set the length the same as the buffer size
-        set_packet_lengths(msg, 0, {message_size_.get()});
-        send_tx_burst(msg);
-
-        outstanding_receive_wr_ids_[receive_wr_id] = msg;
-        receive_wr_id++;  
-      }
+      process_post_msg(outstanding_receive_completions, receive_wr_id, RDMAOpCode::RECEIVE, receive_mr_name_);
     }
 
     // Process any completions
     if (get_rx_burst(&burst, conn_id_, server_.get()) == Status::SUCCESS) {
       if (rdma_get_opcode(burst) == RDMAOpCode::RECEIVE) {
         outstanding_receive_completions--;
-
-        uint64_t received_wr_id = burst->rdma_hdr.wr_id;
-        HOLOSCAN_LOG_DEBUG("Received completion for WR ID: {}", received_wr_id);
-
-        // Find the received WR ID in the list of outstanding IDs
-        auto it = outstanding_receive_wr_ids_.find(received_wr_id);
-        if (it != outstanding_receive_wr_ids_.end()) {
-          // Found the ID, remove it from the vector
-          HOLOSCAN_LOG_DEBUG("Found and removing matching outstanding WR ID: {}", received_wr_id);
-          free_tx_burst(it->second);
-          outstanding_receive_wr_ids_.erase(it);
-        } else {
-          // This might happen if the completion arrived unexpectedly or was already processed
-          HOLOSCAN_LOG_WARN("Received completion for WR ID {}, but it was not found in the outstanding list.", received_wr_id);
-        }
+        ttl_bytes_recv_ += get_packet_length(burst, 0);
+        ttl_pkts_recv_++;
       }
       else if (rdma_get_opcode(burst) == RDMAOpCode::SEND) {
         outstanding_send_completions--;
-
-        uint64_t send_wr_id = burst->rdma_hdr.wr_id;
-        HOLOSCAN_LOG_DEBUG("Received completion for WR ID: {}", send_wr_id);
-
-        // Find the received WR ID in the list of outstanding IDs
-        auto it = outstanding_send_wr_ids_.find(send_wr_id);
-        if (it != outstanding_send_wr_ids_.end()) {
-          // Found the ID, remove it from the vector
-          HOLOSCAN_LOG_DEBUG("Found and removing matching outstanding WR ID: {}", send_wr_id);
-          free_tx_burst(it->second);
-          outstanding_send_wr_ids_.erase(it);
-        } else {
-          // This might happen if the completion arrived unexpectedly or was already processed
-          HOLOSCAN_LOG_WARN("Received completion for WR ID {}, but it was not found in the outstanding list.", send_wr_id);
-        }
+        ttl_bytes_sent_ += get_packet_length(burst, 0);
+        ttl_pkts_sent_++;
       }
 
-      free_rx_burst(burst);
+      uint64_t received_wr_id = burst->rdma_hdr.wr_id;
+
+      if (burst->rdma_hdr.status != Status::SUCCESS) {
+        HOLOSCAN_LOG_ERROR("Received completion for WR ID: {} with status: {}", received_wr_id, (int)burst->rdma_hdr.status);
+      }
+
+      free_tx_burst(burst);
     }
   }
 
  private:
+  static constexpr int MAX_OUTSTANDING_COMPLETIONS = 5;
   std::string send_mr_name_ = "";
   std::string receive_mr_name_ = "";
   int outstanding_send_completions = 0;
   int outstanding_receive_completions = 0;
-  std::unordered_map<uint64_t, BurstParams*> outstanding_send_wr_ids_;
-  std::unordered_map<uint64_t, BurstParams*> outstanding_receive_wr_ids_;
   uint64_t send_wr_id = 0x1234;
-  uint64_t receive_wr_id = 0x1234;
+  uint64_t receive_wr_id = 0x2345;
   int64_t ttl_bytes_recv_ = 0;                     // Total bytes received in operator
   int64_t ttl_pkts_recv_ = 0;                      // Total packets received in operator
+  int64_t ttl_bytes_sent_ = 0;                     // Total bytes sent in operator
+  int64_t ttl_pkts_sent_ = 0;                      // Total packets sent in operator
   uintptr_t conn_id_ = 0;
   Parameter<bool> server_;
-  Parameter<uint32_t> message_size_;               // Message size in bytes
+  Parameter<int> message_size_;               // Message size in bytes
   Parameter<std::string> server_addr_str_;         // Server address
   Parameter<std::string> client_addr_str_;         // Client address
   Parameter<uint16_t> server_port_;              // Server port

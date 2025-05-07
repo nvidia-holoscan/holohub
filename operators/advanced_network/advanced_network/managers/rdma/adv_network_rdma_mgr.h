@@ -99,11 +99,11 @@ class RdmaMgr : public Manager {
     void run() override;
 
     void* get_packet_ptr(BurstParams* burst, int idx) override;
-    uint16_t get_packet_length(BurstParams* burst, int idx) override;
+    uint32_t get_packet_length(BurstParams* burst, int idx) override;
     uint16_t get_packet_flow_id(BurstParams* burst, int idx) override { return 0; }
     void* get_packet_extra_info(BurstParams* burst, int idx) override { return nullptr; }
     void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
-    uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+    uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
     Status get_tx_packet_burst(BurstParams *burst) override;
     Status set_eth_header(BurstParams *burst, int idx,
                                       char *dst_addr) override;

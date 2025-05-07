@@ -59,11 +59,11 @@ namespace holoscan::advanced_network {
     return burst->pkts[0][idx];
   }  
 
-  uint16_t RdmaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+  uint32_t RdmaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
     return burst->pkt_lens[seg][idx];
   }
 
-  uint16_t RdmaMgr::get_packet_length(BurstParams* burst, int idx) {
+  uint32_t RdmaMgr::get_packet_length(BurstParams* burst, int idx) {
     return burst->pkt_lens[0][idx];
   }
 
@@ -394,10 +394,13 @@ namespace holoscan::advanced_network {
   void RdmaMgr::rdma_thread(bool is_server, rdma_thread_params *tparams) {
     struct ibv_wc wc;
     int num_comp;
+    BurstParams *msg;
     const auto &qref = cfg_.ifs_[tparams->if_idx].tx_.queues_[tparams->queue_idx];
     const long cpu_core = strtol(qref.common_.cpu_core_.c_str(), NULL, 10);
     struct rte_ring *tx_ring = tparams->qp_params.tx_ring;
     struct rte_ring *rx_ring = tparams->qp_params.rx_ring;
+    std::unordered_map<uint64_t, BurstParams*> outstanding_send_wr_ids;
+    std::unordered_map<uint64_t, BurstParams*> outstanding_receive_wr_ids;    
 
     if (set_affinity(cpu_core) != 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to set RDMA core affinity");
@@ -408,22 +411,42 @@ namespace holoscan::advanced_network {
 
     // Main TX loop. Wait for send requests from the transmitters to arrive for sending. Also
     // periodically poll the CQ.
-    while (!tparams->ready_to_exit) {
+    while (!rdma_force_quit.load()) {
       // Check RQ first to reduce latency
       while ((num_comp = ibv_poll_cq(tparams->qp_params.rx_cq, 1, &wc)) != 0) {
         HOLOSCAN_LOG_DEBUG("GOT RX COMPLETION in thread {} core {} wrid {}", (void*)tparams->client_id, cpu_core, (int64_t)wc.wr_id);
         if (wc.status != IBV_WC_SUCCESS) {
           HOLOSCAN_LOG_ERROR("CQ error {} for WRID {} and opcode {}", (int)wc.status, (int64_t)wc.wr_id, (int)wc.opcode);
+          continue;
         }
 
+        if (wc.opcode == IBV_WC_RECV) {
+          auto it = outstanding_receive_wr_ids.find(wc.wr_id);
+          if (it == outstanding_receive_wr_ids.end()) {
+            HOLOSCAN_LOG_CRITICAL("WR ID {} not found in outstanding RECEIVE WR IDs", wc.wr_id);
+            continue;
+          }
+
+          msg = it->second;
+
+          if (msg->rdma_hdr.conn_id != reinterpret_cast<uintptr_t>(tparams->client_id)) {
+            HOLOSCAN_LOG_CRITICAL("Wrong connection ID in receive completion {}: {} != {}", wc.wr_id, 
+                  msg->rdma_hdr.conn_id, reinterpret_cast<uintptr_t>(tparams->client_id));
+          }
+
+          outstanding_receive_wr_ids.erase(it);
+        }
+        else {
+          msg = create_burst_params();
+        }        
+
         // Only populate a header to indicate which burst needs to be freed
-        auto msg = create_burst_params();
-        msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
+        //msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
         msg->rdma_hdr.status  = wc.status == IBV_WC_SUCCESS ? Status::SUCCESS : Status::GENERIC_FAILURE;
-        msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
+        //msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
         msg->rdma_hdr.server  = is_server;
         msg->rdma_hdr.tx      = false;
-        msg->rdma_hdr.wr_id   = wc.wr_id;
+        //msg->rdma_hdr.wr_id   = wc.wr_id;
 
         if (rte_ring_enqueue(rx_ring, reinterpret_cast<void*>(msg)) != 0) {
           HOLOSCAN_LOG_CRITICAL("Failed to enqueue RX completion message");
@@ -446,14 +469,33 @@ namespace holoscan::advanced_network {
           continue;
         }
 
+        if (wc.opcode == IBV_WC_SEND) {
+          auto it = outstanding_send_wr_ids.find(wc.wr_id);
+          if (it == outstanding_send_wr_ids.end()) {
+            HOLOSCAN_LOG_CRITICAL("WR ID {} not found in outstanding SEND WR IDs", wc.wr_id);
+            continue;
+          }
+
+          msg = it->second;
+
+          if (msg->rdma_hdr.conn_id != reinterpret_cast<uintptr_t>(tparams->client_id)) {
+            HOLOSCAN_LOG_CRITICAL("Wrong connection ID in send completion {}: {} != {}", wc.wr_id, 
+                  msg->rdma_hdr.conn_id, reinterpret_cast<uintptr_t>(tparams->client_id));
+          }
+
+          outstanding_send_wr_ids.erase(it);
+        }
+        else {
+          msg = create_burst_params();
+        }
+
         // Only populate a header to indicate which burst needs to be freed
-        auto msg = create_burst_params();
-        msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
+        //msg->rdma_hdr.opcode  = ibv_opcode_to_adv_net_opcode(wc.opcode);
         msg->rdma_hdr.tx      = true;
         msg->rdma_hdr.status  = wc.status == IBV_WC_SUCCESS ? Status::SUCCESS : Status::GENERIC_FAILURE;
-        msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
+        //msg->rdma_hdr.conn_id = reinterpret_cast<uintptr_t>(tparams->client_id);
         msg->rdma_hdr.server  = is_server;
-        msg->rdma_hdr.wr_id   = wc.wr_id;
+        //msg->rdma_hdr.wr_id   = wc.wr_id;
 
         if (rte_ring_enqueue(rx_ring, reinterpret_cast<void*>(msg)) != 0) {
           HOLOSCAN_LOG_CRITICAL("Failed to enqueue RX completion message");
@@ -518,6 +560,8 @@ namespace holoscan::advanced_network {
               free_tx_burst(burst);
               continue;
             }
+
+            outstanding_send_wr_ids[burst->rdma_hdr.wr_id + p] = burst;
           }
 
           break; 
@@ -566,6 +610,8 @@ namespace holoscan::advanced_network {
                 free_tx_burst(burst);
                 continue;
             }
+
+            outstanding_receive_wr_ids[burst->rdma_hdr.wr_id + p] = burst;
           }
           break;
         }
@@ -776,7 +822,6 @@ namespace holoscan::advanced_network {
     }
 
     auto& params = iter->second;
-    params.ready_to_exit = false;
     params.client_id = cm_id;
     params.pd = pd_map_[cm_id->verbs];
     params.if_idx = client_port;
@@ -1054,7 +1099,6 @@ namespace holoscan::advanced_network {
 
 
             auto& params = server_iter->second[queue_idx];
-            params.ready_to_exit = false;
             params.active = false;
             params.client_id = cm_event->id;
             params.pd = pd_map_[cm_event->id->verbs];
@@ -1123,7 +1167,6 @@ namespace holoscan::advanced_network {
             for (auto& thread_params : sp.second) {
               if (thread_params.client_id == cm_event->id) {          
                 threads_mutex_.lock();
-                thread_params.ready_to_exit = true;
                 worker_threads_[cm_event->id].join();
                 worker_threads_.erase(cm_event->id);
                 threads_mutex_.unlock();
