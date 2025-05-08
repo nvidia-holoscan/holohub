@@ -174,5 +174,9 @@ def generate_featured_apps_html(n: int = 3):
     logger.info(f"Generated featured apps HTML with {len(recent_metadata_files)} components")
 
 
+def on_pre_build(config, **kwargs):
+    generate_featured_apps_html()
+
+
 if __name__ in {"__main__", "<run_path>"}:
     generate_featured_apps_html(3)

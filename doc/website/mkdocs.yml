@@ -56,7 +56,6 @@ plugins:
   - gen-files:
       scripts:
         - scripts/generate_pages.py
-        - scripts/generate_featured_apps.py
 
   - macros
   - tags
@@ -78,6 +77,9 @@ plugins:
   - include_dir_to_nav:
       file_pattern: '.*\.(md|ipynb)$'
   - site-urls
+
+hooks:
+  - scripts/generate_featured_apps.py
 
 not_in_nav: |
   tags.md
