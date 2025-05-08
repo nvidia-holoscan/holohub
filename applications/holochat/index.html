@@ -12176,6 +12176,8 @@
 <p><strong>When running HoloChat, you have two LLM options:</strong>
 - Local: Uses <a href="https://huggingface.co/Phind/Phind-CodeLlama-34B-v2">Phind-CodeLlama-34B-v2</a> running on your local machine using Llama.cpp
 - Remote: Uses <a href="https://build.nvidia.com/meta/llama3-70b">Llama-3-70b-Instruct</a> using the <a href="https://build.nvidia.com/explore/discover">NVIDIA NIM API</a></p>
+<p><strong>You can also run HoloChat in MCP mode:</strong>
+- MCP: Runs as a <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> server that provides Holoscan documentation and code context to upstream LLMs like Claude</p>
 <h3 id="tldr">TLDR; 🥱<a class="headerlink" href="#tldr" title="Permanent link">#</a></h3>
 <p>To run locally:
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--local
@@ -12184,7 +12186,11 @@ To run using the NVIDIA NIM API:
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NVIDIA_API_KEY=&lt;api_key_here&gt;&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>./applications/holochat/.env
 
 ./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat
-</code></pre></div></p>
+</code></pre></div>
+To run as an MCP server:
+<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--mcp
+</code></pre></div>
+See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/holochat/MCP_MODE.md">MCP_MODE.md</a> for more details on using MCP mode.</p>
 <h3 id="build-notes">Build Notes: ⚙️<a class="headerlink" href="#build-notes" title="Permanent link">#</a></h3>
 <p><strong>Build Time:</strong>
 - HoloChat uses a <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch">PyTorch container</a> from <a href="https://catalog.ngc.nvidia.com/?filters=&amp;orderBy=weightPopularDESC&amp;query=">NGC</a> and may also download the <a href="https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF">~23 GB Phind LLM</a> from HuggingFace. As such, the first time building this application <strong>will likely take ~45 minutes</strong> depending on your internet speeds. However, this is a one-time set-up and subsequent runs of HoloChat should take seconds to launch.</p>
@@ -12193,9 +12199,12 @@ To run using the NVIDIA NIM API:
 <li>If running locally: HoloChat downloads ~28 GB of model data to the <code>holochat/models</code> directory. As such, it is <strong>recommended</strong> to only run this application on a disk drive with ample storage (ex: the 500 GB SSD included with NVIDIA IGX Orin).</li>
 </ul>
 <h2 id="running-instructions">Running Instructions:<a class="headerlink" href="#running-instructions" title="Permanent link">#</a></h2>
-<p>If connecting to your machine via SSH, be sure to forward the ports 7860 &amp; 8080:
-<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>&lt;user_name&gt;@&lt;IP<span class="w"> </span>address&gt;<span class="w"> </span>-L<span class="w"> </span><span class="m">7860</span>:localhost:7860<span class="w"> </span>-L<span class="w"> </span><span class="m">8080</span>:localhost:8080
-</code></pre></div></p>
+<p>If connecting to your machine via SSH, be sure to forward the appropriate ports:
+- For chatbot UI: 7860
+- For local LLM: 8080
+- For MCP server: 8090</p>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>&lt;user_name&gt;@&lt;IP<span class="w"> </span>address&gt;<span class="w"> </span>-L<span class="w"> </span><span class="m">7860</span>:localhost:7860<span class="w"> </span>-L<span class="w"> </span><span class="m">8080</span>:localhost:8080<span class="w"> </span>-L<span class="w"> </span><span class="m">8090</span>:localhost:8090
+</code></pre></div>
 <h3 id="running-w-local-llm">Running w/ Local LLM 💻<a class="headerlink" href="#running-w-local-llm" title="Permanent link">#</a></h3>
 <p><strong>To build and start the app:</strong>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--local
