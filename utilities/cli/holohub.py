@@ -101,11 +101,6 @@ class HoloHubCLI:
             "--local_sdk_root",
             help="Path to Holoscan SDK used for building local Holoscan SDK container",
         )
-        run_container.add_argument(
-            "--ssh_x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
-        )
         run_container.add_argument("--init", action="store_true", help="Support tini entry point")
         run_container.add_argument(
             "--persistent", action="store_true", help="Does not delete container after it is run"
@@ -291,7 +286,6 @@ class HoloHubCLI:
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
-            ssh_x11=args.ssh_x11,
             use_tini=args.init,
             persistent=args.persistent,
             as_root=args.as_root,
