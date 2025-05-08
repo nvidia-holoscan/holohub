@@ -56,11 +56,10 @@ class LLM:
                 api_key != "N/A"
             ), "NVIDIA_API_KEY environment variable not set, please set it in .env file"
 
-
         if not is_mcp:
             # Create OpenAI client
             self.llm_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        
+
         # Calculate the base prompt length for the system and user prompts
         self._base_prompt_length = self.calculate_token_usage(
             self.config.system_prompt + self.config.user_prompt
