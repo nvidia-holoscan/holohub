@@ -76,7 +76,7 @@ inline int EnabledDirections(const std::string& dir) {
  *    INVALID_CONFIG: Invalid configuration
  *    INTERNAL_ERROR: Internal error
  */
-Status adv_net_init(NetworkConfig &config);
+Status adv_net_init(NetworkConfig& config);
 
 /**
  * @brief Returns a manager type
@@ -527,11 +527,15 @@ uint16_t get_num_rx_queues(int port_id);
 void flush_port_queue(int port, int queue);
 
 // RDMA functions
-Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
-Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id);
-Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
-Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
-Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id);
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue);
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id);
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
 RDMAOpCode rdma_get_opcode(BurstParams* burst);
 
 };  // namespace holoscan::advanced_network
@@ -625,7 +629,6 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_tx_queue_common_config(
       const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
-
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.
@@ -721,12 +724,14 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           // RDMA config
           try {
-            ifcfg.rdma_.mode_    = holoscan::advanced_network::GetRDMAModeFromString(intf["rdma_mode"].as<std::string>());
-            ifcfg.rdma_.xmode_   = holoscan::advanced_network::GetRDMATransportModeFromString(intf["rdma_transport_mode"].as<std::string>());  
-            ifcfg.rdma_.port_    = intf["rdma_port"].as<uint16_t>();            
+            ifcfg.rdma_.mode_ = holoscan::advanced_network::GetRDMAModeFromString(
+                intf["rdma_mode"].as<std::string>());
+            ifcfg.rdma_.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(
+                intf["rdma_transport_mode"].as<std::string>());
+            ifcfg.rdma_.port_ = intf["rdma_port"].as<uint16_t>();
           } catch (const std::exception& e) {
             // Non-RDMA config
-          }          
+          }
 
           try {
             const auto& rx = intf["rx"];

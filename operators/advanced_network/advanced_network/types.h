@@ -66,37 +66,33 @@ enum class RDMAOpCode {
   SEND,
   RECEIVE,
   RDMA_WRITE,
-  RDMA_WRITE_IMM,  
+  RDMA_WRITE_IMM,
   RDMA_READ,
   RDMA_READ_IMM,
   INVALID
 };
 
-enum class RDMACompletionType {
-  RX,
-  TX,
-  INVALID
-};
+enum class RDMACompletionType { RX, TX, INVALID };
 
 struct AdvNetRdmaBurstHdr {
   uint8_t version;
-  RDMAOpCode  opcode;
+  RDMAOpCode opcode;
   Status status;
   uint16_t port_id;
-  uint16_t q_id;  
+  uint16_t q_id;
   bool server;
   bool tx;
   size_t num_pkts;
   int num_segs;
   uint64_t wr_id;
-  uintptr_t conn_id; 
-  char  local_mr_name[32];
-  char  remote_mr_name[32];
-  void        *raddr;
-  uint64_t     dst_key;
-  uint32_t     imm;
-  uint32_t    server_addr;
-  uint16_t    server_port;
+  uintptr_t conn_id;
+  char local_mr_name[32];
+  char remote_mr_name[32];
+  void* raddr;
+  uint64_t dst_key;
+  uint32_t imm;
+  uint32_t server_addr;
+  uint16_t server_port;
 };
 
 /**
@@ -122,8 +118,8 @@ struct BurstHeader {
 
   // Pad without union to make bindings readable
   void* extra_burst_data;
-  uint8_t custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) -
-                            sizeof(BurstHeaderParams)];
+  uint8_t
+      custom_burst_data[ADV_NETWORK_HEADER_SIZE_BYTES - sizeof(void*) - sizeof(BurstHeaderParams)];
 };
 
 /**
@@ -193,8 +189,6 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
   return access;
 }
 
-
-
 /**
  * @brief Location of packet buffers
  *
@@ -253,12 +247,9 @@ inline ManagerType manager_type_from_string(const std::string& str) {
   if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
   if (str == ANO_MGR_STR__RDMA) return ManagerType::RDMA;
   if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
-  throw std::logic_error(std::string("Unknown manager type. Valid options: ") +
-                        ANO_MGR_STR__DPDK + "/" +
-                        ANO_MGR_STR__GPUNETIO + "/" +
-                        ANO_MGR_STR__RIVERMAX + "/" +
-                        ANO_MGR_STR__RDMA + "/" +
-                        ANO_MGR_STR__DEFAULT);
+  throw std::logic_error(std::string("Unknown manager type. Valid options: ") + ANO_MGR_STR__DPDK +
+                         "/" + ANO_MGR_STR__GPUNETIO + "/" + ANO_MGR_STR__RIVERMAX + "/" +
+                         ANO_MGR_STR__RDMA + "/" + ANO_MGR_STR__DEFAULT);
 }
 
 enum class RDMAMode {
@@ -268,11 +259,10 @@ enum class RDMAMode {
   INVALID
 };
 
-inline RDMAMode GetRDMAModeFromString(const std::string &mode_str) {
+inline RDMAMode GetRDMAModeFromString(const std::string& mode_str) {
   if (mode_str == "client") {
     return RDMAMode::CLIENT;
-  }
-  else if (mode_str == "server") {
+  } else if (mode_str == "server") {
     return RDMAMode::SERVER;
   }
 
@@ -287,17 +277,15 @@ enum class RDMATransportMode {
   INVALID
 };
 
-inline RDMATransportMode GetRDMATransportModeFromString(const std::string &mode_str) {
+inline RDMATransportMode GetRDMATransportModeFromString(const std::string& mode_str) {
   if (mode_str == "RC") {
     return RDMATransportMode::RC;
-  }
-  else if (mode_str == "UC") {
+  } else if (mode_str == "UC") {
     return RDMATransportMode::UC;
   }
 
   return RDMATransportMode::INVALID;
 }
-
 
 struct RDMAConfig {
   RDMAMode mode_ = RDMAMode::INVALID;
@@ -536,13 +524,16 @@ auto get_rdma_cfg_en(const Config& config) {
     auto node = yaml_node["advanced_network"]["cfg"]["interfaces"];
     for (const auto& intf : node) {
       std::string mode = intf["rdma_mode"].template as<std::string>();
-      if (mode == "server") { server = true; }
-      else if (mode == "client") { client = true; }
+      if (mode == "server") {
+        server = true;
+      } else if (mode == "client") {
+        client = true;
+      }
     }
   }
 
   return std::make_tuple(server, client);
-}   
+}
 
 template <typename Config>
 auto get_rx_tx_configs_enabled(const Config& config) {

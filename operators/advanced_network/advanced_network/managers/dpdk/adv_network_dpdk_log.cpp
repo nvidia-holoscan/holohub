@@ -45,4 +45,4 @@ const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
         {LogLevel::OFF, OFF},
 };
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::advanced_network

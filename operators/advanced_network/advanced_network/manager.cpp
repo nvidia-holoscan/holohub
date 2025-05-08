@@ -130,7 +130,7 @@ size_t Manager::get_alignment(MemoryKind kind) {
   switch (kind) {
     case MemoryKind::HOST:
     case MemoryKind::HOST_PINNED:
-    case MemoryKind::HUGE:    
+    case MemoryKind::HUGE:
       return 128;
     case MemoryKind::DEVICE:
       return 256;
@@ -139,7 +139,7 @@ size_t Manager::get_alignment(MemoryKind kind) {
   }
 }
 
-Status Manager::populate_pool(struct rte_ring *ring, const std::string &mr_name) {
+Status Manager::populate_pool(struct rte_ring* ring, const std::string& mr_name) {
   auto mr = cfg_.mrs_[mr_name];
   auto base = reinterpret_cast<char*>(ar_[mr_name].ptr_);
 
@@ -186,9 +186,8 @@ Status Manager::allocate_memory_regions() {
           if (alloc_res != CUDA_SUCCESS) {
             const char* err_str = nullptr;
             cuGetErrorString(alloc_res, &err_str);
-            HOLOSCAN_LOG_CRITICAL("Could not allocate {:.2f}MB of GPU memory. Error: {}",
-                                  align / 1e6,
-                                  err_str);
+            HOLOSCAN_LOG_CRITICAL(
+                "Could not allocate {:.2f}MB of GPU memory. Error: {}", align / 1e6, err_str);
             return Status::NULL_PTR;
           }
 
@@ -296,38 +295,37 @@ Status Manager::register_mrs() {
   return Status::SUCCESS;
 }
 
-struct rte_mempool *Manager::create_pktmbuf_pool(const std::string &name, const MemoryRegionConfig &mr)
-{
+struct rte_mempool* Manager::create_pktmbuf_pool(const std::string& name,
+                                                 const MemoryRegionConfig& mr) {
   struct rte_mempool* pool;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   if (mr.kind_ == MemoryKind::HUGE) {
-    pool = rte_pktmbuf_pool_create(
-        name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
-                HOLOSCAN_LOG_INFO("huge2 at {}", 
-          pool->pool_data);
+    pool =
+        rte_pktmbuf_pool_create(name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
+    HOLOSCAN_LOG_INFO("huge2 at {}", pool->pool_data);
   } else {
     auto pktmbuf = ext_pktmbufs_[mr.name_];
-    pool = rte_pktmbuf_pool_create_extbuf(name.c_str(),
-                                          mr.num_bufs_,
-                                          0,
-                                          0,
-                                          mr.adj_size_,
-                                          numa_from_mem(mr),
-                                          pktmbuf.get(),
-                                          1);
+    pool = rte_pktmbuf_pool_create_extbuf(
+        name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr), pktmbuf.get(), 1);
   }
 #pragma GCC diagnostic pop
 
   return pool;
 }
 
-struct rte_mempool *Manager::create_generic_pool(const std::string &name, const MemoryRegionConfig &mr)
-{
+struct rte_mempool* Manager::create_generic_pool(const std::string& name,
+                                                 const MemoryRegionConfig& mr) {
   struct rte_mempool* pool;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  pool = rte_mempool_create_empty(name.c_str(), mr.num_bufs_, mr.adj_size_, 0, sizeof(struct rte_pktmbuf_pool_private), numa_from_mem(mr), 0);
+  pool = rte_mempool_create_empty(name.c_str(),
+                                  mr.num_bufs_,
+                                  mr.adj_size_,
+                                  0,
+                                  sizeof(struct rte_pktmbuf_pool_private),
+                                  numa_from_mem(mr),
+                                  0);
 
   // Now we have to populate the memory pool with the correct memory region buffers
   if (pool == nullptr) {
@@ -339,24 +337,28 @@ struct rte_mempool *Manager::create_generic_pool(const std::string &name, const 
 
   auto ar_it = ar_.find(mr.name_);
   if (ar_it == ar_.end()) {
-    HOLOSCAN_LOG_ERROR("Memory region {} not found in allocated regions for pool {}", mr.name_, name);
+    HOLOSCAN_LOG_ERROR(
+        "Memory region {} not found in allocated regions for pool {}", mr.name_, name);
     rte_mempool_free(pool);
     return nullptr;
   }
 
   const AllocRegion& alloc_region = ar_it->second;
   size_t total_size = static_cast<size_t>(mr.num_bufs_) * mr.adj_size_;
-  size_t page_size = mr.adj_size_; // Default to adjusted size (element size)
+  size_t page_size = mr.adj_size_;  // Default to adjusted size (element size)
 
   if (mr.kind_ == MemoryKind::DEVICE) {
     page_size = GPU_PAGE_SIZE;
-  }
-  else {
+  } else {
     page_size = 4096;
   }
 
   HOLOSCAN_LOG_INFO("Populating mempool {} for MR {} with {} objects of size {} at VA {} ",
-                    name, mr.name_, mr.num_bufs_, mr.adj_size_, alloc_region.ptr_);
+                    name,
+                    mr.name_,
+                    mr.num_bufs_,
+                    mr.adj_size_,
+                    alloc_region.ptr_);
   // Check if the allocated size matches the expected total size
   // Note: AllocRegion might store the originally requested size (buf_size_ * num_bufs_)
   // or the adjusted size. Assuming it holds the base pointer to the whole region.
@@ -366,18 +368,28 @@ struct rte_mempool *Manager::create_generic_pool(const std::string &name, const 
                                       RTE_BAD_IOVA,
                                       total_size,
                                       nullptr,
-                                      nullptr);                         // Opaque data for callback
+                                      nullptr);  // Opaque data for callback
 
   if (ret < 0) {
-    HOLOSCAN_LOG_ERROR("Failed to populate mempool {} for MR {}: {}", name, mr.name_, rte_strerror(rte_errno));
+    HOLOSCAN_LOG_ERROR(
+        "Failed to populate mempool {} for MR {}: {}", name, mr.name_, rte_strerror(rte_errno));
     rte_mempool_free(pool);
     return nullptr;
   } else if (static_cast<unsigned>(ret) != mr.num_bufs_) {
-     HOLOSCAN_LOG_WARN("Populated mempool {} for MR {} with {} objects, expected {}", name, mr.name_, ret, mr.num_bufs_);
-     // This might not be critical depending on how sizes align, but worth noting.
+    HOLOSCAN_LOG_WARN("Populated mempool {} for MR {} with {} objects, expected {}",
+                      name,
+                      mr.name_,
+                      ret,
+                      mr.num_bufs_);
+    // This might not be critical depending on how sizes align, but worth noting.
   } else {
-    HOLOSCAN_LOG_INFO("Successfully populated generic mempool {} for MR {} with {} objects of size {} at VA {} ",
-                      name, mr.name_, ret, mr.adj_size_, alloc_region.ptr_);
+    HOLOSCAN_LOG_INFO(
+        "Successfully populated generic mempool {} for MR {} with {} objects of size {} at VA {} ",
+        name,
+        mr.name_,
+        ret,
+        mr.adj_size_,
+        alloc_region.ptr_);
   }
 #pragma GCC diagnostic pop
 
@@ -536,22 +548,25 @@ Status Manager::get_rx_burst(BurstParams** burst) {
   return Status::NULL_PTR;
 }
 
-Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id) {
+Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                       uintptr_t* conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
   return Status::NOT_SUPPORTED;
 }
 
-Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id) {
+Status Manager::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                       const std::string& src_addr, uintptr_t* conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA connect to server not implemented");
   return Status::NOT_SUPPORTED;
 }
 
-Status Manager::rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+Status Manager::rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue) {
   HOLOSCAN_LOG_CRITICAL("RDMA get port queue not implemented");
   return Status::NOT_SUPPORTED;
 }
 
-Status Manager::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+Status Manager::rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                                        uintptr_t* conn_id) {
   HOLOSCAN_LOG_CRITICAL("RDMA get server conn ID not implemented");
   return Status::NOT_SUPPORTED;
 }
@@ -561,7 +576,9 @@ Status Manager::get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server
   return Status::NOT_SUPPORTED;
 }
 
-Status Manager::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+Status Manager::rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id,
+                                bool is_server, int num_pkts, uint64_t wr_id,
+                                const std::string& local_mr_name) {
   HOLOSCAN_LOG_CRITICAL("RDMA set header not implemented");
   return Status::NOT_SUPPORTED;
 }

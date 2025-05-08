@@ -24,7 +24,6 @@
 
 namespace holoscan::advanced_network {
 
-
 struct AllocRegion {
   std::string mr_name_;
   void* ptr_;
@@ -88,17 +87,22 @@ class Manager {
   virtual uint16_t get_num_rx_queues(int port_id) const;
   virtual void flush_port_queue(int port, int queue);
 
-  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, uintptr_t *conn_id);
-  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port, const std::string& src_addr, uintptr_t *conn_id);
-  virtual Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue);
-  virtual Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id);
-  virtual Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                        uintptr_t* conn_id);
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                        const std::string& src_addr, uintptr_t* conn_id);
+  virtual Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue);
+  virtual Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                                         uintptr_t* conn_id);
+  virtual Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id,
+                                 bool is_server, int num_pkts, uint64_t wr_id,
+                                 const std::string& local_mr_name);
   virtual RDMAOpCode rdma_get_opcode(BurstParams* burst);
   int numa_from_mem(const MemoryRegionConfig& mr) const;
   Status register_mrs();
-  Status map_mrs(); 
-  struct rte_mempool *create_pktmbuf_pool(const std::string &name, const MemoryRegionConfig &mr);
-  struct rte_mempool *create_generic_pool(const std::string &name, const MemoryRegionConfig &mr);  
+  Status map_mrs();
+  struct rte_mempool* create_pktmbuf_pool(const std::string& name, const MemoryRegionConfig& mr);
+  struct rte_mempool* create_generic_pool(const std::string& name, const MemoryRegionConfig& mr);
 
   virtual ~Manager() = default;
 
@@ -123,7 +127,7 @@ class Manager {
   virtual void adjust_memory_regions() {}
   void init_rx_core_q_map();
   size_t get_alignment(MemoryKind kind);
-  Status populate_pool(struct rte_ring *ring, const std::string &mr_name);  
+  Status populate_pool(struct rte_ring* ring, const std::string& mr_name);
 };
 
 class ManagerFactory {

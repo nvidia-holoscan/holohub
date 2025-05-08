@@ -24,7 +24,7 @@ pkg_check_modules(IBVERBS libibverbs)
 pkg_check_modules(RDMACM librdmacm)
 
 if(NOT IBVERBS_FOUND)
-    find_library(IBVERBS_LIBRARIES 
+    find_library(IBVERBS_LIBRARIES
         NAMES ibverbs
         PATHS /usr/lib /usr/lib64
     )

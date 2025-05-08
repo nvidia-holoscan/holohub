@@ -59,8 +59,7 @@ const std::unordered_map<std::string, LogLevel::Level> LogLevel::string_to_level
     {"off", OFF},
 };
 
-[[deprecated("Use create_tx_burst_params() instead")]]
-BurstParams* create_burst_params() {
+[[deprecated("Use create_tx_burst_params() instead")]] BurstParams* create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_tx_burst_params();
 }
@@ -323,14 +322,12 @@ void print_stats() {
   g_ano_mgr->print_stats();
 }
 
-Status adv_net_init(NetworkConfig &config) {
+Status adv_net_init(NetworkConfig& config) {
   ManagerFactory::set_manager_type(config.common_.manager_type);
 
   auto mgr = &(ManagerFactory::get_active_manager());
 
-  if (!mgr->set_config_and_initialize(config)) {
-    return Status::INTERNAL_ERROR;
-  }
+  if (!mgr->set_config_and_initialize(config)) { return Status::INTERNAL_ERROR; }
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
@@ -345,24 +342,29 @@ Status adv_net_init(NetworkConfig &config) {
 }
 
 // RDMA Functions
-Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id) {
   return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
 }
 
-Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port, const std::string& src_addr, uintptr_t *conn_id) {
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id) {
   return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
 }
 
-Status rdma_get_port_queue(uintptr_t conn_id, uint16_t *port, uint16_t *queue) {
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue) {
   return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
 }
 
-Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port, uintptr_t *conn_id) {
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id) {
   return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, conn_id);
 }
 
-Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server, int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
-  return g_ano_mgr->rdma_set_header(burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  return g_ano_mgr->rdma_set_header(
+      burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
 }
 
 RDMAOpCode rdma_get_opcode(BurstParams* burst) {
