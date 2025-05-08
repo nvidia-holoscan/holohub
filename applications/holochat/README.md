@@ -31,6 +31,9 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 - Local: Uses [Phind-CodeLlama-34B-v2](https://huggingface.co/Phind/Phind-CodeLlama-34B-v2) running on your local machine using Llama.cpp
 - Remote: Uses [Llama-3-70b-Instruct](https://build.nvidia.com/meta/llama3-70b) using the [NVIDIA NIM API](https://build.nvidia.com/explore/discover)
 
+**You can also run HoloChat in MCP mode:**
+- MCP: Runs as a [Model Context Protocol](https://modelcontextprotocol.io/) server that provides Holoscan documentation and code context to upstream LLMs like Claude
+
 ### TLDR; 🥱
 To run locally:
 ```bash
@@ -42,6 +45,11 @@ echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
 
 ./dev_container build_and_run holochat
 ```
+To run as an MCP server:
+```bash
+./dev_container build_and_run holochat --run_args --mcp
+```
+See [MCP_MODE.md](MCP_MODE.md) for more details on using MCP mode.
 
 ### Build Notes: ⚙️
 
@@ -55,9 +63,13 @@ echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
 
 ## Running Instructions:
 
-If connecting to your machine via SSH, be sure to forward the ports 7860 & 8080:
+If connecting to your machine via SSH, be sure to forward the appropriate ports:
+- For chatbot UI: 7860
+- For local LLM: 8080
+- For MCP server: 8090
+
 ```bash
-ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080
+ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080 -L 8090:localhost:8090
 ```
 ### Running w/ Local LLM 💻
 **To build and start the app:**
