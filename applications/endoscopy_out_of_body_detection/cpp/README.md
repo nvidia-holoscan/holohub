@@ -1,6 +1,6 @@
 # Endoscopy Out of Body Detection
 
-![Endoscopy Out of Body Detection Workflow](./endoscopy_out_of_body_detection.png)
+![Endoscopy Out of Body Detection Workflow](../endoscopy_out_of_body_detection.png)
 
 ## Overview
 
