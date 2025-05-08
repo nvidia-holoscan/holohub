@@ -63,9 +63,6 @@ set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download direct
 set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib:\$ORIGIN/../../lib:/opt/nvidia/holoscan/lib/")
 
-# Set the holohub source directory
-set(HOLOHUB_SOURCE_DIR ${CMAKE_SOURCE_DIR})
-
 # Set the default CUDA target platforms
 if(NOT CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "native")
