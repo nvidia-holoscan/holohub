@@ -576,6 +576,7 @@ lint() {
             --exclude build-\* \
             --exclude install-\* \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
 
       # Fix C++ lint issues by running clang-format:
@@ -608,6 +609,7 @@ lint() {
             --exclude install-\* \
             --exclude .vscode-server \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN \
         | { grep -v 'Ignoring\|Done processing' || true; } || exit_code=1"
 
