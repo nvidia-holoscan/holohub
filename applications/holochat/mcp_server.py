@@ -15,8 +15,6 @@
 
 import asyncio
 import logging
-import os
-from types import SimpleNamespace
 from typing import List
 
 import mcp.types as types
