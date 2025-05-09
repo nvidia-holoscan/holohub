@@ -1,12 +1,3 @@
-# # Load Holoviz library (libholoscan_viz.so).
-# import holoscan.operators.holoviz  # noqa: F401
-# from holoscan.core import io_type_registry
-
-# from ._xr import *
-# from ._xr import register_types as _register_types
-
-# # Register custom type emitter-receivers.
-# _register_types(io_type_registry)
 """
 SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
