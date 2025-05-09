@@ -241,3 +241,38 @@ def test_gpunetio_single_if_loopback(executable, work_dir, nvidia_nics):
     assert result.returncode == 0, "Application errored out"
     assert "[error]" not in (result.stdout + result.stderr), "Application reported errors"
     assert "[ERR]" not in (result.stdout + result.stderr), "Application reported errors"
+
+
+def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
+    """
+    Test 5: RX with multi-queue and header-data split.
+    """
+    # Get the first two NICs for this test
+    tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
+
+    # Prepare config
+    config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx_multi_q_hds.yaml")
+    update_yaml_file(
+        config_file,
+        config_file,
+        {
+            "scheduler.max_duration_ms": 10000,
+            "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
+            "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
+            "bench_tx.eth_dst_addr": rx_interface.mac_address,
+            "advanced_network.cfg.tx_meta_buffers": 4096,
+            "advanced_network.cfg.rx_meta_buffers": 4096,
+        },
+    )
+
+    # Run the application until completion and parse the results
+    command = f"{executable} {config_file}"
+    result = run_command(command, stream_output=True)
+    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
+
+    # Validate some expected metrics
+    # We only check that every queue got at least 100 packets here
+    rx_queue_pkts_check = results.validate_rx_queue_packets(
+        1, {0: 100, 1: 100, 2: 100, 3: 100, 4: 100, 5: 100, 6: 100, 7: 100, 8: 100}, gt=True
+    )
+    assert rx_queue_pkts_check, "RX queue packet distribution validation failed"

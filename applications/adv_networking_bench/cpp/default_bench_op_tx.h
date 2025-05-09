@@ -72,8 +72,8 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     pkt.ip.tot_len = htons(ip_len);
 
     pkt.udp.check = 0;
-    pkt.udp.dest = htons(udp_dst_port_.get());
-    pkt.udp.source = htons(udp_src_port_.get());
+    pkt.udp.dest = htons(udp_dst_ports_[0]);
+    pkt.udp.source = htons(udp_src_ports_[0]);
     pkt.udp.len = htons(ip_len - sizeof(pkt.ip));
   }
 
@@ -131,6 +131,30 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
     }
 
+    bool src_port_is_range = udp_src_port_str_.get().find('-') != std::string::npos;
+    bool dst_port_is_range = udp_dst_port_str_.get().find('-') != std::string::npos;
+    if (src_port_is_range || dst_port_is_range) {
+      // If UDP port is a range, we must ensure that either GPUDirect is disabled
+      // or Header-Data Split (HDS) is enabled (hds > 0).
+      // We make a static L4 header in the packet on the device so it needs to be a constant value.
+      if (gpu_direct_.get() && !hds_.get()) {
+        HOLOSCAN_LOG_ERROR("Cannot use UDP port range with GPUDirect without HDS");
+        exit(1);
+      }
+    }
+
+    if (src_port_is_range) {
+      parse_udp_port_range(udp_src_port_str_.get(), udp_src_ports_);
+    } else {
+      udp_src_ports_.push_back(static_cast<uint16_t>(std::stoul(udp_src_port_str_.get())));
+    }
+
+    if (dst_port_is_range) {
+      parse_udp_port_range(udp_dst_port_str_.get(), udp_dst_ports_);
+    } else {
+      udp_dst_ports_.push_back(static_cast<uint16_t>(std::stoul(udp_dst_port_str_.get())));
+    }
+
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize() complete");
   }
 
@@ -152,9 +176,10 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                      "GPUDirect enabled",
                      "Byte boundary where header and data is split",
                      false);
-    spec.param<uint16_t>(udp_src_port_, "udp_src_port", "UDP source port", "UDP source port");
-    spec.param<uint16_t>(
-        udp_dst_port_, "udp_dst_port", "UDP destination port", "UDP destination port");
+    spec.param<std::string>(udp_src_port_str_,
+          "udp_src_port", "UDP source port", "UDP source port");
+    spec.param<std::string>(
+        udp_dst_port_str_, "udp_dst_port", "UDP destination port", "UDP destination port");
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(
         ip_dst_addr_, "ip_dst_addr", "IP destination address", "IP destination address");
@@ -233,12 +258,15 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                                        num_pkt,
                                        // Remove Eth + IP + UDP headers
                                        payload_size_.get() + header_size_.get() - (14 + 20 + 8),
-                                       udp_src_port_.get(),
-                                       udp_dst_port_.get())) != Status::SUCCESS) {
+                                       udp_src_ports_[udp_src_idx_],
+                                       udp_dst_ports_[udp_dst_idx_])) != Status::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set UDP header for packet {}", 0);
           free_all_packets_and_burst_tx(msg);
           return;
         }
+
+        udp_src_idx_ = (++udp_src_idx_ % udp_src_ports_.size());
+        udp_dst_idx_ = (++udp_dst_idx_ % udp_dst_ports_.size());
 
         // Only set payload on CPU buffer if we're not in HDS mode
         if (hds_.get() == 0) {
@@ -335,17 +363,65 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   void* gds_header_;
   int cur_idx = 0;
   int port_id_;
+  size_t udp_src_idx_ = 0;
+  size_t udp_dst_idx_ = 0;
+  std::vector<uint16_t> udp_src_ports_;
+  std::vector<uint16_t> udp_dst_ports_;
   Parameter<int> hds_;          // Header-data split point
   Parameter<bool> gpu_direct_;  // GPUDirect enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet
   Parameter<std::string> interface_name_;
   Parameter<uint16_t> payload_size_;
-  Parameter<uint16_t> udp_src_port_;
-  Parameter<uint16_t> udp_dst_port_;
+  Parameter<std::string> udp_src_port_str_;
+  Parameter<std::string> udp_dst_port_str_;
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
+
+  // Private helper function to parse port ranges
+  void parse_udp_port_range(const std::string& port_str, std::vector<uint16_t>& ports_vec) {
+    ports_vec.clear();
+    size_t dash_pos = port_str.find('-');
+    if (dash_pos == std::string::npos) {
+      // Single port
+      try {
+        uint16_t port = static_cast<uint16_t>(std::stoul(port_str));
+        ports_vec.push_back(port);
+      } catch (const std::invalid_argument& ia) {
+        HOLOSCAN_LOG_ERROR("Invalid port format: {}", port_str);
+      } catch (const std::out_of_range& oor) {
+        HOLOSCAN_LOG_ERROR("Port out of range: {}", port_str);
+      }
+    } else {
+      // Port range
+      std::string start_str = port_str.substr(0, dash_pos);
+      std::string end_str = port_str.substr(dash_pos + 1);
+      try {
+        uint16_t start_port = static_cast<uint16_t>(std::stoul(start_str));
+        uint16_t end_port = static_cast<uint16_t>(std::stoul(end_str));
+
+        if (start_port > end_port) {
+          HOLOSCAN_LOG_ERROR("Invalid port range: start port {} > end port {}",
+              start_port, end_port);
+          return;
+        }
+
+        for (uint16_t port = start_port; port <= end_port; ++port) {
+          ports_vec.push_back(port);
+          // Check for overflow before incrementing in the loop condition itself if end_port
+          // is 65535
+          if (port == 65535 && port < end_port) {
+            break;
+          }
+        }
+      } catch (const std::invalid_argument& ia) {
+        HOLOSCAN_LOG_ERROR("Invalid port format in range: {}", port_str);
+      } catch (const std::out_of_range& oor) {
+        HOLOSCAN_LOG_ERROR("Port out of range in range: {}", port_str);
+      }
+    }
+  }
 };
 
 }  // namespace holoscan::ops

@@ -899,9 +899,9 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     return -1;
   }
 
-  HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
+  HOLOSCAN_LOG_INFO("Setting up RX meta pool with {} buffers", cfg_.rx_meta_buffers_);
   rx_metadata = rte_mempool_create("RX_META_POOL",
-                               (1U << 8) - 1U,
+                               cfg_.rx_meta_buffers_ - 1U,
                                sizeof(BurstParams),
                                0,
                                0,
@@ -955,9 +955,9 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
     }
   }
 
-  HOLOSCAN_LOG_DEBUG("Setting up TX meta pool");
+  HOLOSCAN_LOG_INFO("Setting up TX meta pool with {} buffers", cfg_.tx_meta_buffers_);
   tx_metadata = rte_mempool_create("TX_META_POOL",
-                               (1U << 8) - 1U,
+                               cfg_.tx_meta_buffers_ - 1U,
                                sizeof(BurstParams),
                                0,
                                0,
