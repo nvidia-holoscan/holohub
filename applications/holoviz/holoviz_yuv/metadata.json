@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Visualization", "Bt601 Conversion", "Multi Planar Yuv420", "YCbCr", "Video Processing", "Holoviz HDR", "Image Processing"],
+		"tags": ["Computer Vision And Perception", "Visualization", "Bt601 Conversion", "Multi Planar Yuv420", "YCbCr", "Video", "Holoviz HDR", "Image Processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

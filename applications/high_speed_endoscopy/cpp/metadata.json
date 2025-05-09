@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "Photon To Glass Latency", "Bayer Rgb Pipeline Optimization", "Emergent", "Endoscopy", "RDMA", "Holoviz Vsync", "Video Processing"],
+		"tags": ["Healthcare AI", "Video", "Photon To Glass Latency", "Bayer Rgb Pipeline Optimization", "Emergent", "Endoscopy", "RDMA", "Holoviz Vsync"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

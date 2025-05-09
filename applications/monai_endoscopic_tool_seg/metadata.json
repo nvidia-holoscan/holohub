@@ -22,7 +22,7 @@
 		"platforms": [
 			"x86_64", "aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "ONNX GraphSurgeon", "Endoscopic Instrument Analysis", "MONAI Model Zoo", "Endoscopy", "Segmentation", "Video Processing"],
+		"tags": ["Healthcare AI", "Video", "ONNX GraphSurgeon", "Endoscopic Instrument Analysis", "MONAI Model Zoo", "Endoscopy", "Segmentation"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": []

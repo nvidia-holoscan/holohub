@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Visualization", "Polyp Mask Overlay", "Contour Binary Erosion", "AJA", "Colonoscopy", "Segmentation", "Holoviz UI", "Video Processing"],
+		"tags": ["Healthcare AI", "Visualization", "Polyp Mask Overlay", "Contour Binary Erosion", "AJA", "Colonoscopy", "Segmentation", "Holoviz UI", "Video"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

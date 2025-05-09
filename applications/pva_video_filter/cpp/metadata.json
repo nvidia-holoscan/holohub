@@ -29,7 +29,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": ["Computer Vision And Perception", "Video", "Tegra VLIW Optimization", "NV24 Luminance Processing", "PVA", "Video Processing", "Endoscopy", "Visualization"],
+        "tags": ["Computer Vision And Perception", "Video", "Tegra VLIW Optimization", "NV24 Luminance Processing", "PVA", "Endoscopy", "Visualization"],
         "ranking": 1,
         "dependencies": {},
         "run": {

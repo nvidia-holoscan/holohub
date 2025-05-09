@@ -22,7 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["Video Processing", "Prohawk"],
+		"tags": ["Video", "Prohawk"],
 		"ranking": 4,
 		"dependencies": {
 			"SDK": "Prohawk runtime"

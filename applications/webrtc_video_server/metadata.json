@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Networking and Distributed Computing", "Video", "Frame Replay Streaming", "Browser Control Interface", "WebRTC", "Video Processing", "Client/Server", "Communications", "Video Decoding"],
+		"tags": ["Networking and Distributed Computing", "Video", "Frame Replay Streaming", "Browser Control Interface", "WebRTC", "Client/Server", "Communications", "Video Decoding"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

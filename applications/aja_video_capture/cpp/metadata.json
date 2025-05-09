@@ -25,7 +25,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Computer Vision And Perception", "Video", "Format Conversion", "Streaming", "AJA", "Video Processing"],
+		"tags": ["Computer Vision And Perception", "Video", "Format Conversion", "Streaming", "AJA"],
 		"ranking": 0,
 		"dependencies": {
 		},

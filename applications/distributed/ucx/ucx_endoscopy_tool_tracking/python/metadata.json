@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Distributed", "Surgical Instrument Tracking", "Real-Time Mask Overlay", "Endoscopy", "Video Processing", "Computer Vision", "Segmentation"],
+		"tags": ["Healthcare AI", "Distributed", "Surgical Instrument Tracking", "Real-Time Mask Overlay", "Endoscopy", "Video", "Computer Vision", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [
