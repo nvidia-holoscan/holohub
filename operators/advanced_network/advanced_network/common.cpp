@@ -58,8 +58,7 @@ const std::unordered_map<std::string, LogLevel::Level> LogLevel::string_to_level
     {"off", OFF},
 };
 
-[[deprecated("Use create_tx_burst_params() instead")]]
-BurstParams* create_burst_params() {
+[[deprecated("Use create_tx_burst_params() instead")]] BurstParams* create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_tx_burst_params();
 }
@@ -98,7 +97,7 @@ void free_packet_segment(BurstParams* burst, int seg, int pkt) {
   g_ano_mgr->free_packet_segment(burst, seg, pkt);
 }
 
-uint16_t get_packet_length(BurstParams* burst, int idx) {
+uint32_t get_packet_length(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_packet_length(burst, idx);
 }
@@ -113,7 +112,7 @@ uint64_t get_burst_tot_byte(BurstParams* burst) {
   return g_ano_mgr->get_burst_tot_byte(burst);
 }
 
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_segment_packet_length(burst, seg, idx);
 }
@@ -292,6 +291,11 @@ Status get_rx_burst(BurstParams** burst) {
   return g_ano_mgr->get_rx_burst(burst);
 }
 
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, conn_id, server);
+}
+
 uint16_t get_num_rx_queues(int port_id) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_num_rx_queues(port_id);
@@ -302,14 +306,12 @@ void print_stats() {
   g_ano_mgr->print_stats();
 }
 
-Status adv_net_init(NetworkConfig &config) {
+Status adv_net_init(NetworkConfig& config) {
   ManagerFactory::set_manager_type(config.common_.manager_type);
 
   auto mgr = &(ManagerFactory::get_active_manager());
 
-  if (!mgr->set_config_and_initialize(config)) {
-    return Status::INTERNAL_ERROR;
-  }
+  if (!mgr->set_config_and_initialize(config)) { return Status::INTERNAL_ERROR; }
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
@@ -323,6 +325,35 @@ Status adv_net_init(NetworkConfig &config) {
   return Status::SUCCESS;
 }
 
+// RDMA Functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
+}
+
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id) {
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
+}
+
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue) {
+  return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
+}
+
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id) {
+  return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, conn_id);
+}
+
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  return g_ano_mgr->rdma_set_header(
+      burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
+}
+
+RDMAOpCode rdma_get_opcode(BurstParams* burst) {
+  return g_ano_mgr->rdma_get_opcode(burst);
+}
 
 };  // namespace holoscan::advanced_network
 
@@ -355,9 +386,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
 
   try {
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
-  } catch (const std::exception& e) {
-    flow.match_.ipv4_len_ = 0;
-  }
+  } catch (const std::exception& e) { flow.match_.ipv4_len_ = 0; }
   return true;
 }
 
@@ -484,10 +513,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
     for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
-  } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
-    return false;
-  }
+  } catch (const std::exception& e) {}
   return true;
 }
 
