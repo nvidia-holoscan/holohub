@@ -18,7 +18,7 @@ pip install torch
 # Install gsplat
 pip install git+https://github.com/nerfstudio-project/gsplat.git
 # Install dependencies
-pip install -r require  ments.txt
+pip install -r requirements.txt
 # Download the data
 python datasets/download_dataset.py
 ```
@@ -39,13 +39,8 @@ Run the following command in the top-level HoloHub directory:
 ```bash
 ./dev_container build --docker_file ./applications/xr_gsplat/Dockerfile --img holohub:xr_gsplat
 ```
-### 2. Install gsplat
-```bash
-# Inside the container, install gsplat from source
-./dev_container launch --img holohub:xr_gsplat 
-pip install git+https://github.com/nerfstudio-project/gsplat.git
-```
-### 3. Run the application
+
+### 2. Run the application
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash

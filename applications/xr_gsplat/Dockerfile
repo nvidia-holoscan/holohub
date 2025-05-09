@@ -54,11 +54,9 @@ RUN apt update \
 RUN pip install --upgrade pip
 RUN pip install build
 
-# Gsplat
+# Gsplat dependencies
 RUN pip install torch
 RUN pip install ninja numpy jaxtyping rich
-# RUN pip install git+https://github.com/nerfstudio-project/gsplat.git # need cuda runtime
-# RUN pip install gsplat --index-url https://docs.gsplat.studio/whl/pt24cu124
 RUN pip install scipy
 
 # Set the working directory

@@ -17,3 +17,11 @@ project(xr_gsplat NONE)
 
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Install gsplat
+add_custom_target(install_gsplat ALL)
+add_custom_command(
+    TARGET install_gsplat
+    COMMAND ${Python3_EXECUTABLE} -m pip install git+https://github.com/nerfstudio-project/gsplat.git
+    COMMENT "Installing gsplat..."
+)
