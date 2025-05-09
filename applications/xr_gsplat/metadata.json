@@ -41,7 +41,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/xr_gsplat.py",
+			"command": "python3 <holohub_app_source>/xr_gsplat.py -c <holohub_app_source>/config.yaml",
 			"workdir": "holohub_bin"
 		}
 	}
