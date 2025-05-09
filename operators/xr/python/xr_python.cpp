@@ -32,9 +32,6 @@
 #include <xr_swapchain_cuda.hpp>
 #include <../../operator_util.hpp>
 
-// #include "xr_composition_layer_emitter_receiver.hpp"
-// #include "xr_frame_state_emitter_receiver.hpp"
-
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>

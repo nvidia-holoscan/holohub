@@ -26,4 +26,34 @@ limitations under the License.
 
 import holoscan.core  # noqa: F401
 
-from ._xr import *
+from ._xr import (
+    ViewConfigurationDepthRangeEXT,
+    XrBeginFrameOp,
+    XrCompositionLayerProjectionStorage,
+    XrCompositionLayerProjectionView,
+    XrEndFrameOp,
+    XrFovf,
+    XrFrameState,
+    XrPosef,
+    XrQuaternionf,
+    XrSession,
+    XrSwapchainCuda,
+    XrSwapchainCudaFormat,
+    XrVector3f,
+)
+
+__all__ = [
+    "XrSession",
+    "XrBeginFrameOp",
+    "XrEndFrameOp",
+    "XrSwapchainCuda",
+    "XrSwapchainCudaFormat",
+    "XrCompositionLayerProjectionStorage",
+    "XrFrameState",
+    "XrCompositionLayerProjectionView",
+    "XrFovf",
+    "XrPosef",
+    "XrQuaternionf",
+    "XrVector3f",
+    "ViewConfigurationDepthRangeEXT",
+]
