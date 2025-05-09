@@ -26,7 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Signal Processing", "Imaging", "Backprojection", "Coherent Integration", "SAR", "Synthetic Aperture", "FFT", "Holoviz UI"],
+        "tags": ["Signal Processing", "Imaging", "Backprojection", "Coherent Integration", "SAR", "Synthetic Aperture Beamforming", "FFT", "Holoviz UI"],
         "ranking": 4,
         "dependencies": {
             "operators": [

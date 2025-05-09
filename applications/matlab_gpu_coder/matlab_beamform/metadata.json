@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Visualization", "Synthetic Aperture Beamforming", "Phased Array Simulation", "MATLAB", "Beamforming", "Ultrasound", "Synthetic Aperture"],
+		"tags": ["Healthcare AI", "Visualization", "Synthetic Aperture Beamforming", "Phased Array Simulation", "MATLAB", "Beamforming", "Ultrasound"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

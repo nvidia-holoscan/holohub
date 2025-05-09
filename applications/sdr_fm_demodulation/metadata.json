@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64"],
-		"tags": ["Signal Processing", "Audio", "Fm Demodulation Pipeline", "Gpu Accelerated Resampling", "SDR", "IQ Data", "FFT"],
+		"tags": ["Signal Processing", "Audio", "FM Demodulation Pipeline", "GPU Accelerated Resampling", "SDR", "IQ Data", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{
