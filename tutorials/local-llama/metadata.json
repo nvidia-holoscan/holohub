@@ -22,13 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [
-			"Chatbot",
-			"CUDA",
-			"HuggingFace",
-			"Llama",
-			"LLM"
-		],
+		"tags": ["Chatbot", "CUDA", "Huggingface", "LLAMA", "Large Language Model"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

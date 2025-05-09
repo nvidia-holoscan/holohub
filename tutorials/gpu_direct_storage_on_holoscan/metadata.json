@@ -21,9 +21,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": [
-            "GPU Direct Storage"
-        ],
+        "tags": ["GPUDirect"],
         "ranking": 4,
         "dependencies": {}
     }

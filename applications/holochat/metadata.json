@@ -19,7 +19,7 @@
 				]
 			},
 			"platforms": ["x86_64", "aarch64"],
-			"tags": ["natural language and conversational AI", "integration", "code context management", "documentation aware generation", "RAG", "NIM", "vector database", "local LLM"],
+			"tags": ["Natural Language and Conversational AI", "Integration", "Code Context Management", "Documentation Aware Generation", "RAG", "NIM", "Vector Database", "Local LLM"],
 			"ranking": 4,
 			"dependencies": {
 				"OSS": [

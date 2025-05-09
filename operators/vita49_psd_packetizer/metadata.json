@@ -32,11 +32,7 @@
             ]
         },
         "platforms": ["x86_64"],
-        "tags": [
-            "SDR",
-            "Radio",
-            "DSP"
-        ],
+        "tags": ["SDR", "Radio", "DSP"],
         "ranking": 3,
         "dependencies": {
             "libraries": [{

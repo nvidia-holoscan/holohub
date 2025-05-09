@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "dynamic luminance", "color space conversion", "ST2084", "BT2020", "eotf", "HoloViz HDR"],
+		"tags": ["Computer Vision and Perception", "Visualization", "Dynamic Luminance", "Color Space Conversion", "ST2084", "BT2020", "Eotf", "Holoviz HDR"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

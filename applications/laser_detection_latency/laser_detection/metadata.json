@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "perspective warp calibration", "threshold based coordinate mapping", "CV CUDA", "camera", "detection", "tracking"],
+		"tags": ["Computer Vision and Perception", "Video", "Perspective Warp Calibration", "Threshold Based Coordinate Mapping", "CV CUDA", "Camera", "Detection", "Tracking"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

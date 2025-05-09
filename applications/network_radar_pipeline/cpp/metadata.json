@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["signal processing", "networking", "packet assembly", "header data split optimization", "radar", "signal processing", "GPUDirect", "DPDK", "FFT"],
+		"tags": ["Signal Processing", "Networking and Distributed Computing", "Packet Assembly", "Header Data Split Optimization", "Radar", "GPUDirect", "DPDK", "FFT"],
 		"ranking": 2,
 		"dependencies": {
 			"operators": [{

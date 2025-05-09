@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "frame rate synchronization", "color gradient generation", "HoloViz vsync", "rendering"],
+		"tags": ["Computer Vision and Perception", "Visualization", "Frame Synchronization", "Color Gradient Generation", "Holoviz Vsync", "Rendering"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

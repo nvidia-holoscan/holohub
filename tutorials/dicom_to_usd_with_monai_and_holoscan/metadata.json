@@ -51,15 +51,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"DICOM",
-			"mesh",
-			"MONAI",
-			"MONAI Deploy",
-			"Omniverse",
-			"OpenUSD",
-			"STL"
-		],
+		"tags": ["DICOM", "Mesh", "MONAI", "MONAI Deploy", "Omniverse", "OpenUSD", "STL"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [

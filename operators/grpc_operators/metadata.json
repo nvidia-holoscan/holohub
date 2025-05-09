@@ -21,11 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"grpc",
-			"visualization",
-			"tool tracking"
-		],
+		"tags": ["gRPC", "Visualization", "Tool Tracking"],
 		"ranking": 1,
 		"dependencies": {}
 	}

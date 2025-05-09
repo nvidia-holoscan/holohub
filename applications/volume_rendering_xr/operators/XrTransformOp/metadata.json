@@ -23,10 +23,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "XR",
-            "XRFrame"
-        ],
+        "tags": ["Extended Reality", "XRFrame"],
         "ranking": 2,
         "dependencies": {}
     }

@@ -26,11 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Volume",
-            "Render",
-            "ClaraViz"
-        ],
+        "tags": ["Volume", "Render", "ClaraViz"],
         "ranking": 1,
         "dependencies": {}
     }

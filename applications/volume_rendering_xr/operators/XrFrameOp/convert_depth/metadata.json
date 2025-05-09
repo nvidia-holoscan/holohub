@@ -23,11 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Convert",
-			"Depth",
-			"Screen"
-		],
+		"tags": ["Converter", "Depth", "Screen"],
 		"ranking": 2,
 		"dependencies": {}
 	}
