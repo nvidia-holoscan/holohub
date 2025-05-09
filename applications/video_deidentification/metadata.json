@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Video", "Deidentification", "Overlap Suppression", "Detection", "Image Processing", "Bounding Box"],
+		"tags": ["Computer Vision and Perception", "Video", "Deidentification", "Overlap Suppression", "Detection", "Image Processing", "Bounding Box"],
 		"ranking": 2,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet",

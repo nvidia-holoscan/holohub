@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Video", "Mask Score Optimization", "Coordinate Remapping Pipeline", "SAM2 Model", "Segmentation", "Interactive", "Visualization", "Camera"],
+		"tags": ["Computer Vision and Perception", "Video", "Mask Score Optimization", "Coordinate Remapping Pipeline", "SAM2 Model", "Segmentation", "Interactive", "Visualization", "Camera"],
 		"ranking": 1,
 		"dependencies": {
 			"SAM2": {

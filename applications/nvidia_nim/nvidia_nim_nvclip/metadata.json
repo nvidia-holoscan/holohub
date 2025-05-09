@@ -24,7 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Integration", "Cross Modal Embeddings", "Inference Microservices", "Multimodal Model", "NIM", "OpenAI API", "Image Processing", "Cosine Similarity"],
+		"tags": ["Computer Vision and Perception", "Integration", "Cross Modal Embeddings", "Inference Microservices", "Multimodal Model", "NIM", "OpenAI API", "Image Processing", "Cosine Similarity"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

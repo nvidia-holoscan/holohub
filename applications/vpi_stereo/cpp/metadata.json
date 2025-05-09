@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Video", "Disparity Mapping", "Stereo Rectification", "Camera", "Depth", "Stereo", "Visualization"],
+		"tags": ["Computer Vision and Perception", "Video", "Disparity Mapping", "Stereo Rectification", "Camera", "Depth", "Stereo", "Visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

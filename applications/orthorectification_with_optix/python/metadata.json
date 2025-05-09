@@ -21,7 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["Computer Vision And Perception", "Visualization", "Digital Elevation Model Integration", "Per Frame Geoprojection", "Optix", "Drone", "Orthorectification", "Image Processing"],
+		"tags": ["Computer Vision and Perception", "Visualization", "Digital Elevation Model Integration", "Per Frame Geoprojection", "Optix", "Drone", "Orthorectification", "Image Processing"],
 		"ranking": 4,
 		"dependencies": {
 			"OptiX-SDK": {

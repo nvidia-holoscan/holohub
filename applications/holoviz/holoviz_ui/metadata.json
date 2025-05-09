@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Visualization", "ImGui Integration", "Dynamic Gradients", "Holoviz UI", "Interactive", "Rendering", "Shapes"],
+		"tags": ["Computer Vision and Perception", "Visualization", "ImGui Integration", "Dynamic Gradients", "Holoviz UI", "Interactive", "Rendering", "Shapes"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

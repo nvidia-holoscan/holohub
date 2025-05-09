@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision And Perception", "Video", "Task Switching Interface", "CUDA Holoviz Integration", "Qt", "Multimodal Model", "Detection", "Segmentation"],
+		"tags": ["Computer Vision and Perception", "Video", "Task Switching Interface", "CUDA Holoviz Integration", "Qt", "Multimodal Model", "Detection", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"PySide6": {
