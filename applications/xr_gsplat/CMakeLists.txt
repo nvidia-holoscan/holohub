@@ -15,10 +15,5 @@
 
 project(xr_gsplat NONE)
 
-message(STATUS "Starting XR Gsplat setup...")
-
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-# Download the gsplat model
-# TODO
