@@ -38,30 +38,32 @@ class GsplatLoaderOp(Operator):
         self.opacities = torch.ones(self.n_points, 1, device="cuda")
 
         ckpt_paths = kwargs.get("ckpt_paths", None)
-        if ckpt_paths is not None:
-            self.means, self.quats, self.scales, self.opacities, self.sh0, self.shN = (
-                [],
-                [],
-                [],
-                [],
-                [],
-                [],
-            )
-            for ckpt_path in ckpt_paths:
-                ckpt = torch.load(ckpt_path, map_location="cuda")["splats"]
-                self.means.append(ckpt["means"])
-                self.quats.append(F.normalize(ckpt["quats"], p=2, dim=-1))
-                self.scales.append(torch.exp(ckpt["scales"]))
-                self.opacities.append(torch.sigmoid(ckpt["opacities"]))
-                self.sh0.append(ckpt["sh0"])
-                self.shN.append(ckpt["shN"])
-            self.means = torch.cat(self.means, dim=0)
-            self.quats = torch.cat(self.quats, dim=0)
-            self.scales = torch.cat(self.scales, dim=0)
-            self.opacities = torch.cat(self.opacities, dim=0)
-            self.sh0 = torch.cat(self.sh0, dim=0)
-            self.shN = torch.cat(self.shN, dim=0)
-            self.colors = torch.cat([self.sh0, self.shN], dim=-2)
+        if ckpt_paths is None:
+            raise ValueError("ckpt_paths must be provided")
+
+        self.means, self.quats, self.scales, self.opacities, self.sh0, self.shN = (
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+        )
+        for ckpt_path in ckpt_paths:
+            ckpt = torch.load(ckpt_path, map_location="cuda")["splats"]
+            self.means.append(ckpt["means"])
+            self.quats.append(F.normalize(ckpt["quats"], p=2, dim=-1))
+            self.scales.append(torch.exp(ckpt["scales"]))
+            self.opacities.append(torch.sigmoid(ckpt["opacities"]))
+            self.sh0.append(ckpt["sh0"])
+            self.shN.append(ckpt["shN"])
+        self.means = torch.cat(self.means, dim=0)
+        self.quats = torch.cat(self.quats, dim=0)
+        self.scales = torch.cat(self.scales, dim=0)
+        self.opacities = torch.cat(self.opacities, dim=0)
+        self.sh0 = torch.cat(self.sh0, dim=0)
+        self.shN = torch.cat(self.shN, dim=0)
+        self.colors = torch.cat([self.sh0, self.shN], dim=-2)
 
     def setup(self, spec: OperatorSpec):
         # Define optional input for view output from HolovizOp
