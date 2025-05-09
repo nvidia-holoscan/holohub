@@ -21,9 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"postprocessor"
-		],
+		"tags": ["Postprocessor"],
 		"ranking": 3,
 		"dependencies": {
 		}

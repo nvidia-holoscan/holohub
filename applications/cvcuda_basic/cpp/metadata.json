@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "buffer reuse", "tensor interop", "CV CUDA", "video processing", "endoscopy", "visualization"],
+		"tags": ["Computer Vision And Perception", "Video", "Buffer Reuse", "Tensor Interop", "CV CUDA", "Video Processing", "Endoscopy", "Visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

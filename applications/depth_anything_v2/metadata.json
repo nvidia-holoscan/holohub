@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "dynamic colormap generation", "edge accelerated inference", "monocular depth estimation", "interactive", "HoloViz UI", "video processing"],
+		"tags": ["Computer Vision And Perception", "Visualization", "Dynamic Colormap Generation", "Edge Accelerated Inference", "Monocular Depth Estimation", "Interactive", "Holoviz UI", "Video Processing"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

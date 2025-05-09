@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "stereo rectification", "disparity confidence masking", "stereo", "depth", "camera", "visualization", "image processing"],
+		"tags": ["Computer Vision And Perception", "Video", "Stereo Rectification", "Disparity Confidence Masking", "Stereo", "Depth", "Camera", "Visualization", "Image Processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

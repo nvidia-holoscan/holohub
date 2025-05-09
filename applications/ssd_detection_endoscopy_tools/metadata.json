@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["healthcare AI", "video", "surgicaltooltracking", "onnx_nhwc_conversion", "SSD", "detection", "video processing", "visualization", "bounding box"],
+		"tags": ["Healthcare AI", "Video", "Surgicaltooltracking", "ONNX NHWC Conversion", "SSD", "Detection", "Video Processing", "Visualization", "Bounding Box"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

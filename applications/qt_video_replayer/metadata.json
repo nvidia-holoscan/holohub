@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "integration", "dynamic parameter adjustment", "operator UI binding", "Qt", "QML", "video processing", "visualization", "interactive"],
+		"tags": ["Computer Vision And Perception", "Integration", "Dynamic Parameter Adjustment", "Operator UI Binding", "Qt", "QML", "Video Processing", "Visualization", "Interactive"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

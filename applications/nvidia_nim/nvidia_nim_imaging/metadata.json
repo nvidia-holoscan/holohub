@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "imaging", "anatomical segmentation", "NRRD processing", "3D Slicer", "NIM", "segmentation", "radiology imaging"],
+		"tags": ["Healthcare AI", "Imaging", "Anatomical Segmentation", "NRRD Processing", "3D Slicer", "NIM", "Segmentation", "Radiology Imaging"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {
