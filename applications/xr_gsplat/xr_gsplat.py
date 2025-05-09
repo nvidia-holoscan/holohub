@@ -1,4 +1,6 @@
 import math
+import os
+from argparse import ArgumentParser
 
 import gsplat
 import holoscan.core
@@ -8,8 +10,6 @@ from gsplat_loader_op import GsplatLoaderOp
 from scipy.spatial.transform import Rotation
 
 import holohub.xr as xr
-
-# from gsplat_realsense_op import GsplatRealsenseOp
 
 
 class XrGsplatOp(holoscan.core.Operator):
@@ -86,12 +86,8 @@ class XrGsplatOp(holoscan.core.Operator):
             z_flip = torch.tensor(
                 [
                     [1.0, 0.0, 0.0, 0.0],
-                    # Realsense
+                    [0.0, 0.0, 1.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
-                    [0.0, 0.0, -1.0, 0.0],
-                    # Loader
-                    # [0.0, 0.0, 1.0, 0.0],
-                    # [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0],
                 ]
             )
@@ -227,15 +223,14 @@ class GsplatApp(holoscan.core.Application):
     def __init__(self):
         super().__init__()
 
+    def compose(self):
         self.xr_session = xr.XrSession(self)
 
         xr_begin_frame = xr.XrBeginFrameOp(
             self, xr_session=self.xr_session, name="xr_begin_frame_op"
         )
         xr_end_frame = xr.XrEndFrameOp(self, xr_session=self.xr_session, name="xr_end_frame_op")
-
-        gsplat_source = GsplatLoaderOp(self, name="gsplat_source")
-        # gsplat_source = GsplatRealsenseOp(self, name="gsplat_source")
+        gsplat_source = GsplatLoaderOp(self, name="gsplat_source", **self.kwargs("gsplat_loader"))
         xr_gsplat = XrGsplatOp(self, xr_session=self.xr_session, name="xr_gsplat")
 
         # Connect operators
@@ -245,10 +240,17 @@ class GsplatApp(holoscan.core.Application):
         self.add_flow(xr_gsplat, xr_end_frame, {("xr_composition_layer", "xr_composition_layers")})
 
 
-def main():
-    app = GsplatApp()
-    app.run()
-
-
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser(description="XR Gsplat Application.")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default=os.path.join(os.path.dirname(__file__), "config.yaml"),
+        help="Path to the configuration file.",
+    )
+
+    args = parser.parse_args()
+
+    app = GsplatApp()
+    app.config(args.config)
+    app.run()

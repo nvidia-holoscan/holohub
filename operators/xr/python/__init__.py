@@ -27,34 +27,3 @@ limitations under the License.
 import holoscan.core  # noqa: F401
 
 from ._xr import *
-
-__all__ = [
-    # Operators
-    "XrBeginFrameOp",
-    "XrEndFrameOp",
-    # Resources
-    "XrSession",
-    "XrHandTracker",
-    "XrSwapchainCuda",
-    "XrCompositionLayerProjectionStorage",
-    # Enums
-    "XrHandEXT",
-    "HandJointEXT",
-    "XrSwapchainCudaFormat",
-    # Types/Structs
-    "SpaceLocationFlagBits",
-    "XrQuaternionf",
-    "XrVector3f",
-    "XrPosef",
-    "XrFovf",
-    "XrHandJointLocationEXT",
-    "XrSpaceLocation",
-    "XrRect2Di",
-    "XrOffset2Di",
-    "XrExtent2Di",
-    "XrSwapchainSubImage",
-    "XrFrameState",
-    "ViewConfigurationDepthRangeEXT",
-    "XrCompositionLayerProjectionView",
-    "XrCompositionLayerDepthInfoKHR",
-]

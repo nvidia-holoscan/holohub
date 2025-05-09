@@ -23,10 +23,7 @@ class GsplatLoaderOp(Operator):
         self.colors = torch.rand(self.n_points, 3, device="cuda")
         self.opacities = torch.ones(self.n_points, 1, device="cuda")
 
-        ckpt_paths = [
-            "/workspace/holohub/applications/xr_gsplat/ckpts/ckpt_6999_rank0.pt",
-            "/workspace/holohub/applications/xr_gsplat/ckpts/ckpt_29999_rank0.pt",
-        ]
+        ckpt_paths = kwargs.get("ckpt_paths", None)
         if ckpt_paths is not None:
             self.means, self.quats, self.scales, self.opacities, self.sh0, self.shN = (
                 [],
@@ -47,8 +44,6 @@ class GsplatLoaderOp(Operator):
             self.means = torch.cat(self.means, dim=0)
             self.quats = torch.cat(self.quats, dim=0)
             self.scales = torch.cat(self.scales, dim=0)
-            print("scales shape:")
-            print(self.scales.shape)
             self.opacities = torch.cat(self.opacities, dim=0)
             self.sh0 = torch.cat(self.sh0, dim=0)
             self.shN = torch.cat(self.shN, dim=0)
@@ -68,7 +63,6 @@ class GsplatLoaderOp(Operator):
         splats["scales"] = self.scales
         splats["opacities"] = self.opacities
         splats["colors"] = self.colors
-
         op_output.emit(splats, "splats")
 
     def stop(self):
