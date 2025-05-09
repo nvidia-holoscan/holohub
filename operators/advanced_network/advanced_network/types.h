@@ -391,6 +391,8 @@ struct NetworkConfig {
   std::unordered_map<std::string, MemoryRegionConfig> mrs_;
   std::vector<InterfaceConfig> ifs_;
   uint16_t debug_;
+  uint32_t tx_meta_buffers_;
+  uint32_t rx_meta_buffers_;
   LogLevel::Level log_level_;
 };
 
