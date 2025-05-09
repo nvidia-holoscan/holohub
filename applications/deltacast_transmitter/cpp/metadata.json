@@ -36,7 +36,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "Device Output Integration", "Low Latency Memory Pools", "Deltacast", "Endoscopy", "RDMA", "Videomaster", "GPU Direct Storage"],
+		"tags": ["Healthcare AI", "Video", "Device Output Integration", "Low Latency Memory Pools", "Deltacast", "Endoscopy", "RDMA", "Videomaster", "GPUDirect"],
 		"ranking": 2,
 		"dependencies": {},
 		"run": {
