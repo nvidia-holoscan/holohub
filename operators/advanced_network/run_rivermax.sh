@@ -23,10 +23,9 @@ set -o xtrace
 SCRIPT=`realpath "$0"`
 HERE=`dirname "$SCRIPT"`
 ROOT=`realpath $HERE/..`
-CONTAINER_NAME=demo-rivermax-$USER
+CONTAINER_NAME=${CONTAINER_NAME:-demo-rivermax-$USER}
 
 nvidia_icd_json=$(find -L /usr/share /etc -path '*/vulkan/icd.d/nvidia_icd.json' -type f 2>/dev/null | grep .) || (echo "nvidia_icd.json not found" >&2 && false)
-
 
 XAUTH=$HOME/.docker.xauth
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
@@ -65,6 +64,6 @@ docker exec -it $CONTAINER_NAME bash
 # to build do
 # ./run build adv_networking_bench --configure-args "-DANO_MGR=rivermax"
 # to run
-# ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rmax_rx.yaml
+# ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rivermax_rx.yaml
 # to rebuild the image run
 # ./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"
