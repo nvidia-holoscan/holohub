@@ -10,9 +10,9 @@ theme:
     - content.code.annotate
     - navigation.tabs
     - navigation.indexes
-    - navigation.instant
+    # - navigation.instant
     - navigation.path
-    - navigation.instant.prefetch
+    # - navigation.instant.prefetch
     - navigation.top
     - navigation.footer
     - search.suggest
@@ -46,14 +46,21 @@ extra_css:
   - assets/css/fonts.css
   - assets/css/custom-material.css
   - assets/css/jupyter-themes.css
+  - assets/css/header-custom.css
+  - assets/css/featured-apps.css
+  - assets/css/tag-sidebar.css
+
+extra_javascript:
+  - assets/js/tag-sidebar.js
 
 plugins:
-  - search
-#  - git-revision-date-localized:
-#      fallback_to_build_date: true
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
         - scripts/generate_pages.py
+
   - macros
   - tags
   - mike:
@@ -75,8 +82,11 @@ plugins:
       file_pattern: '.*\.(md|ipynb)$'
   - site-urls
 
-not_in_nav: |
-  tags.md
+hooks:
+  - scripts/generate_featured_apps.py
+  - scripts/generate_tags_json.py
+  - scripts/generate_app_cards.py
+
 
 watch:
   - ../../applications
