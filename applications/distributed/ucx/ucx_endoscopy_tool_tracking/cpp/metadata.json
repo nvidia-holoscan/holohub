@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["healthcare AI", "distributed", "surgical instrument tracking", "real-time mask overlay", "endoscopy", "video processing", "computer vision", "segmentation"],
+		"tags": ["Healthcare AI", "Distributed", "Surgical AI", "Endoscopy", "Video", "Computer Vision and Perception", "Segmentation"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

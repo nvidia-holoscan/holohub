@@ -29,7 +29,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["extended reality", "visualization", "stereoscopic projection matrices", "XR composition layer management", "OpenXR", "rendering", "stereo"],
+		"tags": ["Extended Reality", "Visualization", "Rendering", "Stereo Vision"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

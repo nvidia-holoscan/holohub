@@ -24,13 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Container",
-			"Debugging",
-			"Interactive",
-			"Logging",
-			"Tools"
-		],
+		"tags": ["Container"],
 		"ranking": 1,
 		"dependencies": {
 			"applications": [

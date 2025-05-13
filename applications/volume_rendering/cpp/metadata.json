@@ -26,7 +26,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "visualization", "hounsfield scale transfer functions", "volume rendering presets", "claraviz", "volume", "segmentation", "interactive", "total segmentator"],
+		"tags": ["Healthcare AI", "Visualization", "Hounsfield Scale Transfer Functions", "Volume", "Segmentation", "TotalSegmentator"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

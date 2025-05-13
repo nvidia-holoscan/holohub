@@ -30,6 +30,16 @@ NOCOLOR="\e[0m"
 BOLD="\e[1;37m"
 
 # Compare versions
+# Compare two version strings and return:
+# 0 if versions are equal
+# 1 if first version is greater
+# 2 if second version is greater
+#
+# Example:
+#   compare_version "1.2.3" "1.2.4"    # returns 2 (second version is greater)
+#   compare_version "1.3.0" "1.2.9"    # returns 1 (first version is greater)
+#   compare_version "1.2.3" "1.2.3"    # returns 0 (versions are equal)
+
 compare_version () {
 
     if [[ $1 == $2 ]]
@@ -390,16 +400,15 @@ setup() {
   python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
 
-  # Python 3.8 to 3.11 are supported
+  # Python 3.9 to 3.12 are supported
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     echo "Installing python"
     apt install --no-install-recommends -y python3 python3-dev
     python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
-    python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
   fi
 
   # If python version is too high
-  python3_max_version=$(compare_version ${python3_dev_version} "3.12.0")
+  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
   if [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
     print_error "Python version ${python3_dev_version} is not supported"
     exit 1
@@ -449,7 +458,7 @@ setup() {
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-6 12-5 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-9 12-8 12-6 12-5 12-4 12-3 12-2 12-1 12-0
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -576,6 +585,7 @@ lint() {
             --exclude build-\* \
             --exclude install-\* \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
 
       # Fix C++ lint issues by running clang-format:
@@ -608,6 +618,7 @@ lint() {
             --exclude install-\* \
             --exclude .vscode-server \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN \
         | { grep -v 'Ignoring\|Done processing' || true; } || exit_code=1"
 

@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "workload offloading", "asynchronous queues", "gRPC", "H.264", "tracking", "video decoding"],
+		"tags": ["Healthcare AI", "Distributed", "Asynchronous Queues", "gRPC", "Video"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

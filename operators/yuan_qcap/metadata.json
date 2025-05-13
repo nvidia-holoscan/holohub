@@ -21,10 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Yuan"
-		],
+		"tags": ["Camera"],
 		"ranking": 2,
 		"dependencies": {
 			"gxf_extensions": [

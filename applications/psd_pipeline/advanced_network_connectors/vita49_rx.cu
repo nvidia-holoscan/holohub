@@ -210,13 +210,16 @@ bool Vita49ConnectorOpRx::free_bufs_and_emit_arrays(
   meta->set("integer_timestamp", channel->current_meta.integer_time);
   meta->set("fractional_timestamp", channel->current_meta.fractional_time);
   meta->set("stream_id", channel->current_meta.stream_id);
-  meta->set("change_indicator", channel->current_context.context_changed);
   meta->set("bandwidth_hz", channel->current_context.bandwidth_hz);
   meta->set("rf_ref_freq_hz", channel->current_context.rf_ref_freq_hz);
   meta->set("reference_level_dbm", channel->current_context.reference_level_dbm);
   meta->set("gain_stage_1_db", channel->current_context.gain_stage_1_db);
   meta->set("gain_stage_2_db", channel->current_context.gain_stage_2_db);
   meta->set("sample_rate_hz", channel->current_context.sample_rate_sps);
+  if (channel->current_context.context_changed) {
+      meta->set("change_indicator", channel->current_context.context_changed);
+      channel->current_context.context_changed = false;
+  }
 
   auto data = slice<2>(channel->rf_data, {static_cast<index_t>(channel->cur_idx), 0, 0},
               {matxDropDim, matxEnd, matxEnd});
@@ -299,7 +302,9 @@ void Vita49ConnectorOpRx::compute(
           HOLOSCAN_LOG_DEBUG("{}", log_context_packet());
       }
 
-      channel->current_context.context_changed = context_changed_h(ctxt);
+      if (!channel->current_context.context_changed) {
+          channel->current_context.context_changed = context_changed_h(ctxt);
+      }
       channel->current_context.bandwidth_hz = get_bandwidth_hz_h(ctxt);
       channel->current_context.rf_ref_freq_hz = get_rf_ref_freq_hz_h(ctxt);
       channel->current_context.reference_level_dbm = get_ref_level_dbm_h(ctxt);

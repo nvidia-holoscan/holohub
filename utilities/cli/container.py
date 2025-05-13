@@ -30,6 +30,8 @@ from .util import (
     run_command,
 )
 
+base_sdk_version = "3.2.0"
+
 
 class HoloHubContainer:
     """
@@ -46,11 +48,11 @@ class HoloHubContainer:
 
     @classmethod
     def default_base_image(cls) -> str:
-        return f"nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-{get_host_gpu()}"
+        return f"nvcr.io/nvidia/clara-holoscan/holoscan:v{base_sdk_version}-{get_host_gpu()}"
 
     @classmethod
     def default_image(cls) -> str:
-        return f"{cls.CONTAINER_PREFIX}:ngc-v3.2.0-{get_host_gpu()}"
+        return f"{cls.CONTAINER_PREFIX}:ngc-v{base_sdk_version}-{get_host_gpu()}"
 
     @staticmethod
     def default_dockerfile() -> Path:

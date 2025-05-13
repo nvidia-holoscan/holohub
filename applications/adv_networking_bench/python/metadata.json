@@ -13,7 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["networking and distributed computing", "distributed", "header data split optimization", "wire speed packet benchmarking", "ethernet", "UDP", "GPUDirect", "DPDK"],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "GPUDirect", "DPDK"],
 		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",

@@ -23,7 +23,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["signal processing", "radar", "pulse description word", "spectral threshold detection", "FFT", "IQ data", "UDP", "signal processing"],
+		"tags": ["Signal Processing", "UDP"],
 		"ranking": 4,
 		"dependencies": {
 			"gxf_extensions": [{
