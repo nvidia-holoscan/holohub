@@ -21,9 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"converter"
-		],
+		"tags": ["converter"],
 		"ranking": 3,
 		"dependencies": {
 		}

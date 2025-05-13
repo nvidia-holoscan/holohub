@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Amazon Web Services",
-			"AWS",
-			"Cloud",
-			"EC2"
-		],
+		"tags": ["Cloud"],
 		"ranking": 1,
 		"dependencies": {
 			"services": [

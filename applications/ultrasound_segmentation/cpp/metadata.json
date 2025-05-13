@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "video", "spinal feature extraction", "curvature quantification", "ultrasound", "segmentation", "AJA", "visualization", "video processing"],
+		"tags": ["Healthcare AI", "Video", "Ultrasound", "Segmentation", "AJA", "Visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

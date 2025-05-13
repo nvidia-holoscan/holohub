@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "torchscript inference", "GXF tensor conversion", "detection", "bounding box", "video processing", "visualization", "HoloViz UI"],
+		"tags": ["Computer Vision and Perception", "Video", "Detection", "Visualization", "Holoviz"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

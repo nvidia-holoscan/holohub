@@ -21,14 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Medeical Imaging",
-			"DICOM",
-			"AI",
-			"Inference",
-			"MONAI",
-			"STL"
-		],
+		"tags": ["Medical Imaging", "Healthcare Interop", "AI", "MONAI", "STL"],
 		"ranking": 2,
 		"dependencies": {}
 	}

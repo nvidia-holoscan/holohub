@@ -23,12 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"CV-CUDA",
-			"OpenCV",
-			"cuCIM",
-			"Holoscan"
-		],
+		"tags": ["CV CUDA", "OpenCV", "Holoscan"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [
