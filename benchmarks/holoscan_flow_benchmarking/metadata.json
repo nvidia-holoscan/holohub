@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Benchmarking",
-			"Flow"
-		],
+		"tags": ["Benchmarking"],
 		"ranking": 3,
 		"dependencies": {
 			"python-requirements": [

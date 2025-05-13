@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "imaging", "volumetric reconstruction", "interoperable segmentation formats", "DICOM seg", "MONAI model zoo", "total segmentator", "radiology imaging"],
+		"tags": ["Healthcare AI", "Imaging", "Volumetric Reconstruction", "Healthcare Interop", "TotalSegmentator", "Medical Imaging"],
 		"ranking": 1,
 		"dependencies": {
             "python-packages": {

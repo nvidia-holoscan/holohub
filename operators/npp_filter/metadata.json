@@ -22,12 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Filter",
-            "NPP",
-            "Gauss",
-            "Sobel"
-        ],
+        "tags": ["NPP"],
         "ranking": 1,
         "dependencies": { }
     }

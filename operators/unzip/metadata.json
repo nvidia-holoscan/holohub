@@ -21,9 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"unzip"
-		],
+		"tags": [],
 		"ranking": 2,
 		"dependencies": {}
 	}

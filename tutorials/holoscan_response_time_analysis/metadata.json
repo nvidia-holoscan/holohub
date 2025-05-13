@@ -30,13 +30,7 @@
 			"x86_64",
 			"aarch64"
 		],
-    "tags": [
-      "real-time",
-      "performance",
-      "optimization",
-      "analysis",
-      "profiling"
-    ],
+    "tags": ["Real-Time", "Performance", "Optimization"],
     "ranking": 2,
     "dependencies": {}
   }

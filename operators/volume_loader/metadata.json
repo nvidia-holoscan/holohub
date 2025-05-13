@@ -25,13 +25,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Volume",
-            "Load",
-            "MHD",
-            "NIFTI",
-            "NRRD"
-        ],
+        "tags": ["Volume"],
         "ranking": 1,
         "dependencies": { }
     }

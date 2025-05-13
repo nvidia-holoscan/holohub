@@ -22,11 +22,7 @@
       "x86_64",
       "aarch64"
     ],
-    "tags": [
-      "deidentification",
-      "pixelation",
-      "anonymization"
-    ],
+    "tags": ["Deidentification", "Image Processing", "Anonymization"],
     "ranking": 1,
     "dependencies": {
       "python-packages": {
