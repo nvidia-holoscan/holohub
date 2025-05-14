@@ -57,9 +57,7 @@ def test_pixelator_op_missing_tensor_name_in_input(
 ):
     """Test PixelatorOp raises error if tensor_name is missing in input message."""
     op = PixelatorOp(fragment=fragment, tensor_name="image")
-    op_input = op_input_factory(
-        mock_image((32, 32, 3)), tensor_name="another_image", port="in"
-    )
+    op_input = op_input_factory(mock_image((32, 32, 3)), tensor_name="another_image", port="in")
     with pytest.raises(KeyError, match="Tensor 'image' not found in input message"):
         op.compute(op_input, op_output, context)
 
