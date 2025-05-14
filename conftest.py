@@ -47,6 +47,7 @@ def mock_image():
             return np.random.randint(0, 255, size=shape, dtype=dtype)
         else:
             raise ValueError(f"Unknown backend: {backend}")
+
     return _factory
 
 
