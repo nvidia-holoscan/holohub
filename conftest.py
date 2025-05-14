@@ -45,7 +45,7 @@ def dummy_image_factory():
     return _factory
 
 
-class DummyInput:
+class MockOpInput:
     def __init__(self, tensor, tensor_name="", port=""):
         self._tensor = tensor
         self._tensor_name = tensor_name
@@ -56,7 +56,7 @@ class DummyInput:
         return {self._tensor_name: self._tensor}
 
 
-class DummyOutput:
+class MockOpOutput:
     def __init__(self):
         self.emitted = None
 
@@ -64,23 +64,19 @@ class DummyOutput:
         self.emitted = (msg, port)
 
 
-class DummyContext:
-    pass
-
-
 @pytest.fixture
 def op_input_factory():
     def _factory(tensor, tensor_name="", port=""):
-        return DummyInput(tensor, tensor_name=tensor_name, port=port)
+        return MockOpInput(tensor, tensor_name=tensor_name, port=port)
 
     return _factory
 
 
 @pytest.fixture
 def op_output():
-    return DummyOutput()
+    return MockOpOutput()
 
 
 @pytest.fixture
 def context():
-    return DummyContext()
+    return None
