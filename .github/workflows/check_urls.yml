@@ -2,7 +2,6 @@ name: Check links
 
 on:
   push:
-    branches: [main, url-check]
   pull_request:
 
 jobs:
