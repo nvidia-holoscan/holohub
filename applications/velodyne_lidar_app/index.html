@@ -12088,12 +12088,12 @@ to provide a complete viewing pipeline. We performed initial benchmarking on an 
 system or an NVIDIA IGX developer kit.</p>
 <p>To run the application you need a live or replayer source to stream Velodyne VLP-16 packet
 data to the application. That may be either:
-- A Velodyne VLP-16 lidar sensor. Review the <a href="https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf">VLP-16 user manual</a> for setup instructions.
+- A Velodyne VLP-16 lidar sensor. Review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16 user manual</a>
 - A VLP-16 <code>.pcap</code> recording file and a packet replayer software.
   - Visit Kitware's VeloView <a href="https://www.paraview.org/veloview/#download">Velodyne Lidar collection</a> for sample VLP-16 <code>.pcap</code> files.
   - Visit the third party <a href="https://gitlab.com/wireshark/wireshark/-/wikis/Tools#traffic-generators">Wireshark wiki</a> for a curated list of software options for generating traffic from <code>.pcap</code> files.</p>
 <h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
-<p>First, start your lidar stream source. If you are using a VLP-16 lidar sensor, review the <a href="https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf">VLP-16
+<p>First, start your lidar stream source. If you are using a VLP-16 lidar sensor, review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16
 user manual</a> for instructions on how to properly set up your network configuration.</p>
 <p>Then, build and start the Holoscan lidar viewing application:</p>
 <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>velodyne_lidar_app
@@ -12148,7 +12148,7 @@ There are several reasons that this could be the case:
 - The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
   The sensor typically takes approximately 30 seconds between powering on and transmitting packets.
 - The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool
-  such as <a href="https://www.wireshark.org/">Wireshark</a> to review live packets on the network interface. Review the <a href="https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf">VLP-16
+  such as <a href="https://www.wireshark.org/">Wireshark</a> to review live packets on the network interface. Review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16
   user manual</a> for troubleshooting.
 - The HoloHub application is not properly configured. Review the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/lidar.yaml"><code>lidar.yaml</code></a> configuration
   and confirm that the port and IP address match the VLP-16 configuration.</p>
