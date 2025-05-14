@@ -16,6 +16,7 @@
 import os
 
 import cupy as cp
+import numpy as np
 import pytest
 from holoscan.core import Application, Fragment
 
@@ -38,10 +39,14 @@ def config_file():
 
 
 @pytest.fixture
-def dummy_image_factory():
-    def _factory(shape, dtype=cp.uint8):
-        return cp.random.randint(0, 255, size=shape, dtype=dtype)
-
+def mock_image():
+    def _factory(shape, dtype=cp.uint8, backend="cupy"):
+        if backend == "cupy":
+            return cp.random.randint(0, 255, size=shape, dtype=dtype)
+        elif backend == "numpy":
+            return np.random.randint(0, 255, size=shape, dtype=dtype)
+        else:
+            raise ValueError(f"Unknown backend: {backend}")
     return _factory
 
 
