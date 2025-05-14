@@ -40,4 +40,3 @@ Open a Web browser at the URL presented by the Gen AI application and start aski
 **_Note_**
 
 The main purpose of this reference application is to demonstrate how to build an Gen AI application using Holoscan SDK integrated with FHIR services, rather than state of the art fine-tuned AI models. Answers to queries are also limited by the available synthetic health records for the patient context.
-

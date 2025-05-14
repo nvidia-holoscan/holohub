@@ -51,7 +51,7 @@ The `My Workspace` section contains all the files that you've copied. The `Holos
 >  - To change the user ID, find and replace `USER_UID` and `userUid`.<br />
 >  - To change the group ID, find and replace `USER_GID` and `userGid`.<br />
 
-## Debugging Applications
+## Debugging Application
 
 ### Debugging a C++ Application
 
