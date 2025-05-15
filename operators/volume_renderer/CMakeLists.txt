@@ -47,6 +47,8 @@ FetchContent_Declare(
     ClaraViz
     URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/${_clara_viz_version}.tar.gz
     URL_MD5 cbb39f33316c6365f623bf6920126b5c
+    # apply a patch to fix building with gcc 13
+    PATCH_COMMAND patch -p1 -N < "${CMAKE_CURRENT_SOURCE_DIR}/clara_viz_gcc_13_fix.patch" || true
     )
 
 # enable CMP0077 to allow overwriting option() statements in FetchContent sub-projects
