@@ -16,7 +16,7 @@
 ---
 replayer: # VideoStreamReplayer
   basename: "anonymization"
-  frame_rate: 30 # as specified in timestamps
+  frame_rate: 60 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
