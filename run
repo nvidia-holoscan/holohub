@@ -391,18 +391,15 @@ setup() {
     apt_deps+=("ninja-build")
   fi
 
-  # If python is missing or too low
+  # Check if python is missing, too low, or too high
   python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
+  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     apt_deps+=("python3")
     apt_deps+=("python3-dev")
     python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
-  fi
-
-  # If python version is too high
-  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
-  if [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
+  elif [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
     print_error "Python version ${python3_dev_version} is not supported"
     exit 1
   fi
