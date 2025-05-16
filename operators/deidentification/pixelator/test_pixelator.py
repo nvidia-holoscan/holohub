@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pytest
-from holoscan.core import Operator, _Operator
+from holoscan.core import Operator
 
 from .pixelator import PixelatorOp
 
@@ -23,7 +23,7 @@ def test_pixelator_op_init(fragment):
     """Test PixelatorOp initialization and its properties."""
     name = "pixelator_op"
     op = PixelatorOp(fragment=fragment, name=name, tensor_name="image")
-    assert isinstance(op, _Operator), "PixelatorOp should be a Holoscan operator (_Operator)"
+    assert isinstance(op, Operator), "PixelatorOp should be a Holoscan operator (`Operator`)"
     assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
     assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
 
