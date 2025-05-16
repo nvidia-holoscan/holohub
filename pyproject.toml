@@ -61,3 +61,8 @@ exclude = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["holohub"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["operators"]
