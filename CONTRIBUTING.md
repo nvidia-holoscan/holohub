@@ -516,7 +516,7 @@ pytest operators/<your_operator_dir>/
 - Cover both positive and negative cases.
 - Use descriptive assertion messages.
 - Keep tests isolated and independent.
-- Add any generic/resuable fixtures in `conftest.py`.
+- Add any generic/reusable fixtures in `conftest.py`.
 
 For more examples, see existing operator test files such as `operators/deidentification/pixelator/test_pixelator.py` and `conftest.py` in the repository.
 
