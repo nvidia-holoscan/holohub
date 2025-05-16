@@ -391,9 +391,9 @@ setup() {
     apt_deps+=("ninja-build")
   fi
 
-  # If python is missing or too low
+  # Check if python is missing, too low, or too high
   python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
-  python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")# If python version is too high
+  python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
   python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     apt_deps+=("python3")
