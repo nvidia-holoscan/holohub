@@ -1,6 +1,7 @@
 # Contributing to HoloHub
 
 ## Table of Contents
+
 - [Introduction](#introduction)
 - [Types of Contributions](#types-of-contributions)
 - [Developer Process](#developer-process)
@@ -29,8 +30,8 @@ If your idea is:
 - _widely applicable across a domain of interests:_ Consider submitting to HoloHub as an [operator](./operators/) and an accompanying [application](./applications/).
 - _neither a new operator, application, nor workflow_: Consider submitting a [tutorial](./tutorials/) to HoloHub.
 
-
 If your code is:
+
 - _feature-complete and tested_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to contribute your work to HoloHub.
 - _a work in progress:_ We recommend to [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) HoloHub and track your local development there, then submit to HoloHub when ready. Alternatively, open pull request and indicate that it is a "work-in-progress" with the prefix "WIP".
 - _a patch for an existing application, workflow, or operator_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and request a review from the original author of the contribution you are patching.
@@ -59,8 +60,9 @@ git push -u origin <local-branch>:<remote-branch>
 ```
 
 3. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
-  * Exercise caution when selecting the source and target branches for the PR.
-  * Creation of a PR creation kicks off the [code review](#preparing-your-submission) process.
+
+- Exercise caution when selecting the source and target branches for the PR.
+- Creation of a PR creation kicks off the [code review](#preparing-your-submission) process.
 
 4. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
 
@@ -78,6 +80,7 @@ A typical submission consists of:
 - A [LICENSE](#license-guidelines) file (optional).
 
 For a submission to be accepted into HoloHub it must meet at least these criteria:
+
 - Clearly demonstrates added value to the Holoscan community;
 - Receives approval from at least one HoloHub maintainer;
 - [Code linting](#linting) tests pass;
@@ -87,7 +90,7 @@ We do not require that community members conduct formal Software Quality Assuran
 
 ### Metadata description
 
-Every application and operator should have an associated *metadata.json* file which describes the features
+Every application and operator should have an associated _metadata.json_ file which describes the features
 and dependencies.
 
 `metadata.json` schemas differ slightly for [workflows](./workflows/metadata.schema.json), [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
@@ -152,12 +155,14 @@ and dependencies.
 Please provide a self-assessment of your HoloHub contribution in your `metadata.json` file(s) according to the levels below:
 
 #### Level 0 - In par with Main SDK modules
+
 - Widespread community dependence
 - Above 90% code coverage
 - Nightly dashboards and testing monitored rigorously
 - All requirements below
 
 #### Level 1 - Very high-quality code
+
 - Meets all Holoscan SDK code style standards
 - No external requirements beyond those needed by Holoscan SDK proper
 - Builds and passes tests on all supported platforms within 1 month of each core tagged release
@@ -167,23 +172,28 @@ Please provide a self-assessment of your HoloHub contribution in your `metadata.
 - All requirements below
 
 #### Level 2 - Quality code
+
 - Compiles on niche community platforms
 - May depend on specific external tools or specific external libraries
 - Tests passing on all supported platforms
 - All requirements below
 
 #### Level 3 - Features under development
+
 - Code build on specific platforms/configuration
 - Some tests are passing on supported platforms
 
 #### Level 4 - Code of unknown quality
+
 - Code builds on specific platforms/configuration
 - Minimal set of test exists
 
 #### Level 5 - Deprecated
+
 - Deprecated code, known to be of limited utility, perhaps has known bugs
 
 ### README File
+
 Adding a `README.md` file with clarification on the intent and usage of the application or operator helps developers and users get started quickly with your contribution.
 
 We recommend writing README files in the Markdown format (`.md`).
@@ -193,7 +203,8 @@ Please use the [terms defined in the glossary](README.md#Glossary) to refer to s
 ### Adding an Operator or GXF Extension
 
 Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:
-- A *metadata.json* file which describes its specifications and requirements in accordance with the [operator metadata.json schema](./operators/metadata.schema.json).
+
+- A _metadata.json_ file which describes its specifications and requirements in accordance with the [operator metadata.json schema](./operators/metadata.schema.json).
 - A README file summarizing the operator's purpose;
 - A LICENSE file governing use (optional).
 
@@ -222,7 +233,8 @@ cmake --build ./build -j
 ### Adding an Application
 
 Add each application in its own subdirectory under the [`applications`](./applications/) directory. The subdirectory should contain:
-- A *metadata.json* file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
+
+- A _metadata.json_ file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
 - A README file summarizing the application's purpose and architecture;
 - A LICENSE file governing use (optional).
 
@@ -247,14 +259,13 @@ cmake -S . -B ./build -D APP_my_application:BOOL=1
 cmake --build ./build -j
 ```
 
-
 ### Adding a Workflow
 
 > NOTE: Workflows are _end-to-end_ reference applications that demonstrate complete pipelines from sensors to results. To determine if your contribution should be a workflow rather than an application, consider whether it represents a complete "from sensor to insight" pipeline. Workflows typically integrate multiple components (operators, models, etc.) to solve entire use case, while applications may focus on demonstrating specific functionality or techniques.
 
 Add each workflow in its own subdirectory under the [`workflows`](./workflows/) directory. The subdirectory should contain:
 
-- A *metadata.json* file which describes its specifications and requirements in accordance with the [workflow metadata.json schema](./workflows/metadata.schema.json).
+- A _metadata.json_ file which describes its specifications and requirements in accordance with the [workflow metadata.json schema](./workflows/metadata.schema.json).
 - A README file summarizing the workflow's purpose and architecture;
 - A LICENSE file governing use (optional).
 
@@ -319,8 +330,9 @@ You can run your workflow using the `./run launch` command:
 ### Adding a Tutorial
 
 Add each tutorial in its own subdirectory under the [```tutorials```](./tutorials) directory. The subdirectory should contain:
+
 - A README file summarizing the application's purpose and architecture;
-- A *metadata.json* file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
+- A _metadata.json_ file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
 - A LICENSE file governing use (optional).
 
 There are no project-wide build requirements for tutorials.
@@ -342,22 +354,25 @@ provided. Please avoid using acronyms, brand, or team names.
 
 ### Signing Your Contribution
 
-* We require that all contributors "sign-off" on their commits. This certifies that the contribution is your original work, or you have rights to submit it under the same license, or a compatible license.
+- We require that all contributors "sign-off" on their commits. This certifies that the contribution is your original work, or you have rights to submit it under the same license, or a compatible license.
 
-* Any contribution which contains commits that are not Signed-Off will not be accepted.
+- Any contribution which contains commits that are not Signed-Off will not be accepted.
 
-* To sign off on a commit you simply use the `--signoff` (or `-s`) option when committing your changes:
+- To sign off on a commit you simply use the `--signoff` (or `-s`) option when committing your changes:
+
   ```bash
-  $ git commit -s -m "Add cool feature."
+  git commit -s -m "Add cool feature."
   ```
+
   This will append the following to your commit message:
-  ```
+
+  ```txt
   Signed-off-by: Your Name <your@email.com>
   ```
 
-* Full text of the DCO:
+- Full text of the DCO:
 
-  ```
+  ```txt
     Developer Certificate of Origin
     Version 1.1
 
@@ -369,7 +384,7 @@ provided. Please avoid using acronyms, brand, or team names.
     Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
   ```
 
-  ```
+  ```txt
     Developer's Certificate of Origin 1.1
 
     By making a contribution to this project, I certify that:
@@ -393,20 +408,20 @@ HoloHub runs linting checks in CI/CD pipelines when new changes are proposed. Yo
 
 To install the necessary linting tools, run:
 
-```sh
+```bash
 ./run install_lint_deps
 ```
 
 The following command can then be used to run various linting tools on the repository.
 You may optionally pass a path argument to limit the linting to a specific subdirectory.
 
-```sh
+```bash
 ./run lint [path]
 ```
 
 ### Fixing lint issues
 
-```sh
+```bash
 # To fix python ruff issues which can be automatically fixed, run:
 ruff --fix --ignore E712 [path]
 # To fix python isort issues, run:
@@ -422,13 +437,16 @@ codespell -w -i 3 [path]
 ## Testing
 
 ### Writing tests
+
 Ideally applications should have a testing section in their CMakeLists.txt allowing to run the application for functional testing.
 HoloHub uses [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html) to drive the automated testing.
 
 ### Running tests
+
 To run the suite of HoloHub tests, run CMake from the top of the HoloHub directory and compile the binary tree. Once the compilation
 succeeds you can run all the tests using the following command from the top of the binary tree:
-```sh
+
+```bash
 cd <holoscan_binary_directory>
 # To run all the tests
 ctest
@@ -487,17 +505,18 @@ def test_my_operator_invalid_param(fragment):
 # Add as many test cases as needed to cover all the functionality of the operator and the edge cases.
 ```
 
-- **Running Python Unit Tests**: From the repository root or operator directory, run:
+**Running Python Unit Tests**: From the repository root or operator directory, run:
 
-  ```sh
-  pytest operators/<your_operator_dir>/
-  ```
+```bash
+pytest operators/<your_operator_dir>/
+```
 
-- **Best Practices**:
-  - Cover both positive and negative cases.
-  - Use descriptive assertion messages.
-  - Keep tests isolated and independent.
-  - Add any generic/resuable fixtures in `conftest.py`.
+**Best Practices**:
+
+- Cover both positive and negative cases.
+- Use descriptive assertion messages.
+- Keep tests isolated and independent.
+- Add any generic/resuable fixtures in `conftest.py`.
 
 For more examples, see existing operator test files such as `operators/deidentification/pixelator/test_pixelator.py` and `conftest.py` in the repository.
 
@@ -517,6 +536,7 @@ Note that there is no single debugging process nor VSCode Dev Container in HoloH
 ## Performance
 
 Low latency is a key feature of many HoloHub applications. We recommend exploring the following tools to analyze and report application performance:
+
 - Projects in the [`benchmarks`](/benchmarks/) folder are focused on HoloHub benchmarking. The [`holoscan_flow_tracking`](/benchmarks/holoscan_flow_benchmarking/) project in particular provides common tooling for Holoscan SDK data flow analysis.
 - The [Holoscan SDK User Guide Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) discusses general tools for application profiling.
 
