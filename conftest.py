@@ -49,9 +49,9 @@ def mock_image():
             raise ValueError(f"Unknown backend: {backend}")
         rng = xp.random.default_rng(seed)
         dtype = xp.dtype(dtype)
-        if dtype.kind in 'ui':
+        if dtype.kind in "ui":
             img = rng.integers(0, 256, size=shape, dtype=dtype, endpoint=False)
-        elif dtype.kind == 'f':
+        elif dtype.kind == "f":
             img = rng.uniform(0.0, 1.0, size=shape, dtype=dtype)
         else:
             raise ValueError(f"{dtype=} unsupported")
@@ -93,5 +93,5 @@ def op_output():
 
 
 @pytest.fixture
-def context():
+def execution_context():
     return None

@@ -53,13 +53,13 @@ def test_pixelator_op_missing_tensor_name(fragment):
 
 
 def test_pixelator_op_missing_tensor_name_in_input(
-    fragment, op_input_factory, op_output, context, mock_image
+    fragment, op_input_factory, op_output, execution_context, mock_image
 ):
     """Test PixelatorOp raises error if tensor_name is missing in input message."""
     op = PixelatorOp(fragment=fragment, tensor_name="image")
     op_input = op_input_factory(mock_image((32, 32, 3)), tensor_name="another_image", port="in")
     with pytest.raises(KeyError, match="Tensor 'image' not found in input message"):
-        op.compute(op_input, op_output, context)
+        op.compute(op_input, op_output, execution_context)
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_pixelator_op_missing_tensor_name_in_input(
     ],
 )
 def test_pixelator_op_compute(
-    fragment, op_input_factory, op_output, context, mock_image, expected_shape, block_size
+    fragment, op_input_factory, op_output, execution_context, mock_image, expected_shape, block_size
 ):
     """Test PixelatorOp compute: output shape, pixelation, dtype, and ports."""
     tensor_name = "image"
@@ -85,7 +85,7 @@ def test_pixelator_op_compute(
         fragment=fragment,
         name="pixelator_op",
     )
-    op.compute(op_input, op_output, context)
+    op.compute(op_input, op_output, execution_context)
     out_msg, out_port = op_output.emitted
 
     assert out_port == "out", "Output port should be 'out'"
