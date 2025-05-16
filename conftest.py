@@ -40,13 +40,22 @@ def config_file():
 
 @pytest.fixture
 def mock_image():
-    def _factory(shape, dtype=cp.uint8, backend="cupy"):
+    def _factory(shape, dtype=cp.uint8, backend="cupy", seed=None):
         if backend == "cupy":
-            return cp.random.randint(0, 255, size=shape, dtype=dtype)
+            xp = cp
         elif backend == "numpy":
-            return np.random.randint(0, 255, size=shape, dtype=dtype)
+            xp = np
         else:
             raise ValueError(f"Unknown backend: {backend}")
+        rng = xp.random.default_rng(seed)
+        dtype = xp.dtype(dtype)
+        if dtype.kind in 'ui':
+            img = rng.integers(0, 256, size=shape, dtype=dtype, endpoint=False)
+        elif dtype.kind == 'f':
+            img = rng.uniform(0.0, 1.0, size=shape, dtype=dtype)
+        else:
+            raise ValueError(f"{dtype=} unsupported")
+        return img
 
     return _factory
 
