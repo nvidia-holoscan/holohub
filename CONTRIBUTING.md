@@ -5,6 +5,7 @@
 - [Types of Contributions](#types-of-contributions)
 - [Developer Process](#developer-process)
 - [Preparing your submission](#preparing-your-submission)
+- [Unit Testing Python Operators](#unit-testing-python-operators)
 - [Reporting issues](#reporting-issues)
 
 ## Introduction
@@ -438,6 +439,67 @@ ctest -V
 # To run with extra verbose mode
 ctest -VV
 ```
+
+### Unit Testing Python Operators
+
+HoloHub encourages contributors to provide unit tests for Python operators. Please follow these conventions and guidelines:
+
+- **Test Framework**: Use `pytest` for writing tests.
+- **Test File Location**: Place test files in the same directory as the operator, naming them as `test_<operator>.py`.
+- **Fixtures**: Reuse common fixtures defined in `conftest.py` (e.g., `fragment`, `mock_image`, `op_input_factory`, `op_output`, `execution_context`).
+- **Test Structure**:
+  - Test operator initialization and properties.
+  - Test setup of input/output ports.
+  - Test error handling for invalid arguments using `pytest.raises`.
+  - Test the operator’s compute logic, including parameterized tests for different input shapes and values.
+  - Use mock inputs and outputs to isolate operator logic.
+
+**Example**:
+
+```python
+import pytest
+from .my_operator import MyOperatorOp
+from holoscan.core import Operator, _Operator as BaseOperator
+
+
+def test_my_operator_init(fragment):
+    name = "myoperator_op"
+    op = MyOperatorOp(fragment=fragment, name=name, tensor_name="image")
+    assert isinstance(op, BaseOperator), "MyOperator should be a Holoscan operator"
+    assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
+    assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
+
+@pytest.mark.parametrize("shape", [(32, 32, 3), (16, 16, 1)])
+def test_my_operator_compute(fragment, op_input_factory, op_output, execution_context, mock_image, shape):
+    image = mock_image(shape)
+    op_input = op_input_factory(image, tensor_name="image", port="in")
+    op = MyOperatorOp(fragment=fragment, tensor_name="image")
+    op.compute(op_input, op_output, execution_context)
+    out_msg, out_port = op_output.emitted
+    assert out_port == "out"
+    assert out_msg["image"].shape == shape
+    # the rest of compute logic that covers the main functionality of the operator
+
+def test_my_operator_invalid_param(fragment):
+    with pytest.raises(ValueError):
+        MyOperatorOp(fragment=fragment, tensor_name="image", invalid_param=-1)
+
+# Add as many test cases as needed to cover all the functionality of the operator and the edge cases.
+```
+
+- **Running Python Unit Tests**: From the repository root or operator directory, run:
+
+  ```sh
+  pytest operators/<your_operator_dir>/
+  ```
+
+- **Best Practices**:
+  - Cover both positive and negative cases.
+  - Use descriptive assertion messages.
+  - Keep tests isolated and independent.
+  - Add any generic/resuable fixtures in `conftest.py`.
+
+For more examples, see existing operator test files such as `operators/deidentification/pixelator/test_pixelator.py` and `conftest.py` in the repository.
 
 ## Debugging
 
