@@ -60,7 +60,7 @@ function(add_python_tests)
       message(DEBUG "test_name: ${test_name}")
       message(DEBUG "test_params: ${test_params}")
 
-      # Construct the ctest name
+      # --- Construct the ctest name ---
       string(REGEX MATCH "([^/]+)$" _ "${module_path}")
       set(module_name ${CMAKE_MATCH_1})
       string(REGEX REPLACE "\\.py$" "" module_name "${module_name}")
@@ -72,11 +72,21 @@ function(add_python_tests)
         set(ctest_name "${PYTEST_PREFIX}.${module_name}.${test_name}")
       endif()
 
-      # Wrapping the individual pytest with a ctest
+      # --- Construct the command ---
+      # Separate input pytest args with spaces
+      string(JOIN " " PYTEST_ARGS_STR ${PYTEST_PYTEST_ARGS})
+      # Configure color output if tty is available (--color=auto does not work with ctest wrapping)
+      set(PYTEST_COLOR_ARG "--color=\$(tty -s && echo yes || echo no)")
+      string(PREPEND PYTEST_ARGS_STR "${PYTEST_COLOR_ARG} ")
+      # Create the pytest command, ensuring usage of the requested python interpreter
+      set(PYTEST_CMD "${Python3_EXECUTABLE} -m pytest ${test_line} ${PYTEST_ARGS_STR}")
+
+      # --- Wrap the individual pytest with a ctest ---
+      # The command is wrapped in bash to run the command substitution in PYTEST_COLOR_ARG
       message(STATUS "Adding CTest: ${ctest_name}")
       add_test(
         NAME "${ctest_name}"
-        COMMAND ${Python3_EXECUTABLE} -m pytest "${test_line}" ${PYTEST_PYTEST_ARGS}
+        COMMAND bash -c "${PYTEST_CMD}"
         WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
       )
     endif()
