@@ -18,12 +18,17 @@ from holoscan.core import Operator
 
 from .pixelator import PixelatorOp
 
+try:
+    from holoscan.code import BaseOperator
+except ImportError:
+    from holoscan.code import _Operator as BaseOperator
+
 
 def test_pixelator_op_init(fragment):
     """Test PixelatorOp initialization and its properties."""
     name = "pixelator_op"
     op = PixelatorOp(fragment=fragment, name=name, tensor_name="image")
-    assert isinstance(op, Operator), "PixelatorOp should be a Holoscan operator (`Operator`)"
+    assert isinstance(op, BaseOperator), "PixelatorOp should be a Holoscan operator"
     assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
     assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
 
