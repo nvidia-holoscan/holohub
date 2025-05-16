@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,8 +70,8 @@ void RealsenseCameraOp::compute(InputContext& op_input, OutputContext& op_output
       nvidia::gxf::MemoryStorageType::kDevice,
       allocator.value());
   nvidia::gxf::VideoBufferInfo color_buffer_info = color_buffer->video_frame_info();
-  assert(color_buffer_info.color_planes[0].stride == color_frame->get_stride_in_bytes());
-  assert(color_buffer_info.color_planes[0].bytes_per_pixel == color_frame->get_bytes_per_pixel());
+  assert(color_buffer_info.color_planes[0].stride == color_frame.get_stride_in_bytes());
+  assert(color_buffer_info.color_planes[0].bytes_per_pixel == color_frame.get_bytes_per_pixel());
   cudaError_t cuda_error = cudaMemcpy(color_buffer->pointer(),
                                       color_frame.get_data(),
                                       color_frame.get_data_size(),
@@ -107,8 +107,8 @@ void RealsenseCameraOp::compute(InputContext& op_input, OutputContext& op_output
       nvidia::gxf::MemoryStorageType::kDevice,
       allocator.value());
   nvidia::gxf::VideoBufferInfo depth_buffer_info = depth_buffer->video_frame_info();
-  assert(buffer_info.color_planes[0].stride == depth_frame->get_stride_in_bytes());
-  assert(buffer_info.color_planes[0].bytes_per_pixel == depth_frame->get_bytes_per_pixel());
+  assert(depth_buffer_info.color_planes[0].stride == depth_frame.get_stride_in_bytes());
+  assert(depth_buffer_info.color_planes[0].bytes_per_pixel == depth_frame.get_bytes_per_pixel());
   cuda_error = cudaMemcpy(depth_buffer->pointer(),
                           depth_frame.get_data(),
                           depth_frame.get_data_size(),
