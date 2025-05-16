@@ -33,9 +33,13 @@ def fragment():
 
 @pytest.fixture
 def config_file():
-    yaml_file_dir = os.path.dirname(__file__)
-    config_file = os.path.join(yaml_file_dir, "operator_parameters.yaml")
-    return config_file
+    default_filename = "operator_parameters.yaml"
+    default_directory = os.path.dirname(__file__)
+
+    def _factory(filename=default_filename, directory=default_directory):
+        return os.path.join(directory, filename)
+
+    return _factory
 
 
 @pytest.fixture
