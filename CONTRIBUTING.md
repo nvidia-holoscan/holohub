@@ -52,17 +52,17 @@ We recommend that new developers review GitHub's [starting documentation](https:
 
 2. Git clone the forked repository and push changes to the personal fork.
 
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
-# Checkout the targeted branch and commit changes
-# Push the commits to a branch on the fork (remote).
-git push -u origin <local-branch>:<remote-branch>
-```
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
+    # Checkout the targeted branch and commit changes
+    # Push the commits to a branch on the fork (remote).
+    git push -u origin <local-branch>:<remote-branch>
+    ```
 
 3. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
 
-- Exercise caution when selecting the source and target branches for the PR.
-- Creation of a PR creation kicks off the [code review](#preparing-your-submission) process.
+    - Exercise caution when selecting the source and target branches for the PR.
+    - Creation of a PR kicks off the [code review](#preparing-your-submission) process.
 
 4. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
 
@@ -77,7 +77,6 @@ A typical submission consists of:
 - Application, workflow, operator, and/or tutorial code making use of the Holoscan SDK;
 - A [`metadata.json`](#metadata-description) file;
 - A [README](#readme-file) file describing the application, workflow, operator, and/or tutorial;
-- A [LICENSE](#license-guidelines) file (optional).
 
 For a submission to be accepted into HoloHub it must meet at least these criteria:
 
@@ -98,56 +97,56 @@ and dependencies.
 ```json
 // Main json definition for application or operator
 "application|operator": {
-	    // Explicit name of the contribution
-		"name": "explicit name of the application/operator",
-		// Author(s) of the contribution
-		"authors": [
-			{
-				"name": "firstname lastname",
-				"affiliation": "affiliation"
-			}
-		],
-		// Supported language
-		// If multiple languages are supported, create a directory per language and a json file accordingly
-		"language": "C++|Python|GXF",
-		// Version of the contribution
-		"version": "Version of the contribution in the form: major.minor.patch",
-		// Change log
-		"changelog": {
-			"X.X": "Short description of the changes"
-		},
-		// Holoscan SDK
-		"holoscan_sdk": {
-			// Minimum supported holoscan version
-			"minimum_required_version": "0.6.0",
-			// All versions of Holoscan SDK tested for this operator/application
-			"tested_versions": [
-				"0.6.0"
-			]
-		},
-		// Supported platforms
-		"platforms": ["x86_64", "aarch64"],
-		// Free-form tags for referencing the contribution
-		"tags": ["Endoscopy", "Video Encoding"],
-		// Ranking of the contribution. See below for ranking meaning
-		"ranking": 4,
-		// Dependencies for the current contribution
-		"dependencies": {
-			"operators": [{
-				"name": "mydependency",
-				"version": "x.x.x"
-			}
-		   ]
-		},
-		// Command to run/test the contribution. This is valid for applications.
-		// This command is used by the main run script to test the application/
-		// Use the <holohub_data_dir> for referencing the data directory
-		// "workdir" specifies the working directory and can be holohub_app_bin, holohub_app_source or holohub_bin
-		"run": {
-			"command": "./myapplication --data <holohub_data_dir>/mydata",
-			"workdir": "holohub_app_bin|holohub_app_source|holohub_bin"
-		}
-	}
+    // Explicit name of the contribution
+    "name": "explicit name of the application/operator",
+    // Author(s) of the contribution
+    "authors": [
+        {
+            "name": "firstname lastname",
+            "affiliation": "affiliation"
+        }
+    ],
+    // Supported language
+    // If multiple languages are supported, create a directory per language and a json file accordingly
+    "language": "C++|Python|GXF",
+    // Version of the contribution
+    "version": "Version of the contribution in the form: major.minor.patch",
+    // Change log
+    "changelog": {
+        "X.X": "Short description of the changes"
+    },
+    // Holoscan SDK
+    "holoscan_sdk": {
+        // Minimum supported holoscan version
+        "minimum_required_version": "0.6.0",
+        // All versions of Holoscan SDK tested for this operator/application
+        "tested_versions": [
+            "0.6.0"
+        ]
+    },
+    // Supported platforms
+    "platforms": ["x86_64", "aarch64"],
+    // Free-form tags for referencing the contribution
+    "tags": ["Endoscopy", "Video Encoding"],
+    // Ranking of the contribution. See below for ranking meaning
+    "ranking": 4,
+    // Dependencies for the current contribution
+    "dependencies": {
+        "operators": [{
+            "name": "mydependency",
+            "version": "x.x.x"
+        }
+        ]
+    },
+    // Command to run/test the contribution. This is valid for applications.
+    // This command is used by the main run script to test the application/
+    // Use the <holohub_data_dir> for referencing the data directory
+    // "workdir" specifies the working directory and can be holohub_app_bin, holohub_app_source or holohub_bin
+    "run": {
+        "command": "./myapplication --data <holohub_data_dir>/mydata",
+        "workdir": "holohub_app_bin|holohub_app_source|holohub_bin"
+    }
+}
 ```
 
 ### Ranking Levels for `metadata.json`
@@ -205,8 +204,8 @@ Please use the [terms defined in the glossary](README.md#Glossary) to refer to s
 Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:
 
 - A _metadata.json_ file which describes its specifications and requirements in accordance with the [operator metadata.json schema](./operators/metadata.schema.json).
-- A README file summarizing the operator's purpose;
-- A LICENSE file governing use (optional).
+- A README file summarizing the operator's purpose.
+- A separate unit test file (for Python operators).
 
 Additionally, each operator should have at least one associated [application](./applications/) to demonstrate the capabilities of the operator.
 
@@ -230,13 +229,23 @@ cmake -S . -B ./build -D OP_my_operator:BOOL=1
 cmake --build ./build -j
 ```
 
+#### Operator Naming Convention
+
+For an operator named "Adaptive Thresholding", follow these naming conventions:
+
+1. **Class Name**: `AdaptiveThresholdingOp` (title case without spaces and with "Op" at the end)
+2. **metadata.json ("name")**:  Same as class name.
+3. **Directory**: `adaptive_thresholding` (snake case)
+4. **Filename**: same as directory name with extension.
+5. **README (Title)**: "`Adaptive Thresholding Operator`" (title case with spaces and Operator at the end).
+6. **Unit testing**: `test_adaptive_thresholding.py` (for Python operators)
+
 ### Adding an Application
 
 Add each application in its own subdirectory under the [`applications`](./applications/) directory. The subdirectory should contain:
 
 - A _metadata.json_ file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
 - A README file summarizing the application's purpose and architecture;
-- A LICENSE file governing use (optional).
 
 Edit [```CMakeLists.txt```](./applications/CMakeLists.txt) to add the new application as part of the build system using the ```add_holohub_application```
 CMake function, passing the new application folder name as the first argument. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
@@ -267,7 +276,6 @@ Add each workflow in its own subdirectory under the [`workflows`](./workflows/) 
 
 - A _metadata.json_ file which describes its specifications and requirements in accordance with the [workflow metadata.json schema](./workflows/metadata.schema.json).
 - A README file summarizing the workflow's purpose and architecture;
-- A LICENSE file governing use (optional).
 
 Workflows should follow the organization conventions described in the [workflows README](./workflows/README.md), which includes:
 
@@ -321,11 +329,11 @@ You can run your workflow using the `./run launch` command:
 
 5. You can then generate the package(s) by configuring your build with `-D PKG_my_packager:BOOL=1` :
 
-  ```bash
-  cmake -S . -B ./build -D PKG_my_packager:BOOL=1 # NOTE: avoid adding any other -D PKG_, -D APP_ or -D OP_ as their built targets would currently pollute the content of your package, unless you used COMPONENTS in holohub_configure_deb above
-  cmake --build ./build -j
-  cpack --config ./build/pkg/CPackConfig-*.cmake
-  ```
+    ```bash
+    cmake -S . -B ./build -D PKG_my_packager:BOOL=1 # NOTE: avoid adding any other -D PKG_, -D APP_ or -D OP_ as their built targets would currently pollute the content of your package, unless you used COMPONENTS in holohub_configure_deb above
+    cmake --build ./build -j
+    cpack --config ./build/pkg/CPackConfig-*.cmake
+    ```
 
 ### Adding a Tutorial
 
@@ -333,16 +341,13 @@ Add each tutorial in its own subdirectory under the [```tutorials```](./tutorial
 
 - A README file summarizing the application's purpose and architecture;
 - A _metadata.json_ file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
-- A LICENSE file governing use (optional).
 
 There are no project-wide build requirements for tutorials.
 
 ### License Guidelines
 
 - Make sure that you can contribute your work to open source.  Verify that no license and/or patent conflict is introduced by your code. NVIDIA is not responsible for conflicts resulting from community contributions.
-
-- We encourage community submissions under the Apache 2.0 permissive open source license, which is the [default for HoloHub](./LICENSE). However, if you prefer you may use another license in the submission subdirectory at the time of submission.
-
+- Holohub license is the Apache 2.0 permissive open source license, so any contributions will inherit this license.
 - We require that members [sign](#signing-your-contribution) their contributions to certify their work.
 
 ### Coding Guidelines
