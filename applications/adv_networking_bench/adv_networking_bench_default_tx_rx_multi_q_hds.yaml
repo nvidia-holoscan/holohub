@@ -327,7 +327,7 @@ bench_tx:
   batch_size: 10240
   payload_size: 1000
   header_size: 64
-  eth_dst_addr: 48:b0:2d:f4:04:48
+  eth_dst_addr: <00:00:00:00:00:00>
   ip_src_addr: <1.2.3.4>
   ip_dst_addr: <5.6.7.8>
   udp_src_port: 4089-4097
