@@ -26,10 +26,18 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional
 
-import utilities.cli.util as holohub_cli_util
-import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer, base_sdk_version
-from utilities.cli.util import Color
+try:
+    # Import from source
+    from utilities.cli.container import HoloHubContainer, base_sdk_version
+    from utilities.cli.util import Color
+    import utilities.cli.util as holohub_cli_util
+    import utilities.metadata.gather_metadata as metadata_util
+except ImportError:
+    # Import from wheel
+    from holohub_cli.container import HoloHubContainer, base_sdk_version
+    from holohub_cli.util import Color
+    import holohub_cli.util as holohub_cli_util
+    import holohub_metadata.gather_metadata as metadata_util
 
 
 def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:

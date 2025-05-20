@@ -20,15 +20,28 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from .util import (
-    check_nvidia_ctk,
-    fatal,
-    get_compute_capacity,
-    get_group_id,
-    get_host_gpu,
-    normalize_language,
-    run_command,
-)
+try:
+    # Import from source
+    from utilities.cli.util import (
+        check_nvidia_ctk,
+        fatal,
+        get_compute_capacity,
+        get_group_id,
+        get_host_gpu,
+        normalize_language,
+        run_command,
+    )
+except ImportError:
+    # Import from wheel
+    from holohub_cli.util import (
+        check_nvidia_ctk,
+        fatal,
+        get_compute_capacity,
+        get_group_id,
+        get_host_gpu,
+        normalize_language,
+        run_command,
+    )
 
 base_sdk_version = "3.2.0"
 

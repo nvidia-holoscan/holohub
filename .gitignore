@@ -4,6 +4,7 @@ build-*/
 install/
 install-*/
 dist/
+*.egg-info/
 _CPack_Packages/
 
 # Data
