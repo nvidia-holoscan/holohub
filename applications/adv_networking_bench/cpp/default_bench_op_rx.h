@@ -413,7 +413,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet
-  Parameter<bool> reorder_kernel_;                        // Reorder kernel enabled
+  Parameter<bool> reorder_kernel_;                       // Reorder kernel enabled
 
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
