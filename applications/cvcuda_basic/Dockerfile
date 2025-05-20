@@ -36,23 +36,23 @@ WORKDIR /opt/nvidia
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
         # install Python package for x86_64
-        pip install https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda_cu12-0.14.0-cp310.cp311.cp38.cp39-cp310.cp311.cp38.cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl && \
+        pip install cvcuda-cu12==0.15.0 && \
         # Download and install C++ library for x86_64
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda-lib-0.14.0-cuda12-x86_64-linux.deb && curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda-dev-0.14.0-cuda12-x86_64-linux.deb && \
-        dpkg -i cvcuda-lib-0.14.0-cuda12-x86_64-linux.deb && \
-        dpkg -i cvcuda-dev-0.14.0-cuda12-x86_64-linux.deb && \
-        rm cvcuda-lib-0.14.0-cuda12-x86_64-linux.deb && \
-        rm cvcuda-dev-0.14.0-cuda12-x86_64-linux.deb; \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
+        dpkg -i cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
+        dpkg -i cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
+        rm cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
+        rm cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb; \
     else \
         # install Python package for aarch64
-        pip install https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda_cu12-0.14.0-cp310.cp311.cp38.cp39-cp310.cp311.cp38.cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.whl && \
+        pip install cvcuda-cu12==0.15.0 && \
         # Download and install C++ library for aarch64
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda-lib-0.14.0-cuda12-aarch64-linux.deb && \
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.14.0-beta/cvcuda-dev-0.14.0-cuda12-aarch64-linux.deb && \
-        dpkg -i cvcuda-lib-0.14.0-cuda12-aarch64-linux.deb && \
-        dpkg -i cvcuda-dev-0.14.0-cuda12-aarch64-linux.deb && \
-        rm cvcuda-lib-0.14.0-cuda12-aarch64-linux.deb && \
-        rm cvcuda-dev-0.14.0-cuda12-aarch64-linux.deb; \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
+        dpkg -i cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        dpkg -i cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
+        rm cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        rm cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb; \
     fi
 
 ############################################################
