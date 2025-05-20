@@ -7,7 +7,7 @@
                 "affiliation": "Magic Leap"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0",
         "changelog": {
             "0.0": "Initial Release",
