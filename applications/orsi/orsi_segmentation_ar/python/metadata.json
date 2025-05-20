@@ -7,7 +7,7 @@
                 "affiliation": "Orsi Academy"
             }
         ],
-        "language": "Python",
+        "language": ["Python"],
         "version": "1.0",
         "changelog": {
             "1.0": "Initial Release"

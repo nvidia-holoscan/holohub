@@ -7,7 +7,7 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "1.3",
 		"changelog": {
 			"1.3": "Allow app to have buffer multiple of ANO buffer",

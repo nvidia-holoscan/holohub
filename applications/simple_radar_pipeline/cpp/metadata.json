@@ -7,7 +7,7 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "1.1",
 		"changelog": {
 			"1.1": "Updates syntax to MatX 0.9.0",

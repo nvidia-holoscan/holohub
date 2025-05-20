@@ -7,7 +7,7 @@
                 "affiliation": "Orsi Academy"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0",
         "changelog": {
             "1.0": "Initial Release"
