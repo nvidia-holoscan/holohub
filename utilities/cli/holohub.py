@@ -383,7 +383,11 @@ class HoloHubCLI:
         if args.no_xvfb:
             xvfb = ""
 
-        img_tag = args.base_img.split(":")[-1]
+        base_img = args.base_img
+        if not base_img:
+            base_img = container.default_base_image()
+
+        img_tag = base_img.split(":")[-1]
 
         ctest_cmd = (
             f"{xvfb} ctest "
@@ -404,7 +408,12 @@ class HoloHubCLI:
             ctest_cmd += f"-DPLATFORM_NAME={args.platform_name} "
 
         if args.ctest_script:
-            ctest_cmd += f"-S {args.ctest_script}"
+            ctest_cmd += f"-S {args.ctest_script} "
+        else:
+            ctest_cmd += f"-S utilities/testing/holohub.container.ctest "
+
+        if args.verbose:
+            ctest_cmd += f"-VV "
 
         container.run(
             use_tini=True,

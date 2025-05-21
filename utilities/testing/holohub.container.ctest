@@ -62,4 +62,7 @@ ctest_update()
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
 ctest_test()
-ctest_submit()
+
+if(CTEST_SUBMIT_URL)
+  ctest_submit()
+endif()

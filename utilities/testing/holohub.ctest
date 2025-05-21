@@ -13,37 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if(NOT BASE_DIRECTORY)
-  message(FATAL_ERROR "Please set the BASE_DIRECTORY corresponding to where the holohub source is located")
+# If CTEST_SOURCE_DIRECTORY is not set we set to the current holohhub
+if(NOT CTEST_SOURCE_DIRECTORY)
+  set(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../..")
 endif()
 
-
-if(NOT HOLOSCAN_SDK_VERSION)
-  set(HOLOSCAN_SDK_VERSION main)
-endif()
-
-if(NOT HOLOHUB_BRANCH)
-  set(HOLOHUB_BRANCH main)
-endif()
-
-
-set(CTEST_SOURCE_DIRECTORY "${BASE_DIRECTORY}/holohub-${HOLOHUB_BRANCH}")
-set(CTEST_BINARY_DIRECTORY "${BASE_DIRECTORY}/holohub-${HOLOHUB_BRANCH}-${HOLOSCAN_SDK_VERSION}/build")
-
-if(NOT CTEST_SITE)
-  set(CTEST_SITE "SITE_NA")
+if(NOT CTEST_BINARY_DIRECTORY)
+  set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}-test")
 endif()
 
 if(NOT CTEST_BUILD_NAME)
-  set(CTEST_BUILD_NAME "holohub-${HOLOSCAN_SDK_VERSION}")
+  set(CTEST_BUILD_NAME "holohub")
+endif()
+
+if(NOT HOLOSCAN_DIR)
+  set(HOLOSCAN_DIR "/opt/nvidia/holoscan/lib/cmake")
 endif()
 
 set(CTEST_UPDATE_COMMAND "git")
 set(CTEST_CMAKE_GENERATOR "Ninja")
 
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
-
-set(HOLOSCAN_BASE_DIR "${BASE_DIRECTORY}/holoscan-${HOLOSCAN_SDK_VERSION}")
 
 # Copy the CDash configurations
 file(COPY
@@ -52,17 +42,11 @@ file(COPY
 ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 
 set(configure_options
+  ${CONFIGURE_OPTIONS}
   -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-  -Dholoscan_DIR=${HOLOSCAN_BASE_DIR}/public/install/lib/cmake/holoscan
-  -DHOLOHUB_DATA_DIR=${BASE_DIRECTORY}/data/holohub-${HOLOHUB_BRANCH}
-  -DFLOW_BENCHMARKING=ON
-  # Define the default applications to test
-  -DAPP_colonoscopy_segmentation=1
-  -DAPP_endoscopy_tool_tracking=1
-  -DAPP_endoscopy_out_of_body_detection=1
-  -DAPP_multiai_endoscopy=1
-  -DAPP_ultrasound_segmentation=1
-  -DAPP_volume_rendering=1
+  -Dholoscan_DIR=${HOLOSCAN_DIR}
+  -DHOLOHUB_DATA_DIR=${CTEST_BINARY_DIRECTORY}/data/holohub-${HOLOHUB_BRANCH}
+  -DAPP_${APP}=ON
 )
 
 # Default nightly start time
@@ -70,8 +54,7 @@ set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
 ctest_start(Nightly)
 ctest_update()
-ctest_configure(OPTIONS "${configure_options}"
-)
+ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
 ctest_test()
 ctest_submit()
