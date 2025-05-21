@@ -23,7 +23,7 @@ from typing import Callable
 
 
 class TransmitterApp(Application):
-    """A Holoscan application for transmitting simulateddata.
+    """A Holoscan application for transmitting simulated data.
 
     This application sets up a data transmission pipeline that displays the data locally
     using Holoviz.
@@ -94,6 +94,7 @@ class TransmitterApp(Application):
                         output_spec,
                     ],
                 )
+
                 transmitter = holoviz
                 port = "receivers"
             elif isinstance(output_spec, Callable):
@@ -102,8 +103,10 @@ class TransmitterApp(Application):
                     data_ready_callback=output_spec,
                     name=f"Call Function {output_name}",
                 )
+
                 transmitter = callback
                 port = "in"
+
             self.add_flow(self._async_data_push, transmitter, {(output_name, port)})
 
         with self._ready_condition:

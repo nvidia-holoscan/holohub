@@ -15,14 +15,12 @@
 
 from holoscan.core import Operator, OperatorSpec
 
-import hololink.sensors.csi
 import cupy as cp
+import cupyx.scipy.ndimage
 
 
-class RGBToBayerOp(Operator):
-    """An operator that converts RGB to Bayer.
-
-    This operator receives input data and converts it to Bayer format.
+class GaussianBlurOp(Operator):
+    """An operator that performs Gaussian blur on an image.
 
     Args:
         fragment: The fragment this operator belongs to
@@ -39,12 +37,11 @@ class RGBToBayerOp(Operator):
         Args:
             spec (OperatorSpec): The operator specification
         """
-        spec.param("bayer_format", hololink.sensors.csi.BayerFormat.RGGB)
         spec.input("in")
         spec.output("out")
 
     def compute(self, op_input, op_output, context):
-        """Process the input data by calling the data ready callback.
+        """Process the input data by performing Gaussian blur.
 
         Args:
             op_input: The input port container
@@ -53,21 +50,8 @@ class RGBToBayerOp(Operator):
         """
         message = op_input.receive("in")
         data = cp.asarray(message.get(""))
-        R = data[:, :, 0]
-        G = data[:, :, 1]
-        B = data[:, :, 2]
 
-        bayer = cp.empty((data.shape[0], data.shape[1]), dtype=cp.uint8)
-        if self.bayer_format == hololink.sensors.csi.BayerFormat.RGGB:
-            # Convert RGB to RGGB Bayer pattern
-            # Pattern:
-            #    X0 X1
-            # Y0 R  G
-            # Y1 G  B
-            bayer[0::2, 0::2] = R[0::2, 0::2]  # R (X0, Y0)
-            bayer[0::2, 1::2] = G[0::2, 1::2]  # G (X1, Y0)
-            bayer[1::2, 0::2] = G[1::2, 0::2]  # G (X0, Y1)
-            bayer[1::2, 1::2] = B[1::2, 1::2]  # B (X1, Y1)
-        else:
-            raise ValueError(f"Unsupported Bayer format: {self.bayer_format}")
-        op_output.emit({"": bayer}, "out")
+        # TODO: fails on IsaacSim 4.5 with `half::half` error, probably CUDA version issue
+        #data = cupyx.scipy.ndimage.gaussian_filter(data, sigma=(10.0, 10.0, 0.0))
+
+        op_output.emit({"": data}, "out")

@@ -17,6 +17,8 @@ import omni
 import logging
 import numpy as np
 
+import holoscan
+
 from isaacsim import SimulationApp
 from typing import Callable
 
@@ -55,29 +57,6 @@ class Simulator:
         from pxr import UsdShade, Sdf, UsdGeom
 
         self._world = World(stage_units_in_meters=1.0)
-
-        self._cube_2 = self._world.scene.add(
-            DynamicCuboid(
-                prim_path="/new_cube_2",
-                name="cube_1",
-                position=np.array([5.0, 3, 1.0]),
-                scale=np.array([0.6, 0.5, 0.2]),
-                size=1.0,
-                color=np.array([255, 0, 0]),
-            )
-        )
-
-        self._cube_3 = self._world.scene.add(
-            DynamicCuboid(
-                prim_path="/new_cube_3",
-                name="cube_2",
-                position=np.array([-5, 1, 3.0]),
-                scale=np.array([0.1, 0.1, 0.1]),
-                size=1.0,
-                color=np.array([0, 0, 255]),
-                linear_velocity=np.array([0, 0, 0.4]),
-            )
-        )
 
         def create_dynamic_texture(scope_name: str, texture_name: str):
             """Creates a dynamic texture in the USD stage that can be updated in real-time.
@@ -121,6 +100,10 @@ class Simulator:
             plane_path = "/World/plane"
             UsdGeom.Plane.Define(stage, plane_path)
             plane = stage.GetPrimAtPath(plane_path)
+            texCoords = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
+                "st", Sdf.ValueTypeNames.TexCoord2fArray, UsdGeom.Tokens.varying
+            )
+            texCoords.Set([(0, 0), (1, 0), (1, 1), (0, 1)])
             binding_api = UsdShade.MaterialBindingAPI.Apply(plane)
             binding_api.Bind(material)
 
@@ -133,7 +116,7 @@ class Simulator:
 
         self._camera = Camera(
             prim_path="/World/camera",
-            position=np.array([0.0, 0.0, 50.0]),
+            position=np.array([0.0, 0.0, 10.0]),
             frequency=self._fps,
             resolution=(self._image_size[1], self._image_size[0]),
             orientation=rot_utils.euler_angles_to_quats(
@@ -166,14 +149,37 @@ class Simulator:
         """
         return self._image_size
 
-    def data_ready_callback(self, data):
+    def data_ready_callback(self, tensor: holoscan.core.Tensor):
         """Update the dynamic texture with new image data.
 
         Args:
             data: The image data to be displayed on the dynamic texture
         """
+        if len(tensor.shape) != 3:
+            raise ValueError(f"Invalid tensor shape: {tensor.shape}")
+        dtype = tensor.dtype
+        if dtype.bits == 8:
+            if tensor.shape[2] == 3:
+                format = omni.ui.TextureFormat.RGB8_UNORM
+            elif tensor.shape[2] == 4:
+                format = omni.ui.TextureFormat.RGBA8_UNORM
+            else:
+                raise ValueError(f"Invalid number of channels: {tensor.shape[2]}")
+        elif dtype.bits == 16:
+            if tensor.shape[2] == 3:
+                format = omni.ui.TextureFormat.RGB16_UNORM
+            elif tensor.shape[2] == 4:
+                format = omni.ui.TextureFormat.RGBA16_UNORM
+            else:
+                raise ValueError(f"Invalid number of channels: {tensor.shape[2]}")
+        else:
+            raise ValueError(f"Unsupported tensor dtype: {dtype}")
+
         self._dynamic_texture.set_bytes_data_from_gpu(
-            data, [self._image_size[0], self._image_size[1], self._image_size[2]]
+            gpu_bytes=tensor.data,
+            sizes=[tensor.shape[1], tensor.shape[0]],
+            format=format,
+            stride=tensor.strides[0],
         )
 
     def run(self, push_data_callback: Callable):
@@ -188,7 +194,7 @@ class Simulator:
             push_data_callback (Callable): A callback function that receives data from the simulation
 
         Raises:
-            ValueError: If the image size has an invalid number of channels (must be 4 for RGBA)
+            ValueError: If the image size has an invalid number of channels (must be 3 for RGB or 4 for RGBA)
         """
         if not (self._image_size[2] == 3 or self._image_size[2] == 4):
             raise ValueError(f"Invalid image components count: {self._image_size[2]}")
@@ -199,7 +205,9 @@ class Simulator:
             # get the data an push it to the Holoscan application
             data = dict()
             if self._image_size[2] == 3:
-                data["camera_image"] = self._camera.get_current_frame()["rgba"][:, :, :3]
+                data["camera_image"] = self._camera.get_current_frame()["rgba"][
+                    :, :, :3
+                ]
             else:
                 data["camera_image"] = self._camera.get_current_frame()["rgba"]
             data["camera_pose"] = self._camera.get_world_pose()

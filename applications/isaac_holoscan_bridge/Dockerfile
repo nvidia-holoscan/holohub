@@ -13,26 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG HOLOLINK_VERSION=2.0.0
 
 ARG ISAAC_SIM_VERSION=4.5.0
 ARG ISAAC_SIM_DOCKER_SERVER=nvcr.io/nvidia/isaac-sim
 
-# Hololink demo image for aarch64
-FROM --platform=linux/arm64 hololink-demo:${HOLOLINK_VERSION} AS target_arm64
-
-# no setup required, we use the Hololink demo image as is
-
-# IsaacSim image for x86_64
-ARG ISAAC_SIM_VERSION
-ARG ISAAC_SIM_DOCKER_SERVER
-FROM --platform=linux/amd64 ${ISAAC_SIM_DOCKER_SERVER}:${ISAAC_SIM_VERSION} AS target_amd64
+FROM ${ISAAC_SIM_DOCKER_SERVER}:${ISAAC_SIM_VERSION}
 
 ARG PYTHON_VERSION=3.11
 
 ARG HOLOSCAN_VERSION=3.2.*
 
-# Hololink requires CUDA Forward Compatibility Package, CUDA NVTX, CUDA Runtime, libibverbs1 and DOCA
 # Holoscan requires libvulkan1, libegl1 for the Holoviz operator and libnpp for the BayerDemosaic operator
 # CuPy needs cuda-nvrtc and cuda-cudart-dev
 # Add gdb to the image to allow for debugging
@@ -52,15 +42,8 @@ RUN apt update && \
     CUDA_TOOLKIT_VERSION_DASH="$(echo ${CUDA_TOOLKIT_VERSION} | tr '.' '-')" && \
     DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
         cuda-compat-${CUDA_TOOLKIT_VERSION_DASH} \
-        cuda-nvtx-${CUDA_TOOLKIT_VERSION_DASH} \
         cuda-cudart-${CUDA_TOOLKIT_VERSION_DASH} \
-        libibverbs1 \
-        doca-runtime \
-        libnpp-${CUDA_TOOLKIT_VERSION_DASH} \
-        libvulkan1 \
-        cuda-nvrtc-${CUDA_TOOLKIT_VERSION_DASH} \
-        cuda-cudart-dev-${CUDA_TOOLKIT_VERSION_DASH} \
-        gdb && \
+        libvulkan1 && \
     update-alternatives --install /usr/local/cuda cuda /usr/local/cuda-${CUDA_TOOLKIT_VERSION} 100 && \
     apt remove -y --purge mesa-vulkan-drivers && \
     rm -rf /var/lib/apt/lists/* && \
@@ -71,11 +54,6 @@ RUN ./python.sh -m pip install holoscan==${HOLOSCAN_VERSION}
 # The Python wheel of Holoscan sensor bridge links to the shared libraries of the deb package, use the Holoscan Python package instead
 RUN echo "/isaac-sim/kit/python/lib/python3.11/site-packages/holoscan/lib" > /etc/ld.so.conf.d/holoscan.conf && \
     ldconfig
-
-# install Holoscan Sensor Bridge
-ARG HOLOLINK_WHEEL=hololink-2.0.0-cp311-cp311-linux_x86_64.whl
-COPY ${HOLOLINK_WHEEL} /tmp
-RUN ./python.sh -m pip install /tmp/${HOLOLINK_WHEEL}
 
 # workaround for https://nvbugspro.nvidia.com/bug/5180229: [Holoscan SDK v3.1] std::bad_alloc exception with IsaacSim due to loading Holoscan Python module with RTDL_GLOBAL flag
 RUN sed -i 's/sys.setdlopenflags(os.RTLD_GLOBAL | os.RTLD_LAZY)/#sys.setdlopenflags(os.RTLD_GLOBAL | os.RTLD_LAZY)/' /isaac-sim/kit/python/lib/python${PYTHON_VERSION}/site-packages/holoscan/core/__init__.py
@@ -88,13 +66,11 @@ RUN update-alternatives --install /usr/bin/python python /isaac-sim/python.sh 10
 RUN sed -i 's/SCRIPT_DIR="\$( cd "\$( dirname "\${BASH_SOURCE\[0\]}" )" && pwd )"/SCRIPT_DIR=$( dirname -- "\$( readlink -f -- "\$0"; )"; )/' /isaac-sim/python.sh
 
 # patch the camera device to return data in CUDA memory
-COPY isaac_sim_camera_device.patch /tmp/isaac_sim_camera_device.patch
+COPY isaac_sim_camera_device.patch /isaac_sim_camera_device.patch
 RUN case "$ISAAC_SIM_VERSION" in \
     *"4.5.0"*) \
-        patch -p1 /isaac-sim/exts/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py </tmp/isaac_sim_camera_device.patch && \
-        rm /tmp/isaac_sim_camera_device.patch;; \
+        patch -p1 /isaac-sim/exts/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py </isaac_sim_camera_device.patch && \
+        rm /isaac_sim_camera_device.patch;; \
     *) \
         ;; \
     esac
-
-FROM target_${TARGETARCH} AS final

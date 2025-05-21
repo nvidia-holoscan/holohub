@@ -28,7 +28,7 @@ class IsaacSimHoloscan:
         self._futures = []
         self._simulator = None
         self._transmitter_app = None
-        self._receiver_app = None
+        self._transformer_app = None
 
     def run(self):
         if self._args.simulator:
@@ -66,7 +66,9 @@ class IsaacSimHoloscan:
 
             def transmitter_done_callback(future):
                 if future.exception():
-                    print(f"TransmitterApp failed with exception: {future.exception()}")
+                    logging.fatal(
+                        f"TransmitterApp failed with exception: {future.exception()}"
+                    )
                     os._exit(1)
 
             transmitter_future.add_done_callback(transmitter_done_callback)
@@ -91,14 +93,13 @@ class IsaacSimHoloscan:
                 if self._simulator
                 else lambda data: print(data),
             )
-            # Run the receiver application
-            receiver_future = self._receiver_app.run_async()
 
             def receiver_done_callback(future):
                 if future.exception():
                     print(f"ReceiverApp failed with exception: {future.exception()}")
                     os._exit(1)
 
+            receiver_future = self._receiver_app.run_async()
             receiver_future.add_done_callback(receiver_done_callback)
             self._futures.append(receiver_future)
 
@@ -147,7 +148,7 @@ def main():
     The function:
     1. Parses command line arguments
     2. Initializes the simulation environment with specified image dimensions (1080x1920x4)
-    3. Configures logging for both hololink and holoscan
+    3. Configures logging for holoscan
     4. Sets up and runs the transmitter application if enabled:
        - Configures output specifications for camera image and pose
        - Uses HolovizOp for local display
