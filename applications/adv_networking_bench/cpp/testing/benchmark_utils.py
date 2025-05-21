@@ -157,7 +157,7 @@ class BenchmarkResults:
         return (tx_bytes * 8) / (self.exec_time / 1000) / 1e9
 
     def validate_rx_queue_packets(
-        self, port: int, expected_packets: Dict[int, int], gt: bool = False
+        self, port: int, expected_packets: Dict[int, int], allow_greater: bool = False
     ) -> bool:
         """
         Validate that RX queues on a specific port received the expected number of packets.
@@ -165,7 +165,7 @@ class BenchmarkResults:
         Args:
             port: Port number to validate
             expected_packets: Dictionary mapping queue numbers to expected packet counts {queue: count}
-            gt: If True, validate that the actual packet count is greater than the expected count
+            allow_greater: If True, validate that the actual packet count is greater than the expected count
 
         Returns:
             bool: True if validation passed, False otherwise
