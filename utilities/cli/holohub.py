@@ -383,9 +383,7 @@ class HoloHubCLI:
         if args.no_xvfb:
             xvfb = ""
 
-        base_img = args.base_img
-        if not base_img:
-            base_img = container.default_base_image()
+        base_img = args.base_img or container.default_base_image()
 
         img_tag = base_img.split(":")[-1]
 
