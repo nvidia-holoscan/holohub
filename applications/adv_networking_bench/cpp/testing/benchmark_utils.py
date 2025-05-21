@@ -184,7 +184,9 @@ class BenchmarkResults:
         # Check each expected queue
         for queue_str, expected_count in expected_str_dict.items():
             actual_count = self.q_rx_pkts[port_str].get(queue_str, 0)
-            success = actual_count > expected_count if allow_greater else actual_count == expected_count
+            success = (
+                actual_count > expected_count if allow_greater else actual_count == expected_count
+            )
 
             # Log
             expect_symbol = ">=" if allow_greater else "="
