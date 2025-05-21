@@ -384,16 +384,27 @@ class HoloHubCLI:
             xvfb = ""
 
         img_tag = args.base_img.split(":")[-1]
+
         ctest_cmd = (
             f"{xvfb} ctest "
-            f"-DCTEST_SITE={args.site_name} "
-            f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
-            f"-DPLATFORM_NAME={args.platform_name} "
-            f"-DCTEST_SUBMIT_URL={args.cdash_url} "
             f"-DAPP={args.project} "
             f"-DTAG={img_tag} "
-            f"-S {args.ctest_script}"
         )
+
+        if args.cmake_options:
+            ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
+
+        if args.cdash_url:
+            ctest_cmd += f"-DCTEST_SUBMIT_URL={args.cdash_url} "
+
+        if args.site_name:
+            ctest_cmd += f"-DCTEST_SITE={args.site_name} "
+
+        if args.platform_name:
+            ctest_cmd += f"-DPLATFORM_NAME={args.platform_name} "
+
+        if args.ctest_script:
+            ctest_cmd += f"-S {args.ctest_script}"
 
         container.run(
             use_tini=True,
