@@ -47,22 +47,12 @@ Item {
 
 ## Run Instructions
 
+> **Note:** This application container is pinned to Holoscan SDK 3.2 since it requires CUDA Driver 550+ for running with Holoscan SDK 3.3+.
+
 This application requires [Qt](https://www.qt.io/).
-For simplicity a DockerFile is available. To generate the container run:
+
+For simplicity a DockerFile is available. To run this application:
 
 ```bash
-./dev_container build --docker_file ./applications/qt_video_replayer/Dockerfile
-```
-
-The application can then be built by launching this container and using the provided `run` script.
-
-```bash
-./dev_container launch
-./run build qt_video_replayer
-```
-
-Once the application is build it can be launched with the `run` script.
-
-```bash
-./run launch qt_video_replayer
+./holohub run qt_video_replayer
 ```
