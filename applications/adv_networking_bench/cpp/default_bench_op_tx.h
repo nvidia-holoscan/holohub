@@ -72,6 +72,8 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     pkt.ip.tot_len = htons(ip_len);
 
     pkt.udp.check = 0;
+    // Since device-only mode doesn't support updating the GPU memory with different ports we just
+    // use the first one here.
     pkt.udp.dest = htons(udp_dst_ports_[0]);
     pkt.udp.source = htons(udp_src_ports_[0]);
     pkt.udp.len = htons(ip_len - sizeof(pkt.ip));
@@ -177,9 +179,11 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                      "Byte boundary where header and data is split",
                      false);
     spec.param<std::string>(udp_src_port_str_,
-          "udp_src_port", "UDP source port", "UDP source port");
+          "udp_src_port", "UDP source port", 
+          "UDP source port or a range of ports (e.g. 1000-1010)");
     spec.param<std::string>(
-        udp_dst_port_str_, "udp_dst_port", "UDP destination port", "UDP destination port");
+        udp_dst_port_str_, "udp_dst_port", "UDP destination port", 
+        "UDP destination port or a range of ports (e.g. 1000-1010)");
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(
         ip_dst_addr_, "ip_dst_addr", "IP destination address", "IP destination address");
