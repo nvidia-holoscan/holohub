@@ -1757,7 +1757,7 @@ Status DpdkMgr::set_packet_tx_time(BurstParams* burst, int idx, uint64_t timesta
 }
 
 //  The number of RX can differ from the configured queues in TX-only mode where we need to create
-//  fake RX queues. 
+//  fake RX queues.
 uint16_t DpdkMgr::get_num_rx_queues(int port_id) const {
   return port_q_num.at(static_cast<uint16_t>(port_id)).first;
 }
