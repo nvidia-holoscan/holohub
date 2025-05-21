@@ -12014,16 +12014,12 @@ Item {
 }
 </code></pre></div>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
-<p>This application requires <a href="https://www.qt.io/">Qt</a>.
-For simplicity a DockerFile is available. To generate the container run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./applications/qt_video_replayer/Dockerfile
-</code></pre></div>
-<p>The application can then be built by launching this container and using the provided <code>run</code> script.</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch
-./run<span class="w"> </span>build<span class="w"> </span>qt_video_replayer
-</code></pre></div>
-<p>Once the application is build it can be launched with the <code>run</code> script.</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>qt_video_replayer
+<blockquote>
+<p><strong>Note:</strong> This application container is pinned to Holoscan SDK 3.2 since it requires CUDA Driver 550+ for running with Holoscan SDK 3.3+.</p>
+</blockquote>
+<p>This application requires <a href="https://www.qt.io/">Qt</a>.</p>
+<p>For simplicity a DockerFile is available. To run this application:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>qt_video_replayer
 </code></pre></div>
 
 
