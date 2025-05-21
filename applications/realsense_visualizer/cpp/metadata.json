@@ -17,7 +17,7 @@
 			"tested_versions": ["2.1.0"]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["computer vision and perception", "visualization", "dual pipeline architecture", "unbounded stream allocation", "camera", "depth", "HoloViz UI", "sensor"],
+		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Depth", "Holoviz"],
 		"ranking": 0,
 		"dependencies": {},
 		"run": {

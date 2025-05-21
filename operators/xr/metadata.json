@@ -29,12 +29,7 @@
         "platforms": [
             "x86_64"
         ],
-        "tags": [
-            "XR",
-            "OpenXR",
-            "Vulkan",
-            "3D Visualization"
-        ],
+        "tags": ["Extended Reality", "Vulkan", "Visualization"],
         "ranking": 4,
         "dependencies": {
             "libraries": [

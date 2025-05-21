@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "distributed", "tensor axis transformation", "keypoint non max suppression", "human body pose estimation", "DDS", "RTI connext", "video processing", "visualization"],
+		"tags": ["Computer Vision and Perception", "Distributed", "Tensor Optimization", "Human Body Pose Estimation", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

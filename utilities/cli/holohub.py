@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import os
 import platform
 import re
@@ -27,7 +28,7 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer
+from utilities.cli.container import HoloHubContainer, base_sdk_version
 from utilities.cli.util import Color
 
 
@@ -66,6 +67,47 @@ class HoloHubCLI:
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
+        # Add create command
+        create = subparsers.add_parser("create", help="Create a new Holoscan application")
+        create.add_argument("project", help="Name of the project to create")
+        create.add_argument(
+            "--template",
+            default=str(HoloHubCLI.HOLOHUB_ROOT / "applications" / "template"),
+            help="Path to the template directory to use",
+        )
+        create.add_argument(
+            "--language",
+            choices=["cpp", "python"],
+            default="cpp",
+            help="Programming language for the project",
+        )
+        create.add_argument(
+            "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        create.add_argument(
+            "--directory",
+            default=self.HOLOHUB_ROOT / "applications",
+            help="Path to the directory to create the project in",
+        )
+        create.add_argument(
+            "--context",
+            action="append",
+            help='Additional context variables for cookiecutter in format key=value. \
+                Example: --context description=\'My project desc\' \
+                    --context tags=[\\"tag1\\", \\"tag2\\"]',
+        )
+        create.add_argument(
+            "-i",
+            "--interactive",
+            action="store",
+            nargs="?",
+            const=True,
+            default=True,
+            type=lambda x: x.lower() not in ("false", "no", "n", "0", "f"),
+            help="Interactive mode for setting cookiecutter properties (use -i False to disable)",
+        )
+        create.set_defaults(func=self.handle_create)
+
         # build-container command
         build_container = subparsers.add_parser(
             "build-container", help="Build the development container"
@@ -100,11 +142,6 @@ class HoloHubCLI:
         run_container.add_argument(
             "--local_sdk_root",
             help="Path to Holoscan SDK used for building local Holoscan SDK container",
-        )
-        run_container.add_argument(
-            "--ssh_x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
         )
         run_container.add_argument("--init", action="store_true", help="Support tini entry point")
         run_container.add_argument(
@@ -212,7 +249,7 @@ class HoloHubCLI:
     def _collect_metadata(self) -> None:
         """Create an unstructured database of metadata for all projects"""
 
-        EXCLUDE_PATHS = ["applications/holoviz/template"]
+        EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
         # Known exceptions, such as template files that do not represent a standalone project
 
         app_paths = (
@@ -291,7 +328,6 @@ class HoloHubCLI:
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
-            ssh_x11=args.ssh_x11,
             use_tini=args.init,
             persistent=args.persistent,
             as_root=args.as_root,
@@ -743,6 +779,23 @@ class HoloHubCLI:
             dry_run=dry_run,
         )
 
+    def _install_template_deps(self, dry_run: bool = False) -> None:
+        """Install template dependencies"""
+        os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+
+        print("Install Template Dependencies")
+        holohub_cli_util.run_command(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                str(HoloHubCLI.HOLOHUB_ROOT / "utilities" / "requirements.template.txt"),
+            ],
+            dry_run=dry_run,
+        )
+
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
         # Install system dependencies
@@ -872,7 +925,7 @@ class HoloHubCLI:
                     [
                         "wget",
                         "--content-disposition",
-                        "https://ngc.nvidia.com/downloads/ngccli_arm64.zip",
+                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip",
                     ],
                     dry_run=args.dryrun,
                 )
@@ -882,7 +935,7 @@ class HoloHubCLI:
                     [
                         "wget",
                         "--content-disposition",
-                        "https://ngc.nvidia.com/downloads/ngccli_linux.zip",
+                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip",
                     ],
                     dry_run=args.dryrun,
                 )
@@ -999,6 +1052,112 @@ class HoloHubCLI:
                         print(f"  {Color.yellow('Would remove:')} {path}")
                     else:
                         shutil.rmtree(path)
+
+    def _add_to_cmakelists(self, project_name: str) -> None:
+        """Add a new application to applications/CMakeLists.txt if it doesn't exist"""
+        cmakelists_path = self.HOLOHUB_ROOT / "applications" / "CMakeLists.txt"
+        if not cmakelists_path.exists():
+            return
+        with open(cmakelists_path, "r") as f:
+            lines = f.readlines()
+        target_line = f"add_holohub_application({project_name})"
+        if any(target_line in line.strip() for line in lines):
+            return
+        try:
+            with open(cmakelists_path, "a") as f:
+                f.write(f"add_holohub_application({project_name})\n")
+        except Exception as e:
+            print(Color.red(f"Failed to add application to applications/CMakeLists.txt: {str(e)}"))
+            print(Color.red("Please add the application manually to applications/CMakeLists.txt"))
+
+    def handle_create(self, args: argparse.Namespace) -> None:
+        """Handle create command"""
+        # Ensure template directory exists
+        template_dir = self.HOLOHUB_ROOT / args.template
+        if not template_dir.exists() and not args.dryrun:
+            holohub_cli_util.fatal(f"Template directory {template_dir} does not exist")
+
+        if not args.directory.exists() and not args.dryrun:
+            holohub_cli_util.fatal(f"Project output directory {args.directory} does not exist")
+
+        # Define minimal context with required fields
+        context = {
+            "project_name": args.project,
+            "project_slug": args.project.lower().replace(" ", "_"),
+            "language": args.language.lower() if args.language else None,  # Only set if provided
+            "holoscan_version": base_sdk_version,
+            "year": datetime.datetime.now().year,
+        }
+
+        # Add any additional context variables from command line
+        if args.context:
+            for ctx_var in args.context:
+                try:
+                    key, value = ctx_var.split("=", 1)
+                    context[key] = value
+                except ValueError:
+                    holohub_cli_util.fatal(
+                        f"Invalid context variable format: {ctx_var}. Expected key=value"
+                    )
+
+        # Print summary if dryrun
+        if args.dryrun:
+            print(Color.green("Would create project folder with these parameters (dryrun):"))
+            print(f"Directory: {args.directory / context['project_slug']}")
+            for key, value in context.items():
+                print(f"  {key}: {value}")
+            if args.directory == self.HOLOHUB_ROOT / "applications":
+                print(Color.green("Would modify `applications/CMakeLists.txt`: "))
+                print(f"    add_holohub_application({context['project_slug']})")
+            return
+
+        try:
+            import cookiecutter.main
+        except ImportError:
+            self._install_template_deps(args.dryrun)
+
+        import cookiecutter.main
+
+        project_dir = args.directory / context["project_slug"]
+        if project_dir.exists():
+            holohub_cli_util.fatal(f"Project directory {project_dir} already exists")
+
+        try:
+            # Let cookiecutter handle all file generation
+            cookiecutter.main.cookiecutter(
+                str(template_dir),
+                no_input=not args.interactive,
+                extra_context=context,
+                output_dir=str(args.directory),
+            )
+        except Exception as e:
+            holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
+
+        # Add to CMakeLists.txt if in applications directory
+        if args.directory == self.HOLOHUB_ROOT / "applications":
+            self._add_to_cmakelists(context["project_slug"])
+
+        # Get the actual project directory after cookiecutter runs
+        project_dir = args.directory / context["project_slug"]
+        metadata_path = project_dir / "metadata.json"
+        src_dir = project_dir / "src"
+        main_file = next(src_dir.glob(f"{context['project_slug']}.*"), None)
+
+        msg_next = ""
+        if "applications" in args.template:
+            msg_next = (
+                f"Possible next steps:\n"
+                f"- Add operators to {main_file}\n"
+                f"- Update project metadata in {metadata_path}\n"
+                f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
+                f"- Build and run the application:\n"
+                f"   ./holohub run {context['project_slug']}"
+            )
+
+        print(
+            Color.green(f"Successfully created new project: {args.project}"),
+            f"\nDirectory: {project_dir}\n\n{msg_next}",
+        )
 
     def run(self) -> None:
         """Main entry point for the CLI"""

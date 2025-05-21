@@ -115,6 +115,10 @@ class EndoscopyApp(Application):
             #     rdma=rdma,
             #     board=deltacast_kwargs["board"],
             #     input=deltacast_kwargs["input"],
+            #     width=width,
+            #     height=height,
+            #     progressive=deltacast_kwargs.get("progressive", True),
+            #     framerate=deltacast_kwargs.get("framerate", 60),
             # )
         elif source_name == "yuan":
             yuan_kwargs = self.kwargs("yuan")

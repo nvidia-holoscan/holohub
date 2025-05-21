@@ -15,35 +15,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Latest base image is overridden by the holohub tooling
 ARG BASE_IMAGE
 
+# ==============================
+# Base layer
+# ==============================
 FROM ${BASE_IMAGE} AS base
-ARG UBUNTU_VERSION=22.04
-ARG OFED_VERSION=24.07-0.6.1.0
-ARG CACHEBUST=1
 ARG TARGETARCH
-RUN echo "Using architecture ${TARGETARCH}"
 
-RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
-RUN pip3 install scipy loguru attrs scapy pytest
-WORKDIR /opt
-
+ARG DOCA_VERSION=2.8.0
+ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+WORKDIR /opt
+
+# Configure the DOCA APT repository
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64; \
+        DOCA_ARCH="x86_64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa; \
+        DOCA_ARCH="arm64-sbsa"; \
     else \
         echo "Unknown architecture: $TARGETARCH"; \
         exit 1; \
     fi \
+    && DISTRO=$(. /etc/os-release && echo ${ID}${VERSION_ID}) \
+    && DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/${DOCA_VERSION}/${DISTRO}/${DOCA_ARCH} \
     && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
     && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
     && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} \
-    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list \
-    && apt update -y \
-    && apt install -y --no-install-recommends doca-sdk-aes-gcm doca-sdk-apsh doca-sdk-argp doca-sdk-comch doca-sdk-comm-channel doca-sdk-common doca-sdk-compress doca-sdk-devemu doca-sdk-dma doca-sdk-dpa doca-sdk-dpdk-bridge doca-sdk-erasure-coding doca-sdk-eth doca-sdk-flow doca-sdk-pcc doca-sdk-rdma doca-sdk-sha doca-sdk-telemetry-exporter doca-sdk-urom doca-apsh-config doca-bench doca-caps doca-comm-channel-admin doca-pcc-counters doca-sha-offload-engine doca-socket-relay doca-all doca-sdk-gpunetio libdoca-sdk-gpunetio-dev rdma-core flexio libyara8
+    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
+
+# APT installs
+# - ninja-build: for cmake build
+# - pkgconf: to import dpdk and doca in CMake
+# - mlnx-dpdk-dev: for dpdk and gpunetio backends
+# - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
+# - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
+# - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
+# - libdoca-sdk-flow-dev: for gpunetio backend (doca-flow module)
+# - mlnx-ofed-kernel-utils: utilities, including ibdev2netdev used by tune_system.py
+# - ibverbs-utils: utilities
+# - python3-pyelftools: used by some mlnx tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ninja-build \
+        pkgconf \
+        mlnx-dpdk-dev \
+        libdoca-sdk-dma-dev \
+        libdoca-sdk-gpunetio-dev \
+        libdoca-sdk-eth-dev \
+        libdoca-sdk-flow-dev \
+        mlnx-ofed-kernel-utils \
+        ibverbs-utils \
+        python3-pyelftools \
+    && rm -rf /var/lib/apt/lists/*
+
+# PIP installs
+# - pytest: test harness
+# - pyyaml: to parse yaml configs in tests
+# - scapy: for debugging and mocking network packets for tests
+RUN python3 -m pip install --no-cache-dir \
+        pytest \
+        pyyaml \
+        scapy
 
 # ==============================
 # DOCA Target (inherits from base)

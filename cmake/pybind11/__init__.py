@@ -13,13 +13,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
 
+# Import the holoscan modules we'll depend on
 import holoscan.core
 import holoscan.gxf
 
-from ._@MODULE_NAME@ import @MODULE_CLASS_NAME@
+# Load the python binding
+try:
+    from ._@MODULE_NAME@ import @MODULE_CLASS_NAME@
+except ImportError as e:
+    pybind11_hsdk_err = 'unknown base type "holoscan::'
 
+    if not pybind11_hsdk_err in str(e):
+        # Unknown import error, raise it
+        raise e
+
+    # Provide information regarding pybind11 ABI protection
+    note = """
+- Holoscan SDK >= 3.3.0: make sure to link your bindings against 'holoscan::pybind11'.
+- Holoscan SDK < 3.3.0: use the same compiler version as your installation of the Holoscan SDK.
+
+See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_python_bindings.html#pybind11-abi-compatibility for details.
+"""
+
+    # Raise with note if available (Python 3.11+) ...
+    if hasattr(e, "add_note"):
+        e.add_note(note)
+        raise e
+
+    # ... or raise new exception with same trace and message
+    e = ImportError(e.msg + "\n" + note).with_traceback(e.__traceback__)
+    raise e from None
+
+
+# Register types with the SDK
 try:
     # If a register_types function exists, register the types with the SDK
     from ._@MODULE_NAME@ import register_types as _register_types
@@ -27,6 +54,7 @@ try:
     try:
         from holoscan.core import io_type_registry
     except ImportError as e:
+        import warnings
         warnings.warn(
             "`holoscan.core.io_type_registry` is unavailable in Holoscan SDK < 2.1.0. "
             "To use a user-defined `register_types` function, you must upgrade Holoscan SDK."

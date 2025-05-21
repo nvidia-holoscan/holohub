@@ -1,0 +1,21 @@
+http://127.0.0.1.*
+http://0.0.0.0.*
+# ignore 401 Errors in tutorials/pretrained_foundational_models/self_supervised_training/README.md
+https://drive.google.com/file/d/17w_LEI36JrHcUf5fGEufpyZaIk3Fp1Co/.*
+https://drive.google.com/file/d/1rgolweQ5HU6Kvf93jqLkaLVKE8DD_Aco/.*
+https://drive.google.com/file/d/1HLyccYY0AtZy8Sr1ty-gid-Fee4DVjWM/.*
+https://drive.google.com/file/d/1fK87Nxit5bokYuMCbMG1cEHmEZUGBDlA/.*
+
+# Errors in tutorials/debugging/holoscan_container_vscode/README.md
+../holoscan-sdk/.*
+.vscode/launch.json
+
+# certificate issue with url checks
+https://synthea.mitre.org/
+https://www.openhackathons.org/s/siteevent/a0CUP00000haVXi2AM/se000351
+https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/
+
+# random timeout in Errors in /home/runner/work/holohub/holohub/applications/orsi/README.md
+https://www.orsi-online.com/news/worlds-first-lung-cancer-surgery-orsi-innotechs-augmented-reality-technology
+https://www.orsi-online.com/news/orsi-academy-brings-real-time-artificial-intelligence-or-first-its-kind-augmented-reality-surgery
+

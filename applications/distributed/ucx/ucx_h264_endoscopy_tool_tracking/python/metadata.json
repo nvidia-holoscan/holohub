@@ -18,7 +18,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["healthcare AI", "video", "endoscopic tool tracking", "distributed ucx pipeline", "H.264", "HoloViz HDR", "LSTM model zoo", "TensorRT", "endoscopy"],
+    "tags": ["Healthcare AI", "Video", "Surgical AI", "Distributed", "Holoviz", "LSTM", "TensorRT", "Endoscopy"],
     "ranking": 1,
     "dependencies": {
       "operators": [

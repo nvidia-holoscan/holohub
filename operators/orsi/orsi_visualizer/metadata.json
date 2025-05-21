@@ -21,9 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"visualizer"
-		],
+		"tags": ["Visualization"],
 		"ranking": 3,
 		"dependencies": {
 		}

@@ -27,12 +27,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Gaze tracking",
-            "OpenXR",
-            "XR",
-            "XRFrame"
-        ],
+        "tags": ["Extended Reality"],
         "ranking": 2,
         "dependencies": {}
     }

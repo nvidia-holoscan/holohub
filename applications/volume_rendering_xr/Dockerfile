@@ -17,8 +17,7 @@
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
 
 
 ############################################################

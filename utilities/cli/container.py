@@ -30,6 +30,8 @@ from .util import (
     run_command,
 )
 
+base_sdk_version = "3.2.0"
+
 
 class HoloHubContainer:
     """
@@ -46,11 +48,11 @@ class HoloHubContainer:
 
     @classmethod
     def default_base_image(cls) -> str:
-        return f"nvcr.io/nvidia/clara-holoscan/holoscan:v3.1.0-{get_host_gpu()}"
+        return f"nvcr.io/nvidia/clara-holoscan/holoscan:v{base_sdk_version}-{get_host_gpu()}"
 
     @classmethod
     def default_image(cls) -> str:
-        return f"{cls.CONTAINER_PREFIX}:ngc-v3.1.0-{get_host_gpu()}"
+        return f"{cls.CONTAINER_PREFIX}:ngc-v{base_sdk_version}-{get_host_gpu()}"
 
     @staticmethod
     def default_dockerfile() -> Path:
@@ -232,7 +234,7 @@ class HoloHubContainer:
         self,
         img: Optional[str] = None,
         local_sdk_root: Optional[Path] = None,
-        ssh_x11: bool = False,
+        enable_x11: bool = True,
         use_tini: bool = False,
         persistent: bool = False,
         nsys_profile: bool = False,
@@ -317,7 +319,7 @@ class HoloHubContainer:
         cmd.extend(self.ucx_args())
 
         # Add display server options
-        cmd.extend(self.get_display_options(ssh_x11))
+        cmd.extend(self.get_display_options(enable_x11))
 
         # Add nsys options
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
@@ -346,7 +348,7 @@ class HoloHubContainer:
 
         run_command(cmd, dry_run=self.dryrun)
 
-    def get_display_options(self, ssh_x11: bool) -> List[str]:
+    def get_display_options(self, enable_x11: bool) -> List[str]:
         """Get display-related options"""
         options = []
         if "XDG_SESSION_TYPE" in os.environ:
@@ -361,7 +363,7 @@ class HoloHubContainer:
                     ["-v", f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"]
                 )
 
-        if ssh_x11:
+        if enable_x11:
             options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
         return options
 

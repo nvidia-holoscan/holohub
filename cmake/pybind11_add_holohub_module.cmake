@@ -49,6 +49,15 @@ function(pybind11_add_holohub_module)
             ${MODULE_CPP_CMAKE_TARGET}
     )
 
+    # Conditionally link to the ABI config target if it exists (for HSDK >= 3.3.0)
+    set(pybind11_abi_details_msg "See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_python_bindings.html#pybind11-abi-compatibility for details")
+    if(TARGET holoscan::pybind11)
+        message(STATUS "${target_name}: Linking against holoscan::pybind11 to disable strict ABI protection in pybind11. ${pybind11_abi_details_msg}")
+        target_link_libraries(${target_name} PRIVATE holoscan::pybind11)
+    else()
+        message(STATUS "${target_name}: holoscan::pybind11 target not found, using pybind11's default ABI protection. ${pybind11_abi_details_msg}")
+    endif()
+
     # Sets the rpath of the module
     file(RELATIVE_PATH install_lib_relative_path
         ${CMAKE_CURRENT_LIST_DIR}

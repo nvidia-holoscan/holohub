@@ -2,7 +2,7 @@ BasedOnStyle: Google
 ColumnLimit: 100
 AllowShortBlocksOnASingleLine: Always
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: Always
+AllowShortIfStatementsOnASingleLine: false
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
 

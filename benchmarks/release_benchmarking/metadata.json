@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Benchmarking",
-			"Performance",
-			"Reporting",
-			"Release"
-		],
+		"tags": ["Benchmarking", "Performance"],
 		"ranking": 3,
 		"dependencies": {
 			"applications": [

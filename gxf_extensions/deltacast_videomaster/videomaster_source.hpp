@@ -40,6 +40,10 @@ class VideoMasterSource : public VideoMasterBase {
   gxf::Parameter<gxf::Handle<gxf::Transmitter>> _signal;
 
   gxf::Expected<void> transmit_buffer_data(void* buffer, uint32_t buffer_size);
+  gxf::Parameter<uint32_t> _width;
+  gxf::Parameter<uint32_t> _height;
+  gxf::Parameter<bool> _progressive;
+  gxf::Parameter<uint32_t> _framerate;
 };
 
 }  // namespace videomaster

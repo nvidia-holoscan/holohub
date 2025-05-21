@@ -33,7 +33,7 @@
             ]
         },
         "platforms": ["x86_64"],
-        "tags": ["signal processing", "networking", "i/q scaling", "vita49 protocol handling", "FFT", "PSD", "GPUDirect", "UDP"],
+        "tags": ["Signal Processing", "Networking and Distributed Computing", "PSD", "GPUDirect", "UDP"],
         "ranking": 3,
         "dependencies": {
             "operators": [

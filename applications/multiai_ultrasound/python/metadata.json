@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "visualization", "cardiac keypoints detection", "multi model fusion pipeline", "ultrasound", "MultiAI", "video processing", "classification", "visualization"],
+		"tags": ["Healthcare AI", "Visualization", "Cardiac Keypoints Detection", "Ultrasound", "Video", "Classification"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

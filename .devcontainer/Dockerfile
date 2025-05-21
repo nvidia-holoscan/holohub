@@ -25,7 +25,11 @@ ARG USERNAME=holoscan
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Remove existing home directory if exists
+# Remove existing conflicting user
+# see https://bugs.launchpad.net/cloud-images/+bug/2005129
+RUN getent passwd $USER_UID | cut -d: -f1 | xargs -r userdel -r || true
+
+# Remove existing conflicting home directory
 RUN if [ -d "/home/$USERNAME" ] ; then ls -l /home/$USERNAME && rm -rf /home/$USERNAME ; fi
 
 # Create the user

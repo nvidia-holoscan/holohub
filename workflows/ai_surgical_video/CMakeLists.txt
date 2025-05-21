@@ -95,7 +95,7 @@ if(BUILD_TESTING)
 
     # Set python environment variables
     set_property(TEST ai_surgical_video_python_test PROPERTY ENVIRONMENT
-                 "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
+                 "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_SOURCE_DIR}")
 
     # Set the test passing criteria with regular expressions
     set_tests_properties(ai_surgical_video_python_test PROPERTIES

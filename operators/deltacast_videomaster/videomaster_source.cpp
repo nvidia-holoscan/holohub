@@ -33,6 +33,14 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
   spec.param(_channel_index, "input", "Input", "Index of the input channel to use.", 0u);
   spec.param(_pool, "pool", "Pool", "Pool to allocate the buffers.");
+  spec.param(_width, "width", "Width", "Width of the video frames to send.", 1920u);
+  spec.param(_height, "height", "Height", "Height of the video frames to send.", 1080u);
+  spec.param(_progressive,
+             "progressive",
+             "Progressive",
+             "Progressiveness of the video frames to send.",
+             true);
+  spec.param(_framerate, "framerate", "Framerate", "Framerate of the signal to generate.", 60u);
 }
 
 }  // namespace holoscan::ops

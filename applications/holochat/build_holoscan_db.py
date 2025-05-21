@@ -117,11 +117,13 @@ def main():
     print(f"Number of source chunks: {len(source_chunks)}")
     print(f"Building Holoscan Embeddings Chroma DB at {chroma_db_path}...")
     print("Building Chroma DB (This may take a few minutes)...")
-    chroma_db = Chroma.from_documents(
-        source_chunks, embedding_model, persist_directory=chroma_db_path
-    )
+
+    max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
+    for i in range(0, len(source_chunks), max_batch_size):
+        batch = source_chunks[i : i + max_batch_size]
+        chroma_db = Chroma.from_documents(batch, embedding_model, persist_directory=chroma_db_path)
+        chroma_db.persist()
     print("Done!")
-    chroma_db.persist()
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "video", "filter presets", "frame restoration algorithms", "prohawk", "endoscopy", "video processing", "HoloViz UI"],
+		"tags": ["Healthcare AI", "Video", "filter presets", "Endoscopy", "Holoviz"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

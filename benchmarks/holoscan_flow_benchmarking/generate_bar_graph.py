@@ -20,25 +20,25 @@ import os
 import matplotlib.pyplot as plt
 
 keyword_dictionary = {
-    "min": "Minimum E2E Latency",
-    "median": "Median E2E Latency",
-    "max": "Maximum E2E Latency",
-    "tail": "Latency Tail",
-    "flatness": "Latency Flatness",
-    "avg": "Average E2E Latency",
-    "stddev": "Latency Stddev",
-    "percentile": "Percentile Latency",
+    "min": "Minimum E2E Latency (ms)",
+    "median": "Median E2E Latency (ms)",
+    "max": "Maximum E2E Latency (ms)",
+    "tail": "Latency Tail (ms)",
+    "flatness": "Latency Flatness (ms)",
+    "avg": "Average E2E Latency (ms)",
+    "stddev": "Latency Stddev (ms)",
+    "percentile": "Percentile Latency (ms)",
 }
 
 long_keyword_dictionary = {
-    "min": "Minimum End-to-end Latency",
-    "median": "Median End-to-end Latency",
-    "max": "Maximum End-to-end Latency",
-    "tail": "Latency Distribution Tail",
-    "flatness": "Latency Distribution Flatness",
-    "avg": "Average End-to-end Latency",
-    "stddev": "Latency Standard Deviation",
-    "percentile": "Percentile Latency",
+    "min": "Minimum End-to-end Latency (ms)",
+    "median": "Median End-to-end Latency (ms)",
+    "max": "Maximum End-to-end Latency (ms)",
+    "tail": "Latency Distribution Tail (ms)",
+    "flatness": "Latency Distribution Flatness (ms)",
+    "avg": "Average End-to-end Latency (ms)",
+    "stddev": "Latency Standard Deviation (ms)",
+    "percentile": "Percentile Latency (ms)",
 }
 
 

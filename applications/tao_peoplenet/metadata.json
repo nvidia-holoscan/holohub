@@ -25,7 +25,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "face detection", "bounding box filtering", "HoloViz UI", "video processing", "detection"],
+		"tags": ["Computer Vision and Perception", "Video", "Detection", "Holoviz"],
 		"ranking": 2,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"

@@ -28,15 +28,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Workflow",
-			"End-to-End Application",
-			"Multiai",
-			"SSD",
-			"Detection",
-			"MONAI",
-			"Segmentation"
-		],
+		"tags": ["SSD", "Detection", "MONAI", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

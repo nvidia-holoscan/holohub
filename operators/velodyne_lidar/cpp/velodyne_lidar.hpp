@@ -52,7 +52,7 @@ namespace holoscan::ops {
  * @see holoscan::ops::AdvNetworkOpRx
  * @see holoscan::ops::BasicNetworkOpRx
  * @see https://developer.nvidia.com/isaac
- * @see https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf
+ * @see https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf
  */
 class VelodyneLidarOp : public Operator {
  public:

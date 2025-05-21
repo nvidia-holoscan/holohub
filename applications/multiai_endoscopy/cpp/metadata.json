@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "video", "surgical instrument tracking", "laparoscopic analysis", "MONAI model zoo", "endoscopy", "SSD", "segmentation", "MultiAI"],
+		"tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "SSD", "Segmentation"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

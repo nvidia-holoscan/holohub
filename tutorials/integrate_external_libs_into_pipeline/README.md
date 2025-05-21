@@ -37,7 +37,7 @@ The SDK also supports the array interface, including:
 This allows for seamless integration with various Python libraries such as:
 - [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html)
 - [PyTorch](https://github.com/pytorch/pytorch/issues/15601)
-- [JAX](https://github.com/google/jax/issues/1100#issuecomment-580773098)
+- [JAX](https://github.com/jax-ml/jax/issues/1100#issuecomment-580773098)
 - [TensorFlow](https://github.com/tensorflow/community/pull/180)
 - [Numba](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html)
 
@@ -53,7 +53,7 @@ For more information on interoperability, refer to the following sections in the
 
 The following Python libraries have adopted the [CUDA Array Interface](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html#interoperability) and/or [DLPack](https://dmlc.github.io/dlpack/latest/) standards, enabling seamless interoperability with Holoscan Tensors:
 
-- [CuPy](https://docs-cupy.chainer.org/en/stable/reference/interoperability.html)
+- [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html)
 - [CV-CUDA](https://github.com/CVCUDA/CV-CUDA)
 - [PyTorch](https://pytorch.org/)
 - [Numba](https://numba.readthedocs.io/en/stable/user/5minguide.html)
@@ -271,7 +271,7 @@ See the supported CV-CUDA Operators in the [CV-CUDA developer guide](https://git
 
 #### Installation
 
-Follow the [CV-CUDA documentation](https://cvcuda.github.io/installation.html) to install the CV-CUDA library.
+Follow the [CV-CUDA documentation](https://cvcuda.github.io/CV-CUDA/installation.html) to install the CV-CUDA library.
 
 Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 
@@ -489,13 +489,13 @@ def CustomizedTorchOperator(Operator):
 
 [CUDA Python](https://developer.nvidia.com/cuda-python) is a Python library that provides Cython/Python wrappers for CUDA driver and runtime APIs. It offers a convenient way to leverage GPU acceleration for complex computations, making it ideal for high-performance applications that require intensive numerical processing.
 
-When using CUDA Python with the Holoscan SDK, you need to use the Primary context ([CUDA doc link](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DRIVER.html#group__CUDART__DRIVER)) by calling `cuda.cuDevicePrimaryCtxRetain()` ([link](https://nvidia.github.io/cuda-python/module/cuda.html#primary-context-management)).
+When using CUDA Python with the Holoscan SDK, you need to use the Primary context ([CUDA doc link](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DRIVER.html#group__CUDART__DRIVER)) by calling `cuda.cuDevicePrimaryCtxRetain()` ([link](https://nvidia.github.io/cuda-python/cuda-core).
 
-Since the Holoscan Operator is executed in an arbitrary non-main thread, you may need to set the CUDA context using the [cuda.cuCtxSetCurrent()](https://nvidia.github.io/cuda-python/module/cuda.html#cuda.cuda.cuCtxSetCurrent) method in the `Operator.compute()` method.
+Since the Holoscan Operator is executed in an arbitrary non-main thread, you may need to set the CUDA context using the [cuda.cuCtxSetCurrent()](https://nvidia.github.io/cuda-python/cuda-core) method in the `Operator.compute()` method.
 
 #### Installation
 
-Follow the instructions in the [CUDA Python documentation](https://nvidia.github.io/cuda-python/install.html) to install the CUDA Python library.
+Follow the instructions in the [CUDA Python documentation](https://nvidia.github.io/cuda-python/cuda-core/latest/install.html) to install the CUDA Python library.
 
 CUDA Python can be installed using `pip`:
 

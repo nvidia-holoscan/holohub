@@ -22,7 +22,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["signal processing", "audio", "FM demodulation", "polyphase resampling", "automatic speech recognition", "signal processing", "SDR", "gRPC"],
+		"tags": ["Signal Processing", "Audio", "FM demodulation", "Polyphase Resampling", "ASR", "gRPC"],
 		"ranking": 3,
 		"dependencies": {
 			"libraries": [

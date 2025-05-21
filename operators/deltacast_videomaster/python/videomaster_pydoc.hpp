@@ -43,6 +43,14 @@ PYDOC(VideoMasterSourceOp_python, R"doc(
         The board to target (e.g., "0" for board 0). Default value is ``0``.
     input : int, optional
         The RX channel of the baords (e.g., "1" for input 1). Default value is ``0``.
+    width : int, optional
+        Width of the video stream. Default value is ``1920``.
+    height : int, optional
+        Height of the video stream. Default value is ``1080``.
+    progressive : bool, optional
+        Whether or not the video is an interlaced format. Default value is ``True``.
+    framerate : int, optional
+        Frame rate of the video stream. Default value is ``60``.
     pool : Allocator of type UnboundedAllocator
         The pool to use for memory allocation.
     name : str, optional

@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["DDS", "RTI Connext", "Shapes"],
+		"tags": ["DDS", "RTI Connext"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

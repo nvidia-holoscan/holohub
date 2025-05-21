@@ -204,7 +204,7 @@ plot_benchmark() {
             ${FLOW_BENCHMARKING_DIR}/generate_bar_graph.py \
             ${statistics_csv} \
             --app "${app_name}" \
-            --title "''" \
+            --title "${app_name}" \
             --quiet
     done
     popd

@@ -21,10 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": ["Camera"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [
