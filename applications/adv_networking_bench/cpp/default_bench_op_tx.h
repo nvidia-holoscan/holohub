@@ -179,10 +179,10 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                      "Byte boundary where header and data is split",
                      false);
     spec.param<std::string>(udp_src_port_str_,
-          "udp_src_port", "UDP source port", 
+          "udp_src_port", "UDP source port",
           "UDP source port or a range of ports (e.g. 1000-1010)");
     spec.param<std::string>(
-        udp_dst_port_str_, "udp_dst_port", "UDP destination port", 
+        udp_dst_port_str_, "udp_dst_port", "UDP destination port",
         "UDP destination port or a range of ports (e.g. 1000-1010)");
     spec.param<std::string>(ip_src_addr_, "ip_src_addr", "IP source address", "IP source address");
     spec.param<std::string>(

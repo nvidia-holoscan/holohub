@@ -1406,8 +1406,8 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
           "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
-          "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
-          "latency)", tparams->meta_pool_size, cur_port, cur_q);
+          "increase memory usage) or increase your `batch_size` for port {} queue {} (will "\
+          "increase latency)", tparams->meta_pool_size, cur_port, cur_q);
         exit(1);
       }
 
@@ -1556,8 +1556,8 @@ int DpdkMgr::rx_core_worker(void* arg) {
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
           "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
-          "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
-          "latency)", tparams->meta_pool_size, tparams->port, tparams->queue);
+          "increase memory usage) or increase your `batch_size` for port {} queue {} (will "\
+          "increase latency)", tparams->meta_pool_size, tparams->port, tparams->queue);
         exit(1);
       }
 
