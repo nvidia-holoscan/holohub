@@ -80,6 +80,7 @@ struct RxWorkerParams {
   int num_segs;
   uint64_t timeout_us;
   uint32_t batch_size;
+  int meta_pool_size;
   struct rte_ring* ring;
   struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
@@ -100,6 +101,7 @@ struct RxWorkerMultiQParams {
   struct rte_mempool* flowid_pool;
   struct rte_mempool* burst_pool;
   struct rte_mempool* meta_pool;
+  int meta_pool_size;
 };
 
 /**
@@ -1288,6 +1290,7 @@ void DpdkMgr::run() {
       params->meta_pool = rx_metadata;
       params->batch_size = q->common_.batch_size_;
       params->timeout_us = q->timeout_us_;
+      params->meta_pool_size = cfg_.rx_meta_buffers_;
       rte_eal_remote_launch(
           rx_core_worker, (void*)params, strtol(q->common_.cpu_core_.c_str(), NULL, 10));
     } else {
@@ -1307,6 +1310,7 @@ void DpdkMgr::run() {
       params->burst_pool = rx_burst_buffer;
       params->flowid_pool = rx_flow_id_buffer;
       params->meta_pool = rx_metadata;
+      params->meta_pool_size = cfg_.rx_meta_buffers_;
       rte_eal_remote_launch(rx_core_multi_q_worker, (void*)params, el.first);
     }
   }
@@ -1400,7 +1404,10 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   while (!force_quit.load()) {
     if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
-        HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
+        HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
+          "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
+          "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
+          "latency)", tparams->meta_pool_size, cur_port, cur_q);
         exit(1);
       }
 
@@ -1522,7 +1529,6 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 ////////////////////////////////////////////////////////////////////////////////
 int DpdkMgr::rx_core_worker(void* arg) {
   RxWorkerParams* tparams = (RxWorkerParams*)arg;
-  int ret = 0;
 
   // In the future we may want to periodically update this if the CPU clock drifts
   uint64_t freq = rte_get_tsc_hz();
@@ -1532,7 +1538,6 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
   flush_packets(tparams->port);
   struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
-  int pkts_per_poll = std::min(DEFAULT_NUM_RX_BURST, (uint16_t)tparams->batch_size);
 
   HOLOSCAN_LOG_INFO("Starting RX Core {}, port {}, queue {}, socket {}",
                     rte_lcore_id(),
@@ -1549,7 +1554,10 @@ int DpdkMgr::rx_core_worker(void* arg) {
   while (!force_quit.load()) {
     if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
-        HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
+        HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
+          "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
+          "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
+          "latency)", tparams->meta_pool_size, tparams->port, tparams->queue);
         exit(1);
       }
 
@@ -1924,7 +1932,10 @@ void DpdkMgr::free_tx_metadata(BurstParams* burst) {
 
 Status DpdkMgr::get_tx_metadata_buffer(BurstParams** burst) {
   if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(burst)) != 0) {
-    HOLOSCAN_LOG_CRITICAL("Failed to get TX meta descriptor");
+    HOLOSCAN_LOG_CRITICAL("Running out of TX meta buffers due to high rates. Either increase "\
+      "your number of metadata buffers (current: {}) with `tx_meta_buffers` (will "\
+      "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
+      "latency)", cfg_.tx_meta_buffers_, (*burst)->hdr.hdr.port_id, (*burst)->hdr.hdr.q_id);
     return Status::NO_FREE_BURST_BUFFERS;
   }
 

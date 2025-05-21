@@ -158,7 +158,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     spec.param<bool>(reorder_kernel_,
                      "reorder_kernel",
                      "Reorder kernel enabled",
-                     "Enable reorder kernel",
+                     "Enable reorder kernel if alignment and memory types are supported",
                      true);
   }
 
@@ -330,6 +330,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           // to a contiguous memory buffer (full_batch_data_d_)
           // NOTE: there is no actual reordering since we use the same order as packets came in,
           //   but they would be reordered if h_dev_ptrs_ was filled based on packet sequence id.
+          // We also allow disabling the reorder kernel if alignment and memory types are not 
+          // supported. Currently the reorder kernel expects the packets to be 16B-aligned, and
+          // anything that's not will cause an access error on the GPU
           if (reorder_kernel_.get()) {
             simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
                                   h_dev_ptrs_[cur_batch_idx_],

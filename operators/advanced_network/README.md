@@ -227,9 +227,9 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	  		- type: `integer`
 	- **`match`**: Match section of flow
 	  - type: `sequence`
-		- **`udp_src`**: UDP source port
+		- **`udp_src`**: UDP source port or a range of ports (eg 1000-1010)
 	  	- type: `integer`
-		- **`udp_dst`**: UDP destination port
+		- **`udp_dst`**: UDP destination port or a range of ports (eg 1000-1010)
 	  	- type: `integer`
 		- **`ipv4_len`**: IPv4 payload length
 	  	- type: `integer`

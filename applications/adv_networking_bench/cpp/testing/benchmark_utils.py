@@ -184,31 +184,16 @@ class BenchmarkResults:
         # Check each expected queue
         for queue_str, expected_count in expected_str_dict.items():
             actual_count = self.q_rx_pkts[port_str].get(queue_str, 0)
+            success = actual_count > expected_count if allow_greater else actual_count == expected_count
 
-            if gt:
-                if actual_count <= expected_count:
-                    logger.error(
-                        f"Port {port} Queue {queue_str} packet count mismatch: "
-                        f"expected (at least) ={expected_count}, actual={actual_count} ❌"
-                    )
-                    success = False
-                else:
-                    logger.info(
-                        f"Port {port} Queue {queue_str} packet count match: "
-                        f"expected (at least) {expected_count}, actual={actual_count} ✅"
-                    )
+            # Log
+            expect_symbol = ">=" if allow_greater else "="
+            queue_info = f"Port {port_str} Queue {queue_str} packet count"
+            count_info = f"expected{expect_symbol}{expected_count}, actual={actual_count}"
+            if not success:
+                logger.error(f"{queue_info} mismatch: {count_info} ❌")
             else:
-                if actual_count != expected_count:
-                    logger.error(
-                        f"Port {port} Queue {queue_str} packet count mismatch: "
-                        f"expected={expected_count}, actual={actual_count} ❌"
-                    )
-                    success = False
-                else:
-                    logger.info(
-                        f"Port {port} Queue {queue_str} packet count match: "
-                        f"expected={expected_count}, actual={actual_count} ✅"
-                    )
+                logger.info(f"{queue_info} match: {count_info} ✅")
 
         # Check for unexpected queues with packets
         for queue_str, actual_count in self.q_rx_pkts[port_str].items():
