@@ -39,7 +39,7 @@ function(add_python_tests)
 
   # Get the list of tests from pytest - force rootdir to be the working directory
   execute_process(
-    COMMAND ${Python3_EXECUTABLE} -m pytest ${PYTEST_INPUT} --collect-only -q --rootdir=${PYTEST_WORKING_DIRECTORY}
+    COMMAND ${Python3_EXECUTABLE} -m pytest ${PYTEST_INPUT} --collect-only --rootdir=${PYTEST_WORKING_DIRECTORY}
     WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
     OUTPUT_VARIABLE pytest_collect_output
     OUTPUT_STRIP_TRAILING_WHITESPACE
