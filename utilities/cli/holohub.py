@@ -241,32 +241,18 @@ class HoloHubCLI:
         test = subparsers.add_parser("test", help="Test a project")
         test.add_argument("project", nargs="?", help="Project to test")
         test.add_argument("--base_img", help="Fully qualified base image name")
-        test.add_argument(
-            "--build_args", help="Additional options to pass to the Docker build"
-        )
+        test.add_argument("--build_args", help="Additional options to pass to the Docker build")
         test.add_argument("--verbose", action="store_true", help="Print extra output")
         test.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
-        test.add_argument(
-            "--clear_cache", action="store_true", help="Clear cache folders"
-        )
-        test.add_argument(
-            "--site_name", help="Site name"
-        )
-        test.add_argument(
-            "--platform_name", help="Platform name"
-        )
-        test.add_argument(
-            "--cmake_options",
-            help="CMake options"
-        )
-        test.add_argument(
-            "--no_xvfb", action="store_true", help="Do not use xvfb"
-        )
-        test.add_argument(
-            "--ctest_script", help="CTest script"
-        )
+        test.add_argument("--clear_cache", action="store_true", help="Clear cache folders")
+        test.add_argument("--site_name", help="Site name")
+        test.add_argument("--cdash_url", help="CDash URL")
+        test.add_argument("--platform_name", help="Platform name")
+        test.add_argument("--cmake_options", help="CMake options")
+        test.add_argument("--no_xvfb", action="store_true", help="Do not use xvfb")
+        test.add_argument("--ctest_script", help="CTest script")
         test.set_defaults(func=self.handle_test)
 
         # Add clear-cache command
@@ -369,7 +355,6 @@ class HoloHubCLI:
             verbose=args.verbose,
         )
 
-
     def handle_test(self, args: argparse.Namespace) -> None:
         """Handle test command"""
         container = self._make_project_container(
@@ -378,12 +363,12 @@ class HoloHubCLI:
 
         if args.clear_cache:
             for pattern in ["build", "build-*", "install"]:
-              for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir():
-                    if args.dryrun:
-                         print(f"  {Color.yellow('Would remove:')} {path}")
-                    else:
-                        shutil.rmtree(path)
+                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                    if path.is_dir():
+                        if args.dryrun:
+                            print(f"  {Color.yellow('Would remove:')} {path}")
+                        else:
+                            shutil.rmtree(path)
 
         container.dryrun = args.dryrun
 
@@ -394,12 +379,21 @@ class HoloHubCLI:
 
         # Construct the ctest command line
         # If we should run without xvfb
-        xvfb="xvfb-run -a"
+        xvfb = "xvfb-run -a"
         if args.no_xvfb:
-            xvfb=""
+            xvfb = ""
 
         img_tag = args.base_img.split(":")[-1]
-        ctest_cmd = f"{xvfb} ctest -DCTEST_SITE={args.site_name} -DCONFIGURE_OPTIONS=\"{args.cmake_options}\" -DPLATFORM_NAME={args.platform_name} -DAPP={args.project} -DTAG={img_tag} -S {args.ctest_script}"
+        ctest_cmd = (
+            f"{xvfb} ctest "
+            f"-DCTEST_SITE={args.site_name} "
+            f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
+            f"-DPLATFORM_NAME={args.platform_name} "
+            f"-DCTEST_SUBMIT_URL={args.cdash_url} "
+            f"-DAPP={args.project} "
+            f"-DTAG={img_tag} "
+            f"-S {args.ctest_script}"
+        )
 
         container.run(
             use_tini=True,
