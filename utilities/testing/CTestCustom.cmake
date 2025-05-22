@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -15,5 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PYTHONPATH=${PYTHONPATH}:${SCRIPT_DIR} python3 ${SCRIPT_DIR}/utilities/cli/holohub.py "$@"
+
+## This file provides customization for CTest
+## It is included by CTest via the ctest_read_custom_files
+
+set(CTEST_CUSTOM_WARNING_EXCEPTION
+  ${CTEST_CUSTOM_WARNING_EXCEPTION}
+  ".*/NvEncService.cpp:263:49.*"
+  "lto-wrapper: warning: using serial compilation*"
+  ".*aja.*note: variable tracking size limit exceeded with '-fvar-tracking-assignments'.*"
+)
