@@ -631,6 +631,9 @@ bool RivermaxConfigParser::parse_common_tx_settings(
   rivermax_tx_config.print_parameters = tx_settings["verbose"].as<bool>(false);
   rivermax_tx_config.num_of_threads = tx_settings["num_of_threads"].as<size_t>(1);
   rivermax_tx_config.send_packet_ext_info = tx_settings["send_packet_ext_info"].as<bool>(true);
+  rivermax_tx_config.num_of_packets_in_chunk =
+    tx_settings["num_of_packets_in_chunk"].as<size_t>(
+      MediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD);
   rivermax_tx_config.sleep_between_operations =
       tx_settings["sleep_between_operations"].as<bool>(true);
   rivermax_tx_config.stats_report_interval_ms =
