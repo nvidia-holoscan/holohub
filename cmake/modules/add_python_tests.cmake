@@ -39,14 +39,28 @@ function(add_python_tests)
 
   # Get the list of tests from pytest - force rootdir to be the working directory
   execute_process(
-    COMMAND ${Python3_EXECUTABLE} -m pytest ${PYTEST_INPUT} --collect-only -q --rootdir=${PYTEST_WORKING_DIRECTORY}
+    COMMAND ${Python3_EXECUTABLE} -m pytest ${PYTEST_INPUT} --collect-only --rootdir=${PYTEST_WORKING_DIRECTORY}
     WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
     OUTPUT_VARIABLE pytest_collect_output
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE pytest_collect_error
+    RESULT_VARIABLE pytest_collect_result
   )
+  set(PYTEST_SEARCH_DIR "${PYTEST_WORKING_DIRECTORY}/${PYTEST_INPUT}")
+  if(NOT pytest_collect_result EQUAL 0)
+    message(FATAL_ERROR "Error collecting pytest tests in ${PYTEST_SEARCH_DIR} (returned ${pytest_collect_result}):\n${pytest_collect_error}")
+  endif()
+
+  if(NOT pytest_collect_output)
+    message(WARNING "No pytest tests found in ${PYTEST_SEARCH_DIR}")
+    return()
+  endif()
+
+  message(DEBUG "pytest_collect_output: ${pytest_collect_output}")
   string(REPLACE "\n" ";" pytest_list "${pytest_collect_output}")
 
   # Process each test found
+  set(tests_added FALSE)
   foreach(test_line ${pytest_list})
     message(DEBUG "pytest collected test: ${test_line}")
     # Extract module file and test name from the full test ID
@@ -89,6 +103,11 @@ function(add_python_tests)
         COMMAND bash -c "${PYTEST_CMD}"
         WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
       )
+      set(tests_added TRUE)
     endif()
   endforeach()
+
+  if(NOT tests_added)
+    message(WARNING "No pytest tests were found in ${PYTEST_SEARCH_DIR}")
+  endif()
 endfunction()
