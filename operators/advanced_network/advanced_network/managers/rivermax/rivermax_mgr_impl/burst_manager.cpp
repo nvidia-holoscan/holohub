@@ -292,8 +292,6 @@ RivermaxBurst::BurstHandler::BurstHandler(bool send_packet_ext_info, int port_id
   const uint32_t burst_tag = burst_tag_from_port_and_queue_id(port_id, queue_id);
 
   burst_info_.tag = burst_tag;
-  burst_info_.burst_flags =
-      (send_packet_ext_info_ ? BurstFlags::INFO_PER_PACKET : BurstFlags::FLAGS_NONE);
   burst_info_.burst_id = 0;
   burst_info_.hds_on = false;
   burst_info_.header_on_cpu = false;
@@ -308,11 +306,15 @@ std::shared_ptr<RivermaxBurst> RivermaxBurst::BurstHandler::create_burst(uint16_
   std::shared_ptr<RivermaxBurst> burst(new RivermaxBurst(port_id_, queue_id_, MAX_PKT_IN_BURST));
 
   if (send_packet_ext_info_) {
+    burst->hdr.hdr.burst_flags = BurstFlags::INFO_PER_PACKET;
     burst->pkt_extra_info =
         reinterpret_cast<void**>(new RivermaxPacketExtendedInfo*[MAX_PKT_IN_BURST]);
     for (int j = 0; j < MAX_PKT_IN_BURST; j++) {
       burst->pkt_extra_info[j] = reinterpret_cast<void*>(new RivermaxPacketExtendedInfo());
     }
+  } else {
+    burst->hdr.hdr.burst_flags = BurstFlags::FLAGS_NONE;
+    burst->pkt_extra_info = nullptr;
   }
 
   burst->pkts[0] = new void*[MAX_PKT_IN_BURST];

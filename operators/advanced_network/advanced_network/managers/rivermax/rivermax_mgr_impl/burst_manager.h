@@ -162,9 +162,7 @@ class RivermaxBurst : public BurstParams {
    * @return The flags of the burst.
    */
   inline BurstFlags get_burst_flags() const {
-    auto burst_info = get_burst_info();
-    if (burst_info == nullptr) { return FLAGS_NONE; }
-    return burst_info->burst_flags;
+    return static_cast<BurstFlags>(hdr.hdr.burst_flags);
   }
 
   /**
@@ -219,7 +217,7 @@ class RivermaxBurst : public BurstParams {
                               const RivermaxPacketData& packet_data) {
     auto burst_info = get_burst_info();
 
-    if (burst_info->burst_flags & BurstFlags::INFO_PER_PACKET) {
+    if (get_burst_flags() & BurstFlags::INFO_PER_PACKET) {
       RivermaxPacketExtendedInfo* rx_packet_info =
           reinterpret_cast<RivermaxPacketExtendedInfo*>(pkt_extra_info[packet_ind_in_out_burst]);
       rx_packet_info->timestamp = packet_data.extended_info.timestamp;
