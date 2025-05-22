@@ -48,25 +48,72 @@ def executable(work_dir):
     return os.path.join(work_dir, "adv_networking_bench")
 
 
-@pytest.mark.parametrize(
-    "packet_size,avg_throughput_threshold,missed_pkts_threshold,error_pkts_threshold",
-    [
-        (64, 6.0, 0.1, 0.0),
-        (512, 55.0, 0.1, 0.0),
-        (1500, 94.0, 0.1, 0.0),
-        (9000, 96.0, 0.1, 0.0),
-    ],
-)
+def perf_thresholds_heuristic(batch_size, packet_size):
+    missed_pkts_threshold = 0.1
+    error_pkts_threshold = 0.0
+
+    throughput_thresholds = {
+        1: {
+            64: 0.0,   # plain crash
+            512: 0.0,  # plain crash
+            1500: 0.0, # `Error returned from get_tx_packet_burst: 2` then crash
+            4000: 0.0, # `Error returned from get_tx_packet_burst: 2` then crash
+            9000: 0.0, # `Error returned from get_tx_packet_burst: 2` then crash
+        },
+        256: {
+            64: 1.4,
+            512: 12.0,
+            1500: 36.0, # `Error returned from get_tx_packet_burst: 2` then crash
+            4000: 96.0, # `Error returned from get_tx_packet_burst: 2` then crash
+            9000: 96.0, # `Error returned from get_tx_packet_burst: 2` then crash
+        },
+        512: {
+            64: 3.0,    # but lots of dropped packets
+            512: 22.0,  # but lots of dropped packets
+            1500: 65.0, # but lots of dropped packets
+            4000: 96.0,
+            9000: 96.0,
+        },
+        1024: {
+            64: 4.0,    # but lots of dropped packets
+            512: 34.0,  # but lots of dropped packets
+            1500: 94.0, # but lots of dropped packets
+            4000: 96.0,
+            9000: 96.0,
+        },
+        2048: {
+            64: 5.5,   # but lots of dropped packets
+            512: 50.0, # but lots of dropped packets
+            1500: 96.0,
+            4000: 96.0,
+            9000: 96.0,
+        },
+        10240: {
+            64: 6.0,
+            512: 55.0,
+            1500: 96.0,
+            4000: 96.0,
+            9000: 96.0,
+        },
+    }
+    avg_throughput_threshold = 1.0
+    try:
+        avg_throughput_threshold = throughput_thresholds[batch_size][packet_size]
+    except KeyError:
+        pass
+
+    return avg_throughput_threshold, missed_pkts_threshold, error_pkts_threshold
+
+@pytest.mark.parametrize("packet_size", [64, 512, 1500, 4000, 9000])
+@pytest.mark.parametrize("batch_size", [1, 256, 512, 1024, 2048, 10240])
 @pytest.mark.parametrize("manager", ["dpdk", "gpunetio"])
 def test_multi_if_loopback(
     executable,
     work_dir,
     nvidia_nics,
     manager,
+    batch_size,
     packet_size,
-    avg_throughput_threshold,
-    missed_pkts_threshold,
-    error_pkts_threshold,
 ):
     """
     Test 1: TX/RX loopback over single link with one TX queue and one RX queue.
@@ -79,9 +126,14 @@ def test_multi_if_loopback(
     # Get the first two NICs for this test
     tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
 
+    # Get performance thresholds
+    avg_throughput_threshold, missed_pkts_threshold, error_pkts_threshold = \
+        perf_thresholds_heuristic(batch_size, packet_size)
+
     # Prepare config
     header_size = 64  # Eth (14) + IP (20) + UDP (8) + custom header (22) as defined in yaml config
     payload_size = packet_size - header_size
+    # num_bufs = max(batch_size * 100, 8192) # TODO: config doc, rule of thumb depends on rate
     in_config_file = os.path.join(work_dir, "adv_networking_bench_default_tx_rx.yaml")
     out_config_file = os.path.join(
         work_dir, "testing", f"adv_networking_bench_{manager}_tx_rx_{packet_size}.yaml"
@@ -99,6 +151,12 @@ def test_multi_if_loopback(
             "bench_rx.max_packet_size": packet_size,
             "advanced_network.cfg.memory_regions[0].buf_size": packet_size,
             "advanced_network.cfg.memory_regions[1].buf_size": packet_size,
+            "advanced_network.cfg.interfaces[0].tx.queues[0].batch_size": batch_size,
+            "advanced_network.cfg.interfaces[1].rx.queues[0].batch_size": batch_size,
+            "bench_tx.batch_size": batch_size,
+            "bench_rx.batch_size": batch_size,
+            # "advanced_network.cfg.memory_regions[0].num_bufs": num_bufs,
+            # "advanced_network.cfg.memory_regions[1].num_bufs": num_bufs,
         },
     )
 
