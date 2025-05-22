@@ -15,6 +15,7 @@
 			"1.1": "GPUDirect updates",
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking and Distributed Computing", "DPDK", "UDP", "IP", "GPUDirect", "RDMA"],
 		"holoscan_sdk": {
