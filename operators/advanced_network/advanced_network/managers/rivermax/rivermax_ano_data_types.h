@@ -168,14 +168,14 @@ class AnoBurstsQueue : public IAnoBurstsCollection {
   std::atomic<bool> stop_ = false;
 };
 
-enum BurstFlags : uint8_t {
+enum BurstFlags : uint32_t {
   FLAGS_NONE = 0,
   INFO_PER_PACKET = 1,
+  FRAME_BUFFER_IS_OWNED = 2,
 };
 
 struct AnoBurstExtendedInfo {
   uint32_t tag;
-  BurstFlags burst_flags;
   uint16_t burst_id;
   bool hds_on;
   uint16_t header_stride_size;
