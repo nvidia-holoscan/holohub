@@ -126,6 +126,7 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       memory_allocation(other.memory_allocation),
       memory_registration(other.memory_registration),
       send_packet_ext_info(other.send_packet_ext_info),
+      num_of_packets_in_chunk(other.num_of_packets_in_chunk),
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
       master_core(other.master_core),
@@ -148,6 +149,7 @@ RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
   memory_allocation = other.memory_allocation;
   memory_registration = other.memory_registration;
   send_packet_ext_info = other.send_packet_ext_info;
+  num_of_packets_in_chunk = other.num_of_packets_in_chunk;
   stats_report_interval_ms = other.stats_report_interval_ms;
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
@@ -524,6 +526,7 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
   target_settings->stats_report_interval_ms = source_settings->stats_report_interval_ms;
   target_settings->register_memory = source_settings->memory_registration;
   target_settings->app_memory_alloc = source_settings->memory_allocation;
+  target_settings->num_of_packets_in_chunk = source_settings->num_of_packets_in_chunk;
 
   target_settings->media.resolution.height = source_settings->frame_height;
   target_settings->media.resolution.width = source_settings->frame_width;
