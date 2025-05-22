@@ -408,10 +408,10 @@ class HoloHubCLI:
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
-            ctest_cmd += f"-S utilities/testing/holohub.container.ctest "
+            ctest_cmd += "-S utilities/testing/holohub.container.ctest "
 
         if args.verbose:
-            ctest_cmd += f"-VV "
+            ctest_cmd += "-VV "
 
         container.run(
             use_tini=True,
