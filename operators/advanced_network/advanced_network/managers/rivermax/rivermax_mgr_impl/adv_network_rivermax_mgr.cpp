@@ -335,8 +335,13 @@ bool RivermaxMgr::RivermaxMgrImpl::initialize_tx_service(
       HOLOSCAN_LOG_INFO("Initializing Media Mock Sender :{}", service_id);
       tx_service = std::make_shared<MediaSenderMockService>(service_id, media_sender_builder);
     } else {
-      HOLOSCAN_LOG_INFO("Initializing Media Frame Sender :{}", service_id);
-      tx_service = std::make_shared<MediaSenderService>(service_id, media_sender_builder);
+      if (!media_sender_builder->use_internal_memory_pool_) {
+        HOLOSCAN_LOG_INFO("Initializing Media Frame Zero Copy Sender :{}", service_id);
+        tx_service = std::make_shared<MediaSenderZeroCopyService>(service_id, media_sender_builder);
+      } else {
+        HOLOSCAN_LOG_INFO("Initializing Media Frame Sender :{}", service_id);
+        tx_service = std::make_shared<MediaSenderService>(service_id, media_sender_builder);
+      }
     }
   } else {
     HOLOSCAN_LOG_ERROR("Unsupported Tx Service configuration type: {}",
