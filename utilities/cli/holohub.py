@@ -387,11 +387,7 @@ class HoloHubCLI:
 
         img_tag = base_img.split(":")[-1]
 
-        ctest_cmd = (
-            f"{xvfb} ctest "
-            f"-DAPP={args.project} "
-            f"-DTAG={img_tag} "
-        )
+        ctest_cmd = f"{xvfb} ctest " f"-DAPP={args.project} " f"-DTAG={img_tag} "
 
         if args.cmake_options:
             ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
