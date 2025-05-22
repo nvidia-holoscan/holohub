@@ -38,15 +38,25 @@
       "type": "object"
     },
     "language": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "C++",
-          "Python",
-          "GXF"
-        ]
-      }
+      "type": "string",
+      "enum": [
+        "C++",
+        "Python",
+        "GXF"
+      ]
+    },
+    "multi_language": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          }
+        },
+        {
+          "$ref": "#/$defs/language"
+        }
+      ]
     },
     "platforms": {
       "type": "array",

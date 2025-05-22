@@ -11,7 +11,7 @@
 				"affiliation": "MathWorks"
 			}
 		],
-		"language": ["C++"],
+		"language": "C++",
 		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Initial Release"
