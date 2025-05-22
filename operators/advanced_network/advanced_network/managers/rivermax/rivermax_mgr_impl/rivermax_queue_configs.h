@@ -186,6 +186,7 @@ struct RivermaxCommonTxQueueConfig : public BaseQueueConfig {
   bool memory_allocation;
   bool memory_registration;
   bool send_packet_ext_info;
+  size_t num_of_packets_in_chunk;
   uint32_t stats_report_interval_ms;
   std::string cpu_cores;
   int master_core;
