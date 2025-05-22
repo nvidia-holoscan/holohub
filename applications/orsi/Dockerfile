@@ -72,7 +72,7 @@ RUN rm -rf /opt/vtk/build &&  rm -rf /opt/vtk/src
 
 # --------------------------------------------------------------------------
 #
-# VTKenvironment setup
+# VTK environment setup
 #
 ENV VTK_INSTALL=/opt/vtk/${VTK_VERSION}
 ENV PATH="${PATH}:${VTK_INSTALL}/bin"
