@@ -415,6 +415,64 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     return readme_text.replace(full_header, new_header, 1)
 
 
+def create_run_commands_html(app_name: str) -> str:
+    """Create HTML for the run commands button and code block.
+
+    Args:
+        app_name: Name of the application
+
+    Returns:
+        HTML string containing the button and code block
+    """
+    commands = f"""git clone https://github.com/nvidia-holoscan/holohub.git
+cd holohub
+./holohub run {app_name}"""
+
+    return f"""
+<div class="run-commands">
+    <button class="run-commands-btn" onclick="toggleRunCommands(this)">Show Run Commands</button>
+    <div class="run-commands-content" style="display: none;">
+        <pre><code class="language-bash">{commands}</code></pre>
+    </div>
+</div>
+
+<script>
+function toggleRunCommands(btn) {{
+    const content = btn.nextElementSibling;
+    if (content.style.display === "none") {{
+        content.style.display = "block";
+        btn.textContent = "Hide Run Commands";
+    }} else {{
+        content.style.display = "none";
+        btn.textContent = "Show Run Commands";
+    }}
+}}
+</script>
+
+<style>
+.run-commands {{
+    margin: 1rem 0;
+}}
+.run-commands-btn {{
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}}
+.run-commands-content {{
+    margin-top: 1rem;
+}}
+</style>
+"""
+
+
 def create_page(
     metadata: dict,
     readme_text: str,
@@ -457,6 +515,15 @@ def create_page(
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
     readme_text = patch_header(readme_text, url, metadata_header)
+
+    # Add run commands button for application pages
+    if "applications" in str(relative_dir):
+        app_name = metadata["name"].lower().replace(" ", "_")
+        run_commands_html = create_run_commands_html(app_name)
+        # Insert after metadata header
+        readme_text = readme_text.replace(
+            metadata_header, metadata_header + "\n" + run_commands_html
+        )
 
     # Append the text to the output
     output_text += readme_text
