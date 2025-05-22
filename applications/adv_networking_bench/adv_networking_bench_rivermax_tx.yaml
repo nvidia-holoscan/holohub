@@ -58,6 +58,7 @@ advanced_network:
             memory_registration: true
             memory_allocation: true
             memory_pool_location: "device"
+            use_internal_memory_pool: true
             #allocator_type: "huge_page_2mb"
             verbose: true
             sleep_between_operations: false

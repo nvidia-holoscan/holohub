@@ -209,6 +209,7 @@ struct RivermaxMediaSenderQueueConfig : public RivermaxCommonTxQueueConfig {
   uint16_t frame_width;
   uint16_t frame_height;
   uint16_t frame_rate;
+  bool use_internal_memory_pool;
   MemoryKind memory_pool_location;
 };
 
@@ -304,6 +305,7 @@ class RivermaxQueueToMediaSenderSettingsBuilder
 
  public:
   bool dummy_sender_ = false;
+  bool use_internal_memory_pool_ = false;
   MemoryKind memory_pool_location_ = MemoryKind::DEVICE;
   MediaSenderSettings built_settings_;
   bool settings_built_ = false;

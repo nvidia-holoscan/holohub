@@ -163,6 +163,7 @@ RivermaxMediaSenderQueueConfig::RivermaxMediaSenderQueueConfig(
       frame_width(other.frame_width),
       frame_height(other.frame_height),
       frame_rate(other.frame_rate),
+      use_internal_memory_pool(other.use_internal_memory_pool),
       memory_pool_location((other.memory_pool_location)) {}
 
 RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
@@ -174,6 +175,7 @@ RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
   frame_width = other.frame_width;
   frame_height = other.frame_height;
   frame_rate = other.frame_rate;
+  use_internal_memory_pool = other.use_internal_memory_pool;
   memory_pool_location = other.memory_pool_location;
   return *this;
 }
@@ -252,9 +254,13 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\t\tallocator_type: {}", allocator_type);
     HOLOSCAN_LOG_INFO("\t\tmemory_registration: {}", memory_registration);
     HOLOSCAN_LOG_INFO("\t\tmemory_allocation: {}", memory_allocation);
-    HOLOSCAN_LOG_INFO("\t\tmemory_pool_location: {}", (int)memory_pool_location);
+    HOLOSCAN_LOG_INFO("\t\tuse_internal_memory_pool: {}", use_internal_memory_pool);
+    if (use_internal_memory_pool) {
+      HOLOSCAN_LOG_INFO("\t\tmemory_pool_location: {}", (int)memory_pool_location);
+    }
     HOLOSCAN_LOG_INFO("\tPacket settings:");
     HOLOSCAN_LOG_INFO("\t\tsplit_boundary: {}", split_boundary);
+    HOLOSCAN_LOG_INFO("\t\tnum_of_packets_in_chunk: {}", num_of_packets_in_chunk);
     HOLOSCAN_LOG_INFO("\tSender settings:");
     HOLOSCAN_LOG_INFO("\t\tdummy_sender: {}", dummy_sender);
     HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
