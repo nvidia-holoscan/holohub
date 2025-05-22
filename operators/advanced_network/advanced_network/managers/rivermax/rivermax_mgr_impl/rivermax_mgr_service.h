@@ -472,6 +472,48 @@ class MediaSenderService : public MediaSenderBaseService {
   static constexpr int MEDIA_FRAME_PROVIDER_SIZE = 32;  ///< Size of the media frame provider
 };
 
+/**
+ * @brief Implementation of media sender service without internal memory pool.
+ *
+ * This class provides functionality for sending media data.
+ * It doesn't have an internal memory pool and forwards media frames to the Rivermax
+ * via @ref MediaFrameProvider.
+ */
+class MediaSenderZeroCopyService : public MediaSenderBaseService {
+ public:
+  /**
+   * @brief Constructor for the MediaSenderZeroCopyService class.
+   *
+   * @param service_id Unique identifier for the service.
+   * @param media_sender_builder Builder for media sender settings.
+   */
+  MediaSenderZeroCopyService(
+      uint32_t service_id,
+      std::shared_ptr<RivermaxQueueToMediaSenderSettingsBuilder> media_sender_builder);
+
+  /**
+   * @brief Virtual destructor for the MediaSenderZeroCopyService class.
+   */
+  virtual ~MediaSenderZeroCopyService() = default;
+
+  Status get_tx_packet_burst(BurstParams* burst) override;
+  Status send_tx_burst(BurstParams* burst) override;
+  bool is_tx_burst_available(BurstParams* burst) override;
+  void free_tx_burst(BurstParams* burst) override;
+  void shutdown() override;
+
+ protected:
+  bool post_init_setup() override;
+
+ private:
+  std::shared_ptr<BufferedMediaFrameProvider>
+      tx_media_frame_provider_;                   ///< Provider for buffered media frames
+  bool is_frame_in_process_ = false;
+  mutable std::mutex mutex_;
+
+  static constexpr int MEDIA_FRAME_PROVIDER_SIZE = 32;  ///< Size of the media frame provider
+};
+
 }  // namespace holoscan::advanced_network
 
 #endif /* RIVERMAX_MANAGER_SERVICE_H_ */

@@ -377,6 +377,7 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
       std::move(rivermax_tx_config_ptr), std::move(rivermax_media_sender_settings_validator));
 
   settings_builder->dummy_sender_ = rivermax_tx_config.dummy_sender;
+  settings_builder->use_internal_memory_pool_ = rivermax_tx_config.use_internal_memory_pool;
   settings_builder->memory_pool_location_ = rivermax_tx_config.memory_pool_location;
 
   config_builder_container_.add_config_builder(
@@ -646,13 +647,19 @@ bool RivermaxConfigParser::parse_media_sender_settings(
   rivermax_tx_config.frame_width = tx_settings["frame_width"].as<uint16_t>(0);
   rivermax_tx_config.frame_height = tx_settings["frame_height"].as<uint16_t>(0);
   rivermax_tx_config.frame_rate = tx_settings["frame_rate"].as<uint16_t>(0);
-  rivermax_tx_config.memory_pool_location =
-    GetMemoryKindFromString(tx_settings["memory_pool_location"].template as<std::string>("device"));
-  if (rivermax_tx_config.memory_pool_location == MemoryKind::INVALID) {
-    rivermax_tx_config.memory_pool_location = MemoryKind::DEVICE;
-    HOLOSCAN_LOG_ERROR("Invalid memory pool location, setting to DEVICE");
+  rivermax_tx_config.use_internal_memory_pool =
+      tx_settings["use_internal_memory_pool"].as<bool>(false);
+  if (rivermax_tx_config.use_internal_memory_pool) {
+    rivermax_tx_config.memory_pool_location =
+      GetMemoryKindFromString(tx_settings["memory_pool_location"].template
+        as<std::string>("device"));
+    if (rivermax_tx_config.memory_pool_location == MemoryKind::INVALID) {
+      rivermax_tx_config.memory_pool_location = MemoryKind::DEVICE;
+      HOLOSCAN_LOG_ERROR("Invalid memory pool location, setting to DEVICE");
+    }
+  } else {
+    rivermax_tx_config.memory_pool_location = MemoryKind::INVALID;
   }
-
   return true;
 }
 
