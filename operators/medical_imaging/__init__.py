@@ -31,6 +31,9 @@ from . import _version
 from . import exceptions as exceptions
 from . import utils as utils
 
+# Import all operators
+from .clara_viz_operator import ClaraVizOperator
+
 # Import core
 from .core import (
     AppContext,
@@ -38,17 +41,14 @@ from .core import (
     DataPath,
     Image,
     IOType,
-    ModelFactory,
     Model,
+    ModelFactory,
     NamedModel,
+    RuntimeEnv,
     TorchScriptModel,
     TritonModel,
-    RuntimeEnv,
     parse_args,
 )
-
-# Import all operators
-from .clara_viz_operator import ClaraVizOperator
 from .dicom_data_loader_operator import DICOMDataLoaderOperator
 from .dicom_encapsulated_pdf_writer_operator import DICOMEncapsulatedPDFWriterOperator
 from .dicom_seg_writer_operator import DICOMSegmentationWriterOperator, SegmentDescription

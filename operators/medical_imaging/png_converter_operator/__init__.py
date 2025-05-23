@@ -12,4 +12,4 @@ The operator enables conversion of medical imaging data to PNG images for visual
 
 from .png_converter_operator import PNGConverterOperator
 
-__all__ = ["PNGConverterOperator"] 
+__all__ = ["PNGConverterOperator"]

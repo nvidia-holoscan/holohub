@@ -12,4 +12,4 @@ The operator supports pre-transforms, sliding window inference, and post-transfo
 
 from .monai_seg_inference_operator import MonaiSegInferenceOperator
 
-__all__ = ["MonaiSegInferenceOperator"] 
+__all__ = ["MonaiSegInferenceOperator"]

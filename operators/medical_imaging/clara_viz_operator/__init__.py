@@ -12,5 +12,4 @@ The operator supports GPU-accelerated rendering and interactive manipulation of 
 
 from .clara_viz_operator import ClaraVizOperator
 
-
 __all__ = ["ClaraVizOperator"]

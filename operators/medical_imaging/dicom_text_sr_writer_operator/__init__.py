@@ -12,4 +12,4 @@ The operator enables encoding textual results into DICOM-compliant Structured Re
 
 from .dicom_text_sr_writer_operator import DICOMTextSRWriterOperator
 
-__all__ = ["DICOMTextSRWriterOperator"] 
+__all__ = ["DICOMTextSRWriterOperator"]

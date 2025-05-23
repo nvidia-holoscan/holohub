@@ -12,4 +12,4 @@ The operator enables filtering and selection of relevant DICOM series for downst
 
 from .dicom_series_selector_operator import DICOMSeriesSelectorOperator
 
-__all__ = ["DICOMSeriesSelectorOperator"] 
+__all__ = ["DICOMSeriesSelectorOperator"]

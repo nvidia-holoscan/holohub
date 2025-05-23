@@ -12,4 +12,4 @@ The operator enables conversion of PDF files into DICOM-compliant encapsulated P
 
 from .dicom_encapsulated_pdf_writer_operator import DICOMEncapsulatedPDFWriterOperator
 
-__all__ = ["DICOMEncapsulatedPDFWriterOperator"] 
+__all__ = ["DICOMEncapsulatedPDFWriterOperator"]

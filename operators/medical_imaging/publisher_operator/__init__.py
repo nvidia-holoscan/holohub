@@ -12,4 +12,4 @@ The operator enables flexible publishing of processed medical imaging data for v
 
 from .publisher_operator import PublisherOperator
 
-__all__ = ["PublisherOperator"] 
+__all__ = ["PublisherOperator"]

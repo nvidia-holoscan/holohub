@@ -12,4 +12,4 @@ The operator enables encoding segmentation data into DICOM-compliant segmentatio
 
 from .dicom_seg_writer_operator_all_frames import DICOMSegmentationWriterOperator
 
-__all__ = ["DICOMSegmentationWriterOperator"] 
+__all__ = ["DICOMSegmentationWriterOperator"]

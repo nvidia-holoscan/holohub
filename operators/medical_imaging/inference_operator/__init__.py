@@ -12,4 +12,4 @@ The operator handles model loading, execution, and result management.
 
 from .inference_operator import InferenceOperator
 
-__all__ = ["InferenceOperator"] 
+__all__ = ["InferenceOperator"]

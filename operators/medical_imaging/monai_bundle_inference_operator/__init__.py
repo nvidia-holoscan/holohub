@@ -12,4 +12,4 @@ The operator enables loading and executing MONAI Bundle models for medical imagi
 
 from .monai_bundle_inference_operator import MonaiBundleInferenceOperator
 
-__all__ = ["MonaiBundleInferenceOperator"] 
+__all__ = ["MonaiBundleInferenceOperator"]

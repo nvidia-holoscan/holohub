@@ -37,8 +37,9 @@ including application context management, data types, and model interfaces.
     parse_args
 """
 
-from .app_context import AppContext
-from .app_context import init_app_context
+from holoscan.core import Application
+
+from .app_context import AppContext, init_app_context
 from .arg_parser import parse_args
 from .domain.datapath import DataPath
 from .domain.image import Image
@@ -49,9 +50,6 @@ from .models.named_model import NamedModel
 from .models.torch_model import TorchScriptModel
 from .models.triton_model import TritonModel
 from .runtime_env import RuntimeEnv
-
-
-from holoscan.core import Application
 
 # Add the function to the existing Application class, which could've been used as helper func too.
 # It is well understood that deriving from the Application base is a better approach, but maybe later.
