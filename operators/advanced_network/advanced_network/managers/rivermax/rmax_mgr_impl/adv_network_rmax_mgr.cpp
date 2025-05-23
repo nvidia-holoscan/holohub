@@ -90,8 +90,8 @@ class RmaxMgr::RmaxMgrImpl {
 
   void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx);
   void* get_packet_ptr(BurstParams* burst, int idx);
-  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
-  uint16_t get_packet_length(BurstParams* burst, int idx);
+  uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
+  uint32_t get_packet_length(BurstParams* burst, int idx);
   void* get_packet_extra_info(BurstParams* burst, int idx);
   Status get_tx_packet_burst(BurstParams* burst);
   Status set_eth_header(BurstParams* burst, int idx, char* dst_addr);
@@ -416,7 +416,7 @@ void* RmaxMgr::RmaxMgrImpl::get_packet_ptr(BurstParams* burst, int idx) {
  * @param idx The packet index within the segment.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::RmaxMgrImpl::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t RmaxMgr::RmaxMgrImpl::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return burst->pkt_lens[seg][idx];
 }
 
@@ -427,7 +427,7 @@ uint16_t RmaxMgr::RmaxMgrImpl::get_segment_packet_length(BurstParams* burst, int
  * @param idx The packet index.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::RmaxMgrImpl::get_packet_length(BurstParams* burst, int idx) {
+uint32_t RmaxMgr::RmaxMgrImpl::get_packet_length(BurstParams* burst, int idx) {
   return burst->pkt_lens[0][idx];
 }
 
@@ -815,7 +815,7 @@ void* RmaxMgr::get_packet_ptr(BurstParams* burst, int idx) {
  * @param idx The packet index within the segment.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t RmaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return pImpl->get_segment_packet_length(burst, seg, idx);
 }
 
@@ -826,7 +826,7 @@ uint16_t RmaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx
  * @param idx The packet index.
  * @return Length of the packet.
  */
-uint16_t RmaxMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t RmaxMgr::get_packet_length(BurstParams* burst, int idx) {
   return pImpl->get_packet_length(burst, idx);
 }
 
