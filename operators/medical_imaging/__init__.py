@@ -52,9 +52,6 @@ from .core import (
 from .dicom_data_loader_operator import DICOMDataLoaderOperator
 from .dicom_encapsulated_pdf_writer_operator import DICOMEncapsulatedPDFWriterOperator
 from .dicom_seg_writer_operator import DICOMSegmentationWriterOperator, SegmentDescription
-from .dicom_seg_writer_operator_all_frames import (
-    DICOMSegmentationWriterOperator as DICOMSegmentationWriterOperatorAllFrames,
-)
 from .dicom_series_selector_operator import DICOMSeriesSelectorOperator
 from .dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
 from .dicom_text_sr_writer_operator import DICOMTextSRWriterOperator
@@ -84,7 +81,6 @@ __all__ = [
     "DICOMDataLoaderOperator",
     "DICOMEncapsulatedPDFWriterOperator",
     "DICOMSegmentationWriterOperator",
-    "DICOMSegmentationWriterOperatorAllFrames",
     "DICOMSeriesSelectorOperator",
     "DICOMSeriesToVolumeOperator",
     "DICOMTextSRWriterOperator",
