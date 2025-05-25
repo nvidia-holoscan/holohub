@@ -10,6 +10,6 @@ The operator supports pre-transforms, sliding window inference, and post-transfo
     MonaiSegInferenceOperator
 """
 
-from .monai_seg_inference_operator import MonaiSegInferenceOperator, InfererType, InMemImageReader
+from .monai_seg_inference_operator import InfererType, InMemImageReader, MonaiSegInferenceOperator
 
 __all__ = ["MonaiSegInferenceOperator", "InfererType", "InMemImageReader"]

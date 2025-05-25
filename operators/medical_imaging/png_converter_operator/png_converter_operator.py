@@ -24,9 +24,7 @@ from holoscan.core import Fragment, Operator, OperatorSpec
 
 from operators.medical_imaging.core import Image
 from operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
-from operators.medical_imaging.dicom_series_to_volume_operator import (
-    DICOMSeriesToVolumeOperator,
-)
+from operators.medical_imaging.dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
 from operators.medical_imaging.utils.importutil import optional_import
 
 PILImage, _ = optional_import("PIL", name="Image")
