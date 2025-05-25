@@ -73,7 +73,7 @@ output
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
 ```
 
-The dafault locations for DICOM inputs, model download and the output is set as follwing:
+By default, the application uses the following directories for input data, model files, and output results:
 
 ```bash
 HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
