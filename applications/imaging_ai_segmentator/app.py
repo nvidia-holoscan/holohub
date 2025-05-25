@@ -22,14 +22,14 @@ from holoscan.conditions import CountCondition
 from holoscan.core import Application
 from monai_totalseg_operator import MonaiTotalSegOperator
 from pydicom.sr.codedict import codes  # Required for setting SegmentDescription attributes.
-    
+
 from operators.medical_imaging import (
     AppContext,
     DICOMDataLoaderOperator,
     DICOMSegmentationWriterOperator,
-    SegmentDescription,
     DICOMSeriesSelectorOperator,
     DICOMSeriesToVolumeOperator,
+    SegmentDescription,
 )
 
 # Labels for the channels/segments
