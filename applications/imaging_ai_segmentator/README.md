@@ -60,7 +60,7 @@ rm -rf output/*
 
 Once the command completes, please check the output folder for the results, e.g.
 
-```
+```console
 output
 ├── 1.2.826.0.1.3680043.10.511.3.57591117750107235783166330094310669.dcm
 └── saved_images_folder

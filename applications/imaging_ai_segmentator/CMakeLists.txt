@@ -45,8 +45,8 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   file(MAKE_DIRECTORY ${DOWNLOAD_DATA_DIR}/dicom)
   add_custom_command(
     OUTPUT imaging_ai_segmentator_data
-    COMMAND gdown -q https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O ${DOWNLOAD_DATA_DIR}/models/model.pt
-    COMMENT "Downloading imaging_ai_segmentator model using gdown..."
+    COMMAND  wget https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt -O ${DOWNLOAD_DATA_DIR}/models/model.pt
+    COMMENT "Downloading imaging_ai_segmentator model from MONAI Model Zoo (hosted by NVIDIA)..."
   )
   add_custom_target(run ALL
       DEPENDS imaging_ai_segmentator_data)

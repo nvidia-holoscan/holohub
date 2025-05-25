@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,6 @@ FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Holohub Environment Variables
-ENV HOLOSCAN_INPUT_PATH=/var/holoscan/input
-ENV HOLOSCAN_OUTPUT_PATH=/var/holoscan/output
-ENV HOLOSCAN_MODEL_PATH=/opt/holoscan/models
 # --------------------------------------------------------------------------
 #
 # Holohub run setup
@@ -41,7 +37,7 @@ COPY run /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
 COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+RUN /tmp/scripts/run setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
@@ -51,6 +47,13 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 #   performed at docker run time in case users want to use a different BUILD_TYPE
 ARG CMAKE_BUILD_TYPE=Release
 
+# Qcap dependency
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libgstreamer1.0-0 \
+        libgstreamer-plugins-base1.0-0 \
+        libgles2 \
+        libopengl0
 
 # For benchmarking
 RUN apt update \
@@ -60,15 +63,29 @@ RUN apt update \
     gobject-introspection \
     libgtk-3-dev \
     libcanberra-gtk-module \
-    graphviz
+    graphviz\
+    ninja-build
+
+RUN pip install meson
+
 RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
     fi
+COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
+RUN pip install -r /tmp/benchmarking_requirements.txt
+
+# For RTI Connext DDS
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        openjdk-21-jre
+RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/java//")' >> /etc/bash.bashrc
+
+
+# Application specific environment variables
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
+ENV HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
+ENV HOLOSCAN_OUTPUT_PATH=/workspace/holohub/output
+
+# Application specific requirements
 COPY applications/imaging_ai_segmentator/requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
-
-RUN pip install gdown && \
-    mkdir -p ${HOLOSCAN_MODEL_PATH} && \
-    python -m gdown https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O ${HOLOSCAN_MODEL_PATH}/model.pt
-
-RUN mkdir -p ${HOLOSCAN_OUTPUT_PATH}
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
