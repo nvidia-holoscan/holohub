@@ -509,15 +509,16 @@ Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(BurstParams** burst, int port,
   auto queue_it = rx_bursts_out_queues_map_.find(service_id);
 
   if (queue_it == rx_bursts_out_queues_map_.end()) {
-    HOLOSCAN_LOG_ERROR("No Rx queue found for Rivermax service (port {}, queue {}). "
-                       "Check config.", port, q);
+    HOLOSCAN_LOG_ERROR(
+        "No Rx queue found for Rivermax service (port {}, queue {}). "
+        "Check config.",
+        port,
+        q);
     return Status::INVALID_PARAMETER;
   }
 
   auto out_burst_shared = queue_it->second->dequeue_burst();
-  if (out_burst_shared == nullptr) {
-    return Status::NULL_PTR;
-  }
+  if (out_burst_shared == nullptr) { return Status::NULL_PTR; }
   *burst = out_burst_shared.get();
   return Status::SUCCESS;
 }
