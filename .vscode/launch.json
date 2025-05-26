@@ -1145,6 +1145,25 @@
             }
         },
         //#endregion holoviz
+        //#region isaac_holoscan_bridge
+        {
+            "name": "(debugpy) isaac_holoscan_bridge/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build isaac_holoscan_bridge",
+            "program": "${workspaceFolder}/applications/isaac_holoscan_bridge/IsaacSimHoloscan.py",
+            "args": [
+            ],
+            "cwd": "${workspaceFolder}/build/isaac_holoscan_bridge/",
+            "env": {
+            },
+            "presentation": {
+                "group": "isaac_holoscan_bridge",
+                "hidden": false,
+                "order": 2
+            }
+        },
+        //#region isaac_holoscan_bridge
         //#region multiai_ultrasound
         {
             "name": "(gdb) multiai_ultrasound/cpp",
