@@ -14,13 +14,16 @@ The `DICOMDataLoaderOperator` loads DICOM studies from a specified folder, makin
 ## Example Usage
 
 ```python
+from pathlib import Path
 from holoscan.core import Fragment
-from operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
+from holoscan.operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
 
 fragment = Fragment()
-dicom_loader = DICOMDataLoaderOperator(fragment, input_folder="/path/to/dicom/files")
+dicom_loader = DICOMDataLoaderOperator(
+    fragment,
+    name="dicom_loader",  # Optional operator name
+    input_folder=Path("input"),  # Path to folder containing DICOM files
+    output_name="dicom_study_list",  # Name of the output port
+    must_load=True  # Whether to raise an error if no DICOM files are found
+)
 ```
-
-## Acknowledgements
-
-Developed by NVIDIA Holoscan SDK Team. See LICENSE for details.

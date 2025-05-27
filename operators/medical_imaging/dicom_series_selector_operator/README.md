@@ -15,12 +15,18 @@ The `DICOMSeriesSelectorOperator` enables filtering and selection of relevant DI
 
 ```python
 from holoscan.core import Fragment
-from operators.medical_imaging.dicom_series_selector_operator import DICOMSeriesSelectorOperator
+from holoscan.operators.medical_imaging.dicom_series_selector_operator import DICOMSeriesSelectorOperator
 
 fragment = Fragment()
-selector_op = DICOMSeriesSelectorOperator(fragment, ...)
+selector_op = DICOMSeriesSelectorOperator(
+    fragment,
+    name="series_selector",  # Optional operator name
+    rules="""
+    {
+        "Modality": "CT",
+        "SeriesDescription": "Axial"
+    }
+    """,  # JSON string defining selection rules
+    all_matched=False  # Whether all rules must match (AND) or any rule can match (OR)
+)
 ```
-
-## Acknowledgements
-
-Developed by NVIDIA Holoscan SDK Team. See LICENSE for details.

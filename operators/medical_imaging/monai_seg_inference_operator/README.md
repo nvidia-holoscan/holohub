@@ -15,13 +15,40 @@ The `MonaiSegInferenceOperator` performs pre-transforms on input images, runs se
 ## Example Usage
 
 ```python
+from pathlib import Path
+import torch
+from monai.transforms import Compose, LoadImage, ScaleIntensity, EnsureChannelFirst
 from holoscan.core import Fragment
-from operators.medical_imaging.monai_seg_inference_operator import MonaiSegInferenceOperator
+from operators.medical_imaging.monai_segmentation_inference_operator import MonaiSegInferenceOperator
+from operators.medical_imaging.core import AppContext, IOMapping, IOType, Image
 
+# Initialize the fragment
 fragment = Fragment()
-seg_op = MonaiSegInferenceOperator(fragment, ...)
+
+# Create app context
+app_context = AppContext({})
+
+# Define transforms
+pre_transforms = Compose([
+    LoadImage(image_only=True),
+    EnsureChannelFirst(),
+    ScaleIntensity(),
+])
+
+post_transforms = Compose([
+    # Add your post-processing transforms here
+])
+
+# Initialize the segmentation operator
+seg_op = MonaiSegInferenceOperator(
+    fragment,
+    roi_size=(96, 96, 96),  # Example ROI size for 3D images
+    pre_transforms=pre_transforms,
+    post_transforms=post_transforms,
+    app_context=app_context,
+    model_name="unet",  # Example model name
+    overlap=0.25,
+    sw_batch_size=4,
+    model_path=Path("/path/to/your/model.pt")  # Replace with your model path
+)
 ```
-
-## Acknowledgements
-
-Developed by NVIDIA Holoscan SDK Team. See LICENSE for details.

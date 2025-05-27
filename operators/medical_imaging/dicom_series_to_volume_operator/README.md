@@ -16,12 +16,11 @@ The `DICOMSeriesToVolumeOperator` reads a DICOM series and constructs a volume i
 
 ```python
 from holoscan.core import Fragment
-from operators.medical_imaging.dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
+from holoscan.operators.medical_imaging.dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
 
 fragment = Fragment()
-vol_op = DICOMSeriesToVolumeOperator(fragment, ...)
+vol_op = DICOMSeriesToVolumeOperator(
+    fragment,
+    name="series_to_volume"  # Optional operator name
+)
 ```
-
-## Acknowledgements
-
-Developed by NVIDIA Holoscan SDK Team. See LICENSE for details.

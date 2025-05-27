@@ -10,6 +10,8 @@ The `ClaraVizOperator` enables advanced visualization of medical imaging data us
 
 - Holoscan SDK Python package
 - clara-viz
+- IPython
+- ipywidgets
 
 ## Example Usage
 
@@ -18,9 +20,10 @@ from holoscan.core import Fragment
 from operators.medical_imaging.clara_viz_operator import ClaraVizOperator
 
 fragment = Fragment()
-viz_op = ClaraVizOperator(fragment, ...)
+viz_op = ClaraVizOperator(
+    fragment,
+    name="clara_viz",  # Optional operator name
+    input_name_image="image",  # Name of the input port for the image
+    input_name_seg_image="seg_image"  # Name of the input port for the segmentation image
+)
 ```
-
-## Acknowledgements
-
-Developed by NVIDIA Holoscan SDK Team. See LICENSE for details.
