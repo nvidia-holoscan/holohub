@@ -143,6 +143,11 @@ class HoloHubContainer:
                 "<holohub_app_source>", str(self.project_metadata["source_folder"])
             )
             dockerfile = dockerfile.replace("<holohub_root>", str(HoloHubContainer.HOLOHUB_ROOT))
+
+            # If the Dockerfile path is not absolute, make it absolute
+            if not str(dockerfile).startswith(str(HoloHubContainer.HOLOHUB_ROOT)):
+                dockerfile = str(HoloHubContainer.HOLOHUB_ROOT / dockerfile)
+
             return Path(dockerfile)
 
         source_folder = self.project_metadata.get("source_folder", "")
