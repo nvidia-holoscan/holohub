@@ -16,7 +16,7 @@ The `DICOMSeriesToVolumeOperator` reads a DICOM series and constructs a volume i
 
 ```python
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
+from operators.medical_imaging.dicom_series_to_volume_operator import DICOMSeriesToVolumeOperator
 
 fragment = Fragment()
 vol_op = DICOMSeriesToVolumeOperator(

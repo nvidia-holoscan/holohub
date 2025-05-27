@@ -15,7 +15,7 @@ The `DICOMSeriesSelectorOperator` enables filtering and selection of relevant DI
 
 ```python
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_series_selector_operator import DICOMSeriesSelectorOperator
+from operators.medical_imaging.dicom_series_selector_operator import DICOMSeriesSelectorOperator
 
 fragment = Fragment()
 selector_op = DICOMSeriesSelectorOperator(

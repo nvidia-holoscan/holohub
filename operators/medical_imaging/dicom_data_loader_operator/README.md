@@ -16,7 +16,7 @@ The `DICOMDataLoaderOperator` loads DICOM studies from a specified folder, makin
 ```python
 from pathlib import Path
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
+from operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
 
 fragment = Fragment()
 dicom_loader = DICOMDataLoaderOperator(

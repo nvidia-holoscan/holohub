@@ -19,7 +19,7 @@ The `DICOMSegmentationWriterOperator` takes segmentation data and encodes it int
 ```python
 from pathlib import Path
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_seg_writer_operator import DICOMSegmentationWriterOperator, SegmentDescription
+from operators.medical_imaging.dicom_seg_writer_operator import DICOMSegmentationWriterOperator, SegmentDescription
 from highdicom import codes
 
 fragment = Fragment()

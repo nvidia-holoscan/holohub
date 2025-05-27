@@ -17,8 +17,8 @@ The `DICOMTextSRWriterOperator` encodes textual results into DICOM-compliant Str
 ```python
 from pathlib import Path
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_text_sr_writer_operator import DICOMTextSRWriterOperator
-from holoscan.operators.medical_imaging.utils.dicom_utils import ModelInfo, EquipmentInfo
+from operators.medical_imaging.dicom_text_sr_writer_operator import DICOMTextSRWriterOperator
+from operators.medical_imaging.utils.dicom_utils import ModelInfo, EquipmentInfo
 
 fragment = Fragment()
 sr_writer_op = DICOMTextSRWriterOperator(

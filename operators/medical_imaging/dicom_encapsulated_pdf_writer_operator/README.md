@@ -17,8 +17,8 @@ The `DICOMEncapsulatedPDFWriterOperator` converts PDF files into DICOM-compliant
 ```python
 from pathlib import Path
 from holoscan.core import Fragment
-from holoscan.operators.medical_imaging.dicom_encapsulated_pdf_writer_operator import DICOMEncapsulatedPDFWriterOperator
-from holoscan.operators.medical_imaging.utils.dicom_utils import ModelInfo, EquipmentInfo
+from operators.medical_imaging.dicom_encapsulated_pdf_writer_operator import DICOMEncapsulatedPDFWriterOperator
+from operators.medical_imaging.utils.dicom_utils import ModelInfo, EquipmentInfo
 
 fragment = Fragment()
 pdf_writer_op = DICOMEncapsulatedPDFWriterOperator(
