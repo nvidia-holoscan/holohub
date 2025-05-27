@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,6 +66,8 @@ add_subdirectory(laser_detection_latency)
 add_holohub_application(monai_endoscopic_tool_seg DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_ultrasound DEPENDS OPERATORS aja_source)
+
+add_holohub_application(nvidia_video_codec DEPENDS OPERATORS nv_video_encoder nv_video_decoder)
 
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
