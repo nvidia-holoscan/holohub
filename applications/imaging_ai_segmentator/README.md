@@ -155,11 +155,3 @@ The application generates two types of outputs:
 2. NIfTI format files in the `saved_images_folder`:
    - Original CT scan in NIfTI format
    - Segmentation results in NIfTI format
-
-## Contributing
-
-Please review the [CONTRIBUTING.md](../../CONTRIBUTING.md) guidelines to contribute to this application.
-
-## License
-
-This project is licensed under the Apache 2.0 License - see the [LICENSE](../../LICENSE) file for details.

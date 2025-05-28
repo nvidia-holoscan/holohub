@@ -28,9 +28,8 @@
             "data": [
                 {
                     "name": "Imaging AI Whole Body Segmentation",
-                    "description": "This resource contains a binary tool segmentation model [1], a binary out-of-body classification model and sample surgical videos as accompanying assets for the Orsi Academy holohub applications.",
-                    "url": "https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt",
-                    "version": "20250523"
+                    "description": "MONAI model for whole body CT segmentation",
+                    "url": "https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt"
                 }
             ],
             "libraries": [
