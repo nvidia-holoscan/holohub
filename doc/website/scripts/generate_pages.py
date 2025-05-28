@@ -209,7 +209,40 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
         output_lines.append(f":octicons-{icon}-24: **{label}:** {value}<br>")
 
     # Join the valid lines and add a line break
-    return "".join(output_lines) + "<br>"
+    metadata_header = "".join(output_lines) + "<br>"
+
+    # Add launch commands if present
+    launch_data = metadata.get("launch", [])
+    if launch_data and isinstance(launch_data, list) and len(launch_data) > 0:
+        # Add section header
+        metadata_header += "\n## Quick Run\n\n"
+
+        # Create tab UI for launch commands
+        metadata_header += '<div class="tabbed-set" data-tabs="1:3">\n'
+
+        # Create tab labels
+        for i, launch_option in enumerate(launch_data):
+            option_name = launch_option.get("description", f"Option {i+1}")
+            metadata_header += f'<div id="tab-{i+1}" class="tabbed-content" data-tab="{i+1}">\n'
+            metadata_header += f"<h3>{option_name}</h3>\n"
+
+            # Add command with copy button
+            cmd = launch_option.get("command", "")
+            metadata_header += "```bash\n"
+            metadata_header += f"{cmd}\n"
+            metadata_header += "```\n"
+
+            # Add hardware requirements if present
+            hardware_req = launch_option.get("requires_hardware", [])
+            if hardware_req:
+                hw_str = ", ".join(hardware_req)
+                metadata_header += f"<p><em>Note: Requires {hw_str} hardware.</em></p>\n"
+
+            metadata_header += "</div>\n"
+
+        metadata_header += "</div>\n\n"
+
+    return metadata_header
 
 
 def _get_path_relative_to_repo(
@@ -417,6 +450,157 @@ def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     return readme_text.replace(full_header, new_header, 1)
 
 
+def create_run_commands_html(metadata: dict) -> str:
+    """Create HTML for the run commands with tabs.
+
+    Args:
+        metadata: The application metadata dictionary
+
+    Returns:
+        HTML string containing tabbed launch commands
+    """
+    # Check if launch commands are present
+    launch_data = metadata.get("launch", [])
+    if not launch_data or not isinstance(launch_data, list) or len(launch_data) == 0:
+        return ""
+
+    # Start with a Markdown section header for proper document structure
+    content = ["\n## Quick Run\n"]
+    content.append("<!-- Launch commands generated from metadata.json -->")
+
+    # Create HTML for the tabbed interface
+    content.append('<div class="tabbed-commands">')
+
+    # Tab buttons
+    content.append('<div class="tab-buttons">')
+    for i, launch_option in enumerate(launch_data):
+        option_name = launch_option.get("id", f"Option {i+1}")
+        option_id = f"launch-tab-{i+1}"
+        is_active = ' class="active"' if i == 0 else ""
+        content.append(
+            f'<button id="{option_id}-btn"{is_active} onclick="switchTab(\'{option_id}\')">{option_name}</button>'
+        )
+    content.append("</div>")
+
+    # Tab content
+    content.append('<div class="tab-content">')
+    for i, launch_option in enumerate(launch_data):
+        option_id = f"launch-tab-{i+1}"
+        option_display = "block" if i == 0 else "none"
+        cmd = launch_option.get("command", "")
+        cmd = "git clone https://github.com/nvidia-holoscan/holohub.git && cd holohub \n" + cmd
+        content.append(
+            f'<div id="{option_id}" class="tab-pane" style="display: {option_display};">'
+        )
+
+        # Command with copy button
+        content.append('<div class="command-block">')
+        content.append(f'<pre><code class="language-bash">{cmd}</code></pre>')
+        content.append("</div>")
+
+        # Hardware requirements if present
+        hardware_req = launch_option.get("requires_hardware", [])
+        if hardware_req and len(hardware_req) > 0:
+            hw_str = ", ".join(hardware_req)
+            content.append(
+                f'<p class="requirement-note"><em>Note: Requires {hw_str} hardware.</em></p>'
+            )
+
+        content.append("</div>")  # Close tab-pane
+
+    content.append("</div>")  # Close tab-content
+    content.append("</div>")  # Close tabbed-commands
+
+    # Add JavaScript and CSS
+    content.append(
+        """
+<script>
+function switchTab(tabId) {
+    // Hide all tab panes
+    var tabPanes = document.getElementsByClassName('tab-pane');
+    for (var i = 0; i < tabPanes.length; i++) {
+        tabPanes[i].style.display = 'none';
+    }
+
+    // Deactivate all tab buttons
+    var tabButtons = document.getElementsByClassName('tab-buttons')[0].getElementsByTagName('button');
+    for (var i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+    }
+
+    // Show the selected tab pane
+    document.getElementById(tabId).style.display = 'block';
+
+    // Activate the selected tab button
+    document.getElementById(tabId + '-btn').classList.add('active');
+}
+
+</script>
+
+<style>
+.tabbed-commands {
+    margin: 20px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.tab-buttons {
+    background-color: #f1f1f1;
+    overflow: hidden;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-buttons button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    transition: 0.3s;
+    font-size: 16px;
+}
+
+.tab-buttons button:hover {
+    background-color: #ddd;
+}
+
+.tab-buttons button.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.tab-content {
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+
+.command-block {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.command-block pre {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0;
+}
+
+.requirement-note {
+    margin-top: 10px;
+    color: #666;
+}
+</style>
+"""
+    )
+
+    return "\n".join(content)
+
+
 def create_page(
     metadata: dict,
     readme_text: str,
@@ -459,6 +643,45 @@ def create_page(
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
     readme_text = patch_header(readme_text, url, metadata_header)
+
+    # Remove any existing "Quick Run" or "Launch/Run Commands" sections from the README
+    # This prevents duplication with our generated launch commands
+    # We need to do this after the header patching to ensure we're working with the full content
+    section_patterns = [
+        r"(?s)(## Quick Run.*?)(?=\n## |\Z)",
+        r"(?s)(## Launch Commands.*?)(?=\n## |\Z)",
+        r"(?s)(## Run Commands.*?)(?=\n## |\Z)",
+        r"(?s)(<!-- This section is automatically generated from metadata\.json.*?)(?=\n## |\Z)",
+        r"(?s)(<!-- Launch commands.*?)(?=\n## |\Z)",
+    ]
+
+    # Apply all patterns
+    for pattern in section_patterns:
+        readme_text = re.sub(pattern, "", readme_text)
+
+    # Clean up any resulting double line breaks
+    readme_text = re.sub(r"\n\n\n+", "\n\n", readme_text)
+
+    # Add launch commands if metadata contains them
+    if (
+        "launch" in metadata
+        and isinstance(metadata["launch"], list)
+        and len(metadata["launch"]) > 0
+    ):
+        run_commands_html = create_run_commands_html(metadata)
+
+        # Find a good position to insert - after introduction but before first section
+        first_section_match = re.search(r"(^|\n)## ", readme_text)
+        if first_section_match:
+            # Insert before the first section heading
+            pos = first_section_match.start()
+            # Ensure there's proper spacing before the insert
+            if readme_text[pos - 1] != "\n":
+                run_commands_html = "\n" + run_commands_html
+            readme_text = readme_text[:pos] + run_commands_html + "\n" + readme_text[pos:]
+        else:
+            # If no section heading found, append at the end
+            readme_text += "\n\n" + run_commands_html
 
     # Append the text to the output
     output_text += readme_text

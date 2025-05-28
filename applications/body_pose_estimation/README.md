@@ -9,6 +9,33 @@
 Body pose estimation is a computer vision task that involves recognizing specific points on the human body in images or videos.
 A model is used to infer the locations of keypoints from the source video which is then rendered by the visualizer. 
 
+## Quick Run
+
+<!-- This section is automatically generated from metadata.json. Do not modify manually. Update the metadata.json file instead. -->
+Run this application with:
+
+```bash
+./dev_container build_and_run body_pose_estimation
+```
+
+### Additional Run Options
+
+**Run with pre-recorded video (no camera required)**:
+```bash
+./dev_container build_and_run body_pose_estimation --run_args "--source replayer"
+```
+
+**Run with specific camera device (replace X with device number)**:
+```bash
+./dev_container build_and_run body_pose_estimation --run_args "--video_device /dev/videoX"
+```
+*Note: Requires camera hardware.*
+
+**Run with DDS video stream input**:
+```bash
+./dev_container build_and_run body_pose_estimation --run_args "--source dds"
+```
+
 ## Model
 
 This application uses YOLO11 pose model from [Ultralytics](https://docs.ultralytics.com/tasks/pose/) for body pose estimation.
