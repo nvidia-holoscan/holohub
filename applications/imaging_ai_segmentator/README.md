@@ -84,7 +84,7 @@ HOLOSCAN_OUTPUT_PATH=/workspace/holohub/output
 You can modify them by setting the right env variable and mount the right voluems, for instance:
 
 ```bash
-./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output"
+./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
 ```
 
 ### Development Environment Setup
