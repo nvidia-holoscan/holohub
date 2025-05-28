@@ -554,7 +554,7 @@ class HoloHubCLI:
             # Set up environment
             env = os.environ.copy()
             env["PYTHONPATH"] = (
-                f"{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
+                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
             )
             env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
