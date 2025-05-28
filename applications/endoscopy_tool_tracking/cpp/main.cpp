@@ -93,6 +93,8 @@ class App : public holoscan::Application {
 #ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>(
           "aja", from_config("aja"), from_config("external_source"));
+#else 
+throw std::runtime_error("AJA is requested but not available. Please enable AJA at build time.");
 #endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
