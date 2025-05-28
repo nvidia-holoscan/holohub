@@ -47,8 +47,7 @@ add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_so
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                                  aja_source
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
+                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
 
 add_subdirectory(h264)
 
