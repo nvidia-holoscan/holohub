@@ -332,7 +332,7 @@ class HoloHubContainer:
         # Add local SDK options if provided
         if local_sdk_root:
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
-            cmd.extend(["-e", f"PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"])
+            cmd.extend(["-e", "PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"])
 
         # Add docker options if provided
         if docker_opts:
