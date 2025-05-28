@@ -1,4 +1,4 @@
-holoscan>=2.3.0
+# holoscan>=2.3.0 # already installed in the docker image
 highdicom>=0.18.2
 monai>=1.0.0
 nibabel>=3.2.1
