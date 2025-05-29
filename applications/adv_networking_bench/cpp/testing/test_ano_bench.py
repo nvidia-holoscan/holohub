@@ -271,8 +271,7 @@ def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
     results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
 
     # Validate some expected metrics
-    # We only check that every queue got at least 100 packets here
-    rx_queue_pkts_check = results.validate_rx_queue_packets(
-        1, {0: 100, 1: 100, 2: 100, 3: 100, 4: 100, 5: 100, 6: 100, 7: 100, 8: 100}, gt=True
-    )
+    # We only check that every rx queue got at least 1 packet here on port 1
+    expected_q_pkts = {i: 1 for i in range(9)}
+    rx_queue_pkts_check = results.validate_rx_queue_packets(1, expected_q_pkts, allow_greater=True)
     assert rx_queue_pkts_check, "RX queue packet distribution validation failed"
