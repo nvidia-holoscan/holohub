@@ -54,7 +54,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     COMMAND  unzip /tmp/CT_DICOM_SINGLE.zip -d ${DOWNLOAD_DATA_DIR}/dicom
     COMMENT "Downloading a sample CT DICOM Image..."
   )
-  
+
   add_custom_target(run ALL
       DEPENDS imaging_ai_segmentator_data_model imaging_ai_segmentator_data)
 endif()
