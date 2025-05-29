@@ -523,7 +523,10 @@ class HoloHubCLI:
             cmd = cmd.replace("<holohub_app_bin>", str(app_build_dir))
 
             if hasattr(args, "run_args") and args.run_args:
-                cmd = f"{cmd} {args.run_args}"
+                cmd_args = shlex.split(args.run_args)
+                cmd = cmd.split()  # Ensure cmd is a list of arguments
+                cmd.extend(cmd_args)
+                cmd = " ".join(cmd)  # Convert back to string if needed later
 
             if language == "cpp":
                 if not build_dir.is_dir() and not args.dryrun:
