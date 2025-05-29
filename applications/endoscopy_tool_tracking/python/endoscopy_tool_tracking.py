@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import importlib.util
 import os
+import sys
 from argparse import ArgumentParser
 
 from holoscan.core import Application
@@ -23,27 +25,41 @@ from holoscan.operators import (
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
-
-# Uncomment UnboundedAllocator to enable DELTACAST capture card (linter issue)
-from holoscan.resources import (  # UnboundedAllocator,
+from holoscan.resources import (
     BlockMemoryPool,
     CudaStreamPool,
     MemoryStorageType,
+    UnboundedAllocator,
 )
 
-from holohub.aja_source import AJASourceOp
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
-
-# Enable this line for Yuam capture card
-# from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
-# Uncomment to enable DELTACAST capture card
-# from holohub.videomaster import VideoMasterSourceOp, VideoMasterTransmitterOp
 
+def lazy_import(module_name):
+    """Lazily import a module by name.
 
-# Enable this line for vtk rendering
-# from holohub.vtk_renderer import VtkRendererOp
+    This function provides a way to import modules only when they are first accessed,
+    which can help reduce startup time and memory usage. It uses Python's importlib
+    to handle the lazy loading.
+
+    Args:
+        module_name (str): The name of the module to import
+
+    Returns:
+        module: The imported module object
+
+    Raises:
+        ImportError: If the specified module cannot be found
+    """
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        raise ImportError(f"Module {module_name} not found")
+    module = importlib.util.module_from_spec(spec)
+    loader = importlib.util.LazyLoader(spec.loader)
+    loader.exec_module(module)
+    sys.modules[module_name] = module
+    return module
 
 
 class EndoscopyApp(Application):
@@ -88,7 +104,8 @@ class EndoscopyApp(Application):
 
         if source_name == "aja":
             aja_kwargs = self.kwargs("aja")
-            source = AJASourceOp(self, name="aja", **aja_kwargs)
+            aja_source = lazy_import("holohub.aja_source")
+            source = aja_source.AJASourceOp(self, name="aja", **aja_kwargs)
 
             # 4 bytes/channel, 4 channels
             width = aja_kwargs["width"]
@@ -107,23 +124,24 @@ class EndoscopyApp(Application):
 
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
-            # Uncomment to enable DELTACAST capture card (linter issue)
-            # source = VideoMasterSourceOp(
-            #     self,
-            #     name="deltacast",
-            #     pool=UnboundedAllocator(self, name="pool"),
-            #     rdma=rdma,
-            #     board=deltacast_kwargs["board"],
-            #     input=deltacast_kwargs["input"],
-            #     width=width,
-            #     height=height,
-            #     progressive=deltacast_kwargs.get("progressive", True),
-            #     framerate=deltacast_kwargs.get("framerate", 60),
-            # )
+
+            videomaster = lazy_import("holohub.videomaster")
+            source = videomaster.VideoMasterSourceOp(
+                self,
+                name="deltacast",
+                pool=UnboundedAllocator(self, name="pool"),
+                rdma=rdma,
+                board=deltacast_kwargs["board"],
+                input=deltacast_kwargs["input"],
+                width=width,
+                height=height,
+                progressive=deltacast_kwargs.get("progressive", True),
+                framerate=deltacast_kwargs.get("framerate", 60),
+            )
         elif source_name == "yuan":
             yuan_kwargs = self.kwargs("yuan")
-            # Uncomment to enable QCap
-            # source = QCAPSourceOp(self, name="yuan", **yuan_kwargs)
+            qcap_source = lazy_import("holohub.qcap_source")
+            source = qcap_source.QCAPSourceOp(self, name="yuan", **yuan_kwargs)
 
             # 4 bytes/channel, 4 channels
             width = yuan_kwargs["width"]
@@ -255,16 +273,16 @@ class EndoscopyApp(Application):
                 cuda_stream_pool=cuda_stream_pool,
                 **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
             )
-        # Uncomment the following lines to use VTK renderer
-        # else:
-        #     visualizer = VtkRendererOp(
-        #         self,
-        #         name="vtk",
-        #         width=width,
-        #         height=height,
-        #         window_name="VTK (Kitware) Python",
-        #         **self.kwargs("vtk_op"),
-        #     )
+        else:
+            vtk_renderer = lazy_import("holohub.vtk_renderer")
+            visualizer = vtk_renderer.VtkRendererOp(
+                self,
+                name="vtk",
+                width=width,
+                height=height,
+                window_name="VTK (Kitware) Python",
+                **self.kwargs("vtk_op"),
+            )
 
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
