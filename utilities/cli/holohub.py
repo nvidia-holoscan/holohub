@@ -197,7 +197,9 @@ class HoloHubCLI:
         run.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
         )
-        run.add_argument("--run_args", help="Run the app with additional args")
+        run.add_argument(
+            "--run_args", help="Additional arguments to pass to the application executable"
+        )
         run.set_defaults(func=self.handle_run)
 
         # list command
