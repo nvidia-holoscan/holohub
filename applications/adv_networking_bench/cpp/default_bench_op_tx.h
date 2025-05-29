@@ -138,7 +138,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       parse_udp_port_range(udp_dst_port_str_.get(), udp_dst_ports_);
     } else {
       udp_dst_ports_.push_back(static_cast<uint16_t>(std::stoul(udp_dst_port_str_.get())));
-    }    
+    }
 
     // TX GPU-only mode
     // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
