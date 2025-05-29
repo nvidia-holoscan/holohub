@@ -67,6 +67,7 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
 ENV HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
 ENV HOLOSCAN_OUTPUT_PATH=/workspace/holohub/output
 
-# Python dependencies
+# Python dependencies (remove holoscan from requirements.txt)
 COPY applications/imaging_ai_segmentator/requirements.txt /tmp/requirements.txt
+RUN sed -i '/holoscan/d' /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
