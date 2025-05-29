@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "DicomTextSRWriterOperator",
+		"name": "DICOMTextSRWriterOperator",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

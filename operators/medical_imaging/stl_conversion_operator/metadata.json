@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "StlConversionOperator",
+		"name": "STLConversionOperator",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

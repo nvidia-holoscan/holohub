@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "DICOMSegWriterOperator",
+		"name": "DICOMSegmentationWriterOperator",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

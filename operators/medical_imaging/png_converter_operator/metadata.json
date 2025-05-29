@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "PngConverterOperator",
+		"name": "PNGConverterOperator",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

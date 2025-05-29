@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "NiiDataLoaderOperator",
+		"name": "NiftiDataLoader",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
