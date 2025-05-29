@@ -1,6 +1,6 @@
 # Imaging AI Whole Body Segmentation
 
-This application demonstrates the use of MONAI's TotalSegmentator model for whole-body segmentation of CT scans.
+This application demonstrates the use of the medical imaging operators to build and package an application that parses DICOM images and performs inference using a MONAI model (TotalSegmentator).
 
 ![3D Volume Rendering](resources/segments_3D.png)  
 _Fig. 1: 3D volume rendering of segmentation results in NIfTI format_
