@@ -44,10 +44,17 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   file(MAKE_DIRECTORY ${DOWNLOAD_DATA_DIR}/models)
   file(MAKE_DIRECTORY ${DOWNLOAD_DATA_DIR}/dicom)
   add_custom_command(
-    OUTPUT imaging_ai_segmentator_data
+    OUTPUT imaging_ai_segmentator_data_model
     COMMAND  wget https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt -O ${DOWNLOAD_DATA_DIR}/models/model.pt
     COMMENT "Downloading imaging_ai_segmentator model from MONAI Model Zoo (hosted by NVIDIA)..."
   )
+  add_custom_command(
+    OUTPUT imaging_ai_segmentator_data
+    COMMAND  wget https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/CT_DICOM_SINGLE.zip -O /tmp/CT_DICOM_SINGLE.zip
+    COMMAND  unzip /tmp/CT_DICOM_SINGLE.zip -d ${DOWNLOAD_DATA_DIR}/dicom
+    COMMENT "Downloading a sample CT DICOM Image..."
+  )
+  
   add_custom_target(run ALL
-      DEPENDS imaging_ai_segmentator_data)
+      DEPENDS imaging_ai_segmentator_data_model imaging_ai_segmentator_data)
 endif()
