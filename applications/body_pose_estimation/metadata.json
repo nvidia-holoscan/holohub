@@ -44,25 +44,25 @@
 		},
 		"launch": [
 			{
-				"command": "./dev_container build_and_run body_pose_estimation",
+				"command": "./holohub run body_pose_estimation",
 				"description": "Run with camera input (default)",
 				"id": "default",
 				"requires_hardware": ["camera"]
 			},
 			{
-				"command": "./dev_container build_and_run body_pose_estimation --run_args \"--source replayer\"",
+				"command": "./holohub run body_pose_estimation --run_args \"--source replayer\"",
 				"description": "Run with pre-recorded video (no camera required)",
 				"id": "replayer",
 				"requires_hardware": []
 			},
 			{
-				"command": "./dev_container build_and_run body_pose_estimation --run_args \"--video_device /dev/videoX\"",
+				"command": "./holohub run body_pose_estimation --run_args \"--video_device /dev/videoX\"",
 				"description": "Run with specific camera device (replace X with device number)",
 				"id": "video device",
 				"requires_hardware": ["camera"]
 			},
 			{
-				"command": "./dev_container build_and_run body_pose_estimation --run_args \"--source dds\"",
+				"command": "./holohub run body_pose_estimation --run_args \"--source dds\"",
 				"description": "Run with DDS video stream input",
 				"id": "dds",
 				"requires_hardware": []

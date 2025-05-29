@@ -15,25 +15,25 @@ A model is used to infer the locations of keypoints from the source video which 
 Run this application with:
 
 ```bash
-./dev_container build_and_run body_pose_estimation
+./holohub run body_pose_estimation
 ```
 
 ### Additional Run Options
 
 **Run with pre-recorded video (no camera required)**:
 ```bash
-./dev_container build_and_run body_pose_estimation --run_args "--source replayer"
+./holohub run body_pose_estimation --run_args "--source replayer"
 ```
 
 **Run with specific camera device (replace X with device number)**:
 ```bash
-./dev_container build_and_run body_pose_estimation --run_args "--video_device /dev/videoX"
+./holohub run body_pose_estimation --run_args "--video_device /dev/videoX"
 ```
 *Note: Requires camera hardware.*
 
 **Run with DDS video stream input**:
 ```bash
-./dev_container build_and_run body_pose_estimation --run_args "--source dds"
+./holohub run body_pose_estimation --run_args "--source dds"
 ```
 
 ## Model
