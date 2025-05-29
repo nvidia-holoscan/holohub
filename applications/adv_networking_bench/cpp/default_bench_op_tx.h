@@ -116,23 +116,6 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       HOLOSCAN_LOG_INFO("Initialized {} streams and events", num_concurrent);
     }
 
-    // TX GPU-only mode
-    // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
-    // but this header will not be correct without modification of the IP and MAC. In a
-    // real situation the header would likely be constructed on the GPU
-    if (gpu_direct_.get() && hds_.get() == 0) {
-      cudaMalloc(&gds_header_, header_size_.get());
-      cudaMemset(gds_header_, 0, header_size_.get());
-
-      populate_dummy_headers(pkt);
-      // advanced_network expects host order when setting
-      ip_src_ = ntohl(ip_src_);
-      ip_dst_ = ntohl(ip_dst_);
-
-      // Copy the pre-made header to GPU
-      cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
-    }
-
     bool src_port_is_range = udp_src_port_str_.get().find('-') != std::string::npos;
     bool dst_port_is_range = udp_dst_port_str_.get().find('-') != std::string::npos;
     if (src_port_is_range || dst_port_is_range) {
@@ -155,6 +138,23 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       parse_udp_port_range(udp_dst_port_str_.get(), udp_dst_ports_);
     } else {
       udp_dst_ports_.push_back(static_cast<uint16_t>(std::stoul(udp_dst_port_str_.get())));
+    }
+    
+    // TX GPU-only mode
+    // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
+    // but this header will not be correct without modification of the IP and MAC. In a
+    // real situation the header would likely be constructed on the GPU
+    if (gpu_direct_.get() && hds_.get() == 0) {
+      cudaMalloc(&gds_header_, header_size_.get());
+      cudaMemset(gds_header_, 0, header_size_.get());
+
+      populate_dummy_headers(pkt);
+      // advanced_network expects host order when setting
+      ip_src_ = ntohl(ip_src_);
+      ip_dst_ = ntohl(ip_dst_);
+
+      // Copy the pre-made header to GPU
+      cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
     }
 
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize() complete");
