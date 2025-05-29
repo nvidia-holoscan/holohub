@@ -165,7 +165,9 @@ class AISegApp(Application):
         self.app_output_path = Path(app_context.output_path).resolve()
         self.model_path = Path(app_context.model_path)
 
-        self._logger.info(f"App input and output path: {self.app_input_path}, {self.app_output_path}")
+        self._logger.info(
+            f"App input and output path: {self.app_input_path}, {self.app_output_path}"
+        )
 
         # The following uses an alternative loader to load dcm from disk
         study_loader_op = DICOMDataLoaderOperator(
@@ -240,6 +242,7 @@ class AISegApp(Application):
 
         self._logger.debug(f"End {self.compose.__name__}")
 
+
 # This is a sample series selection rule in JSON, simply selecting CT series.
 # If the study has more than 1 CT series, then all of them will be selected.
 # Please see more detail in DICOMSeriesSelectorOperator.
@@ -275,5 +278,5 @@ if __name__ == "__main__":
     app = AISegApp()
     app.run()
 
-    logging.info(f"Check \"{app.app_output_path}\" for output results.")
+    logging.info(f'Check "{app.app_output_path}" for output results.')
     logging.info(f"End {__name__}")
