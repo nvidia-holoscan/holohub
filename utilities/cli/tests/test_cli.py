@@ -101,6 +101,77 @@ class TestHoloHubCLI(unittest.TestCase):
         run_args.func(run_args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
 
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.util.run_command")
+    @patch("utilities.cli.holohub.shlex.split")
+    @patch("os.chdir")
+    @patch("pathlib.Path.is_dir")
+    @patch("os.environ.copy")
+    def test_run_args_handling(
+        self,
+        mock_environ_copy,
+        mock_is_dir,
+        mock_chdir,
+        mock_shlex_split,
+        mock_run_command,
+        mock_build_project,
+        mock_find_project,
+    ):
+        """Test the run_args parameter handling"""
+        # Setup mocks
+        mock_find_project.return_value = self.mock_project_data
+        mock_build_dir = Path("/path/to/build")
+        mock_build_project.return_value = (mock_build_dir, self.mock_project_data)
+        mock_shlex_split.side_effect = lambda x: x.split()  # Simple split for testing
+        mock_is_dir.return_value = True  # Make sure the directory check passes
+        mock_environ_copy.return_value = {
+            "PATH": "/usr/bin:/bin",
+            "PYTHONPATH": "/path/to/python",
+        }  # Provide a minimal environment
+        complex_args = self.cli.parser.parse_args(["run", "test_project", "--local"])
+        complex_args.run_args = "--param1 value1 --param2=value2"
+        complex_args.nsys_profile = False  # Skip nsys_profile check
+        complex_args.func(complex_args)
+        self.assertIn("--param1", mock_run_command.call_args[0][0])
+        self.assertIn("value1", mock_run_command.call_args[0][0])
+        self.assertIn("--param2=value2", mock_run_command.call_args[0][0])
+        mock_run_command.reset_mock()
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.holohub.shlex.quote")
+    def test_container_run_args(
+        self,
+        mock_shlex_quote,
+        mock_container_class,
+        mock_find_project,
+    ):
+        """Test run_args handling in container mode"""
+        # Setup mocks
+        mock_find_project.return_value = self.mock_project_data
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+
+        # Set a predictable return value for shlex.quote
+        run_args_value = "--flag1 value1 --flag2='quoted value'"
+        quoted_value = "'--flag1 value1 --flag2=\\'quoted value\\''"
+        mock_shlex_quote.return_value = quoted_value
+
+        # Test container run with run_args
+        run_args = self.cli.parser.parse_args(["run", "test_project"])
+        run_args.run_args = run_args_value
+        run_args.func(run_args)
+
+        # Verify the arguments were properly quoted
+        mock_shlex_quote.assert_called_once_with(run_args_value)
+
+        # Verify the container.run was called with the correctly quoted arguments
+        kwargs = mock_container.run.call_args[1]
+        cmd_string = kwargs["extra_args"][1]
+        self.assertIn("--run_args", cmd_string)
+        self.assertIn(quoted_value, cmd_string)
+
     def test_list_command(self):
         """Test the list command parsing"""
         args = self.cli.parser.parse_args(["list"])

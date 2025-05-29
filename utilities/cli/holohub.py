@@ -19,6 +19,7 @@ import datetime
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -196,6 +197,7 @@ class HoloHubCLI:
         run.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
         )
+        run.add_argument("--run_args", help="Run the app with additional args")
         run.set_defaults(func=self.handle_run)
 
         # list command
@@ -520,6 +522,9 @@ class HoloHubCLI:
             app_build_dir = build_dir / app_source_path.relative_to(HoloHubCLI.HOLOHUB_ROOT)
             cmd = cmd.replace("<holohub_app_bin>", str(app_build_dir))
 
+            if hasattr(args, "run_args") and args.run_args:
+                cmd = f"{cmd} {args.run_args}"
+
             if language == "cpp":
                 if not build_dir.is_dir() and not args.dryrun:
                     holohub_cli_util.fatal(
@@ -598,7 +603,7 @@ class HoloHubCLI:
 
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
-            holohub_cli_util.run_command(cmd.split(), env=env, dry_run=args.dryrun)
+            holohub_cli_util.run_command(shlex.split(cmd), env=env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
@@ -617,6 +622,8 @@ class HoloHubCLI:
                 run_cmd += " --verbose"
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
+            if hasattr(args, "run_args") and args.run_args:
+                run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
             container.run(
                 docker_opts="--entrypoint=bash", extra_args=["-c", run_cmd], verbose=args.verbose
