@@ -65,7 +65,7 @@ RUN pip install -r /tmp/benchmarking_requirements.txt
 # Environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
 ENV HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
-ENV HOLOSCAN_OUTPUT_PATH=/workspace/holohub/output
+ENV HOLOSCAN_OUTPUT_PATH=/workspace/holohub/build/imaging_ai_segmentator/output
 
 # Python dependencies (remove holoscan from requirements.txt)
 COPY applications/imaging_ai_segmentator/requirements.txt /tmp/requirements.txt
