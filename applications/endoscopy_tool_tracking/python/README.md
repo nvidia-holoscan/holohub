@@ -50,8 +50,7 @@ the working directory.
 
 * Using an AJA card
     ```bash
-    cd <HOLOHUB_BUILD_DIR>
-    python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=aja
+    ./run launch endoscopy_tool_tracking python --extra_args "-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
     ```
 
 * Using a YUAN card
