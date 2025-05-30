@@ -41,7 +41,7 @@ from monai.transforms import (
 from numpy import uint8
 
 from operators.medical_imaging.core import AppContext, Model
-from operators.medical_imaging.operators.monai_seg_inference_operator import (
+from operators.medical_imaging.monai_seg_inference_operator import (
     InfererType,
     InMemImageReader,
     MonaiSegInferenceOperator,
