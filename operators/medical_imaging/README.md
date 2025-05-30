@@ -1,6 +1,6 @@
 # Medical Imaging Operators
 
-Medical imaging processing and inference operators.
+Medical image processing and inference operators.
 
 ## Overview
 
