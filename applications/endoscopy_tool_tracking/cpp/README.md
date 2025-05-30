@@ -49,8 +49,7 @@ In your `build` directory, run the commands of your choice:
 
 * Using an AJA card
     ```bash
-    sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+    ./run launch endoscopy_tool_tracking cpp --extra_args -capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
     ```
 
 * Using a Deltacast card
