@@ -56,7 +56,6 @@ This application uses the [MONAI whole-body segmentation model](https://github.c
 This is the simplest and fastest way to run the application:
 
 ```bash
-rm -rf output
 ./dev_container build_and_run imaging_ai_segmentator
 ```
 
@@ -65,10 +64,12 @@ rm -rf output
 By default, the application uses the following directories for input data, model files, and output results:
 
 ```bash
-HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
-HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
-HOLOSCAN_OUTPUT_PATH=/workspace/holohub/build/imaging_ai_segmentator/output
+HOLOSCAN_INPUT_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/dicom
+HOLOSCAN_MODEL_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/models
+HOLOSCAN_OUTPUT_PATH=<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output
 ```
+
+Where `<LOCAL_HOLOHUB_PATH>` refers to where you have cloned your Holohub repository and running the `./dev_container` command.
 
 You can modify them by setting the right env variable and mount the right voluems, for instance:
 
