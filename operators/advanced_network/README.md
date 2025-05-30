@@ -162,6 +162,10 @@ bound to a non-isolated core. Should differ from isolated cores in queues below.
   - type: `string`
 - **`log_level`**: Backend log level. default: `warn`. Other: `trace` , `debug`, `info`, `error`, `critical`, `off`
   - type: `string`
+- **`tx_meta_buffers`**: Metadata buffers for transmit. One buffer is used for each burst of packets (default: 4096)
+  - type: `integer`
+- **`rx_meta_buffers`**: Metadata buffers for receive. One buffer is used for each burst of packets (default: 4096)
+  - type: `integer`
 
 ##### Memory regions
 
@@ -212,6 +216,27 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
   		- type: `integer`
 
+##### Transmit Configuration (tx)
+
+- **`queues`**: List of queues on NIC
+	type: `list`
+	full path: `cfg\interfaces\rx\queues`
+	- **`name`**: Name of queue
+  		- type: `string`
+	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
+  		- type: `integer`
+	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
+		Rivermax manager can accept coma separated list of CPU IDs
+  		- type: `string`
+	- **`batch_size`**: Number of packets in a batch passed from the NIC to the downstream operator. A
+	larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
+	buffer. A smaller number reduces end-to-end latency but can also reduce throughput.
+  		- type: `integer`
+	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
+		type: `list`
+	- **`accurate_send`**: Accurate TX sending enabled for sending packets at a specific PTP timestamp
+  		- type: `boolean`
+
 - **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
   type: `list`
   full path: `cfg\interfaces\[rx|tx]\flows`
@@ -227,9 +252,9 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	  		- type: `integer`
 	- **`match`**: Match section of flow
 	  - type: `sequence`
-		- **`udp_src`**: UDP source port
+		- **`udp_src`**: UDP source port or a range of ports (eg 1000-1010)
 	  	- type: `integer`
-		- **`udp_dst`**: UDP destination port
+		- **`udp_dst`**: UDP destination port or a range of ports (eg 1000-1010)
 	  	- type: `integer`
 		- **`ipv4_len`**: IPv4 payload length
 	  	- type: `integer`
