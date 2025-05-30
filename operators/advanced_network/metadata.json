@@ -7,8 +7,9 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"version": "1.4",
+		"version": "1.5",
 		"changelog": {
+			"1.5": "Multi-queue fixes plus support for UDP source and destination ports as ranges",
 			"1.4": "More flow support",
 			"1.3": "Plugin support",
 			"1.2": "TX GPUDirect",
@@ -28,7 +29,7 @@
 		"dependencies": {
 				"gxf_extensions": [{
 					"name": "advanced_network",
-					"version": "1.4"
+					"version": "1.5"
 				}
 			   ]
 			}
