@@ -122,24 +122,25 @@ You can run the application either in your local development environment or insi
    - Download CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/)
    - Save DICOM files under `$HOLOSCAN_INPUT_PATH`
 
-3. **Build and install the application:**
+3. **Build the application:**
 
    ```bash
-   ./dev_container build_and_install imaging_ai_segmentator
+   ./holohub build imaging_ai_segmentator
    ```
 
 4. **Run the application:**
 
    ```bash
-   rm -fr $HOLOSCAN_OUTPUT_PATH
-   python install/imaging_ai_segmentator/app.py
+   rm -fr $HOLOSCAN_OUTPUT_PATH  # Optional
+   export PYTHONPATH=$PYTHONPATH:/workspace/holohub/build/imaging_ai_segmentator/python/lib:/workspace/holohub
+   python applications/imaging_ai_segmentator/app.py
    ```
 
    **_Tip:_**
    You can override the default input, output, and model directories by specifying them as command-line arguments. For example:
 
    ```bash
-   python install/imaging_ai_segmentator/app.py -m /path/to/model -i /path/to/input -o /path/to/output
+   python applications/imaging_ai_segmentator/app.py -m /path/to/model -i /path/to/input -o /path/to/output
    ```
 
 5. **Check output:**
