@@ -56,28 +56,12 @@ This application uses the [MONAI whole-body segmentation model](https://github.c
 This is the simplest and fastest way to run the application:
 
 ```bash
-./dev_container build_and_run imaging_ai_segmentator
+./holohub run imaging_ai_segmentator
 ```
 
 **_Note:_** It takes quite a few minutes when this command is run the first time.
 
-By default, the application uses the following directories for input data, model files, and output results:
-
-```bash
-HOLOSCAN_INPUT_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/dicom
-HOLOSCAN_MODEL_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/models
-HOLOSCAN_OUTPUT_PATH=<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output
-```
-
-Where `<LOCAL_HOLOHUB_PATH>` refers to where you have cloned your Holohub repository and running the `./dev_container` command.
-
-You can modify them by setting the right env variable and mount the right voluems, for instance:
-
-```bash
-./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
-```
-
-The output will be available in the `${HOLOSCAN_OUTPUT_PATH}` directory:
+The output will be available in the `"<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output"` directory, where `<LOCAL_HOLOHUB_PATH>` refers to where you have cloned your Holohub repository and running the `./holohub` command.
 
 ```console
 output
@@ -88,47 +72,65 @@ output
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
 ```
 
+You can modify them by setting the right env variables and mount the right volumes, for instance:
+
+```bash
+./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
+```
+
+By default, the application uses the following directories for input data, model files, and output results:
+
+```bash
+HOLOSCAN_INPUT_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/dicom
+HOLOSCAN_MODEL_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/models
+HOLOSCAN_OUTPUT_PATH=<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output
+```
+
 ### Development Environment Setup
 
-You can run the application either in your local development environment or inside the Holohub development container. The steps are nearly identical, with only the first step differing.
+You can run the application either in your local development environment or inside the Holohub development container.
 
 1. **Set up the Holohub environment:**
 
-   A. **Within Container:** Build and launch the Holohub Container:
+   A. **Within Container:**
 
-   ```bash
-   ./dev_container launch
-   ```
+   - Build and launch the Holohub Container:
 
-   B. **On Bare Metal (not recommended):** Set up the Holohub environment:
+      ```bash
+      ./holohub run-container imaging_ai_segmentator
+      ```
 
-   ```bash
-   ./run setup
-   ```
+   B. **On Bare Metal (not recommended):**
 
-2. **Set environment variables:**
+    - Set up the Holohub environment:
 
-   ```bash
-   source applications/imaging_ai_segmentator/env_settings.sh
-   ```
+       ```bash
+       ./run setup
+       ```
 
-3. **Download test data (if not already done):**
+    - Install Python dependencies:
+
+       ```bash
+       pip install -r applications/imaging_ai_segmentator/requirements.txt
+       ```
+
+    - Set environment variables:
+
+       ```bash
+       source applications/imaging_ai_segmentator/env_settings.sh
+       ```
+
+2. **Download test data (if not already done):**
    - Download CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/)
    - Save DICOM files under `$HOLOSCAN_INPUT_PATH`
 
-4. **Install dependencies:**
+3. **Build and install the application:**
 
    ```bash
-   pip install -r applications/imaging_ai_segmentator/requirements.txt
+   ./dev_container build_and_install imaging_ai_segmentator
    ```
 
-5. **Build and install the application:**
-
-   ```bash
-   ./run build imaging_ai_segmentator
-   ```
-
-6. **Run the application:**
+4. **Run the application:**
 
    ```bash
    rm -fr $HOLOSCAN_OUTPUT_PATH
@@ -142,7 +144,7 @@ You can run the application either in your local development environment or insi
    python install/imaging_ai_segmentator/app.py -m /path/to/model -i /path/to/input -o /path/to/output
    ```
 
-7. **Check output:**
+5. **Check output:**
 
     ```bash
     ls $HOLOSCAN_OUTPUT_PATH

@@ -36,7 +36,7 @@ install(
   DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/medical_imaging
   DESTINATION imaging_ai_segmentator/operators)
 
-# Download the associated dataset if needed
+# Download the associated datasets and models if needed
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
