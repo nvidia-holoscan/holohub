@@ -48,8 +48,9 @@ endif()
 # Copy the config to the binary directory
 add_custom_target(endoscopy_tool_tracking_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "endoscopy_tool_tracking.yaml"
-  BYPRODUCTS "endoscopy_tool_tracking.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking_aja_overlay.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml"
+  BYPRODUCTS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml"
 )
 add_dependencies(endoscopy_tool_tracking endoscopy_tool_tracking_deps)
 
@@ -161,5 +162,10 @@ install(
 
 install(
   FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
+
+install(
+  FILES endoscopy_tool_tracking_aja_overlay.yaml
   DESTINATION bin/endoscopy_tool_tracking/cpp
 )
