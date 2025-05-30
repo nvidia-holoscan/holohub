@@ -1,6 +1,6 @@
 # Imaging AI Whole Body Segmentation
 
-This application demonstrates the use of the medical imaging operators to build and package an application that parses DICOM images and performs inference using a MONAI model (TotalSegmentator).
+This application demonstrates the use of medical imaging operators to build and package an application that parses DICOM images and performs inference using a MONAI model (TotalSegmentator).
 
 ![3D Volume Rendering](resources/segments_3D.png)  
 _Fig. 1: 3D volume rendering of segmentation results in NIfTI format_
@@ -9,15 +9,13 @@ _Fig. 1: 3D volume rendering of segmentation results in NIfTI format_
 
 This application uses a MONAI re-trained TotalSegmentator model to segment 104 body parts from a DICOM CT series. It is implemented using Holohub DICOM processing operators and PyTorch inference operators.
 
-The input is a DICOM CT series, and the segmentation results are saved as both DICOM Segmentation (Part10 storage format) and NIfTI format. The workflow includes:
+The input is a DICOM CT series, and the segmentation results are saved as both DICOM Segmentation (Part 10 storage format) and NIfTI format. The workflow includes:
 
 - Loading DICOM studies
 - Selecting series with application-defined rules
 - Converting DICOM pixel data to a 3D volume image
-- Using MONAI SDK to transform input/output and perform inference
+- Using the MONAI SDK to transform input/output and perform inference
 - Writing results as a DICOM Segmentation OID instance, re-using study-level metadata from the original DICOM study
-
-The segmentation results are saved in both DICOM Segmentation format (Part10 storage) and NIfTI format for visualization and further analysis.
 
 ![DICOM Segmentation Slice](resources/segments_DICOM_slice.png)  
 _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (without color coding the segments)_
@@ -39,7 +37,7 @@ _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (wit
 
 The input for this application is a folder of DICOM image files from a CT series. For testing, CT scan images can be downloaded from [The Cancer Imaging Archive](https://nbia.cancerimagingarchive.net/nbia-search/), subject to [Data Usage Policies and Restrictions](https://www.cancerimagingarchive.net/data-usage-policies-and-restrictions/).
 
-One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, was used in testing the application. Other DICOM CT Abdomen series can be downloaded from TCIA as test inputs.
+One such dataset, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, was used in testing the application. Other DICOM CT Abdomen series can be downloaded from TCIA as test inputs.
 
 ### Data Citation
 
@@ -59,7 +57,7 @@ This is the simplest and fastest way to run the application:
 ./holohub run imaging_ai_segmentator
 ```
 
-**_Note:_** It takes quite a few minutes when this command is run the first time.
+**_Note:_** It takes quite a few minutes when this command is run the first time. This command pulls the latest Holoscan SDK docker image, create Holohub docker image and set up requirement for this application, run the container, and finally build and run the application.
 
 The output will be available in the `"<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output"` directory, where `<LOCAL_HOLOHUB_PATH>` refers to where you have cloned your Holohub repository and running the `./holohub` command.
 
