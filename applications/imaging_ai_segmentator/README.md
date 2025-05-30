@@ -103,7 +103,7 @@ You can run the application either in your local development environment or insi
     - Set up the Holohub environment:
 
        ```bash
-       ./run setup
+       sudo ./run setup
        ```
 
     - Install Python dependencies:
