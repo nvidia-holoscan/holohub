@@ -330,12 +330,9 @@ class HoloHubContainer:
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
 
         # Add local SDK options if provided
-        pythonpath = "/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         if local_sdk_root:
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
-            cmd.extend(["-e", f"PYTHONPATH=/workspace/holoscan-sdk/build/python/lib:{pythonpath}"])
-        else:
-            cmd.extend(["-e", f"PYTHONPATH=/opt/nvidia/holoscan/python/lib:{pythonpath}"])
+            cmd.extend(["-e", "PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"])
 
         # Add docker options if provided
         if docker_opts:

@@ -18,6 +18,15 @@ Common:
 - Added `get_port_id` to get the port ID for a given PCIe address or config name.
 - Added `get_num_rx_queues` to get the number of RX queues for a given port.
 
+-   **Enhanced Network Benchmarking:**
+    -   The Advanced Networking Benchmark application now supports UDP port ranges (e.g., "5000-5010") for more flexible traffic distribution across queues.
+    -   Added a new configuration (`adv_networking_bench_default_tx_rx_multi_q_hds.yaml`) for benchmarking multi-queue transmit/receive scenarios with Header-Data Split.
+    -   Added option to disable the internal packet reordering kernel (`reorder_kernel: false`).
+-   **Improved Advanced Network Core:**
+    -   Fix crash when using a batch_size smaller than 128
+    -   Support with per-queue timeouts, ensuring balanced processing even with uneven packet distribution or bursty traffic.
+    -   Added configurable metadata buffer pools (`tx_meta_buffers`, `rx_meta_buffers`) for better resource tuning in high-rate scenarios.
+
 
 ## 🚀 holoscan-networking 0.1
 
