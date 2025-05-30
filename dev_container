@@ -306,6 +306,17 @@ get_conditional_options() {
         conditional_opt+="${prefix}--volume=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra${postfix}"
     fi
 
+    if [ -e /usr/lib64/libGLX_nvidia.so.0 ]; then
+        local nvidia_icd_dir="/usr/share/vulkan/icd.d/"
+        conditional_opt+="${prefix}--volume=${nvidia_icd_dir}:${nvidia_icd_dir}${postfix}"
+        while read -r file;
+        do
+            local library_path="$(jq -r ".ICD.library_path" "$file")"
+            conditional_opt+="${prefix}--volume=${library_path}:${library_path}${postfix}"
+        done < <(find "$nvidia_icd_dir" -type f)
+    fi
+
+
     # add user in container to group video to access video devices, e.g. /dev/video0
     video_id=$(get_group_id video)
     if [ -n "$video_id" ]; then
