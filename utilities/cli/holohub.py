@@ -307,9 +307,9 @@ class HoloHubCLI:
         closest_matches = [
             (name, folder) for name, dist, folder in distances[:1] if dist <= 3
         ]  # Get the closest match with distance <= 3
-        msg = f"Project '{project_name}' not found."
+        msg = f"Project '{project_name}' (language: {normalized_language}) not found."
         if closest_matches:
-            msg += f"\nDid you mean: '{closest_matches[0][0]}' (source: {closest_matches[0][1]})"
+            msg += f"\nDid you mean: '{closest_matches[0][0]}' (source: {closest_matches[0][1]}, language: {project['metadata']['language']})"
         holohub_cli_util.fatal(msg)
         return None
 
