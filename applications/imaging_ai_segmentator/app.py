@@ -278,5 +278,5 @@ if __name__ == "__main__":
     app = AISegApp()
     app.run()
 
-    logging.info(f'Check "{app.app_output_path}" for output results.')
+    logging.info(f'Check "{str(app.app_output_path).replace("/workspace/holohub", "<LOCAL_HOLOHUB_PATH>")}" for output results.')
     logging.info(f"End {__name__}")

@@ -62,6 +62,20 @@ rm -rf output
 
 **_Note:_** It takes quite a few minutes when this command is run the first time.
 
+By default, the application uses the following directories for input data, model files, and output results:
+
+```bash
+HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
+HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
+HOLOSCAN_OUTPUT_PATH=/workspace/holohub/build/imaging_ai_segmentator/output
+```
+
+You can modify them by setting the right env variable and mount the right voluems, for instance:
+
+```bash
+./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
+```
+
 The output will be available in the `${HOLOSCAN_OUTPUT_PATH}` directory:
 
 ```console
@@ -71,20 +85,6 @@ output
     └── 1.3.6.1.4.1.14519.5.2.1.7085.2626
         ├── 1.3.6.1.4.1.14519.5.2.1.7085.2626.nii
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
-```
-
-By default, the application uses the following directories for input data, model files, and output results:
-
-```bash
-HOLOSCAN_INPUT_PATH=/workspace/holohub/data/imaging_ai_segmentator/dicom
-HOLOSCAN_MODEL_PATH=/workspace/holohub/data/imaging_ai_segmentator/models
-HOLOSCAN_OUTPUT_PATH=/workspace/holohub/output
-```
-
-You can modify them by setting the right env variable and mount the right voluems, for instance:
-
-```bash
-./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
 ```
 
 ### Development Environment Setup
