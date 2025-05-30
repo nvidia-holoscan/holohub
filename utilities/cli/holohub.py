@@ -64,7 +64,7 @@ class HoloHubCLI:
     def _create_parser(self) -> argparse.ArgumentParser:
         """Create the argument parser with all supported commands"""
         parser = argparse.ArgumentParser(
-            description="HoloHub CLI tool for managing HoloHub applications and containers"
+            description="HoloHub CLI tool for managing Holoscan applications and containers"
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -633,7 +633,8 @@ class HoloHubCLI:
 
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
-            holohub_cli_util.run_command(shlex.split(cmd), env=env, dry_run=args.dryrun)
+            cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
+            holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
@@ -653,7 +654,7 @@ class HoloHubCLI:
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
             if hasattr(args, "with_operators") and args.with_operators:
-                run_cmd += f" --with {shlex.quote(args.with_operators)}"
+                run_cmd += f' --with "{args.with_operators}"'
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
