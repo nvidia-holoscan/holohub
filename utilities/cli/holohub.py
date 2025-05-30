@@ -653,7 +653,7 @@ class HoloHubCLI:
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
             if hasattr(args, "with_operators") and args.with_operators:
-                run_cmd += f' --with "{args.with_operators}"'
+                run_cmd += f" --with {shlex.quote(args.with_operators)}"
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
