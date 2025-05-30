@@ -157,3 +157,19 @@ The application generates two types of outputs:
 2. NIfTI format files in the `saved_images_folder`:
    - Original CT scan in NIfTI format
    - Segmentation results in NIfTI format
+
+## Packaging the Application for Distribution
+
+With Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to Packaging Holoscan Applications in the User Guide for more information.
+
+This example application includes all the necessary files for HAP packaging. First, you should install the application:
+
+```bash
+./dev_container build_and_install imaging_ai_segmentator
+```
+
+Then, run the following command to see and use the specific packaging commands.
+
+```bash
+source applications/imaging_ai_segmentator/packageHAP.sh
+```
