@@ -70,27 +70,13 @@ output
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
 ```
 
-You can modify them by setting the right env variables and mount the right volumes, for instance:
-
-```bash
-./dev_container build_and_run imaging_ai_segmentator --container_args "-v /local/output:/my_output -e HOLOSCAN_OUTPUT_PATH=/my_output"
-```
-
-By default, the application uses the following directories for input data, model files, and output results:
-
-```bash
-HOLOSCAN_INPUT_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/dicom
-HOLOSCAN_MODEL_PATH=<LOCAL_HOLOHUB_PATH>/data/imaging_ai_segmentator/models
-HOLOSCAN_OUTPUT_PATH=<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output
-```
-
 ### Development Environment Setup
 
 You can run the application either in your local development environment or inside the Holohub development container.
 
-1. **Set up the Holohub environment:**
+1. **Set up the environment:**
 
-   A. **Within Container:**
+   A. **Holohub Container:**
 
    - Build and launch the Holohub Container:
 
@@ -98,21 +84,23 @@ You can run the application either in your local development environment or insi
       ./holohub run-container imaging_ai_segmentator
       ```
 
-   B. **On Bare Metal (not recommended):**
+   B. **Bare Metal (not using Holohub/Holoscan container):**
 
-    - Set up the Holohub environment:
-
-       ```bash
-       sudo ./run setup
-       ```
-
-    - Install Python dependencies:
+    - Install Python dependencies:  
+      It is strongly recommended a Python virtual environment is used for running the application in dev environment.
 
        ```bash
        pip install -r applications/imaging_ai_segmentator/requirements.txt
        ```
 
-    - Set environment variables:
+    - Set up the Holohub environment:  
+      Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub build` to help organize the Python code and automatically download the required segmentation model.
+
+       ```bash
+       sudo ./run setup
+       ```
+
+    - Set environment variables for the application:
 
        ```bash
        source applications/imaging_ai_segmentator/env_settings.sh
