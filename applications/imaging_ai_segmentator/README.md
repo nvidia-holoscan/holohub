@@ -1,198 +1,163 @@
 # Imaging AI Whole Body Segmentation
 
-This application uses MONAI re-trained TotalSegmentator model to segment 104 body parts from a DICOM series of a CT scan. It is implemented using Holohub DICOM processing operators and PyTorch inference operators.
+This application demonstrates the use of medical imaging operators to build and package an application that parses DICOM images and performs inference using a MONAI model (TotalSegmentator).
 
-The input is a DICOM CT Series, and the segmentation results are saved as DICOM Segmentation in Part10 storage format, as well as in NIfTI format. The workflow is summarized below,
-- load DICOM studies
-- select series with application defined rules
-- convert DICOM pixel data to 3D volume image
-- use MONAI SDK to transform input/output and perform inference
-- write results as DICOM Segmentation OID instance, re-using study level metadata from the original DICOM study so that the new instance and series can be associated with the original study
+![3D Volume Rendering](resources/segments_3D.png)  
+_Fig. 1: 3D volume rendering of segmentation results in NIfTI format_
 
-The following is the screenshot of the 3D volume rendering of the segmentation results in NIfTI format.
+## Overview
 
-<img src="resources/segments_3D.png" alt="isolated" width="800"/>
+This application uses a MONAI re-trained TotalSegmentator model to segment 104 body parts from a DICOM CT series. It is implemented using Holohub DICOM processing operators and PyTorch inference operators.
 
-The following is the screenshot of a slice of the segmentation saved in DICOM segmentation instance (without color coding the segments).
+The input is a DICOM CT series, and the segmentation results are saved as both DICOM Segmentation (Part 10 storage format) and NIfTI format. The workflow includes:
 
-<img src="resources/segments_DICOM_slice.png" alt="isolated" width="800"/>
+- Loading DICOM studies
+- Selecting series with application-defined rules
+- Converting DICOM pixel data to a 3D volume image
+- Using the MONAI SDK to transform input/output and perform inference
+- Writing results as a DICOM Segmentation OID instance, re-using study-level metadata from the original DICOM study
+
+![DICOM Segmentation Slice](resources/segments_DICOM_slice.png)  
+_Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (without color coding the segments)_
 
 ## Requirements
 
 - On a [Holohub supported platform](../../README.md#supported-platforms)
 - Python 3.8+
-- Python packages on [Pypi](https://pypi.org), including but not limited to torch, monai, nibabel, pydicom, highdicom, and others as specified in the requirements file
-- Nvidia GPU with at least 14GB memory, for a 200 slice CT series
-
-
-## Model
-
-This application uses the [MONAI whole-body segmentation model](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation).
+- Python packages from [PyPI](https://pypi.org), including:
+  - torch
+  - monai
+  - nibabel
+  - pydicom
+  - highdicom
+  - Other dependencies as specified in [requirements.txt](./requirements.txt)
+- NVIDIA GPU with at least 14GB memory (for a 200-slice CT series)
 
 ## Data
 
-The input for this application is a folder of DICOM image files from a CT series. For testing, CT scan images can be downloaded from [The Cancer Imaging Archive](https://nbia.cancerimagingarchive.net/nbia-search/), subject to [Data Usage Policies and Restrictions](https://www.cancerimagingarchive.net/data-usage-policies-and-restrictions/)
+The input for this application is a folder of DICOM image files from a CT series. For testing, CT scan images can be downloaded from [The Cancer Imaging Archive](https://nbia.cancerimagingarchive.net/nbia-search/), subject to [Data Usage Policies and Restrictions](https://www.cancerimagingarchive.net/data-usage-policies-and-restrictions/).
 
-One such data set, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, was used in testing the application. Other DICOM CT Abdomen series can be downloaded from TCIA as test inputs, and, of course, users' own DICOM seriese shall equally work.
-
-**_Note_**:
-Please download, or otherwise make available, DICOM files of a CT Abdomen series and save them in a folder, preferably named `data/imaging_ai_segmentator/dicom` under the project root, as this folder name is used in the examples in the following steps. Manual download scripts are shown in [`Run the Application in Dev Environment`](#run-the-application-in-dev-environment)
+One such dataset, a CT Abdomen series described as `ABD/PANC_3.0_B31f`, was used in testing the application. Other DICOM CT Abdomen series can be downloaded from TCIA as test inputs.
 
 ### Data Citation
 
-National Cancer Institute Clinical Proteomic Tumor Analysis Consortium (CPTAC). (2018). The Clinical Proteomic Tumor Analysis Consortium Cutaneous Melanoma Collection (CPTAC-CM) (Version 11) [Dataset]. The Cancer Imaging Archive. https://doi.org/10.7937/K9/TCIA.2018.ODU24GZE
+National Cancer Institute Clinical Proteomic Tumor Analysis Consortium (CPTAC). (2018). The Clinical Proteomic Tumor Analysis Consortium Cutaneous Melanoma Collection (CPTAC-CM) (Version 11) [Dataset]. The Cancer Imaging Archive. <https://doi.org/10.7937/K9/TCIA.2018.ODU24GZE>
 
+## Model
 
-## Run Instructions
+This application uses the [MONAI whole-body segmentation model](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), which can segment 104 body parts from CT scans.
 
-There are a number of ways to build and run this application, as well as packaging this application as a Holoscan Application Package. The following sections describe each in detail.
+## Build and Run Instructions
 
 ### Quick Start Using Holohub Container
 
-This is the simplest and fastest way to see the application in action running as a container. The input DICOM files must first be downloaded and saved in the folder `$PWD/data/imaging_ai_segmentator/dicom`, whereas the PyTorch model is automatically downloaded when container image is built.
-
-Use the following to build and run the application:
+This is the simplest and fastest way to run the application:
 
 ```bash
-mkdir -p output
-rm -rf output/*
-./dev_container build_and_run imaging_ai_segmentator --container_args "-v $PWD/output:/var/holoscan/output -v $PWD/data/imaging_ai_segmentator/dicom:/var/holoscan/input"
+./holohub run imaging_ai_segmentator
 ```
 
-Once the command completes, please check the output folder for the results, e.g.
-```
+**_Note:_** It takes quite a few minutes when this command is run the first time. This command pulls the latest Holoscan SDK docker image, create Holohub docker image and set up requirement for this application, run the container, and finally build and run the application.
+
+The output will be available in the `"<LOCAL_HOLOHUB_PATH>/build/imaging_ai_segmentator/output"` directory, where `<LOCAL_HOLOHUB_PATH>` refers to where you have cloned your Holohub repository and running the `./holohub` command.
+
+```console
 output
 ├── 1.2.826.0.1.3680043.10.511.3.57591117750107235783166330094310669.dcm
 └── saved_images_folder
     └── 1.3.6.1.4.1.14519.5.2.1.7085.2626
         ├── 1.3.6.1.4.1.14519.5.2.1.7085.2626.nii
         └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
-
-2 directories, 3 files
 ```
 
-**_Note_**
-It takes quite a few minutes when this command is run the first time.
+### Development Environment Setup
 
-### Run the Application in Dev Environment
+You can run the application either in your local development environment or inside the Holohub development container.
 
-It is strongly recommended a Python virtual environment is used for running the application in dev environment.
+1. **Set up the environment:**
 
-This application only has Python implementation depending on a set of Python packages from [Pypi](https://pypi.org), however, a `build_and_install` step is needed to automate organizing Python code and downloading the model.
+   A. **Holohub Container:**
 
+   - Build and launch the Holohub Container:
 
-Set up the Holohub environment, if not already done
-```bash
-./run setup
-```
+      ```bash
+      ./holohub run-container imaging_ai_segmentator
+      ```
 
-Set the environment variables for the application
-```bash
-source applications/imaging_ai_segmentator/env_settings.sh
-```
+   B. **Bare Metal (not using Holohub/Holoscan container):**
 
-If not already done, download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/), unzip if necessary, and save the folder of DICOM files under the folder `$HOLOSCAN_INPUT_PATH`.
+    - Install Python dependencies:  
+      It is strongly recommended a Python virtual environment is used for running the application in dev environment.
 
-Optionally download the AI model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), or wait till the build step to have it downloaded automatically
+       ```bash
+       pip install -r applications/imaging_ai_segmentator/requirements.txt
+       ```
 
-```bash
-mkdir -p $HOLOSCAN_MODEL_PATH
-pip install gdown
-python -m gdown https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O $HOLOSCAN_MODEL_PATH/model.pt
-```
+    - Set up the Holohub environment:  
+      Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub build` to help organize the Python code and automatically download the required segmentation model.
 
-Install Python packages required by the application
-```bash
-pip install -r applications/imaging_ai_segmentator/requirements.txt
-```
+       ```bash
+       sudo ./run setup
+       ```
 
-Build and install the application
+    - Set environment variables for the application:
+
+       ```bash
+       source applications/imaging_ai_segmentator/env_settings.sh
+       ```
+
+2. **Download test data (if not already done):**
+   - Download CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/)
+   - Save DICOM files under `$HOLOSCAN_INPUT_PATH`
+
+3. **Build the application:**
+
+   ```bash
+   ./holohub build imaging_ai_segmentator
+   ```
+
+4. **Run the application:**
+
+   ```bash
+   rm -fr $HOLOSCAN_OUTPUT_PATH  # Optional
+   export PYTHONPATH=$PYTHONPATH:/workspace/holohub/build/imaging_ai_segmentator/python/lib:/workspace/holohub
+   python applications/imaging_ai_segmentator/app.py
+   ```
+
+   **_Tip:_**
+   You can override the default input, output, and model directories by specifying them as command-line arguments. For example:
+
+   ```bash
+   python applications/imaging_ai_segmentator/app.py -m /path/to/model -i /path/to/input -o /path/to/output
+   ```
+
+5. **Check output:**
+
+    ```bash
+    ls $HOLOSCAN_OUTPUT_PATH
+    ```
+
+## Output
+
+The application generates two types of outputs:
+
+1. DICOM Segmentation file (Part10 storage format)
+2. NIfTI format files in the `saved_images_folder`:
+   - Original CT scan in NIfTI format
+   - Segmentation results in NIfTI format
+
+## Packaging the Application for Distribution
+
+With Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to Packaging Holoscan Applications in the User Guide for more information.
+
+This example application includes all the necessary files for HAP packaging. First, you should install the application:
+
 ```bash
 ./dev_container build_and_install imaging_ai_segmentator
 ```
 
-Run the application
-```bash
-rm -f -r $HOLOSCAN_OUTPUT_PATH
-python install/imaging_ai_segmentator/app.py
-```
-
-**_Note_**
-If desired, run the application with explicitly input, output, and/or model folder path, for example
-```bash
-rm -f -r ./output
-python install/imaging_ai_segmentator/app.py -m $HOLOSCAN_MODEL_PATH -i $HOLOSCAN_INPUT_PATH -o ./output
-```
-
-Check output
-```bash
-ls $HOLOSCAN_OUTPUT_PATH
-```
-
-There should be a DICOM segmentation file with randomized file name. There should also a `saved_images_folder` containing folder named after the input DICOM series' instance UID, which in turn contains the input and segmentation image files in NIfTI format, e.g.
-```bash
-applications/imaging_ai_segmentator/output
-├── 1.2.826.0.1.3680043.10.511.3.64271669147396658491950188504278234.dcm
-└── saved_images_folder
-    └── 1.3.6.1.4.1.14519.5.2.1.7085.2626
-        ├── 1.3.6.1.4.1.14519.5.2.1.7085.2626.nii
-        └── 1.3.6.1.4.1.14519.5.2.1.7085.2626_seg.nii
-```
-
-### Run the Application in Dev Container
-
-In this mode, there is no need to `build` and `install`. The Python code will run in its source folders, and both the model and input DICOM files need to be downloaded manually with the scripts provided below.
-
-Also, the `PYTHONPATH` environment variable must be set to locate the necessary Holohub medical imaging operators. The AI model and input DICOM file paths need defined via environment variables, namely `HOLOSCAN_MODEL_PATH` and `HOLOSCAN_INPUT_PATH` respectively, otherwise they must be provided explicitly as command options.
-
-
-First [Build and launch the Holohub Container](../../README.md#container-build-recommended), landing in `/workspace/holohub`
-
-Set the `PYTHONPATH` to include the Holohub source folder
-```bash
-export PYTHONPATH=$PYTHONPATH:$PWD
-```
-
-Set the environment variables for the application
-```bash
-source applications/imaging_ai_segmentator/env_settings.sh
-```
-
-If not already done, download images of a CT series from [TCIA](https://nbia.cancerimagingarchive.net/nbia-search/),  unzip if necessary, and save the folder of DICOM files under the folder `$HOLOSCAN_INPUT_PATH`.
-
-Optionally download the AI model from [MONAI Model Zoo](https://github.com/Project-MONAI/model-zoo/tree/dev/models/wholeBody_ct_segmentation), or wait till the build step to have it downloaded automatically
+Then, run the following command to see and use the specific packaging commands.
 
 ```bash
-mkdir -p $HOLOSCAN_MODEL_PATH
-pip install gdown
-python -m gdown https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O $HOLOSCAN_MODEL_PATH/model.pt
-```
-
-Install Python packages required by the application
-```bash
-pip install -r applications/imaging_ai_segmentator/requirements.txt
-```
-Run the application
-```bash
-rm -f -r $HOLOSCAN_OUTPUT_PATH
-python applications/imaging_ai_segmentator/
-```
-
-Check output
-```bash
-ls $HOLOSCAN_OUTPUT_PATH
-```
-
-## Packaging the Application for Distribution
-
-With Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information.
-
-This example application provides all the necessary contents for HAP packaging, and the specific commands are revealed by the specific commands.
-
-**_Note_**
-
-The prerequisite is that the application `build_and_install` has been performed to stage the source and AI model files for packaging.
-
-```
 source applications/imaging_ai_segmentator/packageHAP.sh
 ```
