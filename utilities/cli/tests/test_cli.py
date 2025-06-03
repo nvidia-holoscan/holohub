@@ -329,7 +329,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_find_project,
         mock_build_project_locally,
     ):
-        """Test the --with parameter for both build and run commands in local and container modes"""
+        """Test the --build_with parameter for both build and run commands in local and container modes"""
         # Common setup
         operators = "operator1;operator2;operator3"
         mock_find_project.return_value = self.mock_project_data
