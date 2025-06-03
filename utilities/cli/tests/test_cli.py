@@ -367,7 +367,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--with "{operators}"', command_string)
+        self.assertIn(f'--build_with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.util.run_command")
