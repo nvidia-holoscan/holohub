@@ -339,7 +339,9 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container.project_metadata = self.mock_project_data
 
         # Test 1: Build with operators in local mode
-        args = self.cli.parser.parse_args(f"build test_project --local --with {operators}".split())
+        args = self.cli.parser.parse_args(
+            f"build test_project --local --build_with {operators}".split()
+        )
         args.func(args)
         # Verify local build
         mock_build_project_locally.assert_called()
@@ -349,13 +351,13 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_build_project_locally.reset_mock()
 
         # Test 2: Build with operators in container mode
-        args = self.cli.parser.parse_args(f"build test_project --with {operators}".split())
+        args = self.cli.parser.parse_args(f"build test_project --build_with {operators}".split())
         args.func(args)
         # Verify container build
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--with "{operators}"', command_string)
+        self.assertIn(f'--build_with "{operators}"', command_string)
         mock_container.reset_mock()
 
         # Test 3: Run with operators in container mode
@@ -365,7 +367,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--with "{operators}"', command_string)
+        self.assertIn(f'--build_with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.util.run_command")
