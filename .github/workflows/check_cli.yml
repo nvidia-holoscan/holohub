@@ -1,0 +1,30 @@
+name: Check CLI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, holoscan-sdk-lws2, fixes-cli]
+
+jobs:
+  check-cli-py:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          pip install -r utilities/requirements.lint.txt
+          pip install -r utilities/requirements.template.txt
+          python -m unittest utilities.cli.tests.test_cli
+          python -m unittest utilities.cli.tests.test_container

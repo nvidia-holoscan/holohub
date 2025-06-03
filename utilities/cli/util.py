@@ -49,7 +49,6 @@ class Color:
         result += text + Color.RESET
         return result
 
-    @staticmethod
     def _create_color_method(color_code: str):
         """Create a color method for the given color code"""
 
@@ -110,7 +109,8 @@ def check_nvidia_ctk() -> None:
     recommended_version = "1.14.1"
 
     if not shutil.which("nvidia-ctk"):
-        fatal("nvidia-ctk not found. Please install the NVIDIA Container Toolkit.")
+        print(Color.red("nvidia-ctk not found. Please install the NVIDIA Container Toolkit."))
+        return
 
     try:
         output = subprocess.check_output(["nvidia-ctk", "--version"], text=True)
@@ -122,13 +122,19 @@ def check_nvidia_ctk() -> None:
             from packaging import version as ver
 
             if ver.parse(version) < ver.parse(min_version):
-                fatal(
-                    f"Found nvidia-ctk Version {version}. Version {min_version}+ is required ({recommended_version}+ recommended)."
+                print(
+                    Color.red(
+                        f"Found nvidia-ctk Version {version}. \n"
+                        f"Version {min_version}+ is required ({recommended_version}+ recommended)."
+                    )
                 )
+                return
         else:
-            print(f"Failed to parse available nvidia-ctk version: {output}")
+            print(Color.red(f"Failed to parse available nvidia-ctk version: {output}"))
     except subprocess.CalledProcessError:
-        fatal(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
+        print(
+            Color.red(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
+        )
 
 
 def get_host_gpu() -> str:
