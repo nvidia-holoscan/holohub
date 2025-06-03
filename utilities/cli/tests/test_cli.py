@@ -361,7 +361,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container.reset_mock()
 
         # Test 3: Run with operators in container mode
-        args = self.cli.parser.parse_args(f"run test_project --with {operators}".split())
+        args = self.cli.parser.parse_args(f"run test_project --build_with {operators}".split())
         args.func(args)
         # Verify container run
         mock_container.run.assert_called()
