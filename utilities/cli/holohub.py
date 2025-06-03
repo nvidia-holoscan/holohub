@@ -206,7 +206,7 @@ class HoloHubCLI:
             "--run_args", help="Additional arguments to pass to the application executable"
         )
         run.add_argument(
-            "--with",
+            "--build_with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
         )
