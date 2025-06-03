@@ -179,7 +179,7 @@ class HoloHubCLI:
             help="Build type (debug, release, rel-debug)",
         )
         build.add_argument(
-            "--with",
+            "--build_with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
         )
