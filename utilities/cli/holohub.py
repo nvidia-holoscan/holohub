@@ -506,7 +506,7 @@ class HoloHubCLI:
             if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
-                build_cmd += f' --with "{args.with_operators}"'
+                build_cmd += f' --build_with "{args.with_operators}"'
             if args.verbose:
                 build_cmd += " --verbose"
 
