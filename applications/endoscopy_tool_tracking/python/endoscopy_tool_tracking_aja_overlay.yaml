@@ -1,0 +1,224 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Required fields for packaging the application
+# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+application:
+  title: Holohub - Endoscopy Tool Tracking
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 1Gi
+  gpuMemory: 1Gi
+
+extensions:
+- lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
+# - lib/gxf_extensions/libgxf_videomaster.so
+# - lib/gxf_extensions/libgxf_qcap_source.so
+
+visualizer: "holoviz" # "holoviz" or "vtk"
+
+aja:
+  width: 1920
+  height: 1080
+  overlay_rdma: true
+  rdma: true
+  enable_overlay: true
+
+yuan:
+  width: 3840
+  height: 2160
+  rdma: true
+
+deltacast:
+  width: 1920
+  height: 1080
+  progressive: true
+  framerate: 25
+  board: 0
+  input: 0
+  output: 0
+  rdma: false
+  enable_overlay: true
+
+deltacast_overlay_format_converter:
+  in_dtype: "rgba8888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+  resize_width: 1920
+  resize_height: 1080
+
+deltacast_drop_alpha_channel_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+deltacast_visualizer_format_converter:
+  in_dtype: "rgb888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+
+replayer:
+  basename: "surgical_video"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+recorder_format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+recorder:
+  directory: "/tmp"
+  basename: "tensor"
+
+format_converter_replayer:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+
+format_converter_aja:
+  in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+format_converter_yuan:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+format_converter_deltacast:
+  in_dtype: "rgba8888"
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  out_channel_order: [2,1,0]
+  scale_min: 0.0
+  scale_max: 255.0
+  resize_width: 854
+  resize_height: 480
+
+lstm_inference:
+  input_tensor_names:
+    - source_video
+    - cellstate_in
+    - hiddenstate_in
+  input_state_tensor_names:
+    - cellstate_in
+    - hiddenstate_in
+  input_binding_names:
+    - data_ph:0 # (shape=[1, 480, 854, 3], dtype=float32) <==> source_video
+    - cellstate_ph:0 # (shape=[1, 60, 107, 7], dtype=float32) == internal state
+    - hiddenstate_ph:0 # (shape=[1, 60, 107, 7], dtype=float32) == internal state
+  output_tensor_names:
+    - cellstate_out
+    - hiddenstate_out
+    - probs
+    - scaled_coords
+    - binary_masks
+  output_state_tensor_names:
+    - cellstate_out
+    - hiddenstate_out
+  output_binding_names:
+    - Model/net_states:0 # (shape=[ 1, 60, 107, 7], dtype=float32)
+    - Model/net_hidden:0 # (shape=[ 1, 60, 107, 7], dtype=float32)
+    - probs:0 # (shape=[1, 7], dtype=float32)
+    - Localize/scaled_coords:0 # (shape=[1, 7, 2], dtype=float32)
+    - Localize_1/binary_masks:0 # (shape=[1, 7, 60, 107], dtype=float32)
+  force_engine_update: false
+  verbose: true
+  max_workspace_size: 2147483648
+  enable_fp16_: true
+
+holoviz:
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+    - name: mask
+      type: color
+      opacity: 1.0
+      priority: 1
+    - name: scaled_coords
+      type: crosses
+      opacity: 1.0
+      line_width: 4
+      color: [1.0, 0.0, 0.0, 1.0]
+      priority: 2
+    - name: scaled_coords
+      type: text
+      opacity: 1.0
+      priority: 3
+      color: [1.0, 1.0, 1.0, 0.9]
+      text:
+        - Grasper
+        - Bipolar
+        - Hook
+        - Scissors
+        - Clipper
+        - Irrigator
+        - Spec.Bag
+
+holoviz_overlay:
+  headless: true
+  tensors:
+    - name: mask
+      type: color
+      opacity: 1.0
+      priority: 1
+    - name: scaled_coords
+      type: crosses
+      opacity: 1.0
+      line_width: 4
+      color: [1.0, 0.0, 0.0, 1.0]
+      priority: 2
+    - name: scaled_coords
+      type: text
+      opacity: 1.0
+      priority: 3
+      color: [1.0, 1.0, 1.0, 0.9]
+      text:
+        - Grasper
+        - Bipolar
+        - Hook
+        - Scissors
+        - Clipper
+        - Irrigator
+        - Spec.Bag
+
+vtk_op:
+  labels:
+    - Grasper
+    - Bipolar
+    - Hook
+    - Scissors
+    - Clipper
+    - Irrigator
+    - Spec.Bag
