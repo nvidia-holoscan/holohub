@@ -159,7 +159,7 @@ class HoloHubCLI:
             "--as_root", action="store_true", help="Run the container with root permissions"
         )
         run_container.add_argument(
-            "--docker_opts", help="Additional options to pass to the Docker launch"
+            "--docker_opts", default="", help="Additional options to pass to the Docker launch"
         )
         run_container.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -209,6 +209,11 @@ class HoloHubCLI:
             "--build_with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        run.add_argument(
+            "--docker_opts",
+            default="",
+            help="Additional options to pass to the underlying Docker launch (if applicable)",
         )
         run.set_defaults(func=self.handle_run)
 
@@ -519,6 +524,11 @@ class HoloHubCLI:
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
+            if args.docker_opts:
+                holohub_cli_util.fatal(
+                    "Container arguments were provided with `--docker_opts` but a non-containerized build was requested."
+                )
+
             build_dir, project_data = self._build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
@@ -659,7 +669,9 @@ class HoloHubCLI:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
             container.run(
-                docker_opts="--entrypoint=bash", extra_args=["-c", run_cmd], verbose=args.verbose
+                docker_opts="--entrypoint=bash " + args.docker_opts,
+                extra_args=["-c", run_cmd],
+                verbose=args.verbose,
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
