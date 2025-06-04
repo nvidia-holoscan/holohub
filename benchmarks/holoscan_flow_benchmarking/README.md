@@ -43,7 +43,7 @@ tracking application.
 
 [patch_application.sh](./patch_application.sh) and [restore_application.sh](./restore_application.sh) scripts provide more details about the actual patching process.
 
-**Patch the application for benchmarking**
+**Patch the application**
 
 To manually patch the application, you can run the following command:
 ```
