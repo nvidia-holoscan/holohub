@@ -66,6 +66,8 @@ The above command will run an application which is executed normally by
 `./run launch <application name> cpp`. If an application is executed differently, then use the
 `--run-command` argument to specify the command to run an application.
 
+**note**: If the target application is a Python file, `benchmark.py` will patch the application source in the local Holohub source directory for benchmarking before running the application.
+
 `python benchmarks/holoscan_flow_benchmarking/benchmark.py -h` shows all the possible benchmarking options.
 
 All the log filenames are printed out at the end of the evaluation. The format of the filename for the data flow tracking log files is:
