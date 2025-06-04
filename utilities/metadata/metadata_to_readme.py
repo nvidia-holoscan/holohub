@@ -86,50 +86,128 @@ def find_insertion_point(readme_content):
 def generate_simple_quick_run_section(metadata_json):
     """
     Generate a simple Quick Run section based on metadata.json that includes all launch commands.
+    Supports both new format (with 'modes') and legacy format (with 'launch').
     """
-    if "launch" not in metadata_json["application"]:
-        return None
+    app_data = metadata_json["application"]
 
-    launch_data = metadata_json["application"]["launch"]
-    if not launch_data:
-        return None
+    # Check for new format with 'modes'
+    if "modes" in app_data:
+        modes = app_data["modes"]
+        if not modes:
+            return None
 
-    # Get the default command (first item in the launch array)
-    default_command = launch_data[0].get("command", "")
-    if not default_command:
-        return None
+        content = ["## Quick Run\n"]
+        content.append(
+            "<!-- This section is automatically generated from metadata.json. "
+            "Do not modify manually. Update the metadata.json file instead. -->"
+        )
 
-    content = ["## Quick Run\n"]
-    content.append(
-        "<!-- This section is automatically generated from metadata.json. "
-        "Do not modify manually. Update the metadata.json file instead. -->"
-    )
-    content.append("Run this application with:\n")
-    content.append("```bash")
-    content.append(default_command)
-    content.append("```\n")
+        # Find default mode first, or use the first mode if no default
+        default_mode_name = None
+        default_mode = None
 
-    # Only add alternative commands if there are more than one
-    if len(launch_data) > 1:
-        content.append("### Additional Run Options\n")
+        if "default" in modes:
+            default_mode_name = "default"
+            default_mode = modes["default"]
+        else:
+            # Use the first mode as default
+            default_mode_name = next(iter(modes))
+            default_mode = modes[default_mode_name]
 
-        for i, launch_option in enumerate(launch_data[1:], 1):
-            desc = launch_option.get("description", f"Option {i}")
-            cmd = launch_option.get("command", "")
+        # Generate the default command
+        if default_mode and "run" in default_mode:
+            run_config = default_mode["run"]
+            command = run_config.get("command", "")
+            args = run_config.get("args", "")
 
-            content.append(f"**{desc}**:")
-            content.append("```bash")
-            content.append(cmd)
-            content.append("```")
+            if command:
+                full_command = f"{command} {args}".strip() if args else command
 
-            # Add note about hardware requirements if present
-            hardware_req = launch_option.get("requires_hardware", [])
-            if hardware_req:
-                content.append(f"*Note: Requires {', '.join(hardware_req)} hardware.*\n")
-            else:
-                content.append("")  # Add empty line for spacing
+                content.append("Run this application with:\n")
+                content.append("```bash")
+                content.append(full_command)
+                content.append("```\n")
 
-    return "\n".join(content)
+                # Add hardware requirements note for default mode
+                hardware_req = default_mode.get("hardware", [])
+                if hardware_req:
+                    content.append(f"*Note: This mode requires {', '.join(hardware_req)} hardware.*\n")
+
+        # Add alternative modes if there are more than one
+        other_modes = {k: v for k, v in modes.items() if k != default_mode_name}
+        if other_modes:
+            content.append("### Additional Run Options\n")
+
+            for mode_name, mode_config in other_modes.items():
+                desc = mode_config.get("description", f"{mode_name.replace('_', ' ').title()} mode")
+
+                if "run" in mode_config:
+                    run_config = mode_config["run"]
+                    command = run_config.get("command", "")
+                    args = run_config.get("args", "")
+
+                    if command:
+                        full_command = f"{command} {args}".strip() if args else command
+
+                        content.append(f"**{desc}**:")
+                        content.append("```bash")
+                        content.append(full_command)
+                        content.append("```")
+
+                        # Add note about hardware requirements if present
+                        hardware_req = mode_config.get("hardware", [])
+                        if hardware_req:
+                            content.append(f"*Note: Requires {', '.join(hardware_req)} hardware.*\n")
+                        else:
+                            content.append("")  # Add empty line for spacing
+
+        return "\n".join(content)
+
+    # Legacy format with 'launch' array (for backward compatibility)
+    elif "launch" in app_data:
+        launch_data = app_data["launch"]
+        if not launch_data:
+            return None
+
+        # Get the default command (first item in the launch array)
+        default_command = launch_data[0].get("command", "")
+        if not default_command:
+            return None
+
+        content = ["## Quick Run\n"]
+        content.append(
+            "<!-- This section is automatically generated from metadata.json. "
+            "Do not modify manually. Update the metadata.json file instead. -->"
+        )
+        content.append("Run this application with:\n")
+        content.append("```bash")
+        content.append(default_command)
+        content.append("```\n")
+
+        # Only add alternative commands if there are more than one
+        if len(launch_data) > 1:
+            content.append("### Additional Run Options\n")
+
+            for i, launch_option in enumerate(launch_data[1:], 1):
+                desc = launch_option.get("description", f"Option {i}")
+                cmd = launch_option.get("command", "")
+
+                content.append(f"**{desc}**:")
+                content.append("```bash")
+                content.append(cmd)
+                content.append("```")
+
+                # Add note about hardware requirements if present
+                hardware_req = launch_option.get("requires_hardware", [])
+                if hardware_req:
+                    content.append(f"*Note: Requires {', '.join(hardware_req)} hardware.*\n")
+                else:
+                    content.append("")  # Add empty line for spacing
+
+        return "\n".join(content)
+
+    # Neither new nor legacy format found
+    return None
 
 
 def update_quick_run_in_readme(readme_content, quick_run_content):
@@ -182,7 +260,7 @@ def update_readme_with_launch_commands(readme_path, metadata_path):
     quick_run_content = generate_simple_quick_run_section(metadata)
 
     if not quick_run_content:
-        print(f"No launch commands found in {metadata_path}")
+        print(f"No launch commands or modes found in {metadata_path}")
         return False
 
     # Load README.md
