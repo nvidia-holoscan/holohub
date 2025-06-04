@@ -67,6 +67,12 @@ add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
 
+add_custom_target(adv_networking_bench_default_tx_rx_multi_q_hds_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_multi_q_hds_yaml)
+
 add_custom_target(adv_networking_bench_default_tx_rx_hds_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml"

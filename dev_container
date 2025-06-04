@@ -474,11 +474,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.3.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v3.2.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v3.3.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -934,6 +934,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --build_docker_args : additional docker arguments when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
+        --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
         --parallel_jobs: Set the # of parallel build jobs, e.g. $(($(nproc)-1))
@@ -1056,6 +1057,10 @@ build_and_run() {
         --verbose)
             container_build_args+=(--verbose)
             container_launch_args+=" --verbose"
+            shift
+            ;;
+        --ssh_x11)
+            container_launch_args+=" --ssh_x11"
             shift
             ;;
         --language)

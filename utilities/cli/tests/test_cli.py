@@ -101,6 +101,77 @@ class TestHoloHubCLI(unittest.TestCase):
         run_args.func(run_args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
 
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.util.run_command")
+    @patch("utilities.cli.holohub.shlex.split")
+    @patch("os.chdir")
+    @patch("pathlib.Path.is_dir")
+    @patch("os.environ.copy")
+    def test_run_args_handling(
+        self,
+        mock_environ_copy,
+        mock_is_dir,
+        mock_chdir,
+        mock_shlex_split,
+        mock_run_command,
+        mock_build_project,
+        mock_find_project,
+    ):
+        """Test the run_args parameter handling"""
+        # Setup mocks
+        mock_find_project.return_value = self.mock_project_data
+        mock_build_dir = Path("/path/to/build")
+        mock_build_project.return_value = (mock_build_dir, self.mock_project_data)
+        mock_shlex_split.side_effect = lambda x: x.split()  # Simple split for testing
+        mock_is_dir.return_value = True  # Make sure the directory check passes
+        mock_environ_copy.return_value = {
+            "PATH": "/usr/bin:/bin",
+            "PYTHONPATH": "/path/to/python",
+        }  # Provide a minimal environment
+        complex_args = self.cli.parser.parse_args(["run", "test_project", "--local"])
+        complex_args.run_args = "--param1 value1 --param2=value2"
+        complex_args.nsys_profile = False  # Skip nsys_profile check
+        complex_args.func(complex_args)
+        self.assertIn("--param1", mock_run_command.call_args[0][0])
+        self.assertIn("value1", mock_run_command.call_args[0][0])
+        self.assertIn("--param2=value2", mock_run_command.call_args[0][0])
+        mock_run_command.reset_mock()
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.holohub.shlex.quote")
+    def test_container_run_args(
+        self,
+        mock_shlex_quote,
+        mock_container_class,
+        mock_find_project,
+    ):
+        """Test run_args handling in container mode"""
+        # Setup mocks
+        mock_find_project.return_value = self.mock_project_data
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+
+        # Set a predictable return value for shlex.quote
+        run_args_value = "--flag1 value1 --flag2='quoted value'"
+        quoted_value = "'--flag1 value1 --flag2=\\'quoted value\\''"
+        mock_shlex_quote.return_value = quoted_value
+
+        # Test container run with run_args
+        run_args = self.cli.parser.parse_args(["run", "test_project"])
+        run_args.run_args = run_args_value
+        run_args.func(run_args)
+
+        # Verify the arguments were properly quoted
+        mock_shlex_quote.assert_called_once_with(run_args_value)
+
+        # Verify the container.run was called with the correctly quoted arguments
+        kwargs = mock_container.run.call_args[1]
+        cmd_string = kwargs["extra_args"][1]
+        self.assertIn("--run_args", cmd_string)
+        self.assertIn(quoted_value, cmd_string)
+
     def test_list_command(self):
         """Test the list command parsing"""
         args = self.cli.parser.parse_args(["list"])
@@ -248,6 +319,85 @@ class TestHoloHubCLI(unittest.TestCase):
         finally:
             # Clean up
             shutil.rmtree(temp_dir)
+
+    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    def test_with_operators_parameter(
+        self,
+        mock_container_class,
+        mock_find_project,
+        mock_build_project_locally,
+    ):
+        """Test the --build_with parameter for both build and run commands in local and container modes"""
+        # Common setup
+        operators = "operator1;operator2;operator3"
+        mock_find_project.return_value = self.mock_project_data
+        mock_build_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_container.project_metadata = self.mock_project_data
+
+        # Test 1: Build with operators in local mode
+        args = self.cli.parser.parse_args(
+            f"build test_project --local --build_with {operators}".split()
+        )
+        args.func(args)
+        # Verify local build
+        mock_build_project_locally.assert_called()
+        call_args = mock_build_project_locally.call_args[1]
+        self.assertEqual(call_args["project_name"], "test_project")
+        self.assertEqual(call_args["with_operators"], operators)
+        mock_build_project_locally.reset_mock()
+
+        # Test 2: Build with operators in container mode
+        args = self.cli.parser.parse_args(f"build test_project --build_with {operators}".split())
+        args.func(args)
+        # Verify container build
+        mock_container.run.assert_called()
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn(f'--build_with "{operators}"', command_string)
+        mock_container.reset_mock()
+
+        # Test 3: Run with operators in container mode
+        args = self.cli.parser.parse_args(f"run test_project --build_with {operators}".split())
+        args.func(args)
+        # Verify container run
+        mock_container.run.assert_called()
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn(f'--build_with "{operators}"', command_string)
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    def test_build_project_locally_with_operators(
+        self,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test that _build_project_locally correctly adds the HOLOHUB_BUILD_OPERATORS CMake parameter"""
+        # Set up mocks
+        mock_find_project.return_value = self.mock_project_data
+        mock_run_command.return_value = MagicMock()
+
+        # Call _build_project_locally with operators
+        operators = "operator1;operator2;operator3"
+        self.cli._build_project_locally(
+            project_name="test_project",
+            language="cpp",
+            build_type="debug",
+            with_operators=operators,
+            dryrun=False,
+        )
+
+        # Verify CMake args contain the operators
+        self.assertEqual(mock_run_command.call_count, 2)
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DHOLOHUB_BUILD_OPERATORS", cmake_args_str)
+        self.assertIn(f'"{operators}"', cmake_args_str)
 
 
 if __name__ == "__main__":
