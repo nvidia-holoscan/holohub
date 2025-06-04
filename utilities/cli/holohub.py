@@ -159,7 +159,7 @@ class HoloHubCLI:
             "--as_root", action="store_true", help="Run the container with root permissions"
         )
         run_container.add_argument(
-            "--docker_opts", default="", help="Additional options to pass to the Docker launch"
+            "--docker-opts", default="", help="Additional options to pass to the Docker launch"
         )
         run_container.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -211,7 +211,7 @@ class HoloHubCLI:
             help="Optional operators that should be built, separated by semicolons (;)",
         )
         run.add_argument(
-            "--docker_opts",
+            "--docker-opts",
             default="",
             help="Additional options to pass to the underlying Docker launch (if applicable)",
         )
