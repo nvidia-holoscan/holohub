@@ -38,35 +38,46 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/body_pose_estimation.py",
-			"workdir": "holohub_bin"
-		},
-		"launch": [
-			{
-				"command": "./holohub run body_pose_estimation",
+		"modes": {
+			"default": {
 				"description": "Run with camera input (default)",
-				"id": "default",
-				"requires_hardware": ["camera"]
+				"hardware": ["camera"],
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin"
+				}
 			},
-			{
-				"command": "./holohub run body_pose_estimation --run_args \"--source replayer\"",
+			"replayer": {
 				"description": "Run with pre-recorded video (no camera required)",
-				"id": "replayer",
-				"requires_hardware": []
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"args": "--source replayer"
+				}
 			},
-			{
-				"command": "./holohub run body_pose_estimation --run_args \"--video_device /dev/videoX\"",
-				"description": "Run with specific camera device (replace X with device number)",
-				"id": "video device",
-				"requires_hardware": ["camera"]
-			},
-			{
-				"command": "./holohub run body_pose_estimation --run_args \"--source dds\"",
+			"dds": {
 				"description": "Run with DDS video stream input",
-				"id": "dds",
-				"requires_hardware": []
+				"build": {
+					"op_depends": [
+						"dds_video_subscriber",
+						"dds_video_publisher"
+					]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"args": "--source dds"
+				}
+			},
+			"video_device": {
+				"description": "Run with specific camera device, replace 1 with the device number accordingly",
+				"hardware": ["camera"],
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"args": "--video_device /dev/video1"
+				}
 			}
-		]
+		}
 	}
 }
