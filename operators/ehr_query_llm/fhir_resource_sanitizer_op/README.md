@@ -1,37 +1,12 @@
 # FHIR Resource Sanitizer Operator
 
-## Description
+A Holoscan operator that processes and sanitizes FHIR medical records into a standardized, AI-friendly format while maintaining essential medical information.
 
-The FHIR Resource Sanitizer Operator is a Holoscan operator that processes and sanitizes FHIR (Fast Healthcare Interoperability Resources) medical records. It transforms raw FHIR resources into a more standardized and AI-friendly format while maintaining the essential medical information.
+## Overview
 
-## Features
+The FHIR Resource Sanitizer Operator is designed to transform raw FHIR (Fast Healthcare Interoperability Resources) medical records into a more standardized format suitable for AI processing. It handles various FHIR resource types including Patient, Observation, Condition, DiagnosticReport, ImagingStudy, and more, while implementing robust error handling and logging mechanisms.
 
-- Sanitization of various FHIR resource types
-- Standardization of medical record formats
-- Support for multiple resource types including:
-  - Patient
-  - Observation
-  - Condition
-  - DiagnosticReport
-  - ImagingStudy
-  - And more
-- Error handling and logging
-
-## Input/Output
-
-### Input
-
-- `records`: A FHIRQueryResponse object containing patient medical records
-
-### Output
-
-- `out`: A sanitized FHIRQueryResponse object with standardized medical records
-
-## Parameters
-
-- `fhir_endpoint` (str): FHIR service endpoint URL (default: "<http://localhost:8080/>")
-
-## Dependencies
+## Requirements
 
 - holoscan
 - fhir.resources
@@ -39,17 +14,15 @@ The FHIR Resource Sanitizer Operator is a Holoscan operator that processes and s
 
 ## Example Usage
 
-```python
-from holoscan.core import Application, OperatorSpec
-from operators.ehr_query_llm.fhir.fhir_resource_sanitizer_op import FhirResourceSanitizerOp
+Please check [fhir_client.py](../../../applications/ehr_query_llm/fhir/fhir_client.py) in [Generative AI Application on Holoscan integrating with FHIR Services](../../../applications/ehr_query_llm/README.md).
 
-app = Application()
-app.add_operator(FhirResourceSanitizerOp(
-    fragment=app.fragment,
-    fhir_endpoint="https://fhir.example.com/"
-))
-```
 
-## License
+## Name Input/Output
 
-Apache License 2.0
+- Input:  `records`: A FHIRQueryResponse object containing patient medical records
+
+- Output: `out`: A sanitized FHIRQueryResponse object with standardized medical records
+
+## Parameters
+
+- `fhir_endpoint` (str): FHIR service endpoint URL (default: "<http://localhost:8080/>")
