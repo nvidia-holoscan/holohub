@@ -53,7 +53,7 @@ For example, to patch the endoscopy tool tracking application, you would run:
 ```
 $ ./benchmarks/holoscan_flow_benchmarking/patch_application.sh applications/endoscopy_tool_tracking
 ```
-This script saves the original `cpp` files in a `*.cpp.bak` file.
+This script saves the original source files (`.cpp` or `.py`) in a corresponding `*.bak` file.
 
 
 2. **Run the performance evaluation**
