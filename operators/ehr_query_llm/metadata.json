@@ -8,8 +8,9 @@
 			}
 		],
 		"language": ["Python"],
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Restructure to adhere to Holohub guideline",
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
