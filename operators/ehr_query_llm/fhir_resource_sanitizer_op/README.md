@@ -16,7 +16,6 @@ The FHIR Resource Sanitizer Operator is designed to transform raw FHIR (Fast Hea
 
 Please check [fhir_client.py](../../../applications/ehr_query_llm/fhir/fhir_client.py) in [Generative AI Application on Holoscan integrating with FHIR Services](../../../applications/ehr_query_llm/README.md).
 
-
 ## Name Input/Output
 
 - Input:  `records`: A FHIRQueryResponse object containing patient medical records
