@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ add_holohub_operator(high_rate_psd)
 add_holohub_operator(low_rate_psd)
 add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_inference)
 add_holohub_operator(npp_filter)
+add_subdirectory(nvidia_video_codec)
 add_holohub_operator(openigtlink)
 add_holohub_operator(prohawk_video_processing)
 add_holohub_operator(qt_video)
