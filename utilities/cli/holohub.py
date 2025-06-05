@@ -511,7 +511,7 @@ class HoloHubCLI:
             if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
-                build_cmd += f' --build_with "{args.with_operators}"'
+                build_cmd += f' --build-with "{args.with_operators}"'
             if args.verbose:
                 build_cmd += " --verbose"
 
@@ -526,7 +526,7 @@ class HoloHubCLI:
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
             if args.docker_opts:
                 holohub_cli_util.fatal(
-                    "Container arguments were provided with `--docker_opts` but a non-containerized build was requested."
+                    "Container arguments were provided with `--docker-opts` but a non-containerized build was requested."
                 )
 
             build_dir, project_data = self._build_project_locally(
@@ -664,7 +664,7 @@ class HoloHubCLI:
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
             if hasattr(args, "with_operators") and args.with_operators:
-                run_cmd += f' --build_with "{args.with_operators}"'
+                run_cmd += f' --build-with "{args.with_operators}"'
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
@@ -871,19 +871,34 @@ class HoloHubCLI:
             print(Color.blue("Linting CMake"))
             cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
             cmake_files.extend(Path(args.path).rglob("*.cmake"))
+            excluded_paths = ["build", "install", "tmp"]
+            cmake_files = [
+                f
+                for f in cmake_files
+                if not any(
+                    excluded_dir in f.parts or any(part.startswith(".") for part in f.parts)
+                    for excluded_dir in excluded_paths
+                )
+            ]
             if cmake_files:
-                if (
-                    holohub_cli_util.run_command(
-                        [
-                            "cmakelint",
-                            "--filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs",
-                            *[str(f) for f in cmake_files],
-                        ],
-                        check=False,
-                        dry_run=args.dryrun,
-                    ).returncode
-                    != 0
-                ):
+                batch_size = 100
+                cmake_lint_failed = False
+                for i in range(0, len(cmake_files), batch_size):
+                    if (
+                        holohub_cli_util.run_command(
+                            [
+                                "cmakelint",
+                                "--filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs",
+                                *[str(f) for f in cmake_files[i : i + batch_size]],
+                            ],
+                            check=False,
+                            dry_run=args.dryrun,
+                        ).returncode
+                        != 0
+                    ):
+                        cmake_lint_failed = True
+
+                if cmake_lint_failed:
                     exit_code = 1
 
         if exit_code == 0 and not args.dryrun:
@@ -1079,6 +1094,7 @@ class HoloHubCLI:
             )
 
         # Install CUDA dependencies
+        cuda_version = ""
         for version in [
             "12-6",
             "12-5",

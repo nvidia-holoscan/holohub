@@ -27,6 +27,15 @@ sys.path.append(str(Path(os.getcwd()) / "utilities"))
 from utilities.cli.holohub import HoloHubCLI
 
 
+def is_cookiecutter_available():
+    try:
+        import cookiecutter  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 class TestHoloHubCLI(unittest.TestCase):
     def setUp(self):
         self.cli = HoloHubCLI()
@@ -65,6 +74,7 @@ class TestHoloHubCLI(unittest.TestCase):
         for cmd in cmds.split():
             self.assertIn(cmd, subparsers[0].choices)
 
+    @patch("utilities.cli.util.check_nvidia_ctk")
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.util.run_command")
@@ -79,6 +89,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_run_command,
         mock_container_class,
         mock_find_project,
+        mock_check_nvidia_ctk,
     ):
         """Test both build-container and run commands"""
         # Setup mocks
@@ -86,16 +97,15 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_is_dir.return_value = True
-
+        mock_check_nvidia_ctk.return_value = None
         # Test build-container command
         build_args = self.cli.parser.parse_args(
-            "build-container test_project --base_img test_image --no-cache".split()
+            "build-container test_project --base-img test_image --no-cache".split()
         )
         build_args.func(build_args)
         mock_container.build.assert_called_with(
             docker_file=None, base_img="test_image", img=None, no_cache=True, build_args=None
         )
-
         # Test run command
         run_args = self.cli.parser.parse_args("run test_project --local".split())
         run_args.func(run_args)
@@ -218,9 +228,12 @@ class TestHoloHubCLI(unittest.TestCase):
         args = self.cli.parser.parse_args("lint --fix".split())
         try:
             args.func(args)
+        except FileNotFoundError as e:
+            self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
         except SystemExit as e:
             self.assertEqual(e.code, 0)
 
+    @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
     @patch("cookiecutter.main.cookiecutter")
     @patch("utilities.cli.holohub.HoloHubCLI.handle_create")
@@ -274,6 +287,7 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertEqual(kwargs["extra_context"]["project_name"], "test_python_project")
         self.assertEqual(kwargs["extra_context"]["language"], "python")
 
+    @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @unittest.skipIf(
         not os.path.exists(os.path.join(os.getcwd(), "applications", "template")),
         "Template directory not found",
@@ -329,7 +343,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_find_project,
         mock_build_project_locally,
     ):
-        """Test the --build_with parameter for both build and run commands in local and container modes"""
+        """Test the --build-with parameter for both build and run commands in local and container modes"""
         # Common setup
         operators = "operator1;operator2;operator3"
         mock_find_project.return_value = self.mock_project_data
@@ -340,7 +354,7 @@ class TestHoloHubCLI(unittest.TestCase):
 
         # Test 1: Build with operators in local mode
         args = self.cli.parser.parse_args(
-            f"build test_project --local --build_with {operators}".split()
+            f"build test_project --local --build-with {operators}".split()
         )
         args.func(args)
         # Verify local build
@@ -351,23 +365,23 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_build_project_locally.reset_mock()
 
         # Test 2: Build with operators in container mode
-        args = self.cli.parser.parse_args(f"build test_project --build_with {operators}".split())
+        args = self.cli.parser.parse_args(f"build test_project --build-with {operators}".split())
         args.func(args)
         # Verify container build
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--build_with "{operators}"', command_string)
+        self.assertIn(f'--build-with "{operators}"', command_string)
         mock_container.reset_mock()
 
         # Test 3: Run with operators in container mode
-        args = self.cli.parser.parse_args(f"run test_project --build_with {operators}".split())
+        args = self.cli.parser.parse_args(f"run test_project --build-with {operators}".split())
         args.func(args)
         # Verify container run
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--build_with "{operators}"', command_string)
+        self.assertIn(f'--build-with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI._find_project")
     @patch("utilities.cli.util.run_command")
