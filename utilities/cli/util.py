@@ -49,7 +49,6 @@ class Color:
         result += text + Color.RESET
         return result
 
-    @staticmethod
     def _create_color_method(color_code: str):
         """Create a color method for the given color code"""
 
@@ -104,10 +103,8 @@ def run_command(
         sys.exit(e.returncode)
 
 
-def check_nvidia_ctk() -> None:
+def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
     """Check NVIDIA Container Toolkit version"""
-    min_version = "1.12.0"
-    recommended_version = "1.14.1"
 
     if not shutil.which("nvidia-ctk"):
         fatal("nvidia-ctk not found. Please install the NVIDIA Container Toolkit.")
@@ -119,11 +116,25 @@ def check_nvidia_ctk() -> None:
         match = re.search(r"(\d+\.\d+\.\d+)", output)
         if match:
             version = match.group(1)
-            from packaging import version as ver
 
-            if ver.parse(version) < ver.parse(min_version):
+            try:
+                from packaging import version as ver
+
+                version_check = ver.parse(version) < ver.parse(min_version)
+            except ImportError:
+
+                def parse_version(v):
+                    try:
+                        return tuple(map(int, v.split(".")))
+                    except ValueError:
+                        return (10, 0, 0)
+
+                version_check = parse_version(version) < parse_version(min_version)
+
+            if version_check:
                 fatal(
-                    f"Found nvidia-ctk Version {version}. Version {min_version}+ is required ({recommended_version}+ recommended)."
+                    f"Found nvidia-ctk {version}. Version {min_version}+ is required "
+                    f"({recommended_version}+ recommended)."
                 )
         else:
             print(f"Failed to parse available nvidia-ctk version: {output}")
@@ -175,6 +186,8 @@ def get_group_id(group: str) -> Optional[int]:
 
 def normalize_language(language: str) -> Optional[str]:
     """Normalize language name"""
+    if not isinstance(language, str):
+        return None
     if language.lower() == "cpp" or language.lower() == "c++":
         return "cpp"
     elif language.lower() == "python" or language.lower() == "py":
