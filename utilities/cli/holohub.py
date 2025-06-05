@@ -948,28 +948,31 @@ class HoloHubCLI:
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
         # Install system dependencies
-        holohub_cli_util.run_command(["sudo", "apt-get", "update"], dry_run=args.dryrun)
+        holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
 
         # Install wget if not present
         holohub_cli_util.run_command(
-            ["sudo", "apt-get", "install", "-y", "wget"], dry_run=args.dryrun
+            ["apt-get", "install", "-y", "wget"], dry_run=args.dryrun
         )
 
         # Install xvfb for running tests/examples headless
         holohub_cli_util.run_command(
-            ["sudo", "apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun
+            ["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun
         )
 
         # Check and install CMake if needed
-        cmake_version = subprocess.check_output(
-            ["dpkg", "--status", "cmake"], text=True, stderr=subprocess.DEVNULL
-        )
+        cmake_version = subprocess.run(
+            ["dpkg", "--status", "cmake", "|", "grep", "-p0", "'^Version: \K[^-]*'"],
+            capture_output=True,
+            text=True,
+        ).stdout
+
         ubuntu_codename = subprocess.check_output(["cat", "/etc/os-release"], text=True)
         ubuntu_codename = re.search(r"UBUNTU_CODENAME=(\w+)", ubuntu_codename).group(1)
 
         if not cmake_version or "3.24.0" > cmake_version:
             holohub_cli_util.run_command(
-                ["sudo", "apt", "install", "--no-install-recommends", "-y", "gpg"],
+                ["apt", "install", "--no-install-recommends", "-y", "gpg"],
                 dry_run=args.dryrun,
             )
             holohub_cli_util.run_command(
@@ -984,11 +987,11 @@ class HoloHubCLI:
                     "--dearmor",
                     "-",
                     "|",
-                    "sudo",
                     "tee",
                     "/usr/share/keyrings/kitware-archive-keyring.gpg",
                     ">/dev/null",
                 ],
+                check=False,
                 dry_run=args.dryrun,
             )
             holohub_cli_util.run_command(
@@ -996,17 +999,15 @@ class HoloHubCLI:
                     "echo",
                     f'"deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ {ubuntu_codename} main"',
                     "|",
-                    "sudo",
                     "tee",
                     "/etc/apt/sources.list.d/kitware.list",
                     ">/dev/null",
                 ],
                 dry_run=args.dryrun,
             )
-            holohub_cli_util.run_command(["sudo", "apt-get", "update"], dry_run=args.dryrun)
+            holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
             holohub_cli_util.run_command(
                 [
-                    "sudo",
                     "apt",
                     "install",
                     "--no-install-recommends",
@@ -1019,18 +1020,20 @@ class HoloHubCLI:
 
         # Install Ninja
         holohub_cli_util.run_command(
-            ["sudo", "apt", "install", "--no-install-recommends", "-y", "ninja-build"],
+            ["apt", "install", "--no-install-recommends", "-y", "ninja-build"],
             dry_run=args.dryrun,
         )
 
         # Install Python dev
-        python3_dev_version = subprocess.check_output(
-            ["dpkg", "--status", "python3-dev"], text=True, stderr=subprocess.DEVNULL
-        )
+        python3_dev_version = subprocess.run(
+            ["dpkg", "--status", "python3-dev", "|", "grep", "-p0", "'^Version: \K[^-]*'"],
+            capture_output=True,
+            text=True,
+        ).stdout
+
         if not python3_dev_version or "3.9.0" > python3_dev_version:
             holohub_cli_util.run_command(
                 [
-                    "sudo",
                     "apt",
                     "install",
                     "--no-install-recommends",
@@ -1043,25 +1046,25 @@ class HoloHubCLI:
 
         # Install ffmpeg
         holohub_cli_util.run_command(
-            ["sudo", "apt", "install", "--no-install-recommends", "-y", "ffmpeg"],
+            ["apt", "install", "--no-install-recommends", "-y", "ffmpeg"],
             dry_run=args.dryrun,
         )
 
         # Install libv4l-dev
         holohub_cli_util.run_command(
-            ["sudo", "apt-get", "install", "--no-install-recommends", "-y", "libv4l-dev"],
+            ["apt-get", "install", "--no-install-recommends", "-y", "libv4l-dev"],
             dry_run=args.dryrun,
         )
 
         # Install git if not present
         holohub_cli_util.run_command(
-            ["sudo", "apt-get", "install", "--no-install-recommends", "-y", "git"],
+            ["apt-get", "install", "--no-install-recommends", "-y", "git"],
             dry_run=args.dryrun,
         )
 
         # Install unzip if not present
         holohub_cli_util.run_command(
-            ["sudo", "apt-get", "install", "--no-install-recommends", "-y", "unzip"],
+            ["apt-get", "install", "--no-install-recommends", "-y", "unzip"],
             dry_run=args.dryrun,
         )
 
@@ -1075,6 +1078,8 @@ class HoloHubCLI:
                         "wget",
                         "--content-disposition",
                         "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip",
+                        "-O",
+                        "ngccli_arm64.zip",
                     ],
                     dry_run=args.dryrun,
                 )
@@ -1085,13 +1090,15 @@ class HoloHubCLI:
                         "wget",
                         "--content-disposition",
                         "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip",
+                        "-O",
+                        "ngccli_linux.zip",
                     ],
                     dry_run=args.dryrun,
                 )
                 holohub_cli_util.run_command(["unzip", "ngccli_linux.zip"], dry_run=args.dryrun)
             holohub_cli_util.run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=args.dryrun)
             holohub_cli_util.run_command(
-                ["sudo", "ln", "-s", f"{os.getcwd()}/ngc-cli/ngc", "/usr/local/bin/"],
+                ["ln", "-s", f"{os.getcwd()}/ngc-cli/ngc", "/usr/local/bin/"],
                 dry_run=args.dryrun,
             )
 
@@ -1175,7 +1182,6 @@ class HoloHubCLI:
         # Install the autocomplete
         holohub_cli_util.run_command(
             [
-                "sudo",
                 "cp",
                 f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete",
                 "/etc/bash_completion.d/",
