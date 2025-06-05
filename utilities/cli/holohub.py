@@ -951,14 +951,10 @@ class HoloHubCLI:
         holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
 
         # Install wget if not present
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "-y", "wget"], dry_run=args.dryrun
-        )
+        holohub_cli_util.run_command(["apt-get", "install", "-y", "wget"], dry_run=args.dryrun)
 
         # Install xvfb for running tests/examples headless
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun
-        )
+        holohub_cli_util.run_command(["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun)
 
         # Check and install CMake if needed
         cmake_version = subprocess.run(
