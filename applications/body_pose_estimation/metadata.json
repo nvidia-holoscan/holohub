@@ -58,7 +58,7 @@
 			"dds": {
 				"description": "Run with DDS video stream input",
 				"build": {
-					"op_depends": [
+					"target_depends": [
 						"dds_video_subscriber",
 						"dds_video_publisher"
 					]
