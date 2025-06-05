@@ -6,6 +6,9 @@ on:
   push:
     branches: [main, holoscan-sdk-lws2]
 
+permissions:
+  contents: read
+
 jobs:
   check-lint:
     runs-on: ubuntu-22.04
