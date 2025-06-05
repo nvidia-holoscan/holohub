@@ -114,8 +114,8 @@ class HoloHubCLI:
             "build-container", help="Build the development container"
         )
         build_container.add_argument("project", nargs="?", help="Project to build container for")
-        build_container.add_argument("--base_img", help="Fully qualified base image name")
-        build_container.add_argument("--docker_file", help="Path to Dockerfile to use")
+        build_container.add_argument("--base-img", help="Fully qualified base image name")
+        build_container.add_argument("--docker-file", help="Path to Dockerfile to use")
         build_container.add_argument("--img", help="Specify fully qualified container name")
         build_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker build command"
@@ -141,7 +141,7 @@ class HoloHubCLI:
         run_container.add_argument("project", nargs="?", help="Project to run container for")
         run_container.add_argument("--img", help="Fully qualified image name")
         run_container.add_argument(
-            "--local_sdk_root",
+            "--local-sdk-root",
             help="Path to Holoscan SDK used for building local Holoscan SDK container",
         )
         run_container.add_argument("--init", action="store_true", help="Support tini entry point")
@@ -156,10 +156,10 @@ class HoloHubCLI:
         )
         run_container.add_argument("--add-volume", action="append", help="Mount additional volume")
         run_container.add_argument(
-            "--as_root", action="store_true", help="Run the container with root permissions"
+            "--as-root", action="store_true", help="Run the container with root permissions"
         )
         run_container.add_argument(
-            "--docker_opts", help="Additional options to pass to the Docker launch"
+            "--docker-opts", default="", help="Additional options to pass to the Docker launch"
         )
         run_container.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -179,7 +179,7 @@ class HoloHubCLI:
             help="Build type (debug, release, rel-debug)",
         )
         build.add_argument(
-            "--build_with",
+            "--build-with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
         )
@@ -203,12 +203,17 @@ class HoloHubCLI:
             "--language", choices=["cpp", "python"], help="Specify language implementation"
         )
         run.add_argument(
-            "--run_args", help="Additional arguments to pass to the application executable"
+            "--run-args", help="Additional arguments to pass to the application executable"
         )
         run.add_argument(
-            "--build_with",
+            "--build-with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        run.add_argument(
+            "--docker-opts",
+            default="",
+            help="Additional options to pass to the underlying Docker launch (if applicable)",
         )
         run.set_defaults(func=self.handle_run)
 
@@ -519,6 +524,11 @@ class HoloHubCLI:
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
+            if args.docker_opts:
+                holohub_cli_util.fatal(
+                    "Container arguments were provided with `--docker_opts` but a non-containerized build was requested."
+                )
+
             build_dir, project_data = self._build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
@@ -659,7 +669,9 @@ class HoloHubCLI:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
             container.run(
-                docker_opts="--entrypoint=bash", extra_args=["-c", run_cmd], verbose=args.verbose
+                docker_opts="--entrypoint=bash " + args.docker_opts,
+                extra_args=["-c", run_cmd],
+                verbose=args.verbose,
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
