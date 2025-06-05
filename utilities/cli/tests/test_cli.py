@@ -35,9 +35,11 @@ def is_cookiecutter_available():
     except ImportError:
         return False
 
+
 def is_ruff_available():
     try:
         import ruff  # noqa: F401
+
         return True
     except ImportError:
         return False
