@@ -226,7 +226,9 @@ class HoloHubCLI:
         lint.add_argument("path", nargs="?", default=".", help="Path to lint")
         lint.add_argument("--fix", action="store_true", help="Fix linting issues")
         lint.add_argument(
-            "--install-dependencies", action="store_true", help="Install linting dependencies"
+            "--install-dependencies",
+            action="store_true",
+            help="Install linting dependencies (may require `sudo` privileges)",
         )
         lint.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
