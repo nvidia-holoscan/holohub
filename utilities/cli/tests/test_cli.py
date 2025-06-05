@@ -238,7 +238,9 @@ class TestHoloHubCLI(unittest.TestCase):
         try:
             args.func(args)
         except FileNotFoundError as e:
-            if not is_ruff_available():
+            if is_ruff_available():
+                raise e
+            else:
                 self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
         except SystemExit as e:
             self.assertEqual(e.code, 0)
