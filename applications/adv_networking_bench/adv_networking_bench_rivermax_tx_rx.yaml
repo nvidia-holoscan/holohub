@@ -24,9 +24,9 @@ advanced_network:
   cfg:
     version: 1
     manager: "rivermax"
-    master_core: 5              # Master CPU core
+    master_core: 6              # Master CPU core
     debug: 1
-    log_level: "warn"
+    log_level: "debug"
 
     memory_regions:
     - name: "Data_RX_CPU"
@@ -39,26 +39,37 @@ advanced_network:
       affinity: 0
       num_bufs: 43200
       buf_size: 1200
+    - name: "Data_TX_CPU"
+      kind: "huge"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 20
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 1200
 
     interfaces:
     - name: "rx_port"
       address: cc:00.1
       rx:
         queues:
-        - name: "rx_q_1"
-          id: 1
-          cpu_core:  "11,12,13"
+        - name: "rx_q_0"
+          id: 0
+          cpu_core:  "10"
           batch_size: 4320
           memory_regions:
           - "Data_RX_CPU"
           - "Data_RX_GPU"
-          rmax_rx_settings:
+          rivermax_rx_settings:
+            settings_type: "ipo_receiver"
             memory_registration: true
             #allocator_type: "huge_page_2mb"
             verbose: true
-            max_path_diff_us: 100
+            max_path_diff_us: 10000
             ext_seq_num: true
-            sleep_between_operations_us: 100
+            sleep_between_operations_us: 0
             local_ip_addresses:
               - 2.1.0.12
               - 2.1.0.12
@@ -71,8 +82,37 @@ advanced_network:
             destination_ports:
               - 50001
               - 50001
-            rx_stats_period_report_ms: 3000
+            stats_report_interval_ms: 1000
             send_packet_ext_info: true
+      tx:
+        queues:
+        - name: "tx_q_1"
+          id: 0
+          cpu_core:  "14"
+          batch_size: 4320
+          output_port: "bench_tx_out_1"
+          memory_regions:
+          - "Data_TX_CPU"
+          - "Data_TX_GPU"
+          rivermax_tx_settings:
+            settings_type: "media_sender"
+            memory_registration: true
+            memory_allocation: true
+            memory_pool_location: "device"
+            #allocator_type: "huge_page_2mb"
+            verbose: true
+            sleep_between_operations: false
+            local_ip_address: 2.1.0.12
+            destination_ip_address: 224.1.1.3
+            destination_port: 50001
+            stats_report_interval_ms: 1000
+            send_packet_ext_info: true
+            video_format: YCbCr-4:2:2
+            bit_depth: 10
+            frame_width: 1920
+            frame_height: 1080
+            frame_rate: 60
+            dummy_sender: false
 
 bench_rx:
   interface_name: "rx_port" # Name of the RX port from the advanced_network config
@@ -81,3 +121,13 @@ bench_rx:
   batch_size: 8640
   max_packet_size: 1220
   header_size: 20
+
+bench_tx:
+  interface_name: cc:00.1
+  sample_format: YUV422
+  frame_width: 1920
+  frame_height: 1080
+  bit_depth: 10
+  file_path: "./build/adv_networking_bench/applications/adv_networking_bench/cpp/input_file.ycbcr"
+  payload_memory: "device"
+
