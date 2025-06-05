@@ -19,6 +19,7 @@ import datetime
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -63,7 +64,7 @@ class HoloHubCLI:
     def _create_parser(self) -> argparse.ArgumentParser:
         """Create the argument parser with all supported commands"""
         parser = argparse.ArgumentParser(
-            description="HoloHub CLI tool for managing HoloHub applications and containers"
+            description="HoloHub CLI tool for managing Holoscan applications and containers"
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -113,8 +114,8 @@ class HoloHubCLI:
             "build-container", help="Build the development container"
         )
         build_container.add_argument("project", nargs="?", help="Project to build container for")
-        build_container.add_argument("--base_img", help="Fully qualified base image name")
-        build_container.add_argument("--docker_file", help="Path to Dockerfile to use")
+        build_container.add_argument("--base-img", help="Fully qualified base image name")
+        build_container.add_argument("--docker-file", help="Path to Dockerfile to use")
         build_container.add_argument("--img", help="Specify fully qualified container name")
         build_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker build command"
@@ -140,7 +141,7 @@ class HoloHubCLI:
         run_container.add_argument("project", nargs="?", help="Project to run container for")
         run_container.add_argument("--img", help="Fully qualified image name")
         run_container.add_argument(
-            "--local_sdk_root",
+            "--local-sdk-root",
             help="Path to Holoscan SDK used for building local Holoscan SDK container",
         )
         run_container.add_argument("--init", action="store_true", help="Support tini entry point")
@@ -155,10 +156,10 @@ class HoloHubCLI:
         )
         run_container.add_argument("--add-volume", action="append", help="Mount additional volume")
         run_container.add_argument(
-            "--as_root", action="store_true", help="Run the container with root permissions"
+            "--as-root", action="store_true", help="Run the container with root permissions"
         )
         run_container.add_argument(
-            "--docker_opts", help="Additional options to pass to the Docker launch"
+            "--docker-opts", default="", help="Additional options to pass to the Docker launch"
         )
         run_container.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -178,6 +179,11 @@ class HoloHubCLI:
             help="Build type (debug, release, rel-debug)",
         )
         build.add_argument(
+            "--build-with",
+            dest="with_operators",
+            help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        build.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         build.set_defaults(func=self.handle_build)
@@ -195,6 +201,19 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
+        run.add_argument(
+            "--run-args", help="Additional arguments to pass to the application executable"
+        )
+        run.add_argument(
+            "--build-with",
+            dest="with_operators",
+            help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        run.add_argument(
+            "--docker-opts",
+            default="",
+            help="Additional options to pass to the underlying Docker launch (if applicable)",
         )
         run.set_defaults(func=self.handle_run)
 
@@ -434,6 +453,7 @@ class HoloHubCLI:
         project_name: str,
         language: Optional[str] = None,
         build_type: Optional[str] = None,
+        with_operators: Optional[str] = None,
         dryrun: bool = False,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
@@ -442,22 +462,25 @@ class HoloHubCLI:
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
-        holohub_cli_util.run_command(
-            [
-                "cmake",
-                "-B",
-                str(build_dir),
-                "-S",
-                str(HoloHubCLI.HOLOHUB_ROOT),
-                "-G",
-                "Ninja",
-                f"-DCMAKE_BUILD_TYPE={build_type}",
-                f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
-                f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
-                f"-DAPP_{project_name}=ON",
-            ],
-            dry_run=dryrun,
-        )
+        cmake_args = [
+            "cmake",
+            "-B",
+            str(build_dir),
+            "-S",
+            str(HoloHubCLI.HOLOHUB_ROOT),
+            "-G",
+            "Ninja",
+            f"-DCMAKE_BUILD_TYPE={build_type}",
+            f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
+            f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
+            f"-DAPP_{project_name}=ON",
+        ]
+
+        # Add optional operators if specified
+        if with_operators:
+            cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
+
+        holohub_cli_util.run_command(cmake_args, dry_run=dryrun)
         holohub_cli_util.run_command(
             ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=dryrun
         )
@@ -471,6 +494,7 @@ class HoloHubCLI:
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
                 build_type=args.build_type,
+                with_operators=args.with_operators,
                 dryrun=args.dryrun,
             )
         else:
@@ -482,19 +506,34 @@ class HoloHubCLI:
             container.dryrun = args.dryrun
             container.build()
 
+            # Build command with all necessary arguments
+            build_cmd = f"./holohub build {args.project} --local"
+            if args.build_type:
+                build_cmd += f" --build-type {args.build_type}"
+            if args.with_operators:
+                build_cmd += f' --build_with "{args.with_operators}"'
+            if args.verbose:
+                build_cmd += " --verbose"
+
             container.run(
                 docker_opts="--entrypoint=bash",
-                extra_args=["-c", f"./holohub build {args.project} --local"],
+                extra_args=["-c", build_cmd],
                 verbose=args.verbose,
             )
 
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
+            if args.docker_opts:
+                holohub_cli_util.fatal(
+                    "Container arguments were provided with `--docker_opts` but a non-containerized build was requested."
+                )
+
             build_dir, project_data = self._build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
                 build_type="Release",  # Default to Release for run
+                with_operators=args.with_operators,
                 dryrun=args.dryrun,
             )
 
@@ -519,6 +558,12 @@ class HoloHubCLI:
 
             app_build_dir = build_dir / app_source_path.relative_to(HoloHubCLI.HOLOHUB_ROOT)
             cmd = cmd.replace("<holohub_app_bin>", str(app_build_dir))
+
+            if hasattr(args, "run_args") and args.run_args:
+                cmd_args = shlex.split(args.run_args)
+                if isinstance(cmd, str):  # Ensure cmd is a list of arguments
+                    cmd = shlex.split(cmd)
+                cmd.extend(cmd_args)
 
             if language == "cpp":
                 if not build_dir.is_dir() and not args.dryrun:
@@ -554,7 +599,7 @@ class HoloHubCLI:
             # Set up environment
             env = os.environ.copy()
             env["PYTHONPATH"] = (
-                f"{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
+                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
             )
             env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
@@ -598,7 +643,8 @@ class HoloHubCLI:
 
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
-            holohub_cli_util.run_command(cmd.split(), env=env, dry_run=args.dryrun)
+            cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
+            holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
@@ -617,9 +663,15 @@ class HoloHubCLI:
                 run_cmd += " --verbose"
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
+            if hasattr(args, "with_operators") and args.with_operators:
+                run_cmd += f' --build_with "{args.with_operators}"'
+            if hasattr(args, "run_args") and args.run_args:
+                run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
             container.run(
-                docker_opts="--entrypoint=bash", extra_args=["-c", run_cmd], verbose=args.verbose
+                docker_opts="--entrypoint=bash " + args.docker_opts,
+                extra_args=["-c", run_cmd],
+                verbose=args.verbose,
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:

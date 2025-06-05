@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/openigtlink_3dslicer/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.3",
 			"tested_versions": [

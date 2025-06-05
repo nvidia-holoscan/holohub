@@ -1,0 +1,350 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+  max_duration_ms: 10000
+advanced_network:
+  cfg:
+    version: 1
+    manager: dpdk
+    master_core: 3
+    debug: false
+    log_level: info
+    tx_meta_buffers: 4096
+    rx_meta_buffers: 4096
+    memory_regions:
+    - name: Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 42
+    - name: Context_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 10240
+      buf_size: 64
+    - name: CH1_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH1_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH2_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH2_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH3_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH3_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH4_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH4_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH5_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH5_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH6_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH6_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH7_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH7_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: CH8_Data_RX_GPU
+      kind: device
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 4100
+    - name: CH8_VRT_Headers_RX_CPU
+      kind: huge
+      affinity: 0
+      access:
+      - local
+      num_bufs: 51200
+      buf_size: 20
+    - name: Data_TX_GPU
+      kind: device
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064
+    - name: Data_TX_CPU
+      kind: huge
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 8000
+    interfaces:
+    - name: tx_port
+      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
+      tx:
+        queues:
+        - name: tx_q_0
+          id: 0
+          batch_size: 10240
+          cpu_core: 11
+          memory_regions:
+          - Data_TX_CPU
+          offloads:
+          - tx_eth_src
+    - name: rx_port
+      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
+      rx:
+        flow_isolation: true
+        queues:
+        - name: rx_q_0
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+          memory_regions:
+          - Headers_RX_CPU
+          - Context_RX_CPU
+        - name: rx_q_1
+          id: 1
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH1_VRT_Headers_RX_CPU
+          - CH1_Data_RX_GPU
+        - name: rx_q_2
+          id: 2
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH2_VRT_Headers_RX_CPU
+          - CH2_Data_RX_GPU
+        - name: rx_q_3
+          id: 3
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH3_VRT_Headers_RX_CPU
+          - CH3_Data_RX_GPU
+        - name: rx_q_4
+          id: 4
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH4_VRT_Headers_RX_CPU
+          - CH4_Data_RX_GPU
+        - name: rx_q_5
+          id: 5
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH5_VRT_Headers_RX_CPU
+          - CH5_Data_RX_GPU
+        - name: rx_q_6
+          id: 6
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH6_VRT_Headers_RX_CPU
+          - CH6_Data_RX_GPU
+        - name: rx_q_7
+          id: 7
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH7_VRT_Headers_RX_CPU
+          - CH7_Data_RX_GPU
+        - name: rx_q_8
+          id: 8
+          cpu_core: 9
+          batch_size: 256
+          memory_regions:
+          - Headers_RX_CPU
+          - CH8_VRT_Headers_RX_CPU
+          - CH8_Data_RX_GPU
+        flows:
+        - name: flow_4097
+          id: 0
+          action:
+            type: queue
+            id: 0
+          match:
+            udp_src: 4097
+            udp_dst: 4097
+        - name: flow_4096
+          id: 1
+          action:
+            type: queue
+            id: 1
+          match:
+            udp_src: 4096
+            udp_dst: 4096
+        - name: flow_4095
+          id: 2
+          action:
+            type: queue
+            id: 2
+          match:
+            udp_src: 4095
+            udp_dst: 4095
+        - name: flow_4094
+          id: 3
+          action:
+            type: queue
+            id: 3
+          match:
+            udp_src: 4094
+            udp_dst: 4094
+        - name: flow_4093
+          id: 4
+          action:
+            type: queue
+            id: 4
+          match:
+            udp_src: 4093
+            udp_dst: 4093
+        - name: flow_4092
+          id: 5
+          action:
+            type: queue
+            id: 5
+          match:
+            udp_src: 4092
+            udp_dst: 4092
+        - name: flow_4091
+          id: 6
+          action:
+            type: queue
+            id: 6
+          match:
+            udp_src: 4091
+            udp_dst: 4091
+        - name: flow_4090
+          id: 7
+          action:
+            type: queue
+            id: 7
+          match:
+            udp_src: 4090
+            udp_dst: 4090
+        - name: flow_4089
+          id: 8
+          action:
+            type: queue
+            id: 8
+          match:
+            udp_src: 4089
+            udp_dst: 4089
+bench_rx:
+  interface_name: rx_port
+  gpu_direct: true
+  split_boundary: true
+  batch_size: 1
+  max_packet_size: 1064
+  header_size: 170
+  reorder_kernel: false
+bench_tx:
+  interface_name: tx_port
+  gpu_direct: false
+  split_boundary: 0
+  batch_size: 10240
+  payload_size: 1000
+  header_size: 64
+  eth_dst_addr: <00:00:00:00:00:00>
+  ip_src_addr: <1.2.3.4>
+  ip_dst_addr: <5.6.7.8>
+  udp_src_port: 4089-4097
+  udp_dst_port: 4089-4097

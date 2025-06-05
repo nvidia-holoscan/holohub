@@ -29,9 +29,8 @@ import numpy as np
 from holoscan.core import Fragment, OperatorSpec
 
 from operators.medical_imaging.core import AppContext, Image, IOType
+from operators.medical_imaging.inference_operator import InferenceOperator
 from operators.medical_imaging.utils.importutil import optional_import
-
-from .inference_operator import InferenceOperator
 
 MONAI_UTILS = "monai.utils"
 nibabel, _ = optional_import("nibabel", "3.2.1")

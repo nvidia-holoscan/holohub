@@ -73,6 +73,7 @@ RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
     fi
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
+ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 
 # For RTI Connext DDS
 RUN apt update \

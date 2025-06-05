@@ -24,9 +24,8 @@ from holoscan.core import ConditionType, Fragment, OperatorSpec
 from monai.utils import StrEnum  # Will use the built-in StrEnum when SDK requires Python 3.11.
 
 from operators.medical_imaging.core import AppContext, Image
+from operators.medical_imaging.inference_operator import InferenceOperator
 from operators.medical_imaging.utils.importutil import optional_import
-
-from .inference_operator import InferenceOperator
 
 MONAI_UTILS = "monai.utils"
 torch, _ = optional_import("torch", "1.5")

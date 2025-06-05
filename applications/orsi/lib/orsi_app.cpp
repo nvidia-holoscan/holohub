@@ -36,7 +36,9 @@ void OrsiApp::set_source(const std::string& source) {
   if (source == "videomaster") { video_source_ = VideoSource::VIDEOMASTER; }
 #endif
   if (source == "replayer") { video_source_ = VideoSource::REPLAYER; }
+#ifdef AJA_SOURCE
   if (source == "aja" ) { video_source_ = VideoSource::AJA; }
+#endif
 }
 
 void OrsiApp::set_datapath(const std::string& path) {
@@ -81,13 +83,14 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
             "videomaster", from_config("videomaster"), Arg("pool") = allocator_resource);
         break;
 #endif
+#ifdef AJA_SOURCE
       case VideoSource::AJA:
         width = from_config("aja.width").as<uint32_t>();
         height = from_config("aja.height").as<uint32_t>();
         source = make_operator<ops::AJASourceOp>("aja",
          from_config("aja"), from_config("external_source"));
        break;
-
+#endif
       default:
         source = make_operator<ops::VideoStreamReplayerOp>(
             "replayer", from_config("replayer"), Arg("directory", datapath));
@@ -117,14 +120,16 @@ void OrsiApp::initVideoSource(const  std::shared_ptr<holoscan::CudaStreamPool>& 
     }
 
     switch (video_source_) {
+#ifdef AJA_SOURCE
       case VideoSource::AJA:
         video_buffer_out = "video_buffer_output";
         break;
-  #ifdef USE_VIDEOMASTER
+#endif
+#ifdef USE_VIDEOMASTER
       case VideoSource::VIDEOMASTER:
         video_buffer_out = "signal";
         break;
-  #endif
+#endif
       case VideoSource::REPLAYER:
       default:
         break;

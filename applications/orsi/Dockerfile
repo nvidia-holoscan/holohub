@@ -64,7 +64,7 @@ RUN  wget -q https://www.vtk.org/files/release/9.3/VTK-${VTK_VERSION}.tar.gz -P 
      cmake  -DBUILD_TESTING:BOOL=OFF \
             -DCMAKE_INSTALL_PREFIX=/opt/vtk/${VTK_VERSION} \
             /opt/vtk/src/VTK-${VTK_VERSION} && \
-     make -j && \
+     make -j 8 && \
      make install && \
      make clean
 

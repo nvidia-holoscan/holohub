@@ -13,6 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Copy endoscopy_tool_tracking application file
+add_custom_target(python_endoscopy_tool_tracking ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.py" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "endoscopy_tool_tracking.py"
+  BYPRODUCTS "endoscopy_tool_tracking.py"
+)
+
+# Copy config files
+add_custom_target(python_endoscopy_tool_tracking_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking_aja_overlay.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml"
+  BYPRODUCTS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml"
+)
+
+add_dependencies(python_endoscopy_tool_tracking python_endoscopy_tool_tracking_yaml)
+
 # Add testing
 if(BUILD_TESTING)
   # To get the environment path
@@ -44,6 +61,7 @@ if(BUILD_TESTING)
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(endoscopy_tool_tracking_python_test PROPERTIES
+                DEPENDS python_endoscopy_tool_tracking_yaml
                 PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
@@ -71,5 +89,10 @@ install(
 
 install(
   FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/python
+)
+
+install(
+  FILES endoscopy_tool_tracking_aja_overlay.yaml
   DESTINATION bin/endoscopy_tool_tracking/python
 )

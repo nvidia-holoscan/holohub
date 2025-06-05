@@ -155,6 +155,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
                          "Header size",
                          "Header size on each packet from L4 and below",
                          42);
+    spec.param<bool>(reorder_kernel_,
+                     "reorder_kernel",
+                     "Reorder kernel enabled",
+                     "Enable reorder kernel if alignment and memory types are supported",
+                     true);
   }
 
   // Free buffers if CUDA processing/copy is complete
@@ -325,11 +330,16 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           // to a contiguous memory buffer (full_batch_data_d_)
           // NOTE: there is no actual reordering since we use the same order as packets came in,
           //   but they would be reordered if h_dev_ptrs_ was filled based on packet sequence id.
-          simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
-                                h_dev_ptrs_[cur_batch_idx_],
-                                nom_payload_size_,
-                                batch_size_.get(),
-                                streams_[cur_batch_idx_]);
+          // We also allow disabling the reorder kernel if alignment and memory types are not
+          // supported. Currently the reorder kernel expects the packets to be 16B-aligned, and
+          // anything that's not will cause an access error on the GPU
+          if (reorder_kernel_.get()) {
+            simple_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
+                                  h_dev_ptrs_[cur_batch_idx_],
+                                  nom_payload_size_,
+                                  batch_size_.get(),
+                                  streams_[cur_batch_idx_]);
+          }
 
         } else {
           // Non GPUDirect mode: we copy the payload on host-pinned memory (in full_batch_data_h_)
@@ -406,6 +416,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet
+  Parameter<bool> reorder_kernel_;                       // Reorder kernel enabled
 
   std::array<cudaStream_t, num_concurrent> streams_;
   std::array<cudaEvent_t, num_concurrent> events_;
