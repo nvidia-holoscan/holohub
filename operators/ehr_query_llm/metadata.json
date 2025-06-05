@@ -25,7 +25,7 @@
 			"aarch64"
 		],
 		"tags": ["LLM", "Healthcare Interop"],
-		"ranking": 1,
+		"ranking": 2,
 		"dependencies": {
 			"python-packages": {
                 "holoscan": {
