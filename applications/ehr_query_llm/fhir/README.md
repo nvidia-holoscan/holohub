@@ -9,6 +9,7 @@ This application also uses ZeroMQ to communicate with its own clients, listening
 Message schema is simple, with a well known topic string and topic specific content schema in JSON format.
 
 The default set of FHIR resource types to retrieve are listed below, which can be overridden by the request message
+
 - Observation
 - ImagingStudy
 - FamilyMemberHistory
@@ -42,34 +43,16 @@ Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization 
 ./dev_container build_and_run fhir --run_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
-Add the additional command line option, `--container_args "-u root"`, to avoid seeing the following error (though no impact on execution)
-
-```bash
-Error processing line 1 of /usr/local/lib/python3.10/dist-packages/holoscan-2.4.0.pth:
-
-  Traceback (most recent call last):
-    File "/usr/lib/python3.10/site.py", line 192, in addpackage
-      exec(line)
-    File "<string>", line 1, in <module>
-    File "/workspace/holohub/.local/lib/python3.10/site-packages/wheel_axle/runtime/__init__.py", line 80, in finalize
-      with FileLock(lock_path):
-    File "/workspace/holohub/.local/lib/python3.10/site-packages/filelock/_api.py", line 376, in __enter__
-      self.acquire()
-    File "/workspace/holohub/.local/lib/python3.10/site-packages/filelock/_api.py", line 332, in acquire
-      self._acquire()
-    File "/workspace/holohub/.local/lib/python3.10/site-packages/filelock/_unix.py", line 42, in _acquire
-      fd = os.open(self.lock_file, open_flags, self._context.mode)
-  PermissionError: [Errno 13] Permission denied: '/usr/local/lib/python3.10/dist-packages/holoscan-2.4.0.dist-info/axle.lck'
-```
-
 ### Run the Application in Dev Container
 
 This is a step wise way to run the application in a dev container.
+
 ```bash
 ./dev_container build --docker_file applications/ehr_query_llm/fhir/Dockerfile --img holoscan:fhir --verbose --no-cache
 ```
 
 Optionally check the newly built image
+
 ```bash
 $ docker images
 REPOSITORY         TAG               IMAGE ID       CREATED          SIZE
@@ -77,6 +60,7 @@ holoscan           fhir              508140b8d446   3 minutes ago    14.1GB
 ```
 
 Launch the container
+
 ```bash
 ./dev_container launch --img holoscan:fhir --as_root
 ```
@@ -105,11 +89,13 @@ pip install -r applications/ehr_query_llm/fhir/requirements.txt
 ```
 
 Build and install the application with `dev_container`
+
 ```bash
 ./dev_container build_and_install fhir
 ```
 
 Now, run the application which is _installed_ in the `install` folder, with server URLs and credential of your own
+
 ```bash
 python install/bin/fhir/python/ --fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>
 ```
@@ -137,11 +123,13 @@ From the menu, pick one of the choices for the resources of interest.
 With Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is an [Open Container Initiative](https://opencontainers.org/) compliant image. An HAP is well suited to be distributed for deployment on hosting platforms, be it Docker Compose, Kubernetes, or else. Please refer to [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information.
 
 This example application provides all the necessary contents for HAP packaging. It is required to perform the packaging in a Python virtual environment, with the application's dependencies installed, before running the following script to reveal specific packaging commands.
+
 ```bash
 applications/ehr_query_llm/fhir/packageHAP.sh
 ```
 
 Once the HAP is created, it can then be saved and restored on the target deployment host, and run with `docker run` command, shown below with to be substituted user specific parameters.
+
 ```bash
 docker run -it --rm --net host holohub-fhir-x64-workstation-dgpu-linux-amd64:1.0 \
 --fhir_url <f_url> \
