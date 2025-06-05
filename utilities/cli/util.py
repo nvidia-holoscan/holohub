@@ -186,6 +186,8 @@ def get_group_id(group: str) -> Optional[int]:
 
 def normalize_language(language: str) -> Optional[str]:
     """Normalize language name"""
+    if not isinstance(language, str):
+        return None
     if language.lower() == "cpp" or language.lower() == "c++":
         return "cpp"
     elif language.lower() == "python" or language.lower() == "py":

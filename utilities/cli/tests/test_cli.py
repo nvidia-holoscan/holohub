@@ -35,6 +35,13 @@ def is_cookiecutter_available():
     except ImportError:
         return False
 
+def is_ruff_available():
+    try:
+        import ruff  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
 
 class TestHoloHubCLI(unittest.TestCase):
     def setUp(self):
@@ -229,7 +236,8 @@ class TestHoloHubCLI(unittest.TestCase):
         try:
             args.func(args)
         except FileNotFoundError as e:
-            self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
+            if not is_ruff_available():
+                self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
         except SystemExit as e:
             self.assertEqual(e.code, 0)
 
