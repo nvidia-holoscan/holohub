@@ -28,9 +28,9 @@ from .token_provider import TokenProvider
 
 __all__ = [
     "FHIRQuery",
-    "FHIRQueryResponse", 
+    "FHIRQueryResponse",
     "FHIRQueryError",
     "InvalidRequestBodyError",
     "FHIRResourceSanitizer",
     "TokenProvider",
-] 
+]

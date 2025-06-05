@@ -24,4 +24,4 @@ from .fhir_resource_sanitizer_op import FhirResourceSanitizerOp
 
 __all__ = [
     "FhirResourceSanitizerOp",
-] 
+]

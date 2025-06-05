@@ -23,4 +23,4 @@ from .fhir_client_op import FhirClientOperator
 
 __all__ = [
     "FhirClientOperator",
-] 
+]

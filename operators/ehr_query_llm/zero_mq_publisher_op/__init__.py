@@ -24,4 +24,4 @@ from .publisher_op import ZeroMQPublisherOp
 
 __all__ = [
     "ZeroMQPublisherOp",
-] 
+]

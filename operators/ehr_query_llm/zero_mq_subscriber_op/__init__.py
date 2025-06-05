@@ -24,4 +24,4 @@ from .subscriber_op import ZeroMQSubscriberOp
 
 __all__ = [
     "ZeroMQSubscriberOp",
-] 
+]
