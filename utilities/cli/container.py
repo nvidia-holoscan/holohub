@@ -273,8 +273,7 @@ class HoloHubContainer:
         nsys_profile: bool = False,
         nsys_location: str = "",
         as_root: bool = False,
-        docker_opts: str = "",
-        docker_args: List[str] = None,
+        docker_opts: List[str] = None,
         add_volumes: List[str] = None,
         verbose: bool = False,
         extra_args: List[str] = None,
@@ -287,7 +286,7 @@ class HoloHubContainer:
         img = img or self.image_name
         add_volumes = add_volumes or []
         extra_args = extra_args or []
-        docker_args = docker_args or []
+        docker_opts = docker_opts or []
 
         # Build docker command
         cmd = [self.holoscan_docker_exe, "run"]
@@ -337,11 +336,7 @@ class HoloHubContainer:
 
         # Add docker options if provided
         if docker_opts:
-            cmd.extend(docker_opts.split())
-
-        # Add docker arguments list if provided (preferred method)
-        if docker_args:
-            cmd.extend(docker_args)
+            cmd.extend(docker_opts)
 
         # Add the image name
         cmd.append(img)

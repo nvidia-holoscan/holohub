@@ -428,9 +428,11 @@ class HoloHubCLI:
         container.build(build_args=mode_build_args if mode_build_args else None)
 
         # Combine user-provided docker opts with mode-specific opts
-        combined_docker_opts = args.docker_opts
+        combined_docker_opts = []
+        if args.docker_opts:
+            combined_docker_opts.extend(shlex.split(args.docker_opts))
         if mode_docker_opts:
-            combined_docker_opts = f"{args.docker_opts} {mode_docker_opts}".strip()
+            combined_docker_opts.extend(shlex.split(mode_docker_opts))
 
         container.run(
             img=args.img,
@@ -438,7 +440,7 @@ class HoloHubCLI:
             use_tini=args.init,
             persistent=args.persistent,
             as_root=args.as_root,
-            docker_opts=combined_docker_opts,
+            docker_opts=combined_docker_opts if combined_docker_opts else None,
             add_volumes=args.add_volume,
             verbose=args.verbose,
         )
@@ -798,12 +800,11 @@ class HoloHubCLI:
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
-                        # Get mode-specific docker run args
+            # Get mode-specific docker run args
             run_config = mode_config.get("run", {})
             mode_docker_args = run_config.get("docker_args", [])
 
             # Process docker args using shlex for proper quote handling
-            import shlex
             processed_docker_args = []
             if isinstance(mode_docker_args, list):
                 for arg in mode_docker_args:
