@@ -98,6 +98,12 @@ class HoloHubCLI:
             "build-container", help="Build the development container"
         )
         build_container.add_argument("project", nargs="?", help="Project to build container for")
+        build_container.add_argument(
+            "mode",
+            nargs="?",
+            default="default",
+            help="Mode to build the container for (defined in metadata.json)",
+        )
         build_container.add_argument("--base-img", help="Fully qualified base image name")
         build_container.add_argument("--docker-file", help="Path to Dockerfile to use")
         build_container.add_argument("--img", help="Specify fully qualified container name")
@@ -123,6 +129,12 @@ class HoloHubCLI:
             "run-container", help="Build and launch the development container"
         )
         run_container.add_argument("project", nargs="?", help="Project to run container for")
+        run_container.add_argument(
+            "mode",
+            nargs="?",
+            default="default",
+            help="Mode to run the container in (defined in metadata.json)",
+        )
         run_container.add_argument("--img", help="Fully qualified image name")
         run_container.add_argument(
             "--local-sdk-root",
@@ -154,6 +166,12 @@ class HoloHubCLI:
         build = subparsers.add_parser("build", help="Build a project")
         build.add_argument("project", help="Project to build")
         build.add_argument(
+            "mode",
+            nargs="?",
+            default="default",
+            help="Mode to build the project for (defined in metadata.json)",
+        )
+        build.add_argument(
             "--local", action="store_true", help="Build locally instead of in container"
         )
         build.add_argument("--verbose", action="store_true", help="Print extra output")
@@ -175,6 +193,12 @@ class HoloHubCLI:
         # run command
         run = subparsers.add_parser("run", help="Build and run a project")
         run.add_argument("project", help="Project to run")
+        run.add_argument(
+            "mode",
+            nargs="?",
+            default="default",
+            help="Mode to run the project in (defined in metadata.json)",
+        )
         run.add_argument("--local", action="store_true", help="Run locally instead of in container")
         run.add_argument("--verbose", action="store_true", help="Print extra output")
         run.add_argument(
@@ -204,6 +228,14 @@ class HoloHubCLI:
         # list command
         list_cmd = subparsers.add_parser("list", help="List all available targets")
         list_cmd.set_defaults(func=self.handle_list)
+
+        # list-modes command
+        list_modes = subparsers.add_parser("list-modes", help="List available modes for a project")
+        list_modes.add_argument("project", help="Project to list modes for")
+        list_modes.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
+        list_modes.set_defaults(func=self.handle_list_modes)
 
         # lint command
         lint = subparsers.add_parser("lint", help="Run linting tools")
@@ -333,12 +365,33 @@ class HoloHubCLI:
             project_name=args.project, language=args.language if hasattr(args, "language") else None
         )
         container.dryrun = args.dryrun
+
+        # Get mode-specific build arguments if project is specified
+        mode_build_args = ""
+        if args.project:
+            project_data = self._find_project(
+                project_name=args.project,
+                language=args.language if hasattr(args, "language") else None,
+            )
+            mode_config = self._get_mode_config(project_data, args.mode)
+            build_config = mode_config.get("build", {})
+
+            # Apply mode-specific docker build args
+            build_docker_args = build_config.get("docker_args", [])
+            if isinstance(build_docker_args, list):
+                mode_build_args = " ".join(build_docker_args)
+
+        # Combine user-provided build args with mode-specific args
+        combined_build_args = args.build_args or ""
+        if mode_build_args:
+            combined_build_args = f"{combined_build_args} {mode_build_args}".strip()
+
         container.build(
             docker_file=args.docker_file,
             base_img=args.base_img,
             img=args.img,
             no_cache=args.no_cache,
-            build_args=args.build_args,
+            build_args=combined_build_args if combined_build_args else None,
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -348,14 +401,44 @@ class HoloHubCLI:
         )
 
         container.dryrun = args.dryrun
-        container.build()
+
+        # Get mode-specific build and run arguments if project is specified
+        mode_build_args = ""
+        mode_docker_opts = ""
+        if args.project:
+            project_data = self._find_project(
+                project_name=args.project,
+                language=args.language if hasattr(args, "language") else None,
+            )
+            mode_config = self._get_mode_config(project_data, args.mode)
+
+            # Get mode-specific build args
+            build_config = mode_config.get("build", {})
+            build_docker_args = build_config.get("docker_args", [])
+            if isinstance(build_docker_args, list):
+                mode_build_args = " ".join(build_docker_args)
+
+            # Get mode-specific run args
+            run_config = mode_config.get("run", {})
+            run_docker_args = run_config.get("docker_args", [])
+            if isinstance(run_docker_args, list):
+                mode_docker_opts = " ".join(run_docker_args)
+
+        # Build container with mode-specific args
+        container.build(build_args=mode_build_args if mode_build_args else None)
+
+        # Combine user-provided docker opts with mode-specific opts
+        combined_docker_opts = args.docker_opts
+        if mode_docker_opts:
+            combined_docker_opts = f"{args.docker_opts} {mode_docker_opts}".strip()
+
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
             use_tini=args.init,
             persistent=args.persistent,
             as_root=args.as_root,
-            docker_opts=args.docker_opts,
+            docker_opts=combined_docker_opts,
             add_volumes=args.add_volume,
             verbose=args.verbose,
         )
@@ -434,12 +517,34 @@ class HoloHubCLI:
         }
         return build_type_map.get(build_type.lower(), "Release")
 
+    def _get_mode_config(self, project_data: dict, mode: str) -> dict:
+        """Get configuration for a specific mode from project metadata"""
+        metadata = project_data.get("metadata", {})
+        modes = metadata.get("modes", {})
+
+        # If no modes are defined, fall back to the default run config
+        if not modes:
+            run_config = metadata.get("run", {})
+            if not run_config:
+                holohub_cli_util.fatal("Project does not have run configuration or modes defined")
+            return {"description": "Default run configuration", "run": run_config}
+
+        # Check if the requested mode exists
+        if mode not in modes:
+            available_modes = list(modes.keys())
+            holohub_cli_util.fatal(
+                f"Mode '{mode}' not found. Available modes: {', '.join(available_modes)}"
+            )
+
+        return modes[mode]
+
     def _build_project_locally(
         self,
         project_name: str,
         language: Optional[str] = None,
         build_type: Optional[str] = None,
         with_operators: Optional[str] = None,
+        mode: str = "default",
         dryrun: bool = False,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
@@ -466,6 +571,17 @@ class HoloHubCLI:
         if with_operators:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
+        # Add mode-specific build dependencies
+        mode_config = self._get_mode_config(project_data, mode)
+        build_config = mode_config.get("build", {})
+
+        # Handle mode-specific build dependencies
+        if "depends" in build_config:
+            depends = build_config["depends"]
+            if isinstance(depends, list):
+                for dep in depends:
+                    cmake_args.append(f"-DHOLOHUB_BUILD_OPERATORS_{dep}=ON")
+
         holohub_cli_util.run_command(cmake_args, dry_run=dryrun)
         holohub_cli_util.run_command(
             ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=dryrun
@@ -481,6 +597,7 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
                 build_type=args.build_type,
                 with_operators=args.with_operators,
+                mode=args.mode,
                 dryrun=args.dryrun,
             )
         else:
@@ -493,7 +610,7 @@ class HoloHubCLI:
             container.build()
 
             # Build command with all necessary arguments
-            build_cmd = f"./holohub build {args.project} --local"
+            build_cmd = f"./holohub build {args.project} {args.mode} --local"
             if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
@@ -520,6 +637,7 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
                 build_type="Release",  # Default to Release for run
                 with_operators=args.with_operators,
+                mode=args.mode,
                 dryrun=args.dryrun,
             )
 
@@ -527,10 +645,12 @@ class HoloHubCLI:
                 project_data.get("metadata", {}).get("language", None)
             )
 
-            run_config = project_data.get("metadata", {}).get("run", {})
+            # Get mode-specific configuration
+            mode_config = self._get_mode_config(project_data, args.mode)
+            run_config = mode_config.get("run", {})
             if not run_config:
                 holohub_cli_util.fatal(
-                    f"Project '{args.project}' does not have a run configuration"
+                    f"Project '{args.project}' mode '{args.mode}' does not have a run configuration"
                 )
 
             app_source_path = project_data.get("source_folder", "")
@@ -544,6 +664,14 @@ class HoloHubCLI:
 
             app_build_dir = build_dir / app_source_path.relative_to(HoloHubCLI.HOLOHUB_ROOT)
             cmd = cmd.replace("<holohub_app_bin>", str(app_build_dir))
+
+            # Add mode-specific command arguments
+            if "cmd_args" in run_config:
+                mode_cmd_args = run_config["cmd_args"]
+                if isinstance(mode_cmd_args, list):
+                    if isinstance(cmd, str):
+                        cmd = shlex.split(cmd)
+                    cmd.extend(mode_cmd_args)
 
             if hasattr(args, "run_args") and args.run_args:
                 cmd_args = shlex.split(args.run_args)
@@ -637,14 +765,30 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
             )
             container.dryrun = args.dryrun
-            container.build()
+
+            # Get mode-specific build configuration for container
+            project_data = self._find_project(
+                project_name=args.project,
+                language=args.language if hasattr(args, "language") else None,
+            )
+            mode_config = self._get_mode_config(project_data, args.mode)
+            build_config = mode_config.get("build", {})
+
+            # Apply mode-specific docker build args
+            build_docker_args = build_config.get("docker_args", [])
+            build_args_str = ""
+            if isinstance(build_docker_args, list):
+                build_args_str = " ".join(build_docker_args)
+
+            container.build(build_args=build_args_str)
+
             # Get language before launching container
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
             )
 
             # Build command with all necessary arguments
-            run_cmd = f"./holohub run {args.project} --language {language} --local"
+            run_cmd = f"./holohub run {args.project} {args.mode} --language {language} --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.nsys_profile:
@@ -654,8 +798,15 @@ class HoloHubCLI:
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
+            # Get mode-specific docker run args
+            run_config = mode_config.get("run", {})
+            docker_args = run_config.get("docker_args", [])
+            docker_opts_str = args.docker_opts
+            if isinstance(docker_args, list):
+                docker_opts_str += " " + " ".join(docker_args)
+
             container.run(
-                docker_opts="--entrypoint=bash " + args.docker_opts,
+                docker_opts="--entrypoint=bash " + docker_opts_str,
                 extra_args=["-c", run_cmd],
                 verbose=args.verbose,
             )
@@ -697,6 +848,68 @@ class HoloHubCLI:
                 print(f'{project["project_name"]} {language}')
 
         print(f"\n{Color.white('=================================', bold=True)}\n")
+
+    def handle_list_modes(self, args: argparse.Namespace) -> None:
+        """Handle list-modes command"""
+        try:
+            project_data = self._find_project(
+                project_name=args.project,
+                language=args.language if hasattr(args, "language") else None,
+            )
+        except Exception:
+            return  # _find_project already prints error message
+
+        # Print metadata file path
+        source_folder = project_data.get("source_folder", "")
+        metadata_path = source_folder / "metadata.json" if source_folder else "Unknown"
+        print(f"{Color.blue('Metadata file:')} {metadata_path}\n")
+
+        metadata = project_data.get("metadata", {})
+        modes = metadata.get("modes", {})
+
+        if not modes:
+            # Check if there's a legacy run configuration
+            run_config = metadata.get("run", {})
+            if run_config:
+                project_name = args.project
+                print(
+                    f"{Color.white(f'Project {project_name} uses legacy run configuration (no modes defined)', bold=True)}\n"
+                )
+                print("Available run configuration:")
+                print(f"  command: {run_config.get('command', 'N/A')}")
+                print(f"  workdir: {run_config.get('workdir', 'N/A')}")
+            else:
+                project_name = args.project
+                print(
+                    f"{Color.red(f'Project {project_name} has no run configuration or modes defined')}"
+                )
+            return
+
+        project_name = args.project
+        print(f"{Color.white(f'Available modes for project {project_name}:', bold=True)}\n")
+
+        for mode_name, mode_config in modes.items():
+            description = mode_config.get("description", "No description available")
+            print(f"{Color.blue(mode_name, bold=True)}: {description}")
+
+            # Show hardware requirements if any
+            hardware = mode_config.get("hardware", [])
+            if hardware:
+                print(f"  Hardware: {', '.join(hardware)}")
+
+            # Show build dependencies if any
+            build_config = mode_config.get("build", {})
+            if "depends" in build_config:
+                depends = build_config["depends"]
+                if isinstance(depends, list) and depends:
+                    print(f"  Build dependencies: {', '.join(depends)}")
+
+            # Show run command if available
+            run_config = mode_config.get("run", {})
+            if "command" in run_config:
+                print(f"  Command: {run_config['command']}")
+
+            print()  # Empty line between modes
 
     def handle_lint(self, args: argparse.Namespace) -> None:
         """Handle lint command"""
