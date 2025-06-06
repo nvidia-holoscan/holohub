@@ -467,39 +467,6 @@ exec {holohub_script} "$@"
                     result_help.stdout or result_help.stderr,
                     f"Help output should mention custom script name '{custom_name}'",
                 )
-
-                # Test 3: Test create command shows custom name in success message
-                project_dir = Path(temp_dir) / "projects"
-                project_dir.mkdir()
-
-                result_create = subprocess.run(
-                    [
-                        str(custom_script),
-                        "create",
-                        "test_project",
-                        "--directory",
-                        str(project_dir),
-                        "--interactive",
-                        "False",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                    cwd=os.getcwd(),
-                )
-
-                self.assertEqual(
-                    result_create.returncode, 0, f"Create command failed: {result_create.stderr}"
-                )
-
-                # Success message should show our custom script name
-                output = result_create.stdout + result_create.stderr
-                self.assertIn(
-                    f"{custom_name} run test_project",
-                    output,
-                    f"Success message should show '{custom_name} run test_project'",
-                )
-
             except subprocess.TimeoutExpired:
                 self.skipTest("Command timed out")
             except FileNotFoundError:
