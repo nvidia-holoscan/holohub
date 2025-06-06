@@ -1,0 +1,70 @@
+{
+	"modes": {
+		"default": {
+			"description": "Default container mode with standard docker options",
+			"build": {
+				"docker_args": [
+					"--build-arg BUILDKIT_INLINE_CACHE=1",
+					"--network host"
+				]
+			},
+			"run": {
+				"docker_args": [
+					"--net host",
+					"--interactive",
+					"--runtime nvidia",
+					"--gpus all",
+					"--cap-add CAP_SYS_PTRACE",
+					"--ipc host",
+					"-v /dev:/dev",
+					"--device-cgroup-rule 'c 81:* rmw'",
+					"--device-cgroup-rule 'c 189:* rmw'",
+					"-e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
+					"-e HOME=/workspace/holohub",
+					"-e HOLOHUB_BUILD_LOCAL=1",
+					"-v /etc/group:/etc/group:ro",
+					"-v /etc/passwd:/etc/passwd:ro"
+				]
+			}
+		},
+		"ucx": {
+			"description": "UCX-enabled mode with additional memory and IPC settings",
+			"run": {
+				"docker_args": [
+					"--ipc host",
+					"--cap-add CAP_SYS_PTRACE",
+					"--ulimit memlock=-1",
+					"--ulimit stack=67108864"
+				]
+			}
+		},
+		"runtime": {
+			"description": "Basic runtime mode with GPU access",
+			"run": {
+				"docker_args": [
+					"--runtime nvidia",
+					"--gpus all"
+				]
+			}
+		},
+		"display": {
+			"description": "Display server options for X11",
+			"run": {
+				"docker_args": [
+					"-v /tmp/.X11-unix:/tmp/.X11-unix",
+					"-e DISPLAY"
+				]
+			}
+		},
+		"conditional": {
+			"description": "Conditional options that can be applied",
+			"run": {
+				"docker_args": {
+					"tini": ["--init"],
+					"non_persistent": ["--rm"],
+					"tty_interactive": ["--tty"]
+				}
+			}
+		}
+	}
+}

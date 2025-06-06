@@ -377,3 +377,19 @@ def levenshtein_distance(s1: str, s2: str) -> int:
         previous_row = current_row
 
     return previous_row[-1]
+
+
+def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
+    """Get list of directories from CMakeLists.txt files"""
+    results = []
+    for cmakelists in script_dir.rglob("CMakeLists.txt"):
+        with open(cmakelists) as f:
+            content = f.read()
+            for line in content.splitlines():
+                if cmake_function in line:
+                    try:
+                        name = line.split("(")[1].split(")")[0].strip()
+                        results.append(name)
+                    except IndexError:
+                        continue
+    return sorted(results)
