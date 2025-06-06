@@ -22,7 +22,7 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 
 class Color:
