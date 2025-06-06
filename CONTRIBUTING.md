@@ -18,7 +18,7 @@ New to HoloHub? Follow these steps:
 - [Quick Start](#quick-start)
 - [Introduction](#introduction)
 - [Types of Contributions](#types-of-contributions)
-- [Readiness Assesment](#readiness-assessment)
+- [Readiness Assessment](#readiness-assessment)
 - [Developer Process](#developer-process)
 - [Preparing Your Submission](#preparing-your-submission)
 - [Build System Integration](#build-system-integration)
@@ -150,7 +150,7 @@ A typical submission consists of:
 
 - Fork HoloHub for development
 - Submit a "Draft PR" as early as possible
-- Call `@nvidia-holoscan/holohub` in the comments if you need to dicuss anything.
+- Call `@nvidia-holoscan/holohub` in the comments if you need to discuss anything.
 
 ### Acceptance Criteria
 
