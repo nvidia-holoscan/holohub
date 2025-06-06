@@ -1,98 +1,181 @@
 # Contributing to HoloHub
 
+Welcome to HoloHub! We're excited that you're interested in contributing to the NVIDIA Holoscan developer community. This guide will help you understand how to make meaningful contributions to our collection of applications, operators, workflows, and tutorials.
+
+## Quick Start
+
+New to HoloHub? Follow these steps:
+
+1. **Understand HoloHub**: Read our [README](./README.md) to learn about the project
+2. **Determine your contribution type**: Use our [decision guide](#types-of-contributions) below
+3. **Set up your development environment**: Follow the [developer process](#developer-process)
+4. **Prepare your submission**: Use our [submission guidelines](#preparing-your-submission)
+5. **Review the checklist**: Complete our [contribution checklist](#contribution-checklist)
+6. **Submit for review**: Create a pull request following our [process](#developer-process)
+
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Introduction](#introduction)
 - [Types of Contributions](#types-of-contributions)
+- [Readiness Assesment](#readiness-assessment)
 - [Developer Process](#developer-process)
-- [Preparing your submission](#preparing-your-submission)
-- [Unit Testing Python Operators](#unit-testing-python-operators)
-- [Reporting issues](#reporting-issues)
+- [Preparing Your Submission](#preparing-your-submission)
+- [Build System Integration](#build-system-integration)
+- [Contribution Checklist](#contribution-checklist)
+- [Code Quality and Standards](#code-quality-and-standards)
+  - [Linting](#linting-and-code-quality)
+  - [Testing](#testing)
+  - [Unit Testing Python Operators](#unit-testing-python-operators)
+- [Development Tools](#development-tools)
+  - [Debugging](#debugging-and-performance)
+  - [Performance](#performance)
+- [Getting Help](#getting-help)
+  - [Troubleshooting](#troubleshooting)
+  - [Reporting Issues](#reporting-issues)
 
 ## Introduction
 
-Welcome to HoloHub! Please read our [README](./README.md) document for an overview of the project.
+HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring community-contributed applications, reusable operators, end-to-end workflows, and educational tutorials. Your contributions help expand the capabilities available to developers working on real-time AI applications across healthcare, industrial inspection, and other domains.
 
-HoloHub is a collection of applications and reusable operators available to the NVIDIA Holoscan developer community.
-Polished contributions from community members like you help us augment the Holoscan open source ecosystem with new features
-and demonstrations.
-
-Please read this guide if you are interested in contributing open source code to HoloHub.
+Whether you're fixing a bug, adding a new feature, or sharing a complete application, this guide will help you contribute effectively to the HoloHub community.
 
 ## Types of Contributions
 
-Before getting started, assess how your idea or project may best benefit the Holoscan community.
+Choose the right contribution type based on what you want to share:
 
-If your idea is:
+### Decision Tree
 
-- _an end-to-end pipeline that address the entire use case:_ Consider submitting to HoloHub as a [workflow](./workflows/).
-- _specific to a narrow practical application or use case:_ Consider submitting to HoloHub as an [application](./applications/).
-- _widely applicable across a domain of interests:_ Consider submitting to HoloHub as an [operator](./operators/) and an accompanying [application](./applications/).
-- _neither a new operator, application, nor workflow_: Consider submitting a [tutorial](./tutorials/) to HoloHub.
+```text
+What are you contributing?
+├── 🔄 Complete end-to-end pipeline (sensor → insight)?
+│   └── → Submit as a "Workflow"
+├── 🎯 Focused application for specific use case?
+│   └── → Submit as an "Application"
+├── 🧩 Reusable component for multiple use cases?
+│   └── → Submit as an "Operator" + demo Application
+├── 📚 Educational content or tutorial?
+│   └── → Submit as a "Tutorial"
+└── 🔧 Bug fix or enhancement to existing code?
+    └── → Submit a "Pull Request"
+```
 
-If your code is:
-
-- _feature-complete and tested_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to contribute your work to HoloHub.
-- _a work in progress:_ We recommend to [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) HoloHub and track your local development there, then submit to HoloHub when ready. Alternatively, open pull request and indicate that it is a "work-in-progress" with the prefix "WIP".
-- _a patch for an existing application, workflow, or operator_: Submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and request a review from the original author of the contribution you are patching.
-
-We recommend referring to contributing guidelines for testing and styling goals throughout your development process.
+> **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
 
 ## Developer Process
 
-### Requirements
+### Prerequisites
 
-Review [HoloHub prerequisites](./README.md#prerequisites) before getting started.
+Before getting started:
 
-We recommend that new developers review GitHub's [starting documentation](https://docs.github.com/en/get-started/start-your-journey) before making their first contribution.
+1. Review [HoloHub prerequisites](./README.md#prerequisites)
+2. Ensure you have Git and required development tools installed
+3. Familiarize yourself with GitHub's [starting documentation](https://docs.github.com/en/get-started/start-your-journey) if you're new to GitHub
 
-### Process
+### Step-by-Step Process
 
-1. Developers must first [fork](https://help.github.com/en/articles/fork-a-repo) the [upstream](https://github.com/nvidia-holoscan/holohub) HoloHub repository.
+1. **Fork the Repository**
 
-2. Git clone the forked repository and push changes to the personal fork.
+   [Fork](https://help.github.com/en/articles/fork-a-repo) the [upstream HoloHub repository](https://github.com/nvidia-holoscan/holohub).
 
-    ```bash
-    git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git HoloHub
-    # Checkout the targeted branch and commit changes
-    # Push the commits to a branch on the fork (remote).
-    git push -u origin <local-branch>:<remote-branch>
-    ```
+2. **Clone and Set Up Local Development**
 
-3. Once the code changes are staged on the fork and ready for review, please [submit](https://help.github.com/en/articles/creating-a-pull-request) a [Pull Request](https://help.github.com/en/articles/about-pull-requests) (PR) to merge the changes from a branch of the fork into a selected branch of upstream.
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git holohub
+   cd holohub
+   
+   # Add upstream remote for staying in sync
+   git remote add upstream https://github.com/nvidia-holoscan/holohub.git
+   
+   # Create a feature branch
+   git checkout -b feature/your-feature-name
+   ```
 
-    - Exercise caution when selecting the source and target branches for the PR.
-    - Creation of a PR kicks off the [code review](#preparing-your-submission) process.
+3. **Develop Your Contribution**
 
-4. HoloHub maintainers will review the PR and accept the proposal if changes meet HoloHub standards.
+   - Follow the specific guidelines for your [contribution type](#types-of-contributions)
+   - Ensure your code meets [HoloHub standards](#preparing-your-submission)
+   - Test your changes locally
+
+4. **Commit and Push Changes**
+
+   ```bash
+   # Stage your changes
+   git add .
+   
+   # Commit with sign-off (required)
+   git commit -s -m "Add your descriptive commit message"
+   
+   # Push to your fork
+   git push origin feature/your-feature-name
+   ```
+
+5. **Create Pull Request**
+
+   - Navigate to your fork on GitHub
+   - [Create a Pull Request](https://help.github.com/en/articles/creating-a-pull-request) to merge your branch into the upstream repository
+   - Ensure you select the correct source and target branches
+   - Fill out the PR template completely
+
+6. **Review Process**
+
+   - HoloHub maintainers will review your PR
+   - Address any feedback or requested changes
+   - Once approved, your contribution will be merged
 
 Thanks in advance for your patience as we review your contributions. We do appreciate them!
 
-## Preparing your submission
+## Preparing Your Submission
 
 We request that members follow the guidelines in this document to make sure new submissions can be easily used by others.
 
+### Required Components
+
 A typical submission consists of:
 
-- Application, workflow, operator, and/or tutorial code making use of the Holoscan SDK;
-- A [`metadata.json`](#metadata-description) file;
-- A [README](#readme-file) file describing the application, workflow, operator, and/or tutorial;
+- **Code**: Application, workflow, operator, and/or tutorial code using the Holoscan SDK
+- **Metadata**: A [`metadata.json`](#metadata-description) file
+- **Documentation**: A [README](#readme-file) file describing the contribution
 
-For a submission to be accepted into HoloHub it must meet at least these criteria:
+### Readiness Assessment
 
-- Clearly demonstrates added value to the Holoscan community;
-- Receives approval from at least one HoloHub maintainer;
-- [Code linting](#linting) tests pass;
-- Any new [code tests](#testing) pass.
+**✅ Ready to submit:**
 
-We do not require that community members conduct formal Software Quality Assurance (SQA) to submit to HoloHub.
+- Feature-complete and tested code
+- Documentation included
+- Follows HoloHub standards
+- Submit a PR and request review from `@nvidia-holoscan/holohub`
+
+**🚧 Work in progress:**
+
+- Fork HoloHub for development
+- Submit a "Draft PR" as early as possible
+- Call `@nvidia-holoscan/holohub` in the comments if you need to dicuss anything.
+
+### Acceptance Criteria
+
+For a submission to be accepted into HoloHub it must meet these criteria:
+
+- ✅ Clearly demonstrates added value to the Holoscan community
+- ✅ Receives approval from at least one HoloHub maintainer
+- ✅ [Code linting](#linting-and-code-quality) tests pass
+- ✅ Any new [code tests](#testing) pass
+- ✅ Includes proper documentation and metadata
+- ✅ Follows naming conventions and coding standards
 
 ### Metadata description
 
-Every application and operator should have an associated _metadata.json_ file which describes the features
-and dependencies.
+Every application and operator should have an associated `metadata.json` file describing features and dependencies.
 
-`metadata.json` schemas differ slightly for [workflows](./workflows/metadata.schema.json), [applications](./applications/metadata.schema.json), [GXF extensions](./gxf_extensions/metadata.schema.json), [operators](./operators/metadata.schema.json), and [tutorials](./tutorials/metadata.schema.json), but generally follow the convention below:
+Schemas are available for different contribution types:
+
+- [Workflows](./workflows/metadata.schema.json)
+- [Applications](./applications/metadata.schema.json)
+- [GXF Extensions](./gxf_extensions/metadata.schema.json)
+- [Operators](./operators/metadata.schema.json)
+- [Tutorials](./tutorials/metadata.schema.json)
+
+#### Example metadata.json Structure
 
 ```json
 // Main json definition for application or operator
@@ -101,10 +184,10 @@ and dependencies.
     "name": "explicit name of the application/operator",
     // Author(s) of the contribution
     "authors": [
-        {
-            "name": "firstname lastname",
-            "affiliation": "affiliation"
-        }
+      {
+        "name": "Your Name",
+        "affiliation": "Your Organization"
+      }
     ],
     // Supported language
     // If multiple languages are supported, create a directory per language and a json file accordingly
@@ -115,7 +198,6 @@ and dependencies.
     "changelog": {
         "X.X": "Short description of the changes"
     },
-    // Holoscan SDK
     "holoscan_sdk": {
         // Minimum supported holoscan version
         "minimum_required_version": "0.6.0",
@@ -149,335 +231,389 @@ and dependencies.
 }
 ```
 
-### Ranking Levels for `metadata.json`
+#### Ranking Levels for metadata.json
 
-Please provide a self-assessment of your HoloHub contribution in your `metadata.json` file(s) according to the levels below:
+Please provide a self-assessment of your HoloHub contribution according to these levels:
 
-#### Level 0 - In par with Main SDK modules
-
-- Widespread community dependence
-- Above 90% code coverage
-- Nightly dashboards and testing monitored rigorously
-- All requirements below
-
-#### Level 1 - Very high-quality code
-
-- Meets all Holoscan SDK code style standards
-- No external requirements beyond those needed by Holoscan SDK proper
-- Builds and passes tests on all supported platforms within 1 month of each core tagged release
-- Active developer community dedicated to maintaining code-base
-- 75% code coverage demonstrated for testing suite
-- Continuous integration testing performed
-- All requirements below
-
-#### Level 2 - Quality code
-
-- Compiles on niche community platforms
-- May depend on specific external tools or specific external libraries
-- Tests passing on all supported platforms
-- All requirements below
-
-#### Level 3 - Features under development
-
-- Code build on specific platforms/configuration
-- Some tests are passing on supported platforms
-
-#### Level 4 - Code of unknown quality
-
-- Code builds on specific platforms/configuration
-- Minimal set of test exists
-
-#### Level 5 - Deprecated
-
-- Deprecated code, known to be of limited utility, perhaps has known bugs
+| Level | Description | Requirements |
+|-------|-------------|--------------|
+| **0** | Production-ready, SDK-level quality | • Widespread community dependence<br>• Above 90% code coverage<br>• Nightly testing monitored<br>• All Level 1 requirements |
+| **1** | Very high-quality code | • Meets all Holoscan SDK coding standards<br>• No external dependencies beyond SDK<br>• Builds on all platforms within 1 month of releases<br>• 75% code coverage<br>• Continuous integration testing<br>• All Level 2 requirements |
+| **2** | Quality code | • Compiles on community platforms<br>• May have specific external dependencies<br>• Tests pass on supported platforms<br>• All Level 3 requirements |
+| **3** | Features under development | • Builds on specific platforms/configurations<br>• Some tests passing on supported platforms<br>• All Level 4 requirements |
+| **4** | Code of unknown quality | • Builds on specific platforms/configurations<br>• Minimal test coverage |
+| **5** | Deprecated | • Known to be of limited utility<br>• May have known bugs |
 
 ### README File
 
-Adding a `README.md` file with clarification on the intent and usage of the application or operator helps developers and users get started quickly with your contribution.
+Include a comprehensive `README.md` file with:
 
-We recommend writing README files in the Markdown format (`.md`).
+- **Purpose**: Clear description of what your contribution does
+- **Usage**: How to build, run, and use your contribution
+- **Requirements**: Dependencies and system requirements
+- **Examples**: Code samples or usage examples where applicable
+- **Architecture**: High-level design overview (for complex contributions)
 
-Please use the [terms defined in the glossary](README.md#Glossary) to refer to specific location of files for HoloHub.
+Use the [terms defined in the glossary](README.md#Glossary) when referring to HoloHub-specific locations.
 
-### Adding an Operator or GXF Extension
+### Directory Structure
 
-Add each operator or extension in its own directory under the [```operators```](./operators/) or [```gxf_extensions```](./gxf_extensions) directory. The subdirectory should contain:
+All contributions should follow consistent directory structures based on their type:
 
-- A _metadata.json_ file which describes its specifications and requirements in accordance with the [operator metadata.json schema](./operators/metadata.schema.json).
-- A README file summarizing the operator's purpose.
-- A separate unit test file (for Python operators).
+#### Operators
 
-Additionally, each operator should have at least one associated [application](./applications/) to demonstrate the capabilities of the operator.
+```text
+holohub/operators/your_operator_name/
+├── metadata.json                   # Required: follows operator schema
+├── README.md                       # Required: describes purpose and usage
+├── your_operator_name.py|.cpp|.hpp # Main operator implementation
+├── test_your_operator_name.py      # Required for Python operators
+└── CMakeLists.txt                  # If needed for C++ operators
+```
 
-Edit the [```CMakeLists.txt```](./operators/CMakeLists.txt) to add the new operator as part of the build system using the ```add_holohub_operator```
-CMake function, passing the new operator folder name as the first argument. If the operator wraps a GXF extension then the optional ```DEPENDS EXTENSIONS``` should be added to tell the build
-system to build the dependent extension(s).
+#### Applications
+
+```text
+holohub/applications/your_app_name/
+├── metadata.json                   # Required: follows application schema
+├── README.md                       # Required: describes purpose and architecture
+├── your_app_name.py|.cpp           # Main application code
+└── CMakeLists.txt                  # For build system integration
+```
+
+#### Workflows
+
+```text
+holohub/workflows/your_workflow_name/
+├── metadata.json                   # Required: follows workflow schema
+├── README.md                       # Required: describes workflow purpose
+├── your_workflow_name.py|.cpp      # Main application code
+└── CMakeLists.txt                  # For build system integration
+```
+
+#### GXF Extensions
+
+```text
+holohub/gxf_extensions/your_extension_name/
+├── metadata.json                   # Required: follows extension schema
+├── README.md                       # Required: describes extension purpose
+├── your_extension.cpp              # Main extension implementation
+├── your_extension.hpp              # Header files
+└── CMakeLists.txt                  # Required for build system
+```
+
+#### Tutorials
+
+```text
+holohub/tutorials/your_tutorial_name/
+├── README.md                       # Required: tutorial content and objectives
+├── metadata.json                   # Optional: follows tutorial schema
+├── tutorial_code.py|.cpp           # Tutorial implementation
+└── assets/                         # Optional: images, diagrams, etc.
+```
+
+#### Packages
+
+```text
+holohub/pkg/your_package_name/
+├── CMakeLists.txt                  # Required: package configuration
+└── README.md                       # Optional: package description
+```
+
+### Naming Conventions
+
+For an operator named "Adaptive Thresholding":
+
+| Component | Convention | Example |
+|-----------|------------|---------|
+| Class Name | TitleCase + "Op" suffix | `AdaptiveThresholdingOp` |
+| metadata.json "name" | Same as class name | `AdaptiveThresholdingOp` |
+| Directory | snake_case | `adaptive_thresholding` |
+| Filename | Same as directory + extension | `adaptive_thresholding.py` |
+| README Title | Title Case + "Operator" | "Adaptive Thresholding Operator" |
+| Unit Test | "test_" + directory name | `test_adaptive_thresholding.py` |
+
+### Build System Integration
+
+All contributions that include code need to be integrated with HoloHub's build system using CMake. Edit the appropriate `CMakeLists.txt` to add your contribution:
+
+**For Operators:**
 
 ```cmake
+# In ./operators/CMakeLists.txt
 add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 ```
 
-Note that extensions do not have a ```DEPENDS``` option.
-
-Refer to the [HoloHub operator template folder](./operators/template/) for stub `metadata.json` and `README` files to copy
-and update for your new operator.
-
-You can then build that operator by configuring your build with `-D OP_my_operator:BOOL=1` (or `-D EXT_my_extension:BOOL=1` for GXF extensions):
-
 ```bash
+# Configure build for operators
 cmake -S . -B ./build -D OP_my_operator:BOOL=1
 cmake --build ./build -j
 ```
 
-#### Operator Naming Convention
-
-For an operator named "Adaptive Thresholding", follow these naming conventions:
-
-1. **Class Name**: `AdaptiveThresholdingOp` (title case without spaces and with "Op" at the end)
-2. **metadata.json ("name")**:  Same as class name.
-3. **Directory**: `adaptive_thresholding` (snake case)
-4. **Filename**: same as directory name with extension.
-5. **README (Title)**: "`Adaptive Thresholding Operator`" (title case with spaces and Operator at the end).
-6. **Unit testing**: `test_adaptive_thresholding.py` (for Python operators)
-
-### Adding an Application
-
-Add each application in its own subdirectory under the [`applications`](./applications/) directory. The subdirectory should contain:
-
-- A _metadata.json_ file which describes its specifications and requirements in accordance with the [application metadata.json schema](./applications/metadata.schema.json).
-- A README file summarizing the application's purpose and architecture;
-
-Edit [```CMakeLists.txt```](./applications/CMakeLists.txt) to add the new application as part of the build system using the ```add_holohub_application```
-CMake function, passing the new application folder name as the first argument. If the application relies on one or more operators then the optional ```DEPENDS OPERATORS``` should be added so that
-the build system knows to build the dependent operator(s).
+**For Extensions:**
 
 ```cmake
-add_holohub_application(my_application DEPENDS
-                        OPERATORS my_operator1
-                                  my_operator2
-                        )
+# In ./gxf_extensions/CMakeLists.txt
+add_holohub_extension(my_extension)
 ```
 
-Refer to the [HoloHub application template folder](./applications/template/) for stub `metadata.json` and `README` files to copy
-and update for your new application.
+```bash
+# Configure build for extensions  
+cmake -S . -B ./build -D EXT_my_extension:BOOL=1
+cmake --build ./build -j
+```
 
-You can then build that application by configuring your build with `-D APP_my_application:BOOL=1` :
+**For Applications:**
+
+```cmake
+# In ./applications/CMakeLists.txt
+add_holohub_application(my_application DEPENDS
+                        OPERATORS my_operator1 my_operator2)
+```
 
 ```bash
 cmake -S . -B ./build -D APP_my_application:BOOL=1
 cmake --build ./build -j
 ```
 
-### Adding a Workflow
+**For Workflows:**
 
-> NOTE: Workflows are _end-to-end_ reference applications that demonstrate complete pipelines from sensors to results. To determine if your contribution should be a workflow rather than an application, consider whether it represents a complete "from sensor to insight" pipeline. Workflows typically integrate multiple components (operators, models, etc.) to solve entire use case, while applications may focus on demonstrating specific functionality or techniques.
-
-Add each workflow in its own subdirectory under the [`workflows`](./workflows/) directory. The subdirectory should contain:
-
-- A _metadata.json_ file which describes its specifications and requirements in accordance with the [workflow metadata.json schema](./workflows/metadata.schema.json).
-- A README file summarizing the workflow's purpose and architecture;
-
-Workflows should follow the organization conventions described in the [workflows README](./workflows/README.md), which includes:
-
-- Required conventions:
-  - Each workflow must provide a `metadata.json` file
-  - Each workflow must provide a `README.md` file
-  - Each workflow must be organized in its own subfolder under `holohub/workflows/`
-
-- Recommended conventions:
-  - Language-specific code should be organized in language subdirectories (`cpp/`, `python/`)
-  - Container environment can be customized or use the default HoloHub environment
-  - Build and run instructions should be provided in the `metadata.json` file
-
-If your workflow does not adhere to these conventions, set the field `manual_setup` to `true` in your project `metadata.json` file.
-
-Refer to the workflows directory for examples of existing workflows that you can use as templates for your submission.
-
-You can run your workflow using the `./run launch` command:
-
-```bash
-./run launch workflows/my_workflow
+```cmake
+# In ./workflow/CMakeLists.txt
+add_holohub_application(my_workflow DEPENDS
+                        OPERATORS my_operator1 my_operator2)
 ```
 
-### Adding a Package Configuration
+```bash
+cmake -S . -B ./build -D APP_my_application:BOOL=1
+cmake --build ./build -j
+```
 
-1. Ensure the applications/operator CMake targets and/or files you want to package have an `install` rule define in your application/operator CMakeLists.txt files (see [CMake docs](https://cmake.org/cmake/help/latest/command/install.html)). Optionally, pass a `COMPONENT` argument to the `install` rule to control precisely which of your targets/files will get packaged. This can be useful if - for example - you want to create dev vs run packages, not include python bindings, or split your libraries in separate packages for different backends.
-2. Create a folder for your package (or group of packages) under the [`pkg`](./pkg/) directory.
-3. Create a `CMakeLists.txt` file in that new folder with the following contents:
+**For Packages:**
 
-   ```cmake
-   holohub_configure_deb(
-     NAME "my-package-dev"
-     COMPONENTS "my-headers" "my-libs" # (optional) list of installation components to package, Default: all targets/files configured with an install rule will be packaged.
-     DESCRIPTION "My project (dev)"
-     VERSION "X.Y.Z"
-     VENDOR "My org name"
-     CONTACT "John Doe <john@doe.org>"
-     DEPENDS "libc6 (>= 2.34), libstdc++6 (>= 11)" # list of your package debian dependencies - https://www.debian.org/doc/debian-policy/ch-relationships.html
-     SECTION "devel" # (optional)
-     PRIORITY "optional" # (optional)
-   )
-   ```
+**CMake Configuration:**
 
-4. Update the `CMakeLists.txt` file under [`pkg`](./pkg/CMakeLists.txt) to include this new package directory and define the app and operators to build and package using the `add_holohub_package` CMake function:
+```cmake
+# In ./pkg/my_package/CMakeLists.txt
+holohub_configure_deb(
+  NAME "my-package-dev"
+  COMPONENTS "my-headers" "my-libs"  # optional
+  DESCRIPTION "My project description"
+  VERSION "1.0.0"
+  VENDOR "Your Organization"
+  CONTACT "Your Name <your.email@example.com>"
+  DEPENDS "libc6 (>= 2.34), libstdc++6 (>= 11)"
+  SECTION "devel"      # optional
+  PRIORITY "optional"  # optional
+)
+```
 
-   ```bash
-   add_holohub_package(my_packager
-                       APPLICATIONS my_app1
-                       OPERATORS my_op1 my_op2)
-   ```
+**Package Registration:**
 
-5. You can then generate the package(s) by configuring your build with `-D PKG_my_packager:BOOL=1` :
+```cmake
+# In ./pkg/CMakeLists.txt
+add_holohub_package(my_packager
+                    APPLICATIONS my_app1
+                    OPERATORS my_op1 my_op2)
+```
 
-    ```bash
-    cmake -S . -B ./build -D PKG_my_packager:BOOL=1 # NOTE: avoid adding any other -D PKG_, -D APP_ or -D OP_ as their built targets would currently pollute the content of your package, unless you used COMPONENTS in holohub_configure_deb above
-    cmake --build ./build -j
-    cpack --config ./build/pkg/CPackConfig-*.cmake
-    ```
+**Build Commands:**
 
-### Adding a Tutorial
+```bash
+cmake -S . -B ./build -D PKG_my_packager:BOOL=1
+cmake --build ./build -j
+cpack --config ./build/pkg/CPackConfig-*.cmake
+```
 
-Add each tutorial in its own subdirectory under the [```tutorials```](./tutorials) directory. The subdirectory should contain:
+**Prerequisites:**
+Ensure your CMake targets have `install` rules defined. Use `COMPONENT` to control packaging granularity.
 
-- A README file summarizing the application's purpose and architecture;
-- A _metadata.json_ file which describes its specifications and requirements in accordance with the [tutorial metadata.json schema](./tutorials/metadata.schema.json) (optional);
+### License and Legal Guidelines
 
-There are no project-wide build requirements for tutorials.
+- **Open Source Compatibility**: Ensure you have rights to contribute your work
+- **License Compliance**: All contributions inherit the Apache 2.0 license
+- **Patent Considerations**: Verify no patent conflicts are introduced
+- **Contribution Signing**: All commits must be signed-off (see [signing requirements](#signing-your-contribution))
 
-### License Guidelines
-
-- Make sure that you can contribute your work to open source.  Verify that no license and/or patent conflict is introduced by your code. NVIDIA is not responsible for conflicts resulting from community contributions.
-- Holohub license is the Apache 2.0 permissive open source license, so any contributions will inherit this license.
-- We require that members [sign](#signing-your-contribution) their contributions to certify their work.
+> **Note**: NVIDIA is not responsible for conflicts resulting from community contributions.
 
 ### Coding Guidelines
 
-- All source code contributions must strictly adhere to the Holoscan SDK coding style.
-
-- Every application, workflow, and operator should be named with an english descriptive name of the functionality
-provided. Please avoid using acronyms, brand, or team names.
+- **Style Compliance**: All code must adhere to Holoscan SDK coding standards
+- **Descriptive Naming**: Use clear, English descriptive names for functionality
+- **Avoid Abbreviations**: Minimize use of acronyms, brand names, or team names
+- **Code Documentation**: Include inline comments for complex logic
+- **Error Handling**: Implement appropriate error handling and validation
 
 ### Signing Your Contribution
 
-- We require that all contributors "sign-off" on their commits. This certifies that the contribution is your original work, or you have rights to submit it under the same license, or a compatible license.
+**Why Sign-Off is Required:**
+We require all contributors to "sign-off" their commits to certify the contribution is their original work or they have rights to submit it under the same license.
 
-- Any contribution which contains commits that are not Signed-Off will not be accepted.
+**How to Sign-Off:**
 
-- To sign off on a commit you simply use the `--signoff` (or `-s`) option when committing your changes:
+```bash
+# Sign-off when committing
+git commit -s -m "Add cool feature."
 
-  ```bash
-  git commit -s -m "Add cool feature."
-  ```
+# This appends to your commit message:
+# Signed-off-by: Your Name <your@email.com>
+```
 
-  This will append the following to your commit message:
+**Developer Certificate of Origin (DCO):**
 
-  ```txt
-  Signed-off-by: Your Name <your@email.com>
-  ```
+By signing-off, you certify that:
 
-- Full text of the DCO:
+- (a) The contribution was created by you with rights to submit under the open source license
+- (b) The contribution is based on appropriately licensed previous work
+- (c) The contribution was provided by someone who certified (a), (b), or (c)
+- (d) You understand this project and contribution are public with permanent record
 
-  ```txt
-    Developer Certificate of Origin
-    Version 1.1
+Full DCO text is available in the [Linux Foundation DCO](https://developercertificate.org/).
 
-    Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
-    1 Letterman Drive
-    Suite D4700
-    San Francisco, CA, 94129
+> **Important**: Contributions without proper sign-off will not be accepted.
 
-    Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
-  ```
+## Contribution Checklist
 
-  ```txt
-    Developer's Certificate of Origin 1.1
+Before submitting your contribution, ensure you've completed:
 
-    By making a contribution to this project, I certify that:
+### Pre-Submission Checklist
 
-    (a) The contribution was created in whole or in part by me and I have the right to submit it under the open source license indicated in the file; or
+- [ ] **Code Quality**
+  - [ ] Code follows Holoscan SDK coding standards
+  - [ ] All linting checks pass (`./run lint`)
+  - [ ] Code is properly documented with clear comments
+  - [ ] Error handling is implemented appropriately
 
-    (b) The contribution is based upon previous work that, to the best of my knowledge, is covered under an appropriate open source license and I have the right under that license to submit that work with modifications, whether created in whole or in part by me, under the same open source license (unless I am permitted to submit under a different license), as indicated in the file; or
+- [ ] **Testing**
+  - [ ] Code builds successfully on target platforms
+  - [ ] All existing tests still pass
+  - [ ] New functionality includes appropriate tests
+  - [ ] Python operators include unit tests (if applicable)
 
-    (c) The contribution was provided directly to me by some other person who certified (a), (b) or (c) and I have not modified it.
+- [ ] **Documentation**
+  - [ ] `README.md` is comprehensive and well-written
+  - [ ] `metadata.json` is complete and follows the correct schema
+  - [ ] Code examples and usage instructions are included
+  - [ ] Architecture or design decisions are documented
 
-    (d) I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
-  ```
+- [ ] **Legal and Compliance**
+  - [ ] All commits are signed-off (`git commit -s`)
+  - [ ] No license or patent conflicts introduced
+  - [ ] Code is original work or properly attributed
 
-## Linting
+- [ ] **Integration**
+  - [ ] Follows HoloHub naming conventions
+  - [ ] Properly integrated with build system (CMakeLists.txt updated)
+  - [ ] Dependencies are correctly specified
+  - [ ] Can be built and run following provided instructions
 
-The code submitted to HoloHub needs to pass linting checks to demonstrate compliance with minimum style guidelines.
+### Submission Checklist
 
-HoloHub runs linting checks in CI/CD pipelines when new changes are proposed. You will see a linting check result when you create a new pull request. You can also install and run linting tools to aid in local development.
+- [ ] **GitHub Workflow**
+  - [ ] Forked the upstream repository
+  - [ ] Created a descriptive feature branch
+  - [ ] Pull request targets the correct base branch
+  - [ ] PR description clearly explains the contribution
 
-### Running lint
+- [ ] **Review Readiness**
+  - [ ] Code is ready for review (not work-in-progress)
+  - [ ] All CI/CD checks pass
+  - [ ] Requested review from appropriate maintainers (@nvidia-holoscan/holohub)
 
-To install the necessary linting tools, run:
+## Code Quality and Standards
+
+### Linting and Code Quality
+
+HoloHub enforces code quality through automated linting checks that run in CI/CD pipelines.
+
+#### Installing Lint Tools
 
 ```bash
 ./run install_lint_deps
 ```
 
-The following command can then be used to run various linting tools on the repository.
-You may optionally pass a path argument to limit the linting to a specific subdirectory.
+#### Running Lint Checks
 
 ```bash
-./run lint [path]
+# Lint entire repository
+./run lint
+
+# Lint specific path
+./run lint path/to/your/code
 ```
 
-### Fixing lint issues
+#### Fixing Common Lint Issues
 
 ```bash
-# To fix python ruff issues which can be automatically fixed, run:
+# Python: Fix ruff issues automatically
 ruff --fix --ignore E712 [path]
-# To fix python isort issues, run:
+
+# Python: Fix import sorting
 isort [path]
-# To fix python black code formatting issues, run:
+
+# Python: Fix code formatting
 black [path]
-# To fix C++ lint issues, run:
+
+# C++: Fix formatting
 clang-format --style=file --sort-includes=0 --lines=20:10000 -i <filename>
-# To fix codespell issues, run:
+
+# Fix spelling issues
 codespell -w -i 3 [path]
 ```
 
-## Testing
+### Testing
 
-### Writing tests
+#### Integration tests
 
-Ideally applications should have a testing section in their CMakeLists.txt allowing to run the application for functional testing.
-HoloHub uses [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html) to drive the automated testing.
+Each operator should have at least one associated [application](./applications/) demonstrating its capabilities.
 
-### Running tests
+#### Writing Tests
 
-To run the suite of HoloHub tests, run CMake from the top of the HoloHub directory and compile the binary tree. Once the compilation
-succeeds you can run all the tests using the following command from the top of the binary tree:
+Applications should include a testing section in their `CMakeLists.txt` for functional testing. HoloHub uses [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html) for automated testing.
+
+#### Running Tests
 
 ```bash
-cd <holoscan_binary_directory>
-# To run all the tests
+# Build first
+cmake -S . -B ./build
+cmake --build ./build -j
+
+# Navigate to build directory
+cd ./build
+
+# Run all tests
 ctest
-# To run a specific test
-ctest -R MyTest
-# To run with verbose mode
+
+# Run specific test
+ctest -R MyTestName
+
+# Verbose output
 ctest -V
-# To run with extra verbose mode
+
+# Extra verbose output  
 ctest -VV
 ```
 
 ### Unit Testing Python Operators
 
-HoloHub encourages contributors to provide unit tests for Python operators. Please follow these conventions and guidelines:
+HoloHub strongly encourages unit tests for Python operators.
 
-- **Test Framework**: Use `pytest` for writing tests.
-- **Test File Location**: Place test files in the same directory as the operator, naming them as `test_<operator>.py`.
-- **Fixtures**: Reuse common fixtures defined in `conftest.py` (e.g., `fragment`, `mock_image`, `op_input_factory`, `op_output`, `execution_context`).
-- **Test Structure**:
-  - Test operator initialization and properties.
-  - Test setup of input/output ports.
-  - Test error handling for invalid arguments using `pytest.raises`.
-  - Test the operator’s compute logic, including parameterized tests for different input shapes and values.
-  - Use mock inputs and outputs to isolate operator logic.
+#### Testing Framework and Structure
 
-**Example**:
+- **Framework**: Use `pytest`
+- **File Location**: Same directory as operator: `test_<operator_name>.py`
+- **Fixtures**: Reuse common fixtures from `conftest.py`
+
+#### Required Test Categories
+
+1. **Initialization Tests**: Verify operator creation and properties
+2. **Port Setup Tests**: Ensure input/output ports are configured correctly
+3. **Error Handling Tests**: Test invalid arguments using `pytest.raises`
+4. **Compute Logic Tests**: Test main functionality with various inputs
+5. **Edge Case Tests**: Cover boundary conditions and error scenarios
+
+#### Example Test Structure
 
 ```python
 import pytest
@@ -510,43 +646,128 @@ def test_my_operator_invalid_param(fragment):
 # Add as many test cases as needed to cover all the functionality of the operator and the edge cases.
 ```
 
-**Running Python Unit Tests**: From the repository root or operator directory, run:
+#### Running Python Unit Tests
 
 ```bash
+# From repository root
 pytest operators/<your_operator_dir>/
+
+# Run with coverage
+pytest --cov=operators/<your_operator_dir>/ operators/<your_operator_dir>/
+
+# Run with verbose output
+pytest -v operators/<your_operator_dir>/
 ```
 
-**Best Practices**:
+#### Best Practices
 
-- Cover both positive and negative cases.
-- Use descriptive assertion messages.
-- Keep tests isolated and independent.
-- Add any generic/reusable fixtures in `conftest.py`.
+- **Test Isolation**: Keep tests independent and isolated
+- **Descriptive Names**: Use clear, descriptive test function names
+- **Assertion Messages**: Include helpful assertion messages
+- **Parameterized Tests**: Use `@pytest.mark.parametrize` for multiple scenarios
+- **Fixture Reuse**: Leverage common fixtures from `conftest.py`
+- **Edge Cases**: Test boundary conditions and error scenarios
+- **Documentation**: Add docstrings explaining test purpose
 
-For more examples, see existing operator test files such as `operators/deidentification/pixelator/test_pixelator.py` and `conftest.py` in the repository.
+For examples, see existing test files like:
 
-## Debugging
+- `operators/deidentification/pixelator/test_pixelator.py`
+- `conftest.py` for available fixtures
 
-We recommend exploring the following tools below for debugging your application:
+## Development Tools
 
-- The [Holoscan SDK User Guide Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) discusses several common debugging scenarios. Review the user guide for help on investigating application crashes and segfaults, application profiling, inspecting code coverage, and tracing with `gdb` for C++ applications or `pdb` for Python applications.
-- The [Holoscan SDK User Guide Logging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) describes how to set up for runtime logging from Holoscan SDK applications. Logging is a non-disruptive way to understand application runtime behavior.
-- [Holoscan SDK]() provides a VSCode Dev Container for development, described in the [Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html).
-- The HoloHub `dev_container` script provides several options that can be useful for debugging:
-  - The `--as_root` option launches an application container as the root user, giving you expanded permissions to install and run debugging programs like `gdb`.
-  - The `--local_sdk_root` option mounts a local SDK installation into your application container. You can build a local Holoscan SDK installation in Debug mode and then mount it into your container to inspect more complete debug information with `gdb`.
+### Debugging and Performance
 
-Note that there is no single debugging process nor VSCode Dev Container in HoloHub due to the variety of methods and libraries used across HoloHub applications. If you feel that tools or processes are missing, please open an issue on GitHub to let us know.
+#### Debugging Resources
 
-## Performance
+**Holoscan SDK Documentation:**
 
-Low latency is a key feature of many HoloHub applications. We recommend exploring the following tools to analyze and report application performance:
+- [Debugging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) - Common debugging scenarios, crashes, profiling
+- [Logging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) - Runtime logging setup
 
-- Projects in the [`benchmarks`](/benchmarks/) folder are focused on HoloHub benchmarking. The [`holoscan_flow_tracking`](/benchmarks/holoscan_flow_benchmarking/) project in particular provides common tooling for Holoscan SDK data flow analysis.
-- The [Holoscan SDK User Guide Debugging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) discusses general tools for application profiling.
+**Development Environment:**
 
-We encourage contributors to provide performance insights in application README discussions for community knowledge.
+- VSCode Dev Container support available in Holoscan SDK
+- HoloHub `dev_container` script with debugging options:
+  - `--as_root`: Launch as root for expanded debugging permissions
+  - `--local_sdk_root`: Mount local SDK for debug symbol access
 
-## Reporting issues
+**Debugging Tools:**
 
-Please open a [HoloHub Issue Request](https://github.com/nvidia-holoscan/holohub/issues) to request an enhancement, bug fix, or other change in HoloHub.
+- **C++ Applications**: Use `gdb` for tracing and debugging
+- **Python Applications**: Use `pdb` for interactive debugging
+- **Application Profiling**: Various profiling tools discussed in SDK guide
+- **Code Coverage**: Tools for inspecting test coverage
+
+> **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
+
+### Performance
+
+Low latency is crucial for many HoloHub applications. Use these resources for performance analysis:
+
+#### Performance Analysis Tools
+
+- **HoloHub Benchmarks**: Projects in [`benchmarks/`](./benchmarks/) folder
+- **Flow Tracking**: [`holoscan_flow_benchmarking/`](./benchmarks/holoscan_flow_benchmarking/) for data flow analysis
+- **SDK Profiling**: General profiling tools in the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html)
+
+#### Performance Best Practices
+
+- Include performance insights in your application README
+- Document any performance considerations or optimizations
+- Share benchmarking results when relevant for community benefit
+- Consider latency implications in your design decisions
+
+## Getting Help
+
+### Troubleshooting
+
+**Common Issues:**
+
+1. **Build Failures**
+   - Verify all dependencies are installed
+   - Check CMakeLists.txt configuration
+   - Ensure correct build flags are used
+
+2. **Linting Errors**
+   - Run `./run lint` locally before submitting
+   - Use automated fix commands when available
+   - Check code formatting against standards
+
+3. **Test Failures**
+   - Verify test environment setup
+   - Check for missing test data or dependencies
+   - Review test output for specific error messages
+
+4. **PR Review Issues**
+   - Address all reviewer feedback promptly
+   - Ensure all CI/CD checks pass
+   - Update documentation if requested
+
+**Getting Additional Help:**
+
+- Check existing [GitHub Issues](https://github.com/nvidia-holoscan/holohub/issues)
+- Review similar contributions for reference
+- Ask questions in your PR comments for specific guidance and call `@nvidia-holoscan/holohub`.
+
+### Reporting Issues
+
+Found a bug or need a feature? Please open a [HoloHub Issue](https://github.com/nvidia-holoscan/holohub/issues).
+
+**When reporting issues, include:**
+
+- Clear description of the problem or enhancement request
+- Steps to reproduce (for bugs)
+- Expected vs. actual behavior
+- Environment details (OS, SDK version, etc.)
+- Relevant logs or error messages
+
+**For enhancement requests:**
+
+- Describe the use case and benefits
+- Propose potential implementation approach
+- Consider if it fits HoloHub's scope and goals
+
+---
+
+Thank you for contributing to HoloHub! Your contributions help build a stronger ecosystem for the Holoscan community. 🚀
