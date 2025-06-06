@@ -25,28 +25,12 @@ import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
 from utilities.cli.util import Color
-
-
-def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
-    """Get list of directories from CMakeLists.txt files"""
-    results = []
-    for cmakelists in script_dir.rglob("CMakeLists.txt"):
-        with open(cmakelists) as f:
-            content = f.read()
-            for line in content.splitlines():
-                if cmake_function in line:
-                    try:
-                        name = line.split("(")[1].split(")")[0].strip()
-                        results.append(name)
-                    except IndexError:
-                        continue
-    return sorted(results)
 
 
 class HoloHubCLI:
