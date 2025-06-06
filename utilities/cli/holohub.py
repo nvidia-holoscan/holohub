@@ -58,7 +58,7 @@ class HoloHubCLI:
     DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
 
     def __init__(self):
-        self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "holohub")
+        self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
         self.parser = self._create_parser()
         self._collect_metadata()
 
@@ -960,11 +960,17 @@ class HoloHubCLI:
         holohub_cli_util.run_command(["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun)
 
         # Check and install CMake if needed
-        cmake_version = subprocess.run(
-            ["dpkg", "--status", "cmake", "|", "grep", "-p0", "'^Version: \K[^-]*'"],
-            capture_output=True,
-            text=True,
-        ).stdout
+        try:
+            cmake_version = subprocess.run(
+                ["dpkg", "--status", "cmake"],
+                capture_output=True,
+                text=True,
+                check=False,
+            ).stdout
+            version_match = re.search(r"Version: ([^-\s]+)", cmake_version)
+            cmake_version = version_match.group(1) if version_match else ""
+        except subprocess.CalledProcessError:
+            cmake_version = ""
 
         ubuntu_codename = subprocess.check_output(["cat", "/etc/os-release"], text=True)
         ubuntu_codename = re.search(r"UBUNTU_CODENAME=(\w+)", ubuntu_codename).group(1)
@@ -975,33 +981,17 @@ class HoloHubCLI:
                 dry_run=args.dryrun,
             )
             holohub_cli_util.run_command(
-                [
-                    "wget",
-                    "-O",
-                    "-",
-                    "https://apt.kitware.com/keys/kitware-archive-latest.asc",
-                    "2>/dev/null",
-                    "|",
-                    "gpg",
-                    "--dearmor",
-                    "-",
-                    "|",
-                    "tee",
-                    "/usr/share/keyrings/kitware-archive-keyring.gpg",
-                    ">/dev/null",
-                ],
+                "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | "
+                "gpg --dearmor - | "
+                "tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null",
+                shell=True,
                 check=False,
                 dry_run=args.dryrun,
             )
             holohub_cli_util.run_command(
-                [
-                    "echo",
-                    f'"deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ {ubuntu_codename} main"',
-                    "|",
-                    "tee",
-                    "/etc/apt/sources.list.d/kitware.list",
-                    ">/dev/null",
-                ],
+                f'echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ {ubuntu_codename} main" | '
+                "tee /etc/apt/sources.list.d/kitware.list >/dev/null",
+                shell=True,
                 dry_run=args.dryrun,
             )
             holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
@@ -1024,11 +1014,17 @@ class HoloHubCLI:
         )
 
         # Install Python dev
-        python3_dev_version = subprocess.run(
-            ["dpkg", "--status", "python3-dev", "|", "grep", "-p0", "'^Version: \K[^-]*'"],
-            capture_output=True,
-            text=True,
-        ).stdout
+        try:
+            python3_dev_version = subprocess.run(
+                ["dpkg", "--status", "python3-dev"],
+                capture_output=True,
+                text=True,
+                check=False,
+            ).stdout
+            version_match = re.search(r"Version: ([^-\s]+)", python3_dev_version)
+            python3_dev_version = version_match.group(1) if version_match else ""
+        except subprocess.CalledProcessError:
+            python3_dev_version = ""
 
         if not python3_dev_version or "3.9.0" > python3_dev_version:
             holohub_cli_util.run_command(
