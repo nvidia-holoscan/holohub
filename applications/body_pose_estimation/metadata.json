@@ -68,8 +68,9 @@
 					"docker_args": [
 						"-e ACCEPT_EULA='Yes with whitespace'",
 						"-e PRIVACY_CONSENT=Y",
-						"-v ~/docker/rti:/root/rti:ro",
-						"-v /dev:/dev"
+						"-v /tmp/docker/rti:/root/rti:ro",
+						"-v /dev:/dev",
+						"--detach"
 					]
 				}
 			},

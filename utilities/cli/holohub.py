@@ -798,15 +798,23 @@ class HoloHubCLI:
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
 
-            # Get mode-specific docker run args
+                        # Get mode-specific docker run args
             run_config = mode_config.get("run", {})
-            docker_args = run_config.get("docker_args", [])
-            docker_opts_str = args.docker_opts
-            if isinstance(docker_args, list):
-                docker_opts_str += " " + " ".join(docker_args)
+            mode_docker_args = run_config.get("docker_args", [])
+
+            # Process docker args using shlex for proper quote handling
+            import shlex
+            processed_docker_args = []
+            if isinstance(mode_docker_args, list):
+                for arg in mode_docker_args:
+                    if arg.startswith("-") and " " in arg:
+                        processed_docker_args.extend(shlex.split(arg))
+                    else:
+                        processed_docker_args.append(arg)
 
             container.run(
-                docker_opts="--entrypoint=bash " + docker_opts_str,
+                docker_opts="--entrypoint=bash " + args.docker_opts,
+                docker_args=processed_docker_args,
                 extra_args=["-c", run_cmd],
                 verbose=args.verbose,
             )

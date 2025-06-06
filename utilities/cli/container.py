@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import subprocess
 import sys
@@ -45,6 +46,45 @@ class HoloHubContainer:
 
     CONTAINER_PREFIX = "holohub"
     HOLOHUB_ROOT = Path(__file__).parent.parent.parent
+    DOCKER_CONFIG_PATH = Path(__file__).parent / "docker_config.json"
+
+    @classmethod
+    def load_docker_config(cls) -> dict:
+        """Load docker configuration from JSON file"""
+        try:
+            with open(cls.DOCKER_CONFIG_PATH, "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            print(f"Warning: Docker config file not found at {cls.DOCKER_CONFIG_PATH}")
+            return {"modes": {}}
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in docker config file: {e}")
+            return {"modes": {}}
+
+    @classmethod
+    def get_config_args(cls, mode: str, section: str = "run") -> List[str]:
+        """Get docker arguments from config for a specific mode and section"""
+        import shlex
+
+        config_mode = cls.load_docker_config().get("modes", {}).get(mode, {})
+        args = config_mode.get(section, {}).get("docker_args", [])
+        result = []
+        for arg in args:
+            if arg.startswith("-") and " " in arg:
+                # Use shlex for proper quote handling and argument splitting
+                result.extend(shlex.split(arg))
+            else:
+                result.append(arg)
+        return result
+
+    @classmethod
+    def get_conditional_args(cls, condition: str) -> List[str]:
+        """Get conditional docker arguments for a specific condition"""
+        config = cls.load_docker_config()
+        conditional_args = (
+            config.get("modes", {}).get("conditional", {}).get("run", {}).get("docker_args", {})
+        )
+        return conditional_args.get(condition, [])
 
     @classmethod
     def default_base_image(cls) -> str:
@@ -57,16 +97,6 @@ class HoloHubContainer:
     @staticmethod
     def default_dockerfile() -> Path:
         return HoloHubContainer.HOLOHUB_ROOT / "Dockerfile"
-
-    @staticmethod
-    def ucx_args() -> List[str]:
-        """UCX-related docker run arguments"""
-        return [
-            "--ipc=host",
-            "--cap-add=CAP_SYS_PTRACE",
-            "--ulimit=memlock=-1",
-            "--ulimit=stack=67108864",
-        ]
 
     @staticmethod
     def device_args() -> List[str]:
@@ -100,11 +130,6 @@ class HoloHubContainer:
                 options.append(f"--group-add={gid}")
         return options
 
-    @staticmethod
-    def runtime_args() -> List[str]:
-        """Get docker run arguments for the runtime"""
-        return ["--runtime=nvidia", "--gpus", "all"]
-
     def get_conditional_options(
         self, use_tini: bool = False, persistent: bool = False
     ) -> List[str]:
@@ -113,9 +138,9 @@ class HoloHubContainer:
 
         # Handle tini and persistence
         if use_tini:
-            options.append("--init")
+            options.extend(self.get_conditional_args("tini"))
         if not persistent:
-            options.append("--rm")
+            options.extend(self.get_conditional_args("non_persistent"))
 
         return options
 
@@ -211,19 +236,22 @@ class HoloHubContainer:
         # Set DOCKER_BUILDKIT environment variable
         os.environ["DOCKER_BUILDKIT"] = "1"
 
-        cmd = [
-            "docker",
-            "build",
-            "--build-arg",
-            "BUILDKIT_INLINE_CACHE=1",
-            "--build-arg",
-            f"BASE_IMAGE={base_img}",
-            "--build-arg",
-            f"GPU_TYPE={gpu_type}",
-            "--build-arg",
-            f"COMPUTE_CAPACITY={compute_capacity}",
-            "--network=host",
-        ]
+        cmd = ["docker", "build"]
+
+        # Add static build args from config
+        cmd.extend(self.get_config_args("default", "build"))
+
+        # Add dynamic build args
+        cmd.extend(
+            [
+                "--build-arg",
+                f"BASE_IMAGE={base_img}",
+                "--build-arg",
+                f"GPU_TYPE={gpu_type}",
+                "--build-arg",
+                f"COMPUTE_CAPACITY={compute_capacity}",
+            ]
+        )
 
         if no_cache:
             cmd.append("--no-cache")
@@ -246,6 +274,7 @@ class HoloHubContainer:
         nsys_location: str = "",
         as_root: bool = False,
         docker_opts: str = "",
+        docker_args: List[str] = None,
         add_volumes: List[str] = None,
         verbose: bool = False,
         extra_args: List[str] = None,
@@ -258,19 +287,21 @@ class HoloHubContainer:
         img = img or self.image_name
         add_volumes = add_volumes or []
         extra_args = extra_args or []
+        docker_args = docker_args or []
 
         # Build docker command
-        cmd = [self.holoscan_docker_exe, "run", "--net", "host"]
+        cmd = [self.holoscan_docker_exe, "run"]
 
-        # Basic options
-        cmd.extend(["--interactive"])
+        # Add static run args from config
+        cmd.extend(self.get_config_args("default"))
+
+        # Add TTY if available
         if sys.stdout.isatty():
-            cmd.append("--tty")
+            cmd.extend(self.get_conditional_args("tty_interactive"))
 
         # User permissions
         if not as_root:
             cmd.extend(["-u", f"{os.getuid()}:{os.getgid()}"])
-        cmd.extend(["-v", "/etc/group:/etc/group:ro", "-v", "/etc/passwd:/etc/passwd:ro"])
 
         # Workspace mounting
         cmd.extend(
@@ -279,36 +310,6 @@ class HoloHubContainer:
                 f"{HoloHubContainer.HOLOHUB_ROOT}:/workspace/holohub",
                 "-w",
                 "/workspace/holohub",
-            ]
-        )
-
-        # GPU and device access
-        cmd.extend(
-            [
-                "--runtime=nvidia",
-                "--gpus",
-                "all",
-                "--cap-add",
-                "CAP_SYS_PTRACE",
-                "--ipc=host",
-                "-v",
-                "/dev:/dev",
-                "--device-cgroup-rule",
-                "c 81:* rmw",
-                "--device-cgroup-rule",
-                "c 189:* rmw",
-            ]
-        )
-
-        # Environment variables
-        cmd.extend(
-            [
-                "-e",
-                "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
-                "-e",
-                "HOME=/workspace/holohub",
-                "-e",
-                "HOLOHUB_BUILD_LOCAL=1",
             ]
         )
 
@@ -321,7 +322,7 @@ class HoloHubContainer:
         cmd.extend(self.get_conditional_options(use_tini, persistent))
 
         # Add UCX options
-        cmd.extend(self.ucx_args())
+        cmd.extend(self.get_config_args("ucx"))
 
         # Add display server options
         cmd.extend(self.get_display_options(enable_x11))
@@ -337,6 +338,10 @@ class HoloHubContainer:
         # Add docker options if provided
         if docker_opts:
             cmd.extend(docker_opts.split())
+
+        # Add docker arguments list if provided (preferred method)
+        if docker_args:
+            cmd.extend(docker_args)
 
         # Add the image name
         cmd.append(img)
@@ -366,7 +371,7 @@ class HoloHubContainer:
                 )
 
         if enable_x11:
-            options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
+            options.extend(self.get_config_args("display"))
         return options
 
     def get_nsys_options(self, nsys_profile: bool, nsys_location: str) -> List[str]:
