@@ -40,7 +40,7 @@
 		},
 		"modes": {
 			"default": {
-				"description": "Run with camera input (default)",
+				"description": "Body pose estimation with camera input (default)",
 				"hardware": ["camera"],
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
@@ -48,34 +48,38 @@
 				}
 			},
 			"replayer": {
-				"description": "Run with pre-recorded video (no camera required)",
+				"description": "Body pose estimation with pre-recorded video (no camera required)",
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"args": "--source replayer"
+					"cmd_args": ["--source replayer"]
 				}
 			},
 			"dds": {
-				"description": "Run with DDS video stream input",
+				"description": "Body pose estimation with DDS video stream input",
 				"build": {
-					"op_depends": [
-						"dds_video_subscriber",
-						"dds_video_publisher"
-					]
+					"depends": ["dds_video_subscriber", "dds_video_publisher"],
+					"docker_args": ["--ssh default"]
 				},
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"args": "--source dds"
+					"cmd_args": ["--source dds"],
+					"docker_args": [
+						"-e ACCEPT_EULA='Yes with whitespace'",
+						"-e PRIVACY_CONSENT=Y",
+						"-v ~/docker/rti:/root/rti:ro",
+						"-v /dev:/dev"
+					]
 				}
 			},
 			"video_device": {
-				"description": "Run with specific camera device, replace 1 with the device number accordingly",
+				"description": "Body pose estimation with specific camera device, replace 'video1' with device accordingly",
 				"hardware": ["camera"],
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"args": "--video_device /dev/video1"
+					"cmd_args": ["--video_device /dev/video1"]
 				}
 			}
 		}
