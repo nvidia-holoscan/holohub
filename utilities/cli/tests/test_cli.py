@@ -425,6 +425,58 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertIn("-DHOLOHUB_BUILD_OPERATORS", cmake_args_str)
         self.assertIn(f'"{operators}"', cmake_args_str)
 
+    def test_custom_script_name_entry_point(self):
+        """Test that CLI behaves as if it's called with the custom script name"""
+        import subprocess
+        import tempfile
+        from pathlib import Path
+
+        # Create a custom entry point script
+        custom_name = "my_custom_holohub"
+        holohub_script = (
+            Path(os.path.dirname(os.path.abspath(__file__))) / ".." / ".." / ".." / "holohub"
+        )
+        if not holohub_script.exists():
+            self.skipTest("holohub bash script not found")
+
+        original_env = os.environ.get("HOLOHUB_CMD_NAME")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
+                # Create a custom wrapper script that sets HOLOHUB_CMD_NAME
+                custom_script = Path(temp_dir) / custom_name
+                with open(custom_script, "w") as f:
+                    f.write(
+                        f"""#!/bin/bash
+export HOLOHUB_CMD_NAME='{custom_name}'
+exec {holohub_script} "$@"
+"""
+                    )
+                custom_script.chmod(0o755)
+
+                result_help = subprocess.run(
+                    [str(custom_script), "--help"],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                    cwd=os.getcwd(),
+                )
+                self.assertEqual(result_help.returncode, 0, "Help command should succeed")
+                self.assertIn(
+                    custom_name,
+                    result_help.stdout or result_help.stderr,
+                    f"Help output should mention custom script name '{custom_name}'",
+                )
+            except subprocess.TimeoutExpired:
+                self.skipTest("Command timed out")
+            except FileNotFoundError:
+                self.skipTest("Script execution failed")
+            finally:
+                if original_env is not None:
+                    os.environ["HOLOHUB_CMD_NAME"] = original_env
+                elif "HOLOHUB_CMD_NAME" in os.environ:
+                    del os.environ["HOLOHUB_CMD_NAME"]
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -58,13 +58,15 @@ class HoloHubCLI:
     DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
 
     def __init__(self):
+        self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "holohub")
         self.parser = self._create_parser()
         self._collect_metadata()
 
     def _create_parser(self) -> argparse.ArgumentParser:
         """Create the argument parser with all supported commands"""
         parser = argparse.ArgumentParser(
-            description="HoloHub CLI tool for managing Holoscan applications and containers"
+            prog=self.script_name,
+            description=f"{self.script_name} CLI tool for managing Holoscan-based applications and containers",
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -87,6 +89,7 @@ class HoloHubCLI:
         )
         create.add_argument(
             "--directory",
+            type=Path,
             default=self.HOLOHUB_ROOT / "applications",
             help="Path to the directory to create the project in",
         )
@@ -509,7 +512,7 @@ class HoloHubCLI:
             container.build()
 
             # Build command with all necessary arguments
-            build_cmd = f"./holohub build {args.project} --local"
+            build_cmd = f"{self.script_name} build {args.project} --local"
             if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
@@ -571,7 +574,7 @@ class HoloHubCLI:
                 if not build_dir.is_dir() and not args.dryrun:
                     holohub_cli_util.fatal(
                         f"The build directory {build_dir} for this application does not exist.\n"
-                        f"Did you forget to './holohub build {args.project}'?"
+                        f"Did you forget to '{self.script_name} build {args.project}'?"
                     )
 
             # Handle workdir
@@ -660,7 +663,7 @@ class HoloHubCLI:
             )
 
             # Build command with all necessary arguments
-            run_cmd = f"./holohub run {args.project} --language {language} --local"
+            run_cmd = f"{self.script_name} run {args.project} --language {language} --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.nsys_profile:
@@ -1303,7 +1306,7 @@ class HoloHubCLI:
                 f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
                 f"- Build and run the application:\n"
-                f"   ./holohub run {context['project_slug']}"
+                f"   {self.script_name} run {context['project_slug']}"
             )
 
         print(
