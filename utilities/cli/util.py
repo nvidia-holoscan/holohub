@@ -83,7 +83,7 @@ def fatal(message: str) -> None:
 
 
 def run_command(
-    cmd, dry_run: bool = False, check: bool = True, **kwargs
+    cmd: Union[str, List[str]], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
     """Run a command and handle errors"""
     if isinstance(cmd, str):
