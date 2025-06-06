@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,20 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(laser_detection_apps LANGUAGES NONE)
+cmake_minimum_required(VERSION 3.20)
 
-set(HOLOSCAN_OPERATORS
-  apriltag_detector
-  emergent_source
-)
-
-add_holohub_application(evt_cam_calibration DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
-
-add_holohub_application(laser_detection DEPENDS
-      OPERATORS ${HOLOSCAN_OPERATORS})
-
-add_holohub_application(usb_cam_calibration DEPENDS
-      OPERATORS ${HOLOSCAN_OPERATORS})
-
-unset(HOLOSCAN_OPERATORS)
+project(isaac_holoscan_bridge LANGUAGES NONE)
