@@ -1,0 +1,170 @@
+/* Featured Apps Section Styles */
+.featured-apps {
+  background-color: rgba(118, 185, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.featured-apps h2 {
+  color: var(--md-primary-fg-color);
+  margin-top: 0;
+  font-size: 1.2rem;
+  border-bottom: 2px solid rgba(118, 185, 0, 0.5);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.featured-apps-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 0.5rem;
+  max-width: 100%;
+  position: relative;
+}
+
+.featured-app-card {
+  border: 1px solid rgba(118, 185, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.6rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  overflow: hidden;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.featured-app-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.featured-app-card:hover::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--md-primary-fg-color);
+}
+
+.featured-app-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+  color: var(--md-primary-fg-color);
+  font-weight: 500;
+  height: 2.8em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.featured-app-card .app-description {
+  margin-bottom: 0;
+  font-size: 0.7rem;
+  line-height: 1.3;
+  color: #555;
+  max-height: 120px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+/* App thumbnail styles */
+.featured-app-card .app-thumbnail {
+  margin-top: 0.4rem;
+  margin-bottom: 0.5rem;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid rgba(118, 185, 0, 0.2);
+  background-color: #f6f6f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  aspect-ratio: 16/9;
+}
+
+.featured-app-card .app-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 3px;
+  transition: transform 0.3s ease;
+  background-color: #f6f6f6;
+  z-index: 1;
+}
+
+.featured-app-card .app-thumbnail .image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  animation: pulse 1.5s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+.featured-app-card .app-thumbnail.loaded .image-placeholder {
+  display: none;
+}
+
+.featured-app-card:hover .app-thumbnail img {
+  transform: scale(1.03);
+}
+
+@media (max-width: 768px) {
+  .featured-apps-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .featured-app-card {
+    height: 300px;
+  }
+
+  .featured-app-card .app-thumbnail {
+    height: 90px;
+  }
+
+  .featured-app-card .app-description {
+    max-height: 110px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .featured-apps {
+    padding: 0.5rem;
+  }
+
+  .featured-apps-container {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .featured-app-card {
+    height: 280px;
+  }
+}
