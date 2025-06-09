@@ -36,7 +36,6 @@ RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
 COPY utilities /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
