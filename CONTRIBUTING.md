@@ -238,7 +238,7 @@ Please provide a self-assessment of your HoloHub contribution according to these
 | Level | Description | Requirements |
 |-------|-------------|--------------|
 | **0** | Production-ready, SDK-level quality | • Widespread community dependence<br>• Above 90% code coverage<br>• Nightly testing monitored<br>• All Level 1 requirements |
-| **1** | Very high-quality code | • Meets all Holoscan SDK coding standards<br>• No external dependencies beyond SDK<br>• Builds on all platforms within 1 month of releases<br>• 75% code coverage<br>• Continuous integration testing<br>• All Level 2 requirements |
+| **1** | Very high-quality code | • Meets all Holoscan SDK coding standards<br>• Builds on all platforms within 1 month of releases<br>• 75% code coverage<br>• Continuous integration testing<br>• All Level 2 requirements |
 | **2** | Quality code | • Compiles on community platforms<br>• May have specific external dependencies<br>• Tests pass on supported platforms<br>• All Level 3 requirements |
 | **3** | Features under development | • Builds on specific platforms/configurations<br>• Some tests passing on supported platforms<br>• All Level 4 requirements |
 | **4** | Code of unknown quality | • Builds on specific platforms/configurations<br>• Minimal test coverage |
@@ -344,23 +344,11 @@ All contributions that include code need to be integrated with HoloHub's build s
 add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 ```
 
-```bash
-# Configure build for operators
-cmake -S . -B ./build -D OP_my_operator:BOOL=1
-cmake --build ./build -j
-```
-
 **For Extensions:**
 
 ```cmake
 # In ./gxf_extensions/CMakeLists.txt
 add_holohub_extension(my_extension)
-```
-
-```bash
-# Configure build for extensions  
-cmake -S . -B ./build -D EXT_my_extension:BOOL=1
-cmake --build ./build -j
 ```
 
 **For Applications:**
@@ -371,22 +359,12 @@ add_holohub_application(my_application DEPENDS
                         OPERATORS my_operator1 my_operator2)
 ```
 
-```bash
-cmake -S . -B ./build -D APP_my_application:BOOL=1
-cmake --build ./build -j
-```
-
 **For Workflows:**
 
 ```cmake
 # In ./workflow/CMakeLists.txt
 add_holohub_application(my_workflow DEPENDS
                         OPERATORS my_operator1 my_operator2)
-```
-
-```bash
-cmake -S . -B ./build -D APP_my_application:BOOL=1
-cmake --build ./build -j
 ```
 
 **For Packages:**
@@ -415,14 +393,6 @@ holohub_configure_deb(
 add_holohub_package(my_packager
                     APPLICATIONS my_app1
                     OPERATORS my_op1 my_op2)
-```
-
-**Build Commands:**
-
-```bash
-cmake -S . -B ./build -D PKG_my_packager:BOOL=1
-cmake --build ./build -j
-cpack --config ./build/pkg/CPackConfig-*.cmake
 ```
 
 **Prerequisites:**
@@ -530,36 +500,23 @@ HoloHub enforces code quality through automated linting checks that run in CI/CD
 #### Installing Lint Tools
 
 ```bash
-./run install_lint_deps
+./holohub lint --dependencies
 ```
 
 #### Running Lint Checks
 
 ```bash
 # Lint entire repository
-./run lint
+./holohub lint
 
 # Lint specific path
-./run lint path/to/your/code
+./holohub lint path/to/your/code
 ```
 
 #### Fixing Common Lint Issues
 
 ```bash
-# Python: Fix ruff issues automatically
-ruff --fix --ignore E712 [path]
-
-# Python: Fix import sorting
-isort [path]
-
-# Python: Fix code formatting
-black [path]
-
-# C++: Fix formatting
-clang-format --style=file --sort-includes=0 --lines=20:10000 -i <filename>
-
-# Fix spelling issues
-codespell -w -i 3 [path]
+./holohub lint --fix
 ```
 
 ### Testing
@@ -575,24 +532,7 @@ Applications should include a testing section in their `CMakeLists.txt` for func
 #### Running Tests
 
 ```bash
-# Build first
-cmake -S . -B ./build
-cmake --build ./build -j
-
-# Navigate to build directory
-cd ./build
-
-# Run all tests
-ctest
-
-# Run specific test
-ctest -R MyTestName
-
-# Verbose output
-ctest -V
-
-# Extra verbose output  
-ctest -VV
+./holohub test --all
 ```
 
 ### Unit Testing Python Operators
@@ -767,6 +707,10 @@ Found a bug or need a feature? Please open a [HoloHub Issue](https://github.com/
 - Describe the use case and benefits
 - Propose potential implementation approach
 - Consider if it fits HoloHub's scope and goals
+
+### Advanced Developer Guide
+
+Please refer to the [HoloHub Developer Reference](./doc/developer.md) for more advanced developer guidance.
 
 ---
 
