@@ -81,6 +81,15 @@ def get_timestamp() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_cmd(command: str, is_dryrun: bool = False) -> str:
+    """Format command output with consistent timestamp and color formatting"""
+    timestamp = Color.blue(get_timestamp())
+    if is_dryrun:
+        dryrun_tag = Color.cyan("[dryrun]")
+        return f"{timestamp} {dryrun_tag} {Color.white('$')} {Color.green(command)}"
+    return f"{timestamp} {Color.white('$')} {Color.green(command)}"
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -98,12 +107,10 @@ def run_command(
     cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
     cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
-        print(
-            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
-        )
+        print(format_cmd(cmd_str, is_dryrun=True))
         return subprocess.CompletedProcess(cmd_list, 0)
 
-    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
+    print(format_cmd(cmd_str))
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:

@@ -588,26 +588,24 @@ class HoloHubCLI:
             # Handle workdir
             workdir = run_config.get("workdir", "holohub_app_bin")
             if workdir == "holohub_app_source":
+                print(
+                    holohub_cli_util.format_cmd(
+                        "cd " + str(project_data.get("source_folder", "")), is_dryrun=args.dryrun
+                    )
+                )
                 if not args.dryrun:
                     os.chdir(project_data.get("source_folder", ""))
-                print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(project_data.get('source_folder', '')))}"
-                )
             elif workdir == "holohub_bin":
+                print(holohub_cli_util.format_cmd("cd " + str(build_dir), is_dryrun=args.dryrun))
                 if not args.dryrun:
                     os.chdir(build_dir)
-                print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(build_dir))}"
-                )
             else:  # default to app binary directory
                 target_dir = (
                     build_dir if language == "cpp" else project_data.get("source_folder", "")
                 )
+                print(holohub_cli_util.format_cmd("cd " + str(target_dir), is_dryrun=args.dryrun))
                 if not args.dryrun:
                     os.chdir(target_dir)
-                print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('cd ' + str(target_dir))}"
-                )
 
             # Set up environment
             env = os.environ.copy()
@@ -622,13 +620,21 @@ class HoloHubCLI:
             # Print environment setup
             if args.verbose or args.dryrun:
                 print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export PYTHONPATH=' + env['PYTHONPATH'])}"
+                    holohub_cli_util.format_cmd(
+                        "export PYTHONPATH=" + env["PYTHONPATH"], is_dryrun=args.dryrun
+                    )
                 )
                 print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export HOLOHUB_DATA_PATH=' + env['HOLOHUB_DATA_PATH'])}"
+                    holohub_cli_util.format_cmd(
+                        "export HOLOHUB_DATA_PATH=" + env["HOLOHUB_DATA_PATH"],
+                        is_dryrun=args.dryrun,
+                    )
                 )
                 print(
-                    f"{Color.blue(holohub_cli_util.get_timestamp())} {Color.white('$')} {Color.green('export HOLOSCAN_INPUT_PATH=' + env['HOLOSCAN_INPUT_PATH'])}"
+                    holohub_cli_util.format_cmd(
+                        "export HOLOSCAN_INPUT_PATH=" + env["HOLOSCAN_INPUT_PATH"],
+                        is_dryrun=args.dryrun,
+                    )
                 )
 
             # Handle Nsight Systems profiling
@@ -734,7 +740,11 @@ class HoloHubCLI:
         exit_code = 0
 
         # Change to script directory
-        os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+        print(
+            holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=args.dryrun)
+        )
+        if not args.dryrun:
+            os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
         if args.fix:
             # Fix Python
@@ -920,7 +930,9 @@ class HoloHubCLI:
 
     def _install_lint_deps(self, dry_run: bool = False) -> None:
         """Install linting dependencies"""
-        os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+        print(holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=dry_run))
+        if not dry_run:
+            os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
         print("Install Lint Dependencies for Python")
         holohub_cli_util.run_command(
@@ -941,7 +953,9 @@ class HoloHubCLI:
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
         """Install template dependencies"""
-        os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+        print(holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=dry_run))
+        if not dry_run:
+            os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
         print("Install Template Dependencies")
         holohub_cli_util.run_command(
