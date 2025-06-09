@@ -46,10 +46,10 @@ class AdvNetworkingRdmaOp : public Operator {
     holoscan::Operator::initialize();
 
     if (send_.get()) {
-      send_mr_name_ = server_.get() ? "DATA_TX_CPU_SERVER" : "DATA_TX_CPU_CLIENT";
+      send_mr_name_ = server_.get() ? "DATA_TX_GPU_SERVER" : "DATA_TX_GPU_CLIENT";
     }
     if (receive_.get()) {
-      receive_mr_name_ = server_.get() ? "DATA_RX_CPU_SERVER" : "DATA_RX_CPU_CLIENT";
+      receive_mr_name_ = server_.get() ? "DATA_RX_GPU_SERVER" : "DATA_RX_GPU_CLIENT";
     }
 
     HOLOSCAN_LOG_INFO("AdvNetworkingRdmaOp::initialize() complete in {} mode",
@@ -64,9 +64,9 @@ class AdvNetworkingRdmaOp : public Operator {
   void setup(OperatorSpec& spec) override {
     spec.param<int>(message_size_, "message_size", "Message size", "Message size in bytes", 1024);
     spec.param<std::string>(
-        server_addr_str_, "server_address", "Server address", "Server address", "192.168.3.1");
+        server_addr_str_, "server_address", "Server IP address", "Server IP address", "192.168.3.1");
     spec.param<std::string>(
-        client_addr_str_, "client_address", "Client address", "Client address", "192.168.2.1");
+        client_addr_str_, "client_address", "Client IP address", "Client IP address", "192.168.2.1");
     spec.param<uint16_t>(server_port_, "server_port", "Server port", "Server port", 4096);
     spec.param<bool>(server_, "server", "Server", "Server", false);
     spec.param<bool>(send_, "send", "Send", "Send", false);

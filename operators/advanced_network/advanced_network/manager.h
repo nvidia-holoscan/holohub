@@ -99,8 +99,8 @@ class Manager {
                                  const std::string& local_mr_name);
   virtual RDMAOpCode rdma_get_opcode(BurstParams* burst);
   int numa_from_mem(const MemoryRegionConfig& mr) const;
-  Status register_mrs();
-  Status map_mrs();
+  Status register_memory_regions();
+  Status map_memory_regions();
   struct rte_mempool* create_pktmbuf_pool(const std::string& name, const MemoryRegionConfig& mr);
   struct rte_mempool* create_generic_pool(const std::string& name, const MemoryRegionConfig& mr);
 

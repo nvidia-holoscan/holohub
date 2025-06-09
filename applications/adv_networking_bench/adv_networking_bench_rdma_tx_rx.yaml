@@ -35,49 +35,42 @@ advanced_network:
     log_level: "info"
 
     memory_regions:
-    - name: "DATA_RX_CPU_SERVER"
+    - name: "DATA_RX_GPU_SERVER"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 20
-      buf_size: 9000000  
-    - name: "DATA_TX_CPU_SERVER"
+      buf_size: 9000000
+    - name: "DATA_TX_GPU_SERVER"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 20
-      buf_size: 9000000        
-    - name: "DATA_TX_CPU_CLIENT"
+      buf_size: 9000000
+    - name: "DATA_TX_GPU_CLIENT"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 20
-      buf_size: 90000000       
-    - name: "DATA_RX_CPU_CLIENT"
+      buf_size: 90000000
+    - name: "DATA_RX_GPU_CLIENT"
       kind: "device"
       affinity: 0
-      access:
-        - local
       num_bufs: 20
-      buf_size: 90000000           
+      buf_size: 90000000
 
     interfaces:
-    - name: data1
-      rdma_mode: client
-      rdma_transport_mode: RC
-      address: 192.168.11.2       # The address to use, or leave blank for auto-detect
+    - name: my_client
+      rdma_config:
+        mode: client
+        transport_mode: RC
+      address: 192.168.11.2       # The address to use, or leave blank for route lookup
       tx:
         queues:
-        - name: "ADC Samples"
+        - name: "Client_TX_Queue"
           id: 0
           batch_size: 1
           cpu_core: 7
       rx:
         queues:
-        - name: "Data"
+        - name: "Client_RX_Queue"
           id: 0
           cpu_core: 7
           batch_size: 1
@@ -89,13 +82,13 @@ advanced_network:
       flow_isolation: true
       rx:
         queues:
-        - name: "Data"
+        - name: "Server_RX_Queue"
           id: 0
           cpu_core: 8
           batch_size: 1
       tx:
         queues:
-        - name: "ADC Samples"
+        - name: "Server_TX_Queue"
           id: 0
           batch_size: 1
           cpu_core: 8         
@@ -105,7 +98,7 @@ rdma_bench_server:
   server_port: 4096
   message_size: 8000000
   send: true
-  receive: true  
+  receive: true
   server: true
 
 rdma_bench_client:
@@ -114,5 +107,5 @@ rdma_bench_client:
   server_address: 192.168.10.2
   server_port: 4096
   receive: true
-  send: true  
+  send: true
   server: false

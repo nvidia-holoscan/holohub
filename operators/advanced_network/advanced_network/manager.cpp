@@ -131,9 +131,9 @@ size_t Manager::get_alignment(MemoryKind kind) {
     case MemoryKind::HOST:
     case MemoryKind::HOST_PINNED:
     case MemoryKind::HUGE:
-      return 128;
+      return 128;  // Twice the size of a cache line on the CPU
     case MemoryKind::DEVICE:
-      return 256;
+      return 256;  // Twice the cache line size on the GPU
     default:
       return 128;
   }
@@ -231,7 +231,7 @@ Status Manager::allocate_memory_regions() {
   return Status::SUCCESS;
 }
 
-Status Manager::map_mrs() {
+Status Manager::map_memory_regions() {
   // Map every MR to every device for now
   for (const auto& intf : cfg_.ifs_) {
     struct rte_eth_dev_info dev_info;
@@ -263,7 +263,9 @@ Status Manager::map_mrs() {
   return Status::SUCCESS;
 }
 
-Status Manager::register_mrs() {
+// Register memory regions with the RTE library. If using DPDK as the backend to create memory
+// regions/pools, this function can register external memory regions (such as GPU memory).
+Status Manager::register_memory_regions() {
   for (const auto& ar : ar_) {
     auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
     const auto& mr = cfg_.mrs_[ar.second.mr_name_];

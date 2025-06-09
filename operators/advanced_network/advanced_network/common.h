@@ -587,6 +587,16 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
       const YAML::Node& mr, holoscan::advanced_network::MemoryRegionConfig& memory_region);
 
   /**
+   * @brief Parse RDMA configuration from a YAML node.
+   *
+   * @param rdma_item The YAML node containing the RDMA configuration.
+   * @param rdma The RDMAConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rdma_config(
+      const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma);
+
+  /**
    * @brief Parse common RX queue configuration from a YAML node.
    *
    * @param q_item The YAML node containing the RX queue configuration.
@@ -723,15 +733,11 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           ifcfg.address_ = intf["address"].as<std::string>();
 
           // RDMA config
-          try {
-            ifcfg.rdma_.mode_ = holoscan::advanced_network::GetRDMAModeFromString(
-                intf["rdma_mode"].as<std::string>());
-            ifcfg.rdma_.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(
-                intf["rdma_transport_mode"].as<std::string>());
-            ifcfg.rdma_.port_ = intf["rdma_port"].as<uint16_t>();
-          } catch (const std::exception& e) {
-            // Non-RDMA config
+          holoscan::advanced_network::RDMAConfig rdma;
+          if (!parse_rdma_config(intf["rdma_config"], rdma)) {
+            HOLOSCAN_LOG_DEBUG("Failed to parse RDMA config");
           }
+          ifcfg.rdma_ = rdma;
 
           try {
             const auto& rx = intf["rx"];

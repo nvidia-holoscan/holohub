@@ -513,19 +513,22 @@ struct NetworkConfig {
 };
 
 template <typename Config>
-auto get_rdma_cfg_en(const Config& config) {
+auto get_rdma_configs_enabled(const Config& config) {
   bool server = false;
   bool client = false;
 
   auto& yaml_nodes = config.yaml_nodes();
   for (const auto& yaml_node : yaml_nodes) {
-    auto node = yaml_node["advanced_network"]["cfg"]["interfaces"];
-    for (const auto& intf : node) {
-      std::string mode = intf["rdma_mode"].template as<std::string>();
-      if (mode == "server") {
-        server = true;
-      } else if (mode == "client") {
-        client = true;
+    auto interfaces_node = yaml_node["advanced_network"]["cfg"]["interfaces"];
+    for (const auto& intf : interfaces_node) {
+      auto rdma_config_node = intf["rdma_config"];
+      if (rdma_config_node.IsDefined()) {
+        std::string mode = rdma_config_node["mode"].template as<std::string>();
+        if (mode == "server") {
+          server = true;
+        } else if (mode == "client") {
+          client = true;
+        }
       }
     }
   }

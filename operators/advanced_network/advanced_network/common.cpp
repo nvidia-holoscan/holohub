@@ -418,7 +418,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Error parsing ipv4_src : {}", ipv4_src);
-      return false;
+      return false; 
     } else {
       flow.match_.ipv4_src_ = addr.s_addr;
     }
@@ -500,14 +500,38 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_memory_regi
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
-    try {
-      tmr.access_ = holoscan::advanced_network::GetMemoryAccessPropertiesFromList(mr["access"]);
-    } catch (const std::exception& e) {
+    if (mr["access"].IsDefined()) {
+        tmr.access_ = holoscan::advanced_network::GetMemoryAccessPropertiesFromList(mr["access"]);
+    } else {
       tmr.access_ = holoscan::advanced_network::MEM_ACCESS_LOCAL;
     }
     tmr.owned_ = mr["owned"].template as<bool>(true);
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing MemoryRegionConfig: {}", e.what());
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief Parse RDMA configuration from a YAML node.
+ *
+ * @param rdma_item The YAML node containing the RDMA configuration.
+ * @param rdma The RDMAConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rdma_config(
+    const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma) {
+  try {
+    rdma.mode_ = holoscan::advanced_network::GetRDMAModeFromString(rdma_item["mode"].template as<std::string>());
+    rdma.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(rdma_item["transport_mode"].template as<std::string>());
+    if (rdma_item["port"].IsDefined()) { // Port is optional
+      rdma.port_ = rdma_item["port"].as<uint16_t>();
+    } else {
+      rdma.port_ = 0;
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing RDMAConfig: {}", e.what());
     return false;
   }
   return true;
@@ -605,12 +629,18 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
 #if !ANO_MGR_RIVERMAX
   try {
-    const auto& offload = q_item["offloads"];
-    q.common_.offloads_.reserve(offload.size());
-    for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
+    if (q_item["offloads"].IsDefined()) {
+      const auto& offload = q_item["offloads"];
+      q.common_.offloads_.reserve(offload.size());
+      for (const auto& off : offload) {
+        q.common_.offloads_.push_back(off.as<std::string>());
+      }
+    }
   } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
+    return false;
   }
-#endif
+#endif  
   return true;
 }
 

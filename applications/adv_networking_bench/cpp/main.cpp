@@ -47,7 +47,7 @@ class App : public holoscan::Application {
     HOLOSCAN_LOG_INFO("Configured the Advanced Network manager");
 
     const auto [rdma_server_en, rdma_client_en] =
-        holoscan::advanced_network::get_rdma_cfg_en(config());
+        holoscan::advanced_network::get_rdma_configs_enabled(config());
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
 
