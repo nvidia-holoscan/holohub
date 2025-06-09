@@ -255,7 +255,6 @@ inline ManagerType manager_type_from_string(const std::string& str) {
 enum class RDMAMode {
   CLIENT,
   SERVER,
-
   INVALID
 };
 
