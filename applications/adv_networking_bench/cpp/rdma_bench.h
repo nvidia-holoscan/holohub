@@ -37,7 +37,7 @@ class AdvNetworkingRdmaOp : public Operator {
         ttl_bytes_sent_,
         ttl_pkts_sent_);
 
-    HOLOSCAN_LOG_INFO("ANO benchmark clent op shutting down");
+    HOLOSCAN_LOG_INFO("ANO benchmark client op shutting down");
     freeResources();
   }
 
