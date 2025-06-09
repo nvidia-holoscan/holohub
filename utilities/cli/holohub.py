@@ -244,6 +244,15 @@ class HoloHubCLI:
             help="Build type (debug, release, rel-debug)",
         )
         install.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
+        install.add_argument(
+            "--build-with",
+            dest="with_operators",
+            help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        install.add_argument("--verbose", action="store_true", help="Print extra output")
+        install.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         install.set_defaults(func=self.handle_install)
@@ -1210,7 +1219,48 @@ class HoloHubCLI:
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
-        raise NotImplementedError("Install command not yet implemented")
+        if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
+            # Build and install locally
+            build_dir, project_data = self._build_project_locally(
+                project_name=args.project,
+                language=getattr(args, "language", None),
+                build_type=args.build_type,
+                with_operators=getattr(args, "with_operators", None),
+                dryrun=args.dryrun,
+            )
+
+            # Install the project
+            holohub_cli_util.run_command(
+                ["cmake", "--install", str(build_dir)], dry_run=args.dryrun
+            )
+
+            if not args.dryrun:
+                print(f"{Color.green('Successfully installed')} {args.project}")
+        else:
+            # Install in container
+            container = self._make_project_container(
+                project_name=args.project,
+                language=getattr(args, "language", None),
+            )
+            container.dryrun = args.dryrun
+            container.build()
+
+            # Install command with all necessary arguments
+            install_cmd = f"{self.script_name} install {args.project} --local"
+            if args.build_type:
+                install_cmd += f" --build-type {args.build_type}"
+            if getattr(args, "language", None):
+                install_cmd += f" --language {args.language}"
+            if getattr(args, "with_operators", None):
+                install_cmd += f' --build-with "{args.with_operators}"'
+            if args.verbose:
+                install_cmd += " --verbose"
+
+            container.run(
+                docker_opts="--entrypoint=bash",
+                extra_args=["-c", install_cmd],
+                verbose=getattr(args, "verbose", False),
+            )
 
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""
