@@ -22,7 +22,7 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 PROJECT_PREFIXES = {
     "application": "APP",
@@ -101,14 +101,17 @@ def fatal(message: str) -> None:
 
 
 def run_command(
-    cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs
+    cmd: Union[str, List[str]], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
-    """Run a shell command and handle errors"""
-    cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
-    cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
+    """Run a command and handle errors"""
+    if isinstance(cmd, str):
+        cmd_str = cmd
+    else:
+        cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
+        cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
         print(format_cmd(cmd_str, is_dryrun=True))
-        return subprocess.CompletedProcess(cmd_list, 0)
+        return subprocess.CompletedProcess(cmd_str, 0)
 
     print(format_cmd(cmd_str))
     try:

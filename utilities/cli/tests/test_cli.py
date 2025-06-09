@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import subprocess
 import sys
 import unittest
 from io import StringIO
@@ -24,6 +25,7 @@ from unittest.mock import MagicMock, patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
+from utilities.cli import util
 from utilities.cli.holohub import HoloHubCLI
 
 
@@ -201,6 +203,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify the container.run was called with the correctly quoted arguments
         kwargs = mock_container.run.call_args[1]
         cmd_string = kwargs["extra_args"][1]
+        self.assertIn("./holohub run test_project", cmd_string)
         self.assertIn("--run_args", cmd_string)
         self.assertIn(quoted_value, cmd_string)
 
@@ -551,6 +554,32 @@ exec {holohub_script} "$@"
         self.assertEqual(mock_run_command.call_count, 3)
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertIn("RPM", cpack_args)
+
+
+class TestRunCommand(unittest.TestCase):
+    """Test the run_command function with explicit shell parameter"""
+
+    def setUp(self):
+        self.mock_completed_process = subprocess.CompletedProcess([], 0)
+
+    @patch("subprocess.run")
+    @patch("builtins.print")
+    def test_run_command_scenarios(self, mock_print, mock_subprocess):
+        """Test run_command with shell execution and dry run mode"""
+        mock_subprocess.return_value = self.mock_completed_process
+        result = util.run_command("echo hello | grep hello", shell=True)
+        mock_subprocess.assert_called_once_with("echo hello | grep hello", shell=True, check=True)
+        self.assertEqual(result, self.mock_completed_process)
+
+        mock_subprocess.reset_mock()
+        mock_print.reset_mock()
+
+        util.run_command(["echo", "hello"], dry_run=True)
+        mock_subprocess.assert_not_called()
+        mock_print.assert_called()
+        printed_args = mock_print.call_args[0][0]
+        self.assertIn("echo hello", printed_args)
+        self.assertIn("[dryrun]", printed_args)
 
 
 if __name__ == "__main__":
