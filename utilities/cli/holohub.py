@@ -25,28 +25,12 @@ import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
 from utilities.cli.util import Color
-
-
-def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
-    """Get list of directories from CMakeLists.txt files"""
-    results = []
-    for cmakelists in script_dir.rglob("CMakeLists.txt"):
-        with open(cmakelists) as f:
-            content = f.read()
-            for line in content.splitlines():
-                if cmake_function in line:
-                    try:
-                        name = line.split("(")[1].split(")")[0].strip()
-                        results.append(name)
-                    except IndexError:
-                        continue
-    return sorted(results)
 
 
 class HoloHubCLI:
@@ -58,7 +42,7 @@ class HoloHubCLI:
     DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
 
     def __init__(self):
-        self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "holohub")
+        self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
         self.parser = self._create_parser()
         self._collect_metadata()
 
@@ -188,6 +172,9 @@ class HoloHubCLI:
         )
         build.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        build.add_argument(
+            "--pkg-generator", default="DEB", help="Package generator for cpack (default: DEB)"
         )
         build.set_defaults(func=self.handle_build)
 
@@ -460,26 +447,34 @@ class HoloHubCLI:
         build_type: Optional[str] = None,
         with_operators: Optional[str] = None,
         dryrun: bool = False,
+        pkg_generator: str = "DEB",
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self._find_project(project_name=project_name, language=language)
+        project_type = project_data.get("project_type", "application")
+
         build_type = self.get_buildtype_str(build_type)
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
+        proj_prefix = holohub_cli_util.determine_project_prefix(project_type)
         cmake_args = [
             "cmake",
             "-B",
             str(build_dir),
             "-S",
             str(HoloHubCLI.HOLOHUB_ROOT),
-            "-G",
-            "Ninja",
+            "--no-warn-unused-cli",
+            f"-DPython3_EXECUTABLE={sys.executable}",
+            f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
             f"-DCMAKE_BUILD_TYPE={build_type}",
             f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
             f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
-            f"-DAPP_{project_name}=ON",
+            f"-D{proj_prefix}_{project_name}=ON",
         ]
+        # use -G Ninja if available
+        if shutil.which("ninja"):
+            cmake_args.extend(["-G", "Ninja"])
 
         # Add optional operators if specified
         if with_operators:
@@ -489,6 +484,16 @@ class HoloHubCLI:
         holohub_cli_util.run_command(
             ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=dryrun
         )
+
+        # If this is a package, run cpack
+        if project_type == "package":
+            pkg_build_dir = build_dir / "pkg"
+            if pkg_build_dir.exists():
+                for cpack_config in pkg_build_dir.glob("CPackConfig-*.cmake"):
+                    holohub_cli_util.run_command(
+                        ["cpack", "--config", str(cpack_config), "-G", pkg_generator],
+                        dry_run=dryrun,
+                    )
 
         return build_dir, project_data
 
@@ -501,6 +506,7 @@ class HoloHubCLI:
                 build_type=args.build_type,
                 with_operators=args.with_operators,
                 dryrun=args.dryrun,
+                pkg_generator=getattr(args, "pkg_generator", "DEB"),
             )
         else:
             # Build in container
@@ -517,6 +523,8 @@ class HoloHubCLI:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
                 build_cmd += f' --build-with "{args.with_operators}"'
+            if hasattr(args, "pkg_generator"):
+                build_cmd += f" --pkg-generator {args.pkg_generator}"
             if args.verbose:
                 build_cmd += " --verbose"
 

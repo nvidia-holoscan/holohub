@@ -60,11 +60,24 @@ class TestHoloHubCLI(unittest.TestCase):
         }
         # Mock project data with some similar names
         self.cli.projects = [
-            {"project_name": "hello_world", "metadata": {"language": "cpp"}},
-            {"project_name": "hello_world_python", "metadata": {"language": "python"}},
-            {"project_name": "hello_world_cpp", "source_folder": "applications/hello_world_cpp"},
+            {
+                "project_name": "hello_world",
+                "project_type": "application",
+                "metadata": {"language": "cpp"},
+            },
+            {
+                "project_name": "hello_world_python",
+                "project_type": "application",
+                "metadata": {"language": "python"},
+            },
+            {
+                "project_name": "hello_world_cpp",
+                "project_type": "application",
+                "source_folder": "applications/hello_world_cpp",
+            },
             {
                 "project_name": "hello_world_advanced",
+                "project_type": "application",
                 "metadata": {"language": "cpp"},
                 "source_folder": "applications/hello_world_advanced",
             },
@@ -476,6 +489,68 @@ exec {holohub_script} "$@"
                     os.environ["HOLOHUB_CMD_NAME"] = original_env
                 elif "HOLOHUB_CMD_NAME" in os.environ:
                     del os.environ["HOLOHUB_CMD_NAME"]
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_build_functionality(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test package build functionality including PKG prefix and cpack execution"""
+        # Mock package data
+        mock_package_data = {
+            "project_name": "test_package",
+            "project_type": "package",
+            "source_folder": Path(os.getcwd()) / "pkg" / "test_package",
+            "metadata": {"language": "cpp"},
+        }
+
+        mock_find_project.return_value = mock_package_data
+        mock_run_command.return_value = MagicMock()
+
+        mock_cpack_config = Path("/path/to/build/test_package/pkg/CPackConfig-test_package.cmake")
+        mock_exists.return_value = True  # pkg directory exists
+        mock_glob.return_value = [mock_cpack_config]  # cpack config file exists
+
+        self.cli._build_project_locally(
+            project_name="test_package",
+            language="cpp",
+            build_type="release",
+            dryrun=False,
+        )
+
+        self.assertEqual(mock_run_command.call_count, 3)  # cmake configure, cmake build, cpack
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+        self.assertIn("-DPKG_test_package=ON", cmake_args_str)
+        self.assertNotIn("-DAPP_test_package=ON", cmake_args_str)
+
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertEqual(cpack_args[0], "cpack")
+        self.assertIn("--config", cpack_args)
+        self.assertIn(str(mock_cpack_config), cpack_args)
+        self.assertIn("-G", cpack_args)
+        self.assertIn("DEB", cpack_args)
+
+        mock_run_command.reset_mock()
+
+        self.cli._build_project_locally(
+            project_name="test_package",
+            language="cpp",
+            build_type="release",
+            pkg_generator="RPM",
+            dryrun=False,
+        )
+        self.assertEqual(mock_run_command.call_count, 3)
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertIn("RPM", cpack_args)
 
 
 if __name__ == "__main__":
