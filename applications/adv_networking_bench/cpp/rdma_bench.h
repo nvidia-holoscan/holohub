@@ -78,7 +78,7 @@ class AdvNetworkingRdmaOp : public Operator {
     BurstParams* burst;
 
     // Establish connection. If we're a client we connect to the server. If we're a server we ask
-    // for a connection ID from the ANO.
+    // for a connection ID from the advanced_network library.
     if (conn_id_ == 0) {
       if (!server_.get()) {
         HOLOSCAN_LOG_INFO(
