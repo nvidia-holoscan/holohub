@@ -90,13 +90,12 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   auto data_size = tensor->size();
   auto data_ptr = tensor->data();
 
-
   file_data_provider_->SetData(static_cast<uint8_t*>(data_ptr), data_size);
 
   if (demuxer_ == nullptr) {
     // Set the current context
     CudaCheck(cuCtxPushCurrent(cu_context_));
-    
+
     try {
       demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
       decoder_ = std::make_unique<NvDecoder>(cu_context_,
@@ -118,7 +117,8 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       decoder_.reset();
       // Pop the context to avoid context stack issues
       CudaCheck(cuCtxPopCurrent(nullptr));
-      throw std::runtime_error("Decoder initialization failed. Please check video format and codec support.");
+      throw std::runtime_error(
+          "Decoder initialization failed. Please check video format and codec support.");
     }
   }
 
@@ -147,7 +147,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
   do {
     demuxer_->Demux(&pVideo, &nVideoBytes);
-    
+
     try {
       nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
     } catch (const std::exception& e) {
@@ -168,7 +168,8 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       continue;
     }
     if (nFrameReturned > 1) {
-      HOLOSCAN_LOG_WARN("More than one frame returned from decoder: {}. Processing all frames.", nFrameReturned);
+      HOLOSCAN_LOG_WARN("More than one frame returned from decoder: {}. Processing all frames.",
+                        nFrameReturned);
     }
 
     for (int i = 0; i < nFrameReturned; i++) {

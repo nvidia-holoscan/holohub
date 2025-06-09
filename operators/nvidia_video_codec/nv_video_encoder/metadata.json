@@ -4,11 +4,12 @@
 		"description": "This operator encodes a video stream into a compressed format using the NVIDIA Video Codec SDK.",
 		"authors": [
 			{
-				"name": "Victor Chang",
+				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"version": "1.0",
+		"language": ["C++"],
+		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
@@ -19,8 +20,8 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"NVIDIA Video Codec SDK",

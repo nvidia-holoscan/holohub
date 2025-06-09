@@ -57,12 +57,11 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
   using NvVideoDecoderOp::NvVideoDecoderOp;
 
   // Define a constructor that fully initializes the object.
-  PyNvVideoDecoderOp(Fragment* fragment, const py::args& args,
-                        int cuda_device_ordinal,
-                        std::shared_ptr<::holoscan::Allocator> allocator,
-                        const std::string& name = "nv_video_decoder")
-      : NvVideoDecoderOp(ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal},
-                                    Arg{"allocator", allocator}}) {
+  PyNvVideoDecoderOp(Fragment* fragment, const py::args& args, int cuda_device_ordinal,
+                     std::shared_ptr<::holoscan::Allocator> allocator,
+                     const std::string& name = "nv_video_decoder")
+      : NvVideoDecoderOp(
+            ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal}, Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -88,11 +87,7 @@ PYBIND11_MODULE(_nv_video_decoder, m) {
   m.attr("__version__") = "dev";
 #endif
 
-
-  py::class_<NvVideoDecoderOp,
-             PyNvVideoDecoderOp,
-             Operator,
-             std::shared_ptr<NvVideoDecoderOp>>(
+  py::class_<NvVideoDecoderOp, PyNvVideoDecoderOp, Operator, std::shared_ptr<NvVideoDecoderOp>>(
       m, "NvVideoDecoderOp", doc::NvVideoDecoderOp::doc_NvVideoDecoderOp)
       .def(py::init<Fragment*,
                     const py::args&,
@@ -106,6 +101,5 @@ PYBIND11_MODULE(_nv_video_decoder, m) {
            doc::NvVideoDecoderOp::doc_NvVideoDecoderOp)
       .def("initialize", &NvVideoDecoderOp::initialize, doc::NvVideoDecoderOp::doc_initialize)
       .def("setup", &NvVideoDecoderOp::setup, "spec"_a, doc::NvVideoDecoderOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

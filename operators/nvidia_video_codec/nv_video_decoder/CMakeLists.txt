@@ -32,7 +32,7 @@ find_library(NVCUVID_LIBRARY nvcuvid
     NAMES libnvcuvid.so.1 libnvcuvid
     HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
     PATHS "/usr/lib/${LIB_ARCH_DIR}/")
- 
+
  if(NOT NVCUVID_LIBRARY)
    message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
 endif()

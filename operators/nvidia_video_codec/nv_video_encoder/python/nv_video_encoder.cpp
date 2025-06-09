@@ -61,8 +61,7 @@ class PyNvVideoEncoderOp : public NvVideoEncoderOp {
                      std::shared_ptr<::holoscan::Allocator> allocator, uint32_t width,
                      uint32_t height, const std::string& preset, const std::string& codec,
                      uint32_t bitrate, uint32_t frame_rate, uint32_t rate_control_mode,
-                     uint32_t multi_pass_encoding,
-                     const std::string& name = "nv_video_encoder")
+                     uint32_t multi_pass_encoding, const std::string& name = "nv_video_encoder")
       : NvVideoEncoderOp(ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal},
                                  Arg{"allocator", allocator},
                                  Arg{"width", width},
@@ -128,6 +127,5 @@ PYBIND11_MODULE(_nv_video_encoder, m) {
            doc::NvVideoEncoderOp::doc_NvVideoEncoderOp)
       .def("initialize", &NvVideoEncoderOp::initialize, doc::NvVideoEncoderOp::doc_initialize)
       .def("setup", &NvVideoEncoderOp::setup, "spec"_a, doc::NvVideoEncoderOp::doc_setup);
-
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops
