@@ -272,7 +272,6 @@ enum class RDMATransportMode {
   RC,
   UC,
   UD,
-
   INVALID
 };
 
