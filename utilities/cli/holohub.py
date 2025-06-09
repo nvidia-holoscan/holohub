@@ -176,6 +176,9 @@ class HoloHubCLI:
         build.add_argument(
             "--pkg-generator", default="DEB", help="Package generator for cpack (default: DEB)"
         )
+        build.add_argument(
+            "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
+        )
         build.set_defaults(func=self.handle_build)
 
         # run command
@@ -204,6 +207,9 @@ class HoloHubCLI:
             "--docker-opts",
             default="",
             help="Additional options to pass to the underlying Docker launch (if applicable)",
+        )
+        run.add_argument(
+            "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
         )
         run.set_defaults(func=self.handle_run)
 
@@ -254,6 +260,9 @@ class HoloHubCLI:
         install.add_argument("--verbose", action="store_true", help="Print extra output")
         install.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        install.add_argument(
+            "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
         )
         install.set_defaults(func=self.handle_install)
 
@@ -436,19 +445,6 @@ class HoloHubCLI:
             verbose=args.verbose,
         )
 
-    def get_buildtype_str(self, build_type: Optional[str]) -> str:
-        """Get CMake build type string"""
-        if not build_type:
-            return os.environ.get("CMAKE_BUILD_TYPE", "Release")
-
-        build_type_map = {
-            "debug": "Debug",
-            "release": "Release",
-            "rel-debug": "RelWithDebInfo",
-            "relwithdebinfo": "RelWithDebInfo",
-        }
-        return build_type_map.get(build_type.lower(), "Release")
-
     def _build_project_locally(
         self,
         project_name: str,
@@ -457,12 +453,13 @@ class HoloHubCLI:
         with_operators: Optional[str] = None,
         dryrun: bool = False,
         pkg_generator: str = "DEB",
+        parallel: Optional[str] = None,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self._find_project(project_name=project_name, language=language)
         project_type = project_data.get("project_type", "application")
 
-        build_type = self.get_buildtype_str(build_type)
+        build_type = holohub_cli_util.get_buildtype_str(build_type)
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
@@ -490,9 +487,15 @@ class HoloHubCLI:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
         holohub_cli_util.run_command(cmake_args, dry_run=dryrun)
-        holohub_cli_util.run_command(
-            ["cmake", "--build", str(build_dir), "--config", build_type], dry_run=dryrun
-        )
+
+        # Build the project with optional parallel jobs
+        build_cmd = ["cmake", "--build", str(build_dir), "--config", build_type]
+        if parallel:
+            build_cmd.extend(["-j", parallel])
+        else:
+            build_cmd.append("-j")  # Use default number of jobs
+
+        holohub_cli_util.run_command(build_cmd, dry_run=dryrun)
 
         # If this is a package, run cpack
         if project_type == "package":
@@ -516,6 +519,7 @@ class HoloHubCLI:
                 with_operators=args.with_operators,
                 dryrun=args.dryrun,
                 pkg_generator=getattr(args, "pkg_generator", "DEB"),
+                parallel=getattr(args, "parallel", None),
             )
         else:
             # Build in container
@@ -534,6 +538,8 @@ class HoloHubCLI:
                 build_cmd += f' --build-with "{args.with_operators}"'
             if hasattr(args, "pkg_generator"):
                 build_cmd += f" --pkg-generator {args.pkg_generator}"
+            if getattr(args, "parallel", None):
+                build_cmd += f" --parallel {args.parallel}"
             if args.verbose:
                 build_cmd += " --verbose"
 
@@ -557,6 +563,7 @@ class HoloHubCLI:
                 build_type="Release",  # Default to Release for run
                 with_operators=args.with_operators,
                 dryrun=args.dryrun,
+                parallel=getattr(args, "parallel", None),
             )
 
             language = holohub_cli_util.normalize_language(
@@ -695,6 +702,8 @@ class HoloHubCLI:
                 run_cmd += f' --build-with "{args.with_operators}"'
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run_args {shlex.quote(args.run_args)}"
+            if getattr(args, "parallel", None):
+                run_cmd += f" --parallel {args.parallel}"
 
             container.run(
                 docker_opts="--entrypoint=bash " + args.docker_opts,
@@ -1227,13 +1236,12 @@ class HoloHubCLI:
                 build_type=args.build_type,
                 with_operators=getattr(args, "with_operators", None),
                 dryrun=args.dryrun,
+                parallel=getattr(args, "parallel", None),
             )
-
             # Install the project
             holohub_cli_util.run_command(
                 ["cmake", "--install", str(build_dir)], dry_run=args.dryrun
             )
-
             if not args.dryrun:
                 print(f"{Color.green('Successfully installed')} {args.project}")
         else:
@@ -1253,6 +1261,8 @@ class HoloHubCLI:
                 install_cmd += f" --language {args.language}"
             if getattr(args, "with_operators", None):
                 install_cmd += f' --build-with "{args.with_operators}"'
+            if getattr(args, "parallel", None):
+                install_cmd += f" --parallel {args.parallel}"
             if args.verbose:
                 install_cmd += " --verbose"
 
