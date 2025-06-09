@@ -72,7 +72,6 @@ void NvVideoEncoderOp::setup(OperatorSpec& spec) {
              "Multi Pass Encoding",
              "Multi pass encoding for the encoder",
              1u);
-
 }
 
 void NvVideoEncoderOp::initialize() {
@@ -100,7 +99,8 @@ void NvVideoEncoderOp::initialize() {
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to create encoder: {}", e.what());
     CudaCheck(cuCtxPopCurrent(nullptr));
-    throw std::runtime_error("Encoder creation failed. Please check GPU capabilities and parameters.");
+    throw std::runtime_error(
+        "Encoder creation failed. Please check GPU capabilities and parameters.");
   }
 
   // Configure encoder with low latency or ultra low latency settings
@@ -219,7 +219,7 @@ void NvVideoEncoderOp::compute(InputContext& op_input, OutputContext& op_output,
                                      encoderInputFrame->bufferFormat,
                                      encoderInputFrame->chromaOffsets,
                                      encoderInputFrame->numChromaPlanes);
-    
+
     // Encode the frame
     encoder_->EncodeFrame(vPacket, &picParams);
   } catch (const std::exception& e) {
@@ -234,7 +234,7 @@ void NvVideoEncoderOp::compute(InputContext& op_input, OutputContext& op_output,
     HOLOSCAN_LOG_ERROR("More than one encoded frame found: {}. Using the first one.",
                        vPacket.size());
   }
-  
+
   auto out_message = nvidia::gxf::Entity::New(context.context());
   if (!out_message) {
     throw std::runtime_error("Failed to create output entity");
@@ -251,9 +251,7 @@ void NvVideoEncoderOp::compute(InputContext& op_input, OutputContext& op_output,
   out_tensor.value()->reshape<uint8_t>(
       shape, nvidia::gxf::MemoryStorageType::kHost, allocator.value());
 
-  memcpy(out_tensor.value()->pointer(),
-       vPacket[0].frame.data(),
-       vPacket[0].frame.size());
+  memcpy(out_tensor.value()->pointer(), vPacket[0].frame.data(), vPacket[0].frame.size());
 
   auto emit_timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
                             std::chrono::steady_clock::now().time_since_epoch())
