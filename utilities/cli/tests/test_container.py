@@ -94,7 +94,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
         self.assertTrue(self.container.image_name in cmd)
-        self.assertIn('"c 81:* rmw"', cmd)
+        self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
 
