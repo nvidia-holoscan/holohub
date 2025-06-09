@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import argparse
+import atexit
 import logging
 import os
 import subprocess
@@ -23,6 +24,18 @@ import time
 from collections import defaultdict
 
 from nvitop import Device
+
+# Ensure utility module is on import path
+sys.path.append(os.path.dirname(__file__))
+from patch_python_sources import patch_directory, restore_backups
+
+# Add holohub root to path for importing utilities
+script_dir = os.path.dirname(os.path.abspath(__file__))
+holohub_root = os.path.abspath(os.path.join(script_dir, os.pardir, os.pardir))
+if holohub_root not in sys.path:
+    sys.path.insert(0, holohub_root)
+
+from utilities.cli.holohub import HoloHubCLI  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
@@ -189,6 +202,22 @@ assignment in Holoscan's Inference operator.",
     parser.add_argument("--level", type=str, default="INFO", help="Logging verbosity level")
 
     args = parser.parse_args()
+
+    # Determine accurate application source directory using HoloHub metadata
+    cli = HoloHubCLI()
+    try:
+        proj = cli._find_project(args.holohub_application, language=args.language)
+        app_root = proj.get("source_folder", "")
+    except Exception:
+        app_root = os.path.abspath(
+            os.path.join(holohub_root, "applications", args.holohub_application)
+        )
+
+    backups_list = []
+    if app_root and os.path.isdir(app_root):
+        backups_list = patch_directory(app_root, script_dir)
+
+    atexit.register(lambda: restore_backups(backups_list))
 
     if (
         "multithread" not in args.sched
