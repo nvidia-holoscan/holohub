@@ -320,9 +320,7 @@ def _print_instance_properties(obj: object, pre_fix: str = "", print_val=True):
 def test():
     from pathlib import Path
 
-    from operators.medical_imaging.operators.dicom_data_loader_operator import (
-        DICOMDataLoaderOperator,
-    )
+    from operators.medical_imaging.dicom_data_loader_operator import DICOMDataLoaderOperator
 
     current_file_dir = Path(__file__).parent.resolve()
     data_path = current_file_dir.joinpath("../../../inputs/spleen_ct/dcm").absolute()

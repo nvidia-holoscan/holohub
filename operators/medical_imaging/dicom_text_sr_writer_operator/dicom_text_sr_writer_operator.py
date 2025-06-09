@@ -21,7 +21,7 @@ from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
 from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
-from operators.medical_imaging.operators.dicom_utils import (
+from operators.medical_imaging.utils.dicom_utils import (
     EquipmentInfo,
     ModelInfo,
     save_dcm_file,

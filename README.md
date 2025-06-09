@@ -65,7 +65,7 @@ To build and run in a containerized environment you will need:
   - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
   - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
   - `git` version control
-  - (optional) A [Python3](https://www.python.org/downloads/) base installation to run the `holohub` infrastructure script
+  - (optional) A [Python3 3.9+](https://www.python.org/downloads/) base installation to run the `holohub` infrastructure script
 
 You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 
@@ -118,7 +118,7 @@ Check to verify that the image is created:
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
-holohub         ngc-v3.2.0-dgpu   17e3aa51f129   13 days ago     13.2GB
+holohub         ngc-v3.3.0-dgpu   17e3aa51f129   13 days ago     13.2GB
 ...
 ```
 
