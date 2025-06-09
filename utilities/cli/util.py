@@ -24,6 +24,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+PROJECT_PREFIXES = {
+    "application": "APP",
+    "benchmark": "APP",
+    "operator": "OP",
+    "package": "PKG",
+    "workflow": "APP",
+    "default": "APP",  # specified type but not recognized
+}
+
 
 class Color:
     """Utility class for terminal color formatting"""
@@ -72,6 +81,15 @@ def get_timestamp() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_cmd(command: str, is_dryrun: bool = False) -> str:
+    """Format command output with consistent timestamp and color formatting"""
+    timestamp = Color.blue(get_timestamp())
+    if is_dryrun:
+        dryrun_tag = Color.cyan("[dryrun]")
+        return f"{timestamp} {dryrun_tag} {Color.white('$')} {Color.green(command)}"
+    return f"{timestamp} {Color.white('$')} {Color.green(command)}"
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -92,12 +110,10 @@ def run_command(
         cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
         cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
-        print(
-            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
-        )
+        print(format_cmd(cmd_str, is_dryrun=True))
         return subprocess.CompletedProcess(cmd_str, 0)
 
-    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
+    print(format_cmd(cmd_str))
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
@@ -196,6 +212,13 @@ def normalize_language(language: str) -> Optional[str]:
     elif language.lower() == "python" or language.lower() == "py":
         return "python"
     return None
+
+
+def determine_project_prefix(project_type: str) -> str:
+    type_str = project_type.lower().strip()
+    if type_str in PROJECT_PREFIXES:
+        return PROJECT_PREFIXES[type_str]
+    return PROJECT_PREFIXES["default"]
 
 
 def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
@@ -380,3 +403,19 @@ def levenshtein_distance(s1: str, s2: str) -> int:
         previous_row = current_row
 
     return previous_row[-1]
+
+
+def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
+    """Get list of directories from CMakeLists.txt files"""
+    results = []
+    for cmakelists in script_dir.rglob("CMakeLists.txt"):
+        with open(cmakelists) as f:
+            content = f.read()
+            for line in content.splitlines():
+                if cmake_function in line:
+                    try:
+                        name = line.split("(")[1].split(")")[0].strip()
+                        results.append(name)
+                    except IndexError:
+                        continue
+    return sorted(results)
