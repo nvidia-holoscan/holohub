@@ -76,7 +76,7 @@ inline int EnabledDirections(const std::string& dir) {
  *    INVALID_CONFIG: Invalid configuration
  *    INTERNAL_ERROR: Internal error
  */
-Status adv_net_init(NetworkConfig &config);
+Status adv_net_init(NetworkConfig& config);
 
 /**
  * @brief Returns a manager type
@@ -129,7 +129,7 @@ void* get_packet_ptr(BurstParams* burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
 
 /**
  * @brief Get packet length of an entire packet
@@ -138,7 +138,7 @@ uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t get_packet_length(BurstParams* burst, int idx);
+uint32_t get_packet_length(BurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet
@@ -442,6 +442,15 @@ Status get_rx_burst(BurstParams** burst, int port);
 Status get_rx_burst(BurstParams** burst);
 
 /**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param conn_id Connection ID
+ * @param server True if server, false if client
+ */
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure
@@ -482,6 +491,18 @@ void print_stats();
  */
 uint16_t get_num_rx_queues(int port_id);
 
+// RDMA functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id);
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue);
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id);
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
+RDMAOpCode rdma_get_opcode(BurstParams* burst);
+
 };  // namespace holoscan::advanced_network
 
 template <>
@@ -519,6 +540,16 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_memory_region_config(
       const YAML::Node& mr, holoscan::advanced_network::MemoryRegionConfig& memory_region);
+
+  /**
+   * @brief Parse RDMA configuration from a YAML node.
+   *
+   * @param rdma_item The YAML node containing the RDMA configuration.
+   * @param rdma The RDMAConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rdma_config(
+      const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma);
 
   /**
    * @brief Parse common RX queue configuration from a YAML node.
@@ -563,7 +594,6 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_tx_queue_common_config(
       const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
-
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.
@@ -645,6 +675,13 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
+
+          // RDMA config
+          holoscan::advanced_network::RDMAConfig rdma;
+          if (!parse_rdma_config(intf["rdma_config"], rdma)) {
+            HOLOSCAN_LOG_DEBUG("Failed to parse RDMA config");
+          }
+          ifcfg.rdma_ = rdma;
 
           try {
             const auto& rx = intf["rx"];
