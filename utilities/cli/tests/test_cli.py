@@ -204,7 +204,7 @@ class TestHoloHubCLI(unittest.TestCase):
         kwargs = mock_container.run.call_args[1]
         cmd_string = kwargs["extra_args"][1]
         self.assertIn("./holohub run test_project", cmd_string)
-        self.assertIn("--run_args", cmd_string)
+        self.assertIn("--run-args", cmd_string)
         self.assertIn(quoted_value, cmd_string)
 
     def test_list_command(self):
