@@ -29,9 +29,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup
+# Holohub CLI setup
 #
 
+# Install python3 if not present (needed for holohub CLI)
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update && apt-get install -y python3 python3-pip; \
+    fi
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities

@@ -54,8 +54,32 @@ class HoloHubCLI:
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
+        # Store subparsers for error handling
+        self.subparsers = {}
+
+        # Common container build arguments parent parser
+        container_build_argparse = argparse.ArgumentParser(add_help=False)
+        container_build_argparse.add_argument(
+            "--base-img", help="(Build container) Fully qualified base image name"
+        )
+        container_build_argparse.add_argument(
+            "--docker-file", help="(Build container) Path to Dockerfile to use"
+        )
+        container_build_argparse.add_argument(
+            "--img", help="(Build container) Specify fully qualified container name"
+        )
+        container_build_argparse.add_argument(
+            "--no-cache",
+            action="store_true",
+            help="(Build container) Do not use cache when building the image",
+        )
+        container_build_argparse.add_argument(
+            "--build-args",
+            help="(Build container) Provides extra arguments to docker build command",
+        )
         # Add create command
         create = subparsers.add_parser("create", help="Create a new Holoscan application")
+        self.subparsers["create"] = create
         create.add_argument("project", help="Name of the project to create")
         create.add_argument(
             "--template",
@@ -98,20 +122,14 @@ class HoloHubCLI:
 
         # build-container command
         build_container = subparsers.add_parser(
-            "build-container", help="Build the development container"
+            "build-container",
+            help="Build the development container",
+            parents=[container_build_argparse],
         )
+        self.subparsers["build-container"] = build_container
         build_container.add_argument("project", nargs="?", help="Project to build container for")
-        build_container.add_argument("--base-img", help="Fully qualified base image name")
-        build_container.add_argument("--docker-file", help="Path to Dockerfile to use")
-        build_container.add_argument("--img", help="Specify fully qualified container name")
         build_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker build command"
-        )
-        build_container.add_argument(
-            "--no-cache", action="store_true", help="Do not use cache when building the image"
-        )
-        build_container.add_argument(
-            "--build-args", help="Provides extra arguments to docker build command"
         )
         build_container.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
@@ -123,10 +141,12 @@ class HoloHubCLI:
 
         # run-container command
         run_container = subparsers.add_parser(
-            "run-container", help="Build and launch the development container"
+            "run-container",
+            help="Build and launch the development container",
+            parents=[container_build_argparse],
         )
+        self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
-        run_container.add_argument("--img", help="Fully qualified image name")
         run_container.add_argument(
             "--local-sdk-root",
             help="Path to Holoscan SDK used for building local Holoscan SDK container",
@@ -154,7 +174,10 @@ class HoloHubCLI:
         run_container.set_defaults(func=self.handle_run_container)
 
         # build command
-        build = subparsers.add_parser("build", help="Build a project")
+        build = subparsers.add_parser(
+            "build", help="Build a project", parents=[container_build_argparse]
+        )
+        self.subparsers["build"] = build
         build.add_argument("project", help="Project to build")
         build.add_argument(
             "--local", action="store_true", help="Build locally instead of in container"
@@ -182,7 +205,10 @@ class HoloHubCLI:
         build.set_defaults(func=self.handle_build)
 
         # run command
-        run = subparsers.add_parser("run", help="Build and run a project")
+        run = subparsers.add_parser(
+            "run", help="Build and run a project", parents=[container_build_argparse]
+        )
+        self.subparsers["run"] = run
         run.add_argument("project", help="Project to run")
         run.add_argument("--local", action="store_true", help="Run locally instead of in container")
         run.add_argument("--verbose", action="store_true", help="Print extra output")
@@ -215,10 +241,12 @@ class HoloHubCLI:
 
         # list command
         list_cmd = subparsers.add_parser("list", help="List all available targets")
+        self.subparsers["list"] = list_cmd
         list_cmd.set_defaults(func=self.handle_list)
 
         # lint command
         lint = subparsers.add_parser("lint", help="Run linting tools")
+        self.subparsers["lint"] = lint
         lint.add_argument("path", nargs="?", default=".", help="Path to lint")
         lint.add_argument("--fix", action="store_true", help="Fix linting issues")
         lint.add_argument(
@@ -233,13 +261,17 @@ class HoloHubCLI:
 
         # setup command
         setup = subparsers.add_parser("setup", help="Install HoloHub main required packages")
+        self.subparsers["setup"] = setup
         setup.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         setup.set_defaults(func=self.handle_setup)
 
         # Add install command
-        install = subparsers.add_parser("install", help="Install a project")
+        install = subparsers.add_parser(
+            "install", help="Install a project", parents=[container_build_argparse]
+        )
+        self.subparsers["install"] = install
         install.add_argument("project", help="Project to install")
         install.add_argument(
             "--local", action="store_true", help="Install locally instead of in container"
@@ -268,6 +300,7 @@ class HoloHubCLI:
 
         # Add test command
         test = subparsers.add_parser("test", help="Test a project")
+        self.subparsers["test"] = test
         test.add_argument("project", nargs="?", help="Project to test")
         test.add_argument("--base_img", help="Fully qualified base image name")
         test.add_argument("--build_args", help="Additional options to pass to the Docker build")
@@ -286,6 +319,7 @@ class HoloHubCLI:
 
         # Add clear-cache command
         clear_cache = subparsers.add_parser("clear-cache", help="Clear cache folders")
+        self.subparsers["clear-cache"] = clear_cache
         clear_cache.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
@@ -372,7 +406,13 @@ class HoloHubCLI:
         )
 
         container.dryrun = args.dryrun
-        container.build()
+        container.build(
+            docker_file=args.docker_file,
+            base_img=args.base_img,
+            img=args.img,
+            no_cache=args.no_cache,
+            build_args=args.build_args,
+        )
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -528,7 +568,13 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
             )
             container.dryrun = args.dryrun
-            container.build()
+            container.build(
+                docker_file=args.docker_file,
+                base_img=args.base_img,
+                img=args.img,
+                no_cache=args.no_cache,
+                build_args=args.build_args,
+            )
 
             # Build command with all necessary arguments
             build_cmd = f"{self.script_name} build {args.project} --local"
@@ -686,7 +732,13 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
             )
             container.dryrun = args.dryrun
-            container.build()
+            container.build(
+                docker_file=args.docker_file,
+                base_img=args.base_img,
+                img=args.img,
+                no_cache=args.no_cache,
+                build_args=args.build_args,
+            )
             # Get language before launching container
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1251,7 +1303,13 @@ class HoloHubCLI:
                 language=getattr(args, "language", None),
             )
             container.dryrun = args.dryrun
-            container.build()
+            container.build(
+                docker_file=args.docker_file,
+                base_img=args.base_img,
+                img=args.img,
+                no_cache=args.no_cache,
+                build_args=args.build_args,
+            )
 
             # Install command with all necessary arguments
             install_cmd = f"{self.script_name} install {args.project} --local"
@@ -1394,7 +1452,17 @@ class HoloHubCLI:
 
     def run(self) -> None:
         """Main entry point for the CLI"""
-        args = self.parser.parse_args()
+        try:
+            args = self.parser.parse_args()
+        except SystemExit as e:
+            if len(sys.argv) > 1:
+                potential_command = sys.argv[1]
+                if potential_command in self.subparsers:
+                    # Show help for the specific subcommand
+                    print(f"\nError parsing arguments for '{potential_command}' command.\n")
+                    self.subparsers[potential_command].print_help()
+                    sys.exit(e.code if e.code is not None else 1)
+            raise
         if hasattr(args, "func"):
             args.func(args)
         else:
