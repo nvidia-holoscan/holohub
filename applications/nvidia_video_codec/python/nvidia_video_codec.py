@@ -16,7 +16,7 @@
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application
+from holoscan.core import Application, Operator, Tracker
 from holoscan.operators import FormatConverterOp, HolovizOp, VideoStreamReplayerOp
 from holoscan.resources import (  # UnboundedAllocator,
     BlockMemoryPool,
@@ -27,6 +27,34 @@ from holoscan.resources import (  # UnboundedAllocator,
 
 from holohub.nv_video_decoder import NvVideoDecoderOp
 from holohub.nv_video_encoder import NvVideoEncoderOp
+
+class StatsOp(Operator):
+    def __init__(self, app, *args, **kwargs):
+        self.encode_latency = []
+        self.decode_latency = []
+        self.jitter_time = []
+        self.fps = []
+        self.first_frame_ignored = False
+        super().__init__(app, *args, **kwargs)
+        
+    def setup(self, spec):
+        spec.input("input")
+
+    def compute(self, op_input, op_output, context):
+        _ = op_input.receive("input")
+        if not self.first_frame_ignored:
+            self.first_frame_ignored = True
+            return
+
+        self.encode_latency.append(self.metadata["video_encoder_encode_latency_ms"])
+        self.decode_latency.append(self.metadata["video_decoder_decode_latency_ms"])
+        self.jitter_time.append(self.metadata["jitter_time"])
+        self.fps.append(self.metadata["fps"])
+
+        print(f"Encode Latency (min, max, avg): {min(self.encode_latency):.3f}, {max(self.encode_latency):.3f}, {sum(self.encode_latency) / len(self.encode_latency):.3f}")
+        print(f"Decode Latency (min, max, avg): {min(self.decode_latency):.3f}, {max(self.decode_latency):.3f}, {sum(self.decode_latency) / len(self.decode_latency):.3f}")
+        print(f"Jitter Time (min, max, avg): {min(self.jitter_time):.3f}, {max(self.jitter_time):.3f}, {sum(self.jitter_time) / len(self.jitter_time):.3f}")
+        print(f"FPS (min, max, avg): {min(self.fps):.3f}, {max(self.fps):.3f}, {sum(self.fps) / len(self.fps):.3f}")
 
 
 class NVIDIAVideoCodecApp(Application):
@@ -115,10 +143,13 @@ class NVIDIAVideoCodecApp(Application):
             **self.kwargs("holoviz"),
         )
 
+        stats = StatsOp(self, name="stats")
+
         self.add_flow(source, format_converter, {("output", "source_video")})
         self.add_flow(format_converter, encoder, {("tensor", "input")})
         self.add_flow(encoder, decoder, {("output", "input")})
         self.add_flow(decoder, visualizer, {("output", "receivers")})
+        self.add_flow(decoder, stats, {("output", "input")})
 
 
 if __name__ == "__main__":
@@ -156,4 +187,7 @@ if __name__ == "__main__":
 
     app = NVIDIAVideoCodecApp(data=args.data)
     app.config(config_file)
-    app.run()
+    with Tracker(app) as tracker:
+        app.run()
+        tracker.print()
+

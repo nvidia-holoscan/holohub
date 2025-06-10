@@ -260,8 +260,8 @@ void NvVideoEncoderOp::compute(InputContext& op_input, OutputContext& op_output,
   auto meta = metadata();
   auto encode_latency_ms = (emit_timestamp - enter_timestamp) / 1000000.0;
   auto compress_ratio = data_size / vPacket[0].frame.size();
-  meta->set("video_encoder_encode_latency_ms"s, encode_latency_ms);
-  meta->set("video_encoder_compress_ratio"s, compress_ratio);
+  meta->set("video_encoder_encode_latency_ms", encode_latency_ms);
+  meta->set("video_encoder_compress_ratio", compress_ratio);
   // Transmit the output message
   auto result = nvidia::gxf::Entity(std::move(out_message.value()));
   op_output.emit(result, "output");

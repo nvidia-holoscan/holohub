@@ -31,8 +31,8 @@ resources:
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
-  repeat: true    # default: false
-  realtime: true  # default: true
+  repeat: false    # default: false
+  realtime: false  # default: false
   count: 0        # default: 0 (no frame count restriction)
 
 holoviz:
@@ -49,7 +49,7 @@ encoder:
   cuda_device_ordinal: 0
   bitrate: 10000000
   frame_rate: 60
-  rate_control_mode: 0 # 0: Constant QP, 1: Variable bitrate, 2: Constant bitrate
+  rate_control_mode: 1 # 0: Constant QP, 1: Variable bitrate, 2: Constant bitrate
   multi_pass_encoding: 1 # 0: Disabled, 1: Quarter resolution, 2: Full resolution
 
 decoder:
