@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -euo pipefail
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DO_DRY_RUN="false"
 HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-python3}
@@ -304,16 +306,6 @@ print_warning() {
 }
 
 
-check_exit_code() {
-  local exit_code=$1
-  local message=$2
-
-  if [ $exit_code -ne 0 ]; then
-      print_error "$message (Exit code: $ret)"
-      exit $exit_code
-  fi
-}
-
 #===========================================================================================
 # Helper function to install packages
 
@@ -321,7 +313,7 @@ install_cuda_dependencies_package() {
    package_name=$1
    preferred_version=$2
    optional=false
-   if [ -n "$3" ]; then
+   if [ -n "${3:-}" ]; then
      optional=true
    fi
 
@@ -372,7 +364,7 @@ setup() {
 
   # Check version of CMake otherwise upgrade
   cmake_version=$(cmake --version | head -1 | cut -d' ' -f3)
-  cmake_need_upload=$(compare_version ${cmake_version} "3.24.0")
+  cmake_need_upload=$(compare_version ${cmake_version} "3.24.0" || true)
 
   # If we should update cmake
   # Install from https://apt.kitware.com/
@@ -393,8 +385,8 @@ setup() {
 
   # Check if python is missing, too low, or too high
   python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
-  python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
-  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
+  python3_min_version=$(compare_version ${python3_dev_version} "3.9.0" || true)
+  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0" || true)
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
     apt_deps+=("python3")
     apt_deps+=("python3-dev")
@@ -446,7 +438,7 @@ setup() {
   # Find the newest cudart version installed
   for version in 12-9 12-8 12-6 12-5 12-4 12-3 12-2 12-1 12-0
    do
-      cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
+      cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*' || true)
       # Find the version based on cudart
       if [[ $cuda_version != "" ]]; then
         break
@@ -718,7 +710,7 @@ build() {
   local arg
   local skipnext=0
   local build_type="${CMAKE_BUILD_TYPE:-release}"
-  local build_path="${CMAKE_BUILD_PATH}"
+  local build_path="${CMAKE_BUILD_PATH:-}"
   local benchmark=false
   local install=false
   local parallel_jobs=""
@@ -772,7 +764,7 @@ build() {
   done
 
   # Package, application or operator to build
-  if [ "$1" == "" ]; then
+  if [ "${1:-}" == "" ]; then
     print_error "Please specify which package, application, or operator to build."
     echo "You can run ./run list for a full list of options."
     exit 1
@@ -831,22 +823,16 @@ build() {
   # Sets the default path for cuda
   export PATH=$PATH:/usr/local/cuda/bin
   run_command cmake -S . -B ${build_path} ${configure_args}
-  ret=$?
-  check_exit_code $ret "Error building $project."
   # Job concurrency determined by the underlying build tool unless a number is specified
   run_command cmake --build ${build_path} -j ${parallel_jobs}
-  ret=$?
-  check_exit_code $ret "Error building $project."
 
   if [ $install == true ]; then
     run_command cmake --install ${build_path}
-    ret=$?
-    check_exit_code $ret "Error installing $project."
   fi
 
   if [ $benchmark == true ] && [ $is_app == true ]; then
     app_source_root_path=$(get_app_source_root_dir $1)
-    run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path}
+    run_command benchmarks/holoscan_flow_benchmarking/restore_application.sh ${app_source_root_path} || true
   fi
 
   if [ $is_pkg == true ]; then
@@ -1012,7 +998,7 @@ for k, v in obj[project_type]["run"].items():
    fi
 
    local environment="export PYTHONPATH=\${PYTHONPATH}:${holoscan_sdk_install}/../../../python/lib:${holohub_build_dir}/python/lib:${SCRIPT_DIR} && export HOLOHUB_DATA_PATH=${holohub_data_dir} && export HOLOSCAN_INPUT_PATH=${HOLOSCAN_INPUT_PATH:=$holohub_data_dir}"
-   local reset_environment="export PYTHONPATH=${PYTHONPATH} && export HOLOHUB_DATA_PATH=\"${HOLOHUB_DATA_PATH}\" && export HOLOSCAN_INPUT_PATH=\"${HOLOSCAN_INPUT_PATH}\""
+   local reset_environment="export PYTHONPATH=${PYTHONPATH} && export HOLOHUB_DATA_PATH=\"${HOLOHUB_DATA_PATH:-}\" && export HOLOSCAN_INPUT_PATH=\"${HOLOSCAN_INPUT_PATH}\""
 
    if [ ${verbose} ]; then
     echo "Run environment: $environment"
@@ -1158,13 +1144,14 @@ parse_args() {
     done
     shift $((OPTIND-1))
 
-    CMD="$1"
+    CMD="${1:-}"
     shift
 
     ARGS=("$@")
     # Check if the command has `--help`, `-h`, and override the CMD
     local i
     local arg
+    local unset_pos=""
     extra_args=false
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
@@ -1209,7 +1196,7 @@ print_usage() {
 }
 
 print_cmd_help_messages() {
-    local cmd="$1"
+    local cmd="${1:-}"
     if [ -n "${cmd}" ]; then
         if type ${cmd}_desc > /dev/null 2>&1; then
             ${cmd}_desc
