@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [main, holoscan-sdk-lws2, fixes-docker]
+    branches: [main, holoscan-sdk-lws2]
 
 permissions:
   contents: read
@@ -49,18 +49,3 @@ jobs:
         run: |
           cd build
           ctest --verbose
-
-  check-docker-build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run Docker build
-        run: |
-          ./holohub build-container --base-img ubuntu:22.04
-          if command -v nvidia-ctk >/dev/null 2>&1; then
-            ./holohub run-container --base-img ubuntu:22.04
-          else
-            echo "Skipping run-container: NVIDIA Container Toolkit not available"
-          fi
