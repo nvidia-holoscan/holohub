@@ -271,16 +271,51 @@ setup() {
   cmake_version=$(dpkg --status cmake | grep -Po '^Version: \K[^-]*')
   ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
 
-  cmake_need_upload=$(compare_version ${cmake_version} "3.24.0")
+  cmake_need_upload=$(compare_version ${cmake_version} "3.27.4")
 
   # If we should update cmake
-  # Install from https://apt.kitware.com/
   if [[ $cmake_version == "" ]] || [[ $cmake_need_upload == 2 ]]; then
-    apt install --no-install-recommends -y gpg
-    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${ubuntu_codename} main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-    apt-get update
-    apt install --no-install-recommends -y cmake cmake-curses-gui
+    echo "Installing CMake from GitHub releases..."
+
+    # Create temporary directory for CMake installation
+    local cmake_temp_dir=$(mktemp -d)
+    pushd ${cmake_temp_dir} > /dev/null
+
+    # Download CMake binary
+    if [ $(uname -m) == "aarch64" ]; then
+      wget https://github.com/Kitware/CMake/releases/download/v3.27.4/cmake-3.27.4-linux-aarch64.tar.gz
+      tar -xzf cmake-3.27.4-linux-aarch64.tar.gz
+      cmake_dir="cmake-3.27.4-linux-aarch64"
+    else
+      wget https://github.com/Kitware/CMake/releases/download/v3.27.4/cmake-3.27.4-linux-x86_64.tar.gz
+      tar -xzf cmake-3.27.4-linux-x86_64.tar.gz
+      cmake_dir="cmake-3.27.4-linux-x86_64"
+    fi
+
+    # Install CMake
+    cp -r ${cmake_dir}/* /usr/local/
+    ln -sf /usr/local/bin/cmake /usr/bin/cmake
+    ln -sf /usr/local/bin/ctest /usr/bin/ctest
+    ln -sf /usr/local/bin/ccmake /usr/bin/ccmake
+
+    # Cleanup
+    popd > /dev/null
+    rm -rf ${cmake_temp_dir}
+
+    # Verify installation
+    if ! command -v cmake &> /dev/null; then
+      print_error "Failed to install CMake. Please install it manually and try again."
+      exit 1
+    fi
+
+    # Verify CMake version
+    cmake_installed_version=$(cmake --version | head -n1 | grep -Po '^cmake version \K[^-]*')
+    if [[ $(compare_version ${cmake_installed_version} "3.27.4") != "0" ]]; then
+      print_error "CMake version ${cmake_installed_version} is not the expected version 3.27.4"
+      exit 1
+    fi
+
+    echo "CMake installed successfully"
   fi
 
   # Install python dev
