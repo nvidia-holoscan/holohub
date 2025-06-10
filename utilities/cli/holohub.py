@@ -1459,7 +1459,10 @@ class HoloHubCLI:
                 potential_command = sys.argv[1]
                 if potential_command in self.subparsers:
                     # Show help for the specific subcommand
-                    print(f"\nError parsing arguments for '{potential_command}' command.\n")
+                    print(
+                        f"\nError parsing arguments for '{potential_command}' command.\n",
+                        file=sys.stderr,
+                    )
                     self.subparsers[potential_command].print_help()
                     sys.exit(e.code if e.code is not None else 1)
             raise
