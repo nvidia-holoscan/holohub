@@ -320,7 +320,6 @@ def install_cuda_dependencies_package(
         print(f"Installing {package_name}={matching_version}")
         run_command(
             [
-                "sudo",
                 "apt",
                 "install",
                 "--no-install-recommends",
