@@ -285,7 +285,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     auto meta = metadata();
     auto decode_latency_ms = (emit_timestamp - enter_timestamp) / 1000000.0;
     meta->set("video_decoder_decode_latency_ms"s, decode_latency_ms);
-    meta->set("jitter_time"s, emit_timestamp - last_emit_timestamp_);
+    meta->set("jitter_time"s, (emit_timestamp - last_emit_timestamp_) / 1000000.0);
     meta->set("fps"s,
               last_emit_timestamp_ == 0
                   ? 0
